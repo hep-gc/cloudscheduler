@@ -92,10 +92,8 @@ def create_RSTs(gvar, type):
 
             for key in sorted(gvar['schema'][type][table]['Keys']):
                 if gvar['schema_states']['%s/%s/Keys/%s' % (type, table, key)] == 1:
-#                   fd.write('* **%s** (obsolete):\n\n   * Format: %s\n   * Synopsis:\n' % (key, gvar['schema'][type][table]['Keys'][key]['Format']))
                     fd.write('* **%s** (%s, obsolete):\n\n' % (key, gvar['schema'][type][table]['Keys'][key]['Format']))
                 else:
-#                   fd.write('* **%s**:\n\n   * Format: %s\n   * Synopsis:\n' % (key, gvar['schema'][type][table]['Keys'][key]['Format']))
                     fd.write('* **%s** (%s):\n\n' % (key, gvar['schema'][type][table]['Keys'][key]['Format']))
 
                 write_RSTs_synopsis(gvar, fd, 6, gvar['schema'][type][table]['Keys'][key]['Synopsis'])
@@ -104,15 +102,12 @@ def create_RSTs(gvar, type):
 
             for column in sorted(gvar['schema'][type][table]['Columns']):
                 if gvar['schema_states']['%s/%s/Columns/%s' % (type, table, column)] == 1:
-#                   fd.write('* **%s** (obsolete):\n\n   * Format: %s\n   * Synopsis:\n' % (column, gvar['schema'][type][table]['Columns'][column]['Format']))
                     fd.write('* **%s** (%s, obsolete):\n\n' % (column, gvar['schema'][type][table]['Columns'][column]['Format']))
                 else:
-#                   fd.write('* **%s**:\n\n   * Format: %s\n   * Synopsis:\n' % (column, gvar['schema'][type][table]['Columns'][column]['Format']))
                     fd.write('* **%s** (%s):\n\n' % (column, gvar['schema'][type][table]['Columns'][column]['Format']))
 
                 write_RSTs_synopsis(gvar, fd, 6, gvar['schema'][type][table]['Columns'][column]['Synopsis'])
 
-#       if not os.path.exists(rst_path) or not equal_files(gvar['tempfile'].name, rst_path, shallow=False):
         if not os.path.exists(rst_path) or not equal_files(gvar, gvar['tempfile'].name, rst_path):
             print("Updating:", rst_path)
             copyfile(gvar['tempfile'].name, rst_path)
@@ -175,6 +170,10 @@ def main(args):
 
     schema_yaml_get(gvar, 'tables')
     schema_yaml_get(gvar, 'views')
+
+    resolve_references(gvar, 'tables')
+    resolve_references(gvar, 'views')
+
     gvar['schema_copy'] = deepcopy(gvar['schema'])
 
     with open('%s/etc/schema_backup.conf' % gvar['base_dir']) as fd:
@@ -424,7 +423,7 @@ def schema_yaml_get(gvar, type):
                 try:
                     table_doc = yaml.full_load(fd.read())
                 except Exception as ex:
-                    print('Skipping invalid yaml "%s": %s' % (table_path, ex))
+                    print('ERROR: Skipping invalid yaml "%s": %s' % (table_path, ex))
                     gvar['schema'][type][table] = {}
                     continue
 
@@ -442,6 +441,97 @@ def schema_yaml_get(gvar, type):
                     gvar['schema_states']['%s/%s/%s/%s' % (type, table, 'Columns', column)] = default_state
             else:
                 gvar['schema'][type][table]['Columns'] = {}
+
+def resolve_references(gvar, type):
+    """
+    Replace a reference with the text being referenced.
+
+    Synopsis can contain contain reference strings in the following forms:
+    
+       - REF=(tables/<table_name>)
+       - REF=(tables/<table_name>/Keys/<key_name>)
+       - REF=(tables/<table_name>/Columns/<col_name>)
+       - REF=(views/<view_name>)
+       - REF=(views/<view_name>/Keys/<key_name>)
+       - REF=(views/<view_name>/Columns/<col_name>)
+    
+    Each of these reference points to a synopsis location. Since synopsis can support 
+    one or more paragraphs, each of these references can be qualified with:
+
+       - /N
+
+    Where N is the index of the paragraph that is being referenced (as opposed to 
+    the whole synopsis), for example:
+
+       - REF=(tables/<table_name>/Columns/<col_name>/N)
+
+    """
+    
+    def deref(parent_dict, child_keys):
+        if len(child_keys)>0:
+            try:
+                return deref(parent_dict[child_keys[0]], child_keys[1:])
+            except:
+                return None
+
+        return parent_dict
+    
+    def resolve_references_in_synopsis(gvar, parent_keys):
+        parent = deref(gvar['schema'], parent_keys)
+        if 'Synopsis' in parent and parent['Synopsis']:
+            refs = parent['Synopsis'].split('REF=(')
+            if len(refs) > 1:
+                for ix in range(1, len(refs)):
+                    ref = refs[ix].split(')', 1)
+                    if len(ref[0]) > 0:
+                        key_list = ref[0].split('/')
+                        if len(key_list) > 0:
+                            try:
+                                pix = int(key_list[-1])
+                            except:
+                                pix = -1
+
+                        if pix >= 0:
+                            ref_target = deref(gvar['schema'], key_list[:-1])
+                        else:
+                            ref_target = deref(gvar['schema'], key_list)
+
+                        if ref_target:
+                            if 'Synopsis' in ref_target:
+                                if pix > -1:
+                                    paras = ref_target['Synopsis'].split('\n')
+                                    if pix < len(paras):
+                                        refs[ix] = '%s%s' % (paras[pix], ref[1])
+                                    else:
+                                        print('ERROR: Invalid paragraph reference: %s -> %s' % ('/'.join(parent_keys), ref[0]))
+                                        return
+                                else:
+                                    if len(ref) > 1:
+                                        refs[ix] = '%s%s' % (ref_target['Synopsis'], ref[1])
+                                    else:
+                                        refs[ix] = ref_target['Synopsis']
+                            else:
+                                print('ERROR: Invalid reference, no synopsis: %s -> %s' % ('/'.join(parent_keys), ref[0]))
+                                return
+                        else:
+                            print('ERROR: Invalid reference keys: %s -> %s' % ('/'.join(parent_keys), ref[0]))
+                            return
+                    else:
+                        print('ERROR: Invalid reference, zero length: %s -> %s' % ('/'.join(parent_keys), ref[0]))
+                        return
+
+                parent['Synopsis'] = ''.join(refs)
+
+    for table_view in gvar['schema'][type]:
+        resolve_references_in_synopsis(gvar, [type, table_view])
+
+        if 'Keys' in gvar['schema'][type][table_view]:
+            for key in gvar['schema'][type][table_view]['Keys']:
+                resolve_references_in_synopsis(gvar, [type, table_view, 'Keys', key])
+
+        if 'Columns' in gvar['schema'][type][table_view]:
+            for column in gvar['schema'][type][table_view]['Columns']:
+                resolve_references_in_synopsis(gvar, [type, table_view, 'Columns', column])
 
 def schema_yaml_put(gvar, type):
     def schema_yaml_put_synopsis(gvar, fd, indent, text):
