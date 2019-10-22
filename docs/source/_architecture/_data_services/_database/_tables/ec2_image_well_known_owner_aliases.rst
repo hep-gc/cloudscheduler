@@ -20,10 +20,6 @@ Users may employ these aliases when selecting images for inclusion in their
 cloud configuration. For more information about image filtering refer to the description
 of the CSV2 table ec2_image_filters.
 
-These aliases are used to populate fields of the User Interface (UI)
-and during the image filtering process (for more information refer to the
-description of the CSV2 table ec2_image_filters).
-
 
 Keys:
 ^^^^^^^^
