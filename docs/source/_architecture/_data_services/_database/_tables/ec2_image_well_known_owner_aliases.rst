@@ -20,11 +20,9 @@ Users may employ these aliases when selecting images for inclusion in their
 cloud configuration. For more information about image filtering refer to the description
 of the CSV2 table ec2_image_filters.
 
-These aliases may be used the image filtering process (see the CSV2
-of specnumbers Amazon EC2 shares many thousands of (kernel) images offered by
-their users. Many of thses images should be of little interest since
-the owner could be anyone who uses Amazon EC2 and the content
-of their images could be unreliable or malicious.
+These aliases are used to populate fields of the User Interface (UI)
+and during the image filtering process (for more information refer to the
+description of the CSV2 table ec2_image_filters).
 
 
 Keys:
