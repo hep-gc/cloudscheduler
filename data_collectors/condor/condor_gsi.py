@@ -113,7 +113,7 @@ def worker_gsi_poller():
             condor_list = config.db_connection.execute('select htcondor_fqdn from condor_worker_gsi;')
             for condor in condor_list:
                 if condor['htcondor_fqdn'] not in condor_dict:
-                    config.db_session.execute('delete from condor_worker_gsi where htcondor_fqdn="%s");' % condor['htcondor_fqdn'])
+                    config.db_session.execute('delete from condor_worker_gsi where htcondor_fqdn="%s";' % condor['htcondor_fqdn'])
                     deleted.append(condor['htcondor_fqdn'])
 
                 if len(deleted) > 0:
@@ -177,7 +177,7 @@ if __name__ == '__main__':
 
     db_category_list = [os.path.basename(sys.argv[0]), "general", "signal_manager", "ProcessMonitor"]
 
-    procMon = ProcessMonitor(config_params=db_category_list, pool_size=4, orange_count_row='csv2_machines_error_count', process_ids=process_ids)
+    procMon = ProcessMonitor(config_params=db_category_list, pool_size=4, orange_count_row='csv2_condor_gsi_error_count', process_ids=process_ids)
     config = procMon.get_config()
     logging = procMon.get_logging()
     version = config.get_version()
