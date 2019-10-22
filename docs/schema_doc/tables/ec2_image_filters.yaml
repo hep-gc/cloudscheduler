@@ -1,14 +1,17 @@
 ec2_image_filters:
     Synopsis:
         "Amazon EC2 shares many thousands of (kernel) images owned and offered by their users. 
-        Many of thses images should be of little interest since the owner could be
+        Many of these images should be of little interest since the owner could be
         anyone who uses Amazon EC2 and the content of their images could be unreliable
         or malicious.
 
-        The fact that there so many images can make the selection of an image for execution
+        The fact that there are so many images can make the selection of an image for execution
         difficult.
         To ease this problem, CSV2 provides the following filtering process:
-        \n* The csv2_ec2 poller retieves only those images from the Amazon EC2 cloud that match
+
+        \nAmazon EC2 Image Information Retrieval
+        \n======================================
+        \nThe csv2_ec2 poller retieves only those images from the Amazon EC2 cloud that match
         owner IDs or owner aliases specified in the image filter (a row of this table) for
         the cloud. 
         The normally small subset of images retrieved are placed in the ec2_images table
@@ -16,7 +19,10 @@ ec2_image_filters:
         csv2_ec2 poller. 
         This primary retieval process is run on a long cycle (the configurable **sleep_interval_image**)
         since owner selection/images shared should be fairly static.
-        \n* CSV2 will only instantiate images listed in the cloud_images table.
+
+        \nAmazon EC2 Image Filtering
+        \n==========================
+        \nCSV2 will only instantiate images listed in the cloud_images table.
         The csv2_ec2 poller must convert ec2_images to cloud_images and when doing so 
         applies all defined filters, including 'like', 'not like', 'os', and 'architecture' in addition to
         the owner information, resulting in a smaller subset of image available for execution.
