@@ -8,6 +8,8 @@
 Database Table: ec2_images
 ==========================
 
+This table lists images available on Amazon EC2 offered by owners specified
+by CSV2 group members with defined 'amazon' clouds.
 
 
 Keys:
@@ -15,12 +17,17 @@ Keys:
 
 * **borrower_id** (String(32)):
 
+      Is the Amazon account ID associated with the CSV2 cloud that retrieved
+      this entry.
 
 * **id** (String(128)):
 
+      This is the unique ID of the image as defined by Amazon
+      EC2.
 
 * **region** (String(32)):
 
+      Is the Amazon EC2 cloud/region this image is available on.
 
 
 Columns:
@@ -28,28 +35,47 @@ Columns:
 
 * **description** (String(256)):
 
+      Is a description of the image, and is optionally set by the
+      owner (see 'location' above).
 
 * **disk_format** (String(128)):
 
+      Is the type of disk required by this image, eg. ebs, instance-store,
+      etc.
 
 * **image_location** (String(512)):
 
+      Is the location of the image.
+
+      The image location must be set by the owner and must be
+      unique. Since this information is normally very descriptive of what the image
+      is, it is generally much more reliable than either the name or
+      the description which are both optional.
 
 * **last_updated** (Integer):
 
+      Is the last time this information was updated.
 
 * **name** (String(256)):
 
+      Is the name of the image, and is optionally set by the
+      owner (see 'location' above).
 
 * **owner_alias** (String(64)):
 
+      Is the Amazon account alias that owns this image.
 
 * **owner_id** (String(32)):
 
+      Is the Amazon account ID that owns this image.
 
 * **size** (Integer):
 
+      Is the number of gigabytes of disk required by this image.
 
 * **visibility** (String(128)):
 
+      Is a string indicating how you have access to this image. You
+      either own it, or it is public, or it is shared with
+      you.
 

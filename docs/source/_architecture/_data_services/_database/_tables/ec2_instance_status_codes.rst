@@ -8,6 +8,8 @@
 Database Table: ec2_instance_status_codes
 =========================================
 
+This translation table maps Amazon EC2 instance status codes to their equivalent
+CSV2 status codes.
 
 
 Keys:
@@ -15,6 +17,7 @@ Keys:
 
 * **ec2_state** (String(32)):
 
+      Is the Amazon EC2 instance status code.
 
 
 Columns:
@@ -22,4 +25,5 @@ Columns:
 
 * **csv2_state** (String(32)):
 
+      Is the equivalent CSV2 VM status code.
 
