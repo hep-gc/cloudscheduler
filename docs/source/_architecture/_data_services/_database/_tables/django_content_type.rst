@@ -11,7 +11,7 @@ Database Table: django_content_type
 
 
 Keys:
-^^^^^^^^
+^^^^^
 
 * **id** (Integer):
 

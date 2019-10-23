@@ -11,7 +11,7 @@ Database Table: auth_permission
 
 
 Keys:
-^^^^^^^^
+^^^^^
 
 * **id** (Integer):
 

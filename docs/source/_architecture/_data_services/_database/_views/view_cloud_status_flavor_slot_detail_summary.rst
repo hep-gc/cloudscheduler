@@ -11,7 +11,7 @@ Database View: view_cloud_status_flavor_slot_detail_summary
 
 
 Keys:
-^^^^^^^^
+^^^^^
 
 
 Columns:

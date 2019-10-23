@@ -11,7 +11,7 @@ Database Table: auth_user
 
 
 Keys:
-^^^^^^^^
+^^^^^
 
 * **id** (Integer):
 

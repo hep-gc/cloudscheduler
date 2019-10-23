@@ -11,7 +11,7 @@ Database View: view_metadata_collation_json
 
 
 Keys:
-^^^^^^^^
+^^^^^
 
 
 Columns:

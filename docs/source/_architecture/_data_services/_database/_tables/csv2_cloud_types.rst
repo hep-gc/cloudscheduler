@@ -13,7 +13,7 @@ cloud definition.
 
 
 Keys:
-^^^^^^^^
+^^^^^
 
 * **cloud_type** (String(32)):
 

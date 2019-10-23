@@ -11,7 +11,7 @@ Database View: view_ec2_instance_types
 
 
 Keys:
-^^^^^^^^
+^^^^^
 
 
 Columns:

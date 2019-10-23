@@ -12,7 +12,7 @@ Not used.
 
 
 Keys:
-^^^^^^^^
+^^^^^
 
 * **name** (String(128)):
 

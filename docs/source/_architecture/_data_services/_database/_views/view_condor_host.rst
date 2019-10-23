@@ -11,7 +11,7 @@ Database View: view_condor_host
 
 
 Keys:
-^^^^^^^^
+^^^^^
 
 
 Columns:

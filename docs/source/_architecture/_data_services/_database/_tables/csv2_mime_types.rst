@@ -16,7 +16,7 @@ of metadata.
 
 
 Keys:
-^^^^^^^^
+^^^^^
 
 * **mime_type** (String(32)):
 

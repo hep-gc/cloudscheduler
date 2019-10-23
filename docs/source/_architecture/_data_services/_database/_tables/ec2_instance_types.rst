@@ -11,7 +11,7 @@ Database Table: ec2_instance_types
 
 
 Keys:
-^^^^^^^^
+^^^^^
 
 * **instance_type** (String(32)):
 

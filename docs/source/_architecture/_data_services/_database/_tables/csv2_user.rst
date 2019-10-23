@@ -18,7 +18,7 @@ authentication and authorization controls.
 
 
 Keys:
-^^^^^^^^
+^^^^^
 
 * **username** (String(32)):
 

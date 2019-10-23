@@ -14,7 +14,7 @@ or as a part of a transfer request.
 
 
 Keys:
-^^^^^^^^
+^^^^^
 
 * **checksum** (String(64)):
 

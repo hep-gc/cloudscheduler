@@ -18,7 +18,7 @@ for in this table.
 
 
 Keys:
-^^^^^^^^
+^^^^^
 
 * **authurl** (String(128)):
 

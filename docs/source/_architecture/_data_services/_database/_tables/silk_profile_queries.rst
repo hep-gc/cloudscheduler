@@ -11,7 +11,7 @@ Database Table: silk_profile_queries
 
 
 Keys:
-^^^^^^^^
+^^^^^
 
 * **id** (Integer):
 

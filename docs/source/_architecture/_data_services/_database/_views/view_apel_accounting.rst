@@ -11,7 +11,7 @@ Database View: view_apel_accounting
 
 
 Keys:
-^^^^^^^^
+^^^^^
 
 
 Columns:

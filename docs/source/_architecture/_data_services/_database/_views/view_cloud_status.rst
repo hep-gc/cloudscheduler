@@ -11,7 +11,7 @@ Database View: view_cloud_status
 
 
 Keys:
-^^^^^^^^
+^^^^^
 
 
 Columns:

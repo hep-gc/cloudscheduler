@@ -19,7 +19,7 @@ target cloud account.
 
 
 Keys:
-^^^^^^^^
+^^^^^
 
 * **cloud_name** (String(32)):
 

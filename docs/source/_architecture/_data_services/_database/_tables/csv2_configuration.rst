@@ -20,7 +20,7 @@ at any time.
 
 
 Keys:
-^^^^^^^^
+^^^^^
 
 * **category** (String(32)):
 

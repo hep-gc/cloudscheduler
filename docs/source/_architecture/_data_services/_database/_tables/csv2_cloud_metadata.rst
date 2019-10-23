@@ -22,7 +22,7 @@ This table maintains cloud specific metadata.
 
 
 Keys:
-^^^^^^^^
+^^^^^
 
 * **cloud_name** (String(32)):
 

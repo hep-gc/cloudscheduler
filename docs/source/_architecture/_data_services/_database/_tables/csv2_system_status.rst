@@ -42,7 +42,7 @@ configurable 'orange_threshold' constitute a warning which are high-lighted by t
 
 
 Keys:
-^^^^^^^^
+^^^^^
 
 * **id** (Integer):
 

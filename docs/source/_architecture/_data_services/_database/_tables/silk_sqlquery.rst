@@ -11,7 +11,7 @@ Database Table: silk_sqlquery
 
 
 Keys:
-^^^^^^^^
+^^^^^
 
 * **id** (Integer):
 

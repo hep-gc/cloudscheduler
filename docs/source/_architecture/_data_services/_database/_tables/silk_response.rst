@@ -11,7 +11,7 @@ Database Table: silk_response
 
 
 Keys:
-^^^^^^^^
+^^^^^
 
 * **id** (String(36)):
 

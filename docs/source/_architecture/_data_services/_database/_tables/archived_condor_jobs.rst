@@ -12,7 +12,7 @@ Not used.
 
 
 Keys:
-^^^^^^^^
+^^^^^
 
 * **global_job_id** (String(128)):
 

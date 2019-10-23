@@ -22,7 +22,7 @@ of the CSV2 table ec2_image_filters.
 
 
 Keys:
-^^^^^^^^
+^^^^^
 
 * **alias** (String(32)):
 

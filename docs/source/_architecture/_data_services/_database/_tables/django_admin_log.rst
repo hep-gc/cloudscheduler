@@ -11,7 +11,7 @@ Database Table: django_admin_log
 
 
 Keys:
-^^^^^^^^
+^^^^^
 
 * **id** (Integer):
 

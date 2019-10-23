@@ -21,7 +21,7 @@ cloud except cloud "X".
 
 
 Keys:
-^^^^^^^^
+^^^^^
 
 * **cloud_name** (String(32)):
 

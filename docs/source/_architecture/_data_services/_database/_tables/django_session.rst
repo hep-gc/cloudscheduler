@@ -11,7 +11,7 @@ Database Table: django_session
 
 
 Keys:
-^^^^^^^^
+^^^^^
 
 * **session_key** (String(40)):
 

@@ -11,7 +11,7 @@ Database Table: auth_user_groups
 
 
 Keys:
-^^^^^^^^
+^^^^^
 
 * **id** (Integer):
 

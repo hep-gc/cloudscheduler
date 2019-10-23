@@ -8,12 +8,19 @@
 Database Table: ec2_images
 ==========================
 
-This table lists images available on Amazon EC2 offered by owners specified
-by CSV2 group members with defined 'amazon' clouds.
+This table lists a selection of (kernel) images available on Amazon EC2.
+Only images belonging to owners specified in the **ec2_image_filters** table are retrieved
+by the **csv2_ec2** poller and added to this table.
+
+This table is instrumental in CSV2's two stage Amazon EC2 Image filtering
+process. Images within this table must be converted by the **csv2_ec2** poller
+to entries within the **cloud_images** table before they can be instantiated by
+CSV2. For an in depth rational and description of the image filtering
+process, refer to the **csv2_image_filters** table documentation.
 
 
 Keys:
-^^^^^^^^
+^^^^^
 
 * **borrower_id** (String(32)):
 

@@ -11,7 +11,7 @@ Database View: view_redundant_machines
 
 
 Keys:
-^^^^^^^^
+^^^^^
 
 
 Columns:

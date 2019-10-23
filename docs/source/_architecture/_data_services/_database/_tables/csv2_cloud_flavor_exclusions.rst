@@ -18,7 +18,7 @@ that capability.
 
 
 Keys:
-^^^^^^^^
+^^^^^
 
 * **cloud_name** (String(32)):
 

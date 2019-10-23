@@ -19,7 +19,7 @@ available cloud within the CSV2 group.
 
 
 Keys:
-^^^^^^^^
+^^^^^
 
 * **alias_name** (String(32)):
 

@@ -19,7 +19,7 @@ on the target cloud.
 
 
 Keys:
-^^^^^^^^
+^^^^^
 
 * **cloud_name** (String(32)):
 

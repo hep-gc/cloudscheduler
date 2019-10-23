@@ -11,7 +11,7 @@ Database Table: csv2_image_pull_requests
 
 
 Keys:
-^^^^^^^^
+^^^^^
 
 * **tx_id** (String(16)):
 

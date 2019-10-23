@@ -13,7 +13,7 @@ by super users. There is one entry for each user/group association.
 
 
 Keys:
-^^^^^^^^
+^^^^^
 
 * **group_name** (String(32)):
 

@@ -11,7 +11,7 @@ Database View: view_foreign_flavors
 
 
 Keys:
-^^^^^^^^
+^^^^^
 
 
 Columns:

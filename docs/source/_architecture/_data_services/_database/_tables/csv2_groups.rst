@@ -32,7 +32,7 @@ not modifiable by users.
 
 
 Keys:
-^^^^^^^^
+^^^^^
 
 * **group_name** (String(32)):
 

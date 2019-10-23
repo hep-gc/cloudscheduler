@@ -11,7 +11,7 @@ Database View: view_cloud_aliases
 
 
 Keys:
-^^^^^^^^
+^^^^^
 
 
 Columns:

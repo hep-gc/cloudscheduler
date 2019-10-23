@@ -13,7 +13,7 @@ is identified by a unique string termed the "entity".
 
 
 Keys:
-^^^^^^^^
+^^^^^
 
 * **entity** (String(64)):
 

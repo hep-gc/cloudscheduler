@@ -1,8 +1,12 @@
 apel_accounting:
     Synopsis:
-        For each VM instantiated by CSV2 and contextualized for APEL accounting, this table is used to accumulate accounting data during the life of the VM.  
-        An accounting record for each VM is added by a database trigger when the VM is instantiated.
-        Subsequently the VM periodically reports information such as cpu usage and network traffic via the csv2_vm_data poller interface which updates the reporting VM's accounting record with the latest information.
+        For each VM instantiated by CSV2 and contextualized for APEL accounting,
+        this table is used to accumulate accounting data during the life of the VM.  
+        An accounting record for each VM is added by a database trigger when the
+        VM is instantiated.
+        Subsequently the VM periodically reports information such as cpu usage and
+        network traffic via the csv2_vm_data poller interface which updates the
+        reporting VM's accounting record with the latest information.
 
     Keys:
 

@@ -17,7 +17,7 @@ which updates the reporting VM's accounting record with the latest information.
 
 
 Keys:
-^^^^^^^^
+^^^^^
 
 * **cloud_name** (String(32)):
 

@@ -11,7 +11,7 @@ Database Table: ec2_instance_type_filters
 
 
 Keys:
-^^^^^^^^
+^^^^^
 
 * **cloud_name** (String(32)):
 

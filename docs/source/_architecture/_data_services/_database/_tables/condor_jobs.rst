@@ -17,7 +17,7 @@ virtual machines to run these jobs.
 
 
 Keys:
-^^^^^^^^
+^^^^^
 
 * **global_job_id** (String(128)):
 

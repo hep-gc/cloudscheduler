@@ -17,7 +17,7 @@ is deleted.
 
 
 Keys:
-^^^^^^^^
+^^^^^
 
 * **cloud_name** (String(32)):
 

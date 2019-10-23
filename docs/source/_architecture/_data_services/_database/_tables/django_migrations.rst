@@ -11,7 +11,7 @@ Database Table: django_migrations
 
 
 Keys:
-^^^^^^^^
+^^^^^
 
 * **id** (Integer):
 

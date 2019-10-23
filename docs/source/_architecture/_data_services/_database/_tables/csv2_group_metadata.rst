@@ -23,7 +23,7 @@ group.
 
 
 Keys:
-^^^^^^^^
+^^^^^
 
 * **group_name** (String(32)):
 

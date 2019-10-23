@@ -13,7 +13,7 @@ CSV2 status codes.
 
 
 Keys:
-^^^^^^^^
+^^^^^
 
 * **ec2_state** (String(32)):
 
