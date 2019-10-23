@@ -56,13 +56,26 @@ def create_RSTs(gvar, type):
         wpl = 12
 
         if text and len(str(text).strip())>0:
-            paras = str(text).strip().split('\n')
-            for para in paras:
-                words = para.split()
-                for ix in range(0, len(words), wpl):
-                    fd.write('%s%s\n' % (' '*indent, ' '.join(words[ix:ix+wpl])))
+            try:
+                ignore = text.index('\\')
+                fd.write('%s\n' % text.replace('\n', '\n\n').replace('\\ ', '\n').replace(' \\', '\n'))
+            
+#           sections = text.split('SUBTITLE=(')
+#           for ix in range(1, len(sections)):
+#               subtitle = sections[ix].split(')', 1)
+#               if len(subtitle) > 1:
+#                   sections[ix] = '\n%s\n%s\n%s' % (subtitle[0], '^'*len(subtitle[0]), subtitle[1])
 
-                fd.write('\n')
+#           text = ''.join(sections)
+
+            except:
+                paras = str(text).strip().split('\n')
+                for para in paras:
+                    words = para.split()
+                    for ix in range(0, len(words), wpl):
+                        fd.write('%s%s\n' % (' '*indent, ' '.join(words[ix:ix+wpl])))
+
+                    fd.write('\n')
 
         else:
             fd.write('\n')
@@ -88,7 +101,7 @@ def create_RSTs(gvar, type):
 
             write_RSTs_synopsis(gvar, fd, 0, gvar['schema'][type][table]['Synopsis'])
 
-            fd.write('\nKeys:\n^^^^^^^^\n\n')
+            fd.write('\nKeys:\n^^^^^\n\n')
 
             for key in sorted(gvar['schema'][type][table]['Keys']):
                 if gvar['schema_states']['%s/%s/Keys/%s' % (type, table, key)] == 1:
