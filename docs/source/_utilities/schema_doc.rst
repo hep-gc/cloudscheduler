@@ -62,15 +62,23 @@ In the case of unformatted text, as in the YAML example above, **schema_doc** sp
 line characters into paragraphs and then splits the paragraphs into words eliminating white space. It
 then generates restructured text, preserving the paragraph structure, with twelve words per line, and
 with appropriate indentation for either table/view descriptions or for key/column descriptions. Assuming
-the YAML example above is a descript for a string column named 'yaml_to_rst_example', the following
-restructured text would be produced::
+the YAML example above is a description of a table, the following restructured text would be produced::
 
-* **yaml_to_rst_example** (String(32)):
+   This is paragragh one. It is not a very long paragragh but
+   it is longer than paragraph two.
 
-      This is paragragh one. It is not a very long paragragh but
-      it is longer than paragraph two.
+   This is paragragh two.
 
-       This is paragragh two.
+If the YAML example above is a description for a string column named 'yaml_to_rst_example', information
+about the column would be retrieved from the database and combined with the description to produce the
+following restructured text::
+
+   * **yaml_to_rst_example** (String(32)):
+
+         This is paragragh one. It is not a very long paragragh but
+         it is longer than paragraph two.
+
+         This is paragragh two.
 
 RST formatted text
 ----------------
