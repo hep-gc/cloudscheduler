@@ -53,8 +53,8 @@ ec2_image_filters:
         owner_aliases:
             Format: String(128)
             Synopsis:
-                Is a comma seperated list of owner aliases, as defined in the table ec2_well_known_owner_aliases,
-                who are offering images of interest.
+                Is a comma seperated list of owner aliases, as defined in the table
+                **ec2_well_known_owner_aliases**, who are offering images of interest.
 
         owner_ids:
             Format: String(128)

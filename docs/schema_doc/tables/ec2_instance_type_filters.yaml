@@ -1,43 +1,96 @@
 ec2_instance_type_filters:
     Synopsis:
+        "This table maintains user defined instance type filters, created, modified and deleted \\
+        through the User Interface (UI).
+
+        Rational and Description of CSV2's Two Stage Instance Type Filtering \\
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+        Amazon EC2 shares thousands of instance types (equivalent to OpenStack Flavors) per \\
+        region. Many of these instance types have iidentical or similar resource configurations \\
+        for different operating systems at differnet pricing.
+
+        The fact that there are so many instance types of similar configuration can make \\
+        the selection of a particular instance type with the appropriate configuration \\
+        difficult. To ease this problem, CSV2 provides the following two stage filtering \\
+        process:
+
+        * Amazon EC2 Instance Type Information Retrieval:
+
+        \\   The **csv2_ec2** poller retieves only those instance types corresponding to
+        \\   the regions of Amazon EC2 clouds defined by users within CSV2 groups. The
+        \\   instance types retrieved are placed in the **ec2_instance_types** table for inspection
+        \\   through the User Interface (UI) and for additional filtering by the csv2_ec2
+        \\   poller. This primary retieval process is run on a long cycle (the configurable
+        \\   **sleep_interval_instance_type**) since the inventory of instance types 
+        \\   remains fairly static.
+
+        * Amazon EC2 Instance Type Filtering:
+        
+        \\   CSV2 will only instantiate flavors (instance types) listed in the **cloud_flavors**
+        \\   table. The **csv2_ec2** poller must convert **ec2_instance_types** to **cloud_flavors**
+        \\   and will apply all defined filters (see 'Columns' below) in the process.
+        \\   The result is normally a small subset of flavors available for execution. This
+        \\   filtering process is run on a short cycle defined by the configurable
+        \\   **sleep_interval_filterer**.
+
+        All filter specifications are joined with a logical **AND**."
+
 
     Keys:
 
         group_name:
             Format: String(32)
             Synopsis:
+                Is the name of the CSV2 group that owns both the filter and the corresponding cloud.
 
         cloud_name:
             Format: String(32)
             Synopsis:
+                Is the name of cloud identifying the Amazon EC2 region for which instance types (flavors)
+                are to be retieved.
 
     Columns:
 
         families:
             Format: String(128)
             Synopsis:
+                This Amazon EC2 designation classifies instance types according to their resource configuration.
+                Examples of families are 'Compute Optimized', 'Memory Optimized', etc.
 
         operating_systems:
             Format: String(128)
             Synopsis:
+                This Amazon EC2 designation identifies the intended operating system and is instrumental
+                in determining the execution pricing.
 
         processors:
             Format: String(128)
             Synopsis:
+                 Instance types can be selected by specifying a comma seperated list of processor model names.
+                 Instance types that offer one of the specified processor models will be selected.
 
         processor_manufacturers:
             Format: String(128)
             Synopsis:
+                 Instance types can be selected by specifying a comma seperated list of processor manufacturers.
+                 Instance types that offer processors from one of the specified manufacturers will be selected.
 
         cores:
             Format: String(32)
             Synopsis:
+                 Instance types can be selected by specifying a comma seperated list of the number of cores required.
+                 Instance types that offer one of the specified number of cores will be selected.
 
         memory_min_gigabytes_per_core:
             Format: Integer
             Synopsis:
+                 Instance types can be selected by specifying the minimum gigabytes of RAM per core.
+                 Instance types that offer greater than or equal to the minimum gigbytes per core will be selected.
 
         memory_max_gigabytes_per_core:
             Format: Integer
             Synopsis:
+                 Instance types can be selected by specifying the maximum gigabytes of RAM per core.
+                 Instance types that offer less than or equal to the maximum gigbytes per core will be selected.
 

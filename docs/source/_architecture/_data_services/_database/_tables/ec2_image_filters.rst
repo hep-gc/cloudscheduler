@@ -86,7 +86,7 @@ Columns:
 * **owner_aliases** (String(128)):
 
       Is a comma seperated list of owner aliases, as defined in the
-      table ec2_well_known_owner_aliases, who are offering images of interest.
+      table **ec2_well_known_owner_aliases**, who are offering images of interest.
 
 * **owner_ids** (String(128)):
 

@@ -8,6 +8,15 @@
 Database Table: ec2_instance_types
 ==================================
 
+This table lists a selection of instance types available on Amazon EC2.
+Only instance types from regions associated with clouds defined within CSV2 groups
+are retrieved by the **csv2_ec2** poller and added to this table.
+
+This table is instrumental in CSV2's two stage Amazon EC2 Instance Type
+filtering process. Instance types within this table must be converted by the
+**csv2_ec2** poller to entries within the **cloud_flavors** table before they can be
+instantiated by CSV2. For an in depth rational and description of the
+instance type filtering process, refer to the **csv2_instance_type_filters** table documentation.
 
 
 Keys:
@@ -15,12 +24,15 @@ Keys:
 
 * **instance_type** (String(32)):
 
+      Is the instance type name.
 
 * **operating_system** (String(32)):
 
+      Is the operating system supported by this instance type.
 
 * **region** (String(32)):
 
+      Is the Amazon EC2 region offering the instance type.
 
 
 Columns:
@@ -28,19 +40,31 @@ Columns:
 
 * **cores** (Integer):
 
+      Is the number of cores that are offered by this instance type.
 
 * **cost_per_hour** (Float):
 
+      The decimal number given is the cost per hour for a running
+      instance of this instance type stated in American dollars and cents.
 
 * **instance_family** (String(32)):
 
+      Is the Amazon EC2 classification of this instance type indicating the type
+      of usage. Examples of familieas are 'Compute Optimized', 'Memory Optimized', etc.
 
 * **memory** (Float):
 
+      Is the total amount of RAM in gigabytes offered by this instance
+      type.
 
 * **processor** (String(64)):
 
+      Is the processor model name offered by this instance type.
 
 * **storage** (String(32)):
 
+      Is the type of storage that is supported by this instance type.
+      Some storage types do not limit the size of the storage ('ebs',
+      for example). Other types of storage are fixed and this field will
+      also indicate the size.
 
