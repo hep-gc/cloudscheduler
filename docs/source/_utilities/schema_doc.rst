@@ -95,10 +95,15 @@ restructured text::
    This is my two paragraph title
    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-   This is paragragh one. It is not a very long paragragh but
-   it is longer than paragraph two and it has a couple of bullets:
+   This is paragragh one. It is not a very long paragragh but it
+   is longer than paragraph two and it has a couple of bullets
+   and sub-bullets:
    
    * Bullet 1.
+
+      #. numbered sub-bullet 1.
+
+      #. numbered sub-bullet 2.
    
    * Bullet 2..
 
@@ -109,10 +114,15 @@ Could be encapsulated in a YAML text string as follows::
 This is my two paragraph title
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-This is paragragh one. It is not a very long paragragh but
-it is longer than paragraph two and it has a couple of bullets:
+This is paragragh one. It is not a very long paragragh but it
+is longer than paragraph two and it has a couple of bullets
+and sub-bullets:
 
 * Bullet 1.
+
+  #. numbered sub-bullet 1.
+
+  #. numbered sub-bullet 2.
 
 * Bullet 2..
 
