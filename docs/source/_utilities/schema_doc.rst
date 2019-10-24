@@ -41,14 +41,14 @@ Consider the following YAML file entry::
 
        This is paragragh two.
        
-This text would be rendered would be rendered to a python dictionary as follows::
+This text would be rendered into a python dictionary as one long string as follows::
 
    a_text_dictionary['Synopsis'] = 'This is paragraph one. It is not a very' \
                                    'long paragraph but it is longer than' \
                                    'paragraph two.\nThis is paragraph two.'
 
 Note how the conversion retains only one new line character and drops all unnecessary white space. This is
-problematic because RST depends on new lines and white space to indicate the required formatting.
+problematic because RST depends on new lines and white space to indicate the text formatting.
 
 The **schema_doc** utility provides two methods for handling text from YAML files:
 
@@ -83,5 +83,38 @@ following restructured text::
 RST formatted text
 ----------------
 
-xxxxx
+In the case of RST formatted text, it is important to preserve new line characters and white space
+to achieve the appropriate text formatting. The **schema_doc** utiity recognizes backslash ('\') 
+characters embedded within the text as psuedo new line characters, and the presence of psuedo new
+line characters in the text indicates RST formatted text. In regard to white space, the YAML to 
+python dictionary conversion will not preserve any white space at the beginning or the end of any
+line of text, but it will preserve any white space imbedded within a line of text. With these two
+features, we can now encapsulate restructured text within a YAML file. For example, the following
+restructured text::
+
+   This is my two paragraph title
+   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+   This is paragragh one. It is not a very long paragragh but
+   it is longer than paragraph two and it has a couple of bullets:
+   
+   * Bullet 1.
+   
+   * Bullet 2..
+
+   This is paragragh two.
+
+Could be encapsulated in a YAML text string as follows::
+
+This is my two paragraph title
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+This is paragragh one. It is not a very long paragragh but
+it is longer than paragraph two and it has a couple of bullets:
+
+* Bullet 1.
+
+* Bullet 2..
+
+This is paragragh two.
 
