@@ -33,7 +33,7 @@ particular object it is describing. However, this choice of YAML for the text re
 text formatting challenges since the information must be rendered in Restructured Text (RST) format for the
 **readthedocs** web service.
 
-Consider the following YAML file entry:
+Consider the following YAML file entry::
 
    Synopsis:
        This is paragragh one.
@@ -41,7 +41,7 @@ Consider the following YAML file entry:
 
        This is paragragh two.
        
-This text would be rendered would be rendered to a python dictionary as follows:
+This text would be rendered would be rendered to a python dictionary as follows::
 
    a_text_dictionary['Synopsis'] = 'This is paragraph one. It is not a very' \
                                    'long paragraph but it is longer than' \
@@ -58,7 +58,19 @@ The **schema_doc** utility provides two methods for handling text from YAML file
 Unformatted text
 ----------------
 
-xxxxx
+In the case of unformatted text, as in the YAML example above, **schema_doc** splits the text at new
+line characters into paragraphs and then splits the paragraphs into words eliminating white space. It
+then generates restructured text, preserving the paragraph structure, with twelve words per line, and
+with appropriate indentation for either table/view descriptions or for key/column descriptions. Assuming
+the YAML example above is a descript for a string column named 'yaml_to_rst_example', the following
+restructured text would be produced::
+
+* **yaml_to_rst_example** (String(32)):
+
+      This is paragragh one. It is not a very long paragragh but
+      it is longer than paragraph two.
+
+       This is paragragh two.
 
 RST formatted text
 ----------------
