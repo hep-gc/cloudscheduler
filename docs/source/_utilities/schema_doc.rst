@@ -111,7 +111,33 @@ restructured text::
 
 Could be encapsulated in a YAML text string as follows::
 
-This is my two paragraph title
+   This is my two paragraph title\\
+   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+   This is paragragh one. It is not a very long paragragh but it
+   is longer than paragraph two and it has a couple of bullets
+   and sub-bullets:
+   
+   * Bullet 1.
+
+   \\   #. numbered sub-bullet 1.
+
+   \\   #. numbered sub-bullet 2.
+   
+   * Bullet 2..
+
+   This is paragragh two.
+
+Note the format and position of the psuedo new line characters. The double backslash is
+required because a backslash is a YAML escape character that would be lost during the 
+YAML to python conversion. In the case of the first psuedo line end character in the
+example above, no white space needs to be preserved and so it is safe to place it at 
+the end of the first of the two title lines. In the case of the second and third psuedo
+line end characters, the white space before the hash ('#') characters is important and
+so they are placed at the begining of the line. The rendering of this example on 
+**readthedocs** is as follows:
+
+This is my two paragraph title\\
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 This is paragragh one. It is not a very long paragragh but it
@@ -120,9 +146,9 @@ and sub-bullets:
 
 * Bullet 1.
 
-  #. numbered sub-bullet 1.
+\\   #. numbered sub-bullet 1.
 
-  #. numbered sub-bullet 2.
+\\   #. numbered sub-bullet 2.
 
 * Bullet 2..
 
