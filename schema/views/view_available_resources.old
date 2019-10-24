@@ -174,8 +174,7 @@ from (
             cc.group_name=vfr.group_name and
             cc.cloud_name=vfr.cloud_name
         left outer join condor_worker_gsi as cw on
-            cg.htcondor_fqdn=cw.htcondor_fqdn or
-            cg.htcondor_container_hostname=cw.htcondor_fqdn
+            cg.htcondor_fqdn=cw.htcondor_fqdn
         join csv2_configuration as gsi on
             gsi.category='GSI' and
             gsi.config_key='cert_days_left_bad'

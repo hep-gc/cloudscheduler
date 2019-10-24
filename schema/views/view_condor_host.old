@@ -11,8 +11,7 @@ select
     case when slots=retiring_slots then 1 else 0 end as retiring,
     terminate,
     machine,
-    updater,
-    htcondor_container_hostname
+    updater
 from csv2_vms as cv
 left outer join csv2_groups as cg on
     cv.group_name=cg.group_name

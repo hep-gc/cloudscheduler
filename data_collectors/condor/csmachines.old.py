@@ -32,8 +32,9 @@ import boto3
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
 from sqlalchemy.ext.automap import automap_base
-from sqlalchemy import or_
 
+
+AGENT_VERSION = 0
 
 def _get_nova_client(session, region=None):
     nova = novaclient.Client("2", session=session, region_name=region, timeout=10)
@@ -171,9 +172,6 @@ def machine_poller():
                 if group.htcondor_fqdn is not None and group.htcondor_fqdn != "":
                     condor_hosts_set.add(group.htcondor_fqdn)
                 else:
-                    condor_hosts_set.add(group.htcondor_container_hostname)
-
-                if group.htcondor_container_hostname is not None and group.htcondor_container_hostname != "":
                     condor_hosts_set.add(group.htcondor_container_hostname)
 
             # need to make a data structure so that we can verify the the polled machines actually fit into a valid grp-cloud
@@ -404,12 +402,7 @@ def command_poller():
                     condor_hosts_set.add(group.htcondor_fqdn)
                 else:
                     condor_hosts_set.add(group.htcondor_container_hostname)
-
-                if group.htcondor_container_hostname is not None and group.htcondor_container_hostname != "":
-                    condor_hosts_set.add(group.htcondor_container_hostname)
-
             uncommitted_updates = 0
-            logging.debug(condor_hosts_set)
             for condor_host in condor_hosts_set:
                 condor_rpc = None
                 # check on agent satus every ~5 cycles
@@ -449,6 +442,16 @@ def command_poller():
                         continue
                     else:
                         #it was successfull
+                        # lets check the agent version via the hash that was returned.
+                        try:
+                           if command_results[2] != AGENT_VERSION:
+                               #Log error and change agent status?
+                               logging.critical("Remote agent version mismatch on condor host: %s, check local repo for code changes or update remote agent" % condor_host)
+
+                        except Exception as exc:
+                           # we could end up here if there is a really old agent that doesn't support version matching
+                           logging.critical("Remote agent running old version that doesnt support version checking, agent on %s should be updated" % condor_host)
+                             
                         jsched = {
                             "htcondor_fqdn": condor_host,
                             "agent_status":  1
@@ -468,7 +471,7 @@ def command_poller():
 
                 # Query database for machines to be retired.
                 abort_cycle = False
-                for resource in db_session.query(view_condor_host).filter(or_(view_condor_host.c.htcondor_fqdn==condor_host, view_condor_host.c.htcondor_container_hostname==condor_host), view_condor_host.c.retire>=1):
+                for resource in db_session.query(view_condor_host).filter(view_condor_host.c.htcondor_fqdn==condor_host, view_condor_host.c.retire>=1):
                     # Since we are querying a view we dont get an automapped object and instead get a 'result' tuple of the following format
                     #index=attribute
                     #0=group
@@ -483,7 +486,6 @@ def command_poller():
                     #9=terminate flag
                     #10=machine
                     #11=updater
-                    #12=htcondor_container_hostname
                     #logging.debug("%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s" % (resource.group_name, resource.cloud_name, resource.htcondor_fqdn, resource.vmid, resource.hostname, resource[5], resource[6], resource.retire, resource.retiring, resource.terminate, resource.machine))
                     # First check the slots to see if its time to terminate this machine
 
@@ -543,11 +545,11 @@ def command_poller():
                         command_results = condor_rpc.call(command_yaml, timeout=30)
                         if command_results is None or command_results[0] != 0:
                             # command failed
+                            logging.error("RPC retire failed for machine: %s//%s" % (resource.machine, resource.hostname))
                             if command_results == None:
                                 # we got a timeout
                                 # timeout on the call, agent problems or offline
                                 logging.error("RPC call timed out, agent offline or in error")
-                                logging.debug(condor_host)
                                 jsched = {
                                     "htcondor_fqdn": condor_host,
                                     "agent_status":  0
@@ -562,9 +564,8 @@ def command_poller():
                                     config.db_session.merge(new_jsched)
                                     uncommitted_updates += 1
 
-                            logging.error("RPC retire failed for machine: %s//%s" % (resource.machine, resource.hostname))
                             #logging.error(command_results)
-                            if command_results[0] == 2:
+                            elif command_results[0] == 2:
                                 #condor error, report the failure
                                 jsched = {
                                     "htcondor_fqdn": condor_host,
@@ -618,7 +619,6 @@ def command_poller():
                     except Exception as exc:
                         logging.exception(exc)
                         logging.error("Failed to issue DaemonsOffPeacefull to machine: %s, hostname: %s missing classad or condor miscomunication." % (resource.machine, resource.hostname))
-                        logging.debug(condor_host)
                         continue
 
             if uncommitted_updates > 0:
@@ -942,6 +942,9 @@ if __name__ == '__main__':
         'machine':    machine_poller,
         'registrar':  service_registrar,
     }
+    
+    with open("/opt/cloudscheduler/agents/csv2_htc_agent") as fd:
+        AGENT_VERSION = sum(fd.read().encode())
 
     db_category_list = [os.path.basename(sys.argv[0]), "ProcessMonitor", "general", "signal_manager"]
 

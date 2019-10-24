@@ -34,7 +34,6 @@ def condor_gsi_poller():
             condor_dict = get_condor_dict(config, logging)
 
             for condor in sorted(condor_dict):
-                logging.debug('%s' % condor)
                 condor_rpc = RPC(config.categories['AMQP']['host'], config.categories['AMQP']['port'], config.categories['AMQP']['queue_prefix_htc'] +"_" + condor, "csv2_htc_" + condor)
                 condor_cert = condor_rpc.call({'command': 'query_condor_cert'})
 
@@ -71,24 +70,17 @@ def condor_gsi_poller():
 
 def get_condor_dict(config, logging):
     condor_dict = {}
-    group_list = config.db_connection.execute('select group_name,htcondor_fqdn,htcondor_container_hostname from csv2_groups;')
+    group_list = config.db_connection.execute('select group_name,htcondor_fqdn from csv2_groups;')
     for group in group_list:
         try:
             condor_ip = socket.gethostbyname(group['htcondor_fqdn'])
-            if group['htcondor_container_hostname'] not in condor_dict and group['htcondor_container_hostname'] != "":
-                condor_dict[group['htcondor_container_hostname']] = []
-                condor_dict[group['htcondor_container_hostname']].append(group['group_name'])
-
-            elif group['htcondor_fqdn'] not in condor_dict:
+            if group['htcondor_fqdn'] not in condor_dict:
                 condor_dict[group['htcondor_fqdn']] = []
-                condor_dict[group['htcondor_fqdn']].append(group['group_name'])
-            else:
-                condor_dict[group['htcondor_']].append(group['group_name'])
 
-            
+            condor_dict[group['htcondor_fqdn']].append(group['group_name'])
 
-        except Exception as ex:
-            logging.debug('Ignoring invalid condor host "%s". Exception: %s' % (group['htcondor_fqdn'], ex))
+        except:
+            logging.debug('Ignoring invalid condor host "%s".' % group['htcondor_fqdn'])
 
     return condor_dict
 
@@ -185,7 +177,7 @@ if __name__ == '__main__':
 
     db_category_list = [os.path.basename(sys.argv[0]), "general", "signal_manager", "ProcessMonitor"]
 
-    procMon = ProcessMonitor(config_params=db_category_list, pool_size=4, orange_count_row='csv2_machines_error_count', process_ids=process_ids)
+    procMon = ProcessMonitor(config_params=db_category_list, pool_size=4, orange_count_row='csv2_condor_gsi_error_count', process_ids=process_ids)
     config = procMon.get_config()
     logging = procMon.get_logging()
     version = config.get_version()
