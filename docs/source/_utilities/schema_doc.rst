@@ -84,7 +84,7 @@ RST formatted text
 ----------------
 
 In the case of RST formatted text, it is important to preserve new line characters and white space
-to achieve the appropriate text formatting. The **schema_doc** utiity recognizes backslash ('\') 
+to achieve the appropriate text formatting. The **schema_doc** utiity recognizes backslash ('\\') 
 characters embedded within the text as psuedo new line characters, and the presence of psuedo new
 line characters in the text indicates RST formatted text. In regard to white space, the YAML to 
 python dictionary conversion will not preserve any white space at the beginning or the end of any
