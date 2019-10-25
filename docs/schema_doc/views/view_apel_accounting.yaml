@@ -1,5 +1,28 @@
 view_apel_accounting:
     Synopsis:
+        "This view pulls information from three tables:
+
+        * apel_accounting
+
+        * cloud_flavors
+
+        * cloud_images
+
+        To present complete VM accounting information in a form suitable for
+        presentation and for processing by external systems.
+
+        The primary information source, **apel_accounting**, maintains an
+        accounting record for each instantiated VM.  The records are initially
+        created by a database trigger, **trigger_apel_accounting_add_vm**,
+        when the CSV2 VM scheduler instantiates a VM and creates its entry in the
+        **csv2_vms** table.  Subsequently, updates arrive from the VM via the
+        **csv2_vm_data** poller. The record for any particular VM is completed
+        by a second database trigger, **trigger_apel_accounting_del_vm**,
+        following the terminationa of the VM and the removal of its record
+        from the **csv2_vms** table. Finally, **apel_accounting** records 
+        considered obsolete, those whose last update was more than the
+        configurable value **apel_accounting_keep_alive_days** ago, are deleted
+        by the **csv2_vm_data** poller."
 
     Keys:
 
@@ -8,88 +31,113 @@ view_apel_accounting:
         group_name:
             Format: String(32)
             Synopsis:
+                Is the name of the CSV2 group that owns the VM.
 
         cloud_name:
             Format: String(32)
             Synopsis:
+                Is the name of the cloud that hosted the VM.
 
         hostname:
             Format: String(128)
             Synopsis:
+                Is the short VM hostname.
 
         cloud_type:
             Format: String(32)
             Synopsis:
+                Is the type of cloud hosting the VM.
 
         region:
             Format: String(32)
             Synopsis:
+                Is the region within the cloud where the VM ran.
 
         flavor_id:
             Format: String(128)
             Synopsis:
+                Is the ID of the flavor used to instantiate the VM.
 
         image_id:
             Format: String(128)
             Synopsis:
+                Is the ID of the (kernel) image used to instantiate the VM.
 
         benchmark_type:
             Format: String(32)
             Synopsis:
+                Is a string identifying the type of benchmark being used to calibrate
+                the performance of the VM
 
         benchmark:
             Format: Integer
             Synopsis:
+                Is the benchmark score achieved by the VM.
 
         vmid:
             Format: String(128)
             Synopsis:
+                Is the unique ID of the VM.
 
         start_time:
             Format: Integer
             Synopsis:
+                Is the time the VM was instantiated.
 
         end_time:
             Format: Integer
             Synopsis:
+                Is the time the VM was termintade. If NULL, the VM is still running and
+                producing accounting information.
 
         last_update:
             Format: Integer
             Synopsis:
+                Is the time the VM accounting record was last updated.
 
         cpu_time:
             Format: Integer
             Synopsis:
+                Is the number of cpu seconds that have been consumed by the VM.
 
         network_type:
             Format: String(32)
             Synopsis:
+                Is a string indicating the type of network assigned to the VM at
+                instantiation time.
 
         rx:
             Format: Integer
             Synopsis:
+                Is the number of megabytes received by the netwoork.
 
         tx:
             Format: Integer
             Synopsis:
+                Is the number of megabytes transmitted by the netwoork.
 
         flavor:
             Format: String(128)
             Synopsis:
+                Is the name of the flavor corresponding to the flavor ID.
 
         cores:
             Format: Integer
             Synopsis:
+                Is the number of cores offered by the flavor.
 
         disk:
             Format: Integer
             Synopsis:
+                Is the number of gigabytes of disk offered by the flavor.
 
         ram:
             Format: Integer
             Synopsis:
+                Is the number of megabytes of RAM offered by the flavor.
 
         image:
             Format: String(256)
             Synopsis:
+                Is the name of the (kernel) image corresponding to the image ID.
 

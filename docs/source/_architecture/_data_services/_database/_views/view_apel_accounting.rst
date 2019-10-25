@@ -8,6 +8,26 @@
 Database View: view_apel_accounting
 ===================================
 
+This view pulls information from three tables:
+
+* apel_accounting
+
+* cloud_flavors
+
+* cloud_images
+
+To present complete VM accounting information in a form suitable for presentation
+and for processing by external systems.
+
+The primary information source, **apel_accounting**, maintains an accounting record for each instantiated
+VM. The records are initially created by a database trigger, **trigger_apel_accounting_add_vm**, when
+the CSV2 VM scheduler instantiates a VM and creates its entry in
+the **csv2_vms** table. Subsequently, updates arrive from the VM via the **csv2_vm_data**
+poller. The record for any particular VM is completed by a second
+database trigger, **trigger_apel_accounting_del_vm**, following the terminationa of the VM and the removal
+of its record from the **csv2_vms** table. Finally, **apel_accounting** records considered obsolete,
+those whose last update was more than the configurable value **apel_accounting_keep_alive_days** ago,
+are deleted by the **csv2_vm_data** poller.
 
 
 Columns:
@@ -15,67 +35,93 @@ Columns:
 
 * **benchmark** (Integer):
 
+      Is the benchmark score achieved by the VM.
 
 * **benchmark_type** (String(32)):
 
+      Is a string identifying the type of benchmark being used to calibrate
+      the performance of the VM
 
 * **cloud_name** (String(32)):
 
+      Is the name of the cloud that hosted the VM.
 
 * **cloud_type** (String(32)):
 
+      Is the type of cloud hosting the VM.
 
 * **cores** (Integer):
 
+      Is the number of cores offered by the flavor.
 
 * **cpu_time** (Integer):
 
+      Is the number of cpu seconds that have been consumed by the
+      VM.
 
 * **disk** (Integer):
 
+      Is the number of gigabytes of disk offered by the flavor.
 
 * **end_time** (Integer):
 
+      Is the time the VM was termintade. If NULL, the VM is
+      still running and producing accounting information.
 
 * **flavor** (String(128)):
 
+      Is the name of the flavor corresponding to the flavor ID.
 
 * **flavor_id** (String(128)):
 
+      Is the ID of the flavor used to instantiate the VM.
 
 * **group_name** (String(32)):
 
+      Is the name of the CSV2 group that owns the VM.
 
 * **hostname** (String(128)):
 
+      Is the short VM hostname.
 
 * **image** (String(256)):
 
+      Is the name of the (kernel) image corresponding to the image ID.
 
 * **image_id** (String(128)):
 
+      Is the ID of the (kernel) image used to instantiate the VM.
 
 * **last_update** (Integer):
 
+      Is the time the VM accounting record was last updated.
 
 * **network_type** (String(32)):
 
+      Is a string indicating the type of network assigned to the VM
+      at instantiation time.
 
 * **ram** (Integer):
 
+      Is the number of megabytes of RAM offered by the flavor.
 
 * **region** (String(32)):
 
+      Is the region within the cloud where the VM ran.
 
 * **rx** (Integer):
 
+      Is the number of megabytes received by the netwoork.
 
 * **start_time** (Integer):
 
+      Is the time the VM was instantiated.
 
 * **tx** (Integer):
 
+      Is the number of megabytes transmitted by the netwoork.
 
 * **vmid** (String(128)):
 
+      Is the unique ID of the VM.
 
