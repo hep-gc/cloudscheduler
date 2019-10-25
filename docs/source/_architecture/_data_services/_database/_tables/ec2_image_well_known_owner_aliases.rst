@@ -28,7 +28,3 @@ Keys:
 
       Is the alias name.
 
-
-Columns:
-^^^^^^^^
-

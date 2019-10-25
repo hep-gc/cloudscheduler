@@ -10,10 +10,6 @@ Database View: view_user_groups
 
 
 
-Keys:
-^^^^^
-
-
 Columns:
 ^^^^^^^^
 

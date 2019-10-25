@@ -10,10 +10,6 @@ Database View: view_metadata_collation
 
 
 
-Keys:
-^^^^^
-
-
 Columns:
 ^^^^^^^^
 

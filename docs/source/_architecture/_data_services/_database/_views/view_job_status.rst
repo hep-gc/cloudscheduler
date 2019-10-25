@@ -10,10 +10,6 @@ Database View: view_job_status
 
 
 
-Keys:
-^^^^^
-
-
 Columns:
 ^^^^^^^^
 

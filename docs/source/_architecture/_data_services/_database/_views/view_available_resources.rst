@@ -10,10 +10,6 @@ Database View: view_available_resources
 
 
 
-Keys:
-^^^^^
-
-
 Columns:
 ^^^^^^^^
 

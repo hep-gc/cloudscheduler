@@ -23,7 +23,3 @@ Keys:
 
       Is a CSV2 username.
 
-
-Columns:
-^^^^^^^^
-

@@ -22,7 +22,3 @@ Keys:
 
       This string represents a valid metadata file type.
 
-
-Columns:
-^^^^^^^^
-

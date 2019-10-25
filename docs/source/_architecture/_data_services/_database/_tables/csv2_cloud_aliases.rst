@@ -36,7 +36,3 @@ Keys:
 
       Is the CSV2 group name owning this alias.
 
-
-Columns:
-^^^^^^^^
-

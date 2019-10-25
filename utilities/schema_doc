@@ -115,25 +115,27 @@ def create_RSTs(gvar, type):
 
             write_RSTs_synopsis(gvar, fd, 0, gvar['schema'][type][table]['Synopsis'])
 
-            fd.write('\nKeys:\n^^^^^\n\n')
+            if len(gvar['schema'][type][table]['Keys']) > 0:
+                fd.write('\nKeys:\n^^^^^\n\n')
 
-            for key in sorted(gvar['schema'][type][table]['Keys']):
-                if gvar['schema_states']['%s/%s/Keys/%s' % (type, table, key)] == 1:
-                    fd.write('* **%s** (%s, obsolete):\n\n' % (key, gvar['schema'][type][table]['Keys'][key]['Format']))
-                else:
-                    fd.write('* **%s** (%s):\n\n' % (key, gvar['schema'][type][table]['Keys'][key]['Format']))
+                for key in sorted(gvar['schema'][type][table]['Keys']):
+                    if gvar['schema_states']['%s/%s/Keys/%s' % (type, table, key)] == 1:
+                        fd.write('* **%s** (%s, obsolete):\n\n' % (key, gvar['schema'][type][table]['Keys'][key]['Format']))
+                    else:
+                        fd.write('* **%s** (%s):\n\n' % (key, gvar['schema'][type][table]['Keys'][key]['Format']))
 
-                write_RSTs_synopsis(gvar, fd, 6, gvar['schema'][type][table]['Keys'][key]['Synopsis'])
+                    write_RSTs_synopsis(gvar, fd, 6, gvar['schema'][type][table]['Keys'][key]['Synopsis'])
 
-            fd.write('\nColumns:\n^^^^^^^^\n\n')
+            if len(gvar['schema'][type][table]['Columns']) > 0:
+                fd.write('\nColumns:\n^^^^^^^^\n\n')
 
-            for column in sorted(gvar['schema'][type][table]['Columns']):
-                if gvar['schema_states']['%s/%s/Columns/%s' % (type, table, column)] == 1:
-                    fd.write('* **%s** (%s, obsolete):\n\n' % (column, gvar['schema'][type][table]['Columns'][column]['Format']))
-                else:
-                    fd.write('* **%s** (%s):\n\n' % (column, gvar['schema'][type][table]['Columns'][column]['Format']))
+                for column in sorted(gvar['schema'][type][table]['Columns']):
+                    if gvar['schema_states']['%s/%s/Columns/%s' % (type, table, column)] == 1:
+                        fd.write('* **%s** (%s, obsolete):\n\n' % (column, gvar['schema'][type][table]['Columns'][column]['Format']))
+                    else:
+                        fd.write('* **%s** (%s):\n\n' % (column, gvar['schema'][type][table]['Columns'][column]['Format']))
 
-                write_RSTs_synopsis(gvar, fd, 6, gvar['schema'][type][table]['Columns'][column]['Synopsis'])
+                    write_RSTs_synopsis(gvar, fd, 6, gvar['schema'][type][table]['Columns'][column]['Synopsis'])
 
         if not os.path.exists(rst_path) or not equal_files(gvar, gvar['tempfile'].name, rst_path):
             print("Updating:", rst_path)

@@ -36,7 +36,3 @@ Keys:
 
       Is the name of the metadata.
 
-
-Columns:
-^^^^^^^^
-

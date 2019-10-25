@@ -10,10 +10,6 @@ Database View: view_cloud_status_slot_summary
 
 
 
-Keys:
-^^^^^
-
-
 Columns:
 ^^^^^^^^
 

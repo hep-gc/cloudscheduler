@@ -10,10 +10,6 @@ Database View: view_resource_contention
 
 
 
-Keys:
-^^^^^
-
-
 Columns:
 ^^^^^^^^
 

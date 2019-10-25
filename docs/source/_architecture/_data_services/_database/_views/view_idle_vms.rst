@@ -10,10 +10,6 @@ Database View: view_idle_vms
 
 
 
-Keys:
-^^^^^
-
-
 Columns:
 ^^^^^^^^
 

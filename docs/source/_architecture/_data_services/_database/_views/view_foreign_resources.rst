@@ -10,10 +10,6 @@ Database View: view_foreign_resources
 
 
 
-Keys:
-^^^^^
-
-
 Columns:
 ^^^^^^^^
 

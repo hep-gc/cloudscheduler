@@ -32,7 +32,3 @@ Keys:
 
       Is the name of the group owning the flavor exclusion.
 
-
-Columns:
-^^^^^^^^
-

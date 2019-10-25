@@ -10,10 +10,6 @@ Database View: view_clouds
 
 
 
-Keys:
-^^^^^
-
-
 Columns:
 ^^^^^^^^
 

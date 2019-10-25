@@ -23,7 +23,3 @@ Keys:
       view the the content of this table via the web or command
       line interfaces.
 
-
-Columns:
-^^^^^^^^
-
