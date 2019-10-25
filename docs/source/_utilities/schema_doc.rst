@@ -173,7 +173,7 @@ Synopsis can contain contain reference strings in the following forms:
 * REF=(views/<view_name>/Keys/<key_name>)
 * REF=(views/<view_name>/Columns/<col_name>)
 
-Each of these reference (note the case of 'Keys' and 'Columns' which is sinificant) points to
+Each of these reference (note the case of 'Keys' and 'Columns' which is significant) points to
 a synopsis location. Since synopsis can support one or more paragraphs, each of these references
 can be qualified with:
 
