@@ -17,6 +17,12 @@ following functional categories:
 
 .. toctree::
    :maxdepth: 1
+   :caption: Accounting
+
+   view_apel_accounting
+
+.. toctree::
+   :maxdepth: 1
    :caption: Quota Management
 
    view_vm_kill_retire_over_quota
@@ -34,6 +40,7 @@ following functional categories:
    view_cloud_status_slot_detail
    view_cloud_status_slot_detail_summary
    view_cloud_status_slot_summary
+   view_job_status
 
 .. toctree::
    :maxdepth: 1
@@ -51,7 +58,6 @@ following functional categories:
    :maxdepth: 1
    :caption: Miscellaneous Views
 
-   view_apel_accounting
    view_cloud_aliases
    view_clouds
    view_clouds_with_metadata_info
@@ -63,7 +69,6 @@ following functional categories:
    view_foreign_resources
    view_groups_with_metadata_info
    view_groups_with_metadata_names
-   view_job_status
    view_metadata_collation
    view_redundant_machines
    view_user_groups
