@@ -17,18 +17,6 @@ following functional categories:
 
 .. toctree::
    :maxdepth: 1
-   :caption: VM Scheduling
-
-   view_active_resource_shortfall
-   view_available_resources
-   view_condor_jobs_group_defaults_applied
-   view_groups_of_idle_jobs
-   view_idle_vms
-   view_metadata_collation_json
-   view_resource_contention
-
-.. toctree::
-   :maxdepth: 1
    :caption: Quota Management
 
    view_vm_kill_retire_over_quota
@@ -46,6 +34,18 @@ following functional categories:
    view_cloud_status_slot_detail
    view_cloud_status_slot_detail_summary
    view_cloud_status_slot_summary
+
+.. toctree::
+   :maxdepth: 1
+   :caption: VM Scheduling
+
+   view_active_resource_shortfall
+   view_available_resources
+   view_condor_jobs_group_defaults_applied
+   view_groups_of_idle_jobs
+   view_idle_vms
+   view_metadata_collation_json
+   view_resource_contention
 
 .. toctree::
    :maxdepth: 1

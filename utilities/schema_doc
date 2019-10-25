@@ -56,7 +56,7 @@ def create_index(gvar, type):
             create_index_entries(gvar, type, fd, 'Tables used by other support services:', table_category='ignore')
 
         else:
-            for category in gvar['schema_backup_conf']['view_categories']:
+            for category in sorted(gvar['schema_backup_conf']['view_categories']):
                 create_index_entries(gvar, type, fd, category)
 
             create_index_entries(gvar, type, fd, 'Miscellaneous Views')
