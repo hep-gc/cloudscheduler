@@ -24,7 +24,7 @@ VM. The records are initially created by a database trigger, **trigger_apel_acco
 the CSV2 VM scheduler instantiates a VM and creates its entry in
 the **csv2_vms** table. Subsequently, updates arrive from the VM via the **csv2_vm_data**
 poller. The record for any particular VM is completed by a second
-database trigger, **trigger_apel_accounting_del_vm**, following the terminationa of the VM and the removal
+database trigger, **trigger_apel_accounting_del_vm**, following the termination of the VM and the removal
 of its record from the **csv2_vms** table. Finally, **apel_accounting** records considered obsolete,
 those whose last update was more than the configurable value **apel_accounting_keep_alive_days** ago,
 are deleted by the **csv2_vm_data** poller.

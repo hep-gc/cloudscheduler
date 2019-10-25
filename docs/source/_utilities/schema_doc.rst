@@ -155,3 +155,32 @@ and sub-bullets:
 
 This is paragragh two.
 
+Text References
+^^^^^^^^^^^^^^^
+
+Because some database columns, eg. group_name, cloud_name, etc., can be repeated in many
+different tables, and the synopsis for these fields is often repetitive, the **schema_doc**
+utility supports the referencing (and copying) of previosly defined text. This allows a common
+piece of text to be defined in one place but used in many other places; the reference to a
+text is replaced by the text being referenced.
+
+Synopsis can contain contain reference strings in the following forms:
+
+* REF=(tables/<table_name>)
+* REF=(tables/<table_name>/Keys/<key_name>)
+* REF=(tables/<table_name>/Columns/<col_name>)
+* REF=(views/<view_name>)
+* REF=(views/<view_name>/Keys/<key_name>)
+* REF=(views/<view_name>/Columns/<col_name>)
+
+Each of these reference (note the case of 'Keys' and 'Columns' which is sinificant) points to
+a synopsis location. Since synopsis can support one or more paragraphs, each of these references
+can be qualified with:
+
+   /N
+
+Where N is the index of the paragraph that is being referenced (as opposed to 
+the whole synopsis), for example::
+
+   REF=(tables/<table_name>/Columns/<col_name>/N)
+
