@@ -12,14 +12,33 @@ A database view is created by a user defined SQL statement pulling and manipulat
 data from one or more tables to present a derived or read-only table.
 CSV2 makes extensive use of views for both presentation and decision making.
 
+To aid in the understanding and purpose of each view, they are grouped in the
+following functional categories:
+
 .. toctree::
    :maxdepth: 1
-   :caption: The following views are defined:
+   :caption: VM Scheduling
 
    view_active_resource_shortfall
-   view_apel_accounting
    view_available_resources
-   view_cloud_aliases
+   view_condor_jobs_group_defaults_applied
+   view_groups_of_idle_jobs
+   view_idle_vms
+   view_metadata_collation_json
+   view_resource_contention
+
+.. toctree::
+   :maxdepth: 1
+   :caption: Quota Management
+
+   view_vm_kill_retire_over_quota
+   view_vm_kill_retire_priority_age
+   view_vm_kill_retire_priority_idle
+
+.. toctree::
+   :maxdepth: 1
+   :caption: Status Displays
+
    view_cloud_status
    view_cloud_status_flavor_slot_detail
    view_cloud_status_flavor_slot_detail_summary
@@ -27,27 +46,26 @@ CSV2 makes extensive use of views for both presentation and decision making.
    view_cloud_status_slot_detail
    view_cloud_status_slot_detail_summary
    view_cloud_status_slot_summary
+
+.. toctree::
+   :maxdepth: 1
+   :caption: Miscellaneous Views
+
+   view_apel_accounting
+   view_cloud_aliases
    view_clouds
    view_clouds_with_metadata_info
    view_clouds_with_metadata_names
    view_condor_host
-   view_condor_jobs_group_defaults_applied
    view_ec2_images
    view_ec2_instance_types
    view_foreign_flavors
    view_foreign_resources
-   view_groups_of_idle_jobs
    view_groups_with_metadata_info
    view_groups_with_metadata_names
-   view_idle_vms
    view_job_status
    view_metadata_collation
-   view_metadata_collation_json
    view_redundant_machines
-   view_resource_contention
    view_user_groups
    view_user_groups_available
-   view_vm_kill_retire_over_quota
-   view_vm_kill_retire_priority_age
-   view_vm_kill_retire_priority_idle
    view_vms

@@ -27,7 +27,18 @@ def create_index(gvar, type):
                     fd.write('   %s\n' % table)
 
             elif type == 'views':
-                fd.write('   %s\n' % table)
+                if caption in gvar['schema_backup_conf']['view_categories']:
+                    if table in gvar['schema_backup_conf']['view_categories'][caption]:
+                        fd.write('   %s\n' % table)
+                else:
+                    selected = 1
+                    for category in gvar['schema_backup_conf']['view_categories']:
+                        if table in gvar['schema_backup_conf']['view_categories'][category]:
+                            selected = 0
+                            break
+
+                    if selected:
+                        fd.write('   %s\n' % table)
      
     template_path = '%s/docs/schema_doc/templates/%s.rst' % (gvar['base_dir'], type)
     with open(template_path) as fd:
@@ -45,7 +56,10 @@ def create_index(gvar, type):
             create_index_entries(gvar, type, fd, 'Tables used by other support services:', table_category='ignore')
 
         else:
-            create_index_entries(gvar, type, fd, 'The following views are defined:')
+            for category in gvar['schema_backup_conf']['view_categories']:
+                create_index_entries(gvar, type, fd, category)
+
+            create_index_entries(gvar, type, fd, 'Miscellaneous Views')
 
     if not os.path.exists(index_path) or not equal_files(gvar, gvar['tempfile'].name, index_path):
         print("Updating:", index_path)

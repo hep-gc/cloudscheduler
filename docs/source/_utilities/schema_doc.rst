@@ -81,7 +81,7 @@ following restructured text::
          This is paragragh two.
 
 RST formatted text
-----------------
+------------------
 
 In the case of RST formatted text, it is important to preserve new line characters and white space
 to achieve the appropriate text formatting. The **schema_doc** utiity recognizes backslash ('\\\\') 
