@@ -59,18 +59,21 @@ Columns:
 
 * **shortfall_cores** (Integer):
 
-      Is calculated by **request_cores** minus **active_cores**; a negative result indicates that additional
-      cores are required and VMs should be started to meet the shortfall.
+      Is calculated by **request_cores** minus **active_cores**; a result greater then zero indicates
+      that additional cores are required and VMs should be started to meet
+      the shortfall.
 
 * **shortfall_disk** (Integer):
 
-      Is calculated by **request_disk** minus **active_disk**; a negative result indicates that additional
-      disk is required and VMs should be started to meet the shortfall.
+      Is calculated by **request_disk** minus **active_disk**; a result greater then zero indicates
+      that additional disk is required and VMs should be started to meet
+      the shortfall.
 
 * **shortfall_ram** (Integer):
 
-      Is calculated by **request_ram** minus **active_ram**; a negative result indicates that additional
-      RAM is required and VMs should be started to meet the shortfall.
+      Is calculated by **request_ram** minus **active_ram**; a result greater then zero indicates
+      that additional RAM is required and VMs should be started to meet
+      the shortfall.
 
 * **starting** (Integer):
 
