@@ -1,11 +1,12 @@
 Utility: schema_doc
 ===================
 
-Database schema documentation is maintained via the **schema_doc** utility.  
-Information about the schema is held in three places:
+This utility generates Restructured Text files to document the CSV2 database schema
+for the **readthedocs** web service.
+Information about the database schema is held in three places:
 
 #. The schema within the database.
-#. The schema backup configuration file (*.../cloudscheduler/etc/schema_backup.conf*).
+#. The schema backup configuration file (**.../cloudscheduler/etc/schema_backup.conf**).
 #. The yaml and template .rst files within the **.../cloudscheduler/docs/schema_doc** documentation directory.
 
 The **schema_doc** utility combines these three sources to give complete and accurate information
