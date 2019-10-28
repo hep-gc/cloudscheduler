@@ -13,16 +13,16 @@ Database View: view_foreign_resources
 Columns:
 ^^^^^^^^
 
+* **group_name** (String(32)):
+
+
 * **cloud_name** (String(32)):
-
-
-* **cores** (Integer):
 
 
 * **count** (Integer):
 
 
-* **group_name** (String(32)):
+* **cores** (Integer):
 
 
 * **ram** (Float):

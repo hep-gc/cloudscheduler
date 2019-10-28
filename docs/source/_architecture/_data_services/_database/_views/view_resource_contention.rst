@@ -13,30 +13,30 @@ Database View: view_resource_contention
 Columns:
 ^^^^^^^^
 
-* **VMs** (Integer):
-
-
 * **authurl** (String(128)):
 
 
-* **error** (Integer):
-
-
-* **idle** (Integer):
-
-
-* **manual** (Integer):
-
-
-* **retiring** (Integer):
-
-
-* **running** (Integer):
+* **VMs** (Integer):
 
 
 * **starting** (Integer):
 
 
 * **unregistered** (Integer):
+
+
+* **idle** (Integer):
+
+
+* **running** (Integer):
+
+
+* **retiring** (Integer):
+
+
+* **manual** (Integer):
+
+
+* **error** (Integer):
 
 

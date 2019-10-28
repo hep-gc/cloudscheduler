@@ -21,11 +21,11 @@ the target cloud.
 Keys:
 ^^^^^
 
-* **cloud_name** (String(32)):
+* **group_name** (String(32)):
 
       Group name associated with the cloud the image was queried from.
 
-* **group_name** (String(32)):
+* **cloud_name** (String(32)):
 
       Group name associated with the cloud the image was queried from.
 
@@ -37,10 +37,6 @@ Keys:
 
 Columns:
 ^^^^^^^^
-
-* **checksum** (String(64)):
-
-      MD5 checksum of the image file.
 
 * **cloud_type** (String(64)):
 
@@ -56,19 +52,6 @@ Columns:
       Disk format of the machine image. (AMI, ARI, AKI, VHD, VMDK, RAW,
       QCOW2, VHDX, VDI, ISO, and Ploop)
 
-* **last_updated** (Integer):
-
-      Timestamp in seconds from epoch since the image has last been updated
-      in the csv2 database.
-
-* **min_disk** (Integer):
-
-      Minimum amount of disk space required to boot the image.
-
-* **min_ram** (Integer):
-
-      Minimum amount of RAM required to boot the image.
-
 * **name** (String(256)):
 
       Name of the machine image.
@@ -81,4 +64,21 @@ Columns:
 
       Visability status of the image on the cloud. For openstack:public, private, or
       shared. For amazon images it is a boolean representing public or private.
+
+* **min_disk** (Integer):
+
+      Minimum amount of disk space required to boot the image.
+
+* **min_ram** (Integer):
+
+      Minimum amount of RAM required to boot the image.
+
+* **checksum** (String(64)):
+
+      MD5 checksum of the image file.
+
+* **last_updated** (Integer):
+
+      Timestamp in seconds from epoch since the image has last been updated
+      in the csv2 database.
 

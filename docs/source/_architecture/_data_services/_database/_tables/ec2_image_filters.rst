@@ -49,24 +49,29 @@ All filter specifications are joined with a logical **AND**.
 Keys:
 ^^^^^
 
-* **cloud_name** (String(32)):
-
-      User specified short name for this cloud resource. The name must be
-      unique within the group.
-
 * **group_name** (String(32)):
 
       User specified name of the group owning this cloud resource. When adding
       new clouds, this value is set equal to the user's current group.
 
+* **cloud_name** (String(32)):
+
+      User specified short name for this cloud resource. The name must be
+      unique within the group.
+
 
 Columns:
 ^^^^^^^^
 
-* **architectures** (String(128)):
+* **owner_aliases** (String(128)):
 
-      If an image architecture matches this string, the corresponding image will be
-      selected by this specification.
+      Is a comma seperated list of owner aliases, as defined in the
+      table **ec2_well_known_owner_aliases**, who are offering images of interest.
+
+* **owner_ids** (String(128)):
+
+      Is a comma seperated list of owner IDs who are offering images
+      of interest.
 
 * **like** (String(128)):
 
@@ -83,13 +88,8 @@ Columns:
       If an image OS matches this string, the corresponding image will be
       selected by this specification.
 
-* **owner_aliases** (String(128)):
+* **architectures** (String(128)):
 
-      Is a comma seperated list of owner aliases, as defined in the
-      table **ec2_well_known_owner_aliases**, who are offering images of interest.
-
-* **owner_ids** (String(128)):
-
-      Is a comma seperated list of owner IDs who are offering images
-      of interest.
+      If an image architecture matches this string, the corresponding image will be
+      selected by this specification.
 

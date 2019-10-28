@@ -21,13 +21,13 @@ target cloud account.
 Keys:
 ^^^^^
 
-* **cloud_name** (String(32)):
-
-      Name of the cloud the limits were queried from.
-
 * **group_name** (String(32)):
 
       Group name associated with the cloud the limit was queried from.
+
+* **cloud_name** (String(32)):
+
+      Name of the cloud the limits were queried from.
 
 
 Columns:
@@ -37,49 +37,24 @@ Columns:
 
       Type of cloud the limits were queried from (Openstack, Amazon, etc)
 
-* **cores_max** (Integer):
+* **server_meta_max** (Integer):
 
-      Total number of cores available for the registered cloud tenant/project.
-
-* **cores_used** (Integer):
-
-      Total number of CPU cores in use by the registered tenant/project.
-
-* **floating_ips_max** (Integer):
-
-      Max number of available floating IPs as defined by the cloud
-
-* **floating_ips_used** (Integer):
-
-      Total number of floating IPs in use by the registered tenant/project.
-
-* **image_meta_max** (Integer):
-
-      Max number of metadata entries that can be associated with a machine
-      image as defined by the cloud.
+      Max number of metadata entries that can be associated with a server
+      as defined by the cloud.
 
 * **instances_max** (Integer):
 
       Max number of active instances as defined by the cloud.
 
-* **instances_used** (Integer):
-
-      Total number of active instances in use by the registered tenant/project.
-
-* **keypairs_max** (Integer):
-
-      Max number of keypairs allowed to be stored under the registered cloud
-      tenant/project.
-
-* **last_updated** (Integer):
-
-      Timestamp in seconds from epoch representing the last time the limits were
-      queried and updated.
-
 * **personality_max** (Integer):
 
       Man number of personality files that can be injected into a server
       as defined by the cloud.
+
+* **image_meta_max** (Integer):
+
+      Max number of metadata entries that can be associated with a machine
+      image as defined by the cloud.
 
 * **personality_size_max** (Integer):
 
@@ -89,37 +64,62 @@ Columns:
 
       Total amount of ram available for the registered cloud tenant/project.
 
-* **ram_used** (Integer):
+* **server_groups_max** (Integer):
 
-      Total amount of RAM in use by the registered tenant/project in Megabytes.
+      Max number of server groups available for the registered cloud tenant/project.
 
 * **security_group_rules_max** (Integer):
 
       Max number of security group rules allowed for a security group as
       defined by the cloud.
 
+* **keypairs_max** (Integer):
+
+      Max number of keypairs allowed to be stored under the registered cloud
+      tenant/project.
+
 * **security_groups_max** (Integer):
 
       Max number of security groups available for the registered cloud tenant/project.
-
-* **security_groups_used** (Integer):
-
-      Total number of security groups in use by the registered tenant/project.
 
 * **server_group_members_max** (Integer):
 
       Max number of servers per server group as defined by the cloud.
 
-* **server_groups_max** (Integer):
+* **floating_ips_max** (Integer):
 
-      Max number of server groups available for the registered cloud tenant/project.
+      Max number of available floating IPs as defined by the cloud
+
+* **cores_max** (Integer):
+
+      Total number of cores available for the registered cloud tenant/project.
 
 * **server_groups_used** (Integer):
 
       Total number of server groups in use for the registered tenant/project.
 
-* **server_meta_max** (Integer):
+* **instances_used** (Integer):
 
-      Max number of metadata entries that can be associated with a server
-      as defined by the cloud.
+      Total number of active instances in use by the registered tenant/project.
+
+* **ram_used** (Integer):
+
+      Total amount of RAM in use by the registered tenant/project in Megabytes.
+
+* **security_groups_used** (Integer):
+
+      Total number of security groups in use by the registered tenant/project.
+
+* **floating_ips_used** (Integer):
+
+      Total number of floating IPs in use by the registered tenant/project.
+
+* **cores_used** (Integer):
+
+      Total number of CPU cores in use by the registered tenant/project.
+
+* **last_updated** (Integer):
+
+      Timestamp in seconds from epoch representing the last time the limits were
+      queried and updated.
 

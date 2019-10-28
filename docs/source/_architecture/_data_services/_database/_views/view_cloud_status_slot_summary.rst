@@ -13,13 +13,13 @@ Database View: view_cloud_status_slot_summary
 Columns:
 ^^^^^^^^
 
-* **busy** (Integer):
+* **group_name** (String(32)):
 
 
 * **cloud_name** (String(32)):
 
 
-* **group_name** (String(32)):
+* **busy** (Integer):
 
 
 * **idle** (Integer):

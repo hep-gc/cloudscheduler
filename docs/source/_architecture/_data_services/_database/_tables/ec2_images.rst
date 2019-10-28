@@ -22,33 +22,40 @@ process, refer to the **csv2_image_filters** table documentation.
 Keys:
 ^^^^^
 
-* **borrower_id** (String(32)):
+* **region** (String(32)):
 
-      Is the Amazon account ID associated with the CSV2 cloud that retrieved
-      this entry.
+      Is the Amazon EC2 cloud/region this image is available on.
 
 * **id** (String(128)):
 
       This is the unique ID of the image as defined by Amazon
       EC2.
 
-* **region** (String(32)):
+* **borrower_id** (String(32)):
 
-      Is the Amazon EC2 cloud/region this image is available on.
+      Is the Amazon account ID associated with the CSV2 cloud that retrieved
+      this entry.
 
 
 Columns:
 ^^^^^^^^
 
-* **description** (String(256)):
+* **owner_id** (String(32)):
 
-      Is a description of the image, and is optionally set by the
-      owner (see 'location' above).
+      Is the Amazon account ID that owns this image.
+
+* **owner_alias** (String(64)):
+
+      Is the Amazon account alias that owns this image.
 
 * **disk_format** (String(128)):
 
       Is the type of disk required by this image, eg. ebs, instance-store,
       etc.
+
+* **size** (Integer):
+
+      Is the number of gigabytes of disk required by this image.
 
 * **image_location** (String(512)):
 
@@ -59,30 +66,23 @@ Columns:
       is, it is generally much more reliable than either the name or
       the description which are both optional.
 
-* **last_updated** (Integer):
+* **visibility** (String(128)):
 
-      Is the last time this information was updated.
+      Is a string indicating how you have access to this image. You
+      either own it, or it is public, or it is shared with
+      you.
 
 * **name** (String(256)):
 
       Is the name of the image, and is optionally set by the
       owner (see 'location' above).
 
-* **owner_alias** (String(64)):
+* **description** (String(256)):
 
-      Is the Amazon account alias that owns this image.
+      Is a description of the image, and is optionally set by the
+      owner (see 'location' above).
 
-* **owner_id** (String(32)):
+* **last_updated** (Integer):
 
-      Is the Amazon account ID that owns this image.
-
-* **size** (Integer):
-
-      Is the number of gigabytes of disk required by this image.
-
-* **visibility** (String(128)):
-
-      Is a string indicating how you have access to this image. You
-      either own it, or it is public, or it is shared with
-      you.
+      Is the last time this information was updated.
 

@@ -13,21 +13,21 @@ Database View: view_metadata_collation
 Columns:
 ^^^^^^^^
 
+* **group_name** (String(32)):
+
+
 * **cloud_name** (String(32)):
 
 
-* **group_name** (String(32)):
+* **type** (String(5)):
+
+
+* **priority** (Integer):
 
 
 * **metadata_name** (String(64)):
 
 
 * **mime_type** (String(128)):
-
-
-* **priority** (Integer):
-
-
-* **type** (String(5)):
 
 

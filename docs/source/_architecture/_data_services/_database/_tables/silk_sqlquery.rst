@@ -20,21 +20,21 @@ Keys:
 Columns:
 ^^^^^^^^
 
-* **end_time** (Integer):
-
-
 * **query** (String):
 
 
-* **request_id** (String(36)):
-
-
 * **start_time** (Integer):
+
+
+* **end_time** (Integer):
 
 
 * **time_taken** (Float):
 
 
 * **traceback** (String):
+
+
+* **request_id** (String(36)):
 
 

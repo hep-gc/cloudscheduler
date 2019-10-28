@@ -20,33 +20,33 @@ Keys:
 Columns:
 ^^^^^^^^
 
-* **date_joined** (Integer):
-
-
-* **email** (String(254)):
-
-
-* **first_name** (String(30)):
-
-
-* **is_active** (Boolean):
-
-
-* **is_staff** (Boolean):
-
-
-* **is_superuser** (Boolean):
+* **password** (String(128)):
 
 
 * **last_login** (Integer):
 
 
-* **last_name** (String(150)):
-
-
-* **password** (String(128)):
+* **is_superuser** (Boolean):
 
 
 * **username** (String(150)):
+
+
+* **first_name** (String(30)):
+
+
+* **last_name** (String(150)):
+
+
+* **email** (String(254)):
+
+
+* **is_staff** (Boolean):
+
+
+* **is_active** (Boolean):
+
+
+* **date_joined** (Integer):
 
 

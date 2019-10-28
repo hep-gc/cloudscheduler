@@ -13,40 +13,40 @@ Database View: view_job_status
 Columns:
 ^^^^^^^^
 
+* **group_name** (String(32)):
+
+
+* **Jobs** (Integer):
+
+
+* **Idle** (Integer):
+
+
+* **Running** (Integer):
+
+
 * **Completed** (Integer):
 
 
 * **Held** (Integer):
 
 
-* **Idle** (Integer):
-
-
-* **Jobs** (Integer):
-
-
 * **Other** (Integer):
-
-
-* **Running** (Integer):
-
-
-* **agent_status** (Integer):
-
-
-* **condor_days_left** (Integer):
 
 
 * **foreign** (Integer):
 
 
-* **group_name** (String(32)):
+* **htcondor_status** (Integer):
+
+
+* **agent_status** (Integer):
 
 
 * **htcondor_fqdn** (String(128)):
 
 
-* **htcondor_status** (Integer):
+* **condor_days_left** (Integer):
 
 
 * **worker_days_left** (Integer):

@@ -13,13 +13,19 @@ Database View: view_user_groups
 Columns:
 ^^^^^^^^
 
-* **available_groups** (String):
+* **username** (String(32)):
 
 
 * **cert_cn** (String(128)):
 
 
-* **default_group** (String(32)):
+* **password** (String(128)):
+
+
+* **is_superuser** (Boolean):
+
+
+* **join_date** (Integer):
 
 
 * **flag_global_status** (Boolean):
@@ -34,21 +40,15 @@ Columns:
 * **flag_show_slot_flavors** (Boolean):
 
 
-* **is_superuser** (Boolean):
-
-
-* **join_date** (Integer):
-
-
-* **password** (String(128)):
-
-
 * **status_refresh_interval** (Integer):
+
+
+* **default_group** (String(32)):
 
 
 * **user_groups** (String):
 
 
-* **username** (String(32)):
+* **available_groups** (String):
 
 

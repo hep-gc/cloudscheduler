@@ -13,6 +13,9 @@ Database View: view_vm_kill_retire_over_quota
 Columns:
 ^^^^^^^^
 
+* **group_name** (String(32)):
+
+
 * **cloud_name** (String(32)):
 
 
@@ -25,7 +28,7 @@ Columns:
 * **cores_ctl** (Integer):
 
 
-* **cores_foreign** (Integer):
+* **cores_softmax** (Integer):
 
 
 * **cores_max** (Integer):
@@ -34,10 +37,7 @@ Columns:
 * **cores_native** (Integer):
 
 
-* **cores_softmax** (Integer):
-
-
-* **group_name** (String(32)):
+* **cores_foreign** (Integer):
 
 
 * **ram** (Float):
@@ -46,12 +46,12 @@ Columns:
 * **ram_ctl** (Integer):
 
 
-* **ram_foreign** (Float):
-
-
 * **ram_max** (Integer):
 
 
 * **ram_native** (Float):
+
+
+* **ram_foreign** (Float):
 
 

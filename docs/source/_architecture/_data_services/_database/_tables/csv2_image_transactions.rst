@@ -24,21 +24,34 @@ Keys:
 Columns:
 ^^^^^^^^
 
-* **checksum** (String(64)):
+* **status** (String(128)):
 
-      MD5 checksum of the source image to be uploaded.
+      Current status of the transaction request to be displayed on the web
+      display.
 
-* **image_id** (String(128)):
+* **message** (String(128)):
 
-      Openstack ID of the source image to be uploaded.
+      String containing any error messages encountered while processing the pull request.
+
+* **target_group_name** (String(128)):
+
+      Name of the group the image should be uploaded to.
+
+* **target_cloud_name** (String(128)):
+
+      Name of the cloud the image should be uploaded to.
 
 * **image_name** (String(128)):
 
       Name of the image to be uploaded.
 
-* **message** (String(128)):
+* **image_id** (String(128)):
 
-      String containing any error messages encountered while processing the pull request.
+      Openstack ID of the source image to be uploaded.
+
+* **checksum** (String(64)):
+
+      MD5 checksum of the source image to be uploaded.
 
 * **request_time** (Integer):
 
@@ -47,17 +60,4 @@ Columns:
 * **requester** (String(64)):
 
       Username of the user who queued the pull request.
-
-* **status** (String(128)):
-
-      Current status of the transaction request to be displayed on the web
-      display.
-
-* **target_cloud_name** (String(128)):
-
-      Name of the cloud the image should be uploaded to.
-
-* **target_group_name** (String(128)):
-
-      Name of the group the image should be uploaded to.
 

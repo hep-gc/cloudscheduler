@@ -13,21 +13,21 @@ Database View: view_redundant_machines
 Columns:
 ^^^^^^^^
 
-* **cloud_name** (String(32)):
-
-
-* **condor_host** (String(64)):
-
-
-* **entered_current_state** (Integer):
-
-
 * **group_name** (String(32)):
 
 
 * **hostname** (String(256)):
 
 
+* **condor_host** (String(64)):
+
+
 * **name** (String(128)):
+
+
+* **entered_current_state** (Integer):
+
+
+* **cloud_name** (String(32)):
 
 

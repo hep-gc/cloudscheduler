@@ -24,15 +24,15 @@ This table maintains cloud specific metadata.
 Keys:
 ^^^^^
 
-* **cloud_name** (String(32)):
-
-      Is the name of the specific cloud to which this metadata file
-      applies.
-
 * **group_name** (String(32)):
 
       Is the name of the group owning the cloud and the metadata
       file.
+
+* **cloud_name** (String(32)):
+
+      Is the name of the specific cloud to which this metadata file
+      applies.
 
 * **metadata_name** (String(64)):
 
@@ -48,6 +48,11 @@ Columns:
       If set to 0, the metadata file is disabled and will not
       be used. If set to 1, the metadata file is enabled and
       will be passed to cloud-init in priority order.
+
+* **priority** (Integer):
+
+      An integer (including negative integers) indicating the metadata file priority. Lower numbers
+      have highter priority and will be included earlier in the collation order.
 
 * **metadata** (String):
 
@@ -65,9 +70,4 @@ Columns:
 
       For a complete list refer to the content of the CSV2 table
       csv2_mime_types.
-
-* **priority** (Integer):
-
-      An integer (including negative integers) indicating the metadata file priority. Lower numbers
-      have highter priority and will be included earlier in the collation order.
 

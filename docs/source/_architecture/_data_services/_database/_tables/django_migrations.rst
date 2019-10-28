@@ -23,9 +23,9 @@ Columns:
 * **app** (String(255)):
 
 
-* **applied** (Integer):
-
-
 * **name** (String(255)):
+
+
+* **applied** (Integer):
 
 

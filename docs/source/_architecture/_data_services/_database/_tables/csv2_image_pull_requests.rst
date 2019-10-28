@@ -24,17 +24,30 @@ Keys:
 Columns:
 ^^^^^^^^
 
-* **checksum** (String(64)):
+* **target_group_name** (String(128)):
 
-      MD5 checksum of the image to be downloaded.
+      Name of the group the image should be downloaded from.
+
+* **target_cloud_name** (String(128)):
+
+      Name of the cloud the image should be downloaded from.
+
+* **image_name** (String(128)):
+
+      Name of the the image to be downloaded in the request.
 
 * **image_id** (String(128)):
 
       Openstack-ID of the image to be downloaded in the request.
 
-* **image_name** (String(128)):
+* **checksum** (String(64)):
 
-      Name of the the image to be downloaded in the request.
+      MD5 checksum of the image to be downloaded.
+
+* **status** (String(32)):
+
+      Current status of the pull request (currently not displayed anywhere in the
+      UI).
 
 * **message** (String(512)):
 
@@ -47,17 +60,4 @@ Columns:
 * **requester** (String(64)):
 
       Username of the user who queued the pull request.
-
-* **status** (String(32)):
-
-      Current status of the pull request (currently not displayed anywhere in the
-      UI).
-
-* **target_cloud_name** (String(128)):
-
-      Name of the cloud the image should be downloaded from.
-
-* **target_group_name** (String(128)):
-
-      Name of the group the image should be downloaded from.
 

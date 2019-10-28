@@ -16,69 +16,9 @@ resources compared with resources currently provided.
 Columns:
 ^^^^^^^^
 
-* **active_cores** (Integer):
-
-      Is the total number of cores provided.
-
-* **active_disk** (Integer):
-
-      Is the total size of disk provided.
-
-* **active_ram** (Integer):
-
-      Is the total size of RAM provided.
-
 * **group_name** (String(32)):
 
       Is the name of the group requesting resources.
-
-* **idle** (Integer):
-
-      For information purposes only, this field indicates the number of idle VMs
-      for this group/target_alias/target_cloud.
-
-* **request_cores** (Integer):
-
-      Is the total number of cores requested by all idle (queued) and
-      running jobs.
-
-* **request_disk** (Integer):
-
-      Is the total size of disk requested by all idle (queued) and
-      running jobs.
-
-* **request_ram** (Integer):
-
-      Is the total size of RAM requested by all idle (queued) and
-      running jobs.
-
-* **running** (Integer):
-
-      For information purposes only, this field indicates the number of running VMs
-      for this group/target_alias/target_cloud.
-
-* **shortfall_cores** (Integer):
-
-      Is calculated by **request_cores** minus **active_cores**; a result greater then zero indicates
-      that additional cores are required and VMs should be started to meet
-      the shortfall.
-
-* **shortfall_disk** (Integer):
-
-      Is calculated by **request_disk** minus **active_disk**; a result greater then zero indicates
-      that additional disk is required and VMs should be started to meet
-      the shortfall.
-
-* **shortfall_ram** (Integer):
-
-      Is calculated by **request_ram** minus **active_ram**; a result greater then zero indicates
-      that additional RAM is required and VMs should be started to meet
-      the shortfall.
-
-* **starting** (Integer):
-
-      For information purposes only, this field indicates the number of starting VMs
-      for this group/target_alias/target_cloud.
 
 * **target_alias** (String(32)):
 
@@ -92,8 +32,68 @@ Columns:
       If this column and the **target_alias** column are empty, the resources are
       required from any cloud defined within the group.
 
+* **request_cores** (Integer):
+
+      Is the total number of cores requested by all idle (queued) and
+      running jobs.
+
+* **active_cores** (Integer):
+
+      Is the total number of cores provided.
+
+* **shortfall_cores** (Integer):
+
+      Is calculated by **request_cores** minus **active_cores**; a result greater then zero indicates
+      that additional cores are required and VMs should be started to meet
+      the shortfall.
+
+* **request_disk** (Integer):
+
+      Is the total size of disk requested by all idle (queued) and
+      running jobs.
+
+* **active_disk** (Integer):
+
+      Is the total size of disk provided.
+
+* **shortfall_disk** (Integer):
+
+      Is calculated by **request_disk** minus **active_disk**; a result greater then zero indicates
+      that additional disk is required and VMs should be started to meet
+      the shortfall.
+
+* **request_ram** (Integer):
+
+      Is the total size of RAM requested by all idle (queued) and
+      running jobs.
+
+* **active_ram** (Integer):
+
+      Is the total size of RAM provided.
+
+* **shortfall_ram** (Integer):
+
+      Is calculated by **request_ram** minus **active_ram**; a result greater then zero indicates
+      that additional RAM is required and VMs should be started to meet
+      the shortfall.
+
+* **starting** (Integer):
+
+      For information purposes only, this field indicates the number of starting VMs
+      for this group/target_alias/target_cloud.
+
 * **unregistered** (Integer):
 
       For information purposes only, this field indicates the number of unregistered VMs
+      for this group/target_alias/target_cloud.
+
+* **idle** (Integer):
+
+      For information purposes only, this field indicates the number of idle VMs
+      for this group/target_alias/target_cloud.
+
+* **running** (Integer):
+
+      For information purposes only, this field indicates the number of running VMs
       for this group/target_alias/target_cloud.
 

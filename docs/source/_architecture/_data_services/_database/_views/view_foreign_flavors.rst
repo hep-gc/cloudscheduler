@@ -13,33 +13,33 @@ Database View: view_foreign_flavors
 Columns:
 ^^^^^^^^
 
-* **authurl** (String(128)):
+* **group_name** (String(32)):
 
 
 * **cloud_name** (String(32)):
 
 
-* **cores** (Integer):
+* **authurl** (String(128)):
 
 
-* **count** (Integer):
-
-
-* **flavor_id** (String(128)):
-
-
-* **group_name** (String(32)):
-
-
-* **name** (String(128)):
+* **region** (String(32)):
 
 
 * **project** (String(128)):
 
 
+* **flavor_id** (String(128)):
+
+
+* **count** (Integer):
+
+
+* **name** (String(128)):
+
+
+* **cores** (Integer):
+
+
 * **ram** (Float):
-
-
-* **region** (String(32)):
 
 

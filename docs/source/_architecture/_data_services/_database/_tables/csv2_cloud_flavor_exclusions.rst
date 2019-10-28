@@ -20,6 +20,10 @@ that capability.
 Keys:
 ^^^^^
 
+* **group_name** (String(32)):
+
+      Is the name of the group owning the flavor exclusion.
+
 * **cloud_name** (String(32)):
 
       Is the name of the cloud offering the flavor.
@@ -27,8 +31,4 @@ Keys:
 * **flavor_name** (String(128)):
 
       Is the name of the flavor on the specified cloud.
-
-* **group_name** (String(32)):
-
-      Is the name of the group owning the flavor exclusion.
 

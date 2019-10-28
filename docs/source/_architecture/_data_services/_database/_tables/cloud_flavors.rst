@@ -21,13 +21,13 @@ the target cloud.
 Keys:
 ^^^^^
 
-* **cloud_name** (String(32)):
-
-      Name of the cloud a flavor entry was queried from.
-
 * **group_name** (String(32)):
 
       Group name associated with the cloud a flavor was queried from.
+
+* **cloud_name** (String(32)):
+
+      Name of the cloud a flavor entry was queried from.
 
 * **id** (String(128)):
 
@@ -38,13 +38,25 @@ Keys:
 Columns:
 ^^^^^^^^
 
+* **name** (String(128)):
+
+      Name of the flavor.
+
 * **cloud_type** (String(64)):
 
       Type of cloud the flavour is from (openstack, amazon, etc)
 
+* **ram** (Integer):
+
+      Amount of RAM assigned to the flavor in Megabytes.
+
 * **cores** (Integer):
 
       Number of cpu cores assigned to the flavor.
+
+* **swap** (Integer):
+
+      Amount of swap space assigned to the flavor in Megabytes.
 
 * **disk** (Integer):
 
@@ -62,16 +74,4 @@ Columns:
 
       Timestamp in seconds since epoch representing the last time the flavor was
       updated.
-
-* **name** (String(128)):
-
-      Name of the flavor.
-
-* **ram** (Integer):
-
-      Amount of RAM assigned to the flavor in Megabytes.
-
-* **swap** (Integer):
-
-      Amount of swap space assigned to the flavor in Megabytes.
 

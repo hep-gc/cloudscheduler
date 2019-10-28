@@ -13,12 +13,12 @@ Database View: view_cloud_aliases
 Columns:
 ^^^^^^^^
 
+* **group_name** (String(32)):
+
+
 * **alias_name** (String(32)):
 
 
 * **clouds** (String):
-
-
-* **group_name** (String(32)):
 
 

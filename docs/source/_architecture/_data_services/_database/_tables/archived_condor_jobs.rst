@@ -22,7 +22,47 @@ Keys:
 Columns:
 ^^^^^^^^
 
+* **group_name** (String(128)):
+
+      Not used.
+
+* **target_clouds** (String):
+
+      Not used.
+
 * **cloud_name** (String):
+
+      Not used.
+
+* **job_status** (Integer):
+
+      Not used.
+
+* **request_cpus** (Integer):
+
+      Not used.
+
+* **request_ram** (Integer):
+
+      Not used.
+
+* **request_disk** (Integer):
+
+      Not used.
+
+* **request_swap** (Integer):
+
+      Not used.
+
+* **request_scratch** (Integer):
+
+      Not used.
+
+* **requirements** (String(512)):
+
+      Not used.
+
+* **job_priority** (Integer):
 
       Not used.
 
@@ -30,19 +70,11 @@ Columns:
 
       Not used.
 
-* **entered_current_status** (Integer):
+* **proc_id** (Integer):
 
       Not used.
 
-* **group_name** (String(128)):
-
-      Not used.
-
-* **held_reason** (String(64)):
-
-      Not used.
-
-* **hold_job_reason** (String(64)):
+* **user** (String(512)):
 
       Not used.
 
@@ -54,15 +86,7 @@ Columns:
 
       Not used.
 
-* **job_per_core** (Integer):
-
-      Not used.
-
-* **job_priority** (Integer):
-
-      Not used.
-
-* **job_status** (Integer):
+* **network** (String(512)):
 
       Not used.
 
@@ -74,11 +98,15 @@ Columns:
 
       Not used.
 
-* **network** (String(512)):
+* **user_data** (String(512)):
 
       Not used.
 
-* **proc_id** (Integer):
+* **job_per_core** (Integer):
+
+      Not used.
+
+* **entered_current_status** (Integer):
 
       Not used.
 
@@ -86,39 +114,11 @@ Columns:
 
       Not used.
 
-* **request_cpus** (Integer):
+* **hold_job_reason** (String(64)):
 
       Not used.
 
-* **request_disk** (Integer):
-
-      Not used.
-
-* **request_ram** (Integer):
-
-      Not used.
-
-* **request_scratch** (Integer):
-
-      Not used.
-
-* **request_swap** (Integer):
-
-      Not used.
-
-* **requirements** (String(512)):
-
-      Not used.
-
-* **target_clouds** (String):
-
-      Not used.
-
-* **user** (String(512)):
-
-      Not used.
-
-* **user_data** (String(512)):
+* **held_reason** (String(64)):
 
       Not used.
 

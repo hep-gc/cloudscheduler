@@ -20,37 +20,7 @@ Keys:
 Columns:
 ^^^^^^^^
 
-* **body** (String):
-
-
-* **encoded_headers** (String):
-
-
-* **end_time** (Integer):
-
-
-* **meta_num_queries** (Integer):
-
-
-* **meta_time** (Float):
-
-
-* **meta_time_spent_queries** (Float):
-
-
-* **method** (String(10)):
-
-
-* **num_sql_queries** (Integer):
-
-
 * **path** (String(190)):
-
-
-* **prof_file** (String(300)):
-
-
-* **pyprofile** (String):
 
 
 * **query_params** (String):
@@ -59,12 +29,42 @@ Columns:
 * **raw_body** (String):
 
 
+* **body** (String):
+
+
+* **method** (String(10)):
+
+
 * **start_time** (Integer):
+
+
+* **view_name** (String(190)):
+
+
+* **end_time** (Integer):
 
 
 * **time_taken** (Float):
 
 
-* **view_name** (String(190)):
+* **encoded_headers** (String):
+
+
+* **meta_time** (Float):
+
+
+* **meta_num_queries** (Integer):
+
+
+* **meta_time_spent_queries** (Float):
+
+
+* **pyprofile** (String):
+
+
+* **num_sql_queries** (Integer):
+
+
+* **prof_file** (String(300)):
 
 

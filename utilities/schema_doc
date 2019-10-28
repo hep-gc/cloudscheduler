@@ -115,10 +115,16 @@ def create_RSTs(gvar, type):
 
             write_RSTs_synopsis(gvar, fd, 0, gvar['schema'][type][table]['Synopsis'])
 
-            if len(gvar['schema'][type][table]['Keys']) > 0:
+            len_keys = len(gvar['schema'][type][table]['Keys'])
+            if len_keys > 0:
                 fd.write('\nKeys:\n^^^^^\n\n')
 
-                for key in sorted(gvar['schema'][type][table]['Keys']):
+                if len_keys == len(gvar['key_list'][type][table]):
+                    key_list = gvar['key_list'][type][table]
+                else:
+                    key_list = sorted(gvar['schema'][type][table]['Keys'])
+
+                for key in key_list:
                     if gvar['schema_states']['%s/%s/Keys/%s' % (type, table, key)] == 1:
                         fd.write('* **%s** (%s, obsolete):\n\n' % (key, gvar['schema'][type][table]['Keys'][key]['Format']))
                     else:
@@ -126,10 +132,16 @@ def create_RSTs(gvar, type):
 
                     write_RSTs_synopsis(gvar, fd, 6, gvar['schema'][type][table]['Keys'][key]['Synopsis'])
 
-            if len(gvar['schema'][type][table]['Columns']) > 0:
+            len_columns = len(gvar['schema'][type][table]['Columns'])
+            if len_columns > 0:
                 fd.write('\nColumns:\n^^^^^^^^\n\n')
 
-                for column in sorted(gvar['schema'][type][table]['Columns']):
+                if len_columns == len(gvar['column_list'][type][table]):
+                    column_list = gvar['column_list'][type][table]
+                else:
+                    column_list = sorted(gvar['schema'][type][table]['Keys'])
+
+                for column in column_list:
                     if gvar['schema_states']['%s/%s/Columns/%s' % (type, table, column)] == 1:
                         fd.write('* **%s** (%s, obsolete):\n\n' % (column, gvar['schema'][type][table]['Columns'][column]['Format']))
                     else:
@@ -191,6 +203,9 @@ def main(args):
     gvar['schema_states'] = {}
     gvar['tempfile'] = NamedTemporaryFile(delete=False)
 
+    gvar['column_list'] = {'tables': {}, 'views': {}}
+    gvar['key_list'] = {'tables': {}, 'views': {}}
+
     try:
         import sphinx
         gvar['sphinx'] = True
@@ -251,6 +266,9 @@ def main(args):
             else:
                 gvar['schema'][type][table] = {'Synopsis': '', 'Keys': {}, 'Columns': {}}
                 gvar['schema_states']['%s/%s' % (type, table)] = 0
+            
+            gvar['column_list'][type][table] = []
+            gvar['key_list'][type][table] = []
 
             _p1 = Popen(
                 [
@@ -282,11 +300,16 @@ def main(args):
             for _ix in range(1, len(columns)):
                 _w = columns[_ix].split()
                 if len(_w) > 3 and _w[3] == 'PRI':
+                    gvar['key_list'][type][table].append(_w[0])
+
                     coltype = 'Keys'
                     if _w[0] in gvar['schema'][type][table]['Columns']:
                         gvar['schema'][type][table]['Keys'][_w[0]] = gvar['schema'][type][table]['Columns'][_w[0]]
                         del gvar['schema'][type][table]['Columns'][_w[0]]
                 else:
+                    if len(_w) > 0:
+                        gvar['column_list'][type][table].append(_w[0])
+
                     coltype = 'Columns'
                     if len(_w) > 0 and _w[0] in gvar['schema'][type][table]['Keys']:
                         gvar['schema'][type][table]['Columns'][_w[0]] = gvar['schema'][type][table]['Keys'][_w[0]]

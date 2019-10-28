@@ -35,13 +35,15 @@ Keys:
 Columns:
 ^^^^^^^^
 
-* **activity** (String(128)):
+* **machine** (String(256)):
 
-      The HTCondor assigned activity of the partitions (eg. "Busy", "Retiring", etc.)
+      Is the HTCondor unique machine name running this partition and takes the
+      form "fqdn_of_the_vm>". Note, all partitions running on the same VM will have
+      the same machine name but unique names (distinguished by the "slotr_identifier").
 
-* **address** (String(512)):
+* **group_name** (String(32)):
 
-      Is the HTCondor Connection Broker (CCB) address of this partition.
+      The name of the CSV2 group that owns the HTCondor machine.
 
 * **cloud_name** (String(32)):
 
@@ -54,73 +56,63 @@ Columns:
       which is running this partition. This hash is used to determine whether
       CSV2 "owns" this partition.
 
-* **deprecated-retire_request_time** (Integer):
-
-      No longer used.
-
-* **deprecated-retired_time** (Integer):
-
-      No longer used.
-
-* **entered_current_state** (Integer):
-
-      Is the time in epoch seconds the partition entered its current state.
-
 * **flavor** (String(32)):
 
       The flavor of the VM running this partition.
-
-* **global_job_id** (String(128)):
-
-      The HTCondor global job ID of the job running in this partition.
-
-* **group_name** (String(32)):
-
-      The name of the CSV2 group that owns the HTCondor machine.
-
-* **idle_time** (Integer):
-
-      Normally NULL.
 
 * **job_id** (String(128)):
 
       The job ID (cluster and process ID) of the job running in
       this partition. For primary partitions, this field will always be NULL.
 
-* **machine** (String(256)):
+* **global_job_id** (String(128)):
 
-      Is the HTCondor unique machine name running this partition and takes the
-      form "fqdn_of_the_vm>". Note, all partitions running on the same VM will have
-      the same machine name but unique names (distinguished by the "slotr_identifier").
+      The HTCondor global job ID of the job running in this partition.
+
+* **address** (String(512)):
+
+      Is the HTCondor Connection Broker (CCB) address of this partition.
+
+* **state** (String(128)):
+
+      The HTCondor assigned state of the partitions (eg. "Claimed", "Idle", etc.)
+
+* **activity** (String(128)):
+
+      The HTCondor assigned activity of the partitions (eg. "Busy", "Retiring", etc.)
+
+* **vm_type** (String(128)):
+
+      No longer used.
 
 * **my_current_time** (Integer):
 
       The current time within the partition.
 
-* **remote_owner** (String(128)):
+* **entered_current_state** (Integer):
 
-      is the identity of the submitting user and takes the form "<user_id>@<fqdn_of_submitting_host>".
-
-* **slot_cpus** (Integer):
-
-      Is the number of CPUs assigned to the partition.
-
-* **slot_type** (String(128)):
-
-      Indicates whether this is a "Partitionable" or a "Dynamic" slot.
+      Is the time in epoch seconds the partition entered its current state.
 
 * **start** (String(128)):
 
       Is a string representing a start condition expression and takes the form
       "(Owner == <some_user>)".
 
-* **state** (String(128)):
+* **remote_owner** (String(128)):
 
-      The HTCondor assigned state of the partitions (eg. "Claimed", "Idle", etc.)
+      is the identity of the submitting user and takes the form "<user_id>@<fqdn_of_submitting_host>".
 
 * **total_disk** (Integer):
 
       The total bytes of disk space used by the partition.
+
+* **slot_type** (String(128)):
+
+      Indicates whether this is a "Partitionable" or a "Dynamic" slot.
+
+* **slot_cpus** (Integer):
+
+      Is the number of CPUs assigned to the partition.
 
 * **total_slots** (Integer):
 
@@ -128,7 +120,15 @@ Columns:
       running on the VM will report the same number, regardless of the
       slot type.
 
-* **vm_type** (String(128)):
+* **idle_time** (Integer):
+
+      Normally NULL.
+
+* **deprecated-retire_request_time** (Integer):
+
+      No longer used.
+
+* **deprecated-retired_time** (Integer):
 
       No longer used.
 

@@ -13,7 +13,7 @@ Database View: view_idle_vms
 Columns:
 ^^^^^^^^
 
-* **age** (Integer):
+* **group_name** (String(32)):
 
 
 * **cloud_name** (String(32)):
@@ -22,28 +22,25 @@ Columns:
 * **come_alive** (String(128)):
 
 
-* **dynamic_slots** (Integer):
+* **job_alive** (String(128)):
 
 
 * **error_delay** (String(128)):
 
 
-* **group_name** (String(32)):
+* **keep_alive** (Integer):
+
+
+* **vmid** (String(128)):
 
 
 * **hostname** (String(128)):
 
 
-* **job_alive** (String(128)):
-
-
-* **keep_alive** (Integer):
-
-
-* **poller_status** (String(12)):
-
-
 * **primary_slots** (Integer):
+
+
+* **dynamic_slots** (Integer):
 
 
 * **retire** (Integer):
@@ -52,6 +49,9 @@ Columns:
 * **terminate** (Integer):
 
 
-* **vmid** (String(128)):
+* **poller_status** (String(12)):
+
+
+* **age** (Integer):
 
 

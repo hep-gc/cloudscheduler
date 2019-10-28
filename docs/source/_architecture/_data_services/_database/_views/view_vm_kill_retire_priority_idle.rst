@@ -13,33 +13,33 @@ Database View: view_vm_kill_retire_priority_idle
 Columns:
 ^^^^^^^^
 
+* **group_name** (String(32)):
+
+
 * **cloud_name** (String(32)):
 
 
-* **flavor_cores** (Integer):
+* **vmid** (String(128)):
 
 
 * **flavor_id** (String(128)):
 
 
-* **flavor_ram** (Integer):
-
-
-* **group_name** (String(32)):
+* **machine** (String(256)):
 
 
 * **killed** (Integer):
 
 
-* **machine** (String(256)):
+* **retired** (Integer):
 
 
 * **priority** (Integer):
 
 
-* **retired** (Integer):
+* **flavor_cores** (Integer):
 
 
-* **vmid** (String(128)):
+* **flavor_ram** (Integer):
 
 

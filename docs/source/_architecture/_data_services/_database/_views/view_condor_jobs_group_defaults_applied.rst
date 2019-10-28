@@ -13,67 +13,16 @@ Database View: view_condor_jobs_group_defaults_applied
 Columns:
 ^^^^^^^^
 
-* **cluster_id** (Integer):
-
-
-* **entered_current_status** (Integer):
-
-
 * **global_job_id** (String(128)):
 
 
 * **group_name** (String(32)):
 
 
-* **held_reason** (String(128)):
-
-
-* **hold_job_reason** (String(64)):
-
-
-* **image** (String):
-
-
-* **instance_type** (String(512)):
-
-
-* **job_per_core** (Integer):
-
-
-* **job_priority** (Integer):
+* **target_clouds** (String):
 
 
 * **job_status** (Integer):
-
-
-* **js_completed** (Integer):
-
-
-* **js_held** (Integer):
-
-
-* **js_idle** (Integer):
-
-
-* **js_other** (Integer):
-
-
-* **js_running** (Integer):
-
-
-* **keep_alive** (String(512)):
-
-
-* **max_price** (String(512)):
-
-
-* **network** (String(512)):
-
-
-* **proc_id** (Integer):
-
-
-* **q_date** (Integer):
 
 
 * **request_cpus** (Integer):
@@ -91,12 +40,63 @@ Columns:
 * **requirements** (String(512)):
 
 
-* **target_clouds** (String):
+* **job_priority** (Integer):
+
+
+* **cluster_id** (Integer):
+
+
+* **proc_id** (Integer):
 
 
 * **user** (String(512)):
 
 
+* **image** (String):
+
+
+* **instance_type** (String(512)):
+
+
+* **network** (String(512)):
+
+
+* **keep_alive** (String(512)):
+
+
+* **max_price** (String(512)):
+
+
 * **user_data** (String(512)):
+
+
+* **job_per_core** (Integer):
+
+
+* **entered_current_status** (Integer):
+
+
+* **q_date** (Integer):
+
+
+* **hold_job_reason** (String(64)):
+
+
+* **held_reason** (String(128)):
+
+
+* **js_idle** (Integer):
+
+
+* **js_running** (Integer):
+
+
+* **js_completed** (Integer):
+
+
+* **js_held** (Integer):
+
+
+* **js_other** (Integer):
 
 

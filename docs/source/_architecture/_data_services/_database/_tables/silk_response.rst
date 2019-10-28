@@ -20,18 +20,18 @@ Keys:
 Columns:
 ^^^^^^^^
 
+* **status_code** (Integer):
+
+
+* **raw_body** (String):
+
+
 * **body** (String):
 
 
 * **encoded_headers** (String):
 
 
-* **raw_body** (String):
-
-
 * **request_id** (String(36)):
-
-
-* **status_code** (Integer):
 
 

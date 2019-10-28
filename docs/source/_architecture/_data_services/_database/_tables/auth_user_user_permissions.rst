@@ -20,9 +20,9 @@ Keys:
 Columns:
 ^^^^^^^^
 
-* **permission_id** (Integer):
-
-
 * **user_id** (Integer):
+
+
+* **permission_id** (Integer):
 
 

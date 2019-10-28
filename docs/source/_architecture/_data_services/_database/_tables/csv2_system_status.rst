@@ -52,82 +52,7 @@ Keys:
 Columns:
 ^^^^^^^^
 
-* **condor_msg** (String(512)):
-
-      A detailed status message indicating the service run time or the failure
-      time.
-
-* **condor_status** (Boolean):
-
-      If set to 1, the service is up. Otherwise, no part of
-      the service is running.
-
-* **csv2_ec2_error_count** (Integer):
-
-      transient poller error count maintained by the ProcessMonitor (see above).
-
-* **csv2_ec2_msg** (String(512)):
-
-      A detailed status message indicating the service run time or the failure
-      time.
-
-* **csv2_ec2_status** (Boolean):
-
-      If set to 1, the service is up. Otherwise, no part of
-      the service is running.
-
-* **csv2_glint_error_count** (Integer):
-
-      transient poller error count maintained by the ProcessMonitor (see above).
-
-* **csv2_glint_msg** (String(512)):
-
-      A detailed status message indicating the service run time or the failure
-      time.
-
-* **csv2_glint_status** (Boolean):
-
-      If set to 1, the service is up. Otherwise, no part of
-      the service is running.
-
-* **csv2_htc_agent_error_count** (Integer):
-
-      transient poller error count maintained by the ProcessMonitor (see above).
-
-* **csv2_htc_agent_msg** (String(512)):
-
-      A detailed status message indicating the service run time or the failure
-      time.
-
-* **csv2_htc_agent_status** (Boolean):
-
-      If set to 1, the service is up. Otherwise, no part of
-      the service is running.
-
-* **csv2_jobs_error_count** (Integer):
-
-      transient poller error count maintained by the ProcessMonitor (see above).
-
-* **csv2_jobs_msg** (String(512)):
-
-      A detailed status message indicating the service run time or the failure
-      time.
-
-* **csv2_jobs_status** (Boolean):
-
-      If set to 1, the service is up. Otherwise, no part of
-      the service is running.
-
-* **csv2_machines_error_count** (Integer):
-
-      transient poller error count maintained by the ProcessMonitor (see above).
-
-* **csv2_machines_msg** (String(512)):
-
-      A detailed status message indicating the service run time or the failure
-      time.
-
-* **csv2_machines_status** (Boolean):
+* **csv2_main_status** (Boolean):
 
       If set to 1, the service is up. Otherwise, no part of
       the service is running.
@@ -137,107 +62,167 @@ Columns:
       A detailed status message indicating the service run time or the failure
       time.
 
-* **csv2_main_status** (Boolean):
+* **mariadb_status** (Boolean):
 
       If set to 1, the service is up. Otherwise, no part of
       the service is running.
-
-* **csv2_openstack_error_count** (Integer):
-
-      transient poller error count maintained by the ProcessMonitor (see above).
-
-* **csv2_openstack_msg** (String(512)):
-
-      A detailed status message indicating the service run time or the failure
-      time.
-
-* **csv2_openstack_status** (Boolean):
-
-      If set to 1, the service is up. Otherwise, no part of
-      the service is running.
-
-* **csv2_status_error_count** (Integer):
-
-      transient poller error count maintained by the ProcessMonitor (see above).
-
-* **csv2_status_msg** (String(512)):
-
-      A detailed status message indicating the service run time or the failure
-      time.
-
-* **csv2_status_status** (Boolean):
-
-      If set to 1, the service is up. Otherwise, no part of
-      the service is running.
-
-* **csv2_timeseries_error_count** (Integer):
-
-      transient poller error count maintained by the ProcessMonitor (see above).
-
-* **csv2_timeseries_msg** (String(512)):
-
-      A detailed status message indicating the service run time or the failure
-      time.
-
-* **csv2_timeseries_status** (Boolean):
-
-      If set to 1, the service is up. Otherwise, no part of
-      the service is running.
-
-* **csv2_vm_data_error_count** (Integer):
-
-      transient poller error count maintained by the ProcessMonitor (see above).
-
-* **csv2_vm_data_msg** (String(512)):
-
-      A detailed status message indicating the service run time or the failure
-      time.
-
-* **csv2_vm_data_status** (Boolean):
-
-      If set to 1, the service is up. Otherwise, no part of
-      the service is running.
-
-* **csv2_watch_error_count** (Integer):
-
-      transient poller error count maintained by the ProcessMonitor (see above).
-
-* **csv2_watch_msg** (String(512)):
-
-      A detailed status message indicating the service run time or the failure
-      time.
-
-* **csv2_watch_status** (Boolean):
-
-      If set to 1, the service is up. Otherwise, no part of
-      the service is running.
-
-* **disk** (Float):
-
-      The percentage of disk used on the CSV2 server.
-
-* **disk_size** (Float):
-
-      The size of disk on the CSV2 server.
-
-* **disk_used** (Float):
-
-      The size of used disk on the CSV2 server.
-
-* **last_updated** (Integer):
-
-      The time the status record was last updated.
-
-* **load** (Float):
-
-      The current load average on the CSV2 server.
 
 * **mariadb_msg** (String(512)):
 
       A detailed status message indicating the service run time or the failure
       time.
 
-* **mariadb_status** (Boolean):
+* **csv2_openstack_error_count** (Integer):
+
+      transient poller error count maintained by the ProcessMonitor (see above).
+
+* **csv2_openstack_status** (Boolean):
+
+      If set to 1, the service is up. Otherwise, no part of
+      the service is running.
+
+* **csv2_openstack_msg** (String(512)):
+
+      A detailed status message indicating the service run time or the failure
+      time.
+
+* **csv2_jobs_error_count** (Integer):
+
+      transient poller error count maintained by the ProcessMonitor (see above).
+
+* **csv2_jobs_status** (Boolean):
+
+      If set to 1, the service is up. Otherwise, no part of
+      the service is running.
+
+* **csv2_jobs_msg** (String(512)):
+
+      A detailed status message indicating the service run time or the failure
+      time.
+
+* **csv2_machines_error_count** (Integer):
+
+      transient poller error count maintained by the ProcessMonitor (see above).
+
+* **csv2_machines_status** (Boolean):
+
+      If set to 1, the service is up. Otherwise, no part of
+      the service is running.
+
+* **csv2_machines_msg** (String(512)):
+
+      A detailed status message indicating the service run time or the failure
+      time.
+
+* **csv2_status_error_count** (Integer):
+
+      transient poller error count maintained by the ProcessMonitor (see above).
+
+* **csv2_status_status** (Boolean):
+
+      If set to 1, the service is up. Otherwise, no part of
+      the service is running.
+
+* **csv2_status_msg** (String(512)):
+
+      A detailed status message indicating the service run time or the failure
+      time.
+
+* **csv2_timeseries_error_count** (Integer):
+
+      transient poller error count maintained by the ProcessMonitor (see above).
+
+* **csv2_timeseries_status** (Boolean):
+
+      If set to 1, the service is up. Otherwise, no part of
+      the service is running.
+
+* **csv2_timeseries_msg** (String(512)):
+
+      A detailed status message indicating the service run time or the failure
+      time.
+
+* **csv2_ec2_error_count** (Integer):
+
+      transient poller error count maintained by the ProcessMonitor (see above).
+
+* **csv2_ec2_status** (Boolean):
+
+      If set to 1, the service is up. Otherwise, no part of
+      the service is running.
+
+* **csv2_ec2_msg** (String(512)):
+
+      A detailed status message indicating the service run time or the failure
+      time.
+
+* **csv2_htc_agent_error_count** (Integer):
+
+      transient poller error count maintained by the ProcessMonitor (see above).
+
+* **csv2_htc_agent_status** (Boolean):
+
+      If set to 1, the service is up. Otherwise, no part of
+      the service is running.
+
+* **csv2_htc_agent_msg** (String(512)):
+
+      A detailed status message indicating the service run time or the failure
+      time.
+
+* **csv2_glint_error_count** (Integer):
+
+      transient poller error count maintained by the ProcessMonitor (see above).
+
+* **csv2_glint_status** (Boolean):
+
+      If set to 1, the service is up. Otherwise, no part of
+      the service is running.
+
+* **csv2_glint_msg** (String(512)):
+
+      A detailed status message indicating the service run time or the failure
+      time.
+
+* **csv2_watch_error_count** (Integer):
+
+      transient poller error count maintained by the ProcessMonitor (see above).
+
+* **csv2_watch_status** (Boolean):
+
+      If set to 1, the service is up. Otherwise, no part of
+      the service is running.
+
+* **csv2_watch_msg** (String(512)):
+
+      A detailed status message indicating the service run time or the failure
+      time.
+
+* **csv2_vm_data_error_count** (Integer):
+
+      transient poller error count maintained by the ProcessMonitor (see above).
+
+* **csv2_vm_data_status** (Boolean):
+
+      If set to 1, the service is up. Otherwise, no part of
+      the service is running.
+
+* **csv2_vm_data_msg** (String(512)):
+
+      A detailed status message indicating the service run time or the failure
+      time.
+
+* **condor_status** (Boolean):
+
+      If set to 1, the service is up. Otherwise, no part of
+      the service is running.
+
+* **condor_msg** (String(512)):
+
+      A detailed status message indicating the service run time or the failure
+      time.
+
+* **rabbitmq_server_status** (Boolean):
 
       If set to 1, the service is up. Otherwise, no part of
       the service is running.
@@ -247,10 +232,9 @@ Columns:
       A detailed status message indicating the service run time or the failure
       time.
 
-* **rabbitmq_server_status** (Boolean):
+* **load** (Float):
 
-      If set to 1, the service is up. Otherwise, no part of
-      the service is running.
+      The current load average on the CSV2 server.
 
 * **ram** (Float):
 
@@ -275,4 +259,20 @@ Columns:
 * **swap_used** (Float):
 
       The size of used swap space on the CSV2 server.
+
+* **disk** (Float):
+
+      The percentage of disk used on the CSV2 server.
+
+* **disk_size** (Float):
+
+      The size of disk on the CSV2 server.
+
+* **disk_used** (Float):
+
+      The size of used disk on the CSV2 server.
+
+* **last_updated** (Integer):
+
+      The time the status record was last updated.
 

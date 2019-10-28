@@ -13,61 +13,73 @@ Database View: view_cloud_status
 Columns:
 ^^^^^^^^
 
-* **Foreign_VMs** (Integer):
-
-
-* **VMs** (Integer):
-
-
-* **VMs_idle** (Integer):
-
-
-* **VMs_in_error** (Integer):
-
-
-* **VMs_manual** (Integer):
-
-
-* **VMs_native_foreign** (Integer):
-
-
-* **VMs_quota** (Integer):
-
-
-* **VMs_retiring** (Integer):
-
-
-* **VMs_running** (Integer):
-
-
-* **VMs_starting** (Integer):
-
-
-* **VMs_unregistered** (Integer):
+* **group_name** (String(32)):
 
 
 * **cloud_name** (String(32)):
 
 
-* **communication_rt** (Integer):
+* **VMs** (Integer):
 
 
-* **communication_up** (Boolean):
+* **VMs_manual** (Integer):
 
 
-* **cores_ctl** (Integer):
+* **VMs_in_error** (Integer):
 
 
-* **cores_foreign** (Integer):
+* **VMs_starting** (Integer):
 
 
-* **cores_limit** (Integer):
+* **VMs_retiring** (Integer):
+
+
+* **VMs_unregistered** (Integer):
+
+
+* **VMs_idle** (Integer):
+
+
+* **VMs_running** (Integer):
 
 
 * **cores_native** (Integer):
 
 
-* **cores_native_foreign** (Integer):
+* **ram_native** (Float):
+
+
+* **slot_count** (Integer):
+
+
+* **slot_core_count** (Integer):
+
+
+* **slot_idle_core_count** (Integer):
+
+
+* **Foreign_VMs** (Integer):
+
+
+* **enabled** (Boolean):
+
+
+* **communication_up** (Boolean):
+
+
+* **communication_rt** (Integer):
+
+
+* **cores_ctl** (Integer):
+
+
+* **cores_limit** (Integer):
+
+
+* **VMs_quota** (Integer):
+
+
+* **VMs_native_foreign** (Integer):
 
 
 * **cores_quota** (Integer):
@@ -76,36 +88,24 @@ Columns:
 * **cores_soft_quota** (Integer):
 
 
-* **enabled** (Boolean):
+* **cores_foreign** (Integer):
 
 
-* **group_name** (String(32)):
+* **cores_native_foreign** (Integer):
 
 
 * **ram_ctl** (Integer):
 
 
-* **ram_foreign** (Float):
-
-
 * **ram_limit** (Integer):
-
-
-* **ram_native** (Float):
-
-
-* **ram_native_foreign** (Float):
 
 
 * **ram_quota** (Integer):
 
 
-* **slot_core_count** (Integer):
+* **ram_foreign** (Float):
 
 
-* **slot_count** (Integer):
-
-
-* **slot_idle_core_count** (Integer):
+* **ram_native_foreign** (Float):
 
 

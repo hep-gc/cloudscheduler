@@ -31,29 +31,9 @@ Keys:
 Columns:
 ^^^^^^^^
 
-* **condor** (String(64)):
+* **os_limits** (String(64)):
 
-      This column provides a list of HTCondor classads variable names.
-
-* **ec2_flavors** (String(64)):
-
-      This column provides a list of Amazon EC2 instance-types variable names.
-
-* **ec2_images** (String(64)):
-
-      This column provides a list of Amazon EC2 images variable names.
-
-* **ec2_limits** (String(64)):
-
-      This column provides a list of Amazon EC2 account attributes variable names.
-
-* **ec2_regions** (String(64)):
-
-      This column provides a list of Amazon EC2 regions variable names.
-
-* **ec2_vms** (String(20)):
-
-      This column provides a list of Amazon EC2 instances variable names.
+      This column provides a list of OpenStack nova-limits variable names.
 
 * **os_flavors** (String(64)):
 
@@ -63,19 +43,39 @@ Columns:
 
       This column provides a list of OpenStack glance-images variable names.
 
-* **os_limits** (String(64)):
-
-      This column provides a list of OpenStack nova-limits variable names.
-
 * **os_networks** (String(64)):
 
       This column provides a list of OpenStack neutron-networks variable names.
+
+* **os_vms** (String(64)):
+
+      This column provides a list of OpenStack nova-instances variable names.
 
 * **os_sec_grps** (String(64)):
 
       This column provides a list of OpenStack nova-security-groups variable names.
 
-* **os_vms** (String(64)):
+* **condor** (String(64)):
 
-      This column provides a list of OpenStack nova-instances variable names.
+      This column provides a list of HTCondor classads variable names.
+
+* **ec2_flavors** (String(64)):
+
+      This column provides a list of Amazon EC2 instance-types variable names.
+
+* **ec2_limits** (String(64)):
+
+      This column provides a list of Amazon EC2 account attributes variable names.
+
+* **ec2_regions** (String(64)):
+
+      This column provides a list of Amazon EC2 regions variable names.
+
+* **ec2_images** (String(64)):
+
+      This column provides a list of Amazon EC2 images variable names.
+
+* **ec2_vms** (String(20)):
+
+      This column provides a list of Amazon EC2 instances variable names.
 

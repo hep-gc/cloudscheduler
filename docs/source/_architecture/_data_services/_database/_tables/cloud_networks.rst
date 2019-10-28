@@ -21,13 +21,13 @@ target cloud.
 Keys:
 ^^^^^
 
-* **cloud_name** (String(32)):
-
-      Name of the cloud the network was queried from
-
 * **group_name** (String(32)):
 
       Group name associated with the cloud the network was queried from.
+
+* **cloud_name** (String(32)):
+
+      Name of the cloud the network was queried from
 
 * **id** (String(128)):
 
@@ -38,26 +38,13 @@ Keys:
 Columns:
 ^^^^^^^^
 
-* **cloud_type** (String(64)):
-
-      Type of cloud the network was queried from.
-
-* **external_route** (Boolean):
-
-      A boolean representing whether or not the network has an external route.
-
-* **last_updated** (Integer):
-
-      Timestamp in seconds since epoch representing the last time the network was
-      updated in csv2.
-
 * **name** (String(256)):
 
       Name of the network as defined on the cloud.
 
-* **shared** (Boolean):
+* **cloud_type** (String(64)):
 
-      A boolean representing whether or not the network is shared.
+      Type of cloud the network was queried from.
 
 * **subnets** (String(256)):
 
@@ -66,4 +53,17 @@ Columns:
 * **tenant_id** (String(128)):
 
       ID of the cloud tenant/project associated with a given network
+
+* **external_route** (Boolean):
+
+      A boolean representing whether or not the network has an external route.
+
+* **shared** (Boolean):
+
+      A boolean representing whether or not the network is shared.
+
+* **last_updated** (Integer):
+
+      Timestamp in seconds since epoch representing the last time the network was
+      updated in csv2.
 

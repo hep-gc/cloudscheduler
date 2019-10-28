@@ -42,10 +42,6 @@ Keys:
 Columns:
 ^^^^^^^^
 
-* **htcondor_container_hostname** (String(128)):
-
-      User supplied container name if CSV2 is running in a container.
-
 * **htcondor_fqdn** (String(128)):
 
       Is the Fully Qualified Domain Name of the server hosting the HTCondor
@@ -64,6 +60,10 @@ Columns:
       of days remaining for the HTCondor certificate. It cannot be modified. by
       members
 
+* **htcondor_container_hostname** (String(128)):
+
+      User supplied container name if CSV2 is running in a container.
+
 * **htcondor_other_submitters** (String(128)):
 
       This user supplied field maintains a comma seperated list of user IDs,
@@ -76,17 +76,17 @@ Columns:
       default value for the job parameter "request_cpus" for any job submitted for
       this group.
 
-* **job_disk** (Integer):
-
-      If not specified in the Job Definition File (JDL), this, together with
-      "job_scratch" is the default value for the job parameter "request_disk" for any
-      job submitted for this group. The value is specified in gigabytes.
-
 * **job_ram** (Integer):
 
       If not specified in the Job Definition File (JDL), this is the
       default value for the job parameter "request_ram" for any job submitted for
       this group. The value is specified in megabytes.
+
+* **job_disk** (Integer):
+
+      If not specified in the Job Definition File (JDL), this, together with
+      "job_scratch" is the default value for the job parameter "request_disk" for any
+      job submitted for this group. The value is specified in gigabytes.
 
 * **job_scratch** (Integer):
 

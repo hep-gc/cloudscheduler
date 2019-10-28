@@ -13,7 +13,7 @@ Database View: view_cloud_status_flavor_slot_summary
 Columns:
 ^^^^^^^^
 
-* **busy** (Integer):
+* **group_name** (String(32)):
 
 
 * **cloud_name** (String(32)):
@@ -22,7 +22,7 @@ Columns:
 * **flavor** (String(46)):
 
 
-* **group_name** (String(32)):
+* **busy** (Integer):
 
 
 * **idle** (Integer):

@@ -24,17 +24,17 @@ Keys:
 Columns:
 ^^^^^^^^
 
-* **agent_status** (Boolean):
-
-      The CSV2 VM data poller will set this field to 1 if
-      it succeeds in polling the csv2-htc-agent associated with this job scheduler. Otherwise,
-      it will be set to 0.
-
 * **condor_status** (Boolean):
 
       The CSV2 job and machine pollers will set this field to 1
       if they succeed in polling this job scheduler. Otherwise, it will be
       set to 0.
+
+* **agent_status** (Boolean):
+
+      The CSV2 VM data poller will set this field to 1 if
+      it succeeds in polling the csv2-htc-agent associated with this job scheduler. Otherwise,
+      it will be set to 0.
 
 * **foreign_jobs** (Integer):
 

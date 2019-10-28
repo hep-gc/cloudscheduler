@@ -21,6 +21,10 @@ on the target cloud.
 Keys:
 ^^^^^
 
+* **group_name** (String(32)):
+
+      Group name associated with the cloud the keypair was queried from.
+
 * **cloud_name** (String(32)):
 
       Name of the cloud the keypair was queried from.
@@ -28,10 +32,6 @@ Keys:
 * **fingerprint** (String(64)):
 
       String containing the fingerprint of the keypair.
-
-* **group_name** (String(32)):
-
-      Group name associated with the cloud the keypair was queried from.
 
 * **key_name** (String(32)):
 

@@ -28,11 +28,11 @@ Keys:
 Columns:
 ^^^^^^^^
 
-* **endpoint** (String(128)):
-
-      is the authorization endpoint for this cloud/region.
-
 * **location** (String(64)):
 
       Is the location of this cloud/region.
+
+* **endpoint** (String(128)):
+
+      is the authorization endpoint for this cloud/region.
 

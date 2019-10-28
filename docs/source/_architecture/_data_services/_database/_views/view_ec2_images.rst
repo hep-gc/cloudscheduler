@@ -13,22 +13,37 @@ Database View: view_ec2_images
 Columns:
 ^^^^^^^^
 
-* **arch** (String(5)):
-
-
-* **borrower_id** (String(32)):
-
-
-* **description** (String(256)):
-
-
-* **disk_format** (String(128)):
+* **region** (String(32)):
 
 
 * **id** (String(128)):
 
 
+* **borrower_id** (String(32)):
+
+
+* **owner_id** (String(32)):
+
+
+* **owner_alias** (String(64)):
+
+
+* **disk_format** (String(128)):
+
+
+* **size** (Integer):
+
+
 * **image_location** (String(512)):
+
+
+* **visibility** (String(128)):
+
+
+* **name** (String(256)):
+
+
+* **description** (String(256)):
 
 
 * **last_updated** (Integer):
@@ -37,24 +52,9 @@ Columns:
 * **lower_location** (String(512)):
 
 
-* **name** (String(256)):
-
-
 * **opsys** (String(8)):
 
 
-* **owner_alias** (String(64)):
-
-
-* **owner_id** (String(32)):
-
-
-* **region** (String(32)):
-
-
-* **size** (Integer):
-
-
-* **visibility** (String(128)):
+* **arch** (String(5)):
 
 

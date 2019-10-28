@@ -22,27 +22,7 @@ Keys:
 Columns:
 ^^^^^^^^
 
-* **activity** (String(128)):
-
-      Not used.
-
-* **address** (String(512)):
-
-      Not used.
-
-* **condor_host** (String(64)):
-
-      Not used.
-
-* **entered_current_state** (Integer):
-
-      Not used.
-
-* **flavor** (String(32)):
-
-      Not used.
-
-* **global_job_id** (String(128)):
+* **machine** (String(256)):
 
       Not used.
 
@@ -50,7 +30,11 @@ Columns:
 
       Not used.
 
-* **idle_time** (Integer):
+* **condor_host** (String(64)):
+
+      Not used.
+
+* **flavor** (String(32)):
 
       Not used.
 
@@ -58,7 +42,23 @@ Columns:
 
       Not used.
 
-* **machine** (String(256)):
+* **global_job_id** (String(128)):
+
+      Not used.
+
+* **address** (String(512)):
+
+      Not used.
+
+* **state** (String(128)):
+
+      Not used.
+
+* **activity** (String(128)):
+
+      Not used.
+
+* **vm_type** (String(128)):
 
       Not used.
 
@@ -66,7 +66,27 @@ Columns:
 
       Not used.
 
+* **entered_current_state** (Integer):
+
+      Not used.
+
+* **start** (String(128)):
+
+      Not used.
+
 * **remote_owner** (String(128)):
+
+      Not used.
+
+* **slot_type** (String(128)):
+
+      Not used.
+
+* **total_slots** (Integer):
+
+      Not used.
+
+* **idle_time** (Integer):
 
       Not used.
 
@@ -75,26 +95,6 @@ Columns:
       Not used.
 
 * **retired_time** (Integer):
-
-      Not used.
-
-* **slot_type** (String(128)):
-
-      Not used.
-
-* **start** (String(128)):
-
-      Not used.
-
-* **state** (String(128)):
-
-      Not used.
-
-* **total_slots** (Integer):
-
-      Not used.
-
-* **vm_type** (String(128)):
 
       Not used.
 

@@ -24,28 +24,28 @@ Keys:
 
       Is the authoriztion URL of the cloud funning the foreign VMs.
 
-* **flavor_id** (String(128)):
+* **region** (String(32)):
 
-      Is the flavor ID of the VMs being counted.
+      Is the region within the cloud.
 
 * **project** (String(32)):
 
       Is the project used to authenticate with the cloud in order to
       retrieve the VM list.
 
-* **region** (String(32)):
+* **flavor_id** (String(128)):
 
-      Is the region within the cloud.
+      Is the flavor ID of the VMs being counted.
 
 
 Columns:
 ^^^^^^^^
 
-* **cloud_type** (String(32)):
-
-      Is the cloud type.
-
 * **count** (Integer):
 
       Is the number of VMs on the cloud of this flavor ID.
+
+* **cloud_type** (String(32)):
+
+      Is the cloud type.
 

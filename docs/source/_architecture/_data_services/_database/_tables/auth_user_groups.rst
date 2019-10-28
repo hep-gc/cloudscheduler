@@ -20,9 +20,9 @@ Keys:
 Columns:
 ^^^^^^^^
 
-* **group_id** (Integer):
-
-
 * **user_id** (Integer):
+
+
+* **group_id** (Integer):
 
 

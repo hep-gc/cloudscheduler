@@ -22,6 +22,10 @@ instance type filtering process, refer to the **csv2_instance_type_filters** tab
 Keys:
 ^^^^^
 
+* **region** (String(32)):
+
+      Is the Amazon EC2 region offering the instance type.
+
 * **instance_type** (String(32)):
 
       Is the instance type name.
@@ -30,32 +34,14 @@ Keys:
 
       Is the operating system supported by this instance type.
 
-* **region** (String(32)):
-
-      Is the Amazon EC2 region offering the instance type.
-
 
 Columns:
 ^^^^^^^^
-
-* **cores** (Integer):
-
-      Is the number of cores that are offered by this instance type.
-
-* **cost_per_hour** (Float):
-
-      The decimal number given is the cost per hour for a running
-      instance of this instance type stated in American dollars and cents.
 
 * **instance_family** (String(32)):
 
       Is the Amazon EC2 classification of this instance type indicating the type
       of usage. Examples of familieas are 'Compute Optimized', 'Memory Optimized', etc.
-
-* **memory** (Float):
-
-      Is the total amount of RAM in gigabytes offered by this instance
-      type.
 
 * **processor** (String(64)):
 
@@ -67,4 +53,18 @@ Columns:
       Some storage types do not limit the size of the storage ('ebs',
       for example). Other types of storage are fixed and this field will
       also indicate the size.
+
+* **cores** (Integer):
+
+      Is the number of cores that are offered by this instance type.
+
+* **memory** (Float):
+
+      Is the total amount of RAM in gigabytes offered by this instance
+      type.
+
+* **cost_per_hour** (Float):
+
+      The decimal number given is the cost per hour for a running
+      instance of this instance type stated in American dollars and cents.
 

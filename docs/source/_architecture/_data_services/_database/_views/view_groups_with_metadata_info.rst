@@ -16,24 +16,24 @@ Columns:
 * **group_name** (String(32)):
 
 
-* **htcondor_container_hostname** (String(128)):
-
-
 * **htcondor_fqdn** (String(128)):
+
+
+* **htcondor_container_hostname** (String(128)):
 
 
 * **htcondor_other_submitters** (String(128)):
 
 
-* **metadata_enabled** (Boolean):
-
-
-* **metadata_mime_type** (String(128)):
-
-
 * **metadata_name** (String(64)):
 
 
+* **metadata_enabled** (Boolean):
+
+
 * **metadata_priority** (Integer):
+
+
+* **metadata_mime_type** (String(128)):
 
 

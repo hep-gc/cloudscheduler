@@ -49,47 +49,35 @@ All filter specifications are joined with a logical **AND**.
 Keys:
 ^^^^^
 
-* **cloud_name** (String(32)):
-
-      Is the name of cloud identifying the Amazon EC2 region for which
-      instance types (flavors) are to be retieved.
-
 * **group_name** (String(32)):
 
       Is the name of the CSV2 group that owns both the filter
       and the corresponding cloud.
 
+* **cloud_name** (String(32)):
+
+      Is the name of cloud identifying the Amazon EC2 region for which
+      instance types (flavors) are to be retieved.
+
 
 Columns:
 ^^^^^^^^
-
-* **cores** (String(32)):
-
-      Instance types can be selected by specifying a comma seperated list of
-      the number of cores required. Instance types that offer one of the
-      specified number of cores will be selected.
 
 * **families** (String(128)):
 
       This Amazon EC2 designation classifies instance types according to their resource configuration.
       Examples of families are 'Compute Optimized', 'Memory Optimized', etc.
 
-* **memory_max_gigabytes_per_core** (Integer):
-
-      Instance types can be selected by specifying the maximum gigabytes of RAM
-      per core. Instance types that offer less than or equal to the
-      maximum gigbytes per core will be selected.
-
-* **memory_min_gigabytes_per_core** (Integer):
-
-      Instance types can be selected by specifying the minimum gigabytes of RAM
-      per core. Instance types that offer greater than or equal to the
-      minimum gigbytes per core will be selected.
-
 * **operating_systems** (String(128)):
 
       This Amazon EC2 designation identifies the intended operating system and is instrumental
       in determining the execution pricing.
+
+* **processors** (String(128)):
+
+      Instance types can be selected by specifying a comma seperated list of
+      processor model names. Instance types that offer one of the specified processor
+      models will be selected.
 
 * **processor_manufacturers** (String(128)):
 
@@ -97,9 +85,21 @@ Columns:
       processor manufacturers. Instance types that offer processors from one of the specified
       manufacturers will be selected.
 
-* **processors** (String(128)):
+* **cores** (String(32)):
 
       Instance types can be selected by specifying a comma seperated list of
-      processor model names. Instance types that offer one of the specified processor
-      models will be selected.
+      the number of cores required. Instance types that offer one of the
+      specified number of cores will be selected.
+
+* **memory_min_gigabytes_per_core** (Integer):
+
+      Instance types can be selected by specifying the minimum gigabytes of RAM
+      per core. Instance types that offer greater than or equal to the
+      minimum gigbytes per core will be selected.
+
+* **memory_max_gigabytes_per_core** (Integer):
+
+      Instance types can be selected by specifying the maximum gigabytes of RAM
+      per core. Instance types that offer less than or equal to the
+      maximum gigbytes per core will be selected.
 

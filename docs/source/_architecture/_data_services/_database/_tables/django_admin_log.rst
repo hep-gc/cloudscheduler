@@ -20,22 +20,22 @@ Keys:
 Columns:
 ^^^^^^^^
 
-* **action_flag** (Integer):
-
-
 * **action_time** (Integer):
-
-
-* **change_message** (String):
-
-
-* **content_type_id** (Integer):
 
 
 * **object_id** (String):
 
 
 * **object_repr** (String(200)):
+
+
+* **action_flag** (Integer):
+
+
+* **change_message** (String):
+
+
+* **content_type_id** (Integer):
 
 
 * **user_id** (Integer):

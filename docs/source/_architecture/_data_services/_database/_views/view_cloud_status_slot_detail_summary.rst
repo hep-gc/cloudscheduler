@@ -13,18 +13,18 @@ Database View: view_cloud_status_slot_detail_summary
 Columns:
 ^^^^^^^^
 
+* **group_name** (String(32)):
+
+
 * **cloud_name** (String(32)):
 
 
-* **core_count** (Integer):
-
-
-* **group_name** (String(32)):
+* **slot_type** (Integer):
 
 
 * **slot_count** (Integer):
 
 
-* **slot_type** (Integer):
+* **core_count** (Integer):
 
 

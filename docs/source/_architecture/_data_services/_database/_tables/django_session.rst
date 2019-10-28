@@ -20,9 +20,9 @@ Keys:
 Columns:
 ^^^^^^^^
 
-* **expire_date** (Integer):
-
-
 * **session_data** (String):
+
+
+* **expire_date** (Integer):
 
 

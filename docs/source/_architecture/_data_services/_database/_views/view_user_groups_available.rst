@@ -13,12 +13,12 @@ Database View: view_user_groups_available
 Columns:
 ^^^^^^^^
 
-* **available** (String(32)):
+* **username** (String(32)):
 
 
 * **group_name** (String(32)):
 
 
-* **username** (String(32)):
+* **available** (String(32)):
 
 

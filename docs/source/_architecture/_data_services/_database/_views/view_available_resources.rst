@@ -13,16 +13,7 @@ Database View: view_available_resources
 Columns:
 ^^^^^^^^
 
-* **VMs** (Integer):
-
-
-* **VMs_max** (Integer):
-
-
-* **authurl** (String(128)):
-
-
-* **cacertificate** (String):
+* **group_name** (String(32)):
 
 
 * **cloud_name** (String(32)):
@@ -31,16 +22,40 @@ Columns:
 * **cloud_priority** (Integer):
 
 
+* **region** (String(20)):
+
+
 * **cloud_type** (String(64)):
 
 
-* **cores_foreign** (Integer):
+* **spot_price** (Float):
 
 
-* **cores_max** (Integer):
+* **authurl** (String(128)):
 
 
-* **cores_used** (Integer):
+* **cacertificate** (String):
+
+
+* **project_domain_name** (String(20)):
+
+
+* **project_domain_id** (String(64)):
+
+
+* **project** (String(128)):
+
+
+* **user_domain_name** (String(20)):
+
+
+* **user_domain_id** (String(64)):
+
+
+* **username** (String(20)):
+
+
+* **password** (String):
 
 
 * **default_flavor** (String(97)):
@@ -61,70 +76,22 @@ Columns:
 * **default_security_groups** (String(128)):
 
 
+* **VMs** (Integer):
+
+
+* **VMs_max** (Integer):
+
+
+* **cores_max** (Integer):
+
+
+* **cores_used** (Integer):
+
+
+* **cores_foreign** (Integer):
+
+
 * **disk_used** (Integer):
-
-
-* **flavor** (String(161)):
-
-
-* **flavor_VMs** (Integer):
-
-
-* **flavor_cores** (Integer):
-
-
-* **flavor_disk** (Integer):
-
-
-* **flavor_error** (Integer):
-
-
-* **flavor_id** (String(128)):
-
-
-* **flavor_idle** (Integer):
-
-
-* **flavor_manual** (Integer):
-
-
-* **flavor_ram** (Integer):
-
-
-* **flavor_retiring** (Integer):
-
-
-* **flavor_running** (Integer):
-
-
-* **flavor_slots** (Integer):
-
-
-* **flavor_starting** (Integer):
-
-
-* **flavor_swap** (Integer):
-
-
-* **flavor_unregistered** (Integer):
-
-
-* **group_name** (String(32)):
-
-
-* **password** (String):
-
-
-* **project** (String(128)):
-
-
-* **project_domain_id** (String(64)):
-
-
-* **project_domain_name** (String(20)):
-
-
-* **ram_foreign** (Float):
 
 
 * **ram_max** (Float):
@@ -133,25 +100,58 @@ Columns:
 * **ram_used** (Integer):
 
 
-* **region** (String(20)):
-
-
-* **spot_price** (Float):
+* **ram_foreign** (Float):
 
 
 * **swap_used** (Integer):
 
 
+* **flavor** (String(161)):
+
+
+* **flavor_id** (String(128)):
+
+
+* **flavor_slots** (Integer):
+
+
+* **flavor_cores** (Integer):
+
+
+* **flavor_disk** (Integer):
+
+
+* **flavor_ram** (Integer):
+
+
+* **flavor_swap** (Integer):
+
+
+* **flavor_VMs** (Integer):
+
+
+* **flavor_starting** (Integer):
+
+
+* **flavor_unregistered** (Integer):
+
+
+* **flavor_idle** (Integer):
+
+
+* **flavor_running** (Integer):
+
+
+* **flavor_retiring** (Integer):
+
+
+* **flavor_error** (Integer):
+
+
+* **flavor_manual** (Integer):
+
+
 * **updater** (String):
-
-
-* **user_domain_id** (String(64)):
-
-
-* **user_domain_name** (String(20)):
-
-
-* **username** (String(20)):
 
 
 * **worker_cert** (String):

@@ -35,6 +35,22 @@ Columns:
       can authenticate using their certificatesr. In which case, the user will not
       be prompted for their CSV2 password.
 
+* **password** (String(128)):
+
+      Is the user password to authenticate with CSV2. If the user is
+      not authenticating with any other methd, CSV2 will prompt the user for
+      this value.
+
+* **is_superuser** (Boolean):
+
+      If set to 1, the user is considered a super user and
+      has all rights and privileges. Otherwise, the user is a normal user
+      and only has privileges within a group.
+
+* **join_date** (Integer):
+
+      A system generated timestamp indicating when this username was first added.
+
 * **default_group** (String(32)):
 
       A user preference indicating their default group of all the groups they
@@ -65,22 +81,6 @@ Columns:
       A user preference specifying the format of the slot summary. If set
       to 0, the slot summary will not contain any flavor information. If
       set to 1, the slot summary will contain flavor information.
-
-* **is_superuser** (Boolean):
-
-      If set to 1, the user is considered a super user and
-      has all rights and privileges. Otherwise, the user is a normal user
-      and only has privileges within a group.
-
-* **join_date** (Integer):
-
-      A system generated timestamp indicating when this username was first added.
-
-* **password** (String(128)):
-
-      Is the user password to authenticate with CSV2. If the user is
-      not authenticating with any other methd, CSV2 will prompt the user for
-      this value.
 
 * **status_refresh_interval** (Integer):
 

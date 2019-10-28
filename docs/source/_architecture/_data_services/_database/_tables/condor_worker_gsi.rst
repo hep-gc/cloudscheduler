@@ -36,12 +36,6 @@ Keys:
 Columns:
 ^^^^^^^^
 
-* **worker_cert** (String):
-
-      Is the gzipped/base64 representation of the worker certificate for an HTCondor instance.
-      This value is passed to jinja2 metadata templates as the variable '{{
-      cs_condorworker_cert }}' by the scheduler when preparing metadata files for VM contextualization.
-
 * **worker_dn** (String(128)):
 
       Is the distinquished name of the condor worker cert of the corresponding
@@ -58,6 +52,12 @@ Columns:
       has less the cert_days_left_bad remaining, an error will be displayed on the
       status page, and CSV2 will no longer manage VMs for this HTCondor
       instance.
+
+* **worker_cert** (String):
+
+      Is the gzipped/base64 representation of the worker certificate for an HTCondor instance.
+      This value is passed to jinja2 metadata templates as the variable '{{
+      cs_condorworker_cert }}' by the scheduler when preparing metadata files for VM contextualization.
 
 * **worker_key** (String):
 

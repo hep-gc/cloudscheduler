@@ -21,9 +21,9 @@ available cloud within the CSV2 group.
 Keys:
 ^^^^^
 
-* **alias_name** (String(32)):
+* **group_name** (String(32)):
 
-      Is the name of the alias.
+      Is the CSV2 group name owning this alias.
 
 * **cloud_name** (String(32)):
 
@@ -32,7 +32,7 @@ Keys:
       each member of an alias. When all members of an alias are
       deleted, the alias is deleted.
 
-* **group_name** (String(32)):
+* **alias_name** (String(32)):
 
-      Is the CSV2 group name owning this alias.
+      Is the name of the alias.
 

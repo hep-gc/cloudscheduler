@@ -13,106 +13,43 @@ Database View: view_vms
 Columns:
 ^^^^^^^^
 
-* **age** (Integer):
-
-
-* **auth_url** (String(128)):
+* **group_name** (String(32)):
 
 
 * **cloud_name** (String(32)):
 
 
-* **cloud_type** (String(64)):
+* **region** (String(32)):
 
 
-* **condor_slots** (Integer):
+* **vmid** (String(128)):
 
 
-* **condor_slots_used** (Integer):
-
-
-* **cores** (Integer):
-
-
-* **disk** (Integer):
-
-
-* **entered_current_state** (Integer):
-
-
-* **flavor_id** (String(128)):
-
-
-* **flavor_name** (String(128)):
-
-
-* **foreign_vm** (Integer):
-
-
-* **group_name** (String(32)):
-
-
-* **hostname** (String(128)):
-
-
-* **htcondor_dynamic_slots** (Integer):
-
-
-* **htcondor_partitionable_slots** (Integer):
-
-
-* **htcondor_slots_timestamp** (Integer):
-
-
-* **htcondor_startd_errors** (String(256)):
-
-
-* **htcondor_startd_time** (Integer):
-
-
-* **idle_time** (Integer):
+* **spot_instance** (Boolean):
 
 
 * **instance_id** (String(64)):
 
 
-* **keep_alive** (Integer):
+* **cloud_type** (String(64)):
 
 
-* **last_updated** (Integer):
+* **vm_ips** (String(128)):
 
 
-* **machine** (String(256)):
+* **vm_floating_ips** (String(128)):
 
 
-* **manual_control** (Boolean):
-
-
-* **my_current_time** (Integer):
-
-
-* **poller_status** (String(12)):
-
-
-* **power_status** (Integer):
+* **auth_url** (String(128)):
 
 
 * **project** (String(128)):
 
 
-* **ram** (Integer):
+* **hostname** (String(128)):
 
 
-* **region** (String(32)):
-
-
-* **retire** (Integer):
-
-
-* **retire_time** (Integer):
-
-
-* **spot_instance** (Boolean):
+* **keep_alive** (Integer):
 
 
 * **start_time** (Integer):
@@ -121,13 +58,37 @@ Columns:
 * **status** (String(32)):
 
 
-* **status_changed_time** (Integer):
-
-
-* **swap** (Integer):
+* **flavor_id** (String(128)):
 
 
 * **task** (String(32)):
+
+
+* **power_status** (Integer):
+
+
+* **manual_control** (Boolean):
+
+
+* **htcondor_startd_errors** (String(256)):
+
+
+* **htcondor_startd_time** (Integer):
+
+
+* **htcondor_partitionable_slots** (Integer):
+
+
+* **htcondor_dynamic_slots** (Integer):
+
+
+* **htcondor_slots_timestamp** (Integer):
+
+
+* **retire** (Integer):
+
+
+* **retire_time** (Integer):
 
 
 * **terminate** (Integer):
@@ -136,15 +97,54 @@ Columns:
 * **terminate_time** (Integer):
 
 
+* **status_changed_time** (Integer):
+
+
+* **last_updated** (Integer):
+
+
 * **updater** (String(128)):
 
 
-* **vm_floating_ips** (String(128)):
+* **flavor_name** (String(128)):
 
 
-* **vm_ips** (String(128)):
+* **condor_slots** (Integer):
 
 
-* **vmid** (String(128)):
+* **condor_slots_used** (Integer):
+
+
+* **machine** (String(256)):
+
+
+* **my_current_time** (Integer):
+
+
+* **entered_current_state** (Integer):
+
+
+* **idle_time** (Integer):
+
+
+* **foreign_vm** (Integer):
+
+
+* **cores** (Integer):
+
+
+* **disk** (Integer):
+
+
+* **ram** (Integer):
+
+
+* **swap** (Integer):
+
+
+* **poller_status** (String(12)):
+
+
+* **age** (Integer):
 
 

@@ -13,36 +13,36 @@ Database View: view_ec2_instance_types
 Columns:
 ^^^^^^^^
 
-* **cores** (Integer):
-
-
-* **cost_per_hour** (Float):
-
-
-* **instance_family** (String(32)):
+* **region** (String(32)):
 
 
 * **instance_type** (String(32)):
 
 
-* **memory** (Float):
-
-
-* **memory_per_core** (Float):
-
-
 * **operating_system** (String(32)):
+
+
+* **instance_family** (String(32)):
 
 
 * **processor** (String(64)):
 
 
-* **processor_manufacturer** (String(64)):
-
-
-* **region** (String(32)):
-
-
 * **storage** (String(32)):
+
+
+* **cores** (Integer):
+
+
+* **memory** (Float):
+
+
+* **cost_per_hour** (Float):
+
+
+* **memory_per_core** (Float):
+
+
+* **processor_manufacturer** (String(64)):
 
 

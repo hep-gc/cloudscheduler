@@ -20,12 +20,12 @@ Keys:
 Columns:
 ^^^^^^^^
 
-* **codename** (String(100)):
+* **name** (String(255)):
 
 
 * **content_type_id** (Integer):
 
 
-* **name** (String(255)):
+* **codename** (String(100)):
 
 

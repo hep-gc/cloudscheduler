@@ -19,13 +19,13 @@ is deleted.
 Keys:
 ^^^^^
 
-* **cloud_name** (String(32)):
-
-      Is the name of the cloud hosting this VM.
-
 * **group_name** (String(32)):
 
       Is the name of the group owning this VM.
+
+* **cloud_name** (String(32)):
+
+      Is the name of the cloud hosting this VM.
 
 * **vmid** (String(128)):
 
@@ -37,104 +37,9 @@ Keys:
 Columns:
 ^^^^^^^^
 
-* **auth_url** (String(128)):
-
-      Is the authorization URL of the cloud hosting this VM.
-
-* **cloud_type** (String(64)):
-
-      Is the type of cloud hosting this VM.
-
-* **flavor_id** (String(128)):
-
-      Is the ID of the flavor describing the resources assigned to this
-      VM.
-
-* **hostname** (String(128)):
-
-      Is the short hostname of the VM.
-
-* **htcondor_dynamic_slots** (Integer):
-
-      Is the count of the currently active dynamic slots on the virtual
-      machine. Dynamic slots are created (by HTCondor) to run a job. So,
-      this count reflects the number of jobs running on the VM. If
-      the count is 0, the VM is considered "idle". The field is
-      maintained by a database trigger which detects changes to the table condor_machines.
-
-* **htcondor_partitionable_slots** (Integer):
-
-      Is the count of the currently active primary/partitionable slots on the virtual
-      machine. Any value greater than zero (the count is normally 0 or
-      1) indicates that the VM is registered with HTCondor. The field is
-      maintained by a database trigger which detects changes to the table condor_machines.
-
-* **htcondor_slots_timestamp** (Integer):
-
-      Is a timestamp in epoch seconds indicating when the last update to
-      either htcondor_partitionable_slots or htcondor_dynamic_slots occurred.
-
-* **htcondor_startd_errors** (String(256)):
-
-      Is a string returned by the csv2-vm-data poller of extracted errors in
-      the HTCondor logs on the VM.
-
-* **htcondor_startd_time** (Integer):
-
-      Is a timestamp in epoch seconds indicating when the last update to
-      htcondor_startd_errors occurred.
-
-* **image_id** (String(128)):
-
-      Is the ID of the (kernel) image running on the VM.
-
-* **instance_id** (String(64)):
-
-      This field is normally NULL. However, when the VM is instantiated as
-      a result of an "amazon" spot market request, this field will contain
-      the VM instance ID.
-
-* **keep_alive** (Integer):
-
-      Is the number of seconds to retain this VM after it becomes
-      idle.
-
-* **last_updated** (Integer):
-
-      Is a timestamp in epoch seconds indicating when the last update occurred.
-
-* **manual_control** (Boolean):
-
-      This boolean field is normally set to 0 but can be toggled
-      by the User Interface (UI). When set to 1, the VM is
-      in manual control and is ignored by CSV2. This is normally used
-      for debugging purposes to stop CSV2 terminating problematic VMs. It can be
-      very useful when trying to diagnose contextualization issues.
-
-* **power_status** (Integer):
-
-      This field indicates the virtual power status as either "On" (1) or
-      "Off" (0).
-
-* **project** (String(128)):
-
-      Is the project used to authenticate with the cloud hosting this VM.
-
 * **region** (String(32)):
 
       Is the region within the cloud where the VM is running.
-
-* **retire** (Integer):
-
-      This control determines whether a VM is to be retired. If set
-      to 0, the VM is not retired. If set greater than 0,
-      then CSV2 will continue to issue retire requests to the VM until
-      the VM reports a status of "Retiring". Each time a retire request
-      is made, this field will be incremented by 1.
-
-* **retire_time** (Integer):
-
-      Deprecated.
 
 * **spot_instance** (Boolean):
 
@@ -142,6 +47,43 @@ Columns:
       pricing. If set to 0, a spot market pricing was not requested.
       If set to 1, a spot market pricing was requested and the
       VM is subject to termination due to market conditions.
+
+* **instance_id** (String(64)):
+
+      This field is normally NULL. However, when the VM is instantiated as
+      a result of an "amazon" spot market request, this field will contain
+      the VM instance ID.
+
+* **cloud_type** (String(64)):
+
+      Is the type of cloud hosting this VM.
+
+* **vm_ips** (String(128)):
+
+      Is a comma seperated list of fixed IP addresses assigned to the
+      VM by the cloud.
+
+* **vm_floating_ips** (String(128)):
+
+      Is a comma seperated list of floating IP addresses assigned to the
+      VM by the cloud.
+
+* **auth_url** (String(128)):
+
+      Is the authorization URL of the cloud hosting this VM.
+
+* **project** (String(128)):
+
+      Is the project used to authenticate with the cloud hosting this VM.
+
+* **hostname** (String(128)):
+
+      Is the short hostname of the VM.
+
+* **keep_alive** (Integer):
+
+      Is the number of seconds to retain this VM after it becomes
+      idle.
 
 * **start_time** (Integer):
 
@@ -154,10 +96,14 @@ Columns:
       STARTING, ERROR, etc. For a detailed description of possible values, refer to
       the respective cloud documentation for this cloud type.
 
-* **status_changed_time** (Integer):
+* **flavor_id** (String(128)):
 
-      Is a timestamp in epoch seconds indicating when the last update to
-      status occurred.
+      Is the ID of the flavor describing the resources assigned to this
+      VM.
+
+* **image_id** (String(128)):
+
+      Is the ID of the (kernel) image running on the VM.
 
 * **task** (String(32)):
 
@@ -165,6 +111,61 @@ Columns:
       Building, etc. When the VM is ACTIVE, this field is normally null.
       For a detailed description of possible values, refer to the respective cloud
       documentation for this cloud type.
+
+* **power_status** (Integer):
+
+      This field indicates the virtual power status as either "On" (1) or
+      "Off" (0).
+
+* **manual_control** (Boolean):
+
+      This boolean field is normally set to 0 but can be toggled
+      by the User Interface (UI). When set to 1, the VM is
+      in manual control and is ignored by CSV2. This is normally used
+      for debugging purposes to stop CSV2 terminating problematic VMs. It can be
+      very useful when trying to diagnose contextualization issues.
+
+* **htcondor_startd_errors** (String(256)):
+
+      Is a string returned by the csv2-vm-data poller of extracted errors in
+      the HTCondor logs on the VM.
+
+* **htcondor_startd_time** (Integer):
+
+      Is a timestamp in epoch seconds indicating when the last update to
+      htcondor_startd_errors occurred.
+
+* **htcondor_partitionable_slots** (Integer):
+
+      Is the count of the currently active primary/partitionable slots on the virtual
+      machine. Any value greater than zero (the count is normally 0 or
+      1) indicates that the VM is registered with HTCondor. The field is
+      maintained by a database trigger which detects changes to the table condor_machines.
+
+* **htcondor_dynamic_slots** (Integer):
+
+      Is the count of the currently active dynamic slots on the virtual
+      machine. Dynamic slots are created (by HTCondor) to run a job. So,
+      this count reflects the number of jobs running on the VM. If
+      the count is 0, the VM is considered "idle". The field is
+      maintained by a database trigger which detects changes to the table condor_machines.
+
+* **htcondor_slots_timestamp** (Integer):
+
+      Is a timestamp in epoch seconds indicating when the last update to
+      either htcondor_partitionable_slots or htcondor_dynamic_slots occurred.
+
+* **retire** (Integer):
+
+      This control determines whether a VM is to be retired. If set
+      to 0, the VM is not retired. If set greater than 0,
+      then CSV2 will continue to issue retire requests to the VM until
+      the VM reports a status of "Retiring". Each time a retire request
+      is made, this field will be incremented by 1.
+
+* **retire_time** (Integer):
+
+      Deprecated.
 
 * **terminate** (Integer):
 
@@ -180,18 +181,17 @@ Columns:
 
       Deprecated.
 
+* **status_changed_time** (Integer):
+
+      Is a timestamp in epoch seconds indicating when the last update to
+      status occurred.
+
+* **last_updated** (Integer):
+
+      Is a timestamp in epoch seconds indicating when the last update occurred.
+
 * **updater** (String(128)):
 
       Is a string identifying the preocess and type of update of either
       the retire or terminate fields.
-
-* **vm_floating_ips** (String(128)):
-
-      Is a comma seperated list of floating IP addresses assigned to the
-      VM by the cloud.
-
-* **vm_ips** (String(128)):
-
-      Is a comma seperated list of fixed IP addresses assigned to the
-      VM by the cloud.
 

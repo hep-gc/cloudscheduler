@@ -13,88 +13,7 @@ Database View: view_groups_of_idle_jobs
 Columns:
 ^^^^^^^^
 
-* **completed** (Integer):
-
-
-* **flavors** (String):
-
-
 * **group_name** (String(32)):
-
-
-* **held** (Integer):
-
-
-* **idle** (Integer):
-
-
-* **image** (String):
-
-
-* **instance_type** (String(512)):
-
-
-* **job_per_core** (Integer):
-
-
-* **job_priority** (Integer):
-
-
-* **keep_alive** (String(512)):
-
-
-* **max_price** (String(512)):
-
-
-* **network** (String(512)):
-
-
-* **other** (Integer):
-
-
-* **queue_date** (Integer):
-
-
-* **request_cpus_max** (Integer):
-
-
-* **request_cpus_min** (Integer):
-
-
-* **request_cpus_total** (Integer):
-
-
-* **request_disk_max** (Integer):
-
-
-* **request_disk_min** (Integer):
-
-
-* **request_disk_total** (Integer):
-
-
-* **request_ram_max** (Integer):
-
-
-* **request_ram_min** (Integer):
-
-
-* **request_ram_total** (Integer):
-
-
-* **request_swap_max** (Integer):
-
-
-* **request_swap_min** (Integer):
-
-
-* **request_swap_total** (Integer):
-
-
-* **requirements** (String(512)):
-
-
-* **running** (Integer):
 
 
 * **target_alias** (String(32)):
@@ -103,9 +22,90 @@ Columns:
 * **target_clouds** (String):
 
 
+* **instance_type** (String(512)):
+
+
+* **requirements** (String(512)):
+
+
+* **job_priority** (Integer):
+
+
 * **user** (String(512)):
 
 
+* **image** (String):
+
+
+* **network** (String(512)):
+
+
+* **keep_alive** (String(512)):
+
+
+* **max_price** (String(512)):
+
+
 * **user_data** (String(512)):
+
+
+* **job_per_core** (Integer):
+
+
+* **request_cpus_min** (Integer):
+
+
+* **request_cpus_max** (Integer):
+
+
+* **request_cpus_total** (Integer):
+
+
+* **request_disk_min** (Integer):
+
+
+* **request_disk_max** (Integer):
+
+
+* **request_disk_total** (Integer):
+
+
+* **request_ram_min** (Integer):
+
+
+* **request_ram_max** (Integer):
+
+
+* **request_ram_total** (Integer):
+
+
+* **request_swap_min** (Integer):
+
+
+* **request_swap_max** (Integer):
+
+
+* **request_swap_total** (Integer):
+
+
+* **queue_date** (Integer):
+
+
+* **idle** (Integer):
+
+
+* **running** (Integer):
+
+
+* **completed** (Integer):
+
+
+* **held** (Integer):
+
+
+* **other** (Integer):
+
+
+* **flavors** (String):
 
 

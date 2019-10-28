@@ -16,13 +16,13 @@ or as a part of a transfer request.
 Keys:
 ^^^^^
 
-* **checksum** (String(64)):
-
-      A number representing the MD5 checksum of the image file.
-
 * **image_name** (String(256)):
 
       Name of the image as specified by the file name,
+
+* **checksum** (String(64)):
+
+      A number representing the MD5 checksum of the image file.
 
 
 Columns:

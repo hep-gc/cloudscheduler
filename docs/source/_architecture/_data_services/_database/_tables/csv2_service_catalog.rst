@@ -21,26 +21,26 @@ for VM contextualization.
 Keys:
 ^^^^^
 
+* **service** (String(64)):
+
+      Is the name of the service.
+
 * **fqdn** (String(128)):
 
       Is the Fully Qualified Domain Name (FQDN) of the host running this
       service. This field is passed to templates as values of jinja2 variables.
 
-* **service** (String(64)):
-
-      Is the name of the service.
-
 
 Columns:
 ^^^^^^^^
 
-* **flag_htcondor_allow** (Boolean):
-
-      Deprecated.
-
 * **last_updated** (Integer):
 
       Is the time this entry was last updated.
+
+* **flag_htcondor_allow** (Boolean):
+
+      Deprecated.
 
 * **yaml_attribute_name** (String(64)):
 

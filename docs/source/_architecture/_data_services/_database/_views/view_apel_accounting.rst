@@ -33,95 +33,95 @@ are deleted by the **csv2_vm_data** poller.
 Columns:
 ^^^^^^^^
 
-* **benchmark** (Integer):
+* **group_name** (String(32)):
 
-      Is the benchmark score achieved by the VM.
+      Is the name of the CSV2 group that owns the VM.
+
+* **cloud_name** (String(32)):
+
+      Is the name of the cloud that hosted the VM.
+
+* **hostname** (String(128)):
+
+      Is the short VM hostname.
+
+* **cloud_type** (String(32)):
+
+      Is the type of cloud hosting the VM.
+
+* **region** (String(32)):
+
+      Is the region within the cloud where the VM ran.
+
+* **flavor_id** (String(128)):
+
+      Is the ID of the flavor used to instantiate the VM.
+
+* **image_id** (String(128)):
+
+      Is the ID of the (kernel) image used to instantiate the VM.
 
 * **benchmark_type** (String(32)):
 
       Is a string identifying the type of benchmark being used to calibrate
       the performance of the VM
 
-* **cloud_name** (String(32)):
+* **benchmark** (Integer):
 
-      Is the name of the cloud that hosted the VM.
+      Is the benchmark score achieved by the VM.
 
-* **cloud_type** (String(32)):
+* **vmid** (String(128)):
 
-      Is the type of cloud hosting the VM.
+      Is the unique ID of the VM.
 
-* **cores** (Integer):
+* **start_time** (Integer):
 
-      Is the number of cores offered by the flavor.
-
-* **cpu_time** (Integer):
-
-      Is the number of cpu seconds that have been consumed by the
-      VM.
-
-* **disk** (Integer):
-
-      Is the number of gigabytes of disk offered by the flavor.
+      Is the time the VM was instantiated.
 
 * **end_time** (Integer):
 
       Is the time the VM was termintade. If NULL, the VM is
       still running and producing accounting information.
 
-* **flavor** (String(128)):
-
-      Is the name of the flavor corresponding to the flavor ID.
-
-* **flavor_id** (String(128)):
-
-      Is the ID of the flavor used to instantiate the VM.
-
-* **group_name** (String(32)):
-
-      Is the name of the CSV2 group that owns the VM.
-
-* **hostname** (String(128)):
-
-      Is the short VM hostname.
-
-* **image** (String(256)):
-
-      Is the name of the (kernel) image corresponding to the image ID.
-
-* **image_id** (String(128)):
-
-      Is the ID of the (kernel) image used to instantiate the VM.
-
 * **last_update** (Integer):
 
       Is the time the VM accounting record was last updated.
+
+* **cpu_time** (Integer):
+
+      Is the number of cpu seconds that have been consumed by the
+      VM.
 
 * **network_type** (String(32)):
 
       Is a string indicating the type of network assigned to the VM
       at instantiation time.
 
-* **ram** (Integer):
-
-      Is the number of megabytes of RAM offered by the flavor.
-
-* **region** (String(32)):
-
-      Is the region within the cloud where the VM ran.
-
 * **rx** (Integer):
 
       Is the number of megabytes received by the netwoork.
-
-* **start_time** (Integer):
-
-      Is the time the VM was instantiated.
 
 * **tx** (Integer):
 
       Is the number of megabytes transmitted by the netwoork.
 
-* **vmid** (String(128)):
+* **flavor** (String(128)):
 
-      Is the unique ID of the VM.
+      Is the name of the flavor corresponding to the flavor ID.
+
+* **cores** (Integer):
+
+      Is the number of cores offered by the flavor.
+
+* **disk** (Integer):
+
+      Is the number of gigabytes of disk offered by the flavor.
+
+* **ram** (Integer):
+
+      Is the number of megabytes of RAM offered by the flavor.
+
+* **image** (String(256)):
+
+      Is the name of the (kernel) image corresponding to the image ID.
 

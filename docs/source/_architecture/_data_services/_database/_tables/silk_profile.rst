@@ -20,36 +20,36 @@ Keys:
 Columns:
 ^^^^^^^^
 
-* **dynamic** (Boolean):
-
-
-* **end_line_num** (Integer):
-
-
-* **end_time** (Integer):
-
-
-* **exception_raised** (Boolean):
-
-
-* **file_path** (String(300)):
-
-
-* **func_name** (String(300)):
-
-
-* **line_num** (Integer):
-
-
 * **name** (String(300)):
-
-
-* **request_id** (String(36)):
 
 
 * **start_time** (Integer):
 
 
+* **end_time** (Integer):
+
+
 * **time_taken** (Float):
+
+
+* **file_path** (String(300)):
+
+
+* **line_num** (Integer):
+
+
+* **end_line_num** (Integer):
+
+
+* **func_name** (String(300)):
+
+
+* **exception_raised** (Boolean):
+
+
+* **dynamic** (Boolean):
+
+
+* **request_id** (String(36)):
 
 

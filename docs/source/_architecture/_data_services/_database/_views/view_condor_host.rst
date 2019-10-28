@@ -13,25 +13,25 @@ Database View: view_condor_host
 Columns:
 ^^^^^^^^
 
-* **cloud_name** (String(32)):
-
-
-* **dynamic_slots** (Integer):
-
-
 * **group_name** (String(32)):
 
 
-* **hostname** (String(128)):
+* **cloud_name** (String(32)):
 
 
 * **htcondor_fqdn** (String(128)):
 
 
-* **machine** (String(256)):
+* **vmid** (String(128)):
+
+
+* **hostname** (String(128)):
 
 
 * **primary_slots** (Integer):
+
+
+* **dynamic_slots** (Integer):
 
 
 * **retire** (Integer):
@@ -43,9 +43,9 @@ Columns:
 * **terminate** (Integer):
 
 
+* **machine** (String(256)):
+
+
 * **updater** (String(128)):
-
-
-* **vmid** (String(128)):
 
 

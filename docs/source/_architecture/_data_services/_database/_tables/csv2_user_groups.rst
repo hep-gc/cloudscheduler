@@ -15,11 +15,11 @@ by super users. There is one entry for each user/group association.
 Keys:
 ^^^^^
 
-* **group_name** (String(32)):
-
-      Is a CSV2 group name.
-
 * **username** (String(32)):
 
       Is a CSV2 username.
+
+* **group_name** (String(32)):
+
+      Is a CSV2 group name.
 
