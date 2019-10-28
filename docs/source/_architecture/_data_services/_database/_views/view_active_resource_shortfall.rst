@@ -8,6 +8,9 @@
 Database View: view_active_resource_shortfall
 =============================================
 
+This view is used by the VM scheduler to determine if new
+VMs should be started for each group/target_alias/target_cloud based on the total requested
+resources compared with resources currently provided.
 
 
 Columns:
@@ -15,49 +18,79 @@ Columns:
 
 * **active_cores** (Integer):
 
+      Is the total number of cores provided.
 
 * **active_disk** (Integer):
 
+      Is the total size of disk provided.
 
 * **active_ram** (Integer):
 
+      Is the total size of RAM provided.
 
 * **group_name** (String(32)):
 
+      Is the name of the group requesting resources.
 
 * **idle** (Integer):
 
+      For information purposes only, this field indicates the number of idle VMs
+      for this group/target_alias/target_cloud.
 
 * **request_cores** (Integer):
 
+      Is the total number of cores requested by all idle (queued) and
+      running jobs.
 
 * **request_disk** (Integer):
 
+      Is the total size of disk requested by all idle (queued) and
+      running jobs.
 
 * **request_ram** (Integer):
 
+      Is the total size of RAM requested by all idle (queued) and
+      running jobs.
 
 * **running** (Integer):
 
+      For information purposes only, this field indicates the number of running VMs
+      for this group/target_alias/target_cloud.
 
 * **shortfall_cores** (Integer):
 
+      Is calculated by **request_cores** minus **active_cores**; a negative result indicates that additional
+      cores are required and VMs should be started to meet the shortfall.
 
 * **shortfall_disk** (Integer):
 
+      Is calculated by **request_disk** minus **active_disk**; a negative result indicates that additional
+      disk is required and VMs should be started to meet the shortfall.
 
 * **shortfall_ram** (Integer):
 
+      Is calculated by **request_ram** minus **active_ram**; a negative result indicates that additional
+      RAM is required and VMs should be started to meet the shortfall.
 
 * **starting** (Integer):
 
+      For information purposes only, this field indicates the number of starting VMs
+      for this group/target_alias/target_cloud.
 
 * **target_alias** (String(32)):
 
+      Is an optional alias indicating the clouds that resources are required from.
+      If this column and the **target_clouds** column are empty, the resources are
+      required from any cloud defined within the group.
 
 * **target_clouds** (String):
 
+      Is an optional name of the cloud that resources are required from.
+      If this column and the **target_alias** column are empty, the resources are
+      required from any cloud defined within the group.
 
 * **unregistered** (Integer):
 
+      For information purposes only, this field indicates the number of unregistered VMs
+      for this group/target_alias/target_cloud.
 
