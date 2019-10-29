@@ -8,6 +8,18 @@
 Database View: view_cloud_aliases
 =================================
 
+The **csv2_cloud_aliases** table allows users to create subsets of clouds within a
+CSV2 group and limit the execution of specific jobs to specific clouds
+by use of the **target_alias** Job Description Lanuage (JDL) parameter. An alias
+may contain one or more clouds and each cloud may be the
+member of zero, one, or more aliases. Job's specifying a target alias
+will be limited to clouds which are members of the specified alias,
+whereas jobs not specifying a target alias are free to execute on
+any available cloud within the CSV2 group.
+
+This view presents the alias definitions in the **csv2_cloud_aliases** table in a
+form suitable for the VM scheduler and for presentation in the user
+interface.
 
 
 Columns:
@@ -15,10 +27,14 @@ Columns:
 
 * **group_name** (String(32)):
 
+      Is the name of the CSV2 group that owns the alias.
 
 * **alias_name** (String(32)):
 
+      Is the unique name (within the group) of the alias.
 
 * **clouds** (String):
 
+      Is a comma separated list of cloud names associated with the alias
+      name. Each cloud within the alias is also defined within the group.
 

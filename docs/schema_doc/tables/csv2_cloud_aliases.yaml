@@ -1,11 +1,11 @@
 csv2_cloud_aliases:
     Synopsis:
-        This table allows users to create subsets of clouds within a CSV2 group and limit the execution 
-        of specific jobs to specific clouds by use of the **target_alias** Job Description Lanuage (JDL)
-        parameter.  An alias may contain one or more clouds and each cloud may be the member of zero, one,
-        or more aliases.  Job's specifying a target alias will be limited to clouds which are members of
-        the specified alias, whereas jobs not specifying a target alias are free to execute on any available
-        cloud within the CSV2 group.
+        The **csv2_cloud_aliases** table allows users to create subsets of clouds within a CSV2
+        group and limit the execution of specific jobs to specific clouds by use of the **target_alias**
+        Job Description Lanuage (JDL) parameter. An alias may contain one or more clouds and each
+        cloud may be the member of zero, one, or more aliases. Job's specifying a target alias will
+        be limited to clouds which are members of the specified alias, whereas jobs not specifying
+        a target alias are free to execute on any available cloud within the CSV2 group.
 
     Keys:
 
