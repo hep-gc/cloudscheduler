@@ -8,6 +8,12 @@
 Database View: view_available_resources
 =======================================
 
+This view is used by the VM scheduler to select resources for
+new VMs. It presents one entry for each flavor on each cloud
+that is able to start one or more VMs (ie. there is
+enough available resources on the associated cloud to start at least one
+VM of that flavor) together with all the information necessary to perform
+the initiation.
 
 
 Columns:
@@ -15,148 +21,266 @@ Columns:
 
 * **group_name** (String(32)):
 
+      Is the name of the group owning the cloud.
 
 * **cloud_name** (String(32)):
 
+      Is the name of the cloud.
 
 * **cloud_priority** (Integer):
 
+      Is the user assigned priority of the cloud. Lower numbers have a
+      higher priority and will be selected before clouds of lower priority.
 
 * **region** (String(20)):
 
+      Is the region within the cloud.
 
 * **cloud_type** (String(64)):
 
+      Is the type of cloud.
 
 * **spot_price** (Float):
 
+      Is the maximum price to bid for resoces on the spot market.
+      If the value is NULL, instantiation request will not use the spot
+      market and requests will be "on demand", that is, unconditional.
 
 * **authurl** (String(128)):
 
+      Is the authentication/authorization URL for the cloud.
 
 * **cacertificate** (String):
 
+      Is the filesystem path of the Certificate Authority (CA) certificate bundle used
+      during authentication handshakes with OpenStack clouds.
 
 * **project_domain_name** (String(20)):
 
+      Is a user specified cloud authentication parameter that allows CSV2 to manage
+      VMs on behalf of the group.
 
 * **project_domain_id** (String(64)):
 
+      Is a user specified cloud authentication parameter that allows CSV2 to manage
+      VMs on behalf of the group.
 
 * **project** (String(128)):
 
+      Is a user specified cloud authentication parameter that allows CSV2 to manage
+      VMs on behalf of the group.
 
 * **user_domain_name** (String(20)):
 
+      Is a user specified cloud authentication parameter that allows CSV2 to manage
+      VMs on behalf of the group.
 
 * **user_domain_id** (String(64)):
 
+      Is a user specified cloud authentication parameter that allows CSV2 to manage
+      VMs on behalf of the group.
 
 * **username** (String(20)):
 
+      Is a user specified cloud authentication parameter that allows CSV2 to manage
+      VMs on behalf of the group.
 
 * **password** (String):
 
+      Is a user specified cloud authentication parameter that allows CSV2 to manage
+      VMs on behalf of the group.
 
 * **default_flavor** (String(97)):
 
+      Is the default flavor for this cloud and may be used to
+      instantiate VMs.
+
+      Default values are only used if a specific value is not specified
+      by the jobs requesting resources.
 
 * **default_image** (String(64)):
 
+      Is the default (kernel) image for this cloud and is used to
+      instantiate VMs.
+
+      Default values are only used if a specific value is not specified
+      by the jobs requesting resources.
 
 * **default_keep_alive** (Integer):
 
+      Is the default time in seconds for this cloud to keep an
+      idle VM once it has completed a job.
+
+      Default values are only used if a specific value is not specified
+      by the jobs requesting resources.
 
 * **default_keyname** (String(64)):
 
+      Is the default ssh keypair name for this cloud and may be
+      used to instantiate VMs. During instantiation, the public key of a keypair
+      copied to a VM allows ssh root access to the VM for
+      diagnosis and problem resolution.
+
+      Default values are only used if a specific value is not specified
+      by the jobs requesting resources.
 
 * **default_network** (String(64)):
 
+      Is the default network for VMs on this cloud and may be
+      used when instantiating VMs.
+
+      Default values are only used if a specific value is not specified
+      by the jobs requesting resources.
 
 * **default_security_groups** (String(128)):
 
+      Is the default list of security groups for VMs on this cloud
+      and may be used when instantiating VMs. Security groups determine the firewall
+      rules for VMs and determine which ports, sources and destinations are open
+      for network communication.
+
+      Default values are only used if a specific value is not specified
+      by the jobs requesting resources.
 
 * **VMs** (Integer):
 
+      Is the number of VMs already running this group.
 
 * **VMs_max** (Integer):
 
+      Is the maximum number of VMs that may be started on this
+      resource.
 
 * **cores_max** (Integer):
 
+      Is the maximum number cores that can currently be used on this
+      cloud and is calculated as the least of cores control (slider) or
+      cores soft_max minus foreign cores or the cores quota minus foreign cores.
 
 * **cores_used** (Integer):
 
+      Is the number of core already in use on this cloud by
+      this group.
 
 * **cores_foreign** (Integer):
 
+      Is the number of core already in use on this cloud by
+      other groups or by processes other than CSV2.
 
 * **disk_used** (Integer):
 
+      Is the size in gigabytes of disk already in use on this
+      cloud by this group.
 
 * **ram_max** (Float):
 
+      Is the maximum size in megabytes of RAM that can currently be
+      used on this cloud and is calculated as the least of RAM
+      control (slider) or the RAM quota minus foreign RAM.
 
 * **ram_used** (Integer):
 
+      Is the size in megabytes of RAM already in use on this
+      cloud by this group.
 
 * **ram_foreign** (Float):
 
+      Is the size in megabytes of RAM already in use on this
+      cloud by other groups or by processes other than CSV2.
 
 * **swap_used** (Integer):
 
+      Is the size in gigabytes of swap space already in use on
+      this cloud by this group.
 
 * **flavor** (String(161)):
 
+      Is the name of the flavor being described.
 
 * **flavor_id** (String(128)):
 
+      Is the ID of the flavor being described.
 
 * **flavor_slots** (Integer):
 
+      Is the total number of VMs of this flavor that can be
+      started on this resource.
 
 * **flavor_cores** (Integer):
 
+      Is the number of cores described by this flavor.
 
 * **flavor_disk** (Integer):
 
+      Is the size in gigabytes of disk described by this flavor.
 
 * **flavor_ram** (Integer):
 
+      Is the size in megabytes of RAM described by this flavor.
 
 * **flavor_swap** (Integer):
 
+      Is the size in gigabytes of swap space described by this flavor.
 
 * **flavor_VMs** (Integer):
 
+      Is the total number of VMs of this flavor that currently exist.
 
 * **flavor_starting** (Integer):
 
+      Is the number of VMs of this flavor that currently exist in
+      the 'starting' state.
 
 * **flavor_unregistered** (Integer):
 
+      Is the number of VMs of this flavor that currently exist in
+      the 'unregistered' state.
 
 * **flavor_idle** (Integer):
 
+      Is the number of VMs of this flavor that currently exist in
+      the 'idle' state.
 
 * **flavor_running** (Integer):
 
+      Is the number of VMs of this flavor that currently exist in
+      the 'running' state.
 
 * **flavor_retiring** (Integer):
 
+      Is the number of VMs of this flavor that currently exist in
+      the 'retiring' state.
 
 * **flavor_error** (Integer):
 
+      Is the number of VMs of this flavor that currently exist in
+      the 'error' state.
 
 * **flavor_manual** (Integer):
 
+      Is the number of VMs of this flavor that currently exist in
+      the 'manual' state.
 
 * **updater** (String):
 
+      If VMs are being retired or terminated, this field will provide a
+      string indicating which process initiated or last updated the shutdown event.
 
 * **worker_cert** (String):
 
+      If Grid Security Infrastructure (GSI) authentication is enabled on the group's job
+      scheduler, VMs started for this group will require a grid certificate (**worker_cert**)
+      and key (**worker_key**) in order to communicate with the job scheduler. The
+      values provided by this field is a base64, gzipped representation of the
+      GSI authentication file and is passed to contextualization metadata templates in jinja2
+      variables.
 
 * **worker_key** (String):
 
+      If Grid Security Infrastructure (GSI) authentication is enabled on the group's job
+      scheduler, VMs started for this group will require a grid certificate (**worker_cert**)
+      and key (**worker_key**) in order to communicate with the job scheduler. The
+      values provided by this field is a base64, gzipped representation of the
+      GSI authentication file and is passed to contextualization metadata templates in jinja2
+      variables.
 
