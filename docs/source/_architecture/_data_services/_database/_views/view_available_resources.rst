@@ -271,8 +271,8 @@ Columns:
       If Grid Security Infrastructure (GSI) authentication is enabled on the group's job
       scheduler, VMs started for this group will require a grid certificate (**worker_cert**)
       and key (**worker_key**) in order to communicate with the job scheduler. The
-      values provided by this field is a base64, gzipped representation of the
-      GSI authentication file and is passed to contextualization metadata templates in jinja2
+      value provided by this field is a base64, gzipped representation of the
+      GSI authentication token and is passed to contextualization metadata templates in jinja2
       variables.
 
 * **worker_key** (String):
@@ -280,7 +280,7 @@ Columns:
       If Grid Security Infrastructure (GSI) authentication is enabled on the group's job
       scheduler, VMs started for this group will require a grid certificate (**worker_cert**)
       and key (**worker_key**) in order to communicate with the job scheduler. The
-      values provided by this field is a base64, gzipped representation of the
-      GSI authentication file and is passed to contextualization metadata templates in jinja2
+      value provided by this field is a base64, gzipped representation of the
+      GSI authentication token and is passed to contextualization metadata templates in jinja2
       variables.
 
