@@ -1012,11 +1012,14 @@ def limit_poller():
                         continue
 
                     # Retrieve limit list for the current cloud.
+                    post_req_time = 0
+                    pre_req_time = time.time() * 1000000
                     nova = _get_ec2_client(session)
 
                     shared_limits_dict = {}
                     try:
                         limit_list = nova.describe_account_attributes()
+                        post_req_time = time.time() * 1000000
                         for limit in limit_list['AccountAttributes']:
                             shared_limits_dict[limit['AttributeName']] = limit['AttributeValues'][0]['AttributeValue']
                     except Exception as exc:
@@ -1025,6 +1028,11 @@ def limit_poller():
                         for cloud_tuple in unique_cloud_dict[cloud]['groups']:
                             grp_nm = cloud_tuple[0]
                             cld_nm = cloud_tuple[1]
+                            cloud_row = db_session.query(CLOUD).filter(CLOUD.group_name == grp_nm, CLOUD.cloud_name == cld_nm)[0]
+                            cloud_row.communication_up = 0
+                            db_session.merge(cloud_row)
+                            db_session.commit()
+
                             if grp_nm + cld_nm not in failure_dict:
                                 failure_dict[grp_nm + cld_nm] = 1
                             else:
@@ -1035,15 +1043,24 @@ def limit_poller():
                                 config.incr_cloud_error(grp_nm, cld_nm)
                         continue
 
-                    if shared_limits_dict is False:
-                        logging.info("No limits defined for %s, skipping this cloud..." % cloud_name)
-                        continue
+
+
 
                     for cloud_tuple in unique_cloud_dict[cloud]['groups']:
                         grp_nm = cloud_tuple[0]
                         cld_nm = cloud_tuple[1]
                         failure_dict.pop(grp_nm + cld_nm, None)
+                        cloud_row = db_session.query(CLOUD).filter(CLOUD.group_name == grp_nm, CLOUD.cloud_name == cld_nm)[0]
+                        logging.debug("pre request time:%s   post request time:%s" % (post_req_time, pre_req_time))
+                        cloud_row.communication_rt = int(post_req_time - pre_req_time)
+                        cloud_row.communication_up = 1
+                        db_session.merge(cloud_row)
+                        db_session.commit()
                         config.reset_cloud_error(grp_nm, cld_nm)
+
+                    if shared_limits_dict is False:
+                        logging.info("No limits defined for %s, skipping this cloud..." % cloud_name)
+                        continue
 
                     # Process limit list for the current cloud.
                     for groups in unique_cloud_dict[cloud]['groups']:
