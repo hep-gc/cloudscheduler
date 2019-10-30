@@ -110,8 +110,9 @@ Columns:
 
 * **ec2_owner_id** (String(32)):
 
-      System supplied EC2 owner ID used to identify owned versus shared resouces
-      on an EC2 cloud.
+      For Amazon EC2 clouds, this is EC2 owner ID automatically retrieved from
+      the cloud and saved in the CSV2 cloud settings. It is used
+      to identify owned versus shared resouces on that EC2 cloud.
 
 * **communication_up** (Boolean):
 
@@ -148,14 +149,13 @@ Columns:
 
 * **ram_ctl** (Integer):
 
-      User specified integer control indicating the maximum amount of RAM, in kilo
-      bytes, that may be used on the cloud. Once this amount of
-      RAM is in use by VM instances, CSV2 will not start any
-      more VMs on this cloud. This parameter allows the user to limit
-      their RAM usage on the cloud, to less than the cloud defined
-      RAM quota. The default is -1, indicating no limit or use up
-      to the quota. For a discussion of "controls" versus "quotas", see "cores_softmax"
-      below.
+      User specified integer control indicating the maximum amount of RAM, in kilobytes,
+      that may be used on the cloud. Once this amount of RAM
+      is in use by VM instances, CSV2 will not start any more
+      VMs on this cloud. This parameter allows the user to limit their
+      RAM usage on the cloud, to less than the cloud defined RAM
+      quota. The default is -1, indicating no limit or use up to
+      the quota.
 
 * **server_groups_ctl** (Integer):
 

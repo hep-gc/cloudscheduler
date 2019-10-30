@@ -10,9 +10,9 @@ Database Table: cloud_limits
 
 For each cloud defined within a group, CSV2 process will attempt to
 retrieve configuration data to inform scheduling decisions and users. These configuration items
-are set by the cloud administrators and not by CSV2. in oder
-to change these values, you will to confer with the target cloud
-support.
+are set by the cloud administrators and not by CSV2. In order
+to change these values, you will need to confer with the target
+cloud support.
 
 The information stored in this table concern the limits set on the
 target cloud account.
