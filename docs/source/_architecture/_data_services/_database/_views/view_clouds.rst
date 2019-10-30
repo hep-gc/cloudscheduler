@@ -13,3 +13,174 @@ Database View: view_clouds
 Columns:
 ^^^^^^^^
 
+* **group_name** (String(32)):
+
+
+* **cloud_name** (String(32)):
+
+
+* **enabled** (Boolean):
+
+
+* **cloud_priority** (Integer):
+
+
+* **spot_price** (Float):
+
+
+* **vm_flavor** (String(64)):
+
+
+* **vm_image** (String(64)):
+
+
+* **vm_keep_alive** (Integer):
+
+
+* **vm_keyname** (String(64)):
+
+
+* **vm_network** (String(64)):
+
+
+* **vm_security_groups** (String(128)):
+
+
+* **cascading_vm_flavor** (String(64)):
+
+
+* **cascading_vm_image** (String(64)):
+
+
+* **cascading_vm_keep_alive** (Integer):
+
+
+* **cascading_vm_keyname** (String(64)):
+
+
+* **cascading_vm_network** (String(64)):
+
+
+* **cascading_vm_security_groups** (String(128)):
+
+
+* **authurl** (String(128)):
+
+
+* **project_domain_name** (String(20)):
+
+
+* **project_domain_id** (String(64)):
+
+
+* **project** (String(128)):
+
+
+* **user_domain_name** (String(20)):
+
+
+* **user_domain_id** (String(64)):
+
+
+* **username** (String(20)):
+
+
+* **password** (String):
+
+
+* **cacertificate** (String):
+
+
+* **region** (String(20)):
+
+
+* **cloud_type** (String(64)):
+
+
+* **ec2_owner_id** (String(32)):
+
+
+* **cores_ctl** (Integer):
+
+
+* **cores_softmax** (Integer):
+
+
+* **cores_max** (Integer):
+
+
+* **cores_used** (Integer):
+
+
+* **cores_foreign** (Integer):
+
+
+* **cores_native** (Integer):
+
+
+* **ram_ctl** (Integer):
+
+
+* **ram_max** (Integer):
+
+
+* **ram_used** (Integer):
+
+
+* **ram_foreign** (Integer):
+
+
+* **ram_native** (Integer):
+
+
+* **instances_max** (Integer):
+
+
+* **instances_used** (Integer):
+
+
+* **floating_ips_max** (Integer):
+
+
+* **floating_ips_used** (Integer):
+
+
+* **security_groups_max** (Integer):
+
+
+* **security_groups_used** (Integer):
+
+
+* **server_groups_max** (Integer):
+
+
+* **server_groups_used** (Integer):
+
+
+* **image_meta_max** (Integer):
+
+
+* **keypairs_max** (Integer):
+
+
+* **personality_max** (Integer):
+
+
+* **personality_size_max** (Integer):
+
+
+* **security_group_rules_max** (Integer):
+
+
+* **server_group_members_max** (Integer):
+
+
+* **server_meta_max** (Integer):
+
+
+* **cores_idle** (Integer):
+
+
+* **ram_idle** (Integer):
+
+
