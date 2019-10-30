@@ -441,9 +441,13 @@ Columns:
 
 * **cores_idle** (Integer):
 
-      REF(views/cloud_status/Columns/cores_idle)
+      Is the number of unused cores on the group/cloud and is calculated
+      as the least of **cores_ctl** minus **cores_native** or **cores_max** minus **cores_native** minus
+      **cores_foreign**.
 
 * **ram_idle** (Integer):
 
-      REF(views/cloud_status/Columns/ram_idle)
+      Is the size in kilobytes of unused RAM on the group/cloud and
+      is calculated as the least of **ram_ctl** minus **ram_native** or **ram_max** minus
+      **ram_native** minus **ram_foreign**.
 
