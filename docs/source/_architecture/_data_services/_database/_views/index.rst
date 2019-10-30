@@ -59,7 +59,6 @@ following functional categories:
    :caption: Miscellaneous Views
 
    view_cloud_aliases
-   view_clouds
    view_clouds_with_metadata_info
    view_clouds_with_metadata_names
    view_condor_host
