@@ -92,32 +92,47 @@ Columns:
 
 * **cascading_vm_image** (String(64)):
 
-      This field displays the effective default flavor for the cloud.
+      'cascading_' fields are a consolidation of and determined by the group and
+      cloud settings and are the effective default for the cloud. The cloud
+      setting overrides the group setting which overrides no setting (or a NULL
+      value).
 
       This field displays the effective default (kernal) image name for the cloud.
 
 * **cascading_vm_keep_alive** (Integer):
 
-      This field displays the effective default flavor for the cloud.
+      'cascading_' fields are a consolidation of and determined by the group and
+      cloud settings and are the effective default for the cloud. The cloud
+      setting overrides the group setting which overrides no setting (or a NULL
+      value).
 
       This field displays the effective default VM keep alive time for the
       cloud.
 
 * **cascading_vm_keyname** (String(64)):
 
-      This field displays the effective default flavor for the cloud.
+      'cascading_' fields are a consolidation of and determined by the group and
+      cloud settings and are the effective default for the cloud. The cloud
+      setting overrides the group setting which overrides no setting (or a NULL
+      value).
 
       This field displays the effective default ssh keypair name for the cloud.
 
 * **cascading_vm_network** (String(64)):
 
-      This field displays the effective default flavor for the cloud.
+      'cascading_' fields are a consolidation of and determined by the group and
+      cloud settings and are the effective default for the cloud. The cloud
+      setting overrides the group setting which overrides no setting (or a NULL
+      value).
 
       This field displays the effective default network name for the cloud.
 
 * **cascading_vm_security_groups** (String(128)):
 
-      This field displays the effective default flavor for the cloud.
+      'cascading_' fields are a consolidation of and determined by the group and
+      cloud settings and are the effective default for the cloud. The cloud
+      setting overrides the group setting which overrides no setting (or a NULL
+      value).
 
       This field displays the effective default list of security groups for the
       cloud.
