@@ -4,11 +4,18 @@
 - name: restart mariadb with service
   service: name=mariadb enabled=yes state=restarted
   listen: restart mariadb
-  when: (container is undefined) or (container == False)
-
-- name: restart mariadb with systemd
-  systemd: name=mariadb enabled=yes state=restarted
-  listen: restart mariadb
   when: 
-  - container is defined
-  - container == True
+  - (container is undefined) or (container == False)
+  - db_on_localhost is defined
+  - db_on_localhost == True
+
+#- name: restart mariadb with systemd
+#  systemd: name=mariadb enabled=yes state=restarted
+#  listen: restart mariadb
+#  when: 
+#  - container is defined
+#  - container == True
+#  - db_on_localhost is defined
+#  - db_on_localhost == True
+
+

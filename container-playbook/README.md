@@ -1,5 +1,5 @@
 The Ansible playbook contained within this directory will build cloudscheduler version 2
-in a machine with the fully qualified domain name (FQDN) of "k8slave01.heprc.uvic.ca". To
+in a machine with the fully qualified domain name (FQDN) of "k8master.heprc.uvic.ca". To
 reset the FQDN, run:
 
     ../utilities/reset_stand_alone_hostname
@@ -17,7 +17,7 @@ Once CentOS has been installed, modify the "secrets" and the "vars" within
 this directory to contain appropriate values. Comments within the files should explain what
 is required. The playbook can then be applied with the following command:
 
-    ansible-playbook -e addenda=addenda -i inventory k8slave01.yaml -u root
+    ansible-playbook -e addenda=addenda -i inventory k8master.yaml -u root
 
 When the installation completes, point your browser at "https://your_fqdn" and login with
 "csv2-default" user and the password you set in "secrets".

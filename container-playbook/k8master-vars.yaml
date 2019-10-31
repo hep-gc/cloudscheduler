@@ -11,7 +11,7 @@ letsencrypt_archive: '/usr/local/archive/letsencrypt'
 cs_git_branch: csv2-container
 db_upgrade_file: none
 schema_model: stable-2.6
-favicon_colour: lime
+favicon_colour: cyan
 
 container: True
 local_web: True
@@ -24,7 +24,7 @@ rabbit_on_localhost: true
 reconfigure_network: false
 
 # If you decide to install phpMyAdmin, you will also need an SSL certificate for the domain/virtual host (see i_virtualhosts, below).
-install_phpMyAdmin: True
+install_phpMyAdmin: False
 
 # If you decide to install phpMyAdmin, you will also need an SSL certificate for the domain/virtual host (see i_virtualhosts, below).
 letsencrypt_test: false
@@ -36,11 +36,11 @@ letsencrypt_test: false
 #    o Obtain a grid certficate to be used by all HTCondor workers (VMs).
 #    o Specify the required GSI information (seven items) in this "vars" file, eg:
 #
-#      grid_mapfile: /root/grid-security/latest/k8slave01/grid-mapfile
+#      grid_mapfile: /root/grid-security/latest/k8master/grid-mapfile
 #
-#      htcondor_gsi_dn: /C=CA/O=Grid/CN=k8slave01.example.ca
-#      htcondor_cert: /root/grid-security/latest/k8slave01/hostcert.pem
-#      htcondor_key: /root/grid-security/latest/k8slave01/hostkey.pem
+#      htcondor_gsi_dn: /C=CA/O=Grid/CN=k8master.example.ca
+#      htcondor_cert: /root/grid-security/latest/k8master/hostcert.pem
+#      htcondor_key: /root/grid-security/latest/k8master/hostkey.pem
 #
 #      htcondor_worker_gsi_dn: /C=CA/O=Grid/CN=condorworker/condor.example.ca
 #      htcondor_worker_cert: /root/grid-security/latest/condorworker/hostcert.pem
@@ -51,15 +51,15 @@ letsencrypt_test: false
 i_etc_hosts:
 #-
 #    # a private IP (v4)
-#    fqdn: 'k8slave01'
+#    fqdn: 'k8master'
 #    ip: '10.200.200.239'
 -
     # a public IP (v4)
-    fqdn: 'k8slave01.heprc.uvic.ca'
-    ip: '206.12.154.19'
+    fqdn: 'k8master.heprc.uvic.ca'
+    ip: '206.12.154.20'
 #-
 #    # a public IP (v6)
-#    fqdn: 'k8slave01.heprc6.uvic.ca'
+#    fqdn: 'k8master.heprc6.uvic.ca'
 #    ip: '2607:f8f0:c10:70f3:2::239'
 
 # Define obsolete users to remove.
@@ -91,7 +91,7 @@ i_sudoers:
 # Defines block devices, filesystems, and mountpoints.
 i_volumes:
 -
-    fqdn: 'k8slave01.heprc.uvic.ca'
+    fqdn: 'k8master.heprc.uvic.ca'
     raid: 'jbod'
     disks: '0'
     volumegroup: 'vg_root'
@@ -100,7 +100,7 @@ i_volumes:
     fstype: 'ext4'
     mountpoint: '/'
 #
-#   fqdn: 'k8slave01.heprc.uvic.ca'
+#   fqdn: 'k8master.heprc.uvic.ca'
 #   raid: 'jbod'
 #   disks: '1'
 #   volumegroup: 'vg_data'
@@ -115,17 +115,17 @@ i_firewall: []
 i_external_connection:
 -
     nic: 'eth1'
-    ipv4: '206.12.154.19'
-    ipv4fqdn: 'k8slave01.heprc.uvic.ca'
+    ipv4: '206.12.154.20'
+    ipv4fqdn: 'k8master.heprc.uvic.ca'
 #    ipv6: '2607:f8f0:c10:70f3:2::239'
-#    ipv6fqdn: 'k8slave01.heprc6.uvic.ca'
+#    ipv6fqdn: 'k8master.heprc6.uvic.ca'
 
 # Private network.
 i_internal_connection:
 -
     nic: 'eth0'
     ipv4: '127.0.0.1'
-    ipv4fqdn: 'k8slave01'
+    ipv4fqdn: 'k8master'
 #    ipv6: '-'
 #    ipv6fqdn: '-'
 
@@ -148,7 +148,7 @@ i_connections:
     mac: '52:54:00:3e:55:da'
     ext: 'y'
     mtu: '9000'
-    ipv4: '206.12.154.19'
+    ipv4: '206.12.154.20'
     ipv4mask: '255.255.255.0'
     ipv4gw: '206.12.154.254'
 #    ipv6: '2607:f8f0:c10:70f3:2::239'
@@ -160,15 +160,15 @@ i_connections:
 i_service_connection:
 -
     nic: 'eth1'
-    ipv4: '206.12.154.19'
-    ipv4fqdn: 'k8slave01.heprc.uvic.ca'
+    ipv4: '206.12.154.20'
+    ipv4fqdn: 'k8master.heprc.uvic.ca'
 #    ipv6: '2607:f8f0:c10:70f3:2::239'
-#    ipv6fqdn: 'k8slave01.heprc6.uvic.ca'
+#    ipv6fqdn: 'k8master.heprc6.uvic.ca'
 
 # Define domains for which letsencrypt certificates are required.
 i_virtualhosts:
 -
-    virtualhost: 'k8slave01.heprc.uvic.ca'
+    virtualhost: 'k8master.heprc.uvic.ca'
 #-
-#    virtualhost: 'k8slave01-myadmin.heprc.uvic.ca'
+#    virtualhost: 'k8master-myadmin.heprc.uvic.ca'
 

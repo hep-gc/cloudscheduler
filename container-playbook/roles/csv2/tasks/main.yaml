@@ -9,6 +9,7 @@
 - include_vars: "{{ inventory_instance }}-secrets.yaml"
 
 - import_tasks: configure_etc_hosts.yaml
+  when: (container is undefined) or (container == False) #Added for now, I don't think I need to configure for a container
 - import_tasks: configure_sshd.yaml
   when: (container is undefined) or (container == False)
 - import_tasks: configure_root_mail_forwarding.yaml

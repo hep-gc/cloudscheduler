@@ -1,2 +1,2 @@
 inventory_system: 'staticvms'
-inventory_instance: 'k8slave01'
+inventory_instance: 'k8master'

@@ -323,19 +323,19 @@
 - name: Get public IP address
   ipify_facts:
 
-- name: update cloudscheduler to remove ssl verification for private-web container target
-  lineinfile:
-    path: /opt/cloudscheduler/cli/bin/csv2_common.py
-    insertafter: "^            {{ item.req1 }}=\\(gvar\\['user_settings'\\]\\['{{ item.req2 }}'\\]"
-    line: '            verify=False,'
-  with_items:
-    - { req1: 'cert', req2: 'server-grid-cert' }
-    - { req1: 'auth', req2: 'server-user' }
-  when:
-    - container is defined
-    - container == True
-    - local_web is defined
-    - local_web == True  
+#- name: update cloudscheduler to remove ssl verification for private-web container target
+#  lineinfile:
+#    path: /opt/cloudscheduler/cli/bin/csv2_common.py
+#    insertafter: "^            {{ item.req1 }}=\\(gvar\\['user_settings'\\]\\['{{ item.req2 }}'\\]"
+#    line: '            verify=False,'
+#  with_items:
+#    - { req1: 'cert', req2: 'server-grid-cert' }
+#    - { req1: 'auth', req2: 'server-user' }
+#  when:
+#    - container is defined
+#    - container == True
+#    - local_web is defined
+#    - local_web == True  
 
 - name: suppress python requests warning if ssl verification removed from cloudscheduler
   blockinfile:
@@ -381,7 +381,7 @@
   - csv2-celery
   - csv2-condor-gsi
   - csv2-ec2
-  - csv2-htc-agent
+#  - csv2-htc-agent
   - csv2-machines
   - csv2-jobs
   - csv2-openstack
@@ -401,7 +401,7 @@
     mode: 0644
   with_items:
     - csv2-pollers
-    - csv2-htc-agent
+#    - csv2-htc-agent
 
 - name: install csv2 sudoers
   copy:
@@ -436,7 +436,7 @@
     path: /var/log/cloudscheduler
     owner: cloudscheduler
     group: cloudscheduler
-    mode: 0664
+    mode: 0777
     state: directory
 
 - name: create the openstack poller and cloudscheduler main log files
@@ -461,14 +461,14 @@
       - csstatus.log
       - csmachines.log
 
-- name: create the csv2_htc_agent log files
-  file:
-      path: /var/log/cloudscheduler/{{ item }}
-      owner: condor
-      group: condor
-      state: touch
-  with_items:
-      - csv2_htc_agent.log
+#- name: create the csv2_htc_agent log files
+#  file:
+#      path: /var/log/cloudscheduler/{{ item }}
+#      owner: condor
+#      group: condor
+#      state: touch
+#  with_items:
+#      - csv2_htc_agent.log
 
 - name: create the VM data log file
   file:
@@ -506,7 +506,7 @@
   - csv2-celery
   - csv2-condor-gsi
   - csv2-ec2
-  - csv2-htc-agent
+#  - csv2-htc-agent
   - csv2-machines
   - csv2-jobs
   - csv2-openstack
@@ -702,7 +702,7 @@
   - csv2-celery
   - csv2-condor-gsi
   - csv2-ec2
-  - csv2-htc-agent
+#  - csv2-htc-agent
   - csv2-machines
   - csv2-jobs
   - csv2-openstack

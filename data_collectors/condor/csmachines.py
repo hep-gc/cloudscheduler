@@ -424,13 +424,14 @@ def command_poller():
                         'command': "noop",
                     }
                     command_yaml = yaml.dump(command_dict)
+                    logging.debug("Running noop for host %s" % (condor_host))
                     command_results = condor_rpc.call(command_yaml, timeout=30)
                     if command_results is None or command_results[0] != 0:
                         # command failed
                         if command_results == None:
                             # we got a timeout
                             # timeout on the call, agent problems or offline
-                            logging.error("RPC call timed out, agent offline or in error")
+                            logging.error("RPC call timed out, agent offline or in error: %s" % (condor_host))
                             jsched = {
                                 "htcondor_fqdn": condor_host,
                                 "agent_status":  0
@@ -445,7 +446,7 @@ def command_poller():
                                 config.db_session.merge(new_jsched)
                                 uncommitted_updates += 1
 
-                        logging.error("RPC noop failed, agent offline or in error")
+                        logging.error("RPC noop failed, agent offline or in error: %s" % (condor_host))
                         continue
                     else:
                         #it was successfull
@@ -546,7 +547,7 @@ def command_poller():
                             if command_results == None:
                                 # we got a timeout
                                 # timeout on the call, agent problems or offline
-                                logging.error("RPC call timed out, agent offline or in error")
+                                logging.error("RPC call timed out, agent offline or in error: %s" % (condor_host))
                                 logging.debug(condor_host)
                                 jsched = {
                                     "htcondor_fqdn": condor_host,

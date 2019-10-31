@@ -31,15 +31,15 @@
 - name: install mariadb (MySQL) packages
   yum: name={{ item }} state=latest
   with_items:
-  - expect
-  - MariaDB-server
+#  - expect
+#  - MariaDB-server
   - MariaDB-client
   - MariaDB-devel
-  - MariaDB-compat
-  - MariaDB-common
+#  - MariaDB-compat
+#  - MariaDB-common
   - MariaDB-shared
-  - zlib-devel
-  - openssl-devel
+#  - zlib-devel
+#  - openssl-devel
   - MySQL-python
 #  notify:
 #  - restart mariadb
