@@ -22,27 +22,21 @@ This view is one of six related views:
 
 #. view_cloud_status_slot_summary
 
-used by the cloud status user interface command to present slot information
-in a user selectable style. Two user settings:
+used by the cloud status user interface command to present slot information in a user selectable style. Two user settings:
 
-#. Enabled slot detail.
+a) Enabled slot detail.
 
-#. Enabled slot flavor information.
+b) Enabled slot flavor information.
 
 allow one of four selectable styles:
 
+#. Group/cloud slot summary only (user settings #a and #b disabled, uses view #6 only).
 
-#. Group/cloud slot summary only (user settings: both disabled(0), views: 6)
+#. Group/cloud slot summary and detail (user settings #a enabled and #b disabled, uses views #4 and #5\).
 
-#. Group/cloud slot summary and detail (user settings: 1 enabled(1), 2 disabled(0),
-views: 4, 5)
+#. Group/cloud/flavor slot summary only (user settings #a disabled and #b enabled, uses views #3 only).
 
-#. Group/cloud/flavor slot summary only (user settings: 1 disabled(0), 2 enabled(1), views:
-3)
-
-#. Group/cloud/flavor slot summary and detail (user settings: 1 enabled(1), 2 enabled(1),
-views: 1, 2)
-
+#. Group/cloud/flavor slot summary and detail (user settings #a and #b enabled, uses views #1 and #2\)
 
 Columns:
 ^^^^^^^^
