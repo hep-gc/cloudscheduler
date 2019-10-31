@@ -1,5 +1,6 @@
 view_cloud_status_flavor_slot_summary:
     Synopsis:
+        REF=(views/view_cloud_status_flavor_slot_detail_summary)
 
     Keys:
 
@@ -8,24 +9,30 @@ view_cloud_status_flavor_slot_summary:
         group_name:
             Format: String(32)
             Synopsis:
+                REF=(views/view_cloud_status_flavor_slot_detail_summary/Columns/group_name)
 
         cloud_name:
             Format: String(32)
             Synopsis:
+                REF=(views/view_cloud_status_flavor_slot_detail_summary/Columns/group_name)
 
         flavor:
             Format: String(46)
             Synopsis:
+                REF=(views/view_cloud_status_flavor_slot_detail_summary/Columns/group_name)
 
         busy:
             Format: Integer
             Synopsis:
+                Is the number HTCondor dynamic slots that are currently running jobs.
 
         idle:
             Format: Integer
             Synopsis:
+                Is the number HTCondor dynamic slots that are currently idle.
 
         idle_percent:
             Format: Integer
             Synopsis:
+                Is calculate as **idle** times 100 divided by the aggregate of **idle** plus **busy**.
 

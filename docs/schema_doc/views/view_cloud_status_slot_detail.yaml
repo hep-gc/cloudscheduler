@@ -1,5 +1,6 @@
 view_cloud_status_slot_detail:
     Synopsis:
+        REF=(views/view_cloud_status_flavor_slot_detail_summary)
 
     Keys:
 
@@ -8,28 +9,30 @@ view_cloud_status_slot_detail:
         group_name:
             Format: String(32)
             Synopsis:
+                REF=(views/view_cloud_status_flavor_slot_detail_summary/Columns/group_name)
 
         cloud_name:
             Format: String(32)
             Synopsis:
-
-        slot_tag:
-            Format: String(392)
-            Synopsis:
+                REF=(views/view_cloud_status_flavor_slot_detail_summary/Columns/cloud_name)
 
         slot_id:
             Format: String(380)
             Synopsis:
+                REF=(views/view_cloud_status_flavor_slot_detail/Columns/slot_id)
 
         slot_type:
             Format: Integer
             Synopsis:
+                REF=(views/view_cloud_status_flavor_slot_detail_summary/Columns/slot_type)
 
         slot_count:
             Format: Integer
             Synopsis:
+                REF=(views/view_cloud_status_flavor_slot_detail_summary/Columns/slot_count)
 
         core_count:
             Format: Integer
             Synopsis:
+                REF=(views/view_cloud_status_flavor_slot_detail_summary/Columns/core_count)
 

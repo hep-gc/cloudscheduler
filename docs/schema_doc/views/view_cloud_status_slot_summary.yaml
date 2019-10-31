@@ -1,5 +1,6 @@
 view_cloud_status_slot_summary:
     Synopsis:
+        REF=(views/view_cloud_status_flavor_slot_detail_summary)
 
     Keys:
 
@@ -8,20 +9,25 @@ view_cloud_status_slot_summary:
         group_name:
             Format: String(32)
             Synopsis:
+                REF=(views/view_cloud_status_flavor_slot_detail_summary/Columns/group_name)
 
         cloud_name:
             Format: String(32)
             Synopsis:
+                REF=(views/view_cloud_status_flavor_slot_detail_summary/Columns/cloud_name)
 
         busy:
             Format: Integer
             Synopsis:
+                REF=(views/view_cloud_status_flavor_slot_summary/Columns/busy)
 
         idle:
             Format: Integer
             Synopsis:
+                REF=(views/view_cloud_status_flavor_slot_summary/Columns/idle)
 
         idle_percent:
             Format: Integer
             Synopsis:
+                REF=(views/view_cloud_status_flavor_slot_summary/Columns/idle_percent)
 

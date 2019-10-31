@@ -8,6 +8,37 @@
 Database View: view_cloud_status_slot_detail_summary
 ====================================================
 
+This view is one of six related views:
+
+#. view_cloud_status_flavor_slot_detail_summary
+
+#. view_cloud_status_flavor_slot_detail
+
+#. view_cloud_status_flavor_slot_summary
+
+#. view_cloud_status_slot_detail_summary
+
+#. view_cloud_status_slot_detail
+
+#. view_cloud_status_slot_summary
+
+used by the cloud status user interface command to present slot information
+in a user selectable style. Two user settings:
+
+#. Enabled slot detail. #. Enabled slot flavor information.
+
+allow one of four selectable styles:
+
+#. Group/cloud slot summary only (user settings: both disabled(0) - views: #6)
+
+#. Group/cloud slot summary and detail (user settings: #1 enabled(1), #2 disabled(0)
+- views: #4, #5)
+
+#. Group/cloud/flavor slot summary only (user settings: #1 disabled(0), #2 enabled(1) -
+views: #3)
+
+#. Group/cloud/flavor slot summary and detail (user settings: #1 enabled(1), #2 enabled(1)
+- views: #1, #2)
 
 
 Columns:
@@ -15,16 +46,22 @@ Columns:
 
 * **group_name** (String(32)):
 
+      Is the name of the group owning the cloud.
 
 * **cloud_name** (String(32)):
 
+      Is the name of the cloud hosting the HTCondor dynamic slots.
 
 * **slot_type** (Integer):
 
+      This integer indicates the number of (cpu) cores slots of this type
+      are configured with.
 
 * **slot_count** (Integer):
 
+      Is the number of slots of this **slot_type** that are currently running.
 
 * **core_count** (Integer):
 
+      Is calculated as **slot_type** multiplied by **slot_count**.
 
