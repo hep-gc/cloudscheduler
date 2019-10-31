@@ -62,8 +62,8 @@ Columns:
 
 * **slot_type** (Integer):
 
-      This integer indicates the number of (cpu) cores slots of this type
-      are configured with.
+      This integer indicates the number of (cpu) cores assigned to slots of
+      this type.
 
 * **slot_id** (String(380)):
 

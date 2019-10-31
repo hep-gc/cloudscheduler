@@ -54,8 +54,7 @@ view_cloud_status_flavor_slot_detail_summary:
         slot_type:
             Format: Integer
             Synopsis:
-                This integer indicates the number of (cpu) cores slots of this type are 
-                configured with.
+                This integer indicates the number of (cpu) cores assigned to slots of this type.
 
         slot_count:
             Format: Integer
