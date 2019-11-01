@@ -411,8 +411,10 @@ def schema_summarize(gvar, type):
 
             # New?
             if 'Synopsis' not in gvar['schema'][type][table][coltype][col] or \
-                not isinstance(gvar['schema'][type][table][coltype][col]['Synopsis'], str) or \
-                gvar['schema'][type][table][coltype][col]['Synopsis'].strip() == '':
+                not isinstance(gvar['schema'][type][table][coltype][col]['Synopsis'], str):
+
+#               not isinstance(gvar['schema'][type][table][coltype][col]['Synopsis'], str) or \
+#               gvar['schema'][type][table][coltype][col]['Synopsis'].strip() == '':
 
                 gvar['counters'][coltype]['new'] += 1
                 schema_summarize_print_label(gvar, coltype, table)

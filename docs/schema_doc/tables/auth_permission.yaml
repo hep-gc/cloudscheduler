@@ -1,23 +1,24 @@
 auth_permission:
     Synopsis:
+        REF=(tables/auth_group)
 
     Keys:
 
         id:
             Format: Integer
-            Synopsis:
+            Synopsis: ''
 
     Columns:
 
         name:
             Format: String(255)
-            Synopsis:
+            Synopsis: ''
 
         content_type_id:
             Format: Integer
-            Synopsis:
+            Synopsis: ''
 
         codename:
             Format: String(100)
-            Synopsis:
+            Synopsis: ''
 

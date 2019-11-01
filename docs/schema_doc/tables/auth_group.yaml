@@ -35,12 +35,11 @@ auth_group:
 
         id:
             Format: Integer
-            Synopsis:
-                ''
+            Synopsis: ''
 
     Columns:
 
         name:
             Format: String(80)
-            Synopsis:
+            Synopsis: ''
 
