@@ -9,7 +9,7 @@ view_vm_kill_retire_priority_idle:
 
         The related view,
         .. _view_vm_kill_retire_priority_idle:
-        http://https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_vm_kill_retire_priority_age.html,
+        https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_vm_kill_retire_priority_age.html,
         performs the same function but has a different priority scheme."
 
     Keys:
