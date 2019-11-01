@@ -1,19 +1,20 @@
 django_session:
     Synopsis:
+        REF=(tables/django_admin_log)
 
     Keys:
 
         session_key:
             Format: String(40)
-            Synopsis:
+            Synopsis: ''
 
     Columns:
 
         session_data:
             Format: String
-            Synopsis:
+            Synopsis: ''
 
         expire_date:
             Format: Integer
-            Synopsis:
+            Synopsis: ''
 
