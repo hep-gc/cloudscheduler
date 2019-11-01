@@ -1,35 +1,36 @@
 silk_sqlquery:
     Synopsis:
+        REF=(tables/silk_profile)
 
     Keys:
 
         id:
             Format: Integer
-            Synopsis:
+            Synopsis: ''
 
     Columns:
 
         query:
             Format: String
-            Synopsis:
+            Synopsis: ''
 
         start_time:
             Format: Integer
-            Synopsis:
+            Synopsis: ''
 
         end_time:
             Format: Integer
-            Synopsis:
+            Synopsis: ''
 
         time_taken:
             Format: Float
-            Synopsis:
+            Synopsis: ''
 
         traceback:
             Format: String
-            Synopsis:
+            Synopsis: ''
 
         request_id:
             Format: String(36)
-            Synopsis:
+            Synopsis: ''
 

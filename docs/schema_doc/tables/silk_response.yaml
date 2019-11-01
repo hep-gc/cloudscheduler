@@ -1,31 +1,32 @@
 silk_response:
     Synopsis:
+        REF=(tables/silk_profile)
 
     Keys:
 
         id:
             Format: String(36)
-            Synopsis:
+            Synopsis: ''
 
     Columns:
 
         status_code:
             Format: Integer
-            Synopsis:
+            Synopsis: ''
 
         raw_body:
             Format: String
-            Synopsis:
+            Synopsis: ''
 
         body:
             Format: String
-            Synopsis:
+            Synopsis: ''
 
         encoded_headers:
             Format: String
-            Synopsis:
+            Synopsis: ''
 
         request_id:
             Format: String(36)
-            Synopsis:
+            Synopsis: ''
 
