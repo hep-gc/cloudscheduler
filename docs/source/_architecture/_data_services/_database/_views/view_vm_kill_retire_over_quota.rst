@@ -10,15 +10,15 @@ Database View: view_vm_kill_retire_over_quota
 
 This view is used by the cloud pollers to determine if any group's clouds are running over their cores or RAM quotas. A cloud managed by CSV2 may exceed quotas for the following reasons:
 
-#. A user has reduced either the cores controls (**core_ctl** or **cores_softmax**\) or the RAM control (**ram_ctl**\) below the resources currently consumed by VMs instantiated by CSV2.
+* A user has reduced either the cores controls (**core_ctl** or **cores_softmax**\) or the RAM control (**ram_ctl**\) below the resources currently consumed by VMs instantiated by CSV2.
 
-#. The number of foreign resources has increased (effectively reducing the CSV2 quota\) for either cores or RAM so that the resources consumed by CSV2 VMs exceed the new effective quotas.
+* The number of foreign resources has increased (effectively reducing the CSV2 quota\) for either cores or RAM so that the resources consumed by CSV2 VMs exceed the new effective quotas.
 
 The view will only present entries for clouds that are currently over quota, and the pollers will respond by retiring and terminating VMs to reduce the resources being consumed by CSV2. The order in which VM are selected for termination is as follows:
 
-#. Idle VMs will be terminated immediately, and then
+* Idle VMs will be terminated immediately, and then
 
-#. the oldest running VMs, those with active jobs, will be retired and, when idle, terminated.
+* the oldest running VMs, those with active jobs, will be retired and, when idle, terminated.
 
 The cloud pollers will terminate the minimum number of VMs to honour the new limits.
 
