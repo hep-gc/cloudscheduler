@@ -8,6 +8,30 @@
 Database View: view_vm_kill_retire_over_quota
 =============================================
 
+This view is used by the cloud pollers to determine if any
+group's clouds are running over their cores or RAM quotas. A cloud
+managed by CSV2 may exceed quotas for the following reasons:
+
+#. A user has reduced either the cores controls (**core_ctl** or **cores_softmax**)
+or the RAM control (**ram_ctl**) below the resources currently consumed by VMs
+instantiated by CSV2.
+
+#. The number of foreign resources has increased (effectively reducing the CSV2
+quota) for either cores or RAM so that the resources consumed by
+CSV2 VMs exceed the new effective quotas.
+
+The view will only present entries for clouds that are currently over
+quota, and the pollers will respond by retiring and terminating VMs to
+reduce the resources being consumed by CSV2. The order in which VM
+are selected for termination is as follows:
+
+#. Idle VMs will be terminated immediately, and then
+
+#. the oldest running VMs, those with active jobs, will be retired
+and, when idle, terminated.
+
+The cloud pollers will terminate the minimum number of VMs to honour
+the new limits.
 
 
 Columns:
@@ -15,43 +39,75 @@ Columns:
 
 * **group_name** (String(32)):
 
+      Is the name of the group owning the cloud.
 
 * **cloud_name** (String(32)):
 
+      Is the name of the cloud.
 
 * **cloud_type** (String(64)):
 
+      Is the type of cloud (eg. openstack, amazon, etc.).
 
 * **cores** (Integer):
 
+      Is the current maximum number of cores that can be used by
+      CSV2 on this group/cloud.
 
 * **cores_ctl** (Integer):
 
+      Is the current user setting of the cores control (slider) for the
+      cloud and is one of settings used to determine the **cores_limit** (the
+      maximum number of cores that may run for this group/cloud).
 
 * **cores_softmax** (Integer):
 
+      Is the current user setting of the cores soft quota (soft_max) for
+      this cloud and is one of settings used to determine the **cores_limit**
+      (the maximum number of cores that may run for this group/cloud)..
 
 * **cores_max** (Integer):
 
+      Is the current cores quota for this cloud set by the provider/administrator.
+      It is one of the values used to determine the **cores_limit** (the
+      maximum number of cores that may run for this group/cloud).
 
 * **cores_native** (Integer):
 
+      Is the total number of cores being used by all the VMs
+      for this group/cloud.
 
 * **cores_foreign** (Integer):
 
+      Is the total number of cores running on this cloud but which
+      do not belong to this group. Foreign cores can limit the number
+      VMs a group can start.
 
 * **ram** (Float):
 
+      Is the current maximum size in kilobytes of RAM that can be
+      used by CSV2 on this group/cloud.
 
 * **ram_ctl** (Integer):
 
+      Is the current user setting of the RAM control (slider) for the
+      cloud and is one of settings used to determine the **ram_limit** (the
+      maximum size in kilobytes of RAM that may run for this group/cloud).
 
 * **ram_max** (Integer):
 
+      Is the current RAM quota for this cloud set by the provider/administrator.
+      It is one of the values used to determine the **ram_limit** (the
+      maximum size in kilobytes of RAM that may run for this group/cloud).
 
 * **ram_native** (Float):
 
+      Is the total size in kilobytes of RAM being used by all
+      the VMs for this group/cloud.
 
 * **ram_foreign** (Float):
 
+      Is the total size in kilobytes of RAM running on this cloud
+      but which do not belong to this group. Foreign RAM can limit
+      the number VMs a group can start.
 

@@ -140,7 +140,7 @@ view_cloud_status:
             Format: Integer
             Synopsis:
                 Is the current user setting of the cores soft quota (soft_max) for this cloud and is one of settings used to 
-                determine the **cores_limit** (the maximum number of cores that may run ffor this group/cloud)..
+                determine the **cores_limit** (the maximum number of cores that may run for this group/cloud)..
 
         cores_foreign:
             Format: Integer

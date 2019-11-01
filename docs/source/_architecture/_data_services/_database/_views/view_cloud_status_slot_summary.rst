@@ -34,7 +34,7 @@ allow one of four selectable styles:
 
 #. Group/cloud slot summary and detail (user settings #a enabled and #b disabled, uses views #4 and #5\).
 
-#. Group/cloud/flavor slot summary only (user settings #a disabled and #b enabled, uses views #3 only).
+#. Group/cloud/flavor slot summary only (user settings #a disabled and #b enabled, uses view #3 only).
 
 #. Group/cloud/flavor slot summary and detail (user settings #a and #b enabled, uses views #1 and #2\)
 
