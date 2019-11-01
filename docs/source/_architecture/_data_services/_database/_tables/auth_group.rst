@@ -8,6 +8,36 @@
 Database Table: auth_group
 ==========================
 
+This table is one of six related tables:
+
+#. auth_group_
+
+#. auth_group_permissions_
+
+#. auth_permission_
+
+#. auth_user_
+
+#. auth_user_groups_
+
+#. auth_user_user_permissions_
+
+which are user authentication tables defined by the Django web services framework.
+The interested reader is referred to the Django User Authentication documentation_.
+
+.. _auth_group: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/auth_group.html
+
+.. _auth_group_permissions: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/auth_group_permissions.html
+
+.. _auth_permission: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/auth_permission.html
+
+.. _auth_user: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/auth_user.html
+
+.. _auth_user_groups: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/auth_user_groups.html
+
+.. _auth_user_user_permissions: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/auth_user_user_permissions.html
+
+.. _Django User Authentication documentation: https://docs.djangoproject.com/en/2.2/topics/auth/
 
 
 Keys:
@@ -15,6 +45,7 @@ Keys:
 
 * **id** (Integer):
 
+      IGNORE_THIS
 
 
 Columns:
@@ -22,4 +53,5 @@ Columns:
 
 * **name** (String(80)):
 
+      IGNORE_THIS
 
