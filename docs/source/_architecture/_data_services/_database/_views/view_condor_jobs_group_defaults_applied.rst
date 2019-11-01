@@ -8,6 +8,7 @@
 Database View: view_condor_jobs_group_defaults_applied
 ======================================================
 
+timeseries poller and User Interface (UI)
 
 
 Columns:
@@ -15,12 +16,16 @@ Columns:
 
 * **global_job_id** (String(128)):
 
+      Is the global job ID assigned by HTCondor.
 
 * **group_name** (String(32)):
 
+      Is the name of the group owning the job.
 
 * **target_clouds** (String):
 
+      Is the name of an alias identifying a subset of the group's
+      clouds that this job should run on.
 
 * **job_status** (Integer):
 

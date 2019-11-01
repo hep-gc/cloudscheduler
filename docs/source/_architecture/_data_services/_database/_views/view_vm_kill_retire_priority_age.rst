@@ -8,6 +8,19 @@
 Database View: view_vm_kill_retire_priority_age
 ===============================================
 
+This view creates a list of VMs to terminate and is used
+by the cloud pollers and User Interface (UI) processes to respond to
+quota and resource control changes. Sorted in descending priority order, each VM
+entry has running totals of both cores and RAM. By selecting the
+first N entries, known quantities of resources can be released.
+
+This view prioritizes the age of the VM and defines age as
+the time in seconds since the last state change. The higher the
+age/priority, the lower the resource aggregates, and the earlier in the list
+the VM entry appears.
+
+The related view, **view_vm_kill_retire_priority_idle**, performs the same function but has a different
+priority scheme.
 
 
 Columns:
@@ -15,31 +28,45 @@ Columns:
 
 * **group_name** (String(32)):
 
+      Is the name of the group owning the VM.
 
 * **cloud_name** (String(32)):
 
+      Is the name of the cloud hosting the VM.
 
 * **vmid** (String(128)):
 
+      Is the unique ID of the VM.
 
 * **flavor_id** (String(128)):
 
+      Is the flavor ID used to instantiate the VM. The flavor determines
+      the the (cpu) cores and RAM utilized by the VM which is
+      used to determine the resource aggregates.
 
 * **machine** (String(256)):
 
+      Is the unique machine name assigned by HTCondor.
 
 * **killed** (Integer):
 
+      Is the total number of termination requests issued to this VM.
 
 * **retired** (Integer):
 
+      Is the total number of retire requests issued to this VM.
 
 * **priority** (Integer):
 
+      Is the calculated VM priority.
 
 * **flavor_cores** (Integer):
 
+      Is the aggregate nubmer of cores for all the VMs from the
+      beginning of the list up to and including this entry.
 
 * **flavor_ram** (Integer):
 
+      Is the aggregate size in kilobytes of RAM for all the VMs
+      from the beginning of the list up to and including this entry.
 

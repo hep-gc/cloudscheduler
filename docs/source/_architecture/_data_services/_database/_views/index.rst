@@ -48,7 +48,6 @@ following functional categories:
 
    view_active_resource_shortfall
    view_available_resources
-   view_condor_jobs_group_defaults_applied
    view_groups_of_idle_jobs
    view_idle_vms
    view_metadata_collation_json
@@ -63,6 +62,7 @@ following functional categories:
    view_clouds_with_metadata_info
    view_clouds_with_metadata_names
    view_condor_host
+   view_condor_jobs_group_defaults_applied
    view_ec2_images
    view_ec2_instance_types
    view_foreign_flavors

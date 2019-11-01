@@ -1,5 +1,14 @@
 view_vm_kill_retire_priority_idle:
     Synopsis:
+        REF=(views/view_vm_kill_retire_priority_age/0)
+
+        This view prioritizes idleness over the age of the VM. Idle VMs are set to the
+        maximum possible age/priority. Otherwise the age/priority is set to the time
+        in seconds since the last state change. The higher the age/priority, the lower
+        the resource aggregates, and the earlier in the list the VM entry appears.
+
+        The related view, **view_vm_kill_retire_priority_age**, performs the same function
+        but has a different priority scheme.
 
     Keys:
 
@@ -8,40 +17,50 @@ view_vm_kill_retire_priority_idle:
         group_name:
             Format: String(32)
             Synopsis:
+                REF=(views/view_vm_kill_retire_priority_age/Columns/group_name)
 
         cloud_name:
             Format: String(32)
             Synopsis:
+                REF=(views/view_vm_kill_retire_priority_age/Columns/cloud_name)
 
         vmid:
             Format: String(128)
             Synopsis:
+                REF=(views/view_vm_kill_retire_priority_age/Columns/vmid)
 
         flavor_id:
             Format: String(128)
             Synopsis:
+                REF=(views/view_vm_kill_retire_priority_age/Columns/flavor_id)
 
         machine:
             Format: String(256)
             Synopsis:
+                REF=(views/view_vm_kill_retire_priority_age/Columns/machine)
 
         killed:
             Format: Integer
             Synopsis:
+                REF=(views/view_vm_kill_retire_priority_age/Columns/killed)
 
         retired:
             Format: Integer
             Synopsis:
+                REF=(views/view_vm_kill_retire_priority_age/Columns/retired)
 
         priority:
             Format: Integer
             Synopsis:
+                REF=(views/view_vm_kill_retire_priority_age/Columns/priority)
 
         flavor_cores:
             Format: Integer
             Synopsis:
+                REF=(views/view_vm_kill_retire_priority_age/Columns/flavor_cores)
 
         flavor_ram:
             Format: Integer
             Synopsis:
+                REF=(views/view_vm_kill_retire_priority_age/Columns/flavor_ram)
 
