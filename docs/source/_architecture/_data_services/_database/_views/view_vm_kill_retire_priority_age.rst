@@ -19,8 +19,10 @@ the time in seconds since the last state change. The higher the
 age/priority, the lower the resource aggregates, and the earlier in the list
 the VM entry appears.
 
-The related view, .. _view_vm_kill_retire_priority_idle: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_vm_kill_retire_priority_idle.html, performs the same function but has
-a different priority scheme.
+The related view, view_vm_kill_retire_priority_idle_, performs the same function but has a different
+priority scheme.
+
+.. _view_vm_kill_retire_priority_idle: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_vm_kill_retire_priority_idle.html
 
 
 Columns:

@@ -83,7 +83,7 @@ Columns:
 
 * **cascading_vm_flavor** (String(64)):
 
-      'cascading_' fields are a consolidation of and determined by the group and
+      'cascading' fields are a consolidation of and determined by the group and
       cloud settings and are the effective default for the cloud. The cloud
       setting overrides the group setting which overrides no setting (or a NULL
       value).
@@ -92,7 +92,7 @@ Columns:
 
 * **cascading_vm_image** (String(64)):
 
-      'cascading_' fields are a consolidation of and determined by the group and
+      'cascading' fields are a consolidation of and determined by the group and
       cloud settings and are the effective default for the cloud. The cloud
       setting overrides the group setting which overrides no setting (or a NULL
       value).
@@ -101,7 +101,7 @@ Columns:
 
 * **cascading_vm_keep_alive** (Integer):
 
-      'cascading_' fields are a consolidation of and determined by the group and
+      'cascading' fields are a consolidation of and determined by the group and
       cloud settings and are the effective default for the cloud. The cloud
       setting overrides the group setting which overrides no setting (or a NULL
       value).
@@ -111,7 +111,7 @@ Columns:
 
 * **cascading_vm_keyname** (String(64)):
 
-      'cascading_' fields are a consolidation of and determined by the group and
+      'cascading' fields are a consolidation of and determined by the group and
       cloud settings and are the effective default for the cloud. The cloud
       setting overrides the group setting which overrides no setting (or a NULL
       value).
@@ -120,7 +120,7 @@ Columns:
 
 * **cascading_vm_network** (String(64)):
 
-      'cascading_' fields are a consolidation of and determined by the group and
+      'cascading' fields are a consolidation of and determined by the group and
       cloud settings and are the effective default for the cloud. The cloud
       setting overrides the group setting which overrides no setting (or a NULL
       value).
@@ -129,7 +129,7 @@ Columns:
 
 * **cascading_vm_security_groups** (String(128)):
 
-      'cascading_' fields are a consolidation of and determined by the group and
+      'cascading' fields are a consolidation of and determined by the group and
       cloud settings and are the effective default for the cloud. The cloud
       setting overrides the group setting which overrides no setting (or a NULL
       value).
