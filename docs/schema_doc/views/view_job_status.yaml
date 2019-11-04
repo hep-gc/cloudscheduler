@@ -1,7 +1,7 @@
 view_job_status:
     Synopsis:
         "
-        REF=(views/view_cloud_status/<-->view_job_status_)
+        REF=(common/view_cloud_status)
         "
 
     Keys:

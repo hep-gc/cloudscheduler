@@ -199,7 +199,7 @@ def main(args):
         '..   1. edit the template file ".../cloudscheduler/docs/schema_doc/%%s"\n' \
         '..   2. run the utility ".../cloudscheduler/utilities/schema_doc"\n' \
         '..\n\n' % (gvar['base_dir'])
-    gvar['schema'] = {'tables': {}, 'views': {}}
+    gvar['schema'] = {'common': {}, 'tables': {}, 'views': {}}
     gvar['schema_states'] = {}
     gvar['tempfile'] = NamedTemporaryFile(delete=False)
 
@@ -212,6 +212,7 @@ def main(args):
     except:
         gvar['sphinx'] = False
 
+    schema_yaml_get(gvar, 'common')
     schema_yaml_get(gvar, 'tables')
     schema_yaml_get(gvar, 'views')
 
@@ -543,41 +544,19 @@ def resolve_references(gvar, type):
                             try:
                                 pix = int(key_list[-1])
                             except:
-                                pix_strings = key_list[-1].split('<-->')
-                                if len(pix_strings) == 2:
-                                    pix = [0,0]
-                                else:
-                                    print('ERROR: Invalid paragraph reference: %s -> %s' % ('/'.join(parent_keys), ref[0]))
-                                    return
+                                print('ERROR: Invalid paragraph reference: %s -> %s' % ('/'.join(parent_keys), ref[0]))
+                                return
                         else:
                             pix = -1
 
-                        if isinstance(pix, list) or pix >= 0:
+                        if pix >= 0:
                             ref_target = deref(gvar['schema'], key_list[:-1])
                         else:
                             ref_target = deref(gvar['schema'], key_list)
 
                         if ref_target:
                             if 'Synopsis' in ref_target:
-                                if isinstance(pix, list):
-                                    if len(pix_strings[0]) > 0:
-                                        try: 
-                                            pix[0] = ref_target['Synopsis'].index(pix_strings[0])
-                                        except:
-                                            print('ERROR: Invalid reference, from_string: %s -> %s' % ('/'.join(parent_keys), ref[0]))
-                                            return
-
-                                    if len(pix_strings[1]) > 0:
-                                        try: 
-                                            pix[1] = ref_target['Synopsis'].index(pix_strings[1]) + len(pix_strings[1])
-                                        except:
-                                            print('ERROR: Invalid reference, to_string: %s -> %s' % ('/'.join(parent_keys), ref[0]))
-                                            return
-                                    else:
-                                        pix[1] = len(ref_target)
-
-                                    refs[ix] = '%s%s' % (ref_target['Synopsis'][pix[0]:pix[1]], ref[1])
-                                elif pix > -1:
+                                if pix > -1:
                                     paras = ref_target['Synopsis'].split('\n')
                                     if pix < len(paras):
                                         refs[ix] = '%s%s' % (paras[pix], ref[1])

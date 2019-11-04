@@ -8,7 +8,7 @@
 Database View: view_cloud_status_slot_summary
 =============================================
 
-.. _view_cloud_status: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_cloud_status.html
+  .. _view_cloud_status: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_cloud_status.html
 
 .. _view_cloud_status_flavor_slot_detail_summary: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_cloud_status_flavor_slot_detail_summary.html
 
@@ -24,8 +24,7 @@ Database View: view_cloud_status_slot_summary
 
 .. _view_job_status: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_job_status.html
 
-This view is one of a suite of related views supporting the
-primary status display of CSV2. The suite includes:
+This view is one of a suite of related views supporting the primary status display of CSV2. The suite includes:
 
 #. view_cloud_status_
 
@@ -41,8 +40,23 @@ primary status display of CSV2. The suite includes:
 
 #. view_cloud_status_slot_summary_
 
-#. view_job_status_
+#. view_job_status_ 
 
+ Views #2 through #7 present slot information in a user selectable style. Two user settings:
+
+a) Enabled slot detail.
+
+b) Enabled slot flavor information.
+
+allow one of four selectable styles:
+
+#. Group/cloud slot summary only (user settings #a and #b disabled, uses view #6 only).
+
+#. Group/cloud slot summary and detail (user settings #a enabled and #b disabled, uses views #4 and #5\).
+
+#. Group/cloud/flavor slot summary only (user settings #a disabled and #b enabled, uses view #3 only).
+
+#. Group/cloud/flavor slot summary and detail (user settings #a and #b enabled, uses views #1 and #2\).`  
 
 Columns:
 ^^^^^^^^
