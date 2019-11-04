@@ -1,6 +1,10 @@
 view_cloud_status_flavor_slot_detail:
     Synopsis:
-        REF=(views/view_cloud_status_flavor_slot_detail_summary)
+        "
+        REF=(views/view_cloud_status/<-->view_job_status_)
+
+        REF=(views/view_cloud_status_flavor_slot_detail_summary/Views #2<-->)
+        "
 
     Keys:
 

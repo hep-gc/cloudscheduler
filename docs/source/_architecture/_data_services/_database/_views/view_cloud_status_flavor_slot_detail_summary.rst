@@ -24,7 +24,7 @@ Database View: view_cloud_status_flavor_slot_detail_summary
 
 .. _view_job_status: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_job_status.html
 
-This view is one of a suite of related views:
+This view is one of a suite of related views supporting the primary status display of CSV2. The suite includes:
 
 #. view_cloud_status_
 
@@ -42,23 +42,7 @@ This view is one of a suite of related views:
 
 #. view_job_status_
 
-supporting the primary status display of CSV2, both web and CLI.
-
-This view is one of six related views:
-
-#. view_cloud_status_flavor_slot_detail_summary_
-
-#. view_cloud_status_flavor_slot_detail_
-
-#. view_cloud_status_flavor_slot_summary_
-
-#. view_cloud_status_slot_detail_summary_
-
-#. view_cloud_status_slot_detail_
-
-#. view_cloud_status_slot_summary_
-
-used by the cloud status user interface command to present slot information in a user selectable style. Two user settings:
+Views #2 through #7 present slot information in a user selectable style. Two user settings:
 
 a) Enabled slot detail.
 
@@ -72,19 +56,7 @@ allow one of four selectable styles:
 
 #. Group/cloud/flavor slot summary only (user settings #a disabled and #b enabled, uses view #3 only).
 
-#. Group/cloud/flavor slot summary and detail (user settings #a and #b enabled, uses views #1 and #2\)
-
-.. _view_cloud_status_flavor_slot_detail_summary: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_cloud_status_flavor_slot_detail_summary.html
-
-.. _view_cloud_status_flavor_slot_detail: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_cloud_status_flavor_slot_detail.html
-
-.. _view_cloud_status_flavor_slot_summary: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_cloud_status_flavor_slot_summary.html
-
-.. _view_cloud_status_slot_detail_summary: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_cloud_status_slot_detail_summary.html
-
-.. _view_cloud_status_slot_detail: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_cloud_status_slot_detail.html
-
-.. _view_cloud_status_slot_summary: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_cloud_status_slot_summary.html 
+#. Group/cloud/flavor slot summary and detail (user settings #a and #b enabled, uses views #1 and #2\).` 
 
 Columns:
 ^^^^^^^^
