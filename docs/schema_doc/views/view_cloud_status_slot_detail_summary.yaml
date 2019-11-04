@@ -4,8 +4,6 @@ view_cloud_status_slot_detail_summary:
         REF=(common/view_cloud_status)
         
         REF=(common/view_cloud_status_slots)
-
-        **view_cloud_status_slot_detail_summary** has the following columns:
         "
 
     Keys:

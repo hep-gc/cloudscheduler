@@ -42,7 +42,7 @@ This view is one of a suite of related views supporting the primary status displ
 
 #. view_job_status_ 
 
-Views #2 through #7 present slot information in a user selectable style through two user settings:
+Views #2 through #7 present additional slot information in a user selectable style through two user settings:
 
 a) Enable slot detail.
 
@@ -56,9 +56,7 @@ These two user settings allow one of four selectable styles:
 
 #. Group/cloud/flavor slot summary only (view #4 only).
 
-#. Group/cloud/flavor slot summary and detail (views #2 and #3\).` 
-
-**view_cloud_status_flavor_slot_summary** has the following columns: 
+#. Group/cloud/flavor slot summary and detail (views #2 and #3\).`  
 
 Columns:
 ^^^^^^^^
