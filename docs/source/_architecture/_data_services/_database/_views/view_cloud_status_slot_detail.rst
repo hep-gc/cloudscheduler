@@ -42,7 +42,7 @@ This view is one of a suite of related views supporting the primary status displ
 
 #. view_job_status_ 
 
- Views #2 through #7 present slot information in a user selectable style. Two user settings:
+Views #2 through #7 present slot information in a user selectable style. Two user settings:
 
 a) Enabled slot detail.
 

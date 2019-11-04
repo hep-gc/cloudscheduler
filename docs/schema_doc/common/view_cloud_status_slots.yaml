@@ -1,7 +1,6 @@
 view_cloud_status_slots:
     Synopsis:
-        "
-        Views #2 through #7 present slot information in a user selectable style. Two user settings:
+        "Views #2 through #7 present slot information in a user selectable style. Two user settings:
 
         a) Enabled slot detail.
 
