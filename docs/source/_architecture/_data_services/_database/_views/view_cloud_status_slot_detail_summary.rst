@@ -8,6 +8,8 @@
 Database View: view_cloud_status_slot_detail_summary
 ====================================================
 
+REF=(views/view_cloud_status/<-->CLI.)
+
 This view is one of six related views:
 
 #. view_cloud_status_flavor_slot_detail_summary_

@@ -8,6 +8,22 @@
 Database View: view_cloud_status
 ================================
 
+.. _view_cloud_status: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_cloud_status.html
+
+.. _view_cloud_status_flavor_slot_detail_summary: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_cloud_status_flavor_slot_detail_summary.html
+
+.. _view_cloud_status_flavor_slot_detail: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_cloud_status_flavor_slot_detail.html
+
+.. _view_cloud_status_flavor_slot_summary: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_cloud_status_flavor_slot_summary.html
+
+.. _view_cloud_status_slot_detail_summary: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_cloud_status_slot_detail_summary.html
+
+.. _view_cloud_status_slot_detail: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_cloud_status_slot_detail.html
+
+.. _view_cloud_status_slot_summary: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_cloud_status_slot_summary.html
+
+.. _view_job_status: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_job_status.html
+
 This view is one of a suite of related views:
 
 #. view_cloud_status_
@@ -32,22 +48,6 @@ The **view_cloud_status** view details current cloud information including VM st
 slot totals, control settings and performance information. The view presents one row
 per active group/cloud. A cloud is considered active if it is enabled
 or if it is currently hosting VMs.
-
-.. _view_cloud_status: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_cloud_status.html
-
-.. _view_cloud_status_flavor_slot_detail_summary: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_cloud_status_flavor_slot_detail_summary.html
-
-.. _view_cloud_status_flavor_slot_detail: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_cloud_status_flavor_slot_detail.html
-
-.. _view_cloud_status_flavor_slot_summary: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_cloud_status_flavor_slot_summary.html
-
-.. _view_cloud_status_slot_detail_summary: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_cloud_status_slot_detail_summary.html
-
-.. _view_cloud_status_slot_detail: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_cloud_status_slot_detail.html
-
-.. _view_cloud_status_slot_summary: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_cloud_status_slot_summary.html
-
-.. _view_job_status: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_job_status.html
 
 
 Columns:

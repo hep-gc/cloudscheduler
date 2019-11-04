@@ -8,6 +8,42 @@
 Database View: view_cloud_status_flavor_slot_detail_summary
 ===========================================================
 
+ .. _view_cloud_status: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_cloud_status.html
+
+.. _view_cloud_status_flavor_slot_detail_summary: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_cloud_status_flavor_slot_detail_summary.html
+
+.. _view_cloud_status_flavor_slot_detail: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_cloud_status_flavor_slot_detail.html
+
+.. _view_cloud_status_flavor_slot_summary: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_cloud_status_flavor_slot_summary.html
+
+.. _view_cloud_status_slot_detail_summary: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_cloud_status_slot_detail_summary.html
+
+.. _view_cloud_status_slot_detail: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_cloud_status_slot_detail.html
+
+.. _view_cloud_status_slot_summary: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_cloud_status_slot_summary.html
+
+.. _view_job_status: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_job_status.html
+
+This view is one of a suite of related views:
+
+#. view_cloud_status_
+
+#. view_cloud_status_flavor_slot_detail_summary_
+
+#. view_cloud_status_flavor_slot_detail_
+
+#. view_cloud_status_flavor_slot_summary_
+
+#. view_cloud_status_slot_detail_summary_
+
+#. view_cloud_status_slot_detail_
+
+#. view_cloud_status_slot_summary_
+
+#. view_job_status_
+
+supporting the primary status display of CSV2, both web and CLI.
+
 This view is one of six related views:
 
 #. view_cloud_status_flavor_slot_detail_summary_
