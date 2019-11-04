@@ -56,7 +56,9 @@ These two user settings allow one of four selectable styles:
 
 #. Group/cloud/flavor slot summary only (view #4 only).
 
-#. Group/cloud/flavor slot summary and detail (views #2 and #3\).`  
+#. Group/cloud/flavor slot summary and detail (views #2 and #3\).` 
+
+**view_cloud_status_flavor_slot_detail_summary** has the following columns: 
 
 Columns:
 ^^^^^^^^
