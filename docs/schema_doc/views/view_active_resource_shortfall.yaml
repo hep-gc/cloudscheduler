@@ -1,8 +1,12 @@
 view_active_resource_shortfall:
     Synopsis:
-        This view is used by the VM scheduler to determine if new VMs should be started for
-        each group/target_alias/target_cloud based on the total requested resources compared
-        with resources currently provided.
+        "
+        REF=(common/view_vm_scheduling)
+
+        The **view_active_resource_shortfall** is used by the VM scheduler to determine if
+        new VMs should be started for each group/target_alias/target_cloud based on the total
+        requested resources compared with resources currently provided.
+        "
 
     Keys:
 

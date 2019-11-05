@@ -1,5 +1,10 @@
 view_metadata_collation_json:
     Synopsis:
+        "
+        REF=(common/view_vm_scheduling)
+
+        The **view_metadata_collation_json** is used
+        "
 
     Keys:
 

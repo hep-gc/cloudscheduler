@@ -1,5 +1,10 @@
 view_resource_contention:
     Synopsis:
+        "
+        REF=(common/view_vm_scheduling)
+
+        The **view_resource_contention** is used
+        "
 
     Keys:
 

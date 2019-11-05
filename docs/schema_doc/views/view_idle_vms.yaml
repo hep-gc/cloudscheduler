@@ -1,5 +1,11 @@
 view_idle_vms:
     Synopsis:
+        "
+        REF=(common/view_vm_scheduling)
+
+        The **view_idle_vms** is used
+        "
+
 
     Keys:
 

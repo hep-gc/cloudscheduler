@@ -8,7 +8,7 @@
 Database View: view_cloud_status_flavor_slot_detail
 ===================================================
 
-  .. _view_cloud_status: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_cloud_status.html
+.. _view_cloud_status: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_cloud_status.html
 
 .. _view_cloud_status_flavor_slot_detail_summary: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_cloud_status_flavor_slot_detail_summary.html
 
@@ -24,7 +24,8 @@ Database View: view_cloud_status_flavor_slot_detail
 
 .. _view_job_status: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_job_status.html
 
-This view is one of a suite of related views supporting the primary status display of CSV2. The suite includes:
+This view is one of a suite of related views supporting the
+primary status display of CSV2. The suite includes:
 
 #. view_cloud_status_
 
@@ -40,23 +41,22 @@ This view is one of a suite of related views supporting the primary status displ
 
 #. view_cloud_status_slot_summary_
 
-#. view_job_status_ 
+#. view_job_status_
 
-Views #2 through #7 present additional slot information in a user selectable style through two user settings:
+While view #1 provides slot totals, views #2 through #7 present additional
+slot information. In the CLI, this additional slot information is available as
+optional tables (see the --with option in the CLI documentation). In the
+web interface, the additional slot information is presented in the group/cloud expanded
+view in one of four user selectable styles controlled by the following
+user settings:'
 
 a) Enable slot detail.
 
 b) Enable slot flavor information.
 
-These two user settings allow one of four selectable styles:
+With both user settings enabled, the expanded view of the web cloud
+status will present **view_cloud_status_flavor_slot_detail_summary** together with the **view_cloud_status_flavor_slot_detail** information.
 
-#. Group/cloud slot summary only (view #7 only).
-
-#. Group/cloud slot summary and detail (views #5 and #6\).
-
-#. Group/cloud/flavor slot summary only (view #4 only).
-
-#. Group/cloud/flavor slot summary and detail (views #2 and #3\).`  
 
 Columns:
 ^^^^^^^^
