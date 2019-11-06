@@ -35,7 +35,12 @@ the VM scheduler to control the management of VMs. The suite includes:
 
 #. view_resource_contention_
 
-The **view_resource_contention** is used
+The **view_resource_contention** is used by the VM scheduler together with the **new_VMs_throttle**
+configuration option to govern the rate at which new VMs are instantiated
+on a cloud irrespective of the CSV2 group. The view provides a
+set of VM counters for each unique cloud, identified by the authurl.
+The VM scheduler limits the number of new VMs, those either 'starting'
+or 'unregistered', to the configuration value.)
 
 
 Columns:
@@ -43,28 +48,46 @@ Columns:
 
 * **authurl** (String(128)):
 
+      Is the authentication/authorization URL of a cloud currently defined to CSV2 by
+      one or more groups.
 
 * **VMs** (Integer):
 
+      Is the total number of VMs started by CSV2 running on the
+      cloud.
 
 * **starting** (Integer):
 
+      Is the number of VMs started by CSV2 on the cloud in
+      the 'starting' state.
 
 * **unregistered** (Integer):
 
+      Is the number of VMs started by CSV2 on the cloud in
+      the 'unregistered' state.
 
 * **idle** (Integer):
 
+      Is the number of VMs started by CSV2 on the cloud in
+      the 'idle' state.
 
 * **running** (Integer):
 
+      Is the number of VMs started by CSV2 on the cloud in
+      the 'running' state.
 
 * **retiring** (Integer):
 
+      Is the number of VMs started by CSV2 on the cloud in
+      the 'retiring' state.
 
 * **manual** (Integer):
 
+      Is the number of VMs started by CSV2 on the cloud in
+      the 'manual' state.
 
 * **error** (Integer):
 
+      Is the number of VMs started by CSV2 on the cloud in
+      the 'error' state.
 

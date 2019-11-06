@@ -39,7 +39,7 @@ The **view_idle_vms** is used by the VM scheduler to retrieve the list
 of VMs that need to be retired. The list will only contain
 entries for VMs that have already exceeded one of the time thresholds
 (see 'come_alive', 'job_alive', 'error_delay', and 'keep_alive' below). The VM scheduler will set
-the retire flag for each VMlisted.
+the retire flag for each VM listed.
 
 
 Columns:
@@ -81,7 +81,7 @@ Columns:
 * **keep_alive** (Integer):
 
       Is the maximum time in seconds allowed for a VM to remain
-      idle after it has completed a job.A Generally, a VM remains idle
+      idle after it has completed a job. Generally, a VM remains idle
       because either there are no more idle jobs in the queue that
       can be satisfied by this VM, or possibly because of contentention on
       the HTCondor job scheduler making it slow to start jobs. The 'keep_alive'
@@ -108,7 +108,7 @@ Columns:
       Is the number of HTCondor dynamic slots currently active on the VM
       which is also the number of jobs currently running on the VM.
       This field should always be zero for any VM appearing on this
-      list..
+      list.
 
 * **retire** (Integer):
 
