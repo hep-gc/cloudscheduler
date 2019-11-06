@@ -107,14 +107,14 @@ Columns:
 * **condor_days_left** (Integer):
 
       Is the number of days remaining on the HTCondor host certificate. A
-      value less than 1 indicates that the certificate has expired. A NULL
+      value less than one indicates that the certificate has expired. A NULL
       value indicates that a certificate has not been configured and may not
       be required (see 'htcondor_status' above)."
 
 * **worker_days_left** (Integer):
 
       Is the number of days remaining on the VM worker certificate. A
-      value less than 1 indicates that the certificate has expired. A NULL
+      value less than one indicates that the certificate has expired. A NULL
       value indicates that a certificate has not been configured and may not
       be required (see 'agent_status' above)."
 

@@ -8,18 +8,17 @@
 Database View: view_available_resources
 =======================================
 
-.. _view_active_resource_shortfall https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_active_resource_shortfall.html
+.. _view_active_resource_shortfall: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_active_resource_shortfall.html
 
-.. _view_available_resources https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_available_resources.html
+.. _view_available_resources: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_available_resources.html
 
-.. _view_groups_of_idle_jobs https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_groups_of_idle_jobs.html
+.. _view_groups_of_idle_jobs: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_groups_of_idle_jobs.html
 
-.. _view_idle_vms https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_idle_vms.html
+.. _view_idle_vms: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_idle_vms.html
 
-.. _view_metadata_collation_json https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_metadata_collation_json.html
+.. _view_metadata_collation_json: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_metadata_collation_json.html
 
-.. _view_resource_contention https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_resource_contention.html
-
+.. _view_resource_contention: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_resource_contention.html
 
 This view is one of a suite of related views used by
 the VM scheduler to control the management of VMs. The suite includes:
@@ -36,7 +35,7 @@ the VM scheduler to control the management of VMs. The suite includes:
 
 #. view_resource_contention_
 
-This view is used by the VM scheduler to select resources for
+The **view_available_resources** is used by the VM scheduler to select resources for
 new VMs. It presents one entry for each flavor on each cloud
 that is able to start one or more VMs (ie. there is
 enough available resources on the associated cloud to start at least one

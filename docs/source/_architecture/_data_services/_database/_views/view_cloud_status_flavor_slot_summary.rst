@@ -45,7 +45,7 @@ primary status display of CSV2. The suite includes:
 
 While view #1 provides slot totals, views #2 through #7 present additional
 slot information. In the CLI, this additional slot information is available as
-optional tables (see the --with option in the CLI documentation). In the
+optional tables (see the '--with' option in the CLI documentation). In the
 web interface, the additional slot information is presented in the group/cloud expanded
 view in one of four user selectable styles controlled by the following
 user settings:'

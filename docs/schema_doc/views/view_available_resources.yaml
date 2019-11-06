@@ -3,11 +3,10 @@ view_available_resources:
         "
         REF=(common/view_vm_scheduling)
 
-        This view is used by the VM scheduler to select resources for new VMs.
-        It presents one entry for each flavor on each cloud that is able to
-        start one or more VMs (ie. there is enough available resources on
-        the associated cloud to start at least one VM of that flavor) together
-        with all the information necessary to perform the initiation.
+        The **view_available_resources** is used by the VM scheduler to select resources for new VMs.
+        It presents one entry for each flavor on each cloud that is able to start one or more VMs
+        (ie. there is enough available resources on the associated cloud to start at least one VM of
+        that flavor) together with all the information necessary to perform the initiation.
         "
 
     Keys:
