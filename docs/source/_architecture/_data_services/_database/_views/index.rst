@@ -23,6 +23,12 @@ following functional categories:
 
 .. toctree::
    :maxdepth: 1
+   :caption: Other UI Views
+
+   view_metadata_collation_json
+
+.. toctree::
+   :maxdepth: 1
    :caption: Quota Management
 
    view_vm_kill_retire_over_quota
@@ -31,7 +37,7 @@ following functional categories:
 
 .. toctree::
    :maxdepth: 1
-   :caption: Status Displays
+   :caption: UI Status Displays
 
    view_cloud_status
    view_cloud_status_flavor_slot_detail
