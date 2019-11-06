@@ -1,6 +1,10 @@
 csv2_image_cache:
     Synopsis:
-        This table maintains a list of images that have been saved locally on the the csv2 machine as the result of a direct upload or as a part of a transfer request.
+        "REF=(common/csv2_image)
+
+        This table maintains a list of images that have been saved locally on the the csv2 machine as the
+        result of a direct upload or as a part of a transfer request.
+        "
 
     Keys:
 
