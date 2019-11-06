@@ -51,8 +51,8 @@ Columns:
 
 * **group_metadata** (String):
 
-      Is a json string containging the entire output from the User Interface
-      (UI) view_metadata_collation_`
+      Is a json string containing the entire output from the User Interface
+      (UI) view_metadata_collation_.
 
       .. _view_metadata_collation: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_metadata_collation.html
 
