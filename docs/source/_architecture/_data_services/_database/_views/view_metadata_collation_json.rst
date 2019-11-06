@@ -35,7 +35,15 @@ the VM scheduler to control the management of VMs. The suite includes:
 
 #. view_resource_contention_
 
-The **view_metadata_collation_json** is used
+The **view_metadata_collation_json** is used by the VM scheduler to build the stream
+of VM contextualization metadata files in the correct order for the cloud's
+metadata service. This view converts into a json string the output of
+the User Interface (UI) view_metadata_collation_ which creates a customized list of metadata
+files in priority order for each group/cloud. Only enabled metadata files are
+included and each group/cloud can specifically exclude from their customized list specific
+metadata files by name.
+
+.. _view_metadata_collation: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_metadata_collation.html
 
 
 Columns:
@@ -43,4 +51,8 @@ Columns:
 
 * **group_metadata** (String):
 
+      Is a json string containging the entire output from the User Interface
+      (UI) view_metadata_collation_`
+
+      .. _view_metadata_collation: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_metadata_collation.html
 

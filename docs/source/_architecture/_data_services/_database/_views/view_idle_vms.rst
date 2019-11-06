@@ -35,7 +35,11 @@ the VM scheduler to control the management of VMs. The suite includes:
 
 #. view_resource_contention_
 
-The **view_idle_vms** is used
+The **view_idle_vms** is used by the VM scheduler to retrieve the list
+of VMs that need to be retired. The list will only contain
+entries for VMs that have already exceeded one of the time thresholds
+(see 'come_alive', 'job_alive', 'error_delay', and 'keep_alive' below). The VM scheduler will set
+the retire flag for each VMlisted.
 
 
 Columns:
@@ -43,43 +47,88 @@ Columns:
 
 * **group_name** (String(32)):
 
+      Is the name of group owning the VM.
 
 * **cloud_name** (String(32)):
 
+      Is the name of cloud hosting the VM.
 
 * **come_alive** (String(128)):
 
+      Is the maximum time in seconds allowed for a VM between its
+      instantiation and its registration with an HTCondor job scheduler. A VM exceeding
+      this time may be failing to boot, or to contextualize, or to
+      communicate via the network. Therefore, the VM should be terminated.
 
 * **job_alive** (String(128)):
 
+      Is the maximum time in seconds allowed for a VM between its
+      registration and start of the first job on the VM. A VM
+      exceeding this time has already booted, contextualized, communicated via the network, and
+      registered but jobs are not starting within the required time threshold. Therefore,
+      the VM is probably misconfigured, possibly becuase of faulty contextualization files, and
+      should be terminated.
 
 * **error_delay** (String(128)):
 
+      Is the maximum time in seconds allowed for a VM to remain
+      in 'error' state. Typically, a VM will enter 'error' state when there
+      are insufficient resources on the cloud. Since 'error' states generally occur immediately
+      after instatiation and some can be transitory, a threshold time is allowed
+      for VMs in this state to maintain visibilty of this condition and
+      allow possible recovery.
 
 * **keep_alive** (Integer):
 
+      Is the maximum time in seconds allowed for a VM to remain
+      idle after it has completed a job.A Generally, a VM remains idle
+      because either there are no more idle jobs in the queue that
+      can be satisfied by this VM, or possibly because of contentention on
+      the HTCondor job scheduler making it slow to start jobs. The 'keep_alive'
+      time threshold is used to avoid unneccessary VM 'thrashing' (stopping and starting)
+      of instances with the same characteristics. However, an excessively long threshold can
+      waste precious resources and delay other jobs from running.
 
 * **vmid** (String(128)):
 
+      Is the id of the VM that has exceeded a time threshold
+      and needs to be terminated.
 
 * **hostname** (String(128)):
 
+      Is the short hostname of the VM that has exceeded a time
+      threshold and needs to be terminated.
 
 * **primary_slots** (Integer):
 
+      Is the number of HTCondor primary slots currently active on the VM.
 
 * **dynamic_slots** (Integer):
 
+      Is the number of HTCondor dynamic slots currently active on the VM
+      which is also the number of jobs currently running on the VM.
+      This field should always be zero for any VM appearing on this
+      list..
 
 * **retire** (Integer):
 
+      Is the retire flag for the VM. Any value greater than zero
+      indicates that the retire/termination process is already in progress.
 
 * **terminate** (Integer):
 
+      Is the termination flag for the VM. Any value greater than zero
+      indicates that the termination process is already in progress.
 
 * **poller_status** (String(12)):
 
+      Is the current state of the VM, eg. 'starting', 'unregistered', 'idle', 'running',
+      'retiring', etc.
 
 * **age** (Integer):
 
+      Is the time in seconds since the last state change. This value
+      should exceed at least one of the four threshold times and, together
+      with the 'primary_slots' and 'poller_status' fields, imply the reason why termination is
+      necessary.
 
