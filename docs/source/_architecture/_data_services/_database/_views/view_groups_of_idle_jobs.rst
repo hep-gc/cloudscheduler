@@ -36,10 +36,10 @@ the VM scheduler to control the management of VMs. The suite includes:
 #. view_resource_contention_
 
 The **view_groups_of_idle_jobs** is used by the VM scheduler to retrive jobs, grouped
-by resource requirements, which may require additional resources before they can be
-executed. In addition for the resource requirements for jobs within a group,
-each row indicates the number of jobs summarized, VM counts and possible
-flavors.
+by elegible cloud/flavors, which may require additional resources before they can be
+executed. In addition to the resource requirements for jobs within the group,
+each row indicates the number of idle, running completed, and held jobs
+of this kind.
 
 
 Columns:
