@@ -31,3 +31,319 @@ group/cloud in a format suitable for the web server/CLI client.
 Columns:
 ^^^^^^^^
 
+* **group_name** (String(32)):
+
+      Is the name of the group owning this cloud and metadata.
+
+* **cloud_name** (String(32)):
+
+      Is the unique name (within the group) of this cloud.
+
+* **enabled** (Boolean):
+
+      This flag indicates whether the cloud is enabled(1) or disabled(0).
+
+* **cloud_priority** (Integer):
+
+      Is the user defined priority for this cloud. Lower numbers indicate a
+      higher priority.
+
+* **spot_price** (Float):
+
+      Is a decimal number expressing the bid price in dollars and cents
+      for resources on this cloud being sold on the spot market. If
+      specified, only spot market requests will be made on this cloud. Otherwise,
+      unconditional on-demand requests are made.
+
+* **vm_flavor** (String(64)):
+
+      Is a default flavor name for this cloud. If omitted, the default
+      flavor name will be taken from the group settings.
+
+* **vm_image** (String(64)):
+
+      Is a default (kernel) image name for this cloud. If omitted, the
+      default image name will be taken from the group settings.
+
+* **vm_keep_alive** (Integer):
+
+      Is a default time in seconds to retain idle VMs once they
+      have completed one or more jobs. If omitted, the default VM keep
+      alive time will be taken from the group settings.
+
+* **vm_keyname** (String(64)):
+
+      Is a default ssh keypair name for this cloud. If omitted, the
+      default keypair name will be taken from the group settings.
+
+* **vm_network** (String(64)):
+
+      Is a default network name for this cloud. If omitted, the default
+      network name will be taken from the group settings.
+
+* **vm_security_groups** (String(128)):
+
+      Is a default list of security groups for this cloud. If omitted,
+      the default list of security groups will be taken from the group
+      settings.
+
+* **cascading_vm_flavor** (String(64)):
+
+      'cascading' fields are a consolidation of and determined by the group and
+      cloud settings and are the effective default for the cloud. The cloud
+      setting overrides the group setting which overrides no setting (or a NULL
+      value).
+
+      This field displays the effective default flavor for the cloud.
+
+* **cascading_vm_image** (String(64)):
+
+      REF=(views/view_clouds/Columns/cascading_vm_flavor/0)
+
+      This field displays the effective default (kernal) image name for the cloud.
+
+* **cascading_vm_keep_alive** (Integer):
+
+      REF=(views/view_clouds/Columns/cascading_vm_flavor/0)
+
+      This field displays the effective default VM keep alive time for the
+      cloud.
+
+* **cascading_vm_keyname** (String(64)):
+
+      REF=(views/view_clouds/Columns/cascading_vm_flavor/0)
+
+      This field displays the effective default ssh keypair name for the cloud.
+
+* **cascading_vm_network** (String(64)):
+
+      REF=(views/view_clouds/Columns/cascading_vm_flavor/0)
+
+      This field displays the effective default network name for the cloud.
+
+* **cascading_vm_security_groups** (String(128)):
+
+      REF=(views/view_clouds/Columns/cascading_vm_flavor/0)
+
+      This field displays the effective default list of security groups for the
+      cloud.
+
+* **authurl** (String(128)):
+
+      REF=(tables/csv2_clouds/Columns/authurl)
+
+* **project_domain_name** (String(20)):
+
+      REF=(tables/csv2_clouds/Columns/project_domain_name)
+
+* **project_domain_id** (String(64)):
+
+      REF=(tables/csv2_clouds/Columns/project_domain_id)
+
+* **project** (String(128)):
+
+      REF=(tables/csv2_clouds/Columns/project)
+
+* **user_domain_name** (String(20)):
+
+      REF=(tables/csv2_clouds/Columns/user_domain_name)
+
+* **user_domain_id** (String(64)):
+
+      REF=(tables/csv2_clouds/Columns/user_domain_id)
+
+* **username** (String(20)):
+
+      REF=(tables/csv2_clouds/Columns/username)
+
+* **password** (String):
+
+      REF=(tables/csv2_clouds/Columns/password)
+
+* **cacertificate** (String):
+
+      REF=(tables/csv2_clouds/Columns/cacertificate)
+
+* **region** (String(20)):
+
+      REF=(tables/csv2_clouds/Columns/region)
+
+* **cloud_type** (String(64)):
+
+      REF=(tables/csv2_clouds/Columns/cloud_type)
+
+* **ec2_owner_id** (String(32)):
+
+      REF=(tables/csv2_clouds/Columns/ec2_owner_id)
+
+* **cores_ctl** (Integer):
+
+      REF=(tables/csv2_clouds/Columns/cores_ctl)
+
+* **cores_softmax** (Integer):
+
+      REF=(tables/csv2_clouds/Columns/cores_softmax)
+
+* **cores_max** (Integer):
+
+      REF=(tables/cloud_limits/0)
+
+      REF=(tables/cloud_limits/Columns/cores_max)
+
+* **cores_used** (Integer):
+
+      REF(views/cloud_status/Columns/cores_used)
+
+* **cores_foreign** (Integer):
+
+      REF(views/cloud_status/Columns/cores_foreign)
+
+* **cores_native** (Integer):
+
+      REF(views/cloud_status/Columns/cores_native)
+
+* **ram_ctl** (Integer):
+
+      REF=(tables/csv2_clouds/Columns/ram_ctl)
+
+* **ram_max** (Integer):
+
+      REF=(tables/cloud_limits/0)
+
+      REF=(tables/cloud_limits/Columns/ram_max)
+
+* **ram_used** (Integer):
+
+      REF(views/cloud_status/Columns/ram_used)
+
+* **ram_foreign** (Integer):
+
+      REF(views/cloud_status/Columns/ram_foreign)
+
+* **ram_native** (Integer):
+
+      REF(views/cloud_status/Columns/ram_native)
+
+* **instances_max** (Integer):
+
+      REF=(tables/cloud_limits/0)
+
+      REF=(tables/cloud_limits/Columns/instances_max)
+
+* **instances_used** (Integer):
+
+      REF=(tables/cloud_limits/0)
+
+      REF=(tables/cloud_limits/Columns/instances_used)
+
+* **floating_ips_max** (Integer):
+
+      REF=(tables/cloud_limits/0)
+
+      REF=(tables/cloud_limits/Columns/floating_ips_max)
+
+* **floating_ips_used** (Integer):
+
+      REF=(tables/cloud_limits/0)
+
+      REF=(tables/cloud_limits/Columns/floating_ips_used)
+
+* **security_groups_max** (Integer):
+
+      REF=(tables/cloud_limits/0)
+
+      REF=(tables/cloud_limits/Columns/security_groups_max)
+
+* **security_groups_used** (Integer):
+
+      REF=(tables/cloud_limits/0)
+
+      REF=(tables/cloud_limits/Columns/security_groups_used)
+
+* **server_groups_max** (Integer):
+
+      REF=(tables/cloud_limits/0)
+
+      REF=(tables/cloud_limits/Columns/server_groups_max)
+
+* **server_groups_used** (Integer):
+
+      REF=(tables/cloud_limits/0)
+
+      REF=(tables/cloud_limits/Columns/server_groups_used)
+
+* **image_meta_max** (Integer):
+
+      REF=(tables/cloud_limits/0)
+
+      REF=(tables/cloud_limits/Columns/image_meta_max)
+
+* **keypairs_max** (Integer):
+
+      REF=(tables/cloud_limits/0)
+
+      REF=(tables/cloud_limits/Columns/keypairs_max)
+
+* **personality_max** (Integer):
+
+      REF=(tables/cloud_limits/0)
+
+      REF=(tables/cloud_limits/Columns/personality_max)
+
+* **personality_size_max** (Integer):
+
+      REF=(tables/cloud_limits/0)
+
+      REF=(tables/cloud_limits/Columns/personality_size_max)
+
+* **security_group_rules_max** (Integer):
+
+      REF=(tables/cloud_limits/0)
+
+      REF=(tables/cloud_limits/Columns/security_group_rules_max)
+
+* **server_group_members_max** (Integer):
+
+      REF=(tables/cloud_limits/0)
+
+      REF=(tables/cloud_limits/Columns/server_group_members_max)
+
+* **server_meta_max** (Integer):
+
+      REF=(tables/cloud_limits/0)
+
+      REF=(tables/cloud_limits/Columns/server_meta_max)
+
+* **cores_idle** (Integer):
+
+      Is the number of unused cores on the group/cloud and is calculated
+      as the least of **cores_ctl** minus **cores_native** or **cores_max** minus **cores_native** minus
+      **cores_foreign**.
+
+* **ram_idle** (Integer):
+
+      Is the size in kilobytes of unused RAM on the group/cloud and
+      is calculated as the least of **ram_ctl** minus **ram_native** or **ram_max** minus
+      **ram_native** minus **ram_foreign**.
+
+* **flavor_exclusions** (String):
+
+      Is a comma separated list of flavor names which are to be
+      excluded from consideration when scheduling VMs on this cloud.
+
+* **flavor_names** (String):
+
+      Is a comma separated list of flavor names available on this cloud
+      which may be used when scheduling VMs on this cloud.
+
+* **group_exclusions** (String):
+
+      Is a comma separated list of metadata file names associated with the
+      group (as opposed to this cloud) which are to be excluded from
+      the metadata for this cloud.
+
+* **metadata_names** (String):
+
+      Is a comma separated list of metadata file names associated with this
+      cloud.
+

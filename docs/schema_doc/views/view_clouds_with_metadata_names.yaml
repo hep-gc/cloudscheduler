@@ -135,11 +135,6 @@ view_clouds_with_metadata_names:
             Synopsis:
                 REF=(views/view_clouds/Columns/password)
 
-        keyname:
-            Format: String(20)
-            Synopsis:
-                REF=(views/view_clouds_with_metadata_info/Columns/keyname)
-
         cacertificate:
             Format: String
             Synopsis:

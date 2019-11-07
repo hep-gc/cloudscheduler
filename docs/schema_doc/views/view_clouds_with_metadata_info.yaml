@@ -135,12 +135,6 @@ view_clouds_with_metadata_info:
             Synopsis:
                 REF=(views/view_clouds/Columns/password)
 
-        keyname:
-            Format: String(20)
-            Synopsis:
-                Is the default keyname for this cloud and will be equal to **vm_keyname** if it contains a keyname, 
-                or to **cascading_keyname** if it contains a keyname, or empty if no keyname is defined. 
-
         cacertificate:
             Format: String
             Synopsis:
