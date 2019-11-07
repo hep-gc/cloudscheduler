@@ -10,6 +10,12 @@ view_vm_kill_retire_priority_idle:
         The related view, view_vm_kill_retire_priority_age_, performs the same function
         but has a different priority scheme.
 
+        When a cloud poller using view_vm_kill_retire_over_quota_ determines that a cloud
+        is over quota, it is this view that determines the order and number of VMs that
+        will be terminated by the **kill_retire** CSV2 library function.`
+
+        .. _view_vm_kill_retire_over_quota: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_vm_kill_retire_over_quota.html
+
         .. _view_vm_kill_retire_priority_age: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_vm_kill_retire_priority_age.html
         "
 

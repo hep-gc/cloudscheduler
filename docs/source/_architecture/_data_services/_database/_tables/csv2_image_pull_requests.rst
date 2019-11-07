@@ -14,7 +14,7 @@ Database Table: csv2_image_pull_requests
 
 .. _csv2_image_transactions: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_tables/csv2_image_transactions.html
 
-This table is one of two tables used by the image distribution
+This table is one of three tables used by the image distribution
 service to manage the movement of (kernal) images and ssh keypairs between
 clouds. The tables are:
 

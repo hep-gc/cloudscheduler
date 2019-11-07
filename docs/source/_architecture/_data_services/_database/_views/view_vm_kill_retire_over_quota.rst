@@ -14,13 +14,9 @@ This view is used by the cloud pollers to determine if any group's clouds are ru
 
 * The number of foreign resources has increased (effectively reducing the CSV2 quota\) for either cores or RAM so that the resources consumed by CSV2 VMs exceed the new effective quotas.
 
-The view will only present entries for clouds that are currently over quota, and the pollers will respond by retiring and terminating VMs to reduce the resources being consumed by CSV2. The order in which VM are selected for termination is as follows:
+The view will only present entries for clouds that are currently over quota, and the pollers will respond by retiring and terminating VMs to reduce the group's resources being consumed by CSV2.  The order and number of VMs to be terminated is managed by **kill_retire** CSV2 library function and the related view_vm_kill_retire_priority_idle).
 
-* Idle VMs will be terminated immediately, and then
-
-* the oldest running VMs, those with active jobs, will be retired and, when idle, terminated.
-
-The cloud pollers will terminate the minimum number of VMs to honour the new limits.
+.. _view_vm_kill_retire_priority_idle: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_vm_kill_retire_priority_idle.html 
 
 Columns:
 ^^^^^^^^
