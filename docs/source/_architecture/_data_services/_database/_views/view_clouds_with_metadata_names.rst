@@ -8,6 +8,24 @@
 Database View: view_clouds_with_metadata_names
 ==============================================
 
+.. _view_clouds_with_metadata_info: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_clouds_with_metadata_info.html
+
+.. _view_clouds_with_metadata_names: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_clouds_with_metadata_names.html
+
+This view is one of two related views:
+
+#. view_clouds_with_metadata_info_
+
+#. view_clouds_with_metadata_names_
+
+which provide cloud information to the User Interface (UI) in client compatible
+formats. A user may associate with each cloud zero, one or more,
+potentially large metadata files. This information needs to be presented in the
+attributes for a cloud but needs to be formatted in a manageable
+way for each client.
+
+This view creates a list of cloud information producing one row per
+group/cloud in a format suitable for the web server/CLI client.
 
 
 Columns:

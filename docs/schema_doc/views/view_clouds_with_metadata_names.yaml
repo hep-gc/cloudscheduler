@@ -1,5 +1,10 @@
 view_clouds_with_metadata_names:
     Synopsis:
+        "REF=(common/view_clouds_with_metadata)
+
+        This view creates a list of cloud information producing one row per group/cloud
+        in a format suitable for the web server/CLI client.
+        "
 
     Keys:
 
@@ -8,248 +13,313 @@ view_clouds_with_metadata_names:
         group_name:
             Format: String(32)
             Synopsis:
+                Is the name of the group owning this cloud and metadata.
 
         cloud_name:
             Format: String(32)
             Synopsis:
+                REF=(views/view_clouds/Columns/cloud_name)
 
         enabled:
             Format: Boolean
             Synopsis:
+                REF=(views/view_clouds/Columns/enabled)
 
         cloud_priority:
             Format: Integer
             Synopsis:
+                REF=(views/view_clouds/Columns/cloud_priority)
 
         spot_price:
             Format: Float
             Synopsis:
+                REF=(views/view_clouds/Columns/spot_price)
 
         vm_flavor:
             Format: String(64)
             Synopsis:
+                REF=(views/view_clouds/Columns/vm_flavor)
 
         vm_image:
             Format: String(64)
             Synopsis:
+                REF=(views/view_clouds/Columns/vm_image)
 
         vm_keep_alive:
             Format: Integer
             Synopsis:
+                REF=(views/view_clouds/Columns/vm_keep_alive)
 
         vm_keyname:
             Format: String(64)
             Synopsis:
+                REF=(views/view_clouds/Columns/vm_keyname)
 
         vm_network:
             Format: String(64)
             Synopsis:
+                REF=(views/view_clouds/Columns/vm_network)
 
         vm_security_groups:
             Format: String(128)
             Synopsis:
+                REF=(views/view_clouds/Columns/vm_security_groups)
 
         cascading_vm_flavor:
             Format: String(64)
             Synopsis:
+                REF=(views/view_clouds/Columns/cascading_vm_flavor)
 
         cascading_vm_image:
             Format: String(64)
             Synopsis:
+                REF=(views/view_clouds/Columns/cascading_vm_image)
 
         cascading_vm_keep_alive:
             Format: Integer
             Synopsis:
+                REF=(views/view_clouds/Columns/cascading_vm_keep_alive)
 
         cascading_vm_keyname:
             Format: String(64)
             Synopsis:
+                REF=(views/view_clouds/Columns/cascading_vm_keyname)
 
         cascading_vm_network:
             Format: String(64)
             Synopsis:
+                REF=(views/view_clouds/Columns/cascading_vm_network)
 
         cascading_vm_security_groups:
             Format: String(128)
             Synopsis:
+                REF=(views/view_clouds/Columns/cascading_vm_security_groups)
 
         authurl:
             Format: String(128)
             Synopsis:
+                REF=(views/view_clouds/Columns/authurl)
 
         project_domain_name:
             Format: String(20)
             Synopsis:
+                REF=(views/view_clouds/Columns/project_domain_name)
 
         project_domain_id:
             Format: String(64)
             Synopsis:
+                REF=(views/view_clouds/Columns/project_domain_id)
 
         project:
             Format: String(128)
             Synopsis:
+                REF=(views/view_clouds/Columns/project)
 
         user_domain_name:
             Format: String(20)
             Synopsis:
+                REF=(views/view_clouds/Columns/user_domain_name)
 
         user_domain_id:
             Format: String(64)
             Synopsis:
+                REF=(views/view_clouds/Columns/user_domain_id)
 
         username:
             Format: String(20)
             Synopsis:
+                REF=(views/view_clouds/Columns/username)
 
         password:
             Format: String
             Synopsis:
+                REF=(views/view_clouds/Columns/password)
 
         keyname:
             Format: String(20)
             Synopsis:
+                REF=(views/view_clouds_with_metadata_info/Columns/keyname)
 
         cacertificate:
             Format: String
             Synopsis:
+                REF=(views/view_clouds/Columns/cacertificate)
 
         region:
             Format: String(20)
             Synopsis:
+                REF=(views/view_clouds/Columns/region)
 
         cloud_type:
             Format: String(64)
             Synopsis:
+                REF=(views/view_clouds/Columns/cloud_type)
 
         ec2_owner_id:
             Format: String(32)
             Synopsis:
+                REF=(views/view_clouds/Columns/ec2_owner_id)
 
         cores_ctl:
             Format: Integer
             Synopsis:
+                REF=(views/view_clouds/Columns/cores_ctl)
 
         cores_softmax:
             Format: Integer
             Synopsis:
+                REF=(views/view_clouds/Columns/cores_softmax)
 
         cores_max:
             Format: Integer
             Synopsis:
+                REF=(views/view_clouds/Columns/cores_max)
 
         cores_used:
             Format: Integer
             Synopsis:
+                REF=(views/view_clouds/Columns/cores_used)
 
         cores_foreign:
             Format: Integer
             Synopsis:
+                REF=(views/view_clouds/Columns/cores_foreign)
 
         cores_native:
             Format: Integer
             Synopsis:
+                REF=(views/view_clouds/Columns/cores_native)
 
         ram_ctl:
             Format: Integer
             Synopsis:
+                REF=(views/view_clouds/Columns/ram_ctl)
 
         ram_max:
             Format: Integer
             Synopsis:
+                REF=(views/view_clouds/Columns/ram_max)
 
         ram_used:
             Format: Integer
             Synopsis:
+                REF=(views/view_clouds/Columns/ram_used)
 
         ram_foreign:
             Format: Integer
             Synopsis:
+                REF=(views/view_clouds/Columns/ram_foreign)
 
         ram_native:
             Format: Integer
             Synopsis:
+                REF=(views/view_clouds/Columns/ram_native)
 
         instances_max:
             Format: Integer
             Synopsis:
+                REF=(views/view_clouds/Columns/instances_max)
 
         instances_used:
             Format: Integer
             Synopsis:
+                REF=(views/view_clouds/Columns/instances_used)
 
         floating_ips_max:
             Format: Integer
             Synopsis:
+                REF=(views/view_clouds/Columns/floating_ips_max)
 
         floating_ips_used:
             Format: Integer
             Synopsis:
+                REF=(views/view_clouds/Columns/floating_ips_used)
 
         security_groups_max:
             Format: Integer
             Synopsis:
+                REF=(views/view_clouds/Columns/security_groups_max)
 
         security_groups_used:
             Format: Integer
             Synopsis:
+                REF=(views/view_clouds/Columns/security_groups_used)
 
         server_groups_max:
             Format: Integer
             Synopsis:
+                REF=(views/view_clouds/Columns/server_groups_max)
 
         server_groups_used:
             Format: Integer
             Synopsis:
+                REF=(views/view_clouds/Columns/server_groups_used)
 
         image_meta_max:
             Format: Integer
             Synopsis:
+                REF=(views/view_clouds/Columns/image_meta_max)
 
         keypairs_max:
             Format: Integer
             Synopsis:
+                REF=(views/view_clouds/Columns/keypairs_max)
 
         personality_max:
             Format: Integer
             Synopsis:
+                REF=(views/view_clouds/Columns/personality_max)
 
         personality_size_max:
             Format: Integer
             Synopsis:
+                REF=(views/view_clouds/Columns/personality_size_max)
 
         security_group_rules_max:
             Format: Integer
             Synopsis:
+                REF=(views/view_clouds/Columns/security_group_rules_max)
 
         server_group_members_max:
             Format: Integer
             Synopsis:
+                REF=(views/view_clouds/Columns/server_group_members_max)
 
         server_meta_max:
             Format: Integer
             Synopsis:
+                REF=(views/view_clouds/Columns/server_meta_max)
 
         cores_idle:
             Format: Integer
             Synopsis:
+                REF=(views/view_clouds/Columns/cores_idle)
 
         ram_idle:
             Format: Integer
             Synopsis:
+                REF=(views/view_clouds/Columns/ram_idle)
 
         flavor_exclusions:
             Format: String
             Synopsis:
+                Is a comma separated list of flavor names which are to be excluded from consideration when
+                scheduling VMs on this cloud.
 
         flavor_names:
             Format: String
             Synopsis:
+                Is a comma separated list of flavor names available on this cloud which may be used  when
+                scheduling VMs on this cloud.
 
         group_exclusions:
             Format: String
             Synopsis:
+                Is a comma separated list of metadata file names associated with the group (as opposed to this cloud)
+                which are to be excluded from the metadata for this cloud.
 
         metadata_names:
             Format: String
             Synopsis:
+                Is a comma separated list of metadata file names associated with this cloud.
 
