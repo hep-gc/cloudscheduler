@@ -29,6 +29,8 @@ provide metadata information to the User Interface (UI). The suite includes:
 
 .. _view_groups_with_metadata_names: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_groups_with_metadata_names.html
 
+.. _view_metadata_collation: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_metadata_collation.html
+
 The **view_metadata_collation** is used to present a stream of VM contextualization metadata
 files in the correct order for the cloud's metadata service. It creates
 a customized list of metadata files in priority order for each group/cloud.

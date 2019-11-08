@@ -20,5 +20,7 @@ view_metadata:
         .. _view_groups_with_metadata_info: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_groups_with_metadata_info.html
 
         .. _view_groups_with_metadata_names: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_groups_with_metadata_names.html
+
+        .. _view_metadata_collation: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_metadata_collation.html
         "
 

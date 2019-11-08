@@ -29,6 +29,8 @@ provide metadata information to the User Interface (UI). The suite includes:
 
 .. _view_groups_with_metadata_names: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_groups_with_metadata_names.html
 
+.. _view_metadata_collation: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_metadata_collation.html
+
 The **view_clouds_with_metadata_names** creates a list of cloud/metadata information with one row per
 group/cloud in a client compatible format suitable for the CLI client.
 
