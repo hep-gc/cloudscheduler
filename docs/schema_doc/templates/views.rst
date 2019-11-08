@@ -37,5 +37,5 @@ __ Scheduling_
 
 .. toctree::
    :maxdepth: 1
-   :caption: All Views:
+   :caption: Alternatively, here is the list of all the views:
 
