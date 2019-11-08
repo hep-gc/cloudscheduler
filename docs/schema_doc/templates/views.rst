@@ -35,5 +35,7 @@ __ User_
 
 __ Scheduling_
 
-* All Views:
+.. toctree::
+   :maxdepth: 1
+   :caption: All Views:
 

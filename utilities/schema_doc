@@ -29,7 +29,7 @@ def create_index(gvar, type):
                     fd.write('   %s\n' % table)
 
             elif type == 'views':
-                fd.write('    * %s\n' % table)
+                fd.write('   %s\n' % table)
      
 #               if caption in gvar['schema_backup_conf']['view_categories']:
 #                   if table in gvar['schema_backup_conf']['view_categories'][caption]:
