@@ -26,18 +26,15 @@ To aid in the understanding and purpose of each view, they are grouped in the
 following functional categories:
 
 * Accounting_
-
 * User Interface:
 
     * `Cloud Status`__
+    * `Metadata Management`__
+    * `User Management`__
 
 __ Status_
 
-    * `Metadata Management`__
-
 __ Metadata_
-
-    * `User Management`__
 
 __ User_
 
