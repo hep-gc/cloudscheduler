@@ -19,23 +19,23 @@ following functional categories:
 
 * User Interface:
 
-    * 'Cloud Status'_
+    * 'Cloud Status_'
 
-    * 'Metadata Management'_
+    * 'Metadata Management_'
 
-    * 'User Management'_
+    * 'User Management_'
 
-* 'Virtual Machine Scheduling'_
+* 'Virtual Machine Scheduling_'
 
 .. _Accounting: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_apel_accounting.html
 
-.. _'Cloud Status': https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_cloud_status.html
+.. '_Cloud Status': https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_cloud_status.html
 
-.. _'Metadata Management': https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_metadata_collation.html
+.. '_Metadata Management': https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_metadata_collation.html
 
-.. _'User Management': https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_user_groups.html
+.. '_User Management': https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_user_groups.html
 
-.. _'Virtual Machine Scheduling': https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_groups_of_idle_jobs.html
+.. '_Virtual Machine Scheduling': https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_groups_of_idle_jobs.html
 
 * All Views:
 

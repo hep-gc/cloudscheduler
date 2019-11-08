@@ -35,10 +35,10 @@ The **view_metadata_collation** is used to present a stream of VM contextualizat
 files in the correct order for the cloud's metadata service. It creates
 a customized list of metadata files in priority order for each group/cloud.
 Only enabled metadata files are included and each group/cloud can exclude specific
-group metadata files from their customized list by file name (see group_exclusions_
-under the **csv2_clouds** table description)).
+group metadata files from their customized list by file name (see group_metadata_exclusions_
+under the **csv2_group_metadata_exclusions** table description)).
 
-.. _group_exclusions: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_tables/csv2_clouds.html
+.. _group_metadata_exclusions: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_tables/csv2_group_metadata_exclusions.html
 
 
 Columns:
