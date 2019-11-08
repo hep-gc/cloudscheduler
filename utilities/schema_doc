@@ -20,25 +20,29 @@ REMOVE_BRACKETS = str.maketrans('()', '  ')
 
 def create_index(gvar, type):
     def create_index_entries(gvar, type, fd, caption, table_category=None):
-        fd.write('\n.. toctree::\n   :maxdepth: 1\n   :caption: %s\n\n' % caption)
+        if type == 'tables':
+            fd.write('\n.. toctree::\n   :maxdepth: 1\n   :caption: %s\n\n' % caption)
+
         for table in sorted(gvar['schema'][type]):
             if type == 'tables' and table_category:
                 if table in gvar['schema_backup_conf'][table_category]:
                     fd.write('   %s\n' % table)
 
             elif type == 'views':
-                if caption in gvar['schema_backup_conf']['view_categories']:
-                    if table in gvar['schema_backup_conf']['view_categories'][caption]:
-                        fd.write('   %s\n' % table)
-                else:
-                    selected = 1
-                    for category in gvar['schema_backup_conf']['view_categories']:
-                        if table in gvar['schema_backup_conf']['view_categories'][category]:
-                            selected = 0
-                            break
+                fd.write('    * %s\n' % table)
+     
+#               if caption in gvar['schema_backup_conf']['view_categories']:
+#                   if table in gvar['schema_backup_conf']['view_categories'][caption]:
+#                       fd.write('   %s\n' % table)
+#               else:
+#                   selected = 1
+#                   for category in gvar['schema_backup_conf']['view_categories']:
+#                       if table in gvar['schema_backup_conf']['view_categories'][category]:
+#                           selected = 0
+#                           break
 
-                    if selected:
-                        fd.write('   %s\n' % table)
+#                   if selected:
+#                       fd.write('   %s\n' % table)
      
     template_path = '%s/docs/schema_doc/templates/%s.rst' % (gvar['base_dir'], type)
     with open(template_path) as fd:
@@ -56,10 +60,11 @@ def create_index(gvar, type):
             create_index_entries(gvar, type, fd, 'Tables used by other support services:', table_category='ignore')
 
         else:
-            for category in sorted(gvar['schema_backup_conf']['view_categories']):
-                create_index_entries(gvar, type, fd, category)
+            create_index_entries(gvar, type, fd, 'ALL')
+#           for category in sorted(gvar['schema_backup_conf']['view_categories']):
+#               create_index_entries(gvar, type, fd, category)
 
-            create_index_entries(gvar, type, fd, 'Miscellaneous Views')
+#           create_index_entries(gvar, type, fd, 'Miscellaneous Views')
 
     if not os.path.exists(index_path) or not equal_files(gvar, gvar['tempfile'].name, index_path):
         print("Updating:", index_path)
