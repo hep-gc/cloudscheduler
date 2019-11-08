@@ -1,6 +1,16 @@
 Views
 =====
 
+.. _Accounting: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_apel_accounting.html
+
+.. _Status: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_cloud_status.html
+
+.. _Metadata: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_metadata_collation.html
+
+.. _User: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_user_groups.html
+
+.. _Scheduling: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_groups_of_idle_jobs.html
+
 A database view is created by a user defined SQL statement pulling and manipulating
 data from one or more tables to present a derived or read-only table.
 CSV2 makes extensive use of views for both presentation and decision making.
@@ -12,22 +22,20 @@ following functional categories:
 
 * User Interface:
 
-    * 'Cloud Status_'
+    * `Cloud Status`__
 
-    * 'Metadata Management_'
+__ Status_
 
-    * 'User Management_'
+    * `Metadata Management`__
 
-* 'Virtual Machine Scheduling_'
+__ Metadata_
 
-.. _Accounting: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_apel_accounting.html
+    * `User Management`__
 
-.. '_Cloud Status': https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_cloud_status.html
+__ User_
 
-.. '_Metadata Management': https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_metadata_collation.html
+* `Virtual Machine Scheduling`__
 
-.. '_User Management': https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_user_groups.html
-
-.. '_Virtual Machine Scheduling': https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_groups_of_idle_jobs.html
+__ Scheduling_
 
 * All Views:
