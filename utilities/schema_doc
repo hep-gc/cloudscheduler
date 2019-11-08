@@ -562,6 +562,7 @@ def resolve_references(gvar, type):
                             if 'Synopsis' in ref_target:
                                 target_refs = ref_target['Synopsis'].split('REF=(')
                                 if len(target_refs) > 1:
+                                    refs[ix] = 'REF=(%s' % refs[ix]
                                     nested_refs += 1
                                     continue
 
