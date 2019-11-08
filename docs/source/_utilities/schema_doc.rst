@@ -167,6 +167,9 @@ text is replaced by the text being referenced.
 
 Synopsis can contain contain reference strings in the following forms:
 
+* REF=(common/<file_name>)
+* REF=(common/<file_name>/Keys/<key_name>)
+* REF=(common/<file_name>/Columns/<col_name>)
 * REF=(tables/<table_name>)
 * REF=(tables/<table_name>/Keys/<key_name>)
 * REF=(tables/<table_name>/Columns/<col_name>)

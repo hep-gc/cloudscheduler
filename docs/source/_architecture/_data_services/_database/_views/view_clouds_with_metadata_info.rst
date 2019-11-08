@@ -98,221 +98,175 @@ Columns:
 
 * **cascading_vm_image** (String(64)):
 
-      REF=(views/view_clouds/Columns/cascading_vm_flavor/0)
-
-      This field displays the effective default (kernal) image name for the cloud.
+      views/view_clouds/Columns/cascading_vm_image)
 
 * **cascading_vm_keep_alive** (Integer):
 
-      REF=(views/view_clouds/Columns/cascading_vm_flavor/0)
-
-      This field displays the effective default VM keep alive time for the
-      cloud.
+      views/view_clouds/Columns/cascading_vm_keep_alive)
 
 * **cascading_vm_keyname** (String(64)):
 
-      REF=(views/view_clouds/Columns/cascading_vm_flavor/0)
-
-      This field displays the effective default ssh keypair name for the cloud.
+      views/view_clouds/Columns/cascading_vm_keyname)
 
 * **cascading_vm_network** (String(64)):
 
-      REF=(views/view_clouds/Columns/cascading_vm_flavor/0)
-
-      This field displays the effective default network name for the cloud.
+      views/view_clouds/Columns/cascading_vm_network)
 
 * **cascading_vm_security_groups** (String(128)):
 
-      REF=(views/view_clouds/Columns/cascading_vm_flavor/0)
-
-      This field displays the effective default list of security groups for the
-      cloud.
+      views/view_clouds/Columns/cascading_vm_security_groups)
 
 * **authurl** (String(128)):
 
-      REF=(tables/csv2_clouds/Columns/authurl)
+      views/view_clouds/Columns/authurl)
 
 * **project_domain_name** (String(20)):
 
-      REF=(tables/csv2_clouds/Columns/project_domain_name)
+      views/view_clouds/Columns/project_domain_name)
 
 * **project_domain_id** (String(64)):
 
-      REF=(tables/csv2_clouds/Columns/project_domain_id)
+      views/view_clouds/Columns/project_domain_id)
 
 * **project** (String(128)):
 
-      REF=(tables/csv2_clouds/Columns/project)
+      views/view_clouds/Columns/project)
 
 * **user_domain_name** (String(20)):
 
-      REF=(tables/csv2_clouds/Columns/user_domain_name)
+      views/view_clouds/Columns/user_domain_name)
 
 * **user_domain_id** (String(64)):
 
-      REF=(tables/csv2_clouds/Columns/user_domain_id)
+      views/view_clouds/Columns/user_domain_id)
 
 * **username** (String(20)):
 
-      REF=(tables/csv2_clouds/Columns/username)
+      views/view_clouds/Columns/username)
 
 * **password** (String):
 
-      REF=(tables/csv2_clouds/Columns/password)
+      views/view_clouds/Columns/password)
 
 * **cacertificate** (String):
 
-      REF=(tables/csv2_clouds/Columns/cacertificate)
+      views/view_clouds/Columns/cacertificate)
 
 * **region** (String(20)):
 
-      REF=(tables/csv2_clouds/Columns/region)
+      views/view_clouds/Columns/region)
 
 * **cloud_type** (String(64)):
 
-      REF=(tables/csv2_clouds/Columns/cloud_type)
+      views/view_clouds/Columns/cloud_type)
 
 * **ec2_owner_id** (String(32)):
 
-      REF=(tables/csv2_clouds/Columns/ec2_owner_id)
+      views/view_clouds/Columns/ec2_owner_id)
 
 * **cores_ctl** (Integer):
 
-      REF=(tables/csv2_clouds/Columns/cores_ctl)
+      views/view_clouds/Columns/cores_ctl)
 
 * **cores_softmax** (Integer):
 
-      REF=(tables/csv2_clouds/Columns/cores_softmax)
+      views/view_clouds/Columns/cores_softmax)
 
 * **cores_max** (Integer):
 
-      REF=(tables/cloud_limits/0)
-
-      REF=(tables/cloud_limits/Columns/cores_max)
+      views/view_clouds/Columns/cores_max)
 
 * **cores_used** (Integer):
 
-      REF(views/cloud_status/Columns/cores_used)
+      views/view_clouds/Columns/cores_used)
 
 * **cores_foreign** (Integer):
 
-      REF(views/cloud_status/Columns/cores_foreign)
+      views/view_clouds/Columns/cores_foreign)
 
 * **cores_native** (Integer):
 
-      REF(views/cloud_status/Columns/cores_native)
+      views/view_clouds/Columns/cores_native)
 
 * **ram_ctl** (Integer):
 
-      REF=(tables/csv2_clouds/Columns/ram_ctl)
+      views/view_clouds/Columns/ram_ctl)
 
 * **ram_max** (Integer):
 
-      REF=(tables/cloud_limits/0)
-
-      REF=(tables/cloud_limits/Columns/ram_max)
+      views/view_clouds/Columns/ram_max)
 
 * **ram_used** (Integer):
 
-      REF(views/cloud_status/Columns/ram_used)
+      views/view_clouds/Columns/ram_used)
 
 * **ram_foreign** (Integer):
 
-      REF(views/cloud_status/Columns/ram_foreign)
+      views/view_clouds/Columns/ram_foreign)
 
 * **ram_native** (Integer):
 
-      REF(views/cloud_status/Columns/ram_native)
+      views/view_clouds/Columns/ram_native)
 
 * **instances_max** (Integer):
 
-      REF=(tables/cloud_limits/0)
-
-      REF=(tables/cloud_limits/Columns/instances_max)
+      views/view_clouds/Columns/instances_max)
 
 * **instances_used** (Integer):
 
-      REF=(tables/cloud_limits/0)
-
-      REF=(tables/cloud_limits/Columns/instances_used)
+      views/view_clouds/Columns/instances_used)
 
 * **floating_ips_max** (Integer):
 
-      REF=(tables/cloud_limits/0)
-
-      REF=(tables/cloud_limits/Columns/floating_ips_max)
+      views/view_clouds/Columns/floating_ips_max)
 
 * **floating_ips_used** (Integer):
 
-      REF=(tables/cloud_limits/0)
-
-      REF=(tables/cloud_limits/Columns/floating_ips_used)
+      views/view_clouds/Columns/floating_ips_used)
 
 * **security_groups_max** (Integer):
 
-      REF=(tables/cloud_limits/0)
-
-      REF=(tables/cloud_limits/Columns/security_groups_max)
+      views/view_clouds/Columns/security_groups_max)
 
 * **security_groups_used** (Integer):
 
-      REF=(tables/cloud_limits/0)
-
-      REF=(tables/cloud_limits/Columns/security_groups_used)
+      views/view_clouds/Columns/security_groups_used)
 
 * **server_groups_max** (Integer):
 
-      REF=(tables/cloud_limits/0)
-
-      REF=(tables/cloud_limits/Columns/server_groups_max)
+      views/view_clouds/Columns/server_groups_max)
 
 * **server_groups_used** (Integer):
 
-      REF=(tables/cloud_limits/0)
-
-      REF=(tables/cloud_limits/Columns/server_groups_used)
+      views/view_clouds/Columns/server_groups_used)
 
 * **image_meta_max** (Integer):
 
-      REF=(tables/cloud_limits/0)
-
-      REF=(tables/cloud_limits/Columns/image_meta_max)
+      views/view_clouds/Columns/image_meta_max)
 
 * **keypairs_max** (Integer):
 
-      REF=(tables/cloud_limits/0)
-
-      REF=(tables/cloud_limits/Columns/keypairs_max)
+      views/view_clouds/Columns/keypairs_max)
 
 * **personality_max** (Integer):
 
-      REF=(tables/cloud_limits/0)
-
-      REF=(tables/cloud_limits/Columns/personality_max)
+      views/view_clouds/Columns/personality_max)
 
 * **personality_size_max** (Integer):
 
-      REF=(tables/cloud_limits/0)
-
-      REF=(tables/cloud_limits/Columns/personality_size_max)
+      views/view_clouds/Columns/personality_size_max)
 
 * **security_group_rules_max** (Integer):
 
-      REF=(tables/cloud_limits/0)
-
-      REF=(tables/cloud_limits/Columns/security_group_rules_max)
+      views/view_clouds/Columns/security_group_rules_max)
 
 * **server_group_members_max** (Integer):
 
-      REF=(tables/cloud_limits/0)
-
-      REF=(tables/cloud_limits/Columns/server_group_members_max)
+      views/view_clouds/Columns/server_group_members_max)
 
 * **server_meta_max** (Integer):
 
-      REF=(tables/cloud_limits/0)
-
-      REF=(tables/cloud_limits/Columns/server_meta_max)
+      views/view_clouds/Columns/server_meta_max)
 
 * **cores_idle** (Integer):
 

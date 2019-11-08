@@ -206,17 +206,17 @@ view_clouds:
         cores_used:
             Format: Integer
             Synopsis:
-                REF(views/cloud_status/Columns/cores_used)
+                REF=(views/view_cloud_status/Columns/cores_native)
 
         cores_foreign:
             Format: Integer
             Synopsis:
-                REF(views/cloud_status/Columns/cores_foreign)
+                REF=(views/view_cloud_status/Columns/cores_foreign)
 
         cores_native:
             Format: Integer
             Synopsis:
-                REF(views/cloud_status/Columns/cores_native)
+                REF=(views/view_cloud_status/Columns/cores_native)
 
         ram_ctl:
             Format: Integer
@@ -233,17 +233,17 @@ view_clouds:
         ram_used:
             Format: Integer
             Synopsis:
-                REF(views/cloud_status/Columns/ram_used)
+                REF=(views/view_cloud_status/Columns/ram_native)
 
         ram_foreign:
             Format: Integer
             Synopsis:
-                REF(views/cloud_status/Columns/ram_foreign)
+                REF=(views/view_cloud_status/Columns/ram_foreign)
 
         ram_native:
             Format: Integer
             Synopsis:
-                REF(views/cloud_status/Columns/ram_native)
+                REF=(views/view_cloud_status/Columns/ram_native)
 
         instances_max:
             Format: Integer

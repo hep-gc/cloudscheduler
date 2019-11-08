@@ -216,8 +216,11 @@ def main(args):
     schema_yaml_get(gvar, 'tables')
     schema_yaml_get(gvar, 'views')
 
-    resolve_references(gvar, 'tables')
-    resolve_references(gvar, 'views')
+    while True:
+        nested_refs = resolve_references(gvar, 'tables')
+        nested_refs += resolve_references(gvar, 'views')
+        if nested_refs < 1:
+            break
 
     gvar['schema_copy'] = deepcopy(gvar['schema'])
 
@@ -532,6 +535,7 @@ def resolve_references(gvar, type):
         return parent_dict
     
     def resolve_references_in_synopsis(gvar, parent_keys):
+        nested_refs = 0
         parent = deref(gvar['schema'], parent_keys)
         if 'Synopsis' in parent and parent['Synopsis']:
             refs = parent['Synopsis'].split('REF=(')
@@ -556,6 +560,11 @@ def resolve_references(gvar, type):
 
                         if ref_target:
                             if 'Synopsis' in ref_target:
+                                target_refs = ref_target['Synopsis'].split('REF=(')
+                                if len(target_refs) > 1:
+                                    nested_refs += 1
+                                    continue
+
                                 if pix > -1:
                                     paras = ref_target['Synopsis'].split('\n')
                                     if pix < len(paras):
@@ -580,16 +589,21 @@ def resolve_references(gvar, type):
 
                 parent['Synopsis'] = ''.join(refs)
 
+        return nested_refs
+
+    nested_refs = 0
     for table_view in gvar['schema'][type]:
-        resolve_references_in_synopsis(gvar, [type, table_view])
+        nested_refs += resolve_references_in_synopsis(gvar, [type, table_view])
 
         if 'Keys' in gvar['schema'][type][table_view]:
             for key in gvar['schema'][type][table_view]['Keys']:
-                resolve_references_in_synopsis(gvar, [type, table_view, 'Keys', key])
+                nested_refs += resolve_references_in_synopsis(gvar, [type, table_view, 'Keys', key])
 
         if 'Columns' in gvar['schema'][type][table_view]:
             for column in gvar['schema'][type][table_view]['Columns']:
-                resolve_references_in_synopsis(gvar, [type, table_view, 'Columns', column])
+                nested_refs += resolve_references_in_synopsis(gvar, [type, table_view, 'Columns', column])
+
+    return nested_refs
 
 def schema_yaml_put(gvar, type):
     def schema_yaml_put_synopsis(gvar, fd, indent, text):
