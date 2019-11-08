@@ -8,24 +8,29 @@
 Database View: view_clouds_with_metadata_info
 =============================================
 
-.. _view_clouds_with_metadata_info: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_clouds_with_metadata_info.html
-
-.. _view_clouds_with_metadata_names: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_clouds_with_metadata_names.html
-
-This view is one of two related views:
+This view is one of a suite of related views used to
+provide metadata information to the User Interface (UI). The suite includes:
 
 #. view_clouds_with_metadata_info_
 
 #. view_clouds_with_metadata_names_
 
-which provide cloud information to the User Interface (UI) in client compatible
-formats. A user may associate with each cloud zero, one or more,
-potentially large metadata files. This information needs to be presented in the
-attributes for a cloud but needs to be formatted in a manageable
-way for each client.
+#. view_groups_with_metadata_info_
 
-This view creates a list of cloud information producing one row per
-group/cloud/metadata file in a format suitable for the web server/client.
+#. view_groups_with_metadata_names_
+
+#. view_metadata_collation_
+
+.. _view_clouds_with_metadata_info: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_clouds_with_metadata_info.html
+
+.. _view_clouds_with_metadata_names: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_clouds_with_metadata_names.html
+
+.. _view_groups_with_metadata_info: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_groups_with_metadata_info.html
+
+.. _view_groups_with_metadata_names: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_groups_with_metadata_names.html
+
+The **view_clouds_with_metadata_info** creates a list of cloud/metadata information with one row per
+group/cloud/metadata file in a client compatible format suitable for the web client.
 
 
 Columns:

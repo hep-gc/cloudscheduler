@@ -8,6 +8,29 @@
 Database View: view_groups_with_metadata_names
 ==============================================
 
+This view is one of a suite of related views used to
+provide metadata information to the User Interface (UI). The suite includes:
+
+#. view_clouds_with_metadata_info_
+
+#. view_clouds_with_metadata_names_
+
+#. view_groups_with_metadata_info_
+
+#. view_groups_with_metadata_names_
+
+#. view_metadata_collation_
+
+.. _view_clouds_with_metadata_info: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_clouds_with_metadata_info.html
+
+.. _view_clouds_with_metadata_names: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_clouds_with_metadata_names.html
+
+.. _view_groups_with_metadata_info: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_groups_with_metadata_info.html
+
+.. _view_groups_with_metadata_names: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_groups_with_metadata_names.html
+
+The **view_groups_with_metadata_names** creates a list of group/metadata information with one row per
+group in a client compatible format suitable for the CLI client.
 
 
 Columns:
@@ -15,16 +38,25 @@ Columns:
 
 * **group_name** (String(32)):
 
+      Is a unique arbitrary short name identifying the group.
 
 * **htcondor_fqdn** (String(128)):
 
+      Is the Fully Qualified Domain Name of the server hosting the HTCondor
+      job scheduler serving this group. Members may override this setting.
 
 * **htcondor_container_hostname** (String(128)):
 
+      User supplied container name if CSV2 is running in a container.
 
 * **htcondor_other_submitters** (String(128)):
 
+      This user supplied field maintains a comma seperated list of user IDs,
+      each of which is not a member of the group but are
+      allowed to submit jobs on behalf of the group.
 
 * **metadata_names** (String):
 
+      Is a comma separated list of metadata file names associated with this
+      group.
 

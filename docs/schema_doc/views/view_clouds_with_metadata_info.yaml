@@ -1,9 +1,9 @@
 view_clouds_with_metadata_info:
     Synopsis:
-        "REF=(common/view_clouds_with_metadata)
+        "REF=(common/view_metadata)
 
-        This view creates a list of cloud information producing one row per group/cloud/metadata file 
-        in a format suitable for the web server/client.
+        The **view_clouds_with_metadata_info** creates a list of cloud/metadata information with one row per group/cloud/metadata file 
+        in a client compatible format suitable for the web client.
         "
 
     Keys:

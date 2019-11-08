@@ -1,0 +1,24 @@
+view_metadata:
+    Synopsis:
+        "This view is one of a suite of related views used to provide metadata information to the User Interface (UI).
+        The suite includes:
+        
+        #. view_clouds_with_metadata_info_
+        
+        #. view_clouds_with_metadata_names_
+        
+        #. view_groups_with_metadata_info_
+        
+        #. view_groups_with_metadata_names_
+        
+        #. view_metadata_collation_
+        
+        .. _view_clouds_with_metadata_info: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_clouds_with_metadata_info.html
+
+        .. _view_clouds_with_metadata_names: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_clouds_with_metadata_names.html
+
+        .. _view_groups_with_metadata_info: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_groups_with_metadata_info.html
+
+        .. _view_groups_with_metadata_names: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_groups_with_metadata_names.html
+        "
+

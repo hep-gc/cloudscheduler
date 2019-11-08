@@ -1,5 +1,16 @@
 view_metadata_collation:
     Synopsis:
+        "
+        REF=(common/view_metadata)
+
+        The **view_metadata_collation** is used to present a stream of VM contextualization metadata files
+        in the correct order for the cloud's metadata service. It creates a customized list of metadata
+        files in priority order for each group/cloud.  Only enabled metadata files are included and each
+        group/cloud can exclude specific group metadata files from their customized list by file name (see
+        group_exclusions_ under the **csv2_clouds** table description)).
+
+        .. _group_exclusions: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_tables/csv2_clouds.html
+        "
 
     Keys:
 
@@ -8,24 +19,31 @@ view_metadata_collation:
         group_name:
             Format: String(32)
             Synopsis:
+                Is the name of the group owning the metadata file.
 
         cloud_name:
             Format: String(32)
             Synopsis:
+                Is the name of the target cloud to which this metadata file applies. 
 
         type:
             Format: String(5)
             Synopsis:
+                Is the name of the source for this metadata file. Files can be defined at the 'group' level
+                or at the 'cloud' level.
 
         priority:
             Format: Integer
             Synopsis:
+                Is the priority associated with this metadata file.
 
         metadata_name:
             Format: String(64)
             Synopsis:
+                Is the name of the metadata file.
 
         mime_type:
             Format: String(128)
             Synopsis:
+                Is the mime type of this metadata file.
 
