@@ -216,10 +216,13 @@ def main(args):
     schema_yaml_get(gvar, 'tables')
     schema_yaml_get(gvar, 'views')
 
+    max_tries = 5
     while True:
         nested_refs = resolve_references(gvar, 'tables')
         nested_refs += resolve_references(gvar, 'views')
-        if nested_refs < 1:
+
+        max_tries -= 1
+        if nested_refs < 1 or max_tries <1:
             break
 
     gvar['schema_copy'] = deepcopy(gvar['schema'])
