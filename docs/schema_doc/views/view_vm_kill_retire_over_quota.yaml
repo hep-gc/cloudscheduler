@@ -1,7 +1,10 @@
 view_vm_kill_retire_over_quota:
     Synopsis:
-        "This view is used by the cloud pollers to determine if any group's clouds are running over their 
-        cores or RAM quotas. A cloud managed by CSV2 may exceed quotas for the following reasons:
+        "REF=(common/view_vm_kill_retire)
+
+        The view_vm_kill_retire_over_quota is used by the cloud pollers to determine if any group's
+        clouds are running over their cores or RAM quotas. A cloud managed by CSV2 may exceed quotas
+        for the following reasons:
 
         * A user has reduced either the cores controls (**core_ctl** or **cores_softmax**\\) or the
            RAM control (**ram_ctl**\\) below the resources currently consumed by VMs instantiated by CSV2.
@@ -10,11 +13,7 @@ view_vm_kill_retire_over_quota:
            cores or RAM so that the resources consumed by CSV2 VMs exceed the new effective quotas.
 
         The view will only present entries for clouds that are currently over quota, and the pollers
-        will respond by retiring and terminating VMs to reduce the group's resources being consumed
-        by CSV2.  The order and number of VMs to be terminated is managed by **kill_retire** CSV2
-        library function and the related view_vm_kill_retire_priority_idle_.
-
-        .. _view_vm_kill_retire_priority_idle: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_vm_kill_retire_priority_idle.html
+        will respond by retiring and terminating VMs to reduce the group's resources being consumed.
         "
 
     Keys:

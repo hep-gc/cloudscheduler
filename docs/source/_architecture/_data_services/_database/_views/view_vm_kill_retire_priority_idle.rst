@@ -8,28 +8,39 @@
 Database View: view_vm_kill_retire_priority_idle
 ================================================
 
-This view creates a list of VMs to terminate and is used
-by the cloud pollers and User Interface (UI) processes to respond to
-quota and resource control changes. Sorted in descending priority order, each VM
-entry has running totals of both cores and RAM. By selecting the
-first N entries, known quantities of resources can be released.
+This view is one of a suite of related views used by
+the cloud pollers, HTCondor machine poller and User Interface (UI) processes to
+ensure that resource usage on clouds remains within allocated quotas and user
+defined limits. The suite includes:
+
+#. view_condor_host_
+
+#. view_vm_kill_retire_over_quota_
+
+#. view_vm_kill_retire_priority_age_
+
+#. view_vm_kill_retire_priority_idle_
+
+.. _view_condor_host: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_condor_host.html
+
+.. _view_vm_kill_retire_over_quota: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_vm_kill_retire_over_quota.html
+
+.. _view_vm_kill_retire_priority_age: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_vm_kill_retire_priority_age.html
+
+.. _view_vm_kill_retire_priority_idle: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_vm_kill_retire_priority_idle.html
+
+The view_vm_kill_retire_priority_idle creates a list of VMs to terminate and is used
+by the cloud pollers to respond to quota and resource control changes.
+Sorted in descending priority order, each VM entry has running totals of
+both cores and RAM. By selecting the first N entries, known quantities
+of resources can be released, or by selecting the last N entries,
+known quantities of active resources can be retained.
 
 This view prioritizes idleness over the age of the VM. Idle VMs
 are set to the maximum possible age/priority. Otherwise the age/priority is set
 to the time in seconds since the last state change. The higher
 the age/priority, the lower the resource aggregates, and the earlier in the
 list the VM entry appears.
-
-The related view, view_vm_kill_retire_priority_age_, performs the same function but has a different
-priority scheme.
-
-When a cloud poller using view_vm_kill_retire_over_quota_ determines that a cloud is over
-quota, it is this view that determines the order and number of
-VMs that will be terminated by the **kill_retire** CSV2 library function.`
-
-.. _view_vm_kill_retire_over_quota: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_vm_kill_retire_over_quota.html
-
-.. _view_vm_kill_retire_priority_age: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_vm_kill_retire_priority_age.html
 
 
 Columns:
