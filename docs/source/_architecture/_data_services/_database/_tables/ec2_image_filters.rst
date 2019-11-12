@@ -39,7 +39,7 @@ filtering process:
 
   CSV2 will only instantiate images listed in the **cloud_images** table. The 
   **csv2_ec2** poller must convert **ec2_images** to **cloud_images** and when 
-  doing so applies all defined filters, including **like**, **not like**, **os**, 
+  doing so applies all defined filters, including **like**, **not_like**, **operating_systems**, 
   and **architecture** in addition to the owner information, resulting in a 
   smaller subset of image available for execution. This filtering process is 
   run on a short cycle defined by the configurable **sleep_interval_filterer**.
