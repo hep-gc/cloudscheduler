@@ -33,8 +33,10 @@ Keys:
 
 * **borrower_id** (String(32)):
 
-      Is the Amazon account ID associated with the CSV2 cloud that retrieved
-      this entry.
+      Is a field indicating whether this (kernel) image has been specifically shared
+      with your Amazon EC2 ID. If it has, this field will contain
+      the Amazon account ID associated with the CSV2 cloud that retrieved this
+      entry. Otherwise, it will contain the value 'not_shared'.
 
 
 Columns:
@@ -42,7 +44,9 @@ Columns:
 
 * **owner_id** (String(32)):
 
-      Is the Amazon account ID that owns this image.
+      Is the Amazon EC2 ID of the user owning this image. In
+      order for you to see this image, they will have either shared
+      it with your ID or made the image public.
 
 * **owner_alias** (String(64)):
 

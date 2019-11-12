@@ -3,6 +3,8 @@ Views
 
 .. _Accounting: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_apel_accounting.html
 
+.. _Amazon_: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_ec2_images.html
+
 .. _Status: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_cloud_status.html
 
 .. _Metadata: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_metadata_collation.html
@@ -23,9 +25,12 @@ following functional categories:
 * Accounting_
 * User Interface:
 
+    * `Amazon EC2 Filtering`__
     * `Cloud Status`__
     * `Metadata Management`__
     * `User Management`__
+
+__ Amazon_
 
 __ Status_
 
