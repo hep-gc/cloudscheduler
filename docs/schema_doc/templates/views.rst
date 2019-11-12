@@ -3,7 +3,7 @@ Views
 
 .. _Accounting: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_apel_accounting.html
 
-.. _Amazon_: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_ec2_images.html
+.. _Amazon: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_ec2_images.html
 
 .. _Status: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_cloud_status.html
 
