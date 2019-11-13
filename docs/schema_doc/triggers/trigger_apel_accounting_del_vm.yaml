@@ -2,7 +2,7 @@ trigger_apel_accounting_del_vm:
     Synopsis:
         "REF=(common/trigger_accounting)
 
-        This trigger completes the accounting record for each VM by inserting the termination time, the time when the VM is
+        This trigger completes the accounting record for each VM by inserting the termination time; the time when the VM is
         removed from **csv2_vms** table.
         "
 

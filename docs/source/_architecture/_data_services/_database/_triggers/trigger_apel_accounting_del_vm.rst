@@ -10,9 +10,9 @@ Database Trigger: trigger_apel_accounting_del_vm
 
 Condition: after delete from csv2_vms
 
-.. _trigger_apel_accounting_add: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_triggers/trigger_apel_accounting_add.html
+.. _trigger_apel_accounting_add: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_triggers/trigger_apel_accounting_add_vm.html
 
-.. _trigger_apel_accounting_del: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_triggers/trigger_apel_accounting_del.html
+.. _trigger_apel_accounting_del: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_triggers/trigger_apel_accounting_del_vm.html
 
 This trigger is one of a suite of related triggers accumulating accounting
 information. The suite includes:
@@ -22,5 +22,5 @@ information. The suite includes:
 #. trigger_apel_accounting_del_
 
 This trigger completes the accounting record for each VM by inserting the
-termination time, the time when the VM is removed from **csv2_vms** table.
+termination time; the time when the VM is removed from **csv2_vms** table.
 
