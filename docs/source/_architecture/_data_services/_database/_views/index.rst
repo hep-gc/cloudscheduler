@@ -85,7 +85,6 @@ __ Quota_
    view_job_status
    view_metadata_collation
    view_metadata_collation_json
-   view_redundant_machines
    view_resource_contention
    view_user_groups
    view_user_groups_available

@@ -24,10 +24,14 @@ Database View: view_cloud_status_flavor_slot_detail_summary
 
 .. _view_job_status: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_job_status.html
 
+.. _view_condor_jobs_group_defaults_applied: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_condor_jobs_group_defaults_applied.html
+
+___view_condor_jobs_group_defaults_applied_
+
 This view is one of a suite of related views supporting the
 primary status display of CSV2. The suite includes:
 
-#. view_cloud_status_
+#. view_cloud_status_ (also used by 'timeseries poller'__)
 
 #. view_cloud_status_flavor_slot_detail_summary_
 
@@ -37,11 +41,11 @@ primary status display of CSV2. The suite includes:
 
 #. view_cloud_status_slot_detail_summary_
 
-#. view_cloud_status_slot_detail_
+#. view_cloud_status_slot_detail_ (also used by 'timeseries poller'__)
 
 #. view_cloud_status_slot_summary_
 
-#. view_job_status_
+#. view_job_status_ (also used by 'timeseries poller'__)
 
 While view #1 provides slot totals, views #2 through #7 present additional
 slot information. In the CLI, this additional slot information is available as
