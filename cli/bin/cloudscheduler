@@ -53,6 +53,7 @@ def main(args):
                     'metadata-list':                      csv2_cloud.metadata_list,
                     'metadata-load':                      csv2_cloud.metadata_load,
                     'metadata-update':                    csv2_cloud.metadata_update,
+                    'metadata-save':                      csv2_cloud.metadata_save,
                     }
                 ],
             'defaults': [
@@ -76,6 +77,7 @@ def main(args):
                     'metadata-list':                      csv2_group.metadata_list,
                     'metadata-load':                      csv2_group.metadata_load,
                     'metadata-update':                    csv2_group.metadata_update,
+                    'metadata-save':                      csv2_group.metadata_save,
                     }
                 ],
             'helpers': [

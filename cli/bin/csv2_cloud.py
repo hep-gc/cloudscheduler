@@ -1,5 +1,6 @@
 from csv2_common import check_keys, requests, show_active_user_groups, show_table, verify_yaml_file
 from subprocess import Popen, PIPE
+from csv2_base_metadata import base_metadata_save
 
 import filecmp
 import os
@@ -538,6 +539,14 @@ def metadata_load(gvar):
     if response['message']:
         print(response['message'])
 
+        
+def metadata_save(gvar):
+    """
+    boilerplate code for base_metadata_save
+    """
+    return base_metadata_save(gvar, context='cloud')
+
+        
 def metadata_update(gvar):
     """
     Modify a cloud in the active group.
