@@ -10,7 +10,17 @@ Database Trigger: trigger_del_htcondor_partition
 
 Condition: after delete from condor_machines
 
-REF=(common/trigger_condor_machines)
+.. _trigger_add_htcondor_partition: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_triggers/trigger_add_htcondor_partition.html
+
+.. _trigger_del_htcondor_partition: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_triggers/trigger_del_htcondor_partition.html
+
+This trigger is one of a suite of related triggers maintaining the
+status of VMs in relation to their HTCondor job scheduler. The suite
+includes:
+
+#. trigger_add_htcondor_partition_
+
+#. trigger_del_htcondor_partition_
 
 Depending on the slot type, this trigger is used to decrement by
 1 either the *htcondor_partitionable_slots* column or the *htcondor_dynamic_slots* column within the **csv2_vms**

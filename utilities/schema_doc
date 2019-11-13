@@ -205,6 +205,7 @@ def main(args):
     max_tries = 5
     while True:
         nested_refs = resolve_references(gvar, 'tables')
+        nested_refs = resolve_references(gvar, 'triggers')
         nested_refs += resolve_references(gvar, 'views')
 
         max_tries -= 1
