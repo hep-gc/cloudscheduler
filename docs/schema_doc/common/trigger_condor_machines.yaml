@@ -1,0 +1,14 @@
+trigger_condor_machines:
+    Synopsis:
+        "
+        .. _trigger_add_htcondor_partition: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_triggers/trigger_add_htcondor_partition.html
+
+        .. _trigger_del_htcondor_partition: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_triggers/trigger_del_htcondor_partition.html
+
+        This trigger is one of a suite of related triggers maintaining the status of VMs in relation to their HTCondor
+        job scheduler. The suite includes:
+        
+        #. trigger_add_htcondor_partition_
+
+        #. trigger_del_htcondor_partition_
+        "

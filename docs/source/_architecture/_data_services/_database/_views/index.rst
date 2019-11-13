@@ -56,7 +56,7 @@ __ Quota_
 
 .. toctree::
    :maxdepth: 1
-   :caption: Alternatively, here is the list of all the views:
+   :caption: Alternatively, here is the list of all views:
 
    view_active_resource_shortfall
    view_apel_accounting

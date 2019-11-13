@@ -1,0 +1,13 @@
+trigger_accounting:
+    Synopsis:
+        "
+        .. _trigger_apel_accounting_add: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_triggers/trigger_apel_accounting_add.html
+
+        .. _trigger_apel_accounting_del: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_triggers/trigger_apel_accounting_del.html
+
+        This trigger is one of a suite of related triggers accumulating accounting information. The suite includes:
+        
+        #. trigger_apel_accounting_add_
+
+        #. trigger_apel_accounting_del_
+        "

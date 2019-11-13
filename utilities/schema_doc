@@ -28,7 +28,7 @@ def create_index(gvar, type):
                 if table in gvar['schema_backup_conf'][table_category]:
                     fd.write('   %s\n' % table)
 
-            elif type == 'views':
+            elif type == 'triggers' or type == 'views':
                 fd.write('   %s\n' % table)
      
     template_path = '%s/docs/schema_doc/templates/%s.rst' % (gvar['base_dir'], type)
@@ -62,14 +62,6 @@ def create_RSTs(gvar, type):
                 ignore = text.index('\\')
                 fd.write('%s\n' % text.replace('\n', '\n\n').replace('\\ ', '\n').replace(' \\', '\n'))
             
-#           sections = text.split('SUBTITLE=(')
-#           for ix in range(1, len(sections)):
-#               subtitle = sections[ix].split(')', 1)
-#               if len(subtitle) > 1:
-#                   sections[ix] = '\n%s\n%s\n%s' % (subtitle[0], '^'*len(subtitle[0]), subtitle[1])
-
-#           text = ''.join(sections)
-
             except:
                 paras = str(text).strip().split('\n')
                 for para in paras:
@@ -95,6 +87,11 @@ def create_RSTs(gvar, type):
                     fd.write('Database Table: %s (obsolete)\n%s\n\n' % (table, '='*(len(table)+16)))
                 else:
                     fd.write('Database Table: %s\n%s\n\n' % (table, '='*(len(table)+16)))
+            elif type == 'triggers':
+                if gvar['schema_states']['%s/%s' % (type, table)] == 1:
+                    fd.write('Database Trigger: %s (obsolete)\n%s\n\nCondition: %s\n\n' % (table, '='*(len(table)+18), gvar['schema'][type][table]['Condition']))
+                else:
+                    fd.write('Database Trigger: %s\n%s\n\nCondition: %s\n\n' % (table, '='*(len(table)+18), gvar['schema'][type][table]['Condition']))
             else:
                 if gvar['schema_states']['%s/%s' % (type, table)] == 1:
                     fd.write('Database View: %s (obsolete)\n%s\n\n' % (table, '='*(len(table)+15)))
@@ -187,7 +184,7 @@ def main(args):
         '..   1. edit the template file ".../cloudscheduler/docs/schema_doc/%%s"\n' \
         '..   2. run the utility ".../cloudscheduler/utilities/schema_doc"\n' \
         '..\n\n' % (gvar['base_dir'])
-    gvar['schema'] = {'common': {}, 'tables': {}, 'views': {}}
+    gvar['schema'] = {'common': {}, 'tables': {}, 'triggers': {}, 'views': {}}
     gvar['schema_states'] = {}
     gvar['tempfile'] = NamedTemporaryFile(delete=False)
 
@@ -202,6 +199,7 @@ def main(args):
 
     schema_yaml_get(gvar, 'common')
     schema_yaml_get(gvar, 'tables')
+    schema_yaml_get(gvar, 'triggers')
     schema_yaml_get(gvar, 'views')
 
     max_tries = 5
@@ -350,19 +348,69 @@ def main(args):
                         print('Table %s, unknown data type for column: %s' % (table, columns[_ix]))
                         exit(1)
 
+        _p1 = Popen(
+            [
+                'mysql',
+                '-u%s' % gvar['csv2_config']['database']['db_user'],
+                '-p%s' % gvar['csv2_config']['database']['db_password'],
+                '-e',
+                'show triggers;',
+                '-t', 
+                gvar['csv2_config']['database']['db_name']
+                ],
+            stdout=PIPE,
+            stderr=PIPE
+            )
+        stdout, stderr = _p1.communicate()
+        if _p1.returncode != 0:
+            print('Failed to retrieve trigger list.')
+            exit(1)
+
+        lines = stdout.decode('ascii').split('\n')
+        for line in lines[3:-1]:
+            cols = line.split(' | ', 3)
+            if len(cols) > 2:
+                if cols[0][0] == '|':
+                    trigger = cols[0][2:].strip()
+                    event = cols[1].strip()
+                    table = cols[2].strip()
+                elif cols[0].strip() == 'end':
+                    timing = cols[1].strip()
+                    if event == 'INSERT':
+                        lower_event = 'insert into'
+                    elif event == 'UPDATE':
+                        lower_event = 'update on'
+                    elif event == 'DELETE':
+                        lower_event = 'delete from'
+                    else:
+                        lower_event = '???'
+                    
+                    if trigger in gvar['schema']['triggers']:
+                        gvar['schema_states']['triggers/%s' % trigger] = 2
+                    else:
+                        gvar['schema']['triggers'][trigger] = {'Synopsis': None}
+                        gvar['schema_states']['triggers/%s' % trigger] = 0
+
+                    gvar['schema']['triggers'][trigger]['Condition'] = '%s %s %s' % (timing.lower(), lower_event, table)
+
     if (len(sys.argv)>1 and sys.argv[1] == 'list') or \
         (len(sys.argv)>2 and sys.argv[1] == 'show') or \
         (len(sys.argv)>1 and sys.argv[1] == 'summary'):
 
         schema_summarize(gvar, 'tables')
+        schema_summarize(gvar, 'triggers')
         schema_summarize(gvar, 'views')
 
     elif len(sys.argv)<2:
         schema_yaml_put(gvar, 'tables')
+        schema_yaml_put(gvar, 'triggers')
         schema_yaml_put(gvar, 'views')
 
         create_index(gvar, 'tables')
         create_RSTs(gvar, 'tables')
+
+        create_index(gvar, 'triggers')
+        create_RSTs(gvar, 'triggers')
 
         create_index(gvar, 'views')
         create_RSTs(gvar, 'views')
@@ -448,13 +496,16 @@ def schema_summarize(gvar, type):
             gvar['counters'][type]['obsolete'] += 1
             schema_summarize_print_label(gvar, type, table)
             
-        schema_summarize_print_keys_columns(gvar, type, table, 'Keys')
-        schema_summarize_print_keys_columns(gvar, type, table, 'Columns')
+        if type != 'triggers':
+            schema_summarize_print_keys_columns(gvar, type, table, 'Keys')
+            schema_summarize_print_keys_columns(gvar, type, table, 'Columns')
 
     schema_summarize_print(gvar, None, ['summary'], '\nSummary:')
-    schema_summarize_print(gvar, None, ['summary'], '    %-6s   -> total: %4d, new: %4d, obsolete: %4d' % (type, gvar['counters'][type]['total'], gvar['counters'][type]['new'], gvar['counters'][type]['obsolete']))
-    schema_summarize_print(gvar, None, ['summary'], '    keys     -> total: %4d, new: %4d, obsolete: %4d' % (gvar['counters']['Keys']['total'], gvar['counters']['Keys']['new'], gvar['counters']['Keys']['obsolete']))
-    schema_summarize_print(gvar, None, ['summary'], '    Columns  -> total: %4d, new: %4d, obsolete: %4d\n' % (gvar['counters']['Columns']['total'], gvar['counters']['Columns']['new'], gvar['counters']['Columns']['obsolete']))
+    schema_summarize_print(gvar, None, ['summary'], '    %-8s   -> total: %4d, new: %4d, obsolete: %4d' % (type, gvar['counters'][type]['total'], gvar['counters'][type]['new'], gvar['counters'][type]['obsolete']))
+
+    if type != 'triggers':
+        schema_summarize_print(gvar, None, ['summary'], '    keys       -> total: %4d, new: %4d, obsolete: %4d' % (gvar['counters']['Keys']['total'], gvar['counters']['Keys']['new'], gvar['counters']['Keys']['obsolete']))
+        schema_summarize_print(gvar, None, ['summary'], '    Columns    -> total: %4d, new: %4d, obsolete: %4d\n' % (gvar['counters']['Columns']['total'], gvar['counters']['Columns']['new'], gvar['counters']['Columns']['obsolete']))
 
 def schema_yaml_get(gvar, type):
     if gvar['csv2_config']:
@@ -620,17 +671,22 @@ def schema_yaml_put(gvar, type):
                 fd.write('%s:\n    Synopsis:\n' % table)
                 schema_yaml_put_synopsis(gvar, fd, 8, gvar['schema'][type][table]['Synopsis'])
 
-                fd.write('    Keys:\n\n')
+                if type == 'triggers':
+                    fd.write('    Condition:\n')
+                    schema_yaml_put_synopsis(gvar, fd, 8, gvar['schema']['triggers'][table]['Condition'])
 
-                for key in gvar['schema'][type][table]['Keys']:
-                    fd.write('        %s:\n            Format: %s\n            Synopsis:\n' % (key, gvar['schema'][type][table]['Keys'][key]['Format']))
-                    schema_yaml_put_synopsis(gvar, fd, 16, gvar['schema'][type][table]['Keys'][key]['Synopsis'])
+                else:
+                    fd.write('    Keys:\n\n')
 
-                fd.write('    Columns:\n\n')
+                    for key in gvar['schema'][type][table]['Keys']:
+                        fd.write('        %s:\n            Format: %s\n            Synopsis:\n' % (key, gvar['schema'][type][table]['Keys'][key]['Format']))
+                        schema_yaml_put_synopsis(gvar, fd, 16, gvar['schema'][type][table]['Keys'][key]['Synopsis'])
 
-                for column in gvar['schema'][type][table]['Columns']:
-                    fd.write('        %s:\n            Format: %s\n            Synopsis:\n' % (column, gvar['schema'][type][table]['Columns'][column]['Format']))
-                    schema_yaml_put_synopsis(gvar, fd, 16, gvar['schema'][type][table]['Columns'][column]['Synopsis'])
+                    fd.write('    Columns:\n\n')
+
+                    for column in gvar['schema'][type][table]['Columns']:
+                        fd.write('        %s:\n            Format: %s\n            Synopsis:\n' % (column, gvar['schema'][type][table]['Columns'][column]['Format']))
+                        schema_yaml_put_synopsis(gvar, fd, 16, gvar['schema'][type][table]['Columns'][column]['Synopsis'])
 
 if __name__ == "__main__":
     main(sys.argv)
