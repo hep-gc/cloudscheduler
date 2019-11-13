@@ -155,25 +155,25 @@ Columns:
 * **js_idle** (Integer):
 
       Is set to 1 if the **job_status** field is 1, indicating that
-      the job is 'idle'.
+      the job is 'idle'. Otherwise, the field is set to 0.
 
 * **js_running** (Integer):
 
       Is set to 1 if the **job_status** field is 2, indicating that
-      the job is 'running'.
+      the job is 'running'. Otherwise, the field is set to 0.
 
 * **js_completed** (Integer):
 
       Is set to 1 if the **job_status** field is 4, indicating that
-      the job is 'completed'.
+      the job is 'completed'. Otherwise, the field is set to 0.
 
 * **js_held** (Integer):
 
       Is set to 1 if the **job_status** field is 5, indicating that
-      the job is 'held'.
+      the job is 'held'. Otherwise, the field is set to 0.
 
 * **js_other** (Integer):
 
       Is set to 1 if the **job_status** field is either 0, 3,
-      or 6.
+      or 6. Otherwise, the field is set to 0.
 
