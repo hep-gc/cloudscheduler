@@ -26,7 +26,7 @@ Database View: view_cloud_status_flavor_slot_summary
 
 .. _view_condor_jobs_group_defaults_applied: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_condor_jobs_group_defaults_applied.html
 
-___view_condor_jobs_group_defaults_applied_
+__view_condor_jobs_group_defaults_applied_
 
 This view is one of a suite of related views supporting the
 primary status display of CSV2. The suite includes:
