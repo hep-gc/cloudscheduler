@@ -1,6 +1,25 @@
 view_condor_jobs_group_defaults_applied:
     Synopsis:
-        timeseries poller and User Interface (UI)
+        "
+        .. _view_cloud_status: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_cloud_status.html
+
+        .. _view_cloud_status_slot_detail: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_cloud_status_slot_detail.html
+
+        .. _view_job_status: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_job_status.html
+
+        .. _view_condor_jobs_group_defaults_applied: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_condor_jobs_group_defaults_applied.html
+
+        This view is one of a suite of related views used by the time series poller to populate the
+        time serioes (influxDB) database.  The suite includes:
+        
+        #. view_cloud_status_
+
+        #. view_cloud_status_slot_detail_
+
+        #. view_condor_jobs_group_defaults_applied_ 
+
+        #. view_job_status_
+        "
 
     Keys:
 
