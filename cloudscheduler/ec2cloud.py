@@ -101,6 +101,8 @@ class EC2Cloud(basecloud.BaseCloud):
             new_vm = client.request_spot_instances(SpotPrice=str(self.spot_price),
                                                    Type='one-time', InstanceCount=num,
                                                    LaunchSpecification=specs)
+        logging.debug("New vm request complete, result object:")
+        logging.debug(new_vm)
         if 'Instances' in new_vm:
             engine = self._get_db_engine()
             base = automap_base()
@@ -114,7 +116,6 @@ class EC2Cloud(basecloud.BaseCloud):
                 ec2_status_dict[row.ec2_state] = row.csv2_state
 
             for vm in new_vm['Instances']:
-                self.log.debug(vm)
                 hostname = vm['PublicDnsName'] if 'PublicDnsName' in vm \
                                                   and vm['PublicDnsName'] else vm['PrivateDnsName']
                 vm_dict = {
@@ -154,7 +155,6 @@ class EC2Cloud(basecloud.BaseCloud):
             for vm in new_vm['SpotInstanceRequests']:
                 self.log.debug(vm)
                 client.create_tags(Resources=[vm['SpotInstanceRequestId']], Tags=tags[0]['Tags'])
-                self.log.debug("STATE: %s", vm['State'])
                 vm_dict = {
                     'group_name': self.group,
                     'cloud_name': self.name,
@@ -165,7 +165,7 @@ class EC2Cloud(basecloud.BaseCloud):
                     'vmid': vm['SpotInstanceRequestId'],
                     'hostname': '',
                     'instance_id': '',
-                    'status': ec2_status_dict[vm['State']['Name']],
+                    'status': ec2_status_dict[vm['State']],
                     'flavor_id': vm['LaunchSpecification']['InstanceType'],
                     'last_updated': int(time.time()),
                     'keep_alive': self.keep_alive,

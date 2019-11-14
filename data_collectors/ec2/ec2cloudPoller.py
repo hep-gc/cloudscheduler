@@ -72,8 +72,10 @@ def _tag_instance(tag_dict, instance_id, spot_id, client):
         tag_dict = {}
         requests = client.describe_spot_instance_requests()
         instances = requests['SpotInstanceRequests']
+        logging.debug("Looking for tags for spot_id/instance_id: %s / %s" % (spot_id, instance_id))
         for instance_req in instances:
             if "Tags" in instance_req:
+                logging.debug("Found tags: %s for SIRid %s" % (instance_req['Tags'], instance_req['SpotInstanceRequestId']))
                 tag_dict[instance_req['SpotInstanceRequestId']] = instance_req['Tags']
 
     #tag the instance if a tag exists for the SIR
@@ -86,7 +88,9 @@ def _tag_instance(tag_dict, instance_id, spot_id, client):
                 logging.error("Failed to tag %s with tag %s" % (instance_id, tag_dict[instance_id]))
                 logging.error(exc)
             return (tag_dict, tag_dict[spot_id]) # return tag for proccessing
-    return (tag_dict, False) #no tag for instance
+    else:
+        logging.debug("No tags found for spot_id: %s" % spot_id)
+    return (tag_dict, None) #no tag for instance
 
 
 # This function checks that the local files exist, and that they are not older than a week
@@ -1563,6 +1567,7 @@ def vm_poller():
                 auth_url = unique_cloud_dict[cloud]['cloud_obj'].authurl
                 cloud_obj = unique_cloud_dict[cloud]['cloud_obj']
 
+                logging.debug("Generating FVM list...")
                 foreign_vm_list = db_session.query(FVM).filter(FVM.authurl == cloud_obj.authurl, FVM.region == cloud_obj.region, FVM.project == cloud_obj.project)
 
                 #set foreign vm counts to zero as we will recalculate them as we go, any rows left at zero should be deleted
@@ -1578,7 +1583,7 @@ def vm_poller():
                     }
                     for_vm_dict[auth_url + "--" + for_vm.flavor_id] = fvm_dict
 
-                logging.debug("Polling VMs from cloud: %s" % auth_url)
+                logging.debug("Creating cloud session with: %s" % auth_url)
                 session = _get_ec2_session(cloud_obj)
 
                 if session is False:
@@ -1594,6 +1599,7 @@ def vm_poller():
                 # Retrieve VM list for this cloud.
                 nova = _get_ec2_client(session)
                 try:
+                    logging.debug("Polling VMs from cloud: %s" % auth_url)
                     vm_list = nova.describe_instances()
                 except Exception as exc:
                     logging.error("Failed to retrieve VM data for  %s::%s::%s, skipping this cloud..." % (cloud_obj.authurl, cloud_obj.project, cloud_obj.region))
@@ -1620,8 +1626,22 @@ def vm_poller():
                 # This is because we are only pushing updates to the csv2 database when the state of a vm is changed and thus it would be logically equivalent
                 uncommitted_updates = 0
                 tag_dict = None
+                logging.debug("Looping over VM reservation groups...")
                 for reservation in vm_list['Reservations']:
+                    logging.debug("Looping over Instances in reservation...")
                     for vm in reservation['Instances']:
+                        #
+                        # We'll want to check if the vm is in the shutdown state and throw it out if it is
+                        # before we commit to doing this however we need a way to monitor the number of 
+                        # cores/ram/instances in use since we cant get that information via limits
+                        #
+                        # states: pending | running | shutting-down | terminated | stopping | stopped
+                        #
+                        logging.debug("VM:\n %s" % vm)
+                        if vm['State']['Name'] == "terminated":
+                            logging.debug("VM already terminated, skipping %s" % vm['InstanceId'])
+                            continue
+
 
                         # This first part is particulairly important because its the only way we will know what group/cloud
                         # the vm will belong to
@@ -1631,19 +1651,30 @@ def vm_poller():
                             vm_cloud_name = None
                             tags_list = None
                             # check for tags
+                            logging.debug("Checking VM for tags...")
                             if "Tags" in vm:
                                 tags_list = vm["Tags"]
                             #if there is no tags, check to see if it is an untagged spot instance
                             elif 'SpotInstanceRequestId' in vm:
-                                tag_dict, tag_list =  _tag_instance(tag_dict, vm['InstanceId'], vm['SpotInstanceRequestId'], nova)
+                                logging.debug("No tags found for Spot Instance %s, attempting to apply tags" % vm['SpotInstanceRequestId'])
+                                tag_dict, tags_list =  _tag_instance(tag_dict, vm['InstanceId'], vm['SpotInstanceRequestId'], nova)
                             # else its is a foreign VM so we can throw an exception
                             else:
+                                logging.debug("VM is not tagged and not a spot instance, csv2 on-demand ec2 instances should always be tagged, reporting FVM.")
                                 raise Exception('No tags on non-spot instance, registering %s as FVM.' % vm['InstanceId']) 
-                            for tag_d in tags_list:
-                                if tag_d["Key"] == "csv2":
-                                    host_tokens = tag_d["Value"].split("--")
-                                    logging.debug("Tag found, host tokens = %s" % host_tokens)
-                                    break
+                            if tags_list is not None:
+                                for tag_d in tags_list:
+                                    if tag_d["Key"] == "csv2":
+                                        host_tokens = tag_d["Value"].split("--")
+                                        logging.debug("Tag found, host tokens = %s" % host_tokens)
+                                        break
+                            # if we get here it should be a valid vm, if there are no tags then lets do one last check to make sure this vm isn't one of our before throwing an error
+                            else:
+                                result = db_session.query(VM).filter(VM.vmid == vm['SpotInstanceRequestId']).count()
+                                # if result is not empty then there was an error surrounding tags and this VM is actually one of ours
+                                if result < 1:
+                                    logging.error("VM matches SIR in csv2 database but doesn't have any registered tags, try again later.")
+                                    continue
                             # if host tokens is none here we have a FVM
                             vm_group_name = host_tokens[0]
                             vm_cloud_name = host_tokens[1]
@@ -1683,7 +1714,7 @@ def vm_poller():
                         except Exception as exc:
                             #not enough tokens, bad hostname or foreign vm
                             logging.error("No tags, or other error for: %s, registering as fvm" % vm['PublicDnsName'])
-                            logging.debug("   Exeption: %s" % exc)
+                            logging.exception(exc)
                             if auth_url + "--" + vm['InstanceType'] in for_vm_dict:
                                 for_vm_dict[auth_url + "--" + vm['InstanceType']]["count"] = for_vm_dict[auth_url + "--" + vm['InstanceType']]["count"] + 1
                             else:
@@ -1698,26 +1729,15 @@ def vm_poller():
 
                             continue
                         
-                        #
-                        # We'll want to check if the vm is in the shutdown state and throw it out if it is
-                        # before we commit to doing this however we need a way to monitor the number of 
-                        # cores/ram/instances in use since we cant get that information via limits
-                        #
-                        # states: pending | running | shutting-down | terminated | stopping | stopped
-                        #
-                        if vm['State']['Name'] == "terminated":
-                            logging.debug("VM already terminated, skipping %s" % vm['InstanceId'])
-                            continue
-
                         ip_addrs = []
                         floating_ips = []
                         for net in vm['NetworkInterfaces']:
                             for addr in net['PrivateIpAddresses']:
-                                ip_addrs.append(addr['Association']['PublicIp'])
+                                ip_addrs.append(addr.get('Association', {}).get('PublicIp'))
                         if 'PublicIpAddress' in vm:
-                            ip_addrs.append(vm['PublicIpAddress'])
+                            ip_addrs.append(vm.get('PublicIpAddress'))
                         if 'PrivateIpAddress' in vm:
-                            ip_addrs.append(vm['PrivateIpAddress'])
+                            ip_addrs.append(vm.get('PrivateIpAddress'))
                         logging.info("VM STATE: %s" % vm['State']['Name'])
                         vm_dict = {
                             'group_name': vm_group_name,
@@ -1726,10 +1746,10 @@ def vm_poller():
                             'auth_url': cloud_obj.authurl,
                             'project': cloud_obj.project,
                             'cloud_type': 'amazon',
-                            'hostname': vm['PublicDnsName'],
+                            'hostname': vm.get('PublicDnsName'),
                             'vmid': vm['SpotInstanceRequestId'] if 'SpotInstanceRequestId' in vm else vm['InstanceId'],
                             'status': ec2_status_dict[vm['State']['Name']],
-                            'flavor_id': vm['InstanceType'],
+                            'flavor_id': vm.get('InstanceType'),
                             'vm_ips': str(ip_addrs),
                             'last_updated': new_poll_time
                         }

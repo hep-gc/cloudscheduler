@@ -25,6 +25,7 @@ DROP TABLE IF EXISTS `apel_accounting`;
 CREATE TABLE `apel_accounting` (
   `group_name` varchar(32) NOT NULL,
   `cloud_name` varchar(32) NOT NULL,
+  `vmid` varchar(128) NOT NULL,
   `hostname` varchar(128) NOT NULL,
   `cloud_type` varchar(32) DEFAULT NULL,
   `region` varchar(32) DEFAULT NULL,
@@ -32,7 +33,6 @@ CREATE TABLE `apel_accounting` (
   `image_id` varchar(128) DEFAULT NULL,
   `benchmark_type` varchar(32) DEFAULT NULL,
   `benchmark` decimal(10,2) NOT NULL DEFAULT 0.00,
-  `vmid` varchar(128) DEFAULT NULL,
   `start_time` int(11) NOT NULL DEFAULT 0,
   `end_time` int(11) NOT NULL DEFAULT 0,
   `last_update` int(11) NOT NULL DEFAULT 0,
@@ -40,7 +40,7 @@ CREATE TABLE `apel_accounting` (
   `network_type` varchar(32) DEFAULT NULL,
   `rx` int(11) NOT NULL DEFAULT 0,
   `tx` int(11) NOT NULL DEFAULT 0,
-  PRIMARY KEY (`group_name`,`cloud_name`,`hostname`)
+  PRIMARY KEY (`group_name`,`cloud_name`,`vmid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
@@ -53,4 +53,4 @@ CREATE TABLE `apel_accounting` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2019-09-18 14:09:53
+-- Dump completed on 2019-11-14 14:38:43
