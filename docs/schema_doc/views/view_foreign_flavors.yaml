@@ -1,5 +1,7 @@
 view_foreign_flavors:
     Synopsis:
+        This view was created for testing puposes but the management of foreign VMs has changed since the creation of the view. 
+        It is probably no longer required and should be deprecated.
 
     Keys:
 
@@ -7,41 +9,41 @@ view_foreign_flavors:
 
         group_name:
             Format: String(32)
-            Synopsis:
+            Synopsis: ''
 
         cloud_name:
             Format: String(32)
-            Synopsis:
+            Synopsis: ''
 
         authurl:
             Format: String(128)
-            Synopsis:
+            Synopsis: ''
 
         region:
             Format: String(32)
-            Synopsis:
+            Synopsis: ''
 
         project:
             Format: String(128)
-            Synopsis:
+            Synopsis: ''
 
         flavor_id:
             Format: String(128)
-            Synopsis:
+            Synopsis: ''
 
         count:
             Format: Integer
-            Synopsis:
+            Synopsis: ''
 
         name:
             Format: String(128)
-            Synopsis:
+            Synopsis: ''
 
         cores:
             Format: Integer
-            Synopsis:
+            Synopsis: ''
 
         ram:
             Format: Float
-            Synopsis:
+            Synopsis: ''
 

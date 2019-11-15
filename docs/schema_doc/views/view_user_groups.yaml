@@ -1,5 +1,11 @@
 view_user_groups:
     Synopsis:
+        "REF=(common/view_user_groups)
+
+        The **view_user_groups** combines information from **csv2_user**, **csv2_groups**, 
+        and **csv2_user_groups** to list one row for every defined user, and for each user
+        a comma separated list of groups to which they are associated.
+        "
 
     Keys:
 
@@ -8,52 +14,65 @@ view_user_groups:
         username:
             Format: String(32)
             Synopsis:
+                REF=(tables/csv2_user/Keys/username)
 
         cert_cn:
             Format: String(128)
             Synopsis:
+                REF=(tables/csv2_user/Columns/cert_cn)
 
         password:
             Format: String(128)
             Synopsis:
+                REF=(tables/csv2_user/Columns/password)
 
         is_superuser:
             Format: Boolean
             Synopsis:
+                REF=(tables/csv2_user/Columns/is_superuser)
 
         join_date:
             Format: Integer
             Synopsis:
+                REF=(tables/csv2_user/Columns/join_date)
 
         flag_global_status:
             Format: Boolean
             Synopsis:
+                REF=(tables/csv2_user/Columns/flag_global_status)
 
         status_refresh_interval:
             Format: Integer
             Synopsis:
+                REF=(tables/csv2_user/Columns/status_refresh_interval)
 
         default_group:
             Format: String(32)
             Synopsis:
+                REF=(tables/csv2_user/Columns/default_group)
 
         user_groups:
             Format: String
             Synopsis:
+                Is a comma separated list of group names of which the user is a member.
 
         available_groups:
             Format: String
             Synopsis:
+                Is a comma separated list of group names of which the user is not a member.
 
         flag_show_slot_detail:
             Format: Boolean
             Synopsis:
+                REF=(tables/csv2_user/Columns/flag_show_slot_detail)
 
         flag_show_slot_flavors:
             Format: Boolean
             Synopsis:
+                REF=(tables/csv2_user/Columns/flag_show_slot_flavors)
 
         flag_show_foreign_global_vms:
             Format: Boolean
             Synopsis:
+                REF=(tables/csv2_user/Columns/flag_show_foreign_global_vms)
 

@@ -8,6 +8,22 @@
 Database View: view_user_groups_available
 =========================================
 
+.. _view_user_groups: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_user_groups.html
+
+.. _view_user_groups_available: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_user_groups_available.html
+
+This view is one of a suite of related views supporting the
+user management functions of CSV2. The suite includes:
+
+#. view_user_groups_
+
+#. view_user_groups_available_
+
+The **view_user_groups** combines information from **csv2_user**, **csv2_groups**, and **csv2_user_groups** to list one
+row for every user/group combination where the user is not currently associated
+with the group. The view is used to list those groups of
+which the user is not currently a member but to which they
+could be added.
 
 
 Columns:
@@ -15,10 +31,15 @@ Columns:
 
 * **username** (String(32)):
 
+      Is a defined user name.
 
 * **group_name** (String(32)):
 
+      Is a defined group name.
 
 * **available** (String(32)):
 
+      This column will be NULL because only 'available' groups are selected. For
+      the unselected rows, this field contains the user name of a group
+      member.
 

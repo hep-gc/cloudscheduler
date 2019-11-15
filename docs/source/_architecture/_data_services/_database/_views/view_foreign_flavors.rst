@@ -8,6 +8,9 @@
 Database View: view_foreign_flavors
 ===================================
 
+This view was created for testing puposes but the management of foreign
+VMs has changed since the creation of the view. It is probably
+no longer required and should be deprecated.
 
 
 Columns:
