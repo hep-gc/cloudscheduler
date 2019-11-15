@@ -61,6 +61,30 @@ class BaseCloud(ABC):
         #        name = self._generate_next_name()
         return name
 
+    def strip_yaml_comments(self, yaml_string):
+        """
+        Strip blank lines and anything beyond a hash ("#") symbol, with few exceptions listed in vetos list
+        
+        """
+        import re
+        stripped_yaml=""
+        vetos=("^\s*#cloud", "^\s*#!", "^\s*##\*", "^\s*### BEGIN", "^\s*### END",
+               "^\s*{#", "^\s\"#", "^\s*\x27#", "^\s*/\\#" , "^\s*\/#" , "^\s*# chkconfig" , "^\s*# description")
+        
+        for line in yaml_string.splitlines():
+            remove=False
+            # empty line
+            if re.match("^\s*$",line):
+                remove=True
+            # lines with hash, but apply vetoes
+            if re.match("^\s*#",line):
+                remove=True
+                for v in vetos:
+                    remove=remove and re.match(v,line) is None
+            if not remove:
+                stripped_yaml+=line+"\n"
+        return stripped_yaml
+    
     def prepare_userdata(self, yaml_list, template_dict):
         """ yamllist is a list of strings of file:mimetype format
             group_yaml is a list of tuples with name, yaml content, mimetype format"""
@@ -99,7 +123,7 @@ class BaseCloud(ABC):
             return ""
         compressed = ""
         try:
-            compressed = gzip.compress(str.encode(user_data))
+            compressed = gzip.compress(str.encode(self.strip_yaml_comments(user_data)))
         except ValueError as ex:
             self.log.exception('zip failure bad value: %s', ex)
         except TypeError as ex:
