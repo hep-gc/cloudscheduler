@@ -24,6 +24,8 @@ Database View: view_job_status
 
 .. _view_job_status: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_job_status.html
 
+.. _view_vms: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_vms.html
+
 .. _timeseries: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_condor_jobs_group_defaults_applied.html
 
 This view is one of a suite of related views supporting the
@@ -44,6 +46,8 @@ primary status display of CSV2. The suite includes:
 #. view_cloud_status_slot_summary_
 
 #. view_job_status_ (also used by timeseries_)
+
+#. view_vms_
 
 The **view_job_status** details current job information including counts, HTCondor job scheduler and
 agent status, and the validity on any required authentication certificates.
