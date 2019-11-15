@@ -3,7 +3,7 @@ view_vms:
         "
         REF=(common/view_cloud_status)
 
-        The **view_vms** combines information from **csv2_vms**, **cloud_flavors**, and **condor_machine** to furnish the User
+        The **view_vms** combines information from **csv2_vms**, **cloud_flavors**, and **condor_machines** to furnish the User
         Interface with VM information. The view presents one row per VM which is accessed via expanded views on the web cloud
         status page or through an optional table of the CLI cloud status command.
         "
@@ -15,157 +15,157 @@ view_vms:
         group_name:
             Format: String(32)
             Synopsis:
-                REF=(tables/csv2_vms/Keys/group_name))
+                REF=(tables/csv2_vms/Keys/group_name)
 
         cloud_name:
             Format: String(32)
             Synopsis:
-                REF=(tables/csv2_vms/Keys/cloud_name))
+                REF=(tables/csv2_vms/Keys/cloud_name)
 
         region:
             Format: String(32)
             Synopsis:
-                REF=(tables/csv2_vms/Columns/region))
+                REF=(tables/csv2_vms/Columns/region)
 
         vmid:
             Format: String(128)
             Synopsis:
-                REF=(tables/csv2_vms/Keys/vmid))
+                REF=(tables/csv2_vms/Keys/vmid)
 
         spot_instance:
             Format: Boolean
             Synopsis:
-                REF=(tables/csv2_vms/Columns/spot_instance))
+                REF=(tables/csv2_vms/Columns/spot_instance)
 
         instance_id:
             Format: String(64)
             Synopsis:
-                REF=(tables/csv2_vms/Columns/instance_id))
+                REF=(tables/csv2_vms/Columns/instance_id)
 
         cloud_type:
             Format: String(64)
             Synopsis:
-                REF=(tables/csv2_vms/Columns/cloud_type))
+                REF=(tables/csv2_vms/Columns/cloud_type)
 
         vm_ips:
             Format: String(128)
             Synopsis:
-                REF=(tables/csv2_vms/Columns/vm_ips))
+                REF=(tables/csv2_vms/Columns/vm_ips)
 
         vm_floating_ips:
             Format: String(128)
             Synopsis:
-                REF=(tables/csv2_vms/Columns/vm_floating_ips))
+                REF=(tables/csv2_vms/Columns/vm_floating_ips)
 
         auth_url:
             Format: String(128)
             Synopsis:
-                REF=(tables/csv2_vms/Columns/auth_url))
+                REF=(tables/csv2_vms/Columns/auth_url)
 
         project:
             Format: String(128)
             Synopsis:
-                REF=(tables/csv2_vms/Columns/project))
+                REF=(tables/csv2_vms/Columns/project)
 
         hostname:
             Format: String(128)
             Synopsis:
-                REF=(tables/csv2_vms/Columns/hostname))
+                REF=(tables/csv2_vms/Columns/hostname)
 
         keep_alive:
             Format: Integer
             Synopsis:
-                REF=(tables/csv2_vms/Columns/keep_alive))
+                REF=(tables/csv2_vms/Columns/keep_alive)
 
         start_time:
             Format: Integer
             Synopsis:
-                REF=(tables/csv2_vms/Columns/start_time))
+                REF=(tables/csv2_vms/Columns/start_time)
 
         status:
             Format: String(32)
             Synopsis:
-                REF=(tables/csv2_vms/Columns/status))
+                REF=(tables/csv2_vms/Columns/status)
 
         flavor_id:
             Format: String(128)
             Synopsis:
-                REF=(tables/csv2_vms/Columns/flavor_id))
+                REF=(tables/csv2_vms/Columns/flavor_id)
 
         task:
             Format: String(32)
             Synopsis:
-                REF=(tables/csv2_vms/Columns/task))
+                REF=(tables/csv2_vms/Columns/task)
 
         power_status:
             Format: Integer
             Synopsis:
-                REF=(tables/csv2_vms/Columns/power_status))
+                REF=(tables/csv2_vms/Columns/power_status)
 
         manual_control:
             Format: Boolean
             Synopsis:
-                REF=(tables/csv2_vms/Columns/manual_control))
+                REF=(tables/csv2_vms/Columns/manual_control)
 
         htcondor_startd_errors:
             Format: String(256)
             Synopsis:
-                REF=(tables/csv2_vms/Columns/htcondor_startd_errors))
+                REF=(tables/csv2_vms/Columns/htcondor_startd_errors)
 
         htcondor_startd_time:
             Format: Integer
             Synopsis:
-                REF=(tables/csv2_vms/Columns/htcondor_startd_time))
+                REF=(tables/csv2_vms/Columns/htcondor_startd_time)
 
         htcondor_partitionable_slots:
             Format: Integer
             Synopsis:
-                REF=(tables/csv2_vms/Columns/htcondor_partitionable_slots))
+                REF=(tables/csv2_vms/Columns/htcondor_partitionable_slots)
 
         htcondor_dynamic_slots:
             Format: Integer
             Synopsis:
-                REF=(tables/csv2_vms/Columns/htcondor_dynamic_slots))
+                REF=(tables/csv2_vms/Columns/htcondor_dynamic_slots)
 
         htcondor_slots_timestamp:
             Format: Integer
             Synopsis:
-                REF=(tables/csv2_vms/Columns/htcondor_slots_timestamp))
+                REF=(tables/csv2_vms/Columns/htcondor_slots_timestamp)
 
         retire:
             Format: Integer
             Synopsis:
-                REF=(tables/csv2_vms/Columns/retire))
+                REF=(tables/csv2_vms/Columns/retire)
 
         retire_time:
             Format: Integer
             Synopsis:
-                REF=(tables/csv2_vms/Columns/retire_time))
+                REF=(tables/csv2_vms/Columns/retire_time)
 
         terminate:
             Format: Integer
             Synopsis:
-                REF=(tables/csv2_vms/Columns/terminate))
+                REF=(tables/csv2_vms/Columns/terminate)
 
         terminate_time:
             Format: Integer
             Synopsis:
-                REF=(tables/csv2_vms/Columns/terminate_time))
+                REF=(tables/csv2_vms/Columns/terminate_time)
 
         status_changed_time:
             Format: Integer
             Synopsis:
-                REF=(tables/csv2_vms/Columns/status_changed_time))
+                REF=(tables/csv2_vms/Columns/status_changed_time)
 
         last_updated:
             Format: Integer
             Synopsis:
-                REF=(tables/csv2_vms/Columns/last_updated))
+                REF=(tables/csv2_vms/Columns/last_updated)
 
         updater:
             Format: String(128)
             Synopsis:
-                REF=(tables/csv2_vms/Columns/updater))
+                REF=(tables/csv2_vms/Columns/updater)
 
         flavor_name:
             Format: String(128)
@@ -208,8 +208,8 @@ view_vms:
         foreign_vm:
             Format: Integer
             Synopsis:
-                This field is always set to 0 because only 'native' VMs are reported. This field should be
-                deprecated.
+                This field is always set to zero because only 'native' VMs are reported.
+                This field should be deprecated.
 
         cores:
             Format: Integer
@@ -241,5 +241,6 @@ view_vms:
         age:
             Format: Integer
             Synopsis:
-                Is the number of seconds since the number of **xxx** or the **xxx** changed.
+                Is the number of seconds since the number of **htcondor_partitionable_slots** or the number
+                **htcondor_dynamic_slots** have changed.
 
