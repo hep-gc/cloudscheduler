@@ -21,14 +21,12 @@ cloudscheduler
 
        
        **cloudscheduler**
-              *object*
-        
+       *object*
        *action*
-        
        *mandatory_parameters*
-        [
+       [
        *options*
-        ...]
+       ...]
 
 
 **DESCRIPTION**
@@ -59,9 +57,8 @@ cloudscheduler
 
        Parameters come in two flavours, keyword/value  and  boolean.   Keyword
        parameters  have  no  default  value, whereas boolean values default to
-       
-       **False**
-       .  When a group of settings is saved for a server, it will contain
+       **False**.
+       When a group of settings is saved for a server, it will contain
        all  the boolean values, but only those keywords that have been explic-
        itly set.  Specifying a boolean keyword more than once will toggle its'
        value  from  
@@ -69,8 +66,8 @@ cloudscheduler
        to 
        **True**
        and back to 
-       **False**
-       , etc.  A default value can
+       **False**,
+       etc.  A default value can
        be saved in the 
        **defaults**
        but overridden on the command line.
@@ -89,17 +86,17 @@ cloudscheduler
        actions associated with a particular object, refer to the documentation
        for  that  object  (eg.  
        **cloudscheduler**
-              *object*
-        
-       **-H**
-       ).  The following is a
+       *object*
+       **-H**).
+       The following is a
        list and brief description of the available objects:
 
        
        **cloud**
-       The 
-       **cloud**
-       object adds, deletes, lists, modifies, and  shows  the
+
+              The 
+              **cloud**
+              object adds, deletes, lists, modifies, and  shows  the
               status  of clouds within the current group.  For each group, one
               or more clouds, both commercial and  private,  can  be  defined.
               Defining  a  cloud  allows  cloudscheduler to manage the virtual
@@ -122,7 +119,6 @@ cloudscheduler
               directory, and provides actions to set, delete,
               and list defaults for multiple servers.  A sub-directory is cre-
               ated  for  each  server, and within that sub-directory, a single
-              
               **settings.yaml**
               file contains the default value for each parameter
               for  that server.  The defaults object and actions are available
@@ -130,10 +126,10 @@ cloudscheduler
 
        
        **group**
-       The 
-       **group**
-       object creates, lists, updates, and deletes groups  on
-              
+
+              The 
+              **group**
+              object creates, lists, updates, and deletes groups  on
               **cloudscheduler**
               servers.   A group on a cloudscheduler server is
               analogous to a project on an OpenStack cloud and may have multi-
@@ -157,20 +153,21 @@ cloudscheduler
 
        
        **job**
-       The  
-       **job**
-       object lists jobs on csv2 servers.  The 
-       **job**
-       object and
+
+              The  
+              **job**
+              object lists jobs on csv2 servers.  The 
+              **job**
+              object and
               actions are available to any users, provided  they  are  in  the
               group that the jobs belong to.
 
        
        **server**
-       The  
-       **server**
-       object  modifies and lists server configuration for
-              
+
+              The  
+              **server**
+              object  modifies and lists server configuration for
               **cloudscheduler**
               servers.  The server object and actions are  only
               available  to privileged users.  ***CAUTION: Modifing these val-
@@ -197,9 +194,10 @@ cloudscheduler
 
        
        **vm**
-       The 
-       **vm**
-       object lists and updates virtual  machines(VMs)  on  csv2
+
+              The 
+              **vm**
+              object lists and updates virtual  machines(VMs)  on  csv2
               servers.   The  
               **vm**
               object and actions are available to any user,
@@ -221,20 +219,20 @@ cloudscheduler
 
        
        **-sa**
-              *url*
+       *url*
        , 
        **--server-address**
-              *url*
+       *url*
        
               Specifies the HTTPS  protocol  location  of  the  cloudscheduler
               server. The default URL is https://localhost.
 
        
        **-spw**
-              *password*
+       *password*
        , 
        **--server-password**
-              *password*
+       *password*
        
               Specifies  the  password  to  use  when  authenticating with the
               cloudscheduler server.  If user/password authentication is being
@@ -243,10 +241,10 @@ cloudscheduler
 
        
        **-su**
-              *username*
+       *username*
        , 
        **--server-user**
-              *username*
+       *username*
        
               Specifies the user ID to use when authenticating with the cloud-
               scheduler  server.   If  specified, the user should also specify
@@ -259,10 +257,10 @@ cloudscheduler
 
        
        **-g**
-              *group*
+       *group*
        , 
        **--group**
-              *group*
+       *group*
        
               Change  the  user's current group to 
               *group*
@@ -275,17 +273,16 @@ cloudscheduler
 
        
        **-s**
-              *server*
+       *server*
        , 
        **--server**
-              *server*
+       *server*
        
               The name of the target server.  There must be an  entry  in  the
-              
               **cloudscheduler  defaults**
               that matches 
               *server*
-               and it must have an
+              and it must have an
               authentication method.
 
    
