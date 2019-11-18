@@ -7,19 +7,10 @@ The CSV2 Command Line Interface, **cloudscheduler**, is a Python3 script that em
 library to manage RESTful dialogs with one or more CSV2 servers. It uses the same CSV2 Application
 Programming Interface (API) used by web browsers and provides the same functionality. The command
 is documented through Linux man pages which can be access via the *--long-help* command argument or
-via the web through the following command syntax tree. 
+via the web through the following command syntax tree:
 
-.. :caption: The cloudscheduler command syntax tree:
-.. _cloudscheduler: https://cloudscheduler.readthedocs.io/en/latest/_user_guide/_cli/cloudscheduler.html
-.. _cloudscheduler_cloud: https://cloudscheduler.readthedocs.io/en/latest/_user_guide/_cli/cloudscheduler_cloud.html
-.. _cloudscheduler_cloud_list: https://cloudscheduler.readthedocs.io/en/latest/_user_guide/_cli/cloudscheduler_cloud_list.html
 .. toctree::
    :maxdepth: 3
 
    cloudscheduler
 
-..cloudscheduler_
-
-..  * cloudscheduler_cloud_
-
-..      * cloudscheduler_cloud_list_
