@@ -286,7 +286,7 @@ cloudscheduler
 
        
        **-H**,
-       **-\-long-help**
+       **\\-\\-long-help**
               Requests  the man page style help for the current command.  Long
               help can be requested for the 
               **cloudscheduler**
