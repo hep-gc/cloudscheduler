@@ -9,6 +9,9 @@ Programming Interface (API) used by web browsers and provides the same functiona
 is documented through Linux man pages which can be access via the *--long-help* command argument or
 via the web through the following command syntax tree. 
 
+.. _cloudscheduler: https://cloudscheduler.readthedocs.io/en/latest/_user_guide/_cli/cloudscheduler.html
+.. _cloudscheduler_cloud: https://cloudscheduler.readthedocs.io/en/latest/_user_guide/_cli/cloudscheduler_cloud.html
+.. _cloudscheduler_cloud_list: https://cloudscheduler.readthedocs.io/en/latest/_user_guide/_cli/cloudscheduler_cloud_list.html
 .. toctree::
    :maxdepth: 3
    :caption: The cloudscheduler command syntax tree:
