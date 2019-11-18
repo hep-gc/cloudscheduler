@@ -8,6 +8,20 @@
 Views
 =====
 
+.. _Accounting: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_apel_accounting.html
+
+.. _Amazon: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_ec2_images.html
+
+.. _Status: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_cloud_status.html
+
+.. _Metadata: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_metadata_collation.html
+
+.. _User: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_user_groups.html
+
+.. _Scheduling: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_groups_of_idle_jobs.html
+
+.. _Quota: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_vm_kill_retire_over_quota.html
+
 A database view is created by a user defined SQL statement pulling and manipulating
 data from one or more tables to present a derived or read-only table.
 CSV2 makes extensive use of views for both presentation and decision making.
@@ -15,24 +29,39 @@ CSV2 makes extensive use of views for both presentation and decision making.
 To aid in the understanding and purpose of each view, they are grouped in the
 following functional categories:
 
+* Accounting_
+* User Interface:
+
+    * `Amazon EC2 Filtering`__
+    * `Cloud Status`__
+    * `Metadata Management`__
+    * `User Management`__
+
+__ Amazon_
+
+__ Status_
+
+__ Metadata_
+
+__ User_
+
+* Virtual Machine Management:
+
+    * `VM Scheduling`__
+    * `Quota Compliance`__
+
+__ Scheduling_
+
+__ Quota_
+
 .. toctree::
    :maxdepth: 1
-   :caption: Accounting
+   :caption: Alternatively, here is the list of all views:
 
+   view_active_resource_shortfall
    view_apel_accounting
-
-.. toctree::
-   :maxdepth: 1
-   :caption: Quota Management
-
-   view_vm_kill_retire_over_quota
-   view_vm_kill_retire_priority_age
-   view_vm_kill_retire_priority_idle
-
-.. toctree::
-   :maxdepth: 1
-   :caption: Status Displays
-
+   view_available_resources
+   view_cloud_aliases
    view_cloud_status
    view_cloud_status_flavor_slot_detail
    view_cloud_status_flavor_slot_detail_summary
@@ -40,24 +69,6 @@ following functional categories:
    view_cloud_status_slot_detail
    view_cloud_status_slot_detail_summary
    view_cloud_status_slot_summary
-   view_job_status
-
-.. toctree::
-   :maxdepth: 1
-   :caption: VM Scheduling
-
-   view_active_resource_shortfall
-   view_available_resources
-   view_groups_of_idle_jobs
-   view_idle_vms
-   view_metadata_collation_json
-   view_resource_contention
-
-.. toctree::
-   :maxdepth: 1
-   :caption: Miscellaneous Views
-
-   view_cloud_aliases
    view_clouds
    view_clouds_with_metadata_info
    view_clouds_with_metadata_names
@@ -67,10 +78,17 @@ following functional categories:
    view_ec2_instance_types
    view_foreign_flavors
    view_foreign_resources
+   view_groups_of_idle_jobs
    view_groups_with_metadata_info
    view_groups_with_metadata_names
+   view_idle_vms
+   view_job_status
    view_metadata_collation
-   view_redundant_machines
+   view_metadata_collation_json
+   view_resource_contention
    view_user_groups
    view_user_groups_available
+   view_vm_kill_retire_over_quota
+   view_vm_kill_retire_priority_age
+   view_vm_kill_retire_priority_idle
    view_vms

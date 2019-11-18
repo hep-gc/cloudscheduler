@@ -1,16 +1,17 @@
 view_vm_kill_retire_priority_idle:
     Synopsis:
-        "REF=(views/view_vm_kill_retire_priority_age/0)
+        "REF=(common/view_vm_kill_retire)
 
-        This view prioritizes idleness over the age of the VM. Idle VMs are set to the
-        maximum possible age/priority. Otherwise the age/priority is set to the time
-        in seconds since the last state change. The higher the age/priority, the lower
-        the resource aggregates, and the earlier in the list the VM entry appears.
+        The view_vm_kill_retire_priority_idle creates a list of VMs to terminate and is used by the cloud 
+        pollers to respond to quota and resource control changes. Sorted in descending priority order, each
+        VM entry has running totals of both cores and RAM. By selecting the first N entries, known quantities
+        of resources can be released, or by selecting the last N entries, known quantities of active resources
+        can be retained.
 
-        The related view, view_vm_kill_retire_priority_age_, performs the same function
-        but has a different priority scheme.
-
-        .. _view_vm_kill_retire_priority_age: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_vm_kill_retire_priority_age.html
+        This view prioritizes idleness over the age of the VM. Idle VMs are set to the maximum possible
+        age/priority. Otherwise the age/priority is set to the time in seconds since the last state change.
+        The higher the age/priority, the lower the resource aggregates, and the earlier in the list the
+        VM entry appears.
         "
 
     Keys:

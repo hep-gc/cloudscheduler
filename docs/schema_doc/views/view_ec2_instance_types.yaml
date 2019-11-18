@@ -1,5 +1,10 @@
 view_ec2_instance_types:
     Synopsis:
+        "REF=(common/view_ec2)
+
+        The **view_ec2_instance_types** presents the content of ec2_instance_types CSV2 table interpreting and appending 
+        the memory_per_core and processor_manufacturer fields.
+        "
 
     Keys:
 
@@ -8,44 +13,63 @@ view_ec2_instance_types:
         region:
             Format: String(32)
             Synopsis:
+                REF=(tables/ec2_instance_types/Keys/region)
 
         instance_type:
             Format: String(32)
             Synopsis:
+                REF=(tables/ec2_instance_types/Keys/instance_type)
 
         operating_system:
             Format: String(32)
             Synopsis:
+                REF=(tables/ec2_instance_types/Keys/operating_system)
 
         instance_family:
             Format: String(32)
             Synopsis:
+                REF=(tables/ec2_instance_types/Columns/instance_family)
 
         processor:
             Format: String(64)
             Synopsis:
+                REF=(tables/ec2_instance_types/Columns/processor)
 
         storage:
             Format: String(32)
             Synopsis:
+                REF=(tables/ec2_instance_types/Columns/storage)
 
         cores:
             Format: Integer
             Synopsis:
+                REF=(tables/ec2_instance_types/Columns/cores)
 
         memory:
             Format: Float
             Synopsis:
+                REF=(tables/ec2_instance_types/Columns/memory)
 
         cost_per_hour:
             Format: Float
             Synopsis:
+                REF=(tables/ec2_instance_types/Columns/cost_per_hour)
 
         memory_per_core:
             Format: Float
             Synopsis:
+                "This field is calculated as **memory** divided by **cores** and is provided as a feature of
+                the instance type filtering process (see ec2_instance_type_filters_ for more information).
+
+                .. _ec2_instance_type_filters: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_tables/ec2_instance_type_filters.html
+                "
 
         processor_manufacturer:
             Format: String(64)
             Synopsis:
+                "This field is an interpretation of the **processor** field and is provided as a feature of
+                the instance type filtering process (see ec2_instance_type_filters_ for more information).
+
+                .. _ec2_instance_type_filters: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_tables/ec2_instance_type_filters.html
+                "
 

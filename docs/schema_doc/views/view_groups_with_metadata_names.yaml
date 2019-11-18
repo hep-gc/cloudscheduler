@@ -1,5 +1,10 @@
 view_groups_with_metadata_names:
     Synopsis:
+        "REF=(common/view_metadata)
+
+        The **view_groups_with_metadata_names** creates a list of group/metadata information with one row per group
+        in a client compatible format suitable for the CLI client.
+        "
 
     Keys:
 
@@ -8,20 +13,25 @@ view_groups_with_metadata_names:
         group_name:
             Format: String(32)
             Synopsis:
+                "REF=(tables/csv2_groups/Keys/group_name)"
 
         htcondor_fqdn:
             Format: String(128)
             Synopsis:
+                "REF=(tables/csv2_groups/Columns/htcondor_fqdn)"
 
         htcondor_container_hostname:
             Format: String(128)
             Synopsis:
+                "REF=(tables/csv2_groups/Columns/htcondor_container_hostname)"
 
         htcondor_other_submitters:
             Format: String(128)
             Synopsis:
+                "REF=(tables/csv2_groups/Columns/htcondor_other_submitters)"
 
         metadata_names:
             Format: String
             Synopsis:
+                Is a comma separated list of metadata file names associated with this group.
 

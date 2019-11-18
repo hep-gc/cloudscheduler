@@ -1,5 +1,12 @@
 view_vms:
     Synopsis:
+        "
+        REF=(common/view_cloud_status)
+
+        The **view_vms** combines information from **csv2_vms**, **cloud_flavors**, and **condor_machines** to furnish the User
+        Interface with VM information. The view presents one row per VM which is accessed via expanded views on the web cloud
+        status page or through an optional table of the CLI cloud status command.
+        "
 
     Keys:
 
@@ -8,180 +15,232 @@ view_vms:
         group_name:
             Format: String(32)
             Synopsis:
+                REF=(tables/csv2_vms/Keys/group_name)
 
         cloud_name:
             Format: String(32)
             Synopsis:
+                REF=(tables/csv2_vms/Keys/cloud_name)
 
         region:
             Format: String(32)
             Synopsis:
+                REF=(tables/csv2_vms/Columns/region)
 
         vmid:
             Format: String(128)
             Synopsis:
+                REF=(tables/csv2_vms/Keys/vmid)
 
         spot_instance:
             Format: Boolean
             Synopsis:
+                REF=(tables/csv2_vms/Columns/spot_instance)
 
         instance_id:
             Format: String(64)
             Synopsis:
+                REF=(tables/csv2_vms/Columns/instance_id)
 
         cloud_type:
             Format: String(64)
             Synopsis:
+                REF=(tables/csv2_vms/Columns/cloud_type)
 
         vm_ips:
             Format: String(128)
             Synopsis:
+                REF=(tables/csv2_vms/Columns/vm_ips)
 
         vm_floating_ips:
             Format: String(128)
             Synopsis:
+                REF=(tables/csv2_vms/Columns/vm_floating_ips)
 
         auth_url:
             Format: String(128)
             Synopsis:
+                REF=(tables/csv2_vms/Columns/auth_url)
 
         project:
             Format: String(128)
             Synopsis:
+                REF=(tables/csv2_vms/Columns/project)
 
         hostname:
             Format: String(128)
             Synopsis:
+                REF=(tables/csv2_vms/Columns/hostname)
 
         keep_alive:
             Format: Integer
             Synopsis:
+                REF=(tables/csv2_vms/Columns/keep_alive)
 
         start_time:
             Format: Integer
             Synopsis:
+                REF=(tables/csv2_vms/Columns/start_time)
 
         status:
             Format: String(32)
             Synopsis:
+                REF=(tables/csv2_vms/Columns/status)
 
         flavor_id:
             Format: String(128)
             Synopsis:
+                REF=(tables/csv2_vms/Columns/flavor_id)
 
         task:
             Format: String(32)
             Synopsis:
+                REF=(tables/csv2_vms/Columns/task)
 
         power_status:
             Format: Integer
             Synopsis:
+                REF=(tables/csv2_vms/Columns/power_status)
 
         manual_control:
             Format: Boolean
             Synopsis:
+                REF=(tables/csv2_vms/Columns/manual_control)
 
         htcondor_startd_errors:
             Format: String(256)
             Synopsis:
+                REF=(tables/csv2_vms/Columns/htcondor_startd_errors)
 
         htcondor_startd_time:
             Format: Integer
             Synopsis:
+                REF=(tables/csv2_vms/Columns/htcondor_startd_time)
 
         htcondor_partitionable_slots:
             Format: Integer
             Synopsis:
+                REF=(tables/csv2_vms/Columns/htcondor_partitionable_slots)
 
         htcondor_dynamic_slots:
             Format: Integer
             Synopsis:
+                REF=(tables/csv2_vms/Columns/htcondor_dynamic_slots)
 
         htcondor_slots_timestamp:
             Format: Integer
             Synopsis:
+                REF=(tables/csv2_vms/Columns/htcondor_slots_timestamp)
 
         retire:
             Format: Integer
             Synopsis:
+                REF=(tables/csv2_vms/Columns/retire)
 
         retire_time:
             Format: Integer
             Synopsis:
+                REF=(tables/csv2_vms/Columns/retire_time)
 
         terminate:
             Format: Integer
             Synopsis:
+                REF=(tables/csv2_vms/Columns/terminate)
 
         terminate_time:
             Format: Integer
             Synopsis:
+                REF=(tables/csv2_vms/Columns/terminate_time)
 
         status_changed_time:
             Format: Integer
             Synopsis:
+                REF=(tables/csv2_vms/Columns/status_changed_time)
 
         last_updated:
             Format: Integer
             Synopsis:
+                REF=(tables/csv2_vms/Columns/last_updated)
 
         updater:
             Format: String(128)
             Synopsis:
+                REF=(tables/csv2_vms/Columns/updater)
 
         flavor_name:
             Format: String(128)
             Synopsis:
+                REF=(tables/cloud_flavors/Columns/name)
 
         condor_slots:
             Format: Integer
             Synopsis:
+                Is the total number of HTCondor slots, including both partitionable and dynamic slots. This value 
+                has been superceded by the **htcondor_partitionable_slots** and **htcondor_dynamic_slots** columns
+                and should be deprecated.
 
         condor_slots_used:
             Format: Integer
             Synopsis:
+                Is the total number of HTCondor dynamic slots. This value has been superceded by the **htcondor_dynamic_slots**
+                column and should be deprecated.
 
         machine:
             Format: String(256)
             Synopsis:
+                REF=(tables/condor_machines/Columns/machine)
 
         my_current_time:
             Format: Integer
             Synopsis:
+                REF=(tables/condor_machines/Columns/my_current_time)
 
         entered_current_state:
             Format: Integer
             Synopsis:
+                REF=(tables/condor_machines/Columns/entered_current_state)
 
         idle_time:
             Format: Integer
             Synopsis:
+                REF=(tables/condor_machines/Columns/idle_time)
 
         foreign_vm:
             Format: Integer
             Synopsis:
+                This field is always set to zero because only 'native' VMs are reported.
+                This field should be deprecated.
 
         cores:
             Format: Integer
             Synopsis:
+                Is the number of cores used by this VM.
 
         disk:
             Format: Integer
             Synopsis:
+                Is the size in gigabytes of disk used by this VM.
 
         ram:
             Format: Integer
             Synopsis:
+                Is the size in kilobytes of RAM used by this VM.
 
         swap:
             Format: Integer
             Synopsis:
+                Is the size in gigabytes of swap space used by this VM.
 
         poller_status:
             Format: String(12)
             Synopsis:
+                "Is a digest of the **htcondor_dynamic_slots**, **htcondor_partitionable_slots, **manual**, **retire**,
+                and **status** columns resulting in one of the standard CSV2 VM status codes: starting, unregistered,
+                idle, running, retiring, error, and manual."
 
         age:
             Format: Integer
             Synopsis:
+                Is the number of seconds since the number of **htcondor_partitionable_slots** or the number
+                **htcondor_dynamic_slots** have changed.
 

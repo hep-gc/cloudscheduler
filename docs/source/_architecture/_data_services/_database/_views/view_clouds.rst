@@ -242,15 +242,19 @@ Columns:
 
 * **cores_used** (Integer):
 
-      REF(views/cloud_status/Columns/cores_used)
+      Is the total number of cores being used by all the VMs
+      for this group/cloud.
 
 * **cores_foreign** (Integer):
 
-      REF(views/cloud_status/Columns/cores_foreign)
+      Is the total number of cores running on this cloud but which
+      do not belong to this group. Foreign cores can limit the number
+      VMs a group can start.
 
 * **cores_native** (Integer):
 
-      REF(views/cloud_status/Columns/cores_native)
+      Is the total number of cores being used by all the VMs
+      for this group/cloud.
 
 * **ram_ctl** (Integer):
 
@@ -274,15 +278,19 @@ Columns:
 
 * **ram_used** (Integer):
 
-      REF(views/cloud_status/Columns/ram_used)
+      Is the total size in kilobytes of RAM being used by all
+      the VMs for this group/cloud.
 
 * **ram_foreign** (Integer):
 
-      REF(views/cloud_status/Columns/ram_foreign)
+      Is the total size in kilobytes of RAM running on this cloud
+      but which do not belong to this group. Foreign RAM can limit
+      the number VMs a group can start.
 
 * **ram_native** (Integer):
 
-      REF(views/cloud_status/Columns/ram_native)
+      Is the total size in kilobytes of RAM being used by all
+      the VMs for this group/cloud.
 
 * **instances_max** (Integer):
 

@@ -24,10 +24,14 @@ Database View: view_cloud_status
 
 .. _view_job_status: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_job_status.html
 
+.. _view_vms: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_vms.html
+
+.. _timeseries: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_condor_jobs_group_defaults_applied.html
+
 This view is one of a suite of related views supporting the
 primary status display of CSV2. The suite includes:
 
-#. view_cloud_status_
+#. view_cloud_status_ (also used by timeseries_)
 
 #. view_cloud_status_flavor_slot_detail_summary_
 
@@ -37,11 +41,13 @@ primary status display of CSV2. The suite includes:
 
 #. view_cloud_status_slot_detail_summary_
 
-#. view_cloud_status_slot_detail_
+#. view_cloud_status_slot_detail_ (also used by timeseries_)
 
 #. view_cloud_status_slot_summary_
 
-#. view_job_status_
+#. view_job_status_ (also used by timeseries_)
+
+#. view_vms_
 
 The **view_cloud_status** view details current cloud information including VM statistics HTCondor dynamic
 slot totals, control settings and performance information. The view presents one row

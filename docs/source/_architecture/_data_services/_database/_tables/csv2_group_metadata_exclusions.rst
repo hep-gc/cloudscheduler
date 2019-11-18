@@ -9,15 +9,15 @@ Database Table: csv2_group_metadata_exclusions
 ==============================================
 
 The table provides group members additional control over the collation of metadata
-in preparation for VM contextualization. i "There are two sources for metadata:"
+in preparation for VM contextualization. There are two sources for metadata:
 
 1. Metadata defined at the group level is passed to all clouds
 within the group, but
 
 2. Metadata defined at the cloud level is specific to the cloud.
 
-This table allows you define group metadata that is valid for every
-cloud except cloud "X".
+This table allows you to exclude group metadata files on the named
+cloud.
 
 
 Keys:

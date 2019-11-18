@@ -8,6 +8,31 @@
 Database View: view_condor_host
 ===============================
 
+This view is one of a suite of related views used by
+the cloud pollers, HTCondor machine poller and User Interface (UI) processes to
+ensure that resource usage on clouds remains within allocated quotas and user
+defined limits. The suite includes:
+
+#. view_condor_host_
+
+#. view_vm_kill_retire_over_quota_
+
+#. view_vm_kill_retire_priority_age_
+
+#. view_vm_kill_retire_priority_idle_
+
+.. _view_condor_host: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_condor_host.html
+
+.. _view_vm_kill_retire_over_quota: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_vm_kill_retire_over_quota.html
+
+.. _view_vm_kill_retire_priority_age: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_vm_kill_retire_priority_age.html
+
+.. _view_vm_kill_retire_priority_idle: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_vm_kill_retire_priority_idle.html
+
+The view_condor_host is used by the HTCondor machine poller when retiring Virutal
+Machines (VMs) to provide contact details so that commands can be sent
+directly to VMs. The view also provides slot counters to ensure that
+target VMs are in an appropriate state to receive retirement commands.
 
 
 Columns:
@@ -15,37 +40,58 @@ Columns:
 
 * **group_name** (String(32)):
 
+      Is the name of the group owning the VM.
 
 * **cloud_name** (String(32)):
 
+      Is the name of the cloud hosting the VM.
 
 * **htcondor_fqdn** (String(128)):
 
+      Is the Fully Qualified Domain Name (FQDN) of the job scheduler containing
+      the VMs registration.
 
 * **vmid** (String(128)):
 
+      Is the unique ID of this VM.
 
 * **hostname** (String(128)):
 
+      Is the short hostname of this VM.
 
 * **primary_slots** (Integer):
 
+      Is the count of primary slots. A value greater than zero indicates
+      that the VM is still registered with HTCondor and is able to
+      be retired.
 
 * **dynamic_slots** (Integer):
 
+      Is the count of dynamic slots. A value greater than zero indicates
+      that jobs are still running on the VM.
 
 * **retire** (Integer):
 
+      Is the current value of the VM's retire flag. A value greater
+      than zero indicates that the retirement process has already been initiated.
 
 * **retiring** (Integer):
 
+      Is the current state of the HTCondor daemons on the VM. Retirement
+      commands will continue to be sent to the VM until this field
+      reflects that they are 'retiring'.
 
 * **terminate** (Integer):
 
+      Is the current value of the VM's terminate flag. A value greater
+      than zero indicates that the termination process has already been initiated.
 
 * **machine** (String(256)):
 
+      Is the HTCondor machine name for this VM.
 
 * **updater** (String(128)):
 
+      Indicates which process last updated eithe the retire or terminate flage and
+      what the nature of the update was.
 
