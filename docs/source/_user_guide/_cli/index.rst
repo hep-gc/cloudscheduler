@@ -15,3 +15,8 @@ via the web through the following command syntax tree.
 
    cloudscheduler
 
+* cloudscheduler_
+
+    * cloudscheduler_cloud_
+
+        * cloudscheduler_cloud_list_
