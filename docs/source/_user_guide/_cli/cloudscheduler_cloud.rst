@@ -1,7 +1,11 @@
-cloudscheduler list
-===================
+cloudscheduler cloud
+====================
 
 
+.. toctree::
+   :maxdepth: 2
+
+   cloudscheduler_cloud_list
 
 
 **NAME**
