@@ -4,9 +4,7 @@ cloudscheduler
 
 
 
-
 **NAME**
-
        
        **cloudscheduler**
        -  command  line  interface to cloudscheduler version 2
@@ -14,7 +12,6 @@ cloudscheduler
 
 
 **SYNOPSIS**
-
        The general format of the 
        **cloudscheduler**
        command is as follows:
@@ -30,7 +27,6 @@ cloudscheduler
 
 
 **DESCRIPTION**
-
        The 
        **cloudscheduler**
        command line interface  makes  RESTful  requests  to
@@ -47,7 +43,7 @@ cloudscheduler
 
        The 
        **cloudscheduler**
-       command provides the 
+       command provides the
        **defaults**
        object  together  with
        its'  associated  actions  to  manage  default  values for servers on a
@@ -57,15 +53,16 @@ cloudscheduler
 
        Parameters come in two flavours, keyword/value  and  boolean.   Keyword
        parameters  have  no  default  value, whereas boolean values default to
+       
        **False**.
        When a group of settings is saved for a server, it will contain
        all  the boolean values, but only those keywords that have been explic-
        itly set.  Specifying a boolean keyword more than once will toggle its'
        value  from  
        **False**
-       to 
+       to
        **True**
-       and back to 
+       and back to
        **False**,
        etc.  A default value can
        be saved in the 
@@ -74,13 +71,12 @@ cloudscheduler
 
 
 **OBJECTS**
-
        The first two positional arguments to the  
        **cloudscheduler**
        command  are
        an  
        **object**
-       and  an  
+       and  an
        **action**
        to be perfomed.  For information about the
        actions associated with a particular object, refer to the documentation
@@ -93,10 +89,9 @@ cloudscheduler
 
        
        **cloud**
-
-              The 
-              **cloud**
-              object adds, deletes, lists, modifies, and  shows  the
+       The
+       **cloud**
+       object adds, deletes, lists, modifies, and  shows  the
               status  of clouds within the current group.  For each group, one
               or more clouds, both commercial and  private,  can  be  defined.
               Defining  a  cloud  allows  cloudscheduler to manage the virtual
@@ -110,7 +105,6 @@ cloudscheduler
 
        
        **defaults**
-       
               The 
               **defaults**
               object manipulates  groups  of  defaults  within  a
@@ -119,6 +113,7 @@ cloudscheduler
               directory, and provides actions to set, delete,
               and list defaults for multiple servers.  A sub-directory is cre-
               ated  for  each  server, and within that sub-directory, a single
+              
               **settings.yaml**
               file contains the default value for each parameter
               for  that server.  The defaults object and actions are available
@@ -126,10 +121,10 @@ cloudscheduler
 
        
        **group**
-
-              The 
-              **group**
-              object creates, lists, updates, and deletes groups  on
+       The
+       **group**
+       object creates, lists, updates, and deletes groups  on
+              
               **cloudscheduler**
               servers.   A group on a cloudscheduler server is
               analogous to a project on an OpenStack cloud and may have multi-
@@ -146,28 +141,26 @@ cloudscheduler
 
        
        **helpers**
-       
               This object provides functions to aid in the use  of  this  com-
               mand.
 
 
        
        **job**
-
-              The  
-              **job**
-              object lists jobs on csv2 servers.  The 
-              **job**
-              object and
+       The
+       **job**
+       object lists jobs on csv2 servers.  The
+       **job**
+       object and
               actions are available to any users, provided  they  are  in  the
               group that the jobs belong to.
 
        
        **server**
-
-              The  
-              **server**
-              object  modifies and lists server configuration for
+       The
+       **server**
+       object  modifies and lists server configuration for
+              
               **cloudscheduler**
               servers.  The server object and actions are  only
               available  to privileged users.  ***CAUTION: Modifing these val-
@@ -175,7 +168,6 @@ cloudscheduler
 
        
        **user**
-       
               The 
               **user**
               object adds, deletes, lists, and updates users on  csv2
@@ -194,10 +186,9 @@ cloudscheduler
 
        
        **vm**
-
-              The 
-              **vm**
-              object lists and updates virtual  machines(VMs)  on  csv2
+       The
+       **vm**
+       object lists and updates virtual  machines(VMs)  on  csv2
               servers.   The  
               **vm**
               object and actions are available to any user,
@@ -205,7 +196,6 @@ cloudscheduler
 
 
 **GLOBAL OPTIONS**
-
        The following global options are applicable to all 
        **cloudscheduler**
        com-
@@ -213,27 +203,22 @@ cloudscheduler
 
    
    **Authentication Options**
-   
        The following options are used to address the cloudscheduler server and
        to identify the user's current group to the server:
 
        
        **-sa**
-       *url*
-       , 
+       *url*,
        **--server-address**
        *url*
-       
               Specifies the HTTPS  protocol  location  of  the  cloudscheduler
               server. The default URL is https://localhost.
 
        
        **-spw**
-       *password*
-       , 
+       *password*,
        **--server-password**
        *password*
-       
               Specifies  the  password  to  use  when  authenticating with the
               cloudscheduler server.  If user/password authentication is being
               used  and  no  password  is  provided, a password prompt will be
@@ -241,11 +226,9 @@ cloudscheduler
 
        
        **-su**
-       *username*
-       , 
+       *username*,
        **--server-user**
        *username*
-       
               Specifies the user ID to use when authenticating with the cloud-
               scheduler  server.   If  specified, the user should also specify
               the 
@@ -257,47 +240,40 @@ cloudscheduler
 
        
        **-g**
-       *group*
-       , 
+       *group*,
        **--group**
        *group*
-       
               Change  the  user's current group to 
+              *group*.
+              The
               *group*
-              . The 
-              *group*
-               must exist
+              must exist
               and the current user must be in 
-              *group*
-              .
+              *group*.
 
        
        **-s**
-       *server*
-       , 
+       *server*,
        **--server**
        *server*
-       
               The name of the target server.  There must be an  entry  in  the
+              
               **cloudscheduler  defaults**
-              that matches 
+              that matches
               *server*
               and it must have an
               authentication method.
 
    
    **Information Options**
-   
        The following options are used to display  the  
        **cloudscheduler**
        command
        line interface and API documentation:
 
        
-       **-h**
-       , 
+       **-h**,
        **--help**
-       
               Requests  short  help  for  the  current  command.   Help can be
               requested for the 
               **cloudscheduler**
@@ -305,10 +281,8 @@ cloudscheduler
               a specific object/action.
 
        
-       **-H**
-       , 
+       **-H**,
        **--long-help**
-       
               Requests  the man page style help for the current command.  Long
               help can be requested for the 
               **cloudscheduler**
@@ -316,18 +290,14 @@ cloudscheduler
               object, or a specific object/action.
 
        
-       **-v**
-       , 
+       **-v**,
        **--version**
-       
               Requests  that  the versions of both the CLI client and the tar-
               geted server be printed in addition to any other command output.
 
        
-       **-xA**
-       , 
+       **-xA**,
        **--expose-API**
-       
               Requests trace messages detailing the API  calls  and  responses
               issued and received by the 
               **cloudscheduler**
@@ -335,23 +305,22 @@ cloudscheduler
 
 
 **SEE ALSO**
-
        
        **csv2_cloud**
-       (1)     
+       (1)
        **csv2_defaults**
-       (1)     
+       (1)
        **csv2_group**
-       (1)    
+       (1)
        **csv2_helpers**
        (1)
        
        **csv2_job**
-       (1) 
+       (1)
        **csv2_server**
-       (1) 
+       (1)
        **csv2_user**
-       (1) 
+       (1)
        **csv2_vm**
        (1)
 
