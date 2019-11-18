@@ -1,5 +1,6 @@
 from csv2_common import command_hash
 from subprocess import Popen, PIPE
+import json
 import os
 
 def check_documentation(gvar):
@@ -186,3 +187,19 @@ def get_option_list(gvar):
     gvar['retrieve_options'] = False
     
     return options
+
+def print_json_syntax_tree(gvar):
+    """
+    JSON dump the command syntax variables.
+    """
+
+    if gvar['retrieve_options']:
+        return []
+
+    syntax_tree = {}
+    for object in gvar['actions']:
+        syntax_tree[object] = []
+        for action in sorted(gvar['actions'][object][1]):
+            syntax_tree[object].append(action)
+
+    print(json.dumps(syntax_tree))

@@ -106,6 +106,7 @@ def main(args):
                 {
                     'check_documentation':                csv2_helpers.check_documentation,
                     'generate_bash_completion_script':    csv2_helpers.generate_bash_completion_script,
+                    'print_json_syntax_tree':             csv2_helpers.print_json_syntax_tree,
                     }
                 ],
             'job': [
