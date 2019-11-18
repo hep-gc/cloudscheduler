@@ -3,7 +3,7 @@ cloudscheduler cloud
 
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 3
 
    cloudscheduler_cloud_list
 
