@@ -1,10 +1,6 @@
 cloudscheduler cloud list
 =========================
 
-cloudscheduler(1)           General Commands Manual          cloudscheduler(1)
- 
- 
- 
 
 **NAME**
        
@@ -238,6 +234,7 @@ cloudscheduler(1)           General Commands Manual          cloudscheduler(1)
               | example | example | 1           | example.com | Default        | example | Default     | example | example | None       |
               | example | testing | 1           | testing.com | Default        | example | Default     | example | example | None       |
               +---------+---------+-------------+-------------+----------------+---------+-------------+---------+---------+------------+
+
  
               Clouds: (2/4)
 
@@ -248,6 +245,7 @@ cloudscheduler(1)           General Commands Manual          cloudscheduler(1)
               | example | example | local      | None    | -1          | 0           | -1          | 0           | None          |
               | example | testing | local      | None    | -1          | 0           | -1          | 0           | None          |
               +---------+---------+------------+---------+-------------+-------------+-------------+-------------+---------------+
+
  
               Clouds: (3/4)
 
@@ -258,6 +256,7 @@ cloudscheduler(1)           General Commands Manual          cloudscheduler(1)
               | example | example | None          | None          | cl-update         | cl-update         | 1                 |
               | example | testing | None          | None          | cl-update         | cl-update         | 1                 |
               +---------+---------+---------------+---------------+-------------------+-------------------+-------------------+
+
  
               Clouds: (4/4)
 
@@ -283,6 +282,7 @@ cloudscheduler(1)           General Commands Manual          cloudscheduler(1)
               +=========+=========+=============+=============+================+=========+=============+=========+=========+============+
               | example | example | 1           | example.com | Default        | example | Default     | example | example | None       |
               +---------+---------+-------------+-------------+----------------+---------+-------------+---------+---------+------------+
+
  
               Clouds: (2/4)
 
@@ -292,6 +292,7 @@ cloudscheduler(1)           General Commands Manual          cloudscheduler(1)
               +=========+=========+============+=========+=============+=============+=============+=============+===============+
               | example | example | local      | None    | -1          | 0           | -1          | 0           | None          |
               +---------+---------+------------+---------+-------------+-------------+-------------+-------------+---------------+
+
  
               Clouds: (3/4)
 
@@ -301,13 +302,14 @@ cloudscheduler(1)           General Commands Manual          cloudscheduler(1)
               +=========+=========+===============+===============+===================+===================+===================+
               | example | example | None          | None          | cl-update         | cl-update         | 1                 |
               +---------+---------+---------------+---------------+-------------------+-------------------+-------------------+
+
  
               Clouds: (4/4)
 
               +---------+---------+----------------+------------------+-----------+
               +         |         |                |           Metadata           +
               +  Group  |  Cloud  | CA Certificate | Group Exclusions   Filenames +
-              +---------+---------+----------------+------------------+-----------+
+              +=========+=========+================+==================+===========+
               | example | example | None           | None             | None      |
               +---------+---------+----------------+------------------+-----------+
 
