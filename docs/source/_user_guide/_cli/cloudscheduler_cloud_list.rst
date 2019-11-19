@@ -225,20 +225,22 @@ cloudscheduler(1)           General Commands Manual          cloudscheduler(1)
  
 
 **EXAMPLES**
-       1.     Listing all clouds in the current group::
+       1.     Listing all clouds in the current group:
 
               $ cloudscheduler cloud list
               Server: default, Active User: example, Active Group: example, User's Groups: ['example', 'testing']
  
               Clouds: (1/4)
+
               +---------+---------+-------------+-------------+----------------+---------+-------------+---------+---------+------------+
               + Group   | Cloud   | Enabled     | URL         | Project Domain | Project | User Domain | User    | Region  | Spot Price +
-              +---------+---------+-------------+-------------+----------------+---------+-------------+---------+---------+------------+
+              +=========+=========+=============+=============+================+=========+=============+=========+=========+============+
               | example | example | 1           | example.com | Default        | example | Default     | example | example | None       |
               | example | testing | 1           | testing.com | Default        | example | Default     | example | example | None       |
               +---------+---------+-------------+-------------+----------------+---------+-------------+---------+---------+------------+
  
               Clouds: (2/4)
+
               +---------+---------+------------+---------+-------------+-------------+-------------+-------------+---------------+
               +         |         |            |         |           Cores           |            RAM            | Cloud Default +
               +  Group  |  Cloud  | Cloud Type | Keyname |   Control         Max     |   Control         Max     |    Flavor     +
@@ -248,6 +250,7 @@ cloudscheduler(1)           General Commands Manual          cloudscheduler(1)
               +---------+---------+------------+---------+-------------+-------------+-------------+-------------+---------------+
  
               Clouds: (3/4)
+
               +---------+---------+---------------+---------------+-------------------+-------------------+-------------------+
               +         |         |         Cloud Default         |                     Cascading Default                     +
               +  Group  |  Cloud  |     Image        Keep Alive   |      Flavor               Image            Keep Alive     +
@@ -257,6 +260,7 @@ cloudscheduler(1)           General Commands Manual          cloudscheduler(1)
               +---------+---------+---------------+---------------+-------------------+-------------------+-------------------+
  
               Clouds: (4/4)
+
               +---------+---------+----------------+------------------+-----------+
               +         |         |                |           Metadata           +
               +  Group  |  Cloud  | CA Certificate | Group Exclusions   Filenames +
@@ -264,6 +268,7 @@ cloudscheduler(1)           General Commands Manual          cloudscheduler(1)
               | example | example | None           | None             | None      |
               | example | testing | None           | None             | None      |
               +---------+---------+----------------+------------------+-----------+
+
               Rows: 2
  
        2.     Listing the cloud "example":
