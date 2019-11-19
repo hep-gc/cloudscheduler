@@ -225,7 +225,7 @@ cloudscheduler(1)           General Commands Manual          cloudscheduler(1)
  
 
 **EXAMPLES**
-       1.     Listing all clouds in the current group:
+       1.     Listing all clouds in the current group::
 
               $ cloudscheduler cloud list
               Server: default, Active User: example, Active Group: example, User's Groups: ['example', 'testing']
@@ -271,7 +271,7 @@ cloudscheduler(1)           General Commands Manual          cloudscheduler(1)
 
               Rows: 2
  
-       2.     Listing the cloud "example":
+       2.     Listing the cloud "example"::
 
               $ cloudscheduler cloud list -cn example
               Server: default, Active User: example, Active Group: example, User's Groups: ['example', 'testing']
