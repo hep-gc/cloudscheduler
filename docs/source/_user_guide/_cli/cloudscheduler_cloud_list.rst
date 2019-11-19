@@ -1,6 +1,8 @@
 cloudscheduler cloud list
 =========================
 
+ 
+ 
 
 **NAME**
        
@@ -315,7 +317,6 @@ cloudscheduler cloud list
 
               Rows: 1
  
-.. note:: The results of a SQL query will be formatted differently from the Restructured Text tables shown above.
 
 **SEE ALSO**
        
@@ -351,3 +352,5 @@ cloudscheduler cloud list
  
  
 cloudscheduler version 2        7 November 2018              cloudscheduler(1)
+
+.. note:: The results of an SQL query will be formatted differently from the Restructured Text tables shown above.
