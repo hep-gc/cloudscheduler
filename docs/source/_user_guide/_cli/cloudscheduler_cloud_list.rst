@@ -315,6 +315,7 @@ cloudscheduler cloud list
 
               Rows: 1
  
+Note: The results of a SQL query will be formatted differently from the Restructured Text tables shown above.
 
 **SEE ALSO**
        
