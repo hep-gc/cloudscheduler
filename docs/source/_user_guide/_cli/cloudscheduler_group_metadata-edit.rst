@@ -118,8 +118,7 @@ man(1) page: cloudscheduler group metadata-edit
  
 
 **EXAMPLES**
-       1.     Editing the group metadata file "example"::
-
+       1.     Editing the group metadata file "example":
               $ cloudscheduler group metadata-edit -mn example.yaml -te vim
               group metadata file "example::example.yaml" successfully  updated.
  

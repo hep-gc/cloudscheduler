@@ -114,8 +114,7 @@ man(1) page: cloudscheduler cloud delete
  
 
 **EXAMPLES**
-       1.     Deleting the cloud "example"::
-
+       1.     Deleting the cloud "example":
               $ cloudscheduler cloud delete -cn example -Y
               cloud "example::example" successfully deleted.
  

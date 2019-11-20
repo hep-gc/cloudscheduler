@@ -129,8 +129,7 @@ man(1) page: cloudscheduler group add
  
 
 **EXAMPLES**
-       1.     Adding the group "example"::
-
+       1.     Adding the group "example":
               $ cloudscheduler group add -gm example.com -gn example
               group "example" successfully added.
  

@@ -174,14 +174,12 @@ man(1) page: cloudscheduler vm update
  
 
 **EXAMPLES**
-       1.     Retire all native VMs in the current group::
-
+       1.     Retire all native VMs in the current group:
               $ cloudscheduler vm update -vo retire
               vm update, VMs retired=10.
  
        2.     Change all VMs in an error state on the cloud  "example"  to  be
-              under manual control::
-
+              under manual control:
               $ cloudscheduler vm update -vo manctl -cn example -vS error
               vm update, VMs set to manual control=5.
  

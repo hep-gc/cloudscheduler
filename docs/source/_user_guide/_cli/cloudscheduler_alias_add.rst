@@ -116,8 +116,7 @@ man(1) page: cloudscheduler alias add
  
 
 **EXAMPLES**
-       1.     Creating an alias of two clouds within the current group::
-
+       1.     Creating an alias of two clouds within the current group:
  
               $ cloudscheduler alias add -an amazon -cn amazon-east,amazon-west
               cloud alias "testing.amazon" successfully added.

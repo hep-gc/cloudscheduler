@@ -162,8 +162,7 @@ man(1) page: cloudscheduler cloud metadata-update
  
 
 **EXAMPLES**
-       1.     Updating the metadata "example.yaml"::
-
+       1.     Updating the metadata "example.yaml":
               $ cloudscheduler cloud metadata-update -cn example -mn example.yaml -me no -mmt ucernvm-config -mp 5
               cloud metadata file "example::example::example.yaml" successfully  updated.
  

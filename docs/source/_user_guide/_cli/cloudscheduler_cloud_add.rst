@@ -354,8 +354,7 @@ man(1) page: cloudscheduler cloud add
  
 
 **EXAMPLES**
-       1.     Adding the cloud "example"::
-
+       1.     Adding the cloud "example":
               $ cloudscheduler cloud add -ca example.ca -cn example -cpw example -cp example -cr example -ct amazon -cu example
               cloud "example::example" successfully added.
  

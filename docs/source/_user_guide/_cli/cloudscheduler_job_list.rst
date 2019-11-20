@@ -339,8 +339,7 @@ man(1) page: cloudscheduler job list
  
 
 **EXAMPLES**
-       1.     List all jobs for the current group::
-
+       1.     List all jobs for the current group:
               $ cloudscheduler job list
               Server: default, Active User: example, Active Group: example, User's Groups: ['example', 'testing']
  

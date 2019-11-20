@@ -98,8 +98,7 @@ man(1) page: cloudscheduler defaults set
  
 
 **EXAMPLES**
-       1.     Set the server address for default "example"::
-
+       1.     Set the server address for default "example":
               $ cloudscheduler defaults set -s example -sa https://www.example.com/
  
 

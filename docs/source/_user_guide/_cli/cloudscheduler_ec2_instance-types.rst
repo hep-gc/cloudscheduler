@@ -389,8 +389,7 @@ man(1) page: cloudscheduler ec2 instance-types
               $ cloudscheduler ec2 instance-types -cn amazon-east -w man,core
               Server: dev, Active User: crlb, Active Group: testing, User's Groups: ['crlb', 'demo', 'test', 'test-dev2', 'testing']
  
-              EC2 Instance Type Filters::
-
+              EC2 Instance Type Filters:
 
               +---------+-------------+-----------------------------------+--------------------+------------+-------------------------+-------+-----------------------+-----------------------+
               +         |             |                                   |                    |            |                         |       |             Memory (GiB per core)             +
@@ -401,8 +400,7 @@ man(1) page: cloudscheduler ec2 instance-types
 
               Rows: 1
  
-              Manufacturer Filter::
-
+              Manufacturer Filter:
 
               +--------------+
               + Manufacturer +
@@ -415,8 +413,7 @@ man(1) page: cloudscheduler ec2 instance-types
 
               Rows: 4
  
-              Cores Filter::
-
+              Cores Filter:
 
               +-------------+
               + Cores       +
@@ -441,8 +438,7 @@ man(1) page: cloudscheduler ec2 instance-types
 
               Rows: 16
  
-              EC2 Instance Types::
-
+              EC2 Instance Types:
 
               +-----------+---------------+------------------+-----------------+------------------------+--------------+-------------+-----------------------+-----------------------+----------+-----------------------+
               + Region    | Instance Type | Operating System | Family          | Processor              | Manufacturer | Cores       | Memory                | Memory per Core       | Storage  | Cost per Hour         +
@@ -472,8 +468,7 @@ man(1) page: cloudscheduler ec2 instance-types
               $ cloudscheduler ec2 instance-types -cn amazon-east -itpm intel,amd -itc 1,2,4,8 -itmn 1.5 -itmx 3.0
               Server: dev, Active User: crlb, Active Group: testing, User's Groups: ['crlb', 'demo', 'test', 'test-dev2', 'testing']
  
-              EC2 Instance Type Filters::
-
+              EC2 Instance Type Filters:
 
               +---------+-------------+-----------------------------------+--------------------+------------+-------------------------+---------+-----------------------+-----------------------+
               +         |             |                                   |                    |            |                         |         |             Memory (GiB per core)             +
@@ -484,8 +479,7 @@ man(1) page: cloudscheduler ec2 instance-types
 
               Rows: 1
  
-              EC2 Instance Types::
-
+              EC2 Instance Types:
 
               +-----------+---------------+------------------+-------------------+------------------------------------+--------------+-------------+-----------------------+-----------------------+------------------+-----------------------+
               + Region    | Instance Type | Operating System | Family            | Processor                          | Manufacturer | Cores       | Memory                | Memory per Core       | Storage          | Cost per Hour         +

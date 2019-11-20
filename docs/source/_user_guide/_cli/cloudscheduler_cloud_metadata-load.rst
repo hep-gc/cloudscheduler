@@ -183,8 +183,7 @@ man(1) page: cloudscheduler cloud metadata-load
  
 
 **EXAMPLES**
-       1.     Adding the cloud metadata file "example"::
-
+       1.     Adding the cloud metadata file "example":
               $ cloudscheduler cloud metadata-load -cn example -f /<path>/myfile.yaml -mn example.yaml
               cloud metadata file "example::example::example.yaml" successfully added.
  

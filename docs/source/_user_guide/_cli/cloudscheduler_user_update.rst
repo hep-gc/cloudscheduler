@@ -186,18 +186,15 @@ man(1) page: cloudscheduler user update
  
 
 **EXAMPLES**
-       1.     Updating a user to be a super user::
-
+       1.     Updating a user to be a super user:
               $ cloudscheduler user update -un example -SU yes
               user "example" successfully updated.
  
-       2.     Adding a user to groups::
-
+       2.     Adding a user to groups:
               $ cloudscheduler user update -un example -gn group1,group2
               user "example" successfully updated.
  
-       3.     Removing the user from a group::
-
+       3.     Removing the user from a group:
               $ cloudscheduler user update -un example -gn group1 -go delete
               user "example" successfully updated.
  

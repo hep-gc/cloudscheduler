@@ -177,8 +177,7 @@ man(1) page: cloudscheduler group metadata-load
  
 
 **EXAMPLES**
-       1.     Adding the group metadata "example"::
-
+       1.     Adding the group metadata "example":
               $ cloudscheduler group metadata-load -f /<path>/example.yaml -mn example.yaml -me true -mmt ucernvm-config -mp 4
               group metadata file "example::example.yaml" successfully added.
  

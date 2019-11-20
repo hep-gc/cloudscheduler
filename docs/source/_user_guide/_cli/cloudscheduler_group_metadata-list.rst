@@ -230,13 +230,11 @@ man(1) page: cloudscheduler group metadata-list
  
 
 **EXAMPLES**
-       1.     Listing group metadata for the group "example"::
-
+       1.     Listing group metadata for the group "example":
               $ cloudscheduler group metadata-list
               Server: default, Active User: example, Active Group: example, User's Groups: ['example', 'testing']
  
-              Active Group/Metadata::
-
+              Active Group/Metadata:
 
               +---------+-------------------+---------+----------+--------------+
               + Group   | Metadata Filename | Enabled | Priority | MIME Type    +
@@ -247,13 +245,11 @@ man(1) page: cloudscheduler group metadata-list
 
               Rows: 2
  
-       2.     Listing group metadata "example"::
-
+       2.     Listing group metadata "example":
               $ cloudscheduler group metadata-list -mn example.yaml
               Server: default, Active User: example, Active Group: example, User's Groups: ['example', 'testing']
  
-              Active Group/Metadata::
-
+              Active Group/Metadata:
 
               +---------+-------------------+---------+----------+--------------+
               + Group   | Metadata Filename | Enabled | Priority | MIME Type    +

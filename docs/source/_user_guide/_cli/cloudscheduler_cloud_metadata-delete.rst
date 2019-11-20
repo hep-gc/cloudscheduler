@@ -125,8 +125,7 @@ man(1) page: cloudscheduler cloud metadata-delete
  
 
 **EXAMPLES**
-       1.     Deleting the cloud metadata "example.yaml"::
-
+       1.     Deleting the cloud metadata "example.yaml":
               $ cloudscheduler cloud metadata-delete -cn example -mn example.yaml -Y
               cloud metadata file "example::example::example.yaml" successfully deleted.
  

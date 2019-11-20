@@ -227,13 +227,11 @@ man(1) page: cloudscheduler cloud metadata-collation
 
 **EXAMPLES**
        1.     List  all  metadata  that  would  be applied to VMs on the cloud
-              "example"::
-
+              "example":
               $ cloudscheduler cloud metadata-collation -cn example
               Server: default, Active User: example, Active Group: example, User's Groups: ['example', 'testing']
  
-              Clouds/Metadata Collation::
-
+              Clouds/Metadata Collation:
 
               +---------+---------+-------------------+-------------+-------+
               + Group   | Cloud   | Metadata Filename | Priority    | Type  +

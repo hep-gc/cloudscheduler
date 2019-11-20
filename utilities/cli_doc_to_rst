@@ -122,7 +122,7 @@ def convert_manpage(gvar, fd, manpage):
 
                 fd.write('%s\n' % new_line)
             else:
-                if example_section and len(stripped_line) > 1 and stripped_line[-1] == ':':
+                if example_section and indent_len < 1 and len(stripped_line) > 1 and stripped_line[-1] == ':':
                     stripped_line = '%s:\n' % stripped_line
                         
                 if len(stripped_line) > 4 and stripped_line[:2] == '+-' and stripped_line[-2:] == '-+':

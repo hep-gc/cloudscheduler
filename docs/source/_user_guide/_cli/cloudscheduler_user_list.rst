@@ -225,13 +225,11 @@ man(1) page: cloudscheduler user list
  
 
 **EXAMPLES**
-       1.     Viewing the user list filtered by username::
-
+       1.     Viewing the user list filtered by username:
               $ cloudscheduler user list -un example
               Server: default, Active User: example, Active Group: example, User's Groups: ['example', 'testing']
  
-              Users::
-
+              Users:
 
               +----------+--------------+--------------+-----------------+---------------+-------------+------------+
               + Username | Common Name  | Active Group | User Groups     | Not In Groups | Super User  | Joined     +

@@ -407,19 +407,16 @@ man(1) page: cloudscheduler cloud update
  
 
 **EXAMPLES**
-       1.     Updating the cloud "example"::
-
+       1.     Updating the cloud "example":
               $ cloudscheduler cloud update -cn example -ca updated.ca -ce false
               cloud "example::example" successfully updated.
  
-       2.     Updating the cloud "example" to exclude a group metadata file::
-
+       2.     Updating the cloud "example" to exclude a group metadata file:
               $ cloudscheduler cloud update -cn example -gme group-metadata1 -gmo add
               cloud "example::example" successfully updated.
  
        3.     Updating the cloud "example" to not  exclude  a  group  metadata
-              file::
-
+              file:
               $ cloudscheduler cloud update -cn example -gme group-metadata1 -gmo delete
               cloud "example::example" successfully updated.
  

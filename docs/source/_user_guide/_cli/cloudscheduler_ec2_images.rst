@@ -396,8 +396,7 @@ man(1) page: cloudscheduler ec2 images
               $ cloudscheduler ec2 images -cn amazon-east --with owner,arch
               Server: dev, Active User: crlb, Active Group: testing, User's Groups: ['crlb', 'demo', 'test', 'test-dev2', 'testing']
  
-              EC2 Image Filters::
-
+              EC2 Image Filters:
 
               +---------+-------------+-------------+--------------+--------+----------+-------------------+---------------+
               +         |             |           Owner            |      Images       |                   |               +
@@ -408,8 +407,7 @@ man(1) page: cloudscheduler ec2 images
 
               Rows: 1
  
-              Architecture Filter::
-
+              Architecture Filter:
 
               +--------------+
               + Architecture +
@@ -422,8 +420,7 @@ man(1) page: cloudscheduler ec2 images
 
               Rows: 4
  
-              Owner Alias Filter::
-
+              Owner Alias Filter:
 
               +-----------+
               + Alias     +
@@ -436,8 +433,7 @@ man(1) page: cloudscheduler ec2 images
 
               Rows: 4
  
-              EC2 Images::
-
+              EC2 Images:
 
               +-----------+----------------------------------------+--------------+--------+--------------+-------------+------------------+--------------+-------------+-------------+------------+--------------+
               +           |                                        |              |         Owner         |             |                  |              |             |             |            |              +
@@ -463,8 +459,7 @@ man(1) page: cloudscheduler ec2 images
               $ cloudscheduler ec2 images -cn amazon-east -ia 64bit -ioa amazon,self,shared -il suse-sles-12-sp4
               Server: dev, Active User: crlb, Active Group: testing, User's Groups: ['crlb', 'demo', 'test', 'test-dev2', 'testing']
  
-              EC2 Image Filters::
-
+              EC2 Image Filters:
 
               +---------+-------------+--------------------+--------------+------------------+----------+-------------------+---------------+
               +         |             |               Owner               |           Images            |                   |               +
@@ -475,8 +470,7 @@ man(1) page: cloudscheduler ec2 images
 
               Rows: 1
  
-              EC2 Images::
-
+              EC2 Images:
 
               +-----------+-------------------------------------------------------+-----------------------+--------+--------------+-------------+------------------+--------------+-------------+-------------+------------+--------------+
               +           |                                                       |                       |         Owner         |             |                  |              |             |             |            |              +

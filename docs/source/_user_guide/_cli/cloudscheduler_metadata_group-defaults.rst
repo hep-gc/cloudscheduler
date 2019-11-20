@@ -323,13 +323,11 @@ man(1) page: cloudscheduler metadata group-defaults
  
 
 **EXAMPLES**
-       1.     Viewing defaults for the group "example"::
-
+       1.     Viewing defaults for the group "example":
               $ cloudscheduler metadata group-defaults -g example
               Server: default, Active User: example, Active Group: example, User's Groups: ['example', 'testing']
  
-              Active Group Defaults::
-
+              Active Group Defaults:
 
               +---------+--------+-------+------------+-------------+-------------+-------------+-------------+
               +         |             VM              |                          Job                          +
@@ -340,14 +338,12 @@ man(1) page: cloudscheduler metadata group-defaults
 
               Rows: 1
  
-       2.     Updating the default for the group "example"::
-
+       2.     Updating the default for the group "example":
               $ cloudscheduler metadata group-defaults -g example -jc 2 -jd 10 -jr 2000 -js 1 -vf 'flavor-name1,flavor-name2' -vi 'image-name1,image-name2' -vka 60
               group defaults "example" successfully updated.
               Server: default, Active User: example, Active Group: example, User's Groups: ['example', 'testing']
  
-              Active Group Defaults::
-
+              Active Group Defaults:
 
               +---------+---------------------------+-------------------------+-------------+-------------+-------------+-------------+-------------+
               +         |                                VM                                 |                          Job                          +

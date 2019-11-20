@@ -234,13 +234,11 @@ man(1) page: cloudscheduler cloud metadata-list
  
 
 **EXAMPLES**
-       1.     Listing the cloud metadata for the cloud "example"::
-
+       1.     Listing the cloud metadata for the cloud "example":
               $ cloudscheduler cloud metadata-list -cn example
               Server: default, Active User: example, Active Group: example, User's Groups: ['example', 'testing']
  
-              Clouds/Metadata::
-
+              Clouds/Metadata:
 
               +---------+---------+-------------------+---------+----------+--------------+
               + Group   | Cloud   | Metadata Filename | Enabled | Priority | MIME Type    +

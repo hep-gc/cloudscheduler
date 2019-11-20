@@ -231,13 +231,11 @@ man(1) page: cloudscheduler group list
  
 
 **EXAMPLES**
-       1.     List all groups on the server::
-
+       1.     List all groups on the server:
               $ cloudscheduler group list
               Server: default, Active User: example, Active Group: example, User's Groups: ['examle', 'testing']
  
-              Groups::
-
+              Groups:
 
               +---------+-----------------+---------------------------+
               + Group   | Central Manager | Metadata Filenames        +
@@ -248,13 +246,11 @@ man(1) page: cloudscheduler group list
 
               Rows: 2
  
-       2.     List a specific group "example"::
-
+       2.     List a specific group "example":
               $ cloudscheduler group list -gn example
               Server: default, Active User: example, Active Group: example, User's Groups: ['example', 'testing']
  
-              Groups::
-
+              Groups:
 
               +---------+-----------------+--------------------+
               + Group   | Central Manager | Metadata Filenames +

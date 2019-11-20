@@ -159,18 +159,15 @@ man(1) page: cloudscheduler group update
  
 
 **EXAMPLES**
-       1.     Updating the group "example"::
-
+       1.     Updating the group "example":
               $ cloudscheduler group update -gn example -gm example.ca
               group "example" successfully updated.
  
-       2.     Adding users to the group "example"::
-
+       2.     Adding users to the group "example":
               $ cloudscheduler group update -gn example -un user1,user2
               group "example" successfully updated.
  
-       3.     Removing users from the group "example"::
-
+       3.     Removing users from the group "example":
               $ cloudscheduler group update -gn example -un user1,user2 -uo delete
               group "example" successfully updated.
  

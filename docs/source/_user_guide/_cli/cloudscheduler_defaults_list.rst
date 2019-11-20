@@ -191,12 +191,10 @@ man(1) page: cloudscheduler defaults list
  
 
 **EXAMPLES**
-       1.     Listing all server defaults(not all columns shown)::
-
+       1.     Listing all server defaults(not all columns shown):
               $ cloudscheduler defaults list
  
-              Defaults::
-
+              Defaults:
 
               +------------+----------------------+-------------+
               + server     | server-address       | server-user +
@@ -207,12 +205,10 @@ man(1) page: cloudscheduler defaults list
 
               Rows: 2
  
-       2.     Listing the defaults for server "example"::
-
+       2.     Listing the defaults for server "example":
               $ cloudscheduler defaults list -s example
  
-              Defaults::
-
+              Defaults:
 
               +------------+----------------------+-------------+
               + server     | server-address       | server-user +
