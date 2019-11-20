@@ -1,0 +1,285 @@
+#!/usr/bin/env python3
+"""
+Synopsis: utilities/generate_schema.py > lib/schema.py
+
+This routine pulls the current table definitions from the csv2 database and writes the
+schema to stdout. To use the schema definitions:
+
+            from lib.schema import <view_or_table_name_1>, <view_or_table_name_2>, ...
+"""
+
+from shutil import copyfile
+from subprocess import Popen, PIPE
+from tempfile import NamedTemporaryFile
+import json
+import os
+import sys
+import yaml
+
+REMOVE_BRACKETS = str.maketrans('()', '  ')
+
+def convert_manpage(gvar, fd, manpage):
+    if os.path.isfile('%s/%s/%s' % ( gvar['base_dir'], gvar['config']['man_doc_dir'], manpage)):
+        p1 = Popen(
+            [
+                'groff',
+                '-man',
+                '-T',
+                'ascii',
+                manpage
+                ],
+            cwd='%s/%s' % (gvar['base_dir'], gvar['config']['man_doc_dir']),
+            stdout=PIPE,
+            stderr=PIPE
+            )
+        stdout, stderr = p1.communicate()
+        if p1.returncode != 0:
+            print('Failed to retrieve man page "%s".' % manpage)
+            exit(1)
+
+        sql_query = 0
+        example_section = False
+        example_tables = False
+        saved_bit = None
+
+        lines = stdout.decode('ascii').split('\n')
+        for line in lines[gvar['config']['man_page_lines_to_skip']:]:
+            line = '%s\n' % line
+            indent_len  = len(line) - len(line.lstrip())
+            if indent_len > 0:
+                indent = ' ' * indent_len
+            else:
+                indent = ''
+
+            if saved_bit:
+                stripped_line = '%s%s' % (saved_bit, line[:-1].strip())
+                saved_bit = None
+            else:
+                stripped_line = line[:-1].strip()
+
+            bits = stripped_line.split()
+            if len(bits) > 1 and stripped_line[-1] == '-' and len(bits[-1]) > 1 and bits[-1][-1] == '-':
+                    if bits[-1][:2] == '\x1b\x5b':
+                        tit_bits = bits[-1].split('m', 1)
+                        saved_bit = tit_bits[-1][:-1]
+                    else:
+                        saved_bit = bits[-1][:-1]
+
+                    stripped_line = stripped_line[:-1*(len(saved_bit)+1)]
+
+            bits = stripped_line.split('\x1b\x5b')
+            if len(bits) > 1:
+                pending = None
+                if indent_len > 0:
+                    bits[0] = '%s%s' % (indent, bits[0].lstrip())
+
+                for ix in range(len(bits)):
+                    tit_bits = bits[ix].split('m', 1)
+
+                    if tit_bits[0] == '22' and pending:
+                        tit_bits[0] = pending
+                        pending = None
+
+                    if tit_bits[0] == '1' or tit_bits[0] == '4':
+                        if len(tit_bits[1]) < 1:
+                            pending = tit_bits[0]
+                            bits[ix] = ''
+                            continue
+                        else:
+                            if tit_bits[0] == '1':
+                                bits[ix] = '\n%s**%s**' % (indent, tit_bits[1].strip().replace('--', '\\\\-\\\\-'))
+                            else:
+                                bits[ix] = '\n%s*%s*' % (indent, tit_bits[1].strip().replace('--', '\\\\-\\\\-'))
+
+                    elif tit_bits[0] == '0' or tit_bits[0] == '22' or tit_bits[0] == '24':
+                        tiny_tit_bits = tit_bits[1].split(' ', 1)
+                        if ix > 0 and \
+                            (tiny_tit_bits[0] == '.' or  \
+                            tiny_tit_bits[0] == ',' or  \
+                            tiny_tit_bits[0] == ').' or  \
+                            tiny_tit_bits[0] == '),'):
+
+                            bits[ix-1] = '%s%s' % (bits[ix-1], tiny_tit_bits[0])
+
+                            if len(tiny_tit_bits) < 2 or tiny_tit_bits[1].strip() == '':
+                                bits[ix] = ''
+                            else:
+                                bits[ix] = '\n%s%s' % (indent, tiny_tit_bits[1].strip())
+
+                        else:
+                            if tit_bits[1].strip() == '':
+                                bits[ix] = ''
+                            else:
+                                bits[ix] = '\n%s%s' % (indent, tit_bits[1].strip())
+
+
+                new_line = ''.join(bits)
+                if len(new_line) > 4 and new_line[:3] == '\n**' and new_line[-2:] == '**':
+                    if example_section:
+                        example_section = False
+                    elif new_line == '\n**EXAMPLE**' or new_line == '\n**EXAMPLES**':
+                        example_section = True
+
+                fd.write('%s\n' % new_line)
+            else:
+                if example_section and len(stripped_line) > 1 and stripped_line[-1] == ':':
+                    stripped_line = '%s:\n' % stripped_line
+                        
+                if len(stripped_line) > 4 and stripped_line[:2] == '+-' and stripped_line[-2:] == '-+':
+                    if sql_query == 0:
+                        example_tables = True
+                        sql_query = 1
+                        fd.write('\n')
+
+                    elif sql_query == 1:
+                        sql_query = 2
+                        stripped_line = stripped_line.replace('-', '=')
+                    else:
+                        sql_query = 0
+                        stripped_line = '%s\n' % stripped_line
+
+                fd.write('%s%s\n' % (indent, stripped_line))
+
+        if example_tables:
+            fd.write('\n.. note:: The results of an SQL query will be formatted differently from the Restructured Text tables shown above.\n')
+    else:
+        print('WARNING: man page "%s" does not exist.' % manpage)
+
+def equal_files(gvar, fn1, fn2):
+    len_do_not_edit = len(gvar['do_not_edit'].split('\n'))
+
+    with open(fn1) as fd:
+        f1 = '\n'.join(fd.read().split('\n')[len_do_not_edit:])
+
+    with open(fn2) as fd:
+        f2 = '\n'.join(fd.read().split('\n')[len_do_not_edit:])
+
+    return f1 == f2
+
+def main(args):
+    """
+    This does everything:
+    o Writes the schema header to stdout.
+    o Retrieves the list of tables from the csv2 database.
+    o Then for each table:
+      - Resets the variable _stdout to just the table header.
+      - Retrieves the column list for the table.
+      - Then for each column:
+        + Appends the column definition to _stdout.-
+      - Appends the table footer to _stdout.
+      - Writes the table definition to stdout.
+    """
+
+    gvar = {}
+    config_path = '/etc/cloudscheduler/cloudscheduler.yaml'
+    if os.path.isfile(config_path):
+        fd = open(config_path)
+        gvar['csv2_config'] = yaml.full_load(fd.read())
+        fd.close()
+    else:
+        gvar['csv2_config'] = None
+    
+
+    gvar['cmd_path'] = os.path.abspath(args[0])
+    gvar['cmd_path_stat'] = os.stat(gvar['cmd_path'])
+    gvar['path_info'] = gvar['cmd_path'].split('/')
+    gvar['ix'] = gvar['path_info'].index('cloudscheduler')
+    gvar['base_dir'] = '/'.join(gvar['path_info'][:gvar['ix']+1])
+    gvar['do_not_edit'] = '.. File generated by %s/utilities/cli_doc_to_rst - DO NOT EDIT\n' \
+        '..\n' \
+        '.. To modify the contents of this file:\n' \
+        '..   1. edit the man page file(s) ".../cloudscheduler/cli/man/%%s"\n' \
+        '..   2. run the utility ".../cloudscheduler/utilities/cli_doc_to_rst"\n' \
+        '..\n\n' % (gvar['base_dir'])
+    gvar['tempfile'] = NamedTemporaryFile(delete=False)
+
+    with open('%s/etc/cli_doc_to_rst.conf' % gvar['base_dir']) as fd:
+        gvar['config'] = yaml.full_load(fd.read())
+    
+    p1 = Popen(
+        [
+            'cloudscheduler',
+            'helpers',
+            'print_json_syntax_tree'
+            ],
+        stdout=PIPE,
+        stderr=PIPE
+        )
+    stdout, stderr = p1.communicate()
+
+    if p1.returncode != 0:
+        print('Failed to retrieve cloudscheduler command syntax tree - %s' % stdout.decode('ascii'))
+        exit(1)
+
+    gvar['syntax_tree'] = json.loads(stdout.decode('ascii'))
+
+    template_path = '%s/%s' % (gvar['base_dir'], gvar['config']['index_template_path'])
+    with open(template_path) as fd:
+        template = fd.read()
+
+    index_path = '%s/%s/index.rst' % (gvar['base_dir'], gvar['config']['restructured_text_dir'])
+    with open(gvar['tempfile'].name, 'w') as fd:
+        fd.write(gvar['do_not_edit'] % 'readthedocs_index.rst')
+
+        fd.write('.. _cloudscheduler: https://cloudscheduler.readthedocs.io/en/latest/_user_guide/_cli/cloudscheduler.html\n')
+        for object in sorted(gvar['syntax_tree']):
+            if os.path.isfile('%s/%s/csv2_%s.1' % (gvar['base_dir'], gvar['config']['man_doc_dir'], object)):
+                fd.write('.. _%s: https://cloudscheduler.readthedocs.io/en/latest/_user_guide/_cli/cloudscheduler_%s.html\n' % (object, object))
+                for action in sorted(gvar['syntax_tree'][object]):
+                    if os.path.isfile('%s/%s/csv2_%s_%s.1' % (gvar['base_dir'], gvar['config']['man_doc_dir'], object, action)):
+                        fd.write('.. _%s_%s: https://cloudscheduler.readthedocs.io/en/latest/_user_guide/_cli/cloudscheduler_%s_%s.html\n' % (object, action, object, action))
+            fd.write('\n')
+        
+        fd.write(template)
+
+        fd.write('* cloudscheduler_\n\n')
+        for object in sorted(gvar['syntax_tree']):
+            if os.path.isfile('%s/%s/csv2_%s.1' % (gvar['base_dir'], gvar['config']['man_doc_dir'], object)):
+                fd.write('   * %s_\n\n' % object)
+                for action in sorted(gvar['syntax_tree'][object]):
+                    if os.path.isfile('%s/%s/csv2_%s_%s.1' % (gvar['base_dir'], gvar['config']['man_doc_dir'], object, action)):
+                        fd.write('      * %s_%s_\n' % (object, action))
+            fd.write('\n')
+            
+    if not os.path.exists(index_path) or not equal_files(gvar, gvar['tempfile'].name, index_path):
+        print("Updating:", index_path)
+        copyfile(gvar['tempfile'].name, index_path)
+
+    title = 'man(1) page: cloudscheduler' 
+    cmd_path = '%s/%s/cloudscheduler.rst' % (gvar['base_dir'], gvar['config']['restructured_text_dir'])
+    with open(gvar['tempfile'].name, 'w') as fd:
+        fd.write(gvar['do_not_edit'] % 'csv2.1')
+        fd.write('%s\n%s\n\n' % (title, '=' * len(title)))
+        convert_manpage(gvar, fd, 'csv2.1')
+
+    if not os.path.exists(cmd_path) or not equal_files(gvar, gvar['tempfile'].name, cmd_path):
+        print("Updating:", cmd_path, gvar['tempfile'].name)
+        copyfile(gvar['tempfile'].name, cmd_path)
+
+    for object in sorted(gvar['syntax_tree']):
+        title = 'man(1) page: cloudscheduler %s' % object 
+        object_path = '%s/%s/cloudscheduler_%s.rst' % (gvar['base_dir'], gvar['config']['restructured_text_dir'], object)
+        with open(gvar['tempfile'].name, 'w') as fd:
+            fd.write(gvar['do_not_edit'] % ('csv2_%s.1' % object))
+            fd.write('%s\n%s\n\n' % (title, '=' * len(title)))
+            convert_manpage(gvar, fd, 'csv2_%s.1' % object)
+
+        if not os.path.exists(object_path) or not equal_files(gvar, gvar['tempfile'].name, object_path):
+            print("Updating:", object_path, gvar['tempfile'].name)
+            copyfile(gvar['tempfile'].name, object_path)
+
+        for action in sorted(gvar['syntax_tree'][object]):
+            title = 'man(1) page: cloudscheduler %s %s' % (object, action) 
+            action_path = '%s/%s/cloudscheduler_%s_%s.rst' % (gvar['base_dir'], gvar['config']['restructured_text_dir'], object, action)
+            with open(gvar['tempfile'].name, 'w') as fd:
+                fd.write(gvar['do_not_edit'] % ('csv2_%s_%s.1' % (object, action)))
+                fd.write('%s\n%s\n\n' % (title, '=' * len(title)))
+                convert_manpage(gvar, fd, 'csv2_%s_%s.1' % (object, action))
+
+            if not os.path.exists(action_path) or not equal_files(gvar, gvar['tempfile'].name, action_path):
+                print("Updating:", action_path, gvar['tempfile'].name)
+                copyfile(gvar['tempfile'].name, action_path)
+
+        
+if __name__ == "__main__":
+    main(sys.argv)
