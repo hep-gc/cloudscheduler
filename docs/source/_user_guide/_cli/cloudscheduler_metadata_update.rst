@@ -154,7 +154,8 @@ man(1) page: cloudscheduler metadata update
  
 
 **EXAMPLES**
-       1.     Updating the group metadata "example":
+       1.     Updating the group metadata "example"::
+
               $ cloudscheduler metadata update -mn example.yaml -me no -mmt ucernvm-config -mp 2
               group metadata file "example::example.yaml" successfully  updated.
  

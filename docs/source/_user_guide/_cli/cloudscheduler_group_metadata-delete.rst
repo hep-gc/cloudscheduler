@@ -117,7 +117,8 @@ man(1) page: cloudscheduler group metadata-delete
  
 
 **EXAMPLES**
-       1.     Deleteing group metadata "example":
+       1.     Deleteing group metadata "example"::
+
               $ cloudscheduler group metadata-delete -mn example.yaml -Y
               group metadata file "example::example.yaml" successfully deleted.
  

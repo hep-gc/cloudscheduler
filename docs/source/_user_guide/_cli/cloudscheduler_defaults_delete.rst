@@ -80,7 +80,8 @@ man(1) page: cloudscheduler defaults delete
  
 
 **EXAMPLES**
-       1.     Delete server default "example":
+       1.     Delete server default "example"::
+
               $ cloudscheduler defaults delete -s example
               Are you sure you want to delete the settings for server "example"? (yes|..)
               yes

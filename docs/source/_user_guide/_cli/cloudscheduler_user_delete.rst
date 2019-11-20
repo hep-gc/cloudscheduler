@@ -115,7 +115,8 @@ man(1) page: cloudscheduler user delete
  
 
 **EXAMPLES**
-       1.     Deleting the user "example":
+       1.     Deleting the user "example"::
+
               $ cloudscheduler user delete -un example
               Are you sure you want to delete user "example"? (yes|..)
               yes

@@ -314,7 +314,8 @@ man(1) page: cloudscheduler vm list
  
 
 **EXAMPLES**
-       1.     List all vms in the current group:
+       1.     List all vms in the current group::
+
               $ cloudscheduler vm list
               Server: default, Active User: example, Active Group: example, User's Groups: ['example', 'testing']
  
@@ -369,7 +370,8 @@ man(1) page: cloudscheduler vm list
 
               Rows: 2
  
-       2.     List only vms in the cloud "example" that are running:
+       2.     List only vms in the cloud "example" that are running::
+
               $ cloudscheduler vm list -cn example -vS running
               Server: default, Active User: example, Active Group: example, User's Groups: ['example', 'testing']
  

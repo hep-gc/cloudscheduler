@@ -156,7 +156,8 @@ man(1) page: cloudscheduler user add
  
 
 **EXAMPLES**
-       1.     Adding the user "example":
+       1.     Adding the user "example"::
+
               $ cloudscheduler user add -un example -upw ??? -ucn 'John Doe' -gn 'group1,group2' -SU no
               Enter user-password:
               Verify user-password:

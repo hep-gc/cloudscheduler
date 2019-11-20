@@ -216,7 +216,8 @@ man(1) page: cloudscheduler alias list
  
 
 **EXAMPLES**
-       1.     List all defined aliases for the current group:
+       1.     List all defined aliases for the current group::
+
  
               $ cloudscheduler alias list
               Server: dev, Active User: crlb, Active Group: testing, User's Groups: ['crlb', 'demo', 'test', 'test-dev2', 'testing']

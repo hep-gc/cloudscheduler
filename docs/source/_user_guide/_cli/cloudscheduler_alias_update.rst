@@ -138,7 +138,8 @@ man(1) page: cloudscheduler alias update
  
 
 **EXAMPLES**
-       1.     Removing a cloud from and alias:
+       1.     Removing a cloud from and alias::
+
  
               $ cloudscheduler alias update -an amazon -cn amazon-west -co delete
               cloud alias "testing.amazon" successfully updated.

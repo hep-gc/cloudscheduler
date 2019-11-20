@@ -117,7 +117,8 @@ man(1) page: cloudscheduler group delete
  
 
 **EXAMPLES**
-       1.     Deleting the group "example":
+       1.     Deleting the group "example"::
+
               $ cloudscheduler group delete -gn example -Y
               group "example" successfully deleted.
  

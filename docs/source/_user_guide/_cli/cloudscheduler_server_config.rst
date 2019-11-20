@@ -283,7 +283,8 @@ man(1) page: cloudscheduler server config
  
 
 **EXAMPLES**
-       1.     Viewing server configuration:
+       1.     Viewing server configuration::
+
               $ cloudscheduler server config
               Server: default, Active User: example, Active Group: example, User's Groups: ['example', 'testing']
  
@@ -298,7 +299,8 @@ man(1) page: cloudscheduler server config
               +--------------+--------------+------+--------------------------------------+
               Rows: 2
  
-       2.     Updating the config for the server:
+       2.     Updating the config for the server::
+
               $ cloudscheduler server config -cc web_frontend -eg True -lf /var/log/cloudscheduler/csv2_web_updated.log
               server config successfully updated.
               Server: default, Active User: example, Active Group: example, User's Groups: ['example', 'testing']

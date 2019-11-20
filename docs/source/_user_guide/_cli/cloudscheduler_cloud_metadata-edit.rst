@@ -128,7 +128,8 @@ man(1) page: cloudscheduler cloud metadata-edit
  
 
 **EXAMPLES**
-       1.     Editing the metadata "example.yaml" with vim:
+       1.     Editing the metadata "example.yaml" with vim::
+
               $ cloudscheduler cloud metadata-edit -cn example -mn example.yaml -te vim
               cloud metadata file "example::example::example.yaml" successfully  updated.
  

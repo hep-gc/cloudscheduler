@@ -174,7 +174,8 @@ man(1) page: cloudscheduler vm update
  
 
 **EXAMPLES**
-       1.     Retire all native VMs in the current group:
+       1.     Retire all native VMs in the current group::
+
               $ cloudscheduler vm update -vo retire
               vm update, VMs retired=10.
  

@@ -224,7 +224,8 @@ man(1) page: cloudscheduler cloud status
  
 
 **EXAMPLES**
-       1.     Viewing the status of cloud "example":
+       1.     Viewing the status of cloud "example"::
+
               $ cloudscheduler cloud status -cn example
               Server: default, Active User: jodiew, Active Group: jodiew-clg1, User's Groups: ['jodiew-clg1', 'testing']
  
