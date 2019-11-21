@@ -252,6 +252,7 @@ def main(args):
             ('-upw',  '--user-password', True),
             ('-v',    '--version', False),
             ('-V',    '--view', True),
+            ('-vbv',  '--vm-boot-volume', True),
             ('-VC',   '--view-columns', False),
             ('-vc',   '--vm-cores', True),
             ('-vcs',   '--vm-cores-softmax', True),

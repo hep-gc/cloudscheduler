@@ -29,6 +29,7 @@ KEY_MAP = {
     '-mmt': 'mime_type',
     '-mn':  'metadata_name',
     '-mp':  'priority',
+    '-vbv': 'vm_boot_volume',
     '-vc':  'cores_ctl',
     '-vcs': 'cores_softmax',
     '-vf':  'vm_flavor',
@@ -66,7 +67,7 @@ def add(gvar):
 
     mandatory = ['-ca', '-cn', '-cP', '-cpw', '-cr', '-ct', '-cU']
     required = []
-    optional = ['-ce', '-cfe', '-cp', '-cPD', '-cPI', '-csp', '-cUD', '-cUI', '-g', '-ga', '-gme',  '-H', '-h', '-s', '-vc', '-vcs', '-vf', '-vi', '-vk', '-vka', '-vn', '-vr', '-vsg', '-v', '-xA']
+    optional = ['-ce', '-cfe', '-cp', '-cPD', '-cPI', '-csp', '-cUD', '-cUI', '-g', '-ga', '-gme',  '-H', '-h', '-s', '-vbv', '-vc', '-vcs', '-vf', '-vi', '-vk', '-vka', '-vn', '-vr', '-vsg', '-v', '-xA']
 
     if gvar['retrieve_options']:
         return mandatory + required + optional
@@ -186,6 +187,7 @@ def list(gvar):
             'cores_max/Max/Cores',
             'ram_ctl/Control/RAM',
             'ram_max/Max/RAM',
+            'vm_boot_volume/Boot Volume/Cloud Default',
             'vm_flavor/Flavor/Cloud Default',
             'vm_image/Image/Cloud Default',
             'vm_keep_alive/Keep Alive/Cloud Default',
@@ -437,7 +439,7 @@ def update(gvar):
 
     mandatory = ['-cn']
     required = []
-    optional = ['-ca', '-ce', '-cfe', '-cfo', '-cpw', '-cp', '-cP', '-cPD', '-cPI', '-cr', '-csp', '-ct', '-cU', '-cUD', '-cUI', '-g', '-ga', '-gme', '-gmo', '-H', '-h', '-s', '-vc', '-vcs', '-vf', '-vi', '-vk', '-vka', '-vn', '-vr', '-vsg', '-v', '-xA']
+    optional = ['-ca', '-ce', '-cfe', '-cfo', '-cpw', '-cp', '-cP', '-cPD', '-cPI', '-cr', '-csp', '-ct', '-cU', '-cUD', '-cUI', '-g', '-ga', '-gme', '-gmo', '-H', '-h', '-s', '-vbv', '-vc', '-vcs', '-vf', '-vi', '-vk', '-vka', '-vn', '-vr', '-vsg', '-v', '-xA']
 
     if gvar['retrieve_options']:
         return mandatory + required + optional
