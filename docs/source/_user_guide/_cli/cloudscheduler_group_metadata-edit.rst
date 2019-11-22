@@ -11,92 +11,93 @@ man(1) page: cloudscheduler group metadata-edit
  
  
  
-**NAME** 
-       **cloudscheduler  group  metadata-edit** 
+ **NAME** 
+        **cloudscheduler  group  metadata-edit** 
        -  edit group metadata files from
        cloudscheduler version 2 (csv2) servers
  
-**SYNOPSIS** 
-       **cloudscheduler group metadata-edit -mn** *name*
-       [*options*
+ **SYNOPSIS** 
+        **cloudscheduler group metadata-edit -mn**  *name*
+       [ *options*
        ...]
  
-**DESCRIPTION** 
-       The **cloudscheduler group metadata-edit** 
+ **DESCRIPTION** 
+       The  **cloudscheduler group metadata-edit** 
        edits group metadata files  from
        csv2  servers.   This action is available to priviliged users, provided
        they are in the group that the metadata belongs to.  To  edit  metadata
-       as an unpriviliged user use the **cloudscheduler metadata edit** 
+       as an unpriviliged user use the  **cloudscheduler metadata edit** 
        command.
  
-**OPTIONS** 
-   **Mandatory** 
+ **OPTIONS** 
+    **Mandatory** 
        The following are mandatory parameters and must be specified:
  
-       **-mn** *name*,**\\-\\-metadata-name** *name*
-              The  metadata  name  and primary identifier.  The value for *name*
+        **-mn**  *name*, **\\-\\-metadata-name**  *name*
+              The  metadata  name  and primary identifier.  The value for  *name*
               must be all lower case, numeric digits, and  dashes  but  cannot
               start or end with dashes..
  
-   **Required** 
+    **Required** 
        The  following  are required parameters and must be specified or have a
        default value:
  
-       **-te** *editor*,**\\-\\-text-editor** *editor*
+        **-te**  *editor*, **\\-\\-text-editor**  *editor*
               The text editor or script to use to edit the metadata file.
  
-   **Global** 
+    **Global** 
        These  options  are  avaliable  on   all   actions:.so   
        ../man/parameters/_group.so
  
-       **-H** ,**\\-\\-long-help** 
+        **-H** , **\\-\\-long-help** 
               Requests  the man page style help for the current command.  Long
-              help can be requested for the **cloudscheduler** 
+              help can be requested for the  **cloudscheduler** 
               command, a specific
               object, or a specific object/action.
  
-       **-h** ,**\\-\\-help** 
+        **-h** , **\\-\\-help** 
               Requests  short  help  for  the  current  command.   Help can be
-              requested for the **cloudscheduler** 
+              requested for the  **cloudscheduler** 
               command, a specific object,  or
               a specific object/action.
  
-       **-s** *server*,**\\-\\-server** *server*
+        **-s**  *server*, **\\-\\-server**  *server*
               The  name  of  the target server.  There must be an entry in the
-              **cloudscheduler defaults** 
-              that matches*server*
+               **cloudscheduler defaults** 
+              that matches *server*
               and it must have  an
               authentication method.
  
-       **-v** ,**\\-\\-version** 
+        **-v** , **\\-\\-version** 
               Requests  that  the versions of both the CLI client and the 
               targeted server be printed in addition to any other command output.
  
-       **-xA** ,**\\-\\-expose-API** 
+        **-xA** , **\\-\\-expose-API** 
               Requests trace messages detailing the API  calls  and  responses
-              issued and received by the **cloudscheduler** 
+              issued and received by the  **cloudscheduler** 
               command.
  
-**EXAMPLES** 
-       1.     Editing the group metadata file "example":
+ **EXAMPLES** 
+       1.     Editing the group metadata file "example"::
+
               $ cloudscheduler group metadata-edit -mn example.yaml -te vim
               group metadata file "example::example.yaml" successfully  updated.
  
-**SEE ALSO** 
-       **csv2** 
-       (1)**csv2_group** 
-       (1)**csv2_group_add** 
-       (1)**csv2_group_defaults** 
+ **SEE ALSO** 
+        **csv2** 
+       (1) **csv2_group** 
+       (1) **csv2_group_add** 
+       (1) **csv2_group_defaults** 
        (1)
-       **csv2_group_delete** 
-       (1)**csv2_group_list** 
-       (1)**csv2_group_metadata-delete** 
+        **csv2_group_delete** 
+       (1) **csv2_group_list** 
+       (1) **csv2_group_metadata-delete** 
        (1)
-       **csv2_group_metadata-list** 
-       (1)**csv2_group_metadata-load** 
+        **csv2_group_metadata-list** 
+       (1) **csv2_group_metadata-load** 
        (1)
-       **csv2_group_metadata-update** 
-       (1)**csv2_group_update** 
+        **csv2_group_metadata-update** 
+       (1) **csv2_group_update** 
        (1)
  
  

@@ -11,56 +11,56 @@ man(1) page: cloudscheduler alias
  
  
  
-**NAME** 
-       **cloudscheduler alias** 
+ **NAME** 
+        **cloudscheduler alias** 
        - manage cloud aliases for the current group.
  
-**SYNOPSIS** 
-       **cloudscheduler alias** *action**mandatory_parameters*
-       [*options*
+ **SYNOPSIS** 
+        **cloudscheduler alias**  *action* *mandatory_parameters*
+       [ *options*
        ...]
  
-**DESCRIPTION** 
-       The  **alias** 
+ **DESCRIPTION** 
+       The   **alias** 
        object allows for the creation and management of cloud
        subsets within a group.  Subsequently, jobs can be directed to execute  on
        a specific subset of clouds within a group by specifying an appropriate
-       **target_alias** 
+        **target_alias** 
        option inside the Job Definition Language (JDL) file  that
        is submitted to HTCondor.
  
-**ACTIONS** 
-       For  information  on  the parameters associated with each **alias** 
+ **ACTIONS** 
+       For  information  on  the parameters associated with each  **alias** 
        action,
-       refer to the documentation for that action (**cloudscheduler alias** *action*
-       **-H** ).
-       The following actions are available for the**alias** 
+       refer to the documentation for that action ( **cloudscheduler alias**  *action*
+        **-H** ).
+       The following actions are available for the **alias** 
        object:
  
-       **add** 
+        **add** 
        Adds  a  new alias definition to the current group.  A group may
               have multiple alias definitions and each  alias  definition  may
               contain  one  or more clouds.  A single cloud can be a member of
               multiple aliases.  All users within a group may  create  aliases
               for the group.
  
-       **list** 
+        **list** 
        Lists  all the alias definitions together with member clouds for
               the current group.  All users within a group may  list  and  use
               aliases.
  
-       **update** 
+        **update** 
        Modifies  the  alias  definitions  within  the  current group by
               adding or deleting member clouds.  When the last cloud within an
               alias  is deleted from the alias, then the alias is also removed
               from the group.  All users within a group may update the aliases
               for that group.
  
-**SEE ALSO** 
-       **csv2** 
-       (1)**csv2_alias_add** 
-       (1)**csv2_alias_list** 
-       (1)**csv2_alias_update** 
+ **SEE ALSO** 
+        **csv2** 
+       (1) **csv2_alias_add** 
+       (1) **csv2_alias_list** 
+       (1) **csv2_alias_update** 
        (1)
  
  

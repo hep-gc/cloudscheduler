@@ -56,6 +56,9 @@ def convert_manpage(gvar, fd, manpage):
                 saved_bit = None
             else:
                 stripped_line = line[:-1].strip()
+                if len(stripped_line) > 2 and stripped_line[:2] == 'o ':
+                    # Line space custom bullets.
+                    stripped_line = '\n%s' % stripped_line
 
             bits = stripped_line.split()
             if len(bits) > 1 and stripped_line[-1] == '-' and len(bits[-1]) > 1 and bits[-1][-1] == '-':
@@ -87,15 +90,18 @@ def convert_manpage(gvar, fd, manpage):
                             continue
                         else:
                             if tit_bits[0] == '1':
+                                # Format bold string.
 #                               bits[ix] = '\n%s**%s**' % (indent, tit_bits[1].strip().replace('--', '\\\\-\\\\-'))
 #                               bits[ix] = '%s**%s**' % (indent, tit_bits[1].strip().replace('--', '\\\\-\\\\-'))
-                                bits[ix] = '**%s** ' % (tit_bits[1].strip().replace('--', '\\\\-\\\\-'))
+                                bits[ix] = ' **%s** ' % (tit_bits[1].strip().replace('--', '\\\\-\\\\-'))
                             else:
+                                # Format italic string.
 #                               bits[ix] = '\n%s*%s*' % (indent, tit_bits[1].strip().replace('--', '\\\\-\\\\-'))
 #                               bits[ix] = '%s*%s* ' % (indent, tit_bits[1].strip().replace('--', '\\\\-\\\\-'))
-                                bits[ix] = '*%s*' % (tit_bits[1].strip().replace('--', '\\\\-\\\\-'))
+                                bits[ix] = ' *%s*' % (tit_bits[1].strip().replace('--', '\\\\-\\\\-'))
 
                     elif tit_bits[0] == '0' or tit_bits[0] == '22' or tit_bits[0] == '24':
+                        # Rest type face after bold or italic string.
                         tiny_tit_bits = tit_bits[1].split(' ', 1)
                         if ix > 0 and \
                             (tiny_tit_bits[0] == '.' or  \
@@ -118,17 +124,20 @@ def convert_manpage(gvar, fd, manpage):
 
 
                 new_line = ''.join(bits)
-                if len(new_line) > 4 and new_line[:3] == '\n**' and new_line[-2:] == '**':
+                if len(new_line) > 4 and new_line[:3] == ' **' and new_line[-3:] == '** ':
                     if example_section:
                         example_section = False
-                    elif new_line == '\n**EXAMPLE**' or new_line == '\n**EXAMPLES**':
+                    elif new_line == ' **EXAMPLE** ' or new_line == ' **EXAMPLES** ':
                         example_section = True
 
                 fd.write('%s\n' % new_line)
             else:
+                # Process lines with no text highlighting.
                 if example_section and indent_len < 12 and len(stripped_line) > 1 and stripped_line[-1] == ':':
+                    # In example section, line space after lines ending with a colon.
                     stripped_line = '%s:\n' % stripped_line
                         
+                # Format table.
                 if len(stripped_line) > 4 and stripped_line[:2] == '+-' and stripped_line[-2:] == '-+':
                     if sql_query == 0:
                         example_tables = True
@@ -257,7 +266,7 @@ def main(args):
         convert_manpage(gvar, fd, 'csv2.1')
 
     if not os.path.exists(cmd_path) or not equal_files(gvar, gvar['tempfile'].name, cmd_path):
-        print("Updating:", cmd_path, gvar['tempfile'].name)
+        print("Updating:", cmd_path)
         copyfile(gvar['tempfile'].name, cmd_path)
 
     for object in sorted(gvar['syntax_tree']):
@@ -269,7 +278,7 @@ def main(args):
             convert_manpage(gvar, fd, 'csv2_%s.1' % object)
 
         if not os.path.exists(object_path) or not equal_files(gvar, gvar['tempfile'].name, object_path):
-            print("Updating:", object_path, gvar['tempfile'].name)
+            print("Updating:", object_path)
             copyfile(gvar['tempfile'].name, object_path)
 
         for action in sorted(gvar['syntax_tree'][object]):
@@ -281,7 +290,7 @@ def main(args):
                 convert_manpage(gvar, fd, 'csv2_%s_%s.1' % (object, action))
 
             if not os.path.exists(action_path) or not equal_files(gvar, gvar['tempfile'].name, action_path):
-                print("Updating:", action_path, gvar['tempfile'].name)
+                print("Updating:", action_path)
                 copyfile(gvar['tempfile'].name, action_path)
 
         

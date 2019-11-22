@@ -11,29 +11,29 @@ man(1) page: cloudscheduler helpers
  
  
  
-**NAME** 
-       **cloudscheduler  helpers** 
+ **NAME** 
+        **cloudscheduler  helpers** 
        -  cli helpers cloudscheduler version 2 (csv2)
        servers
  
-**SYNOPSIS** 
-       **cloudscheduler helpers** *action*
+ **SYNOPSIS** 
+        **cloudscheduler helpers**  *action*
  
-**DESCRIPTION** 
+ **DESCRIPTION** 
        This object provides functions to aid in the use of this command.
  
  
-**ACTIONS** 
-       The following actions are available for the **helpers** 
+ **ACTIONS** 
+       The following actions are available for the  **helpers** 
        object:
  
-       **check_documentation** 
+        **check_documentation** 
               This action prints a  matrix  summarizing  the  completeness  of
-              **cloudscheduler** 
+               **cloudscheduler** 
               man page documentation.  It is used by developers
               to maintain up to date documentation.
  
-       **generate_bash_completion_script** 
+        **generate_bash_completion_script** 
               This action creates or updates a bash completion script for  the
               **cloudscheduler**  command  in the user's home directory. It is
               performed automatically each time source for the  CLI  is  
@@ -41,30 +41,33 @@ man(1) page: cloudscheduler helpers
  
               The action performs the following:
  
-              o  If the directory does not already exist, creates 
+              
+o  If the directory does not already exist, creates 
               ~/.bash_completion.d
-              o  If  it  creates  /.bash_completion.d,  it  also  appends   to
+              
+o  If  it  creates  /.bash_completion.d,  it  also  appends   to
               ~/.bash_completion   commands   to   'source'   all  scripts  in
               ~/.bash_completion.d
-              o Rewrites ~/.bash_completion.d/cloudscheduler.
+              
+o Rewrites ~/.bash_completion.d/cloudscheduler.
  
               In order to use the new completion  script,  you  will  need  to
               start  a  new  terminal  session  or re-'source' 
               ~/.bash_completion.d/cloudscheduler.
  
  
-       **print_json_syntax_tree** 
-              This action prints a JSON string containing  the  **cloudscheduler** 
+        **print_json_syntax_tree** 
+              This action prints a JSON string containing  the   **cloudscheduler** 
               command   syntax   tree.  It  is  used  by  developers  and  the
-              **cli_doc_to_rst** 
-              utility to furnish the**readthedocs** 
+               **cli_doc_to_rst** 
+              utility to furnish the **readthedocs** 
               web  service
               with the cloudscheduler man pages.
  
  
  
-       **SEE ALSO** 
-              **csv2** 
+        **SEE ALSO** 
+               **csv2** 
               (1)
  
  

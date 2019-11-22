@@ -11,19 +11,19 @@ man(1) page: cloudscheduler ec2 instance-types
  
  
  
-**NAME** 
-       **cloudscheduler  ec2 instance-types** 
+ **NAME** 
+        **cloudscheduler  ec2 instance-types** 
        - filter and list EC2 instance-types
        to be made available to cloudscheduler version 2 (csv2).
  
-**SYNOPSIS** 
-       **cloudscheduler ec2 instance-types** 
-       [*options*
+ **SYNOPSIS** 
+        **cloudscheduler ec2 instance-types** 
+       [ *options*
        ...]
  
-**DESCRIPTION** 
+ **DESCRIPTION** 
        Amazon EC2 offers a large collection  of  instance-types  (flavors)  to
-       host Virtual Machines (VMs).  The **ec2 instance-types** 
+       host Virtual Machines (VMs).  The  **ec2 instance-types** 
        function of
        cloudscheduler version 2 (CSV2) provides a filtering  system  to  facilitate
        finding  and  managing  instance-types  of  interest.   Since different
@@ -31,237 +31,237 @@ man(1) page: cloudscheduler ec2 instance-types
        performed on a cloud by cloud basis.  It is therefore necessary to specify
        from which cloud connection the instance-types are to be viewed.
  
-**OPTIONS** 
-   **Mandatory** 
+ **OPTIONS** 
+    **Mandatory** 
        The following are mandatory parameters and must be specified:
  
-       **-cn** *name*,**\\-\\-cloud-name** *name*
-              A cloud name.  The value for *name*
+        **-cn**  *name*, **\\-\\-cloud-name**  *name*
+              A cloud name.  The value for  *name*
               must  be  one  to  thirty-two
               characters,  all lower case, numeric digits, and dashes but 
               cannot start or end with dashes.
  
-   **Optional** 
+    **Optional** 
        Optional parameters are used to modify the filters  for  the  specified
        cloud.
  
        The following are optional parameters:
  
-       **-itc** *count1*
-       [,count2,...     countN],**\\-\\-ec2-instance-type-cores** 
-       *count1*
+        **-itc**  *count1*
+       [,count2,...     countN], **\\-\\-ec2-instance-type-cores** 
+        *count1*
        [,count2,... countN]
               Specifies a comma-seperated list of cores (number of processors)
-              of  interest.   The  **ec2** 
+              of  interest.   The   **ec2** 
               object is to filter out instance-types
               with an unlisted core count.
  
               Default: (defined in the system configuration)
  
-       **-itf** *family1*
-       [,family2,... familyN],**\\-\\-ec2-instance-type-families** *fam-*
-       *ily1*
+        **-itf**  *family1*
+       [,family2,... familyN], **\\-\\-ec2-instance-type-families**  *fam-*
+        *ily1*
        [,family2,... familyN]
               Specifies  a  comma-seperated  list of instance-type families of
               interest.  Valid instance-type families  are  displayed  in  the
-              **Family Filter** 
-              optional table (see**\\-\\-with** 
-              below).  The**ec2** 
+               **Family Filter** 
+              optional table (see **\\-\\-with** 
+              below).  The **ec2** 
               object
               is to filter out instance-types with a family other than  
               specified by this parameter.
  
               Default: (defined in the system configuration)
  
-       **-itmn** 
-       GiB,**\\-\\-ec2-instance-type-memory-min-gigabytes-per-core** 
+        **-itmn** 
+       GiB, **\\-\\-ec2-instance-type-memory-min-gigabytes-per-core** 
        GiB
               This  option  is  used to specify the minimum size memory and is
-              used in conjunction  with  the   **\\-\\-ec2-instance-type-memory-max-** 
-              **gigabytes-per-core** 
+              used in conjunction  with  the    **\\-\\-ec2-instance-type-memory-max-** 
+               **gigabytes-per-core** 
               to define a memory size range that is to be
-              selected.  The **ec2** 
+              selected.  The  **ec2** 
               object is to filter out instance-types with a
               memory size that is not within the specified range.
  
               Default: (defined in the system configuration)
  
-       **-itmx GiB** ,**\\-\\-ec2-instance-type-memory-max-gigabytes-per-core GiB** 
+        **-itmx GiB** , **\\-\\-ec2-instance-type-memory-max-gigabytes-per-core GiB** 
               This  option  is  used to specify the maximum size memory and is
-              used in conjunction  with  the   **\\-\\-ec2-instance-type-memory-min-** 
-              **gigabytes-per-core** 
+              used in conjunction  with  the    **\\-\\-ec2-instance-type-memory-min-** 
+               **gigabytes-per-core** 
               to define a memory size range that is to be
-              selected.  The **ec2** 
+              selected.  The  **ec2** 
               object is to filter out instance-types with a
               memory size that is not within the specified range.
  
               Default: (defined in the system configuration)
  
-       **-itos** *os1*
-       [,os2,...    osN],**\\-\\-ec2-instance-type-operating-systems** 
-       *os1*
+        **-itos**  *os1*
+       [,os2,...    osN], **\\-\\-ec2-instance-type-operating-systems** 
+        *os1*
        [,os2,... osN]
               Specifies a comma-seperated list of operating systems of  
-              interest.   Valid  operating  systems  are displayed in the **Operating** 
-              **Systems** 
-              optional table (see**\\-\\-with** 
-              below).  The**ec2** 
+              interest.   Valid  operating  systems  are displayed in the  **Operating** 
+               **Systems** 
+              optional table (see **\\-\\-with** 
+              below).  The **ec2** 
               object is to
               filter  out  instance-types  with an operating system other than
               specified by this parameter.
  
               Default: (defined in the system configuration)
  
-       **-itp** *processor1*
-       [,processor2,...  processorN],**\\-\\-ec2-instance-type-pro-** 
-       **cessors** *processor1*
+        **-itp**  *processor1*
+       [,processor2,...  processorN], **\\-\\-ec2-instance-type-pro-** 
+        **cessors**  *processor1*
        [,processor2,... processorN]
               Specifies  a  comma-seperated  list  of  processors of interest.
-              Valid operating systems are displayed in  the  **Processor  Filter** 
-              optional  table (see **\\-\\-with** 
-              below).  The**ec2** 
+              Valid operating systems are displayed in  the   **Processor  Filter** 
+              optional  table (see  **\\-\\-with** 
+              below).  The **ec2** 
               object is to filter
               out instance-types with a processor other than specified by this
               parameter.
  
               Default: (defined in the system configuration)
  
-       **-itpm** *manufacturer1*
-       [,manufacturer2,... manufacturerN],**\\-\\-ec2-instance-** 
-       **type-processor-manufacturers** *manufacturer1*
+        **-itpm**  *manufacturer1*
+       [,manufacturer2,... manufacturerN], **\\-\\-ec2-instance-** 
+        **type-processor-manufacturers**  *manufacturer1*
        [,manufacturer2,...
        manufacturerN]
               Specifies  a  comma-seperated list of processor manufacturers of
               interest.  Valid processor manufacturers are  displayed  in  the
-              **Manufacturer  Filter** 
-              optional table (see**\\-\\-with** 
-              below).  The**ec2** 
+               **Manufacturer  Filter** 
+              optional table (see **\\-\\-with** 
+              below).  The **ec2** 
               object is to filter  out  instance-types  with  an  manufacturer
               other than specified by this parameter.
  
               Default: (defined in the system configuration)
  
  
-   **Table** 
+    **Table** 
        These options change the format of the displayed table(s):
  
-       **-CSV** *column1*
-       [,column2,...   columnN],**\\-\\-comma-separated-values** *col-*
-       *umn1*
+        **-CSV**  *column1*
+       [,column2,...   columnN], **\\-\\-comma-separated-values**  *col-*
+        *umn1*
        [,column2,... columnN]
               Requests that a list of  comma  separated  values  be  displayed
               instead  of  tabular output.  Only the specified columns will be
-              displayed from the current view (see **\\-\\-view** ).
+              displayed from the current view (see  **\\-\\-view** ).
               To  display  all
               columns  from  the  current  view,  specify  a  null string, ie.
               "--comma-separated-values ''".
  
  
-       **-CSEP** *separator*,**\\-\\-comma-separated-values-separator** *separator*
+        **-CSEP**  *separator*, **\\-\\-comma-separated-values-separator**  *separator*
               Specifies the column separator character to be used by the  -CSV
               parameter  when  printing the result.  By default, a comma (",")
               is used.
  
  
-       **-NV** ,**\\-\\-no-view** 
-              Ignores any defined view (see **\\-\\-view** 
+        **-NV** , **\\-\\-no-view** 
+              Ignores any defined view (see  **\\-\\-view** 
               ) for this invocation of the
               command.  All columns present in the list will be displayed.
  
-       **-ok** ,**\\-\\-only-keys** 
+        **-ok** , **\\-\\-only-keys** 
               Only  displays  the  values  of the keys in this list.  No other
               columns are displayed.
  
-       **-r** ,**\\-\\-rotate** 
-              Rotate the listed table to only have a **Key** 
-              and a**Value** 
+        **-r** , **\\-\\-rotate** 
+              Rotate the listed table to only have a  **Key** 
+              and a **Value** 
               column.
               Used to improve readability of tables with many columns.
  
-       **-V** *column1*
-       [,column2,... columnN],**\\-\\-view** *column1*
+        **-V**  *column1*
+       [,column2,... columnN], **\\-\\-view**  *column1*
        [,column2,... columnN]
               Specifies a comma-seperated list of table column names which are
               to be displayed.  All other columns will be ignored.  For a 
               command  that produces multiple result tables, the column name list
-              for each table is separated by a slash (**/** ).
+              for each table is separated by a slash ( **/** ).
               Using this
               parameter  defines a "view" for this and all subsequent invocations of
               this command; the same column selections will be displayed until
-              the "view" is redefined by the **\\-\\-view** 
+              the "view" is redefined by the  **\\-\\-view** 
               option.  To remove a view,
               specify a null string, ie.  "--with  ''",  in  which  case,  all
               defined columns will be displayed.  To see which tables and 
-              columns that can be displayed, use the **\\-\\-view-columns** 
+              columns that can be displayed, use the  **\\-\\-view-columns** 
               option.
  
               Default: None.
  
-       **-VC** ,**\\-\\-view-columns** 
+        **-VC** , **\\-\\-view-columns** 
               View all table and column names associated  with  this  command.
               For  each  table of information returned by the command, a table
               number, table name, a possible "optional" designation, the "key"
               column  (those that are displayed at the beginning of every 
               segment) names, and all remaining column names are displayed.  This
-              information  is  useful when creating views (see **\\-\\-view** 
+              information  is  useful when creating views (see  **\\-\\-view** 
               ) or when
-              selecting columns for comma separated output (see  **\\-\\-comma-sepa-** 
-              **rated-values** ).
+              selecting columns for comma separated output (see   **\\-\\-comma-sepa-** 
+               **rated-values** ).
  
-       **-w** *table1*
-       [,table2,... tableN],**\\-\\-with** *table1*
+        **-w**  *table1*
+       [,table2,... tableN], **\\-\\-with**  *table1*
        [,table2,... tableN]
               Specifies  a comma-seperated list of names of optional tables to
               be displayed.   Some  commands  provide  additional  information
               which  are  not displayed unless specifically requested by name.
               To determine the information returned by any particular command,
-              use the **\\-\\-view-columns** 
-              (**-VC** 
+              use the  **\\-\\-view-columns** 
+              ( **-VC** 
               ) option which provides a list of
               table numbers, tables names, and columns,  high-lighting  optional
               information.   This  option  accepts  table  numbers  as well as
-              tables names and the special value of **ALL** 
+              tables names and the special value of  **ALL** 
               which will display all
               optional information.
  
               Default: None.
  
-   **Global** 
+    **Global** 
        These   options   are   avaliable  on  all  actions:.so  
        ../man/parameters/_group.so
  
-       **-H** ,**\\-\\-long-help** 
+        **-H** , **\\-\\-long-help** 
               Requests the man page style help for the current command.   Long
-              help can be requested for the **cloudscheduler** 
+              help can be requested for the  **cloudscheduler** 
               command, a specific
               object, or a specific object/action.
  
-       **-h** ,**\\-\\-help** 
+        **-h** , **\\-\\-help** 
               Requests short help  for  the  current  command.   Help  can  be
-              requested  for the **cloudscheduler** 
+              requested  for the  **cloudscheduler** 
               command, a specific object, or
               a specific object/action.
  
-       **-s** *server*,**\\-\\-server** *server*
+        **-s**  *server*, **\\-\\-server**  *server*
               The name of the target server.  There must be an  entry  in  the
-              **cloudscheduler  defaults** 
-              that matches*server*
+               **cloudscheduler  defaults** 
+              that matches *server*
               and it must have an
               authentication method.
  
-       **-v** ,**\\-\\-version** 
+        **-v** , **\\-\\-version** 
               Requests that the versions of both the CLI client and  the  
               targeted server be printed in addition to any other command output.
  
-       **-xA** ,**\\-\\-expose-API** 
+        **-xA** , **\\-\\-expose-API** 
               Requests  trace  messages  detailing the API calls and responses
-              issued and received by the **cloudscheduler** 
+              issued and received by the  **cloudscheduler** 
               command.
  
-**EXAMPLES** 
+ **EXAMPLES** 
        1.     View EC2 instance-type filters and instance-types together  with
-              optional tables **Manufacturer Filter** 
-              and**Cores Filter** 
+              optional tables  **Manufacturer Filter** 
+              and **Cores Filter** 
               :
  
               $ cloudscheduler ec2 instance-types -cn amazon-east -w man,core
@@ -329,13 +329,13 @@ man(1) page: cloudscheduler ec2 instance-types
               $
  
        2.     Update the filter to list instance-types for manufacturers Intel
-              and AMD (**\\-\\-instance-type-processor-manufacturers** ),
+              and AMD ( **\\-\\-instance-type-processor-manufacturers** ),
               having 1,  2,
-              or  8  cores (**\\-\\-instance-typer-cores** ),
+              or  8  cores ( **\\-\\-instance-typer-cores** ),
               and a memory range of 1.5
-              to 3.0 gigabytes per core (**\\-\\-instance-type-memory-min-gigabytes-** 
-              **per-core** 
-              and**\\-\\-instance-type-memory-max-gigabytes-per-core** 
+              to 3.0 gigabytes per core ( **\\-\\-instance-type-memory-min-gigabytes-** 
+               **per-core** 
+              and **\\-\\-instance-type-memory-max-gigabytes-per-core** 
               ):
  
               $ cloudscheduler ec2 instance-types -cn amazon-east -itpm intel,amd -itc 1,2,4,8 -itmn 1.5 -itmx 3.0
@@ -371,10 +371,10 @@ man(1) page: cloudscheduler ec2 instance-types
               Rows: 9
               $
  
-**SEE ALSO** 
-       **csv2** 
-       (1)**csv2_ec2** 
-       (1)**csv2_ec2_instance_types** 
+ **SEE ALSO** 
+        **csv2** 
+       (1) **csv2_ec2** 
+       (1) **csv2_ec2_instance_types** 
        (1)
  
  

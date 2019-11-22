@@ -11,58 +11,58 @@ man(1) page: cloudscheduler vm update
  
  
  
-**NAME** 
-       **cloudscheduler  vm  update** 
+ **NAME** 
+        **cloudscheduler  vm  update** 
        -  update  VMs  on cloudscheduler version 2
        (csv2) servers
  
-**SYNOPSIS** 
-       **cloudscheduler vm update -vo** *option*
-       [*options*
+ **SYNOPSIS** 
+        **cloudscheduler vm update -vo**  *option*
+       [ *options*
        ...]
  
-**DESCRIPTION** 
-       The **cloudscheduler vm update** 
+ **DESCRIPTION** 
+       The  **cloudscheduler vm update** 
        action updates VMs from the current  group
        on  csv2  servers.  This action is available to any user, provided they
-       are in the group that the VMs belong to.  Only native, not **foreign** ,
+       are in the group that the VMs belong to.  Only native, not  **foreign** ,
        VMs
        can be updated.
  
-**OPTIONS** 
-   **Mandatory** 
+ **OPTIONS** 
+    **Mandatory** 
        The following are mandatory parameters and must be specified:
  
-       **-vo** *option*,**\\-\\-vm-option** *option*
+        **-vo**  *option*, **\\-\\-vm-option**  *option*
               What  action  should  be  done  to  selected VMs.  The value for
-              *option*
-              must be one of:**kill** ,**retire** ,**manctl** ,
-              or**sysctl** .
+               *option*
+              must be one of: **kill** , **retire** , **manctl** ,
+              or **sysctl** .
               If
-              *option*
-              is**kill** 
+               *option*
+              is **kill** 
               the selected VMs will be killed if they are also
-              under system control.  If *option*
-              is**retire** 
+              under system control.  If  *option*
+              is **retire** 
               the selected VMs will
-              be  retired if they are also under system control.  If *option*
+              be  retired if they are also under system control.  If  *option*
               is
-              **manctl** 
+               **manctl** 
               the selected VMs will be removed from system control  and
-              the  csv2  server  will  not  interact  with them.  If *option*
+              the  csv2  server  will  not  interact  with them.  If  *option*
               is
-              **sysctl** 
+               **sysctl** 
               the selected VMs will be placed under system control  and
               the csv2 server will manage them.
  
-   **Optional** 
+    **Optional** 
        The following are optional parameters:
  
-       **-cn** *cloud*,**\\-\\-cloud-name** *cloud*
+        **-cn**  *cloud*, **\\-\\-cloud-name**  *cloud*
               The  name  of a cloud definition that exists on the csv2 server.
-              Filters the VM list to only VMs that are running on *cloud*.
+              Filters the VM list to only VMs that are running on  *cloud*.
  
-       **-vh** *hosts*,**\\-\\-vm-hosts** *hosts*
+        **-vh**  *hosts*, **\\-\\-vm-hosts**  *hosts*
               Is ether a list of one or more comma seperated  hostsnames  used
               to  filter  the selection of VMs to be updated, or is an integer
               specifying the number of VMs to select from a predefined filter.
@@ -70,47 +70,48 @@ man(1) page: cloudscheduler vm update
               priority order; idle VMs first, followed by the remaining VMs in
               descending job age order.
  
-       **-vS** *status*,**\\-\\-vm-status** *status*
-              The status of the VM.  Filters the VM list to only VMs with *sta-*
-              *tus*.
-              The value of*status*
+        **-vS**  *status*, **\\-\\-vm-status**  *status*
+              The status of the VM.  Filters the VM list to only VMs with  *sta-*
+               *tus*.
+              The value of *status*
               must  be  one  of:  foreign,  manual,
               error, unregistered, retiring, running, or other.
  
-   **Global** 
+    **Global** 
        These   options   are   avaliable  on  all  actions:.so  
        ../man/parameters/_group.so
  
-       **-H** ,**\\-\\-long-help** 
+        **-H** , **\\-\\-long-help** 
               Requests the man page style help for the current command.   Long
-              help can be requested for the **cloudscheduler** 
+              help can be requested for the  **cloudscheduler** 
               command, a specific
               object, or a specific object/action.
  
-       **-h** ,**\\-\\-help** 
+        **-h** , **\\-\\-help** 
               Requests short help  for  the  current  command.   Help  can  be
-              requested  for the **cloudscheduler** 
+              requested  for the  **cloudscheduler** 
               command, a specific object, or
               a specific object/action.
  
-       **-s** *server*,**\\-\\-server** *server*
+        **-s**  *server*, **\\-\\-server**  *server*
               The name of the target server.  There must be an  entry  in  the
-              **cloudscheduler  defaults** 
-              that matches*server*
+               **cloudscheduler  defaults** 
+              that matches *server*
               and it must have an
               authentication method.
  
-       **-v** ,**\\-\\-version** 
+        **-v** , **\\-\\-version** 
               Requests that the versions of both the CLI client and  the  
               targeted server be printed in addition to any other command output.
  
-       **-xA** ,**\\-\\-expose-API** 
+        **-xA** , **\\-\\-expose-API** 
               Requests  trace  messages  detailing the API calls and responses
-              issued and received by the **cloudscheduler** 
+              issued and received by the  **cloudscheduler** 
               command.
  
-**EXAMPLES** 
-       1.     Retire all native VMs in the current group:
+ **EXAMPLES** 
+       1.     Retire all native VMs in the current group::
+
               $ cloudscheduler vm update -vo retire
               vm update, VMs retired=10.
  
@@ -122,10 +123,10 @@ man(1) page: cloudscheduler vm update
        3.     Kill  a  specific  VM:  $  cloudscheduler vm update -vo kill -vh
               example-vm vm update, VMs killed=1.
  
-**SEE ALSO** 
-       **csv2** 
-       (1)**csv2_vm** 
-       (1)**csv2_vm_list** 
+ **SEE ALSO** 
+        **csv2** 
+       (1) **csv2_vm** 
+       (1) **csv2_vm_list** 
        (1)
  
  

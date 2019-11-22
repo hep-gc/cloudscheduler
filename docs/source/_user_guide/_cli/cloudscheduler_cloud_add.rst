@@ -11,117 +11,119 @@ man(1) page: cloudscheduler cloud add
  
  
  
-**NAME** 
-       **cloudscheduler cloud add** 
+ **NAME** 
+        **cloudscheduler cloud add** 
        - add cloud definitions to cloudscheduler
        version 2 (csv2) servers
  
-**SYNOPSIS** 
-       **cloudscheduler cloud add -ca** *address***-cn** *name***-cpw** *password***-cp** *project*
-                      **-cr** *region***-ct** 
-                      [**amazon** 
-                      |**azure** 
-                      |**google** 
-                      |**local** 
+ **SYNOPSIS** 
+        **cloudscheduler cloud add -ca**  *address* **-cn**  *name* **-cpw**  *password* **-cp**  *project*
+                       **-cr**  *region* **-ct** 
+                      [ **amazon** 
+                      | **azure** 
+                      | **google** 
+                      | **local** 
                       |
-                      **opennebula** 
-                      |**openstack** 
-                      ]**-cu** *user*
-                      [*options*
+                       **opennebula** 
+                      | **openstack** 
+                      ] **-cu**  *user*
+                      [ *options*
                       ...]
  
-**DESCRIPTION** 
+ **DESCRIPTION** 
        Adds a new cloud definition to the current group.   A  group  may  have
        multiple  cloud definitions.  Any user may add a cloud definition, 
        provided they are in the group that they are adding the  cloud  definition
        to.
  
-**OPTIONS** 
-   **Mandatory** 
+ **OPTIONS** 
+    **Mandatory** 
        The following are mandatory parameters and must be specified:
  
-       **-ca** *address*,**\\-\\-cloud-address** *address*
+        **-ca**  *address*, **\\-\\-cloud-address**  *address*
               The URL address of the cloud provider (eg. AWS EC2, OpenStack).
  
-       **-cn** *name*,**\\-\\-cloud-name** *name*
-              A  cloud  name.   The  value  for *name*
+        **-cn**  *name*, **\\-\\-cloud-name**  *name*
+              A  cloud  name.   The  value  for  *name*
               must be one to thirty-two
               characters, all lower case, numeric digits, and dashes but  
               cannot start or end with dashes.
  
-       **-cpw** *password*,**\\-\\-cloud-password** *password*
+        **-cpw**  *password*, **\\-\\-cloud-password**  *password*
               The  password or secret key for the cloud-provider.  For AWS EC2
               this is the Management Console or IAM credentials and for  
               OpenStack this is the Dashboard credentials.
  
-       **-cP** *project*,**\\-\\-cloud-project** *project*
+        **-cP**  *project*, **\\-\\-cloud-project**  *project*
               The cloud provider project name.
  
-       **-cr** *region*,**\\-\\-cloud-region** *region*
+        **-cr**  *region*, **\\-\\-cloud-region**  *region*
               The   region   for   the   cloud   provider..so   
               ../man/parameters/_cloud_type.so
  
-       **-cU** *user*,**\\-\\-cloud-user** *user*
+        **-cU**  *user*, **\\-\\-cloud-user**  *user*
               The username or ID for the cloud provider.  For AWS EC2 this  is
               the Management Console or IAM credentials and for OpenStack this
               is the dashboard credentials.
  
-   **Optional** 
+    **Optional** 
        The following are optional parameters:
  
-       **-ce** *option*,**\\-\\-cloud-enabled** *option*
+        **-ce**  *option*, **\\-\\-cloud-enabled**  *option*
               Sets if the cloud is enabled.   VMs  will  only  be  started  on
-              enabled  clouds.   The  value  for  *option*
-              must be one of**true** ,
-              **false** ,**yes** ,**no** ,**1** ,
-              or**0** .
+              enabled  clouds.   The  value  for   *option*
+              must be one of **true** ,
+               **false** , **yes** , **no** , **1** ,
+              or **0** .
               Default: 1
  
-       **-cp** *priority*,**\\-\\-cloud-priority** *priority*
+        **-cp**  *priority*, **\\-\\-cloud-priority**  *priority*
               Priority is an integer in the range -2147483648   to  2147483647
               specifying  the  priority of this cloud in relation to all other
               clouds within the group; lower numbers have a  higher  priority.
               Default: 0
  
-       **-cPD** *domain*,**\\-\\-cloud-project-domain** *domain*
+        **-cPD**  *domain*, **\\-\\-cloud-project-domain**  *domain*
               The project's domain for the cloud provider.  See OpenStack 
               documentation for more information.  Default: Default
  
-       **-cPI** *domain*,**\\-\\-cloud-project-domain_id** *domain*
+        **-cPI**  *domain*, **\\-\\-cloud-project-domain_id**  *domain*
               The project's domain ID for the cloud provider.   See  OpenStack
               documentation for more information.  Default: None
  
-       **-csp** *price*,**\\-\\-cloud-spot-price** *price*
+        **-csp**  *price*, **\\-\\-cloud-spot-price**  *price*
               The  maximum  spot  price to pay when bidding on spot instances.
               Default: None
  
-       **-cUD** *domain*,**\\-\\-cloud-user-domain** *domain*
+        **-cUD**  *domain*, **\\-\\-cloud-user-domain**  *domain*
               The user's domain for the cloud provider.  See  OpenStack  
               documentation for more information.  Default: Default
  
-       **-cUI** *domain*,**\\-\\-cloud-user-domain_id** *domain*
+        **-cUI**  *domain*, **\\-\\-cloud-user-domain_id**  *domain*
               The user's domain ID for the cloud provider.  See OpenStack 
               documentation for more information.  Default: None
  
-       **-gme** *file*
-       [,...],**\\-\\-group-metadata-exclusion** *file*
+        **-gme**  *file*
+       [,...], **\\-\\-group-metadata-exclusion**  *file*
        [,...]
-              The value of *file*
+              The value of  *file*
               is a list of metadata filenames that exist  in
-              the clouds group.  If a metadata filename is listed in *file*
+              the clouds group.  If a metadata filename is listed in  *file*
               then
               it will not be used when starting VMs on the specified cloud.
  
-       **-vbv** *<JSON_dictionary**string>*,**\\-\\-vm-boot_volume** *<JSON_dictionary*
-       *string>*
+        **-vbv**  *<JSON_dictionary* *string>*, **\\-\\-vm-boot_volume**  *<JSON_dictionary*
+        *string>*
               Specifices  whether  a  boot  volume  is  to  be created for VMs
               instantiated on this cloud or not.  If a boot volume  is  to  be
               created,  then  the  <JSON_dictionary  string> should contain at
               least one, but may contain  more  than  one,  of  the  following
               key/value pairs:
  
-              o "GBs": n
-              o "GBs_per_core": n
+              
+o "GBs": n
+              
+o "GBs_per_core": n
  
               Where "n" is an integer number of gigabytes. If a key/value pair
               is omitted, the corresponding value is assumed to be zero.   The
@@ -136,118 +138,119 @@ man(1) page: cloudscheduler cloud add
  
  
  
-       **-vc** *cores*,**\\-\\-vm-cores** *cores*
+        **-vc**  *cores*, **\\-\\-vm-cores**  *cores*
               The maximum allowed cores to be allocated  to  VMs  at  a
-              time.   Set  to  **-1** 
+              time.   Set  to   **-1** 
               to automatically use the quota value.
-              Setting *cores*
-              to**0** 
+              Setting  *cores*
+              to **0** 
               is equivalent to disabling the  cloud.
-              The  value  for *cores*
+              The  value  for  *cores*
               must be an integer value.  Default:
               -1
  
-       **-vf** *flavor*
-       [, ...],**\\-\\-vm-flavor** *flavor*
+        **-vf**  *flavor*
+       [, ...], **\\-\\-vm-flavor**  *flavor*
        [, ...]
               The flavors to be used for VMs  started  on  this  cloud.
-              Where *flavor*
+              Where  *flavor*
               is a list of comma seperated VM flavor names
-              that can be used.  If *flavor*
+              that can be used.  If  *flavor*
               is not specified  here,  but
-              is  specified  in  the  **group defaults** 
+              is  specified  in  the   **group defaults** 
               that value will be
-              used.  If *flavor*
+              used.  If  *flavor*
               is not specified in the group  or  cloud
               the flavor of started VMs will be any flavor that matches
               the job requirements.  Default: None
  
-       **-vi** *image*,**\\-\\-vm-image** *image*
+        **-vi**  *image*, **\\-\\-vm-image**  *image*
               The images to be used for  VMs  started  on  this  cloud.
-              Where  *image*
+              Where   *image*
               is a list of comma seperated VM image names
-              that can be used.  If *image*
+              that can be used.  If  *image*
               is not specified here, but is
-              specified  in the **group defaults** 
+              specified  in the  **group defaults** 
               that value will be used.
-              If *image*
+              If  *image*
               is not specified in the group or cloud the image
               of  started  VMs  will  be any image that matches the job
               requirements.  Default: None
  
-       **-vk** *keypair*,**\\-\\-vm-keypair** *keypair*
+        **-vk**  *keypair*, **\\-\\-vm-keypair**  *keypair*
               Default: None
  
-       **-vka** *time*,**\\-\\-vm-keep-alive** *time*
+        **-vka**  *time*, **\\-\\-vm-keep-alive**  *time*
               The number of second the VM  will  be  left  idle  before
-              being  terminated  if no jobs are started on it.  If *time*
-              is not specified here, but  is  specified  in  the  **group** 
-              **defaults** 
+              being  terminated  if no jobs are started on it.  If  *time*
+              is not specified here, but  is  specified  in  the   **group** 
+               **defaults** 
               that value will be used.  Default: None
  
-       **-vr** *ram*,**\\-\\-vm-ram** *ram*
+        **-vr**  *ram*, **\\-\\-vm-ram**  *ram*
               The  maximum allowed ram allocated to VMs at a time.  Set
-              to **-1** 
-              to automatically use the quota value.  Setting*ram*
-              to **0** 
+              to  **-1** 
+              to automatically use the quota value.  Setting *ram*
+              to  **0** 
               is equivalent to disabling the cloud.  The value for
-              *ram*
+               *ram*
               must be an integer value.  Default: -1
  
-   **Global** 
+    **Global** 
        These options are avaliable on  all  actions:.so  
        ../man/parameters/_group.so
  
-       **-H** ,**\\-\\-long-help** 
+        **-H** , **\\-\\-long-help** 
               Requests the man page style help for the current command.
-              Long help can be requested for  the  **cloudscheduler** 
+              Long help can be requested for  the   **cloudscheduler** 
               command, a specific object, or a specific object/action.
  
-       **-h** ,**\\-\\-help** 
+        **-h** , **\\-\\-help** 
               Requests short help for the current command.  Help can be
-              requested for  the  **cloudscheduler** 
+              requested for  the   **cloudscheduler** 
               command,  a  specific
               object, or a specific object/action.
  
-       **-s** *server*,**\\-\\-server** *server*
+        **-s**  *server*, **\\-\\-server**  *server*
               The name of the target server.  There must be an entry in
-              the **cloudscheduler defaults** 
-              that matches*server*
+              the  **cloudscheduler defaults** 
+              that matches *server*
               and  it
               must have an authentication method.
  
-       **-v** ,**\\-\\-version** 
+        **-v** , **\\-\\-version** 
               Requests that the versions of both the CLI client and the
               targeted server be printed in addition to any other  
               command output.
  
-       **-xA** ,**\\-\\-expose-API** 
+        **-xA** , **\\-\\-expose-API** 
               Requests  trace  messages  detailing  the  API  calls and
-              responses issued and received by the **cloudscheduler** 
+              responses issued and received by the  **cloudscheduler** 
               command.
  
-**EXAMPLES** 
-       1.     Adding the cloud "example":
+ **EXAMPLES** 
+       1.     Adding the cloud "example"::
+
               $ cloudscheduler cloud add -ca example.ca -cn example -cpw example -cp example -cr example -ct amazon -cu example
               cloud "example::example" successfully added.
  
-**SEE ALSO** 
-       **csv2** 
-       (1)**csv2_cloud** 
-       (1)**csv2_cloud_delete** 
-       (1)**csv2_cloud_list** 
+ **SEE ALSO** 
+        **csv2** 
+       (1) **csv2_cloud** 
+       (1) **csv2_cloud_delete** 
+       (1) **csv2_cloud_list** 
        (1)
-       **csv2_cloud_metadata_collation** 
-       (1)**csv2_cloud_metadata_delete** 
+        **csv2_cloud_metadata_collation** 
+       (1) **csv2_cloud_metadata_delete** 
        (1)
-       **csv2_cloud_metadata_edit** 
-       (1)**csv2_cloud_metadata_list** 
+        **csv2_cloud_metadata_edit** 
+       (1) **csv2_cloud_metadata_list** 
        (1)
-       **csv2_cloud_metadata_load** 
-       (1)**csv2_cloud_metadata_update** 
+        **csv2_cloud_metadata_load** 
+       (1) **csv2_cloud_metadata_update** 
        (1)
-       **csv2_cloud_status** 
-       (1)**csv2_cloud_update** 
+        **csv2_cloud_status** 
+       (1) **csv2_cloud_update** 
        (1)
  
  

@@ -11,22 +11,22 @@ man(1) page: cloudscheduler user
  
  
  
-**NAME** 
-       **cloudscheduler  user** 
+ **NAME** 
+        **cloudscheduler  user** 
        - manage users on cloudscheduler version 2 (csv2)
        servers
  
-**SYNOPSIS** 
-       **cloudscheduler user** *action**mandatory_parameters*
-       [*options*
+ **SYNOPSIS** 
+        **cloudscheduler user**  *action* *mandatory_parameters*
+       [ *options*
        ...]
  
-**DESCRIPTION** 
-       The **user** 
+ **DESCRIPTION** 
+       The  **user** 
        object  adds,  deletes,  lists,  and  updates  users  on  csv2
        servers.   Each  user  can  be  assigned to groups, and will be able to
        manipulate the resources for the groups to  which  they  are  assigned.
-       The **user** 
+       The  **user** 
        object and actions are only available to privileged users.
  
        An  unprivileged  user  will only be able to manage the defaults, 
@@ -35,55 +35,55 @@ man(1) page: cloudscheduler user
        addition to everything an unprivileged user can  do,  can  also  manage
        users and groups.
  
-**ACTIONS** 
-       For  information  on  the  parameters associated with each **user** 
+ **ACTIONS** 
+       For  information  on  the  parameters associated with each  **user** 
        action,
-       refer to the documentation for that action (**cloudscheduler user** *action*
-       **-H** ).
-       The following actions are available for the**user** 
+       refer to the documentation for that action ( **cloudscheduler user**  *action*
+        **-H** ).
+       The following actions are available for the **user** 
        object:
  
-       **add** 
-       The**cloudscheduler  user add** 
+        **add** 
+       The **cloudscheduler  user add** 
        action adds users to csv2 servers.
-              This action is only available to privileged users.   A  *username*
-              and  *password*
+              This action is only available to privileged users.   A   *username*
+              and   *password*
               is  required to create a user, but authentication
-              can be done with  a  X509  certificate  specified  by  *user_com-*
-              *mon_name*.
+              can be done with  a  X509  certificate  specified  by   *user_com-*
+               *mon_name*.
  
-       **delete** 
-       The**cloudscheduler  user  delete** 
+        **delete** 
+       The **cloudscheduler  user  delete** 
        action deletes users from csv2
               servers.  The deleted user will be removed from all  groups  and
               will  no  longer be able to access the csv2 server.  This action
               is only available to privileged users.
  
-       **list** 
-       The**cloudscheduler user list** 
+        **list** 
+       The **cloudscheduler user list** 
        action lists the  users  from  csv2
               servers.   This  action  is  only available to privileged users.
               The list is displayed in a table and there are  several  options
               that change the format of the displayed table.
  
-       **update** 
-       The**cloudscheduler  user  update** 
+        **update** 
+       The **cloudscheduler  user  update** 
        action  updates users on csv2
               servers.  This action is only  available  to  privileged  users.
-              The  *username*
+              The   *username*
               of  the  existing  user and at least one field to
-              update is required.  The **-gn** 
-              and**-go** 
+              update is required.  The  **-gn** 
+              and **-go** 
               parameters are used to
               manage what groups a user is in.
  
-**SEE ALSO** 
-       **csv2** 
-       (1)**csv2_user_add** 
-       (1)**csv2_user_delete** 
-       (1)**csv2_user_list** 
+ **SEE ALSO** 
+        **csv2** 
+       (1) **csv2_user_add** 
+       (1) **csv2_user_delete** 
+       (1) **csv2_user_list** 
        (1)
-       **csv2_user_update** 
+        **csv2_user_update** 
        (1)
  
  

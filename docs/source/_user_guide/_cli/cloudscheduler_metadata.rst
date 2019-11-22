@@ -11,99 +11,99 @@ man(1) page: cloudscheduler metadata
  
  
  
-**NAME** 
-       **cloudscheduler  metadata** 
+ **NAME** 
+        **cloudscheduler  metadata** 
        - manage group metadata and defaults on
        cloudscheduler version 2 (csv2) servers
  
-**SYNOPSIS** 
-       **csv2 metadata** *action**mandatory_parameters*
-       [*options*
+ **SYNOPSIS** 
+        **csv2 metadata**  *action* *mandatory_parameters*
+       [ *options*
        ...]
  
-**DESCRIPTION** 
-       The **metadata** 
-       object manages metadata and defaults for groups on**cloud-** 
-       **scheduler** 
+ **DESCRIPTION** 
+       The  **metadata** 
+       object manages metadata and defaults for groups on **cloud-** 
+        **scheduler** 
        servers.  A group on a cloudscheduler server is analogous to
        a project on an OpenStack cloud and may have multiple users, anyone  of
        whom  may control the cloud resources for the group.  Each group has an
        associated list of metadata  files  that  can  be  modified  using  the
        actions.   The  metadata object and actions are available to all users.
-       Privileged users may add and  delete  groups  with  the  **cloudscheduler** 
-       **group** 
+       Privileged users may add and  delete  groups  with  the   **cloudscheduler** 
+        **group** 
        object.
  
-**ACTIONS** 
-       For information on the parameters associated with each **metadata** 
+ **ACTIONS** 
+       For information on the parameters associated with each  **metadata** 
        action,
-       refer to the documentation for  that  action  (**cloudscheduler  metadata** 
-       *action***-H** ).
-       The  following  actions  are  available for the**metadata** 
+       refer to the documentation for  that  action  ( **cloudscheduler  metadata** 
+        *action* **-H** ).
+       The  following  actions  are  available for the **metadata** 
        object:
  
-       **defaults** 
-              The **cloudscheduler metadata group-defaults** 
+        **defaults** 
+              The  **cloudscheduler metadata group-defaults** 
               action  modifies  and
               displays  group  defaults  from  csv2  servers.   This action is
               available to all users, provided they are in the group that  the
-              defaults  belong  to.   Priviliged users may also use the **cloud-** 
-              **scheduler group defaults** 
+              defaults  belong  to.   Priviliged users may also use the  **cloud-** 
+               **scheduler group defaults** 
               command.
  
-       **metadata-delete** 
-              The **cloudscheduler metadata delete** 
+        **metadata-delete** 
+              The  **cloudscheduler metadata delete** 
               action deletes group metadata
               from  csv2 servers.  This action is available to all users, 
               provided they are in the group that the metadata belongs to.  
-              Priviliged  users  may  also  use the **cloudscheduler group metadata-** 
-              **delete** 
+              Priviliged  users  may  also  use the  **cloudscheduler group metadata-** 
+               **delete** 
               command.
  
-       **metadata-edit** 
-              The **cloudscheduler metadata edit** 
+        **metadata-edit** 
+              The  **cloudscheduler metadata edit** 
               action  edits  group  metadata
               from  csv2 servers.  This action is available to all users, 
               provided they are in the group that the metadata belongs to.  
-              Priviliged users may also use the **cloudscheduler group metadata-edit** 
+              Priviliged users may also use the  **cloudscheduler group metadata-edit** 
               command.
  
-       **metadata-list** 
-              The **cloudscheduler metadata list** 
+        **metadata-list** 
+              The  **cloudscheduler metadata list** 
               action  lists  group  metadata
               from  csv2 servers.  This action is available to all users, 
               provided they are in the group that the metadata belongs to.  
-              Priviliged users may also use the **cloudscheduler group metadata-list** 
+              Priviliged users may also use the  **cloudscheduler group metadata-list** 
               command.
  
-       **metadata-load** 
-              The **cloudscheduler metadata load** 
+        **metadata-load** 
+              The  **cloudscheduler metadata load** 
               action  loads  group  metadata
               from  csv2 servers.  This action is available to all users, 
               provided they are in the group that the metadata belongs to.  
-              Priviliged users may also use the **cloudscheduler group metadata-load** 
+              Priviliged users may also use the  **cloudscheduler group metadata-load** 
               command.
  
-       **metadata-update** 
-              The **cloudscheduler metadata update** 
+        **metadata-update** 
+              The  **cloudscheduler metadata update** 
               action updates group metadata
               from  csv2 servers.  This action is available to all users, 
               provided they are in the group that the metadata belongs to.  
-              Priviliged  users  may  also  use the **cloudscheduler group metadata-** 
-              **update** 
+              Priviliged  users  may  also  use the  **cloudscheduler group metadata-** 
+               **update** 
               command.
  
-**SEE ALSO** 
-       **csv2** 
-       (1)**csv2_group** 
-       (1)**csv2_metadata_group-defaults** 
-       (1)**csv2_meta-** 
-       **data_delete** 
-       (1)**csv2_metadata_edit** 
-       (1)**csv2_metadata_list** 
-       (1)**csv2_meta-** 
-       **data_load** 
-       (1)**csv2_metadata_update** 
+ **SEE ALSO** 
+        **csv2** 
+       (1) **csv2_group** 
+       (1) **csv2_metadata_group-defaults** 
+       (1) **csv2_meta-** 
+        **data_delete** 
+       (1) **csv2_metadata_edit** 
+       (1) **csv2_metadata_list** 
+       (1) **csv2_meta-** 
+        **data_load** 
+       (1) **csv2_metadata_update** 
        (1)
  
  

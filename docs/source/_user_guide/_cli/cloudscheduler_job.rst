@@ -11,45 +11,45 @@ man(1) page: cloudscheduler job
  
  
  
-**NAME** 
-       **cloudscheduler  job** 
+ **NAME** 
+        **cloudscheduler  job** 
        -  manage  jobs on cloudscheduler version 2 (csv2)
        servers
  
-**SYNOPSIS** 
-       **cloudscheduler job** *action**mandatory_parameters*
-       [*options*
+ **SYNOPSIS** 
+        **cloudscheduler job**  *action* *mandatory_parameters*
+       [ *options*
        ...]
  
-**DESCRIPTION** 
-       The **job** 
-       object lists jobs on csv2 servers.  The**job** 
+ **DESCRIPTION** 
+       The  **job** 
+       object lists jobs on csv2 servers.  The **job** 
        object and  actions
        are  available  to  any  users, provided they are in the group that the
        jobs belong to.
  
-**ACTIONS** 
-       For information on the parameters  associated  with  each  **job** 
+ **ACTIONS** 
+       For information on the parameters  associated  with  each   **job** 
        action,
-       refer to the documentation for that action (**cloudscheduler group** *action*
-       **-H** ).
-       The following actions are available for the**job** 
+       refer to the documentation for that action ( **cloudscheduler group**  *action*
+        **-H** ).
+       The following actions are available for the **job** 
        object:
  
-       **list** 
-       The**cloudscheduler job list** 
+        **list** 
+       The **cloudscheduler job list** 
        action displays jobs for the current
               group  from  csv2  servers.   This  action  is available for all
               users, provided they are in the group that the jobs belong to.
  
  
-       **update** 
+        **update** 
        *** TO BE IMPLEMENTED ***.
  
-**SEE ALSO** 
-       **csv2** 
-       (1)**csv2_job_list** 
-       (1)**csv2_job_update** 
+ **SEE ALSO** 
+        **csv2** 
+       (1) **csv2_job_list** 
+       (1) **csv2_job_update** 
        (1)
  
  
