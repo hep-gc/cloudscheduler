@@ -11,22 +11,22 @@ man(1) page: cloudscheduler ec2
  
  
  
- **NAME** 
-        **cloudscheduler ec2** 
-       - manage Amazon EC2 information filtering for clouds
+**NAME**  
+       **cloudscheduler ec2** 
+       - manage Amazon EC2 information filtering for clouds 
        defined within cloudscheduler version 2 (csv2) group.
  
- **SYNOPSIS** 
-        **cloudscheduler ec2**  *action* *mandatory_parameters*
+**SYNOPSIS**  
+       **cloudscheduler ec2** *action* *mandatory_parameters*
        [ *options*
-       ...]
+       ...] 
  
- **DESCRIPTION** 
-       The  **ec2** 
-       object manages filters and  lists  information  retrieved  from
+**DESCRIPTION**  
+       The **ec2** 
+       object manages filters and  lists  information  retrieved  from 
        Amazon  EC2.  Seperate actions are defined for each kind of information
-       that can be filtered/listed (see  **ACTIONS** ,
-       below).  When a user  defines
+       that can be filtered/listed (see **ACTIONS** , 
+       below).  When a user  defines 
        a  cloud  of  cloud  type "amazon", default filters for each action are
        also created.  These filters determine the information listed and  
        control  the  selection  of information mirrored in the corresponding CSV2
@@ -34,23 +34,23 @@ man(1) page: cloudscheduler ec2
        subset of information to be viewed and controlling the resources 
        available to CSV2.
  
- **ACTIONS** 
-       For information on the parameters  associated  with  each   **ec2** 
-       action,
-       refer  to  the documentation for that action ( **cloudscheduler ec2**  *action*
-        **-H** ).
+**ACTIONS**  
+       For information on the parameters  associated  with  each  **ec2** 
+       action, 
+       refer  to  the documentation for that action (**cloudscheduler ec2** *action* 
+       **-H** ). 
        The following actions are available for the **ec2** 
-       object:
+       object: 
  
-        **images** 
+       **images**  
  
-        **instance_types** 
+       **instance_types**  
  
- **SEE ALSO** 
-        **csv2** 
+**SEE ALSO**  
+       **csv2** 
        (1) **csv2_ec2_images** 
        (1) **csv2_ec2_instance_types** 
-       (1)
+       (1) 
  
  
  

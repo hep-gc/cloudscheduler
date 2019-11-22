@@ -11,99 +11,98 @@ man(1) page: cloudscheduler cloud metadata-delete
  
  
  
- **NAME** 
-        **cloudscheduler cloud metadata delete** 
-       - delete metadata files from cloud
+**NAME**  
+       **cloudscheduler cloud metadata delete** 
+       - delete metadata files from cloud 
        definitions on cloudscheduler version 2 (csv2) servers
  
- **SYNOPSIS** 
-        **cloudscheduler cloud metadata-delete -cn**  *cloud* **-mn**  *metadata*
-       [ *options*
+**SYNOPSIS**  
+       **cloudscheduler cloud metadata-delete -cn** *cloud* **-mn** *metadata*
+       [ *options* 
                       ...]
  
- **DESCRIPTION** 
+**DESCRIPTION**  
        Remove  metadata files from a cloud in the current group.  Any user may
        delete cloud metadata files, provided they are in the  group  that  the
        cloud is defined in.
  
- **OPTIONS** 
-    **Mandatory** 
+**OPTIONS**  
+   **Mandatory**  
        The following are mandatory parameters and must be specified:
  
-        **-cn**  *name*, **\\-\\-cloud-name**  *name*
-              A  cloud  name.   The  value  for  *name*
-              must be one to thirty-two
+       **-cn** *name*,  **\\-\\-cloud-name** *name* 
+              A  cloud  name.   The  value  for *name*
+              must be one to thirty-two 
               characters, all lower case, numeric digits, and dashes but  
               cannot start or end with dashes.
  
-        **-mn**  *name*, **\\-\\-metadata-name**  *name*
-              The  metadata  name  and primary identifier.  The value for  *name*
+       **-mn** *name*,  **\\-\\-metadata-name** *name* 
+              The  metadata  name  and primary identifier.  The value for *name* 
               must be all lower case, numeric digits, and  dashes  but  cannot
               start or end with dashes..
  
-    **Optional** 
+   **Optional**  
        The following are optional parameters:
  
-        **-Y** , **\\-\\-yes** 
+       **-Y** ,  **\\-\\-yes**  
               Specify  this  option  to automatically accept the deletion.  If
               not specified a prompt will appear asking if the  user  is  sure
               they would like to delete the object..
  
-    **Global** 
+   **Global**  
        These   options   are   avaliable  on  all  actions:.so  
        ../man/parameters/_group.so
  
-        **-H** , **\\-\\-long-help** 
+       **-H** ,  **\\-\\-long-help**  
               Requests the man page style help for the current command.   Long
-              help can be requested for the  **cloudscheduler** 
-              command, a specific
+              help can be requested for the **cloudscheduler** 
+              command, a specific 
               object, or a specific object/action.
  
-        **-h** , **\\-\\-help** 
+       **-h** ,  **\\-\\-help**  
               Requests short help  for  the  current  command.   Help  can  be
-              requested  for the  **cloudscheduler** 
-              command, a specific object, or
+              requested  for the **cloudscheduler** 
+              command, a specific object, or 
               a specific object/action.
  
-        **-s**  *server*, **\\-\\-server**  *server*
+       **-s** *server*,  **\\-\\-server** *server* 
               The name of the target server.  There must be an  entry  in  the
-               **cloudscheduler  defaults** 
+              **cloudscheduler  defaults** 
               that matches *server*
-              and it must have an
+              and it must have an 
               authentication method.
  
-        **-v** , **\\-\\-version** 
+       **-v** ,  **\\-\\-version**  
               Requests that the versions of both the CLI client and  the  
               targeted server be printed in addition to any other command output.
  
-        **-xA** , **\\-\\-expose-API** 
+       **-xA** ,  **\\-\\-expose-API**  
               Requests  trace  messages  detailing the API calls and responses
-              issued and received by the  **cloudscheduler** 
-              command.
+              issued and received by the **cloudscheduler** 
+              command. 
  
- **EXAMPLES** 
-       1.     Deleting the cloud metadata "example.yaml"::
-
+**EXAMPLES**  
+       1.     Deleting the cloud metadata "example.yaml":
               $ cloudscheduler cloud metadata-delete -cn example -mn example.yaml -Y
               cloud metadata file "example::example::example.yaml" successfully deleted.
  
- **SEE ALSO** 
-        **csv2** 
+**SEE ALSO**  
+       **csv2** 
        (1) **csv2_cloud** 
        (1) **csv2_cloud_add** 
        (1) **csv2_cloud_delete** 
-       (1)
-        **csv2_cloud_list** 
+       (1) 
+       **csv2_cloud_list** 
        (1) **csv2_cloud_metadata_collation** 
-       (1) **csv2_cloud_meta-** 
-        **data_edit** 
+       (1) **csv2_cloud_meta-**  
+       **data_edit** 
        (1) **csv2_cloud_metadata_list** 
        (1) **csv2_cloud_metadata_load** 
-       (1)
-        **csv2_cloud_metadata_update** 
+       (1) 
+       **csv2_cloud_metadata_update** 
        (1) **csv2_cloud_status** 
        (1) **csv2_cloud_update** 
-       (1)
+       (1) 
  
  
  

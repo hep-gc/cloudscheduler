@@ -93,12 +93,12 @@ def convert_manpage(gvar, fd, manpage):
                                 # Format bold string.
 #                               bits[ix] = '\n%s**%s**' % (indent, tit_bits[1].strip().replace('--', '\\\\-\\\\-'))
 #                               bits[ix] = '%s**%s**' % (indent, tit_bits[1].strip().replace('--', '\\\\-\\\\-'))
-                                bits[ix] = ' **%s** ' % (tit_bits[1].strip().replace('--', '\\\\-\\\\-'))
+                                bits[ix] = '**%s** ' % (tit_bits[1].strip().replace('--', '\\\\-\\\\-'))
                             else:
                                 # Format italic string.
 #                               bits[ix] = '\n%s*%s*' % (indent, tit_bits[1].strip().replace('--', '\\\\-\\\\-'))
 #                               bits[ix] = '%s*%s* ' % (indent, tit_bits[1].strip().replace('--', '\\\\-\\\\-'))
-                                bits[ix] = ' *%s*' % (tit_bits[1].strip().replace('--', '\\\\-\\\\-'))
+                                bits[ix] = '*%s*' % (tit_bits[1].strip().replace('--', '\\\\-\\\\-'))
 
                     elif tit_bits[0] == '0' or tit_bits[0] == '22' or tit_bits[0] == '24':
                         # Rest type face after bold or italic string.
@@ -109,18 +109,18 @@ def convert_manpage(gvar, fd, manpage):
                             tiny_tit_bits[0] == ').' or  \
                             tiny_tit_bits[0] == '),'):
 
-                            bits[ix-1] = '%s%s' % (bits[ix-1], tiny_tit_bits[0])
+                            bits[ix-1] = '%s%s ' % (bits[ix-1], tiny_tit_bits[0])
 
                             if len(tiny_tit_bits) < 2 or tiny_tit_bits[1].strip() == '':
-                                bits[ix] = ''
+                                bits[ix] = ' '
                             else:
-                                bits[ix] = '\n%s%s' % (indent, tiny_tit_bits[1].strip())
+                                bits[ix] = '\n%s%s ' % (indent, tiny_tit_bits[1].strip())
 
                         else:
                             if tit_bits[1].strip() == '':
-                                bits[ix] = ''
+                                bits[ix] = ' '
                             else:
-                                bits[ix] = '\n%s%s' % (indent, tit_bits[1].strip())
+                                bits[ix] = '\n%s%s ' % (indent, tit_bits[1].strip())
 
 
                 new_line = ''.join(bits)

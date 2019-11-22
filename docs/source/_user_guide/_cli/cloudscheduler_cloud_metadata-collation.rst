@@ -11,150 +11,150 @@ man(1) page: cloudscheduler cloud metadata-collation
  
  
  
- **NAME** 
-        **cloudscheduler cloud metadata_collation** 
-       - collate cloud and group
+**NAME**  
+       **cloudscheduler cloud metadata_collation** 
+       - collate cloud and group 
        metadata lists for cloudscheduler version 2 (csv2) servers
  
- **SYNOPSIS** 
-        **cloudscheduler cloud metadata-collation** 
+**SYNOPSIS**  
+       **cloudscheduler cloud metadata-collation** 
        [ *options*
-       ...]
+       ...] 
  
- **DESCRIPTION** 
+**DESCRIPTION**  
        Collate the list of metadata from the group with the metadata list of a
        specific  cloud.  This list is all the metadata that will be applied to
        a VM started on that cloud.  Any user may collate  a  clouds  metadata,
        provided  that  they are in the group that they are collating the 
        metadata for.
  
- **OPTIONS** 
-    **Optional** 
+**OPTIONS**  
+   **Optional**  
        The following are optional parameters:
  
-        **-cn**  *name*, **\\-\\-cloud-name**  *name*
-              A cloud name.  The value for  *name*
-              must  be  one  to  thirty-two
+       **-cn** *name*,  **\\-\\-cloud-name** *name* 
+              A cloud name.  The value for *name*
+              must  be  one  to  thirty-two 
               characters,  all lower case, numeric digits, and dashes but 
               cannot start or end with dashes.
  
-    **Table** 
+   **Table**  
        These options change the format of the displayed table(s):
  
-        **-CSV**  *column1*
-       [,column2,...  columnN], **\\-\\-comma-separated-values**  *col-*
-        *umn1*
-       [,column2,... columnN]
+       **-CSV** *column1*
+       [,column2,...  columnN], **\\-\\-comma-separated-values** *col-* 
+       *umn1*
+       [,column2,... columnN] 
               Requests  that  a  list  of  comma separated values be displayed
               instead of tabular output.  Only the specified columns  will  be
-              displayed  from  the  current view (see  **\\-\\-view** ).
-              To display all
+              displayed  from  the  current view (see **\\-\\-view** ). 
+              To display all 
               columns from the  current  view,  specify  a  null  string,  ie.
               "--comma-separated-values ''".
  
  
-        **-CSEP**  *separator*, **\\-\\-comma-separated-values-separator**  *separator*
+       **-CSEP** *separator*,  **\\-\\-comma-separated-values-separator** *separator* 
               Specifies  the column separator character to be used by the -CSV
               parameter when printing the result.  By default, a  comma  (",")
               is used.
  
  
-        **-NV** , **\\-\\-no-view** 
-              Ignores any defined view (see  **\\-\\-view** 
-              ) for this invocation of the
+       **-NV** ,  **\\-\\-no-view**  
+              Ignores any defined view (see **\\-\\-view** 
+              ) for this invocation of the 
               command.  All columns present in the list will be displayed.
  
-        **-ok** , **\\-\\-only-keys** 
+       **-ok** ,  **\\-\\-only-keys**  
               Only displays the values of the keys in  this  list.   No  other
               columns are displayed.
  
-        **-r** , **\\-\\-rotate** 
-              Rotate  the  listed table to only have a  **Key** 
+       **-r** ,  **\\-\\-rotate**  
+              Rotate  the  listed table to only have a **Key** 
               and a **Value** 
-              column.
+              column. 
               Used to improve readability of tables with many columns.
  
-        **-V**  *column1*
-       [,column2,... columnN], **\\-\\-view**  *column1*
-       [,column2,... columnN]
+       **-V** *column1*
+       [,column2,... columnN], **\\-\\-view** *column1*
+       [,column2,... columnN] 
               Specifies a comma-seperated list of table column names which are
               to be displayed.  All other columns will be ignored.  For a 
               command that produces multiple result tables, the column name  list
-              for  each table is separated by a slash ( **/** ).
-              Using this
+              for  each table is separated by a slash (**/** ). 
+              Using this 
               parameter defines a "view" for this and all subsequent invocations  of
               this command; the same column selections will be displayed until
-              the "view" is redefined by the  **\\-\\-view** 
-              option.  To remove a view,
+              the "view" is redefined by the **\\-\\-view** 
+              option.  To remove a view, 
               specify  a  null  string,  ie.  "--with  ''", in which case, all
               defined columns will be displayed.  To see which tables and 
-              columns that can be displayed, use the  **\\-\\-view-columns** 
-              option.
+              columns that can be displayed, use the **\\-\\-view-columns** 
+              option. 
  
               Default: None.
  
-        **-VC** , **\\-\\-view-columns** 
+       **-VC** ,  **\\-\\-view-columns**  
               View  all  table  and column names associated with this command.
               For each table of information returned by the command,  a  table
               number, table name, a possible "optional" designation, the "key"
               column (those that are displayed at the beginning of every  
               segment) names, and all remaining column names are displayed.  This
-              information is useful when creating views (see  **\\-\\-view** 
-              )  or  when
-              selecting  columns for comma separated output (see  **\\-\\-comma-sepa-** 
-               **rated-values** ).
+              information is useful when creating views (see **\\-\\-view** 
+              )  or  when 
+              selecting  columns for comma separated output (see **\\-\\-comma-sepa-**  
+              **rated-values** ).  
  
-        **-w**  *table1*
-       [,table2,... tableN], **\\-\\-with**  *table1*
-       [,table2,... tableN]
+       **-w** *table1*
+       [,table2,... tableN], **\\-\\-with** *table1*
+       [,table2,... tableN] 
               Specifies a comma-seperated list of names of optional tables  to
               be  displayed.   Some  commands  provide  additional information
               which are not displayed unless specifically requested  by  name.
               To determine the information returned by any particular command,
-              use the  **\\-\\-view-columns** 
+              use the **\\-\\-view-columns** 
               ( **-VC** 
-              ) option which provides a list of
+              ) option which provides a list of 
               table  numbers,  tables names, and columns, high-lighting optional
               information.  This option  accepts  table  numbers  as  well  as
-              tables names and the special value of  **ALL** 
-              which will display all
+              tables names and the special value of **ALL** 
+              which will display all 
               optional information.
  
               Default: None.
  
-    **Global** 
+   **Global**  
        These  options  are  avaliable  on   all   actions:.so   
        ../man/parameters/_group.so
  
-        **-H** , **\\-\\-long-help** 
+       **-H** ,  **\\-\\-long-help**  
               Requests  the man page style help for the current command.  Long
-              help can be requested for the  **cloudscheduler** 
-              command, a specific
+              help can be requested for the **cloudscheduler** 
+              command, a specific 
               object, or a specific object/action.
  
-        **-h** , **\\-\\-help** 
+       **-h** ,  **\\-\\-help**  
               Requests  short  help  for  the  current  command.   Help can be
-              requested for the  **cloudscheduler** 
-              command, a specific object,  or
+              requested for the **cloudscheduler** 
+              command, a specific object,  or 
               a specific object/action.
  
-        **-s**  *server*, **\\-\\-server**  *server*
+       **-s** *server*,  **\\-\\-server** *server* 
               The  name  of  the target server.  There must be an entry in the
-               **cloudscheduler defaults** 
+              **cloudscheduler defaults** 
               that matches *server*
-              and it must have  an
+              and it must have  an 
               authentication method.
  
-        **-v** , **\\-\\-version** 
+       **-v** ,  **\\-\\-version**  
               Requests  that  the versions of both the CLI client and the 
               targeted server be printed in addition to any other command output.
  
-        **-xA** , **\\-\\-expose-API** 
+       **-xA** ,  **\\-\\-expose-API**  
               Requests trace messages detailing the API  calls  and  responses
-              issued and received by the  **cloudscheduler** 
-              command.
+              issued and received by the **cloudscheduler** 
+              command. 
  
- **EXAMPLES** 
+**EXAMPLES**  
        1.     List  all  metadata  that  would  be applied to VMs on the cloud
               "example":
               $ cloudscheduler cloud metadata-collation -cn example
@@ -173,23 +173,23 @@ man(1) page: cloudscheduler cloud metadata-collation
 
               Rows: 4
  
- **SEE ALSO** 
-        **csv2** 
+**SEE ALSO**  
+       **csv2** 
        (1) **csv2_cloud** 
        (1) **csv2_cloud_add** 
        (1) **csv2_cloud_delete** 
-       (1)
-        **csv2_cloud_list** 
+       (1) 
+       **csv2_cloud_list** 
        (1) **csv2_cloud_metadata_delete** 
-       (1) **csv2_cloud_meta-** 
-        **data_edit** 
+       (1) **csv2_cloud_meta-**  
+       **data_edit** 
        (1) **csv2_cloud_metadata_list** 
        (1) **csv2_cloud_metadata_load** 
-       (1)
-        **csv2_cloud_metadata_update** 
+       (1) 
+       **csv2_cloud_metadata_update** 
        (1) **csv2_cloud_status** 
        (1) **csv2_cloud_update** 
-       (1)
+       (1) 
  
  
  

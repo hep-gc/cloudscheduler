@@ -11,90 +11,89 @@ man(1) page: cloudscheduler metadata delete
  
  
  
- **NAME** 
-        **cloudscheduler metadata delete** 
-       - delete group metadata from
+**NAME**  
+       **cloudscheduler metadata delete** 
+       - delete group metadata from 
        cloudscheduler version 2 (csv2) servers
  
- **SYNOPSIS** 
-        **cloudscheduler metadata delete -mn**  *name*
+**SYNOPSIS**  
+       **cloudscheduler metadata delete -mn** *name*
        [ *options*
-       ...]
+       ...] 
  
- **DESCRIPTION** 
-       The  **cloudscheduler metadata delete** 
-       action deletes group  metadata  from
+**DESCRIPTION**  
+       The **cloudscheduler metadata delete** 
+       action deletes group  metadata  from 
        csv2 servers.  This action is available to all users, provided they are
        in the group that the metadata belongs to.  Priviliged users  may  also
-       use the  **cloudscheduler group metadata-delete** 
-       command.
+       use the **cloudscheduler group metadata-delete** 
+       command. 
  
- **OPTIONS** 
-    **Mandatory** 
+**OPTIONS**  
+   **Mandatory**  
        The following are mandatory parameters and must be specified:
  
-        **-mn**  *name*, **\\-\\-metadata-name**  *name*
-              The  metadata  name  and primary identifier.  The value for  *name*
+       **-mn** *name*,  **\\-\\-metadata-name** *name* 
+              The  metadata  name  and primary identifier.  The value for *name* 
               must be all lower case, numeric digits, and  dashes  but  cannot
               start or end with dashes..
  
-    **Optional** 
+   **Optional**  
        The following are optional parameters:
  
-        **-Y** , **\\-\\-yes** 
+       **-Y** ,  **\\-\\-yes**  
               Specify  this  option  to automatically accept the deletion.  If
               not specified a prompt will appear asking if the  user  is  sure
               they would like to delete the object..
  
-    **Global** 
+   **Global**  
        These   options   are   avaliable  on  all  actions:.so  
        ../man/parameters/_group.so
  
-        **-H** , **\\-\\-long-help** 
+       **-H** ,  **\\-\\-long-help**  
               Requests the man page style help for the current command.   Long
-              help can be requested for the  **cloudscheduler** 
-              command, a specific
+              help can be requested for the **cloudscheduler** 
+              command, a specific 
               object, or a specific object/action.
  
-        **-h** , **\\-\\-help** 
+       **-h** ,  **\\-\\-help**  
               Requests short help  for  the  current  command.   Help  can  be
-              requested  for the  **cloudscheduler** 
-              command, a specific object, or
+              requested  for the **cloudscheduler** 
+              command, a specific object, or 
               a specific object/action.
  
-        **-s**  *server*, **\\-\\-server**  *server*
+       **-s** *server*,  **\\-\\-server** *server* 
               The name of the target server.  There must be an  entry  in  the
-               **cloudscheduler  defaults** 
+              **cloudscheduler  defaults** 
               that matches *server*
-              and it must have an
+              and it must have an 
               authentication method.
  
-        **-v** , **\\-\\-version** 
+       **-v** ,  **\\-\\-version**  
               Requests that the versions of both the CLI client and  the  
               targeted server be printed in addition to any other command output.
  
-        **-xA** , **\\-\\-expose-API** 
+       **-xA** ,  **\\-\\-expose-API**  
               Requests  trace  messages  detailing the API calls and responses
-              issued and received by the  **cloudscheduler** 
-              command.
+              issued and received by the **cloudscheduler** 
+              command. 
  
- **EXAMPLES** 
-       1.     Deleteing group metadata "example"::
-
+**EXAMPLES**  
+       1.     Deleteing group metadata "example":
               $ cloudscheduler metadata delete -mn example.yaml -Y
               group metadata file "example::example.yaml" successfully deleted.
  
- **SEE ALSO** 
-        **csv2** 
+**SEE ALSO**  
+       **csv2** 
        (1) **csv2_group_metadata-delete** 
        (1) **csv2_metadata_group-defaults** 
-       (1)
-        **csv2_metadata_edit** 
+       (1) 
+       **csv2_metadata_edit** 
        (1) **csv2_metadata_list** 
        (1) **csv2_metadata_load** 
-       (1)
-        **csv2_metadata_update** 
-       (1)
+       (1) 
+       **csv2_metadata_update** 
+       (1) 
  
  
  

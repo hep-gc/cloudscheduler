@@ -11,49 +11,49 @@ man(1) page: cloudscheduler vm
  
  
  
- **NAME** 
-        **cloudscheduler  vm** 
-       -  manage  VMs  on  cloudscheduler version 2 (csv2)
+**NAME**  
+       **cloudscheduler  vm** 
+       -  manage  VMs  on  cloudscheduler version 2 (csv2) 
        servers
  
- **SYNOPSIS** 
-        **cloudscheduler vm**  *action* *mandatory_parameters*
+**SYNOPSIS**  
+       **cloudscheduler vm** *action* *mandatory_parameters*
        [ *options*
-       ...]
+       ...] 
  
- **DESCRIPTION** 
+**DESCRIPTION**  
+       The **vm** 
+       object lists and updates virtual machines(VMs) on csv2  servers. 
        The  **vm** 
-       object lists and updates virtual machines(VMs) on csv2  servers.
-       The   **vm** 
-       object and actions are available to any user, provided the user
+       object and actions are available to any user, provided the user 
        is in the group that the VMs belong to.
  
- **ACTIONS** 
-       For information on the parameters associated with each  **vm** 
-       action, refer
-       to  the  documentation  for  that action ( **cloudscheduler vm**  *action* **-H** ).
-       The following actions are available for the  **vm** 
-       object:
+**ACTIONS**  
+       For information on the parameters associated with each **vm** 
+       action, refer 
+       to  the  documentation  for  that action (**cloudscheduler vm** *action* **-H** ).  
+       The following actions are available for the **vm** 
+       object: 
  
-        **list** 
+       **list** 
        The **cloudscheduler vm list** 
-       action displays VMs from the  current
+       action displays VMs from the  current 
               group  on  csv2  servers.  This action is available to any user,
               provided they are in the group that the VMs belong to.
  
-        **update** 
+       **update** 
        The **cloudscheduler vm update** 
-       action updates VMs from the current
+       action updates VMs from the current 
               group  on  csv2  servers.  This action is available to any user,
               provided they are in the group that the  VMs  belong  to.   Only
-              native, not  **foreign** ,
-              VMs can be updated.
+              native, not **foreign** , 
+              VMs can be updated. 
  
- **SEE ALSO** 
-        **csv2** 
+**SEE ALSO**  
+       **csv2** 
        (1) **csv2_vm_list** 
        (1) **csv2_vm_update** 
-       (1)
+       (1) 
  
  
  

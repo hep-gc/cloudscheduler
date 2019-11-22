@@ -11,44 +11,44 @@ man(1) page: cloudscheduler cloud metadata-load
  
  
  
- **NAME** 
-        **cloudscheduler cloud metadata-load** 
-       - add cloud metadata files to
+**NAME**  
+       **cloudscheduler cloud metadata-load** 
+       - add cloud metadata files to 
        cloudscheduler version 2 (csv2) servers
  
- **SYNOPSIS** 
-        **cloudscheduler cloud metadata-load -cn**  *cloud* **-f**  *file* **-mn**  *name*
-       [ *options*
+**SYNOPSIS**  
+       **cloudscheduler cloud metadata-load -cn** *cloud* **-f** *file* **-mn** *name*
+       [ *options* 
                       ...]
  
- **DESCRIPTION** 
+**DESCRIPTION**  
        Add  a  local  file  as cloud metadata to a cloud in the current group.
        Any user may add cloud metadata to a cloud  definition,  provided  they
        are in the group that the cloud they are adding metadata to is in.
  
- **OPTIONS** 
-    **Mandatory** 
+**OPTIONS**  
+   **Mandatory**  
        The following are mandatory parameters and must be specified:
  
-        **-cn**  *name*, **\\-\\-cloud-name**  *name*
-              A  cloud  name.   The  value  for  *name*
-              must be one to thirty-two
+       **-cn** *name*,  **\\-\\-cloud-name** *name* 
+              A  cloud  name.   The  value  for *name*
+              must be one to thirty-two 
               characters, all lower case, numeric digits, and dashes but  
               cannot start or end with dashes.
  
-        **-f**  *file*, **\\-\\-file-path**  *file*
-              The  file  to  be  added  as a metadata file.  The value of  *file*
+       **-f** *file*,  **\\-\\-file-path** *file* 
+              The  file  to  be  added  as a metadata file.  The value of *file* 
               should be an absolute path to the file to be added.
  
-        **-mn**  *name*, **\\-\\-metadata-name**  *name*
-              The metadata name and primary identifier.  The  value  for   *name*
+       **-mn** *name*,  **\\-\\-metadata-name** *name* 
+              The metadata name and primary identifier.  The  value  for  *name* 
               must  be  all  lower case, numeric digits, and dashes but cannot
               start or end with dashes..
  
-    **Optional** 
+   **Optional**  
        The following are optional parameters:
  
-        **-F** , **\\-\\-force** 
+       **-F** ,  **\\-\\-force**  
               Specify this option to override non-critical errors.  For  
               example,  cloudscheduler  commands  to  load metedata are implicitly
               adding a new objects to CSV2; if the specified  objects  already
@@ -56,82 +56,81 @@ man(1) page: cloudscheduler cloud metadata-load
               situations, the "--force" option changes  the  implicit  add  to  an
               implicit "update" and the commands succeed.
  
-        **-me**  *option*, **\\-\\-metadata-enabled**  *option*
+       **-me** *option*,  **\\-\\-metadata-enabled** *option* 
               Sets  if  this  metadata is to be applied to VMs started in this
-              cloud.  The value for  *option*
-              must be one of **true** , **false** , **yes** ,
-               **no** , **1** ,
-              or **0** .
-              Default: 1
+              cloud.  The value for *option*
+              must be one of **true** ,  **false** ,  **yes** ,  
+              **no** ,  **1** , 
+              or **0** . 
+              Default: 1 
  
-        **-mmt**  *type*, **\\-\\-metadata-mime-type**  *type*
-              Value  specified  for  *type*
-              must be one of the following options:
-               **cloud-config** 
-              or **ucernvm-config** .
-              Default: cloud-config
+       **-mmt** *type*,  **\\-\\-metadata-mime-type** *type* 
+              Value  specified  for *type*
+              must be one of the following options: 
+              **cloud-config** 
+              or **ucernvm-config** . 
+              Default: cloud-config 
  
-        **-mp**  *priority*, **\\-\\-metadata-priority**  *priority*
+       **-mp** *priority*,  **\\-\\-metadata-priority** *priority* 
               The priority of the metadata file.  Specifes the order in  which
-              metadata  files  are sent to VMs.  The value of  *priority*
-              must be
+              metadata  files  are sent to VMs.  The value of *priority*
+              must be 
               an integer.  Default: 0
  
-    **Global** 
+   **Global**  
        These  options  are  avaliable  on   all   actions:.so   
        ../man/parameters/_group.so
  
-        **-H** , **\\-\\-long-help** 
+       **-H** ,  **\\-\\-long-help**  
               Requests  the man page style help for the current command.  Long
-              help can be requested for the  **cloudscheduler** 
-              command, a specific
+              help can be requested for the **cloudscheduler** 
+              command, a specific 
               object, or a specific object/action.
  
-        **-h** , **\\-\\-help** 
+       **-h** ,  **\\-\\-help**  
               Requests  short  help  for  the  current  command.   Help can be
-              requested for the  **cloudscheduler** 
-              command, a specific object,  or
+              requested for the **cloudscheduler** 
+              command, a specific object,  or 
               a specific object/action.
  
-        **-s**  *server*, **\\-\\-server**  *server*
+       **-s** *server*,  **\\-\\-server** *server* 
               The  name  of  the target server.  There must be an entry in the
-               **cloudscheduler defaults** 
+              **cloudscheduler defaults** 
               that matches *server*
-              and it must have  an
+              and it must have  an 
               authentication method.
  
-        **-v** , **\\-\\-version** 
+       **-v** ,  **\\-\\-version**  
               Requests  that  the versions of both the CLI client and the 
               targeted server be printed in addition to any other command output.
  
-        **-xA** , **\\-\\-expose-API** 
+       **-xA** ,  **\\-\\-expose-API**  
               Requests trace messages detailing the API  calls  and  responses
-              issued and received by the  **cloudscheduler** 
-              command.
+              issued and received by the **cloudscheduler** 
+              command. 
  
- **EXAMPLES** 
-       1.     Adding the cloud metadata file "example"::
-
+**EXAMPLES**  
+       1.     Adding the cloud metadata file "example":
               $ cloudscheduler cloud metadata-load -cn example -f /<path>/myfile.yaml -mn example.yaml
               cloud metadata file "example::example::example.yaml" successfully added.
  
- **SEE ALSO** 
-        **csv2** 
+**SEE ALSO**  
+       **csv2** 
        (1) **csv2_cloud** 
        (1) **csv2_cloud_add** 
        (1) **csv2_cloud_delete** 
-       (1)
-        **csv2_cloud_list** 
+       (1) 
+       **csv2_cloud_list** 
        (1) **csv2_cloud_metadata_collation** 
-       (1) **csv2_cloud_meta-** 
-        **data_delete** 
+       (1) **csv2_cloud_meta-**  
+       **data_delete** 
        (1) **csv2_cloud_metadata_edit** 
        (1) **csv2_cloud_metadata_list** 
-       (1)
-        **csv2_cloud_metadata_update** 
+       (1) 
+       **csv2_cloud_metadata_update** 
        (1) **csv2_cloud_status** 
        (1) **csv2_cloud_update** 
-       (1)
+       (1) 
  
  
  

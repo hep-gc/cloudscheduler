@@ -11,100 +11,99 @@ man(1) page: cloudscheduler cloud metadata-edit
  
  
  
- **NAME** 
-        **cloudscheduler cloud edit** 
-       - edit cloud metadata files on cloudscheduler
+**NAME**  
+       **cloudscheduler cloud edit** 
+       - edit cloud metadata files on cloudscheduler 
        version 2 (csv2) servers
  
- **SYNOPSIS** 
-        **cloudscheduler cloud metadata-edit -cn**  *cloud* **-mn**  *metadata*
+**SYNOPSIS**  
+       **cloudscheduler cloud metadata-edit -cn** *cloud* **-mn** *metadata*
        [ *options*
-       ...]
+       ...] 
  
- **DESCRIPTION** 
+**DESCRIPTION**  
        Edit a cloud metadata file in the current group.  The metadata file  is
        fetched  from  the  server  and edited locally.  On successfully saving
        changes the server copy is updated to match the changed file.  Any user
        may edit a cloud metadata file, provided they are in the group that the
        cloud is defined in.
  
- **OPTIONS** 
-    **Mandatory** 
+**OPTIONS**  
+   **Mandatory**  
        The following are mandatory parameters and must be specified:
  
-        **-cn**  *name*, **\\-\\-cloud-name**  *name*
-              A cloud name.  The value for  *name*
-              must  be  one  to  thirty-two
+       **-cn** *name*,  **\\-\\-cloud-name** *name* 
+              A cloud name.  The value for *name*
+              must  be  one  to  thirty-two 
               characters,  all lower case, numeric digits, and dashes but 
               cannot start or end with dashes.
  
-        **-mn**  *name*, **\\-\\-metadata-name**  *name*
-              The metadata name and primary identifier.  The  value  for   *name*
+       **-mn** *name*,  **\\-\\-metadata-name** *name* 
+              The metadata name and primary identifier.  The  value  for  *name* 
               must  be  all  lower case, numeric digits, and dashes but cannot
               start or end with dashes..
  
-    **Required** 
+   **Required**  
        The following are required parameters and must be specified or  have  a
        default value:
  
-        **-te**  *editor*, **\\-\\-text-editor**  *editor*
+       **-te** *editor*,  **\\-\\-text-editor** *editor* 
               The text editor or script to use to edit the metadata file.
  
-    **Global** 
+   **Global**  
        These   options   are   avaliable  on  all  actions:.so  
        ../man/parameters/_group.so
  
-        **-H** , **\\-\\-long-help** 
+       **-H** ,  **\\-\\-long-help**  
               Requests the man page style help for the current command.   Long
-              help can be requested for the  **cloudscheduler** 
-              command, a specific
+              help can be requested for the **cloudscheduler** 
+              command, a specific 
               object, or a specific object/action.
  
-        **-h** , **\\-\\-help** 
+       **-h** ,  **\\-\\-help**  
               Requests short help  for  the  current  command.   Help  can  be
-              requested  for the  **cloudscheduler** 
-              command, a specific object, or
+              requested  for the **cloudscheduler** 
+              command, a specific object, or 
               a specific object/action.
  
-        **-s**  *server*, **\\-\\-server**  *server*
+       **-s** *server*,  **\\-\\-server** *server* 
               The name of the target server.  There must be an  entry  in  the
-               **cloudscheduler  defaults** 
+              **cloudscheduler  defaults** 
               that matches *server*
-              and it must have an
+              and it must have an 
               authentication method.
  
-        **-v** , **\\-\\-version** 
+       **-v** ,  **\\-\\-version**  
               Requests that the versions of both the CLI client and  the  
               targeted server be printed in addition to any other command output.
  
-        **-xA** , **\\-\\-expose-API** 
+       **-xA** ,  **\\-\\-expose-API**  
               Requests  trace  messages  detailing the API calls and responses
-              issued and received by the  **cloudscheduler** 
-              command.
+              issued and received by the **cloudscheduler** 
+              command. 
  
- **EXAMPLES** 
-       1.     Editing the metadata "example.yaml" with vim::
-
+**EXAMPLES**  
+       1.     Editing the metadata "example.yaml" with vim:
               $ cloudscheduler cloud metadata-edit -cn example -mn example.yaml -te vim
               cloud metadata file "example::example::example.yaml" successfully  updated.
  
- **SEE ALSO** 
-        **csv2** 
+**SEE ALSO**  
+       **csv2** 
        (1) **csv2_cloud** 
        (1) **csv2_cloud_add** 
        (1) **csv2_cloud_delete** 
-       (1)
-        **csv2_cloud_list** 
+       (1) 
+       **csv2_cloud_list** 
        (1) **csv2_cloud_metadata_collation** 
-       (1) **csv2_cloud_meta-** 
-        **data_delete** 
+       (1) **csv2_cloud_meta-**  
+       **data_delete** 
        (1) **csv2_cloud_metadata_list** 
        (1) **csv2_cloud_metadata_load** 
-       (1)
-        **csv2_cloud_metadata_update** 
+       (1) 
+       **csv2_cloud_metadata_update** 
        (1) **csv2_cloud_status** 
        (1) **csv2_cloud_update** 
-       (1)
+       (1) 
  
  
  

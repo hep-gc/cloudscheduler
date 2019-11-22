@@ -11,114 +11,113 @@ man(1) page: cloudscheduler cloud metadata-update
  
  
  
- **NAME** 
-        **cloudscheduler  cloud  metadata-update** 
-       - update cloud metadata files on
+**NAME**  
+       **cloudscheduler  cloud  metadata-update** 
+       - update cloud metadata files on 
        cloudscheduler version 2 (csv2) servers
  
- **SYNOPSIS** 
-        **cloudscheduler cloud add -cn**  *cloud* **-mn**  *metadata*
+**SYNOPSIS**  
+       **cloudscheduler cloud add -cn** *cloud* **-mn** *metadata*
        [ *options*
-       ...]
+       ...] 
  
- **DESCRIPTION** 
+**DESCRIPTION**  
        Update information about a cloud metadata file in  the  current  group.
        Any user may update cloud metadata, provided they are in the group that
        the cloud metadata is in.
  
- **OPTIONS** 
-    **Mandatory** 
+**OPTIONS**  
+   **Mandatory**  
        The following are mandatory parameters and must be specified:
  
-        **-cn**  *name*, **\\-\\-cloud-name**  *name*
-              A cloud name.  The value for  *name*
-              must  be  one  to  thirty-two
+       **-cn** *name*,  **\\-\\-cloud-name** *name* 
+              A cloud name.  The value for *name*
+              must  be  one  to  thirty-two 
               characters,  all lower case, numeric digits, and dashes but 
               cannot start or end with dashes.
  
-        **-mn**  *name*, **\\-\\-metadata-name**  *name*
-              The metadata name and primary identifier.  The  value  for   *name*
+       **-mn** *name*,  **\\-\\-metadata-name** *name* 
+              The metadata name and primary identifier.  The  value  for  *name* 
               must  be  all  lower case, numeric digits, and dashes but cannot
               start or end with dashes..
  
-    **Optional** 
+   **Optional**  
        The following are optional parameters:
  
-        **-me**  *option*, **\\-\\-metadata-enabled**  *option*
+       **-me** *option*,  **\\-\\-metadata-enabled** *option* 
               Sets if this metadata is to be applied to VMs  started  in  this
-              cloud.   The  value  for  *option*
-              must be one of **true** , **false** , **yes** ,
-               **no** , **1** ,
-              or **0** .
-              Default: 1
+              cloud.   The  value  for *option*
+              must be one of **true** ,  **false** ,  **yes** ,  
+              **no** ,  **1** , 
+              or **0** . 
+              Default: 1 
  
-        **-mmt**  *type*, **\\-\\-metadata-mime-type**  *type*
-              Value specified for  *type*
-              must be one of the  following  options:
-               **cloud-config** 
-              or **ucernvm-config** .
-              Default: cloud-config
+       **-mmt** *type*,  **\\-\\-metadata-mime-type** *type* 
+              Value specified for *type*
+              must be one of the  following  options: 
+              **cloud-config** 
+              or **ucernvm-config** . 
+              Default: cloud-config 
  
-        **-mp**  *priority*, **\\-\\-metadata-priority**  *priority*
+       **-mp** *priority*,  **\\-\\-metadata-priority** *priority* 
               The  priority of the metadata file.  Specifes the order in which
-              metadata files are sent to VMs.  The value of  *priority*
-              must  be
+              metadata files are sent to VMs.  The value of *priority*
+              must  be 
               an integer.  Default: 0
  
-    **Global** 
+   **Global**  
        These   options   are   avaliable  on  all  actions:.so  
        ../man/parameters/_group.so
  
-        **-H** , **\\-\\-long-help** 
+       **-H** ,  **\\-\\-long-help**  
               Requests the man page style help for the current command.   Long
-              help can be requested for the  **cloudscheduler** 
-              command, a specific
+              help can be requested for the **cloudscheduler** 
+              command, a specific 
               object, or a specific object/action.
  
-        **-h** , **\\-\\-help** 
+       **-h** ,  **\\-\\-help**  
               Requests short help  for  the  current  command.   Help  can  be
-              requested  for the  **cloudscheduler** 
-              command, a specific object, or
+              requested  for the **cloudscheduler** 
+              command, a specific object, or 
               a specific object/action.
  
-        **-s**  *server*, **\\-\\-server**  *server*
+       **-s** *server*,  **\\-\\-server** *server* 
               The name of the target server.  There must be an  entry  in  the
-               **cloudscheduler  defaults** 
+              **cloudscheduler  defaults** 
               that matches *server*
-              and it must have an
+              and it must have an 
               authentication method.
  
-        **-v** , **\\-\\-version** 
+       **-v** ,  **\\-\\-version**  
               Requests that the versions of both the CLI client and  the  
               targeted server be printed in addition to any other command output.
  
-        **-xA** , **\\-\\-expose-API** 
+       **-xA** ,  **\\-\\-expose-API**  
               Requests  trace  messages  detailing the API calls and responses
-              issued and received by the  **cloudscheduler** 
-              command.
+              issued and received by the **cloudscheduler** 
+              command. 
  
- **EXAMPLES** 
-       1.     Updating the metadata "example.yaml"::
-
+**EXAMPLES**  
+       1.     Updating the metadata "example.yaml":
               $ cloudscheduler cloud metadata-update -cn example -mn example.yaml -me no -mmt ucernvm-config -mp 5
               cloud metadata file "example::example::example.yaml" successfully  updated.
  
- **SEE ALSO** 
-        **csv2** 
+**SEE ALSO**  
+       **csv2** 
        (1) **csv2_cloud** 
        (1) **csv2_cloud_add** 
        (1) **csv2_cloud_delete** 
-       (1)
-        **csv2_cloud_list** 
+       (1) 
+       **csv2_cloud_list** 
        (1) **csv2_cloud_metadata_collation** 
-       (1) **csv2_cloud_meta-** 
-        **data_delete** 
+       (1) **csv2_cloud_meta-**  
+       **data_delete** 
        (1) **csv2_cloud_metadata_edit** 
        (1) **csv2_cloud_metadata_list** 
-       (1)
-        **csv2_cloud_status** 
+       (1) 
+       **csv2_cloud_status** 
        (1) **csv2_cloud_update** 
-       (1)
+       (1) 
  
  
  
