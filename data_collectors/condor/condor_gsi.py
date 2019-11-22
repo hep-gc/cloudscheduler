@@ -41,7 +41,7 @@ def condor_gsi_poller():
                 if condor_cert:
                     try:
                         for group in sorted(condor_dict[condor]):
-                            config.db_session.execute('update csv2_groups set htcondor_gsi_dn="%s",htcondor_gsi_eol=%d where group_name="%s";' % (if_null(condor_cert['subject']), condor_cert['eol'], group))
+                            config.db_session.execute('update csv2_groups set htcondor_gsi_dn=%s,htcondor_gsi_eol=%d where group_name="%s";' % (if_null(condor_cert['subject']), condor_cert['eol'], group))
                         config.db_session.commit()
 
                         if condor_cert['subject']:
@@ -94,9 +94,13 @@ def get_condor_dict(config, logging):
 
 def if_null(val):
     if val:
-        return val
+        if str(val)[0] == '"':
+            return val
+        else:
+            val='"'+str(val)+'"'
+            return val
     else:
-        return 'NULL'
+        return 'null' 
 
 def worker_gsi_poller():
     multiprocessing.current_process().name = "Worker GSI Poller"
@@ -134,7 +138,8 @@ def worker_gsi_poller():
 
                 if worker_cert:
                     try:
-                        config.db_session.execute('insert into condor_worker_gsi values("%s", "%s", %d, "%s", "%s");' % (condor, if_null(worker_cert['subject']), worker_cert['eol'], if_null(worker_cert['cert']), if_null(worker_cert['key'])))
+                       
+                        config.db_session.execute('insert into condor_worker_gsi values("%s", %s, %d, %s, %s);' % (condor, if_null(worker_cert['subject']), worker_cert['eol'], if_null(worker_cert['cert']), if_null(worker_cert['key'])))
                         config.db_session.commit()
 
                         if worker_cert['subject']:
@@ -146,7 +151,7 @@ def worker_gsi_poller():
                         logging.debug('Condor host: "%s", condor_worker_gsi insert failed, exception: %s' % (condor, ex))
 
                         try:
-                            config.db_session.execute('update condor_worker_gsi set worker_dn="%s",worker_eol=%d,worker_cert="%s",worker_key="%s" where htcondor_fqdn="%s";' % (if_null(worker_cert['subject']), worker_cert['eol'], if_null(worker_cert['cert']), if_null(worker_cert['key']), condor))
+                            config.db_session.execute('update condor_worker_gsi set worker_dn=%s,worker_eol=%d,worker_cert=%s,worker_key=%s where htcondor_fqdn="%s";' % (worker_cert['subject'], worker_cert['eol'], worker_cert['cert'], worker_cert['key'], condor))
                             config.db_session.commit()
 
                             if worker_cert['subject']:
@@ -161,6 +166,9 @@ def worker_gsi_poller():
                                 logging.error('Condor host: "%s", condor_worker_gsi update failed, exception: %s' % (condor, ex))
                             else:
                                 logging.error('Condor host: "%s", condor_worker_gsi (not configured) update failed, exception: %s' % (condor, ex))
+                    else:
+                        logging.info('Condor host: "%s", GSI not configured.' % condor)
+
                 else:
                     logging.warning('Condor host: "%s", request timed out.' % condor)
 

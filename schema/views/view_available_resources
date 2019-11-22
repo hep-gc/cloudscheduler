@@ -58,8 +58,8 @@ ifnull(fru.flavor_retiring,0) as flavor_retiring,
 ifnull(fru.flavor_error,0) as flavor_error,
 ifnull(fru.flavor_manual,0) as flavor_manual,
 fru.updater,
-fwd.worker_cert,
-fwd.worker_key
+ifnull(fwd.worker_cert,"None") as worker_cert,
+ifnull(fwd.worker_key, "None") as worker_key
 
 from (
     /* fwd - flavors with defaults */
