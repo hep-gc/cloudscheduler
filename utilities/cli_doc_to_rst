@@ -58,7 +58,7 @@ def convert_manpage(gvar, fd, manpage):
                 stripped_line = line[:-1].strip()
                 if len(stripped_line) > 2 and stripped_line[:2] == 'o ':
                     # Line space custom bullets.
-                    stripped_line = '\n%s' % stripped_line
+                    fd.write('\n')
 
             bits = stripped_line.split()
             if len(bits) > 1 and stripped_line[-1] == '-' and len(bits[-1]) > 1 and bits[-1][-1] == '-':

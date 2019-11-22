@@ -156,10 +156,10 @@ man(1) page: cloudscheduler cloud update
               least one, but may contain  more  than  one,  of  the  following
               key/value pairs:
  
-              
-o "GBs": n
-              
-o "GBs_per_core": n
+
+              o "GBs": n
+
+              o "GBs_per_core": n
  
               Where "n" is an integer number of gigabytes. If a key/value pair
               is omitted, the corresponding value is assumed to be zero.   The
