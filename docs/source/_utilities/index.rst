@@ -13,6 +13,7 @@ The utilities can be divided into two categories:
    :maxdepth: 1
    :caption: Utilities for Development and Maintenance:
 
+   cli_doc_to_rst
    cstrigger
    csview
    db_upgrade
