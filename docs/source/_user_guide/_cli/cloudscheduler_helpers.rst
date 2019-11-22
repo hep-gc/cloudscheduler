@@ -11,39 +11,28 @@ man(1) page: cloudscheduler helpers
  
  
  
-
 **NAME**
-       
        **cloudscheduler  helpers**
        -  cli helpers cloudscheduler version 2 (csv2)
        servers
  
-
 **SYNOPSIS**
-       
-       **cloudscheduler helpers**
-       *action*
+       **cloudscheduler helpers***action*
  
-
 **DESCRIPTION**
        This object provides functions to aid in the use of this command.
  
  
-
 **ACTIONS**
-       The following actions are available for the 
-       **helpers**
+       The following actions are available for the **helpers**
        object:
  
-       
        **check_documentation**
               This action prints a  matrix  summarizing  the  completeness  of
-              
               **cloudscheduler**
               man page documentation.  It is used by developers
               to maintain up to date documentation.
  
-       
        **generate_bash_completion_script**
               This action creates or updates a bash completion script for  the
               **cloudscheduler**  command  in the user's home directory. It is
@@ -64,23 +53,17 @@ man(1) page: cloudscheduler helpers
               ~/.bash_completion.d/cloudscheduler.
  
  
-       
        **print_json_syntax_tree**
-              This action prints a JSON string containing  the  
-              **cloudscheduler**
+              This action prints a JSON string containing  the  **cloudscheduler**
               command   syntax   tree.  It  is  used  by  developers  and  the
-              
               **cli_doc_to_rst**
-              utility to furnish the
-              **readthedocs**
+              utility to furnish the**readthedocs**
               web  service
               with the cloudscheduler man pages.
  
  
  
-       
        **SEE ALSO**
-              
               **csv2**
               (1)
  

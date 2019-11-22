@@ -11,63 +11,41 @@ man(1) page: cloudscheduler server
  
  
  
-
 **NAME**
-       
        **cloudscheduler server**
        - manage cloudscheduler version 2 (csv2) servers
  
-
 **SYNOPSIS**
-       
-       **csv2 server**
-       *action*
-       *mandatory_parameters*
-       [
-       *options*
+       **csv2 server***action**mandatory_parameters*
+       [*options*
        ...]
  
-
 **DESCRIPTION**
-       The  
-       **server**
-       object  modifies and lists server configuration for
-       **cloud-**
-       
+       The  **server**
+       object  modifies and lists server configuration for**cloud-**
        **scheduler**
        servers.  The server object and actions are only available to
        privileged  users.   ***CAUTION: Modifing these values can cause server
        errors***
  
-
 **ACTIONS**
-       For information on the parameters associated with each  
-       **server**
+       For information on the parameters associated with each  **server**
        action,
-       refer  to  the  documentation  for  that  action (
-       **cloudscheduler server**
-       
-       *action*
-       **-H**).
-       The following actions are available for the
-       **server**
+       refer  to  the  documentation  for  that  action (**cloudscheduler server**
+       *action***-H**).
+       The following actions are available for the**server**
        object:
  
-       
        **config**
-       The
-       **cloudscheduler server config**
+       The**cloudscheduler server config**
        action modifies and lists
               configuration  values  of csv2 servers.  This action is only 
               available to privileged users.  ***CAUTION: Modifing these values can
               cause server errors***
  
-
 **SEE ALSO**
-       
        **csv2**
-       (1)
-       **csv2_server_config**
+       (1)**csv2_server_config**
        (1)
  
  

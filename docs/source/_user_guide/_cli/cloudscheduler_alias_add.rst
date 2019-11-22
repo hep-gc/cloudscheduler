@@ -11,128 +11,85 @@ man(1) page: cloudscheduler alias add
  
  
  
-
 **NAME**
-       
        **cloudscheduler alias add**
        - add alias definitions to cloudscheduler
        version 2 (csv2) servers
  
-
 **SYNOPSIS**
-       
        **cloudscheduler alias add mandatory_parameters**
-       [
-       *options*
+       [*options*
        ...]
  
-
 **DESCRIPTION**
        Adds a new alias definition to the current group.   A  group  may  have
        multiple alias definitions and each alias definition may contain one or
        more clouds.  A single cloud can be a member of multiple aliases.   All
        users within a group may create aliases for the group.
  
-
 **OPTIONS**
-   
    **Mandatory**
        The following are mandatory parameters and must be specified:
  
-       
-       **-an**
-       *name*,
-       **\\-\\-alias-name**
-       *name*
-              The  alias  name.   The value for 
-              *name*
+       **-an***name*,**\\-\\-alias-name***name*
+              The  alias  name.   The value for *name*
               must be one to thirty-two
               characters, all lower case and numeric digits.
  
-       
-       **-cn**
-       *name1[,name2,...nameN]*,
-       **\\-\\-cloud-name**
-       *name1[,name2,...nameN]*
+       **-cn***name1[,name2,...nameN]*,**\\-\\-cloud-name***name1[,name2,...nameN]*
               A comma seperated list of cloud names, each  previously  defined
               within the group.
  
-   
    **Optional**
        The following are optional parameters:
  
  
        None.
  
-   
    **Global**
        These   options   are   avaliable  on  all  actions:.so  
        ../man/parameters/_group.so
  
-       
-       **-H**,
-       **\\-\\-long-help**
+       **-H**,**\\-\\-long-help**
               Requests the man page style help for the current command.   Long
-              help can be requested for the 
-              **cloudscheduler**
+              help can be requested for the **cloudscheduler**
               command, a specific
               object, or a specific object/action.
  
-       
-       **-h**,
-       **\\-\\-help**
+       **-h**,**\\-\\-help**
               Requests short help  for  the  current  command.   Help  can  be
-              requested  for the 
-              **cloudscheduler**
+              requested  for the **cloudscheduler**
               command, a specific object, or
               a specific object/action.
  
-       
-       **-s**
-       *server*,
-       **\\-\\-server**
-       *server*
+       **-s***server*,**\\-\\-server***server*
               The name of the target server.  There must be an  entry  in  the
-              
               **cloudscheduler  defaults**
-              that matches
-              *server*
+              that matches*server*
               and it must have an
               authentication method.
  
-       
-       **-v**,
-       **\\-\\-version**
+       **-v**,**\\-\\-version**
               Requests that the versions of both the CLI client and  the  
               targeted server be printed in addition to any other command output.
  
-       
-       **-xA**,
-       **\\-\\-expose-API**
+       **-xA**,**\\-\\-expose-API**
               Requests  trace  messages  detailing the API calls and responses
-              issued and received by the 
-              **cloudscheduler**
+              issued and received by the **cloudscheduler**
               command.
  
-
 **EXAMPLES**
-       1.     Creating an alias of two clouds within the current group::
-
+       1.     Creating an alias of two clouds within the current group:
  
               $ cloudscheduler alias add -an amazon -cn amazon-east,amazon-west
               cloud alias "testing.amazon" successfully added.
               $
  
-
 **SEE ALSO**
-       
        **csv2**
-       (1)
-       **csv2_alias**
-       (1)
-       **csv2_alias_list**
-       (1)
-       **csv2_alias_update**
+       (1)**csv2_alias**
+       (1)**csv2_alias_list**
+       (1)**csv2_alias_update**
        (1)
  
  

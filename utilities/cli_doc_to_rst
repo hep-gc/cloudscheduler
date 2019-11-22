@@ -87,9 +87,13 @@ def convert_manpage(gvar, fd, manpage):
                             continue
                         else:
                             if tit_bits[0] == '1':
-                                bits[ix] = '\n%s**%s**' % (indent, tit_bits[1].strip().replace('--', '\\\\-\\\\-'))
+#                               bits[ix] = '\n%s**%s**' % (indent, tit_bits[1].strip().replace('--', '\\\\-\\\\-'))
+#                               bits[ix] = '%s**%s**' % (indent, tit_bits[1].strip().replace('--', '\\\\-\\\\-'))
+                                bits[ix] = '**%s**' % (tit_bits[1].strip().replace('--', '\\\\-\\\\-'))
                             else:
-                                bits[ix] = '\n%s*%s*' % (indent, tit_bits[1].strip().replace('--', '\\\\-\\\\-'))
+#                               bits[ix] = '\n%s*%s*' % (indent, tit_bits[1].strip().replace('--', '\\\\-\\\\-'))
+#                               bits[ix] = '%s*%s*' % (indent, tit_bits[1].strip().replace('--', '\\\\-\\\\-'))
+                                bits[ix] = '*%s*' % (tit_bits[1].strip().replace('--', '\\\\-\\\\-'))
 
                     elif tit_bits[0] == '0' or tit_bits[0] == '22' or tit_bits[0] == '24':
                         tiny_tit_bits = tit_bits[1].split(' ', 1)

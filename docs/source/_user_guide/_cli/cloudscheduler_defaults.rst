@@ -11,91 +11,61 @@ man(1) page: cloudscheduler defaults
  
  
  
-
 **NAME**
-       
        **cloudscheduler  defaults**
        - manage defaults for cloudscheduler version 2
        (csv2) servers
  
-
 **SYNOPSIS**
-       
-       **cloudscheduler defaults**
-       *action*
-       *mandatory_parameters*
-       [
-       *options*
+       **cloudscheduler defaults***action**mandatory_parameters*
+       [*options*
        ...]
  
-
 **DESCRIPTION**
-       The 
-       **defaults**
+       The **defaults**
        object manipulates groups  of  defaults  within  a  user's
-       
        **~/.csv2**
        directory,  and  provides  actions  to  set,  delete, and list
        defaults for multiple servers.  A sub-directory  is  created  for  each
-       server, and within that sub-directory, a single 
-       **settings.yaml**
+       server, and within that sub-directory, a single **settings.yaml**
        file
        contains the default value  for  each  parameter  for  that  server.   The
        defaults object and actions are available to all users.
  
-
 **ACTIONS**
-       For information on the parameters associated with each 
-       **defaults**
+       For information on the parameters associated with each **defaults**
        action,
-       refer to the documentation for  that  action  (
-       **cloudscheduler  defaults**
-       
-       *action*
-       **-H**).
-       The  following  actions  are  available for the
-       **defaults**
+       refer to the documentation for  that  action  (**cloudscheduler  defaults**
+       *action***-H**).
+       The  following  actions  are  available for the**defaults**
        object:
  
-       
        **delete**
-       The
-       **cloudscheduler defaults delete**
+       The**cloudscheduler defaults delete**
        action deletes  defaults  for
               csv2 servers.  This action is avaliable to any user.
  
-       
        **list**
-       The
-       **cloudscheduler defaults list**
+       The**cloudscheduler defaults list**
        action lists defaults for csv2
               servers.  This action is avaliable for any user.
  
-       
        **set**
-       The
-       **cloudscheduler defaults set**
+       The**cloudscheduler defaults set**
        action adds a default for a csv2
-              server  if the server name specified by 
-              **-s**
+              server  if the server name specified by **-s**
               doesn't already exist
-              in the defaults list.  If the server name specified by  
-              **-s**
+              in the defaults list.  If the server name specified by  **-s**
               does
               exist  in the defaults list then that default set is modified by
               any other options specified.  This action is  available  to  any
               user.
  
-
 **SEE ALSO**
-       
        **csv2**
+       (1)**csv2_defaults_delete**
+       (1)**csv2_defaults_list**
        (1)
-       **csv2_defaults_delete**
-       (1)
-       **csv2_defaults_list**
-       (1)
-       
        **csv2_defaults_set**
        (1)
  

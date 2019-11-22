@@ -11,170 +11,104 @@ man(1) page: cloudscheduler user add
  
  
  
-
 **NAME**
-       
        **cloudscheduler  user add**
        - add users to cloudscheduler version 2 (csv2)
        servers
  
-
 **SYNOPSIS**
-       
-       **cloudscheduler user add -un**
-       *username*
-       **-upw**
-       *password*
-       [
-       *options*
+       **cloudscheduler user add -un***username***-upw***password*
+       [*options*
        ...]
  
-
 **DESCRIPTION**
-       The 
-       **cloudscheduler user add**
+       The **cloudscheduler user add**
        action adds users to  csv2  servers.   This
-       action  is only available to privileged users.  A 
-       *username*
-       and
-       *password*
+       action  is only available to privileged users.  A *username*
+       and*password*
        is required to create a user, but authentication can  be  done  with  a
-       X509 certificate specified by 
-       *user_common_name*.
+       X509 certificate specified by *user_common_name*.
  
-
 **OPTIONS**
-   
    **Mandatory**
        The following are mandatory parameters and must be specified:
  
-       
-       **-un**
-       *username*,
-       **\\-\\-username**
-       *username*
-              The  value  for  
-              *username*
+       **-un***username*,**\\-\\-username***username*
+              The  value  for  *username*
               must not contain uppercase letters or
               conflict with another users username or common name.
  
-       
-       **-upw**
-       *password*,
-       **\\-\\-user-password**
-       *password*
+       **-upw***password*,**\\-\\-user-password***password*
               The users password. Must be at least 6  characters  long  if  it
               contains  a mix of uppercase, lowercase, and numeric characters.
-              Otherwise, it must be at least 16 characters long.  If  
-              *password*
+              Otherwise, it must be at least 16 characters long.  If  *password*
               is  "???"  the  system will use a secure prompt for entering the
               password.
  
-   
    **Optional**
        The following are optional parameters:
  
-       
-       **-gn**
-       *group*
-       [,...],
-       **\\-\\-group-name**
-       *group*
+       **-gn***group*
+       [,...],**\\-\\-group-name***group*
        [,...]
-              The groups to add the user to, where 
-              *group*
+              The groups to add the user to, where *group*
               is a comma  seperated
               list of existing group names.
  
-       
-       **-SU**
-       *option*,
-       **\\-\\-super-user**
-       *option*
-              Specify  if  the user is a privileged user. 
-              *option*
+       **-SU***option*,**\\-\\-super-user***option*
+              Specify  if  the user is a privileged user. *option*
               can be any of
               yes, no, true, false, 1, or 0.  Default: 0
  
-       
-       **-ucn**
-       *name*,
-       **\\-\\-user-common-name**
-       *name*
+       **-ucn***name*,**\\-\\-user-common-name***name*
               Common name of the users X509 certificate.  Cannot conflict with
               any other users username or common name.  Default: None
  
-   
    **Global**
        These   options   are   avaliable  on  all  actions:.so  
        ../man/parameters/_group.so
  
-       
-       **-H**,
-       **\\-\\-long-help**
+       **-H**,**\\-\\-long-help**
               Requests the man page style help for the current command.   Long
-              help can be requested for the 
-              **cloudscheduler**
+              help can be requested for the **cloudscheduler**
               command, a specific
               object, or a specific object/action.
  
-       
-       **-h**,
-       **\\-\\-help**
+       **-h**,**\\-\\-help**
               Requests short help  for  the  current  command.   Help  can  be
-              requested  for the 
-              **cloudscheduler**
+              requested  for the **cloudscheduler**
               command, a specific object, or
               a specific object/action.
  
-       
-       **-s**
-       *server*,
-       **\\-\\-server**
-       *server*
+       **-s***server*,**\\-\\-server***server*
               The name of the target server.  There must be an  entry  in  the
-              
               **cloudscheduler  defaults**
-              that matches
-              *server*
+              that matches*server*
               and it must have an
               authentication method.
  
-       
-       **-v**,
-       **\\-\\-version**
+       **-v**,**\\-\\-version**
               Requests that the versions of both the CLI client and  the  
               targeted server be printed in addition to any other command output.
  
-       
-       **-xA**,
-       **\\-\\-expose-API**
+       **-xA**,**\\-\\-expose-API**
               Requests  trace  messages  detailing the API calls and responses
-              issued and received by the 
-              **cloudscheduler**
+              issued and received by the **cloudscheduler**
               command.
  
-
 **EXAMPLES**
-       1.     Adding the user "example"::
-
+       1.     Adding the user "example":
               $ cloudscheduler user add -un example -upw ??? -ucn 'John Doe' -gn 'group1,group2' -SU no
               Enter user-password:
               Verify user-password:
               user "example" successfully added.
  
-
 **SEE ALSO**
-       
        **csv2**
+       (1)**csv2_user**
+       (1)**csv2_user_delete**
+       (1)**csv2_user_list**
        (1)
-       **csv2_user**
-       (1)
-       **csv2_user_delete**
-       (1)
-       **csv2_user_list**
-       (1)
-       
        **csv2_user_update**
        (1)
  
