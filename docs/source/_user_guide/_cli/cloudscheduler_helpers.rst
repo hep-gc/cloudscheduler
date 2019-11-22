@@ -29,7 +29,7 @@ man(1) page: cloudscheduler helpers
  
         **check_documentation** 
               This action prints a  matrix  summarizing  the  completeness  of
-               **cloudscheduler** 
+              **cloudscheduler** 
               man page documentation.  It is used by developers
               to maintain up to date documentation.
  
@@ -59,7 +59,7 @@ man(1) page: cloudscheduler helpers
         **print_json_syntax_tree** 
               This action prints a JSON string containing  the   **cloudscheduler** 
               command   syntax   tree.  It  is  used  by  developers  and  the
-               **cli_doc_to_rst** 
+              **cli_doc_to_rst** 
               utility to furnish the **readthedocs** 
               web  service
               with the cloudscheduler man pages.
@@ -67,7 +67,7 @@ man(1) page: cloudscheduler helpers
  
  
         **SEE ALSO** 
-               **csv2** 
+              **csv2** 
               (1)
  
  
