@@ -11,96 +11,96 @@ man(1) page: cloudscheduler alias update
  
  
  
-**NAME**
-       **cloudscheduler  alias update**
+**NAME** 
+       **cloudscheduler  alias update** 
        - update alias definitions for the current
        group.
  
-**SYNOPSIS**
-       **cloudscheduler alias update mandatory_parameters**
+**SYNOPSIS** 
+       **cloudscheduler alias update mandatory_parameters** 
        [*options*
        ...]
  
-**DESCRIPTION**
+**DESCRIPTION** 
        Modifies the alias definitions within the current group  by  adding  or
        deleting member clouds.  When the last cloud within an alias is deleted
        from the alias, then the alias is also removed  from  the  group.   All
        users within a group may update the aliases for that group.
  
-**OPTIONS**
-   **Mandatory**
+**OPTIONS** 
+   **Mandatory** 
        The following are mandatory parameters and must be specified:
  
-       **-an***name*,**\\-\\-alias-name***name*
+       **-an** *name*,**\\-\\-alias-name** *name*
               The  alias  name.   The value for *name*
               must be one to thirty-two
               characters, all lower case and numeric digits.
  
-       **-cn***name1[,name2,...nameN]*,**\\-\\-cloud-name***name1[,name2,...nameN]*
+       **-cn** *name1[,name2,...nameN]*,**\\-\\-cloud-name** *name1[,name2,...nameN]*
               A comma seperated list of cloud names, each  previously  defined
               within the group.
  
-   **Optional**
+   **Optional** 
        The following are optional parameters:
  
-       **-co***option*,**\\-\\-cloud-option***option*
+       **-co** *option*,**\\-\\-cloud-option** *option*
               The value for *option*
-              must be either**add**
-              or**delete**.
+              must be either**add** 
+              or**delete** .
               If*option*
               is
-              **add**
+              **add** 
               the selected cloud will be added to the alias.  If*option*
               is
-              **delete**
+              **delete** 
               the selected cloud will be deleted from the alias. If the
               last cloud is deleted from an alias, the  specified  alias  will
               also be deleted from the group.
  
-   **Global**
+   **Global** 
        These   options   are   avaliable  on  all  actions:.so  
        ../man/parameters/_group.so
  
-       **-H**,**\\-\\-long-help**
+       **-H** ,**\\-\\-long-help** 
               Requests the man page style help for the current command.   Long
-              help can be requested for the **cloudscheduler**
+              help can be requested for the **cloudscheduler** 
               command, a specific
               object, or a specific object/action.
  
-       **-h**,**\\-\\-help**
+       **-h** ,**\\-\\-help** 
               Requests short help  for  the  current  command.   Help  can  be
-              requested  for the **cloudscheduler**
+              requested  for the **cloudscheduler** 
               command, a specific object, or
               a specific object/action.
  
-       **-s***server*,**\\-\\-server***server*
+       **-s** *server*,**\\-\\-server** *server*
               The name of the target server.  There must be an  entry  in  the
-              **cloudscheduler  defaults**
+              **cloudscheduler  defaults** 
               that matches*server*
               and it must have an
               authentication method.
  
-       **-v**,**\\-\\-version**
+       **-v** ,**\\-\\-version** 
               Requests that the versions of both the CLI client and  the  
               targeted server be printed in addition to any other command output.
  
-       **-xA**,**\\-\\-expose-API**
+       **-xA** ,**\\-\\-expose-API** 
               Requests  trace  messages  detailing the API calls and responses
-              issued and received by the **cloudscheduler**
+              issued and received by the **cloudscheduler** 
               command.
  
-**EXAMPLES**
+**EXAMPLES** 
        1.     Removing a cloud from an alias:
  
               $ cloudscheduler alias update -an amazon -cn amazon-west -co delete
               cloud alias "testing.amazon" successfully updated.
               $
  
-**SEE ALSO**
-       **csv2**
-       (1)**csv2_alias**
-       (1)**csv2_alias_add**
-       (1)**csv2_alias_list**
+**SEE ALSO** 
+       **csv2** 
+       (1)**csv2_alias** 
+       (1)**csv2_alias_add** 
+       (1)**csv2_alias_list** 
        (1)
  
  

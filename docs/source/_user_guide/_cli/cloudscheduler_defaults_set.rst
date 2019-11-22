@@ -11,68 +11,68 @@ man(1) page: cloudscheduler defaults set
  
  
  
-**NAME**
-       **cloudscheduler  defaults  set**
+**NAME** 
+       **cloudscheduler  defaults  set** 
        -  create and modify defaults for
        cloudscheduler version 2 (csv2) servers
  
-**SYNOPSIS**
-       **cloudscheduler defaults set -s***server*
+**SYNOPSIS** 
+       **cloudscheduler defaults set -s** *server*
        [*options*
        ...]
  
-**DESCRIPTION**
-       The **cloudscheduler defaults set**
+**DESCRIPTION** 
+       The **cloudscheduler defaults set** 
        action adds a default for a csv2 server
-       if  the  server  name  specified  by  **-s**
+       if  the  server  name  specified  by  **-s** 
        doesn't  already exist in the
-       defaults list.  If the server name specified by **-s**
+       defaults list.  If the server name specified by **-s** 
        does  exist  in  the
        defaults  list  then  that default set is modified by any other options
        specified.  This action is available to any user.
  
-**OPTIONS**
-   **Mandatory**
+**OPTIONS** 
+   **Mandatory** 
        The following are mandatory parameters and must be specified:
  
-       **-s***server*,**\\-\\-server***server*
+       **-s** *server*,**\\-\\-server** *server*
               The name of the server default.
  
-   **Optional**
-       Any parameter that is not mandatory may have a default set. See  **cloud-**
-       **scheduler defaults set -h**
+   **Optional** 
+       Any parameter that is not mandatory may have a default set. See  **cloud-** 
+       **scheduler defaults set -h** 
        for the full list of parameters.
  
        The parameters specifically for server defaults are:
  
-       **-sa***url*,**\\-\\-server-address***url*
+       **-sa** *url*,**\\-\\-server-address** *url*
               Specifies  the  HTTPS  protocol  location  of the cloudscheduler
               server. The default URL is https://localhost.
  
-       **-spw***password*,**\\-\\-server-password***password*
+       **-spw** *password*,**\\-\\-server-password** *password*
               Specifies the password  to  use  when  authenticating  with  the
               cloudscheduler server.  If user/password authentication is being
               used and no password is provided,  a  password  prompt  will  be
               issued.
  
-       **-su***username*,**\\-\\-server-user***username*
+       **-su** *username*,**\\-\\-server-user** *username*
               Specifies the user ID to use when authenticating with the 
               cloudscheduler server.  If specified, the user  should  also  specify
-              the  **-spw**
+              the  **-spw** 
               option,  or  a  password  promp  will be issued.  The
               default is to attempt X509  authentication;  either  your  proxy
               certificate  in  "/tmp"  or, failing that, your grid certificate
               and key in your "~/.globus" directory.
  
-**EXAMPLES**
+**EXAMPLES** 
        1.     Set the server address for default "example":
               $ cloudscheduler defaults set -s example -sa https://www.example.com/
  
-**SEE ALSO**
-       **csv2**
-       (1)**csv2_defaults**
-       (1)**csv2_defaults_delete**
-       (1)**csv2_defaults_list**
+**SEE ALSO** 
+       **csv2** 
+       (1)**csv2_defaults** 
+       (1)**csv2_defaults_delete** 
+       (1)**csv2_defaults_list** 
        (1)
  
  

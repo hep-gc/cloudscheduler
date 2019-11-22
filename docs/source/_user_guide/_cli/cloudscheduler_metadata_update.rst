@@ -11,104 +11,104 @@ man(1) page: cloudscheduler metadata update
  
  
  
-**NAME**
-       **cloudscheduler  metadata  update**
+**NAME** 
+       **cloudscheduler  metadata  update** 
        - update group metadata on
        cloudscheduler version 2 (csv2) servers
  
-**SYNOPSIS**
-       **cloudscheduler metadata update -mn***name*
+**SYNOPSIS** 
+       **cloudscheduler metadata update -mn** *name*
        [*options*
        ...]
  
-**DESCRIPTION**
-       The **cloudscheduler metadata update**
+**DESCRIPTION** 
+       The **cloudscheduler metadata update** 
        action updates group  metadata  from
        csv2 servers.  This action is available to all users, provided they are
        in the group that the metadata belongs to.  Priviliged users  may  also
-       use the **cloudscheduler group metadata-update**
+       use the **cloudscheduler group metadata-update** 
        command.
  
-**OPTIONS**
-   **Mandatory**
+**OPTIONS** 
+   **Mandatory** 
        The following are mandatory parameters and must be specified:
  
-       **-mn***name*,**\\-\\-metadata-name***name*
+       **-mn** *name*,**\\-\\-metadata-name** *name*
               The  metadata  name  and primary identifier.  The value for *name*
               must be all lower case, numeric digits, and  dashes  but  cannot
               start or end with dashes..
  
-   **Optional**
+   **Optional** 
        The following are optional parameters:
  
-       **-me***option*,**\\-\\-metadata-enabled***option*
+       **-me** *option*,**\\-\\-metadata-enabled** *option*
               Sets  if  this  metadata is to be applied to VMs started in this
               cloud.  The value for *option*
-              must be one of**true**,**false**,**yes**,
-              **no**,**1**,
-              or**0**.
+              must be one of**true** ,**false** ,**yes** ,
+              **no** ,**1** ,
+              or**0** .
               Default: 1
  
-       **-mmt***type*,**\\-\\-metadata-mime-type***type*
+       **-mmt** *type*,**\\-\\-metadata-mime-type** *type*
               Value  specified  for *type*
               must be one of the following options:
-              **cloud-config**
-              or**ucernvm-config**.
+              **cloud-config** 
+              or**ucernvm-config** .
               Default: cloud-config
  
-       **-mp***priority*,**\\-\\-metadata-priority***priority*
+       **-mp** *priority*,**\\-\\-metadata-priority** *priority*
               The priority of the metadata file.  Specifes the order in  which
               metadata  files  are sent to VMs.  The value of *priority*
               must be
               an integer.  Default: 0
  
-   **Global**
+   **Global** 
        These  options  are  avaliable  on   all   actions:.so   
        ../man/parameters/_group.so
  
-       **-H**,**\\-\\-long-help**
+       **-H** ,**\\-\\-long-help** 
               Requests  the man page style help for the current command.  Long
-              help can be requested for the **cloudscheduler**
+              help can be requested for the **cloudscheduler** 
               command, a specific
               object, or a specific object/action.
  
-       **-h**,**\\-\\-help**
+       **-h** ,**\\-\\-help** 
               Requests  short  help  for  the  current  command.   Help can be
-              requested for the **cloudscheduler**
+              requested for the **cloudscheduler** 
               command, a specific object,  or
               a specific object/action.
  
-       **-s***server*,**\\-\\-server***server*
+       **-s** *server*,**\\-\\-server** *server*
               The  name  of  the target server.  There must be an entry in the
-              **cloudscheduler defaults**
+              **cloudscheduler defaults** 
               that matches*server*
               and it must have  an
               authentication method.
  
-       **-v**,**\\-\\-version**
+       **-v** ,**\\-\\-version** 
               Requests  that  the versions of both the CLI client and the 
               targeted server be printed in addition to any other command output.
  
-       **-xA**,**\\-\\-expose-API**
+       **-xA** ,**\\-\\-expose-API** 
               Requests trace messages detailing the API  calls  and  responses
-              issued and received by the **cloudscheduler**
+              issued and received by the **cloudscheduler** 
               command.
  
-**EXAMPLES**
+**EXAMPLES** 
        1.     Updating the group metadata "example":
               $ cloudscheduler metadata update -mn example.yaml -me no -mmt ucernvm-config -mp 2
               group metadata file "example::example.yaml" successfully  updated.
  
-**SEE ALSO**
-       **csv2**
-       (1)**csv2_group_metadata-update**
-       (1)**csv2_metadata_group-defaults**
+**SEE ALSO** 
+       **csv2** 
+       (1)**csv2_group_metadata-update** 
+       (1)**csv2_metadata_group-defaults** 
        (1)
-       **csv2_metadata_delete**
-       (1)**csv2_metadata_edit**
-       (1)**csv2_metadata_list**
+       **csv2_metadata_delete** 
+       (1)**csv2_metadata_edit** 
+       (1)**csv2_metadata_list** 
        (1)
-       **csv2_metadata_load**
+       **csv2_metadata_load** 
        (1)
  
  

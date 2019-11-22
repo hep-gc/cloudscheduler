@@ -11,60 +11,60 @@ man(1) page: cloudscheduler defaults delete
  
  
  
-**NAME**
-       **cloudscheduler  defaults  delete**
+**NAME** 
+       **cloudscheduler  defaults  delete** 
        -  delete defaults for cloudscheduler
        version 2 (csv2) servers
  
-**SYNOPSIS**
-       **cloudscheduler defaults delete -s***server*
+**SYNOPSIS** 
+       **cloudscheduler defaults delete -s** *server*
        [*options*
        ...]
  
-**DESCRIPTION**
-       The **cloudscheduler defaults delete**
+**DESCRIPTION** 
+       The **cloudscheduler defaults delete** 
        action  deletes  defaults  for  csv2
        servers.  This action is avaliable to any user.
  
-**OPTIONS**
-   **Mandatory**
+**OPTIONS** 
+   **Mandatory** 
        The following are mandatory parameters and must be specified:
  
-       **-s***server*,**\\-\\-server***server*
+       **-s** *server*,**\\-\\-server** *server*
               The name of the server default.
  
-   **Optional**
+   **Optional** 
        The following are optional parameters:
  
-       **-Y**,**\\-\\-yes**
+       **-Y** ,**\\-\\-yes** 
               Specify  this  option  to automatically accept the deletion.  If
               not specified a prompt will appear asking if the  user  is  sure
               they would like to delete the object..
  
-   **Global**
-       **-H**,**\\-\\-long-help**
+   **Global** 
+       **-H** ,**\\-\\-long-help** 
               Requests  the man page style help for the current command.  Long
-              help can be requested for the **cloudscheduler**
+              help can be requested for the **cloudscheduler** 
               command, a specific
               object, or a specific object/action.
  
-       **-h**,**\\-\\-help**
+       **-h** ,**\\-\\-help** 
               Requests  short  help  for  the  current  command.   Help can be
-              requested for the **cloudscheduler**
+              requested for the **cloudscheduler** 
               command, a specific object,  or
               a specific object/action.
  
-**EXAMPLES**
+**EXAMPLES** 
        1.     Delete server default "example":
               $ cloudscheduler defaults delete -s example
               Are you sure you want to delete the settings for server "example"? (yes|..)
               yes
  
-**SEE ALSO**
-       **csv2**
-       (1)**csv2_defaults**
-       (1)**csv2_defaults_list**
-       (1)**csv2_defaults_set**
+**SEE ALSO** 
+       **csv2** 
+       (1)**csv2_defaults** 
+       (1)**csv2_defaults_list** 
+       (1)**csv2_defaults_set** 
        (1)
  
  
