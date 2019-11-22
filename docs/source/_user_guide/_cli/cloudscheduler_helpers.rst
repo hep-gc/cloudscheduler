@@ -42,14 +42,14 @@ man(1) page: cloudscheduler helpers
               The action performs the following:
  
               
-o  If the directory does not already exist, creates 
+              o  If the directory does not already exist, creates 
               ~/.bash_completion.d
               
-o  If  it  creates  /.bash_completion.d,  it  also  appends   to
+              o  If  it  creates  /.bash_completion.d,  it  also  appends   to
               ~/.bash_completion   commands   to   'source'   all  scripts  in
               ~/.bash_completion.d
               
-o Rewrites ~/.bash_completion.d/cloudscheduler.
+              o Rewrites ~/.bash_completion.d/cloudscheduler.
  
               In order to use the new completion  script,  you  will  need  to
               start  a  new  terminal  session  or re-'source' 
