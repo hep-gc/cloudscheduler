@@ -206,21 +206,53 @@ man(1) page: cloudscheduler cloud add
               it will not be used when starting VMs on the specified cloud.
  
        
+       **-vbv**
+       *<JSON_dictionary*
+       *string>*,
+       **\\-\\-vm-boot_volume**
+       *<JSON_dictionary*
+       
+       *string>*
+              Specifices  whether  a  boot  volume  is  to  be created for VMs
+              instantiated on this cloud or not.  If a boot volume  is  to  be
+              created,  then  the  <JSON_dictionary  string> should contain at
+              least one, but may contain  more  than  one,  of  the  following
+              key/value pairs:
+ 
+              o "GBs": n
+              o "GBs_per_core": n
+ 
+              Where "n" is an integer number of gigabytes. If a key/value pair
+              is omitted, the corresponding value is assumed to be zero.   The
+              size  of the boot volume is calculated as: GBs + (GBs_per_core *
+              flavor_cores).
+ 
+              Example: {"GBs_per_core": 10}
+ 
+              To erase an existing specification and use the  boot  disk  
+              provided by the flavor, the <JSON_dictionary string> must be erased
+              by specifying "null" (without the quotes).
+ 
+ 
+ 
+       
        **-vc**
        *cores*,
        **\\-\\-vm-cores**
        *cores*
-              The maximum allowed cores to be allocated to VMs at a time.  Set
-              to  
+              The maximum allowed cores to be allocated  to  VMs  at  a
+              time.   Set  to  
               **-1**
-              to automatically use the quota value.  Setting
+              to automatically use the quota value.
+              Setting 
               *cores*
               to
               **0**
-              is equivalent to disabling the cloud.  The value for 
+              is equivalent to disabling the  cloud.
+              The  value  for 
               *cores*
-              must
-              be an integer value.  Default: -1
+              must be an integer value.  Default:
+              -1
  
        
        **-vf**
@@ -229,40 +261,42 @@ man(1) page: cloudscheduler cloud add
        **\\-\\-vm-flavor**
        *flavor*
        [, ...]
-              The  flavors  to  be  used for VMs started on this cloud.  Where
-              
+              The flavors to be used for VMs  started  on  this  cloud.
+              Where 
               *flavor*
-              is a list of comma seperated VM flavor names that can  be
-              used.   If 
+              is a list of comma seperated VM flavor names
+              that can be used.  If 
               *flavor*
-              is not specified here, but is specified in the
-              
+              is not specified  here,  but
+              is  specified  in  the  
               **group defaults**
-              that value will be used.  If
+              that value will be
+              used.  If 
               *flavor*
-              is not
-              specified in the group or cloud the flavor of started VMs will be any
-              flavor that matches the job requirements.  Default: None
+              is not specified in the group  or  cloud
+              the flavor of started VMs will be any flavor that matches
+              the job requirements.  Default: None
  
        
        **-vi**
        *image*,
        **\\-\\-vm-image**
        *image*
-              The images to be used for VMs  started  on  this  cloud.   Where
-              
+              The images to be used for  VMs  started  on  this  cloud.
+              Where  
               *image*
-              is  a  list of comma seperated VM image names that can be
-              used.  If 
+              is a list of comma seperated VM image names
+              that can be used.  If 
               *image*
-              is not specified here, but is specified  in  the
-              
-              **group  defaults**
-              that value will be used.  If
+              is not specified here, but is
+              specified  in the 
+              **group defaults**
+              that value will be used.
+              If 
               *image*
-              is not
-              specified in the group or cloud the image of started VMs will be  any
-              image that matches the job requirements.  Default: None
+              is not specified in the group or cloud the image
+              of  started  VMs  will  be any image that matches the job
+              requirements.  Default: None
  
        
        **-vk**
@@ -276,79 +310,79 @@ man(1) page: cloudscheduler cloud add
        *time*,
        **\\-\\-vm-keep-alive**
        *time*
-              The  number of second the VM will be left idle before being 
-              terminated if no jobs are started on it.  If 
+              The number of second the VM  will  be  left  idle  before
+              being  terminated  if no jobs are started on it.  If 
               *time*
-              is not  specified
-              here,  but is specified in the 
-              **group defaults**
-              that value will be
-              used.  Default: None
+              is not specified here, but  is  specified  in  the  
+              **group**
+              
+              **defaults**
+              that value will be used.  Default: None
  
        
        **-vr**
        *ram*,
        **\\-\\-vm-ram**
        *ram*
-              The maximum allowed ram allocated to VMs at a time.  Set  to  
+              The  maximum allowed ram allocated to VMs at a time.  Set
+              to 
               **-1**
-              to  automatically  use  the  quota  value.   Setting 
+              to automatically use the quota value.  Setting
               *ram*
-              to
+              to 
               **0**
-              is
-              equivalent to disabling the cloud.  The value for 
+              is equivalent to disabling the cloud.  The value for
+              
               *ram*
-              must be an
-              integer value.  Default: -1
+              must be an integer value.  Default: -1
  
    
    **Global**
-       These   options   are   avaliable  on  all  actions:.so  
+       These options are avaliable on  all  actions:.so  
        ../man/parameters/_group.so
  
        
        **-H**,
        **\\-\\-long-help**
-              Requests the man page style help for the current command.   Long
-              help can be requested for the 
+              Requests the man page style help for the current command.
+              Long help can be requested for  the  
               **cloudscheduler**
-              command, a specific
-              object, or a specific object/action.
+              command, a specific object, or a specific object/action.
  
        
        **-h**,
        **\\-\\-help**
-              Requests short help  for  the  current  command.   Help  can  be
-              requested  for the 
+              Requests short help for the current command.  Help can be
+              requested for  the  
               **cloudscheduler**
-              command, a specific object, or
-              a specific object/action.
+              command,  a  specific
+              object, or a specific object/action.
  
        
        **-s**
        *server*,
        **\\-\\-server**
        *server*
-              The name of the target server.  There must be an  entry  in  the
-              
-              **cloudscheduler  defaults**
+              The name of the target server.  There must be an entry in
+              the 
+              **cloudscheduler defaults**
               that matches
               *server*
-              and it must have an
-              authentication method.
+              and  it
+              must have an authentication method.
  
        
        **-v**,
        **\\-\\-version**
-              Requests that the versions of both the CLI client and  the  
-              targeted server be printed in addition to any other command output.
+              Requests that the versions of both the CLI client and the
+              targeted server be printed in addition to any other  
+              command output.
  
        
        **-xA**,
        **\\-\\-expose-API**
-              Requests  trace  messages  detailing the API calls and responses
-              issued and received by the 
+              Requests  trace  messages  detailing  the  API  calls and
+              responses issued and received by the 
               **cloudscheduler**
               command.
  

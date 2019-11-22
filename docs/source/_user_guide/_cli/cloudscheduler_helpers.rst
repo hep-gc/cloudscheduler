@@ -36,17 +36,53 @@ man(1) page: cloudscheduler helpers
        object:
  
        
-       **generate_bash_completion_script**
-              This action writes a bash script to standard out  which  can  be
-              installed  in  "/etc/bash_completion.d/cloudscheduler"  and will
-              provde command parameter tab completion.
+       **check_documentation**
+              This action prints a  matrix  summarizing  the  completeness  of
+              
+              **cloudscheduler**
+              man page documentation.  It is used by developers
+              to maintain up to date documentation.
  
- 
-
-**SEE ALSO**
        
-       **csv2**
-       (1)
+       **generate_bash_completion_script**
+              This action creates or updates a bash completion script for  the
+              **cloudscheduler**  command  in the user's home directory. It is
+              performed automatically each time source for the  CLI  is  
+              modified, but can also be run manually.
+ 
+              The action performs the following:
+ 
+              o  If the directory does not already exist, creates 
+              ~/.bash_completion.d
+              o  If  it  creates  /.bash_completion.d,  it  also  appends   to
+              ~/.bash_completion   commands   to   'source'   all  scripts  in
+              ~/.bash_completion.d
+              o Rewrites ~/.bash_completion.d/cloudscheduler.
+ 
+              In order to use the new completion  script,  you  will  need  to
+              start  a  new  terminal  session  or re-'source' 
+              ~/.bash_completion.d/cloudscheduler.
+ 
+ 
+       
+       **print_json_syntax_tree**
+              This action prints a JSON string containing  the  
+              **cloudscheduler**
+              command   syntax   tree.  It  is  used  by  developers  and  the
+              
+              **cli_doc_to_rst**
+              utility to furnish the
+              **readthedocs**
+              web  service
+              with the cloudscheduler man pages.
+ 
+ 
+ 
+       
+       **SEE ALSO**
+              
+              **csv2**
+              (1)
  
  
  

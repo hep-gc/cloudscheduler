@@ -215,72 +215,13 @@ man(1) page: cloudscheduler server config
        
        **-xA**,
        **\\-\\-expose-API**
-       
-       **t**
-       Requests  trace  messages  detailing the API calls and responses
-       
-       **c**
-       issued and received by the
-       **cloudscheduler**
-       command.
-       
-       **h**
-
-**CONFIGUR_ATION CATEGORIES AND OPTIONS**
-   
-   **csjobcs.py**
-       T
-       **o**
-       his category defines the options for the HTCondor job poller.
-       
-       **m**
-       
-       **m**
-       Specifies the number of rows that can  be  inserted  or  updated
-       
-       **i**
-       between        commits.         Value        type:       Integer
-       
-       **t**
-       +--------------------------+---------------------------------+-------------+----------------------------------------------------------+
-       
-       **_**
-       |  category                  | config_key                      |
-       
-       **s**
-       config_type                    |                    config_value
-       
-       **i**
-       |
-       
-       **z**
-       +--------------------------+---------------------------------+-------------+----------------------------------------------------------+
-       
-       **e**
-       |  csjobs.py                 | batch_commit_size               |
-              int                                 |                         50
-              | | csjobs.py                | delete_cycle_interval           |
-              int                                 |                          1
-              | | csjobs.py                | log_file                        |
-              str                 |         /var/log/cloudscheduler/csjobs.log
-              | | csjobs.py                | log_level                       |
-              int                                 |                         20
-              | | csjobs.py                | orange_threshold                |
-              int                                 |                          3
-              | | csjobs.py                | sleep_interval_cleanup          |
-              int                                |                         120
-              | | csjobs.py                | sleep_interval_command          |
-              int                                 |                         10
-              | | csjobs.py                | sleep_interval_job              |
-              int                                 |                         15
-              | | csjobs.py                | sleep_interval_main_long        |
-              int                                 |                         10
-              | | csjobs.py                | sleep_interval_main_short       |
-              int                                 |                          1
-              |
-
-              +--------------------------+---------------------------------+-------------+----------------------------------------------------------+
+              Requests  trace  messages  detailing the API calls and responses
+              issued and received by the 
+              **cloudscheduler**
+              command.
  
+
+**CONFIGURATION CATEGORIES AND OPTIONS**
 
 **EXAMPLES**
        1.     Viewing server configuration::
@@ -289,14 +230,14 @@ man(1) page: cloudscheduler server config
               Server: default, Active User: example, Active Group: example, User's Groups: ['example', 'testing']
  
               Server Configuration:
-              +==============+==============+======+======================================+
-              + Category     | Config Key   | Type | Value                                +
-              +--------------+--------------+------+--------------------------------------+
 
+              +--------------+--------------+------+--------------------------------------+
+              + Category     | Config Key   | Type | Value                                +
+              +==============+==============+======+======================================+
               | web_frontend | enable_glint | bool | False                                |
               | web_frontend | log_file     | str  | /var/log/cloudscheduler/csv2_web.log |
-
               +--------------+--------------+------+--------------------------------------+
+
               Rows: 2
  
        2.     Updating the config for the server::
@@ -306,14 +247,14 @@ man(1) page: cloudscheduler server config
               Server: default, Active User: example, Active Group: example, User's Groups: ['example', 'testing']
  
               Server Configuration:
-              +==============+==============+======+==============================================+
-              + Category     | Config Key   | Type | Value                                        +
-              +--------------+--------------+------+----------------------------------------------+
 
+              +--------------+--------------+------+----------------------------------------------+
+              + Category     | Config Key   | Type | Value                                        +
+              +==============+==============+======+==============================================+
               | web_frontend | enable_glint | bool | True                                         |
               | web_frontend | log_file     | str  | /var/log/cloudscheduler/csv2_web_updated.log |
-
               +--------------+--------------+------+----------------------------------------------+
+
               Rows: 2
  
 
