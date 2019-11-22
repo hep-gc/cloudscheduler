@@ -151,7 +151,7 @@ def worker_gsi_poller():
                         logging.debug('Condor host: "%s", condor_worker_gsi insert failed, exception: %s' % (condor, ex))
 
                         try:
-                            config.db_session.execute('update condor_worker_gsi set worker_dn=%s,worker_eol=%d,worker_cert=%s,worker_key=%s where htcondor_fqdn="%s";' % (worker_cert['subject'], worker_cert['eol'], worker_cert['cert'], worker_cert['key'], condor))
+                            config.db_session.execute('update condor_worker_gsi set worker_dn=%s,worker_eol=%d,worker_cert=%s,worker_key=%s where htcondor_fqdn="%s";' % (if_null(worker_cert['subject']), worker_cert['eol'], if_null(worker_cert['cert']), if_null(worker_cert['key']), condor))
                             config.db_session.commit()
 
                             if worker_cert['subject']:
