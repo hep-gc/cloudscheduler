@@ -37,6 +37,7 @@ from (
     cc.enabled,
     cc.priority as cloud_priority,
     cc.spot_price,
+    cc.vm_boot_volume,
     cc.vm_flavor,
     cc.vm_image,
     cc.vm_keep_alive,

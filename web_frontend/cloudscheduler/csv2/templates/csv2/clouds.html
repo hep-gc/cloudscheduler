@@ -249,6 +249,13 @@
                             <td>    
 
                                 <table>
+                                    {% if cloud.cloud_type == "openstack" %}
+                                        <tr class="highlight3">
+                                            <td><label for="vm_boot_volume">Boot Volume</label></td>
+                                            <td><input type="text" name="vm_boot_volume" id="{{cloud.cloud_name}}-vm_boot_volume" title='null or {"GBs": n1, "GBs_per_core": n2}' value="{{cloud.vm_boot_volume}}" /></td>
+                                        </tr>
+                                    {% endif %}
+                                    
                                     <tr class="highlight3"><td><label for="vm_security_groups">Security Group</label></td>
                                         <td>
                                             <section name="vm_security_groups">

@@ -62,6 +62,8 @@ CLOUD_KEYS = {
         'metadata_option':                      ['add', 'delete'],
         'ram_ctl':                              'integer',
         'spot_price':                           'float',
+#       'vm_boot_volume':                       {"GBs": "integer", "options": {"per_core": "boolean"}},
+        'vm_boot_volume':                       {"min_pick": 1, "pick": {"GBs": "integer", "GBs_per_core": "integer"}},
         'vm_keep_alive':                        'integer',
 
         'cores_slider':                         'ignore',
