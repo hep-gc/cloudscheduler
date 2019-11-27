@@ -1,0 +1,9 @@
+create or replace view view_published_clouds as 
+select
+    cc.group_name,
+    cloud_name,
+    cc.publish_toggle xor cg.publish_toggle as published
+from csv2_clouds as cc
+left outer join csv2_groups as cg on
+    cc.group_name=cg.group_name
+;
