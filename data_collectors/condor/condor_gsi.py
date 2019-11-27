@@ -71,7 +71,7 @@ def condor_gsi_poller():
 
 def get_condor_dict(config, logging):
     condor_dict = {}
-    group_list = config.db_connection.execute('select group_name,htcondor_fqdn,htcondor_container_hostname from csv2_groups;')
+    group_list = config.db_connection.execute('select group_name,htcondor_fqdn,ifnull(htcondor_container_hostname,"") as htcondor_container_hostname from csv2_groups;')
     for group in group_list:
         try:
             condor_ip = socket.gethostbyname(group['htcondor_fqdn'])

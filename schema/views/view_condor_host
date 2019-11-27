@@ -12,7 +12,7 @@ select
     terminate,
     machine,
     updater,
-    htcondor_container_hostname
+    ifnull(htcondor_container_hostname,"") as htcondor_container_hostname
 from csv2_vms as cv
 left outer join csv2_groups as cg on
     cv.group_name=cg.group_name
