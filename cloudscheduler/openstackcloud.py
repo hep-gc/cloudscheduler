@@ -6,6 +6,8 @@ import time
 import logging
 import novaclient.exceptions
 from novaclient import client as nvclient
+from cinderclient import client as cclient
+from glanceclient import client as glanceclient
 from keystoneauth1 import session
 from keystoneauth1.identity import v2
 from keystoneauth1.identity import v3
@@ -16,8 +18,10 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
 from sqlalchemy.ext.automap import automap_base
 
+
 #import cloudscheduler.basecloud
 #import cloudscheduler.config as csconfig
+import json
 import basecloud
 import config as csconfig
 
@@ -63,6 +67,8 @@ class OpenStackCloud(basecloud.BaseCloud):
         self.default_flavor = resource.default_flavor
         self.default_network = resource.default_network
         self.keep_alive = resource.default_keep_alive
+        self.volume_info = resource.vm_boot_volume
+        self.flavor_cores = resource.flavor_cores
 
     def vm_create(self, num=1, job=None, flavor=None, template_dict=None, image=None):
         """
@@ -107,14 +113,15 @@ class OpenStackCloud(basecloud.BaseCloud):
         imageobj = None
         image_dict = self._attr_list_to_dict(job.image)
         try:
+            glance = self._get_creds_glance()
             if job.image and self.name in image_dict:
-                imageobj = nova.glance.find_image(image_dict[self.name])
+                imageobj = self._find_image(glance, image_dict[self.name])
             elif self.default_image:
-                imageobj = nova.glance.find_image(self.default_image)
+                imageobj = self._find_image(glance, self.default_image)
             elif image:
-                imageobj = nova.glance.find_image(image)
+                imageobj = self._find_image(glance, image)
             else:
-                imageobj = nova.glance.find_image(csconfig.config.default_image)
+                imageobj = self._find_image(glance, csconfig.config.default_image)
         except novaclient.exceptions.EndpointNotFound:
             self.log.exception("Endpoint not found, region problem")
             return -1
@@ -164,12 +171,65 @@ class OpenStackCloud(basecloud.BaseCloud):
             netid = [{'net-id': network.id}]
         hostname = self._generate_next_name()
         instance = None
+
         try:
-            instance = nova.servers.create(name=hostname, image=imageobj,
-                                           flavor=flavorl, key_name=key_name,
-                                           availability_zone=None, nics=netid,
-                                           userdata=userdata,
-                                           security_groups=self.default_security_groups, max_count=num)
+            self.log.debug("Getting volume info..")
+            self.log.debug("#################")
+            self.log.debug(self.volume_info)
+            vol_info = json.loads(self.volume_info)
+        except Exception as exc:
+            # Volume info is null or invalid
+            self.log.debug("Invalid or empty volume info, booting without volume")
+            self.log.error(exc)
+            vol_info = None
+
+        try:
+            if vol_info is None:
+                # boot without a volume
+                self.log.debug("Booting without volume")
+                instance = nova.servers.create(name=hostname, image=imageobj,
+                                               flavor=flavorl, key_name=key_name,
+                                               availability_zone=None, nics=netid,
+                                               userdata=userdata,
+                                               security_groups=self.default_security_groups, max_count=num)
+            else:
+                instances = []
+                self.log.debug("Booting with volume")
+                for i in range(num):
+                    # boot with a volume
+                    size_per_core = vol_info.get("GBs_per_core")
+                    base_size = vol_info.get("GBs", 0)
+                    if size_per_core:
+                        size = base_size + (size_per_core * self.flavor_cores)
+                    else:
+                        size = base_size
+                    self.log.debug("Size: %s Base: %s GBpC: %s Core count: %s Def Flavor: %s flavorl: %s" % (size, base_size, size_per_core, self.flavor_cores, self.default_flavor, flavorl))
+                    bdm = None
+                    self.log.debug("creating boot volume")
+                    cinder = self._get_creds_cinder()
+                    bv_name = "vol-" + hostname
+                    cv = cinder.volumes.create(name=bv_name,
+                                               size=size,
+                                               imageRef=imageobj.id)
+                    while (cv.status != 'available'):
+                        time.sleep(1)
+                        cv = cinder.volumes.get(cv.id)
+                    cinder.volumes.set_bootable(cv, True)
+                    bdm = {'vda': str(cv.id) + ':::1'}
+                    #append tuple with nova responce and hostname used
+                    instances.append((nova.servers.create(
+                                name=hostname,
+                                image=imageobj,
+                                flavor=flavorl,
+                                key_name=key_name,
+                                block_device_mapping=bdm,
+                                availability_zone=None,
+                                nics=netid,
+                                userdata=userdata,
+                                security_groups=self.default_security_groups), hostname))
+                    hostname = self._generate_next_name()
+
+
         except novaclient.exceptions.OverLimit as ex:
             self.log.exception(ex)
             raise novaclient.exceptions.OverLimit
@@ -219,6 +279,49 @@ class OpenStackCloud(basecloud.BaseCloud):
                 new_vm = vms(**vm_dict)
                 db_session.merge(new_vm)
             db_session.commit()
+        elif instances:
+            self.log.debug("Parse instances using block storage")
+            for instance, i_hostname in instances:
+                engine = self._get_db_engine()
+                base = automap_base()
+                base.prepare(engine, reflect=True)
+                db_session = Session(engine)
+                vms = base.classes.csv2_vms
+                for _ in range(0, 3):
+                    try:
+                        list_vms = nova.servers.list(search_opts={'name':i_hostname})
+                        break
+                    except novaclient.exceptions.BadRequest as ex:
+                        self.log.warning("Bad Request caught, OpenStack db may not be updated yet, "
+                                         "retrying")
+                        time.sleep(1)
+
+                for vm in list_vms:
+                    self.log.debug(vm)
+
+                    vm_dict = {
+                        'group_name': self.group,
+                        'cloud_name': self.name,
+                        'region': self.region,
+                        'cloud_type': "openstack",
+                        'auth_url': self.authurl,
+                        'project': self.project,
+                        'hostname': vm.name,
+                        'vmid': vm.id,
+                        'status': vm.status,
+                        'flavor_id': vm.flavor["id"],
+                        'image_id': vm.image["id"],
+                        'task': vm.__dict__.get("OS-EXT-STS:task_state"),
+                        'power_status': vm.__dict__.get("OS-EXT-STS:power_state"),
+                        'last_updated': int(time.time()),
+                        'keep_alive': self.keep_alive,
+                        'start_time': int(time.time()),
+                    }
+                    new_vm = vms(**vm_dict)
+                    db_session.merge(new_vm)
+                db_session.commit()
+                
+
 
         self.log.debug('vm create')
 
@@ -260,6 +363,33 @@ class OpenStackCloud(basecloud.BaseCloud):
         :return: neutron client.
         """
         return neuclient.Client(session=self.session)
+
+    def _get_creds_cinder(self):
+        try:
+            cinder = cclient.Client("3", session=self.session, region_name=self.region, timeout=10)
+        except Exception as e:
+            self.log.error("Cannot use cinder on %s:%s" % (self.name, e))
+            raise e
+        return cinder
+
+    def _get_creds_glance(self):
+        try:
+            glance = glanceclient.Client("2", session=self.session, region_name=self.region)
+        except Exception as e:
+            self.log.error("Cannot use glance on %s:%s" % (self.name, e))
+            raise e
+        return glance
+
+    def _find_image(self, glance, image_name):
+        try:
+            images = glance.images.list()
+            for image in images:
+                if image.name == image_name:
+                    return image
+        except Exception as e:
+            self.log.error("Error retrieving image for %s:%s" % (self.name, e))
+            return
+        return
 
     def _find_network(self, netname):
         """
