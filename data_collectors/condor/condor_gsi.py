@@ -166,9 +166,6 @@ def worker_gsi_poller():
                                 logging.error('Condor host: "%s", condor_worker_gsi update failed, exception: %s' % (condor, ex))
                             else:
                                 logging.error('Condor host: "%s", condor_worker_gsi (not configured) update failed, exception: %s' % (condor, ex))
-                    else:
-                        logging.info('Condor host: "%s", GSI not configured.' % condor)
-
                 else:
                     logging.warning('Condor host: "%s", request timed out.' % condor)
 
