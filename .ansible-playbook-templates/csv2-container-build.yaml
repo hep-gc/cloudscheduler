@@ -9,7 +9,7 @@
 
         target_image:
           name: csv2-container:newerVersion 
-          ports: 0-65000
+          ports: [0-65000]
           entrypoint: '["/init.sh"]'
           cmd: "/usr/sbin/init"
 
