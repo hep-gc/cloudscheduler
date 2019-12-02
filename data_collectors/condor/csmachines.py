@@ -32,7 +32,6 @@ import boto3
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
 from sqlalchemy.ext.automap import automap_base
-from sqlalchemy import or_
 
 
 def _get_nova_client(session, region=None):
@@ -168,13 +167,10 @@ def machine_poller():
             groups = db_session.query(GROUPS)
             condor_hosts_set = set() # use a set here so we dont re-query same host if multiple groups have same host
             for group in groups:
-                if group.htcondor_fqdn is not None and group.htcondor_fqdn != "":
-                    condor_hosts_set.add(group.htcondor_fqdn)
-                else:
-                    condor_hosts_set.add(group.htcondor_container_hostname)
-
                 if group.htcondor_container_hostname is not None and group.htcondor_container_hostname != "":
                     condor_hosts_set.add(group.htcondor_container_hostname)
+                else:
+                    condor_hosts_set.add(group.htcondor_fqdn)
 
             # need to make a data structure so that we can verify the the polled machines actually fit into a valid grp-cloud
             # need to check:
@@ -333,11 +329,11 @@ def machine_poller():
 
                 # Poll successful, update failure_dict accordingly
                 for group in groups:
-                    if group.htcondor_fqdn is not None and group.htcondor_fqdn != "":
-                        if group.htcondor_fqdn == condor_host:
+                    if group.htcondor_container_hostname is not None and group.htcondor_container_hostname != "":
+                        if group.htcondor_container_hostname == condor_host:
                              failure_dict.pop(group.group_name, None)
                     else:
-                        if group.htcondor_container_hostname == condor_host:
+                        if group.htcondor_fqdn == condor_host:
                             failure_dict.pop(group.group_name, None)
 
                            
@@ -400,13 +396,10 @@ def command_poller():
             groups = db_session.query(GROUPS)
             condor_hosts_set = set() # use a set here so we dont re-query same host if multiple groups have same host
             for group in groups:
-                if group.htcondor_fqdn is not None and group.htcondor_fqdn != "":
-                    condor_hosts_set.add(group.htcondor_fqdn)
-                else:
-                    condor_hosts_set.add(group.htcondor_container_hostname)
-
                 if group.htcondor_container_hostname is not None and group.htcondor_container_hostname != "":
                     condor_hosts_set.add(group.htcondor_container_hostname)
+                else:
+                    condor_hosts_set.add(group.htcondor_fqdn)
 
             uncommitted_updates = 0
             logging.debug(condor_hosts_set)
@@ -469,7 +462,7 @@ def command_poller():
 
                 # Query database for machines to be retired.
                 abort_cycle = False
-                for resource in db_session.query(view_condor_host).filter(or_(view_condor_host.c.htcondor_fqdn==condor_host, view_condor_host.c.htcondor_container_hostname==condor_host), view_condor_host.c.retire>=1):
+                for resource in db_session.query(view_condor_host).filter(view_condor_host.c.htcondor_fqdn==condor_host, view_condor_host.c.retire>=1):
                     # Since we are querying a view we dont get an automapped object and instead get a 'result' tuple of the following format
                     #index=attribute
                     #0=group
@@ -484,7 +477,6 @@ def command_poller():
                     #9=terminate flag
                     #10=machine
                     #11=updater
-                    #12=htcondor_container_hostname
                     #logging.debug("%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s" % (resource.group_name, resource.cloud_name, resource.htcondor_fqdn, resource.vmid, resource.hostname, resource[5], resource[6], resource.retire, resource.retiring, resource.terminate, resource.machine))
                     # First check the slots to see if its time to terminate this machine
 

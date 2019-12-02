@@ -2,7 +2,7 @@ create or replace view view_condor_host as
 select
     cv.group_name,
     cloud_name,
-    htcondor_fqdn,
+    case when ifnull(htcondor_container_hostname,'')!='' then htcondor_container_hostname else htcondor_fqdn end as htcondor_fqdn,
     vmid,
     hostname,
     htcondor_partitionable_slots as primary_slots,
@@ -11,8 +11,7 @@ select
     case when slots=retiring_slots then 1 else 0 end as retiring,
     terminate,
     machine,
-    updater,
-    ifnull(htcondor_container_hostname,"") as htcondor_container_hostname
+    updater
 from csv2_vms as cv
 left outer join csv2_groups as cg on
     cv.group_name=cg.group_name

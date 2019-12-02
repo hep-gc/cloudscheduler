@@ -71,21 +71,14 @@ def condor_gsi_poller():
 
 def get_condor_dict(config, logging):
     condor_dict = {}
-    group_list = config.db_connection.execute('select group_name,htcondor_fqdn,ifnull(htcondor_container_hostname,"") as htcondor_container_hostname from csv2_groups;')
+    group_list = config.db_connection.execute("select group_name, case when ifnull(htcondor_container_hostname,'') != '' then htcondor_container_hostname else htcondor_fqdn end as htcondor_fqdn from csv2_groups;")
     for group in group_list:
         try:
             condor_ip = socket.gethostbyname(group['htcondor_fqdn'])
-            if group['htcondor_container_hostname'] not in condor_dict and group['htcondor_container_hostname'] != "":
-                condor_dict[group['htcondor_container_hostname']] = []
-                condor_dict[group['htcondor_container_hostname']].append(group['group_name'])
-
-            elif group['htcondor_fqdn'] not in condor_dict:
+            if group['htcondor_fqdn'] not in condor_dict:
                 condor_dict[group['htcondor_fqdn']] = []
-                condor_dict[group['htcondor_fqdn']].append(group['group_name'])
-            else:
-                condor_dict[group['htcondor_']].append(group['group_name'])
 
-            
+            condor_dict[group['htcondor_fqdn']].append(group['group_name'])
 
         except Exception as ex:
             logging.debug('Ignoring invalid condor host "%s". Exception: %s' % (group['htcondor_fqdn'], ex))
