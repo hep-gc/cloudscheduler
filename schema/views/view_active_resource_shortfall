@@ -40,7 +40,7 @@ left outer join (
     select
         cv.group_name,
         cv.cloud_name,
-        cca.alias_name as alias,
+        target_alias,
         cv.VMs*cf.cores as active_cores,
         cv.VMs*(cf.disk+cf.ephemeral_disk) as active_disk,
         cv.VMs*cf.ram as active_ram,
@@ -52,6 +52,7 @@ left outer join (
         select
             group_name,
             cloud_name,
+            target_alias,
             flavor_id,
             sum(VMs) as VMs,
             sum(`starting`) as `starting`,
@@ -85,6 +86,7 @@ left outer join (
                 select
                     group_name,
                     cloud_name,
+                    target_alias,
                     flavor_id,
                     case when manual_control = 1 then
                         'manual'
@@ -120,6 +122,7 @@ left outer join (
                 group by 
                     group_name,
                     cloud_name,
+                    target_alias,
                     flavor_id,
                     poller_status
                 ) as cv
@@ -132,18 +135,16 @@ left outer join (
         group by
             group_name,
             cloud_name,
+            target_alias,
             flavor_id
         ) as cv
     left outer join cloud_flavors as cf on
         cv.group_name=cf.group_name and
         cv.cloud_name=cf.cloud_name and
         cv.flavor_id=cf.id
-    left outer join csv2_cloud_aliases as cca on
-        cv.group_name=cca.group_name and
-        cv.cloud_name=cca.cloud_name
 ) as cv on
     (cj.group_name=cv.group_name and cj.target_alias is null and cj.target_clouds is null) or
-    (cj.group_name=cv.group_name and cj.target_alias=cv.alias) or
+    (cj.group_name=cv.group_name and cj.target_alias=cv.target_alias) or
     (cj.group_name=cv.group_name and instr(cj.target_clouds, cv.cloud_name)>0)
 group by
     group_name,
