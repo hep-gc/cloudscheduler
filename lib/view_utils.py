@@ -789,7 +789,8 @@ def service_msg(service_name):
     
     import os
 
-    return os.popen("service "+service_name+" status | grep 'Active' | cut -c12-").read()    
+#   return os.popen("service "+service_name+" status | grep 'Active' | cut -c12-").read()    
+    return os.popen("systemctl status "+service_name+" | grep 'Active' | cut -c12-").read()    
 
 #-------------------------------------------------------------------------------
 # this function gets and sets the user groups for the active user as well as authenticates the active user
