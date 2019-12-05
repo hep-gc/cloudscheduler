@@ -106,6 +106,7 @@
                         <th class="jobs-style">Completed</th>
                         <th class="jobs-style">Held</th>
                         <th class="jobs-style">Other</th>
+<!--publicize--><!--private-->
 
                         <th class="col-spacer">&nbsp;</th>
 
@@ -118,10 +119,12 @@
                         <th class="jobs-style">Agent Status</th>
                         <th class="jobs-style">Condor Cert</th>
                         <th class="jobs-style">Worker Cert</th>
+<!--publicize--><!--public-->
                     </tr>
 
                     {% for group in job_status_list %}
-                        {% if global_flag or not global_flag and group.group_name == active_group %}
+                        <!-- if global_flag or not global_flag and group.group_name == active_group %} -->
+<!--publicize--><!--group {{ group.group_name }}-->
                             <tr>
                                 <td class="group-name bold-style" onclick="toggle_id('expand-jobs-{{group.group_name}}')"><div class="float-left">{{group.group_name}}</div><div id="sym-expand-jobs-{{group.group_name}}" class="float-right">&#x25BE;</div></td>
 
@@ -160,6 +163,7 @@
                                 {% else %}
                                     <td data-path="{{group.group_name}} jobs_other" class="more-style float-center plottable">{{group.Other}}</td>
                                 {% endif %}
+<!--publicize--><!--private-->
 
                                 <td class="col-spacer">&nbsp;</td>
                                 
@@ -224,6 +228,7 @@
                                 {% if can_start_vms == no %}
                                     <td data-path="{{group.group_name}} jobs_cannot_start_vms" class="red-symbol">The certificates will not allow VMs to be started!</td>
                                 {% endif %}
+<!--publicize--><!--public-->
                             </tr>
 
                             <!-- Jobs expand row to show cores-->
@@ -277,6 +282,7 @@
                                         {% endfor %}
                                     </table>
                                 </td>
+<!--publicize--><!--private-->
 
                                 <td class="col-spacer">&nbsp;</td>
 
@@ -299,8 +305,10 @@
                                 {% else %}
                                     </td>
                                 {% endif %}
+<!--publicize--><!--public-->
+<!--publicize--><!--group-end-->
                             </tr>
-                        {% endif %}
+                        <!-- endif %} -->
                     {% endfor %}
 
                     <tr class="bottom-row">
@@ -355,6 +363,7 @@
                                 </tr>
                             </table>
                         </th>
+<!--publicize--><!--private-->
 
                         <th class="col-spacer">&nbsp;</th>
 
@@ -396,13 +405,15 @@
                                 </table>
                             </th>
                         {% endif %}
+<!--publicize--><!--public-->
                     </tr>
 
                     
 
                     {% for cloud in cloud_status_list %}
 
-                        {% if global_flag or not global_flag and cloud.group_name == active_group%}
+                        <!-- if global_flag or not global_flag and cloud.group_name == active_group%} -->
+<!--publicize--><!--group {{ cloud.group_name }}-->
 
                                 
                                 {% if cloud.display == 9%}
@@ -519,6 +530,7 @@
                                     {% else %}
                                         <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} slot_idle_core_count{{cloud.tag}}" class="more-style float-center plottable">{{cloud.slot_idle_core_count}}</td>
                                     {% endif %}
+<!--publicize--><!--private-->
 
                                     <td class="col-spacer">&nbsp;</td>
 
@@ -609,6 +621,7 @@
                                             {% endwith %}                        
                                         </td>
                                     {% endif %}
+<!--publicize--><!--public-->
                                 </tr>
 
                                 <!-- Cloud status expand row to show details-->
@@ -796,6 +809,7 @@
 
                                         </table>
                                     </td>
+<!--publicize--><!--private-->
 
                                     <td class="col-spacer">&nbsp;</td>
 
@@ -862,6 +876,7 @@
                                             {% endwith %}
                                         </td>
                                     {% endif %}
+<!--publicize--><!--public-->
                                 </tr>
 
 
@@ -873,6 +888,7 @@
                                         <td class="col-spacer">&nbsp;</td>
                                         <td colspan="3" class="row-spacer">&nbsp;</td>
                                         <td class="col-spacer">&nbsp;</td>
+<!--publicize--><!--private-->
                                         <td colspan="3" class="row-spacer">&nbsp;</td>
                                         {% if foreign_global_vms_flag %}
                                             <td class="col-spacer">&nbsp;</td>
@@ -880,11 +896,13 @@
                                             <td class="col-spacer">&nbsp;</td>
                                             <td colspan="3" class="row-spacer">&nbsp;</td>
                                         {% endif %}
+<!--publicize--><!--public-->
+<!--publicize--><!--group-end-->
                                     </tr>
                                 {% endif %}
 
 
-                        {% endif %}
+                        <!-- endif %} -->
                     
                     {% endfor %}
 
@@ -896,6 +914,7 @@
                         <td class="col-spacer">&nbsp;</td>
                         <td colspan="3" class="row-spacer">&nbsp;</td>
                         <td class="col-spacer">&nbsp;</td>
+<!--publicize--><!--private-->
                         <td colspan="3" class="row-spacer">&nbsp;</td>
                         {% if foreign_global_vms_flag %}
                             <td class="col-spacer">&nbsp;</td>
@@ -903,6 +922,8 @@
                             <td class="col-spacer">&nbsp;</td>
                             <td colspan="3" class="row-spacer">&nbsp;</td>
                         {% endif %}
+<!--publicize--><!--public-->
+<!--publicize--><!--group-end-->
                     </tr>
 
 
@@ -930,6 +951,7 @@
 
 <!--<div>Icons made by <a href="https://www.flaticon.com/authors/those-icons" title="Those Icons">Those Icons</a> from <a href="https://www.flaticon.com/"              title="Flaticon">www.flaticon.com</a> is licensed by <a href="http://creativecommons.org/licenses/by/3.0/"              title="Creative Commons BY 3.0" target="_blank">CC 3.0 BY</a></div>-->
 
+<!--publicize--><!--private-->
 <div class="system-div">
     <table class="system-services" id="system-services">
 
@@ -1088,6 +1110,7 @@
         </tbody> 
     </table>
 
+<!--publicize--><!--public-->
     <div class="refresh-button">
         <span id="CDTimer"></span>
         <span class="stop-symbol bigger" onClick="stop_refresh()">&#x270b;</span>

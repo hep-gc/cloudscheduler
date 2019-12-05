@@ -26,6 +26,7 @@ urlpatterns = [
     path('cloud/add/',                             cloud_views.add),
     path('cloud/delete/',                          cloud_views.delete),
     path('cloud/list/',                            cloud_views.list),
+    path('cloud/published_status/',                cloud_views.status),
     path('cloud/status/',                          cloud_views.status),
     path('cloud/status/plot',                      cloud_views.request_ts_data),
     path('cloud/update/',                          cloud_views.update),

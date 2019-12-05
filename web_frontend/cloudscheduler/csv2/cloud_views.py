@@ -1198,7 +1198,14 @@ def status(request, group_name=None):
 
     GROUP_ALIASES = {'group_name': {"mygroups" :active_user.user_groups }}
     # get cloud status per group
-    if active_user.flag_global_status:
+    if request.environ['PATH_INFO'] == '/cloud/published_status/':
+        s = 'select vcs.* from view_cloud_status as vcs left outer join view_published_clouds as vpc on vcs.group_name=vpc.group_name and vcs.cloud_name=vpc.cloud_name where published=1;'
+        cloud_status_list = qt(config.db_connection.execute(s))
+
+        s = 'select vcj.* from view_condor_jobs_group_defaults_applied as vcj left outer join csv2_groups as cg on vcj.group_name=cg.group_name where publish_toggle=1;'
+        job_cores_list = qt(config.db_connection.execute(s))
+    
+    elif active_user.flag_global_status:
         s = select([view_cloud_status])
         cloud_status_list = qt(config.db_connection.execute(s), filter=qt_filter_get(['group_name'], ["mygroups"], aliases=GROUP_ALIASES, and_or='or'))
 
@@ -1293,7 +1300,7 @@ def status(request, group_name=None):
             cloud_status_list_totals[ix]['tag'] = '_total'
 
         current_group = ''
-        cloud_count = 0
+        group_count = 0
         # Loop through the cloud_status_list and insert the totals row after each group of clouds:
         for index, cloud in enumerate(cloud_status_list):
             cloud['tag'] = ''
@@ -1307,18 +1314,20 @@ def status(request, group_name=None):
                     cloud_status_list.insert(index, cloud_status_list_totals[ix].copy())
 
                 current_group = cloud['group_name']
+                group_count += 1
 
         if current_group != '':
             ix = cloud_status_list_totals_xref[current_group]
             cloud_status_list.append(cloud_status_list_totals[ix].copy())
 
-        # Append the global totals list to the main status list:
-        global_total_list['group_name'] = ''
-        global_total_list['cloud_name'] = ''
-        global_total_list['display'] = 99
-        global_total_list['tag'] = '_total'
+        if group_count > 1:
+            # Append the global totals list to the main status list:
+            global_total_list['group_name'] = ''
+            global_total_list['cloud_name'] = ''
+            global_total_list['display'] = 99
+            global_total_list['tag'] = '_total'
 
-        cloud_status_list.append(global_total_list.copy())
+            cloud_status_list.append(global_total_list.copy())
 
 
     job_cores_list_totals = qt(job_cores_list, keys={
@@ -1347,8 +1356,26 @@ def status(request, group_name=None):
     '''
 
     # Get slot type counts
-    if active_user.flag_global_status:
+    if request.environ['PATH_INFO'] == '/cloud/published_status/':
+        s = 'select vcs.* from view_cloud_status_flavor_slot_detail as vcs left outer join view_published_clouds as vpc on vcs.group_name=vpc.group_name and vcs.cloud_name=vpc.cloud_name where published=1;'
+        flavor_slot_detail = qt(config.db_connection.execute(s), filter=qt_filter_get(['group_name'], ["mygroups"], aliases=GROUP_ALIASES, and_or='or'))
 
+        s = 'select vcs.* from view_cloud_status_flavor_slot_detail_summary as vcs left outer join view_published_clouds as vpc on vcs.group_name=vpc.group_name and vcs.cloud_name=vpc.cloud_name where published=1;'
+        flavor_slot_detail_summary = qt(config.db_connection.execute(s), filter=qt_filter_get(['group_name'], ["mygroups"], aliases=GROUP_ALIASES, and_or='or'))
+
+        s = 'select vcs.* from view_cloud_status_flavor_slot_summary as vcs left outer join view_published_clouds as vpc on vcs.group_name=vpc.group_name and vcs.cloud_name=vpc.cloud_name where published=1;'
+        flavor_slot_summary = qt(config.db_connection.execute(s), filter=qt_filter_get(['group_name'], ["mygroups"], aliases=GROUP_ALIASES, and_or='or'))
+
+        s = 'select vcs.* from view_cloud_status_slot_detail as vcs left outer join view_published_clouds as vpc on vcs.group_name=vpc.group_name and vcs.cloud_name=vpc.cloud_name where published=1;'
+        slot_detail = qt(config.db_connection.execute(s), filter=qt_filter_get(['group_name'], ["mygroups"], aliases=GROUP_ALIASES, and_or='or'))
+
+        s = 'select vcs.* from view_cloud_status_slot_detail_summary as vcs left outer join view_published_clouds as vpc on vcs.group_name=vpc.group_name and vcs.cloud_name=vpc.cloud_name where published=1;'
+        slot_detail_summary = qt(config.db_connection.execute(s), filter=qt_filter_get(['group_name'], ["mygroups"], aliases=GROUP_ALIASES, and_or='or'))
+
+        s = 'select vcs.* from view_cloud_status_slot_summary as vcs left outer join view_published_clouds as vpc on vcs.group_name=vpc.group_name and vcs.cloud_name=vpc.cloud_name where published=1;'
+        slot_summary = qt(config.db_connection.execute(s), filter=qt_filter_get(['group_name'], ["mygroups"], aliases=GROUP_ALIASES, and_or='or'))
+
+    elif active_user.flag_global_status:
         s = select([view_cloud_status_flavor_slot_detail])
         flavor_slot_detail = qt(config.db_connection.execute(s), filter=qt_filter_get(['group_name'], ["mygroups"], aliases=GROUP_ALIASES, and_or='or'))
 
@@ -1366,6 +1393,7 @@ def status(request, group_name=None):
 
         s = select([view_cloud_status_slot_summary])
         slot_summary = qt(config.db_connection.execute(s), filter=qt_filter_get(['group_name'], ["mygroups"], aliases=GROUP_ALIASES, and_or='or'))
+
 
     else:
 
@@ -1428,9 +1456,14 @@ def status(request, group_name=None):
 
 
     # get slot summary
-    if active_user.flag_global_status:
+    if request.environ['PATH_INFO'] == '/cloud/published_status/':
+        s = 'select vcs.* from view_cloud_status_slot_summary as vcs left outer join view_published_clouds as vpc on vcs.group_name=vpc.group_name and vcs.cloud_name=vpc.cloud_name where published=1;'
+        slot_summary_list = qt(config.db_connection.execute(s), filter=qt_filter_get(['group_name'], ["mygroups"], aliases=GROUP_ALIASES, and_or='or'))
+
+    elif active_user.flag_global_status:
         s = select([view_cloud_status_slot_summary])
         slot_summary_list = qt(config.db_connection.execute(s), filter=qt_filter_get(['group_name'], ["mygroups"], aliases=GROUP_ALIASES, and_or='or'))
+
     else:
         s = select([view_cloud_status_slot_summary]).where(view_cloud_status_slot_summary.c.group_name == active_user.active_group)
         slot_summary_list = qt(config.db_connection.execute(s))
@@ -1470,9 +1503,14 @@ def status(request, group_name=None):
 
     '''
     # get job status per group
-    if active_user.flag_global_status:
+    if request.environ['PATH_INFO'] == '/cloud/published_status/':
+        s = 'select vjs.* from view_job_status as vjs left outer join csv2_groups as cg on vjs.group_name=cg.group_name where publish_toggle=1;'
+        job_status_list = qt(config.db_connection.execute(s))
+
+    elif active_user.flag_global_status:
         s = select([view_job_status])
         job_status_list = qt(config.db_connection.execute(s), filter=qt_filter_get(['group_name'], ["mygroups"], aliases=GROUP_ALIASES, and_or='or'))
+
     else:    
         s = select([view_job_status]).where(view_job_status.c.group_name == active_user.active_group)
         job_status_list = qt(config.db_connection.execute(s))
@@ -1507,7 +1545,7 @@ def status(request, group_name=None):
                         "csv2-ec2":         "csv2_ec2",
                         "csv2-htc-agent":   "csv2_htc_agent",
                         "csv2-watch":       "csv2_watch",
-                        "csv2-startd-errors":"csv2_startd_errors",
+                        "csv2-vm-data":     "csv2_vm_data",
                         "rabbitmq-server":  "rabbitmq_server",
                         "mariadb":          "mariadb", 
                         "condor":           "condor"
@@ -1541,6 +1579,7 @@ def status(request, group_name=None):
         system_list["disk_size"] = round(psutil.disk_usage('/').total/1000000000 , 1)
         system_list["disk_used"] = round(psutil.disk_usage('/').used/1000000000 , 1)
 
+    print("????????????????????????????", job_status_list)
     context = {
             'active_user': active_user.username,
             'active_group': active_user.active_group,
@@ -1627,6 +1666,7 @@ def request_ts_data(request):
     This function should receive a post request with a payload of an influxdb query
     to update the timeseries plot.
     """
+    print("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX", request.body)
 
     params = {'db': 'csv2_timeseries','epoch': 'ms', 'q':request.body}
     url_string = 'http://localhost:8086/query'
