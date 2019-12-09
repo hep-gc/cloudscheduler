@@ -378,7 +378,7 @@ def qt(query, keys=None, prune=[], filter=None, convert=None):
           the following "keys" specification:
 
             keys = {
-                'primary': ['group_name', 'cpus']
+                'primary': ['group_name', 'cpus'],
                 'sum': ['slots', 'test']
                 }
 
@@ -474,10 +474,82 @@ def qt(query, keys=None, prune=[], filter=None, convert=None):
                   'match_list': user_list,
                   }
               )
+
+        o For a list of primary keys, it creates nested dictionaries. For example, given
+          the following "keys" specification:
+
+            keys = {
+                'primary': ['group_name', 'flavor']
+                }
+
+          and the following queryset:
+
+          {'group_name': 'test-dev2', 'cloud_name': 'lrz2', 'flavor': 'lrz2:tiny', 'authurl': 'https://cc.lrz.de:5000/v3', 'flavor_slots': 1}
+          {'group_name': 'test-dev2', 'cloud_name': 'lrz2', 'flavor': 'lrz2:lrz.small', 'authurl': 'https://cc.lrz.de:5000/v3', 'flavor_slots': 1}
+          {'group_name': 'testing', 'cloud_name': 'otter', 'flavor': 'otter:s1', 'authurl': 'https://otter.heprc.uvic.ca:5000/v3', 'flavor_slots': 3}
+          {'group_name': 'testing', 'cloud_name': 'otter', 'flavor': 'otter:s2', 'authurl': 'https://otter.heprc.uvic.ca:5000/v3', 'flavor_slots': 1}
+          {'group_name': 'testing', 'cloud_name': 'otter', 'flavor': 'otter:s3', 'authurl': 'https://otter.heprc.uvic.ca:5000/v3', 'flavor_slots': 1}
+
+          qt would produce the following results:
+
+          {
+              'test-dev2': {
+                      'lrz2:tiny':      { 'cloud_name': 'lrz2', 'authurl': 'https://cc.lrz.de:5000/v3', 'flavor_slots': 1 },
+                      'lrz2:lrz.small': { 'cloud_name': 'lrz2', 'authurl': 'https://cc.lrz.de:5000/v3', 'flavor_slots': 1 }
+                  },
+              'testing': {
+                  'otter:s1':           { 'cloud_name': 'otter', 'authurl': 'https://otter.heprc.uvic.ca:5000/v3', 'flavor_slots': 3},
+                  'otter:s2':           { 'cloud_name': 'otter', 'authurl': 'https://otter.heprc.uvic.ca:5000/v3', 'flavor_slots': 1},
+                  'otter:s3':           { 'cloud_name': 'otter', 'authurl': 'https://otter.heprc.uvic.ca:5000/v3', 'flavor_slots': 1}
+                  },
+              }
+
+          Note: If the list of primary keys results in duplicate entries, the inner-most nested dictionary will contain the last row for the composite
+          key.  For example, given the previouse queryset and a primary key specification of "['group_name', 'cloud_name']". the result would have been:
+
+          {
+              'test-dev2': {
+                      'lrz2':           { 'flavor': 'lrz2:lrz2.small', 'authurl': 'https://cc.lrz.de:5000/v3', 'flavor_slots': 1 }
+                  },
+              'testing': {
+                  'otter':              { 'flavor': 'otter:s3', 'authurl': 'https://otter.heprc.uvic.ca:5000/v3', 'flavor_slots': 1}
+                  },
+              }
+          
+          If you want to retain all rows, keys must also specify "'list_duplicates': True", in which case, the inner most dictionary is replaced by a
+          list of dictionaries. For example, given the previouse queryset and a primary key specification of:
+
+            keys = {
+                'primary': ['group_name', 'cloud_name'],
+                'list_duplicates': True
+                }
+
+          the result would have been:
+
+          {
+              'test-dev2': {
+                      'lrz2': [
+                          {'flavor': 'lrz2:tiny', 'authurl': 'https://cc.lrz.de:5000/v3', 'flavor_slots': 1},
+                          {'flavor': 'lrz2:lrz.small', 'authurl': 'https://cc.lrz.de:5000/v3', 'flavor_slots': 1}
+                          ]      
+                  },
+              'testing': {
+                  'otter': [
+                          {'flavor': 'otter:s1', 'authurl': 'https://otter.heprc.uvic.ca:5000/v3', 'flavor_slots': 3},
+                          {'flavor': 'otter:s2', 'authurl': 'https://otter.heprc.uvic.ca:5000/v3', 'flavor_slots': 1},
+                          {'flavor': 'otter:s3', 'authurl': 'https://otter.heprc.uvic.ca:5000/v3', 'flavor_slots': 1}
+                          ]      
+                  },
+              }
+          
     """
 
-    if keys and not ( ('primary' in keys and 'sum' in keys) or ('primary' in keys and 'secondary' in keys) ):
-        raise Exception('view_utils.qt: "keys" dictionary requires either a "primary/sum" specification or a "primary/secondary" specification.')
+    if keys and not ( ('primary' in keys and len(keys.keys()) == 1) or \
+        ('primary' in keys and 'list_duplicates' in keys) or \
+        ('primary' in keys and 'sum' in keys) or \
+        ('primary' in keys and 'secondary' in keys) ):
+
+        raise Exception('view_utils.qt: "keys" dictionary requires either a "primary" specification or a "primary/sum" specification or a "primary/secondary" specification.')
     elif keys and 'match_list' in keys and 'secondary' not in keys:
         raise Exception('view_utils.qt: "keys" dictionary requires a "primary/secondary" specification if "match_list" is also specified.')
 
@@ -571,6 +643,33 @@ def qt(query, keys=None, prune=[], filter=None, convert=None):
 
                 primary_list.append(new_row)
 
+        elif keys and 'primary' in keys:
+            def set_ptr(ptr, cols, key, list):
+                if cols[key] not in ptr:
+                   if list:
+                       ptr[cols[key]] = []
+                   else:
+                       ptr[cols[key]] = {}
+
+                return ptr[cols[key]]
+
+            if 'list_duplicates' in keys and keys['list_duplicates']:
+                secondary_dict_ptr = secondary_dict
+                for ix in range(len(keys['primary'])):
+                    secondary_dict_ptr = set_ptr(secondary_dict_ptr, cols, keys['primary'][ix], ix==len(keys['primary'])-1)
+
+                secondary_dict_ptr.append({})
+                for col in cols:
+                    secondary_dict_ptr[-1][col] = cols[col]
+
+            else:
+                secondary_dict_ptr = secondary_dict
+                for key in keys['primary']:
+                    secondary_dict_ptr = set_ptr(secondary_dict_ptr, cols, key, False)
+
+                for col in cols:
+                    secondary_dict_ptr[col] = cols[col]
+
     if not keys:
         return primary_list
 
@@ -600,6 +699,9 @@ def qt(query, keys=None, prune=[], filter=None, convert=None):
             return primary_list, secondary_dict, matched_dict
         else:
             return primary_list, secondary_dict
+
+    elif keys and 'primary' in keys:
+        return secondary_dict
 
 #-------------------------------------------------------------------------------
 

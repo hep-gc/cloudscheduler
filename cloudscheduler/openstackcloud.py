@@ -40,35 +40,35 @@ class OpenStackCloud(basecloud.BaseCloud):
         :param defaultnetwork:
         :param extrayaml: The cloud specific yaml
         """
-        basecloud.BaseCloud.__init__(self, group=resource.group_name,
-                                     name=resource.cloud_name,
+        basecloud.BaseCloud.__init__(self, group=resource.get("group_name"),
+                                     name=resource.get("cloud_name"),
                                      extrayaml=extrayaml, metadata=metadata)
         self.log = logging.getLogger(__name__)
-        self.authurl = resource.authurl
-        self.username = resource.username
-        self.password = resource.password
-        self.region = resource.region
-        self.keyname = resource.default_keyname
-        self.cacertificate = resource.cacertificate
-        self.project = resource.project
-        self.userdomainname = resource.user_domain_name
-        self.projectdomainname = resource.project_domain_name
-        self.projectdomainid = resource.project_domain_id
+        self.authurl = resource.get("authurl")
+        self.username = resource.get("username")
+        self.password = resource.get("password")
+        self.region = resource.get("region")
+        self.keyname = resource.get("default_keyname")
+        self.cacertificate = resource.get("cacertificate")
+        self.project = resource.get("project")
+        self.userdomainname = resource.get("user_domain_name")
+        self.projectdomainname = resource.get("project_domain_name")
+        self.projectdomainid = resource.get("project_domain_id")
         self.session = self._get_auth_version(self.authurl)
         if not self.session:
             raise Exception
 
-        self.default_security_groups = resource.default_security_groups
+        self.default_security_groups = resource.get("default_security_groups")
         try:
             self.default_security_groups = self.default_security_groups.split(',') if self.default_security_groups else ['default']
         except:
             raise Exception
-        self.default_image = resource.default_image
-        self.default_flavor = resource.default_flavor
-        self.default_network = resource.default_network
-        self.keep_alive = resource.default_keep_alive
-        self.volume_info = resource.vm_boot_volume
-        self.flavor_cores = resource.flavor_cores
+        self.default_image = resource.get("default_image")
+        self.default_flavor = resource.get("default_flavor")
+        self.default_network = resource.get("default_network")
+        self.keep_alive = resource.get("default_keep_alive")
+        self.volume_info = resource.get("vm_boot_volume")
+        self.flavor_cores = resource.get("flavor_cores")
 
     def vm_create(self, num=1, job=None, flavor=None, template_dict=None, image=None):
         """
@@ -84,9 +84,11 @@ class OpenStackCloud(basecloud.BaseCloud):
         template_dict['cs_cloud_type'] = self.__class__.__name__
         template_dict['cs_flavor'] = flavor
         self.log.debug(template_dict)
-        user_data_list = job.user_data.split(',') if job.user_data else []
+        user_data_list = job.get("user_data").split(',') if job.get("user_data") else []
         userdata = self.prepare_userdata(yaml_list=user_data_list,
                                          template_dict=template_dict)
+        self.log.debug("~!~!~Userdata~!~!~")
+        self.log.debug(userdata)
 
         nova = self._get_creds_nova()
         # Check For valid security groups
@@ -111,10 +113,10 @@ class OpenStackCloud(basecloud.BaseCloud):
 
         # Check image from job, else use cloud default, else global default
         imageobj = None
-        image_dict = self._attr_list_to_dict(job.image)
+        image_dict = self._attr_list_to_dict(job.get("image"))
         try:
             glance = self._get_creds_glance()
-            if job.image and self.name in image_dict:
+            if job.get("image") and self.name in image_dict:
                 imageobj = self._find_image(glance, image_dict[self.name])
             elif self.default_image:
                 imageobj = self._find_image(glance, self.default_image)
@@ -133,7 +135,7 @@ class OpenStackCloud(basecloud.BaseCloud):
 
         # check flavor from job, else cloud default, else global default
         #flavor = flavor
-        instancetype_dict = self._attr_list_to_dict(job.instance_type)
+        instancetype_dict = self._attr_list_to_dict(job.get("instance_type"))
         try:
             #flavor = nova.flavors.find(name=flavor)
             if instancetype_dict and self.name in instancetype_dict:
@@ -151,7 +153,7 @@ class OpenStackCloud(basecloud.BaseCloud):
         # Deal with network if needed
         netid = []
         network = None
-        network_dict = self._attr_list_to_dict(job.network)
+        network_dict = self._attr_list_to_dict(job.get("network"))
         if network_dict and self.name in network_dict:
             if len(network_dict[self.name].split('-')) == 5:  # uuid
                 netid = [{'net-id': network_dict[self.name]}]
@@ -270,6 +272,7 @@ class OpenStackCloud(basecloud.BaseCloud):
                     'status': vm.status,
                     'flavor_id': vm.flavor["id"],
                     'image_id': vm.image["id"],
+                    'target_alias': job.get("target_alias"),
                     'task': vm.__dict__.get("OS-EXT-STS:task_state"),
                     'power_status': vm.__dict__.get("OS-EXT-STS:power_state"),
                     'last_updated': int(time.time()),
@@ -311,6 +314,7 @@ class OpenStackCloud(basecloud.BaseCloud):
                         'status': vm.status,
                         'flavor_id': vm.flavor["id"],
                         'image_id': vm.image["id"],
+                        'target_alias': job.get("target_alias"),
                         'task': vm.__dict__.get("OS-EXT-STS:task_state"),
                         'power_status': vm.__dict__.get("OS-EXT-STS:power_state"),
                         'last_updated': int(time.time()),

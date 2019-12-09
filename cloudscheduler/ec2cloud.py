@@ -22,18 +22,18 @@ class EC2Cloud(basecloud.BaseCloud):
 
     def __init__(self, resource=None, metadata=None, extrayaml=None):
         """Constructor for ec2 based clouds."""
-        basecloud.BaseCloud.__init__(self, name=resource.cloud_name, group = resource.group_name,
+        basecloud.BaseCloud.__init__(self, name=resource.get("cloud_name"), group = resource.get("group_name"),
                                      extrayaml=extrayaml, metadata=metadata)
         self.log = logging.getLogger(__name__)
-        self.username = resource.username  # Access ID
-        self.password = resource.password  # Secret key
-        self.region = resource.region
-        self.authurl = resource.authurl  # endpoint_url
-        self.keyname = resource.default_keyname if resource.default_keyname else ""
-        self.project = resource.project
-        self.spot_price = resource.spot_price
-        self.default_security_groups = resource.default_security_groups
-        self.keep_alive = resource.default_keep_alive
+        self.username = resource.get("username")  # Access ID
+        self.password = resource.get("password")  # Secret key
+        self.region = resource.get("region")
+        self.authurl = resource.get("authurl")  # endpoint_url
+        self.keyname = resource.get("default_keyname") if resource.get("default_keyname") else ""
+        self.project = resource.get("project")
+        self.spot_price = resource.get("spot_price")
+        self.default_security_groups = resource.get("default_security_groups")
+        self.keep_alive = resource.get("default_keep_alive")
         try:
             self.default_security_groups = self.default_security_groups.split(
                 ',') if self.default_security_groups else ['default']
@@ -58,10 +58,10 @@ class EC2Cloud(basecloud.BaseCloud):
         template_dict['cs_cloud_type'] = self.__class__.__name__
         template_dict['cs_flavor'] = flavor
         self.log.debug(template_dict)
-        user_data_list = job.user_data.split(',') if job.user_data else []
+        user_data_list = job.get("user_data").split(',') if job.get("user_data") else []
         userdata = self.prepare_userdata(yaml_list=user_data_list,
                                          template_dict=template_dict)
-        instancetype_dict = self._attr_list_to_dict(job.instance_type)
+        instancetype_dict = self._attr_list_to_dict(job.get("instance_type"))
         tags = [{'ResourceType':'instance', 'Tags':[{'Key':'csv2', 'Value':'--'.join(
             [self.group, self.name, str(self.config.csv2_host_id)])}]}]
         client = self._get_client()
@@ -128,6 +128,7 @@ class EC2Cloud(basecloud.BaseCloud):
                     'hostname': hostname,
                     'vmid': vm['InstanceId'],
                     'spot_instance': flag_spot_instance,
+                    'target_alias': job.get("target_alias"),
                     'status': ec2_status_dict[vm['State']['Name']],
                     'flavor_id': vm['InstanceType'],
                     'image_id': vm['ImageId'],
@@ -165,6 +166,7 @@ class EC2Cloud(basecloud.BaseCloud):
                     'vmid': vm['SpotInstanceRequestId'],
                     'hostname': '',
                     'instance_id': '',
+                    'target_alias': job.get("target_alias"),
                     'status': ec2_status_dict[vm['State']],
                     'flavor_id': vm['LaunchSpecification']['InstanceType'],
                     'last_updated': int(time.time()),
