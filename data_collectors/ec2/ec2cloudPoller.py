@@ -381,6 +381,7 @@ def flavor_poller():
         except Exception as exc:
             logging.error("Unhandled exception during regular flavor polling:")
             logging.exception(exc)
+            config.db_close()
 
 
     return -1

@@ -25,6 +25,7 @@ DROP TABLE IF EXISTS `csv2_vms`;
 CREATE TABLE `csv2_vms` (
   `group_name` varchar(32) NOT NULL,
   `cloud_name` varchar(32) NOT NULL,
+  `target_alias` varchar(32) DEFAULT NULL,
   `region` varchar(32) DEFAULT NULL,
   `vmid` varchar(128) NOT NULL,
   `spot_instance` tinyint(1) NOT NULL DEFAULT 0,
@@ -109,4 +110,4 @@ DELIMITER ;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2019-11-14 14:38:44
+-- Dump completed on 2019-12-10 12:28:18
