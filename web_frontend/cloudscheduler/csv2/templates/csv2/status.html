@@ -1051,6 +1051,18 @@
                     <span class="red-symbol bigger">&#x2718;</span></td>
                 {% endif %}
 
+                {% if system_list.csv2_condor_gsi_status == 1 and system_list.csv2_condor_gsi_error_count == 0%}
+                    <td data-path="csv2_condor_gsi_status" class="more-style float-center plottable" tooltip="{{ system_list.csv2_condor_gsi_msg }}">
+                    <span class="green-symbol bigger">&#x2714;</span></td>
+                {% elif system_list.csv2_condor_gsi_status == 1 and system_list.csv2_condor_gsi_error_count != 0%}
+                    <td data-path="csv2_condor_gsi_status" class="more-style float-center plottable" tooltip="Warning! {{system_list.csv2_condor_gsi_error_count}} child process failures. {{ system_list.csv2_condor_gsi_msg }}">
+                    <span class="orange-symbol bigger">&#x2757;</span></td>
+                {% else %}
+                    <td data-path="csv2_condor_gsi_status" class="more-style float-center plottable" tooltip="{{ system_list.csv2_condor_gsi_msg }}">
+                    <span class="red-symbol bigger">&#x2718;</span></td>
+                {% endif %}
+
+
 
                 <td class="col-spacer">&nbsp;</td>
 
@@ -1075,6 +1087,7 @@
                 <td>ec2</td>
                 <td>watch</td>
                 <td>VMdata</td>
+                <td><nobr>Cert Info</nobr></td>
 
                 <td class="col-spacer">&nbsp;</td>
 
