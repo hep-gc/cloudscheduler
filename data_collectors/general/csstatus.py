@@ -21,6 +21,12 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
 from sqlalchemy.ext.automap import automap_base
 
+def _is_container():
+    #check if in container to know if we need to treat mariadb differently
+    path='/proc/self/cgroup'
+    return (os.path.exists('/.dockerenv') or 
+            os.path.isfile(path) and any('kubepods' in line for line in open(path))
+           )
 
 def _service_msg(service_name):
     # there is a special case where service_name is csv2_status and the following os command won't get rid of problem characters
@@ -29,6 +35,15 @@ def _service_msg(service_name):
         file = os.popen("service "+service_name+" status | grep 'Active'")
         status = file.read()
         return status.splitlines()[0][11:]
+    elif service_name == "mariadb" and _is_container():
+       config.db_open()
+       code, msg = config.db_session_execute('do 0;', allow_no_rows=True) 
+       config.db_close()
+       logging.debug("%s, %s" % (code, msg))
+       if code == 0:
+           return "active (running in separate container)"
+       else:
+           return ("Stopped (unknown reason)\n Message from query: %s" %(msg))
     else:
         return os.popen("service "+service_name+" status | grep 'Active' | cut -c12-").read()
 
