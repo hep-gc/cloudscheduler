@@ -244,3 +244,7 @@ view_vms:
                 Is the number of seconds since the number of **htcondor_partitionable_slots** or the number
                 **htcondor_dynamic_slots** have changed.
 
+        image_id:
+            Format: String(128)
+            Synopsis:
+

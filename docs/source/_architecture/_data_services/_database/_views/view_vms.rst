@@ -3,7 +3,7 @@
 .. To modify the contents of this file:
 ..   1. edit the template file ".../cloudscheduler/docs/schema_doc/views/view_vms.yaml"
 ..   2. run the utility ".../cloudscheduler/utilities/schema_doc"
-..
+..ansible-playbook -e addenda=addenda -i inventory csv2-sa.yaml -u root
 
 Database View: view_vms
 =======================
@@ -160,6 +160,7 @@ Columns:
 
       Is a string returned by the csv2-vm-data poller of extracted errors in
       the HTCondor logs on the VM.
+
 
 * **htcondor_startd_time** (Integer):
 

@@ -79,3 +79,7 @@ csv2_user:
                 If set to 0, foreign and global VM information will not be displayed.
                 If set to 1, foreign and global VM information will be displayed.
 
+        flag_show_foreign_global_vms:
+            Format: Boolean
+            Synopsis:
+

@@ -11,6 +11,7 @@ import yaml
 
 MASTER_TYPE = htcondor.AdTypes.Master
 STARTD_TYPE = htcondor.AdTypes.Startd
+VERSION = 0
 
 def callback(ch, method, properties, body):
     yaml_dict = yaml_full_load(body)
@@ -136,14 +137,8 @@ def callback(ch, method, properties, body):
                 'subject': None
                 }
 
-            p1 = Popen([
-                'condor_config_val',
-                'gsi_daemon_cert'
-                ], stdout=PIPE, stderr=PIPE)
-            stdout, stderr = p1.communicate()
-
-            if p1.returncode == 0:
-                condor_hostcert = decode(stdout).strip()
+            if 'GSI_DAEMON_CERT' in htcondor.param:
+                condor_hostcert = htcondor.param['GSI_DAEMON_CERT']
 
             elif 'condor_hostcert' in config:
                 condor_hostcert = config['condor_hostcert']
@@ -171,14 +166,15 @@ def callback(ch, method, properties, body):
                 'subject': None
                 }
 
-            if 'condor_worker_cert' in config:
-                result['subject'], result['eol'] = get_gsi_cert_subject_and_eol(config['condor_worker_cert'])
-                result['cert'] = zip_base64(config['condor_worker_cert'])
+            if 'GSI_DAEMON_CERT' in htcondor.param:
+                if 'condor_worker_cert' in config:
+                    result['subject'], result['eol'] = get_gsi_cert_subject_and_eol(config['condor_worker_cert'])
+                    result['cert'] = zip_base64(config['condor_worker_cert'])
 
-            if 'condor_worker_key' in config:
-                result['key'] = zip_base64(config['condor_worker_key'])
-                if result['key'] == 'unreadable':
-                    result['eol'] = -999999
+                if 'condor_worker_key' in config:
+                    result['key'] = zip_base64(config['condor_worker_key'])
+                    if result['key'] == 'unreadable':
+                        result['eol'] = -999999
 
             ch.basic_publish(exchange='',
                 routing_key=properties.reply_to,
@@ -189,7 +185,7 @@ def callback(ch, method, properties, body):
 
         elif yaml_dict['command'] == 'noop':
             # this is just a test to make sure agent is still available
-            result = [0, "Noop success"]
+            result = [0, "Noop success", VERSION]
             ch.basic_publish(exchange='',
                     routing_key=properties.reply_to,
                     properties=pika.BasicProperties(correlation_id=properties.correlation_id),
@@ -359,11 +355,14 @@ def zip_base64(path):
 
     return None
 
-fd = open(sys.argv[1])
-full_config = yaml_full_load(fd.read())
+with open(sys.argv[0]) as fd:
+    VERSION = sum(fd.read().encode())
+
+with open(sys.argv[1]) as fd:
+    full_config = yaml_full_load(fd.read())
+
 config = full_config['htc_agent']
 del full_config
-fd.close()
 
 logger = logging.getLogger()
 logging.basicConfig(

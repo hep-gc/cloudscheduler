@@ -378,7 +378,7 @@ def qt(query, keys=None, prune=[], filter=None, convert=None):
           the following "keys" specification:
 
             keys = {
-                'primary': ['group_name', 'cpus']
+                'primary': ['group_name', 'cpus'],
                 'sum': ['slots', 'test']
                 }
 
@@ -474,10 +474,82 @@ def qt(query, keys=None, prune=[], filter=None, convert=None):
                   'match_list': user_list,
                   }
               )
+
+        o For a list of primary keys, it creates nested dictionaries. For example, given
+          the following "keys" specification:
+
+            keys = {
+                'primary': ['group_name', 'flavor']
+                }
+
+          and the following queryset:
+
+          {'group_name': 'test-dev2', 'cloud_name': 'lrz2', 'flavor': 'lrz2:tiny', 'authurl': 'https://cc.lrz.de:5000/v3', 'flavor_slots': 1}
+          {'group_name': 'test-dev2', 'cloud_name': 'lrz2', 'flavor': 'lrz2:lrz.small', 'authurl': 'https://cc.lrz.de:5000/v3', 'flavor_slots': 1}
+          {'group_name': 'testing', 'cloud_name': 'otter', 'flavor': 'otter:s1', 'authurl': 'https://otter.heprc.uvic.ca:5000/v3', 'flavor_slots': 3}
+          {'group_name': 'testing', 'cloud_name': 'otter', 'flavor': 'otter:s2', 'authurl': 'https://otter.heprc.uvic.ca:5000/v3', 'flavor_slots': 1}
+          {'group_name': 'testing', 'cloud_name': 'otter', 'flavor': 'otter:s3', 'authurl': 'https://otter.heprc.uvic.ca:5000/v3', 'flavor_slots': 1}
+
+          qt would produce the following results:
+
+          {
+              'test-dev2': {
+                      'lrz2:tiny':      { 'cloud_name': 'lrz2', 'authurl': 'https://cc.lrz.de:5000/v3', 'flavor_slots': 1 },
+                      'lrz2:lrz.small': { 'cloud_name': 'lrz2', 'authurl': 'https://cc.lrz.de:5000/v3', 'flavor_slots': 1 }
+                  },
+              'testing': {
+                  'otter:s1':           { 'cloud_name': 'otter', 'authurl': 'https://otter.heprc.uvic.ca:5000/v3', 'flavor_slots': 3},
+                  'otter:s2':           { 'cloud_name': 'otter', 'authurl': 'https://otter.heprc.uvic.ca:5000/v3', 'flavor_slots': 1},
+                  'otter:s3':           { 'cloud_name': 'otter', 'authurl': 'https://otter.heprc.uvic.ca:5000/v3', 'flavor_slots': 1}
+                  },
+              }
+
+          Note: If the list of primary keys results in duplicate entries, the inner-most nested dictionary will contain the last row for the composite
+          key.  For example, given the previouse queryset and a primary key specification of "['group_name', 'cloud_name']". the result would have been:
+
+          {
+              'test-dev2': {
+                      'lrz2':           { 'flavor': 'lrz2:lrz2.small', 'authurl': 'https://cc.lrz.de:5000/v3', 'flavor_slots': 1 }
+                  },
+              'testing': {
+                  'otter':              { 'flavor': 'otter:s3', 'authurl': 'https://otter.heprc.uvic.ca:5000/v3', 'flavor_slots': 1}
+                  },
+              }
+          
+          If you want to retain all rows, keys must also specify "'list_duplicates': True", in which case, the inner most dictionary is replaced by a
+          list of dictionaries. For example, given the previouse queryset and a primary key specification of:
+
+            keys = {
+                'primary': ['group_name', 'cloud_name'],
+                'list_duplicates': True
+                }
+
+          the result would have been:
+
+          {
+              'test-dev2': {
+                      'lrz2': [
+                          {'flavor': 'lrz2:tiny', 'authurl': 'https://cc.lrz.de:5000/v3', 'flavor_slots': 1},
+                          {'flavor': 'lrz2:lrz.small', 'authurl': 'https://cc.lrz.de:5000/v3', 'flavor_slots': 1}
+                          ]      
+                  },
+              'testing': {
+                  'otter': [
+                          {'flavor': 'otter:s1', 'authurl': 'https://otter.heprc.uvic.ca:5000/v3', 'flavor_slots': 3},
+                          {'flavor': 'otter:s2', 'authurl': 'https://otter.heprc.uvic.ca:5000/v3', 'flavor_slots': 1},
+                          {'flavor': 'otter:s3', 'authurl': 'https://otter.heprc.uvic.ca:5000/v3', 'flavor_slots': 1}
+                          ]      
+                  },
+              }
+          
     """
 
-    if keys and not ( ('primary' in keys and 'sum' in keys) or ('primary' in keys and 'secondary' in keys) ):
-        raise Exception('view_utils.qt: "keys" dictionary requires either a "primary/sum" specification or a "primary/secondary" specification.')
+    if keys and not ( ('primary' in keys and len(keys.keys()) == 1) or \
+        ('primary' in keys and 'list_duplicates' in keys) or \
+        ('primary' in keys and 'sum' in keys) or \
+        ('primary' in keys and 'secondary' in keys) ):
+
+        raise Exception('view_utils.qt: "keys" dictionary requires either a "primary" specification or a "primary/sum" specification or a "primary/secondary" specification.')
     elif keys and 'match_list' in keys and 'secondary' not in keys:
         raise Exception('view_utils.qt: "keys" dictionary requires a "primary/secondary" specification if "match_list" is also specified.')
 
@@ -571,6 +643,33 @@ def qt(query, keys=None, prune=[], filter=None, convert=None):
 
                 primary_list.append(new_row)
 
+        elif keys and 'primary' in keys:
+            def set_ptr(ptr, cols, key, list):
+                if cols[key] not in ptr:
+                   if list:
+                       ptr[cols[key]] = []
+                   else:
+                       ptr[cols[key]] = {}
+
+                return ptr[cols[key]]
+
+            if 'list_duplicates' in keys and keys['list_duplicates']:
+                secondary_dict_ptr = secondary_dict
+                for ix in range(len(keys['primary'])):
+                    secondary_dict_ptr = set_ptr(secondary_dict_ptr, cols, keys['primary'][ix], ix==len(keys['primary'])-1)
+
+                secondary_dict_ptr.append({})
+                for col in cols:
+                    secondary_dict_ptr[-1][col] = cols[col]
+
+            else:
+                secondary_dict_ptr = secondary_dict
+                for key in keys['primary']:
+                    secondary_dict_ptr = set_ptr(secondary_dict_ptr, cols, key, False)
+
+                for col in cols:
+                    secondary_dict_ptr[col] = cols[col]
+
     if not keys:
         return primary_list
 
@@ -600,6 +699,9 @@ def qt(query, keys=None, prune=[], filter=None, convert=None):
             return primary_list, secondary_dict, matched_dict
         else:
             return primary_list, secondary_dict
+
+    elif keys and 'primary' in keys:
+        return secondary_dict
 
 #-------------------------------------------------------------------------------
 
@@ -996,6 +1098,11 @@ def validate_fields(config, request, fields, tables, active_user):
                              to True, then a comma seperated list of values will be validated. If
                              the second optional boolean column is set to True, then an empty
                              string (null value) can be accepted.
+    {"argN": "<type>", .... "options": {"optN": "<type>" ....}
+                           - is a json dictionary string defining the format of a json dictionary
+                             parameter. All "args" are mandatory, all "opts" are optional, 
+                             everything else is invalid. Valid "<types>" include: string, integer,
+                             boolean, float, etc.
     boolean                - A value of True or False will be inserted into the output fields.
     dboolean               - Database boolean values are either 0 or 1; allow and
                              convert true/false/yes/no/on/off.
@@ -1025,6 +1132,7 @@ def validate_fields(config, request, fields, tables, active_user):
     from sqlalchemy import Table, MetaData
     from sqlalchemy.sql import select
     import cloudscheduler.lib.schema
+    import json
     import re
 
     # Retrieve relevant (re: tables) schema.
@@ -1143,6 +1251,82 @@ def validate_fields(config, request, fields, tables, active_user):
 
                     if not good_value:
                         return 1, 'value specified for "%s" must be one of the following options: %s.' % (field, sorted(options)), None, None, None
+
+                elif isinstance(Formats[field], dict):
+                    def check_value_type(value, fmt):
+                        if fmt == 'integer':
+                            return isinstance(value, int)
+                        elif fmt == 'boolean':
+                            return isinstance(value, bool)
+                        elif fmt == 'float':
+                            return isinstance(value, float)
+                        elif fmt == 'string':
+                            return isinstance(value, str)
+                        return False
+
+                    try:
+                        value_dict = json.loads(value)
+                    except:
+                        return 1, 'value specified for "%s" must be a valid JSON string.' % field, None, None, None
+
+                    if value_dict is not None and not isinstance(value_dict, dict):
+                        return 1, 'JSON string value specified for "%s" must contain a dictionary or be "null".' % field, None, None, None
+
+                    if value_dict is None:
+                        value = None
+
+                    else:
+                        awol_keys = []
+                        bad_keys = []
+                        bad_vals = []
+                        mand_keys = []
+                        min_pick = 1
+                        opt_keys = []
+                        pick_keys = []
+                        picked_keys = []
+                        for mkey in Formats[field]:
+                            if mkey == 'options':
+                                for okey in Formats[field]['options']:
+                                    opt_keys.append(okey)
+                            elif mkey == 'min_pick':
+                                if check_value_type(Formats[field]['min_pick'], 'integer'):
+                                    min_pick = Formats[field]['min_pick']
+                                else:
+                                    bad_vals.append('%s: %s(%s)' % (mkey, Formats[field][mkey], type(value_dict[mkey])))
+                            elif mkey == 'pick':
+                                for pkey in Formats[field]['pick']:
+                                    pick_keys.append(pkey)
+                            else:
+                                mand_keys.append(mkey)
+                                if mkey not in value_dict:
+                                    awol_keys.append(mkey)
+
+                        for key in value_dict:
+                            if key in mand_keys:
+                                if not check_value_type(value_dict[key], Formats[field][key]):
+                                    bad_vals.append('%s: %s(%s)' % (key, Formats[field][key], type(value_dict[key])))
+                            elif key in opt_keys:
+                                if not check_value_type(value_dict[key], Formats[field]['options'][key]):
+                                    bad_vals.append('%s: %s(%s)' % (key, Formats[field]['options'][key], type(value_dict[key])))
+                            elif key in pick_keys:
+                                if check_value_type(value_dict[key], Formats[field]['pick'][key]):
+                                    picked_keys.append(key)
+                                else:
+                                    bad_vals.append('%s: %s(%s)' % (key, Formats[field]['pick'][key], type(value_dict[key])))
+                            else:
+                                bad_keys.append(key)
+
+                        if len(awol_keys) > 0:
+                            return 1, 'dictionary specified for "%s" is missing the following mandatory keys: %s' % (field, awol_keys), None, None, None
+
+                        if len(bad_keys) > 0:
+                            return 1, 'dictionary specified for "%s" contains the following undefined keys: %s' % (field, bad_keys), None, None, None
+
+                        if len(bad_vals) > 0:
+                            return 1, 'dictionary specified for "%s" contains the following key values of the wrong type: %s' % (field, bad_vals), None, None, None
+
+                        if len(picked_keys) < min_pick:
+                            return 1, 'At least %s of %s (%s) selectable keys are required for %s; dictionary specified only %s (%s) keys.' % (min_pick, len(pick_keys), pick_keys, field, len(picked_keys), picked_keys), None, None, None
 
                 elif Formats[field] == 'dboolean':
                     lower_value = value.lower()

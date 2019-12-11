@@ -62,6 +62,8 @@ CLOUD_KEYS = {
         'metadata_option':                      ['add', 'delete'],
         'ram_ctl':                              'integer',
         'spot_price':                           'float',
+#       'vm_boot_volume':                       {"GBs": "integer", "options": {"per_core": "boolean"}},
+        'vm_boot_volume':                       {"min_pick": 1, "pick": {"GBs": "integer", "GBs_per_core": "integer"}},
         'vm_keep_alive':                        'integer',
 
         'cores_slider':                         'ignore',
@@ -1664,6 +1666,13 @@ def update(request):
 
             # remove the password field.
             del request.POST['password']
+
+        # check if there was multiple securit groups posted
+        #
+        if len(request.POST.getlist("vm_security_groups")) > 1:
+            # if there is a list more than 1 security group was selected
+            # so we must cast the list as a string to match the format that comes from CLI
+            request.POST["vm_security_groups"] = ",".join([str(x) for x in request.POST.getlist("vm_security_groups")])
 
 
         # Validate input fields.

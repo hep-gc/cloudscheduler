@@ -12,6 +12,8 @@
 <link rel="stylesheet" type="text/css" href="{% static "csv2/overlay.css" %}?{{version}}">
 <link rel="stylesheet" type="text/css" href="{% static "csv2/editor.css" %}?{{version}}">
 <link rel="stylesheet" type="text/css" href="{% static "csv2/clouds.css" %}?{{version}}">
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+
 
 <script type="text/javascript">
 
@@ -126,7 +128,7 @@
                 document.getElementById(target_cloud+'-authurl').value = ec2_regions[i].endpoint;
             }
         }
-    }z
+    }
 
 </script>
 
@@ -247,19 +249,49 @@
                             <td>    
 
                                 <table>
-                                    <tr class="highlight3"><td><label for="vm_security_groups">Security Group</label></td>
-                                    <td><select name="vm_security_groups" class="dropdown"/>
-                                    <option value=""></option>
-                                    {% for group in security_groups_list %}
-                                        {% if cloud.cloud_name == group.cloud_name %}
-                                            {% if cloud.vm_security_groups == group.name %}
-                                                <option value="{{ group.name }}" selected>{{ group.name }}</option>
+                                    {% if cloud.cloud_type == "openstack" %}
+                                        <tr class="highlight3">
+                                            <td><label for="vm_boot_volume">Boot Volume</label></td>
+                                            {% if cloud.vm_boot_volume == None %}
+                                                <td><input type="text" name="vm_boot_volume" id="{{cloud.cloud_name}}-vm_boot_volume" title='null or {"GBs": n1, "GBs_per_core": n2}' value="null" /></td>
                                             {% else %}
-                                                <option value="{{ group.name }}">{{ group.name }}</option>
+                                                <td><input type="text" name="vm_boot_volume" id="{{cloud.cloud_name}}-vm_boot_volume" title='null or {"GBs": n1, "GBs_per_core": n2}' value="{{cloud.vm_boot_volume}}" /></td>
                                             {% endif %}
-                                        {% endif %}
-                                    {% endfor %}
-                                    </td></tr>
+                                        </tr>
+                                    {% endif %}
+                                    
+                                    <tr class="highlight3"><td><label for="vm_security_groups">Security Group</label></td>
+                                        <td>
+                                            <section name="vm_security_groups">
+                                                <div>
+                                                    <select id="leftValues-{{cloud.cloud_name}}" name="vm_security_groups" size="5" multiple>
+                                                    {% for group in security_groups_list %}
+                                                        {% if cloud.cloud_name == group.cloud_name %}
+                                                            {% if group.name in cloud.vm_security_groups|split %}
+                                                                <option selected>{{group.name}}</option>
+                                                            {% endif %}
+                                                        {% endif %}
+                                                    {% endfor %}
+                                                    </select>
+                                                </div>
+                                                <div>
+                                                    <input type="button" id="btnLeft-{{cloud.cloud_name}}" value="&lt;&lt;" />
+                                                    <input type="button" id="btnRight-{{cloud.cloud_name}}" value="&gt;&gt;" />
+                                                </div>
+                                                <div>
+                                                    <select id="rightValues-{{cloud.cloud_name}}" size="5" multiple>
+                                                    {% for group in security_groups_list %}
+                                                        {% if cloud.cloud_name == group.cloud_name %}
+                                                            {% if group.name not in cloud.vm_security_groups|split %}
+                                                                <option>{{group.name}}</option>
+                                                            {% endif %}
+                                                        {% endif %}
+                                                    {% endfor %}
+                                                    </select>
+                                                </div>
+                                            </section>
+                                        </td>
+                                    </tr>
                                 
                                     <tr class="highlight3"><td><label for="vm_keyname">VM Keyname</label></td>
                                     <td><select name="vm_keyname" class="dropdown"/>
@@ -612,3 +644,27 @@
 
 {% endspaceless %}
 </body>
+
+
+{% for cloud in cloud_list %}
+    <script>
+        /* for security group picker widget */
+        $("#btnLeft-{{cloud.cloud_name}}").click(function () {
+            var selectedItem = $("#rightValues-{{cloud.cloud_name}} option:selected");
+            $("#leftValues-{{cloud.cloud_name}}").append(selectedItem);
+        });
+
+        $("#btnRight-{{cloud.cloud_name}}").click(function () {
+            var selectedItem = $("#leftValues-{{cloud.cloud_name}} option:selected");
+            $("#rightValues-{{cloud.cloud_name}}").append(selectedItem);
+            $("#leftValues-{{cloud.cloud_name}} option").prop("selected", "selected")
+        });
+
+        $("#rightValues-{{cloud.cloud_name}}").change(function () {
+            var selectedItem = $("#rightValues-{{cloud.cloud_name}} option:selected");
+            $("#txtRight-{{cloud.cloud_name}}").val(selectedItem.text());
+        });
+    </script>
+{% endfor %}
+
+

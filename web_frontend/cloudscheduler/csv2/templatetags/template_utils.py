@@ -8,6 +8,9 @@ register = template.Library()
 def keyvalue(dict, key):    
     return dict[key]
 
+@register.filter(name='split')
+def split(string):
+    return string.split(",")
 
 class SetVarNode(template.Node):
 
@@ -35,3 +38,4 @@ def set_var(parser, token):
         raise template.TemplateSyntaxError("'set' tag must be of the form: {% set <var_name> = <var_value> %}")
 
     return SetVarNode(parts[1], parts[3])
+

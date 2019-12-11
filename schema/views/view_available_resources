@@ -10,6 +10,10 @@ fwd.cloud_name,
 fwd.priority as cloud_priority,
 fwd.region,
 fwd.cloud_type,
+fwd.htcondor_fqdn,
+fwd.htcondor_container_hostname,
+fwd.htcondor_other_submitters,
+fwd.vm_boot_volume,
 fwd.spot_price,
 fwd.authurl,
 fwd.cacertificate,
@@ -28,19 +32,24 @@ fwd.default_network,
 fwd.default_security_groups,
 ifnull(ru.VMs,0) as VMs,
 ifnull(fwd.VMs_max,0) as VMs_max,
+ifnull(fwd.cores_ctl,0) as cores_ctl,
+ifnull(fwd.cores_softmax,0) as cores_softmax,
+ifnull(fwd.cores_limit,0) as cores_limit,
 ifnull(fwd.cores_max,0) as cores_max,
 ifnull(ru.cores_used,0) as cores_used,
 ifnull(fwd.cores_foreign,0) as cores_foreign,
 ifnull(ru.disk_used,0) as disk_used,
+ifnull(fwd.ram_ctl,0) as ram_ctl,
 ifnull(fwd.ram_max,0) as ram_max,
+ifnull(fwd.ram_limit,0) as ram_limit,
 ifnull(ru.ram_used,0) as ram_used,
 ifnull(fwd.ram_foreign,0) as ram_foreign,
 ifnull(ru.swap_used,0) as swap_used,
 fwd.flavor,
 fwd.flavor_id,
 
-case when ifnull(fwd.VMs_max,0)>ifnull(ru.VMs,0) and ifnull(fwd.cores_max,0)>ifnull(ru.cores_used,0) and ifnull(fwd.ram_max,0)>ifnull(ru.ram_used,0) then
-    least((fwd.cores_max-ifnull(ru.cores_used,0)) div fwd.flavor_cores, (fwd.ram_max-ifnull(ru.ram_used,0)) div fwd.flavor_ram)
+case when ifnull(fwd.VMs_max,0)>ifnull(ru.VMs,0) and ifnull(fwd.cores_limit,0)>ifnull(ru.cores_used,0) and ifnull(fwd.ram_limit,0)>ifnull(ru.ram_used,0) then
+    least((fwd.cores_limit-ifnull(ru.cores_used,0)) div fwd.flavor_cores, (fwd.ram_limit-ifnull(ru.ram_used,0)) div fwd.flavor_ram)
 else
     0
 end as flavor_slots,
@@ -75,6 +84,10 @@ from (
         /* cwd - cloud with defaults */
         select
             cc.*,
+            cg.htcondor_fqdn,
+            cg.htcondor_container_hostname,
+            cg.htcondor_other_submitters,
+
 
             case when ifnull(cc.vm_flavor,'')!='' then
                 concat(cc.cloud_name, ':', cc.vm_flavor)
@@ -138,6 +151,9 @@ from (
 
             instances_max as VMs_max, 
 
+#           cores_ctl,
+#           cores_softmax,
+            cores_max,
             case when ifnull(cores_ctl,-1)!=-1 then
                 case when ifnull(cores_softmax,-1)!=-1 then
                     least(cores_ctl, cores_softmax-ifnull(vfr.cores,0), cores_max-ifnull(vfr.cores,0))
@@ -150,15 +166,17 @@ from (
                 else
                     cores_max-ifnull(vfr.cores,0)
                 end
-            end as cores_max,
+            end as cores_limit,
 
             vfr.cores as cores_foreign,
 
+#           ram_ctl,
+            ram_max,
             case when ifnull(ram_ctl,-1)!=-1 then
                 least(ram_ctl, ram_max-ifnull(vfr.ram,0))
             else
                 ram_max-ifnull(vfr.ram,0)
-            end as ram_max,
+            end as ram_limit,
 
             vfr.ram as ram_foreign,
             cw.worker_cert,

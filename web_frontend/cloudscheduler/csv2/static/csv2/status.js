@@ -288,7 +288,13 @@ function selectRange(range){
 
 /* Toggle plotted traces and initialize/show plot if not yet created*/
 function togglePlot(trace){
-    trace.dataset.path = trace.dataset.path.replace("  ","groups_total ")
+    if (trace.dataset.path.startsWith("  ")){
+        trace.dataset.path = trace.dataset.path.replace("  "," groups_total ");
+    }
+    else{
+        trace.dataset.path = trace.dataset.path.replace("  "," "); 
+    }
+    trace.dataset.path = trace.dataset.path.trim();
 
     if(TSPlot.showing == true){
         /* Check if trace is already plotted*/

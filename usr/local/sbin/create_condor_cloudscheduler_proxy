@@ -1,0 +1,2 @@
+#!/bin/bash
+    /bin/cp -f /tmp/x509up_u0 /tmp/x509up_u$(id -u cloudscheduler) && chown cloudscheduler.cloudscheduler /tmp/x509up_u$(id -u cloudscheduler)

@@ -3,6 +3,6 @@ create or replace trigger trigger_apel_accounting_del_vm
 after delete on csv2_vms
 for each row
 begin
-    update apel_accounting set end_time=unix_timestamp() where group_name=OLD.group_name and cloud_name=OLD.cloud_name and hostname=OLD.hostname;
+    update apel_accounting set end_time=unix_timestamp() where group_name=OLD.group_name and cloud_name=OLD.cloud_name and vmid=OLD.vmid;
 end; //
 delimiter ;

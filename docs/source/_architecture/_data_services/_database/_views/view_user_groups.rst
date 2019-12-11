@@ -54,6 +54,7 @@ Columns:
 
       A system generated timestamp indicating when this username was first added.
 
+
 * **flag_global_status** (Boolean):
 
       A user preference selecting the format of the status page. If set
