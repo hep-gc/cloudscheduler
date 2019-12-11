@@ -3,247 +3,292 @@
 .. To modify the contents of this file:
 ..   1. edit the template file ".../cloudscheduler/docs/schema_doc/views/view_vms.yaml"
 ..   2. run the utility ".../cloudscheduler/utilities/schema_doc"
-..
+..ansible-playbook -e addenda=addenda -i inventory csv2-sa.yaml -u root
 
 Database View: view_vms
 =======================
 
+.. _view_cloud_status: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_cloud_status.html
 
+.. _view_cloud_status_flavor_slot_detail_summary: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_cloud_status_flavor_slot_detail_summary.html
 
-Keys:
-^^^^^^^^
+.. _view_cloud_status_flavor_slot_detail: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_cloud_status_flavor_slot_detail.html
+
+.. _view_cloud_status_flavor_slot_summary: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_cloud_status_flavor_slot_summary.html
+
+.. _view_cloud_status_slot_detail_summary: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_cloud_status_slot_detail_summary.html
+
+.. _view_cloud_status_slot_detail: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_cloud_status_slot_detail.html
+
+.. _view_cloud_status_slot_summary: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_cloud_status_slot_summary.html
+
+.. _view_job_status: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_job_status.html
+
+.. _view_vms: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_vms.html
+
+.. _timeseries: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_condor_jobs_group_defaults_applied.html
+
+This view is one of a suite of related views supporting the
+primary status display of CSV2. The suite includes:
+
+#. view_cloud_status_ (also used by timeseries_)
+
+#. view_cloud_status_flavor_slot_detail_summary_
+
+#. view_cloud_status_flavor_slot_detail_
+
+#. view_cloud_status_flavor_slot_summary_
+
+#. view_cloud_status_slot_detail_summary_
+
+#. view_cloud_status_slot_detail_ (also used by timeseries_)
+
+#. view_cloud_status_slot_summary_
+
+#. view_job_status_ (also used by timeseries_)
+
+#. view_vms_
+
+The **view_vms** combines information from **csv2_vms**, **cloud_flavors**, and **condor_machines** to furnish the
+User Interface with VM information. The view presents one row per VM
+which is accessed via expanded views on the web cloud status page
+or through an optional table of the CLI cloud status command.
 
 
 Columns:
 ^^^^^^^^
 
-* **age**:
+* **group_name** (String(32)):
 
-   * Format: Integer
-   * Synopsis:
+      Is the name of the group owning this VM.
 
-* **auth_url**:
+* **cloud_name** (String(32)):
 
-   * Format: String(128)
-   * Synopsis:
+      Is the name of the cloud hosting this VM.
 
-* **cloud_name**:
+* **region** (String(32)):
 
-   * Format: String(32)
-   * Synopsis:
+      Is the region within the cloud where the VM is running.
 
-* **cloud_type**:
+* **vmid** (String(128)):
 
-   * Format: String(64)
-   * Synopsis:
+      Is the unique ID of the VM and is normally assignd by
+      CSV2. However, when the cloud_type is "amazon", this field will contain either
+      the instance ID or the request ID (spot market).
 
-* **condor_slots**:
+* **spot_instance** (Boolean):
 
-   * Format: Integer
-   * Synopsis:
+      This boolean value indicates whether this VM was requested using spot market
+      pricing. If set to 0, a spot market pricing was not requested.
+      If set to 1, a spot market pricing was requested and the
+      VM is subject to termination due to market conditions.
 
-* **condor_slots_used**:
+* **instance_id** (String(64)):
 
-   * Format: Integer
-   * Synopsis:
+      This field is normally NULL. However, when the VM is instantiated as
+      a result of an "amazon" spot market request, this field will contain
+      the VM instance ID.
 
-* **cores**:
+* **cloud_type** (String(64)):
 
-   * Format: Integer
-   * Synopsis:
+      Is the type of cloud hosting this VM.
 
-* **disk**:
+* **vm_ips** (String(128)):
 
-   * Format: Integer
-   * Synopsis:
+      Is a comma seperated list of fixed IP addresses assigned to the
+      VM by the cloud.
 
-* **entered_current_state**:
+* **vm_floating_ips** (String(128)):
 
-   * Format: Integer
-   * Synopsis:
+      Is a comma seperated list of floating IP addresses assigned to the
+      VM by the cloud.
 
-* **flavor_id**:
+* **auth_url** (String(128)):
 
-   * Format: String(128)
-   * Synopsis:
+      Is the authorization URL of the cloud hosting this VM.
 
-* **flavor_name**:
+* **project** (String(128)):
 
-   * Format: String(128)
-   * Synopsis:
+      Is the project used to authenticate with the cloud hosting this VM.
 
-* **foreign_vm**:
+* **hostname** (String(128)):
 
-   * Format: Integer
-   * Synopsis:
+      Is the short hostname of the VM.
 
-* **group_name**:
+* **keep_alive** (Integer):
 
-   * Format: String(32)
-   * Synopsis:
+      Is the number of seconds to retain this VM after it becomes
+      idle.
 
-* **hostname**:
+* **start_time** (Integer):
 
-   * Format: String(128)
-   * Synopsis:
+      Is a timestamp, in epoch seconds, of when the VM start; the
+      value is set by the scheduler.
 
-* **htcondor_dynamic_slots**:
+* **status** (String(32)):
 
-   * Format: Integer
-   * Synopsis:
+      Is a string indicating the current status of the VM, eg. ACTIVE,
+      STARTING, ERROR, etc. For a detailed description of possible values, refer to
+      the respective cloud documentation for this cloud type.
 
-* **htcondor_partitionable_slots**:
+* **flavor_id** (String(128)):
 
-   * Format: Integer
-   * Synopsis:
+      Is the ID of the flavor describing the resources assigned to this
+      VM.
 
-* **htcondor_slots_timestamp**:
+* **task** (String(32)):
 
-   * Format: Integer
-   * Synopsis:
+      Is a string indicating the current task of the VM, eg. Spawning,
+      Building, etc. When the VM is ACTIVE, this field is normally null.
+      For a detailed description of possible values, refer to the respective cloud
+      documentation for this cloud type.
 
-* **htcondor_startd_errors**:
+* **power_status** (Integer):
 
-   * Format: String(256)
-   * Synopsis:
+      This field indicates the virtual power status as either "On" (1) or
+      "Off" (0).
 
-* **htcondor_startd_time**:
+* **manual_control** (Boolean):
 
-   * Format: Integer
-   * Synopsis:
+      This boolean field is normally set to 0 but can be toggled
+      by the User Interface (UI). When set to 1, the VM is
+      in manual control and is ignored by CSV2. This is normally used
+      for debugging purposes to stop CSV2 terminating problematic VMs. It can be
+      very useful when trying to diagnose contextualization issues.
 
-* **idle_time**:
+* **htcondor_startd_errors** (String(256)):
 
-   * Format: Integer
-   * Synopsis:
+      Is a string returned by the csv2-vm-data poller of extracted errors in
+      the HTCondor logs on the VM.
 
-* **image_id**:
 
-   * Format: String(128)
-   * Synopsis:
+* **htcondor_startd_time** (Integer):
 
-* **instance_id**:
+      Is a timestamp in epoch seconds indicating when the last update to
+      htcondor_startd_errors occurred.
 
-   * Format: String(64)
-   * Synopsis:
+* **htcondor_partitionable_slots** (Integer):
 
-* **keep_alive**:
+      Is the count of the currently active primary/partitionable slots on the virtual
+      machine. Any value greater than zero (the count is normally 0 or
+      1) indicates that the VM is registered with HTCondor. The field is
+      maintained by a database trigger which detects changes to the table condor_machines.
 
-   * Format: Integer
-   * Synopsis:
+* **htcondor_dynamic_slots** (Integer):
 
-* **last_updated**:
+      Is the count of the currently active dynamic slots on the virtual
+      machine. Dynamic slots are created (by HTCondor) to run a job. So,
+      this count reflects the number of jobs running on the VM. If
+      the count is 0, the VM is considered "idle". The field is
+      maintained by a database trigger which detects changes to the table condor_machines.
 
-   * Format: Integer
-   * Synopsis:
+* **htcondor_slots_timestamp** (Integer):
 
-* **machine**:
+      Is a timestamp in epoch seconds indicating when the last update to
+      either htcondor_partitionable_slots or htcondor_dynamic_slots occurred.
 
-   * Format: String(256)
-   * Synopsis:
+* **retire** (Integer):
 
-* **manual_control**:
+      This control determines whether a VM is to be retired. If set
+      to 0, the VM is not retired. If set greater than 0,
+      then CSV2 will continue to issue retire requests to the VM until
+      the VM reports a status of "Retiring". Each time a retire request
+      is made, this field will be incremented by 1.
 
-   * Format: Boolean
-   * Synopsis:
+* **retire_time** (Integer):
 
-* **my_current_time**:
+      Deprecated.
 
-   * Format: Integer
-   * Synopsis:
+* **terminate** (Integer):
 
-* **poller_status**:
+      This control determines whether a VM is being terminated (killed). Normally, VMs
+      are terminated when they have been retired (see the field "retire", above)
+      and the VM is unregistered (see the field "htcondor_partitionable_slots", above). Setting this
+      filed to a value greater than 1, will force the termination. If
+      set greater than 0, then CSV2 will continue to issue terminate requests
+      to the cloud until the VM no longer exists. Each time a
+      terminate request is made, this field will be incremented by 1.
 
-   * Format: String(12)
-   * Synopsis:
+* **terminate_time** (Integer):
 
-* **power_status**:
+      Deprecated.
 
-   * Format: Integer
-   * Synopsis:
+* **status_changed_time** (Integer):
 
-* **project**:
+      Is a timestamp in epoch seconds indicating when the last update to
+      status occurred.
 
-   * Format: String(128)
-   * Synopsis:
+* **last_updated** (Integer):
 
-* **ram**:
+      Is a timestamp in epoch seconds indicating when the last update occurred.
 
-   * Format: Integer
-   * Synopsis:
+* **updater** (String(128)):
 
-* **region**:
+      Is a string identifying the preocess and type of update of either
+      the retire or terminate fields.
 
-   * Format: String(32)
-   * Synopsis:
+* **flavor_name** (String(128)):
 
-* **retire**:
+      Name of the flavor.
 
-   * Format: Integer
-   * Synopsis:
+* **condor_slots** (Integer):
 
-* **retire_time**:
+      Is the total number of HTCondor slots, including both partitionable and dynamic
+      slots. This value has been superceded by the **htcondor_partitionable_slots** and **htcondor_dynamic_slots** columns
+      and should be deprecated.
 
-   * Format: Integer
-   * Synopsis:
+* **condor_slots_used** (Integer):
 
-* **spot_instance**:
+      Is the total number of HTCondor dynamic slots. This value has been
+      superceded by the **htcondor_dynamic_slots** column and should be deprecated.
 
-   * Format: Boolean
-   * Synopsis:
+* **machine** (String(256)):
 
-* **start_time**:
+      Is the HTCondor unique machine name running this partition and takes the
+      form "fqdn_of_the_vm>". Note, all partitions running on the same VM will have
+      the same machine name but unique names (distinguished by the "slotr_identifier").
 
-   * Format: Integer
-   * Synopsis:
+* **my_current_time** (Integer):
 
-* **status**:
+      The current time within the partition.
 
-   * Format: String(32)
-   * Synopsis:
+* **entered_current_state** (Integer):
 
-* **status_changed_time**:
+      Is the time in epoch seconds the partition entered its current state.
 
-   * Format: Integer
-   * Synopsis:
+* **idle_time** (Integer):
 
-* **swap**:
+      Normally NULL.
 
-   * Format: Integer
-   * Synopsis:
+* **foreign_vm** (Integer):
 
-* **task**:
+      This field is always set to zero because only 'native' VMs are
+      reported. This field should be deprecated.
 
-   * Format: String(32)
-   * Synopsis:
+* **cores** (Integer):
 
-* **terminate**:
+      Is the number of cores used by this VM.
 
-   * Format: Integer
-   * Synopsis:
+* **disk** (Integer):
 
-* **terminate_time**:
+      Is the size in gigabytes of disk used by this VM.
 
-   * Format: Integer
-   * Synopsis:
+* **ram** (Integer):
 
-* **updater**:
+      Is the size in kilobytes of RAM used by this VM.
 
-   * Format: String(128)
-   * Synopsis:
+* **swap** (Integer):
 
-* **vm_floating_ips**:
+      Is the size in gigabytes of swap space used by this VM.
 
-   * Format: String(128)
-   * Synopsis:
+* **poller_status** (String(12)):
 
-* **vm_ips**:
+      Is a digest of the **htcondor_dynamic_slots**, **htcondor_partitionable_slots, **manual**, **retire**, and **status** columns
+      resulting in one of the standard CSV2 VM status codes: starting, unregistered,
+      idle, running, retiring, error, and manual.
 
-   * Format: String(128)
-   * Synopsis:
+* **age** (Integer):
 
-* **vmid**:
-
-   * Format: String(128)
-   * Synopsis:
+      Is the number of seconds since the number of **htcondor_partitionable_slots** or the
+      number **htcondor_dynamic_slots** have changed.
 

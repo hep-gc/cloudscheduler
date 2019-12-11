@@ -10,133 +10,116 @@ Database Table: cloud_limits
 
 For each cloud defined within a group, CSV2 process will attempt to
 retrieve configuration data to inform scheduling decisions and users. These configuration items
-are set by the cloud administrators and not by CSV2. in oder
-to change these values, you will to confer with the target cloud
-support.
+are set by the cloud administrators and not by CSV2. In order
+to change these values, you will need to confer with the target
+cloud support.
 
 The information stored in this table concern the limits set on the
 target cloud account.
 
 
 Keys:
-^^^^^^^^
+^^^^^
 
-* **cloud_name**:
+* **group_name** (String(32)):
 
-   * Format: String(32)
-   * Synopsis:
+      Group name associated with the cloud the limit was queried from.
 
-* **group_name**:
+* **cloud_name** (String(32)):
 
-   * Format: String(32)
-   * Synopsis:
+      Name of the cloud the limits were queried from.
 
 
 Columns:
 ^^^^^^^^
 
-* **cloud_type**:
+* **cloud_type** (String(64)):
 
-   * Format: String(64)
-   * Synopsis:
+      Type of cloud the limits were queried from (Openstack, Amazon, etc)
 
-* **cores_max**:
+* **server_meta_max** (Integer):
 
-   * Format: Integer
-   * Synopsis:
+      Max number of metadata entries that can be associated with a server
+      as defined by the cloud.
 
-* **cores_used**:
+* **instances_max** (Integer):
 
-   * Format: Integer
-   * Synopsis:
+      Max number of active instances as defined by the cloud.
 
-* **floating_ips_max**:
+* **personality_max** (Integer):
 
-   * Format: Integer
-   * Synopsis:
+      Man number of personality files that can be injected into a server
+      as defined by the cloud.
 
-* **floating_ips_used**:
+* **image_meta_max** (Integer):
 
-   * Format: Integer
-   * Synopsis:
+      Max number of metadata entries that can be associated with a machine
+      image as defined by the cloud.
 
-* **image_meta_max**:
+* **personality_size_max** (Integer):
 
-   * Format: Integer
-   * Synopsis:
+      Max size of server personality files in bytes.
 
-* **instances_max**:
+* **ram_max** (Integer):
 
-   * Format: Integer
-   * Synopsis:
+      Total amount of ram available for the registered cloud tenant/project.
 
-* **instances_used**:
+* **server_groups_max** (Integer):
 
-   * Format: Integer
-   * Synopsis:
+      Max number of server groups available for the registered cloud tenant/project.
 
-* **keypairs_max**:
+* **security_group_rules_max** (Integer):
 
-   * Format: Integer
-   * Synopsis:
+      Max number of security group rules allowed for a security group as
+      defined by the cloud.
 
-* **last_updated**:
+* **keypairs_max** (Integer):
 
-   * Format: Integer
-   * Synopsis:
+      Max number of keypairs allowed to be stored under the registered cloud
+      tenant/project.
 
-* **personality_max**:
+* **security_groups_max** (Integer):
 
-   * Format: Integer
-   * Synopsis:
+      Max number of security groups available for the registered cloud tenant/project.
 
-* **personality_size_max**:
+* **server_group_members_max** (Integer):
 
-   * Format: Integer
-   * Synopsis:
+      Max number of servers per server group as defined by the cloud.
 
-* **ram_max**:
+* **floating_ips_max** (Integer):
 
-   * Format: Integer
-   * Synopsis:
+      Max number of available floating IPs as defined by the cloud
 
-* **ram_used**:
+* **cores_max** (Integer):
 
-   * Format: Integer
-   * Synopsis:
+      Total number of cores available for the registered cloud tenant/project.
 
-* **security_group_rules_max**:
+* **server_groups_used** (Integer):
 
-   * Format: Integer
-   * Synopsis:
+      Total number of server groups in use for the registered tenant/project.
 
-* **security_groups_max**:
+* **instances_used** (Integer):
 
-   * Format: Integer
-   * Synopsis:
+      Total number of active instances in use by the registered tenant/project.
 
-* **security_groups_used**:
+* **ram_used** (Integer):
 
-   * Format: Integer
-   * Synopsis:
+      Total amount of RAM in use by the registered tenant/project in Megabytes.
 
-* **server_group_members_max**:
+* **security_groups_used** (Integer):
 
-   * Format: Integer
-   * Synopsis:
+      Total number of security groups in use by the registered tenant/project.
 
-* **server_groups_max**:
+* **floating_ips_used** (Integer):
 
-   * Format: Integer
-   * Synopsis:
+      Total number of floating IPs in use by the registered tenant/project.
 
-* **server_groups_used**:
+* **cores_used** (Integer):
 
-   * Format: Integer
-   * Synopsis:
+      Total number of CPU cores in use by the registered tenant/project.
 
-* **server_meta_max**:
+* **last_updated** (Integer):
 
-   * Format: Integer
-   * Synopsis:
+      Timestamp in seconds from epoch representing the last time the limits were
+      queried and updated.
 

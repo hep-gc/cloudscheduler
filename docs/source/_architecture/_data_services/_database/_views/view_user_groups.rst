@@ -8,77 +8,95 @@
 Database View: view_user_groups
 ===============================
 
+.. _view_user_groups: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_user_groups.html
 
+.. _view_user_groups_available: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_user_groups_available.html
 
-Keys:
-^^^^^^^^
+This view is one of a suite of related views supporting the
+user management functions of CSV2. The suite includes:
+
+#. view_user_groups_
+
+#. view_user_groups_available_
+
+The **view_user_groups** combines information from **csv2_user**, **csv2_groups**, and **csv2_user_groups** to list one
+row for every defined user, and for each user a comma separated
+list of groups to which they are associated.
 
 
 Columns:
 ^^^^^^^^
 
-* **available_groups**:
+* **username** (String(32)):
 
-   * Format: String
-   * Synopsis:
+      Is the CSV2 login ID of the user. Usernames are created by
+      super users.
 
-* **cert_cn**:
+* **cert_cn** (String(128)):
 
-   * Format: String(128)
-   * Synopsis:
+      If the user provides their x509 grid certificate Common Name (CN), users
+      can authenticate using their certificatesr. In which case, the user will not
+      be prompted for their CSV2 password.
 
-* **default_group**:
+* **password** (String(128)):
 
-   * Format: String(32)
-   * Synopsis:
+      Is the user password to authenticate with CSV2. If the user is
+      not authenticating with any other methd, CSV2 will prompt the user for
+      this value.
 
-* **flag_global_status**:
+* **is_superuser** (Boolean):
 
-   * Format: Boolean
-   * Synopsis:
+      If set to 1, the user is considered a super user and
+      has all rights and privileges. Otherwise, the user is a normal user
+      and only has privileges within a group.
 
-* **flag_show_foreign_global_vms**:
+* **join_date** (Integer):
 
-   * Format: Boolean
-   * Synopsis:
+      A system generated timestamp indicating when this username was first added.
 
-* **flag_show_slot_detail**:
 
-   * Format: Boolean
-   * Synopsis:
+* **flag_global_status** (Boolean):
 
-* **flag_show_slot_flavors**:
+      A user preference selecting the format of the status page. If set
+      to 0, only the user current group information will appear on the
+      status page. If set to 1, the status page will display all
+      the groups of which the user is a member.
 
-   * Format: Boolean
-   * Synopsis:
+* **flag_show_foreign_global_vms** (Boolean):
 
-* **is_superuser**:
+      A user preference modifying the format of the status page. If set
+      to 0, foreign and global VM information will not be displayed. If
+      set to 1, foreign and global VM information will be displayed.
 
-   * Format: Boolean
-   * Synopsis:
+* **flag_show_slot_detail** (Boolean):
 
-* **join_date**:
+      A user preference specifying the information the expanded VM status is to
+      display. If set to 0, only a slot summary will be displayed.
+      If set to 1, the slot summary together with the slot detail
+      will be displayed.
 
-   * Format: Integer
-   * Synopsis:
+* **flag_show_slot_flavors** (Boolean):
 
-* **password**:
+      A user preference specifying the format of the slot summary. If set
+      to 0, the slot summary will not contain any flavor information. If
+      set to 1, the slot summary will contain flavor information.
 
-   * Format: String(128)
-   * Synopsis:
+* **status_refresh_interval** (Integer):
 
-* **status_refresh_interval**:
+      A user preference specifying the number of seconds between status page refreshes.
 
-   * Format: Integer
-   * Synopsis:
+* **default_group** (String(32)):
 
-* **user_groups**:
+      A user preference indicating their default group of all the groups they
+      are a member of.
 
-   * Format: String
-   * Synopsis:
+* **user_groups** (String):
 
-* **username**:
+      Is a comma separated list of group names of which the user
+      is a member.
 
-   * Format: String(32)
-   * Synopsis:
+* **available_groups** (String):
+
+      Is a comma separated list of group names of which the user
+      is not a member.
 

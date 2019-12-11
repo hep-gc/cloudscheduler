@@ -8,72 +8,85 @@
 Database Table: ec2_images
 ==========================
 
+This table lists a selection of (kernel) images available on Amazon EC2.
+Only images belonging to owners specified in the **ec2_image_filters** table are retrieved
+by the **csv2_ec2** poller and added to this table.
+
+This table is instrumental in CSV2's two stage Amazon EC2 Image filtering
+process. Images within this table must be converted by the **csv2_ec2** poller
+to entries within the **cloud_images** table before they can be instantiated by
+CSV2. For an in depth rational and description of the image filtering
+process, refer to the **csv2_image_filters** table documentation.
 
 
 Keys:
-^^^^^^^^
+^^^^^
 
-* **borrower_id**:
+* **region** (String(32)):
 
-   * Format: String(32)
-   * Synopsis:
+      Is the Amazon EC2 cloud/region this image is available on.
 
-* **id**:
+* **id** (String(128)):
 
-   * Format: String(128)
-   * Synopsis:
+      This is the unique ID of the image as defined by Amazon
+      EC2.
 
-* **region**:
+* **borrower_id** (String(32)):
 
-   * Format: String(32)
-   * Synopsis:
+      Is a field indicating whether this (kernel) image has been specifically shared
+      with your Amazon EC2 ID. If it has, this field will contain
+      the Amazon account ID associated with the CSV2 cloud that retrieved this
+      entry. Otherwise, it will contain the value 'not_shared'.
 
 
 Columns:
 ^^^^^^^^
 
-* **description**:
+* **owner_id** (String(32)):
 
-   * Format: String(256)
-   * Synopsis:
+      Is the Amazon EC2 ID of the user owning this image. In
+      order for you to see this image, they will have either shared
+      it with your ID or made the image public.
 
-* **disk_format**:
+* **owner_alias** (String(64)):
 
-   * Format: String(128)
-   * Synopsis:
+      Is the Amazon account alias that owns this image.
 
-* **image_location**:
+* **disk_format** (String(128)):
 
-   * Format: String(512)
-   * Synopsis:
+      Is the type of disk required by this image, eg. ebs, instance-store,
+      etc.
 
-* **last_updated**:
+* **size** (Integer):
 
-   * Format: Integer
-   * Synopsis:
+      Is the number of gigabytes of disk required by this image.
 
-* **name**:
+* **image_location** (String(512)):
 
-   * Format: String(256)
-   * Synopsis:
+      Is the location of the image.
 
-* **owner_alias**:
+      The image location must be set by the owner and must be
+      unique. Since this information is normally very descriptive of what the image
+      is, it is generally much more reliable than either the name or
+      the description which are both optional.
 
-   * Format: String(64)
-   * Synopsis:
+* **visibility** (String(128)):
 
-* **owner_id**:
+      Is a string indicating how you have access to this image. You
+      either own it, or it is public, or it is shared with
+      you.
 
-   * Format: String(32)
-   * Synopsis:
+* **name** (String(256)):
 
-* **size**:
+      Is the name of the image, and is optionally set by the
+      owner (see 'location' above).
 
-   * Format: Integer
-   * Synopsis:
+* **description** (String(256)):
 
-* **visibility**:
+      Is a description of the image, and is optionally set by the
+      owner (see 'location' above).
 
-   * Format: String(128)
-   * Synopsis:
+* **last_updated** (Integer):
+
+      Is the last time this information was updated.
 

@@ -8,17 +8,23 @@
 Database Table: ec2_image_well_known_owner_aliases
 ==================================================
 
+This table maintains aliases for Amazon EC2 accounts that share (kernel) images
+and are considered reliable. In addition to a few well know reliable
+providers, two special values are defined:
+
+* self - images that your account owns
+
+* shared - images that have been specifically shared with your account
+
+Users may employ these aliases when selecting images for inclusion in their
+cloud configuration. For more information about image filtering refer to the description
+of the CSV2 table ec2_image_filters.
 
 
 Keys:
-^^^^^^^^
+^^^^^
 
-* **alias**:
+* **alias** (String(32)):
 
-   * Format: String(32)
-   * Synopsis:
-
-
-Columns:
-^^^^^^^^
+      Is the alias name.
 

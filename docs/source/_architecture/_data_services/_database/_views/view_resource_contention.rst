@@ -8,57 +8,86 @@
 Database View: view_resource_contention
 =======================================
 
+.. _view_active_resource_shortfall: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_active_resource_shortfall.html
 
+.. _view_available_resources: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_available_resources.html
 
-Keys:
-^^^^^^^^
+.. _view_groups_of_idle_jobs: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_groups_of_idle_jobs.html
+
+.. _view_idle_vms: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_idle_vms.html
+
+.. _view_metadata_collation_json: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_metadata_collation_json.html
+
+.. _view_resource_contention: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_resource_contention.html
+
+This view is one of a suite of related views used by
+the VM scheduler to control the management of VMs. The suite includes:
+
+#. view_active_resource_shortfall_
+
+#. view_available_resources_
+
+#. view_groups_of_idle_jobs_
+
+#. view_idle_vms_
+
+#. view_metadata_collation_json_
+
+#. view_resource_contention_
+
+The **view_resource_contention** is used by the VM scheduler together with the **new_VMs_throttle**
+configuration option to govern the rate at which new VMs are instantiated
+on a cloud irrespective of the CSV2 group. The view provides a
+set of VM counters for each unique cloud, identified by the authurl.
+The VM scheduler limits the number of new VMs, those either 'starting'
+or 'unregistered', to the configuration value.)
 
 
 Columns:
 ^^^^^^^^
 
-* **VMs**:
+* **authurl** (String(128)):
 
-   * Format: Integer
-   * Synopsis:
+      Is the authentication/authorization URL of a cloud currently defined to CSV2 by
+      one or more groups.
 
-* **authurl**:
+* **VMs** (Integer):
 
-   * Format: String(128)
-   * Synopsis:
+      Is the total number of VMs started by CSV2 running on the
+      cloud.
 
-* **error**:
+* **starting** (Integer):
 
-   * Format: Integer
-   * Synopsis:
+      Is the number of VMs started by CSV2 on the cloud in
+      the 'starting' state.
 
-* **idle**:
+* **unregistered** (Integer):
 
-   * Format: Integer
-   * Synopsis:
+      Is the number of VMs started by CSV2 on the cloud in
+      the 'unregistered' state.
 
-* **manual**:
+* **idle** (Integer):
 
-   * Format: Integer
-   * Synopsis:
+      Is the number of VMs started by CSV2 on the cloud in
+      the 'idle' state.
 
-* **retiring**:
+* **running** (Integer):
 
-   * Format: Integer
-   * Synopsis:
+      Is the number of VMs started by CSV2 on the cloud in
+      the 'running' state.
 
-* **running**:
+* **retiring** (Integer):
 
-   * Format: Integer
-   * Synopsis:
+      Is the number of VMs started by CSV2 on the cloud in
+      the 'retiring' state.
 
-* **starting**:
+* **manual** (Integer):
 
-   * Format: Integer
-   * Synopsis:
+      Is the number of VMs started by CSV2 on the cloud in
+      the 'manual' state.
 
-* **unregistered**:
+* **error** (Integer):
 
-   * Format: Integer
-   * Synopsis:
+      Is the number of VMs started by CSV2 on the cloud in
+      the 'error' state.
 

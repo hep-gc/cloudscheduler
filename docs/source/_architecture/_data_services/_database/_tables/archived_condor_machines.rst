@@ -8,112 +8,93 @@
 Database Table: archived_condor_machines
 ========================================
 
+Not used.
 
 
 Keys:
-^^^^^^^^
+^^^^^
 
-* **name**:
+* **name** (String(128)):
 
-   * Format: String(128)
-   * Synopsis:
+      Not used.
 
 
 Columns:
 ^^^^^^^^
 
-* **activity**:
+* **machine** (String(256)):
 
-   * Format: String(128)
-   * Synopsis:
+      Not used.
 
-* **address**:
+* **group_name** (String(32)):
 
-   * Format: String(512)
-   * Synopsis:
+      Not used.
 
-* **condor_host**:
+* **condor_host** (String(64)):
 
-   * Format: String(64)
-   * Synopsis:
+      Not used.
 
-* **entered_current_state**:
+* **flavor** (String(32)):
 
-   * Format: Integer
-   * Synopsis:
+      Not used.
 
-* **flavor**:
+* **job_id** (String(128)):
 
-   * Format: String(32)
-   * Synopsis:
+      Not used.
 
-* **global_job_id**:
+* **global_job_id** (String(128)):
 
-   * Format: String(128)
-   * Synopsis:
+      Not used.
 
-* **group_name**:
+* **address** (String(512)):
 
-   * Format: String(32)
-   * Synopsis:
+      Not used.
 
-* **idle_time**:
+* **state** (String(128)):
 
-   * Format: Integer
-   * Synopsis:
+      Not used.
 
-* **job_id**:
+* **activity** (String(128)):
 
-   * Format: String(128)
-   * Synopsis:
+      Not used.
 
-* **machine**:
+* **vm_type** (String(128)):
 
-   * Format: String(256)
-   * Synopsis:
+      Not used.
 
-* **my_current_time**:
+* **my_current_time** (Integer):
 
-   * Format: Integer
-   * Synopsis:
+      Not used.
 
-* **remote_owner**:
+* **entered_current_state** (Integer):
 
-   * Format: String(128)
-   * Synopsis:
+      Not used.
 
-* **retire_request_time**:
+* **start** (String(128)):
 
-   * Format: Integer
-   * Synopsis:
+      Not used.
 
-* **retired_time**:
+* **remote_owner** (String(128)):
 
-   * Format: Integer
-   * Synopsis:
+      Not used.
 
-* **slot_type**:
+* **slot_type** (String(128)):
 
-   * Format: String(128)
-   * Synopsis:
+      Not used.
 
-* **start**:
+* **total_slots** (Integer):
 
-   * Format: String(128)
-   * Synopsis:
+      Not used.
 
-* **state**:
+* **idle_time** (Integer):
 
-   * Format: String(128)
-   * Synopsis:
+      Not used.
 
-* **total_slots**:
+* **retire_request_time** (Integer):
 
-   * Format: Integer
-   * Synopsis:
+      Not used.
 
-* **vm_type**:
+* **retired_time** (Integer):
 
-   * Format: String(128)
-   * Synopsis:
+      Not used.
 

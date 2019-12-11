@@ -8,82 +8,127 @@
 Database View: view_idle_vms
 ============================
 
+.. _view_active_resource_shortfall: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_active_resource_shortfall.html
 
+.. _view_available_resources: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_available_resources.html
 
-Keys:
-^^^^^^^^
+.. _view_groups_of_idle_jobs: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_groups_of_idle_jobs.html
+
+.. _view_idle_vms: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_idle_vms.html
+
+.. _view_metadata_collation_json: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_metadata_collation_json.html
+
+.. _view_resource_contention: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_resource_contention.html
+
+This view is one of a suite of related views used by
+the VM scheduler to control the management of VMs. The suite includes:
+
+#. view_active_resource_shortfall_
+
+#. view_available_resources_
+
+#. view_groups_of_idle_jobs_
+
+#. view_idle_vms_
+
+#. view_metadata_collation_json_
+
+#. view_resource_contention_
+
+The **view_idle_vms** is used by the VM scheduler to retrieve the list
+of VMs that need to be retired. The list will only contain
+entries for VMs that have already exceeded one of the time thresholds
+(see 'come_alive', 'job_alive', 'error_delay', and 'keep_alive' below). The VM scheduler will set
+the retire flag for each VM listed.
 
 
 Columns:
 ^^^^^^^^
 
-* **age**:
+* **group_name** (String(32)):
 
-   * Format: Integer
-   * Synopsis:
+      Is the name of group owning the VM.
 
-* **cloud_name**:
+* **cloud_name** (String(32)):
 
-   * Format: String(32)
-   * Synopsis:
+      Is the name of cloud hosting the VM.
 
-* **come_alive**:
+* **come_alive** (String(128)):
 
-   * Format: String(128)
-   * Synopsis:
+      Is the maximum time in seconds allowed for a VM between its
+      instantiation and its registration with an HTCondor job scheduler. A VM exceeding
+      this time may be failing to boot, or to contextualize, or to
+      communicate via the network. Therefore, the VM should be terminated.
 
-* **dynamic_slots**:
+* **job_alive** (String(128)):
 
-   * Format: Integer
-   * Synopsis:
+      Is the maximum time in seconds allowed for a VM between its
+      registration and start of the first job on the VM. A VM
+      exceeding this time has already booted, contextualized, communicated via the network, and
+      registered but jobs are not starting within the required time threshold. Therefore,
+      the VM is probably misconfigured, possibly becuase of faulty contextualization files, and
+      should be terminated.
 
-* **error_delay**:
+* **error_delay** (String(128)):
 
-   * Format: String(128)
-   * Synopsis:
+      Is the maximum time in seconds allowed for a VM to remain
+      in 'error' state. Typically, a VM will enter 'error' state when there
+      are insufficient resources on the cloud. Since 'error' states generally occur immediately
+      after instatiation and some can be transitory, a threshold time is allowed
+      for VMs in this state to maintain visibilty of this condition and
+      allow possible recovery.
 
-* **group_name**:
+* **keep_alive** (Integer):
 
-   * Format: String(32)
-   * Synopsis:
+      Is the maximum time in seconds allowed for a VM to remain
+      idle after it has completed a job. Generally, a VM remains idle
+      because either there are no more idle jobs in the queue that
+      can be satisfied by this VM, or possibly because of contentention on
+      the HTCondor job scheduler making it slow to start jobs. The 'keep_alive'
+      time threshold is used to avoid unneccessary VM 'thrashing' (stopping and starting)
+      of instances with the same characteristics. However, an excessively long threshold can
+      waste precious resources and delay other jobs from running.
 
-* **hostname**:
+* **vmid** (String(128)):
 
-   * Format: String(128)
-   * Synopsis:
+      Is the id of the VM that has exceeded a time threshold
+      and needs to be terminated.
 
-* **job_alive**:
+* **hostname** (String(128)):
 
-   * Format: String(128)
-   * Synopsis:
+      Is the short hostname of the VM that has exceeded a time
+      threshold and needs to be terminated.
 
-* **keep_alive**:
+* **primary_slots** (Integer):
 
-   * Format: Integer
-   * Synopsis:
+      Is the number of HTCondor primary slots currently active on the VM.
 
-* **poller_status**:
+* **dynamic_slots** (Integer):
 
-   * Format: String(12)
-   * Synopsis:
+      Is the number of HTCondor dynamic slots currently active on the VM
+      which is also the number of jobs currently running on the VM.
+      This field should always be zero for any VM appearing on this
+      list.
 
-* **primary_slots**:
+* **retire** (Integer):
 
-   * Format: Integer
-   * Synopsis:
+      Is the retire flag for the VM. Any value greater than zero
+      indicates that the retire/termination process is already in progress.
 
-* **retire**:
+* **terminate** (Integer):
 
-   * Format: Integer
-   * Synopsis:
+      Is the termination flag for the VM. Any value greater than zero
+      indicates that the termination process is already in progress.
 
-* **terminate**:
+* **poller_status** (String(12)):
 
-   * Format: Integer
-   * Synopsis:
+      Is the current state of the VM, eg. 'starting', 'unregistered', 'idle', 'running',
+      'retiring', etc.
 
-* **vmid**:
+* **age** (Integer):
 
-   * Format: String(128)
-   * Synopsis:
+      Is the time in seconds since the last state change. This value
+      should exceed at least one of the four threshold times and, together
+      with the 'primary_slots' and 'poller_status' fields, imply the reason why termination is
+      necessary.
 

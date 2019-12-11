@@ -8,172 +8,209 @@
 Database View: view_groups_of_idle_jobs
 =======================================
 
+.. _view_active_resource_shortfall: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_active_resource_shortfall.html
 
+.. _view_available_resources: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_available_resources.html
 
-Keys:
-^^^^^^^^
+.. _view_groups_of_idle_jobs: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_groups_of_idle_jobs.html
+
+.. _view_idle_vms: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_idle_vms.html
+
+.. _view_metadata_collation_json: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_metadata_collation_json.html
+
+.. _view_resource_contention: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_resource_contention.html
+
+This view is one of a suite of related views used by
+the VM scheduler to control the management of VMs. The suite includes:
+
+#. view_active_resource_shortfall_
+
+#. view_available_resources_
+
+#. view_groups_of_idle_jobs_
+
+#. view_idle_vms_
+
+#. view_metadata_collation_json_
+
+#. view_resource_contention_
+
+The **view_groups_of_idle_jobs** is used by the VM scheduler to retrive jobs, grouped
+by elegible cloud/flavors, which may require additional resources before they can be
+executed. In addition to the resource requirements for jobs within the group,
+each row indicates the number of idle, running completed, and held jobs
+of this kind.
 
 
 Columns:
 ^^^^^^^^
 
-* **completed**:
+* **group_name** (String(32)):
 
-   * Format: Integer
-   * Synopsis:
+      Is the name of the CSV2 group that owns this group of
+      jobs.
 
-* **flavors**:
+* **target_alias** (String(32)):
 
-   * Format: String
-   * Synopsis:
+      Is the name of the alias indicating the subset of clouds within
+      the group that these jobs must run on.
 
-* **group_name**:
+* **target_clouds** (String):
 
-   * Format: String(32)
-   * Synopsis:
+      Is the name of the cloud within the group that these jobs
+      must run on. This option is primarily for testing purposes.
 
-* **held**:
+* **instance_type** (String(512)):
 
-   * Format: Integer
-   * Synopsis:
+      Is the requested flavor for this group of jobs. If the value
+      is NULL, no flavor was specified in the job definition and in
+      this case, either a flavor default or a CSV2 automatic selection will
+      be used.
 
-* **idle**:
+* **requirements** (String(512)):
 
-   * Format: Integer
-   * Synopsis:
+      This CSV2 generated string is passed to the HTCondor job scheduler to
+      ensure the jobs runn on the appropriate VMs.
 
-* **image**:
+* **job_priority** (Integer):
 
-   * Format: String
-   * Synopsis:
+      Is the priority assigned to all the jobs within the group of
+      jobs. The lower the number the higher the priority and the earlier
+      the jobs will run.
 
-* **instance_type**:
+* **user** (String(512)):
 
-   * Format: String(512)
-   * Synopsis:
+      Is the used ID of the user who submitted the jobs.
 
-* **job_per_core**:
+* **image** (String):
 
-   * Format: Integer
-   * Synopsis:
+      Is the name of the requested (kernel) image in the job definition.
+      If none is specified, a group or cloud default iamge must be
+      provided.
 
-* **job_priority**:
+* **network** (String(512)):
 
-   * Format: Integer
-   * Synopsis:
+      Is the name of the requested network in the job definition. If
+      none is specified, a named network will not be requested. If a
+      cloud offers more than one network to client VMs and no network
+      selection is made, instantiation requests to the cloud will fail. In addition
+      to request a specific network by name in the job definition, default
+      network names can be specified at both the group and cloud level.
 
-* **keep_alive**:
+* **keep_alive** (String(512)):
 
-   * Format: String(512)
-   * Synopsis:
+      Not used.
 
-* **max_price**:
+* **max_price** (String(512)):
 
-   * Format: String(512)
-   * Synopsis:
+      Spefifies and dollars and cents, the maximum spot market bid price. A
+      value greater than zero in this field indicates that a spot market
+      instantiation request is to be used for these jobs. Otherwise, unconditional on
+      demand instantiation reuests should be used.
 
-* **network**:
+* **user_data** (String(512)):
 
-   * Format: String(512)
-   * Synopsis:
+      Is a string of contextualization data to be passed to VMs. This
+      field should not normally be used. Instead, users should use the metadata
+      file capabilities of CSV2 to contextualize VMs.
 
-* **other**:
+* **job_per_core** (Integer):
 
-   * Format: Integer
-   * Synopsis:
+      Is the number of jobs from this group of jobs that can
+      run on a single core.
 
-* **queue_date**:
+* **request_cpus_min** (Integer):
 
-   * Format: Integer
-   * Synopsis:
+      Is the minimum number of cores requested by any job within this
+      group of jobs.
 
-* **request_cpus_max**:
+* **request_cpus_max** (Integer):
 
-   * Format: Integer
-   * Synopsis:
+      Is the maximum number of cores requested by any job within this
+      group of jobs.
 
-* **request_cpus_min**:
+* **request_cpus_total** (Integer):
 
-   * Format: Integer
-   * Synopsis:
+      Is the total number of cores requested by all the jobs in
+      this group of jobs.
 
-* **request_cpus_total**:
+* **request_disk_min** (Integer):
 
-   * Format: Integer
-   * Synopsis:
+      Is the minimum size in gigabytes of disk requested by any job
+      within this group of jobs.
 
-* **request_disk_max**:
+* **request_disk_max** (Integer):
 
-   * Format: Integer
-   * Synopsis:
+      Is the maximum size in gigabytes of disk requested by any job
+      within this group of jobs.
 
-* **request_disk_min**:
+* **request_disk_total** (Integer):
 
-   * Format: Integer
-   * Synopsis:
+      Is the total size in gigabytes of disk requested by all the
+      jobs in this group of jobs.
 
-* **request_disk_total**:
+* **request_ram_min** (Integer):
 
-   * Format: Integer
-   * Synopsis:
+      Is the minimum size in kilobytes of RAM requested by any job
+      within this group of jobs.
 
-* **request_ram_max**:
+* **request_ram_max** (Integer):
 
-   * Format: Integer
-   * Synopsis:
+      Is the maximum size in kilobytes of RAM requested by any job
+      within this group of jobs.
 
-* **request_ram_min**:
+* **request_ram_total** (Integer):
 
-   * Format: Integer
-   * Synopsis:
+      Is the total size in kilobytes of RAM requested by all the
+      jobs in this group of jobs.
 
-* **request_ram_total**:
+* **request_swap_min** (Integer):
 
-   * Format: Integer
-   * Synopsis:
+      Is the minimum size in gigabytes of swap space requested by any
+      job within this group of jobs.
 
-* **request_swap_max**:
+* **request_swap_max** (Integer):
 
-   * Format: Integer
-   * Synopsis:
+      Is the maximum size in gigabytes of swap space requested by any
+      job within this group of jobs.
 
-* **request_swap_min**:
+* **request_swap_total** (Integer):
 
-   * Format: Integer
-   * Synopsis:
+      Is the total size in gigabytes of swap space requested by all
+      the jobs in this group of jobs.
 
-* **request_swap_total**:
+* **queue_date** (Integer):
 
-   * Format: Integer
-   * Synopsis:
+      Is the earliest date that any job within the group of jobs
+      entered the queue.
 
-* **requirements**:
+* **idle** (Integer):
 
-   * Format: String(512)
-   * Synopsis:
+      Is the number of jobs of this category that are in the
+      'idle' state.
 
-* **running**:
+* **running** (Integer):
 
-   * Format: Integer
-   * Synopsis:
+      Is the number of jobs of this category that are in the
+      'running' state.
 
-* **target_alias**:
+* **completed** (Integer):
 
-   * Format: String(32)
-   * Synopsis:
+      Is the number of jobs of this category that are in the
+      'completed' state.
 
-* **target_clouds**:
+* **held** (Integer):
 
-   * Format: String
-   * Synopsis:
+      Is the number of jobs of this category that are in the
+      'held' state.
 
-* **user**:
+* **other** (Integer):
 
-   * Format: String(512)
-   * Synopsis:
+      Is the number of jobs of this category that are in a
+      state othe than one listed above.
 
-* **user_data**:
+* **flavors** (String):
 
-   * Format: String(512)
-   * Synopsis:
+      Is a comma separated list of possible flavors capable of running these
+      jobs.
 

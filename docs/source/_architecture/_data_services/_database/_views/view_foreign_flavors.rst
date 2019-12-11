@@ -8,62 +8,41 @@
 Database View: view_foreign_flavors
 ===================================
 
-
-
-Keys:
-^^^^^^^^
+This view was created for testing puposes but the management of foreign
+VMs has changed since the creation of the view. It is probably
+no longer required and should be deprecated.
 
 
 Columns:
 ^^^^^^^^
 
-* **authurl**:
+* **group_name** (String(32)):
 
-   * Format: String(128)
-   * Synopsis:
 
-* **cloud_name**:
+* **cloud_name** (String(32)):
 
-   * Format: String(32)
-   * Synopsis:
 
-* **cores**:
+* **authurl** (String(128)):
 
-   * Format: Integer
-   * Synopsis:
 
-* **count**:
+* **region** (String(32)):
 
-   * Format: Integer
-   * Synopsis:
 
-* **flavor_id**:
+* **project** (String(128)):
 
-   * Format: String(128)
-   * Synopsis:
 
-* **group_name**:
+* **flavor_id** (String(128)):
 
-   * Format: String(32)
-   * Synopsis:
 
-* **name**:
+* **count** (Integer):
 
-   * Format: String(128)
-   * Synopsis:
 
-* **project**:
+* **name** (String(128)):
 
-   * Format: String(128)
-   * Synopsis:
 
-* **ram**:
+* **cores** (Integer):
 
-   * Format: Float
-   * Synopsis:
 
-* **region**:
+* **ram** (Float):
 
-   * Format: String(32)
-   * Synopsis:
 

@@ -8,17 +8,17 @@
 Database Table: csv2_mime_types
 ===============================
 
+This table maintains a list of valid metadata file types. Metadata files
+are used to contextualize VMs following instantiation and are, in the main,
+yaml files passed to cloud-init. The values in this table are used
+to populate the user interface fields that control the laoding and editing
+of metadata.
 
 
 Keys:
-^^^^^^^^
+^^^^^
 
-* **mime_type**:
+* **mime_type** (String(32)):
 
-   * Format: String(32)
-   * Synopsis:
-
-
-Columns:
-^^^^^^^^
+      This string represents a valid metadata file type.
 

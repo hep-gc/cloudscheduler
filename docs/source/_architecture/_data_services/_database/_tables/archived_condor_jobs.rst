@@ -8,142 +8,117 @@
 Database Table: archived_condor_jobs
 ====================================
 
+Not used.
 
 
 Keys:
-^^^^^^^^
+^^^^^
 
-* **global_job_id**:
+* **global_job_id** (String(128)):
 
-   * Format: String(128)
-   * Synopsis:
+      Not used.
 
 
 Columns:
 ^^^^^^^^
 
-* **cloud_name**:
+* **group_name** (String(128)):
 
-   * Format: String
-   * Synopsis:
+      Not used.
 
-* **cluster_id**:
+* **target_clouds** (String):
 
-   * Format: Integer
-   * Synopsis:
+      Not used.
 
-* **entered_current_status**:
+* **cloud_name** (String):
 
-   * Format: Integer
-   * Synopsis:
+      Not used.
 
-* **group_name**:
+* **job_status** (Integer):
 
-   * Format: String(128)
-   * Synopsis:
+      Not used.
 
-* **held_reason**:
+* **request_cpus** (Integer):
 
-   * Format: String(64)
-   * Synopsis:
+      Not used.
 
-* **hold_job_reason**:
+* **request_ram** (Integer):
 
-   * Format: String(64)
-   * Synopsis:
+      Not used.
 
-* **image**:
+* **request_disk** (Integer):
 
-   * Format: String
-   * Synopsis:
+      Not used.
 
-* **instance_type**:
+* **request_swap** (Integer):
 
-   * Format: String(512)
-   * Synopsis:
+      Not used.
 
-* **job_per_core**:
+* **request_scratch** (Integer):
 
-   * Format: Integer
-   * Synopsis:
+      Not used.
 
-* **job_priority**:
+* **requirements** (String(512)):
 
-   * Format: Integer
-   * Synopsis:
+      Not used.
 
-* **job_status**:
+* **job_priority** (Integer):
 
-   * Format: Integer
-   * Synopsis:
+      Not used.
 
-* **keep_alive**:
+* **cluster_id** (Integer):
 
-   * Format: String(512)
-   * Synopsis:
+      Not used.
 
-* **max_price**:
+* **proc_id** (Integer):
 
-   * Format: String(512)
-   * Synopsis:
+      Not used.
 
-* **network**:
+* **user** (String(512)):
 
-   * Format: String(512)
-   * Synopsis:
+      Not used.
 
-* **proc_id**:
+* **image** (String):
 
-   * Format: Integer
-   * Synopsis:
+      Not used.
 
-* **q_date**:
+* **instance_type** (String(512)):
 
-   * Format: Integer
-   * Synopsis:
+      Not used.
 
-* **request_cpus**:
+* **network** (String(512)):
 
-   * Format: Integer
-   * Synopsis:
+      Not used.
 
-* **request_disk**:
+* **keep_alive** (String(512)):
 
-   * Format: Integer
-   * Synopsis:
+      Not used.
 
-* **request_ram**:
+* **max_price** (String(512)):
 
-   * Format: Integer
-   * Synopsis:
+      Not used.
 
-* **request_scratch**:
+* **user_data** (String(512)):
 
-   * Format: Integer
-   * Synopsis:
+      Not used.
 
-* **request_swap**:
+* **job_per_core** (Integer):
 
-   * Format: Integer
-   * Synopsis:
+      Not used.
 
-* **requirements**:
+* **entered_current_status** (Integer):
 
-   * Format: String(512)
-   * Synopsis:
+      Not used.
 
-* **target_clouds**:
+* **q_date** (Integer):
 
-   * Format: String
-   * Synopsis:
+      Not used.
 
-* **user**:
+* **hold_job_reason** (String(64)):
 
-   * Format: String(512)
-   * Synopsis:
+      Not used.
 
-* **user_data**:
+* **held_reason** (String(64)):
 
-   * Format: String(512)
-   * Synopsis:
+      Not used.
 

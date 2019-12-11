@@ -1,23 +1,24 @@
 django_migrations:
     Synopsis:
+        REF=(tables/django_admin_log)
 
     Keys:
 
         id:
             Format: Integer
-            Synopsis:
+            Synopsis: ''
 
     Columns:
 
         app:
             Format: String(255)
-            Synopsis:
+            Synopsis: ''
 
         name:
             Format: String(255)
-            Synopsis:
+            Synopsis: ''
 
         applied:
             Format: Integer
-            Synopsis:
+            Synopsis: ''
 

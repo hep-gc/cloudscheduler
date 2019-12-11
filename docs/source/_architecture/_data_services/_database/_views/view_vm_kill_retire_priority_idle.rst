@@ -8,62 +8,85 @@
 Database View: view_vm_kill_retire_priority_idle
 ================================================
 
+This view is one of a suite of related views used by
+the cloud pollers, HTCondor machine poller and User Interface (UI) processes to
+ensure that resource usage on clouds remains within allocated quotas and user
+defined limits. The suite includes:
 
+#. view_condor_host_
 
-Keys:
-^^^^^^^^
+#. view_vm_kill_retire_over_quota_
+
+#. view_vm_kill_retire_priority_age_
+
+#. view_vm_kill_retire_priority_idle_
+
+.. _view_condor_host: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_condor_host.html
+
+.. _view_vm_kill_retire_over_quota: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_vm_kill_retire_over_quota.html
+
+.. _view_vm_kill_retire_priority_age: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_vm_kill_retire_priority_age.html
+
+.. _view_vm_kill_retire_priority_idle: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_vm_kill_retire_priority_idle.html
+
+The view_vm_kill_retire_priority_idle creates a list of VMs to terminate and is used
+by the cloud pollers to respond to quota and resource control changes.
+Sorted in descending priority order, each VM entry has running totals of
+both cores and RAM. By selecting the first N entries, known quantities
+of resources can be released, or by selecting the last N entries,
+known quantities of active resources can be retained.
+
+This view prioritizes idleness over the age of the VM. Idle VMs
+are set to the maximum possible age/priority. Otherwise the age/priority is set
+to the time in seconds since the last state change. The higher
+the age/priority, the lower the resource aggregates, and the earlier in the
+list the VM entry appears.
 
 
 Columns:
 ^^^^^^^^
 
-* **cloud_name**:
+* **group_name** (String(32)):
 
-   * Format: String(32)
-   * Synopsis:
+      Is the name of the group owning the VM.
 
-* **flavor_cores**:
+* **cloud_name** (String(32)):
 
-   * Format: Integer
-   * Synopsis:
+      Is the name of the cloud hosting the VM.
 
-* **flavor_id**:
+* **vmid** (String(128)):
 
-   * Format: String(128)
-   * Synopsis:
+      Is the unique ID of the VM.
 
-* **flavor_ram**:
+* **flavor_id** (String(128)):
 
-   * Format: Integer
-   * Synopsis:
+      Is the flavor ID used to instantiate the VM. The flavor determines
+      the the (cpu) cores and RAM utilized by the VM which is
+      used to determine the resource aggregates.
 
-* **group_name**:
+* **machine** (String(256)):
 
-   * Format: String(32)
-   * Synopsis:
+      Is the unique machine name assigned by HTCondor.
 
-* **killed**:
+* **killed** (Integer):
 
-   * Format: Integer
-   * Synopsis:
+      Is the total number of termination requests issued to this VM.
 
-* **machine**:
+* **retired** (Integer):
 
-   * Format: String(256)
-   * Synopsis:
+      Is the total number of retire requests issued to this VM.
 
-* **priority**:
+* **priority** (Integer):
 
-   * Format: Integer
-   * Synopsis:
+      Is the calculated VM priority.
 
-* **retired**:
+* **flavor_cores** (Integer):
 
-   * Format: Integer
-   * Synopsis:
+      Is the aggregate nubmer of cores for all the VMs from the
+      beginning of the list up to and including this entry.
 
-* **vmid**:
+* **flavor_ram** (Integer):
 
-   * Format: String(128)
-   * Synopsis:
+      Is the aggregate size in kilobytes of RAM for all the VMs
+      from the beginning of the list up to and including this entry.
 

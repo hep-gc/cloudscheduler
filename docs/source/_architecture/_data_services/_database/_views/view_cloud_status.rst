@@ -8,172 +8,244 @@
 Database View: view_cloud_status
 ================================
 
+.. _view_cloud_status: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_cloud_status.html
 
+.. _view_cloud_status_flavor_slot_detail_summary: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_cloud_status_flavor_slot_detail_summary.html
 
-Keys:
-^^^^^^^^
+.. _view_cloud_status_flavor_slot_detail: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_cloud_status_flavor_slot_detail.html
+
+.. _view_cloud_status_flavor_slot_summary: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_cloud_status_flavor_slot_summary.html
+
+.. _view_cloud_status_slot_detail_summary: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_cloud_status_slot_detail_summary.html
+
+.. _view_cloud_status_slot_detail: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_cloud_status_slot_detail.html
+
+.. _view_cloud_status_slot_summary: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_cloud_status_slot_summary.html
+
+.. _view_job_status: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_job_status.html
+
+.. _view_vms: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_vms.html
+
+.. _timeseries: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_condor_jobs_group_defaults_applied.html
+
+This view is one of a suite of related views supporting the
+primary status display of CSV2. The suite includes:
+
+#. view_cloud_status_ (also used by timeseries_)
+
+#. view_cloud_status_flavor_slot_detail_summary_
+
+#. view_cloud_status_flavor_slot_detail_
+
+#. view_cloud_status_flavor_slot_summary_
+
+#. view_cloud_status_slot_detail_summary_
+
+#. view_cloud_status_slot_detail_ (also used by timeseries_)
+
+#. view_cloud_status_slot_summary_
+
+#. view_job_status_ (also used by timeseries_)
+
+#. view_vms_
+
+The **view_cloud_status** view details current cloud information including VM statistics HTCondor dynamic
+slot totals, control settings and performance information. The view presents one row
+per active group/cloud. A cloud is considered active if it is enabled
+or if it is currently hosting VMs.
 
 
 Columns:
 ^^^^^^^^
 
-* **Foreign_VMs**:
+* **group_name** (String(32)):
 
-   * Format: Integer
-   * Synopsis:
+      Is the name of the group owning the cloud.
 
-* **VMs**:
+* **cloud_name** (String(32)):
 
-   * Format: Integer
-   * Synopsis:
+      Is the name of the cloud.
 
-* **VMs_idle**:
+* **VMs** (Integer):
 
-   * Format: Integer
-   * Synopsis:
+      Is the total number of VMs active for this group/cloud.
 
-* **VMs_in_error**:
+* **VMs_manual** (Integer):
 
-   * Format: Integer
-   * Synopsis:
+      Is the number of VMs for this group/cloud that are in the
+      'manual' state..
 
-* **VMs_manual**:
+* **VMs_in_error** (Integer):
 
-   * Format: Integer
-   * Synopsis:
+      Is the number of VMs for this group/cloud that are in the
+      'error' state..
 
-* **VMs_native_foreign**:
+* **VMs_starting** (Integer):
 
-   * Format: Integer
-   * Synopsis:
+      Is the number of VMs for this group/cloud that are in the
+      'starting' state..
 
-* **VMs_quota**:
+* **VMs_retiring** (Integer):
 
-   * Format: Integer
-   * Synopsis:
+      Is the number of VMs for this group/cloud that are in the
+      'retiring' state..
 
-* **VMs_retiring**:
+* **VMs_unregistered** (Integer):
 
-   * Format: Integer
-   * Synopsis:
+      Is the number of VMs for this group/cloud that are in the
+      'unregistered' state..
 
-* **VMs_running**:
+* **VMs_idle** (Integer):
 
-   * Format: Integer
-   * Synopsis:
+      Is the number of VMs for this group/cloud that are in the
+      'idle' state..
 
-* **VMs_starting**:
+* **VMs_running** (Integer):
 
-   * Format: Integer
-   * Synopsis:
+      Is the number of VMs for this group/cloud that are in the
+      'running' state..
 
-* **VMs_unregistered**:
+* **cores_native** (Integer):
 
-   * Format: Integer
-   * Synopsis:
+      Is the total number of cores being used by all the VMs
+      for this group/cloud.
 
-* **cloud_name**:
+* **ram_native** (Float):
 
-   * Format: String(32)
-   * Synopsis:
+      Is the total size in kilobytes of RAM being used by all
+      the VMs for this group/cloud.
 
-* **communication_rt**:
+* **slot_count** (Integer):
 
-   * Format: Integer
-   * Synopsis:
+      Is the total number of HTCondor dynamic slots running on all the
+      VMs for this group/cloud.
 
-* **communication_up**:
+      Dynamic slots are created by HTCondor to run jobs and only endure
+      for the life of the jobs they run. The size of the
+      slots, in terms of the number of cores and the amount of
+      RAM is also dynamically determined by HTCondor depending on the jobs to
+      be run.
 
-   * Format: Boolean
-   * Synopsis:
+      A single VM may run one or more slots and a single
+      slot may run one or more jobs.
 
-* **cores_ctl**:
+* **slot_core_count** (Integer):
 
-   * Format: Integer
-   * Synopsis:
+      Is the total number of cores allocated to all the current dynamic
+      slots for this group/cloud.
 
-* **cores_foreign**:
+* **slot_idle_core_count** (Integer):
 
-   * Format: Integer
-   * Synopsis:
+      Is the number of idle cores allocated to all the current dynamic
+      slots for this group/cloud.
 
-* **cores_limit**:
+      A dynamic slot configured to run muliple jobs but currently running fewer
+      jobs than the configuration allows will have idle cores.
 
-   * Format: Integer
-   * Synopsis:
+* **Foreign_VMs** (Integer):
 
-* **cores_native**:
+      Is the total number of VMs running on this cloud but which
+      do not belong to this group. Foreign VMs can limit the number
+      VMs a group can start.
 
-   * Format: Integer
-   * Synopsis:
+* **enabled** (Boolean):
 
-* **cores_native_foreign**:
+      Is a flag indicating whether the cloud is enabled (1) or disabled
+      (0).
 
-   * Format: Integer
-   * Synopsis:
+* **communication_up** (Boolean):
 
-* **cores_quota**:
+      This flag indicates whether CSV2 cloud pollers are able to communicate with
+      the cloud. When a process fails to communicate with the cloud, it
+      will set this flag to zero. Otherwise, this flag is set to
+      one.
 
-   * Format: Integer
-   * Synopsis:
+* **communication_rt** (Integer):
 
-* **cores_soft_quota**:
+      Is a number of milliseconds indicating the responsiveness of the cloud. For
+      each cloud type, a trivial request with a consistent response has been
+      identified and is used to measure the 'request time' for the cloud.
+      Normally, the request time is low and fairly consistent, but it is
+      subject to both network and cloud congestion. A high number indicates a
+      problem that should be invetigated.
 
-   * Format: Integer
-   * Synopsis:
+* **cores_ctl** (Integer):
 
-* **enabled**:
+      Is the current user setting of the cores control (slider) for the
+      cloud and is one of settings used to determine the **cores_limit** (the
+      maximum number of cores that may run for this group/cloud).
 
-   * Format: Boolean
-   * Synopsis:
+* **cores_limit** (Integer):
 
-* **group_name**:
+      The **cores_limit** is the current maximum number of cores this group/cloud may
+      run. This number is dynamic as it is affected by the user's
+      cloud controls and by the number of foreign cores (cores being run
+      by other groups or run by processes other than CSV2). It is
+      calculated by taking the least of **core_ctl** or **core_soft_quota** minus **cores_foreign** or
+      **cores_quota** minus **cores_foreign**.
 
-   * Format: String(32)
-   * Synopsis:
+* **VMs_quota** (Integer):
 
-* **ram_ctl**:
+      Is the maximum number of VMs that can be running on this
+      cloud.
 
-   * Format: Integer
-   * Synopsis:
+* **VMs_native_foreign** (Integer):
 
-* **ram_foreign**:
+      Is the total number of VMs running on this cloud, both for
+      this group and for other users.
 
-   * Format: Float
-   * Synopsis:
+* **cores_quota** (Integer):
 
-* **ram_limit**:
+      Is the current cores quota for this cloud set by the provider/administrator.
+      It is one of the values used to determine the **cores_limit** (the
+      maximum number of cores that may run for this group/cloud).
 
-   * Format: Integer
-   * Synopsis:
+* **cores_soft_quota** (Integer):
 
-* **ram_native**:
+      Is the current user setting of the cores soft quota (soft_max) for
+      this cloud and is one of settings used to determine the **cores_limit**
+      (the maximum number of cores that may run for this group/cloud)..
 
-   * Format: Float
-   * Synopsis:
+* **cores_foreign** (Integer):
 
-* **ram_native_foreign**:
+      Is the total number of cores running on this cloud but which
+      do not belong to this group. Foreign cores can limit the number
+      VMs a group can start.
 
-   * Format: Float
-   * Synopsis:
+* **cores_native_foreign** (Integer):
 
-* **ram_quota**:
+      Is the total number of cores running on this cloud, both for
+      this group and for other users.
 
-   * Format: Integer
-   * Synopsis:
+* **ram_ctl** (Integer):
 
-* **slot_core_count**:
+      Is the current user setting of the RAM control (slider) for the
+      cloud and is one of settings used to determine the **ram_limit** (the
+      maximum size in kilobytes of RAM that may run for this group/cloud).
 
-   * Format: Integer
-   * Synopsis:
+* **ram_limit** (Integer):
 
-* **slot_count**:
+      The **ram_limit** is the current maximum size in kilobytes of RAM this
+      group/cloud may run. This number is dynamic as it is affected by
+      the user's cloud controls and by the size of foreign RAM (RAM
+      being run by other groups or run by processes other than CSV2).
+      It is calculated by taking the least of **ram_ctl** or **ram_quota** minus
+      **ram_foreign**.
 
-   * Format: Integer
-   * Synopsis:
+* **ram_quota** (Integer):
 
-* **slot_idle_core_count**:
+      Is the current RAM quota for this cloud set by the provider/administrator.
+      It is one of the values used to determine the **ram_limit** (the
+      maximum size in kilobytes of RAM that may run for this group/cloud).
 
-   * Format: Integer
-   * Synopsis:
+* **ram_foreign** (Float):
+
+      Is the total size in kilobytes of RAM running on this cloud
+      but which do not belong to this group. Foreign RAM can limit
+      the number VMs a group can start.
+
+* **ram_native_foreign** (Float):
+
+      Is the total size in kilobytes of RAM running on this cloud,
+      both for this group and for other users.
 

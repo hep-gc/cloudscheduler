@@ -1,0 +1,16 @@
+.B generate_bash_completion_script
+This action creates or updates a bash completion script for the **cloudscheduler** command
+in the user's home directory. It is performed automatically each time source for the CLI
+is modified, but can also be run manually.
+
+The action performs the following:
+
+o If the directory does not already exist, creates ~/.bash_completion.d
+.br
+o If it creates /.bash_completion.d, it also appends to ~/.bash_completion commands to 'source' all scripts in ~/.bash_completion.d
+.br
+o Rewrites ~/.bash_completion.d/cloudscheduler.
+
+In order to use the new completion script, you will need to start a new terminal session or re-'source' ~/.bash_completion.d/cloudscheduler. 
+.TP
+

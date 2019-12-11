@@ -1,5 +1,9 @@
 view_cloud_aliases:
     Synopsis:
+        REF=(tables/csv2_cloud_aliases)
+
+        This view presents the alias definitions in the **csv2_cloud_aliases** table in a form 
+        suitable for the VM scheduler and for presentation in the user interface.
 
     Keys:
 
@@ -8,12 +12,16 @@ view_cloud_aliases:
         group_name:
             Format: String(32)
             Synopsis:
+                Is the name of the CSV2 group that owns the alias.
 
         alias_name:
             Format: String(32)
             Synopsis:
+                Is the unique name (within the group) of the alias.
 
         clouds:
             Format: String
             Synopsis:
+                Is a comma separated list of cloud names associated with the alias name.
+                Each cloud within the alias is also defined within the group.
 

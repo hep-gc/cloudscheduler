@@ -1,5 +1,10 @@
 view_groups_with_metadata_info:
     Synopsis:
+        "REF=(common/view_metadata)
+
+        The **view_groups_with_metadata_info** creates a list of group/metadata information with one row per group/metadata file 
+        in a client compatible format suitable for the web client.
+        "
 
     Keys:
 
@@ -8,32 +13,42 @@ view_groups_with_metadata_info:
         group_name:
             Format: String(32)
             Synopsis:
+                "REF=(tables/csv2_groups/Keys/group_name)"
 
         htcondor_fqdn:
             Format: String(128)
             Synopsis:
+                "REF=(tables/csv2_groups/Columns/htcondor_fqdn)"
 
         htcondor_container_hostname:
             Format: String(128)
             Synopsis:
+                "REF=(tables/csv2_groups/Columns/htcondor_container_hostname)"
 
         htcondor_other_submitters:
             Format: String(128)
             Synopsis:
+                "REF=(tables/csv2_groups/Columns/htcondor_other_submitters)"
 
         metadata_name:
             Format: String(64)
             Synopsis:
+                Is the name of a metadata file associated with this group. 
 
         metadata_enabled:
             Format: Boolean
             Synopsis:
+                Is the flag of the named metadata file associated with this group indicating whether the file is enabled (1).. 
 
         metadata_priority:
             Format: Integer
             Synopsis:
+                Is the priority of the named metadata file associated with this group. Lower numbers have a higher
+                priority, causing metadata files to be included earlier in the collation order.
 
         metadata_mime_type:
             Format: String(128)
             Synopsis:
+                Is the mime type of the named metadata file associated with this group. For a complete list of
+                valid mime types, refer to the content of **csv2_mime_types** CSV2 table.
 

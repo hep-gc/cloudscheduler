@@ -1,19 +1,20 @@
 silk_profile_queries:
     Synopsis:
+        REF=(tables/silk_profile)
 
     Keys:
 
         id:
             Format: Integer
-            Synopsis:
+            Synopsis: ''
 
     Columns:
 
         profile_id:
             Format: Integer
-            Synopsis:
+            Synopsis: ''
 
         sqlquery_id:
             Format: Integer
-            Synopsis:
+            Synopsis: ''
 

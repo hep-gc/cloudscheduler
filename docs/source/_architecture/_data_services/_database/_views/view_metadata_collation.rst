@@ -8,42 +8,65 @@
 Database View: view_metadata_collation
 ======================================
 
+This view is one of a suite of related views used to
+provide metadata information to the User Interface (UI). The suite includes:
 
+#. view_clouds_with_metadata_info_
 
-Keys:
-^^^^^^^^
+#. view_clouds_with_metadata_names_
+
+#. view_groups_with_metadata_info_
+
+#. view_groups_with_metadata_names_
+
+#. view_metadata_collation_
+
+.. _view_clouds_with_metadata_info: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_clouds_with_metadata_info.html
+
+.. _view_clouds_with_metadata_names: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_clouds_with_metadata_names.html
+
+.. _view_groups_with_metadata_info: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_groups_with_metadata_info.html
+
+.. _view_groups_with_metadata_names: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_groups_with_metadata_names.html
+
+.. _view_metadata_collation: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_metadata_collation.html
+
+The **view_metadata_collation** is used to present a stream of VM contextualization metadata
+files in the correct order for the cloud's metadata service. It creates
+a customized list of metadata files in priority order for each group/cloud.
+Only enabled metadata files are included and each group/cloud can exclude specific
+group metadata files from their customized list by file name (see group_metadata_exclusions_
+under the **csv2_group_metadata_exclusions** table description)).
+
+.. _group_metadata_exclusions: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_tables/csv2_group_metadata_exclusions.html
 
 
 Columns:
 ^^^^^^^^
 
-* **cloud_name**:
+* **group_name** (String(32)):
 
-   * Format: String(32)
-   * Synopsis:
+      Is the name of the group owning the metadata file.
 
-* **group_name**:
+* **cloud_name** (String(32)):
 
-   * Format: String(32)
-   * Synopsis:
+      Is the name of the target cloud to which this metadata file
+      applies.
 
-* **metadata_name**:
+* **type** (String(5)):
 
-   * Format: String(64)
-   * Synopsis:
+      Is the name of the source for this metadata file. Files can
+      be defined at the 'group' level or at the 'cloud' level.
 
-* **mime_type**:
+* **priority** (Integer):
 
-   * Format: String(128)
-   * Synopsis:
+      Is the priority associated with this metadata file.
 
-* **priority**:
+* **metadata_name** (String(64)):
 
-   * Format: Integer
-   * Synopsis:
+      Is the name of the metadata file.
 
-* **type**:
+* **mime_type** (String(128)):
 
-   * Format: String(5)
-   * Synopsis:
+      Is the mime type of this metadata file.
 
