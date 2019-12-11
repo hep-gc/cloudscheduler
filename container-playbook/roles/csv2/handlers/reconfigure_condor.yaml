@@ -1,7 +1,0 @@
----
-# Reconfigure condor.
-
-- name: reconfigure condor
-  command: condor_reconfig
-  listen: reconfigure condor
-

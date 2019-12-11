@@ -1,2 +1,0 @@
-COLLECTOR_PORT=30961
-COLLECTOR_HOST=csv2.cont.default.svc.cluster.local
