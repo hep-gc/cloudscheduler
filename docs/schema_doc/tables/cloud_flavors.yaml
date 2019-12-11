@@ -13,50 +13,63 @@ cloud_flavors:
         group_name:
             Format: String(32)
             Synopsis:
+                Group name associated with the cloud a flavor was queried from.
 
         cloud_name:
             Format: String(32)
             Synopsis:
+                Name of the cloud a flavor entry was queried from.
 
         id:
             Format: String(128)
             Synopsis:
+                Unique ID of the flavor. This ID is from the source cloud and may not be unique with respect to entries from different clouds.
 
     Columns:
 
         name:
             Format: String(128)
             Synopsis:
+                Name of the flavor.
 
         cloud_type:
             Format: String(64)
             Synopsis:
+                Type of cloud the flavour is from (openstack, amazon, etc)
+                
 
         ram:
             Format: Integer
             Synopsis:
+                Amount of RAM assigned to the flavor in Megabytes.
 
         cores:
             Format: Integer
             Synopsis:
+                Number of cpu cores assigned to the flavor.
 
         swap:
             Format: Integer
             Synopsis:
+                Amount of swap space assigned to the flavor in Megabytes.
 
         disk:
             Format: Integer
             Synopsis:
+                Amount of disk space assigned to the flavor in Gigabytes.
 
         ephemeral_disk:
             Format: Integer
             Synopsis:
+                Amount of ephemeral disk space assigned to the flavor in Gigabytes.
 
         is_public:
             Format: Boolean
             Synopsis:
+               Interger boolean representing if the flavor is publicly available or not.
 
         last_updated:
             Format: Integer
             Synopsis:
+               Timestamp in seconds since epoch representing the last time the flavor was updated.
 

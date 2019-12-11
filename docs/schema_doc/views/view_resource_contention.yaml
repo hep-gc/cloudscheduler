@@ -1,5 +1,15 @@
 view_resource_contention:
     Synopsis:
+        "
+        REF=(common/view_vm_scheduling)
+
+        The **view_resource_contention** is used by the VM scheduler together with the
+        **new_VMs_throttle** configuration option to govern the rate at which new VMs are
+        instantiated on a cloud irrespective of the CSV2 group. The view provides a set
+        of VM counters for each unique cloud, identified by the authurl. The VM scheduler
+        limits the number of new VMs, those either 'starting' or 'unregistered', to the
+        configuration value.)
+        "
 
     Keys:
 
@@ -8,36 +18,46 @@ view_resource_contention:
         authurl:
             Format: String(128)
             Synopsis:
+                Is the authentication/authorization URL of a cloud currently defined to CSV2
+                by one or more groups.
 
         VMs:
             Format: Integer
             Synopsis:
+                Is the total number of VMs started by CSV2 running on the cloud.
 
         starting:
             Format: Integer
             Synopsis:
+                Is the number of VMs started by CSV2 on the cloud in the 'starting' state.
 
         unregistered:
             Format: Integer
             Synopsis:
+                Is the number of VMs started by CSV2 on the cloud in the 'unregistered' state.
 
         idle:
             Format: Integer
             Synopsis:
+                Is the number of VMs started by CSV2 on the cloud in the 'idle' state.
 
         running:
             Format: Integer
             Synopsis:
+                Is the number of VMs started by CSV2 on the cloud in the 'running' state.
 
         retiring:
             Format: Integer
             Synopsis:
+                Is the number of VMs started by CSV2 on the cloud in the 'retiring' state.
 
         manual:
             Format: Integer
             Synopsis:
+                Is the number of VMs started by CSV2 on the cloud in the 'manual' state.
 
         error:
             Format: Integer
             Synopsis:
+                Is the number of VMs started by CSV2 on the cloud in the 'error' state.
 

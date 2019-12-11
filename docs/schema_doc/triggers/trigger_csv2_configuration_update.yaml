@@ -1,0 +1,9 @@
+trigger_csv2_configuration_update:
+    Synopsis:
+        "This view maintains a timestamp in the **csv2_timestamps** table of the last update to the CSV2 configuration.
+        For processes using the **db_config.refresh()** library function, the timestamp is used to determine whether
+        the caller's configuration is already up to date or whether it needs to be refreshed from the database."
+
+    Condition:
+        after update on csv2_configuration
+        

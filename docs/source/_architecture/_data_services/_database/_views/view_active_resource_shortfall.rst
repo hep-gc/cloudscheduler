@@ -8,92 +8,119 @@
 Database View: view_active_resource_shortfall
 =============================================
 
+.. _view_active_resource_shortfall: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_active_resource_shortfall.html
 
+.. _view_available_resources: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_available_resources.html
 
-Keys:
-^^^^^^^^
+.. _view_groups_of_idle_jobs: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_groups_of_idle_jobs.html
+
+.. _view_idle_vms: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_idle_vms.html
+
+.. _view_metadata_collation_json: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_metadata_collation_json.html
+
+.. _view_resource_contention: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_resource_contention.html
+
+This view is one of a suite of related views used by
+the VM scheduler to control the management of VMs. The suite includes:
+
+#. view_active_resource_shortfall_
+
+#. view_available_resources_
+
+#. view_groups_of_idle_jobs_
+
+#. view_idle_vms_
+
+#. view_metadata_collation_json_
+
+#. view_resource_contention_
+
+The **view_active_resource_shortfall** is used by the VM scheduler to determine if new
+VMs should be started for each group/target_alias/target_cloud based on the total requested
+resources compared with resources currently provided.
 
 
 Columns:
 ^^^^^^^^
 
-* **active_cores**:
+* **group_name** (String(32)):
 
-   * Format: Integer
-   * Synopsis:
+      Is the name of the group requesting resources.
 
-* **active_disk**:
+* **target_alias** (String(32)):
 
-   * Format: Integer
-   * Synopsis:
+      Is an optional alias indicating the clouds that resources are required from.
+      If this column and the **target_clouds** column are empty, the resources are
+      required from any cloud defined within the group.
 
-* **active_ram**:
+* **target_clouds** (String):
 
-   * Format: Integer
-   * Synopsis:
+      Is an optional name of the cloud that resources are required from.
+      If this column and the **target_alias** column are empty, the resources are
+      required from any cloud defined within the group.
 
-* **group_name**:
+* **request_cores** (Integer):
 
-   * Format: String(32)
-   * Synopsis:
+      Is the total number of cores requested by all idle (queued) and
+      running jobs.
 
-* **idle**:
+* **active_cores** (Integer):
 
-   * Format: Integer
-   * Synopsis:
+      Is the total number of cores provided.
 
-* **request_cores**:
+* **shortfall_cores** (Integer):
 
-   * Format: Integer
-   * Synopsis:
+      Is calculated by **request_cores** minus **active_cores**; a result greater then zero indicates
+      that additional cores are required and VMs should be started to meet
+      the shortfall.
 
-* **request_disk**:
+* **request_disk** (Integer):
 
-   * Format: Integer
-   * Synopsis:
+      Is the total size of disk requested by all idle (queued) and
+      running jobs.
 
-* **request_ram**:
+* **active_disk** (Integer):
 
-   * Format: Integer
-   * Synopsis:
+      Is the total size of disk provided.
 
-* **running**:
+* **shortfall_disk** (Integer):
 
-   * Format: Integer
-   * Synopsis:
+      Is calculated by **request_disk** minus **active_disk**; a result greater then zero indicates
+      that additional disk is required and VMs should be started to meet
+      the shortfall.
 
-* **shortfall_cores**:
+* **request_ram** (Integer):
 
-   * Format: Integer
-   * Synopsis:
+      Is the total size of RAM requested by all idle (queued) and
+      running jobs.
 
-* **shortfall_disk**:
+* **active_ram** (Integer):
 
-   * Format: Integer
-   * Synopsis:
+      Is the total size of RAM provided.
 
-* **shortfall_ram**:
+* **shortfall_ram** (Integer):
 
-   * Format: Integer
-   * Synopsis:
+      Is calculated by **request_ram** minus **active_ram**; a result greater then zero indicates
+      that additional RAM is required and VMs should be started to meet
+      the shortfall.
 
-* **starting**:
+* **starting** (Integer):
 
-   * Format: Integer
-   * Synopsis:
+      For information purposes only, this field indicates the number of starting VMs
+      for this group/target_alias/target_cloud.
 
-* **target_alias**:
+* **unregistered** (Integer):
 
-   * Format: String(32)
-   * Synopsis:
+      For information purposes only, this field indicates the number of unregistered VMs
+      for this group/target_alias/target_cloud.
 
-* **target_clouds**:
+* **idle** (Integer):
 
-   * Format: String
-   * Synopsis:
+      For information purposes only, this field indicates the number of idle VMs
+      for this group/target_alias/target_cloud.
 
-* **unregistered**:
+* **running** (Integer):
 
-   * Format: Integer
-   * Synopsis:
+      For information purposes only, this field indicates the number of running VMs
+      for this group/target_alias/target_cloud.
 

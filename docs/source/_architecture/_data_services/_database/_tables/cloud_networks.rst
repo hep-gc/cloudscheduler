@@ -19,59 +19,51 @@ target cloud.
 
 
 Keys:
-^^^^^^^^
+^^^^^
 
-* **cloud_name**:
+* **group_name** (String(32)):
 
-   * Format: String(32)
-   * Synopsis:
+      Group name associated with the cloud the network was queried from.
 
-* **group_name**:
+* **cloud_name** (String(32)):
 
-   * Format: String(32)
-   * Synopsis:
+      Name of the cloud the network was queried from
 
-* **id**:
+* **id** (String(128)):
 
-   * Format: String(128)
-   * Synopsis:
+      Unique ID of the network. This ID is from the source cloud
+      and may not be unique with respect to entries from different clouds.
 
 
 Columns:
 ^^^^^^^^
 
-* **cloud_type**:
+* **name** (String(256)):
 
-   * Format: String(64)
-   * Synopsis:
+      Name of the network as defined on the cloud.
 
-* **external_route**:
+* **cloud_type** (String(64)):
 
-   * Format: Boolean
-   * Synopsis:
+      Type of cloud the network was queried from.
 
-* **last_updated**:
+* **subnets** (String(256)):
 
-   * Format: Integer
-   * Synopsis:
+      ID of any subnets within a given network.
 
-* **name**:
+* **tenant_id** (String(128)):
 
-   * Format: String(256)
-   * Synopsis:
+      ID of the cloud tenant/project associated with a given network
 
-* **shared**:
+* **external_route** (Boolean):
 
-   * Format: Boolean
-   * Synopsis:
+      A boolean representing whether or not the network has an external route.
 
-* **subnets**:
+* **shared** (Boolean):
 
-   * Format: String(256)
-   * Synopsis:
+      A boolean representing whether or not the network is shared.
 
-* **tenant_id**:
+* **last_updated** (Integer):
 
-   * Format: String(128)
-   * Synopsis:
+      Timestamp in seconds since epoch representing the last time the network was
+      updated in csv2.
 

@@ -8,27 +8,31 @@
 Database Table: ec2_regions
 ===========================
 
+This table is maintains the list of valid Amazon EC2 regions. Since
+this information changes rarely, it is updated by a CRON task running
+the CSV2 utility csv2-ec2-regiona.s
+
+Data from this table is used auto-select information when a user defines
+an "amazon" cloud and it is also used to populate valid selections
+within the user interface.
 
 
 Keys:
-^^^^^^^^
+^^^^^
 
-* **region**:
+* **region** (String(64)):
 
-   * Format: String(64)
-   * Synopsis:
+      Is an Amazon defined unique region code.
 
 
 Columns:
 ^^^^^^^^
 
-* **endpoint**:
+* **location** (String(64)):
 
-   * Format: String(128)
-   * Synopsis:
+      Is the location of this cloud/region.
 
-* **location**:
+* **endpoint** (String(128)):
 
-   * Format: String(64)
-   * Synopsis:
+      is the authorization endpoint for this cloud/region.
 

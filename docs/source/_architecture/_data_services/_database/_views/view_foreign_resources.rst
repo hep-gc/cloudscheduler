@@ -8,37 +8,41 @@
 Database View: view_foreign_resources
 =====================================
 
+.. _view_available_resources: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_available_resources.html
+
+.. _view_cloud_status: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_cloud_status.html
+
+.. _view_vm_kill_retire_over_quota: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_vm_kill_retire_over_quota.html
 
 
-Keys:
-^^^^^^^^
+This view summarises foreign resource utilization producing the total VMs, cores and
+RAM for each group/cloud, and is the source of summary information the
+the following function specific, higher level view:
+
+#. view_available_resources_ #. view_cloud_status_ #. view_vm_kill_retire_over_quota_
 
 
 Columns:
 ^^^^^^^^
 
-* **cloud_name**:
+* **group_name** (String(32)):
 
-   * Format: String(32)
-   * Synopsis:
+      Is the name of the group.
 
-* **cores**:
+* **cloud_name** (String(32)):
 
-   * Format: Integer
-   * Synopsis:
+      Is the unique name (within the group) of the cloud.
 
-* **count**:
+* **count** (Integer):
 
-   * Format: Integer
-   * Synopsis:
+      Is the total number of foreign VMs running on the cloud.
 
-* **group_name**:
+* **cores** (Integer):
 
-   * Format: String(32)
-   * Synopsis:
+      Is the total number of foreign cores running on the cloud.
 
-* **ram**:
+* **ram** (Float):
 
-   * Format: Float
-   * Synopsis:
+      Is the total size in kilobytes of foreign RAM running on the
+      cloud.
 

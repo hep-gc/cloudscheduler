@@ -1,0 +1,6 @@
+.B print_json_syntax_tree
+This action prints a JSON string containing the \fBcloudscheduler\fR command syntax tree. It is used by
+developers and the \fBcli_doc_to_rst\fR utility to furnish the \fBreadthedocs\fR web service with the
+cloudscheduler man pages.
+.TP
+

@@ -14,65 +14,175 @@ CSV2 processes.
 
 
 Keys:
-^^^^^^^^
+^^^^^
 
-* **cloud_name**:
+* **group_name** (String(32)):
 
-   * Format: String(32)
-   * Synopsis:
-      User specified short name for this cloud resource. The name must be
-      unique within the group.
-
-* **group_name**:
-
-   * Format: String(32)
-   * Synopsis:
       User specified name of the group owning this cloud resource. When adding
       new clouds, this value is set equal to the user's current group.
+
+* **cloud_name** (String(32)):
+
+      User specified short name for this cloud resource. The name must be
+      unique within the group.
 
 
 Columns:
 ^^^^^^^^
 
-* **authurl**:
+* **enabled** (Boolean):
 
-   * Format: String(128)
-   * Synopsis:
+      User specified switch indicating whether the cloud should be used (enable=1) or
+      ignored (disabled=0).
+
+* **priority** (Integer):
+
+      User specified selection priority for starting new VMs. Lower numbers (including negative
+      integers) indicate a higher priority and will be selected before other clouds
+      in the group with a lower priority.
+
+* **authurl** (String(128)):
+
       User specified URL of the cloud's authorization web interface. The cloud may
       provide other service endpoints, but this is the primary interface to the
       cloud.
 
-* **cacertificate**:
+* **project** (String(128)):
 
-   * Format: String
-   * Synopsis:
+      User specified project code to be used during authentication. A "project domain"
+      may also be requied (see below). Some clouds specifically require a "project
+      domain ID" which is different from the project; a dedicated column is
+      provided for the "project domain ID" (see below).
+
+* **username** (String(20)):
+
+      User specified ID to be used during authentication. A "user domain" may
+      also be required (see below). Some clouds specifically require a "user domain
+      ID" which is different from the username; a dedicated column is provided
+      for the "user domain ID" (see below).
+
+* **password** (String):
+
+      User specified secret key to be used during authentication.
+
+* **obsolete_keyname** (String(20)):
+
+      Not used.
+
+* **cacertificate** (String):
+
       An optional, user supplied certificate authority (CA) certificate bundle used to authenticate
       the cloud's SSL certificate. By default, the system CA bundle is used.
       However, if the cloud is using certificates not supported by the system
       CA bundle, this parameter is required and should point to a CA
       bundle file, readable by the cloudscheduler user and supporting the cloud's certificate.
 
-* **cloud_type**:
+* **region** (String(20)):
 
-   * Format: String(64)
-   * Synopsis:
+      User specified region to be used during authentication. Many clouds are hosted
+      in multiple geographical locations or regions. Even when a cloud is hosted
+      in a single location it will have a region specification.
+
+* **user_domain_name** (String(20)):
+
+      User specified user domain name. The default value is "default".
+
+* **user_domain_id** (String(64)):
+
+      User specified user domain ID to be used during authentication. This value
+      is not normally used and should only be supplied if required by
+      the cloud.
+
+* **project_domain_name** (String(20)):
+
+      User specified project domain name. The default value is "default".
+
+* **project_domain_id** (String(64)):
+
+      User specified project domain ID to be used during authentication. This value
+      is not normally used and should only be supplied if required by
+      the cloud.
+
+* **cloud_type** (String(64)):
+
       User specified cloud type specifies the API that will be used when
       communicating with the cloud. Currently, "openstack" and "amazon" cloud types are supported.
 
-* **communication_rt**:
+* **ec2_owner_id** (String(32)):
 
-   * Format: Integer
-   * Synopsis:
+      For Amazon EC2 clouds, this is EC2 owner ID automatically retrieved from
+      the cloud and saved in the CSV2 cloud settings. It is used
+      to identify owned versus shared resouces on that EC2 cloud.
 
-* **communication_up**:
+* **communication_up** (Boolean):
 
-   * Format: Boolean
-   * Synopsis:
+      The CSV2 cloud pollers (csv2-openstack, csve-ec2, etc.) periodically polls clouds for information.
+      If polling attempts are successful, this boolean will be set to 1.
+      Otherwise, it is set to zero.
 
-* **cores_ctl**:
+* **communication_rt** (Integer):
 
-   * Format: Integer
-   * Synopsis:
+      The CSV2 cloud pollers (csv2-openstack, csve-ec2, etc.) periodically issue trivial requests to
+      determine what should be a consistent request time. The reult of these
+      timing tests are recoreded in milli-seconds. Fluctuations in the results could be
+      the consequence of either network contention or contention on the target cloud.
+
+* **server_meta_ctl** (Integer):
+
+      Currently not used.
+
+* **instances_ctl** (Integer):
+
+      Currently not used.
+
+* **personality_ctl** (Integer):
+
+      Currently not used.
+
+* **image_meta_ctl** (Integer):
+
+      Currently not used.
+
+* **personality_size_ctl** (Integer):
+
+      Currently not used.
+
+* **ram_ctl** (Integer):
+
+      User specified integer control indicating the maximum amount of RAM, in kilobytes,
+      that may be used on the cloud. Once this amount of RAM
+      is in use by VM instances, CSV2 will not start any more
+      VMs on this cloud. This parameter allows the user to limit their
+      RAM usage on the cloud, to less than the cloud defined RAM
+      quota. The default is -1, indicating no limit or use up to
+      the quota.
+
+* **server_groups_ctl** (Integer):
+
+      Currently not used.
+
+* **security_group_rules_ctl** (Integer):
+
+      Currently not used.
+
+* **keypairs_ctl** (Integer):
+
+      Currently not used.
+
+* **security_groups_ctl** (Integer):
+
+      Currently not used.
+
+* **server_group_members_ctl** (Integer):
+
+      Currently not used.
+
+* **floating_ips_ctl** (Integer):
+
+      Currently not used.
+
+* **cores_ctl** (Integer):
+
       User specified integer control indicating the maximum number of cores (cpus) that
       may be used on the cloud. Once this number of cores is
       in use by VM instances, CSV2 will not start any more VMs
@@ -81,10 +191,8 @@ Columns:
       The default is -1, indicating no limit or use up to the
       quota. For a discussion of "controls" versus "quotas", see "cores_softmax" below.
 
-* **cores_softmax**:
+* **cores_softmax** (Integer):
 
-   * Format: Integer
-   * Synopsis:
       User specified integer allowing the user to reduce the effective cores quota.
 
       Cloud quotas, unlike CSV2 controls (eg. cores_ctl, ram_ctl, etc.) cannot be exceeded.
@@ -97,259 +205,57 @@ Columns:
       "sofmax" minus "foreign" or the "quota" minus "foreign". This process avoids API
       errors and ensures quotas are never exceeded.
 
-* **ec2_owner_id**:
+* **spot_price** (Float):
 
-   * Format: String(32)
-   * Synopsis:
-      System supplied EC2 owner ID used to identify owned versus shared resouces
-      on an EC2 cloud.
-
-* **enabled**:
-
-   * Format: Boolean
-   * Synopsis:
-      User specified switch indicating whether the cloud should be used (enable=1) or
-      ignored (disabled=0).
-
-* **error_count**:
-
-   * Format: Integer
-   * Synopsis:
-      System maintained counter indicating the number of polling errors received from the
-      cloud.
-
-* **error_time**:
-
-   * Format: Integer
-   * Synopsis:
-
-* **floating_ips_ctl**:
-
-   * Format: Integer
-   * Synopsis:
-      Currently not used.
-
-* **image_meta_ctl**:
-
-   * Format: Integer
-   * Synopsis:
-      Currently not used.
-
-* **instances_ctl**:
-
-   * Format: Integer
-   * Synopsis:
-      Currently not used.
-
-* **keyname** (obsolete):
-
-   * Format: String(20)
-   * Synopsis:
-      Obsolete.
-
-* **keypairs_ctl**:
-
-   * Format: Integer
-   * Synopsis:
-      Currently not used.
-
-* **network_rtt** (obsolete):
-
-   * Format: Integer
-   * Synopsis:
-      System maintained integer recording the last round trip time, in micro-seconds, of
-      a relatively static cloud information query.
-
-* **network_up** (obsolete):
-
-   * Format: Boolean
-   * Synopsis:
-      System maintained switch indicating that CSV2 is able (network_up=1) or unable (network_up=0)
-      to communicate with the cloud.
-
-* **obsolete_keyname**:
-
-   * Format: String(20)
-   * Synopsis:
-
-* **password**:
-
-   * Format: String
-   * Synopsis:
-      User specified secret key to be used during authentication.
-
-* **personality_ctl**:
-
-   * Format: Integer
-   * Synopsis:
-      Currently not used.
-
-* **personality_size_ctl**:
-
-   * Format: Integer
-   * Synopsis:
-      Currently not used.
-
-* **priority**:
-
-   * Format: Integer
-   * Synopsis:
-      User specified selection priority for starting new VMs. Lower numbers (including negative
-      integers) indicate a higher priority and will be selected before other clouds
-      in the group with a lower priority.
-
-* **project**:
-
-   * Format: String(128)
-   * Synopsis:
-      User specified project code to be used during authentication. A "project domain"
-      may also be requied (see below). Some clouds specifically require a "project
-      domain ID" which is different from the project; a dedicated column is
-      provided for the "project domain ID" (see below).
-
-* **project_domain_id**:
-
-   * Format: String(64)
-   * Synopsis:
-      User specified project domain ID to be used during authentication. This value
-      is not normally used and should only be supplied if required by
-      the cloud.
-
-* **project_domain_name**:
-
-   * Format: String(20)
-   * Synopsis:
-      User specified project domain name. The default value is "default".
-
-* **ram_ctl**:
-
-   * Format: Integer
-   * Synopsis:
-      User specified integer control indicating the maximum amount of RAM, in kilo
-      bytes, that may be used on the cloud. Once this amount of
-      RAM is in use by VM instances, CSV2 will not start any
-      more VMs on this cloud. This parameter allows the user to limit
-      their RAM usage on the cloud, to less than the cloud defined
-      RAM quota. The default is -1, indicating no limit or use up
-      to the quota. For a discussion of "controls" versus "quotas", see "cores_softmax"
-      below.
-
-* **region**:
-
-   * Format: String(20)
-   * Synopsis:
-      User specified region to be used during authentication. Many clouds are hosted
-      in multiple geographical locations or regions. Even when a cloud is hosted
-      in a single location it will have a region specification.
-
-* **security_group_rules_ctl**:
-
-   * Format: Integer
-   * Synopsis:
-      Currently not used.
-
-* **security_groups_ctl**:
-
-   * Format: Integer
-   * Synopsis:
-      Currently not used.
-
-* **server_group_members_ctl**:
-
-   * Format: Integer
-   * Synopsis:
-      Currently not used.
-
-* **server_groups_ctl**:
-
-   * Format: Integer
-   * Synopsis:
-      Currently not used.
-
-* **server_meta_ctl**:
-
-   * Format: Integer
-   * Synopsis:
-      Currently not used.
-
-* **spot_price**:
-
-   * Format: Float
-   * Synopsis:
       An optional, user defined integer specifying the maximum price, in cents, to
       bid for commercial resources. Currently, this parameter only applies to Amazon EC2
       clouds.
 
-* **user_domain_id**:
+* **vm_flavor** (String(64)):
 
-   * Format: String(64)
-   * Synopsis:
-      User specified user domain ID to be used during authentication. This value
-      is not normally used and should only be supplied if required by
-      the cloud.
-
-* **user_domain_name**:
-
-   * Format: String(20)
-   * Synopsis:
-      User specified user domain name. The default value is "default".
-
-* **username**:
-
-   * Format: String(20)
-   * Synopsis:
-      User specified ID to be used during authentication. A "user domain" may
-      also be required (see below). Some clouds specifically require a "user domain
-      ID" which is different from the username; a dedicated column is provided
-      for the "user domain ID" (see below).
-
-* **vm_flavor**:
-
-   * Format: String(64)
-   * Synopsis:
       An optional, user defined default flavor to be used when starting VMs
       on this cloud. This value overrides the value, if any, specified at
       the group level.
 
-* **vm_image**:
+* **vm_image** (String(64)):
 
-   * Format: String(64)
-   * Synopsis:
       An optional, user defined default VM image to be used when starting
       VMs on this cloud. This value overrides the value, if any, specified
       at the group level.
 
-* **vm_keep_alive**:
+* **vm_keep_alive** (Integer):
 
-   * Format: Integer
-   * Synopsis:
       An optional, user defined integer specifying, in seconds, the "keep alive" time
       for VMs on this cloud. If VMs remain idle after completing jobs
       for longer than this time, thay will be retired/terminated. This value overrides
       the value, if any, specified at the group level.
 
-* **vm_keyname**:
+* **vm_keyname** (String(64)):
 
-   * Format: String(64)
-   * Synopsis:
       An optional, user defined default SSH public key name to be used
       when starting VMs on this cloud allowing the owner of the key-pair
       remote login root access to the VMs. This value overrides the value,
       if any, specified at the group level.
 
-* **vm_network**:
+* **vm_network** (String(64)):
 
-   * Format: String(64)
-   * Synopsis:
       An optional, user specified network name to be used when starting VMs
       on this cloud. This value overrides the value, if any, specified at
       the group level.
 
-* **vm_security_groups**:
+* **vm_security_groups** (String(128)):
 
-   * Format: String(128)
-   * Synopsis:
       An optional, user specified list of security groups to be used when
       starting VMs on this cloud. This value overrides the value, if any,
       specified at the group level.
+
+* **error_count** (Integer):
+
+      System maintained counter indicating the number of polling errors received from the
+      cloud.
+
+* **error_time** (Integer):
+
+      System maintained timestamp indicating the time of the last polling error received
+      from the cloud.
 

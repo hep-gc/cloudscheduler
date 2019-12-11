@@ -5,3 +5,5 @@ User Guide
    :maxdepth: 1
    :caption: Contents:
 
+   _cli/index
+

@@ -1,0 +1,4 @@
+.B check_documentation
+This action prints a matrix summarizing the completeness of \fBcloudscheduler\fR man page documentation.
+It is used by developers to maintain up to date documentation.
+.TP

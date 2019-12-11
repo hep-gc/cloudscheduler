@@ -8,52 +8,58 @@
 Database Table: django_admin_log
 ================================
 
+This table is one of four related tables:
+
+#. django_admin_log_
+
+#. django_content_type_
+
+#. django_migrations_
+
+#. django_session_
+
+which are information tables defined by the Django web services framework. The
+interested reader is referred to the Django web framework documentation_.
+
+.. _django_admin_log: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_tables/django_admin_log.html
+
+.. _django_content_type: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_tables/django_content_type.html
+
+.. _django_migrations: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_tables/django_migrations.html
+
+.. _django_session: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_tables/django_session.html
+
+.. _documentation: https://docs.djangoproject.com/en/2.2/
 
 
 Keys:
-^^^^^^^^
+^^^^^
 
-* **id**:
+* **id** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
 
 Columns:
 ^^^^^^^^
 
-* **action_flag**:
+* **action_time** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **action_time**:
+* **object_id** (String):
 
-   * Format: Integer
-   * Synopsis:
 
-* **change_message**:
+* **object_repr** (String(200)):
 
-   * Format: String
-   * Synopsis:
 
-* **content_type_id**:
+* **action_flag** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **object_id**:
+* **change_message** (String):
 
-   * Format: String
-   * Synopsis:
 
-* **object_repr**:
+* **content_type_id** (Integer):
 
-   * Format: String(200)
-   * Synopsis:
 
-* **user_id**:
+* **user_id** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 

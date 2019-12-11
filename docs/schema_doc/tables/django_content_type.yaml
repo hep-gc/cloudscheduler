@@ -1,19 +1,20 @@
 django_content_type:
     Synopsis:
+        REF=(tables/django_admin_log)
 
     Keys:
 
         id:
             Format: Integer
-            Synopsis:
+            Synopsis: ''
 
     Columns:
 
         app_label:
             Format: String(100)
-            Synopsis:
+            Synopsis: ''
 
         model:
             Format: String(100)
-            Synopsis:
+            Synopsis: ''
 
