@@ -1,5 +1,29 @@
 view_condor_jobs_group_defaults_applied:
     Synopsis:
+        "
+        .. _view_cloud_status: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_cloud_status.html
+
+        .. _view_cloud_status_slot_detail: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_cloud_status_slot_detail.html
+
+        .. _view_job_status: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_job_status.html
+
+        .. _view_condor_jobs_group_defaults_applied: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_condor_jobs_group_defaults_applied.html
+
+        This view is one of a suite of related views used by the time series poller to populate the
+        time serioes (influxDB) database.  The suite includes:
+        
+        #. view_cloud_status_
+
+        #. view_cloud_status_slot_detail_
+
+        #. view_condor_jobs_group_defaults_applied_ 
+
+        #. view_job_status_
+
+        The **view_condor_jobs_group_defaults_applied** lists all jobs together with the group default resource requests (cpu,
+        disk, RAM, and swp) if the job resource requests are missing. This view also provides an interpretation of the
+        **job_status** field appending the 'js_xxxx' fields (see below).
+        "
 
     Keys:
 
@@ -8,116 +32,151 @@ view_condor_jobs_group_defaults_applied:
         global_job_id:
             Format: String(128)
             Synopsis:
+                REF=(tables/condor_jobs/Keys/global_job_id)
+                Is the global job ID assigned by HTCondor.
 
         group_name:
             Format: String(32)
             Synopsis:
+                REF=(tables/condor_jobs/Columns/group_name)
 
         target_clouds:
             Format: String
             Synopsis:
+                REF=(tables/condor_jobs/Columns/target_clouds)
 
         job_status:
             Format: Integer
             Synopsis:
+                REF=(tables/condor_jobs/Columns/job_status)
 
         request_cpus:
             Format: Integer
             Synopsis:
+                REF=(tables/condor_jobs/Columns/request_cpus)
 
         request_disk:
             Format: Integer
             Synopsis:
+                REF=(tables/condor_jobs/Columns/request_disk)
 
         request_ram:
             Format: Integer
             Synopsis:
+                REF=(tables/condor_jobs/Columns/request_ram)
 
         request_swap:
             Format: Integer
             Synopsis:
+                REF=(tables/condor_jobs/Columns/request_swap)
 
         requirements:
             Format: String(512)
             Synopsis:
+                REF=(tables/condor_jobs/Columns/requirements)
 
         job_priority:
             Format: Integer
             Synopsis:
+                REF=(tables/condor_jobs/Columns/job_priority)
 
         cluster_id:
             Format: Integer
             Synopsis:
+                REF=(tables/condor_jobs/Columns/cluster_id)
 
         proc_id:
             Format: Integer
             Synopsis:
+                REF=(tables/condor_jobs/Columns/proc_id)
 
         user:
             Format: String(512)
             Synopsis:
+                REF=(tables/condor_jobs/Columns/user)
 
         image:
             Format: String
             Synopsis:
+                REF=(tables/condor_jobs/Columns/image)
 
         instance_type:
             Format: String(512)
             Synopsis:
+                REF=(tables/condor_jobs/Columns/instance_type)
 
         network:
             Format: String(512)
             Synopsis:
+                REF=(tables/condor_jobs/Columns/network)
 
         keep_alive:
             Format: String(512)
             Synopsis:
+                REF=(tables/condor_jobs/Columns/keep_alive)
 
         max_price:
             Format: String(512)
             Synopsis:
+                REF=(tables/condor_jobs/Columns/max_price)
 
         user_data:
             Format: String(512)
             Synopsis:
+                REF=(tables/condor_jobs/Columns/user_data)
 
         job_per_core:
             Format: Integer
             Synopsis:
+                REF=(tables/condor_jobs/Columns/job_per_core)
 
         entered_current_status:
             Format: Integer
             Synopsis:
+                REF=(tables/condor_jobs/Columns/entered_current_status)
 
         q_date:
             Format: Integer
             Synopsis:
+                REF=(tables/condor_jobs/Columns/q_date)
 
         hold_job_reason:
             Format: String(64)
             Synopsis:
+                REF=(tables/condor_jobs/Columns/hold_job_reason)
 
         held_reason:
             Format: String(128)
             Synopsis:
+                REF=(tables/condor_jobs/Columns/held_reason)
 
         js_idle:
             Format: Integer
             Synopsis:
+                Is set to 1 if the **job_status** field is 1, indicating that the job is 'idle'.
+                Otherwise, the field is set to 0.
 
         js_running:
             Format: Integer
             Synopsis:
+                Is set to 1 if the **job_status** field is 2, indicating that the job is 'running'.
+                Otherwise, the field is set to 0.
 
         js_completed:
             Format: Integer
             Synopsis:
+                Is set to 1 if the **job_status** field is 4, indicating that the job is 'completed'.
+                Otherwise, the field is set to 0.
 
         js_held:
             Format: Integer
             Synopsis:
+                Is set to 1 if the **job_status** field is 5, indicating that the job is 'held'.
+                Otherwise, the field is set to 0.
 
         js_other:
             Format: Integer
             Synopsis:
+                Is set to 1 if the **job_status** field is either 0, 3, or 6.
+                Otherwise, the field is set to 0.
 

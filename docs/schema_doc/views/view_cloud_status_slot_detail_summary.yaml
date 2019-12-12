@@ -1,5 +1,12 @@
 view_cloud_status_slot_detail_summary:
     Synopsis:
+        "
+        REF=(common/view_cloud_status)
+        
+        REF=(common/view_cloud_status_slots)
+
+        REF=(common/view_cloud_status_slots/Columns/slot_detail)
+        "
 
     Keys:
 
@@ -8,20 +15,25 @@ view_cloud_status_slot_detail_summary:
         group_name:
             Format: String(32)
             Synopsis:
+                REF=(views/view_cloud_status_flavor_slot_detail_summary/Columns/group_name)
 
         cloud_name:
             Format: String(32)
             Synopsis:
+                REF=(views/view_cloud_status_flavor_slot_detail_summary/Columns/cloud_name)
 
         slot_type:
             Format: Integer
             Synopsis:
+                REF=(views/view_cloud_status_flavor_slot_detail_summary/Columns/slot_type)
 
         slot_count:
             Format: Integer
             Synopsis:
+                REF=(views/view_cloud_status_flavor_slot_detail_summary/Columns/slot_count)
 
         core_count:
             Format: Integer
             Synopsis:
+                REF=(views/view_cloud_status_flavor_slot_detail_summary/Columns/core_count)
 

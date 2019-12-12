@@ -8,67 +8,81 @@
 Database Table: csv2_user
 =========================
 
+This table maintains the inventory of CSV2 users. There are two kinds
+of users: - super users, who can do anything (because they can
+add themselves to any group). - other users, who can do nothing
+unless they are added to a group.
+
+For each user, the table contains user preferences in addition to the
+authentication and authorization controls.
 
 
 Keys:
-^^^^^^^^
+^^^^^
 
-* **username**:
+* **username** (String(32)):
 
-   * Format: String(32)
-   * Synopsis:
+      Is the CSV2 login ID of the user. Usernames are created by
+      super users.
 
 
 Columns:
 ^^^^^^^^
 
-* **cert_cn**:
+* **cert_cn** (String(128)):
 
-   * Format: String(128)
-   * Synopsis:
+      If the user provides their x509 grid certificate Common Name (CN), users
+      can authenticate using their certificatesr. In which case, the user will not
+      be prompted for their CSV2 password.
 
-* **default_group**:
+* **password** (String(128)):
 
-   * Format: String(32)
-   * Synopsis:
+      Is the user password to authenticate with CSV2. If the user is
+      not authenticating with any other methd, CSV2 will prompt the user for
+      this value.
 
-* **flag_global_status**:
+* **is_superuser** (Boolean):
 
-   * Format: Boolean
-   * Synopsis:
+      If set to 1, the user is considered a super user and
+      has all rights and privileges. Otherwise, the user is a normal user
+      and only has privileges within a group.
 
-* **flag_show_foreign_global_vms**:
+* **join_date** (Integer):
 
-   * Format: Boolean
-   * Synopsis:
+      A system generated timestamp indicating when this username was first added.
 
-* **flag_show_slot_detail**:
+* **default_group** (String(32)):
 
-   * Format: Boolean
-   * Synopsis:
+      A user preference indicating their default group of all the groups they
+      are a member of.
 
-* **flag_show_slot_flavors**:
+* **flag_global_status** (Boolean):
 
-   * Format: Boolean
-   * Synopsis:
+      A user preference selecting the format of the status page. If set
+      to 0, only the user current group information will appear on the
+      status page. If set to 1, the status page will display all
+      the groups of which the user is a member.
 
-* **is_superuser**:
+* **flag_show_foreign_global_vms** (Boolean):
 
-   * Format: Boolean
-   * Synopsis:
+      A user preference modifying the format of the status page. If set
+      to 0, foreign and global VM information will not be displayed. If
+      set to 1, foreign and global VM information will be displayed.
 
-* **join_date**:
+* **flag_show_slot_detail** (Boolean):
 
-   * Format: Integer
-   * Synopsis:
+      A user preference specifying the information the expanded VM status is to
+      display. If set to 0, only a slot summary will be displayed.
+      If set to 1, the slot summary together with the slot detail
+      will be displayed.
 
-* **password**:
+* **flag_show_slot_flavors** (Boolean):
 
-   * Format: String(128)
-   * Synopsis:
+      A user preference specifying the format of the slot summary. If set
+      to 0, the slot summary will not contain any flavor information. If
+      set to 1, the slot summary will contain flavor information.
 
-* **status_refresh_interval**:
+* **status_refresh_interval** (Integer):
 
-   * Format: Integer
-   * Synopsis:
+      A user preference specifying the number of seconds between status page refreshes.
 

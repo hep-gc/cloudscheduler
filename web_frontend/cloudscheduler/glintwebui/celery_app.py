@@ -107,7 +107,7 @@ def tx_request(self, tx_id):
     config.db_open()
     # get tx row from database
     tx_row = _get_tx_row(IMG_TX, tx_id, config)
-    logger.info("Processing transaction: %s" % tx_row.tx_id)
+    logger.info("Processing transaction: %s: Move image %s to target group-cloud %s-%s" % (tx_row.tx_id, tx_row.image_name, tx_row.target_group_name, tx_row.target_cloud_name))
     print("Processing transaction: %s" % tx_row.tx_id)
     # triple check target image doesn't exist
     if _check_image(tx_row.target_group_name, tx_row.target_group_name, tx_row.image_name, tx_row.checksum, config):

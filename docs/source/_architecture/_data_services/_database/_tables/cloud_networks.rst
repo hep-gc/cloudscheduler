@@ -19,24 +19,18 @@ target cloud.
 
 
 Keys:
-^^^^^^^^
+^^^^^
 
-* **cloud_name**:
+* **group_name** (String(32)):
 
-   * Format: String(32)
-   * Synopsis:
-      Name of the cloud the network was queried from
-
-* **group_name**:
-
-   * Format: String(32)
-   * Synopsis:
       Group name associated with the cloud the network was queried from.
 
-* **id**:
+* **cloud_name** (String(32)):
 
-   * Format: String(128)
-   * Synopsis:
+      Name of the cloud the network was queried from
+
+* **id** (String(128)):
+
       Unique ID of the network. This ID is from the source cloud
       and may not be unique with respect to entries from different clouds.
 
@@ -44,46 +38,32 @@ Keys:
 Columns:
 ^^^^^^^^
 
-* **cloud_type**:
+* **name** (String(256)):
 
-   * Format: String(64)
-   * Synopsis:
-      Type of cloud the network was queried from.
-
-* **external_route**:
-
-   * Format: Boolean
-   * Synopsis:
-      A boolean representing whether or not the network has an external route.
-
-* **last_updated**:
-
-   * Format: Integer
-   * Synopsis:
-      Timestamp in seconds since epoch representing the last time the network was
-      updated in csv2.
-
-* **name**:
-
-   * Format: String(256)
-   * Synopsis:
       Name of the network as defined on the cloud.
 
-* **shared**:
+* **cloud_type** (String(64)):
 
-   * Format: Boolean
-   * Synopsis:
-      A boolean representing whether or not the network is shared.
+      Type of cloud the network was queried from.
 
-* **subnets**:
+* **subnets** (String(256)):
 
-   * Format: String(256)
-   * Synopsis:
       ID of any subnets within a given network.
 
-* **tenant_id**:
+* **tenant_id** (String(128)):
 
-   * Format: String(128)
-   * Synopsis:
       ID of the cloud tenant/project associated with a given network
+
+* **external_route** (Boolean):
+
+      A boolean representing whether or not the network has an external route.
+
+* **shared** (Boolean):
+
+      A boolean representing whether or not the network is shared.
+
+* **last_updated** (Integer):
+
+      Timestamp in seconds since epoch representing the last time the network was
+      updated in csv2.
 

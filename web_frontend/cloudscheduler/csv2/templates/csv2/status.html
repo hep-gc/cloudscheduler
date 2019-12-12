@@ -237,7 +237,7 @@
                                                 <tr>
 
                                                 {% if job.js_idle != 0 %}
-                                                    <td data-path="{{job.group_name}} jobs_idle_{{job.request_cpus}}core" class="float-center plottable">{{ job.request_cpus }}c: {{ job.js_idle }}</td>
+                                                    <td data-path="{{job.group_name}} jobs_idle_{{job.request_cpus}}core" class="float-center plottable">{{ job.js_idle }}&#10005;{{ job.request_cpus }}c</td>
                                                 {% else %}
                                                     <td data-path="{{job.group_name}} jobs_idle_{{job.request_cpus}}core" class="float-center plottable">&nbsp;</td> 
                                                     <!--<td class="zero-style" >{{ job.js_idle }}&#10005;{{ job.request_cpus }}c</td>-->
@@ -332,7 +332,7 @@
                     <tr class="header-row">
                         <th class="group-name jobs-style">Group</th>
                         <th class="name-style">Clouds</th>
-                        <th class="jobs-style">RT (ms)</th>
+                        <th class="jobs-style">RT (μs)</th>
                         <th class="col-spacer">&nbsp;</th>
                         <th class="native-style">VMs</th>
                         <th class="native-style">Starting</th>

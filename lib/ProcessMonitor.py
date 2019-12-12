@@ -26,7 +26,7 @@ class ProcessMonitor:
         logging.basicConfig(
             filename=self.config.categories[os.path.basename(sys.argv[0])]["log_file"],
             level=self.config.categories[os.path.basename(sys.argv[0])]["log_level"],
-            format='%(asctime)s - %(processName)-12s - %(levelname)s - %(message)s')
+            format='%(asctime)s - %(processName)-12s - %(process)d - %(levelname)s - %(message)s')
         self.orange_count_row = orange_count_row
         self.previous_orange_count, self.current_orange_count = set_orange_count(self.logging, self.config, orange_count_row, 1, 0)
         self.process_ids = process_ids

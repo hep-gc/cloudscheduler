@@ -8,42 +8,61 @@
 Database Table: csv2_group_metadata
 ===================================
 
+In order for a Virtual Machine (VM) running on a cloud to
+be useful in the distributed cloud computing environment, it must be "contextualized".
+At a minumum, it must register with a condor central manager to
+receive jobs to execute. This contextualization is achieved through metadata which is
+passed to **cloud-init** (see https://cloudinit.readthedocs.io/en/latest/). The metadata to be used is saved
+as files within the database. Metadata can be defined at the group
+level (applies to all clouds within the group) or specific to each
+cloud. All enabled metadata, both group and cloud level metadata, is collated
+in priority order and passed to cloud-init.
+
+This table maintains group level metadata applicable to all clouds within the
+group.
 
 
 Keys:
-^^^^^^^^
+^^^^^
 
-* **group_name**:
+* **group_name** (String(32)):
 
-   * Format: String(32)
-   * Synopsis:
+      Is the name of the group owning the metadata file.
 
-* **metadata_name**:
+* **metadata_name** (String(64)):
 
-   * Format: String(64)
-   * Synopsis:
+      Is the arbitrary unique name, within the group's metadata files, of this
+      metadata file.
 
 
 Columns:
 ^^^^^^^^
 
-* **enabled**:
+* **enabled** (Boolean):
 
-   * Format: Boolean
-   * Synopsis:
+      If set to 0, the metadata file is disabled and will not
+      be used. If set to 1, the metadata file is enabled and
+      will be passed to cloud-init in priority order.
 
-* **metadata**:
+* **priority** (Integer):
 
-   * Format: String
-   * Synopsis:
+      An integer (including negative integers) indicating the metadata file priority. Lower numbers
+      have highter priority and will be included earlier in the collation order.
 
-* **mime_type**:
+* **metadata** (String):
 
-   * Format: String(128)
-   * Synopsis:
+      Is the metadata. It's format is dependent on the application that consumes
+      it (see "mime_type" below).
 
-* **priority**:
+* **mime_type** (String(128)):
 
-   * Format: Integer
-   * Synopsis:
+      Is a valid mime type determining the way in which CSV2 handles
+      this file. Examples of mime_type are:
+
+      o cloud-config - yaml files passed to cloud-init.
+
+      o ucernvm-config - a CernVM parameter file (see CernVM documentation).
+
+      For a complete list refer to the content of the CSV2 table
+      csv2_mime_types.
 

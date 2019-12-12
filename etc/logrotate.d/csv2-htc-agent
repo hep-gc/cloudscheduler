@@ -5,6 +5,6 @@
   missingok
   compress
   copytruncate
-  create 0644 cloudscheduler cloudscheduler
+  create 0644 condor condor
 }
 

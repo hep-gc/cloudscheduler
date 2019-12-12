@@ -1,0 +1,14 @@
+view_ec2:
+    Synopsis:
+        "
+        .. _view_ec2_images: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_ec2_images.html
+
+        .. _view_ec2_instance_types: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_ec2_instance_types.html
+
+        This view is one of a suite of related views used by the User Interface (UI) processes to present
+        Amazon EC2 information. The suite includes:
+        
+        #. view_ec2_images_
+
+        #. view_ec2_instance_types_
+        "

@@ -13,12 +13,10 @@ is identified by a unique string termed the "entity".
 
 
 Keys:
-^^^^^^^^
+^^^^^
 
-* **entity**:
+* **entity** (String(64)):
 
-   * Format: String(64)
-   * Synopsis:
       A unique string identifying/describing a significant event for which a timestamp needs
       to be maintained.
 
@@ -26,10 +24,8 @@ Keys:
 Columns:
 ^^^^^^^^
 
-* **last_updated**:
+* **last_updated** (Integer):
 
-   * Format: Integer
-   * Synopsis:
       The number of seconds since the epoch when this significant event last
       occurred.
 

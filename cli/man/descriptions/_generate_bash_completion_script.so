@@ -1,4 +1,0 @@
-This action writes a bash script to standard out which can
-be installed in "/etc/bash_completion.d/cloudscheduler" and will provde command 
-parameter tab completion.
-

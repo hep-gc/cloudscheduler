@@ -255,7 +255,7 @@ def log_append(gvar):
         fd = open(gvar['db_config'].log_file, 'a')
 
         for cmd in gvar['watch']:
-            if cmd['change']:
+            if 'change' not in cmd or cmd['change']:
                 fd.write('%s\n' % '\n'.join(cmd['report']))
             else:
                 fd.write('%s no change.\n' % cmd['id'])

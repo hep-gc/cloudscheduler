@@ -1,75 +1,76 @@
 silk_request:
     Synopsis:
+        REF=(tables/silk_profile)
 
     Keys:
 
         id:
             Format: String(36)
-            Synopsis:
+            Synopsis: ''
 
     Columns:
 
         path:
             Format: String(190)
-            Synopsis:
+            Synopsis: ''
 
         query_params:
             Format: String
-            Synopsis:
+            Synopsis: ''
 
         raw_body:
             Format: String
-            Synopsis:
+            Synopsis: ''
 
         body:
             Format: String
-            Synopsis:
+            Synopsis: ''
 
         method:
             Format: String(10)
-            Synopsis:
+            Synopsis: ''
 
         start_time:
             Format: Integer
-            Synopsis:
+            Synopsis: ''
 
         view_name:
             Format: String(190)
-            Synopsis:
+            Synopsis: ''
 
         end_time:
             Format: Integer
-            Synopsis:
+            Synopsis: ''
 
         time_taken:
             Format: Float
-            Synopsis:
+            Synopsis: ''
 
         encoded_headers:
             Format: String
-            Synopsis:
+            Synopsis: ''
 
         meta_time:
             Format: Float
-            Synopsis:
+            Synopsis: ''
 
         meta_num_queries:
             Format: Integer
-            Synopsis:
+            Synopsis: ''
 
         meta_time_spent_queries:
             Format: Float
-            Synopsis:
+            Synopsis: ''
 
         pyprofile:
             Format: String
-            Synopsis:
+            Synopsis: ''
 
         num_sql_queries:
             Format: Integer
-            Synopsis:
+            Synopsis: ''
 
         prof_file:
             Format: String(300)
-            Synopsis:
+            Synopsis: ''
 

@@ -8,15 +8,33 @@
 Database Table: csv2_image_transactions
 =======================================
 
+.. _csv2_image_cache: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_tables/csv2_image_cache.html
+
+.. _csv2_image_pull_requests: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_tables/csv2_image_pull_requests.html
+
+.. _csv2_image_transactions: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_tables/csv2_image_transactions.html
+
+This table is one of three tables used by the image distribution
+service to manage the movement of (kernal) images and ssh keypairs between
+clouds. The tables are:
+
+#. csv2_image_cache_
+
+#. csv2_image_pull_requests_
+
+#. csv2_image_transactions_
+
+The image distribution service (Glint) ensures copies of objects are available on
+each cloud where they are required by CSV2 users. The service provides
+User Interface (UI) displays to indicate current distribution as well as capabilities
+to remove or make additional copies on defined clouds.
 
 
 Keys:
-^^^^^^^^
+^^^^^
 
-* **tx_id**:
+* **tx_id** (String(16)):
 
-   * Format: String(16)
-   * Synopsis:
       A string representing the unique ID of a pull request. Consists of
       a randomly generated string of length 16 using standard python letters, numbers,
       and punctuation. These should be unique to each transaction and the chance
@@ -26,58 +44,40 @@ Keys:
 Columns:
 ^^^^^^^^
 
-* **checksum**:
+* **status** (String(128)):
 
-   * Format: String(64)
-   * Synopsis:
-      MD5 checksum of the source image to be uploaded.
-
-* **image_id**:
-
-   * Format: String(128)
-   * Synopsis:
-      Openstack ID of the source image to be uploaded.
-
-* **image_name**:
-
-   * Format: String(128)
-   * Synopsis:
-      Name of the image to be uploaded.
-
-* **message**:
-
-   * Format: String(128)
-   * Synopsis:
-      String containing any error messages encountered while processing the pull request.
-
-* **request_time**:
-
-   * Format: Integer
-   * Synopsis:
-      Timestamp in seconds from epoch of when the request was queued.
-
-* **requester**:
-
-   * Format: String(64)
-   * Synopsis:
-      Username of the user who queued the pull request.
-
-* **status**:
-
-   * Format: String(128)
-   * Synopsis:
       Current status of the transaction request to be displayed on the web
       display.
 
-* **target_cloud_name**:
+* **message** (String(128)):
 
-   * Format: String(128)
-   * Synopsis:
+      String containing any error messages encountered while processing the pull request.
+
+* **target_group_name** (String(128)):
+
+      Name of the group the image should be uploaded to.
+
+* **target_cloud_name** (String(128)):
+
       Name of the cloud the image should be uploaded to.
 
-* **target_group_name**:
+* **image_name** (String(128)):
 
-   * Format: String(128)
-   * Synopsis:
-      Name of the group the image should be uploaded to.
+      Name of the image to be uploaded.
+
+* **image_id** (String(128)):
+
+      Openstack ID of the source image to be uploaded.
+
+* **checksum** (String(64)):
+
+      MD5 checksum of the source image to be uploaded.
+
+* **request_time** (Integer):
+
+      Timestamp in seconds from epoch of when the request was queued.
+
+* **requester** (String(64)):
+
+      Username of the user who queued the pull request.
 

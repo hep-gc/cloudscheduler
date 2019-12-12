@@ -1,5 +1,11 @@
 view_job_status:
     Synopsis:
+        "
+        REF=(common/view_cloud_status)
+
+        The **view_job_status** details current job information including counts, HTCondor job scheduler and agent status,
+        and the validity on any required authentication certificates.
+        "
 
     Keys:
 
@@ -8,52 +14,74 @@ view_job_status:
         group_name:
             Format: String(32)
             Synopsis:
+                Is the name of the group owning the jobs.
 
         Jobs:
             Format: Integer
             Synopsis:
+                Is the total number of jobs.
 
         Idle:
             Format: Integer
             Synopsis:
+                Is the total number of jobs in the 'idle' state. These jobs are waiting to run..
 
         Running:
             Format: Integer
             Synopsis:
+                Is the total number of jobs in the 'running' state.
 
         Completed:
             Format: Integer
             Synopsis:
+                Is the total number of jobs in the 'completed' state.
 
         Held:
             Format: Integer
             Synopsis:
+                Is the total number of jobs in the 'held' state.
 
         Other:
             Format: Integer
             Synopsis:
+                Is the total number of jobs in a state other than any of those listed above.
 
         foreign:
             Format: Integer
             Synopsis:
+                "Is the the total number of jobs controlled by the group's job scheduler (see 'htcondor_fqdn' below)
+                which do not belong to this group."
 
         htcondor_status:
             Format: Integer
             Synopsis:
+               "Is a flag indicating the status of the group's job scheduler. A value of one indicates that the job
+               scheduler is running. A value of zero indicates that the job scheduler is not running. Any other value
+               indicates a mis-configuration of the job scheduler."
 
         agent_status:
             Format: Integer
             Synopsis:
+               "Is a flag indicating the status of the **csv2-htc-agent** associated with the group's job scheduler. A value
+               of one indicates that the agent is running. A value of zero indicates that the agent is not running. Any other value
+               indicates a mis-configuration of the agent."
 
         htcondor_fqdn:
             Format: String(128)
             Synopsis:
+                "Is the Fully Qualified Domain Name (FQDN) of the server hosting the group's HTCondor job scheduler."
 
         condor_days_left:
             Format: Integer
             Synopsis:
+                Is the number of days remaining on the HTCondor host certificate. A value less than one indicates that the
+                certificate has expired. A NULL value indicates that a certificate has not been configured and may not
+                be required (see 'htcondor_status' above)."
 
         worker_days_left:
             Format: Integer
             Synopsis:
+                Is the number of days remaining on the VM worker certificate. A value less than one indicates that the
+                certificate has expired. A NULL value indicates that a certificate has not been configured and may not
+                be required (see 'agent_status' above)."
 

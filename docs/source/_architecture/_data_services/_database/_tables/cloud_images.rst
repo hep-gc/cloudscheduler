@@ -19,24 +19,18 @@ the target cloud.
 
 
 Keys:
-^^^^^^^^
+^^^^^
 
-* **cloud_name**:
+* **group_name** (String(32)):
 
-   * Format: String(32)
-   * Synopsis:
       Group name associated with the cloud the image was queried from.
 
-* **group_name**:
+* **cloud_name** (String(32)):
 
-   * Format: String(32)
-   * Synopsis:
       Group name associated with the cloud the image was queried from.
 
-* **id**:
+* **id** (String(128)):
 
-   * Format: String(128)
-   * Synopsis:
       Unique ID of the Image. This ID is from the source cloud
       and may not be unique with respect to entries from different clouds.
 
@@ -44,67 +38,47 @@ Keys:
 Columns:
 ^^^^^^^^
 
-* **checksum**:
+* **cloud_type** (String(64)):
 
-   * Format: String(64)
-   * Synopsis:
-      MD5 checksum of the image file.
-
-* **cloud_type**:
-
-   * Format: String(64)
-   * Synopsis:
       Type of cloud the flavour is from (openstack, amazon, etc)
 
-* **container_format**:
+* **container_format** (String(128)):
 
-   * Format: String(128)
-   * Synopsis:
       Container format of the machine image. (AMI, ARI, AKI, Bare, Docker, OVA,
       OVF)
 
-* **disk_format**:
+* **disk_format** (String(128)):
 
-   * Format: String(128)
-   * Synopsis:
       Disk format of the machine image. (AMI, ARI, AKI, VHD, VMDK, RAW,
       QCOW2, VHDX, VDI, ISO, and Ploop)
 
-* **last_updated**:
+* **name** (String(256)):
 
-   * Format: Integer
-   * Synopsis:
-      Timestamp in seconds from epoch since the image has last been updated
-      in the csv2 database.
-
-* **min_disk**:
-
-   * Format: Integer
-   * Synopsis:
-      Minimum amount of disk space required to boot the image.
-
-* **min_ram**:
-
-   * Format: Integer
-   * Synopsis:
-      Minimum amount of RAM required to boot the image.
-
-* **name**:
-
-   * Format: String(256)
-   * Synopsis:
       Name of the machine image.
 
-* **size**:
+* **size** (Integer):
 
-   * Format: Integer
-   * Synopsis:
       Size of the image in bytes.
 
-* **visibility**:
+* **visibility** (String(128)):
 
-   * Format: String(128)
-   * Synopsis:
       Visability status of the image on the cloud. For openstack:public, private, or
       shared. For amazon images it is a boolean representing public or private.
+
+* **min_disk** (Integer):
+
+      Minimum amount of disk space required to boot the image.
+
+* **min_ram** (Integer):
+
+      Minimum amount of RAM required to boot the image.
+
+* **checksum** (String(64)):
+
+      MD5 checksum of the image file.
+
+* **last_updated** (Integer):
+
+      Timestamp in seconds from epoch since the image has last been updated
+      in the csv2 database.
 

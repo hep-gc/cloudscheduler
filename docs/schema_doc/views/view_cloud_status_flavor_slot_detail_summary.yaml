@@ -1,5 +1,12 @@
 view_cloud_status_flavor_slot_detail_summary:
     Synopsis:
+        "
+        REF=(common/view_cloud_status)
+        
+        REF=(common/view_cloud_status_slots)
+
+        REF=(common/view_cloud_status_slots/Columns/flavor_slot_detail)
+        "
 
     Keys:
 
@@ -8,24 +15,30 @@ view_cloud_status_flavor_slot_detail_summary:
         group_name:
             Format: String(32)
             Synopsis:
+                Is the name of the group owning the cloud.
 
         cloud_name:
             Format: String(32)
             Synopsis:
+                Is the name of the cloud hosting the HTCondor dynamic slots.
 
         flavor:
             Format: String(46)
             Synopsis:
+                Is the name of the flavor used to instantiate the VMs hosting the slots.    
 
         slot_type:
             Format: Integer
             Synopsis:
+                This integer indicates the number of (cpu) cores assigned to slots of this type.
 
         slot_count:
             Format: Integer
             Synopsis:
+                Is the number of slots of this **slot_type** that are currently running.
 
         core_count:
             Format: Integer
             Synopsis:
+                Is calculated as **slot_type** multiplied by **slot_count**.
 

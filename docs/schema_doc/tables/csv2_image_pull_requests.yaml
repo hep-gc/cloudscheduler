@@ -1,5 +1,6 @@
 csv2_image_pull_requests:
     Synopsis:
+        "REF=(common/csv2_image)"
 
     Keys:
 

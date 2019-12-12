@@ -8,47 +8,58 @@
 Database Table: csv2_image_cache
 ================================
 
+.. _csv2_image_cache: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_tables/csv2_image_cache.html
+
+.. _csv2_image_pull_requests: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_tables/csv2_image_pull_requests.html
+
+.. _csv2_image_transactions: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_tables/csv2_image_transactions.html
+
+This table is one of three tables used by the image distribution
+service to manage the movement of (kernal) images and ssh keypairs between
+clouds. The tables are:
+
+#. csv2_image_cache_
+
+#. csv2_image_pull_requests_
+
+#. csv2_image_transactions_
+
+The image distribution service (Glint) ensures copies of objects are available on
+each cloud where they are required by CSV2 users. The service provides
+User Interface (UI) displays to indicate current distribution as well as capabilities
+to remove or make additional copies on defined clouds.
+
 This table maintains a list of images that have been saved locally
 on the the csv2 machine as the result of a direct upload
 or as a part of a transfer request.
 
 
 Keys:
-^^^^^^^^
+^^^^^
 
-* **checksum**:
+* **image_name** (String(256)):
 
-   * Format: String(64)
-   * Synopsis:
-      A number representing the MD5 checksum of the image file.
-
-* **image_name**:
-
-   * Format: String(256)
-   * Synopsis:
       Name of the image as specified by the file name,
+
+* **checksum** (String(64)):
+
+      A number representing the MD5 checksum of the image file.
 
 
 Columns:
 ^^^^^^^^
 
-* **container_format**:
+* **container_format** (String(128)):
 
-   * Format: String(128)
-   * Synopsis:
       Format of the image container, typically support: AMI, ARI, AKI, Bare, Docker,
       OVA, OVF
 
-* **disk_format**:
+* **disk_format** (String(128)):
 
-   * Format: String(128)
-   * Synopsis:
       Format of the disk used by the image, supports: AMI, ARI, AKI,
       VHD, VMDK, RAW, QCOW2, VHDX, VDI, ISO, and Ploop
 
-* **downloaded**:
+* **downloaded** (Integer):
 
-   * Format: Integer
-   * Synopsis:
       A timestamp representing the date it was downloaded onto the csv2 machine.
 

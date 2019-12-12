@@ -1,75 +1,133 @@
 csv2_groups:
     Synopsis:
+        This table maintains CSV2 groups which is the principle authorization concept behind managing cloud
+        resources to enable job scheduling on one or more clouds.
+        A group may have zero to many members/users, each of which have equal and full rights to manage and control
+        the resources of the group.
+        A user that is not a member of a group has no rights within that group but may be granted privileges
+        for specific actions regarding that group (eg. submit jobs for the group).
+
+        Groups can be added and deleted by super users. Super users are not automatically added to any group
+        but must be added to groups just like any other user. Adding users to groups (and user definition)
+        is also done by super users.
+
+        When a group is defined, it is furnished with a default job scheduler, and set of configurable
+        system-wide job and VM defaults (see csv2_configuration).
+        Members of the group have the ability to modify any of these settings.
+
+        Additionally, CSV2 automatically maintains a number of status fields iwithin the group definition to
+        assist operations and warn of possible failings.
+        These values are not modifiable by users.
 
     Keys:
 
         group_name:
             Format: String(32)
             Synopsis:
+                Is a unique arbitrary short name identifying the group.
 
     Columns:
 
         htcondor_fqdn:
             Format: String(128)
             Synopsis:
+                Is the Fully Qualified Domain Name of the server hosting the HTCondor job scheduler 
+                serving this group.
+                Members may override this setting.
 
         htcondor_gsi_dn:
             Format: String(128)
             Synopsis:
+                If the HTCondor job scheduler has GSI authentication enabled (the dsefault job scheduler
+                does), CSV2 processes will populate this field with the Destinquished Name (DN) of the 
+                HTCondor certificate. It cannot be modified by members.
 
         htcondor_container_hostname:
             Format: String(128)
             Synopsis:
+                User supplied container name if CSV2 is running in a container.
 
         htcondor_other_submitters:
             Format: String(128)
             Synopsis:
+                This user supplied field maintains a comma seperated list of user IDs, each of which is not
+                a member of the group but are allowed to submit jobs on behalf of the group.
 
         job_cpus:
             Format: Integer
             Synopsis:
+                If not specified in the Job Definition File (JDL), this is the default value for the job parameter
+                "request_cpus" for any job submitted for this group.
 
         job_ram:
             Format: Integer
             Synopsis:
+                If not specified in the Job Definition File (JDL), this is the default value for the job parameter
+                "request_ram" for any job submitted for this group. The value is specified in megabytes.
 
         job_disk:
             Format: Integer
             Synopsis:
+                If not specified in the Job Definition File (JDL), this, together with "job_scratch" is the
+                default value for the job parameter "request_disk" for any job submitted for this group.
+                The value is specified in gigabytes.
 
         job_scratch:
             Format: Integer
             Synopsis:
+                If not specified in the Job Definition File (JDL), this, together with "job_disk" is the
+                default value for the job parameter "request_disk" for any job submitted for this group.
+                The value is specified in gigabytes.
+                If not specified in the Job Definition File (JDL), this is the default value for the job parameter
+                "request_disk" for any job submitted for this group. The value is specified in gigabytes.
 
         job_swap:
             Format: Integer
             Synopsis:
+                If not specified in the Job Definition File (JDL), this is the default value for the job parameter
+                "request_swap" for any job submitted for this group. The value is specified in gigabytes.
 
         vm_flavor:
             Format: String(64)
             Synopsis:
+                If not specified in the Job Definition File (JDL), and no defaults is specified for the cloud,
+                this field provides the default VM flavor for jobs submitted to this group
 
         vm_image:
             Format: String(64)
             Synopsis:
+                If not specified in the Job Definition File (JDL), and no defaults is specified for the cloud,
+                this field provides the default VM (kernel) image for jobs submitted to this group
 
         vm_keep_alive:
             Format: Integer
             Synopsis:
+                If no default is specified for the cloud, this field provides the default "keep_alive" time
+                for VMs started for this group
 
         vm_keyname:
             Format: String(64)
             Synopsis:
+                If not specified in the Job Definition File (JDL), and no defaults is specified for the cloud,
+                this field provides the default VM key-pair for jobs submitted to this group
 
         vm_network:
             Format: String(64)
             Synopsis:
+                If not specified in the Job Definition File (JDL), and no defaults is specified for the cloud,
+                this field provides the default VM network for jobs submitted to this group
 
         vm_security_groups:
             Format: String(128)
             Synopsis:
+                If not specified in the Job Definition File (JDL), and no defaults is specified for the cloud,
+                this field provides the default comma seperated list of security groups for jobs submitted to
+                this group
 
         htcondor_gsi_eol:
             Format: Integer
             Synopsis:
+                If the HTCondor job scheduler has GSI authentication enabled (the dsefault job scheduler
+                does), CSV2 processes will populate this field with the the number of days remaining for the
+                HTCondor certificate. It cannot be modified. by members
 

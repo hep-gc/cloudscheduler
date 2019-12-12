@@ -1,0 +1,14 @@
+view_user_groups:
+    Synopsis:
+        "
+        .. _view_user_groups: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_user_groups.html
+
+        .. _view_user_groups_available: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_user_groups_available.html
+
+        This view is one of a suite of related views supporting the user management functions of CSV2.
+        The suite includes:
+        
+        #. view_user_groups_
+
+        #. view_user_groups_available_
+        "

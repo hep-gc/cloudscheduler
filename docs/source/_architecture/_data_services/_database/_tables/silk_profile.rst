@@ -8,72 +8,76 @@
 Database Table: silk_profile
 ============================
 
+This table is one of five related tables:
+
+#. silk_profile_
+
+#. silk_profile_queries_
+
+#. silk_request_
+
+#. silk_response_
+
+#. silk_sqlquery_
+
+
+which are control and information tables defined by the Silk Performance Profiler
+for the python/django web services framework. The interested reader is referred to
+the Silk Performance Profiler documentation_.
+
+.. _silk_profile: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_tables/silk_profile.html
+
+.. _silk_profile_queries: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_tables/silk_profile_queries.html
+
+.. _silk_request: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_tables/silk_request.html
+
+.. _silk_response: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_tables/silk_response.html
+
+.. _silk_sqlquery: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_tables/silk_sqlquery.html
+
+.. _documentation: https://silk.readthedocs.io/en/latest/#
 
 
 Keys:
-^^^^^^^^
+^^^^^
 
-* **id**:
+* **id** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
 
 Columns:
 ^^^^^^^^
 
-* **dynamic**:
+* **name** (String(300)):
 
-   * Format: Boolean
-   * Synopsis:
 
-* **end_line_num**:
+* **start_time** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **end_time**:
+* **end_time** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **exception_raised**:
+* **time_taken** (Float):
 
-   * Format: Boolean
-   * Synopsis:
 
-* **file_path**:
+* **file_path** (String(300)):
 
-   * Format: String(300)
-   * Synopsis:
 
-* **func_name**:
+* **line_num** (Integer):
 
-   * Format: String(300)
-   * Synopsis:
 
-* **line_num**:
+* **end_line_num** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **name**:
+* **func_name** (String(300)):
 
-   * Format: String(300)
-   * Synopsis:
 
-* **request_id**:
+* **exception_raised** (Boolean):
 
-   * Format: String(36)
-   * Synopsis:
 
-* **start_time**:
+* **dynamic** (Boolean):
 
-   * Format: Integer
-   * Synopsis:
 
-* **time_taken**:
+* **request_id** (String(36)):
 
-   * Format: Float
-   * Synopsis:
 

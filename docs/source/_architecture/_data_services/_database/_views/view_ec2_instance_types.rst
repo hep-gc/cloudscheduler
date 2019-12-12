@@ -8,67 +8,80 @@
 Database View: view_ec2_instance_types
 ======================================
 
+.. _view_ec2_images: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_ec2_images.html
 
+.. _view_ec2_instance_types: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_ec2_instance_types.html
 
-Keys:
-^^^^^^^^
+This view is one of a suite of related views used by
+the User Interface (UI) processes to present Amazon EC2 information. The suite
+includes:
+
+#. view_ec2_images_
+
+#. view_ec2_instance_types_
+
+The **view_ec2_instance_types** presents the content of ec2_instance_types CSV2 table interpreting and appending
+the memory_per_core and processor_manufacturer fields.
 
 
 Columns:
 ^^^^^^^^
 
-* **cores**:
+* **region** (String(32)):
 
-   * Format: Integer
-   * Synopsis:
+      Is the Amazon EC2 region offering the instance type.
 
-* **cost_per_hour**:
+* **instance_type** (String(32)):
 
-   * Format: Float
-   * Synopsis:
+      Is the instance type name.
 
-* **instance_family**:
+* **operating_system** (String(32)):
 
-   * Format: String(32)
-   * Synopsis:
+      Is the operating system supported by this instance type.
 
-* **instance_type**:
+* **instance_family** (String(32)):
 
-   * Format: String(32)
-   * Synopsis:
+      Is the Amazon EC2 classification of this instance type indicating the type
+      of usage. Examples of familieas are 'Compute Optimized', 'Memory Optimized', etc.
 
-* **memory**:
+* **processor** (String(64)):
 
-   * Format: Float
-   * Synopsis:
+      Is the processor model name offered by this instance type.
 
-* **memory_per_core**:
+* **storage** (String(32)):
 
-   * Format: Float
-   * Synopsis:
+      Is the type of storage that is supported by this instance type.
+      Some storage types do not limit the size of the storage ('ebs',
+      for example). Other types of storage are fixed and this field will
+      also indicate the size.
 
-* **operating_system**:
+* **cores** (Integer):
 
-   * Format: String(32)
-   * Synopsis:
+      Is the number of cores that are offered by this instance type.
 
-* **processor**:
+* **memory** (Float):
 
-   * Format: String(64)
-   * Synopsis:
+      Is the total amount of RAM in gigabytes offered by this instance
+      type.
 
-* **processor_manufacturer**:
+* **cost_per_hour** (Float):
 
-   * Format: String(64)
-   * Synopsis:
+      The decimal number given is the cost per hour for a running
+      instance of this instance type stated in American dollars and cents.
 
-* **region**:
+* **memory_per_core** (Float):
 
-   * Format: String(32)
-   * Synopsis:
+      This field is calculated as **memory** divided by **cores** and is provided
+      as a feature of the instance type filtering process (see ec2_instance_type_filters_ for
+      more information).
 
-* **storage**:
+      .. _ec2_instance_type_filters: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_tables/ec2_instance_type_filters.html
 
-   * Format: String(32)
-   * Synopsis:
+* **processor_manufacturer** (String(64)):
+
+      This field is an interpretation of the **processor** field and is provided
+      as a feature of the instance type filtering process (see ec2_instance_type_filters_ for
+      more information).
+
+      .. _ec2_instance_type_filters: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_tables/ec2_instance_type_filters.html
 

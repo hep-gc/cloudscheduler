@@ -19,24 +19,18 @@ the target cloud.
 
 
 Keys:
-^^^^^^^^
+^^^^^
 
-* **cloud_name**:
+* **group_name** (String(32)):
 
-   * Format: String(32)
-   * Synopsis:
-      Name of the cloud a flavor entry was queried from.
-
-* **group_name**:
-
-   * Format: String(32)
-   * Synopsis:
       Group name associated with the cloud a flavor was queried from.
 
-* **id**:
+* **cloud_name** (String(32)):
 
-   * Format: String(128)
-   * Synopsis:
+      Name of the cloud a flavor entry was queried from.
+
+* **id** (String(128)):
+
       Unique ID of the flavor. This ID is from the source cloud
       and may not be unique with respect to entries from different clouds.
 
@@ -44,58 +38,40 @@ Keys:
 Columns:
 ^^^^^^^^
 
-* **cloud_type**:
+* **name** (String(128)):
 
-   * Format: String(64)
-   * Synopsis:
-      Type of cloud the flavour is from (openstack, amazon, etc)
-
-* **cores**:
-
-   * Format: Integer
-   * Synopsis:
-      Number of cpu cores assigned to the flavor.
-
-* **disk**:
-
-   * Format: Integer
-   * Synopsis:
-      Amount of disk space assigned to the flavor in Gigabytes.
-
-* **ephemeral_disk**:
-
-   * Format: Integer
-   * Synopsis:
-      Amount of ephemeral disk space assigned to the flavor in Gigabytes.
-
-* **is_public**:
-
-   * Format: Boolean
-   * Synopsis:
-      Interger boolean representing if the flavor is publicly available or not.
-
-* **last_updated**:
-
-   * Format: Integer
-   * Synopsis:
-      Timestamp in seconds since epoch representing the last time the flavor was
-      updated.
-
-* **name**:
-
-   * Format: String(128)
-   * Synopsis:
       Name of the flavor.
 
-* **ram**:
+* **cloud_type** (String(64)):
 
-   * Format: Integer
-   * Synopsis:
+      Type of cloud the flavour is from (openstack, amazon, etc)
+
+* **ram** (Integer):
+
       Amount of RAM assigned to the flavor in Megabytes.
 
-* **swap**:
+* **cores** (Integer):
 
-   * Format: Integer
-   * Synopsis:
+      Number of cpu cores assigned to the flavor.
+
+* **swap** (Integer):
+
       Amount of swap space assigned to the flavor in Megabytes.
+
+* **disk** (Integer):
+
+      Amount of disk space assigned to the flavor in Gigabytes.
+
+* **ephemeral_disk** (Integer):
+
+      Amount of ephemeral disk space assigned to the flavor in Gigabytes.
+
+* **is_public** (Boolean):
+
+      Interger boolean representing if the flavor is publicly available or not.
+
+* **last_updated** (Integer):
+
+      Timestamp in seconds since epoch representing the last time the flavor was
+      updated.
 

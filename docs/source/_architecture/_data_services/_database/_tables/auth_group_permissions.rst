@@ -8,27 +8,51 @@
 Database Table: auth_group_permissions
 ======================================
 
+This table is one of six related tables:
+
+#. auth_group_
+
+#. auth_group_permissions_
+
+#. auth_permission_
+
+#. auth_user_
+
+#. auth_user_groups_
+
+#. auth_user_user_permissions_
+
+which are user authentication tables defined by the Django web services framework.
+The interested reader is referred to the Django User Authentication documentation_.
+
+.. _auth_group: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_tables/auth_group.html
+
+.. _auth_group_permissions: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_tables/auth_group_permissions.html
+
+.. _auth_permission: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_tables/auth_permission.html
+
+.. _auth_user: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_tables/auth_user.html
+
+.. _auth_user_groups: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_tables/auth_user_groups.html
+
+.. _auth_user_user_permissions: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_tables/auth_user_user_permissions.html
+
+.. _documentation: https://docs.djangoproject.com/en/2.2/topics/auth/
 
 
 Keys:
-^^^^^^^^
+^^^^^
 
-* **id**:
+* **id** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
 
 Columns:
 ^^^^^^^^
 
-* **group_id**:
+* **group_id** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **permission_id**:
+* **permission_id** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 

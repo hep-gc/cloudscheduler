@@ -8,22 +8,18 @@
 Database Table: csv2_user_groups
 ================================
 
+This table establishes the association between users and groups and is maintained
+by super users. There is one entry for each user/group association.
 
 
 Keys:
-^^^^^^^^
+^^^^^
 
-* **group_name**:
+* **username** (String(32)):
 
-   * Format: String(32)
-   * Synopsis:
+      Is a CSV2 username.
 
-* **username**:
+* **group_name** (String(32)):
 
-   * Format: String(32)
-   * Synopsis:
-
-
-Columns:
-^^^^^^^^
+      Is a CSV2 group name.
 

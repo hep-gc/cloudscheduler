@@ -1,0 +1,11 @@
+trigger_apel_accounting_add_vm:
+    Synopsis:
+        "REF=(common/trigger_accounting)
+
+        This trigger creates an accounting record for each new VM. Subsequently these accounting recoreds are updated
+        periodically by the VM data poller throughout the life of the VM. 
+        "
+
+    Condition:
+        after insert into csv2_vms
+        

@@ -8,27 +8,49 @@
 Database Table: silk_profile_queries
 ====================================
 
+This table is one of five related tables:
+
+#. silk_profile_
+
+#. silk_profile_queries_
+
+#. silk_request_
+
+#. silk_response_
+
+#. silk_sqlquery_
+
+
+which are control and information tables defined by the Silk Performance Profiler
+for the python/django web services framework. The interested reader is referred to
+the Silk Performance Profiler documentation_.
+
+.. _silk_profile: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_tables/silk_profile.html
+
+.. _silk_profile_queries: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_tables/silk_profile_queries.html
+
+.. _silk_request: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_tables/silk_request.html
+
+.. _silk_response: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_tables/silk_response.html
+
+.. _silk_sqlquery: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_tables/silk_sqlquery.html
+
+.. _documentation: https://silk.readthedocs.io/en/latest/#
 
 
 Keys:
-^^^^^^^^
+^^^^^
 
-* **id**:
+* **id** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
 
 Columns:
 ^^^^^^^^
 
-* **profile_id**:
+* **profile_id** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **sqlquery_id**:
+* **sqlquery_id** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
