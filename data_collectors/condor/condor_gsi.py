@@ -40,7 +40,7 @@ def condor_gsi_poller():
                 if condor_cert:
                     try:
                         for group in sorted(condor_dict[condor]):
-                            config.db_session.execute('update csv2_groups set htcondor_gsi_dn="%s",htcondor_gsi_eol=%d where group_name="%s";' % (if_null(condor_cert['subject']), condor_cert['eol'], group))
+                            config.db_session.execute('update csv2_groups set %s,htcondor_gsi_eol=%d where group_name="%s";' % (if_null('htcondor_gsi_dn', condor_cert['subject']), condor_cert['eol'], group))
                         config.db_session.commit()
 
                         if condor_cert['subject']:
@@ -84,11 +84,11 @@ def get_condor_dict(config, logging):
 
     return condor_dict
 
-def if_null(val):
+def if_null(col, val):
     if val:
-        return val
+        return '%s="%s"' % (col, val)
     else:
-        return 'NULL'
+        return '%s=NULL' % col
 
 def worker_gsi_poller():
     multiprocessing.current_process().name = "Worker GSI Poller"
@@ -138,7 +138,12 @@ def worker_gsi_poller():
                         logging.debug('Condor host: "%s", condor_worker_gsi insert failed, exception: %s' % (condor, ex))
 
                         try:
-                            config.db_session.execute('update condor_worker_gsi set worker_dn="%s",worker_eol=%d,worker_cert="%s",worker_key="%s" where htcondor_fqdn="%s";' % (worker_cert['subject'], worker_cert['eol'], worker_cert['cert'], worker_cert['key'], condor))
+                            config.db_session.execute('update condor_worker_gsi set %s,worker_eol=%d,%s,%s where htcondor_fqdn="%s";' % (
+                                if_null('worker_dn', worker_cert['subject']),
+                                worker_cert['eol'],
+                                if_null('worker_cert', worker_cert['cert']),
+                                if_null('worker_key', worker_cert['key']),
+                                condor))
                             config.db_session.commit()
 
                             if worker_cert['subject']:

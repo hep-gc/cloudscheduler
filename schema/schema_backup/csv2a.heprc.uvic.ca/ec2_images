@@ -16,21 +16,27 @@
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
 --
--- Table structure for table `csv2_vms_foreign`
+-- Table structure for table `ec2_images`
 --
 
-DROP TABLE IF EXISTS `csv2_vms_foreign`;
+DROP TABLE IF EXISTS `ec2_images`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
-CREATE TABLE `csv2_vms_foreign` (
-  `authurl` varchar(128) NOT NULL DEFAULT 'NULL',
-  `region` varchar(32) NOT NULL DEFAULT '''NULL''',
-  `project` varchar(32) NOT NULL DEFAULT 'NULL',
-  `flavor_id` varchar(128) NOT NULL,
-  `count` int(11) NOT NULL DEFAULT 0,
-  `cloud_type` varchar(32) DEFAULT NULL,
-  PRIMARY KEY (`authurl`,`region`,`project`,`flavor_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+CREATE TABLE `ec2_images` (
+  `region` varchar(32) NOT NULL,
+  `id` varchar(128) NOT NULL,
+  `borrower_id` varchar(32) NOT NULL,
+  `owner_id` varchar(32) DEFAULT 'NULL',
+  `owner_alias` varchar(64) DEFAULT 'NULL',
+  `disk_format` varchar(128) DEFAULT NULL,
+  `size` bigint(13) DEFAULT NULL,
+  `image_location` varchar(512) DEFAULT 'NULL',
+  `visibility` varchar(128) DEFAULT NULL,
+  `name` varchar(256) DEFAULT NULL,
+  `description` varchar(256) DEFAULT NULL,
+  `last_updated` int(11) NOT NULL,
+  PRIMARY KEY (`region`,`id`,`borrower_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
@@ -42,4 +48,4 @@ CREATE TABLE `csv2_vms_foreign` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2019-12-12 11:02:21
+-- Dump completed on 2019-12-12 11:02:22
