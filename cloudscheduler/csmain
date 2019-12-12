@@ -291,16 +291,18 @@ def main():
                                 cs_condor_host_ip = socket.gethostbyname(boot_flavor.get("htcondor_fqdn"))
                             except:
                                 cs_condor_host_ip = '*** unresolved **'
+                            
+                            if boot_flavor.get("worker_cert") is not None:
+                                if boot_flavor.get("worker_cert")[-1] == '\n':
+                                    cloud_worker_cert = boot_flavor.get("worker_cert")[:-1].replace('\n', '\n        ')
+                                else:
+                                    cloud_worker_cert = boot_flavor.get("worker_cert").replace('\n', '\n        ')
 
-                            if boot_flavor.get("worker_cert") and boot_flavor.get("worker_cert")[-1] == '\n':
-                                cloud_worker_cert = boot_flavor.get("worker_cert")[:-1].replace('\n', '\n        ')
-                            else:
-                                cloud_worker_cert = boot_flavor.get("worker_cert").replace('\n', '\n        ')
-
-                            if boot_flavor.get("worker_key")[-1] == '\n':
-                                cloud_worker_key = boot_flavor.get("worker_key")[:-1].replace('\n', '\n        ')
-                            else:
-                                cloud_worker_key = boot_flavor.get("worker_key").replace('\n', '\n        ')
+                            if boot_flavor.get("worker_key") is not None:
+                                if boot_flavor.get("worker_key")[-1] == '\n':
+                                    cloud_worker_key = boot_flavor.get("worker_key")[:-1].replace('\n', '\n        ')
+                                else:
+                                    cloud_worker_key = boot_flavor.get("worker_key").replace('\n', '\n        ')
 
                             template_dict = {'cs_user': usertmp,
                                              'cs_host': cs_host,
