@@ -1,0 +1,13 @@
+[Unit]
+Description=Polls the status of cloudscheduler and generates static public pages.
+After=network.target
+
+[Service]
+Type=simple
+User=cloudscheduler
+ExecStart=/usr/bin/python3 /opt/cloudscheduler/data_collectors/general/publisher.py
+Restart=always
+
+
+[Install]
+WantedBy=multi-user.target

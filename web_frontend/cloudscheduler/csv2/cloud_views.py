@@ -2,7 +2,7 @@ from django.conf import settings
 config = settings.CSV2_CONFIG
 
 from django.shortcuts import render, get_object_or_404, redirect
-from django.views.decorators.csrf import requires_csrf_token
+from django.views.decorators.csrf import requires_csrf_token, csrf_exempt
 from django.http import HttpResponse
 from django.http.response import JsonResponse
 from django.core.exceptions import PermissionDenied
@@ -1579,7 +1579,6 @@ def status(request, group_name=None):
         system_list["disk_size"] = round(psutil.disk_usage('/').total/1000000000 , 1)
         system_list["disk_used"] = round(psutil.disk_usage('/').used/1000000000 , 1)
 
-    print("????????????????????????????", job_status_list)
     context = {
             'active_user': active_user.username,
             'active_group': active_user.active_group,
@@ -1658,6 +1657,23 @@ def gen_slot_detail(slot_list):
     return slot_detail
 '''
 #-------------------------------------------------------------------------------
+@silkp(name="Cloud Public Plot")
+@csrf_exempt
+def request_public_ts_data(request):
+    """
+    This function should receive a post request with a payload of an influxdb query
+    to update the timeseries plot.
+    """
+    print("XXXXXXXXXXXXXX PUBLIC XXXXXXXXXXXXXXXXXXXXX", request.body)
+
+#   params = {'db': 'csv2_timeseries','epoch': 'ms', 'q':request.body}
+    params = {'db': 'csv2_timeseries','epoch': 'ms', 'q':'SELECT time,value FROM "VMs_idle_total" WHERE "group"="csv2-groupgroups_total" AND time >= 1575994484897ms'}
+    url_string = 'http://localhost:8086/query'
+    r = requests.get(url_string, params=params)
+    # Check response status code
+    r.raise_for_status()
+
+    return JsonResponse(r.json())
 
 @silkp(name="Cloud Plot")
 @requires_csrf_token

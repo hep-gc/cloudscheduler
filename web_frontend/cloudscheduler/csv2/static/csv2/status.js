@@ -440,8 +440,16 @@ function parseData(responsedata){
 /* Fetch trace data from db and add to plot*/
 function getTraceData(trace, showing){
     trace.dataset.path = trace.dataset.path.replace("  ","groups_total ")
+    var domain = location.hostname.split("."); domain.shift();
+    var hostname = location.hostname.split(".")[0].split("-");
     if(window.location.pathname == "/cloud/status/") var newpath = "plot";
-    else var newpath = "/cloud/status/plot";
+    else {
+        if(hostname[hostname.length -1] == "public") {
+            hostname.push("wsgi");
+            newpath = "https://" + hostname.join("-") + "." + domain.join(".") + "/cloud/status/plot";
+            }
+        else var newpath = "/cloud/status/plot";
+        }
     var nullvalues = [];
     if(showing == true) query = createQuery(trace.dataset.path, TSPlot.traces[0].x[0], date, showing);
     else query = createQuery(trace.dataset.path, date-3600000, date, showing);
