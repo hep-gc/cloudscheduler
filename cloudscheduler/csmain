@@ -455,7 +455,7 @@ def available_resources_query(used_resources, available_resource):
 
     provider = '%s|%s|%s|%s' % (available_resource['authurl'], available_resource['region'], available_resource['project_domain_name'], available_resource['project'])
 
-    cores_quota = available_resource['cores_max'] - max(0, used_resources[provider]['cores_used'] - available_resource['cores_used'])
+    cores_quota = available_resource['cores_limit'] - max(0, used_resources[provider]['cores_used'] - available_resource['cores_used'])
     cores_soft_quota = limit(available_resource['cores_softmax'], cores_quota) - max(0, used_resources[provider]['cores_used'] - available_resource['cores_used'])
     cores_limit = limit(available_resource['cores_ctl'], min(cores_soft_quota, cores_quota))
 
