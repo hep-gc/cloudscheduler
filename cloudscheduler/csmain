@@ -261,7 +261,7 @@ def main():
                                 log.debug("Cloud has low priority, skipping until high priority clouds full..")
                                 continue # if higher priority cloud found skip
 
-                            current_group_name = idle_job.get("group_name"),
+                            current_group_name = idle_job.get("group_name")
                             current_boot_cloud = boot_flavor.get("cloud_name")
                             current_boot_flavor = boot_flavor.get("flavor")
                             log.debug("Taking a look at booting on: %s, using flavor: %s" % (current_boot_cloud, current_boot_flavor))
