@@ -1,12 +1,13 @@
 Utility: cli_doc_to_rst
 =======================
 
-This utility converts the CSV2 CLI man pages to Restructured Text files for the **readthedocs** web service.
-The orignal man pages are held within the **.../cloudscheduler/cli/man** directory and are usually accessed via the **-H** option of the CLI.
+cli_doc_to_rst converts the cloudscheduler man page files within the directory *.../cloudscheduler/cli/man*
+to restructured text files saved within the directory *.../cloudscheduler/docs/source/_user_guids_cli*.
+The converted files are used by the **readthedocs** web service to present the the cloudscheduler 
+man pages.
 
-Synopsis:
+Additionally, when converting files, the cli_doc_to_rst utility issues warning messages for any missing
+man pages and can therefore be used by developers to check for incomplete documentation.
 
-To regenerate the restructured text (.rst) files for the CLI man pages:
-
-* cli_doc_to_rst
+Synopsis: cli_doc_to_rst
 
