@@ -163,8 +163,8 @@ def main():
                         # If we continue here we go on to the next flavor until we run out
                         # boot_flavor = available_resource row with all info that we need to boot a vm
 
-                        num_vms_to_boot = available_resources_query(used_resources, boot_flavor)
-                        if num_vms_to_boot <= 0:
+                        available_slots = available_resources_query(used_resources, boot_flavor)
+                        if available_slots <= 0:
                             log.debug("No available resources to boot %s" % boot_flavor.get("flavor"))
 
                         try:
@@ -261,25 +261,27 @@ def main():
                                 log.debug("Cloud has low priority, skipping until high priority clouds full..")
                                 continue # if higher priority cloud found skip
 
+                            current_boot_cloud = boot_flavor.get("cloud_name")
+                            current_boot_flavor = boot_flavor.get("flavor")
+                            log.debug("Taking a look at booting on: %s, using flavor: %s" % (current_boot_cloud, current_boot_flavor))
+                            slot_shortfall = max(
+                                int(max(0,shortfall[0].shortfall_cores)/boot_flavor['flavor_cores']),
+                                int(max(0,shortfall[0].shortfall_disk)/boot_flavor['flavor_disk']),
+                                int(max(0,shortfall[0].shortfall_ram)/boot_flavor['flavor_ram'])
+                                )
+                            
+                            num_vms_to_boot = min(
+                                config.categories['csmain']['max_start_vm_cloud'],
+                                available_slots,
+                                slot_shortfall
+                                )
 
-                            log.debug("Taking a look at booting on: %s", boot_flavor.get("cloud_name"))
-                            log.debug("Using Flavor: %s", boot_flavor.get("flavor"))
-                            log.debug("flavor slots: %s", boot_flavor.get("flavor_slots"))
-                            log.debug("Initially try boot: %s based on possible per flavor", num_vms_to_boot)
-
-                            num_vms_to_boot = num_vms_to_boot if num_vms_to_boot <= boot_flavor.get("flavor_slots") else boot_flavor.get("flavor_slots")
-                            num_vms_to_boot = math.floor(num_vms_to_boot)
-                            log.debug("Try to boot: %s after checking flavor slots.", num_vms_to_boot)
                             if num_vms_to_boot == 0:
                                 cloud_prio = None # reset cloud prio so if no slots on the higher priority clouds can still boot on lower
                                 log.debug("Flavor Slots for %s is 0, check the softmax or foreign VMs to try and see why not booting a new VM.", boot_flavor.get("flavor"))
                                 continue
 
-                            if num_vms_to_boot > config.categories['csmain']['max_start_vm_cloud']:
-                                num_vms_to_boot = config.categories['csmain']['max_start_vm_cloud']
-                                log.debug("Adjusting for max_boot, will only boot: %s vms.", num_vms_to_boot)
-                            log.debug("Would like to boot %s VMs on %s", num_vms_to_boot, boot_flavor.get("cloud_name"))
-
+                            log.info("Trying to boot %s VMs on %s(%s); minumum of max_start_vm_cloud(%s), available_slots(%s), slot_shortfall(%s)." % (num_vms_to_boot, current_boot_cloud, current_boot_flavor, config.categories['csmain']['max_start_vm_cloud'], available_slots, slot_shortfall))
                             try:
                                 usertmp = idle_job.get("user").split('@')[0]
                             except:
