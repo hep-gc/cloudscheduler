@@ -1,0 +1,94 @@
+create or replace view view_total_used_resources as
+select
+    authurl,
+    region,
+    project,
+    sum(ifnull(count,0)) as VMs,
+    sum(ifnull(cores,0)) as cores,
+    sum(ifnull(disk,0)) as disk,
+    sum(ifnull(ram,0)) as ram,
+    sum(ifnull(swap,0)) as swap
+from (    
+    select
+        tv.*,
+        count*cores as cores,
+        count*disk as disk,
+        count*ram as ram,
+        count*swap as swap
+    from (
+        select
+            authurl,
+            region,
+            project,
+            flavor_id,
+            sum(count) as count
+        from (
+            select
+                authurl,
+                region,
+                project,
+                flavor_id,
+                count
+            from (
+                select
+                    cv.*,
+                    cc.authurl,
+                    cc.region,
+                    cc.project
+                from (
+                    select
+                        group_name,
+                        cloud_name,
+                        flavor_id,
+                        count(1) as count
+                    from csv2_vms
+                    group by
+                        group_name,
+                        cloud_name,
+                        flavor_id
+                    ) as cv
+                left outer join csv2_clouds as cc on
+                    cv.group_name=cc.group_name and
+                    cv.cloud_name=cc.cloud_name
+                ) as cv
+            union all select
+                authurl,
+                region,
+                project,
+                flavor_id,
+                count
+            from csv2_vms_foreign as cvf
+        ) as tv
+        group by
+            authurl,
+            region,
+            project,
+            flavor_id
+    ) as tv
+    left outer join (
+        select
+            distinct
+            authurl,
+            region,
+            project,
+            id,
+            cores,
+            disk,
+            ram,
+            swap
+        from cloud_flavors as cf
+        left outer join csv2_clouds as cc on
+            cf.group_name=cc.group_name and
+            cf.cloud_name=cc.cloud_name
+    ) as cf on 
+        tv.authurl=cf.authurl and
+        tv.region=cf.region and
+        tv.project=cf.project and
+        tv.flavor_id=cf.id
+) as tv
+group by
+    authurl,
+    region,
+    project
+;
+
