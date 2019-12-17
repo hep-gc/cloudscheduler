@@ -471,7 +471,7 @@ def command_poller():
 
                 # Query database for machines to be retired.
                 abort_cycle = False
-                for resource in db_session.query(view_condor_host).filter(view_condor_host.c.htcondor_fqdn==condor_host, view_condor_host.c.retire>=1):
+                for resource in db_session.query(view_condor_host).filter(view_condor_host.c.htcondor_fqdn==condor_host, view_condor_host.c.retire>=1, view_condor_host.c.retiring==0):
                     # Since we are querying a view we dont get an automapped object and instead get a 'result' tuple of the following format
                     #index=attribute
                     #0=group
