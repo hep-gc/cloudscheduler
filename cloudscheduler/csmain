@@ -133,6 +133,7 @@ def main():
                     ####### log.debug("Proccessing group: %s" % job_group)
                     booted_for_group = False
                     for idle_job in idle_job_groups[job_group]:
+                        current_boot_target_alias = idle_job.get("target_alias")
                         ####### log.debug("Idle jobs for group: %s" % idle_job_groups[job_group])
                         if idle_job.get("idle") == 0:
                             continue
@@ -270,17 +271,22 @@ def main():
                                 elif cloud_prio == boot_flavor.get("cloud_priority"):
                                     pass # keep booting VMs on clouds of the same priority if possible
                                 else:
-                                    log.debug("Cloud has low priority, skipping until high priority clouds full..")
+                                    log.info("Cloud: %s has low priority, skipping until high priority clouds full.." % boot_flavor.get("cloud_name"))
                                     continue # if higher priority cloud found skip
 
                                 current_group_name = idle_job.get("group_name")
                                 current_boot_cloud = boot_flavor.get("cloud_name")
-                                current_boot_target_alias = idle_job.get("target_alias")
+#                               current_boot_target_alias = idle_job.get("target_alias")
                                 current_boot_flavor = boot_flavor.get("flavor")
                                 ####### log.debug("Taking a look at booting on: %s, using flavor: %s" % (current_boot_cloud, current_boot_flavor))
-                                shortfall_cores = int(shortfall[0].shortfall_cores/boot_flavor['flavor_cores'])
-                                shortfall_disk = int(shortfall[0].shortfall_disk/boot_flavor['flavor_disk'])
-                                shortfall_ram = int(shortfall[0].shortfall_ram/boot_flavor['flavor_ram'])
+                                def no_zero(val):
+                                    if int(val) > 0:
+                                        return int(val)
+                                    else:
+                                        return 1
+                                shortfall_cores = int(shortfall[0].shortfall_cores/no_zero(boot_flavor['flavor_cores']))
+                                shortfall_disk = int(shortfall[0].shortfall_disk/no_zero(boot_flavor['flavor_disk']))
+                                shortfall_ram = int(shortfall[0].shortfall_ram/no_zero(boot_flavor['flavor_ram']))
                                 shortfall_slots = max(0,
                                     shortfall_cores,
                                     shortfall_disk,
@@ -526,8 +532,10 @@ def available_resources_query(used_resources, available_resource):
         available_resource['ram_max'] - max(0, used_resources['provider'][provider]['ram_used'] - used_resources['group_cloud'][group_cloud]['ram_used'])
         )
 
+    log.debug("provider: %s used:%s" % (used_resources['provider'][provider]['VMs'], used_resources['group_cloud'][group_cloud]['VMs'])) 
+
     slots = min(
-        max(0, used_resources['provider'][provider]['VMs'] - used_resources['group_cloud'][group_cloud]['VMs']),
+        available_resource['VMs_max'] - max(0, used_resources['provider'][provider]['VMs'] - used_resources['group_cloud'][group_cloud]['VMs']),
         int(max(0, cores_limit - used_resources['group_cloud'][group_cloud]['cores_used']) / available_resource['flavor_cores']),
         int(max(0, ram_limit - used_resources['group_cloud'][group_cloud]['ram_used']) / available_resource['flavor_ram'])
         )
