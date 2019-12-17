@@ -9,8 +9,12 @@ import csv2_defaults
 KEY_MAP = {
     '-gn':   'default_group',
     '-upw':  'password',
+    '-sfv':  'flag_show_foreign_global_vms',
     '-sgs':  'flag_global_status',
+    '-sjta': 'flag_jobs_by_target_alias',
     '-sri':  'status_refresh_interval',
+    '-ssd':  'flag_show_slot_detail',
+    '-ssf':  'flag_show_slot_flavors',
     }
 
 def settings(gvar):
@@ -20,7 +24,7 @@ def settings(gvar):
 
     mandatory = []
     required = []
-    optional = ['-gn', '-H', '-h', '-s', '-sgs', '-sri', '-upw', '-v', '-xA']
+    optional = ['-gn', '-H', '-h', '-s', '-sfv', '-sgs', '-sjta', '-sri', '-ssd', '-ssf', '-upw', '-v', '-xA']
 
     if gvar['retrieve_options']:
         return mandatory + required + optional
@@ -65,8 +69,12 @@ def settings(gvar):
             'username/Group,k',
             'cert_cn/Cert Common Name',
             'default_group/Default Group',
+            'flag_show_foreign_global_vms/Foreign VMs/Status',
             'flag_global_status/Global Switch/Status',
+            'flag_jobs_by_target_alias/Jobs by Target Alias/Status',
             'status_refresh_interval/Refresh Interval/Status',
+            'flag_show_slot_detail/Slot Detail/Status',
+            'flag_show_slot_flavors/Slot Flavors/Status',
             ],
         title="Settings",
         )

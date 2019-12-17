@@ -282,23 +282,28 @@ def status(gvar):
     # Print report
     show_active_user_groups(gvar, response)
 
+    columns = [
+        'group_name/Group,k',
+        'Jobs',
+        'Idle',
+        'Running',
+        'Completed',
+        'Other',
+        'foreign/Foreign',
+        'htcondor_status/HTCondor/Status',
+        'agent_status/Agent/Status',
+        'htcondor_fqdn/HTCondor FQDN',
+        'condor_days_left/Condor/Days Left on Certificates',
+        'worker_days_left/Worker/Days Left on Certificates',
+    ]
+
+    if response['jobs_by_target_alias_flag']:
+        columns.insert(1, 'target_alias/Target Alias,k')
+
     show_table(
         gvar,
         response['job_status_list'],
-        [
-            'group_name/Group,k',
-            'Jobs',
-            'Idle',
-            'Running',
-            'Completed',
-            'Other',
-            'foreign/Foreign',
-            'htcondor_status/HTCondor/Status',
-            'agent_status/Agent/Status',
-            'htcondor_fqdn/HTCondor FQDN',
-            'condor_days_left/Condor/Days Left on Certificates',
-            'worker_days_left/Worker/Days Left on Certificates',
-        ],
+        columns,
         title="Job status",
         )
 
