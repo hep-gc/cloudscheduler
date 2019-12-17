@@ -1473,10 +1473,16 @@ def status(request, group_name=None):
     '''
     # get job status per group
     if active_user.flag_global_status:
-        s = select([view_job_status])
+        if active_user.flag_jobs_by_target_alias:
+            s = select([view_job_status_by_target_alias])
+        else:
+            s = select([view_job_status])
         job_status_list = qt(config.db_connection.execute(s), filter=qt_filter_get(['group_name'], ["mygroups"], aliases=GROUP_ALIASES, and_or='or'))
     else:    
-        s = select([view_job_status]).where(view_job_status.c.group_name == active_user.active_group)
+        if active_user.flag_jobs_by_target_alias:
+            s = select([view_job_status_by_target_alias]).where(view_job_status.c.group_name == active_user.active_group)
+        else:
+            s = select([view_job_status]).where(view_job_status.c.group_name == active_user.active_group)
         job_status_list = qt(config.db_connection.execute(s))
 
     # Get GSI configuration variables.
@@ -1571,6 +1577,7 @@ def status(request, group_name=None):
             'message': None,
             'is_superuser': active_user.is_superuser,
             'global_flag': active_user.flag_global_status,
+            'jobs_by_target_alias_flag': active_user.flag_jobs_by_target_alias,
             'foreign_global_vms_flag': active_user.flag_show_foreign_global_vms,
             'slot_detail_flag': active_user.flag_show_slot_detail,
             'slot_flavor_flag': active_user.flag_show_slot_flavors,
