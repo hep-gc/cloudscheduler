@@ -8,7 +8,7 @@ select
     htcondor_partitionable_slots as primary_slots,
     htcondor_dynamic_slots as dynamic_slots,
     retire,
-    case when slots=retiring_slots then 1 else 0 end as retiring,
+    case when slots-1=retiring_slots then 1 else 0 end as retiring,
     terminate,
     machine,
     updater
