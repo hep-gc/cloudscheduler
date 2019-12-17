@@ -19,7 +19,7 @@ is required. The playbook can then be applied with the following command:
 
     ansible-playbook -e addenda=addenda -i inventory csv2-sa.yaml -u root
 
-When the installation completes, point your browser at "https://your_fqdn" and login with
+When the installation completes, point your browser at "https://your\_fqdn" and login with
 "csv2-default" user and the password you set in "secrets".
 
 Alternatively, you can also use this playbook to build a cloudscheduler version 2 container build to function
@@ -32,3 +32,5 @@ making sure the "container" variable in the "vars" file is set to `True`. The co
 be build with the following command:
 
     ansible-bender build csv2-cont.yaml
+
+Make sure you recreate the symlinks in the roles/csv2/vars directory if you are copying to another machine to run ansible-bender
