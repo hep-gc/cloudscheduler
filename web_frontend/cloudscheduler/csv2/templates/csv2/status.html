@@ -93,11 +93,14 @@
                 -->
                 <table>
                     <colgroup>
-                        <col class="clear" span="1" />
-                        <col class="red" span="1" />
-                        <col class="clear" span="9" />
-
+                        {% if jobs_by_target_alias_flag %}
+                            <col class="clear" span="2" />
+                        {% else %}
+                            <col class="clear" span="1" />
+                        {% endif %}
+                        <col class="total-row" span="1" />
                     </colgroup>
+
                     <tr class="header-row">
                         <th class="group-name jobs-style">Group</th>
 
@@ -340,6 +343,8 @@
                   <colgroup>
                     <col class="clear" span="1"/>
                     <col class="grey" span="1"/>
+                    <col class="clear" span="2"/>
+                    <col class="total-row" span="1"/>
                     <col class="clear" span="24"/>
                   </colgroup>
                     <tr class="header-row">
