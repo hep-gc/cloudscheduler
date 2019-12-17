@@ -335,7 +335,7 @@ def job_poller():
                 jsched = {
                     "htcondor_fqdn": condor_host,
                     "condor_status": 1,
-                    "foreign_jobs":  held_jobs
+                    "foreign_jobs":  foreign_jobs
                 }
                 new_jsched = JOB_SCHED(**jsched)
                 js = config.db_session.query(JOB_SCHED).filter(JOB_SCHED.htcondor_fqdn==condor_host)
