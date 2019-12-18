@@ -217,9 +217,10 @@ def job_poller():
                         job_dict['Requirements'] = str(job_dict['Requirements'])
                         # Parse group_name out of requirements
                         try:
-                            pattern = '(group_name is ")(.*?)(")'
+                            #pattern = '(group_name is ")(.*?)(")'
+                            pattern = '(group_name is "|group_name == "|group_name =\?= "|group_name =\?= toLower\("|group_name is toLower\("|group_name == toLower\(")(.*?)(")'
                             grp_name = re.search(pattern, job_dict['Requirements'])
-                            job_dict['group_name'] = grp_name.group(2)
+                            job_dict['group_name'] = grp_name.group(2).lower()
                         except Exception as exc:
                             logging.debug("No group name found in requirements expression... ignoring foreign job.")
                             foreign_jobs = foreign_jobs+1
@@ -232,9 +233,9 @@ def job_poller():
                             continue
                         # Look for a target_alias in requirements string
                         try:
-                            pattern = '(target_alias is ")(.*?)(")'
+                            pattern = '(target_alias is "|target_alias == "|target_alias =\?= "|target_alias =\?= toLower\("|target_alias is toLower\("|target_alias == toLower\(")(.*?)(")'
                             target_alias = re.search(pattern, job_dict['Requirements'])
-                            job_dict['target_alias'] = target_alias.group(2)
+                            job_dict['target_alias'] = target_alias.group(2).lower()
                         except Exception as exc:
                             logging.debug("No alias found in requirements expression")
                     else:
