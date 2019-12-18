@@ -423,7 +423,7 @@ def command_poller():
                         if command_results == None:
                             # we got a timeout
                             # timeout on the call, agent problems or offline
-                            logging.error("RPC call timed out, agent offline or in error")
+                            logging.error("RPC call to host: %s timed out, agent offline or in error" % condor_host)
                             jsched = {
                                 "htcondor_fqdn": condor_host,
                                 "agent_status":  0
@@ -438,7 +438,7 @@ def command_poller():
                                 config.db_session.merge(new_jsched)
                                 uncommitted_updates += 1
 
-                        logging.error("RPC noop failed, agent offline or in error")
+                        logging.error("RPC noop failed on host: %s, agent offline or in error" % condor_host)
                         continue
                     else:
                         #it was successfull
