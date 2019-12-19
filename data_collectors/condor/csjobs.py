@@ -214,7 +214,9 @@ def job_poller():
                 for job_ad in job_list:
                     job_dict = dict(job_ad)
                     if "Requirements" in job_dict:
-                        job_dict['Requirements'] = str(job_dict['Requirements'])
+                        ca1=classad.ClassAd(job_dict)
+                        et2 = ca1.flatten(job_dict).eval()
+                        job_dict['Requirements'] = str(et2['Requirements'])
                         # Parse group_name out of requirements
                         try:
                             #pattern = '(group_name is ")(.*?)(")'
