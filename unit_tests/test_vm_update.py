@@ -68,56 +68,56 @@ def main(gvar, user_secret):
 
     execute_csv2_request(
         gvar, 0, None, "vm update, VMs set to system control: 0.",
-        '/vm/update/'
+        '/vm/update/', group=ut_id(gvar, 'vtg1')
 , form_data={'vm_option': 'sysctl', 'vm_hosts': ''},
         server_user=ut_id(gvar, 'vtu3'), server_pw=user_secret
     )
 
     execute_csv2_request(
         gvar, 0, None, "vm update, VMs killed: 0.",
-        '/vm/update/'
+        '/vm/update/', group=ut_id(gvar, 'vtg1')
 , form_data={'vm_option': 'kill', 'vm_hosts': ''},
         server_user=ut_id(gvar, 'vtu3'), server_pw=user_secret
     )
 
     execute_csv2_request(
         gvar, 0, None, "vm update, VMs set to manual control: 0.",
-        '/vm/update/'
+        '/vm/update/', group=ut_id(gvar, 'vtg1')
 , form_data={'vm_option': 'manctl', 'vm_hosts': ''},
         server_user=ut_id(gvar, 'vtu3'), server_pw=user_secret
     )
 
     execute_csv2_request(
         gvar, 0, None, "vm update, VMs retired: 0.",
-        '/vm/update/'
+        '/vm/update/', group=ut_id(gvar, 'vtg1')
 , form_data={'vm_option': 'retire', 'vm_hosts': ''},
         server_user=ut_id(gvar, 'vtu3'), server_pw=user_secret
     )
 
     execute_csv2_request(
         gvar, 1, 'VV', "vm update value specified for \"poller_status\" must be one of the following options: ['error', 'idle', 'manual', 'native', 'other', 'retiring', 'running', 'starting', 'unregistered'].",
-        '/vm/update/'
+        '/vm/update/', group=ut_id(gvar, 'vtg1')
 , form_data={'vm_option': 'sysctl', 'poller_status': 'invalid-unit-test'},
         server_user=ut_id(gvar, 'vtu3'), server_pw=user_secret
     )
 
     execute_csv2_request(
         gvar, 0, None, "vm update, VMs set to system control: 0.",
-        '/vm/update/'
+        '/vm/update/', group=ut_id(gvar, 'vtg1')
 , form_data={'vm_option': 'sysctl', 'poller_status': 'error', 'vm_hosts': ''},
         server_user=ut_id(gvar, 'vtu3'), server_pw=user_secret
     )
 
     execute_csv2_request(
         gvar, 0, None, "vm update, VMs set to system control: 0.",
-        '/vm/update/'
+        '/vm/update/', group=ut_id(gvar, 'vtg1')
 , form_data={'vm_option': 'sysctl', 'cloud_name': 'invalid-unit-test', 'vm_hosts': ''},
         server_user=ut_id(gvar, 'vtu3'), server_pw=user_secret
     )
 
     execute_csv2_request(
         gvar, 0, None, "vm update, VMs set to system control: 0.",
-        '/vm/update/'
+        '/vm/update/', group=ut_id(gvar, 'vtg1')
 , form_data={'vm_option': 'sysctl', 'vm_hosts': 'invalid-unit-test'},
         server_user=ut_id(gvar, 'vtu3'), server_pw=user_secret
     )

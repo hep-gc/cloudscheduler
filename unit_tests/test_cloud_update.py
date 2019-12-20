@@ -14,44 +14,44 @@ def main(gvar, user_secret):
     # 01
     execute_csv2_request(
         gvar, 2, None, 'HTTP response code 401, unauthorized.',
-        '/cloud/update/',
+        '/cloud/update/?"{}"'.format(ut_id(gvar, 'ctg1')),
         server_user='invalid-unit-test', server_pw=user_secret
     )
 
     # 02
     execute_csv2_request(
         gvar, 1, None, 'user "{}" is not a member of any group.'.format(ut_id(gvar, 'ctu1')),
-        '/cloud/update/',
+        '/cloud/update/?"{}"'.format(ut_id(gvar, 'ctg1')),
         server_user=ut_id(gvar, 'ctu1'), server_pw=user_secret
     )
 
     # 03
     execute_csv2_request(
         gvar, 1, None, 'user "{}" is not a member of any group.'.format(ut_id(gvar, 'ctu2')),
-        '/cloud/update/',
+        '/cloud/update/?"{}"'.format(ut_id(gvar, 'ctg1')),
         server_user=ut_id(gvar, 'ctu2'), server_pw=user_secret
     )
 
     # 04
     execute_csv2_request(
         gvar, 1, 'CV', 'invalid method "GET" specified.',
-        '/cloud/update/',
+        '/cloud/update/?"{}"'.format(ut_id(gvar, 'ctg1')),
         server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
     )
 
     # 05
     execute_csv2_request(
         gvar, 1, 'CV', 'cloud update request did not contain mandatory parameter "cloud_name".',
-        '/cloud/update/'
-, form_data={'cloud_type': 'local'},
+        '/cloud/update/', group=(ut_id(gvar, 'ctg1')),
+        form_data={'cloud_type': 'local'},
         server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
     )
 
     # 06
     execute_csv2_request(
         gvar, 1, 'CV', 'cloud update request contained a bad parameter "invalid-unit-test".',
-        '/cloud/update/'
-, form_data={'cloud_name': 'invalid-unit-test', 'invalid-unit-test': 'invalid-unit-test'},
+        '/cloud/update/', group=(ut_id(gvar, 'ctg1')),
+        form_data={'cloud_name': 'invalid-unit-test', 'invalid-unit-test': 'invalid-unit-test'},
         server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
     )
 
@@ -205,7 +205,7 @@ def main(gvar, user_secret):
     # 28
     execute_csv2_request(
         gvar, 0, None, None,
-        '/cloud/list/', group=ut_id(gvar, 'ctg1'), list='cloud_list', filter={'cloud_name': ut_id(gvar, 'ctc3')},
+        '/cloud/list/?"{}"'.format(ut_id(gvar, 'ctg1')), list='cloud_list', filter={'cloud_name': ut_id(gvar, 'ctc3')},
         values={
             'group_name': ut_id(gvar, 'ctg1'),
             'cloud_name': ut_id(gvar, 'ctc3'),
@@ -302,7 +302,7 @@ def main(gvar, user_secret):
     # 30
     execute_csv2_request(
         gvar, 0, None, None,
-        '/cloud/list/', group=ut_id(gvar, 'ctg1'), list='cloud_list', filter={'cloud_name': ut_id(gvar, 'ctc3')},
+        '/cloud/list/?"{}"'.format(ut_id(gvar, 'ctg1')), list='cloud_list', filter={'cloud_name': ut_id(gvar, 'ctc3')},
         values={
             'cloud_name': ut_id(gvar, 'ctc3'),
             'group_name': ut_id(gvar, 'ctg1'),
@@ -340,7 +340,7 @@ def main(gvar, user_secret):
     # 32
     execute_csv2_request(
         gvar, 0, None, None,
-        '/cloud/list/', group=ut_id(gvar, 'ctg1'), list='cloud_list', filter={'cloud_name': ut_id(gvar, 'ctc3')},
+        '/cloud/list/?"{}"'.format(ut_id(gvar, 'ctg1')), list='cloud_list', filter={'cloud_name': ut_id(gvar, 'ctc3')},
         values={
             'cloud_name': ut_id(gvar, 'ctc3'),
             'group_name': ut_id(gvar, 'ctg1'),
@@ -364,7 +364,7 @@ def main(gvar, user_secret):
     # 34
     execute_csv2_request(
         gvar, 0, None, None,
-        '/cloud/list/', group=ut_id(gvar, 'ctg1'), list='cloud_list', filter={'cloud_name': ut_id(gvar, 'ctc3')},
+        '/cloud/list/?"{}"'.format(ut_id(gvar, 'ctg1')), list='cloud_list', filter={'cloud_name': ut_id(gvar, 'ctc3')},
         values={
             'cloud_name': ut_id(gvar, 'ctc3'),
             'group_name': ut_id(gvar, 'ctg1'),
@@ -389,7 +389,7 @@ def main(gvar, user_secret):
     # 36
     execute_csv2_request(
         gvar, 0, None, None,
-        '/cloud/list/', group=ut_id(gvar, 'ctg1'), list='cloud_list', filter={'cloud_name': ut_id(gvar, 'ctc3')},
+        '/cloud/list/?"{}"'.format(ut_id(gvar, 'ctg1')), list='cloud_list', filter={'cloud_name': ut_id(gvar, 'ctc3')},
         values={
             'cloud_name': ut_id(gvar, 'ctc3'),
             'group_name': ut_id(gvar, 'ctg1'),
@@ -412,7 +412,7 @@ def main(gvar, user_secret):
     # 38
     execute_csv2_request(
         gvar, 0, None, None,
-        '/cloud/list/', group=ut_id(gvar, 'ctg1'), list='cloud_list', filter={'cloud_name': ut_id(gvar, 'ctc3')},
+        '/cloud/list/?"{}"'.format(ut_id(gvar, 'ctg1')), list='cloud_list', filter={'cloud_name': ut_id(gvar, 'ctc3')},
         values={
             'cloud_name': ut_id(gvar, 'ctc3'),
             'group_name': ut_id(gvar, 'ctg1'),
@@ -436,7 +436,7 @@ def main(gvar, user_secret):
     # 40
     execute_csv2_request(
         gvar, 0, None, None,
-        '/cloud/list/', group=ut_id(gvar, 'ctg1'), list='cloud_list', filter={'cloud_name': ut_id(gvar, 'ctc3')},
+        '/cloud/list/?"{}"'.format(ut_id(gvar, 'ctg1')), list='cloud_list', filter={'cloud_name': ut_id(gvar, 'ctc3')},
         values={
             'cloud_name': ut_id(gvar, 'ctc3'),
             'group_name': ut_id(gvar, 'ctg1'),
@@ -475,7 +475,7 @@ def main(gvar, user_secret):
         server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
     )
 
-    # 45
+    # 44
     execute_csv2_request(
         gvar, 1, 'CV', 'cloud update, "{0}" failed - specified item does not exist: vm_keyname=invalid-unit-test, group_name={1}, cloud_name={0}.'.format(ut_id(gvar, 'ctc3'), ut_id(gvar, 'ctg1')),
         '/cloud/update/', group=ut_id(gvar, 'ctg1'), form_data={

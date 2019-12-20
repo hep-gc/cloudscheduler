@@ -14,7 +14,7 @@ def main(gvar, user_secret):
     # 01
     execute_csv2_request(
         gvar, 2, None, 'HTTP response code 401, unauthorized.',
-        '/user/update/',
+        '/user/update/', #I assume that this request does not reqire a group specification (same for all requests below)
         server_user='invalid-unit-test', server_pw=user_secret
     )
 

@@ -34,7 +34,7 @@ def main(gvar, user_secret):
     # 04
     execute_csv2_request(
         gvar, 1, 'GV', 'cannot switch to invalid group "invalid-unit-test".',
-        '/group/add/', group='invalid-unit-test'
+        '/group/add/?invalid-unit-test'
     )
 
     # 05
@@ -46,7 +46,7 @@ def main(gvar, user_secret):
     # 06
     execute_csv2_request(
         gvar, 1, 'GV', 'Data too long for column \'group_name\' at row 1',
-        '/group/add/', form_data={'group_name': ut_id(gvar, 'group-invalid-unit-test')}
+        '/group/add/', form_data={'group_name': ut_id(gvar, 'group-invalid-unit-test-too-long')}
     )
 
     # 07
@@ -145,7 +145,7 @@ def main(gvar, user_secret):
     # 18
     execute_csv2_request(
         gvar, 0, None, None,
-        '/group/list/',
+        '/group/list/?"{}"'.format(ut_id(gvar, 'gtg1')),
         list='group_list', filter={'group_name': ut_id(gvar, 'gtg1')},
         values={'group_name': ut_id(gvar, 'gtg1'), 'htcondor_fqdn': 'group-unit-test-one.ca', 'htcondor_container_hostname': None, 'htcondor_other_submitters': None, 'metadata_names': 'default.yaml.j2'}
     )
@@ -176,7 +176,7 @@ def main(gvar, user_secret):
     # 22
     execute_csv2_request(
         gvar, 0, None, None,
-        '/group/list/',
+        '/group/list/?"{}"'.format(ut_id(gvar, 'gtg2')),
         list='group_list', filter={'group_name': ut_id(gvar, 'gtg2')},
         values={'group_name': ut_id(gvar, 'gtg2'), 'htcondor_fqdn': 'unit-test-group-two.ca', 'htcondor_container_hostname': None, 'htcondor_other_submitters': None, 'metadata_names': 'default.yaml.j2'}
     )

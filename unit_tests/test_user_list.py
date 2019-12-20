@@ -37,23 +37,23 @@ def main(gvar, user_secret):
 
     execute_csv2_request(
         gvar, 1, 'UV', 'cannot switch to invalid group "invalid-unit-test".',
-        '/user/list/', group='invalid-unit-test'
+        '/user/list/?invalid-unit-test'
     )
 
     execute_csv2_request(
         gvar, 1, 'UV', 'cannot switch to invalid group "{}".'.format(ut_id(gvar, 'utg2')),
-        '/user/list/', group=ut_id(gvar, 'utg2')
+        '/user/list/?"{}"'.format(ut_id(gvar, 'utg2'))
     )
 
     execute_csv2_request(
         gvar, 1, 'UV', 'request contained a bad parameter "invalid-unit-test".',
-        '/user/list/'
+        '/user/list/' #I am assuing a group does not need to be specified for this request
 , form_data={'invalid-unit-test': 'invalid-unit-test'}
     )
 
     execute_csv2_request(
         gvar, 0, None, None,
-        '/user/list/'
+        '/user/list/' #I am assuing a group does not need to be specified for this request
     )
 
 if __name__ == "__main__":

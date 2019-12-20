@@ -13,37 +13,37 @@ def main(gvar, user_secret):
     
     execute_csv2_request(
         gvar, 2, None, 'HTTP response code 401, unauthorized.',
-        '/group/metadata-fetch/',
+        '/group/metadata-fetch/?"{}"'.format(ut_id(gvar,'gtg5')),
         server_user='invalid-unit-test', server_pw=user_secret
     )
 
     execute_csv2_request(
         gvar, 1, 'GV', 'user "{}" is not a member of any group.'.format(ut_id(gvar, 'gtu1')),
-        '/group/metadata-fetch/', query_data={'metadata_name': 'invalid-unit-test'},
+        '/group/metadata-fetch/?"{}"'.format(ut_id(gvar,'gtg5')), query_data={'metadata_name': 'invalid-unit-test'},
         server_user=ut_id(gvar, 'gtu1'), server_pw=user_secret
     )
 
     execute_csv2_request(
         gvar, 1, 'GV', 'cannot switch to invalid group "invalid-unit-test".',
-        '/group/metadata-fetch/', group='invalid-unit-test', query_data={'metadata_name': 'invalid-unit-test'},
+        '/group/metadata-fetch/?invalid-unit-test', query_data={'metadata_name': 'invalid-unit-test'},
         server_user=ut_id(gvar, 'gtu3'), server_pw=user_secret
     )
 
     execute_csv2_request(
         gvar, 1, 'GV', 'cannot switch to invalid group "{}".'.format(ut_id(gvar, 'gtg7')),
-        '/group/metadata-fetch/', group=ut_id(gvar, 'gtg7'), query_data={'metadata_name': 'invalid-unit-test'},
+        '/group/metadata-fetch/?"{}"'.format(ut_id(gvar,'gtg7')), query_data={'metadata_name': 'invalid-unit-test'},
         server_user=ut_id(gvar, 'gtu3'), server_pw=user_secret
     )
 
     execute_csv2_request(
         gvar, 1, None, 'file "{}::invalid-unit-test" does not exist.'.format(ut_id(gvar, 'gtg5')),
-        '/group/metadata-fetch/', group=ut_id(gvar, 'gtg5'), query_data={'metadata_name': 'invalid-unit-test'},
+        '/group/metadata-fetch/?"{}"'.format(ut_id(gvar,'gtg5')), query_data={'metadata_name': 'invalid-unit-test'},
         server_user=ut_id(gvar, 'gtu3'), server_pw=user_secret
     )
 
     execute_csv2_request(
         gvar, 0, None, None,
-        '/group/metadata-fetch/', group=ut_id(gvar, 'gtg5'), query_data={'metadata_name': ut_id(gvar, 'gty5')},
+        '/group/metadata-fetch/?"{}"'.format(ut_id(gvar,'gtg5')), query_data={'metadata_name': ut_id(gvar, 'gty5')},
         server_user=ut_id(gvar, 'gtu3'), server_pw=user_secret
     )
 

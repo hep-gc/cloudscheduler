@@ -13,50 +13,44 @@ def main(gvar, user_secret):
 
     execute_csv2_request(
         gvar, 2, None, 'HTTP response code 401, unauthorized.',
-        '/job/list/',
+        '/job/list/?"{}"'.format(ut_id(gvar,'jtg1')),
         server_user='invalid-unit-test', server_pw='invalid-unit-test'
     )
 
     execute_csv2_request(
         gvar, 1, None, 'user "{}" is not a member of any group.'.format(ut_id(gvar, 'jtu1')),
-        '/job/list/',
+        '/job/list/?"{}"'.format(ut_id(gvar,'jtg1')),
         server_user=ut_id(gvar, 'jtu1'), server_pw=user_secret
     )
 
     execute_csv2_request(
         gvar, 1, None, 'user "{}" is not a member of any group.'.format(ut_id(gvar, 'jtu2')),
-        '/job/list/',
+        '/job/list/?"{}"'.format(ut_id(gvar,'jtg1')),
         server_user=ut_id(gvar, 'jtu2'), server_pw=user_secret
     )
 
     execute_csv2_request(
         gvar, 1, 'JV', 'request contained a bad parameter "invalid-unit-test".',
-        '/job/list/'
+        '/job/list/?"{}"'.format(ut_id(gvar,'jtg1'))
 , form_data={'invalid-unit-test': 'invalid-unit-test'},
         server_user=ut_id(gvar, 'jtu3'), server_pw=user_secret
     )
 
     execute_csv2_request(
         gvar, 1, None, 'cannot switch to invalid group "invalid-unit-test".',
-        '/job/list/', group='invalid-unit-test',
+        '/job/list/?invalid-unit-test',
         server_user=ut_id(gvar, 'jtu3'), server_pw=user_secret
     )
 
     execute_csv2_request(
         gvar, 1, None, 'cannot switch to invalid group "{}".'.format(ut_id(gvar, 'jtg2')),
-        '/job/list/', group=ut_id(gvar, 'jtg2'),
+        '/job/list/?"{}"'.format(ut_id(gvar,'jtg2')),
         server_user=ut_id(gvar, 'jtu3'), server_pw=user_secret
     )
 
     execute_csv2_request(
         gvar, 0, None, None,
-        '/job/list/', group=ut_id(gvar, 'jtg1'),
-        server_user=ut_id(gvar, 'jtu3'), server_pw=user_secret
-    )
-
-    execute_csv2_request(
-        gvar, 0, None, None,
-        '/job/list/',
+        '/job/list/?"{}"'.format(ut_id(gvar,'jtg1')),
         server_user=ut_id(gvar, 'jtu3'), server_pw=user_secret
     )
 

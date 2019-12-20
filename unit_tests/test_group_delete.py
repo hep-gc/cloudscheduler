@@ -47,7 +47,7 @@ def main(gvar, user_secret):
     # 6
     execute_csv2_request(
         gvar, 1, 'GV', 'cannot switch to invalid group "invalid-unit-test".',
-        '/group/delete/', group='invalid-unit-test'
+        '/group/delete/invalid-unit-test'
     )
 
     # 7
