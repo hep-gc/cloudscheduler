@@ -44,7 +44,7 @@ def main(gvar, user_secret):
 
     execute_csv2_request(
         gvar, 1, None, 'cannot switch to invalid group "{}".'.format(ut_id(gvar, 'vtg2')),
-        '/vm/list/?"{}"'.format(ut_id(gvar, 'vtg2')),
+        '/vm/list/?{}'.format(ut_id(gvar, 'vtg2')),
         server_user=ut_id(gvar, 'vtu3'), server_pw=user_secret
     )
 
