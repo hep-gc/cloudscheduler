@@ -42,7 +42,7 @@ def main(gvar, user_secret):
     # 05
     execute_csv2_request(
         gvar, 1, None, 'cannot switch to invalid group "{}".'.format(ut_id(gvar, 'ctg2')),
-        '/cloud/metadata-collation/?"{}"'.format(ut_id(gvar, 'ctg2')),
+        '/cloud/metadata-collation/?{}'.format(ut_id(gvar, 'ctg2')),
         server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
     )
 
@@ -57,7 +57,7 @@ def main(gvar, user_secret):
     # 07
     execute_csv2_request(
         gvar, 0, None, None,
-        '/cloud/metadata-collation/?"{}"'.format(ut_id(gvar, 'ctg1')),
+        '/cloud/metadata-collation/?{}'.format(ut_id(gvar, 'ctg1')),
         list='cloud_metadata_list', filter={'metadata_name': ut_id(gvar, 'cty1'), 'cloud_name': ut_id(gvar, 'ctc2'), 'group_name': ut_id(gvar, 'ctg1')},
         values={'type': 'group'},
         server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
@@ -66,7 +66,7 @@ def main(gvar, user_secret):
     # 08
     execute_csv2_request(
         gvar, 0, None, None,
-        '/cloud/metadata-collation/?"{}"'.format(ut_id(gvar, 'ctg1')),
+        '/cloud/metadata-collation/?{}'.format(ut_id(gvar, 'ctg1')),
         list='cloud_metadata_list', filter={'metadata_name': ut_id(gvar, 'cty1'), 'cloud_name': ut_id(gvar, 'ctc3'), 'group_name': ut_id(gvar, 'ctg1')},
         values={'type': 'group'},
         server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
@@ -75,7 +75,7 @@ def main(gvar, user_secret):
     # 09
     execute_csv2_request(
         gvar, 0, None, None,
-        '/cloud/metadata-collation/?"{}"'.format(ut_id(gvar, 'ctg1')),
+        '/cloud/metadata-collation/?{}'.format(ut_id(gvar, 'ctg1')),
         list='cloud_metadata_list', filter={'metadata_name': ut_id(gvar, 'cty1'), 'cloud_name': ut_id(gvar, 'ctc2'), 'group_name': ut_id(gvar, 'ctg1')},
         values={'type': 'group'},
         server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret

@@ -43,14 +43,14 @@ def main(gvar, user_secret):
     # 05
     execute_csv2_request(
         gvar, 1, 'CV', 'cannot switch to invalid group "{}".'.format(ut_id(gvar, 'ctg2')),
-        '/cloud/status/?"{}"'.format(ut_id(gvar, 'ctg2')),
+        '/cloud/status/?{}'.format(ut_id(gvar, 'ctg2')),
         server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
     )
 
     # 06
     execute_csv2_request(
         gvar, 0, None, None,
-        '/cloud/status/?"{}"'.format(ut_id(gvar, 'ctg1')),
+        '/cloud/status/?{}'.format(ut_id(gvar, 'ctg1')),
         list='cloud_status_list', filter={'cloud_name': ut_id(gvar, 'ctc2')},
         values={
             'group_name': ut_id(gvar, 'ctg1'),

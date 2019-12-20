@@ -184,7 +184,7 @@ def main(gvar, user_secret):
     # 18
     execute_csv2_request(
         gvar, 0, None, None,
-        '/group/list/?"{}"'.format(ut_id(gvar, 'gtg4')), list='group_list', filter={'group_name': ut_id(gvar, 'gtg4')},
+        '/group/list/?{}'.format(ut_id(gvar, 'gtg4')), list='group_list', filter={'group_name': ut_id(gvar, 'gtg4')},
         values={'group_name': ut_id(gvar, 'gtg4'), 'htcondor_fqdn': 'unit-test-group-four.ca', 'htcondor_container_hostname': None, 'htcondor_other_submitters': None, 'metadata_names': ",".join(sorted([ut_id(gvar, 'gty1.yaml'),'default.yaml.j2']))}
     )
 
@@ -217,7 +217,7 @@ def main(gvar, user_secret):
     # 21
     execute_csv2_request(
         gvar, 0, None, None,
-        '/group/metadata-list/?"{}"'.format(ut_id(gvar, 'gtg5')), list='group_metadata_list', filter={'metadata_name': ut_id(gvar, 'gty1.yaml')},
+        '/group/metadata-list/?{}'.format(ut_id(gvar, 'gtg5')), list='group_metadata_list', filter={'metadata_name': ut_id(gvar, 'gty1.yaml')},
         values={'metadata_name': ut_id(gvar, 'gty1.yaml'), 'enabled': 0, 'metadata': '- example: yaml', 'group_name': ut_id(gvar, 'gtg5'), 'priority': 1, 'mime_type': 'cloud-config'},
         server_user=ut_id(gvar, 'gtu3'), server_pw=user_secret
     )

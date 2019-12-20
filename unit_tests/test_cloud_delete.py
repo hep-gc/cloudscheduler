@@ -35,7 +35,7 @@ def main(gvar, user_secret):
     # 4
     execute_csv2_request(
         gvar, 1, 'CV', 'invalid method "GET" specified.',
-        '/cloud/delete/?"{}"'.format(ut_id(gvar, 'ctg1')),
+        '/cloud/delete/?{}'.format(ut_id(gvar, 'ctg1')),
         server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
     )
 
@@ -57,7 +57,7 @@ def main(gvar, user_secret):
     # 7
     execute_csv2_request(
         gvar, 1, 'CV', 'cloud metadata-delete request did not contain mandatory parameters "cloud_name" and "metadata_name".',
-        '/cloud/delete/', group='invalid-unit-test', form_data={'cloud_name': 'invalid-unit-test'},
+        '/cloud/delete/', group=ut_id(gvar, 'ctg1'), form_data={'cloud_name': 'invalid-unit-test'},
         server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
     )
 

@@ -35,7 +35,7 @@ def main(gvar, user_secret):
     # 4
     execute_csv2_request(
         gvar, 1, 'CV', 'cloud add request did not contain mandatory parameter "cloud_name".',
-        '/cloud/add/?"{}"'.format(ut_id(gvar, 'ctg1')),
+        '/cloud/add/?{}'.format(ut_id(gvar, 'ctg1')),
         server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
     )
 
@@ -608,7 +608,7 @@ def main(gvar, user_secret):
     # 46
     execute_csv2_request(
         gvar, 0, None, None,
-        '/cloud/list/?"{}"'.format(ut_id(gvar, 'ctg1')),
+        '/cloud/list/?{}'.format(ut_id(gvar, 'ctg1')),
         list='cloud_list', filter={'cloud_name': ut_id(gvar, 'ctc5')},
         values={
             'group_name': ut_id(gvar, 'ctg1'),
@@ -655,7 +655,7 @@ def main(gvar, user_secret):
     # 48
     execute_csv2_request(
         gvar, 0, None, None,
-        '/cloud/list/?"{}"'.format(ut_id(gvar, 'ctg1')),
+        '/cloud/list/?{}'.format(ut_id(gvar, 'ctg1')),
         list='cloud_list', filter={'cloud_name': ut_id(gvar, 'ctc6')},
         values={
             'group_name': ut_id(gvar, 'ctg1'),

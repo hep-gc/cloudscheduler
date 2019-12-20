@@ -114,7 +114,7 @@ def main(gvar, user_secret):
     # 16
     execute_csv2_request(
         gvar, 0, None, 'group "{}" successfully updated.'.format(ut_id(gvar, 'gtg4')),
-        '/group/update/', group=(ut_id(gvar, 'gtg4')),
+        '/group/update/', 
         form_data={
             'group_name': ut_id(gvar, 'gtg4'),
             'htcondor_fqdn': 'unit-test-group-four-update.ca'
@@ -124,7 +124,7 @@ def main(gvar, user_secret):
     # 17
     execute_csv2_request(
         gvar, 0, None, None,
-        '/group/list/?"{}"'.format(ut_id(gvar,'gtg4')),
+        '/group/list/',
         list='group_list', filter={'group_name': ut_id(gvar, 'gtg4')},
         values={'group_name': ut_id(gvar, 'gtg4'), 'htcondor_fqdn': 'unit-test-group-four-update.ca'}
     )
@@ -132,7 +132,7 @@ def main(gvar, user_secret):
     # 18
     execute_csv2_request(
         gvar, 1, 'GV', 'specified user "invalid-unit-test" does not exist.',
-        '/group/update/', group=(ut_id(gvar, 'gtg4')),
+        '/group/update/', 
         form_data={
             'group_name': ut_id(gvar, 'gtg4'),
             'username.1': 'invalid-unit-test'
@@ -142,7 +142,7 @@ def main(gvar, user_secret):
     # 19
     execute_csv2_request(
         gvar, 1, 'GV', 'group update, "{}" failed - user "{}" was specified twice.'.format(ut_id(gvar, 'gtg4'), ut_id(gvar, 'gtu4')),
-        '/group/update/', group=(ut_id(gvar, 'gtg4')),
+        '/group/update/',
         form_data={
             'group_name': ut_id(gvar, 'gtg4'),
             'username.1': ut_id(gvar, 'gtu4'),
@@ -153,7 +153,7 @@ def main(gvar, user_secret):
     # 20
     execute_csv2_request(
         gvar, 0, None, None,
-        '/group/list/?"{}"'.format(ut_id(gvar, 'gtg4')),
+        '/group/list/',
         list='group_list', filter={'group_name': ut_id(gvar, 'gtg4')},
         values={'group_name': ut_id(gvar, 'gtg4'), 'htcondor_fqdn': 'unit-test-group-four-update.ca'}
     )
@@ -161,7 +161,7 @@ def main(gvar, user_secret):
     # 21
     execute_csv2_request(
         gvar, 0, None, 'group "{}" successfully updated.'.format(ut_id(gvar, 'gtg4')),
-        '/group/update/', group=(ut_id(gvar, 'gtg4')),
+        '/group/update/',
         form_data={
             'group_name': ut_id(gvar, 'gtg4'),
             'username.1': ut_id(gvar, 'gtu4')
@@ -171,7 +171,7 @@ def main(gvar, user_secret):
     # 22
     execute_csv2_request(
         gvar, 0, None, None,
-        '/group/list/?"{}"'.format(ut_id(gvar, 'gtg4')),
+        '/group/list/',
         list='group_list', filter={'group_name': ut_id(gvar, 'gtg4')},
         values={'group_name': ut_id(gvar, 'gtg4'), 'htcondor_fqdn': 'unit-test-group-four-update.ca'}
     )
@@ -187,7 +187,7 @@ def main(gvar, user_secret):
     # 24
     execute_csv2_request(
         gvar, 0, None, 'group "{}" successfully updated.'.format(ut_id(gvar, 'gtg4')),
-        '/group/update/',group=(ut_id(gvar, 'gtg4')),
+        '/group/update/',
         form_data={
             'group_name': ut_id(gvar, 'gtg4'),
             'username': ''
@@ -205,7 +205,7 @@ def main(gvar, user_secret):
     # 26
     execute_csv2_request(
         gvar, 0, None, 'group "{}" successfully updated.'.format(ut_id(gvar, 'gtg4')),
-        '/group/update/', group=(ut_id(gvar, 'gtg4')),
+        '/group/update/',
         form_data={
             'group_name': ut_id(gvar, 'gtg4'),
             'username.1': ut_id(gvar, 'gtu4')
@@ -223,7 +223,7 @@ def main(gvar, user_secret):
     # 28
     execute_csv2_request(
         gvar, 0, None, 'group "{}" successfully updated.'.format(ut_id(gvar, 'gtg4')),
-        '/group/update/', group=(ut_id(gvar, 'gtg4')),
+        '/group/update/',
         form_data={
             'group_name': ut_id(gvar, 'gtg4'),
             'username.1': ut_id(gvar, 'gtu5')
@@ -249,7 +249,7 @@ def main(gvar, user_secret):
     # 31
     execute_csv2_request(
         gvar, 0, None, 'group "{}" successfully updated.'.format(ut_id(gvar, 'gtg4')),
-        '/group/update/', group=(ut_id(gvar, 'gtg4')),
+        '/group/update/',
         form_data={
             'group_name': ut_id(gvar, 'gtg4'),
             'username.1': ut_id(gvar, 'gtu4'),

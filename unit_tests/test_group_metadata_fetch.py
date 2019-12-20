@@ -31,13 +31,13 @@ def main(gvar, user_secret):
 
     execute_csv2_request(
         gvar, 1, 'GV', 'cannot switch to invalid group "{}".'.format(ut_id(gvar, 'gtg7')),
-        '/group/metadata-fetch/?"{}"'.format(ut_id(gvar,'gtg7')), query_data={'metadata_name': 'invalid-unit-test'},
+        '/group/metadata-fetch/?{}'.format(ut_id(gvar,'gtg7')), query_data={'metadata_name': 'invalid-unit-test'},
         server_user=ut_id(gvar, 'gtu3'), server_pw=user_secret
     )
 
     execute_csv2_request(
         gvar, 1, None, 'file "{}::invalid-unit-test" does not exist.'.format(ut_id(gvar, 'gtg5')),
-        '/group/metadata-fetch/?"{}"'.format(ut_id(gvar,'gtg5')), query_data={'metadata_name': 'invalid-unit-test'},
+        '/group/metadata-fetch/?{}'.format(ut_id(gvar,'gtg5')), query_data={'metadata_name': 'invalid-unit-test'},
         server_user=ut_id(gvar, 'gtu3'), server_pw=user_secret
     )
 

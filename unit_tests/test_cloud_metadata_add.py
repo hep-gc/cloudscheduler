@@ -35,7 +35,7 @@ def main(gvar, user_secret):
     # 4
     execute_csv2_request(
         gvar, 1, 'CV', 'cloud metadata_add, invalid method "GET" specified.',
-        '/cloud/metadata-add/?"{}"'.format(ut_id(gvar, 'ctg1')),
+        '/cloud/metadata-add/?{}'.format(ut_id(gvar, 'ctg1')),
         server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
     )
 
@@ -49,14 +49,14 @@ def main(gvar, user_secret):
     # 6
     execute_csv2_request(
         gvar, 1, None, 'cannot switch to invalid group "{}".'.format(ut_id(gvar, 'ctg2')),
-        '/cloud/metadata-add/?"{}"'.format(ut_id(gvar, 'ctg2')),
+        '/cloud/metadata-add/?{}'.format(ut_id(gvar, 'ctg2')),
         server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
     )
 
     # 7
     execute_csv2_request(
         gvar, 1, 'CV', 'cloud metadata-add request did not contain mandatory parameters "cloud_name" and "metadata_name".',
-        '/cloud/metadata-add/?"{}"'.format(ut_id(gvar, 'ctg1')),
+        '/cloud/metadata-add/?{}'.format(ut_id(gvar, 'ctg1')),
         server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
     )
 

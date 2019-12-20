@@ -42,7 +42,7 @@ def main(gvar, user_secret):
 
     execute_csv2_request(
         gvar, 1, 'UV', 'cannot switch to invalid group "{}".'.format(ut_id(gvar, 'utg2')),
-        '/user/list/?"{}"'.format(ut_id(gvar, 'utg2'))
+        '/user/list/?{}'.format(ut_id(gvar, 'utg2'))
     )
 
     execute_csv2_request(
