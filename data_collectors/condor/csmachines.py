@@ -509,6 +509,8 @@ def command_poller():
                                   logging.exception(exc)
                                   logging.error("%s ready to be terminated but unable to locate vm_row" % resource.vmid)
                                   continue
+                        if resource.retire >= 10:
+                            continue
 
 
                     if config.categories["csmachines.py"]["retire_off"]:
