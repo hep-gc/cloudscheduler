@@ -27,6 +27,5 @@ left outer join (
     cv.hostname=cm.machine or 
     cv.hostname=substring_index(cm.machine, '.', 1) 
 where
-    retire>0 and
-    (htcondor_dynamic_slots is null or htcondor_dynamic_slots<1)
+    retire>0
 ;
