@@ -1,3 +1,5 @@
+/*
+*/
 create or replace view view_condor_host as 
 select
     cv.group_name,
@@ -8,7 +10,6 @@ select
     htcondor_partitionable_slots as primary_slots,
     htcondor_dynamic_slots as dynamic_slots,
     retire,
-    case when slots-1=retiring_slots then 1 else 0 end as retiring,
     terminate,
     machine,
     updater
@@ -16,11 +17,8 @@ from csv2_vms as cv
 left outer join csv2_groups as cg on
     cv.group_name=cg.group_name
 left outer join (
-    select
-        machine,
-        condor_host,
-        count(*) as slots,
-        sum(case when activity='Retiring' then 1 else 0 end) as retiring_slots
+    select distinct
+        machine
     from condor_machines
     group by
         machine,
@@ -28,4 +26,7 @@ left outer join (
     ) as cm on
     cv.hostname=cm.machine or 
     cv.hostname=substring_index(cm.machine, '.', 1) 
+where
+    retire>0 and
+    (htcondor_dynamic_slots is null or htcondor_dynamic_slots<1)
 ;
