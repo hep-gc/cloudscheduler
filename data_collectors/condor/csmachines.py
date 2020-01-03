@@ -518,6 +518,15 @@ def command_poller():
                         continue
 
 
+                    # check the retire time to see if it has been enough time since the last retire was issued
+                    # if it's none we haven't issued a retire yet and can skip the check
+                    if resource.retire_time is not None:
+                        if int(time.time()) - resource.retire_time < config.categories["csmachines.py"]["retire_interval"]:
+                            # if the time since last retire is less than the configured retire interval, continue
+                            logging.debug("Resource has been retired recently... skipping for now.")
+                            continue
+
+
                     logging.info("Retiring (%s) machine %s primary slots: %s dynamic slots: %s, last updater: %s" % (resource.retire, resource.machine, resource[5], resource[6], resource.updater))
                     try:
                         # Old code from before RPC
@@ -601,6 +610,7 @@ def command_poller():
                         vm_row = db_session.query(VM).filter(VM.group_name==resource.group_name, VM.cloud_name==resource.cloud_name, VM.vmid==resource.vmid)[0]
                         vm_row.retire = vm_row.retire + 1
                         vm_row.updater = str(get_frame_info() + ":r+")
+                        vm_row.retire_time = int(time.time())
                         db_session.merge(vm_row)
                         uncommitted_updates = uncommitted_updates + 1
                         if uncommitted_updates >= config.categories["csmachines.py"]["batch_commit_size"]:

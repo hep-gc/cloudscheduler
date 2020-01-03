@@ -12,7 +12,8 @@ select
     retire,
     terminate,
     machine,
-    updater
+    updater,
+    retire_time
 from csv2_vms as cv
 left outer join csv2_groups as cg on
     cv.group_name=cg.group_name
