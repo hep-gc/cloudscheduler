@@ -1,0 +1,8 @@
+[MESSAGES CONTROL]
+
+# Import errors are omitted because otherwise PyLint seems to find non-existant ones.
+disable=C,R,bare-except,broad-except
+enable=duplicate-code
+
+output-format=json
+
