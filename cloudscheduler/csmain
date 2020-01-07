@@ -116,7 +116,10 @@ def main():
             )
             list_groups_with_idle_jobs = sorted(idle_job_groups.keys())
             list_groups_with_idle_jobs_len = len(list_groups_with_idle_jobs)
-            list_groups_with_idle_jobs_ix = while_counter % list_groups_with_idle_jobs_len
+            if list_groups_with_idle_jobs_len > 0:
+                list_groups_with_idle_jobs_ix = while_counter % list_groups_with_idle_jobs_len
+            else:
+                list_groups_with_idle_jobs_ix = 0
 
             log.info('while_counter: %s, groups with idle jobs (%s/%s): %s' % (
                 while_counter,
@@ -284,9 +287,9 @@ def main():
                                         return int(val)
                                     else:
                                         return 1
-                                shortfall_cores = int(shortfall[0].shortfall_cores/no_zero(boot_flavor['flavor_cores']))
-                                shortfall_disk = int(shortfall[0].shortfall_disk/no_zero(boot_flavor['flavor_disk']))
-                                shortfall_ram = int(shortfall[0].shortfall_ram/no_zero(boot_flavor['flavor_ram']))
+                                shortfall_cores = math.ceil(shortfall[0].shortfall_cores/no_zero(boot_flavor['flavor_cores']))
+                                shortfall_disk = math.ceil(shortfall[0].shortfall_disk/no_zero(boot_flavor['flavor_disk']))
+                                shortfall_ram = math.ceil(shortfall[0].shortfall_ram/no_zero(boot_flavor['flavor_ram']))
                                 shortfall_slots = max(0,
                                     shortfall_cores,
                                     shortfall_disk,
