@@ -35,7 +35,7 @@ CREATE TABLE `csv2_timestamps` (
 
 LOCK TABLES `csv2_timestamps` WRITE;
 /*!40000 ALTER TABLE `csv2_timestamps` DISABLE KEYS */;
-INSERT INTO `csv2_timestamps` VALUES ('csv2_configuration',1577990401);
+INSERT INTO `csv2_timestamps` VALUES ('csv2_configuration',1578519947);
 /*!40000 ALTER TABLE `csv2_timestamps` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
@@ -48,4 +48,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2020-01-02 10:40:02
+-- Dump completed on 2020-01-08 13:45:57
