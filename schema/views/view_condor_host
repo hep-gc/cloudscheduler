@@ -28,5 +28,5 @@ left outer join (
     cv.hostname=cm.machine or 
     cv.hostname=substring_index(cm.machine, '.', 1) 
 where
-    retire>0
+    retire>0 or terminate>0
 ;

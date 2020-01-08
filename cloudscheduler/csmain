@@ -538,7 +538,7 @@ def available_resources_query(used_resources, available_resource):
     log.debug("provider: %s used:%s" % (used_resources['provider'][provider]['VMs'], used_resources['group_cloud'][group_cloud]['VMs'])) 
 
     slots = min(
-        available_resource['VMs_max'] - max(0, used_resources['provider'][provider]['VMs'] - used_resources['group_cloud'][group_cloud]['VMs']),
+        available_resource['VMs_max'] - used_resources['provider'][provider]['VMs'],
         int(max(0, cores_limit - used_resources['group_cloud'][group_cloud]['cores_used']) / available_resource['flavor_cores']),
         int(max(0, ram_limit - used_resources['group_cloud'][group_cloud]['ram_used']) / available_resource['flavor_ram'])
         )

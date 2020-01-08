@@ -1673,7 +1673,7 @@ def vm_poller():
                             else:
                                 result = db_session.query(VM).filter(VM.vmid == vm['SpotInstanceRequestId']).count()
                                 # if result is not empty then there was an error surrounding tags and this VM is actually one of ours
-                                if result < 1:
+                                if result >= 1:
                                     logging.error("VM matches SIR in csv2 database but doesn't have any registered tags, try again later.")
                                     continue
                             # if host tokens is none here we have a FVM
