@@ -62,6 +62,7 @@ UNPRIVILEGED_USER_KEYS = {
         'password2':                    'password2',
         'status_refresh_interval':      'integer',
         'flag_global_status':           'dboolean',
+        'flag_jobs_by_target_alias':    'dboolean',
         'flag_show_foreign_global_vms': 'dboolean',
         'flag_show_slot_detail':        'dboolean',
         'flag_show_slot_flavors':       'dboolean',
@@ -354,7 +355,7 @@ def settings(request, active_user=None, response_code=0, message=None):
     else:
         msg ='%s %s' % (lno(MODID), msg)
 
-    # Retrieve VM information.
+    # Retrieve user settings.
     s = select([csv2_user]).where(csv2_user.c.username == active_user.username)
     user_list = qt(config.db_connection.execute(s), prune='password')
 

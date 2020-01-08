@@ -143,7 +143,7 @@ left outer join (
         cv.cloud_name=cf.cloud_name and
         cv.flavor_id=cf.id
 ) as cv on
-    (cj.group_name=cv.group_name and cj.target_alias is null and cj.target_clouds is null) or
+    (cj.group_name=cv.group_name and cj.target_alias is null and cv.target_alias is null) or
     (cj.group_name=cv.group_name and cj.target_alias=cv.target_alias) or
     (cj.group_name=cv.group_name and instr(cj.target_clouds, cv.cloud_name)>0)
 group by
