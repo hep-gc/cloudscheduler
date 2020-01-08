@@ -35,7 +35,7 @@ def trim_keys(dict_to_trim, key_list):
     for key in dict_to_trim:
         if key == "group_name" or key == "target_alias":
             continue
-        if key not in key_list or isinstance(dict_to_trim[key], classad._classad.Value):
+        if key not in key_list or isinstance(dict_to_trim[key], classad.classad.Value):
             keys_to_trim.append(key)
     for key in keys_to_trim:
         dict_to_trim.pop(key, None)
