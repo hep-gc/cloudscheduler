@@ -1460,10 +1460,12 @@ def validate_fields(config, request, fields, tables, active_user):
             if field not in Fields and (field not in Formats or  Formats[field] != 'ignore'):
                 return 1, 'request did not contain mandatory parameter "%s".' % field, None, None, None
 
-        if NotEmpty:
-            for field in Fields:
-                if field in NotEmpty and Fields[field] == '':
-                    return 1, 'parameter "%s" contains an empty string which is specifically disallowed.' % field, None, None, None
+        for field in NotEmpty:
+            if field in Fields:
+                if Fields[field] == '':
+                    return 1, 'mandatory parameter "%s" contains an empty string which is specifically disallowed.' % field, None, None, None
+            else:
+                return 1, 'request did not contain mandatory (but not empty) parameter "%s".' % field, None, None, None
 
     return 0, None, Fields, Tables, Columns
 
