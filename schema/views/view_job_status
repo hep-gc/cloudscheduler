@@ -22,7 +22,7 @@ case when htcondor_gsi_dn is null then
 else
     (cg.htcondor_gsi_eol-unix_timestamp()) div 86400
 end as condor_days_left,
-case when cw.worker_dn='None' then
+case when cw.worker_dn is null then
     null
 else
     (cw.worker_eol-unix_timestamp()) div 86400

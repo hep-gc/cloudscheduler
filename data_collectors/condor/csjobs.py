@@ -214,12 +214,15 @@ def job_poller():
                 for job_ad in job_list:
                     job_dict = dict(job_ad)
                     if "Requirements" in job_dict:
-                        job_dict['Requirements'] = str(job_dict['Requirements'])
+                        ca1=classad.ClassAd(job_dict)
+                        et2 = ca1.flatten(job_dict).eval()
+                        job_dict['Requirements'] = str(et2['Requirements'])
                         # Parse group_name out of requirements
                         try:
-                            pattern = '(group_name is ")(.*?)(")'
+                            #pattern = '(group_name is ")(.*?)(")'
+                            pattern = '(group_name is "|group_name == "|group_name =\?= "|group_name =\?= toLower\("|group_name is toLower\("|group_name == toLower\(")(.*?)(")'
                             grp_name = re.search(pattern, job_dict['Requirements'])
-                            job_dict['group_name'] = grp_name.group(2)
+                            job_dict['group_name'] = grp_name.group(2).lower()
                         except Exception as exc:
                             logging.debug("No group name found in requirements expression... ignoring foreign job.")
                             foreign_jobs = foreign_jobs+1
@@ -232,9 +235,9 @@ def job_poller():
                             continue
                         # Look for a target_alias in requirements string
                         try:
-                            pattern = '(target_alias is ")(.*?)(")'
+                            pattern = '(target_alias is "|target_alias == "|target_alias =\?= "|target_alias =\?= toLower\("|target_alias is toLower\("|target_alias == toLower\(")(.*?)(")'
                             target_alias = re.search(pattern, job_dict['Requirements'])
-                            job_dict['target_alias'] = target_alias.group(2)
+                            job_dict['target_alias'] = target_alias.group(2).lower()
                         except Exception as exc:
                             logging.debug("No alias found in requirements expression")
                     else:
@@ -335,7 +338,7 @@ def job_poller():
                 jsched = {
                     "htcondor_fqdn": condor_host,
                     "condor_status": 1,
-                    "foreign_jobs":  held_jobs
+                    "foreign_jobs":  foreign_jobs
                 }
                 new_jsched = JOB_SCHED(**jsched)
                 js = config.db_session.query(JOB_SCHED).filter(JOB_SCHED.htcondor_fqdn==condor_host)

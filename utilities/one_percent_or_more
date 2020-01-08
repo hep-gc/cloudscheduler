@@ -1,0 +1,2 @@
+#!/bin/bash
+    ps -e -o c,pid,uname,command  | awk '{if($1!="C" && $1>0) printf("%03d %s\n", $1, substr($0, 4, 150))}'| sort -r

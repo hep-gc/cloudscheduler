@@ -93,13 +93,21 @@
                 -->
                 <table>
                     <colgroup>
-                        <col class="clear" span="1" />
-                        <col class="red" span="1" />
-                        <col class="clear" span="9" />
-
+                        {% if jobs_by_target_alias_flag %}
+                            <col class="clear" span="2" />
+                        {% else %}
+                            <col class="clear" span="1" />
+                        {% endif %}
+                        <col class="total-row" span="1" />
                     </colgroup>
+
                     <tr class="header-row">
                         <th class="group-name jobs-style">Group</th>
+
+                        {% if jobs_by_target_alias_flag %}
+                            <th class="jobs-style">Target Alias</th>
+                        {% endif %}
+
                         <th class="jobs-style">Jobs</th>
                         <th class="jobs-style">Idle</th>
                         <th class="jobs-style">Running</th>
@@ -124,6 +132,10 @@
                         {% if global_flag or not global_flag and group.group_name == active_group %}
                             <tr>
                                 <td class="group-name bold-style" onclick="toggle_id('expand-jobs-{{group.group_name}}')"><div class="float-left">{{group.group_name}}</div><div id="sym-expand-jobs-{{group.group_name}}" class="float-right">&#x25BE;</div></td>
+
+                                {% if jobs_by_target_alias_flag %}
+                                    <td class="bold-style"><div class="float-left">{{group.target_alias}}</div></td>
+                                {% endif %}
 
                                 {% if group.Jobs == 0 %}
                                     <td data-path="{{group.group_name}} jobs" class="zero-style float-center plottable">0</td>
@@ -236,6 +248,10 @@
                                             {% if job.group_name == group.group_name %}
                                                 <tr>
 
+                                                {% if jobs_by_target_alias_flag %}
+                                                    <td></td>
+                                                {% endif %}
+
                                                 {% if job.js_idle != 0 %}
                                                     <td data-path="{{job.group_name}} jobs_idle_{{job.request_cpus}}core" class="float-center plottable">{{ job.js_idle }}&#10005;{{ job.request_cpus }}c</td>
                                                 {% else %}
@@ -327,6 +343,8 @@
                   <colgroup>
                     <col class="clear" span="1"/>
                     <col class="grey" span="1"/>
+                    <col class="clear" span="2"/>
+                    <col class="total-row" span="1"/>
                     <col class="clear" span="24"/>
                   </colgroup>
                     <tr class="header-row">

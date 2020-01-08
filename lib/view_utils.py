@@ -928,6 +928,7 @@ def set_user_groups(config, request, super_user=True):
                     self.available_groups = []
 
                 self.flag_global_status = user['flag_global_status']
+                self.flag_jobs_by_target_alias = user['flag_jobs_by_target_alias']
                 self.flag_show_foreign_global_vms = user['flag_show_foreign_global_vms']
                 self.flag_show_slot_detail = user['flag_show_slot_detail']
                 self.flag_show_slot_flavors = user['flag_show_slot_flavors']
@@ -1350,7 +1351,7 @@ def validate_fields(config, request, fields, tables, active_user):
                         return 1, 'value specified for "%s" must be an integer value.' % field, None, None, None
 
                 elif Formats[field] == 'lowerdash':
-                    if len(request.POST[field]) > 0 and re.match("^[a-z0-9\-]*$", request.POST[field]) and request.POST[field][0] != '-' and request.POST[field][-1] != '-':
+                    if len(request.POST[field]) > 0 and re.match("^[a-z0-9_\-]*$", request.POST[field]) and request.POST[field][0] != '-' and request.POST[field][-1] != '-':
                         value = request.POST[field]
                     else:
                         return 1, 'value specified for "%s" must be all lower case, numeric digits, and dashes but cannot start or end with dashes.' % field, None, None, None
