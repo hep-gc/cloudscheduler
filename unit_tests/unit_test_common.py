@@ -185,7 +185,7 @@ def execute_csv2_request(gvar, expected_rc, expected_modid, expected_text, reque
             gvar['ut_failed'] += 1
 
             if not gvar['hidden']:
-                print('\n%04d (%04d) %s Failed: %s, %s, %s, %s, %s, %s' % (gvar['ut_count'][0], gvar['ut_count'][1], _caller(), request, form_data, query_data, expected_rc, expected_modid, expected_text))
+                print('\n%04d (%04d) %s Failed: %s, %s, %s, %s, %s, %s, %s' % (gvar['ut_count'][0], gvar['ut_count'][1], _caller(), request, form_data, query_data, group, expected_rc, expected_modid, expected_text))
                 if gvar['user_settings']['server-address'] in gvar['active_server_user_group'] and server_user in gvar['active_server_user_group'][gvar['user_settings']['server-address']]:
                     print('    server=%s, user=%s, group=%s' % (gvar['server'], server_user, gvar['active_server_user_group'][gvar['user_settings']['server-address']][server_user]))
                 else:
@@ -200,7 +200,7 @@ def execute_csv2_request(gvar, expected_rc, expected_modid, expected_text, reque
             if list and filter and values and (list not in response):
                 failed = True
                 if not gvar['hidden']:
-                    print('\n%04d (%04d) %s Failed: %s, %s, %s, %s' % (gvar['ut_count'][0], gvar['ut_count'][1], _caller(), request, list, filter, values))
+                    print('\n%04d (%04d) %s Failed: %s, %s, %s, %s, %s' % (gvar['ut_count'][0], gvar['ut_count'][1], _caller(), request, group, list, filter, values))
                     print('\tNo list "{}" in response.\n'.format(list))
             if list and filter and values and list in response:
                 found = False
@@ -218,7 +218,7 @@ def execute_csv2_request(gvar, expected_rc, expected_modid, expected_text, reque
                             if (key not in row.keys()) or (values[key] != row[key]):
                                 failed = True
                                 if not gvar['hidden']:
-                                    print('\n%04d (%04d) %s Row Check: %s, %s, %s, %s' % (gvar['ut_count'][0], gvar['ut_count'][1], _caller(), request, list, filter, values))
+                                    print('\n%04d (%04d) %s Row Check: %s, %s, %s, %s, %s' % (gvar['ut_count'][0], gvar['ut_count'][1], _caller(), request, group, list, filter, values))
                                     print('\trow=%s\n' % row)
                                 break
                         if not failed:
@@ -227,7 +227,7 @@ def execute_csv2_request(gvar, expected_rc, expected_modid, expected_text, reque
                 if not found:
                     failed = True
                     if not gvar['hidden']:
-                        print('\n%04d (%04d) %s Failed: %s, %s, %s, %s' % (gvar['ut_count'][0], gvar['ut_count'][1], _caller(), request, list, filter, values))
+                        print('\n%04d (%04d) %s Failed: %s, %s, %s, %s, %s' % (gvar['ut_count'][0], gvar['ut_count'][1], _caller(), request, group, list, filter, values))
                         print('\tFilter didn\'t match any rows\n')
 
                 if failed:
@@ -235,11 +235,11 @@ def execute_csv2_request(gvar, expected_rc, expected_modid, expected_text, reque
                     return 1
                 else:
                     if not gvar['hidden']:
-                        print('%04d (%04d) %s OK: request=%s, %s, %s, %s, %s' % (gvar['ut_count'][0], gvar['ut_count'][1], _caller(), request, form_data, list, filter, values))
+                        print('%04d (%04d) %s OK: request=%s, %s, %s, %s, %s, %s' % (gvar['ut_count'][0], gvar['ut_count'][1], _caller(), request, form_data, group, list, filter, values))
                     return 0
 
             if not gvar['hidden']:
-                print('%04d (%04d) %s OK: %s, %s, %s, %s, %s' % (gvar['ut_count'][0], gvar['ut_count'][1], _caller(), request, form_data, expected_rc, expected_modid, expected_text))
+                print('%04d (%04d) %s OK: %s, %s, %s, %s, %s, %s' % (gvar['ut_count'][0], gvar['ut_count'][1], _caller(), request, form_data, group, expected_rc, expected_modid, expected_text))
     else:
         return 0
 
