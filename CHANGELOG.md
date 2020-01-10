@@ -7,7 +7,7 @@
     - Introduction of csv2-signal-agenti service.
 
   - Process monitor changes:
-    - gracefull shutdown of services.
+    - graceful shutdown of services.
     - pause services for backup.
 
   - Removal of 'target_clouds'.
