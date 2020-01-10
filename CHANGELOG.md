@@ -4,7 +4,7 @@
   - Introduction of this change log.
 
   - AMQP used for signalling:
-    - Introduction of csv2-signal-agenti service.
+    - Introduction of csv2-signal-agent service.
 
   - Process monitor changes:
     - graceful shutdown of services.
