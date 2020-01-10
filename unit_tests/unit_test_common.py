@@ -402,7 +402,7 @@ def _requests(gvar, request, group=None, form_data={}, query_data={}, server_use
             gvar['cookies'] = _r.cookies
             gvar['csrf'] = _r.headers['Set-Cookie'].translate(EXTRACT_CSRF).split()[1]
 
-    if 'response_code' in _r and _r['response_code'] == 0:
+    if 'response_code' in response and response['response_code'] == 0:
         if 'active_user' in response and 'active_group' in response:
             if gvar['user_settings']['server-address'] not in gvar['active_server_user_group']:
                 gvar['active_server_user_group'][gvar['user_settings']['server-address']] = {}
