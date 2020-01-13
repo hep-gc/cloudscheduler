@@ -6,7 +6,6 @@ create or replace view view_groups_of_idle_jobs as
 select
     group_name,
     target_alias,
-    target_clouds,
     instance_type,
     requirements,
     job_priority,
@@ -41,7 +40,6 @@ from (
     select
         group_name,
         target_alias,
-        target_clouds,
         instance_type,
         requirements,
         job_priority,
@@ -82,7 +80,6 @@ from (
                 target_alias,
                 target_alias_clouds,
                 cloud_name,
-                target_clouds,
                 job_status,
                 requirements,
                 job_priority,
@@ -110,7 +107,6 @@ from (
                 gocj.group_name,
                 target_alias,
                 clouds as target_alias_clouds,
-                target_clouds,
                 instance_type,
                 job_status,
                 requirements,
@@ -133,7 +129,6 @@ from (
                 select
                     group_name,
                     target_alias,
-                    target_clouds,
                     instance_type,
                     job_status,
                     requirements,
@@ -159,7 +154,6 @@ from (
                 group by
                     group_name,
                     target_alias,
-                    target_clouds,
                     job_status,
                     requirements,
                     job_priority,
@@ -183,35 +177,31 @@ from (
         join view_available_resources as var on
             goj.group_name=var.group_name and 
             case when goj.target_alias_clouds is null or instr(goj.target_alias_clouds, var.cloud_name) > 0 then
-                case when goj.target_clouds is null or instr(goj.target_clouds, var.cloud_name) > 0 then
-                    case when goj.instance_type is null then
-                        case when var.default_flavor is null then
-                            case when
-                                goj.request_cpus <= var.flavor_cores and 
-                                goj.request_disk <= var.flavor_disk and 
-                                goj.request_ram  <= var.flavor_ram and 
-                                goj.request_swap <= var.flavor_swap
-                            then 
-                                1
-                            else
-                                0
-                            end
+                case when goj.instance_type is null then
+                    case when var.default_flavor is null then
+                        case when
+                            goj.request_cpus <= var.flavor_cores and 
+                            goj.request_disk <= var.flavor_disk and 
+                            goj.request_ram  <= var.flavor_ram and 
+                            goj.request_swap <= var.flavor_swap
+                        then 
+                            1
                         else
-                            case when var.default_flavor = var.flavor then
-                                1
-                            else
-                                0
-                            end
+                            0
                         end
                     else
-                        case when goj.instance_type = var.flavor then
+                        case when var.default_flavor = var.flavor then
                             1
                         else
                             0
                         end
                     end
                 else
-                    0
+                    case when goj.instance_type = var.flavor then
+                        1
+                    else
+                        0
+                    end
                 end
             else
                 0
@@ -221,7 +211,6 @@ from (
     group by
         group_name,
         target_alias,
-        target_clouds,
         instance_type,
         requirements,
         job_priority,
@@ -237,7 +226,6 @@ from (
 group by
     group_name,
     target_alias,
-    target_clouds,
     instance_type,
     requirements,
     job_priority,

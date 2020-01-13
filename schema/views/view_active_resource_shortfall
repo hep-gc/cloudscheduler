@@ -5,7 +5,6 @@ create or replace view view_active_resource_shortfall as
 select
     cj.group_name,
     cj.target_alias,
-    cj.target_clouds,
     ifnull(cj.request_cores,0) as request_cores,
     ifnull(sum(cv.active_cores),0) as active_cores,
     ifnull(cj.request_cores,0) - ifnull(sum(cv.active_cores),0) as shortfall_cores,
@@ -23,7 +22,6 @@ from (
     select
         group_name,
         target_alias,
-        target_clouds,
         sum(request_cpus) as request_cores,
         sum(request_disk/(1024*1024)) as request_disk,
         sum(request_ram) as request_ram
@@ -33,8 +31,7 @@ from (
         job_status=2
     group by
         group_name,
-        target_alias,
-        target_clouds
+        target_alias
     ) as cj
 left outer join (
     select
@@ -144,12 +141,10 @@ left outer join (
         cv.flavor_id=cf.id
 ) as cv on
     (cj.group_name=cv.group_name and cj.target_alias is null and cv.target_alias is null) or
-    (cj.group_name=cv.group_name and cj.target_alias=cv.target_alias) or
-    (cj.group_name=cv.group_name and instr(cj.target_clouds, cv.cloud_name)>0)
+    (cj.group_name=cv.group_name and cj.target_alias=cv.target_alias)
 group by
     group_name,
     target_alias,
-    target_clouds,
     request_cores,
     request_disk,
     request_ram
