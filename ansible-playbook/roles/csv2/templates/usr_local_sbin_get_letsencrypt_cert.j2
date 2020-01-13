@@ -44,10 +44,9 @@
 
   rc=0
   while read virtualhost; do
-    echo "Retrieving SSL certificate for $virtualhost" >> $logfile.partial_log
     if [ "X$1" == 'XTrue' ]; then
       echo "Retrieving SSL certificate for $virtualhost from the test server" >> $logfile.partial_log
-      /opt/letsencrypt/bin/certbot certonly --staging -n --agree-tos --email {{ admin_email }} --standalone -d $virtualhost >> $logfile.partial_log 2>&1 || rc=1
+      /opt/letsencrypt/bin/certbot certonly --staging -n --agree-tos --email {{ admin_email }} --standalone --break-my-certs -d $virtualhost >> $logfile.partial_log 2>&1 || rc=1
     else
       echo "Retrieving SSL certificate for $virtualhost from the production server" >> $logfile.partial_log
       /opt/letsencrypt/bin/certbot certonly -n --agree-tos --email {{ admin_email }} --standalone -d $virtualhost >> $logfile.partial_log 2>&1 || rc=1

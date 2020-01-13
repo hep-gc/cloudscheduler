@@ -19,8 +19,8 @@ is required. The playbook can then be applied with the following command:
 
     ansible-playbook -e addenda=addenda -i inventory csv2-sa.yaml -u root
 
-When the installation completes, point your browser at "https://your\_fqdn" and login with
-"csv2-default" user and the password you set in "secrets".
+When the installation completes, point your browser at "https://your_fqdn" and login with
+"csv2_default" user and the password you set in "secrets".
 
 Alternatively, you can also use this playbook to build a cloudscheduler version 2 container build to function
 alongside three other containers with MariaDB, HTCondor, and InfluxDB.

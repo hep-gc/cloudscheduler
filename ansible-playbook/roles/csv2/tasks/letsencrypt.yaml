@@ -41,9 +41,7 @@
 
 - name: install python2 virtualenv command
   pip:
-    name: "{{ item }}"
-  with_items:
-  - virtualenv
+    name: ["virtualenv"]
   when: initial_python3_status.stat.exists == False
 
 - name: create python2 virtual environment for letsencrypt
