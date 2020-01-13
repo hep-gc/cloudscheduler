@@ -5,100 +5,94 @@
 ..   2. run the utility ".../cloudscheduler/utilities/schema_doc"
 ..
 
-Database Table: silk_request (obsolete)
+Database Table: silk_request
 ============================
 
+This table is one of five related tables:
+
+#. silk_profile_
+
+#. silk_profile_queries_
+
+#. silk_request_
+
+#. silk_response_
+
+#. silk_sqlquery_
+
+
+which are control and information tables defined by the Silk Performance Profiler
+for the python/django web services framework. The interested reader is referred to
+the Silk Performance Profiler documentation_.
+
+.. _silk_profile: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_tables/silk_profile.html
+
+.. _silk_profile_queries: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_tables/silk_profile_queries.html
+
+.. _silk_request: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_tables/silk_request.html
+
+.. _silk_response: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_tables/silk_response.html
+
+.. _silk_sqlquery: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_tables/silk_sqlquery.html
+
+.. _documentation: https://silk.readthedocs.io/en/latest/#
 
 
 Keys:
-^^^^^^^^
+^^^^^
 
-* **id** (obsolete):
+* **id** (String(36)):
 
-   * Format: String(36)
-   * Synopsis:
 
 
 Columns:
 ^^^^^^^^
 
-* **body** (obsolete):
+* **path** (String(190)):
 
-   * Format: String
-   * Synopsis:
 
-* **encoded_headers** (obsolete):
+* **query_params** (String):
 
-   * Format: String
-   * Synopsis:
 
-* **end_time** (obsolete):
+* **raw_body** (String):
 
-   * Format: Integer
-   * Synopsis:
 
-* **meta_num_queries** (obsolete):
+* **body** (String):
 
-   * Format: Integer
-   * Synopsis:
 
-* **meta_time** (obsolete):
+* **method** (String(10)):
 
-   * Format: Float
-   * Synopsis:
 
-* **meta_time_spent_queries** (obsolete):
+* **start_time** (Integer):
 
-   * Format: Float
-   * Synopsis:
 
-* **method** (obsolete):
+* **view_name** (String(190)):
 
-   * Format: String(10)
-   * Synopsis:
 
-* **num_sql_queries** (obsolete):
+* **end_time** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **path** (obsolete):
+* **time_taken** (Float):
 
-   * Format: String(190)
-   * Synopsis:
 
-* **prof_file** (obsolete):
+* **encoded_headers** (String):
 
-   * Format: String(300)
-   * Synopsis:
 
-* **pyprofile** (obsolete):
+* **meta_time** (Float):
 
-   * Format: String
-   * Synopsis:
 
-* **query_params** (obsolete):
+* **meta_num_queries** (Integer):
 
-   * Format: String
-   * Synopsis:
 
-* **raw_body** (obsolete):
+* **meta_time_spent_queries** (Float):
 
-   * Format: String
-   * Synopsis:
 
-* **start_time** (obsolete):
+* **pyprofile** (String):
 
-   * Format: Integer
-   * Synopsis:
 
-* **time_taken** (obsolete):
+* **num_sql_queries** (Integer):
 
-   * Format: Float
-   * Synopsis:
 
-* **view_name** (obsolete):
+* **prof_file** (String(300)):
 
-   * Format: String(190)
-   * Synopsis:
 

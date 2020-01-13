@@ -20,6 +20,7 @@ from cloudscheduler.lib.schema import view_groups_of_idle_jobs
 from cloudscheduler.lib.schema import view_active_resource_shortfall
 from cloudscheduler.lib.schema import view_resource_contention
 from cloudscheduler.lib.schema import view_available_resources
+from cloudscheduler.lib.schema import view_total_used_resources
 from cloudscheduler.lib.schema import view_condor_jobs_group_defaults_applied
 from cloudscheduler.lib.schema import view_metadata_collation_json
 from cloudscheduler.lib.db_config import Config
@@ -65,6 +66,7 @@ def main():
         cs_host_ip = '*** unresolved ***'
 
 
+    while_counter = 0
     while(True):
         config.refresh()
         logging.basicConfig(filename=config.categories['csmain']['log_file'],
@@ -79,18 +81,18 @@ def main():
             ec2_image_dict = get_ami_dictionary()
         except Exception as ex:
             log.exception(ex)
+            config.db_close()
             continue
 
         try:
             metadata = json.loads(config.db_connection.execute(select([view_metadata_collation_json])).fetchone().group_metadata)
         except AttributeError as ae:
-            log.exception("Probably loading metadata, is there no metadata?")
+            log.exception("Problem loading metadata, is there no metadata?")
             metadata = {}
 
-        #Get a list of available resources
-        log.debug("Initialzing available resources dictionary")
-        available_resources = qt(config.db_session.execute('select * from view_available_resources'))
-        available_resources_dict = qt(available_resources,
+        used_resources = available_resources_initialize(config)
+
+        available_resources_dict = qt(config.db_session.execute('select * from view_available_resources'),
             keys = {
                 'primary': [
                     'group_name',
@@ -98,8 +100,6 @@ def main():
                 ]
             }
         )
-
-        used_resources = available_resources_initialize(available_resources) 
 
         try:
             # Booting up new VMs to fill in any free space on available clouds related to idle queued jobs
@@ -114,263 +114,318 @@ def main():
                     'list_duplicates': True,
                 }
             )
+            list_groups_with_idle_jobs = sorted(idle_job_groups.keys())
+            list_groups_with_idle_jobs_len = len(list_groups_with_idle_jobs)
+            if list_groups_with_idle_jobs_len > 0:
+                list_groups_with_idle_jobs_ix = while_counter % list_groups_with_idle_jobs_len
+            else:
+                list_groups_with_idle_jobs_ix = 0
 
-            log.debug('---------------got idle jobs--------------')
-            cloud_booted_on = set()  #  Setting this up here now so I can check it and skip over things I boot on due to available slots info will be wrong
+            log.info('while_counter: %s, groups with idle jobs (%s/%s): %s' % (
+                while_counter,
+                list_groups_with_idle_jobs_ix,
+                list_groups_with_idle_jobs_len,
+                list_groups_with_idle_jobs[list_groups_with_idle_jobs_ix:] + list_groups_with_idle_jobs[:list_groups_with_idle_jobs_ix],
+                ))
+
+#           cloud_booted_on = set()  #  Setting this up here now so I can check it and skip over things I boot on due to available slots info will be wrong
             cloud_prio = None 
-            for job_group in idle_job_groups:
-                log.debug("Proccessing group: %s" % job_group)
-                booted_for_group = False
-                for idle_job in idle_job_groups[job_group]:
-                    log.debug("Idle jobs for group: %s" % idle_job_groups[job_group])
-                    if idle_job.get("idle") == 0:
-                        continue
-                    if booted_for_group:
-                        break # this may change in the future once we have smarter booting
+            if list_groups_with_idle_jobs_len > 0:
+                for job_group in list_groups_with_idle_jobs[list_groups_with_idle_jobs_ix:] + list_groups_with_idle_jobs[:list_groups_with_idle_jobs_ix]:
+#               for job_group in idle_job_groups:
+                    ####### log.debug("Proccessing group: %s" % job_group)
+                    booted_for_group = False
+                    for idle_job in idle_job_groups[job_group]:
+                        current_boot_target_alias = idle_job.get("target_alias")
+                        ####### log.debug("Idle jobs for group: %s" % idle_job_groups[job_group])
+                        if idle_job.get("idle") == 0:
+                            continue
+                        if booted_for_group:
+                            break # this may change in the future once we have smarter booting
 
 
-                    log.debug("Info for current job: Group: %s, Target: %s, User: %s, Flavors: %s",
-                              idle_job.get("group_name"), idle_job.get("target_clouds"), idle_job.get("user"), idle_job.get("flavors"))
-                    # flavors is generated line based on which flavor is the best fit and which clouds have available resources
-                    # the format is "Group:Cloud:Flavor, Group:Cloud:Flavor" will need to split and use to filter in resources_matching
+                        ####### log.debug("Info for current job: Group: %s, Target: %s, User: %s, Flavors: %s",
+                        #######     idle_job.get("group_name"), idle_job.get("target_clouds"), idle_job.get("user"), idle_job.get("flavors"))
+                        # flavors is generated line based on which flavor is the best fit and which clouds have available resources
+                        # the format is "Group:Cloud:Flavor, Group:Cloud:Flavor" will need to split and use to filter in resources_matching
 
-                    if idle_job.get("flavors"):
-                        flavor_list = [x.strip() for x in idle_job.get("flavors").split(',')]
-                    else:
-                        continue
-
-                    # before checking if any of these flavors have available resources we need to make sure to check target_clouds
-                    if idle_job.get("target_clouds"):
-                        target_cloud_list = [x.strip() for x in idle_job.get("target_clouds").split(',')]
-                    else:
-                        target_cloud_list = None
-                    boot_flavor = None
-                    for flavor in flavor_list:
-                        if target_cloud_list is not None:
-                            flavor_cloud = flavor.split(":")[0]
-                            if flavor_cloud not in target_cloud_list:
-                                log.debug("No available slots for flavor: %s, trying next..." % flavor)
-                                continue
-                        if available_resources_dict[job_group].get(flavor, None) is not None:
-                            #Found flavour with available resources
-                            log.debug("Flavor:%s found to have available slots" % flavor)
-                            boot_flavor = available_resources_dict[job_group].get(flavor, None)
+                        if idle_job.get("flavors"):
+                            flavor_list = [x.strip() for x in idle_job.get("flavors").split(',')]
                         else:
-                            log.debug("No available slots for flavor: %s, trying next..." % flavor)
                             continue
 
-                        # We have a boot flavor, check that there is available resources and check shortfalls
-                        # If we continue here we go on to the next flavor until we run out
-                        # boot_flavor = available_resource row with all info that we need to boot a vm
-
-                        num_vms_to_boot = available_resources_query(used_resources, boot_flavor)
-                        if num_vms_to_boot <= 0:
-                            log.debug("No available resources to boot %s" % boot_flavor.get("flavor"))
-
-                        try:
-                            shortfall = list(config.db_session.query(view_active_resource_shortfall).filter(
-                                view_active_resource_shortfall.c.group_name == idle_job.get("group_name"),
-                                view_active_resource_shortfall.c.target_alias == idle_job.get("target_alias"),
-                                view_active_resource_shortfall.c.target_clouds == idle_job.get("target_clouds")))
-                        except:
-                            shortfall = []
-
-
-                        if len(shortfall) < 1:
-                            log.debug('unable to retrieve view_active_resource_shortfall for group=%s, target_alias=%s, target_clouds=%s, trying next flavor or skiping idle_job_group).',
-                                idle_job.get("group_name"),
-                                idle_job.get("target_alias"),
-                                idle_job.get("target_clouds"))
-                            continue
-
-                        if shortfall[0].shortfall_cores<=0 and shortfall[0].shortfall_disk<=0 and shortfall[0].shortfall_ram<=0:
-                            log.debug('view_active_resource_shortfall for group=%s, target_alias=%s, target_clouds=%s, cores=%s, disk=%s, ram=%s, no shortfall, trying next flavor or skipping idle_job_group.',
-                                idle_job.get("group_name"),
-                                idle_job.get("target_alias"),
-                                idle_job.get("target_clouds"),
-                                shortfall[0].shortfall_cores,
-                                shortfall[0].shortfall_disk,
-                                shortfall[0].shortfall_ram)
-                            continue
-                            
-                        idle_VMs_throttle = max(config.categories['csmain']['idle_VMs_throttle'], int(shortfall[0].running/10))
-                        if shortfall[0].idle>=idle_VMs_throttle:
-                            log.debug('Too many idle VMs: group=%s, target_alias=%s, target_clouds=%s, idle=%s, running=%s, calculated throttle=%s configurred throttle=%s, trying next flavor or skipping idle_job_group.',
-                                idle_job.get("group_name"),
-                                idle_job.get("target_alias"),
-                                idle_job.get("target_clouds"),
-                                shortfall[0].idle,
-                                shortfall[0].running,
-                                idle_VMs_throttle,
-                                config.categories['csmain']['idle_VMs_throttle'])
-                            continue
-
+                        # before checking if any of these flavors have available resources we need to make sure to check target_clouds
+                        if idle_job.get("target_clouds"):
+                            target_cloud_list = [x.strip() for x in idle_job.get("target_clouds").split(',')]
                         else:
-                            log.debug('view_active_resource_shortfall for group=%s, target_alias=%s, target_clouds=%s, cores=%s, disk=%s, ram=%s, too few active resources, processing continues...',
-                                idle_job.get("group_name"),
-                                idle_job.get("target_alias"),
-                                idle_job.get("target_clouds"),
-                                shortfall[0].shortfall_cores,
-                                shortfall[0].shortfall_disk,
-                                shortfall[0].shortfall_ram)
-
-                            # Looks like we need more VMs, we should have the flavor slots available from the view_available resources row.
-                            # Before we boot anything lets check resrouce contention
-                            try:
-                                resource = list(config.db_session.query(view_resource_contention).filter(
-                                        view_resource_contention.c.authurl == boot_flavor.get("authurl")))
-                            except:
-                                 resource = []
-
-                            if len(resource) < 1:
-                                resource = [type('', (object,), {
-                                    "authurl":boot_flavor.get("authurl"),
-                                    "VMs": 0,
-                                    "starting": 0,
-                                    "unregistered": 0,
-                                    "idle": 0,
-                                    "running": 0,
-                                    "retiring": 0,
-                                    "manual": 0,
-                                    "error": 0
-                                })]
-
-                                log.debug('No active vms for group=%s, cloud=%s, authurl=%s, assuming no contention).',
-                                    boot_flavor.get("group_name"),
-                                    boot_flavor.get("cloud_name"),
-                                    boot_flavor.get("authurl"))
-
-                            if resource[0].starting + resource[0].unregistered >= config.categories['csmain']['new_VMs_throttle']:
-                                log.debug('Resource contention: group=%s, cloud=%s, resource=%s, starting=%s, unregistered=%s, trying next flavor or moving on to next job group.',
-                                    boot_flavor.get("group_name"),
-                                    boot_flavor.get("cloud_name"),
-                                    resource[0].authurl,
-                                    resource[0].starting,
-                                    resource[0].unregistered)
+                            target_cloud_list = None
+                        boot_flavor = None
+                        for flavor in flavor_list:
+                            if target_cloud_list is not None:
+                                flavor_cloud = flavor.split(":")[0]
+                                if flavor_cloud not in target_cloud_list:
+                                    ####### log.debug("No available slots for flavor: %s, trying next..." % flavor)
+                                    continue
+                            if available_resources_dict[job_group].get(flavor, None) is not None:
+                                #Found flavour with available resources
+                                ####### log.debug("Flavor:%s found to have available slots" % flavor)
+                                boot_flavor = available_resources_dict[job_group].get(flavor, None)
+                            else:
+                                ####### log.debug("No available slots for flavor: %s, trying next..." % flavor)
                                 continue
 
-                            if idle_job.get("cloud_name") in cloud_booted_on:
-                                log.debug("Already booted VMs on %s, skipping to next resource..." % boot_flavor.get("cloud_name"))
-                                continue
-                            # Set cloud priority so we can be sure to fill clouds of this priority first.
-                            if cloud_prio == None:
-                                cloud_prio = boot_flavor.get("cloud_priority ")# Set the lowest priority
-                            elif cloud_prio == boot_flavor.get("cloud_priority"):
-                                pass # keep booting VMs on clouds of the same priority if possible
-                            else:
-                                log.debug("Cloud has low priority, skipping until high priority clouds full..")
-                                continue # if higher priority cloud found skip
+                            # We have a boot flavor, check that there is available resources and check shortfalls
+                            # If we continue here we go on to the next flavor until we run out
+                            # boot_flavor = available_resource row with all info that we need to boot a vm
+
+                            available_slots = available_resources_query(used_resources, boot_flavor)
+    #                       if available_slots <= 0:
+                                ####### log.debug("No available resources to boot %s" % boot_flavor.get("flavor"))
+
+                            try:
+                                shortfall = list(config.db_session.query(view_active_resource_shortfall).filter(
+                                    view_active_resource_shortfall.c.group_name == idle_job.get("group_name"),
+                                    view_active_resource_shortfall.c.target_alias == idle_job.get("target_alias"),
+                                    view_active_resource_shortfall.c.target_clouds == idle_job.get("target_clouds")))
+                            except:
+                                shortfall = []
 
 
-                            log.debug("Taking a look at booting on: %s", boot_flavor.get("cloud_name"))
-                            log.debug("Using Flavor: %s", boot_flavor.get("flavor"))
-                            log.debug("flavor slots: %s", boot_flavor.get("flavor_slots"))
-                            log.debug("Initially try boot: %s based on possible per flavor", num_vms_to_boot)
-
-                            num_vms_to_boot = num_vms_to_boot if num_vms_to_boot <= boot_flavor.get("flavor_slots") else boot_flavor.get("flavor_slots")
-                            num_vms_to_boot = math.floor(num_vms_to_boot)
-                            log.debug("Try to boot: %s after checking flavor slots.", num_vms_to_boot)
-                            if num_vms_to_boot == 0:
-                                cloud_prio = None # reset cloud prio so if no slots on the higher priority clouds can still boot on lower
-                                log.debug("Flavor Slots for %s is 0, check the softmax or foreign VMs to try and see why not booting a new VM.", boot_flavor.get("flavor"))
+                            if len(shortfall) < 1:
+                                log.warning('unable to retrieve view_active_resource_shortfall for group=%s, target_alias=%s, target_clouds=%s, trying next flavor or skiping idle_job_group).',
+                                    idle_job.get("group_name"),
+                                    idle_job.get("target_alias"),
+                                    idle_job.get("target_clouds"))
                                 continue
 
-                            if num_vms_to_boot > config.categories['csmain']['max_start_vm_cloud']:
-                                num_vms_to_boot = config.categories['csmain']['max_start_vm_cloud']
-                                log.debug("Adjusting for max_boot, will only boot: %s vms.", num_vms_to_boot)
-                            log.debug("Would like to boot %s VMs on %s", num_vms_to_boot, boot_flavor.get("cloud_name"))
+                            if shortfall[0].shortfall_cores<=0 and shortfall[0].shortfall_disk<=0 and shortfall[0].shortfall_ram<=0:
+                                log.info('view_active_resource_shortfall for group=%s, target_alias=%s, target_clouds=%s, cores=%s, disk=%s, ram=%s, no shortfall, trying next flavor or skipping idle_job_group.',
+                                    idle_job.get("group_name"),
+                                    idle_job.get("target_alias"),
+                                    idle_job.get("target_clouds"),
+                                    shortfall[0].shortfall_cores,
+                                    shortfall[0].shortfall_disk,
+                                    shortfall[0].shortfall_ram)
+                                continue
+                                
+                            idle_VMs_throttle = max(config.categories['csmain']['idle_VMs_throttle'], int(shortfall[0].running/10))
+                            if shortfall[0].idle>=idle_VMs_throttle:
+                                log.info('Too many idle VMs: group=%s, target_alias=%s, target_clouds=%s, idle=%s, running=%s, calculated throttle=%s configurred throttle=%s, trying next flavor or skipping idle_job_group.',
+                                    idle_job.get("group_name"),
+                                    idle_job.get("target_alias"),
+                                    idle_job.get("target_clouds"),
+                                    shortfall[0].idle,
+                                    shortfall[0].running,
+                                    idle_VMs_throttle,
+                                    config.categories['csmain']['idle_VMs_throttle'])
+                                continue
 
-                            try:
-                                usertmp = idle_job.get("user").split('@')[0]
-                            except:
-                                usertmp = idle_job.get("user")
-                            try:
-                                cs_condor_host_ip = socket.gethostbyname(boot_flavor.get("htcondor_fqdn"))
-                            except:
-                                cs_condor_host_ip = '*** unresolved **'
-
-                            if boot_flavor.get("worker_cert")[-1] == '\n':
-                                cloud_worker_cert = boot_flavor.get("worker_cert")[:-1].replace('\n', '\n        ')
                             else:
-                                cloud_worker_cert = boot_flavor.get("worker_cert").replace('\n', '\n        ')
+                                log.debug('view_active_resource_shortfall for group=%s, target_alias=%s, target_clouds=%s, cores=%s, disk=%s, ram=%s, too few active resources, processing continues...',
+                                    idle_job.get("group_name"),
+                                    idle_job.get("target_alias"),
+                                    idle_job.get("target_clouds"),
+                                    shortfall[0].shortfall_cores,
+                                    shortfall[0].shortfall_disk,
+                                    shortfall[0].shortfall_ram)
 
-                            if boot_flavor.get("worker_key")[-1] == '\n':
-                                cloud_worker_key = boot_flavor.get("worker_key")[:-1].replace('\n', '\n        ')
-                            else:
-                                cloud_worker_key = boot_flavor.get("worker_key").replace('\n', '\n        ')
+                                # Looks like we need more VMs, we should have the flavor slots available from the view_available resources row.
+                                # Before we boot anything lets check resrouce contention
+                                try:
+                                    resource = list(config.db_session.query(view_resource_contention).filter(
+                                            view_resource_contention.c.authurl == boot_flavor.get("authurl")))
+                                except:
+                                     resource = []
 
-                            template_dict = {'cs_user': usertmp,
-                                             'cs_host': cs_host,
-                                             'cs_host_id': config.csv2_host_id,
-                                             'cs_host_ip': cs_host_ip,
-                                             'cs_group_name': boot_flavor.get("group_name"),
-                                             'cs_condor_host': boot_flavor.get("htcondor_fqdn"),
-                                             'cs_condor_host_ip': cs_condor_host_ip,
-                                             'cs_condor_name': boot_flavor.get("htcondor_container_hostname"),
-                                             'cs_condor_submitters': boot_flavor.get("htcondor_other_submitters"),
-                                             'cs_cloud_alias': idle_job.get("target_alias"),
-                                             'cs_condorworker_cert_days_to_end_of_life': config.categories['GSI']['cert_days_left_good'],
-                                             'cs_condorworker_optional_gsi_messages': config.categories['csmain']['condorworker_optional_gsi_msgs'],
-                                             'cs_condorworker_cert': cloud_worker_cert,
-                                             'cs_condorworker_key': cloud_worker_key}
-                            template_dict.update(service_catalog_yaml_fqdns)
-                            #log.debug(template_dict)
+                                if len(resource) < 1:
+                                    resource = [type('', (object,), {
+                                        "authurl":boot_flavor.get("authurl"),
+                                        "VMs": 0,
+                                        "starting": 0,
+                                        "unregistered": 0,
+                                        "idle": 0,
+                                        "running": 0,
+                                        "retiring": 0,
+                                        "manual": 0,
+                                        "error": 0
+                                    })]
 
-                            # Let's try to boot
-                            try:
-                                if idle_job.get("image"):
-                                    use_image = None
-                                elif boot_flavor.get("default_image"):
-                                    use_image = boot_flavor.get("default_image")
+                                    log.debug('No active vms for group=%s, cloud=%s, authurl=%s, assuming no contention).',
+                                        boot_flavor.get("group_name"),
+                                        boot_flavor.get("cloud_name"),
+                                        boot_flavor.get("authurl"))
+
+                                if resource[0].starting + resource[0].unregistered >= config.categories['csmain']['new_VMs_throttle']:
+                                    log.info('Resource contention: group=%s, cloud=%s, resource=%s, starting=%s, unregistered=%s, trying next flavor or moving on to next job group.',
+                                        boot_flavor.get("group_name"),
+                                        boot_flavor.get("cloud_name"),
+                                        resource[0].authurl,
+                                        resource[0].starting,
+                                        resource[0].unregistered)
+                                    continue
+
+#                               if idle_job.get("cloud_name") in cloud_booted_on:
+#                                   log.debug("Already booted VMs on %s, skipping to next resource..." % boot_flavor.get("cloud_name"))
+#                                   continue
+
+                                # Set cloud priority so we can be sure to fill clouds of this priority first.
+                                if cloud_prio == None:
+                                    cloud_prio = boot_flavor.get("cloud_priority ")# Set the lowest priority
+                                elif cloud_prio == boot_flavor.get("cloud_priority"):
+                                    pass # keep booting VMs on clouds of the same priority if possible
                                 else:
-                                    use_image = None
-                                 
-                                if boot_flavor.get("cloud_type") == 'amazon':
+                                    log.info("Cloud: %s has low priority, skipping until high priority clouds full.." % boot_flavor.get("cloud_name"))
+                                    continue # if higher priority cloud found skip
+
+                                current_group_name = idle_job.get("group_name")
+                                current_boot_cloud = boot_flavor.get("cloud_name")
+#                               current_boot_target_alias = idle_job.get("target_alias")
+                                current_boot_flavor = boot_flavor.get("flavor")
+                                ####### log.debug("Taking a look at booting on: %s, using flavor: %s" % (current_boot_cloud, current_boot_flavor))
+                                def no_zero(val):
+                                    if int(val) > 0:
+                                        return int(val)
+                                    else:
+                                        return 1
+                                shortfall_cores = math.ceil(shortfall[0].shortfall_cores/no_zero(boot_flavor['flavor_cores']))
+                                shortfall_disk = math.ceil(shortfall[0].shortfall_disk/no_zero(boot_flavor['flavor_disk']))
+                                shortfall_ram = math.ceil(shortfall[0].shortfall_ram/no_zero(boot_flavor['flavor_ram']))
+                                shortfall_slots = max(0,
+                                    shortfall_cores,
+                                    shortfall_disk,
+                                    shortfall_ram
+                                    )
+                                
+                                num_vms_to_boot = min(
+                                    config.categories['csmain']['max_start_vm_cloud'],
+                                    available_slots,
+                                    shortfall_slots
+                                    )
+
+                                if num_vms_to_boot == 0:
+                                    cloud_prio = None # reset cloud prio so if no slots on the higher priority clouds can still boot on lower
+                                    log.debug("No Flavor Slots for %s %s, minumum of max_start_vm_cloud(%s), available_slots(%s), shortfall_slots(%s,%s,%s), check the softmax or foreign VMs to try and see why not booting a new VM." % (
+                                        boot_flavor.get("group_name"),
+                                        boot_flavor.get("flavor"),
+                                        config.categories['csmain']['max_start_vm_cloud'],
+                                        available_slots,
+                                        shortfall_cores,
+                                        shortfall_disk,
+                                        shortfall_ram
+                                        ))
+                                    continue
+
+                                log.info("Trying to boot %s VMs (%s, %s); minumum of max_start_vm_cloud(%s), available_slots(%s), shortfall_slots(%s,%s,%s)." % (
+                                    num_vms_to_boot,
+                                    current_group_name,
+                                    current_boot_flavor,
+                                    config.categories['csmain']['max_start_vm_cloud'],
+                                    available_slots,
+                                    shortfall_cores,
+                                    shortfall_disk,
+                                    shortfall_ram
+                                    ))
+                                try:
+                                    usertmp = idle_job.get("user").split('@')[0]
+                                except:
+                                    usertmp = idle_job.get("user")
+                                try:
+                                    cs_condor_host_ip = socket.gethostbyname(boot_flavor.get("htcondor_fqdn"))
+                                except:
+                                    cs_condor_host_ip = '*** unresolved **'
+                                
+                                if boot_flavor.get("worker_cert") is not None:
+                                    if boot_flavor.get("worker_cert")[-1] == '\n':
+                                        cloud_worker_cert = boot_flavor.get("worker_cert")[:-1].replace('\n', '\n        ')
+                                    else:
+                                        cloud_worker_cert = boot_flavor.get("worker_cert").replace('\n', '\n        ')
+                                else:
+                                    cloud_worker_cert = None
+
+                                if boot_flavor.get("worker_key") is not None:
+                                    if boot_flavor.get("worker_key")[-1] == '\n':
+                                        cloud_worker_key = boot_flavor.get("worker_key")[:-1].replace('\n', '\n        ')
+                                    else:
+                                        cloud_worker_key = boot_flavor.get("worker_key").replace('\n', '\n        ')
+                                else:
+                                    cloud_worker_key = None
+
+                                template_dict = {'cs_user': usertmp,
+                                                 'cs_host': cs_host,
+                                                 'cs_host_id': config.csv2_host_id,
+                                                 'cs_host_ip': cs_host_ip,
+                                                 'cs_group_name': boot_flavor.get("group_name"),
+                                                 'cs_condor_host': boot_flavor.get("htcondor_fqdn"),
+                                                 'cs_condor_host_ip': cs_condor_host_ip,
+                                                 'cs_condor_name': boot_flavor.get("htcondor_container_hostname"),
+                                                 'cs_condor_submitters': boot_flavor.get("htcondor_other_submitters"),
+                                                 'cs_cloud_alias': idle_job.get("target_alias"),
+                                                 'cs_condorworker_cert_days_to_end_of_life': config.categories['GSI']['cert_days_left_good'],
+                                                 'cs_condorworker_optional_gsi_messages': config.categories['csmain']['condorworker_optional_gsi_msgs'],
+                                                 'cs_condorworker_cert': cloud_worker_cert,
+                                                 'cs_condorworker_key': cloud_worker_key}
+                                template_dict.update(service_catalog_yaml_fqdns)
+                                ######## log.debug(template_dict)
+
+                                # Let's try to boot
+                                try:
                                     if idle_job.get("image"):
-                                        use_image = ec2_image_dict[boot_flavor.get("group_name")][boot_flavor.get("cloud_name")][idle_job.get("image")]
+                                        use_image = None
                                     elif boot_flavor.get("default_image"):
-                                        use_image = ec2_image_dict[boot_flavor.get("group_name")][boot_flavor.get("cloud_name")][boot_flavor.get("default_image")]
-                                    boot_cloud = ec2cloud.EC2Cloud(resource=boot_flavor,
-                                             metadata=metadata[boot_flavor.get("group_name")][boot_flavor.get("cloud_name")]
-                                             if metadata and boot_flavor.get("group_name") in metadata
-                                             else [])
-                                    boot_cloud.vm_create(num=int(num_vms_to_boot),
-                                               flavor=boot_flavor.get("flavor"),
-                                               job=idle_job,
-                                               template_dict=template_dict,
-                                               image=use_image)
+                                        use_image = boot_flavor.get("default_image")
+                                    else:
+                                        use_image = None
+                                     
+                                    if boot_flavor.get("cloud_type") == 'amazon':
+                                        if idle_job.get("image"):
+                                            use_image = ec2_image_dict[boot_flavor.get("group_name")][boot_flavor.get("cloud_name")][idle_job.get("image")]
+                                        elif boot_flavor.get("default_image"):
+                                            use_image = ec2_image_dict[boot_flavor.get("group_name")][boot_flavor.get("cloud_name")][boot_flavor.get("default_image")]
+                                        boot_cloud = ec2cloud.EC2Cloud(resource=boot_flavor,
+                                                 metadata=metadata[boot_flavor.get("group_name")][boot_flavor.get("cloud_name")]
+                                                 if metadata and boot_flavor.get("group_name") in metadata
+                                                 else [])
+                                        boot_cloud.vm_create(num=int(num_vms_to_boot),
+                                                   flavor=boot_flavor.get("flavor"),
+                                                   job=idle_job,
+                                                   template_dict=template_dict,
+                                                   image=use_image)
 
 
-                                elif boot_flavor.get("cloud_type") == 'localhost':
-                                    boot_cloud = localhostcloud.LocalHostCloud(resource=boot_flavor,
-                                             metadata=metadata[boot_flavor.get("group_name")][boot_flavor.get("cloud_name")]
-                                             if metadata and boot_flavor.get("group_name") in metadata
-                                             else [])
-                                    boot_cloud.vm_create(num=int(num_vms_to_boot),
-                                               flavor=boot_flavor.get("flavor"),
-                                               job=idle_job,
-                                               template_dict=template_dict,
-                                               image=use_image)
-                                else:
-                                    #openstack
-                                    boot_cloud = openstackcloud.OpenStackCloud(resource=boot_flavor, metadata=metadata[boot_flavor.get("group_name")][boot_flavor.get("cloud_name")]
-                                             if metadata and boot_flavor.get("group_name") in metadata
-                                             else [])
-                                    boot_cloud.vm_create(num=int(num_vms_to_boot),
-                                               flavor=boot_flavor.get("flavor"),
-                                               job=idle_job,
-                                               template_dict=template_dict,
-                                               image=use_image)
+                                    elif boot_flavor.get("cloud_type") == 'localhost':
+                                        boot_cloud = localhostcloud.LocalHostCloud(resource=boot_flavor,
+                                                 metadata=metadata[boot_flavor.get("group_name")][boot_flavor.get("cloud_name")]
+                                                 if metadata and boot_flavor.get("group_name") in metadata
+                                                 else [])
+                                        boot_cloud.vm_create(num=int(num_vms_to_boot),
+                                                   flavor=boot_flavor.get("flavor"),
+                                                   job=idle_job,
+                                                   template_dict=template_dict,
+                                                   image=use_image)
+                                    else:
+                                        #openstack
+                                        boot_cloud = openstackcloud.OpenStackCloud(resource=boot_flavor, metadata=metadata[boot_flavor.get("group_name")][boot_flavor.get("cloud_name")]
+                                                 if metadata and boot_flavor.get("group_name") in metadata
+                                                 else [])
+                                        boot_cloud.vm_create(num=int(num_vms_to_boot),
+                                                   flavor=boot_flavor.get("flavor"),
+                                                   job=idle_job,
+                                                   template_dict=template_dict,
+                                                   image=use_image)
 
-                                log.debug('done booting on cloud %s', boot_flavor.get("cloud_name"))
-                                available_resources_update(used_resources, boot_flavor, num_vms_to_boot)
-                                cloud_booted_on.add(boot_flavor.get("cloud_name"))
-                                booted_for_group = True
-                                break
+                                    ####### log.debug('done booting on cloud %s', boot_flavor.get("cloud_name"))
+                                    available_resources_update(used_resources, boot_flavor, num_vms_to_boot)
+#                                   cloud_booted_on.add(boot_flavor.get("cloud_name"))
+                                    booted_for_group = True
+                                    break
 
 
-                            except Exception as ex:
-                                log.exception("Disable cloud %s due to exception(later).", boot_flavor.get("cloud_name"))
+                                except Exception as ex:
+                                    log.exception("Disable cloud %s due to exception(later).", boot_flavor.get("cloud_name"))
+
+                        if not booted_for_group:
+                            log.info("No Flavor Slots for %s, target alias: %s." % (boot_flavor.get("group_name"), current_boot_target_alias))
+
             config.db_close()
         except TimeoutError as ex:
             log.exception(ex)
@@ -380,7 +435,8 @@ def main():
             config.db_close()
             time.sleep(2)
             continue
-        time.sleep(config.categories['csmain']['sleep_interval_main_short'])  # delay between groups
+        while_counter += 1
+        time.sleep(config.categories['csmain']['sleep_interval_main_long'])
 
 def check_view_idle_vms():
     """Query view_idle_vms and retire as needed."""
@@ -422,72 +478,139 @@ def check_view_idle_vms():
             config.db_close()
         time.sleep(config.categories['csmain']['sleep_interval_main_long'])
 
-def available_resources_initialize(available_resources):
-    resource_groups = {}
-    used_resources = {}
-    for available_resource in available_resources:
-        provider = '%s|%s|%s|%s' % (available_resource['authurl'], available_resource['region'], available_resource['project_domain_name'], available_resource['project'])
-        if provider not in resource_groups:
-            resource_groups[provider] = []
+def available_resources_initialize(config):
+    used_resource_list = qt(config.db_session.execute('select * from view_total_used_resources'))
+    used_resources = {'group_cloud': {}, 'provider': {}}
+    for used_resource in used_resource_list:
+        provider = '%s|%s|%s' % (used_resource['authurl'], used_resource['region'], used_resource['project'])
+        if provider not in used_resources['provider']:
+            used_resources['provider'][provider] = {'VMs': 0, 'cores_used': 0, 'disk_used': 0, 'ram_used': 0, 'swap_used': 0}
 
-        if available_resource['group_name'] not in resource_groups[provider]:
-            resource_groups[provider].append(available_resource['group_name'])
+        used_resources['provider'][provider]['VMs']        += used_resource['VMs']
+        used_resources['provider'][provider]['cores_used'] += used_resource['cores']
+        used_resources['provider'][provider]['disk_used']  += used_resource['disk']
+        used_resources['provider'][provider]['ram_used']   += used_resource['ram']
+        used_resources['provider'][provider]['swap_used']  += used_resource['swap']
 
-            if provider not in used_resources:
-                used_resources[provider] = {'VMs': 0, 'cores_used': 0, 'disk_used': 0, 'ram_used': 0, 'swap_used': 0}
-
-            used_resources[provider]['VMs']        += available_resource['VMs']
-            used_resources[provider]['cores_used'] += available_resource['cores_used']
-            used_resources[provider]['disk_used']  += available_resource['disk_used']
-            used_resources[provider]['ram_used']   += available_resource['ram_used']
-            used_resources[provider]['swap_used']  += available_resource['swap_used']
+    for provider in sorted(used_resources['provider']):
+        log.debug("available_resources_initialize, VMs: %11s, cores: %11s, disk: %11s, RAM: %11s, provider: %s" % (
+            used_resources['provider'][provider]['VMs'],
+            used_resources['provider'][provider]['cores_used'],
+            used_resources['provider'][provider]['disk_used'],
+            used_resources['provider'][provider]['ram_used'],
+            provider
+            ))
 
     return used_resources
 
 def available_resources_query(used_resources, available_resource):
-    def limit(ctl, default_value):
+    def set_default(ctl, default_value):
         if ctl < 0:
             return default_value
         else:
             return ctl
 
-    provider = '%s|%s|%s|%s' % (available_resource['authurl'], available_resource['region'], available_resource['project_domain_name'], available_resource['project'])
+    group_cloud = '%s::%s' % (available_resource['group_name'], available_resource['cloud_name'])
+    if group_cloud not in used_resources['group_cloud']:
+        used_resources['group_cloud'][group_cloud] = {
+            'VMs': available_resource['VMs'],
+            'cores_used': available_resource['cores_used'],
+            'disk_used': available_resource['disk_used'],
+            'ram_used': available_resource['ram_used'],
+            'swap_used': available_resource['swap_used'],
+            }
 
-    cores_quota = available_resource['cores_max'] - max(0, used_resources[provider]['cores_used'] - available_resource['cores_used'])
-    cores_soft_quota = limit(available_resource['cores_softmax'], cores_quota) - max(0, used_resources[provider]['cores_used'] - available_resource['cores_used'])
-    cores_limit = limit(available_resource['cores_ctl'], min(cores_soft_quota, cores_quota))
+    provider = '%s|%s|%s' % (available_resource['authurl'], available_resource['region'], available_resource['project'])
+    if provider not in used_resources['provider']:
+        used_resources['provider'][provider] = {'VMs': 0, 'cores_used': 0, 'disk_used': 0, 'ram_used': 0, 'swap_used': 0}
 
-    ram_quota = int(available_resource['ram_limit']) - int(max(0, used_resources[provider]['ram_used'] - available_resource['ram_used']))
-    ram_limit = limit(available_resource['ram_ctl'], ram_quota)
+    cores_limit = min(
+        set_default(available_resource['cores_ctl'], available_resource['cores_max']),
+        set_default(available_resource['cores_softmax'], available_resource['cores_max']) - max(0, used_resources['provider'][provider]['cores_used'] - used_resources['group_cloud'][group_cloud]['cores_used']),
+        available_resource['cores_max'] - max(0, used_resources['provider'][provider]['cores_used'] - used_resources['group_cloud'][group_cloud]['cores_used'])
+        )
 
-    slots = max(0, min(
-        available_resource['VMs_max'] - used_resources[provider]['VMs'],
-        int((cores_quota - available_resource['cores_used'])/available_resource['flavor_cores']),
-        int((cores_soft_quota - available_resource['cores_used'])/available_resource['flavor_cores']),
-        int((cores_limit - available_resource['cores_used'])/available_resource['flavor_cores']),
-        int((ram_quota - available_resource['ram_used'])/available_resource['flavor_ram']),
-        int((ram_limit - available_resource['ram_used'])/available_resource['flavor_ram'])
+    ram_limit = min(
+        set_default(available_resource['ram_ctl'], available_resource['ram_max']),
+        available_resource['ram_max'] - max(0, used_resources['provider'][provider]['ram_used'] - used_resources['group_cloud'][group_cloud]['ram_used'])
+        )
+
+    log.debug("provider: %s used:%s" % (used_resources['provider'][provider]['VMs'], used_resources['group_cloud'][group_cloud]['VMs'])) 
+
+    slots = min(
+        available_resource['VMs_max'] - used_resources['provider'][provider]['VMs'],
+        int(max(0, cores_limit - used_resources['group_cloud'][group_cloud]['cores_used']) / available_resource['flavor_cores']),
+        int(max(0, ram_limit - used_resources['group_cloud'][group_cloud]['ram_used']) / available_resource['flavor_ram'])
+        )
+
+    log.debug("available_resources_query(%s), VMs(%s/%s), Cores(%s,%s), RAM(%s,%s) Slots(%s) available for resource: %s" % (
+        available_resource['group_name'],
+        used_resources['group_cloud'][group_cloud]['VMs'],
+        used_resources['provider'][provider]['VMs'],
+        used_resources['group_cloud'][group_cloud]['cores_used'],
+        cores_limit,
+        used_resources['group_cloud'][group_cloud]['ram_used'],
+        ram_limit,
+        slots,
+        available_resource['flavor']
         ))
-
-    log.debug("%s slots available for resource: %s" % (slots, available_resource['flavor']))
     return slots
 
-
 def available_resources_update(used_resources, available_resource, consumed_slots):
-    provider = '%s|%s|%s|%s' % (available_resource['authurl'], available_resource['region'], available_resource['project_domain_name'], available_resource['project'])
-
-    used_resources[provider]['VMs'] += consumed_slots
-    available_resource['VMs'] += consumed_slots
-
     consumed_cores = available_resource['flavor_cores'] * consumed_slots
-    used_resources[provider]['cores_used'] += consumed_cores
-    available_resource['cores_used'] += consumed_cores
-
     consumed_ram = available_resource['flavor_ram'] * consumed_slots
-    used_resources[provider]['ram_used'] += consumed_ram
-    available_resource['ram_used'] += consumed_ram
 
+    group_cloud = '%s::%s' % (available_resource['group_name'], available_resource['cloud_name'])
+    if group_cloud not in used_resources['group_cloud']:
+        used_resources['group_cloud'][group_cloud] = {
+            'VMs': available_resource['VMs'],
+            'cores_used': available_resource['cores_used'],
+            'disk_used': available_resource['disk_used'],
+            'ram_used': available_resource['ram_used'],
+            'swap_used': available_resource['swap_used'],
+            }
 
+    provider = '%s|%s|%s' % (available_resource['authurl'], available_resource['region'], available_resource['project'])
+    if provider not in used_resources['provider']:
+        used_resources['provider'][provider] = {'VMs': 0, 'cores_used': 0, 'disk_used': 0, 'ram_used': 0, 'swap_used': 0}
+
+    pre_group_VMs = used_resources['group_cloud'][group_cloud]['VMs']
+    pre_group_cores = used_resources['group_cloud'][group_cloud]['cores_used']
+    pre_group_ram = used_resources['group_cloud'][group_cloud]['ram_used']
+
+    used_resources['group_cloud'][group_cloud]['VMs'] += consumed_slots
+    used_resources['group_cloud'][group_cloud]['cores_used'] += consumed_cores
+    used_resources['group_cloud'][group_cloud]['ram_used'] += consumed_ram
+
+    pre_provider_VMs = used_resources['provider'][provider]['VMs']
+    pre_provider_cores = used_resources['provider'][provider]['cores_used']
+    pre_provider_ram = used_resources['provider'][provider]['ram_used']
+
+    used_resources['provider'][provider]['VMs'] += consumed_slots
+    used_resources['provider'][provider]['cores_used'] += consumed_cores
+    used_resources['provider'][provider]['ram_used'] += consumed_ram
+
+    log.debug("available_resources_update(%s, %s), VMs(%s/%s, %s/%s), Cores(%s/%s, %s/%s), RAM(%s/%s, %s/%s) Slots(%s)" % (
+        available_resource['group_name'],
+        available_resource['flavor'],
+
+        pre_group_VMs,
+        used_resources['group_cloud'][group_cloud]['VMs'],
+        pre_provider_VMs,
+        used_resources['provider'][provider]['VMs'],
+
+        pre_group_cores,
+        used_resources['group_cloud'][group_cloud]['cores_used'],
+        pre_provider_cores,
+        used_resources['provider'][provider]['cores_used'],
+
+        pre_group_ram,
+        used_resources['group_cloud'][group_cloud]['ram_used'],
+        pre_provider_ram,
+        used_resources['provider'][provider]['ram_used'],
+
+        consumed_slots,
+        ))
 
 if __name__ == '__main__':
 

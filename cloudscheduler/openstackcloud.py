@@ -182,7 +182,7 @@ class OpenStackCloud(basecloud.BaseCloud):
         except Exception as exc:
             # Volume info is null or invalid
             self.log.debug("Invalid or empty volume info, booting without volume")
-            self.log.error(exc)
+            self.log.debug(exc)
             vol_info = None
 
         try:

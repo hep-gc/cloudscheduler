@@ -8,122 +8,120 @@
 Database View: view_apel_accounting
 ===================================
 
+This view pulls information from three tables:
 
+* apel_accounting
 
-Keys:
-^^^^^^^^
+* cloud_flavors
+
+* cloud_images
+
+To present complete VM accounting information in a form suitable for presentation
+and for processing by external systems.
+
+The primary information source, **apel_accounting**, maintains an accounting record for each instantiated
+VM. The records are initially created by a database trigger, **trigger_apel_accounting_add_vm**, when
+the CSV2 VM scheduler instantiates a VM and creates its entry in
+the **csv2_vms** table. Subsequently, updates arrive from the VM via the **csv2_vm_data**
+poller. The record for any particular VM is completed by a second
+database trigger, **trigger_apel_accounting_del_vm**, following the termination of the VM and the removal
+of its record from the **csv2_vms** table. Finally, **apel_accounting** records considered obsolete,
+those whose last update was more than the configurable value **apel_accounting_keep_alive_days** ago,
+are deleted by the **csv2_vm_data** poller.
 
 
 Columns:
 ^^^^^^^^
 
-* **benchmark**:
+* **group_name** (String(32)):
 
-   * Format: Integer
-   * Synopsis:
+      Is the name of the CSV2 group that owns the VM.
 
-* **benchmark_type**:
+* **cloud_name** (String(32)):
 
-   * Format: String(32)
-   * Synopsis:
+      Is the name of the cloud that hosted the VM.
 
-* **cloud_name**:
+* **hostname** (String(128)):
 
-   * Format: String(32)
-   * Synopsis:
+      Is the short VM hostname.
 
-* **cloud_type**:
+* **cloud_type** (String(32)):
 
-   * Format: String(32)
-   * Synopsis:
+      Is the type of cloud hosting the VM.
 
-* **cores**:
+* **region** (String(32)):
 
-   * Format: Integer
-   * Synopsis:
+      Is the region within the cloud where the VM ran.
 
-* **cpu_time**:
+* **flavor_id** (String(128)):
 
-   * Format: Integer
-   * Synopsis:
+      Is the ID of the flavor used to instantiate the VM.
 
-* **disk**:
+* **image_id** (String(128)):
 
-   * Format: Integer
-   * Synopsis:
+      Is the ID of the (kernel) image used to instantiate the VM.
 
-* **end_time**:
+* **benchmark_type** (String(32)):
 
-   * Format: Integer
-   * Synopsis:
+      Is a string identifying the type of benchmark being used to calibrate
+      the performance of the VM
 
-* **flavor**:
+* **benchmark** (Integer):
 
-   * Format: String(128)
-   * Synopsis:
+      Is the benchmark score achieved by the VM.
 
-* **flavor_id**:
+* **vmid** (String(128)):
 
-   * Format: String(128)
-   * Synopsis:
+      Is the unique ID of the VM.
 
-* **group_name**:
+* **start_time** (Integer):
 
-   * Format: String(32)
-   * Synopsis:
+      Is the time the VM was instantiated.
 
-* **hostname**:
+* **end_time** (Integer):
 
-   * Format: String(128)
-   * Synopsis:
+      Is the time the VM was termintade. If NULL, the VM is
+      still running and producing accounting information.
 
-* **image**:
+* **last_update** (Integer):
 
-   * Format: String(256)
-   * Synopsis:
+      Is the time the VM accounting record was last updated.
 
-* **image_id**:
+* **cpu_time** (Integer):
 
-   * Format: String(128)
-   * Synopsis:
+      Is the number of cpu seconds that have been consumed by the
+      VM.
 
-* **last_update**:
+* **network_type** (String(32)):
 
-   * Format: Integer
-   * Synopsis:
+      Is a string indicating the type of network assigned to the VM
+      at instantiation time.
 
-* **network_type**:
+* **rx** (Integer):
 
-   * Format: String(32)
-   * Synopsis:
+      Is the number of megabytes received by the netwoork.
 
-* **ram**:
+* **tx** (Integer):
 
-   * Format: Integer
-   * Synopsis:
+      Is the number of megabytes transmitted by the netwoork.
 
-* **region**:
+* **flavor** (String(128)):
 
-   * Format: String(32)
-   * Synopsis:
+      Is the name of the flavor corresponding to the flavor ID.
 
-* **rx**:
+* **cores** (Integer):
 
-   * Format: Integer
-   * Synopsis:
+      Is the number of cores offered by the flavor.
 
-* **start_time**:
+* **disk** (Integer):
 
-   * Format: Integer
-   * Synopsis:
+      Is the number of gigabytes of disk offered by the flavor.
 
-* **tx**:
+* **ram** (Integer):
 
-   * Format: Integer
-   * Synopsis:
+      Is the number of megabytes of RAM offered by the flavor.
 
-* **vmid**:
+* **image** (String(256)):
 
-   * Format: String(128)
-   * Synopsis:
+      Is the name of the (kernel) image corresponding to the image ID.
 

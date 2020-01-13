@@ -30,6 +30,7 @@ KEY_MAP = {
     '-mmt': 'mime_type',
     '-mn':  'metadata_name',
     '-mp':  'priority',
+    '-vbv': 'vm_boot_volume',
     '-vc':  'cores_ctl',
     '-vcs': 'cores_softmax',
     '-vf':  'vm_flavor',
@@ -67,7 +68,7 @@ def add(gvar):
 
     mandatory = ['-ca', '-cn', '-cP', '-cpw', '-cr', '-ct', '-cU']
     required = []
-    optional = ['-ce', '-cfe', '-cp', '-cPD', '-cPI', '-csp', '-cUD', '-cUI', '-g', '-ga', '-gme',  '-H', '-h', '-s', '-vc', '-vcs', '-vf', '-vi', '-vk', '-vka', '-vn', '-vr', '-vsg', '-v', '-xA']
+    optional = ['-ce', '-cfe', '-cp', '-cPD', '-cPI', '-csp', '-cUD', '-cUI', '-g', '-ga', '-gme',  '-H', '-h', '-s', '-vbv', '-vc', '-vcs', '-vf', '-vi', '-vk', '-vka', '-vn', '-vr', '-vsg', '-v', '-xA']
 
     if gvar['retrieve_options']:
         return mandatory + required + optional
@@ -187,6 +188,7 @@ def list(gvar):
             'cores_max/Max/Cores',
             'ram_ctl/Control/RAM',
             'ram_max/Max/RAM',
+            'vm_boot_volume/Boot Volume/Cloud Default',
             'vm_flavor/Flavor/Cloud Default',
             'vm_image/Image/Cloud Default',
             'vm_keep_alive/Keep Alive/Cloud Default',
@@ -342,6 +344,95 @@ def status(gvar):
         title="Cloud status",
         )
 
+    show_table(
+        gvar,
+        response['flavor_slot_detail_summary'],
+        [
+            'group_name/Group,k',
+            'cloud_name/Cloud,k',
+            'flavor/Flavor,k',
+            'slot_type/Type/Slot',
+            'slot_count/Count/Slot',
+            'core_count/Core Count',
+            ],
+        title="Flavor Slot Detail Summary",
+        optional=True,
+        )
+
+    show_table(
+        gvar,
+        response['flavor_slot_detail'],
+        [
+            'group_name/Group,k',
+            'cloud_name/Cloud,k',
+            'flavor/Flavor,k',
+            'slot_type/Type/Slot',
+            'slot_id/ID/Slot',
+            'slot_count/Count/Slot',
+            'core_count/Core Count',
+            ],
+        title="Flavor Slot Detail",
+        optional=True,
+        )
+
+    show_table(
+        gvar,
+        response['flavor_slot_summary'],
+        [
+            'group_name/Group,k',
+            'cloud_name/Cloud,k',
+            'flavor/Flavor,k',
+            'busy/Busy/Cores',
+            'idle/Idle/Cores',
+            'idle_percent/Idle Percent/Cores',
+            ],
+        title="Flavor Slot Summary",
+        optional=True,
+        )
+
+    show_table(
+        gvar,
+        response['slot_detail_summary'],
+        [
+            'group_name/Group,k',
+            'cloud_name/Cloud,k',
+            'slot_type/Type/Slot',
+            'slot_count/Count/Slot',
+            'core_count/Core Count',
+            ],
+        title="Slot Detail Summary",
+        optional=True,
+        )
+
+    show_table(
+        gvar,
+        response['slot_detail'],
+        [
+            'group_name/Group,k',
+            'cloud_name/Cloud,k',
+            'slot_type/Type/Slot',
+            'slot_id/ID/Slot',
+            'slot_count/Count/Slot',
+            'core_count/Core Count',
+            ],
+        title="Slot Detail",
+        optional=True,
+        )
+
+    show_table(
+        gvar,
+        response['slot_summary'],
+        [
+            'group_name/Group,k',
+            'cloud_name/Cloud,k',
+            'busy/Busy/Cores',
+            'idle/Idle/Cores',
+            'idle_percent/Idle Percent/Cores',
+            ],
+        title="Slot Summary",
+        optional=True,
+        )
+
 def update(gvar):
     """
     Modify a cloud in the active group.
@@ -349,7 +440,7 @@ def update(gvar):
 
     mandatory = ['-cn']
     required = []
-    optional = ['-ca', '-ce', '-cfe', '-cfo', '-cpw', '-cp', '-cP', '-cPD', '-cPI', '-cr', '-csp', '-ct', '-cU', '-cUD', '-cUI', '-g', '-ga', '-gme', '-gmo', '-H', '-h', '-s', '-vc', '-vcs', '-vf', '-vi', '-vk', '-vka', '-vn', '-vr', '-vsg', '-v', '-xA']
+    optional = ['-ca', '-ce', '-cfe', '-cfo', '-cpw', '-cp', '-cP', '-cPD', '-cPI', '-cr', '-csp', '-ct', '-cU', '-cUD', '-cUI', '-g', '-ga', '-gme', '-gmo', '-H', '-h', '-s', '-vbv', '-vc', '-vcs', '-vf', '-vi', '-vk', '-vka', '-vn', '-vr', '-vsg', '-v', '-xA']
 
     if gvar['retrieve_options']:
         return mandatory + required + optional

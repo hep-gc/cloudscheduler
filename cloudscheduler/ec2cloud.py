@@ -140,7 +140,6 @@ class EC2Cloud(basecloud.BaseCloud):
                 db_session.merge(new_vm)
             db_session.commit()
         elif 'SpotInstanceRequests' in new_vm:
-            # TODO Need to attach the tags to the spot instances
 
             engine = self._get_db_engine()
             base = automap_base()
@@ -155,7 +154,30 @@ class EC2Cloud(basecloud.BaseCloud):
 
             for vm in new_vm['SpotInstanceRequests']:
                 self.log.debug(vm)
-                client.create_tags(Resources=[vm['SpotInstanceRequestId']], Tags=tags[0]['Tags'])
+                tag_success = False
+                for i in range(20):
+                    try:
+                        client.create_tags(Resources=[vm['SpotInstanceRequestId']], Tags=tags[0]['Tags'])
+                        tag_success = True
+                    except Exception as exc:
+                        logging.warning("Unable to tag spot instaces:")
+                        logging.warning(exc)
+                        logging.info("Re-trying tag request")
+                        time.sleep(1)
+                        continue
+                    break
+                if not tag_success:
+                    # cancel spot instance request for this ID
+                    logging.critical("Failed to tag spot instance, canceling spot instance %s" % vm['SpotInstanceRequestId'])
+                    spot_instances = [vm['SpotInstanceRequestId'],]
+                    try:
+                        client.cancel_spot_instance_requests(SpotInstanceRequestIds=spot_instances)
+                        continue # go on to next instance
+                    except Exception as exc:
+                        logging.critical("Failed to cancel spot instance request %s, request probably doesnt exist:" % vm['SpotInstanceRequestId'])
+                        logging.critical(exc)
+                        continue #go on to next instance
+
                 vm_dict = {
                     'group_name': self.group,
                     'cloud_name': self.name,

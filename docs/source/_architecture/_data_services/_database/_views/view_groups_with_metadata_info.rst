@@ -8,52 +8,73 @@
 Database View: view_groups_with_metadata_info
 =============================================
 
+This view is one of a suite of related views used to
+provide metadata information to the User Interface (UI). The suite includes:
 
+#. view_clouds_with_metadata_info_
 
-Keys:
-^^^^^^^^
+#. view_clouds_with_metadata_names_
+
+#. view_groups_with_metadata_info_
+
+#. view_groups_with_metadata_names_
+
+#. view_metadata_collation_
+
+.. _view_clouds_with_metadata_info: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_clouds_with_metadata_info.html
+
+.. _view_clouds_with_metadata_names: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_clouds_with_metadata_names.html
+
+.. _view_groups_with_metadata_info: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_groups_with_metadata_info.html
+
+.. _view_groups_with_metadata_names: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_groups_with_metadata_names.html
+
+.. _view_metadata_collation: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_metadata_collation.html
+
+The **view_groups_with_metadata_info** creates a list of group/metadata information with one row per
+group/metadata file in a client compatible format suitable for the web client.
 
 
 Columns:
 ^^^^^^^^
 
-* **group_name**:
+* **group_name** (String(32)):
 
-   * Format: String(32)
-   * Synopsis:
+      Is a unique arbitrary short name identifying the group.
 
-* **htcondor_container_hostname**:
+* **htcondor_fqdn** (String(128)):
 
-   * Format: String(128)
-   * Synopsis:
+      Is the Fully Qualified Domain Name of the server hosting the HTCondor
+      job scheduler serving this group. Members may override this setting.
 
-* **htcondor_fqdn**:
+* **htcondor_container_hostname** (String(128)):
 
-   * Format: String(128)
-   * Synopsis:
+      User supplied container name if CSV2 is running in a container.
 
-* **htcondor_other_submitters**:
+* **htcondor_other_submitters** (String(128)):
 
-   * Format: String(128)
-   * Synopsis:
+      This user supplied field maintains a comma seperated list of user IDs,
+      each of which is not a member of the group but are
+      allowed to submit jobs on behalf of the group.
 
-* **metadata_enabled**:
+* **metadata_name** (String(64)):
 
-   * Format: Boolean
-   * Synopsis:
+      Is the name of a metadata file associated with this group.
 
-* **metadata_mime_type**:
+* **metadata_enabled** (Boolean):
 
-   * Format: String(128)
-   * Synopsis:
+      Is the flag of the named metadata file associated with this group
+      indicating whether the file is enabled (1)..
 
-* **metadata_name**:
+* **metadata_priority** (Integer):
 
-   * Format: String(64)
-   * Synopsis:
+      Is the priority of the named metadata file associated with this group.
+      Lower numbers have a higher priority, causing metadata files to be included
+      earlier in the collation order.
 
-* **metadata_priority**:
+* **metadata_mime_type** (String(128)):
 
-   * Format: Integer
-   * Synopsis:
+      Is the mime type of the named metadata file associated with this
+      group. For a complete list of valid mime types, refer to the
+      content of **csv2_mime_types** CSV2 table.
 

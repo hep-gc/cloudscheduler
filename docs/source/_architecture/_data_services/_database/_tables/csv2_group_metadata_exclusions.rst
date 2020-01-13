@@ -8,27 +8,31 @@
 Database Table: csv2_group_metadata_exclusions
 ==============================================
 
+The table provides group members additional control over the collation of metadata
+in preparation for VM contextualization. There are two sources for metadata:
+
+1. Metadata defined at the group level is passed to all clouds
+within the group, but
+
+2. Metadata defined at the cloud level is specific to the cloud.
+
+This table allows you to exclude group metadata files on the named
+cloud.
 
 
 Keys:
-^^^^^^^^
+^^^^^
 
-* **cloud_name**:
+* **group_name** (String(32)):
 
-   * Format: String(32)
-   * Synopsis:
+      Is the name of the group owning the metadata.
 
-* **group_name**:
+* **metadata_name** (String(64)):
 
-   * Format: String(32)
-   * Synopsis:
+      Is the name of the metadata.
 
-* **metadata_name**:
+* **cloud_name** (String(32)):
 
-   * Format: String(64)
-   * Synopsis:
-
-
-Columns:
-^^^^^^^^
+      Is the name of the cloud iwithin the group for which the
+      named metadata is not applicable.
 

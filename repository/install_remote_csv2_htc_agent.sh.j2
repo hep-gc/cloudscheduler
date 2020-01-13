@@ -68,7 +68,7 @@ function sys_cmd {
 
     sys_cmd curl -s  -o /usr/local/etc/csv2_htc_agent.conf    https://{{ i_service_connection[0].ipv4fqdn }}/repo/csv2_htc_agent.conf 
     sys_cmd chown ${cs_user}.${cs_user} /usr/local/etc/csv2_htc_agent.conf                                                           
-    sys_cmd chmod 0644 /usr/local/sbin/csv2_htc_agent.conf                                                                          
+    sys_cmd chmod 0644 /usr/local/etc/csv2_htc_agent.conf                                                                          
 
     sys_cmd mkdir -p /var/log/cloudscheduler                                                                                                    
     sys_cmd chown $cs_user.$cs_user /var/log/cloudscheduler                                                                                     

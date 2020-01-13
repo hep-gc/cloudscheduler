@@ -8,77 +8,119 @@
 Database View: view_job_status
 ==============================
 
+.. _view_cloud_status: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_cloud_status.html
 
+.. _view_cloud_status_flavor_slot_detail_summary: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_cloud_status_flavor_slot_detail_summary.html
 
-Keys:
-^^^^^^^^
+.. _view_cloud_status_flavor_slot_detail: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_cloud_status_flavor_slot_detail.html
+
+.. _view_cloud_status_flavor_slot_summary: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_cloud_status_flavor_slot_summary.html
+
+.. _view_cloud_status_slot_detail_summary: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_cloud_status_slot_detail_summary.html
+
+.. _view_cloud_status_slot_detail: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_cloud_status_slot_detail.html
+
+.. _view_cloud_status_slot_summary: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_cloud_status_slot_summary.html
+
+.. _view_job_status: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_job_status.html
+
+.. _view_vms: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_vms.html
+
+.. _timeseries: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_condor_jobs_group_defaults_applied.html
+
+This view is one of a suite of related views supporting the
+primary status display of CSV2. The suite includes:
+
+#. view_cloud_status_ (also used by timeseries_)
+
+#. view_cloud_status_flavor_slot_detail_summary_
+
+#. view_cloud_status_flavor_slot_detail_
+
+#. view_cloud_status_flavor_slot_summary_
+
+#. view_cloud_status_slot_detail_summary_
+
+#. view_cloud_status_slot_detail_ (also used by timeseries_)
+
+#. view_cloud_status_slot_summary_
+
+#. view_job_status_ (also used by timeseries_)
+
+#. view_vms_
+
+The **view_job_status** details current job information including counts, HTCondor job scheduler and
+agent status, and the validity on any required authentication certificates.
 
 
 Columns:
 ^^^^^^^^
 
-* **Completed**:
+* **group_name** (String(32)):
 
-   * Format: Integer
-   * Synopsis:
+      Is the name of the group owning the jobs.
 
-* **Held**:
+* **Jobs** (Integer):
 
-   * Format: Integer
-   * Synopsis:
+      Is the total number of jobs.
 
-* **Idle**:
+* **Idle** (Integer):
 
-   * Format: Integer
-   * Synopsis:
+      Is the total number of jobs in the 'idle' state. These jobs
+      are waiting to run..
 
-* **Jobs**:
+* **Running** (Integer):
 
-   * Format: Integer
-   * Synopsis:
+      Is the total number of jobs in the 'running' state.
 
-* **Other**:
+* **Completed** (Integer):
 
-   * Format: Integer
-   * Synopsis:
+      Is the total number of jobs in the 'completed' state.
 
-* **Running**:
+* **Held** (Integer):
 
-   * Format: Integer
-   * Synopsis:
+      Is the total number of jobs in the 'held' state.
 
-* **agent_status**:
+* **Other** (Integer):
 
-   * Format: Integer
-   * Synopsis:
+      Is the total number of jobs in a state other than any
+      of those listed above.
 
-* **condor_days_left**:
+* **foreign** (Integer):
 
-   * Format: Integer
-   * Synopsis:
+      Is the the total number of jobs controlled by the group's job
+      scheduler (see 'htcondor_fqdn' below) which do not belong to this group.
 
-* **foreign**:
+* **htcondor_status** (Integer):
 
-   * Format: Integer
-   * Synopsis:
+      Is a flag indicating the status of the group's job scheduler. A
+      value of one indicates that the job scheduler is running. A value
+      of zero indicates that the job scheduler is not running. Any other
+      value indicates a mis-configuration of the job scheduler.
 
-* **group_name**:
+* **agent_status** (Integer):
 
-   * Format: String(32)
-   * Synopsis:
+      Is a flag indicating the status of the **csv2-htc-agent** associated with the
+      group's job scheduler. A value of one indicates that the agent is
+      running. A value of zero indicates that the agent is not running.
+      Any other value indicates a mis-configuration of the agent.
 
-* **htcondor_fqdn**:
+* **htcondor_fqdn** (String(128)):
 
-   * Format: String(128)
-   * Synopsis:
+      Is the Fully Qualified Domain Name (FQDN) of the server hosting the
+      group's HTCondor job scheduler.
 
-* **htcondor_status**:
+* **condor_days_left** (Integer):
 
-   * Format: Integer
-   * Synopsis:
+      Is the number of days remaining on the HTCondor host certificate. A
+      value less than one indicates that the certificate has expired. A NULL
+      value indicates that a certificate has not been configured and may not
+      be required (see 'htcondor_status' above)."
 
-* **worker_days_left**:
+* **worker_days_left** (Integer):
 
-   * Format: Integer
-   * Synopsis:
+      Is the number of days remaining on the VM worker certificate. A
+      value less than one indicates that the certificate has expired. A NULL
+      value indicates that a certificate has not been configured and may not
+      be required (see 'agent_status' above)."
 

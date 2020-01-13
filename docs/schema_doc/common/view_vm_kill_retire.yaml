@@ -1,0 +1,23 @@
+view_vm_kill_retire:
+    Synopsis:
+        "This view is one of a suite of related views used by the cloud pollers, HTCondor machine poller and User
+        Interface (UI) processes to ensure that resource usage on clouds remains within allocated quotas and user
+        defined limits. The suite includes:
+        
+        #. view_condor_host_
+
+        #. view_vm_kill_retire_over_quota_
+
+        #. view_vm_kill_retire_priority_age_
+
+        #. view_vm_kill_retire_priority_idle_
+
+        .. _view_condor_host: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_condor_host.html
+
+        .. _view_vm_kill_retire_over_quota: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_vm_kill_retire_over_quota.html
+
+        .. _view_vm_kill_retire_priority_age: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_vm_kill_retire_priority_age.html
+
+        .. _view_vm_kill_retire_priority_idle: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_vm_kill_retire_priority_idle.html
+        "
+

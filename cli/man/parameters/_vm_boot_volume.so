@@ -1,0 +1,20 @@
+.TP
+\fB\-vbv \fI<JSON_dictionary string>\fR, \fB\-\-vm-boot_volume \fI<JSON_dictionary string>\fR
+Specifices whether a boot volume is to be created for VMs instantiated on this cloud or not.
+If a boot volume is to be created, then the <JSON_dictionary string> should contain at least one, but may contain more than one,
+of the following key/value pairs:
+
+.IN +5
+o "GBs": n
+.br
+o "GBs_per_core": n
+
+Where "n" is an integer number of gigabytes. If a key/value pair is omitted, the corresponding value is assumed to be zero.
+The size of the boot volume is calculated as: GBs + (GBs_per_core * flavor_cores).
+
+Example: {"GBs_per_core": 10}
+
+To erase an existing specification and use the boot disk provided by the flavor, the <JSON_dictionary string> must be erased
+by specifying "null" (without the quotes).
+.TP
+

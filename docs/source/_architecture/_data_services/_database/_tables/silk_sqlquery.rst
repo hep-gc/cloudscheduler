@@ -5,50 +5,64 @@
 ..   2. run the utility ".../cloudscheduler/utilities/schema_doc"
 ..
 
-Database Table: silk_sqlquery (obsolete)
+Database Table: silk_sqlquery
 =============================
 
+This table is one of five related tables:
+
+#. silk_profile_
+
+#. silk_profile_queries_
+
+#. silk_request_
+
+#. silk_response_
+
+#. silk_sqlquery_
+
+
+which are control and information tables defined by the Silk Performance Profiler
+for the python/django web services framework. The interested reader is referred to
+the Silk Performance Profiler documentation_.
+
+.. _silk_profile: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_tables/silk_profile.html
+
+.. _silk_profile_queries: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_tables/silk_profile_queries.html
+
+.. _silk_request: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_tables/silk_request.html
+
+.. _silk_response: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_tables/silk_response.html
+
+.. _silk_sqlquery: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_tables/silk_sqlquery.html
+
+.. _documentation: https://silk.readthedocs.io/en/latest/#
 
 
 Keys:
-^^^^^^^^
+^^^^^
 
-* **id** (obsolete):
+* **id** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
 
 Columns:
 ^^^^^^^^
 
-* **end_time** (obsolete):
+* **query** (String):
 
-   * Format: Integer
-   * Synopsis:
 
-* **query** (obsolete):
+* **start_time** (Integer):
 
-   * Format: String
-   * Synopsis:
 
-* **request_id** (obsolete):
+* **end_time** (Integer):
 
-   * Format: String(36)
-   * Synopsis:
 
-* **start_time** (obsolete):
+* **time_taken** (Float):
 
-   * Format: Integer
-   * Synopsis:
 
-* **time_taken** (obsolete):
+* **traceback** (String):
 
-   * Format: Float
-   * Synopsis:
 
-* **traceback** (obsolete):
+* **request_id** (String(36)):
 
-   * Format: String
-   * Synopsis:
 

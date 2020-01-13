@@ -8,32 +8,46 @@
 Database Table: django_migrations
 =================================
 
+This table is one of four related tables:
+
+#. django_admin_log_
+
+#. django_content_type_
+
+#. django_migrations_
+
+#. django_session_
+
+which are information tables defined by the Django web services framework. The
+interested reader is referred to the Django web framework documentation_.
+
+.. _django_admin_log: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_tables/django_admin_log.html
+
+.. _django_content_type: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_tables/django_content_type.html
+
+.. _django_migrations: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_tables/django_migrations.html
+
+.. _django_session: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_tables/django_session.html
+
+.. _documentation: https://docs.djangoproject.com/en/2.2/
 
 
 Keys:
-^^^^^^^^
+^^^^^
 
-* **id**:
+* **id** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
 
 Columns:
 ^^^^^^^^
 
-* **app**:
+* **app** (String(255)):
 
-   * Format: String(255)
-   * Synopsis:
 
-* **applied**:
+* **name** (String(255)):
 
-   * Format: Integer
-   * Synopsis:
 
-* **name**:
+* **applied** (Integer):
 
-   * Format: String(255)
-   * Synopsis:
 

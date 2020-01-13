@@ -8,67 +8,75 @@
 Database Table: auth_user
 =========================
 
+This table is one of six related tables:
+
+#. auth_group_
+
+#. auth_group_permissions_
+
+#. auth_permission_
+
+#. auth_user_
+
+#. auth_user_groups_
+
+#. auth_user_user_permissions_
+
+which are user authentication tables defined by the Django web services framework.
+The interested reader is referred to the Django User Authentication documentation_.
+
+.. _auth_group: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_tables/auth_group.html
+
+.. _auth_group_permissions: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_tables/auth_group_permissions.html
+
+.. _auth_permission: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_tables/auth_permission.html
+
+.. _auth_user: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_tables/auth_user.html
+
+.. _auth_user_groups: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_tables/auth_user_groups.html
+
+.. _auth_user_user_permissions: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_tables/auth_user_user_permissions.html
+
+.. _documentation: https://docs.djangoproject.com/en/2.2/topics/auth/
 
 
 Keys:
-^^^^^^^^
+^^^^^
 
-* **id**:
+* **id** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
 
 Columns:
 ^^^^^^^^
 
-* **date_joined**:
+* **password** (String(128)):
 
-   * Format: Integer
-   * Synopsis:
 
-* **email**:
+* **last_login** (Integer):
 
-   * Format: String(254)
-   * Synopsis:
 
-* **first_name**:
+* **is_superuser** (Boolean):
 
-   * Format: String(30)
-   * Synopsis:
 
-* **is_active**:
+* **username** (String(150)):
 
-   * Format: Boolean
-   * Synopsis:
 
-* **is_staff**:
+* **first_name** (String(30)):
 
-   * Format: Boolean
-   * Synopsis:
 
-* **is_superuser**:
+* **last_name** (String(150)):
 
-   * Format: Boolean
-   * Synopsis:
 
-* **last_login**:
+* **email** (String(254)):
 
-   * Format: Integer
-   * Synopsis:
 
-* **last_name**:
+* **is_staff** (Boolean):
 
-   * Format: String(150)
-   * Synopsis:
 
-* **password**:
+* **is_active** (Boolean):
 
-   * Format: String(128)
-   * Synopsis:
 
-* **username**:
+* **date_joined** (Integer):
 
-   * Format: String(150)
-   * Synopsis:
 
