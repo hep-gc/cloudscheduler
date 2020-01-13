@@ -8,7 +8,7 @@ ansible_deployment_host_ip: '206.12.154.6'
 letsencrypt_archive: '/usr/local/archive/letsencrypt'
 
 # CSV2 versions to use.
-cs_git_branch: csv2-container
+cs_git_branch: stable-2.6
 db_upgrade_file: none
 schema_model: stable-2.6.1
 favicon_colour: red
@@ -24,7 +24,7 @@ rabbit_on_localhost: true
 reconfigure_network: false
 
 # If you decide to install phpMyAdmin, you will also need an SSL certificate for the domain/virtual host (see i_virtualhosts, below).
-install_phpMyAdmin: False
+install_phpMyAdmin: false
 
 # If you decide to install phpMyAdmin, you will also need an SSL certificate for the domain/virtual host (see i_virtualhosts, below).
 letsencrypt_test: false

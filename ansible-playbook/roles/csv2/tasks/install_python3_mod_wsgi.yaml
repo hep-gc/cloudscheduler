@@ -1,0 +1,29 @@
+---
+# file: install_python3_mod_wsgi.yaml
+# cp /opt/rh/httpd24/root/usr/lib64/httpd/modules/mod_rh-python36-wsgi.so /lib64/httpd/modules
+# cp /opt/rh/httpd24/root/etc/httpd/conf.modules.d/10-rh-python36-wsgi.conf /etc/httpd/conf.modules.d 
+
+- name: install the python3 mod_wsgi repository
+  yum:
+    name:
+      - centos-release-scl-rh
+    state: latest
+
+- name: install the python3 mod_wsgi module (rpm places it in /opt)
+  yum:
+    name:
+      - rh-python36-mod_wsgi
+    state: latest
+
+- name: create symbolik link for mod_wsgi path
+  file:
+      src: /opt/rh/httpd24/root/usr/lib64/httpd/modules/mod_rh-python36-wsgi.so
+      dest: /lib64/httpd/modules/mod_rh-python36-wsgi.so
+      state: link
+
+- name: create symbolik link for mod_wsgi apache configuration
+  file:
+      src: /opt/rh/httpd24/root/etc/httpd/conf.modules.d/10-rh-python36-wsgi.conf
+      dest: /etc/httpd/conf.modules.d/10-rh-python36-wsgi.conf
+      state: link
+

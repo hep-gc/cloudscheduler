@@ -1,27 +1,32 @@
 ---
 # file: install_python3.yaml.
 
-- name: install repository for python3
-  yum: name={{ item }} state=installed
+- name: ensure python36u is not installed
+  yum:
+    name:
+      - python36u
+      - python36u-devel
+      - python36u-libs
+      - python36u-pip
+      - python36u-setuptools
+    state: absent
+  ignore_errors: yes
+
+- name: ensure python36u repositories are not installed
+  file:
+      path: "/etc/yum.repos.d/{{ item }}.repo"
+      state: absent
   with_items:
-  - https://centos7.iuscommunity.org/ius-release.rpm
+  - ius
+  - ius-archive
+  - iut-testing
+  ignore_errors: yes
 
 - name: install packages required for python3
-  yum: name={{ item }} state=installed
-  with_items:
-  - python36u
-  - python36u-devel
-  - python36u-pip
+  yum:
+    name:
+      - python3
+      - python3-devel
+      - python3-pip
+    state: installed
 
-- name: create python3 symbolic link
-  file:
-    src: /usr/bin/python3.6
-    dest: /usr/bin/python3
-    state: link
-
-- name: create pip3 symbolic link
-  file:
-    src: /usr/bin/pip3.6
-    dest: /usr/bin/pip3
-    force: yes
-    state: link
