@@ -34,7 +34,7 @@ def main(gvar, user_secret):
 
     # 4
     execute_csv2_request(
-        gvar, 1, 'CV', 'invalid method "GET" specified.',
+        gvar, 1, 'CV', 'cloud delete request did not contain mandatory parameter "cloud_name".',
         '/cloud/delete/?{}'.format(ut_id(gvar, 'ctg1')),
         server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
     )
