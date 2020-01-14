@@ -204,11 +204,11 @@ def execute_csv2_request(gvar, expected_rc, expected_modid, expected_text, reque
             if expected_list and list_filter and values and (expected_list not in response):
                 failed = True
                 if not gvar['hidden']:
-                    print('\n%04d (%04d) %s \033[91mFailed\033[0m: %s, %s, %s, %s, %s' % (gvar['ut_count'][0], gvar['ut_count'][1], _caller(), request, group, list, list_filter, values))
-                    print('\tNo list "{}" in response.\n'.format(list))
+                    print('\n%04d (%04d) %s \033[91mFailed\033[0m: %s, %s, %s, %s, %s' % (gvar['ut_count'][0], gvar['ut_count'][1], _caller(), request, group, expected_list, list_filter, values))
+                    print('\tNo list "{}" in response.\n'.format(expected_list))
             if expected_list and list_filter and values and expected_list in response:
                 found = False
-                for row in response[list]:
+                for row in response[expected_list]:
                     match = True
                     for key in list_filter:
                         if (key not in row.keys()) or (list_filter[key] != row[key]):
@@ -222,7 +222,7 @@ def execute_csv2_request(gvar, expected_rc, expected_modid, expected_text, reque
                             if (key not in row.keys()) or (values[key] != row[key]):
                                 failed = True
                                 if not gvar['hidden']:
-                                    print('\n%04d (%04d) %s \033[91mRow Check\033[0m: %s, %s, %s, %s, %s' % (gvar['ut_count'][0], gvar['ut_count'][1], _caller(), request, group, list, list_filter, values))
+                                    print('\n%04d (%04d) %s \033[91mRow Check\033[0m: %s, %s, %s, %s, %s' % (gvar['ut_count'][0], gvar['ut_count'][1], _caller(), request, group, expected_list, list_filter, values))
                                     print('\trow=%s\n' % row)
                                 break
                         if not failed:
@@ -231,7 +231,7 @@ def execute_csv2_request(gvar, expected_rc, expected_modid, expected_text, reque
                 if not found:
                     failed = True
                     if not gvar['hidden']:
-                        print('\n%04d (%04d) %s \033[91mFailed\033[0m: %s, %s, %s, %s, %s' % (gvar['ut_count'][0], gvar['ut_count'][1], _caller(), request, group, list, list_filter, values))
+                        print('\n%04d (%04d) %s \033[91mFailed\033[0m: %s, %s, %s, %s, %s' % (gvar['ut_count'][0], gvar['ut_count'][1], _caller(), request, group, expected_list, list_filter, values))
                         print('\tFilter didn\'t match any rows\n')
 
                 if failed:
@@ -239,7 +239,7 @@ def execute_csv2_request(gvar, expected_rc, expected_modid, expected_text, reque
                     return 1
                 else:
                     if not gvar['hidden']:
-                        print('%04d (%04d) %s \033[92mOK\033[0m: request=%s, %s, %s, %s, %s, %s' % (gvar['ut_count'][0], gvar['ut_count'][1], _caller(), request, form_data, group, list, list_filter, values))
+                        print('%04d (%04d) %s \033[92mOK\033[0m: request=%s, %s, %s, %s, %s, %s' % (gvar['ut_count'][0], gvar['ut_count'][1], _caller(), request, form_data, group, expected_list, list_filter, values))
                     return 0
 
             if not failed and not gvar['hidden']:
