@@ -104,7 +104,7 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_command(
-        gvar, 0, None, 'job list, 1. Jobs: keys=group_name,global_job_id, columns=cluster_id,proc_id,user,user_data,requirements,target_clouds,cloud_name,instance_type,request_cpus,request_ram,request_disk,request_swap,job_per_core,image,network,job_priority,job_status,js_idle,js_running,js_completed,js_held,js_other,keep_alive,max_price,entered_current_status,q_date,held_reason',
+        gvar, 0, None, 'job list, 1. Jobs: keys=group_name,global_job_id, columns=cluster_id,proc_id,user,user_data,requirements,target_alias,cloud_name,instance_type,request_cpus,request_ram,request_disk,request_swap,job_per_core,image,network,job_priority,job_status,js_idle,js_running,js_completed,js_held,js_other,keep_alive,max_price,entered_current_status,q_date,held_reason',
         ['cloudscheduler', 'job', 'list', '-VC']
     )
 
