@@ -57,7 +57,7 @@ def list(gvar):
 
     mandatory = []
     required = []
-    optional = ['-cn', '-CSEP', '-CSV', '-g', '-H', '-h', '-NV', '-ok', '-r', '-s', '-V', '-VC', '-vc', '-vd', '-vF', '-vf', '-vh', '-vr', '-vS', '-vs', '-v', '-xA']
+    optional = ['-cn', '-CSEP', '-CSV', '-g', '-H', '-h', '-NV', '-ok', '-r', '-s', '-V', '-VC', '-vc', '-vd', '-vF', '-vf', '-vh', '-vr', '-vS', '-vs', '-v', '-x509', '-xA']
 
     if gvar['retrieve_options']:
         return mandatory + required + optional
@@ -123,7 +123,7 @@ def update(gvar):
 
     mandatory = ['-vh', '-vo']
     required = []
-    optional = ['-cn', '-g', '-H', '-h', '-s', '-vS', '-v', '-xA']
+    optional = ['-cn', '-g', '-H', '-h', '-s', '-vS', '-v', '-x509', '-xA']
 
     if gvar['retrieve_options']:
         return mandatory + required + optional

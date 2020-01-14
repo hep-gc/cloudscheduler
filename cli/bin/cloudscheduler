@@ -276,6 +276,7 @@ def main(args):
             ('-vs',   '--vm-swap', True),
             ('-vsg',  '--vm-security-groups', True),
             ('-w',    '--with', True),
+            ('-x509', '--use-x509-authentication', False),
             ('-xA',   '--expose-API', False),
             ('-Y',    '--yes', False),
             ),

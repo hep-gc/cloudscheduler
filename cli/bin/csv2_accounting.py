@@ -20,7 +20,7 @@ def apel(gvar):
 
     mandatory = []
     required = []
-    optional = ['-a', '-CSEP', '-CSV', '-g', '-H', '-h', '-lu', '-ok', '-r', '-s', '-V', '-VC', '-NV', '-w', '-v', '-xA']
+    optional = ['-a', '-CSEP', '-CSV', '-g', '-H', '-h', '-lu', '-ok', '-r', '-s', '-V', '-VC', '-NV', '-w', '-v', '-x509', '-xA']
 
     if gvar['retrieve_options']:
         return mandatory + required + optional
