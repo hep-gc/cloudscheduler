@@ -125,7 +125,7 @@ def main(gvar, user_secret):
     execute_csv2_request(
         gvar, 0, None, None,
         '/group/list/',
-        list='group_list', filter={'group_name': ut_id(gvar, 'gtg4')},
+        expected_list='group_list', list_filter={'group_name': ut_id(gvar, 'gtg4')},
         values={'group_name': ut_id(gvar, 'gtg4'), 'htcondor_fqdn': 'unit-test-group-four-update.ca'}
     )
 
@@ -154,7 +154,7 @@ def main(gvar, user_secret):
     execute_csv2_request(
         gvar, 0, None, None,
         '/group/list/',
-        list='group_list', filter={'group_name': ut_id(gvar, 'gtg4')},
+        expected_list='group_list', list_filter={'group_name': ut_id(gvar, 'gtg4')},
         values={'group_name': ut_id(gvar, 'gtg4'), 'htcondor_fqdn': 'unit-test-group-four-update.ca'}
     )
 
@@ -172,7 +172,7 @@ def main(gvar, user_secret):
     execute_csv2_request(
         gvar, 0, None, None,
         '/group/list/',
-        list='group_list', filter={'group_name': ut_id(gvar, 'gtg4')},
+        expected_list='group_list', list_filter={'group_name': ut_id(gvar, 'gtg4')},
         values={'group_name': ut_id(gvar, 'gtg4'), 'htcondor_fqdn': 'unit-test-group-four-update.ca'}
     )
 
@@ -180,7 +180,7 @@ def main(gvar, user_secret):
     execute_csv2_request(
         gvar, 0, None, None,
         '/user/list/', #I assume /user/list does not need a group name specification since it is listing users, I could be wrong though
-        list='user_list', filter={'username': ut_id(gvar, 'gtu4')},
+        expected_list='user_list', list_filter={'username': ut_id(gvar, 'gtu4')},
         values={'user_groups': ut_id(gvar, 'gtg4')}
     )
 
@@ -198,7 +198,7 @@ def main(gvar, user_secret):
     execute_csv2_request(
         gvar, 0, None, None,
         '/user/list/', #I assume /user/list does not need a group name specification since it is listing users, I could be wrong though
-        list='user_list', filter={'username': ut_id(gvar, 'gtu4')},
+        expected_list='user_list', list_filter={'username': ut_id(gvar, 'gtu4')},
         values={'user_groups': None}
     )
 
@@ -216,7 +216,7 @@ def main(gvar, user_secret):
     execute_csv2_request(
         gvar, 0, None, None,
         '/user/list/', #I assume /user/list does not need a group name specification since it is listing users, I could be wrong though
-        list='user_list', filter={'username': ut_id(gvar, 'gtu4')},
+        expected_list='user_list', list_filter={'username': ut_id(gvar, 'gtu4')},
         values={'user_groups': ut_id(gvar, 'gtg4')}
     )
 
@@ -234,7 +234,7 @@ def main(gvar, user_secret):
     execute_csv2_request(
         gvar, 0, None, None,
         '/user/list/', #I assume /user/list does not need a group name specification since it is listing users, I could be wrong though
-        list='user_list', filter={'username': ut_id(gvar, 'gtu4')},
+        expected_list='user_list', list_filter={'username': ut_id(gvar, 'gtu4')},
         values={'user_groups': None}
     )
 
@@ -242,7 +242,7 @@ def main(gvar, user_secret):
     execute_csv2_request(
         gvar, 0, None, None,
         '/user/list/', #I assume /user/list does not need a group name specification since it is listing users, I could be wrong though
-        list='user_list', filter={'username': ut_id(gvar, 'gtu5')},
+        expected_list='user_list', list_filter={'username': ut_id(gvar, 'gtu5')},
         values={'user_groups': ut_id(gvar, 'gtg4,gtg5')}
     )
 
@@ -261,7 +261,7 @@ def main(gvar, user_secret):
     execute_csv2_request(
         gvar, 0, None, None,
         '/user/list/', #I assume /user/list does not need a group name specification since it is listing users, I could be wrong though
-        list='user_list', filter={'username': ut_id(gvar, 'gtu4')},
+        expected_list='user_list', list_filter={'username': ut_id(gvar, 'gtu4')},
         values={'user_groups': ut_id(gvar, 'gtg4')}
     )
 
@@ -269,7 +269,7 @@ def main(gvar, user_secret):
     execute_csv2_request(
         gvar, 0, None, None,
         '/user/list/', #I assume /user/list does not need a group name specification since it is listing users, I could be wrong though
-        list='user_list', filter={'username': ut_id(gvar, 'gtu5')},
+        expected_list='user_list', list_filter={'username': ut_id(gvar, 'gtu5')},
         values={'user_groups': ut_id(gvar, 'gtg4,gtg5')}
     )
 

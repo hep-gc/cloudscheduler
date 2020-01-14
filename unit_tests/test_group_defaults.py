@@ -16,35 +16,35 @@ def main(gvar, user_secret):
     # 1
     execute_csv2_request(
         gvar, 2, None, 'HTTP response code 401, unauthorized.',
-        '/group/defaults/?"{}"'.format(ut_id(gvar, 'gtg4')),
+        '/group/defaults/', group=ut_id(gvar, 'gtg4'),
         server_user=ut_id(gvar, 'invalid-unit-test'), server_pw=user_secret
     )
 
     # 2
     execute_csv2_request(
         gvar, 1, 'GV', 'user "{}" is not a member of any group.'.format(ut_id(gvar, 'gtu1')),
-        '/group/defaults/?{}'.format(ut_id(gvar, 'gtg4')),
+        '/group/defaults/', group=ut_id(gvar, 'gtg4'),
         server_user=ut_id(gvar, 'gtu1'), server_pw=user_secret
     )
 
     # 3
     execute_csv2_request(
         gvar, 0, None, None,
-        '/group/defaults/?"{}"'.format(ut_id(gvar, 'gtg4')),
+        '/group/defaults/', group=ut_id(gvar, 'gtg4'),
         server_user=ut_id(gvar, 'gtu3'), server_pw=user_secret
     )
 
     # 4
     execute_csv2_request(
         gvar, 1, 'GV', 'cannot switch to invalid group "invalid-unit-test".',
-        '/group/defaults/?invalid-unit-test',
+        '/group/defaults/', group='invalid-unit-test',
         server_user=ut_id(gvar, 'gtu3'), server_pw=user_secret
     )
 
     # 5
     execute_csv2_request(
         gvar, 1, 'GV', 'cannot switch to invalid group "{}".'.format(ut_id(gvar, 'gtg7')),
-        '/group/defaults/?{}'.format(ut_id(gvar, 'gtg7')),
+        '/group/defaults/', group=ut_id(gvar, 'gtg7'),
         server_user=ut_id(gvar, 'gtu3'), server_pw=user_secret
     )
 

@@ -49,8 +49,8 @@ def main(gvar, user_secret):
     # 06
     execute_csv2_request(
         gvar, 0, None, None,
-        '/server/config/?"{}"'.format(ut_id(gvar,'stg1')),
-        list='config_list', filter={'category': 'web_frontend', 'config_key': 'log_file'},
+        '/server/config/', group=ut_id(gvar,'stg1'),
+        expected_list='config_list', list_filter={'category': 'web_frontend', 'config_key': 'log_file'},
         values={'config_type': 'str', 'config_value': '/var/log/cloudscheduler/csv2_web.log'},
         server_user=ut_id(gvar, 'stu4'), server_pw=user_secret
     )
@@ -58,21 +58,21 @@ def main(gvar, user_secret):
     # 07
     execute_csv2_request(
         gvar, 1, 'SV', 'cannot switch to invalid group "invalid-unit-test".',
-        '/server/config/?invalid-unit-test',
+        '/server/config/', group='invalid-unit-test',
         server_user=ut_id(gvar, 'stu4'), server_pw=user_secret
     )
 
     # 08
     execute_csv2_request(
         gvar, 1, 'SV', 'cannot switch to invalid group "{}".'.format(ut_id(gvar, 'stg1')),
-        '/server/config/?"{}"'.format(ut_id(gvar,'stg1')),
+        '/server/config/', group=ut_id(gvar,'stg1'),
         server_user=ut_id(gvar, 'stu4'), server_pw=user_secret
     )
 
     # 09
     execute_csv2_request(
         gvar, 0, None, None,
-        '/server/config/?"{}"'.format(ut_id(gvar,'stg2')),
+        '/server/config/', group=ut_id(gvar,'stg2'),
         server_user=ut_id(gvar, 'stu4'), server_pw=user_secret
     )
 
@@ -176,8 +176,8 @@ def main(gvar, user_secret):
     # 20
     execute_csv2_request(
         gvar, 0, None, None,
-        '/server/config/?"{}"'.format(ut_id(gvar, 'stg1')),
-        list='config_list', filter={'category': 'web_frontend', 'config_key': 'enable_glint'},
+        '/server/config/', group=ut_id(gvar, 'stg1'),
+        expected_list='config_list', list_filter={'category': 'web_frontend', 'config_key': 'enable_glint'},
         values={'config_type': 'bool', 'config_value': 'True'},
         server_user=ut_id(gvar, 'stu4'), server_pw=user_secret
     )
@@ -185,8 +185,8 @@ def main(gvar, user_secret):
     # 21
     execute_csv2_request(
         gvar, 0, None, None,
-        '/server/config/?"{}"'.format(ut_id(gvar, 'stg1')),
-        list='config_list', filter={'category': 'web_frontend', 'config_key': 'log_file'},
+        '/server/config/', group=ut_id(gvar, 'stg1'),
+        expected_list='config_list', list_filter={'category': 'web_frontend', 'config_key': 'log_file'},
         values={'config_type': 'str', 'config_value': '/var/log/cloudscheduler/csv2_web_update.log'},
         server_user=ut_id(gvar, 'stu4'), server_pw=user_secret
     )
@@ -205,8 +205,8 @@ def main(gvar, user_secret):
     # 23
     execute_csv2_request(
         gvar, 0, None, None,
-        '/server/config/?"{}"'.format(ut_id(gvar, 'stg1')),
-        list='config_list', filter={'category': 'csjobs.py', 'config_key': 'log_level'},
+        '/server/config/', group=ut_id(gvar, 'stg1'),
+        expected_list='config_list', list_filter={'category': 'csjobs.py', 'config_key': 'log_level'},
         values={'config_type': 'int', 'config_value': '10'},
         server_user=ut_id(gvar, 'stu4'), server_pw=user_secret
     )
@@ -226,8 +226,8 @@ def main(gvar, user_secret):
     # 25
     execute_csv2_request(
         gvar, 0, None, None,
-        '/server/config/?"{}"'.format(ut_id(gvar, 'stg1')),
-        list='config_list', filter={'category': 'web_frontend', 'config_key': 'enable_glint'},
+        '/server/config/', group=ut_id(gvar, 'stg1'),
+        expected_list='config_list', list_filter={'category': 'web_frontend', 'config_key': 'enable_glint'},
         values={'config_type': 'bool', 'config_value': 'False'},
         server_user=ut_id(gvar, 'stu4'), server_pw=user_secret
     )
@@ -235,8 +235,8 @@ def main(gvar, user_secret):
     # 26
     execute_csv2_request(
         gvar, 0, None, None,
-        '/server/config/?"{}"'.format(ut_id(gvar, 'stg1')),
-        list='config_list', filter={'category': 'web_frontend', 'config_key': 'log_file'},
+        '/server/config/', group=ut_id(gvar, 'stg1'),
+        expected_list='config_list', list_filter={'category': 'web_frontend', 'config_key': 'log_file'},
         values={'config_type': 'str', 'config_value': '/var/log/cloudscheduler/csv2_web.log'},
         server_user=ut_id(gvar, 'stu4'), server_pw=user_secret
     )
@@ -256,7 +256,7 @@ def main(gvar, user_secret):
     execute_csv2_request(
         gvar, 0, None, None,
         '/server/config/',
-        list='config_list', filter={'category': 'csjobs.py', 'config_key': 'log_level'},
+        expected_list='config_list', list_filter={'category': 'csjobs.py', 'config_key': 'log_level'},
         values={'config_type': 'int', 'config_value': '20'},
         server_user=ut_id(gvar, 'stu4'), server_pw=user_secret
     )

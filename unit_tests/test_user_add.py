@@ -251,7 +251,7 @@ def main(gvar, user_secret):
     execute_csv2_request(
         gvar, 0, None, None,
         '/user/list/',
-        list='user_list', filter={'username': ut_id(gvar, 'utu10')},
+        expected_list='user_list', list_filter={'username': ut_id(gvar, 'utu10')},
         values={
             'username': ut_id(gvar, 'utu10'),
             'cert_cn': ut_id(gvar, 'user test user 10'),
@@ -276,7 +276,7 @@ def main(gvar, user_secret):
     execute_csv2_request(
         gvar, 0, None, None,
         '/user/list/',
-        list='user_list', filter={'username': ut_id(gvar, 'utu11')},
+        expected_list='user_list', list_filter={'username': ut_id(gvar, 'utu11')},
         values={
             'username': ut_id(gvar, 'utu11'),
             'cert_cn': ut_id(gvar, 'user test user 11'),
@@ -333,7 +333,7 @@ def main(gvar, user_secret):
     execute_csv2_request(
         gvar, 0, None, None,
         '/user/list/',
-        list='user_list', filter={'username': ut_id(gvar, 'utu12')},
+        expected_list='user_list', list_filter={'username': ut_id(gvar, 'utu12')},
         values={
             'username': ut_id(gvar, 'utu12'),
             'user_groups': ut_id(gvar, 'utg1'),
@@ -357,7 +357,7 @@ def main(gvar, user_secret):
     execute_csv2_request(
         gvar, 0, None, None,
         '/user/list/',
-        list='user_list', filter={'username': ut_id(gvar, 'utu13')},
+        expected_list='user_list', list_filter={'username': ut_id(gvar, 'utu13')},
         values={
             'username': ut_id(gvar, 'utu13'),
             'user_groups': ut_id(gvar, 'utg1,utg2'),

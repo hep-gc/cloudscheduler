@@ -44,7 +44,7 @@ def main(gvar, user_secret):
     # 5
     execute_csv2_request(
         gvar, 1, 'UV', 'cannot switch to invalid group "{}".'.format(ut_id(gvar, 'utg2')),
-        '/user/settings/?{}'.format(ut_id(gvar, 'utg2')),
+        '/user/settings/', group=ut_id(gvar, 'utg2'),
         server_user=ut_id(gvar, 'utu3'), server_pw=user_secret
     )
 

@@ -14,49 +14,49 @@ def main(gvar, user_secret):
     # 1
     execute_csv2_request(
         gvar, 2, None, 'HTTP response code 401, unauthorized.',
-        '/cloud/metadata-delete/?"{}"'.format(ut_id(gvar, 'ctg1')),
+        '/cloud/metadata-delete/', group=ut_id(gvar, 'ctg1'),
         server_user='invalid-unit-test', server_pw=user_secret
     )
 
     # 2
     execute_csv2_request(
         gvar, 1, None, 'user "{}" is not a member of any group.'.format(ut_id(gvar, 'ctu1')),
-        '/cloud/metadata-delete/?"{}"'.format(ut_id(gvar, 'ctg1')),
+        '/cloud/metadata-delete/', group=ut_id(gvar, 'ctg1'),
         server_user=ut_id(gvar, 'ctu1'), server_pw=user_secret
     )
 
     # 3
     execute_csv2_request(
         gvar, 1, None, 'user "{}" is not a member of any group.'.format(ut_id(gvar, 'ctu2')),
-        '/cloud/metadata-delete/?"{}"'.format(ut_id(gvar, 'ctg1')),
+        '/cloud/metadata-delete/', group=ut_id(gvar, 'ctg1'),
         server_user=ut_id(gvar, 'ctu2'), server_pw=user_secret
     )
 
     # 4
     execute_csv2_request(
         gvar, 1, 'CV', 'cloud metadata-delete request did not contain mandatory parameters "cloud_name" and "metadata_name".',
-        '/cloud/metadata-delete/?{}'.format(ut_id(gvar, 'ctg1')),
+        '/cloud/metadata-delete/', group=ut_id(gvar, 'ctg1'),
         server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
     )
 
     # 5
     execute_csv2_request(
         gvar, 1, None, 'cannot switch to invalid group "invalid-unit-test".',
-        '/cloud/metadata-delete/?invalid-unit-test',
+        '/cloud/metadata-delete/', group='invalid-unit-test',
         server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
     )
 
     # 6
     execute_csv2_request(
         gvar, 1, None, 'cannot switch to invalid group "{}".'.format(ut_id(gvar, 'ctg2')),
-        '/cloud/metadata-delete/?{}'.format(ut_id(gvar, 'ctg2')),
+        '/cloud/metadata-delete/', group=ut_id(gvar, 'ctg2'),
         server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
     )
 
     # 7
     execute_csv2_request(
         gvar, 1, 'CV', 'cloud metadata-delete request did not contain mandatory parameters "cloud_name" and "metadata_name".',
-        '/cloud/metadata-delete/?{}'.format(ut_id(gvar, 'ctg1')),
+        '/cloud/metadata-delete/', group=ut_id(gvar, 'ctg1'),
         server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
     )
 

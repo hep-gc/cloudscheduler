@@ -13,19 +13,19 @@ def main(gvar, user_secret):
 
     execute_csv2_request(
         gvar, 2, None, 'HTTP response code 401, unauthorized.',
-        '/vm/list/?"{}"'.format(ut_id(gvar, 'vtg1')),
+        '/vm/list/', group=ut_id(gvar, 'vtg1'),
         server_user='invalid-unit-test', server_pw='invalid-unit-test'
     )
 
     execute_csv2_request(
         gvar, 1, None, 'user "{}" is not a member of any group.'.format(ut_id(gvar, 'vtu1')),
-        '/vm/list/?"{}"'.format(ut_id(gvar, 'vtg1')),
+        '/vm/list/', group=ut_id(gvar, 'vtg1'),
         server_user=ut_id(gvar, 'vtu1'), server_pw=user_secret
     )
 
     execute_csv2_request(
         gvar, 1, None, 'user "{}" is not a member of any group.'.format(ut_id(gvar, 'vtu2')),
-        '/vm/list/?"{}"'.format(ut_id(gvar, 'vtg1')),
+        '/vm/list/', group=ut_id(gvar, 'vtg1'),
         server_user=ut_id(gvar, 'vtu2'), server_pw=user_secret
     )
 
@@ -38,19 +38,19 @@ def main(gvar, user_secret):
 
     execute_csv2_request(
         gvar, 1, None, 'cannot switch to invalid group "invalid-unit-test".',
-        '/vm/list/?invalid-unit-test',
+        '/vm/list/', group='invalid-unit-test',
         server_user=ut_id(gvar, 'vtu3'), server_pw=user_secret
     )
 
     execute_csv2_request(
         gvar, 1, None, 'cannot switch to invalid group "{}".'.format(ut_id(gvar, 'vtg2')),
-        '/vm/list/?{}'.format(ut_id(gvar, 'vtg2')),
+        '/vm/list/', group=ut_id(gvar, 'vtg2'),
         server_user=ut_id(gvar, 'vtu3'), server_pw=user_secret
     )
 
     execute_csv2_request(
         gvar, 0, None, None,
-        '/vm/list/?"{}"'.format(ut_id(gvar, 'vtg1')),
+        '/vm/list/', group=ut_id(gvar, 'vtg1'),
         server_user=ut_id(gvar, 'vtu3'), server_pw=user_secret
     )
 

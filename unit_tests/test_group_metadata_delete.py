@@ -91,7 +91,7 @@ def main(gvar, user_secret):
     # 10
     execute_csv2_request(
         gvar, 0, None, None,
-        '/cloud/list/', group=ut_id(gvar, 'gtg5'),list='cloud_list', filter={'cloud_name': ut_id(gvar, 'gtc1')},
+        '/cloud/list/', group=ut_id(gvar, 'gtg5'),expected_list='cloud_list', list_filter={'cloud_name': ut_id(gvar, 'gtc1')},
         values={'cloud_name': ut_id(gvar, 'gtc1'), 'group_name': ut_id(gvar, 'gtg5'), 'group_exclusions': ut_id(gvar, 'gty6')},
         server_user=ut_id(gvar, 'gtu3'), server_pw=user_secret
     )
@@ -108,8 +108,8 @@ def main(gvar, user_secret):
     # 12
     execute_csv2_request(
         gvar, 0, None, None,
-        '/cloud/list/?{}'.format(ut_id(gvar, 'gtg5')),
-        list='cloud_list', filter={'cloud_name': ut_id(gvar, 'gtc1')},
+        '/cloud/list/', group=ut_id(gvar, 'gtg5'),
+        expected_list='cloud_list', list_filter={'cloud_name': ut_id(gvar, 'gtc1')},
         values={'cloud_name': ut_id(gvar, 'gtc1'), 'group_name': ut_id(gvar, 'gtg5'), 'group_exclusions': None},
         server_user=ut_id(gvar, 'gtu3'), server_pw=user_secret
     )

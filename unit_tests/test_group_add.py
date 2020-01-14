@@ -34,7 +34,7 @@ def main(gvar, user_secret):
     # 04
     execute_csv2_request(
         gvar, 1, 'GV', 'cannot switch to invalid group "invalid-unit-test".',
-        '/group/add/?invalid-unit-test'
+        '/group/add/', group='invalid-unit-test'
     )
 
     # 05
@@ -145,8 +145,8 @@ def main(gvar, user_secret):
     # 18
     execute_csv2_request(
         gvar, 0, None, None,
-        '/group/list/?{}'.format(ut_id(gvar, 'gtg1')),
-        list='group_list', filter={'group_name': ut_id(gvar, 'gtg1')},
+        '/group/list/', group=ut_id(gvar, 'gtg1'),
+        expected_list='group_list', list_filter={'group_name': ut_id(gvar, 'gtg1')},
         values={'group_name': ut_id(gvar, 'gtg1'), 'htcondor_fqdn': 'group-unit-test-one.ca', 'htcondor_container_hostname': None, 'htcondor_other_submitters': None, 'metadata_names': 'default.yaml.j2'}
     )
 
@@ -154,7 +154,7 @@ def main(gvar, user_secret):
     execute_csv2_request(
         gvar, 0, None, None,
         '/user/list/',
-        list='user_list', filter={'username': ut_id(gvar, 'gtu3')},
+        expected_list='user_list', list_filter={'username': ut_id(gvar, 'gtu3')},
         values={'username': ut_id(gvar, 'gtu3'), 'user_groups': ut_id(gvar, 'gtg1,gtg4,gtg5')}
     )
 
@@ -176,8 +176,8 @@ def main(gvar, user_secret):
     # 22
     execute_csv2_request(
         gvar, 0, None, None,
-        '/group/list/?{}'.format(ut_id(gvar, 'gtg2')),
-        list='group_list', filter={'group_name': ut_id(gvar, 'gtg2')},
+        '/group/list/', group=ut_id(gvar, 'gtg2'),
+        expected_list='group_list', list_filter={'group_name': ut_id(gvar, 'gtg2')},
         values={'group_name': ut_id(gvar, 'gtg2'), 'htcondor_fqdn': 'unit-test-group-two.ca', 'htcondor_container_hostname': None, 'htcondor_other_submitters': None, 'metadata_names': 'default.yaml.j2'}
     )
 
