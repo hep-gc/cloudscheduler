@@ -145,7 +145,6 @@ def main():
 
 
                         ####### log.debug("Info for current job: Group: %s, Target: %s, User: %s, Flavors: %s",
-                        #######     idle_job.get("group_name"), idle_job.get("target_clouds"), idle_job.get("user"), idle_job.get("flavors"))
                         # flavors is generated line based on which flavor is the best fit and which clouds have available resources
                         # the format is "Group:Cloud:Flavor, Group:Cloud:Flavor" will need to split and use to filter in resources_matching
 
@@ -154,18 +153,8 @@ def main():
                         else:
                             continue
 
-                        # before checking if any of these flavors have available resources we need to make sure to check target_clouds
-                        if idle_job.get("target_clouds"):
-                            target_cloud_list = [x.strip() for x in idle_job.get("target_clouds").split(',')]
-                        else:
-                            target_cloud_list = None
                         boot_flavor = None
                         for flavor in flavor_list:
-                            if target_cloud_list is not None:
-                                flavor_cloud = flavor.split(":")[0]
-                                if flavor_cloud not in target_cloud_list:
-                                    ####### log.debug("No available slots for flavor: %s, trying next..." % flavor)
-                                    continue
                             if available_resources_dict[job_group].get(flavor, None) is not None:
                                 #Found flavour with available resources
                                 ####### log.debug("Flavor:%s found to have available slots" % flavor)
@@ -185,24 +174,21 @@ def main():
                             try:
                                 shortfall = list(config.db_session.query(view_active_resource_shortfall).filter(
                                     view_active_resource_shortfall.c.group_name == idle_job.get("group_name"),
-                                    view_active_resource_shortfall.c.target_alias == idle_job.get("target_alias"),
-                                    view_active_resource_shortfall.c.target_clouds == idle_job.get("target_clouds")))
+                                    view_active_resource_shortfall.c.target_alias == idle_job.get("target_alias")
                             except:
                                 shortfall = []
 
 
                             if len(shortfall) < 1:
-                                log.warning('unable to retrieve view_active_resource_shortfall for group=%s, target_alias=%s, target_clouds=%s, trying next flavor or skiping idle_job_group).',
+                                log.warning('unable to retrieve view_active_resource_shortfall for group=%s, target_alias=%s, trying next flavor or skiping idle_job_group).',
                                     idle_job.get("group_name"),
-                                    idle_job.get("target_alias"),
-                                    idle_job.get("target_clouds"))
+                                    idle_job.get("target_alias")
                                 continue
 
                             if shortfall[0].shortfall_cores<=0 and shortfall[0].shortfall_disk<=0 and shortfall[0].shortfall_ram<=0:
-                                log.info('view_active_resource_shortfall for group=%s, target_alias=%s, target_clouds=%s, cores=%s, disk=%s, ram=%s, no shortfall, trying next flavor or skipping idle_job_group.',
+                                log.info('view_active_resource_shortfall for group=%s, target_alias=%s, cores=%s, disk=%s, ram=%s, no shortfall, trying next flavor or skipping idle_job_group.',
                                     idle_job.get("group_name"),
                                     idle_job.get("target_alias"),
-                                    idle_job.get("target_clouds"),
                                     shortfall[0].shortfall_cores,
                                     shortfall[0].shortfall_disk,
                                     shortfall[0].shortfall_ram)
@@ -210,10 +196,9 @@ def main():
                                 
                             idle_VMs_throttle = max(config.categories['csmain']['idle_VMs_throttle'], int(shortfall[0].running/10))
                             if shortfall[0].idle>=idle_VMs_throttle:
-                                log.info('Too many idle VMs: group=%s, target_alias=%s, target_clouds=%s, idle=%s, running=%s, calculated throttle=%s configurred throttle=%s, trying next flavor or skipping idle_job_group.',
+                                log.info('Too many idle VMs: group=%s, target_alias=%s, idle=%s, running=%s, calculated throttle=%s configurred throttle=%s, trying next flavor or skipping idle_job_group.',
                                     idle_job.get("group_name"),
                                     idle_job.get("target_alias"),
-                                    idle_job.get("target_clouds"),
                                     shortfall[0].idle,
                                     shortfall[0].running,
                                     idle_VMs_throttle,
@@ -221,10 +206,9 @@ def main():
                                 continue
 
                             else:
-                                log.debug('view_active_resource_shortfall for group=%s, target_alias=%s, target_clouds=%s, cores=%s, disk=%s, ram=%s, too few active resources, processing continues...',
+                                log.debug('view_active_resource_shortfall for group=%s, target_alias=%s, cores=%s, disk=%s, ram=%s, too few active resources, processing continues...',
                                     idle_job.get("group_name"),
                                     idle_job.get("target_alias"),
-                                    idle_job.get("target_clouds"),
                                     shortfall[0].shortfall_cores,
                                     shortfall[0].shortfall_disk,
                                     shortfall[0].shortfall_ram)
