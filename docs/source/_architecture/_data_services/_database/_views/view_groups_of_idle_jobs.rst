@@ -55,11 +55,6 @@ Columns:
       Is the name of the alias indicating the subset of clouds within
       the group that these jobs must run on.
 
-* **target_clouds** (String):
-
-      Is the name of the cloud within the group that these jobs
-      must run on. This option is primarily for testing purposes.
-
 * **instance_type** (String(512)):
 
       Is the requested flavor for this group of jobs. If the value

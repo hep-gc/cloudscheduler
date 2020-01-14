@@ -1,12 +1,18 @@
 view_condor_host:
     Synopsis:
-        "REF=(common/view_vm_kill_retire)
-
-        The view_condor_host is used by the HTCondor machine poller when retiring Virutal Machines (VMs) to
-        provide contact details so that commands can be sent directly to VMs. The view also provides slot
-        counters to ensure that target VMs are in an appropriate state to receive retirement commands.
-        "
-
+        "This view is one of a suite of related views used by the cloud pollers, HTCondor\
+        \ machine poller and User Interface (UI) processes to ensure that resource usage\
+        \ on clouds remains within allocated quotas and user defined limits. The suite includes:\n\
+        #. view_condor_host_\n#. view_vm_kill_retire_over_quota_\n#. view_vm_kill_retire_priority_age_\n\
+        #. view_vm_kill_retire_priority_idle_\n.. _view_condor_host: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_condor_host.html\n\
+        .. _view_vm_kill_retire_over_quota: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_vm_kill_retire_over_quota.html\n\
+        .. _view_vm_kill_retire_priority_age: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_vm_kill_retire_priority_age.html\n\
+        .. _view_vm_kill_retire_priority_idle: https://cloudscheduler.readthedocs.io/en/latest/_architecture/_data_services/_database/_views/view_vm_kill_retire_priority_idle.html\
+        \ \nThe view_condor_host is used by the HTCondor machine poller when retiring Virutal\
+        \ Machines (VMs) to provide contact details so that commands can be sent directly\
+        \ to VMs. The view also provides slot counters to ensure that target VMs are in\
+        \ an appropriate state to receive retirement commands. "
+        
     Keys:
 
     Columns:
@@ -15,66 +21,70 @@ view_condor_host:
             Format: String(32)
             Synopsis:
                 Is the name of the group owning the VM.
-
+                
         cloud_name:
             Format: String(32)
             Synopsis:
                 Is the name of the cloud hosting the VM.
-
+                
         htcondor_fqdn:
             Format: String(128)
             Synopsis:
-                Is the Fully Qualified Domain Name (FQDN) of the job scheduler containing the VMs 
+                Is the Fully Qualified Domain Name (FQDN) of the job scheduler containing the VMs
                 registration.
-
+                
         vmid:
             Format: String(128)
             Synopsis:
                 Is the unique ID of this VM.
-
+                
         hostname:
             Format: String(128)
             Synopsis:
                 Is the short hostname of this VM.
-
+                
         primary_slots:
             Format: Integer
             Synopsis:
-                Is the count of primary slots. A value greater than zero indicates that the VM is 
+                Is the count of primary slots. A value greater than zero indicates that the VM is
                 still registered with HTCondor and is able to be retired.
-
+                
         dynamic_slots:
             Format: Integer
             Synopsis:
-                Is the count of dynamic slots. A value greater than zero indicates that jobs are
-                still running on the VM.
-
+                Is the count of dynamic slots. A value greater than zero indicates that jobs are still
+                running on the VM.
+                
         retire:
             Format: Integer
             Synopsis:
-                Is the current value of the VM's retire flag. A value greater than  zero indicates that 
-                the retirement process has already been initiated.
-
+                Is the current value of the VM's retire flag. A value greater than  zero indicates
+                that the retirement process has already been initiated.
+                
         retiring:
             Format: Integer
             Synopsis:
-                Is the current state of the HTCondor daemons on the VM. Retirement commands will continue to 
-                be sent to the VM until this field reflects that they are 'retiring'.
-
+                Is the current state of the HTCondor daemons on the VM. Retirement commands will continue
+                to be sent to the VM until this field reflects that they are 'retiring'.
+                
         terminate:
             Format: Integer
             Synopsis:
-                Is the current value of the VM's terminate flag. A value greater than  zero indicates that 
-                the termination process has already been initiated.
-
+                Is the current value of the VM's terminate flag. A value greater than  zero indicates
+                that the termination process has already been initiated.
+                
         machine:
             Format: String(256)
             Synopsis:
                 Is the HTCondor machine name for this VM.
-
+                
         updater:
             Format: String(128)
             Synopsis:
-                Indicates which process last updated eithe the retire or terminate flage and what the nature 
-                of the update was.
+                Indicates which process last updated eithe the retire or terminate flage and what
+                the nature of the update was.
+                
+        retire_time:
+            Format: Integer
+            Synopsis:
 

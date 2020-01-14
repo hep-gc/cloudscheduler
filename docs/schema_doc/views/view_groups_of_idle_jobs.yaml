@@ -23,12 +23,6 @@ view_groups_of_idle_jobs:
                 Is the name of the alias indicating the subset of clouds within the group that these jobs
                 must run on.
 
-        target_clouds:
-            Format: String
-            Synopsis:
-                Is the name of the cloud within the group that these jobs must run on. This option is 
-                primarily for testing purposes.
-
         instance_type:
             Format: String(512)
             Synopsis:

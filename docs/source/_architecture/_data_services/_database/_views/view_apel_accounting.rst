@@ -41,6 +41,10 @@ Columns:
 
       Is the name of the cloud that hosted the VM.
 
+* **vmid** (String(128)):
+
+      Is the unique ID of the VM.
+
 * **hostname** (String(128)):
 
       Is the short VM hostname.
@@ -69,10 +73,6 @@ Columns:
 * **benchmark** (Integer):
 
       Is the benchmark score achieved by the VM.
-
-* **vmid** (String(128)):
-
-      Is the unique ID of the VM.
 
 * **start_time** (Integer):
 

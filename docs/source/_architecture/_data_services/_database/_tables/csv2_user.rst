@@ -63,11 +63,11 @@ Columns:
       status page. If set to 1, the status page will display all
       the groups of which the user is a member.
 
+* **flag_jobs_by_target_alias** (Boolean):
+
+
 * **flag_show_foreign_global_vms** (Boolean):
 
-      A user preference modifying the format of the status page. If set
-      to 0, foreign and global VM information will not be displayed. If
-      set to 1, foreign and global VM information will be displayed.
 
 * **flag_show_slot_detail** (Boolean):
 

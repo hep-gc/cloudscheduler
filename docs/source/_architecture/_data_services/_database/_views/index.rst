@@ -83,9 +83,11 @@ __ Quota_
    view_groups_with_metadata_names
    view_idle_vms
    view_job_status
+   view_job_status_by_target_alias
    view_metadata_collation
    view_metadata_collation_json
    view_resource_contention
+   view_total_used_resources
    view_user_groups
    view_user_groups_available
    view_vm_kill_retire_over_quota

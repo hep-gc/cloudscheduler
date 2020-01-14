@@ -26,10 +26,6 @@ Columns:
 
       Not used.
 
-* **target_clouds** (String):
-
-      Not used.
-
 * **cloud_name** (String):
 
       Not used.

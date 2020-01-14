@@ -38,26 +38,31 @@ target VMs are in an appropriate state to receive retirement commands.
 Columns:
 ^^^^^^^^
 
+* **cloud_name** (String(32)):
+
+      Is the name of the cloud hosting the VM.
+
+* **dynamic_slots** (Integer):
+
+      Is the count of dynamic slots. A value greater than zero indicates
+      that jobs are still running on the VM.
+
 * **group_name** (String(32)):
 
       Is the name of the group owning the VM.
 
-* **cloud_name** (String(32)):
+* **hostname** (String(128)):
 
-      Is the name of the cloud hosting the VM.
+      Is the short hostname of this VM.
 
 * **htcondor_fqdn** (String(128)):
 
       Is the Fully Qualified Domain Name (FQDN) of the job scheduler containing
       the VMs registration.
 
-* **vmid** (String(128)):
+* **machine** (String(256)):
 
-      Is the unique ID of this VM.
-
-* **hostname** (String(128)):
-
-      Is the short hostname of this VM.
+      Is the HTCondor machine name for this VM.
 
 * **primary_slots** (Integer):
 
@@ -65,17 +70,15 @@ Columns:
       that the VM is still registered with HTCondor and is able to
       be retired.
 
-* **dynamic_slots** (Integer):
-
-      Is the count of dynamic slots. A value greater than zero indicates
-      that jobs are still running on the VM.
-
 * **retire** (Integer):
 
       Is the current value of the VM's retire flag. A value greater
       than zero indicates that the retirement process has already been initiated.
 
-* **retiring** (Integer):
+* **retire_time** (Integer):
+
+
+* **retiring** (Integer, obsolete):
 
       Is the current state of the HTCondor daemons on the VM. Retirement
       commands will continue to be sent to the VM until this field
@@ -86,12 +89,12 @@ Columns:
       Is the current value of the VM's terminate flag. A value greater
       than zero indicates that the termination process has already been initiated.
 
-* **machine** (String(256)):
-
-      Is the HTCondor machine name for this VM.
-
 * **updater** (String(128)):
 
       Indicates which process last updated eithe the retire or terminate flage and
       what the nature of the update was.
+
+* **vmid** (String(128)):
+
+      Is the unique ID of this VM.
 

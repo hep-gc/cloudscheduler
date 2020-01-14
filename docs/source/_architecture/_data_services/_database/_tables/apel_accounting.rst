@@ -28,14 +28,18 @@ Keys:
       The short name of the cloud running the VM. This name is
       assigned by the members (users) of the when they added the cloud.
 
-* **hostname** (String(128)):
+* **vmid** (String(128)):
 
-      The short hostname of the VM. This is generally created automatically by
-      CSV2.
+      The VM ID assigned to the VM by the cloud.
 
 
 Columns:
 ^^^^^^^^
+
+* **hostname** (String(128)):
+
+      The short hostname of the VM. This is generally created automatically by
+      CSV2.
 
 * **cloud_type** (String(32)):
 
@@ -61,10 +65,6 @@ Columns:
 * **benchmark** (Integer):
 
       The benchmark score achieved by the VM.
-
-* **vmid** (String(128)):
-
-      The VM ID assigned to the VM by the cloud.
 
 * **start_time** (Integer):
 

@@ -16,11 +16,6 @@ archived_condor_jobs:
             Synopsis:
                 Not used.
 
-        target_clouds:
-            Format: String
-            Synopsis:
-                Not used.
-
         cloud_name:
             Format: String
             Synopsis:

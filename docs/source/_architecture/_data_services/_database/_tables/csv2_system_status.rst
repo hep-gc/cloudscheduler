@@ -114,6 +114,15 @@ Columns:
       A detailed status message indicating the service run time or the failure
       time.
 
+* **csv2_condor_gsi_error_count** (Integer):
+
+
+* **csv2_condor_gsi_status** (Boolean):
+
+
+* **csv2_condor_gsi_msg** (String(512)):
+
+
 * **csv2_status_error_count** (Integer):
 
       transient poller error count maintained by the ProcessMonitor (see above).
