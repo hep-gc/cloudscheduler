@@ -1,4 +1,0 @@
-.TP
-\fB\-jtc \fIclouds\fR, \fB\-\-job-target-clouds \fIclouds\fR
-The list of target clouds for the job.
-Filters the job list to only jobs that match \fIclouds\fR.

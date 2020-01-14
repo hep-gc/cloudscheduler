@@ -1,0 +1,3 @@
+.TP
+\fB\-jta \fIalias\fR, \fB\-\-job-target-alias \fIalias\fR
+Filters the job list to only jobs that match the specified \fItarget_alias\fR.
