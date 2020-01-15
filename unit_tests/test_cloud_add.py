@@ -92,7 +92,14 @@ def main(gvar, user_secret):
     # 12
     execute_csv2_request(
         gvar, 1, 'CV', 'cloud add request did not contain mandatory (but not empty) parameter "authurl".',
-        '/cloud/add/', group=ut_id(gvar, 'ctg1'), form_data={'cloud_name': ut_id(gvar, 'cloud-invalid-unit-test')},
+        '/cloud/add/', group=ut_id(gvar, 'ctg1'), form_data={
+            'cloud_name': ut_id(gvar, 'cloud-invalid-unit-test'),
+            'project': 'invalid-unit-test',
+            'username': 'invalid-unit-test',
+            'password': 'invalid-unit-test',
+            'region': 'invalid-unit-test',
+            'cloud_type': 'local'
+            },
         server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
     )
 
@@ -101,7 +108,11 @@ def main(gvar, user_secret):
         gvar, 1, 'CV', 'cloud add request did not contain mandatory (but not empty) parameter "project".',
             '/cloud/add/', group=ut_id(gvar, 'ctg1'), form_data={
             'cloud_name': ut_id(gvar, 'cloud-invalid-unit-test'),
-            'authurl': 'invalid-unit-test'
+            'authurl': 'invalid-unit-test',
+            'username': 'invalid-unit-test',
+            'password': 'invalid-unit-test',
+            'region': 'invalid-unit-test',
+            'cloud_type': 'local'
             },
         server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
     )
@@ -112,7 +123,10 @@ def main(gvar, user_secret):
         '/cloud/add/', group=ut_id(gvar, 'ctg1'), form_data={
             'cloud_name': ut_id(gvar, 'cloud-invalid-unit-test'),
             'authurl': 'invalid-unit-test',
-            'project': 'invalid-unit-test'
+            'project': 'invalid-unit-test',
+            'password': 'invalid-unit-test',
+            'region': 'invalid-unit-test',
+            'cloud_type': 'local'
             },
         server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
     )
@@ -124,7 +138,9 @@ def main(gvar, user_secret):
             'cloud_name': ut_id(gvar, 'cloud-invalid-unit-test'),
             'authurl': 'invalid-unit-test',
             'project': 'invalid-unit-test',
-            'username': 'invalid-unit-test'
+            'username': 'invalid-unit-test',
+            'region': 'invalid-unit-test',
+            'cloud_type': 'local'
             },
         server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
     )
@@ -137,14 +153,15 @@ def main(gvar, user_secret):
             'authurl': 'invalid-unit-test',
             'project': 'invalid-unit-test',
             'username': 'invalid-unit-test',
-            'password': 'invalid-unit-test'
+            'password': 'invalid-unit-test',
+            'cloud_type': 'local'
             },
         server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
     )
 
     # 17
     execute_csv2_request(
-        gvar, 1, 'CV', 'cloud add request did not contain mandatory (but not empty) parameter "cloud_type".',
+        gvar, 1, 'CV', 'cloud add request did not contain mandatory parameter "cloud_type".',
         '/cloud/add/', group=ut_id(gvar, 'ctg1'), form_data={
             'cloud_name': ut_id(gvar, 'cloud-invalid-unit-test'),
             'authurl': 'invalid-unit-test',

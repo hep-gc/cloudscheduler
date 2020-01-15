@@ -11,45 +11,52 @@ def main(gvar, user_secret):
         else:
             initialize_csv2_request(gvar, argv[0])
     
+    # 1
     execute_csv2_request(
         gvar, 2, None, 'HTTP response code 401, unauthorized.',
         '/cloud/metadata-fetch/', group=ut_id(gvar,'ctg1'),
         server_user='invalid-unit-test', server_pw=user_secret
     )
 
+    # 2
     execute_csv2_request(
         gvar, 1, None, 'user "{}" is not a member of any group.'.format(ut_id(gvar, 'ctu1')),
         '/cloud/metadata-fetch/', group=ut_id(gvar,'ctg1'), query_data={'cloud_name': 'invalid-unit-test', 'metadata_name': 'invalid-unit-test'},
         server_user=ut_id(gvar, 'ctu1'), server_pw=user_secret
     )
 
+    # 3
     execute_csv2_request(
         gvar, 1, None, 'user "{}" is not a member of any group.'.format(ut_id(gvar, 'ctu2')),
         '/cloud/metadata-fetch/', group=ut_id(gvar,'ctg1'), query_data={'cloud_name': 'invalid-unit-test', 'metadata_name': 'invalid-unit-test'},
         server_user=ut_id(gvar, 'ctu2'), server_pw=user_secret
     )
 
+    # 4
     execute_csv2_request(
         gvar, 1, None, 'cannot switch to invalid group "invalid-unit-test".',
         '/cloud/metadata-fetch/', group='invalid-unit-test', query_data={'cloud_name': 'invalid-unit-test', 'metadata_name': 'invalid-unit-test'},
         server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
     )
 
+    # 5
     execute_csv2_request(
         gvar, 1, None, 'cannot switch to invalid group "{}".'.format(ut_id(gvar, 'ctg2')),
         '/cloud/metadata-fetch/', group=ut_id(gvar,'ctg2'), query_data={'cloud_name': 'invalid-unit-test', 'metadata_name': 'invalid-unit-test'},
         server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
     )
 
+    # 6
     execute_csv2_request(
         gvar, 1, None, 'received an invalid metadata file id "{}::invalid-unit-test::invalid-unit-test".'.format(ut_id(gvar, 'ctg1')),
         '/cloud/metadata-fetch/', group=ut_id(gvar,'ctg1'), query_data={'cloud_name': 'invalid-unit-test', 'metadata_name': 'invalid-unit-test'},
         server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
     )
 
+    # 7
     execute_csv2_request(
         gvar, 0, None, None,
-        '/cloud/metadata-fetch/', group=ut_id(gvar,'ctg1')), query_data={'cloud_name': ut_id(gvar, 'ctc2', 'metadata_name': ut_id(gvar, 'cty1')},
+        '/cloud/metadata-fetch/', group=ut_id(gvar,'ctg1'), query_data={'cloud_name': ut_id(gvar, 'ctc2'), 'metadata_name': ut_id(gvar, 'cty1')},
         server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
     )
 

@@ -64,7 +64,7 @@ def main(gvar, user_secret):
             'VMs_idle': '0',
             'VMs_running': '0',
             'cores_native': '0',
-            'ram_native': '0',
+            'ram_native': 0,
             'slot_count': '0',
             'slot_core_count': '0',
             'slot_idle_core_count': '0',
@@ -80,8 +80,8 @@ def main(gvar, user_secret):
             'ram_ctl': -1,
             'ram_limit': 0,
             'ram_quota': 0,
-            'ram_foreign': '0',
-            'ram_native_foreign': '0',
+            'ram_foreign': 0,
+            'ram_native_foreign': 0,
         },
         server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
     )
