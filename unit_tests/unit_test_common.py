@@ -20,7 +20,7 @@ def _execute_selections(gvar, request, expected_text, expected_values):
         return True
     else:
         gvar['ut_skipped'] += 1
-        print('%04d (%04d) %s Skipping: %s, %s, %s' % (gvar['ut_count'][0], gvar['ut_count'][1], _caller(), request, expected_text, expected_values))
+        print('%04d (%04d) %s Skipping: %s, %s, %s' % (gvar['ut_count'][0], gvar['ut_count'][1], _caller(), repr(request), repr(expected_text), expected_values))
         return False
    
 def execute_csv2_command(gvar, expected_rc, expected_modid, expected_text, cmd, expected_list=None, columns=None):
@@ -67,9 +67,10 @@ def execute_csv2_command(gvar, expected_rc, expected_modid, expected_text, cmd, 
         if failed:
             gvar['ut_failed'] += 1
             if not gvar['hidden']:
-                print('\n%04d (%04d) %s \033[91mFailed\033[0m: %s, %s, %s, %s' % (gvar['ut_count'][0], gvar['ut_count'][1], _caller(), cmd, expected_rc, expected_modid, expected_text))
+                # repr() is used because it puts quotes around strings *unless* they are None.
+                print('\n%04d (%04d) %s \033[91mFailed\033[0m: expected_rc=%s, expected_modid=%s, expected_text=%s, cmd=%s' % (gvar['ut_count'][0], gvar['ut_count'][1], _caller(), expected_rc, repr(expected_modid), repr(expected_text), cmd))
                 print('    return code=%s' % p.returncode)
-                print('    module ID=%s' % modid)
+                print('    module ID=%s' % repr(modid))
                 print('    stdout=%s' % str(stdout))
                 print('    stderr=%s' % str(stderr))
                 if list_error:
@@ -79,7 +80,7 @@ def execute_csv2_command(gvar, expected_rc, expected_modid, expected_text, cmd, 
             return 1
         else:
             if not gvar['hidden']:
-                print('%04d (%04d) %s \033[92mOK\033[0m: %s, %s, %s, %s' % (gvar['ut_count'][0], gvar['ut_count'][1], _caller(), cmd, expected_rc, expected_modid, expected_text))
+                print('%04d (%04d) %s \033[92mOK\033[0m: expected_rc=%s, expected_modid=%s, expected_text=%s, cmd=%s' % (gvar['ut_count'][0], gvar['ut_count'][1], _caller(), expected_rc, repr(expected_modid), repr(expected_text), cmd))
             return 0
     else:
         return 0
@@ -111,7 +112,7 @@ def execute_csv2_request(gvar, expected_rc, expected_modid, expected_text, reque
 #   if current_user not in gvar['active_user_group']:
 #       gvar['active_user_group'][current_user] = '-'
 
-    if _execute_selections(gvar, 'req=%s, group=%s,  form=%s, query=%s' % (request, group, form_data, query_data), expected_text, values):
+    if _execute_selections(gvar, 'req=%s, group=%s, form=%s, query=%s' % (request, group, form_data, query_data), expected_text, values):
         if server_user and server_pw:
             gvar['csrf'] = None
             gvar['cookies'] = None
@@ -189,22 +190,22 @@ def execute_csv2_request(gvar, expected_rc, expected_modid, expected_text, reque
             gvar['ut_failed'] += 1
 
             if not gvar['hidden']:
-                print('\n%04d (%04d) %s \033[91mFailed\033[0m: %s, %s, %s, %s, %s, %s, %s' % (gvar['ut_count'][0], gvar['ut_count'][1], _caller(), request, form_data, query_data, group, expected_rc, expected_modid, expected_text))
+                print('\n%04d (%04d) %s \033[91mFailed\033[0m: expected_rc=%s, expected_modid=%s, expected_text=%s, request=%s, group=%s, form_data=%s, query_data=%s' % (gvar['ut_count'][0], gvar['ut_count'][1], _caller(), expected_rc, repr(expected_modid), repr(expected_text), repr(request), repr(group), form_data, query_data))
                 if gvar['user_settings']['server-address'] in gvar['active_server_user_group'] and server_user in gvar['active_server_user_group'][gvar['user_settings']['server-address']]:
-                    print('    server=%s, user=%s, group=%s' % (gvar['server'], server_user, gvar['active_server_user_group'][gvar['user_settings']['server-address']][server_user]))
+                    print('    server=%s, user=%s, group=%s' % (repr(gvar['server']), repr(server_user), repr(gvar['active_server_user_group'][gvar['user_settings']['server-address']][server_user])))
                 else:
-                    print('    server=%s, user=%s, group=\033[91mNone\033[0m' % (gvar['server'], server_user))
+                    print('    server=%s, user=%s, group=\033[91mNone\033[0m' % (repr(gvar['server']), repr(server_user)))
                 print('    response code=%s' % response['response_code'])
                 if response['response_code'] != 0:
-                    print('    module ID=%s' % modid)
-                print('    message=%s\n' % response['message'])
+                    print('    module ID=%s' % repr(modid))
+                print('    message=%s\n' % repr(response['message']))
 
             return 1
         else:
             if expected_list and list_filter and values and (expected_list not in response):
                 failed = True
                 if not gvar['hidden']:
-                    print('\n%04d (%04d) %s \033[91mFailed\033[0m: %s, %s, %s, %s, %s' % (gvar['ut_count'][0], gvar['ut_count'][1], _caller(), request, group, expected_list, list_filter, values))
+                    print('\n%04d (%04d) %s \033[91mFailed\033[0m: request=%s, group=%s, expected_list=%s, list_filter=%s, values=%s' % (gvar['ut_count'][0], gvar['ut_count'][1], _caller(), repr(request), repr(group), expected_list, list_filter, values))
                     print('\tNo list "{}" in response.\n'.format(expected_list))
             if expected_list and list_filter and values and expected_list in response:
                 found = False
@@ -222,7 +223,7 @@ def execute_csv2_request(gvar, expected_rc, expected_modid, expected_text, reque
                             if (key not in row.keys()) or (values[key] != row[key]):
                                 failed = True
                                 if not gvar['hidden']:
-                                    print('\n%04d (%04d) %s \033[91mRow Check\033[0m: %s, %s, %s, %s, %s' % (gvar['ut_count'][0], gvar['ut_count'][1], _caller(), request, group, expected_list, list_filter, values))
+                                    print('\n%04d (%04d) %s \033[91mRow Check\033[0m: request=%s, group=%s, expected_list=%s, list_filter=%s, values=%s' % (gvar['ut_count'][0], gvar['ut_count'][1], _caller(), repr(request), repr(group), expected_list, list_filter, values))
                                     print('\trow=%s\n' % row)
                                 break
                         if not failed:
@@ -231,7 +232,7 @@ def execute_csv2_request(gvar, expected_rc, expected_modid, expected_text, reque
                 if not found:
                     failed = True
                     if not gvar['hidden']:
-                        print('\n%04d (%04d) %s \033[91mFailed\033[0m: %s, %s, %s, %s, %s' % (gvar['ut_count'][0], gvar['ut_count'][1], _caller(), request, group, expected_list, list_filter, values))
+                        print('\n%04d (%04d) %s \033[91mFailed\033[0m: request=%s, group=%s, expected_list=%s, list_filter=%s, values=%s' % (gvar['ut_count'][0], gvar['ut_count'][1], _caller(), repr(request), repr(group), expected_list, list_filter, values))
                         print('\tFilter didn\'t match any rows\n')
 
                 if failed:
@@ -239,11 +240,11 @@ def execute_csv2_request(gvar, expected_rc, expected_modid, expected_text, reque
                     return 1
                 else:
                     if not gvar['hidden']:
-                        print('%04d (%04d) %s \033[92mOK\033[0m: request=%s, %s, %s, %s, %s, %s' % (gvar['ut_count'][0], gvar['ut_count'][1], _caller(), request, form_data, group, expected_list, list_filter, values))
+                        print('%04d (%04d) %s \033[92mOK\033[0m: request=%s, group=%s, form_data=%s, expected_list=%s, list_filter=%s, values=%s' % (gvar['ut_count'][0], gvar['ut_count'][1], _caller(), repr(request), repr(group), form_data, expected_list, list_filter, values))
                     return 0
 
             if not failed and not gvar['hidden']:
-                print('%04d (%04d) %s \033[92mOK\033[0m: %s, %s, %s, %s, %s, %s' % (gvar['ut_count'][0], gvar['ut_count'][1], _caller(), request, form_data, group, expected_rc, expected_modid, expected_text))
+                print('%04d (%04d) %s \033[92mOK\033[0m: expected_rc=%s, expected_modid=%s, expected_text=%s, request=%s, group=%s, form_data=%s' % (gvar['ut_count'][0], gvar['ut_count'][1], _caller(), expected_rc, repr(expected_modid), repr(expected_text), repr(request), repr(group), form_data))
     else:
         return 0
 
