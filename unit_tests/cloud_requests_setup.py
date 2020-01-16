@@ -111,7 +111,12 @@ def main(gvar, user_secret):
             'username': ut_id(gvar, 'ctu3'),
             'password': user_secret,
             'region': ut_id(gvar, 'ctc2-r'),
-            'cloud_type': 'local'
+            'cloud_type': 'local',
+            'enabled': 0,
+            'priority': 0,
+            'cacertificate': None,
+            'user_domain_name': 'Default',
+            'project_domain_name': '\'Default\'',
         },
         server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
     )

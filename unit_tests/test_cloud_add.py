@@ -205,7 +205,7 @@ def main(gvar, user_secret):
 
     # 20
     execute_csv2_request(
-        gvar, 1, 'CV', 'cloud add mandatory parameter "authurl" contains an empty string which is specifically disallowed.',
+        gvar, 1, 'CV', 'cloud add parameter "authurl" contains an empty string which is specifically disallowed.',
         '/cloud/add/', group=ut_id(gvar, 'ctg1'), form_data={
             'cloud_name': ut_id(gvar, 'cloud-invalid-unit-test'),
             'authurl': '',
@@ -220,7 +220,7 @@ def main(gvar, user_secret):
 
     # 21
     execute_csv2_request(
-        gvar, 1, 'CV', 'cloud add mandatory parameter "project" contains an empty string which is specifically disallowed.',
+        gvar, 1, 'CV', 'cloud add parameter "project" contains an empty string which is specifically disallowed.',
         '/cloud/add/', group=ut_id(gvar, 'ctg1'), form_data={
             'cloud_name': ut_id(gvar, 'cloud-invalid-unit-test'),
             'authurl': 'invalid-unit-test',
@@ -235,7 +235,7 @@ def main(gvar, user_secret):
 
     # 22
     execute_csv2_request(
-        gvar, 1, 'CV', 'cloud add mandatory parameter "username" contains an empty string which is specifically disallowed.',
+        gvar, 1, 'CV', 'cloud add parameter "username" contains an empty string which is specifically disallowed.',
         '/cloud/add/', group=ut_id(gvar, 'ctg1'), form_data={
             'cloud_name': ut_id(gvar, 'cloud-invalid-unit-test'),
             'authurl': 'invalid-unit-test',
@@ -250,7 +250,7 @@ def main(gvar, user_secret):
 
     # 23
     execute_csv2_request(
-        gvar, 1, 'CV', 'cloud add mandatory parameter "password" contains an empty string which is specifically disallowed.',
+        gvar, 1, 'CV', 'cloud add parameter "password" contains an empty string which is specifically disallowed.',
         '/cloud/add/', group=ut_id(gvar, 'ctg1'), form_data={
             'cloud_name': ut_id(gvar, 'cloud-invalid-unit-test'),
             'authurl': 'invalid-unit-test',
@@ -265,7 +265,7 @@ def main(gvar, user_secret):
 
     # 24
     execute_csv2_request(
-        gvar, 1, 'CV', 'cloud add mandatory parameter "region" contains an empty string which is specifically disallowed.',
+        gvar, 1, 'CV', 'cloud add parameter "region" contains an empty string which is specifically disallowed.',
         '/cloud/add/', group=ut_id(gvar, 'ctg1'), form_data={
             'cloud_name': ut_id(gvar, 'cloud-invalid-unit-test'),
             'authurl': 'invalid-unit-test',
@@ -610,6 +610,10 @@ def main(gvar, user_secret):
             'password': user_secret,
             'region': ut_id(gvar, 'ctc5-r'),
             'cloud_type': 'local',
+            'priority': 0,
+            'cacertificate': None,
+            'user_domain_name': 'Default',
+            'project_domain_name': '\'Default\'',
             'vm_flavor': '',
             'vm_image': '',
             'vm_keyname': '',
@@ -617,7 +621,8 @@ def main(gvar, user_secret):
             'enabled': 0,
             'vm_keep_alive': 10,
             'metadata_name': ut_id(gvar, 'cty1'),
-            'spot_price': 10
+            'spot_price': 10,
+            'cores_softmax': -1,
             },
         server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
     )
@@ -636,6 +641,10 @@ def main(gvar, user_secret):
             'username': ut_id(gvar, 'ctu3'),
             'region': ut_id(gvar, 'ctc5-r'),
             'cloud_type': 'local',
+            'cloud_priority': 0,
+            'cacertificate': None,
+            'user_domain_name': 'Default',
+            'project_domain_name': '\'Default\'',
             'vm_flavor': '',
             'vm_image': '',
             'vm_keyname': '',
@@ -643,7 +652,9 @@ def main(gvar, user_secret):
             'enabled': 0,
             'vm_keep_alive': 10,
             'group_exclusions': ut_id(gvar, 'cty1'),
-            'spot_price': 10
+            'spot_price': 10,
+            'cores_used': 0,
+            'ram_used': 0
             },
         server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
     )
@@ -659,10 +670,6 @@ def main(gvar, user_secret):
             'password': user_secret,
             'region': ut_id(gvar, 'ctc6-r'),
             'cloud_type': 'local',
-            'vm_flavor': '',
-            'vm_image': '',
-            'vm_keyname': '',
-            'vm_network': '',
             'metadata_name.1': ut_id(gvar, 'cty1'),
             'metadata_name.2': ut_id(gvar, 'cty2'),
             'metadata_name.3': ut_id(gvar, 'cty3')
