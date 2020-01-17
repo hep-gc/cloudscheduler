@@ -22,10 +22,9 @@
   - local_web == True
 
 - name: install phpMyAdmin packages
-  yum: name={{ item }} state=latest
-  with_items:
-  - php
-  - phpMyAdmin
+  yum:
+    name: ['php', 'phpMyAdmin']
+    state: latest
   notify:
   - restart httpd
 

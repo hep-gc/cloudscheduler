@@ -34,8 +34,6 @@ from sqlalchemy.orm import Session
 from sqlalchemy.ext.automap import automap_base
 
 
-AGENT_VERSION = 0
-
 def _get_nova_client(session, region=None):
     nova = novaclient.Client("2", session=session, region_name=region, timeout=10)
     return nova
@@ -126,7 +124,7 @@ def _get_ec2_client(session):
 def trim_keys(dict_to_trim, key_list):
     keys_to_trim = []
     for key in dict_to_trim:
-        if key not in key_list or isinstance(dict_to_trim[key], classad._classad.Value):
+        if key not in key_list or isinstance(dict_to_trim[key], classad.classad.Value):
             keys_to_trim.append(key)
     for key in keys_to_trim:
         dict_to_trim.pop(key, None)
@@ -169,10 +167,10 @@ def machine_poller():
             groups = db_session.query(GROUPS)
             condor_hosts_set = set() # use a set here so we dont re-query same host if multiple groups have same host
             for group in groups:
-                if group.htcondor_fqdn is not None and group.htcondor_fqdn != "":
-                    condor_hosts_set.add(group.htcondor_fqdn)
-                else:
+                if group.htcondor_container_hostname is not None and group.htcondor_container_hostname != "":
                     condor_hosts_set.add(group.htcondor_container_hostname)
+                else:
+                    condor_hosts_set.add(group.htcondor_fqdn)
 
             # need to make a data structure so that we can verify the the polled machines actually fit into a valid grp-cloud
             # need to check:
@@ -331,11 +329,11 @@ def machine_poller():
 
                 # Poll successful, update failure_dict accordingly
                 for group in groups:
-                    if group.htcondor_fqdn is not None and group.htcondor_fqdn != "":
-                        if group.htcondor_fqdn == condor_host:
+                    if group.htcondor_container_hostname is not None and group.htcondor_container_hostname != "":
+                        if group.htcondor_container_hostname == condor_host:
                              failure_dict.pop(group.group_name, None)
                     else:
-                        if group.htcondor_container_hostname == condor_host:
+                        if group.htcondor_fqdn == condor_host:
                             failure_dict.pop(group.group_name, None)
 
                            
@@ -398,11 +396,13 @@ def command_poller():
             groups = db_session.query(GROUPS)
             condor_hosts_set = set() # use a set here so we dont re-query same host if multiple groups have same host
             for group in groups:
-                if group.htcondor_fqdn is not None and group.htcondor_fqdn != "":
-                    condor_hosts_set.add(group.htcondor_fqdn)
-                else:
+                if group.htcondor_container_hostname is not None and group.htcondor_container_hostname != "":
                     condor_hosts_set.add(group.htcondor_container_hostname)
+                else:
+                    condor_hosts_set.add(group.htcondor_fqdn)
+
             uncommitted_updates = 0
+            logging.debug(condor_hosts_set)
             for condor_host in condor_hosts_set:
                 condor_rpc = None
                 # check on agent satus every ~5 cycles
@@ -417,6 +417,7 @@ def command_poller():
                         'command': "noop",
                     }
                     command_yaml = yaml.dump(command_dict)
+                    logging.debug("Running noop for host %s" % (condor_host))
                     command_results = condor_rpc.call(command_yaml, timeout=30)
                     if command_results is None or command_results[0] != 0:
                         # command failed
@@ -424,6 +425,7 @@ def command_poller():
                             # we got a timeout
                             # timeout on the call, agent problems or offline
                             logging.error("RPC call to host: %s timed out, agent offline or in error" % condor_host)
+
                             jsched = {
                                 "htcondor_fqdn": condor_host,
                                 "agent_status":  0
@@ -439,19 +441,10 @@ def command_poller():
                                 uncommitted_updates += 1
 
                         logging.error("RPC noop failed on host: %s, agent offline or in error" % condor_host)
+
                         continue
                     else:
                         #it was successfull
-                        # lets check the agent version via the hash that was returned.
-                        try:
-                           if command_results[2] != AGENT_VERSION:
-                               #Log error and change agent status?
-                               logging.critical("Remote agent version mismatch on condor host: %s, check local repo for code changes or update remote agent" % condor_host)
-
-                        except Exception as exc:
-                           # we could end up here if there is a really old agent that doesn't support version matching
-                           logging.critical("Remote agent running old version that doesnt support version checking, agent on %s should be updated" % condor_host)
-                             
                         jsched = {
                             "htcondor_fqdn": condor_host,
                             "agent_status":  1
@@ -551,11 +544,11 @@ def command_poller():
                         command_results = condor_rpc.call(command_yaml, timeout=30)
                         if command_results is None or command_results[0] != 0:
                             # command failed
-                            logging.error("RPC retire failed for machine: %s//%s" % (resource.machine, resource.hostname))
                             if command_results == None:
                                 # we got a timeout
                                 # timeout on the call, agent problems or offline
-                                logging.error("RPC call timed out, agent offline or in error")
+                                logging.error("RPC call timed out, agent offline or in error: %s" % (condor_host))
+                                logging.debug(condor_host)
                                 jsched = {
                                     "htcondor_fqdn": condor_host,
                                     "agent_status":  0
@@ -570,8 +563,9 @@ def command_poller():
                                     config.db_session.merge(new_jsched)
                                     uncommitted_updates += 1
 
+                            logging.error("RPC retire failed for machine: %s//%s" % (resource.machine, resource.hostname))
                             #logging.error(command_results)
-                            elif command_results[0] == 2:
+                            if command_results[0] == 2:
                                 #condor error, report the failure
                                 jsched = {
                                     "htcondor_fqdn": condor_host,
@@ -626,6 +620,7 @@ def command_poller():
                     except Exception as exc:
                         logging.exception(exc)
                         logging.error("Failed to issue DaemonsOffPeacefull to machine: %s, hostname: %s missing classad or condor miscomunication." % (resource.machine, resource.hostname))
+                        logging.debug(condor_host)
                         continue
 
             if uncommitted_updates > 0:
@@ -949,9 +944,6 @@ if __name__ == '__main__':
         'machine':    machine_poller,
         'registrar':  service_registrar,
     }
-    
-    with open("/opt/cloudscheduler/agents/csv2_htc_agent") as fd:
-        AGENT_VERSION = sum(fd.read().encode())
 
     db_category_list = [os.path.basename(sys.argv[0]), "ProcessMonitor", "general", "signal_manager"]
 

@@ -60,9 +60,11 @@ from (
 left outer join csv2_groups as cg on
     cjs.group_name=cg.group_name
 left outer join csv2_job_schedulers as js on
-    cg.htcondor_fqdn=js.htcondor_fqdn
+    cg.htcondor_fqdn=js.htcondor_fqdn or
+    cg.htcondor_container_hostname=js.htcondor_fqdn
 left outer join condor_worker_gsi as cw on
-    cg.htcondor_fqdn=cw.htcondor_fqdn
+    cg.htcondor_fqdn=cw.htcondor_fqdn or
+    cg.htcondor_container_hostname=js.htcondor_fqdn
 
 group by group_name
 

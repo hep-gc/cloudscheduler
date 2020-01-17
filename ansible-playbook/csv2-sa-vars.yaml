@@ -8,20 +8,23 @@ ansible_deployment_host_ip: '206.12.154.6'
 letsencrypt_archive: '/usr/local/archive/letsencrypt'
 
 # CSV2 versions to use.
-cs_git_branch: dev
+cs_git_branch: stable-2.6
 db_upgrade_file: none
-schema_model: stable-2.5-rc
+schema_model: stable-2.6.1
 favicon_colour: red
+
+# Set  schema_backup tar file to install on host machine
+backup_path: '/hepuer/mfens98/csv2-cont-backups.tar'
 
 db_on_localhost: true
 rabbit_on_localhost: true
 reconfigure_network: false
 
 # If you decide to install phpMyAdmin, you will also need an SSL certificate for the domain/virtual host (see i_virtualhosts, below).
-install_phpMyAdmin: False
+install_phpMyAdmin: false
 
 # If you decide to install phpMyAdmin, you will also need an SSL certificate for the domain/virtual host (see i_virtualhosts, below).
-letsencrypt_test: true
+letsencrypt_test: false
 
 # By default, GSI authentication for HTCondor daemons is disabled. To enable GSI, you must:
 # 

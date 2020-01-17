@@ -4,5 +4,5 @@
 - name: be sure the epel repository is installed
   yum: name=epel-release state=present
 
-- name: fix the epel repository definition
-  command: sed -i 's/#baseurl/baseurl/; s/metalink/#metalink/' /etc/yum.repos.d/epel.repo
+#- name: fix the epel repository definition
+#  command: sed -i 's/#baseurl/baseurl/; s/metalink/#metalink/' /etc/yum.repos.d/epel.repo
