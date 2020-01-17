@@ -203,13 +203,13 @@ def main(gvar, user_secret):
     )
 
     # 28
+    # Ensures that values are as expected before executing requests that are expected to succeed.
     execute_csv2_request(
         gvar, 0, None, None,
         '/cloud/list/', group=ut_id(gvar, 'ctg1'), expected_list='cloud_list', list_filter={'cloud_name': ut_id(gvar, 'ctc3')},
         values={
             'group_name': ut_id(gvar, 'ctg1'),
             'cloud_name': ut_id(gvar, 'ctc3'),
-            'enabled': 1,
             'cloud_priority': 0,
             'spot_price': -1.0,
             'vm_flavor': '',
@@ -231,7 +231,6 @@ def main(gvar, user_secret):
             'user_domain_name': 'Default',
             'user_domain_id': '',
             'username': ut_id(gvar, 'ctu3'),
-            'keyname': None,
             'cacertificate': None,
             'region': ut_id(gvar, 'ctc3-r'),
             'cloud_type': 'local',
@@ -266,7 +265,7 @@ def main(gvar, user_secret):
             'flavor_exclusions': None,
             'flavor_names': None,
             'group_exclusions': None,
-            'metadata_names': '%s,%s,%s' % (ut_id(gvar, 'cty2'), ut_id(gvar, 'cty3'), ut_id(gvar, 'cty3.yaml')),
+            'metadata_names': '%s,%s,%s' % (ut_id(gvar, 'cty3.yaml'), ut_id(gvar, 'cty3'), ut_id(gvar, 'cty2')),
             },
         server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
     )

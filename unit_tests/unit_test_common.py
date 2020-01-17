@@ -20,7 +20,7 @@ def _execute_selections(gvar, request, expected_text, expected_values):
         return True
     else:
         gvar['ut_skipped'] += 1
-        print('%04d (%04d) %s Skipping: %s, %s, %s' % (gvar['ut_count'][0], gvar['ut_count'][1], _caller(), repr(request), repr(expected_text), expected_values))
+        print('%04d (%04d) %s Skipping: \'%s\', %s, %s' % (gvar['ut_count'][0], gvar['ut_count'][1], _caller(), request, repr(expected_text), expected_values))
         return False
    
 def execute_csv2_command(gvar, expected_rc, expected_modid, expected_text, cmd, expected_list=None, columns=None):
@@ -142,7 +142,7 @@ def execute_csv2_request(gvar, expected_rc, expected_modid, expected_text, reque
                 print('    response code=%s' % response['response_code'])
                 if response['response_code'] != 0:
                     print('    module ID=%s' % repr(modid))
-                print('    message=%s\n' % repr(response['message']))
+                print('    message=\'%s\'\n' % response['message'])
 
             return 1
         elif expected_list and list_filter and values:
@@ -153,52 +153,56 @@ def execute_csv2_request(gvar, expected_rc, expected_modid, expected_text, reque
                     print('\tNo list \'{}\' in response.\n'.format(expected_list))
             # expected_list in response
             else:
-                found = False
-                unexpected_values = []
+                found_perfect_row = False
+                filtered_rows = []
+                mismatches_in_filtered_rows = []
                 for row in response[expected_list]:
-                    match = True
-                    for key in list_filter:
-                        if (key not in row.keys()) or (list_filter[key] != row[key]):
-                            match = False
-                            break
+                    if all((key in row) and (list_filter[key] == row[key]) for key in list_filter):
+                        filtered_rows.append(row)
 
-                    if match:
-                        found = True
-                        for expected_key in values:
-                            if expected_key not in row:
-                                unexpected_values.append((expected_key, values[expected_key]))
-                            elif values[expected_key] != row[expected_key]:
-                                unexpected_values.append((expected_key, values[expected_key], row[expected_key]))
-                        break
-
-                if found:
-                    if unexpected_values:
-                        failed = True
-                        gvar['ut_failed'] += 1
-                        if not gvar['hidden']:
-                            print('\n%04d (%04d) %s \033[91mRow Check\033[0m: request=\'%s\', group=%s, expected_list=\'%s\', list_filter=%s' % (gvar['ut_count'][0], gvar['ut_count'][1], _caller(), request, group, expected_list, list_filter))
-                            for mismatch in unexpected_values:
-                                if len(mismatch) == 2:
-                                    print('    %s: expected %s, but the key was missing from the response.' % mismatch)
-                                # len(mismatch) == 3:
-                                else:
-                                    print('    %s: expected %s, but got %s.' % mismatch)
-                            print()
-                        return 1
+                for row in filtered_rows:
+                    mismatches = []
+                    for expected_key in values:
+                        if expected_key not in row:
+                            mismatches.append((expected_key, values[expected_key]))
+                        elif values[expected_key] != row[expected_key]:
+                            mismatches.append((expected_key, values[expected_key], row[expected_key]))
+                    if mismatches:
+                        mismatches_in_filtered_rows.append(mismatches)
                     else:
                         if not gvar['hidden']:
-                            print('%04d (%04d) %s \033[92mOK\033[0m: request=\'%s\', group=%s, expected_list=\'%s\', list_filter=%s' % (gvar['ut_count'][0], gvar['ut_count'][1], _caller(), request, group, expected_list, list_filter))
-                        return 0
-                # not found
+                            print('%04d (%04d) %s \033[92mOK\033[0m: request=\'%s\', group=%s, form_data=%s, expected_list=%s, list_filter=%s' % (gvar['ut_count'][0], gvar['ut_count'][1], _caller(), request, group, form_data, expected_list, list_filter))
+                            return 0
+
+                # At this point we know the test has failed.
+                # Found mismatched values.
+                if mismatches_in_filtered_rows:
+                    if not gvar['hidden']:
+                        print('\n%04d (%04d) %s \033[91mRow Check\033[0m: request=\'%s\', group=%s, expected_list=\'%s\', list_filter=%s' % (gvar['ut_count'][0], gvar['ut_count'][1], _caller(), request, group, expected_list, list_filter))
+                        print('\t%s rows were accepted by the filter.' % len(mismatches_in_filtered_rows))
+                        for row_index, mismatches_in_row in enumerate(mismatches_in_filtered_rows):
+                            print('\tRow %s:' % row_index)
+                            print('\t\tActual values in response: %s' % filtered_rows[row_index])
+                            for mismatch in mismatches_in_row:
+                                if len(mismatch) == 2:
+                                    print('\t\tFor the key %s: expected %s, but the key was not in the response.' % mismatch)
+                                # len(mismatch) == 3
+                                else:
+                                    print('\t\tFor the key %s: expected %s, but got %s.' % mismatch)
+                # All rows were rejected by the filter.
                 else:
                     if not gvar['hidden']:
-                        print('\n%04d (%04d) %s \033[91mFailed\033[0m: request=\'%s\', group=%s, expected_list=\'%s\', list_filter=%s, values=%s' % (gvar['ut_count'][0], gvar['ut_count'][1], _caller(), request, group, expected_list, list_filter, values))
-                        print('\tFilter didn\'t match any rows\n')
+                        print('\n%04d (%04d) %s \033[91mFailed\033[0m: request=\'%s\', group=%s, expected_list=%s, list_filter=%s' % (gvar['ut_count'][0], gvar['ut_count'][1], _caller(), request, group, expected_list, list_filter))
+                        print('\tFilter did not match any rows. The message from the server was: \'%s\'\n' % response['message'])
 
+                gvar['ut_failed'] += 1
+                return 1
 
         # not failed
         elif not gvar['hidden']:
             print('%04d (%04d) %s \033[92mOK\033[0m: expected_rc=%s, expected_modid=%s, expected_text=%s, request=\'%s\', group=%s, form_data=%s' % (gvar['ut_count'][0], gvar['ut_count'][1], _caller(), expected_rc, repr(expected_modid), repr(expected_text), request, group, form_data))
+
+    # _execute_selections returned False.
     else:
         return 0
 

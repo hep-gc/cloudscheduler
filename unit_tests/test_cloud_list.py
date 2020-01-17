@@ -10,36 +10,42 @@ def main(gvar, user_secret):
             initialize_csv2_request(gvar, argv[0], selections=argv[1])
         else:
             initialize_csv2_request(gvar, argv[0])
+
     #1 
     execute_csv2_request(
         gvar, 2, None, 'HTTP response code 401, unauthorized.',
         '/cloud/list/', group=ut_id(gvar, 'ctg1'),
         server_user='invalid-unit-test', server_pw=user_secret
     )
+
     #2
     execute_csv2_request(
         gvar, 1, None, 'user "{}" is not a member of any group.'.format(ut_id(gvar, 'ctu1')),
         '/cloud/list/', group=ut_id(gvar, 'ctg1'),
         server_user=ut_id(gvar, 'ctu1'), server_pw=user_secret
     )
+
     #3
     execute_csv2_request(
         gvar, 1, None, 'user "{}" is not a member of any group.'.format(ut_id(gvar, 'ctu2')),
         '/cloud/list/', group=ut_id(gvar, 'ctg1'),
         server_user=ut_id(gvar, 'ctu2'), server_pw=user_secret
     )
+
     #4
     execute_csv2_request(
         gvar, 1, None, 'cannot switch to invalid group "invalid-unit-test".',
         '/cloud/list/', group='invalid-unit-test',
         server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
     )
+
     #5
     execute_csv2_request(
         gvar, 1, None, 'cannot switch to invalid group "{}".'.format(ut_id(gvar, 'ctg2')),
         '/cloud/list/', group=ut_id(gvar, 'ctg2'),
         server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
     )
+
     #6
     execute_csv2_request(
         gvar, 0, None, None,
@@ -61,6 +67,7 @@ def main(gvar, user_secret):
         },
         server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
     )
+
     #7
     execute_csv2_request(
         gvar, 1, 'CV', 'request contained a bad parameter "invalid-unit-test".',
@@ -68,6 +75,7 @@ def main(gvar, user_secret):
         form_data={'invalid-unit-test': 'invalid-unit-test'},
         server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
     )
+
     #8
     execute_csv2_request(
         gvar, 0, None, None,

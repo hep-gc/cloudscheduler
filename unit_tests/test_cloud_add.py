@@ -91,7 +91,7 @@ def main(gvar, user_secret):
 
     # 12
     execute_csv2_request(
-        gvar, 1, 'CV', 'cloud add request did not contain mandatory (but not empty) parameter "authurl".',
+        gvar, 1, 'CV', 'cloud add request did not contain mandatory parameter "authurl".',
         '/cloud/add/', group=ut_id(gvar, 'ctg1'), form_data={
             'cloud_name': ut_id(gvar, 'cloud-invalid-unit-test'),
             'project': 'invalid-unit-test',
@@ -105,7 +105,7 @@ def main(gvar, user_secret):
 
     # 13
     execute_csv2_request(
-        gvar, 1, 'CV', 'cloud add request did not contain mandatory (but not empty) parameter "project".',
+        gvar, 1, 'CV', 'cloud add request did not contain mandatory parameter "project".',
             '/cloud/add/', group=ut_id(gvar, 'ctg1'), form_data={
             'cloud_name': ut_id(gvar, 'cloud-invalid-unit-test'),
             'authurl': 'invalid-unit-test',
@@ -119,7 +119,7 @@ def main(gvar, user_secret):
 
     # 14
     execute_csv2_request(
-        gvar, 1, 'CV', 'cloud add request did not contain mandatory (but not empty) parameter "username".',
+        gvar, 1, 'CV', 'cloud add request did not contain mandatory parameter "username".',
         '/cloud/add/', group=ut_id(gvar, 'ctg1'), form_data={
             'cloud_name': ut_id(gvar, 'cloud-invalid-unit-test'),
             'authurl': 'invalid-unit-test',
@@ -133,7 +133,7 @@ def main(gvar, user_secret):
 
     # 15
     execute_csv2_request(
-        gvar, 1, 'CV', 'cloud add request did not contain mandatory (but not empty) parameter "password".',
+        gvar, 1, 'CV', 'cloud add request did not contain mandatory parameter "password".',
         '/cloud/add/', group=ut_id(gvar, 'ctg1'), form_data={
             'cloud_name': ut_id(gvar, 'cloud-invalid-unit-test'),
             'authurl': 'invalid-unit-test',
@@ -147,7 +147,7 @@ def main(gvar, user_secret):
 
     # 16
     execute_csv2_request(
-        gvar, 1, 'CV', 'cloud add request did not contain mandatory (but not empty) parameter "region".',
+        gvar, 1, 'CV', 'cloud add request did not contain mandatory parameter "region".',
         '/cloud/add/', group=ut_id(gvar, 'ctg1'), form_data={
             'cloud_name': ut_id(gvar, 'cloud-invalid-unit-test'),
             'authurl': 'invalid-unit-test',
@@ -205,7 +205,7 @@ def main(gvar, user_secret):
 
     # 20
     execute_csv2_request(
-        gvar, 1, 'CV', 'cloud add parameter "authurl" contains an empty string which is specifically disallowed.',
+        gvar, 1, 'CV', 'cloud add mandatory parameter "authurl" contains an empty string which is specifically disallowed.',
         '/cloud/add/', group=ut_id(gvar, 'ctg1'), form_data={
             'cloud_name': ut_id(gvar, 'cloud-invalid-unit-test'),
             'authurl': '',
@@ -220,7 +220,7 @@ def main(gvar, user_secret):
 
     # 21
     execute_csv2_request(
-        gvar, 1, 'CV', 'cloud add parameter "project" contains an empty string which is specifically disallowed.',
+        gvar, 1, 'CV', 'cloud add mandatory parameter "project" contains an empty string which is specifically disallowed.',
         '/cloud/add/', group=ut_id(gvar, 'ctg1'), form_data={
             'cloud_name': ut_id(gvar, 'cloud-invalid-unit-test'),
             'authurl': 'invalid-unit-test',
@@ -235,7 +235,7 @@ def main(gvar, user_secret):
 
     # 22
     execute_csv2_request(
-        gvar, 1, 'CV', 'cloud add parameter "username" contains an empty string which is specifically disallowed.',
+        gvar, 1, 'CV', 'cloud add mandatory parameter "username" contains an empty string which is specifically disallowed.',
         '/cloud/add/', group=ut_id(gvar, 'ctg1'), form_data={
             'cloud_name': ut_id(gvar, 'cloud-invalid-unit-test'),
             'authurl': 'invalid-unit-test',
@@ -250,7 +250,7 @@ def main(gvar, user_secret):
 
     # 23
     execute_csv2_request(
-        gvar, 1, 'CV', 'cloud add parameter "password" contains an empty string which is specifically disallowed.',
+        gvar, 1, 'CV', 'cloud add mandatory parameter "password" contains an empty string which is specifically disallowed.',
         '/cloud/add/', group=ut_id(gvar, 'ctg1'), form_data={
             'cloud_name': ut_id(gvar, 'cloud-invalid-unit-test'),
             'authurl': 'invalid-unit-test',
@@ -265,7 +265,7 @@ def main(gvar, user_secret):
 
     # 24
     execute_csv2_request(
-        gvar, 1, 'CV', 'cloud add parameter "region" contains an empty string which is specifically disallowed.',
+        gvar, 1, 'CV', 'cloud add mandatory parameter "region" contains an empty string which is specifically disallowed.',
         '/cloud/add/', group=ut_id(gvar, 'ctg1'), form_data={
             'cloud_name': ut_id(gvar, 'cloud-invalid-unit-test'),
             'authurl': 'invalid-unit-test',
@@ -600,6 +600,7 @@ def main(gvar, user_secret):
     )
 
     # 45
+    # Known to fail if run twice without setup or cleanup in between.
     execute_csv2_request(
         gvar, 0, None, 'cloud "{}::{}" successfully added.'.format(ut_id(gvar, 'ctg1'), ut_id(gvar, 'ctc5')),
         '/cloud/add/', group=ut_id(gvar, 'ctg1'), form_data={
@@ -660,6 +661,7 @@ def main(gvar, user_secret):
     )
 
     # 47
+    # Known to fail if run twice without setup or cleanup in between.
     execute_csv2_request(
         gvar, 0, None, 'cloud "{}::{}" successfully added.'.format(ut_id(gvar, 'ctg1'), ut_id(gvar, 'ctc6')),
         '/cloud/add/', group=ut_id(gvar, 'ctg1'), form_data={

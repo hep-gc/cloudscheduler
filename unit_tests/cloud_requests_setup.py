@@ -131,7 +131,7 @@ def main(gvar, user_secret):
             'username': ut_id(gvar, 'ctu3'),
             'password': user_secret,
             'region': ut_id(gvar, 'ctc3-r'),
-            'cloud_type': 'local'
+            'cloud_type': 'local',
         },
         server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
     )
