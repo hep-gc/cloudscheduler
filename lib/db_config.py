@@ -3,10 +3,12 @@ DB utilities and configuration.
 """
 
 import os
-import sys
+import signal
 import socket
-import yaml
+import sys
 import time
+import yaml
+
 from subprocess import Popen, PIPE
 
 from sqlalchemy import create_engine, Table, MetaData
@@ -14,7 +16,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy.ext.automap import automap_base
 
 class Config:
-    def __init__(self, db_yaml, categories, db_config_dict=False, db_config_only=False, pool_size=5, max_overflow=0, refreshable=False):
+    def __init__(self, db_yaml, categories, db_config_dict=False, db_config_only=False, pool_size=5, max_overflow=0, refreshable=False, signals=False):
         """
         Read the DB configuration file and the specified categories configuration from the database.
         """
@@ -111,6 +113,20 @@ class Config:
 
         # Close the session.
         self.db_close()
+
+        # Optionally, retrieve original signal configuration.
+        if signals:
+            if 'signals' in base_config:
+                self.signals = base_config['signals']
+            else:
+                self.signals = {}
+
+            self.signals['SIGINT'] = signal.getsignal(signal.SIGINT)
+            self.signals['SIGKILL'] = signal.getsignal(signal.SIGKILL)
+            self.signals['SIGALRM'] = signal.getsignal(signal.SIGALRM)
+            self.signals['SIGTERM'] = signal.getsignal(signal.SIGTERM)
+            self.signals['SIGUSR1'] = signal.getsignal(signal.SIGUSR1)
+            self.signals['SIGUSR2'] = signal.getsignal(signal.SIGUSR2)
 
 #-------------------------------------------------------------------------------
 
