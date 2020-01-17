@@ -112,7 +112,6 @@ def main(gvar, user_secret):
             'password': user_secret,
             'region': ut_id(gvar, 'ctc2-r'),
             'cloud_type': 'local',
-            'enabled': 0,
             'priority': 0,
             'cacertificate': None,
             'user_domain_name': 'Default',

@@ -189,6 +189,7 @@ def execute_csv2_request(gvar, expected_rc, expected_modid, expected_text, reque
                                 # len(mismatch) == 3
                                 else:
                                     print('\t\tFor the key %s: expected %s, but got %s.' % mismatch)
+                    print()
                 # All rows were rejected by the filter.
                 else:
                     if not gvar['hidden']:
@@ -345,9 +346,9 @@ def _requests(gvar, request, group=None, form_data={}, query_data={}, server_use
         response = _r.json()
     except:
         if _r.status_code and _r.status_code == 401:   
-            response = {'response_code': 2, 'message': 'server \'%s\', HTTP response code %s, unauthorized.' % (gvar['server'], _r.status_code)}
+            response = {'response_code': 2, 'message': 'server "%s", HTTP response code %s, unauthorized.' % (gvar['server'], _r.status_code)}
         elif _r.status_code and _r.status_code == 403:   
-            response = {'response_code': 2, 'message': 'server \'%s\', HTTP response code %s, forbidden.' % (gvar['server'], _r.status_code)}
+            response = {'response_code': 2, 'message': 'server "%s", HTTP response code %s, forbidden.' % (gvar['server'], _r.status_code)}
         elif html and _r.status_code and _r.status_code == 200:
             error, message = html_message(_r.text)
             if error:
@@ -355,9 +356,9 @@ def _requests(gvar, request, group=None, form_data={}, query_data={}, server_use
             else:
                 response = {'response_code': 0, 'message': message.replace('&quot;', '"')}
         elif _r.status_code:   
-            response = {'response_code': 2, 'message': 'server \'%s\', HTTP response code %s.' % (gvar['server'], _r.status_code)}
+            response = {'response_code': 2, 'message': 'server "%s", HTTP response code %s.' % (gvar['server'], _r.status_code)}
         else:
-            response = {'response_code': 2, 'message': 'server \'%s\', internal server error.' % gvar['server']}
+            response = {'response_code': 2, 'message': 'server "%s", internal server error.' % gvar['server']}
 
     if 'Set-Cookie' in _r.headers:
         new_csrf = _r.headers['Set-Cookie'].translate(EXTRACT_CSRF).split()[1]

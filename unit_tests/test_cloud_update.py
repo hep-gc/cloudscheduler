@@ -203,7 +203,7 @@ def main(gvar, user_secret):
     )
 
     # 28
-    # Ensures that values are as expected before executing requests that are expected to succeed.
+    # Ensures that values are as expected before executing requests that are expected to succeed. Known to sometimes fail when run after other cloud tests (with no setup / cleanup in between).
     execute_csv2_request(
         gvar, 0, None, None,
         '/cloud/list/', group=ut_id(gvar, 'ctg1'), expected_list='cloud_list', list_filter={'cloud_name': ut_id(gvar, 'ctc3')},

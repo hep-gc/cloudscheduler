@@ -69,7 +69,6 @@ def main(gvar, user_secret):
             'slot_core_count': '0',
             'slot_idle_core_count': '0',
             'Foreign_VMs': '0',
-            'enabled': 1,
             'cores_ctl': -1,
             'cores_limit': 0,
             'VMs_quota': 0,
