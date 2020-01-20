@@ -6,6 +6,10 @@
   - AMQP used for signalling:
     - Introduction of csv2-signal-agent service.
 
+  - All AMQP requests to be authenticated with user name and password. The guest account is locked.
+
+  - SSL termination through HAProxy for all remote AMQP requests.
+
   - Process monitor changes:
     - graceful shutdown of services.
     - pause services for backup.
