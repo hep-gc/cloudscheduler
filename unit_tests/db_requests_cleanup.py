@@ -11,8 +11,13 @@ def main(gvar):
     
     execute_csv2_request(
         gvar, None, None, None,
-        '/group/delete/', form_data={'group_name': 'vm-test-group'}
+        '/group/delete/', form_data={'group_name': ut_id(gvar, 'dtg1')}
+    )
+
+    execute_csv2_request(
+        gvar, None, None, None,
+        '/user/delete/', form_data={'username': ut_id(gvar, 'dtu1')}
     )
 
 if __name__ == "__main__":
-    main(None)
+    main(None, None)

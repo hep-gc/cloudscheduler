@@ -1,4 +1,4 @@
-from unit_test_common import execute_csv2_request, execute_csv2_command, initialize_csv2_request, ut_id
+from unit_test_common import execute_csv2_request, execute_csv2_command, initialize_csv2_request, generate_secret, ut_id
 from sys import argv
 
 # lno: JV - error code identifier.
@@ -10,6 +10,8 @@ def main(gvar, user_secret):
             initialize_csv2_request(gvar, argv[0], selections=argv[1])
         else:
             initialize_csv2_request(gvar, argv[0])
+    if not user_secret:
+        user_secret = generate_secret()
 
     execute_csv2_request(
         gvar, 0, None, None,
@@ -23,4 +25,4 @@ def main(gvar, user_secret):
     )
 
 if __name__ == "__main__":
-    main(None)
+    main(None, None)
