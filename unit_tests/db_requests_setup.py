@@ -14,7 +14,7 @@ def main(gvar, user_secret):
 
     db_requests_cleanup.main(gvar)
 
-    # 2
+    # 3
     execute_csv2_request(
         gvar, 0, None, 'group "{}" successfully added.'.format(ut_id(gvar, 'dtg1')),
         '/group/add/', form_data={
@@ -23,7 +23,7 @@ def main(gvar, user_secret):
         }
     )
 
-    # 3
+    # 4
     execute_csv2_request(
         gvar, 0, None, 'user "{}" successfully added.'.format(ut_id(gvar, 'dtu1')),
         '/user/add/'
@@ -36,9 +36,9 @@ def main(gvar, user_secret):
         }
     )
 
-    # 4
+    # 5
     execute_csv2_request(
-        gvar, 0, None, 'cloud "vm-test-group::vm-test-cloud" successfully added.',
+        gvar, 0, None, 'cloud "{}::{}" successfully added.'.format(ut_id(gvar, 'dtg1'), ut_id(gvar, 'dtc1')),
         '/cloud/add/', group=ut_id(gvar, 'dtg1'), form_data={
             'cloud_name': ut_id(gvar, 'dtc1'),
             'authurl': 'db-test-cloud-one.ca',
@@ -47,7 +47,8 @@ def main(gvar, user_secret):
             'password': user_secret,
             'region': ut_id(gvar, 'dtr1'),
             'cloud_type': 'local'
-        }
+        },
+        server_user=ut_id(gvar, 'dtu1'), server_pw=user_secret
     )
 
 if __name__ == "__main__":

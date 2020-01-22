@@ -150,7 +150,7 @@ def execute_csv2_request(gvar, expected_rc, expected_modid, expected_text, reque
                 failed = True
                 if not gvar['hidden']:
                     print('\n%04d (%04d) %s \033[91mFailed\033[0m: request=\'%s\', group=%s, expected_list=\'%s\', list_filter=%s, values=%s' % (gvar['ut_count'][0], gvar['ut_count'][1], _caller(), request, group, expected_list, list_filter, values))
-                    print('\tNo list \'{}\' in response.\n'.format(expected_list))
+                    print('\tNo list \'%s\' in response. The message from the server was: \'%s\'\n' % (expected_list, response['message']))
             # expected_list in response
             else:
                 found_perfect_row = False
