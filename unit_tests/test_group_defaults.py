@@ -11,8 +11,6 @@ def main(gvar, user_secret):
         else:
             initialize_csv2_request(gvar, argv[0])
 
-#   gvar['user_settings']['expose-API'] = True
-
     # 1
     execute_csv2_request(
         gvar, 2, None, 'HTTP response code 401, unauthorized.',

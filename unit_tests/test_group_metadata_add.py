@@ -147,7 +147,7 @@ def main(gvar, user_secret):
 
     # 15
     execute_csv2_request(
-        gvar, 1, 'GV', 'group metadata-add parameter "metadata_name" contains an empty string which is specifically disallowed.',
+        gvar, 1, 'GV', 'group metadata-add mandatory parameter "metadata_name" contains an empty string which is specifically disallowed.',
         '/group/metadata-add/', group=ut_id(gvar, 'gtg5'), form_data={
             'metadata_name': '',
             'metadata': 'invalid-unit-test',
@@ -181,11 +181,17 @@ def main(gvar, user_secret):
         server_user=ut_id(gvar, 'gtu3'), server_pw=user_secret
     )
 
-    # 18
+    # 18 Verify that 17 actually added metadata
     execute_csv2_request(
         gvar, 0, None, None,
         '/group/list/', group=ut_id(gvar, 'gtg4'), expected_list='group_list', list_filter={'group_name': ut_id(gvar, 'gtg4')},
-        values={'group_name': ut_id(gvar, 'gtg4'), 'htcondor_fqdn': 'unit-test-group-four.ca', 'htcondor_container_hostname': None, 'htcondor_other_submitters': None, 'metadata_names': ",".join(sorted([ut_id(gvar, 'gty1.yaml'),'default.yaml.j2']))}
+        values={'group_name': ut_id(gvar, 'gtg4'),
+            'htcondor_fqdn': 'unit-test-group-four.ca',
+            'htcondor_container_hostname': None,
+            'htcondor_other_submitters': None,
+            'metadata_names': ",".join(sorted([ut_id(gvar, 'gty1.yaml'),'default.yaml.j2']))
+        },
+        server_user=ut_id(gvar, 'gtu3'), server_pw=user_secret
     )
 
     # 19

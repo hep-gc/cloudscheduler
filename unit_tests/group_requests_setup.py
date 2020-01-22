@@ -86,7 +86,7 @@ def main(gvar, user_secret):
         }
     )
 
-    # 08 privileged user in group gtg5,6
+    # 08 privileged user in group gtg4 and gtg5
     execute_csv2_request(
         gvar, 0, None, 'user "{}" successfully added.'.format(ut_id(gvar, 'gtu5')),
         '/user/add/', form_data={
@@ -168,4 +168,4 @@ def main(gvar, user_secret):
     )
 
 if __name__ == "__main__":
-    main(None)
+    main(None, None)

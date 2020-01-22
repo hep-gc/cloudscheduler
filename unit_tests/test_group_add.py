@@ -137,25 +137,31 @@ def main(gvar, user_secret):
         gvar, 0, None, 'group "{}" successfully added.'.format(ut_id(gvar, 'gtg1')),
         '/group/add/', form_data={
             'group_name': ut_id(gvar, 'gtg1'),
-            'username.1': ut_id(gvar, 'gtu3'),
+            'username.1': ut_id(gvar, 'gtu5'),
             'htcondor_fqdn': 'group-unit-test-one.ca'
         }
     )
 
-    # 18
+    # 18 Verify that 17 actually added a group.
     execute_csv2_request(
         gvar, 0, None, None,
         '/group/list/', group=ut_id(gvar, 'gtg1'),
         expected_list='group_list', list_filter={'group_name': ut_id(gvar, 'gtg1')},
-        values={'group_name': ut_id(gvar, 'gtg1'), 'htcondor_fqdn': 'group-unit-test-one.ca', 'htcondor_container_hostname': None, 'htcondor_other_submitters': None, 'metadata_names': 'default.yaml.j2'}
+        values={'group_name': ut_id(gvar, 'gtg1'),
+            'htcondor_fqdn': 'group-unit-test-one.ca',
+            'htcondor_container_hostname': None,
+            'htcondor_other_submitters': None,
+            'metadata_names': 'default.yaml.j2'
+        },
+        server_user=ut_id(gvar, 'gtu5'), server_pw=user_secret
     )
 
     # 19
     execute_csv2_request(
         gvar, 0, None, None,
         '/user/list/',
-        expected_list='user_list', list_filter={'username': ut_id(gvar, 'gtu3')},
-        values={'username': ut_id(gvar, 'gtu3'), 'user_groups': ut_id(gvar, 'gtg1,gtg4,gtg5')}
+        expected_list='user_list', list_filter={'username': ut_id(gvar, 'gtu5')},
+        values={'username': ut_id(gvar, 'gtu5'), 'user_groups': ut_id(gvar, 'gtg1,gtg4,gtg5')}
     )
 
     # 20
@@ -169,16 +175,22 @@ def main(gvar, user_secret):
         gvar, 0, None, 'group "{}" successfully added.'.format(ut_id(gvar, 'gtg2')),
         '/group/add/', form_data={
             'group_name': ut_id(gvar, 'gtg2'),
-            'htcondor_fqdn': 'unit-test-group-two.ca'
+            'htcondor_fqdn': 'unit-test-group-two.ca',
+            # 'username.1': ut_id(gvar, 'gtu5')
         }
     )
 
     # 22
     execute_csv2_request(
         gvar, 0, None, None,
-        '/group/list/', group=ut_id(gvar, 'gtg2'),
-        expected_list='group_list', list_filter={'group_name': ut_id(gvar, 'gtg2')},
-        values={'group_name': ut_id(gvar, 'gtg2'), 'htcondor_fqdn': 'unit-test-group-two.ca', 'htcondor_container_hostname': None, 'htcondor_other_submitters': None, 'metadata_names': 'default.yaml.j2'}
+        '/group/list/',
+        expected_list='group_list', list_filter={'group_name': ut_id(gvar, 'gtg1')},
+        values={'group_name': ut_id(gvar, 'gtg1'),
+            'htcondor_fqdn': 'group-unit-test-one.ca',
+            'htcondor_container_hostname': None,
+            'htcondor_other_submitters': None,
+            'metadata_names': 'default.yaml.j2'
+        },
     )
 
     # 23

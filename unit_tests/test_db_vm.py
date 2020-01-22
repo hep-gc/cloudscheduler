@@ -14,42 +14,138 @@ def main(gvar, user_secret):
     execute_csv2_request(
         gvar, 0, None, None,
         '/vm/list/', group=ut_id(gvar, 'dtg1'), expected_list='vm_list', list_filter={'group_name': ut_id(gvar, 'dtg1'), 'cloud_name': ut_id(gvar, 'dtc1'), 'vmid': 'vmid1'},
-        values={'power_status': 1, 'authurl': 'vm-test-authurl', 'manual_control': 0, 'project': 'vm-test-project', 'status': 'ACTIVE', 'retire_request_time': 0, 'group_name': ut_id(gvar, 'dtg1'), 'terminate': 0, 'flavor_id': '5', 'poller_status': 'unregistered', 'foreign_vm': 0, 'hostname': 'vm-test-group--vm-test-cloud--vmid1', 'vmid': 'vmid1', 'keep_alive':0, 'cloud_name': ut_id(gvar, 'dtc1')}
+        values={'power_status': 1,
+            'authurl': 'vm-test-authurl',
+            'manual_control': 0,
+            'project': 'vm-test-project',
+            'status': 'ACTIVE',
+            'retire_request_time': 0,
+            'group_name': ut_id(gvar, 'dtg1'),
+            'terminate': 0,
+            'flavor_id': '5',
+            'poller_status': 'unregistered',
+            'foreign_vm': 0,
+            'hostname': 'vm-test-group--vm-test-cloud--vmid1',
+            'vmid': 'vmid1',
+            'keep_alive': 0,
+            'cloud_name': ut_id(gvar, 'dtc1')
+        },
+        server_user=ut_id(gvar, 'dtu1'), server_pw=user_secret
     )
 
     # 2
     execute_csv2_request(
         gvar, 0, None, None,
         '/vm/list/', group=ut_id(gvar, 'dtg1'), expected_list='vm_list', list_filter={'group_name': ut_id(gvar, 'dtg1'), 'cloud_name': ut_id(gvar, 'dtc1'), 'vmid': 'vmid2'},
-        values={'power_status': 1, 'authurl': 'vm-test-authurl', 'manual_control': 0, 'project': 'vm-test-project', 'status': 'ACTIVE', 'retire_request_time': 0, 'group_name': ut_id(gvar, 'dtg1'), 'terminate': 0, 'flavor_id': '4', 'poller_status': 'unregistered', 'foreign_vm': 0, 'hostname': 'vm-test-group--vm-test-cloud--vmid2', 'vmid': 'vmid2', 'keep_alive':0, 'cloud_name': ut_id(gvar, 'dtc1')}
+        values={'power_status': 1,
+            'authurl': 'vm-test-authurl',
+            'manual_control': 0,
+            'project': 'vm-test-project',
+            'status': 'ACTIVE',
+            'retire_request_time': 0,
+            'group_name': ut_id(gvar, 'dtg1'),
+            'terminate': 0,
+            'flavor_id': '4',
+            'poller_status': 'unregistered',
+            'foreign_vm': 0,
+            'hostname': 'vm-test-group--vm-test-cloud--vmid2',
+            'vmid': 'vmid2',
+            'keep_alive':0,
+            'cloud_name': ut_id(gvar, 'dtc1')
+        },
+        server_user=ut_id(gvar, 'dtu1'), server_pw=user_secret
     )
 
     # 3
     execute_csv2_request(
         gvar, 0, None, None,
         '/vm/list/', group=ut_id(gvar, 'dtg1'), expected_list='vm_list', list_filter={'group_name': ut_id(gvar, 'dtg1'), 'cloud_name': ut_id(gvar, 'dtc1'), 'vmid': 'vmid3'},
-        values={'power_status': 1, 'authurl': 'vm-test-authurl', 'manual_control': 0, 'project': 'vm-test-project', 'status': 'ACTIVE', 'retire_request_time': 0, 'group_name': ut_id(gvar, 'dtg1'), 'terminate': 0, 'flavor_id': '4', 'poller_status': 'unregistered', 'foreign_vm': 0, 'hostname': 'vm-test-group--vm-test-cloud--vmid3', 'vmid': 'vmid3', 'keep_alive':0, 'cloud_name': ut_id(gvar, 'dtc1')}
+        values={'power_status': 1,
+            'authurl': 'vm-test-authurl',
+            'manual_control': 0,
+            'project': 'vm-test-project',
+            'status': 'ACTIVE',
+            'retire_request_time': 0,
+            'group_name': ut_id(gvar, 'dtg1'),
+            'terminate': 0,
+            'flavor_id': '4',
+            'poller_status': 'unregistered',
+            'foreign_vm': 0,
+            'hostname': 'vm-test-group--vm-test-cloud--vmid3',
+            'vmid': 'vmid3',
+            'keep_alive':0,
+            'cloud_name': ut_id(gvar, 'dtc1')
+        },
+        server_user=ut_id(gvar, 'dtu1'), server_pw=user_secret
     )
 
     # 4
     execute_csv2_request(
         gvar, 0, None, None,
         '/vm/list/', group=ut_id(gvar, 'dtg1'), expected_list='vm_list', list_filter={'group_name': ut_id(gvar, 'dtg1'), 'cloud_name': ut_id(gvar, 'dtc1'), 'vmid': 'vmid4'},
-        values={'power_status': 1, 'authurl': 'vm-test-authurl', 'manual_control': 0, 'project': 'vm-test-project', 'status': 'ACTIVE', 'retire_request_time': None, 'group_name': ut_id(gvar, 'dtg1'), 'terminate': 0, 'flavor_id': '4', 'poller_status': 'foreign', 'foreign_vm': 1, 'hostname': 'foreign-cloud--vmid4', 'vmid': 'vmid4', 'keep_alive':0, 'cloud_name': ut_id(gvar, 'dtc1')}
+        values={'power_status': 1,
+            'authurl': 'vm-test-authurl',
+            'manual_control': 0,
+            'project': 'vm-test-project',
+            'status': 'ACTIVE',
+            'retire_request_time': None,
+            'group_name': ut_id(gvar, 'dtg1'),
+            'terminate': 0,
+            'flavor_id': '4',
+            'poller_status': 'foreign',
+            'foreign_vm': 1,
+            'hostname': 'foreign-cloud--vmid4',
+            'vmid': 'vmid4',
+            'keep_alive':0,
+            'cloud_name': ut_id(gvar, 'dtc1')
+        },
+        server_user=ut_id(gvar, 'dtu1'), server_pw=user_secret
     )
 
     # 5
     execute_csv2_request(
         gvar, 0, None, None,
         '/vm/list/', group=ut_id(gvar, 'dtg1'), expected_list='vm_list', list_filter={'group_name': ut_id(gvar, 'dtg1'), 'cloud_name': ut_id(gvar, 'dtc1'), 'vmid': 'vmid5'},
-        values={'power_status': 1, 'authurl': 'vm-test-authurl', 'manual_control': 0, 'project': 'vm-test-project', 'status': 'ACTIVE', 'retire_request_time': None, 'group_name': ut_id(gvar, 'dtg1'), 'terminate': 0, 'flavor_id': '4', 'poller_status': 'foreign', 'foreign_vm': 1, 'hostname': 'foreign-cloud--vmid5', 'vmid': 'vmid5', 'keep_alive':0, 'cloud_name': ut_id(gvar, 'dtc1')}
+        values={'power_status': 1,
+            'authurl': 'vm-test-authurl',
+            'manual_control': 0,
+            'project': 'vm-test-project',
+            'status': 'ACTIVE',
+            'retire_request_time': None,
+            'group_name': ut_id(gvar, 'dtg1'),
+            'terminate': 0,
+            'flavor_id': '4',
+            'poller_status': 'foreign',
+            'foreign_vm': 1,
+            'hostname': 'foreign-cloud--vmid5',
+            'vmid': 'vmid5',
+            'keep_alive':0,
+            'cloud_name': ut_id(gvar, 'dtc1')
+        },
+        server_user=ut_id(gvar, 'dtu1'), server_pw=user_secret
     )
 
     # 6
     execute_csv2_request(
         gvar, 0, None, None,
         '/vm/list/', group=ut_id(gvar, 'dtg1'), expected_list='vm_list', list_filter={'group_name': ut_id(gvar, 'dtg1'), 'cloud_name': ut_id(gvar, 'dtc1'), 'vmid': 'vmid6'},
-        values={'power_status': 1, 'authurl': 'vm-test-authurl', 'manual_control': 0, 'project': 'vm-test-project', 'status': 'ACTIVE', 'retire_request_time': None, 'group_name': ut_id(gvar, 'dtg1'), 'terminate': 0, 'flavor_id': '4', 'poller_status': 'foreign', 'foreign_vm': 1, 'hostname': 'foreign-cloud--vmid6', 'vmid': 'vmid6', 'keep_alive':0, 'cloud_name': ut_id(gvar, 'dtc1')}
+        values={'power_status': 1,
+            'authurl': 'vm-test-authurl',
+            'manual_control': 0,
+            'project': 'vm-test-project',
+            'status': 'ACTIVE',
+            'retire_request_time': None,
+            'group_name': ut_id(gvar, 'dtg1'),
+            'terminate': 0,
+            'flavor_id': '4',
+            'poller_status': 'foreign',
+            'foreign_vm': 1,
+            'hostname': 'foreign-cloud--vmid6',
+            'vmid': 'vmid6',
+            'keep_alive':0,
+            'cloud_name': ut_id(gvar, 'dtc1')
+        },
+        server_user=ut_id(gvar, 'dtu1'), server_pw=user_secret
     )
 
     # 7
@@ -96,42 +192,138 @@ def main(gvar, user_secret):
     execute_csv2_request(
         gvar, 0, None, None,
         '/vm/list/', group=ut_id(gvar, 'dtg1'), expected_list='vm_list', list_filter={'group_name': ut_id(gvar, 'dtg1'), 'cloud_name': ut_id(gvar, 'dtc1'), 'vmid': 'vmid1'},
-        values={'power_status': 1, 'authurl': 'vm-test-authurl', 'manual_control': 1, 'project': 'vm-test-project', 'status': 'ACTIVE', 'retire_request_time': 0, 'group_name': ut_id(gvar, 'dtg1'), 'terminate': 0, 'flavor_id': '5', 'poller_status': 'manual', 'foreign_vm': 0, 'hostname': 'vm-test-group--vm-test-cloud--vmid1', 'vmid': 'vmid1', 'keep_alive':0, 'cloud_name': ut_id(gvar, 'dtc1')}
+        values={'power_status': 1,
+            'authurl': 'vm-test-authurl',
+            'manual_control': 1,
+            'project': 'vm-test-project',
+            'status': 'ACTIVE',
+            'retire_request_time': 0,
+            'group_name': ut_id(gvar, 'dtg1'),
+            'terminate': 0,
+            'flavor_id': '5',
+            'poller_status': 'manual',
+            'foreign_vm': 0,
+            'hostname': 'vm-test-group--vm-test-cloud--vmid1',
+            'vmid': 'vmid1',
+            'keep_alive':0,
+            'cloud_name': ut_id(gvar, 'dtc1')
+        },
+        server_user=ut_id(gvar, 'dtu1'), server_pw=user_secret
     )
 
     # 14
     execute_csv2_request(
         gvar, 0, None, None,
         '/vm/list/', group=ut_id(gvar, 'dtg1'), expected_list='vm_list', list_filter={'group_name': ut_id(gvar, 'dtg1'), 'cloud_name': ut_id(gvar, 'dtc1'), 'vmid': 'vmid2'},
-        values={'power_status': 1, 'authurl': 'vm-test-authurl', 'manual_control': 1, 'project': 'vm-test-project', 'status': 'ACTIVE', 'retire_request_time': 0, 'group_name': ut_id(gvar, 'dtg1'), 'terminate': 0, 'flavor_id': '4', 'poller_status': 'manual', 'foreign_vm': 0, 'hostname': 'vm-test-group--vm-test-cloud--vmid2', 'vmid': 'vmid2', 'keep_alive':0, 'cloud_name': ut_id(gvar, 'dtc1')}
+        values={'power_status': 1,
+            'authurl': 'vm-test-authurl',
+            'manual_control': 1,
+            'project': 'vm-test-project',
+            'status': 'ACTIVE',
+            'retire_request_time': 0,
+            'group_name': ut_id(gvar, 'dtg1'),
+            'terminate': 0,
+            'flavor_id': '4',
+            'poller_status': 'manual',
+            'foreign_vm': 0,
+            'hostname': 'vm-test-group--vm-test-cloud--vmid2',
+            'vmid': 'vmid2',
+            'keep_alive':0,
+            'cloud_name': ut_id(gvar, 'dtc1')
+        },
+        server_user=ut_id(gvar, 'dtu1'), server_pw=user_secret
     )
 
     # 15
     execute_csv2_request(
         gvar, 0, None, None,
         '/vm/list/', group=ut_id(gvar, 'dtg1'), expected_list='vm_list', list_filter={'group_name': ut_id(gvar, 'dtg1'), 'cloud_name': ut_id(gvar, 'dtc1'), 'vmid': 'vmid3'},
-        values={'power_status': 1, 'authurl': 'vm-test-authurl', 'manual_control': 1, 'project': 'vm-test-project', 'status': 'ACTIVE', 'retire_request_time': 0, 'group_name': ut_id(gvar, 'dtg1'), 'terminate': 0, 'flavor_id': '4', 'poller_status': 'manual', 'foreign_vm': 0, 'hostname': 'vm-test-group--vm-test-cloud--vmid3', 'vmid': 'vmid3', 'keep_alive':0, 'cloud_name': ut_id(gvar, 'dtc1')}
+        values={'power_status': 1,
+            'authurl': 'vm-test-authurl',
+            'manual_control': 1,
+            'project': 'vm-test-project',
+            'status': 'ACTIVE',
+            'retire_request_time': 0,
+            'group_name': ut_id(gvar, 'dtg1'),
+            'terminate': 0,
+            'flavor_id': '4',
+            'poller_status': 'manual',
+            'foreign_vm': 0,
+            'hostname': 'vm-test-group--vm-test-cloud--vmid3',
+            'vmid': 'vmid3',
+            'keep_alive':0,
+            'cloud_name': ut_id(gvar, 'dtc1')
+        },
+        server_user=ut_id(gvar, 'dtu1'), server_pw=user_secret
     )
 
     # 16
     execute_csv2_request(
         gvar, 0, None, None,
         '/vm/list/', group=ut_id(gvar, 'dtg1'), expected_list='vm_list', list_filter={'group_name': ut_id(gvar, 'dtg1'), 'cloud_name': ut_id(gvar, 'dtc1'), 'vmid': 'vmid4'},
-        values={'power_status': 1, 'authurl': 'vm-test-authurl', 'manual_control': 0, 'project': 'vm-test-project', 'status': 'ACTIVE', 'retire_request_time': None, 'group_name': ut_id(gvar, 'dtg1'), 'terminate': 0, 'flavor_id': '4', 'poller_status': 'foreign', 'foreign_vm': 1, 'hostname': 'foreign-cloud--vmid4', 'vmid': 'vmid4', 'keep_alive':0, 'cloud_name': ut_id(gvar, 'dtc1')}
+        values={'power_status': 1,
+            'authurl': 'vm-test-authurl',
+            'manual_control': 0,
+            'project': 'vm-test-project',
+            'status': 'ACTIVE',
+            'retire_request_time': None,
+            'group_name': ut_id(gvar, 'dtg1'),
+            'terminate': 0,
+            'flavor_id': '4',
+            'poller_status': 'foreign',
+            'foreign_vm': 1,
+            'hostname': 'foreign-cloud--vmid4',
+            'vmid': 'vmid4',
+            'keep_alive':0,
+            'cloud_name': ut_id(gvar, 'dtc1')
+        },
+        server_user=ut_id(gvar, 'dtu1'), server_pw=user_secret
     )
 
     # 17
     execute_csv2_request(
         gvar, 0, None, None,
         '/vm/list/', group=ut_id(gvar, 'dtg1'), expected_list='vm_list', list_filter={'group_name': ut_id(gvar, 'dtg1'), 'cloud_name': ut_id(gvar, 'dtc1'), 'vmid': 'vmid5'},
-        values={'power_status': 1, 'authurl': 'vm-test-authurl', 'manual_control': 0, 'project': 'vm-test-project', 'status': 'ACTIVE', 'retire_request_time': None, 'group_name': ut_id(gvar, 'dtg1'), 'terminate': 0, 'flavor_id': '4', 'poller_status': 'foreign', 'foreign_vm': 1, 'hostname': 'foreign-cloud--vmid5', 'vmid': 'vmid5', 'keep_alive':0, 'cloud_name': ut_id(gvar, 'dtc1')}
+        values={'power_status': 1,
+            'authurl': 'vm-test-authurl',
+            'manual_control': 0,
+            'project': 'vm-test-project',
+            'status': 'ACTIVE',
+            'retire_request_time': None,
+            'group_name': ut_id(gvar, 'dtg1'),
+            'terminate': 0,
+            'flavor_id': '4',
+            'poller_status': 'foreign',
+            'foreign_vm': 1,
+            'hostname': 'foreign-cloud--vmid5',
+            'vmid': 'vmid5',
+            'keep_alive':0,
+            'cloud_name': ut_id(gvar, 'dtc1')
+        },
+        server_user=ut_id(gvar, 'dtu1'), server_pw=user_secret
     )
 
     # 18
     execute_csv2_request(
         gvar, 0, None, None,
         '/vm/list/', group=ut_id(gvar, 'dtg1'), expected_list='vm_list', list_filter={'group_name': ut_id(gvar, 'dtg1'), 'cloud_name': ut_id(gvar, 'dtc1'), 'vmid': 'vmid6'},
-        values={'power_status': 1, 'authurl': 'vm-test-authurl', 'manual_control': 0, 'project': 'vm-test-project', 'status': 'ACTIVE', 'retire_request_time': None, 'group_name': ut_id(gvar, 'dtg1'), 'terminate': 0, 'flavor_id': '4', 'poller_status': 'foreign', 'foreign_vm': 1, 'hostname': 'foreign-cloud--vmid6', 'vmid': 'vmid6', 'keep_alive':0, 'cloud_name': ut_id(gvar, 'dtc1')}
+        values={'power_status': 1,
+            'authurl': 'vm-test-authurl',
+            'manual_control': 0,
+            'project': 'vm-test-project',
+            'status': 'ACTIVE',
+            'retire_request_time': None,
+            'group_name': ut_id(gvar, 'dtg1'),
+            'terminate': 0,
+            'flavor_id': '4',
+            'poller_status': 'foreign',
+            'foreign_vm': 1,
+            'hostname': 'foreign-cloud--vmid6',
+            'vmid': 'vmid6',
+            'keep_alive':0,
+            'cloud_name': ut_id(gvar, 'dtc1')
+        },
+        server_user=ut_id(gvar, 'dtu1'), server_pw=user_secret
     )
 
     # 19
@@ -178,42 +370,138 @@ def main(gvar, user_secret):
     execute_csv2_request(
         gvar, 0, None, None,
         '/vm/list/', group=ut_id(gvar, 'dtg1'), expected_list='vm_list', list_filter={'group_name': ut_id(gvar, 'dtg1'), 'cloud_name': ut_id(gvar, 'dtc1'), 'vmid': 'vmid1'},
-        values={'power_status': 1, 'authurl': 'vm-test-authurl', 'manual_control': 0, 'project': 'vm-test-project', 'status': 'ACTIVE', 'retire_request_time': 0, 'group_name': ut_id(gvar, 'dtg1'), 'terminate': 0, 'flavor_id': '5', 'poller_status': 'unregistered', 'foreign_vm': 0, 'hostname': 'vm-test-group--vm-test-cloud--vmid1', 'vmid': 'vmid1', 'keep_alive':0, 'cloud_name': ut_id(gvar, 'dtc1')}
+        values={'power_status': 1,
+            'authurl': 'vm-test-authurl',
+            'manual_control': 0,
+            'project': 'vm-test-project',
+            'status': 'ACTIVE',
+            'retire_request_time': 0,
+            'group_name': ut_id(gvar, 'dtg1'),
+            'terminate': 0,
+            'flavor_id': '5',
+            'poller_status': 'unregistered',
+            'foreign_vm': 0,
+            'hostname': 'vm-test-group--vm-test-cloud--vmid1',
+            'vmid': 'vmid1',
+            'keep_alive':0,
+            'cloud_name': ut_id(gvar, 'dtc1')
+        },
+        server_user=ut_id(gvar, 'dtu1'), server_pw=user_secret
     )
 
     # 26
     execute_csv2_request(
         gvar, 0, None, None,
         '/vm/list/', group=ut_id(gvar, 'dtg1'), expected_list='vm_list', list_filter={'group_name': ut_id(gvar, 'dtg1'), 'cloud_name': ut_id(gvar, 'dtc1'), 'vmid': 'vmid2'},
-        values={'power_status': 1, 'authurl': 'vm-test-authurl', 'manual_control': 0, 'project': 'vm-test-project', 'status': 'ACTIVE', 'retire_request_time': 0, 'group_name': ut_id(gvar, 'dtg1'), 'terminate': 0, 'flavor_id': '4', 'poller_status': 'unregistered', 'foreign_vm': 0, 'hostname': 'vm-test-group--vm-test-cloud--vmid2', 'vmid': 'vmid2', 'keep_alive':0, 'cloud_name': ut_id(gvar, 'dtc1')}
+        values={'power_status': 1,
+            'authurl': 'vm-test-authurl',
+            'manual_control': 0,
+            'project': 'vm-test-project',
+            'status': 'ACTIVE',
+            'retire_request_time': 0,
+            'group_name': ut_id(gvar, 'dtg1'),
+            'terminate': 0,
+            'flavor_id': '4',
+            'poller_status': 'unregistered',
+            'foreign_vm': 0,
+            'hostname': 'vm-test-group--vm-test-cloud--vmid2',
+            'vmid': 'vmid2',
+            'keep_alive':0,
+            'cloud_name': ut_id(gvar, 'dtc1')
+        },
+        server_user=ut_id(gvar, 'dtu1'), server_pw=user_secret
     )
 
     # 27
     execute_csv2_request(
         gvar, 0, None, None,
         '/vm/list/', group=ut_id(gvar, 'dtg1'), expected_list='vm_list', list_filter={'group_name': ut_id(gvar, 'dtg1'), 'cloud_name': ut_id(gvar, 'dtc1'), 'vmid': 'vmid3'},
-        values={'power_status': 1, 'authurl': 'vm-test-authurl', 'manual_control': 0, 'project': 'vm-test-project', 'status': 'ACTIVE', 'retire_request_time': 0, 'group_name': ut_id(gvar, 'dtg1'), 'terminate': 0, 'flavor_id': '4', 'poller_status': 'unregistered', 'foreign_vm': 0, 'hostname': 'vm-test-group--vm-test-cloud--vmid3', 'vmid': 'vmid3', 'keep_alive':0, 'cloud_name': ut_id(gvar, 'dtc1')}
+        values={'power_status': 1,
+            'authurl': 'vm-test-authurl',
+            'manual_control': 0,
+            'project': 'vm-test-project',
+            'status': 'ACTIVE',
+            'retire_request_time': 0,
+            'group_name': ut_id(gvar, 'dtg1'),
+            'terminate': 0,
+            'flavor_id': '4',
+            'poller_status': 'unregistered',
+            'foreign_vm': 0,
+            'hostname': 'vm-test-group--vm-test-cloud--vmid3',
+            'vmid': 'vmid3',
+            'keep_alive':0,
+            'cloud_name': ut_id(gvar, 'dtc1')
+        },
+        server_user=ut_id(gvar, 'dtu1'), server_pw=user_secret
     )
 
     # 28
     execute_csv2_request(
         gvar, 0, None, None,
         '/vm/list/', group=ut_id(gvar, 'dtg1'), expected_list='vm_list', list_filter={'group_name': ut_id(gvar, 'dtg1'), 'cloud_name': ut_id(gvar, 'dtc1'), 'vmid': 'vmid4'},
-        values={'power_status': 1, 'authurl': 'vm-test-authurl', 'manual_control': 0, 'project': 'vm-test-project', 'status': 'ACTIVE', 'retire_request_time': None, 'group_name': ut_id(gvar, 'dtg1'), 'terminate': 0, 'flavor_id': '4', 'poller_status': 'foreign', 'foreign_vm': 1, 'hostname': 'foreign-cloud--vmid4', 'vmid': 'vmid4', 'keep_alive':0, 'cloud_name': ut_id(gvar, 'dtc1')}
+        values={'power_status': 1,
+            'authurl': 'vm-test-authurl',
+            'manual_control': 0,
+            'project': 'vm-test-project',
+            'status': 'ACTIVE',
+            'retire_request_time': None,
+            'group_name': ut_id(gvar, 'dtg1'),
+            'terminate': 0,
+            'flavor_id': '4',
+            'poller_status': 'foreign',
+            'foreign_vm': 1,
+            'hostname': 'foreign-cloud--vmid4',
+            'vmid': 'vmid4',
+            'keep_alive':0,
+            'cloud_name': ut_id(gvar, 'dtc1')
+        },
+        server_user=ut_id(gvar, 'dtu1'), server_pw=user_secret
     )
 
     # 29
     execute_csv2_request(
         gvar, 0, None, None,
         '/vm/list/', group=ut_id(gvar, 'dtg1'), expected_list='vm_list', list_filter={'group_name': ut_id(gvar, 'dtg1'), 'cloud_name': ut_id(gvar, 'dtc1'), 'vmid': 'vmid5'},
-        values={'power_status': 1, 'authurl': 'vm-test-authurl', 'manual_control': 0, 'project': 'vm-test-project', 'status': 'ACTIVE', 'retire_request_time': None, 'group_name': ut_id(gvar, 'dtg1'), 'terminate': 0, 'flavor_id': '4', 'poller_status': 'foreign', 'foreign_vm': 1, 'hostname': 'foreign-cloud--vmid5', 'vmid': 'vmid5', 'keep_alive':0, 'cloud_name': ut_id(gvar, 'dtc1')}
+        values={'power_status': 1,
+            'authurl': 'vm-test-authurl',
+            'manual_control': 0,
+            'project': 'vm-test-project',
+            'status': 'ACTIVE',
+            'retire_request_time': None,
+            'group_name': ut_id(gvar, 'dtg1'),
+            'terminate': 0,
+            'flavor_id': '4',
+            'poller_status': 'foreign',
+            'foreign_vm': 1,
+            'hostname': 'foreign-cloud--vmid5',
+            'vmid': 'vmid5',
+            'keep_alive':0,
+            'cloud_name': ut_id(gvar, 'dtc1')
+        },
+        server_user=ut_id(gvar, 'dtu1'), server_pw=user_secret
     )
 
     # 30
     execute_csv2_request(
         gvar, 0, None, None,
         '/vm/list/', group=ut_id(gvar, 'dtg1'), expected_list='vm_list', list_filter={'group_name': ut_id(gvar, 'dtg1'), 'cloud_name': ut_id(gvar, 'dtc1'), 'vmid': 'vmid6'},
-        values={'power_status': 1, 'authurl': 'vm-test-authurl', 'manual_control': 0, 'project': 'vm-test-project', 'status': 'ACTIVE', 'retire_request_time': None, 'group_name': ut_id(gvar, 'dtg1'), 'terminate': 0, 'flavor_id': '4', 'poller_status': 'foreign', 'foreign_vm': 1, 'hostname': 'foreign-cloud--vmid6', 'vmid': 'vmid6', 'keep_alive':0, 'cloud_name': ut_id(gvar, 'dtc1')}
+        values={'power_status': 1,
+            'authurl': 'vm-test-authurl',
+            'manual_control': 0,
+            'project': 'vm-test-project',
+            'status': 'ACTIVE',
+            'retire_request_time': None,
+            'group_name': ut_id(gvar, 'dtg1'),
+            'terminate': 0,
+            'flavor_id': '4',
+            'poller_status': 'foreign',
+            'foreign_vm': 1,
+            'hostname': 'foreign-cloud--vmid6',
+            'vmid': 'vmid6',
+            'keep_alive':0,
+            'cloud_name': ut_id(gvar, 'dtc1')
+        },
+        server_user=ut_id(gvar, 'dtu1'), server_pw=user_secret
     )
 
     # 31
@@ -260,21 +548,69 @@ def main(gvar, user_secret):
     execute_csv2_request(
         gvar, 0, None, None,
         '/vm/list/', group=ut_id(gvar, 'dtg1'), expected_list='vm_list', list_filter={'group_name': ut_id(gvar, 'dtg1'), 'cloud_name': ut_id(gvar, 'dtc1'), 'vmid': 'vmid4'},
-        values={'power_status': 1, 'authurl': 'vm-test-authurl', 'manual_control': 0, 'project': 'vm-test-project', 'status': 'ACTIVE', 'retire_request_time': None, 'group_name': ut_id(gvar, 'dtg1'), 'terminate': 0, 'flavor_id': '4', 'poller_status': 'foreign', 'foreign_vm': 1, 'hostname': 'foreign-cloud--vmid4', 'vmid': 'vmid4', 'keep_alive':0, 'cloud_name': ut_id(gvar, 'dtc1')}
+        values={'power_status': 1,
+            'authurl': 'vm-test-authurl',
+            'manual_control': 0,
+            'project': 'vm-test-project',
+            'status': 'ACTIVE',
+            'retire_request_time': None,
+            'group_name': ut_id(gvar, 'dtg1'),
+            'terminate': 0,
+            'flavor_id': '4',
+            'poller_status': 'foreign',
+            'foreign_vm': 1,
+            'hostname': 'foreign-cloud--vmid4',
+            'vmid': 'vmid4',
+            'keep_alive':0,
+            'cloud_name': ut_id(gvar, 'dtc1')
+        },
+        server_user=ut_id(gvar, 'dtu1'), server_pw=user_secret
     )
 
     # 38
     execute_csv2_request(
         gvar, 0, None, None,
         '/vm/list/', group=ut_id(gvar, 'dtg1'), expected_list='vm_list', list_filter={'group_name': ut_id(gvar, 'dtg1'), 'cloud_name': ut_id(gvar, 'dtc1'), 'vmid': 'vmid5'},
-        values={'power_status': 1, 'authurl': 'vm-test-authurl', 'manual_control': 0, 'project': 'vm-test-project', 'status': 'ACTIVE', 'retire_request_time': None, 'group_name': ut_id(gvar, 'dtg1'), 'terminate': 0, 'flavor_id': '4', 'poller_status': 'foreign', 'foreign_vm': 1, 'hostname': 'foreign-cloud--vmid5', 'vmid': 'vmid5', 'keep_alive':0, 'cloud_name': ut_id(gvar, 'dtc1')}
+        values={'power_status': 1,
+            'authurl': 'vm-test-authurl',
+            'manual_control': 0,
+            'project': 'vm-test-project',
+            'status': 'ACTIVE',
+            'retire_request_time': None,
+            'group_name': ut_id(gvar, 'dtg1'),
+            'terminate': 0,
+            'flavor_id': '4',
+            'poller_status': 'foreign',
+            'foreign_vm': 1,
+            'hostname': 'foreign-cloud--vmid5',
+            'vmid': 'vmid5',
+            'keep_alive':0,
+            'cloud_name': ut_id(gvar, 'dtc1')
+        },
+        server_user=ut_id(gvar, 'dtu1'), server_pw=user_secret
     )
 
     # 39
     execute_csv2_request(
         gvar, 0, None, None,
         '/vm/list/', group=ut_id(gvar, 'dtg1'), expected_list='vm_list', list_filter={'group_name': ut_id(gvar, 'dtg1'), 'cloud_name': ut_id(gvar, 'dtc1'), 'vmid': 'vmid6'},
-        values={'power_status': 1, 'authurl': 'vm-test-authurl', 'manual_control': 0, 'project': 'vm-test-project', 'status': 'ACTIVE', 'retire_request_time': None, 'group_name': ut_id(gvar, 'dtg1'), 'terminate': 0, 'flavor_id': '4', 'poller_status': 'foreign', 'foreign_vm': 1, 'hostname': 'foreign-cloud--vmid6', 'vmid': 'vmid6', 'keep_alive':0, 'cloud_name': ut_id(gvar, 'dtc1')}
+        values={'power_status': 1,
+            'authurl': 'vm-test-authurl',
+            'manual_control': 0,
+            'project': 'vm-test-project',
+            'status': 'ACTIVE',
+            'retire_request_time': None,
+            'group_name': ut_id(gvar, 'dtg1'),
+            'terminate': 0,
+            'flavor_id': '4',
+            'poller_status': 'foreign',
+            'foreign_vm': 1,
+            'hostname': 'foreign-cloud--vmid6',
+            'vmid': 'vmid6',
+            'keep_alive':0,
+            'cloud_name': ut_id(gvar, 'dtc1')
+        },
+        server_user=ut_id(gvar, 'dtu1'), server_pw=user_secret
     )
 
     # 40
@@ -321,42 +657,135 @@ def main(gvar, user_secret):
     execute_csv2_request(
         gvar, 0, None, None,
         '/vm/list/', group=ut_id(gvar, 'dtg1'), expected_list='vm_list', list_filter={'group_name': ut_id(gvar, 'dtg1'), 'cloud_name': ut_id(gvar, 'dtc1'), 'vmid': 'vmid1'},
-        values={'power_status': 1, 'authurl': 'vm-test-authurl', 'manual_control': 0, 'project': 'vm-test-project', 'status': 'ACTIVE', 'group_name': ut_id(gvar, 'dtg1'), 'terminate': 1, 'flavor_id': '5', 'poller_status': 'unregistered', 'foreign_vm': 0, 'hostname': 'vm-test-group--vm-test-cloud--vmid1', 'vmid': 'vmid1', 'keep_alive':0, 'cloud_name': ut_id(gvar, 'dtc1')}
+        values={'power_status': 1,
+            'authurl': 'vm-test-authurl',
+            'manual_control': 0,
+            'project': 'vm-test-project',
+            'status': 'ACTIVE',
+            'group_name': ut_id(gvar, 'dtg1'),
+            'terminate': 1,
+            'flavor_id': '5',
+            'poller_status': 'unregistered',
+            'foreign_vm': 0,
+            'hostname': 'vm-test-group--vm-test-cloud--vmid1',
+            'vmid': 'vmid1',
+            'keep_alive':0,
+            'cloud_name': ut_id(gvar, 'dtc1')
+        },
+        server_user=ut_id(gvar, 'dtu1'), server_pw=user_secret
     )
 
     # 47
     execute_csv2_request(
         gvar, 0, None, None,
         '/vm/list/', group=ut_id(gvar, 'dtg1'), expected_list='vm_list', list_filter={'group_name': ut_id(gvar, 'dtg1'), 'cloud_name': ut_id(gvar, 'dtc1'), 'vmid': 'vmid2'},
-        values={'power_status': 1, 'authurl': 'vm-test-authurl', 'manual_control': 0, 'project': 'vm-test-project', 'status': 'ACTIVE', 'group_name': ut_id(gvar, 'dtg1'), 'terminate': 1, 'flavor_id': '4', 'poller_status': 'unregistered', 'foreign_vm': 0, 'hostname': 'vm-test-group--vm-test-cloud--vmid2', 'vmid': 'vmid2', 'keep_alive':0, 'cloud_name': ut_id(gvar, 'dtc1')}
+        values={'power_status': 1,
+            'authurl': 'vm-test-authurl',
+            'manual_control': 0,
+            'project': 'vm-test-project',
+            'status': 'ACTIVE',
+            'group_name': ut_id(gvar, 'dtg1'),
+            'terminate': 1,
+            'flavor_id': '4',
+            'poller_status': 'unregistered',
+            'foreign_vm': 0,
+            'hostname': 'vm-test-group--vm-test-cloud--vmid2',
+            'vmid': 'vmid2',
+            'keep_alive':0,
+            'cloud_name': ut_id(gvar, 'dtc1')
+        },
+        server_user=ut_id(gvar, 'dtu1'), server_pw=user_secret
     )
 
     # 48
     execute_csv2_request(
         gvar, 0, None, None,
         '/vm/list/', group=ut_id(gvar, 'dtg1'), expected_list='vm_list', list_filter={'group_name': ut_id(gvar, 'dtg1'), 'cloud_name': ut_id(gvar, 'dtc1'), 'vmid': 'vmid3'},
-        values={'power_status': 1, 'authurl': 'vm-test-authurl', 'manual_control': 0, 'project': 'vm-test-project', 'status': 'ACTIVE', 'group_name': ut_id(gvar, 'dtg1'), 'terminate': 1, 'flavor_id': '4', 'poller_status': 'unregistered', 'foreign_vm': 0, 'hostname': 'vm-test-group--vm-test-cloud--vmid3', 'vmid': 'vmid3', 'keep_alive':0, 'cloud_name': ut_id(gvar, 'dtc1')}
+        values={'power_status': 1,
+            'authurl': 'vm-test-authurl',
+            'manual_control': 0,
+            'project': 'vm-test-project',
+            'status': 'ACTIVE',
+            'group_name': ut_id(gvar, 'dtg1'),
+            'terminate': 1,
+            'flavor_id': '4',
+            'poller_status': 'unregistered',
+            'foreign_vm': 0,
+            'hostname': 'vm-test-group--vm-test-cloud--vmid3',
+            'vmid': 'vmid3',
+            'keep_alive':0,
+            'cloud_name': ut_id(gvar, 'dtc1')
+        },
+        server_user=ut_id(gvar, 'dtu1'), server_pw=user_secret
     )
 
     # 49
     execute_csv2_request(
         gvar, 0, None, None,
         '/vm/list/', group=ut_id(gvar, 'dtg1'), expected_list='vm_list', list_filter={'group_name': ut_id(gvar, 'dtg1'), 'cloud_name': ut_id(gvar, 'dtc1'), 'vmid': 'vmid4'},
-        values={'power_status': 1, 'authurl': 'vm-test-authurl', 'manual_control': 0, 'project': 'vm-test-project', 'status': 'ACTIVE', 'retire_request_time': None, 'group_name': ut_id(gvar, 'dtg1'), 'terminate': 0, 'flavor_id': '4', 'poller_status': 'foreign', 'foreign_vm': 1, 'hostname': 'foreign-cloud--vmid4', 'vmid': 'vmid4', 'keep_alive':0, 'cloud_name': ut_id(gvar, 'dtc1')}
+        values={'power_status': 1,
+            'authurl': 'vm-test-authurl',
+            'manual_control': 0,
+            'project': 'vm-test-project',
+            'status': 'ACTIVE',
+            'retire_request_time': None,
+            'group_name': ut_id(gvar, 'dtg1'),
+            'terminate': 0,
+            'flavor_id': '4',
+            'poller_status': 'foreign',
+            'foreign_vm': 1,
+            'hostname': 'foreign-cloud--vmid4',
+            'vmid': 'vmid4',
+            'keep_alive':0,
+            'cloud_name': ut_id(gvar, 'dtc1')
+        },
+        server_user=ut_id(gvar, 'dtu1'), server_pw=user_secret
     )
 
     # 50
     execute_csv2_request(
         gvar, 0, None, None,
         '/vm/list/', group=ut_id(gvar, 'dtg1'), expected_list='vm_list', list_filter={'group_name': ut_id(gvar, 'dtg1'), 'cloud_name': ut_id(gvar, 'dtc1'), 'vmid': 'vmid5'},
-        values={'power_status': 1, 'authurl': 'vm-test-authurl', 'manual_control': 0, 'project': 'vm-test-project', 'status': 'ACTIVE', 'retire_request_time': None, 'group_name': ut_id(gvar, 'dtg1'), 'terminate': 0, 'flavor_id': '4', 'poller_status': 'foreign', 'foreign_vm': 1, 'hostname': 'foreign-cloud--vmid5', 'vmid': 'vmid5', 'keep_alive':0, 'cloud_name': ut_id(gvar, 'dtc1')}
+        values={'power_status': 1,
+            'authurl': 'vm-test-authurl',
+            'manual_control': 0,
+            'project': 'vm-test-project',
+            'status': 'ACTIVE',
+            'retire_request_time': None,
+            'group_name': ut_id(gvar, 'dtg1'),
+            'terminate': 0,
+            'flavor_id': '4',
+            'poller_status': 'foreign',
+            'foreign_vm': 1,
+            'hostname': 'foreign-cloud--vmid5',
+            'vmid': 'vmid5',
+            'keep_alive':0,
+            'cloud_name': ut_id(gvar, 'dtc1')
+        },
+        server_user=ut_id(gvar, 'dtu1'), server_pw=user_secret
     )
 
     # 51
     execute_csv2_request(
         gvar, 0, None, None,
         '/vm/list/', group=ut_id(gvar, 'dtg1'), expected_list='vm_list', list_filter={'group_name': ut_id(gvar, 'dtg1'), 'cloud_name': ut_id(gvar, 'dtc1'), 'vmid': 'vmid6'},
-        values={'power_status': 1, 'authurl': 'vm-test-authurl', 'manual_control': 0, 'project': 'vm-test-project', 'status': 'ACTIVE', 'retire_request_time': None, 'group_name': ut_id(gvar, 'dtg1'), 'terminate': 0, 'flavor_id': '4', 'poller_status': 'foreign', 'foreign_vm': 1, 'hostname': 'foreign-cloud--vmid6', 'vmid': 'vmid6', 'keep_alive':0, 'cloud_name': ut_id(gvar, 'dtc1')}
+        values={'power_status': 1,
+            'authurl': 'vm-test-authurl',
+            'manual_control': 0,
+            'project': 'vm-test-project',
+            'status': 'ACTIVE',
+            'retire_request_time': None,
+            'group_name': ut_id(gvar, 'dtg1'),
+            'terminate': 0,
+            'flavor_id': '4',
+            'poller_status': 'foreign',
+            'foreign_vm': 1,
+            'hostname': 'foreign-cloud--vmid6',
+            'vmid': 'vmid6',
+            'keep_alive':0,
+            'cloud_name': ut_id(gvar, 'dtc1')
+        },
+        server_user=ut_id(gvar, 'dtu1'), server_pw=user_secret
     )
 
 if __name__ == "__main__":
