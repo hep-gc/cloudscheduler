@@ -156,7 +156,7 @@ def main(gvar, user_secret):
         server_user=ut_id(gvar, 'gtu5'), server_pw=user_secret
     )
 
-    # 19
+    # 19 Verify that the user was updated correctly
     execute_csv2_request(
         gvar, 0, None, None,
         '/user/list/',
@@ -170,23 +170,22 @@ def main(gvar, user_secret):
         '/group/add/', form_data={'group_name': ut_id(gvar, 'gtg1'), 'htcondor_fqdn': 'invalid-unit-test'}
     )
 
-    # 21
+    # 21 Verify that users don't need to be added to a group when it is created
     execute_csv2_request(
         gvar, 0, None, 'group "{}" successfully added.'.format(ut_id(gvar, 'gtg2')),
         '/group/add/', form_data={
             'group_name': ut_id(gvar, 'gtg2'),
             'htcondor_fqdn': 'unit-test-group-two.ca',
-            # 'username.1': ut_id(gvar, 'gtu5')
         }
     )
 
-    # 22
+    # 22 Verify that 21 actually created a group
     execute_csv2_request(
         gvar, 0, None, None,
         '/group/list/',
-        expected_list='group_list', list_filter={'group_name': ut_id(gvar, 'gtg1')},
-        values={'group_name': ut_id(gvar, 'gtg1'),
-            'htcondor_fqdn': 'group-unit-test-one.ca',
+        expected_list='group_list', list_filter={'group_name': ut_id(gvar, 'gtg2')},
+        values={'group_name': ut_id(gvar, 'gtg2'),
+            'htcondor_fqdn': 'unit-test-group-two.ca',
             'htcondor_container_hostname': None,
             'htcondor_other_submitters': None,
             'metadata_names': 'default.yaml.j2'

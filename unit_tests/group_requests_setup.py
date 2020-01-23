@@ -100,7 +100,7 @@ def main(gvar, user_secret):
         }
     )
 
-    # 09
+    # 09 add metadata for metadata-list to find
     execute_csv2_request(
         gvar, 0, None, 'group metadata file "{}::{}" successfully added.'.format(ut_id(gvar, 'gtg5'), ut_id(gvar, 'gty4')),
         '/group/metadata-add/', group=ut_id(gvar, 'gtg5'), form_data={
@@ -156,8 +156,8 @@ def main(gvar, user_secret):
         gvar, 0, None, 'cloud "{}::{}" successfully added.'.format(ut_id(gvar, 'gtg5'), ut_id(gvar, 'gtc1')),
         '/cloud/add/', group=ut_id(gvar, 'gtg5'), form_data={
             'cloud_name': ut_id(gvar, 'gtc1'),
-            'authurl': 'group-test-cloud-one.ca',
-            'project': 'group-test-cloud-one',
+            'authurl': 'unit-test-cloud-one.ca',
+            'project': 'unit-test-cloud-one',
             'username': ut_id(gvar, 'gtu3'),
             'password': user_secret,
             'region': ut_id(gvar, 'gtc1-r'),

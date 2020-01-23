@@ -102,6 +102,7 @@ def main(gvar, user_secret):
         }
     )
 
+    ''' Currently htcondor_fqdn is allowed to be the empty string.
     # 15
     execute_csv2_request(
         gvar, 1, 'GV', 'group update parameter "htcondor_fqdn" contains an empty string which is specifically disallowed.',
@@ -110,6 +111,7 @@ def main(gvar, user_secret):
             'htcondor_fqdn': ''
         }
     )
+    '''
 
     # 16
     execute_csv2_request(
@@ -184,7 +186,7 @@ def main(gvar, user_secret):
         values={'user_groups': ut_id(gvar, 'gtg4')}
     )
 
-    # 24
+    # 24 Remove gtu4 (and all others) from gtg4
     execute_csv2_request(
         gvar, 0, None, 'group "{}" successfully updated.'.format(ut_id(gvar, 'gtg4')),
         '/group/update/',
@@ -194,7 +196,7 @@ def main(gvar, user_secret):
         }, html=True
     )
 
-    # 25
+    # 25 Verify that 24 actually removed gtu4 from gtg4
     execute_csv2_request(
         gvar, 0, None, None,
         '/user/list/', #I assume /user/list does not need a group name specification since it is listing users, I could be wrong though

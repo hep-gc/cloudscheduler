@@ -184,17 +184,30 @@ def main(gvar, user_secret):
     # 18 Verify that 17 actually added metadata
     execute_csv2_request(
         gvar, 0, None, None,
-        '/group/list/', group=ut_id(gvar, 'gtg4'), expected_list='group_list', list_filter={'group_name': ut_id(gvar, 'gtg4')},
+        '/group/metadata-list/', group=ut_id(gvar, 'gtg4'), expected_list='group_metadata_list', list_filter={'metadata_name': ut_id(gvar, 'gty1.yaml')},
+        values={'metadata_name': ut_id(gvar, 'gty1.yaml'),
+            'group_name': ut_id(gvar, 'gtg4'),
+            'enabled': 0,
+            'mime_type': 'cloud-config',
+            'metadata': '- example: metadata',
+            'priority': 1
+            },
+        server_user=ut_id(gvar, 'gtu3'), server_pw=user_secret
+    )
+
+    # 19 Verify that 17 actually added metadata
+    execute_csv2_request(
+        gvar, 0, None, None,
+        '/group/list/', expected_list='group_list', list_filter={'group_name': ut_id(gvar, 'gtg4')},
         values={'group_name': ut_id(gvar, 'gtg4'),
             'htcondor_fqdn': 'unit-test-group-four.ca',
             'htcondor_container_hostname': None,
             'htcondor_other_submitters': None,
-            'metadata_names': ",".join(sorted([ut_id(gvar, 'gty1.yaml'),'default.yaml.j2']))
+            'metadata_names': ','.join(sorted([ut_id(gvar, 'gty1.yaml'),'default.yaml.j2']))
         },
-        server_user=ut_id(gvar, 'gtu3'), server_pw=user_secret
     )
 
-    # 19
+    # 20
     execute_csv2_request(
         gvar, 1, 'GV', 'Duplicate entry \'{}-{}\' for key \'PRIMARY\''.format(ut_id(gvar, 'gtg4'), ut_id(gvar, 'gty1.yaml')),
         '/group/metadata-add/', group=ut_id(gvar, 'gtg4'), form_data={
@@ -207,28 +220,7 @@ def main(gvar, user_secret):
         server_user=ut_id(gvar, 'gtu3'), server_pw=user_secret
     )
 
-    # 20
-    execute_csv2_request(
-        gvar, 0, None, 'file "{}::{}" successfully added.'.format(ut_id(gvar, 'gtg5'), ut_id(gvar, 'gty1.yaml')),
-        '/group/metadata-add/', group=ut_id(gvar, 'gtg5'), form_data={
-            'metadata_name': ut_id(gvar, 'gty1.yaml'),
-            'enabled': 0,
-            'mime_type': 'cloud-config',
-            'metadata': '- example: yaml',
-            'priority': 1
-            },
-        server_user=ut_id(gvar, 'gtu3'), server_pw=user_secret
-    )
-
     # 21
-    execute_csv2_request(
-        gvar, 0, None, None,
-        '/group/metadata-list/', group=ut_id(gvar, 'gtg5'), expected_list='group_metadata_list', list_filter={'metadata_name': ut_id(gvar, 'gty1.yaml')},
-        values={'metadata_name': ut_id(gvar, 'gty1.yaml'), 'enabled': 0, 'metadata': '- example: yaml', 'group_name': ut_id(gvar, 'gtg5'), 'priority': 1, 'mime_type': 'cloud-config'},
-        server_user=ut_id(gvar, 'gtu3'), server_pw=user_secret
-    )
-
-    # 22
     execute_csv2_request(
         gvar, 1, 'GV', 'group metadata_add, invalid method "GET" specified.',
         '/group/metadata-add/',
