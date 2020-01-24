@@ -13,11 +13,10 @@ def main(gvar, user_secret):
 
     execute_csv2_request(
         gvar, 0, None, None,
-        '/job/list/', group=ut_id(gvar, 'dtg1'), expected_list='job_list', list_filter={'group_name': ut_id(gvar, 'dtg1'), 'global_job_id': 'csv2-dev2.heprc.uvic.ca#1.0#1'},
+        '/job/list/', group='testing', expected_list='job_list', list_filter={'group_name': 'testing'},
         values={'hold_job_reason': None,
             'request_ram': 2000,
             'js_idle': 0,
-            'held_reason': 'vm-testing',
             'instance_type': 'vm-test-instance',
             'request_disk': '14.3051',
             'js_held': 1,
@@ -35,7 +34,6 @@ def main(gvar, user_secret):
             'job_priority': 10,
             'cluster_id': 1
         },
-        server_user=ut_id(gvar, 'dtu1'), server_pw=user_secret
     )
 
 if __name__ == "__main__":

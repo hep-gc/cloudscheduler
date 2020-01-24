@@ -1,3 +1,8 @@
+import os.path
+import re
+import subprocess
+import yaml
+
 def _caller():
     import inspect
     import os
@@ -475,9 +480,39 @@ def ut_id(gvar, IDs):
     ids = IDs.split(',')
     return '%s-%s' % (gvar['user_settings']['server-user'], (',%s-' % gvar['user_settings']['server-user']).join(ids))
 
+def condor_setup(gvar):
+    '''Check that condor is installed and find and return the address of the unit-test server.'''
+
+    # Check that condor is installed so that we can submit a job to view using /job/list/
+    requirements = ['condor_submit', 'condor_rm']
+    for requirement in requirements:
+        if subprocess.run(['which', requirement], stdout=subprocess.DEVNULL).returncode != 0:
+            condor_error('{} is not installed'.format(requirement))
+            return None
+
+    # Get the address of the unit-test server
+    try:
+        yaml_path = os.path.expanduser('~/.csv2/unit-test/settings.yaml')
+        with open(yaml_path) as yaml_file:
+            server_address = yaml.safe_load(yaml_file)['server-address']
+    except FileNotFoundError:
+        condor_error('{} does not exist'.format(yaml_path))
+        return None
+    except yaml.YAMLError as err:
+        condor_error('YAML encountered an error while parsing {}: {}'.format(yaml_path, err))
+        return None
+    if server_address.startswith('http'):
+        return re.match(r'https?://(.*)', server_address)[1]
+    else:
+        condor_error('the server address in {} is \'{}\', which does not start with \'http\''.format(yaml_path, server_address))
+        return None
+
+def condor_error(gvar, err):
+    print('\n\033[91mSkipping all database tests because {}.\033[0m'.format(err))
+    gvar['ut_failed'] += 1
+
 def main():
     return
 
 if __name__ == "__main__":
     main()
-

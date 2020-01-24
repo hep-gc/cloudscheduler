@@ -1,4 +1,4 @@
-from unit_test_common import execute_csv2_request, initialize_csv2_request, ut_id, generate_secret
+from unit_test_common import execute_csv2_request, initialize_csv2_request, ut_id, generate_secret, condor_setup, condor_error
 from sys import argv
 import subprocess
 import db_requests_cleanup
@@ -13,14 +13,15 @@ def main(gvar, user_secret):
     if not user_secret:
         user_secret = generate_secret()
 
-    # Check that condor is installed so that we can submit a job to view using /job/list/.
-    requirements = ['condor_submit', 'condor_rm']
-    for requirement in requirements:
-        if subprocess.run(['which', requirement], stdout=subprocess.DEVNULL).returncode != 0:
-            print('\n\033[91mSkipping all database jobs because {} is not installed.\033[0m'.format(requirement))
-            gvar['ut_failed'] += 1
-
     db_requests_cleanup.main(gvar)
+
+    server_address = condor_setup(gvar)
+    if not server_address:
+        return
+    # Submit a job for /job/list/ to the unit-test server using condor
+    if subprocess.run(['condor_submit', 'db_job.sh', '-name', server_address, '-pool', server_address], stdout=subprocess.DEVNULL).returncode != 0:
+        condor_error(gvar, 'condor_submit failed')
+        return
 
     # 3
     execute_csv2_request(
