@@ -13,26 +13,11 @@ def main(gvar, user_secret):
 
     execute_csv2_request(
         gvar, 0, None, None,
-        '/job/list/', group='testing', expected_list='job_list', list_filter={'group_name': 'testing'},
-        values={'hold_job_reason': None,
-            'request_ram': 2000,
-            'js_idle': 0,
-            'instance_type': 'vm-test-instance',
-            'request_disk': '14.3051',
-            'js_held': 1,
-            'request_cpus': 1,
-            'keep_alive': '0',
-            'js_completed': 0,
-            'js_running': 0,
-            'js_other': 0,
-            'job_status': 5,
-            'user': ut_id(gvar, 'dtu1'),
-            'requirements': 'group_name is "{}"'.format(ut_id(gvar, 'dtg1')),
-            'cloud_name': None,
-            'proc_id': 0,
-            'target_clouds': None,
-            'job_priority': 10,
-            'cluster_id': 1
+        '/job/list/', group=ut_id(gvar, 'dtg1'), expected_list='job_list', list_filter={'group_name': ut_id(gvar, 'dtg1')},
+        values={'request_cpus': 1,
+            'request_ram': 1,
+            'request_disk': '0.0010',
+            'job_priority': 10
         },
     )
 

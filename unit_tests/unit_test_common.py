@@ -479,7 +479,7 @@ def _requests_insert_controls(gvar, request, group, form_data, query_data, serve
 def ut_id(gvar, IDs):
     ids = IDs.split(',')
     return '%s-%s' % (gvar['user_settings']['server-user'], (',%s-' % gvar['user_settings']['server-user']).join(ids))
-
+ 
 def condor_setup(gvar):
     '''Check that condor is installed and find and return the address of the unit-test server.'''
 
