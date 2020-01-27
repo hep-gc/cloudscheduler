@@ -59,7 +59,6 @@ def main(gvar, user_secret):
 , form_data={
             'group_name': ut_id(gvar, 'clg1'),
             'htcondor_fqdn': 'unit-test-group-one.ca',
-            'username.1': ut_id(gvar, '')[:-1],
             'username.2': ut_id(gvar, 'test'),
         }
     )
@@ -167,7 +166,8 @@ def main(gvar, user_secret):
             'password': 'unit-test-cloud-one',
             'region': ut_id(gvar, 'clc1-r'),
             'cloud_type': 'local'
-        }
+        },
+        server_user=ut_id(gvar, 'clu4'), server_pw=user_secret
     )
 
     # cloud to be deleted
@@ -181,7 +181,8 @@ def main(gvar, user_secret):
             'password': 'unit-test-cloud-three',
             'region': ut_id(gvar, 'clc3-r'),
             'cloud_type': 'local'
-        }
+        },
+        server_user=ut_id(gvar, 'clu4'), server_pw=user_secret
     )
 
     # cloud to be listed and edited
@@ -195,7 +196,8 @@ def main(gvar, user_secret):
             'password': 'unit-test-cloud-two',
             'region': ut_id(gvar, 'clc2-r'),
             'cloud_type': 'local'
-        }
+        },
+        server_user=ut_id(gvar, 'clu4'), server_pw=user_secret
     )
 
     # group metadata to be deleted
@@ -204,7 +206,8 @@ def main(gvar, user_secret):
         '/group/metadata-add/', group=ut_id(gvar, 'clg1'), form_data={
             'metadata_name': ut_id(gvar, 'clm1'),
             'metadata': '- example: yaml'
-        }
+        },
+        server_user=ut_id(gvar, 'clu4'), server_pw=user_secret
     )
 
     # group metadata to be edited
@@ -213,7 +216,8 @@ def main(gvar, user_secret):
         '/group/metadata-add/', group=ut_id(gvar, 'clg1'), form_data={
             'metadata_name': ut_id(gvar, 'clm2'),
             'metadata': '- example: yaml'
-        }
+        },
+        server_user=ut_id(gvar, 'clu4'), server_pw=user_secret
     )
 
     execute_csv2_request(
@@ -221,7 +225,8 @@ def main(gvar, user_secret):
         '/group/metadata-add/', group=ut_id(gvar, 'clg1'), form_data={
             'metadata_name': ut_id(gvar, 'clm2.yaml'),
             'metadata': '- example: yaml'
-        }
+        },
+        server_user=ut_id(gvar, 'clu4'), server_pw=user_secret
     )
 
     execute_csv2_request(
@@ -229,7 +234,8 @@ def main(gvar, user_secret):
         '/group/metadata-add/', group=ut_id(gvar, 'clg1'), form_data={
             'metadata_name': ut_id(gvar, 'clm3'),
             'metadata': '- example: yaml'
-        }
+        },
+        server_user=ut_id(gvar, 'clu4'), server_pw=user_secret
     )
 
     # cloud metadata to be deleted
@@ -240,7 +246,8 @@ def main(gvar, user_secret):
             'cloud_name': ut_id(gvar, 'clc2'),
             'metadata_name': ut_id(gvar, 'clm1'),
             'metadata': '- example: yes'
-        }
+        },
+        server_user=ut_id(gvar, 'clu4'), server_pw=user_secret
     )
 
     execute_csv2_request(
@@ -250,7 +257,8 @@ def main(gvar, user_secret):
             'cloud_name': ut_id(gvar, 'clc2'),
             'metadata_name': ut_id(gvar, 'clm3'),
             'metadata': '- example: yes'
-        }
+        },
+        server_user=ut_id(gvar, 'clu4'), server_pw=user_secret
     )
 
     # cloud metadata to be edited
@@ -261,7 +269,8 @@ def main(gvar, user_secret):
             'cloud_name': ut_id(gvar, 'clc2'),
             'metadata_name': ut_id(gvar, 'clm2'),
             'metadata': '- example: yes'
-        }
+        },
+        server_user=ut_id(gvar, 'clu4'), server_pw=user_secret
     )
 
     execute_csv2_request(
@@ -271,7 +280,8 @@ def main(gvar, user_secret):
             'cloud_name': ut_id(gvar, 'clc2'),
             'metadata_name': ut_id(gvar, 'clm2.yaml'),
             'metadata': '- example: yes'
-        }
+        },
+        server_user=ut_id(gvar, 'clu4'), server_pw=user_secret
     )
     
     execute_csv2_command(

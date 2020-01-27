@@ -1,3 +1,5 @@
+# The name of this file has been changed to prevent ./run_tests from running it.
+
 from unit_test_common import execute_csv2_request, execute_csv2_command, initialize_csv2_request, ut_id
 from sys import argv
 

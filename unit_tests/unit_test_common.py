@@ -1,20 +1,9 @@
-import os.path
-import re
-import subprocess
-import yaml
-
 def _caller():
     import inspect
     import os
     if inspect.stack()[-3][1] == '<string>':
         return os.path.basename(inspect.stack()[-4][1]).split('.')[0]
     return os.path.basename(inspect.stack()[-3][1]).split('.')[0]
-
-def decode_bytes(obj):
-    if isinstance(obj, str):
-        return obj
-
-    return obj.decode('utf-8')
 
 def _execute_selections(gvar, request, expected_text, expected_values):
     from unit_test_common import _caller
@@ -30,35 +19,37 @@ def _execute_selections(gvar, request, expected_text, expected_values):
    
 def execute_csv2_command(gvar, expected_rc, expected_modid, expected_text, cmd, expected_list=None, columns=None):
 
-    from subprocess import Popen, PIPE
+    from subprocess import run, PIPE
     from unit_test_common import _caller, _execute_selections
 
     if _execute_selections(gvar, cmd, expected_text, None):
-        p = Popen(cmd, stdout=PIPE, stderr=PIPE)
-        stdout, stderr = p.communicate()
+        process = run(cmd, stdout=PIPE, stderr=PIPE)
+        stdout = process.stdout.decode()
+        stderr = process.stderr.decode()
 
         failed = False
 
-        if expected_rc and expected_rc != p.returncode:
+        if expected_rc and expected_rc != process.returncode:
             failed = True
 
-        if p.returncode == 0 or not expected_modid:
+        if process.returncode == 0 or not expected_modid:
             modid = expected_modid
         else:
-            modid = decode_bytes(stdout).replace('-', ' ').split()[1]
+            modid = stdout.replace('-', ' ').split()[1]
             if expected_modid and modid != expected_modid:
                 failed = True
 
         list_error = ''
         if expected_list:
-            list_index = str(stdout).find(expected_list)
-            row_index = str(stdout).find('Rows:', list_index)
-            if list_index < 0:
+            # Never used
+            # list_index = str(stdout).find(expected_list)
+            # row_index = str(stdout).find('Rows:', list_index)
+            if expected_list in stdout:
                 failed = True
                 list_error = 'list \'{}\' not found'.format(expected_list)
             elif columns:
                 columns_found = []
-                rows = decode_bytes(stdout).split('\n')
+                rows = stdout.split('\n')
                 for row in rows:
                     if len(row) > 1 and row[:2] == '+ ':
                         columns_found += row[2:-2].replace('|', ' ').split()
@@ -66,7 +57,7 @@ def execute_csv2_command(gvar, expected_rc, expected_modid, expected_text, cmd, 
                     failed = True
                     list_error = 'columns expected:{}\n\t\tcolumns found:{}'.format(columns, columns_found)
 
-        if expected_text and str(stdout).find(expected_text) < 0:
+        if expected_text and expected_text not in stdout:
             failed = True
 
         if failed:
@@ -74,10 +65,10 @@ def execute_csv2_command(gvar, expected_rc, expected_modid, expected_text, cmd, 
             if not gvar['hidden']:
                 # repr() is used because it puts quotes around strings *unless* they are None.
                 print('\n%04d (%04d) %s \033[91mFailed\033[0m: expected_rc=%s, expected_modid=%s, expected_text=%s, cmd=%s' % (gvar['ut_count'][0], gvar['ut_count'][1], _caller(), expected_rc, repr(expected_modid), repr(expected_text), cmd))
-                print('    return code=%s' % p.returncode)
+                print('    return code=%s' % process.returncode)
                 print('    module ID=%s' % repr(modid))
-                print('    stdout=%s' % str(stdout))
-                print('    stderr=%s' % str(stderr))
+                print('    stdout=%s' % stdout)
+                print('    stderr=%s' % stderr)
                 if list_error:
                     print('\tlist_error={}'.format(list_error))
                 print()
@@ -482,6 +473,10 @@ def ut_id(gvar, IDs):
  
 def condor_setup(gvar):
     '''Check that condor is installed and find and return the address of the unit-test server.'''
+    import os.path
+    import re
+    import subprocess
+    import yaml
 
     # Check that condor is installed so that we can submit a job to view using /job/list/
     requirements = ['condor_submit', 'condor_rm']

@@ -22,13 +22,13 @@ def main(gvar, user_secret):
         gvar, 1, None, 'Invalid action "invalid-unit-test" for object "cloud"',
         ['cloudscheduler', 'cloud', 'invalid-unit-test']
     )
-
-    # 3
+    
+    # 3 No longer works because cloudscheduler prompts you for a web address if you specify an unknown server
     execute_csv2_command(
         gvar, 1, None, 'Error: the specified server "invalid-unit-test" does not exist in your defaults.',
         ['cloudscheduler', 'cloud', '-s', 'invalid-unit-test']
     )
-
+    
     # 4
     execute_csv2_command(
         gvar, 1, None, 'No action specified for object "cloud"; use -h or -H for help.',
