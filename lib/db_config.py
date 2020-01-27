@@ -65,8 +65,16 @@ class Config:
         self.db_map = automap_base()
         self.db_map.prepare(self.db_engine, reflect=True)
 
-        # Create a unique instance ID from our FQDN and, if necessary, save it in the database
-        self.csv2_host_id = sum(socket.getfqdn().encode())
+        #
+        # Use the integer value of the public IPv4 address to create a unique instance IDs for the
+        # CSV2 host (db_host) and the local host.
+        #
+        if db_config['db_host'] == 'localhost':
+            self.csv2_host_id = int(ipaddress.IPv4Address(socket.gethostbyname(socket.gethostname())))
+        else:
+            self.csv2_host_id = int(ipaddress.IPv4Address(socket.gethostbyname(db_config['db_host'])))
+
+        self.local_host_id = int(ipaddress.IPv4Address(socket.gethostbyname(socket.gethostname())))
 
         self.db_open()
         rows = self.db_session.query(self.db_map.classes[self.db_table]).filter(
@@ -214,6 +222,30 @@ class Config:
                     target_dict[category][row.config_key] = row.config_value
 
         return target_dict
+
+
+#-------------------------------------------------------------------------------
+
+    def get_host_id_by_fqdn(self, fqdn):
+        return int(ipaddress.IPv4Address(socket.gethostbyname(fqdn)))
+
+
+#-------------------------------------------------------------------------------
+
+    def get_host_id_by_ip_or_tag(self, tag):
+        return int(ipaddress.IPv4Address(tag.replace('-', '.')))
+
+
+#-------------------------------------------------------------------------------
+
+    def get_host_ip_by_host_id(self, host_id):
+        return str(ipaddress.IPv4Address(host_id))
+
+
+#-------------------------------------------------------------------------------
+
+    def get_host_tag_by_host_id(self, host_id):
+        return str(ipaddress.IPv4Address(host_id)).replace('.', '-')
 
 
 #-------------------------------------------------------------------------------
