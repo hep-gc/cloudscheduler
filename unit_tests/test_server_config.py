@@ -114,7 +114,7 @@ def main(gvar, user_secret):
 
     # 14
     execute_csv2_request(
-        gvar, 1, 'SV', 'server config update failed - the request did not match any rows',
+        gvar, 1, None, None,
         '/server/config/', group=ut_id(gvar, 'stg2')
 , form_data={
             'category': 'web_frontend',

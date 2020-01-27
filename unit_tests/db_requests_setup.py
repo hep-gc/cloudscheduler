@@ -1,6 +1,7 @@
-from unit_test_common import execute_csv2_request, initialize_csv2_request, ut_id, generate_secret, condor_setup, condor_error
+from unit_test_common import execute_csv2_request, initialize_csv2_request, ut_id, generate_secret, condor_setup, condor_error, _requests
 from sys import argv
 import subprocess
+from time import sleep
 import db_requests_cleanup
 
 def main(gvar, user_secret):
@@ -57,7 +58,7 @@ def main(gvar, user_secret):
     server_address = condor_setup(gvar)
     if not server_address:
         return
-    # Change group in job to be submitted.
+    # Change group in job to be submitted
     try:
         with open(job_path) as job_file:
             job_lines = job_file.readlines()
@@ -74,6 +75,13 @@ def main(gvar, user_secret):
     if subprocess.run(['condor_submit', job_path, '-name', server_address, '-pool', server_address], stdout=subprocess.DEVNULL).returncode != 0:
         condor_error(gvar, 'condor_submit failed')
         return
+    # We need to wait a while for the job to be added to the database
+    config_list = _requests(gvar, '/server/config', group=ut_id(gvar, 'dtg1'))['config_list']
+    sleep_interval = next(int(d['config_value']) for d in config_list if d['category'] == 'csjobs.py' and d['config_key'] == 'sleep_interval_job')
+    we_wait = round(sleep_interval * 1.8)
+    print('Waiting {} seconds for the submitted job to be added to the database.'.format(we_wait))
+    sleep(we_wait)
+
 
 if __name__ == "__main__":
     main(None, None)
