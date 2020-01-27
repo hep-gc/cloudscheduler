@@ -20,8 +20,7 @@ def _event_signal_delivery_(channel, method, properties, body):
     try:
         signo = Signal.Signals[signame].value
 
-        events = signals_config.signals['events'].split(',')
-        if event in events:
+        if event in signals_config.signals['events']:
             for pid_file in os.listdir('%s/%s' % (signals_config.signals['registry'], event)):
                 pid = _verify_event_registration_(signals_config, event, pid_file)
                 if pid:
@@ -144,8 +143,7 @@ def _verify_event_registry_(config, event):
     if it does not exist.
     """
 
-    events = config.signals['events'].split(',')
-    if event in events:
+    if event in config.signals['events']:
         registry = '%s/%s' % (config.signals["registry"], event)
         if not os.path.exists(registry):
             os.makedirs(registry, mode=0o755, exist_ok=True)
@@ -237,7 +235,6 @@ def verify_event_registrations(config):
 
     events = []
     registrations = {}
-    valid_events = config.signals['events'].split(',')
     for event in sorted(os.listdir(config.signals['registry'])):
         events.append(event)
         registrations[event] = []
@@ -245,7 +242,7 @@ def verify_event_registrations(config):
             registrations[event].append(pid)
 
     for event in events:
-        if event in valid_events:
+        if event in config.signals['events']:
             for pid in registrations[event]:
                 _verify_event_registration_(config, event, pid)
 
