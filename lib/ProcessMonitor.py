@@ -99,10 +99,25 @@ class ProcessMonitor:
             except:
                 logging.error("failed to join process %s", pro.name)
 
-    def check_processes(self):
+    def check_processes(self, stop=False):
         orange = False
+        if stop and len(self.process_ids) == 0:
+            logging.info("Stop set and all children shut down, exiting...")
+            exit(0)
+        if stop:
+            for proc in self.process_ids:
+                if self.is_alive(proc):
+                    logging.info("Stop set, terminating child: %s" % proc)
+                    self.processes[proc].terminate()
+
+        procs_to_remove = []
         for process in self.process_ids:
             if process not in self.processes or not self.is_alive(process):
+                if stop:
+                    # child proc is dead, and stop flag set, don't restart and remove proc id
+                    procs_to_remove.append(process)
+                    del self.processes[process]
+                    continue
                 if process in self.processes:
                     orange = True
                     logging.error("%s process died, restarting...", process)
@@ -114,6 +129,8 @@ class ProcessMonitor:
                 self.restart_process(process)
                 time.sleep(self.config.categories["ProcessMonitor"]["sleep_interval_main_short"])
             p = psutil.Process(self.processes[process].pid)
+        for proc in procs_to_remove:
+            self.process_ids.pop(proc)
         if orange:
             self.previous_orange_count, self.current_orange_count = set_orange_count(self.logging, self.config, self.orange_count_row, self.previous_orange_count, self.current_orange_count+2)
         else:
@@ -128,3 +145,21 @@ class ProcessMonitor:
             pid_path = epath[0] + "/" + pid
             if os.path.isfile(pid_path):
                 os.unlink(pid_path)
+
+
+def terminate(signal_num, frame):
+    try:
+        logging.info("Recieved signal %s, removing pid file." % signal_num)
+        pid_file = frame.f_globals["PID_FILE"]
+        os.unlink(pid_file)
+    except Exception as exc:
+        logging.debug("Failed to unlink pid file:")
+        logging.debug(exc)
+
+#Returns false if pid exists, true if pid is gone
+def check_pid(pid_file):
+    if os.path.exists(pid_file):
+        #PID still exists, return false
+        return False
+    else:
+        return True

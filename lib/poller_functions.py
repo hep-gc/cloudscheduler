@@ -19,7 +19,7 @@ def start_cycle(new_poll_time, start_time):
 
 # This function helps maintain a moving average of cycle time and if the cycle times are
 # exceeding the configured sleep time it lengthens the sleep to the average cycle time
-def wait_cycle(start_time, poll_time_history, config_sleep_time):
+def wait_cycle(start_time, poll_time_history, config_sleep_time, config):
     cycle_length = time.time() - start_time
     poll_time_history.append(cycle_length)
     if len(poll_time_history) > 5:
@@ -29,6 +29,13 @@ def wait_cycle(start_time, poll_time_history, config_sleep_time):
     for poll_time in poll_time_history:
         avg_cycle_length = avg_cycle_length + poll_time
     avg_cycle_length = avg_cycle_length/len(poll_time_history)
+
+    config.refresh()
+    if config.categories["ProcessMonitor"]["pause"]:
+        while(config.categories["ProcessMonitor"]["pause"]):
+            logging.debug("Pause flag set sleeping...")
+            time.sleep(10)
+            config.refresh()
 
     if avg_cycle_length > config_sleep_time:
         logging.debug("Completed cycle - cycle length: %s, sleeping for %s" % (cycle_length, avg_cycle_length))
