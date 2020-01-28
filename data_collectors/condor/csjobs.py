@@ -7,8 +7,8 @@ import re
 import os
 import sys
 import gc
-import socket
 import signal
+import socket
 
 from cloudscheduler.lib.attribute_mapper import map_attributes
 from cloudscheduler.lib.db_config import Config
@@ -554,7 +554,6 @@ def service_registrar():
         if not os.path.exists(PID_FILE):
             logging.info("Stop set, exiting...")
             break
-        wait_cycle(cycle_start_time, poll_time_history, config.categories["csjobs.py"]["sleep_interval_job"], config)
 
         service_dict = {
             "service":             service_name,

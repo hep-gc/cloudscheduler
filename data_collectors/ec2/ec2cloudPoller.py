@@ -1,5 +1,6 @@
 import multiprocessing
 import logging
+import signal
 import socket
 import time
 import sys
@@ -10,8 +11,8 @@ import copy
 
 from cloudscheduler.lib.attribute_mapper import map_attributes
 from cloudscheduler.lib.db_config import Config
-from cloudscheduler.lib.ProcessMonitor import ProcessMonitor
-from cloudscheduler.lib.signal_manager import register_signal_receiver
+from cloudscheduler.lib.ProcessMonitor import ProcessMonitor, terminate, check_pid
+#from cloudscheduler.lib.signal_manager import register_signal_receiver
 from cloudscheduler.lib.schema import view_vm_kill_retire_over_quota
 from cloudscheduler.lib.view_utils import kill_retire
 from cloudscheduler.lib.log_tools import get_frame_info
@@ -203,8 +204,10 @@ def refresh_instance_types(config, file_path, region):
 #
 def ec2_filterer():
     multiprocessing.current_process().name = "EC2 Filterer"    
-    db_category_list = [os.path.basename(sys.argv[0]), "general"]
-    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', db_category_list, pool_size=20, refreshable=True)
+    db_category_list = [os.path.basename(sys.argv[0]), "general", "ProcessMonitor"]
+    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', db_category_list, pool_size=20, refreshable=True, signals=True)
+    PID_FILE = config.categories["ProcessMonitor"]["pid_path"] + os.path.basename(sys.argv[0])
+
     CLOUD = config.db_map.classes.csv2_clouds
     FLAVOR = config.db_map.classes.cloud_flavors
     IMAGE = config.db_map.classes.cloud_images
@@ -220,6 +223,11 @@ def ec2_filterer():
             config.db_open()
             config.refresh()
             new_poll_time, cycle_start_time = start_cycle(new_poll_time, cycle_start_time)
+            if not os.path.exists(PID_FILE):
+                logging.debug("Stop set, exiting...")
+                break
+            signal.signal(signal.SIGINT, signal.SIG_IGN)
+
             cloud_list = config.db_session.query(CLOUD).filter(CLOUD.cloud_type == "amazon")
 
             # Process Images and Instance types
@@ -330,7 +338,12 @@ def ec2_filterer():
 
             #need to add signaling
             config.db_close()
-            wait_cycle(cycle_start_time, poll_time_history, config.categories["ec2cloudPoller.py"]["sleep_interval_filterer"])
+
+            if not os.path.exists(PID_FILE):
+                logging.info("Stop set, exiting...")
+                break
+            signal.signal(signal.SIGINT, config.signals['SIGINT'])
+            wait_cycle(cycle_start_time, poll_time_history, config.categories["ec2cloudPoller.py"]["sleep_interval_filterer"], config)
 
 
 
@@ -345,8 +358,9 @@ def ec2_filterer():
 def flavor_poller():
     multiprocessing.current_process().name = "Flavor Poller"
 
-    db_category_list = [os.path.basename(sys.argv[0]), "general"]
-    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', db_category_list, pool_size=20, refreshable=True)
+    db_category_list = [os.path.basename(sys.argv[0]), "general", "ProcessMonitor"]
+    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', db_category_list, pool_size=20, refreshable=True, signals=True)
+    PID_FILE = config.categories["ProcessMonitor"]["pid_path"] + os.path.basename(sys.argv[0])
 
     FLAVOR = config.db_map.classes.cloud_flavors
     CLOUD = config.db_map.classes.csv2_clouds
@@ -366,6 +380,12 @@ def flavor_poller():
         try:
             #poll flavors
             logging.debug("Beginning flavor poller cycle")
+            if not os.path.exists(PID_FILE):
+                logging.debug("Stop set, exiting...")
+                break
+
+            signal.signal(signal.SIGINT, signal.SIG_IGN)
+
             new_poll_time, cycle_start_time = start_cycle(new_poll_time, cycle_start_time)
             config.db_open()
             db_session = config.db_session
@@ -375,7 +395,11 @@ def flavor_poller():
 
             config.db_close()
             del db_session
-            wait_cycle(cycle_start_time, poll_time_history, config.categories["ec2cloudPoller.py"]["sleep_interval_flavor"])
+            if not os.path.exists(PID_FILE):
+                logging.info("Stop set, exiting...")
+                break
+            signal.signal(signal.SIGINT, config.signals['SIGINT'])
+            wait_cycle(cycle_start_time, poll_time_history, config.categories["ec2cloudPoller.py"]["sleep_interval_flavor"], config)
 
 
         except Exception as exc:
@@ -389,8 +413,9 @@ def flavor_poller():
 def image_poller():
     multiprocessing.current_process().name = "Image Poller"
 
-    db_category_list = [os.path.basename(sys.argv[0]), "general", "signal_manager"]
-    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', db_category_list, pool_size=8, refreshable=True)
+    db_category_list = [os.path.basename(sys.argv[0]), "general", "signal_manager", "ProcessMonitor"]
+    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', db_category_list, pool_size=8, refreshable=True, signals=True)
+    PID_FILE = config.categories["ProcessMonitor"]["pid_path"] + os.path.basename(sys.argv[0])
 
     EC2_IMAGE = config.db_map.classes.ec2_images
     IMAGE = config.db_map.classes.cloud_images
@@ -402,8 +427,8 @@ def image_poller():
     poll_time_history = [0, 0, 0, 0]
     failure_dict = {}
 
-    register_signal_receiver(config, "insert_csv2_clouds")
-    register_signal_receiver(config, "update_csv2_clouds")
+    #register_signal_receiver(config, "insert_csv2_clouds")
+    #register_signal_receiver(config, "update_csv2_clouds")
 
     try:
         #inventory = get_inventory_item_hash_from_database(config.db_engine, EC2_IMAGE, 'id',
@@ -411,6 +436,12 @@ def image_poller():
         while True:
             try:
                 logging.debug("Beginning image poller cycle")
+                if not os.path.exists(PID_FILE):
+                    logging.debug("Stop set, exiting...")
+                    break
+
+                signal.signal(signal.SIGINT, signal.SIG_IGN)
+  
                 new_poll_time, cycle_start_time = start_cycle(new_poll_time, cycle_start_time)
                 config.db_open()
                 config.refresh()
@@ -773,8 +804,13 @@ def image_poller():
                     db_session.commit()
                 config.db_close() 
                 del db_session
+
+                if not os.path.exists(PID_FILE):
+                    logging.info("Stop set, exiting...")
+                    break
+                signal.signal(signal.SIGINT, config.signals['SIGINT'])
                 try:
-                    wait_cycle(cycle_start_time, poll_time_history, config.categories["ec2cloudPoller.py"]["sleep_interval_image"])
+                    wait_cycle(cycle_start_time, poll_time_history, config.categories["ec2cloudPoller.py"]["sleep_interval_image"], config)
                 except KeyboardInterrupt:
                     # sigint received, cancel the sleep and start the loop
                     continue
@@ -788,15 +824,16 @@ def image_poller():
         logging.exception("Image poller cycle while loop exception, process terminating...")
         logging.error(exc)
         config.db_close()
-        del db_session
 
 
 # Retrieve keypairs.
 def keypair_poller():
     multiprocessing.current_process().name = "Keypair Poller"
 
-    db_category_list = [os.path.basename(sys.argv[0]), "general", "signal_manager"]
-    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', db_category_list, pool_size=8, refreshable=True)
+    db_category_list = [os.path.basename(sys.argv[0]), "general", "signal_manager", "ProcessMonitor"]
+    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', db_category_list, pool_size=8, refreshable=True, signals=True)
+    PID_FILE = config.categories["ProcessMonitor"]["pid_path"] + os.path.basename(sys.argv[0])
+
     KEYPAIR = config.db_map.classes.cloud_keypairs
     CLOUD = config.db_map.classes.csv2_clouds
 
@@ -805,8 +842,8 @@ def keypair_poller():
     poll_time_history = [0, 0, 0, 0]
     failure_dict = {}
 
-    register_signal_receiver(config, "insert_csv2_clouds")
-    register_signal_receiver(config, "update_csv2_clouds")
+    #register_signal_receiver(config, "insert_csv2_clouds")
+    #register_signal_receiver(config, "update_csv2_clouds")
 
     try:
         inventory = get_inventory_item_hash_from_database(config.db_engine, KEYPAIR, 'key_name',
@@ -814,6 +851,12 @@ def keypair_poller():
         while True:
             try:
                 logging.debug("Beginning keypair poller cycle")
+                if not os.path.exists(PID_FILE):
+                    logging.debug("Stop set, exiting...")
+                    break
+
+                signal.signal(signal.SIGINT, signal.SIG_IGN)
+
                 new_poll_time, cycle_start_time = start_cycle(new_poll_time, cycle_start_time)
                 config.db_open()
                 config.refresh()
@@ -938,8 +981,14 @@ def keypair_poller():
 
                 config.db_close()
                 del db_session
+
+                if not os.path.exists(PID_FILE):
+                    logging.info("Stop set, exiting...")
+                    break
+                signal.signal(signal.SIGINT, config.signals['SIGINT'])
+
                 try:
-                    wait_cycle(cycle_start_time, poll_time_history, config.categories["ec2cloudPoller.py"]["sleep_interval_keypair"])
+                    wait_cycle(cycle_start_time, poll_time_history, config.categories["ec2cloudPoller.py"]["sleep_interval_keypair"], config)
                 except KeyboardInterrupt:
                     # sigint received, cancel the sleep and start the loop
                     continue
@@ -957,8 +1006,10 @@ def keypair_poller():
 def limit_poller():
     multiprocessing.current_process().name = "Limit Poller"
 
-    db_category_list = [os.path.basename(sys.argv[0]), "general", "signal_manager"]
-    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', db_category_list, pool_size=8, refreshable=True)
+    db_category_list = [os.path.basename(sys.argv[0]), "general", "signal_manager", "ProcessMonitor"]
+    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', db_category_list, pool_size=8, refreshable=True, signals=True)
+    PID_FILE = config.categories["ProcessMonitor"]["pid_path"] + os.path.basename(sys.argv[0])
+
     LIMIT = config.db_map.classes.cloud_limits
     CLOUD = config.db_map.classes.csv2_clouds
 
@@ -967,8 +1018,8 @@ def limit_poller():
     poll_time_history = [0, 0, 0, 0]
     failure_dict = {}
 
-    register_signal_receiver(config, "insert_csv2_clouds")
-    register_signal_receiver(config, "update_csv2_clouds")
+    #register_signal_receiver(config, "insert_csv2_clouds")
+    #register_signal_receiver(config, "update_csv2_clouds")
 
     try:
         inventory = get_inventory_item_hash_from_database(config.db_engine, LIMIT, '-',
@@ -976,6 +1027,12 @@ def limit_poller():
         while True:
             try:
                 logging.debug("Beginning limit poller cycle")
+                if not os.path.exists(PID_FILE):
+                    logging.debug("Stop set, exiting...")
+                    break
+
+                signal.signal(signal.SIGINT, signal.SIG_IGN)
+
                 new_poll_time, cycle_start_time = start_cycle(new_poll_time, cycle_start_time)
                 config.db_open()
                 config.refresh()
@@ -1143,8 +1200,14 @@ def limit_poller():
 
                 config.db_close()
                 del db_session
+
+                if not os.path.exists(PID_FILE):
+                    logging.info("Stop set, exiting...")
+                    break
+                signal.signal(signal.SIGINT, config.signals['SIGINT'])
+
                 try:
-                    wait_cycle(cycle_start_time, poll_time_history, config.categories["ec2cloudPoller.py"]["sleep_interval_limit"])
+                    wait_cycle(cycle_start_time, poll_time_history, config.categories["ec2cloudPoller.py"]["sleep_interval_limit"], config)
                 except KeyboardInterrupt:
                     # sigint recieved, cancel the sleep and start the loop
                     continue
@@ -1162,8 +1225,10 @@ def limit_poller():
 def network_poller():
     multiprocessing.current_process().name = "Network Poller"
 
-    db_category_list = [os.path.basename(sys.argv[0]), "general", "signal_manager"]
-    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', db_category_list, pool_size=8, refreshable=True)
+    db_category_list = [os.path.basename(sys.argv[0]), "general", "signal_manager", "ProcessMonitor"]
+    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', db_category_list, pool_size=8, refreshable=True, signals=True)
+    PID_FILE = config.categories["ProcessMonitor"]["pid_path"] + os.path.basename(sys.argv[0])
+
     NETWORK = config.db_map.classes.cloud_networks
     CLOUD = config.db_map.classes.csv2_clouds
 
@@ -1172,8 +1237,8 @@ def network_poller():
     poll_time_history = [0, 0, 0, 0]
     failure_dict = {}
 
-    register_signal_receiver(config, "insert_csv2_clouds")
-    register_signal_receiver(config, "update_csv2_clouds")
+    #register_signal_receiver(config, "insert_csv2_clouds")
+    #register_signal_receiver(config, "update_csv2_clouds")
 
     try:
         inventory = get_inventory_item_hash_from_database(config.db_engine, NETWORK, 'name',
@@ -1181,6 +1246,11 @@ def network_poller():
         while True:
             try:
                 logging.debug("Beginning network poller cycle")
+                if not os.path.exists(PID_FILE):
+                    logging.debug("Stop set, exiting...")
+                    break
+
+                signal.signal(signal.SIGINT, signal.SIG_IGN)
                 new_poll_time, cycle_start_time = start_cycle(new_poll_time, cycle_start_time)
                 config.db_open()
                 config.refresh()
@@ -1316,8 +1386,14 @@ def network_poller():
 
                 config.db_close()
                 del db_session
+
+                if not os.path.exists(PID_FILE):
+                    logging.info("Stop set, exiting...")
+                    break
+                signal.signal(signal.SIGINT, config.signals['SIGINT'])
+
                 try:
-                    wait_cycle(cycle_start_time, poll_time_history, config.categories["ec2cloudPoller.py"]["sleep_interval_network"])
+                    wait_cycle(cycle_start_time, poll_time_history, config.categories["ec2cloudPoller.py"]["sleep_interval_network"], config)
                 except KeyboardInterrupt:
                     # sigint recieved, cancel the sleep and start the loop
                     continue
@@ -1330,14 +1406,14 @@ def network_poller():
         logging.exception("Network poller cycle while loop exception, process terminating...")
         logging.error(exc)
         config.db_close()
-        del db_session
 
 
 def security_group_poller():
     multiprocessing.current_process().name = "Security Group Poller"
 
-    db_category_list = [os.path.basename(sys.argv[0]), "general", "signal_manager"]
-    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', db_category_list, pool_size=8, refreshable=True)
+    db_category_list = [os.path.basename(sys.argv[0]), "general", "signal_manager", "ProcessMonitor"]
+    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', db_category_list, pool_size=8, refreshable=True, signals=True)
+    PID_FILE = config.categories["ProcessMonitor"]["pid_path"] + os.path.basename(sys.argv[0])
 
     SECURITY_GROUP = config.db_map.classes.cloud_security_groups
     CLOUD = config.db_map.classes.csv2_clouds
@@ -1348,8 +1424,8 @@ def security_group_poller():
     failure_dict = {}
     my_pid = os.getpid()
 
-    register_signal_receiver(config, "insert_csv2_clouds")
-    register_signal_receiver(config, "update_csv2_clouds")
+    #register_signal_receiver(config, "insert_csv2_clouds")
+    #register_signal_receiver(config, "update_csv2_clouds")
 
     try:
         inventory = get_inventory_item_hash_from_database(config.db_engine, SECURITY_GROUP, 'id',
@@ -1357,6 +1433,12 @@ def security_group_poller():
         while True:
             try:
                 logging.debug("Beginning security group poller cycle")
+                if not os.path.exists(PID_FILE):
+                    logging.debug("Stop set, exiting...")
+                    break
+
+                signal.signal(signal.SIGINT, signal.SIG_IGN)
+
                 new_poll_time, cycle_start_time = start_cycle(new_poll_time, cycle_start_time)
                 config.db_open()
                 config.refresh()
@@ -1491,8 +1573,14 @@ def security_group_poller():
 
                 config.db_close()
                 del db_session
+
+                if not os.path.exists(PID_FILE):
+                    logging.info("Stop set, exiting...")
+                    break
+                signal.signal(signal.SIGINT, config.signals['SIGINT'])
+
                 try:
-                    wait_cycle(cycle_start_time, poll_time_history, config.categories["ec2cloudPoller.py"]["sleep_interval_sec_grp"])
+                    wait_cycle(cycle_start_time, poll_time_history, config.categories["ec2cloudPoller.py"]["sleep_interval_sec_grp"], config)
 
                 except KeyboardInterrupt:
                     # sigint recieved, cancel the sleep and start the loop
@@ -1513,7 +1601,9 @@ def security_group_poller():
 def vm_poller():
     multiprocessing.current_process().name = "VM Poller"
 
-    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', [os.path.basename(sys.argv[0]), "SQL"], pool_size=8, refreshable=True)
+    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', [os.path.basename(sys.argv[0]), "SQL", "ProcessMonitor"], pool_size=8, refreshable=True, signals=True)
+    PID_FILE = config.categories["ProcessMonitor"]["pid_path"] + os.path.basename(sys.argv[0])
+
     VM = config.db_map.classes.csv2_vms
     FVM = config.db_map.classes.csv2_vms_foreign
     GROUP = config.db_map.classes.csv2_groups
@@ -1538,6 +1628,13 @@ def vm_poller():
             # This cycle should be reasonably fast such that the scheduler will always have the most
             # up to date data during a given execution cycle.
             logging.debug("Beginning VM poller cycle")
+            if not os.path.exists(PID_FILE):
+                logging.debug("Stop set, exiting...")
+                break
+
+            signal.signal(signal.SIGINT, signal.SIG_IGN)
+
+
             new_poll_time, cycle_start_time = start_cycle(new_poll_time, cycle_start_time)
             config.db_open()
             config.refresh()
@@ -1860,7 +1957,13 @@ def vm_poller():
             logging.debug("Completed VM poller cycle")
             config.db_close()
             del db_session
-            wait_cycle(cycle_start_time, poll_time_history, config.categories["ec2cloudPoller.py"]["sleep_interval_vm"])
+
+            if not os.path.exists(PID_FILE):
+                logging.info("Stop set, exiting...")
+                break
+            signal.signal(signal.SIGINT, config.signals['SIGINT'])
+
+            wait_cycle(cycle_start_time, poll_time_history, config.categories["ec2cloudPoller.py"]["sleep_interval_vm"], config)
 
     except Exception as exc:
         logging.exception("VM poller cycle while loop exception, process terminating...")
@@ -1873,16 +1976,29 @@ def service_registrar():
     multiprocessing.current_process().name = "Service Registrar"
 
     # database setup
-    db_category_list = [os.path.basename(sys.argv[0]), "general"]
-    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', db_category_list, pool_size=8, refreshable=True)
+    db_category_list = [os.path.basename(sys.argv[0]), "general", "ProcessMonitor"]
+    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', db_category_list, pool_size=8, refreshable=True, signals=True)
+    PID_FILE = config.categories["ProcessMonitor"]["pid_path"] + os.path.basename(sys.argv[0])
+
     SERVICE_CATALOG = config.db_map.classes.csv2_service_catalog
 
     service_fqdn = socket.gethostname()
     service_name = "csv2-amazon"
 
+    cycle_start_time = 0
+    new_poll_time = 0
+    poll_time_history = [0,0,0,0]
+
     while True:
         config.db_open()
         config.refresh()
+
+        if not os.path.exists(PID_FILE):
+            logging.debug("Stop set, exiting...")
+            break
+
+        signal.signal(signal.SIGINT, signal.SIG_IGN)
+        new_poll_time, cycle_start_time = start_cycle(new_poll_time, cycle_start_time)
 
         service_dict = {
             "service": service_name,
@@ -1899,7 +2015,11 @@ def service_registrar():
             logging.error(exc)
             return -1
 
-        time.sleep(config.categories["general"]["sleep_interval_registrar"])
+        if not os.path.exists(PID_FILE):
+            logging.info("Stop set, exiting...")
+            break
+        signal.signal(signal.SIGINT, config.signals['SIGINT'])
+        wait_cycle(cycle_start_time, poll_time_history, config.categories["general"]["sleep_interval_registrar"], config)
 
     return -1
 
@@ -1925,6 +2045,10 @@ if __name__ == '__main__':
     logging = procMon.get_logging()
     version = config.get_version()
 
+    PID_FILE = config.categories["ProcessMonitor"]["pid_path"] + os.path.basename(sys.argv[0])
+    with open(PID_FILE, "w") as fd:
+        fd.write(str(os.getpid()))
+
     logging.info(
         "**************************** starting ec2 poller - Running %s *********************************" % version)
 
@@ -1932,9 +2056,11 @@ if __name__ == '__main__':
     try:
         # start processes
         procMon.start_all()
+        signal.signal(signal.SIGTERM, terminate)
         while True:
             config.refresh()
-            procMon.check_processes()
+            stop = check_pid(PID_FILE)
+            procMon.check_processes(stop=stop)
             time.sleep(config.categories["ProcessMonitor"]["sleep_interval_main_long"])
 
     except (SystemExit, KeyboardInterrupt):
