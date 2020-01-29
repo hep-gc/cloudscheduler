@@ -24,9 +24,20 @@ def execute_csv2_command(gvar, expected_rc, expected_modid, expected_text, cmd, 
     import re
 
     if _execute_selections(gvar, cmd, expected_text, None):
+
         # If the `-s` flag is not used tests will sometimes hang because cloudscheduler is waiting for a server web address (but this prompt is not visible to the tester)
         if '-s' not in cmd:
-            cmd.extend(['-s', 'unit-test-un'])
+            cmd.extend(['-s', 'unit-test'])
+        if '-spw' not in cmd:
+            try:
+                su_index = cmd.index('-su')
+                if cmd[su_index + 1] == gvar['user_settings']['server-user']:
+                    cmd.extend(['-spw', gvar['user_settings']['server-password']])
+                else:
+                    cmd.extend(['-spw', gvar['user_secret']])
+            except ValueError:
+                pass
+        
         try:
             process = run(cmd, stdout=PIPE, stderr=PIPE, timeout=timeout)
             stdout = process.stdout.decode()
@@ -66,7 +77,10 @@ def execute_csv2_command(gvar, expected_rc, expected_modid, expected_text, cmd, 
                 columns_found_set = set(columns_found)
                 if columns_set != columns_found_set:
                     failed = True
-                    list_error = '\tActual columns found: {}\n\tColumns expected but not found: {}\n\tColumns not expected but found: {}\n'.format(columns_found_set, columns_set - columns_found_set, columns_found_set - columns_set)
+                    list_error = '\tActual columns found: {}\n \
+                    \tColumns expected but not found: {}\n \
+                    \tColumns not expected but found: {}\n'\
+                    .format(columns_found_set, columns_set - columns_found_set, columns_found_set - columns_set)
 
         if expected_text and expected_text not in stdout:
             failed = True

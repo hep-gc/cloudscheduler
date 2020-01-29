@@ -3,7 +3,7 @@ from sys import argv
 
 # lno: CV - error code identifier.
 
-def main(gvar, user_secret):
+def main(gvar):
     if not gvar:
         gvar = {}
         if len(argv) > 1:
@@ -14,92 +14,92 @@ def main(gvar, user_secret):
     # 1
     execute_csv2_command(
         gvar, 1, None, 'No action specified for object "cloud"',
-        ['cloudscheduler', 'cloud']
+        ['cloudscheduler', 'cloud', '-su', ut_id(gvar, 'clu4')]
     )
 
     # 2
     execute_csv2_command(
         gvar, 1, None, 'Invalid action "invalid-unit-test" for object "cloud"',
-        ['cloudscheduler', 'cloud', 'invalid-unit-test']
+        ['cloudscheduler', 'cloud', 'invalid-unit-test', '-su', ut_id(gvar, 'clu4')]
     )
     
     # 3
     execute_csv2_command(
         gvar, None, None, 'Error: the specified server "invalid-unit-test" does not exist in your defaults.',
-        ['cloudscheduler', 'cloud', '-s', 'invalid-unit-test'], timeout=8
+        ['cloudscheduler', 'cloud', '-s', 'invalid-unit-test', '-su', ut_id(gvar, 'clu4')], timeout=8
     )
     
     # 4
     execute_csv2_command(
         gvar, 1, None, 'No action specified for object "cloud"; use -h or -H for help.',
-        ['cloudscheduler', 'cloud', '-s', 'unit-test-un']
+        ['cloudscheduler', 'cloud', '-su', ut_id(gvar, 'clu4')]
     )
 
     # 5
     execute_csv2_command(
         gvar, 0, None, 'Help requested for "cloudscheduler cloud".',
-        ['cloudscheduler', 'cloud', '-h']
+        ['cloudscheduler', 'cloud', '-h', '-su', ut_id(gvar, 'clu4')]
     )
 
     # 6
     execute_csv2_command(
         gvar, 0, None, 'General Commands Manual',
-        ['cloudscheduler', 'cloud', '-H']
+        ['cloudscheduler', 'cloud', '-H', '-su', ut_id(gvar, 'clu4')]
     )
 
     #### ADD ####
     # 7
     execute_csv2_command(
         gvar, 1, None, 'the following mandatory parameters must be specfied on the command line',
-        ['cloudscheduler', 'cloud', 'add']
+        ['cloudscheduler', 'cloud', 'add', '-su', ut_id(gvar, 'clu4')]
     )
 
     # 8
     execute_csv2_command(
         gvar, 1, None, 'The following command line arguments were unrecognized: [\'-xx\', \'yy\']',
-        ['cloudscheduler', 'cloud', 'add', '-xx', 'yy']
+        ['cloudscheduler', 'cloud', 'add', '-xx', 'yy', '-su', ut_id(gvar, 'clu4')]
     )
 
     # 9
     execute_csv2_command(
         gvar, 1, None, 'The following command line arguments were invalid: metadata-mime-type',
-        ['cloudscheduler', 'cloud', 'add', '-mmt', 'invalid-unit-test']
+        ['cloudscheduler', 'cloud', 'add', '-mmt', 'invalid-unit-test', '-su', ut_id(gvar, 'clu4')]
     )
 
     # 10
     execute_csv2_command(
         gvar, 1, None, 'the following mandatory parameters must be specfied on the command line',
-        ['cloudscheduler', 'cloud', 'add', '-s', 'unit-test-un']
+        ['cloudscheduler', 'cloud', 'add', '-su', ut_id(gvar, 'clu4')]
     )
 
     # 11
     execute_csv2_command(
         gvar, 0, None, 'Help requested for "cloudscheduler cloud add".',
-        ['cloudscheduler', 'cloud', 'add', '-h']
+        ['cloudscheduler', 'cloud', 'add', '-h', '-su', ut_id(gvar, 'clu4')]
     )
 
     # 12
     execute_csv2_command(
         gvar, 0, None, 'General Commands Manual',
-        ['cloudscheduler', 'cloud', 'add', '-H']
+        ['cloudscheduler', 'cloud', 'add', '-H', '-su', ut_id(gvar, 'clu4')]
     )
 
     # 13
     execute_csv2_command(
         gvar, 1, None, 'Expose API requested',
-        ['cloudscheduler', 'cloud', 'add', '-xA']
+        ['cloudscheduler', 'cloud', 'add', '-xA', '-su', ut_id(gvar, 'clu4')]
     )
 
     # 14
     execute_csv2_command(
         gvar, 1, None, 'cannot switch to invalid group "invalid-unit-test".',
-        ['cloudscheduler', 'cloud', 'add', '-g', 'invalid-unit-test']
+        ['cloudscheduler', 'cloud', 'add', '-g', 'invalid-unit-test', '-su', ut_id(gvar, 'clu4')]
     )
 
     # 15
     execute_csv2_command(
         gvar, 1, None, 'the following mandatory parameters must be specfied on the command line',
-        ['cloudscheduler', 'cloud', 'add', '-g', ut_id(gvar, 'clg1'), '-su', ut_id(gvar, 'clu4'), '-spw', user_secret]
+        ['cloudscheduler', 'cloud', 'add', '-g', ut_id(gvar, 'clg1'), '-su', ut_id(gvar, 'clu4')]
     )
 
     # 16
@@ -112,7 +112,8 @@ def main(gvar, user_secret):
             '-cP', 'invalid-unit-test',
             '-cr', 'invalid-unit-test',
             '-ct', 'invalid-unit-test',
-            '-cU', 'invalid-unit-test'
+            '-cU', 'invalid-unit-test',
+            '-su', ut_id(gvar, 'clu4')
         ]
     )
 
@@ -126,7 +127,8 @@ def main(gvar, user_secret):
             '-cP', 'invalid-unit-test',
             '-cr', 'invalid-unit-test',
             '-ct', 'local',
-            '-cU', 'invalid-unit-test'
+            '-cU', 'invalid-unit-test',
+            '-su', ut_id(gvar, 'clu4')
         ]
     )
 
@@ -140,7 +142,8 @@ def main(gvar, user_secret):
             '-cP', 'invalid-unit-test',
             '-cr', 'invalid-unit-test',
             '-ct', 'local',
-            '-cU', 'invalid-unit-test'
+            '-cU', 'invalid-unit-test',
+            '-su', ut_id(gvar, 'clu4')
         ]
     )
 
@@ -154,7 +157,8 @@ def main(gvar, user_secret):
             '-cP', 'invalid-unit-test',
             '-cr', 'invalid-unit-test',
             '-ct', 'local',
-            '-cU', 'invalid-unit-test'
+            '-cU', 'invalid-unit-test',
+            '-su', ut_id(gvar, 'clu4')
         ]
     )
 
@@ -168,7 +172,8 @@ def main(gvar, user_secret):
             '-cP', 'invalid-unit-test',
             '-cr', 'invalid-unit-test',
             '-ct', 'local',
-            '-cU', 'invalid-unit-test'
+            '-cU', 'invalid-unit-test',
+            '-su', ut_id(gvar, 'clu4')
         ]
     )
 
@@ -183,7 +188,8 @@ def main(gvar, user_secret):
             '-cr', 'invalid-unit-test',
             '-ct', 'local',
             '-cU', 'invalid-unit-test',
-            '-vc', 'invalid-unit-test'
+            '-vc', 'invalid-unit-test',
+            '-su', ut_id(gvar, 'clu4')
         ]
     )
 
@@ -198,7 +204,8 @@ def main(gvar, user_secret):
             '-cr', 'invalid-unit-test',
             '-ct', 'local',
             '-cU', 'invalid-unit-test',
-            '-vr', 'invalid-unit-test'
+            '-vr', 'invalid-unit-test',
+            '-su', ut_id(gvar, 'clu4')
         ]
     )
 
@@ -213,7 +220,8 @@ def main(gvar, user_secret):
             '-cr', 'invalid-unit-test',
             '-ct', 'local',
             '-cU', 'invalid-unit-test',
-            '-ce', 'invalid-unit-test'
+            '-ce', 'invalid-unit-test',
+            '-su', ut_id(gvar, 'clu4')
         ]
     )
 
@@ -228,7 +236,8 @@ def main(gvar, user_secret):
             '-cr', 'invalid-unit-test',
             '-ct', 'local',
             '-cU', 'invalid-unit-test',
-            '-vka', 'invalid-unit-test'
+            '-vka', 'invalid-unit-test',
+            '-su', ut_id(gvar, 'clu4')
         ]
     )
 
@@ -243,7 +252,8 @@ def main(gvar, user_secret):
             '-cr', 'invalid-unit-test',
             '-ct', 'local',
             '-cU', 'invalid-unit-test',
-            '-csp', 'invalid-unit-test'
+            '-csp', 'invalid-unit-test',
+            '-su', ut_id(gvar, 'clu4')
         ]
     )
 
@@ -259,8 +269,7 @@ def main(gvar, user_secret):
             '-ct', 'local',
             '-cU', 'invalid-unit-test',
             '-gme', 'invalid-unit-test',
-            '-su', ut_id(gvar, 'clu4'),
-            '-spw', user_secret
+            '-su', ut_id(gvar, 'clu4')
         ]
     )
 
@@ -276,8 +285,7 @@ def main(gvar, user_secret):
             '-ct', 'local',
             '-cU', 'invalid-unit-test',
             '-gme', '{},invalid-unit-test'.format(ut_id(gvar, 'clm2')),
-            '-su', ut_id(gvar, 'clu4'),
-            '-spw', user_secret
+            '-su', ut_id(gvar, 'clu4')
         ]
     )
 
@@ -300,8 +308,7 @@ def main(gvar, user_secret):
             '-vn', '',
             '-csp', '10',
             '-gme', ut_id(gvar, 'clm2'),
-            '-su', ut_id(gvar, 'clu4'),
-            '-spw', user_secret
+            '-su', ut_id(gvar, 'clu4')
         ]
     )
 
@@ -316,8 +323,7 @@ def main(gvar, user_secret):
             '-cr', 'clc10-r',
             '-ct', 'local',
             '-cU', ut_id(gvar, 'clc10'),
-            '-su', ut_id(gvar, 'clu4'),
-            '-spw', user_secret
+            '-su', ut_id(gvar, 'clu4')
         ]
     )
 
@@ -333,8 +339,7 @@ def main(gvar, user_secret):
             '-ct', 'local',
             '-cU', ut_id(gvar, 'clc11'),
             '-gme', ut_id(gvar, 'clm2,clm2.yaml'),
-            '-su', ut_id(gvar, 'clu4'),
-            '-spw', user_secret
+            '-su', ut_id(gvar, 'clu4')
         ]
     )
 
@@ -349,8 +354,7 @@ def main(gvar, user_secret):
             '-cr', 'clc12-r',
             '-ct', 'local',
             '-cU', ut_id(gvar, 'clc12'),
-            '-su', ut_id(gvar, 'clu4'),
-            '-spw', user_secret
+            '-su', ut_id(gvar, 'clu4')
         ]
     )
 
