@@ -17,22 +17,32 @@ def _execute_selections(gvar, request, expected_text, expected_values):
         # print('%04d (%04d) %s Skipping: \'%s\', %s, %s' % (gvar['ut_count'][0], gvar['ut_count'][1], _caller(), request, repr(expected_text), expected_values))
         return False
    
-def execute_csv2_command(gvar, expected_rc, expected_modid, expected_text, cmd, expected_list=None, columns=None):
+def execute_csv2_command(gvar, expected_rc, expected_modid, expected_text, cmd, expected_list=None, columns=None, timeout=None):
 
-    from subprocess import run, PIPE
+    from subprocess import PIPE, run, TimeoutExpired
     from unit_test_common import _caller, _execute_selections
+    import re
 
     if _execute_selections(gvar, cmd, expected_text, None):
-        process = run(cmd, stdout=PIPE, stderr=PIPE)
-        stdout = process.stdout.decode()
-        stderr = process.stderr.decode()
+        # If the `-s` flag is not used tests will sometimes hang because cloudscheduler is waiting for a server web address (but this prompt is not visible to the tester)
+        if '-s' not in cmd:
+            cmd.extend(['-s', 'unit-test-un'])
+        try:
+            process = run(cmd, stdout=PIPE, stderr=PIPE, timeout=timeout)
+            stdout = process.stdout.decode()
+            stderr = process.stderr.decode()
+            return_code = process.returncode
+        except TimeoutExpired as err:
+            stdout = err.stdout.decode()
+            stderr = err.stderr.decode()
+            return_code = None
 
         failed = False
 
-        if expected_rc and expected_rc != process.returncode:
+        if expected_rc and expected_rc != return_code:
             failed = True
 
-        if process.returncode == 0 or not expected_modid:
+        if return_code == 0 or not expected_modid:
             modid = expected_modid
         else:
             modid = stdout.replace('-', ' ').split()[1]
@@ -41,10 +51,7 @@ def execute_csv2_command(gvar, expected_rc, expected_modid, expected_text, cmd, 
 
         list_error = ''
         if expected_list:
-            # Never used
-            # list_index = str(stdout).find(expected_list)
-            # row_index = str(stdout).find('Rows:', list_index)
-            if expected_list in stdout:
+            if expected_list not in stdout:
                 failed = True
                 list_error = 'list \'{}\' not found'.format(expected_list)
             elif columns:
@@ -52,10 +59,13 @@ def execute_csv2_command(gvar, expected_rc, expected_modid, expected_text, cmd, 
                 rows = stdout.split('\n')
                 for row in rows:
                     if len(row) > 1 and row[:2] == '+ ':
-                        columns_found += row[2:-2].replace('|', ' ').split()
-                if set(columns) != set(columns_found):
+                        # Split on either '<zero or more spaces>|<zero or more spaces>' occurring one or more times, or two or more spaces in a row. Then filter out empty strings.
+                        columns_found.extend(filter(None, re.split(r'(?:\s*\|\s*)+|(?:\s{2,})', row[2:-2])))
+                columns_set = set(columns)
+                columns_found_set = set(columns_found)
+                if columns_set != columns_found_set:
                     failed = True
-                    list_error = 'columns expected:{}\n\t\tcolumns found:{}'.format(columns, columns_found)
+                    list_error = '\tActual columns found: {}\n\tColumns expected but not found: {}\n\tColumns not expected but found: {}\n'.format(columns_found_set, columns_set - columns_found_set, columns_found_set - columns_set)
 
         if expected_text and expected_text not in stdout:
             failed = True
@@ -65,12 +75,12 @@ def execute_csv2_command(gvar, expected_rc, expected_modid, expected_text, cmd, 
             if not gvar['hidden']:
                 # repr() is used because it puts quotes around strings *unless* they are None.
                 print('\n%04d (%04d) %s \033[91mFailed\033[0m: expected_rc=%s, expected_modid=%s, expected_text=%s, cmd=%s' % (gvar['ut_count'][0], gvar['ut_count'][1], _caller(), expected_rc, repr(expected_modid), repr(expected_text), cmd))
-                print('    return code=%s' % process.returncode)
-                print('    module ID=%s' % repr(modid))
-                print('    stdout=%s' % stdout)
-                print('    stderr=%s' % stderr)
+                print('\treturn code=%s' % return_code)
+                print('\tmodule ID=%s' % repr(modid))
+                print('\tstdout=%s' % stdout)
+                print('\tstderr=%s' % stderr)
                 if list_error:
-                    print('\tlist_error={}'.format(list_error))
+                    print('List error: {}'.format(list_error))
                 print()
 
             return 1

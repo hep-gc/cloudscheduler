@@ -23,10 +23,10 @@ def main(gvar, user_secret):
         ['cloudscheduler', 'cloud', 'invalid-unit-test']
     )
     
-    # 3 No longer works because cloudscheduler prompts you for a web address if you specify an unknown server
+    # 3
     execute_csv2_command(
-        gvar, 1, None, 'Error: the specified server "invalid-unit-test" does not exist in your defaults.',
-        ['cloudscheduler', 'cloud', '-s', 'invalid-unit-test']
+        gvar, None, None, 'Error: the specified server "invalid-unit-test" does not exist in your defaults.',
+        ['cloudscheduler', 'cloud', '-s', 'invalid-unit-test'], timeout=8
     )
     
     # 4
@@ -68,49 +68,43 @@ def main(gvar, user_secret):
 
     # 10
     execute_csv2_command(
-        gvar, 1, None, 'Error: the specified server "invalid-unit-test" does not exist in your defaults.',
-        ['cloudscheduler', 'cloud', 'add', '-s', 'invalid-unit-test']
-    )
-
-    # 11
-    execute_csv2_command(
         gvar, 1, None, 'the following mandatory parameters must be specfied on the command line',
         ['cloudscheduler', 'cloud', 'add', '-s', 'unit-test-un']
     )
 
-    # 12
+    # 11
     execute_csv2_command(
         gvar, 0, None, 'Help requested for "cloudscheduler cloud add".',
         ['cloudscheduler', 'cloud', 'add', '-h']
     )
 
-    # 13
+    # 12
     execute_csv2_command(
         gvar, 0, None, 'General Commands Manual',
         ['cloudscheduler', 'cloud', 'add', '-H']
     )
 
-    # 14
+    # 13
     execute_csv2_command(
         gvar, 1, None, 'Expose API requested',
         ['cloudscheduler', 'cloud', 'add', '-xA']
     )
 
-    # 15
+    # 14
     execute_csv2_command(
         gvar, 1, None, 'cannot switch to invalid group "invalid-unit-test".',
         ['cloudscheduler', 'cloud', 'add', '-g', 'invalid-unit-test']
     )
 
-    # 16
+    # 15
     execute_csv2_command(
         gvar, 1, None, 'the following mandatory parameters must be specfied on the command line',
-        ['cloudscheduler', 'cloud', 'add', '-g', ut_id(gvar, 'clg1')]
+        ['cloudscheduler', 'cloud', 'add', '-g', ut_id(gvar, 'clg1'), '-su', ut_id(gvar, 'clu4'), '-spw', user_secret]
     )
 
-    # 17
+    # 16
     execute_csv2_command(
-        gvar, 1, 'CV', r'value specified for "cloud_type" must be one of the following options: [\'amazon\', \'azure\', \'google\', \'local\', \'opennebula\', \'openstack\'].',
+        gvar, 1, 'CV', 'value specified for "cloud_type" must be one of the following options: [\'amazon\', \'azure\', \'google\', \'local\', \'opennebula\', \'openstack\'].',
         ['cloudscheduler', 'cloud', 'add',
             '-cn', ut_id(gvar, 'cli-invalid-unit-test'),
             '-ca', 'invalid-unit-test',
@@ -122,9 +116,9 @@ def main(gvar, user_secret):
         ]
     )
 
-    # 18
+    # 17
     execute_csv2_command(
-        gvar, 1, 'CV', r'Data too long for column \'cloud_name\' at row 1',
+        gvar, 1, 'CV', 'Data too long for column \'cloud_name\' at row 1',
         ['cloudscheduler', 'cloud', 'add',
             '-cn', 'thiscloudnameistoolongtobeinserted',
             '-ca', 'invalid-unit-test',
@@ -136,7 +130,7 @@ def main(gvar, user_secret):
         ]
     )
 
-    # 19
+    # 18
     execute_csv2_command(
         gvar, 1, 'CV', 'value specified for "cloud_name" must be all lower case, numeric digits, and dashes but cannot start or end with dashes.',
         ['cloudscheduler', 'cloud', 'add',
@@ -150,7 +144,7 @@ def main(gvar, user_secret):
         ]
     )
 
-    # 20
+    # 19
     execute_csv2_command(
         gvar, 1, 'CV', 'value specified for "cloud_name" must be all lower case, numeric digits, and dashes but cannot start or end with dashes.',
         ['cloudscheduler', 'cloud', 'add',
@@ -164,7 +158,7 @@ def main(gvar, user_secret):
         ]
     )
 
-    # 21
+    # 20
     execute_csv2_command(
         gvar, 1, 'CV', 'value specified for "cloud_name" must be all lower case, numeric digits, and dashes but cannot start or end with dashes.',
         ['cloudscheduler', 'cloud', 'add',
@@ -178,7 +172,7 @@ def main(gvar, user_secret):
         ]
     )
 
-    # 22
+    # 21
     execute_csv2_command(
         gvar, 1, 'CV', 'value specified for "cores_ctl" must be an integer value.',
         ['cloudscheduler', 'cloud', 'add',
@@ -193,7 +187,7 @@ def main(gvar, user_secret):
         ]
     )
 
-    # 23
+    # 22
     execute_csv2_command(
         gvar, 1, 'CV', 'value specified for "ram_ctl" must be an integer value.',
         ['cloudscheduler', 'cloud', 'add',
@@ -208,7 +202,7 @@ def main(gvar, user_secret):
         ]
     )
 
-    # 24
+    # 23
     execute_csv2_command(
         gvar, 1, 'CV', 'value specified for "enabled" must be one of the following: true, false, yes, no, 1, or 0.',
         ['cloudscheduler', 'cloud', 'add',
@@ -223,7 +217,7 @@ def main(gvar, user_secret):
         ]
     )
 
-    # 25
+    # 24
     execute_csv2_command(
         gvar, 1, 'CV', 'value specified for "vm_keep_alive" must be an integer value.',
         ['cloudscheduler', 'cloud', 'add',
@@ -238,7 +232,7 @@ def main(gvar, user_secret):
         ]
     )
 
-    # 26
+    # 25
     execute_csv2_command(
         gvar, 1, 'CV', 'cloud add value specified for "spot_price" must be a floating point value.',
         ['cloudscheduler', 'cloud', 'add',
@@ -253,6 +247,24 @@ def main(gvar, user_secret):
         ]
     )
 
+    # 26
+    execute_csv2_command(
+        gvar, 1, 'CV', 'cloud add, "{}" failed - specified metadata_name "invalid-unit-test" does not exist.'.format(ut_id(gvar, 'cli-invalid-unit-test')),
+        ['cloudscheduler', 'cloud', 'add',
+            '-cn', ut_id(gvar, 'cli-invalid-unit-test'),
+            '-ca', 'invalid-unit-test',
+            '-cpw', 'invalid-unit-test',
+            '-cP', 'invalid-unit-test',
+            '-cr', 'invalid-unit-test',
+            '-ct', 'local',
+            '-cU', 'invalid-unit-test',
+            '-gme', 'invalid-unit-test',
+            '-g', ut_id(gvar, 'clg1'),
+            '-su', ut_id(gvar, 'clu4'),
+            '-spw', user_secret
+        ]
+    )
+
     # 27
     execute_csv2_command(
         gvar, 1, 'CV', 'cloud add, "{}" failed - specified metadata_name "invalid-unit-test" does not exist.'.format(ut_id(gvar, 'cli-invalid-unit-test')),
@@ -264,26 +276,14 @@ def main(gvar, user_secret):
             '-cr', 'invalid-unit-test',
             '-ct', 'local',
             '-cU', 'invalid-unit-test',
-            '-gme', 'invalid-unit-test'
+            '-gme', '{},invalid-unit-test'.format(ut_id(gvar, 'clm2')),
+            '-g', ut_id(gvar, 'clg1'),
+            '-su', ut_id(gvar, 'clu4'),
+            '-spw', user_secret
         ]
     )
 
     # 28
-    execute_csv2_command(
-        gvar, 1, 'CV', 'cloud add, "{}" failed - specified metadata_name "invalid-unit-test" does not exist.'.format(ut_id(gvar, 'cli-invalid-unit-test')),
-        ['cloudscheduler', 'cloud', 'add',
-            '-cn', ut_id(gvar, 'cli-invalid-unit-test'),
-            '-ca', 'invalid-unit-test',
-            '-cpw', 'invalid-unit-test',
-            '-cP', 'invalid-unit-test',
-            '-cr', 'invalid-unit-test',
-            '-ct', 'local',
-            '-cU', 'invalid-unit-test',
-            '-gme', '{},invalid-unit-test'.format(ut_id(gvar, 'clm2'))
-        ]
-    )
-
-    # 29
     execute_csv2_command(
         gvar, 0, None, 'cloud "{}::{}" successfully added.'.format(ut_id(gvar, 'clg1'), ut_id(gvar, 'clc10')),
         ['cloudscheduler', 'cloud', 'add',
@@ -301,13 +301,16 @@ def main(gvar, user_secret):
             '-vka', '10',
             '-vn', '',
             '-csp', '10',
-            '-gme', ut_id(gvar, 'clm2')
+            '-gme', ut_id(gvar, 'clm2'),
+            '-g', ut_id(gvar, 'clg1'),
+            '-su', ut_id(gvar, 'clu4'),
+            '-spw', user_secret
         ]
     )
 
-    # 30
+    # 29
     execute_csv2_command(
-        gvar, 1, 'CV', 'Duplicate entry \\\'{}-{}\\\' for key \\\'PRIMARY\\\''.format(ut_id(gvar, 'clg1'), ut_id(gvar, 'clc10')),
+        gvar, 1, 'CV', 'Duplicate entry \'{}-{}\' for key \'PRIMARY\''.format(ut_id(gvar, 'clg1'), ut_id(gvar, 'clc10')),
         ['cloudscheduler', 'cloud', 'add',
             '-cn', ut_id(gvar, 'clc10'),
             '-ca', 'command-line-cloud-ten.ca',
@@ -315,11 +318,14 @@ def main(gvar, user_secret):
             '-cP', 'command-line-cloud-ten',
             '-cr', 'clc10-r',
             '-ct', 'local',
-            '-cU', ut_id(gvar, 'clc10')
+            '-cU', ut_id(gvar, 'clc10'),
+            '-g', ut_id(gvar, 'clg1'),
+            '-su', ut_id(gvar, 'clu4'),
+            '-spw', user_secret
         ]
     )
 
-    # 31
+    # 30
     execute_csv2_command(
         gvar, 0, None, 'cloud "{}::{}" successfully added.'.format(ut_id(gvar, 'clg1'), ut_id(gvar, 'clc11')),
         ['cloudscheduler', 'cloud', 'add',
@@ -330,11 +336,14 @@ def main(gvar, user_secret):
             '-cr', 'clc11-r',
             '-ct', 'local',
             '-cU', ut_id(gvar, 'clc11'),
-            '-gme', ut_id(gvar, 'clm2,clm2.yaml')
+            '-gme', ut_id(gvar, 'clm2,clm2.yaml'),
+            '-g', ut_id(gvar, 'clg1'),
+            '-su', ut_id(gvar, 'clu4'),
+            '-spw', user_secret
         ]
     )
 
-    # 32
+    # 31
     execute_csv2_command(
         gvar, 0, None, 'cloud "{}::{}" successfully added.'.format(ut_id(gvar, 'clg1'), ut_id(gvar, 'clc12')),
         ['cloudscheduler', 'cloud', 'add',
@@ -345,8 +354,9 @@ def main(gvar, user_secret):
             '-cr', 'clc12-r',
             '-ct', 'local',
             '-cU', ut_id(gvar, 'clc12'),
-            '-s', 'unit-test',
             '-g', ut_id(gvar, 'clg1'),
+            '-su', ut_id(gvar, 'clu4'),
+            '-spw', user_secret
         ]
     )
 
