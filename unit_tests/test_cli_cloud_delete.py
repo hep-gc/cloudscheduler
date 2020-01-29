@@ -74,19 +74,19 @@ def main(gvar, user_secret):
     # 11
     execute_csv2_command(
         gvar, 1, None, 'cannot delete "invalid-unit-test", cloud doesn\'t exist in group "{}".'.format(ut_id(gvar, 'clg1')),
-        ['cloudscheduler', 'cloud', 'delete', '-cn', 'invalid-unit-test', '-g', ut_id(gvar, 'clg1'), '-su', ut_id(gvar, 'clu4'), '-spw', user_secret]
+        ['cloudscheduler', 'cloud', 'delete', '-cn', 'invalid-unit-test', '-su', ut_id(gvar, 'clu4'), '-spw', user_secret]
     )
 
     # 12
     execute_csv2_command(
         gvar, 0, None, 'cloud "{}::{}" successfully deleted.'.format(ut_id(gvar, 'clg1'), ut_id(gvar, 'clc1')),
-        ['cloudscheduler', 'cloud', 'delete', '-cn', ut_id(gvar, 'clc1'), '-Y', '-g', ut_id(gvar, 'clg1'), '-su', ut_id(gvar, 'clu4'), '-spw', user_secret]
+        ['cloudscheduler', 'cloud', 'delete', '-cn', ut_id(gvar, 'clc1'), '-Y', '-su', ut_id(gvar, 'clu4'), '-spw', user_secret]
     )
 
     # 13
     execute_csv2_command(
         gvar, 0, None, 'cloud "{}::{}" successfully deleted.'.format(ut_id(gvar, 'clg1'), ut_id(gvar, 'clc3')),
-        ['cloudscheduler', 'cloud', 'delete', '-cn', ut_id(gvar, 'clc3'), '-Y', '-g', ut_id(gvar, 'clg1'), '-su', ut_id(gvar, 'clu4'), '-spw', user_secret]
+        ['cloudscheduler', 'cloud', 'delete', '-cn', ut_id(gvar, 'clc3'), '-Y', '-su', ut_id(gvar, 'clu4'), '-spw', user_secret]
     )
 
 if __name__ == "__main__":

@@ -74,25 +74,25 @@ def main(gvar, user_secret):
     # 11
     execute_csv2_command(
         gvar, 1, None, 'cannot delete "{}::invalid-unit-test::invalid-unit-test", file doesn\'t exist.'.format(ut_id(gvar, 'clg1')),
-        ['cloudscheduler', 'cloud', 'metadata-delete', '-cn', 'invalid-unit-test', '-mn', 'invalid-unit-test', '-g', ut_id(gvar, 'clg1'), '-su', ut_id(gvar, 'clu4'), '-spw', user_secret]
+        ['cloudscheduler', 'cloud', 'metadata-delete', '-cn', 'invalid-unit-test', '-mn', 'invalid-unit-test', '-su', ut_id(gvar, 'clu4'), '-spw', user_secret]
     )
 
     # 12
     execute_csv2_command(
         gvar, 1, None, 'the request did not match any rows.',
-        ['cloudscheduler', 'cloud', 'metadata-delete', '-cn', ut_id(gvar, 'clc2'), '-mn', 'invalid-unit-test', '-Y', '-g', ut_id(gvar, 'clg1'), '-su', ut_id(gvar, 'clu4'), '-spw', user_secret]
+        ['cloudscheduler', 'cloud', 'metadata-delete', '-cn', ut_id(gvar, 'clc2'), '-mn', 'invalid-unit-test', '-Y', '-su', ut_id(gvar, 'clu4'), '-spw', user_secret]
     )
 
     # 13
     execute_csv2_command(
         gvar, 0, None, 'cloud metadata file "{}::{}::{}" successfully deleted.'.format(ut_id(gvar, 'clg1'), ut_id(gvar, 'clc2'), ut_id(gvar, 'clm1')),
-        ['cloudscheduler', 'cloud', 'metadata-delete', '-cn', ut_id(gvar, 'clc2'), '-mn', ut_id(gvar, 'clm1'), '-Y', '-g', ut_id(gvar, 'clg1'), '-su', ut_id(gvar, 'clu4'), '-spw', user_secret]
+        ['cloudscheduler', 'cloud', 'metadata-delete', '-cn', ut_id(gvar, 'clc2'), '-mn', ut_id(gvar, 'clm1'), '-Y', '-su', ut_id(gvar, 'clu4'), '-spw', user_secret]
     )
 
     # 14
     execute_csv2_command(
         gvar, 0, None, 'cloud metadata file "{}::{}::{}" successfully deleted.'.format(ut_id(gvar, 'clg1'), ut_id(gvar, 'clc2'), ut_id(gvar, 'clm3')),
-        ['cloudscheduler', 'cloud', 'metadata-delete', '-cn', ut_id(gvar, 'clc2'), '-mn', ut_id(gvar, 'clm3'), '-Y', '-g', ut_id(gvar, 'clg1'), '-su', ut_id(gvar, 'clu4'), '-spw', user_secret, '-s', 'unit-test']
+        ['cloudscheduler', 'cloud', 'metadata-delete', '-cn', ut_id(gvar, 'clc2'), '-mn', ut_id(gvar, 'clm3'), '-Y', '-su', ut_id(gvar, 'clu4'), '-spw', user_secret, '-s', 'unit-test']
     )
 
 if __name__ == "__main__":

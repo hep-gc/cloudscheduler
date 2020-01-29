@@ -259,7 +259,6 @@ def main(gvar, user_secret):
             '-ct', 'local',
             '-cU', 'invalid-unit-test',
             '-gme', 'invalid-unit-test',
-            '-g', ut_id(gvar, 'clg1'),
             '-su', ut_id(gvar, 'clu4'),
             '-spw', user_secret
         ]
@@ -277,7 +276,6 @@ def main(gvar, user_secret):
             '-ct', 'local',
             '-cU', 'invalid-unit-test',
             '-gme', '{},invalid-unit-test'.format(ut_id(gvar, 'clm2')),
-            '-g', ut_id(gvar, 'clg1'),
             '-su', ut_id(gvar, 'clu4'),
             '-spw', user_secret
         ]
@@ -302,7 +300,6 @@ def main(gvar, user_secret):
             '-vn', '',
             '-csp', '10',
             '-gme', ut_id(gvar, 'clm2'),
-            '-g', ut_id(gvar, 'clg1'),
             '-su', ut_id(gvar, 'clu4'),
             '-spw', user_secret
         ]
@@ -319,7 +316,6 @@ def main(gvar, user_secret):
             '-cr', 'clc10-r',
             '-ct', 'local',
             '-cU', ut_id(gvar, 'clc10'),
-            '-g', ut_id(gvar, 'clg1'),
             '-su', ut_id(gvar, 'clu4'),
             '-spw', user_secret
         ]
@@ -337,7 +333,6 @@ def main(gvar, user_secret):
             '-ct', 'local',
             '-cU', ut_id(gvar, 'clc11'),
             '-gme', ut_id(gvar, 'clm2,clm2.yaml'),
-            '-g', ut_id(gvar, 'clg1'),
             '-su', ut_id(gvar, 'clu4'),
             '-spw', user_secret
         ]
@@ -354,7 +349,6 @@ def main(gvar, user_secret):
             '-cr', 'clc12-r',
             '-ct', 'local',
             '-cU', ut_id(gvar, 'clc12'),
-            '-g', ut_id(gvar, 'clg1'),
             '-su', ut_id(gvar, 'clu4'),
             '-spw', user_secret
         ]

@@ -62,7 +62,7 @@ def main(gvar, user_secret):
     # 09
     execute_csv2_command(
         gvar, 0, None, 'Server: unit-test-un, Active User: {}, Active Group: {}'.format(ut_id(gvar, 'clu4'), ut_id(gvar, 'clg1')),
-        ['cloudscheduler', 'cloud', 'list', '-g', ut_id(gvar, 'clg1'), '-su', ut_id(gvar, 'clu4'), '-spw', user_secret]
+        ['cloudscheduler', 'cloud', 'list', '-su', ut_id(gvar, 'clu4'), '-spw', user_secret]
     )
 
     # 10
