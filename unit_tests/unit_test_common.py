@@ -59,8 +59,9 @@ def execute_csv2_command(gvar, expected_rc, expected_modid, expected_text, cmd, 
                 rows = stdout.split('\n')
                 for row in rows:
                     if len(row) > 1 and row[:2] == '+ ':
+                        row_trimmed = row[2:-2].strip()
                         # Split on either '<zero or more spaces>|<zero or more spaces>' occurring one or more times, or two or more spaces in a row. Then filter out empty strings.
-                        columns_found.extend(filter(None, re.split(r'(?:\s*\|\s*)+|(?:\s{2,})', row[2:-2])))
+                        columns_found.extend(filter(None, re.split(r'(?:\s*\|\s*)+|(?:\s{2,})', row_trimmed)))
                 columns_set = set(columns)
                 columns_found_set = set(columns_found)
                 if columns_set != columns_found_set:
