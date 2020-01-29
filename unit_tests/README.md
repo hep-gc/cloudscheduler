@@ -2,9 +2,8 @@
 
 ## To Use
 
-Create `unit-test` and `unit-test-un` server aliases in defaults (using the `cloudscheduler defaults set` cli command). These can have the same server address.
+Create a `unit-test` server alias in defaults (using the `cloudscheduler defaults set` cli command).
 The `unit-test` server should have the `server-address`, `server-user`, and `server-password` of a privleged user.
-The `unit-test-un` just needs the `server-address` of the server to test.
 
 To run tests:
 
@@ -24,23 +23,6 @@ To run tests:
 # skip setup, cleanup, and all tests
 ./run_tests [999] -ss -sc
 ```
-
-## Running the Database Interaction Tests
-
-These tests are set to only run when specified:
-
-```
-./run_tests db
-```
-
-For a successful test run, the following must be done first:
-
-1. Stop all csv2 services. `systemctl stop 'csv2*'`
-1. Restart the mariadb service. `systemctl restart mariadb`
-1. Load the test vm data into the database. `mysql -ucsv2 -p csv2 < /opt/cloudscheduler/unit_tests/csv2_test_data.sql`
-1. Restart the web server. `systemctl restart httpd`
-1. Run the tests. `./run_tests db`
-
 ## To Develop
 
 Add test files with a name of the form: `test_<object>[<priority>]_<endpoint>[_<detail>].py`.

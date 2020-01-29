@@ -100,6 +100,12 @@ def execute_csv2_request(gvar, expected_rc, expected_modid, expected_text, reque
 
     from unit_test_common import _caller, _execute_selections, _requests
 
+    if server_user and not server_pw:
+        if server_user == gvar['user_settings']['server-user']:
+            server_pw = gvar['user_settings']['server-password']
+        else:
+            server_pw = gvar['user_secret']
+
     if _execute_selections(gvar, 'req=%s, group=%s, form=%s, query=%s' % (request, group, form_data, query_data), expected_text, values):
         if server_user and server_pw:
             gvar['csrf'] = None
@@ -273,6 +279,18 @@ def initialize_csv2_request(gvar, command, selections=None, hidden=False):
     gvar['user_settings'] = yaml.full_load(fd.read())
     fd.close()
 
+    # Get user_secret.
+    os.umask(0)
+    try:
+        with open(os.path.expanduser('~/.pw/csv2-unit-test.txt'), 'r') as pw_file:
+            gvar['user_secret'] = pw_file.read()
+    except FileNotFoundError:
+        gvar['user_secret'] = generate_secret()
+        # Create ~/.pw/csv2-unit-test.txt with all permissions for the current user and none for others. Save user_secret there in plain text.
+        os.makedirs(os.path.expanduser('~/.pw'), exist_ok=True)
+        with open(os.open(os.path.expanduser('~/.pw/csv2-unit-test.txt'), os.O_CREAT | os.O_WRONLY, 0o700), 'w') as pw_file:
+            pw_file.write(gvar['user_secret'])
+
     return
 
 def _requests(gvar, request, group=None, form_data={}, query_data={}, server_user=None, server_pw=None, html=False):
@@ -290,13 +308,6 @@ def _requests(gvar, request, group=None, form_data={}, query_data={}, server_use
         print('Error: user settings for server "%s" does not contain a URL value.' % gvar['server'])
         exit(1)
 
-#   if form_data:
-#       _function = py_requests.post
-#       _form_data = {**form_data, **{'csrfmiddlewaretoken': gvar['csrf']}}
-#   else:
-#       _function = py_requests.get
-#       _form_data = {}
-    
     if html:
         headers={'Referer': gvar['user_settings']['server-address']}
     else:
@@ -307,7 +318,6 @@ def _requests(gvar, request, group=None, form_data={}, query_data={}, server_use
 
         _r = _function(
             _request,
-#           '%s%s' % (gvar['user_settings']['server-address'], request),
             headers=headers,
             auth=(server_user, server_pw),
             data=_form_data,
@@ -323,7 +333,6 @@ def _requests(gvar, request, group=None, form_data={}, query_data={}, server_use
 
         _r = _function(
             _request,
-#           '%s%s' % (gvar['user_settings']['server-address'], request),
             headers=headers,
             cert=(gvar['user_settings']['server-grid-cert'], gvar['user_settings']['server-grid-key']),
             data=_form_data,
@@ -338,7 +347,6 @@ def _requests(gvar, request, group=None, form_data={}, query_data={}, server_use
 
         _r = _function(
             _request,
-#           '%s%s' % (gvar['user_settings']['server-address'], request),
             headers=headers,
             auth=(gvar['user_settings']['server-user'], gvar['user_settings']['server-password']),
             data=_form_data,

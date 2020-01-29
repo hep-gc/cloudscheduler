@@ -3,7 +3,7 @@ from sys import argv
 
 # lno: CV - error code identifier.
 
-def main(gvar, user_secret):
+def main(gvar):
     if not gvar:
         gvar = {}
         if len(argv) > 1:
@@ -16,35 +16,35 @@ def main(gvar, user_secret):
     execute_csv2_request(
         gvar, 2, None, 'server "unit-test", HTTP response code 401, unauthorized.',
         '/cloud/status/', group=ut_id(gvar, 'ctg1'),
-        server_user='invalid-unit-test', server_pw=user_secret
+        server_user='invalid-unit-test'
     )
 
     # 02
     execute_csv2_request(
         gvar, 1, 'CV', 'user "{}" is not a member of any group.'.format(ut_id(gvar, 'ctu1')),
         '/cloud/status/', group=ut_id(gvar, 'ctg1'),
-        server_user=ut_id(gvar, 'ctu1'), server_pw=user_secret
+        server_user=ut_id(gvar, 'ctu1')
     )
 
     # 03
     execute_csv2_request(
         gvar, 1, 'CV', 'user "{}" is not a member of any group.'.format(ut_id(gvar, 'ctu2')),
         '/cloud/status/', group=ut_id(gvar, 'ctg1'),
-        server_user=ut_id(gvar, 'ctu2'), server_pw=user_secret
+        server_user=ut_id(gvar, 'ctu2')
     )
 
     # 04
     execute_csv2_request(
         gvar, 1, 'CV', 'cannot switch to invalid group "invalid-unit-test".',
         '/cloud/status/', group='invalid-unit-test',
-        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
+        server_user=ut_id(gvar, 'ctu3')
     )
 
     # 05
     execute_csv2_request(
         gvar, 1, 'CV', 'cannot switch to invalid group "{}".'.format(ut_id(gvar, 'ctg2')),
         '/cloud/status/', group=ut_id(gvar, 'ctg2'),
-        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
+        server_user=ut_id(gvar, 'ctu3')
     )
 
     # 06
@@ -82,7 +82,7 @@ def main(gvar, user_secret):
             'ram_foreign': 0,
             'ram_native_foreign': 0,
         },
-        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
+        server_user=ut_id(gvar, 'ctu3')
     )
 
 if __name__ == "__main__":

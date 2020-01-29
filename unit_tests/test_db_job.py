@@ -3,7 +3,7 @@ from sys import argv
 
 # lno: JV - error code identifier.
 
-def main(gvar, user_secret):
+def main(gvar):
     if not gvar:
         gvar = {}
         if len(argv) > 1:
@@ -18,8 +18,8 @@ def main(gvar, user_secret):
             'request_ram': 1,
             'request_disk': '0.0010',
             'job_priority': 10
-        },
+        }
     )
 
 if __name__ == "__main__":
-    main(None, None)
+    main(None)

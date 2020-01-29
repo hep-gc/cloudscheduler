@@ -3,7 +3,7 @@ from sys import argv
 
 # lno: GV - error code identifier.
 
-def main(gvar, user_secret):
+def main(gvar):
     if not gvar:
         gvar = {}
         if len(argv) > 1:
@@ -15,82 +15,91 @@ def main(gvar, user_secret):
     execute_csv2_request(
         gvar, 2, None, 'HTTP response code 401, unauthorized.',
         '/group/update/',
-        server_user='invalid-unit-test', server_pw=user_secret
+        server_user='invalid-unit-test'
     )
 
     # 02
     execute_csv2_request(
         gvar, 2, None, 'HTTP response code 403, forbidden.',
         '/group/update/',
-        server_user=ut_id(gvar, 'gtu1') , server_pw=user_secret
+        server_user=ut_id(gvar, 'gtu1') 
     )
 
     # 03
     execute_csv2_request(
         gvar, 2, None, 'HTTP response code 403, forbidden.',
         '/group/update/',
-        server_user=ut_id(gvar, 'gtu3') , server_pw=user_secret
+        server_user=ut_id(gvar, 'gtu3') 
     )
 
     # 04
     execute_csv2_request(
         gvar, 1, None, 'user "{}" is not a member of any group.'.format(ut_id(gvar, 'gtu2')),
         '/group/update/',
-        server_user=ut_id(gvar, 'gtu2') , server_pw=user_secret
+        server_user=ut_id(gvar, 'gtu2') 
     )
 
     # 05
     execute_csv2_request(
         gvar, 1, 'GV', 'invalid method "GET" specified.',
-        '/group/update/'
+        '/group/update/',
+        server_user=ut_id(gvar, 'gtu5')
     )
 
     # 06
     execute_csv2_request(
         gvar, 1, 'GV', 'cannot switch to invalid group "invalid-unit-test".',
-        '/group/update/', group='invalid-unit-test'
+        '/group/update/', group='invalid-unit-test',
+        server_user=ut_id(gvar, 'gtu5')
     )
 
     # 07
     execute_csv2_request(
         gvar, 1, 'GV', 'request contained a bad parameter "invalid-unit-test".',
-        '/group/update/', form_data={'invalid-unit-test': 'invalid-unit-test'}
+        '/group/update/', form_data={'invalid-unit-test': 'invalid-unit-test'},
+        server_user=ut_id(gvar, 'gtu5')
     )
 
     # 08
     execute_csv2_request(
         gvar, 1, 'GV', 'value specified for "group_name" must be all lower case, numeric digits, and dashes but cannot start or end with dashes.',
-        '/group/update/', form_data={'group_name': ut_id(gvar, 'Gtg1')}
+        '/group/update/', form_data={'group_name': ut_id(gvar, 'Gtg1')},
+        server_user=ut_id(gvar, 'gtu5')
     )
 
     # 09
     execute_csv2_request(
         gvar, 1, 'GV', 'value specified for "group_name" must be all lower case, numeric digits, and dashes but cannot start or end with dashes.',
-        '/group/update/', form_data={'group_name': ut_id(gvar, 'gtg!1')}
+        '/group/update/', form_data={'group_name': ut_id(gvar, 'gtg!1')},
+        server_user=ut_id(gvar, 'gtu5')
     )
 
     # 10
     execute_csv2_request(
         gvar, 1, 'GV', 'value specified for "group_name" must be all lower case, numeric digits, and dashes but cannot start or end with dashes.',
-        '/group/update/', form_data={'group_name': ut_id(gvar, 'gtg1-')}
+        '/group/update/', form_data={'group_name': ut_id(gvar, 'gtg1-')},
+        server_user=ut_id(gvar, 'gtu5')
     )
 
     # 11
     execute_csv2_request(
         gvar, 1, 'GV', 'group update must specify at least one field to update.',
-        '/group/update/', form_data={'group_name': 'invalid-unit-test'}
+        '/group/update/', form_data={'group_name': 'invalid-unit-test'},
+        server_user=ut_id(gvar, 'gtu5')
     )
 
     # 12
     execute_csv2_request(
         gvar, 1, 'GV', 'value specified for "user_option" must be one of the following options: [\'add\', \'delete\'].',
-        '/group/update/', form_data={'user_option': 'invalid-unit-test'}
+        '/group/update/', form_data={'user_option': 'invalid-unit-test'},
+        server_user=ut_id(gvar, 'gtu5')
     )
 
     # 13
     execute_csv2_request(
         gvar, 1, 'GV', 'group update request did not contain mandatory parameter "group_name".',
-        '/group/update/', form_data={'username': 'invalid-unit-test'}
+        '/group/update/', form_data={'username': 'invalid-unit-test'},
+        server_user=ut_id(gvar, 'gtu5')
     )
 
     # 14
@@ -99,7 +108,8 @@ def main(gvar, user_secret):
         '/group/update/', form_data={
             'group_name': 'invalid-unit-test',
             'htcondor_fqdn': 'invalid-unit-test'
-        }
+        },
+        server_user=ut_id(gvar, 'gtu5')
     )
 
     ''' Currently htcondor_fqdn is allowed to be the empty string.
@@ -109,7 +119,8 @@ def main(gvar, user_secret):
         '/group/update/', form_data={
             'group_name': ut_id(gvar, 'gtg4'),
             'htcondor_fqdn': ''
-        }
+        },
+        server_user=ut_id(gvar, 'gtu5')
     )
     '''
 
@@ -120,7 +131,8 @@ def main(gvar, user_secret):
         form_data={
             'group_name': ut_id(gvar, 'gtg4'),
             'htcondor_fqdn': 'unit-test-group-four-update.ca'
-        }
+        },
+        server_user=ut_id(gvar, 'gtu5')
     )
 
     # 17
@@ -128,7 +140,8 @@ def main(gvar, user_secret):
         gvar, 0, None, None,
         '/group/list/',
         expected_list='group_list', list_filter={'group_name': ut_id(gvar, 'gtg4')},
-        values={'group_name': ut_id(gvar, 'gtg4'), 'htcondor_fqdn': 'unit-test-group-four-update.ca'}
+        values={'group_name': ut_id(gvar, 'gtg4'), 'htcondor_fqdn': 'unit-test-group-four-update.ca'},
+        server_user=ut_id(gvar, 'gtu5')
     )
 
     # 18
@@ -138,7 +151,8 @@ def main(gvar, user_secret):
         form_data={
             'group_name': ut_id(gvar, 'gtg4'),
             'username.1': 'invalid-unit-test'
-        }
+        },
+        server_user=ut_id(gvar, 'gtu5')
     )
 
     # 19
@@ -149,7 +163,8 @@ def main(gvar, user_secret):
             'group_name': ut_id(gvar, 'gtg4'),
             'username.1': ut_id(gvar, 'gtu4'),
             'username.2': ut_id(gvar, 'gtu4')
-        }
+        },
+        server_user=ut_id(gvar, 'gtu5')
     )
 
     # 20
@@ -157,7 +172,8 @@ def main(gvar, user_secret):
         gvar, 0, None, None,
         '/group/list/',
         expected_list='group_list', list_filter={'group_name': ut_id(gvar, 'gtg4')},
-        values={'group_name': ut_id(gvar, 'gtg4'), 'htcondor_fqdn': 'unit-test-group-four-update.ca'}
+        values={'group_name': ut_id(gvar, 'gtg4'), 'htcondor_fqdn': 'unit-test-group-four-update.ca'},
+        server_user=ut_id(gvar, 'gtu5')
     )
 
     # 21
@@ -167,7 +183,8 @@ def main(gvar, user_secret):
         form_data={
             'group_name': ut_id(gvar, 'gtg4'),
             'username.1': ut_id(gvar, 'gtu4')
-        }
+        },
+        server_user=ut_id(gvar, 'gtu5')
     )
 
     # 22
@@ -175,7 +192,8 @@ def main(gvar, user_secret):
         gvar, 0, None, None,
         '/group/list/',
         expected_list='group_list', list_filter={'group_name': ut_id(gvar, 'gtg4')},
-        values={'group_name': ut_id(gvar, 'gtg4'), 'htcondor_fqdn': 'unit-test-group-four-update.ca'}
+        values={'group_name': ut_id(gvar, 'gtg4'), 'htcondor_fqdn': 'unit-test-group-four-update.ca'},
+        server_user=ut_id(gvar, 'gtu5')
     )
 
     # 23
@@ -183,7 +201,8 @@ def main(gvar, user_secret):
         gvar, 0, None, None,
         '/user/list/', #I assume /user/list does not need a group name specification since it is listing users, I could be wrong though
         expected_list='user_list', list_filter={'username': ut_id(gvar, 'gtu4')},
-        values={'user_groups': ut_id(gvar, 'gtg4')}
+        values={'user_groups': ut_id(gvar, 'gtg4')},
+        server_user=ut_id(gvar, 'gtu5')
     )
 
     # 24 Remove gtu4 (and all others) from gtg4
@@ -193,7 +212,8 @@ def main(gvar, user_secret):
         form_data={
             'group_name': ut_id(gvar, 'gtg4'),
             'username': ''
-        }, html=True
+        },
+        server_user=ut_id(gvar, 'gtu5'), html=True
     )
 
     # 25 Verify that 24 actually removed gtu4 from gtg4
@@ -201,7 +221,8 @@ def main(gvar, user_secret):
         gvar, 0, None, None,
         '/user/list/', #I assume /user/list does not need a group name specification since it is listing users, I could be wrong though
         expected_list='user_list', list_filter={'username': ut_id(gvar, 'gtu4')},
-        values={'user_groups': None}
+        values={'user_groups': None},
+        server_user=ut_id(gvar, 'gtu5')
     )
 
     # 26
@@ -211,7 +232,8 @@ def main(gvar, user_secret):
         form_data={
             'group_name': ut_id(gvar, 'gtg4'),
             'username.1': ut_id(gvar, 'gtu4')
-        }, html=True
+        },
+        server_user=ut_id(gvar, 'gtu5'), html=True
     )
 
     # 27
@@ -219,7 +241,8 @@ def main(gvar, user_secret):
         gvar, 0, None, None,
         '/user/list/', #I assume /user/list does not need a group name specification since it is listing users, I could be wrong though
         expected_list='user_list', list_filter={'username': ut_id(gvar, 'gtu4')},
-        values={'user_groups': ut_id(gvar, 'gtg4')}
+        values={'user_groups': ut_id(gvar, 'gtg4')},
+        server_user=ut_id(gvar, 'gtu5')
     )
 
     # 28
@@ -229,7 +252,8 @@ def main(gvar, user_secret):
         form_data={
             'group_name': ut_id(gvar, 'gtg4'),
             'username.1': ut_id(gvar, 'gtu5')
-        }, html=True
+        },
+        server_user=ut_id(gvar, 'gtu5'), html=True
     )
 
     # 29
@@ -237,7 +261,8 @@ def main(gvar, user_secret):
         gvar, 0, None, None,
         '/user/list/', #I assume /user/list does not need a group name specification since it is listing users, I could be wrong though
         expected_list='user_list', list_filter={'username': ut_id(gvar, 'gtu4')},
-        values={'user_groups': None}
+        values={'user_groups': None},
+        server_user=ut_id(gvar, 'gtg5')
     )
 
     # 30
@@ -245,7 +270,8 @@ def main(gvar, user_secret):
         gvar, 0, None, None,
         '/user/list/', #I assume /user/list does not need a group name specification since it is listing users, I could be wrong though
         expected_list='user_list', list_filter={'username': ut_id(gvar, 'gtu5')},
-        values={'user_groups': ut_id(gvar, 'gtg4,gtg5')}
+        values={'user_groups': ut_id(gvar, 'gtg4,gtg5')},
+        server_user=ut_id(gvar, 'gtg5')
     )
 
     # 31
@@ -256,7 +282,8 @@ def main(gvar, user_secret):
             'group_name': ut_id(gvar, 'gtg4'),
             'username.1': ut_id(gvar, 'gtu4'),
             'username.2': ut_id(gvar, 'gtu5')
-        }, html=True
+        },
+        server_user=ut_id(gvar, 'gtg5'), html=True
     )
 
     # 32
@@ -264,7 +291,8 @@ def main(gvar, user_secret):
         gvar, 0, None, None,
         '/user/list/', #I assume /user/list does not need a group name specification since it is listing users, I could be wrong though
         expected_list='user_list', list_filter={'username': ut_id(gvar, 'gtu4')},
-        values={'user_groups': ut_id(gvar, 'gtg4')}
+        values={'user_groups': ut_id(gvar, 'gtg4')},
+        server_user=ut_id(gvar, 'gtg5')
     )
 
     # 33
@@ -272,7 +300,8 @@ def main(gvar, user_secret):
         gvar, 0, None, None,
         '/user/list/', #I assume /user/list does not need a group name specification since it is listing users, I could be wrong though
         expected_list='user_list', list_filter={'username': ut_id(gvar, 'gtu5')},
-        values={'user_groups': ut_id(gvar, 'gtg4,gtg5')}
+        values={'user_groups': ut_id(gvar, 'gtg4,gtg5')},
+        server_user=ut_id(gvar, 'gtg5')
     )
 
 if __name__ == "__main__":

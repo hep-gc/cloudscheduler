@@ -3,7 +3,7 @@ from sys import argv
 
 # lno: GV - error code identifier.
 
-def main(gvar, user_secret):
+def main(gvar):
     if not gvar:
         gvar = {}
         if len(argv) > 1:
@@ -15,14 +15,14 @@ def main(gvar, user_secret):
     execute_csv2_request(
         gvar, 2, None, 'HTTP response code 401, unauthorized.',
         '/group/metadata-delete/',
-        server_user='invalid-unit-test', server_pw=user_secret
+        server_user='invalid-unit-test'
     )
 
     # 02
     execute_csv2_request(
         gvar, 1, 'GV', 'user "{}" is not a member of any group.'.format(ut_id(gvar, 'gtu1')),
         '/group/metadata-delete/',
-        server_user=ut_id(gvar, 'gtu1'), server_pw=user_secret
+        server_user=ut_id(gvar, 'gtu1')
     )
 
     # 03
@@ -30,14 +30,14 @@ def main(gvar, user_secret):
         gvar, 1, 'GV', 'user "%s" is not a member of any group.' % ut_id(gvar, 'gtu1'),
         '/group/metadata-delete/'
 , form_data={'invalid-unit-test': 'invalid-unit-test'},
-        server_user=ut_id(gvar, 'gtu1'), server_pw=user_secret
+        server_user=ut_id(gvar, 'gtu1')
     )
 
     # 04
     execute_csv2_request(
         gvar, 1, 'GV', 'group metadata-delete request did not contain mandatory parameter "metadata_name".',
         '/group/metadata-delete/', group=ut_id(gvar, 'gtg5'),
-        server_user=ut_id(gvar, 'gtu3'), server_pw=user_secret
+        server_user=ut_id(gvar, 'gtu3')
     )
 
     # 05
@@ -48,7 +48,7 @@ def main(gvar, user_secret):
             'metadata_name': 'invalid-unit-test',
             'invalid-unit-test': 'invalid-unit-test'
         },
-        server_user=ut_id(gvar, 'gtu3'), server_pw=user_secret
+        server_user=ut_id(gvar, 'gtu3')
     )
 
     # 06
@@ -57,7 +57,7 @@ def main(gvar, user_secret):
         '/group/metadata-delete/', group='invalid-unit-test', form_data={
             'metadata_name': 'invalid-unit-test'
             },
-        server_user=ut_id(gvar, 'gtu3'), server_pw=user_secret
+        server_user=ut_id(gvar, 'gtu3')
     )
 
     # 07
@@ -66,7 +66,7 @@ def main(gvar, user_secret):
         '/group/metadata-delete/', group=ut_id(gvar, 'gtg7'), form_data={
             'metadata_name': 'invalid-unit-test'
             },
-        server_user=ut_id(gvar, 'gtu3'), server_pw=user_secret
+        server_user=ut_id(gvar, 'gtu3')
     )
 
     # 08
@@ -75,7 +75,7 @@ def main(gvar, user_secret):
         '/group/metadata-delete/', group=ut_id(gvar, 'gtg5'), form_data={
             'metadata_name': 'invalid-unit-test'
             },
-        server_user=ut_id(gvar, 'gtu3'), server_pw=user_secret
+        server_user=ut_id(gvar, 'gtu3')
     )
 
     # 09
@@ -84,7 +84,7 @@ def main(gvar, user_secret):
         '/group/metadata-delete/', group=ut_id(gvar, 'gtg5'), form_data={
             'metadata_name': ut_id(gvar, 'gty4')
             },
-        server_user=ut_id(gvar, 'gtu3'), server_pw=user_secret
+        server_user=ut_id(gvar, 'gtu3')
     )
 
     # Deleting group metadata that is in a clouds exceptions list should remove it from that list
@@ -93,7 +93,7 @@ def main(gvar, user_secret):
         gvar, 0, None, None,
         '/cloud/list/', group=ut_id(gvar, 'gtg5'),expected_list='cloud_list', list_filter={'cloud_name': ut_id(gvar, 'gtc1')},
         values={'cloud_name': ut_id(gvar, 'gtc1'), 'group_name': ut_id(gvar, 'gtg5'), 'group_exclusions': ut_id(gvar, 'gty6')},
-        server_user=ut_id(gvar, 'gtu3'), server_pw=user_secret
+        server_user=ut_id(gvar, 'gtu3')
     )
 
     # 11
@@ -102,7 +102,7 @@ def main(gvar, user_secret):
         '/group/metadata-delete/', group=ut_id(gvar, 'gtg5'), form_data={
             'metadata_name': ut_id(gvar, 'gty6')
             },
-        server_user=ut_id(gvar, 'gtu3'), server_pw=user_secret
+        server_user=ut_id(gvar, 'gtu3')
     )
 
     # 12
@@ -111,14 +111,14 @@ def main(gvar, user_secret):
         '/cloud/list/', group=ut_id(gvar, 'gtg5'),
         expected_list='cloud_list', list_filter={'cloud_name': ut_id(gvar, 'gtc1')},
         values={'cloud_name': ut_id(gvar, 'gtc1'), 'group_name': ut_id(gvar, 'gtg5'), 'group_exclusions': None},
-        server_user=ut_id(gvar, 'gtu3'), server_pw=user_secret
+        server_user=ut_id(gvar, 'gtu3')
     )
 
     # 13
     execute_csv2_request(
         gvar, 1, 'GV', 'group metadata-delete request did not contain mandatory parameter "metadata_name".',
         '/group/metadata-delete/',
-        server_user=ut_id(gvar, 'gtu3'), server_pw=user_secret
+        server_user=ut_id(gvar, 'gtu3')
     )
 
 if __name__ == "__main__":

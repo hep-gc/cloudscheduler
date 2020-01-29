@@ -4,15 +4,15 @@ import subprocess
 from time import sleep
 import db_requests_cleanup
 
-def main(gvar, user_secret):
+def main(gvar):
     if not gvar:
         gvar = {}
         if len(argv) > 1:
             initialize_csv2_request(gvar, argv[0], selections=argv[1])
         else:
             initialize_csv2_request(gvar, argv[0])
-    if not user_secret:
-        user_secret = generate_secret()
+    if not gvar['user_secret']:
+        gvar['user_secret'] = generate_secret()
 
     db_requests_cleanup.main(gvar)
 
@@ -32,8 +32,8 @@ def main(gvar, user_secret):
         '/user/add/'
 , form_data={
             'username': ut_id(gvar, 'dtu1'),
-            'password1': user_secret,
-            'password2': user_secret,
+            'password1': gvar['user_secret'],
+            'password2': gvar['user_secret'],
             'cert_cn': '{} test user one'.format(ut_id(gvar, 'database')),
             'group_name.1': ut_id(gvar, 'dtg1')
         }
@@ -47,11 +47,11 @@ def main(gvar, user_secret):
             'authurl': 'csv2-dev.heprc.uvic.ca',
             'project': 'db-test-cloud-one',
             'username': ut_id(gvar, 'dtu1'),
-            'password': user_secret,
+            'password': gvar['user_secret'],
             'region': ut_id(gvar, 'dtr1'),
             'cloud_type': 'openstack'
         },
-        server_user=ut_id(gvar, 'dtu1'), server_pw=user_secret
+        server_user=ut_id(gvar, 'dtu1')
     )
 
     job_path = 'db_job.sh'
@@ -84,4 +84,4 @@ def main(gvar, user_secret):
 
 
 if __name__ == "__main__":
-    main(None, None)
+    main(None)
