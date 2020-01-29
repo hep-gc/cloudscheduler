@@ -11,6 +11,7 @@ import os
 import shutil
 import socket
 import sys
+import time
 import yaml
 
 def main(args):
@@ -61,7 +62,15 @@ def main(args):
             continue
 
         if len(args[args_ix]) > 1 and args[args_ix][0] == '-': 
-            if args[args_ix][1:] == 'h' or args[args_ix][1:] == '-help':
+            if args[args_ix][1:] == 'e' or args[args_ix][1:] == '-ephemeral-directory':
+                if args_ix < len(args)-1:
+                    gvar['ephemeral_directory'] = args[args_ix+1]
+                    skip_next = True
+                    print(gvar['ephemeral_directory'])
+                else:
+                    raise Exception('Ephemeral directory parameter value omitted.')
+
+            elif args[args_ix][1:] == 'h' or args[args_ix][1:] == '-help':
                 gvar['help'] = True
 
             elif args[args_ix][1:] == 'm' or args[args_ix][1:] == '-model':
@@ -93,6 +102,25 @@ def main(args):
 
         for provider in gvar['schema_config']['providers']:
             systemctl_restart(gvar, provider)
+
+    # Neither model nor target specified, pause database activity.
+    else:
+        print('\ncsv2 schema-backup pausing database activity...')
+        _p1 = Popen(
+            [
+                'mysql',
+                '-u%s' % gvar['db_config'].db_config['db_user'],
+                '-p%s' % gvar['db_config'].db_config['db_password'],
+                '-e',
+                'update csv2_configuration set config_value=true where category="ProcessMonitor" and config_key="pause";',
+                gvar['db_config'].db_config['db_name']
+                ],
+            stdout=PIPE,
+            stderr=PIPE
+            )
+        stdout, stderr = _p1.communicate()
+        
+        time.sleep(gvar['schema_config']['pause_interval'])
 
     _p1 = Popen(
         [
@@ -130,9 +158,9 @@ def main(args):
             else:
                 backup(gvar, table, gvar['backup_dir'])
 
-    print('\ncsv2 schema-backup starting local backups...')
-
     if 'user_data_backup_dir' in gvar and 'local' in gvar['schema_config'] and len(gvar['schema_config']['local']) > 0:
+        print('\ncsv2 schema-backup starting local backups...')
+
         os.makedirs(gvar['user_data_backup_dir'], 0o640)
 
         try:
@@ -145,13 +173,34 @@ def main(args):
         for table in gvar['schema_config']['local']:
             backup(gvar, table, gvar['user_data_backup_dir'], data=True)
 
+    if 'ephemeral_directory' in gvar and 'ephemeral' in gvar['schema_config'] and len(gvar['schema_config']['ephemeral']) > 0:
+        print('\ncsv2 schema-backup starting ephemeral backups...')
+
+        for table in gvar['schema_config']['ephemeral']:
+            backup(gvar, table, None, data=True)
+
+    # Ensure database activity is not paused.
+    _p1 = Popen(
+        [
+            'mysql',
+            '-u%s' % gvar['db_config'].db_config['db_user'],
+            '-p%s' % gvar['db_config'].db_config['db_password'],
+            '-e',
+            'update csv2_configuration set config_value=false where category="ProcessMonitor" and config_key="pause";',
+            gvar['db_config'].db_config['db_name']
+            ],
+        stdout=PIPE,
+        stderr=PIPE
+        )
+    stdout, stderr = _p1.communicate()
+        
     # If model specified, restart the consumers.
     if gvar['model']:
         for consumer in gvar['schema_config']['consumers']:
             systemctl_restart(gvar, consumer)
 
     shutil.rmtree(gvar['temp_dir'])
-    print('csv2 schema-backup completed.')
+    print('\ncsv2 schema-backup completed.')
 
 def backup(gvar, table, backup_dir, data=False):
     """
@@ -191,53 +240,59 @@ def backup(gvar, table, backup_dir, data=False):
         print('Failed to retrieve table definition for: %s' % table)
 #       exit(1)
 
-    _fd = open('%s/%s' % (gvar['temp_dir'], table), 'w')
-    _fd.write(decode(gvar, stdout))
-    _fd.close()
+    if backup_dir:
+        _fd = open('%s/%s' % (gvar['temp_dir'], table), 'w')
+        _fd.write(decode(gvar, stdout))
+        _fd.close()
 
-    if os.path.isfile('%s/%s' % (backup_dir, table)):
-        _p1 = Popen(
-            [
-                'diff',
-                '%s/%s' % (backup_dir, table),
-                '%s/%s' % (gvar['temp_dir'], table)
-                ],
-            stdout=PIPE,
-            stderr=PIPE
-            )
-        _p2 = Popen(
-            [
-                'awk',
-                '/^<|^>/ && !/Dump completed on /'
-                ],
-            stdin=_p1.stdout,
-            stdout=PIPE,
-            stderr=PIPE
-            )
-        stdout, stderr = _p2.communicate()
-        if _p2.returncode != 0:
-            print('Failed to compare table definition for: %s' % table)
-            exit(1)
+        if os.path.isfile('%s/%s' % (backup_dir, table)):
+            _p1 = Popen(
+                [
+                    'diff',
+                    '%s/%s' % (backup_dir, table),
+                    '%s/%s' % (gvar['temp_dir'], table)
+                    ],
+                stdout=PIPE,
+                stderr=PIPE
+                )
+            _p2 = Popen(
+                [
+                    'awk',
+                    '/^<|^>/ && !/Dump completed on /'
+                    ],
+                stdin=_p1.stdout,
+                stdout=PIPE,
+                stderr=PIPE
+                )
+            stdout, stderr = _p2.communicate()
+            if _p2.returncode != 0:
+                print('Failed to compare table definition for: %s' % table)
+                exit(1)
+        else:
+            stdout = 'missing'
+
+        if decode(gvar, stdout) != '':
+            _p1 = Popen(
+                [
+                    'mv',
+                    '-f',
+                    '%s/%s' % (gvar['temp_dir'], table),
+                    '%s/%s' % (backup_dir, table)
+                    ],
+                stdout=PIPE,
+                stderr=PIPE
+                )
+            stdout, stderr = _p1.communicate()
+            if _p1.returncode != 0:
+                print('Failed to update table definition for: %s - %s' % (table, stderr))
+                exit(1)
+
+            print('Updated table definition for: %s' % table)
+
     else:
-        stdout = 'missing'
-
-    if decode(gvar, stdout) != '':
-        _p1 = Popen(
-            [
-                'mv',
-                '-f',
-                '%s/%s' % (gvar['temp_dir'], table),
-                '%s/%s' % (backup_dir, table)
-                ],
-            stdout=PIPE,
-            stderr=PIPE
-            )
-        stdout, stderr = _p1.communicate()
-        if _p1.returncode != 0:
-            print('Failed to update table definition for: %s - %s' % (table, stderr))
-            exit(1)
-
-        print('Updated table definition for: %s' % table)
+        _fd = open('%s/%s' % (gvar['ephemeral_directory'], table), 'w')
+        _fd.write(decode(gvar, stdout))
+        _fd.close()
 
 def decode(gvar, obj):
     if isinstance(obj, str):
