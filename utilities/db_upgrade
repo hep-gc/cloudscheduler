@@ -156,6 +156,7 @@ def main(args):
             print('\n1. Performing database backup.')
             p = Popen([
                 '%s/utilities/schema_backup' % '/'.join(gvar['path_info'][:gvar['ix']+1]),
+                '--ephemeral-directory', gvar['temp_dir'],
                 '--target'
                 ], stdout=PIPE, stderr=PIPE)
             stdout, stderr = p.communicate()
@@ -291,7 +292,7 @@ def main(args):
 
     ####
     print('\n10. Adding, ignoring or renaming target columns not in the model.')
-    for table in gvar['schema_config']['local']:
+    for table in gvar['schema_config']['local'] + gvar['schema_config']['ephemeral']:
         if ('action' in gvar['tables'][my_hostname][table] and gvar['tables'][my_hostname][table]['action'][0] == 'ignore'):
             continue
 
@@ -374,23 +375,22 @@ def main(args):
         fd.close()
 
     ####
-    print('\n11. Loading local configuration data.')
-    print(">>>>>>>>>>>>>>>>>>>>>> 1", gvar['schema_config']['local'], gvar['schema_config']['ephemeral'])
+    print('\n11. Loading local configuration and ephemeral data.')
     for table in sorted(gvar['schema_config']['local'] + gvar['schema_config']['ephemeral']):
-        print(">>>>>>>>>>>>>>>>>>>>>> 1", gvar['tables'][my_hostname][table])
         if ('action' in gvar['tables'][my_hostname][table] and gvar['tables'][my_hostname][table]['action'][0] == 'ignore') or \
             ('action' not in gvar['tables'][my_hostname][table] and
             ('differences' not in gvar['tables'][my_hostname][table] or len(gvar['tables'][my_hostname][table]['differences']) < 1)):
             continue
 
-        print(">>>>>>>>>>>>>>>>>>>>>> 1", table)
         redefine_table(gvar, table)
 
-        if table in gvar['schema_config']['ephemeral'] or \
-            'action' in gvar['tables'][my_hostname][table] and gvar['tables'][my_hostname][table]['action'][0] == 'add':
+#       if table in gvar['schema_config']['ephemeral'] or \
+#           'action' in gvar['tables'][my_hostname][table] and gvar['tables'][my_hostname][table]['action'][0] == 'add':
+#           continue
+
+        if 'action' in gvar['tables'][my_hostname][table] and gvar['tables'][my_hostname][table]['action'][0] == 'add':
             continue
 
-        print(">>>>>>>>>>>>>>>>>>>>>> 2", table)
         if 'action' in gvar['tables'][my_hostname][table] and gvar['tables'][my_hostname][table]['action'][0] == 'rename':
             model_table = gvar['tables'][my_hostname][table]['action'][1]
         else:
@@ -401,7 +401,6 @@ def main(args):
         if len(table_data) < 1:
             continue
 
-        print(">>>>>>>>>>>>>>>>>>>>>> 3", table)
         fd = open('%s/%s' % (gvar['temp_dir'], table), 'w')
         fd.write('INSERT INTO %s\n' % model_table)
 
@@ -412,7 +411,6 @@ def main(args):
             if col in gvar['tables'][my_hostname][table]['cola'] and gvar['tables'][my_hostname][table]['cola'][col][0] == 'ignore':
                 continue
 
-            print(">>>>>>>>>>>>>>>>>>>>>> 4", table)
             if col in gvar['tables'][my_hostname][table]['cola'] and gvar['tables'][my_hostname][table]['cola'][col][0] == 'rename':
                 model_col = gvar['tables'][my_hostname][table]['cola'][col][1]
             else:
@@ -422,7 +420,7 @@ def main(args):
          
         fd.write('(%s)\nVALUES\n' % ','.join(columns))
 
-        # Process local configuration table data.
+        # Process table data.
         for row_ix in range(len(table_data)):
             row = table_data[row_ix]
             columns=[]
@@ -431,7 +429,6 @@ def main(args):
                 if col in gvar['tables'][my_hostname][table]['cola'] and gvar['tables'][my_hostname][table]['cola'][col][0] == 'ignore':
                     continue
 
-                print(">>>>>>>>>>>>>>>>>>>>>> 5", table)
                 if col in gvar['tables'][my_hostname][table]['cola'] and gvar['tables'][my_hostname][table]['cola'][col][0] == 'rename':
                     model_col = gvar['tables'][my_hostname][table]['cola'][col][1]
                 else:
@@ -511,7 +508,6 @@ def main(args):
             else:
                 fd.write('(%s);\n' % ','.join(columns))
 
-        print(">>>>>>>>>>>>>>>>>>>>>> 6", table)
         fd.close()
 
         if gvar['run_mode'] == 'live':
@@ -568,7 +564,7 @@ def main(args):
         for consumer in gvar['schema_config']['consumers']:
             systemctl_restart(gvar, consumer)
 
-#   shutil.rmtree(gvar['temp_dir'])
+    shutil.rmtree(gvar['temp_dir'])
 
 def decode(obj):
     if not obj:
@@ -605,6 +601,9 @@ def get_action(gvar, question, answers):
 
     if question_answers in gvar['input_actions']:
         gvar['output_actions'][question_answers] = gvar['input_actions'][question_answers]
+
+    elif 'input_path' in gvar:
+        raise Exception('ERROR: Batch mode has no answer for "%s" (%s).' % (question.strip(), answers))
 
     else:
         answers_lower = []
@@ -656,7 +655,11 @@ def get_column_widths(gvar, fqdn, table):
 
 def get_table_data(gvar, table):
     table_data = []
-    table_path = '%s/%s' % (gvar['user_data_backup_dir'], table) 
+    if table in gvar['schema_config']['ephemeral']:
+        table_path = '%s/%s' % (gvar['temp_dir'], table) 
+    else:
+        table_path = '%s/%s' % (gvar['user_data_backup_dir'], table) 
+
     if os.path.isfile(table_path):
         fd = open(table_path)
         while True:
