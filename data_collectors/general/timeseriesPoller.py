@@ -5,10 +5,11 @@ import time
 import sys
 import os
 import requests
+import signal
 
 from cloudscheduler.lib.view_utils import qt
 from cloudscheduler.lib.db_config import *
-from cloudscheduler.lib.ProcessMonitor import ProcessMonitor
+from cloudscheduler.lib.ProcessMonitor import ProcessMonitor, terminate, check_pid
 from cloudscheduler.lib.schema import view_cloud_status
 from cloudscheduler.lib.schema import view_job_status
 from cloudscheduler.lib.schema import view_cloud_status_slot_detail
@@ -37,7 +38,8 @@ def timeseries_data_transfer():
     # A new row will also need to be added to csv2_system_status to track any crashes/errors that occur in this file
     # once that new row is added you will need to replace "N/A" with the name of the column for
     # "orange_count_row" in ProccessMonitor initialization in __main__
-    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', os.path.basename(sys.argv[0]), refreshable=True)
+    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', [os.path.basename(sys.argv[0]), "ProcessMonitor"], refreshable=True, signals=True)
+    PID_FILE = config.categories["ProcessMonitor"]["pid_path"] + os.path.basename(sys.argv[0])
 
 
     cycle_start_time = 0
@@ -46,6 +48,11 @@ def timeseries_data_transfer():
 
     while True:
         try:
+            if not os.path.exists(PID_FILE):
+                logging.debug("Stop set, exiting...")
+                break
+
+            signal.signal(signal.SIGINT, signal.SIG_IGN)
             new_poll_time, cycle_start_time = start_cycle(new_poll_time, cycle_start_time)
 
             #DO ALL THE THINGS
@@ -264,8 +271,11 @@ def timeseries_data_transfer():
             config.db_close()
             del db_session
             
-            
-            wait_cycle(cycle_start_time, poll_time_history, config.categories["timeseriesPoller.py"]["sleep_interval_status"])
+            if not os.path.exists(PID_FILE):
+                logging.info("Stop set, exiting...")
+                break
+            signal.signal(signal.SIGINT, config.signals['SIGINT'])
+            wait_cycle(cycle_start_time, poll_time_history, config.categories["timeseriesPoller.py"]["sleep_interval_status"], config)
 
 
         except Exception as exc:
@@ -287,15 +297,21 @@ if __name__ == '__main__':
     config = procMon.get_config()
     logging = procMon.get_logging()
 
+    PID_FILE = config.categories["ProcessMonitor"]["pid_path"] + os.path.basename(sys.argv[0])
+    with open(PID_FILE, "w") as fd:
+        fd.write(str(os.getpid()))
+
     logging.info("**************************** starting timeseries data poller *********************************")
 
     # Wait for keyboard input to exit
     try:
         #start processes
         procMon.start_all()
+        signal.signal(signal.SIGTERM, terminate)
         while True:
             config.refresh()
-            procMon.check_processes()
+            stop = check_pid(PID_FILE)
+            procMon.check_processes(stop=stop)
             time.sleep(config.categories["ProcessMonitor"]["sleep_interval_main_long"])
 
     except (SystemExit, KeyboardInterrupt):

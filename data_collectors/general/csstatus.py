@@ -9,7 +9,7 @@ from subprocess import Popen, PIPE
 
 
 from cloudscheduler.lib.db_config import *
-from cloudscheduler.lib.ProcessMonitor import ProcessMonitor
+from cloudscheduler.lib.ProcessMonitor import ProcessMonitor, terminate, check_pid
 
 from cloudscheduler.lib.poller_functions import \
     start_cycle, \
@@ -81,7 +81,8 @@ def status_poller():
     #        )
     #    )
     #Base.prepare(db_engine, reflect=True)
-    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', os.path.basename(sys.argv[0]), refreshable=True)
+    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', [os.path.basename(sys.argv[0]),"ProcessMonitor"], refreshable=True, signals=True)
+    PID_FILE = config.categories["ProcessMonitor"]["pid_path"] + os.path.basename(sys.argv[0])
 
     STATUS = config.db_map.classes.csv2_system_status
 
@@ -95,6 +96,12 @@ def status_poller():
     try:
         while True:
             config.refresh()
+            if not os.path.exists(PID_FILE):
+                logging.debug("Stop set, exiting...")
+                break
+
+            signal.signal(signal.SIGINT, signal.SIG_IGN)
+
             new_poll_time, cycle_start_time = start_cycle(new_poll_time, cycle_start_time)
             # id will always be zero because we only ever want one row of these
             system_dict = {'id': 0}
@@ -133,7 +140,11 @@ def status_poller():
                 del db_session
                 exit(1)
 
-            wait_cycle(cycle_start_time, poll_time_history, config.categories["csstatus.py"]["sleep_interval_status"])
+            if not os.path.exists(PID_FILE):
+                logging.info("Stop set, exiting...")
+                break
+            signal.signal(signal.SIGINT, config.signals['SIGINT'])
+            wait_cycle(cycle_start_time, poll_time_history, config.categories["csstatus.py"]["sleep_interval_status"], config)
     except Exception as exc:
         logging.exception("Problem during general execution:")
         logging.exception(exc)
@@ -153,15 +164,22 @@ if __name__ == '__main__':
     config = procMon.get_config()
     logging = procMon.get_logging()
 
+    PID_FILE = config.categories["ProcessMonitor"]["pid_path"] + os.path.basename(sys.argv[0])
+    with open(PID_FILE, "w") as fd:
+        fd.write(str(os.getpid()))
+
+
     logging.info("**************************** starting csstatus *********************************")
 
     # Wait for keyboard input to exit
     try:
         #start processes
         procMon.start_all()
+        signal.signal(signal.SIGTERM, terminate)
         while True:
             config.refresh()
-            procMon.check_processes()
+            stop = check_pid(PID_FILE)
+            procMon.check_processes(stop=stop)
             time.sleep(config.categories["ProcessMonitor"]["sleep_interval_main_long"])
 
     except (SystemExit, KeyboardInterrupt):

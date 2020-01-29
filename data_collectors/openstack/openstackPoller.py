@@ -3,6 +3,7 @@ import logging
 import socket
 import time
 import sys
+import signal
 import os
 import datetime
 from dateutil import tz
@@ -10,8 +11,8 @@ import copy
 
 from cloudscheduler.lib.attribute_mapper import map_attributes
 from cloudscheduler.lib.db_config import Config
-from cloudscheduler.lib.ProcessMonitor import ProcessMonitor
-from cloudscheduler.lib.signal_manager import register_signal_receiver
+from cloudscheduler.lib.ProcessMonitor import ProcessMonitor, terminate, check_pid
+#from cloudscheduler.lib.signal_manager import register_signal_receiver
 from cloudscheduler.lib.schema import view_vm_kill_retire_over_quota
 from cloudscheduler.lib.view_utils import kill_retire
 from cloudscheduler.lib.log_tools import get_frame_info
@@ -146,8 +147,9 @@ def _get_openstack_session_v1_v2(auth_url, username, password, project, user_dom
 def flavor_poller():
     multiprocessing.current_process().name = "Flavor Poller"
 
-    db_category_list = [os.path.basename(sys.argv[0]), "general", "signal_manager"]
-    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', db_category_list, pool_size=3, refreshable=True)
+    db_category_list = [os.path.basename(sys.argv[0]), "general", "signal_manager", "ProcessMonitor"]
+    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', db_category_list, pool_size=3, refreshable=True, signals=True)
+    PID_FILE = config.categories["ProcessMonitor"]["pid_path"] + os.path.basename(sys.argv[0])
 
     FLAVOR = config.db_map.classes.cloud_flavors
     CLOUD = config.db_map.classes.csv2_clouds
@@ -157,8 +159,8 @@ def flavor_poller():
     poll_time_history = [0,0,0,0]
     failure_dict = {}
 
-    register_signal_receiver(config, "insert_csv2_clouds")
-    register_signal_receiver(config, "update_csv2_clouds")
+    #register_signal_receiver(config, "insert_csv2_clouds")
+    #register_signal_receiver(config, "update_csv2_clouds")
 
     try:
         inventory = get_inventory_item_hash_from_database(config.db_engine, FLAVOR, 'name', debug_hash=(config.categories["openstackPoller.py"]["log_level"]<20), cloud_type="openstack")
@@ -166,8 +168,13 @@ def flavor_poller():
             config.db_open()
             try:
                 logging.debug("Beginning flavor poller cycle")
-                new_poll_time, cycle_start_time = start_cycle(new_poll_time, cycle_start_time)
                 config.refresh()
+                new_poll_time, cycle_start_time = start_cycle(new_poll_time, cycle_start_time)
+                if not os.path.exists(PID_FILE):
+                    logging.debug("Stop set, exiting...")
+                    break
+
+                signal.signal(signal.SIGINT, signal.SIG_IGN) 
                 db_session = config.db_session
 
                 abort_cycle = False
@@ -317,8 +324,13 @@ def flavor_poller():
                 delete_obsolete_database_items('Flavor', inventory, db_session, FLAVOR, 'name', poll_time=new_poll_time, failure_dict=new_f_dict, cloud_type="openstack")
 
                 config.db_session.rollback()
+
+                if not os.path.exists(PID_FILE):
+                    logging.info("Stop set, exiting...")
+                    break
+                signal.signal(signal.SIGINT, config.signals['SIGINT'])
                 try:
-                    wait_cycle(cycle_start_time, poll_time_history, config.categories["openstackPoller.py"]["sleep_interval_flavor"])
+                    wait_cycle(cycle_start_time, poll_time_history, config.categories["openstackPoller.py"]["sleep_interval_flavor"], config)
                 except KeyboardInterrupt:
                     # sigint recieved, cancel the sleep and start the loop
                     continue
@@ -335,8 +347,9 @@ def flavor_poller():
 def image_poller():
     multiprocessing.current_process().name = "Image Poller"
 
-    db_category_list = [os.path.basename(sys.argv[0]), "general", "signal_manager"]
-    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', db_category_list, pool_size=3, refreshable=True)
+    db_category_list = [os.path.basename(sys.argv[0]), "general", "signal_manager", "ProcessMonitor"]
+    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', db_category_list, pool_size=3, refreshable=True, signals=True)
+    PID_FILE = config.categories["ProcessMonitor"]["pid_path"] + os.path.basename(sys.argv[0])
 
     IMAGE = config.db_map.classes.cloud_images
     CLOUD = config.db_map.classes.csv2_clouds
@@ -346,8 +359,8 @@ def image_poller():
     poll_time_history = [0,0,0,0]
     failure_dict = {}
 
-    register_signal_receiver(config, "insert_csv2_clouds")
-    register_signal_receiver(config, "update_csv2_clouds")
+    #register_signal_receiver(config, "insert_csv2_clouds")
+    #register_signal_receiver(config, "update_csv2_clouds")
 
     try:
         inventory = get_inventory_item_hash_from_database(config.db_engine, IMAGE, 'id', debug_hash=(config.categories["openstackPoller.py"]["log_level"]<20), cloud_type="openstack")
@@ -355,6 +368,11 @@ def image_poller():
         while True:
             try:
                 logging.debug("Beginning image poller cycle")
+                if not os.path.exists(PID_FILE):
+                    logging.debug("Stop set, exiting...")
+                    break
+
+                signal.signal(signal.SIGINT, signal.SIG_IGN)
                 new_poll_time, cycle_start_time = start_cycle(new_poll_time, cycle_start_time)
                 config.refresh()
                 db_session = config.db_session
@@ -516,8 +534,14 @@ def image_poller():
                 delete_obsolete_database_items('Image', inventory, db_session, IMAGE, 'id', new_poll_time, failure_dict=new_f_dict, cloud_type="openstack")
 
                 config.db_session.rollback()
+
+                if not os.path.exists(PID_FILE):
+                    logging.info("Stop set, exiting...")
+                    break
+                signal.signal(signal.SIGINT, config.signals['SIGINT'])
+
                 try:
-                    wait_cycle(cycle_start_time, poll_time_history, config.categories["openstackPoller.py"]["sleep_interval_image"])
+                    wait_cycle(cycle_start_time, poll_time_history, config.categories["openstackPoller.py"]["sleep_interval_image"], config)
                 except KeyboardInterrupt:
                     # sigint recieved, cancel the sleep and start the loop
                     continue
@@ -536,8 +560,9 @@ def image_poller():
 def keypair_poller():
     multiprocessing.current_process().name = "Keypair Poller"
     
-    db_category_list = [os.path.basename(sys.argv[0]), "general", "signal_manager"]
-    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', db_category_list, pool_size=3, refreshable=True)
+    db_category_list = [os.path.basename(sys.argv[0]), "general", "signal_manager", "ProcessMonitor"]
+    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', db_category_list, pool_size=3, refreshable=True, signals=True)
+    PID_FILE = config.categories["ProcessMonitor"]["pid_path"] + os.path.basename(sys.argv[0])
     KEYPAIR = config.db_map.classes.cloud_keypairs
     CLOUD = config.db_map.classes.csv2_clouds
 
@@ -546,8 +571,8 @@ def keypair_poller():
     poll_time_history = [0,0,0,0]
     failure_dict = {}
 
-    register_signal_receiver(config, "insert_csv2_clouds")
-    register_signal_receiver(config, "update_csv2_clouds")
+    #register_signal_receiver(config, "insert_csv2_clouds")
+    #register_signal_receiver(config, "update_csv2_clouds")
 
     try:
         inventory = get_inventory_item_hash_from_database(config.db_engine, KEYPAIR, 'key_name', debug_hash=(config.categories["openstackPoller.py"]["log_level"]<20), cloud_type="openstack")
@@ -555,6 +580,11 @@ def keypair_poller():
         while True:
             try:    
                 logging.debug("Beginning keypair poller cycle")
+                if not os.path.exists(PID_FILE):
+                    logging.debug("Stop set, exiting...")
+                    break
+
+                signal.signal(signal.SIGINT, signal.SIG_IGN)
                 new_poll_time, cycle_start_time = start_cycle(new_poll_time, cycle_start_time)
                 config.refresh()
                 db_session = config.db_session
@@ -681,8 +711,14 @@ def keypair_poller():
                 delete_obsolete_database_items('Keypair', inventory, db_session, KEYPAIR, 'key_name', poll_time=new_poll_time, failure_dict=new_f_dict, cloud_type="openstack")
 
                 config.db_session.rollback()
+
+                if not os.path.exists(PID_FILE):
+                    logging.info("Stop set, exiting...")
+                    break
+                signal.signal(signal.SIGINT, config.signals['SIGINT'])
+
                 try:
-                    wait_cycle(cycle_start_time, poll_time_history, config.categories["openstackPoller.py"]["sleep_interval_keypair"])
+                    wait_cycle(cycle_start_time, poll_time_history, config.categories["openstackPoller.py"]["sleep_interval_keypair"], config)
                 except KeyboardInterrupt:
                     # sigint recieved, cancel the sleep and start the loop
                     continue
@@ -699,8 +735,9 @@ def keypair_poller():
 def limit_poller():
     multiprocessing.current_process().name = "Limit Poller"
 
-    db_category_list = [os.path.basename(sys.argv[0]), "general", "signal_manager"]
-    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', db_category_list, pool_size=3, refreshable=True)
+    db_category_list = [os.path.basename(sys.argv[0]), "general", "signal_manager", "ProcessMonitor"]
+    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', db_category_list, pool_size=3, refreshable=True, signals=True)
+    PID_FILE = config.categories["ProcessMonitor"]["pid_path"] + os.path.basename(sys.argv[0])
     LIMIT = config.db_map.classes.cloud_limits
     CLOUD = config.db_map.classes.csv2_clouds
 
@@ -709,8 +746,8 @@ def limit_poller():
     poll_time_history = [0,0,0,0]
     failure_dict = {}
 
-    register_signal_receiver(config, "insert_csv2_clouds")
-    register_signal_receiver(config, "update_csv2_clouds")
+    #register_signal_receiver(config, "insert_csv2_clouds")
+    #register_signal_receiver(config, "update_csv2_clouds")
 
     try:
         inventory = get_inventory_item_hash_from_database(config.db_engine, LIMIT, '-', debug_hash=(config.categories["openstackPoller.py"]["log_level"]<20), cloud_type="openstack")
@@ -718,6 +755,11 @@ def limit_poller():
         while True:
             try:
                 logging.debug("Beginning limit poller cycle")
+                if not os.path.exists(PID_FILE):
+                    logging.debug("Stop set, exiting...")
+                    break
+
+                signal.signal(signal.SIGINT, signal.SIG_IGN)
                 new_poll_time, cycle_start_time = start_cycle(new_poll_time, cycle_start_time)
                 config.refresh()
                 db_session = config.db_session
@@ -849,8 +891,14 @@ def limit_poller():
                 delete_obsolete_database_items('Limit', inventory, db_session, LIMIT, '-', poll_time=new_poll_time, failure_dict=new_f_dict, cloud_type="openstack")
 
                 config.db_session.rollback()
+
+                if not os.path.exists(PID_FILE):
+                    logging.info("Stop set, exiting...")
+                    break
+                signal.signal(signal.SIGINT, config.signals['SIGINT'])
+ 
                 try:
-                    wait_cycle(cycle_start_time, poll_time_history, config.categories["openstackPoller.py"]["sleep_interval_limit"])
+                    wait_cycle(cycle_start_time, poll_time_history, config.categories["openstackPoller.py"]["sleep_interval_limit"], config)
                 except KeyboardInterrupt:
                     # sigint recieved, cancel the sleep and start the loop
                     continue
@@ -877,8 +925,9 @@ def network_poller():
     #        )
     #    )
     #Base.prepare(db_engine, reflect=True)
-    db_category_list = [os.path.basename(sys.argv[0]), "general", "signal_manager"]
-    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', db_category_list, pool_size=333, refreshable=True)
+    db_category_list = [os.path.basename(sys.argv[0]), "general", "signal_manager", "ProcessMonitor"]
+    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', db_category_list, pool_size=3, refreshable=True, signals=True)
+    PID_FILE = config.categories["ProcessMonitor"]["pid_path"] + os.path.basename(sys.argv[0])
     NETWORK = config.db_map.classes.cloud_networks
     CLOUD = config.db_map.classes.csv2_clouds
 
@@ -887,8 +936,8 @@ def network_poller():
     poll_time_history = [0,0,0,0]
     failure_dict = {}
 
-    register_signal_receiver(config, "insert_csv2_clouds")
-    register_signal_receiver(config, "update_csv2_clouds")
+    #register_signal_receiver(config, "insert_csv2_clouds")
+    #register_signal_receiver(config, "update_csv2_clouds")
 
     try:
         inventory = get_inventory_item_hash_from_database(config.db_engine, NETWORK, 'name', debug_hash=(config.categories["openstackPoller.py"]["log_level"]<20), cloud_type="openstack")
@@ -896,6 +945,12 @@ def network_poller():
         while True:
             try:
                 logging.debug("Beginning network poller cycle")
+                if not os.path.exists(PID_FILE):
+                    logging.debug("Stop set, exiting...")
+                    break
+
+                signal.signal(signal.SIGINT, signal.SIG_IGN)
+
                 new_poll_time, cycle_start_time = start_cycle(new_poll_time, cycle_start_time)
                 config.refresh()
                 db_session = config.db_session
@@ -1029,8 +1084,14 @@ def network_poller():
                 delete_obsolete_database_items('Network', inventory, db_session, NETWORK, 'name', poll_time=new_poll_time, failure_dict=new_f_dict, cloud_type="openstack")
 
                 config.db_session.rollback()
+
+                if not os.path.exists(PID_FILE):
+                    logging.info("Stop set, exiting...")
+                    break
+                signal.signal(signal.SIGINT, config.signals['SIGINT'])
+
                 try:
-                    wait_cycle(cycle_start_time, poll_time_history, config.categories["openstackPoller.py"]["sleep_interval_network"])
+                    wait_cycle(cycle_start_time, poll_time_history, config.categories["openstackPoller.py"]["sleep_interval_network"], config)
                 except KeyboardInterrupt:
                     # sigint recieved, cancel the sleep and start the loop
                     continue
@@ -1048,8 +1109,9 @@ def network_poller():
 def security_group_poller():
     multiprocessing.current_process().name = "Security Group Poller"
 
-    db_category_list = [os.path.basename(sys.argv[0]), "general", "signal_manager"]
-    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', db_category_list, pool_size=3, refreshable=True)
+    db_category_list = [os.path.basename(sys.argv[0]), "general", "signal_manager", "ProcessMonitor"]
+    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', db_category_list, pool_size=3, refreshable=True, signals=True)
+    PID_FILE = config.categories["ProcessMonitor"]["pid_path"] + os.path.basename(sys.argv[0])
 
     SECURITY_GROUP = config.db_map.classes.cloud_security_groups
     CLOUD = config.db_map.classes.csv2_clouds
@@ -1060,8 +1122,8 @@ def security_group_poller():
     failure_dict = {}
     my_pid = os.getpid()
 
-    register_signal_receiver(config, "insert_csv2_clouds")
-    register_signal_receiver(config, "update_csv2_clouds")
+    #register_signal_receiver(config, "insert_csv2_clouds")
+    #register_signal_receiver(config, "update_csv2_clouds")
 
     try:
         inventory = get_inventory_item_hash_from_database(config.db_engine, SECURITY_GROUP, 'id', debug_hash=(config.categories["openstackPoller.py"]["log_level"]<20), cloud_type="openstack")
@@ -1069,6 +1131,11 @@ def security_group_poller():
         while True:
             try:
                 logging.debug("Beginning security group poller cycle")
+                if not os.path.exists(PID_FILE):
+                    logging.debug("Stop set, exiting...")
+                    break
+
+                signal.signal(signal.SIGINT, signal.SIG_IGN)
                 new_poll_time, cycle_start_time = start_cycle(new_poll_time, cycle_start_time)
                 config.refresh()
                 db_session = config.db_session
@@ -1202,8 +1269,14 @@ def security_group_poller():
                 delete_obsolete_database_items('sec_grp', inventory, db_session, SECURITY_GROUP, 'id', poll_time=new_poll_time, failure_dict=failure_dict, cloud_type="openstack")
 
                 config.db_session.rollback()
+
+                if not os.path.exists(PID_FILE):
+                    logging.info("Stop set, exiting...")
+                    break
+                signal.signal(signal.SIGINT, config.signals['SIGINT'])
+
                 try:
-                    wait_cycle(cycle_start_time, poll_time_history, config.categories["openstackPoller.py"]["sleep_interval_security_group"])
+                    wait_cycle(cycle_start_time, poll_time_history, config.categories["openstackPoller.py"]["sleep_interval_security_group"], config)
 
                 except KeyboardInterrupt:
                     # sigint recieved, cancel the sleep and start the loop
@@ -1224,7 +1297,8 @@ def security_group_poller():
 def vm_poller():
     multiprocessing.current_process().name = "VM Poller"
 
-    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', [os.path.basename(sys.argv[0]), "SQL"], pool_size=3, refreshable=True)
+    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', [os.path.basename(sys.argv[0]), "SQL", "ProcessMonitor"], pool_size=3, refreshable=True, signals=True)
+    PID_FILE = config.categories["ProcessMonitor"]["pid_path"] + os.path.basename(sys.argv[0])
     VM = config.db_map.classes.csv2_vms
     FVM = config.db_map.classes.csv2_vms_foreign
     GROUP = config.db_map.classes.csv2_groups
@@ -1242,6 +1316,12 @@ def vm_poller():
             # This cycle should be reasonably fast such that the scheduler will always have the most
             # up to date data during a given execution cycle.
             logging.debug("Beginning VM poller cycle")
+
+            if not os.path.exists(PID_FILE):
+                logging.debug("Stop set, exiting...")
+                break
+            signal.signal(signal.SIGINT, signal.SIG_IGN)
+
             new_poll_time, cycle_start_time = start_cycle(new_poll_time, cycle_start_time)
             config.refresh()
             db_session = config.db_session
@@ -1532,7 +1612,13 @@ def vm_poller():
 
             logging.debug("Completed VM poller cycle")
             config.db_session.rollback()
-            wait_cycle(cycle_start_time, poll_time_history, config.categories["openstackPoller.py"]["sleep_interval_vm"])
+
+            if not os.path.exists(PID_FILE):
+                logging.info("Stop set, exiting...")
+                break
+            signal.signal(signal.SIGINT, config.signals['SIGINT'])
+
+            wait_cycle(cycle_start_time, poll_time_history, config.categories["openstackPoller.py"]["sleep_interval_vm"], config)
 
     except Exception as exc:
         logging.exception("VM poller cycle while loop exception, process terminating...")
@@ -1542,17 +1628,30 @@ def vm_poller():
 
 def defaults_replication():
     multiprocessing.current_process().name = "Defaults Replication"
-    db_category_list = [os.path.basename(sys.argv[0]), "general", "glintPoller.py" "signal_manager"]
-    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', db_category_list, pool_size=3, refreshable=True)
+    db_category_list = [os.path.basename(sys.argv[0]), "general", "glintPoller.py" "signal_manager", "ProcessMonitor"]
+    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', db_category_list, pool_size=3, refreshable=True, signals=True)
+    PID_FILE = config.categories["ProcessMonitor"]["pid_path"] + os.path.basename(sys.argv[0])
     GROUPS = config.db_map.classes.csv2_groups
     CLOUDS = config.db_map.classes.csv2_clouds
     KEYPAIRS = config.db_map.classes.cloud_keypairs
     IMAGES = config.db_map.classes.cloud_images
     IMAGE_TX = config.db_map.classes.csv2_image_transactions
 
+
+    cycle_start_time = 0
+    new_poll_time = 0
+    poll_time_history = [0,0,0,0]
+
     config.db_open()
     while True:
         config.refresh()
+        if not os.path.exists(PID_FILE):
+            logging.debug("Stop set, exiting...")
+            break
+
+        signal.signal(signal.SIGINT, signal.SIG_IGN)
+        new_poll_time, cycle_start_time = start_cycle(new_poll_time, cycle_start_time)
+
         db_session = config.db_session
         group_list = db_session.query(GROUPS)
         for group in group_list:
@@ -1648,7 +1747,13 @@ def defaults_replication():
                     logging.info("No default keypair for group %s, skipping keypair transfers for cloud %s" % (group.group_name, cloud.cloud_name))
         
         db_session.commit()
-        time.sleep(300) # this will need to be updated to have a smarter wakeup once signaling has been implemented
+
+        if not os.path.exists(PID_FILE):
+            logging.info("Stop set, exiting...")
+            break
+        signal.signal(signal.SIGINT, config.signals['SIGINT'])
+        wait_cycle(cycle_start_time, poll_time_history, 300, config)
+
 
 
 
@@ -1657,16 +1762,27 @@ def service_registrar():
     multiprocessing.current_process().name = "Service Registrar"
 
     # database setup
-    db_category_list = [os.path.basename(sys.argv[0]), "general"]
-    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', db_category_list, pool_size=3, refreshable=True)
+    db_category_list = [os.path.basename(sys.argv[0]), "general", "ProcessMonitor"]
+    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', db_category_list, pool_size=3, refreshable=True, signals=True)
+    PID_FILE = config.categories["ProcessMonitor"]["pid_path"] + os.path.basename(sys.argv[0])
     SERVICE_CATALOG = config.db_map.classes.csv2_service_catalog
 
     service_fqdn = socket.gethostname()
     service_name = "csv2-openstack"
 
+    cycle_start_time = 0
+    new_poll_time = 0
+    poll_time_history = [0,0,0,0]
+
     config.db_open()
     while True:
         config.refresh()
+        if not os.path.exists(PID_FILE):
+            logging.debug("Stop set, exiting...")
+            break
+
+        signal.signal(signal.SIGINT, signal.SIG_IGN)
+        new_poll_time, cycle_start_time = start_cycle(new_poll_time, cycle_start_time)
 
         service_dict = {
             "service":             service_name,
@@ -1683,7 +1799,11 @@ def service_registrar():
             logging.error(exc)
             return -1
 
-        time.sleep(config.categories["general"]["sleep_interval_registrar"])
+        if not os.path.exists(PID_FILE):
+            logging.info("Stop set, exiting...")
+            break
+        signal.signal(signal.SIGINT, config.signals['SIGINT'])
+        wait_cycle(cycle_start_time, poll_time_history, config.categories["general"]["sleep_interval_registrar"], config)
 
     return -1
 
@@ -1708,6 +1828,10 @@ if __name__ == '__main__':
     logging = procMon.get_logging()
     version = config.get_version()
 
+    PID_FILE = config.categories["ProcessMonitor"]["pid_path"] + os.path.basename(sys.argv[0])
+    with open(PID_FILE, "w") as fd:
+        fd.write(str(os.getpid()))
+
     logging.info("**************************** starting openstack VM poller - Running %s *********************************" % version)
 
 
@@ -1715,9 +1839,11 @@ if __name__ == '__main__':
     try:
         #start processes
         procMon.start_all()
+        signal.signal(signal.SIGTERM, terminate)
         while True:
             config.refresh()
-            procMon.check_processes()
+            stop = check_pid(PID_FILE)
+            procMon.check_processes(stop=stop)
             time.sleep(config.categories["ProcessMonitor"]["sleep_interval_main_long"])
 
     except (SystemExit, KeyboardInterrupt):
