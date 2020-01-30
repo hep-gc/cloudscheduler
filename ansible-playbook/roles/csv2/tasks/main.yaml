@@ -8,9 +8,12 @@
 - include_vars: "{{ inventory_instance }}-vars.yaml"
 - include_vars: "{{ inventory_instance }}-secrets.yaml"
 
+- set_fact:
+    ansible_ssh_port: "{{ ansible_ssh_port }}"
+
 - import_tasks: configure_etc_hosts.yaml
 - import_tasks: configure_sshd.yaml
-  when: (container is undefined) or (container == False)
+  when: ansible_ssh_port != 22
 - import_tasks: configure_root_mail_forwarding.yaml
 - import_tasks: create_installation_directories.yaml
 - import_tasks: configure_other_required_repositories.yaml

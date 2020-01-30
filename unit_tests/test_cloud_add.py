@@ -3,7 +3,7 @@ from sys import argv
 
 # lno: CV - error code identifier.
 
-def main(gvar, user_secret):
+def main(gvar):
     if not gvar:
         gvar = {}
         if len(argv) > 1:
@@ -15,35 +15,35 @@ def main(gvar, user_secret):
     execute_csv2_request(
         gvar, 2, None, 'HTTP response code 401, unauthorized.',
         '/cloud/add/', group=ut_id(gvar, 'ctg1'),
-        server_user='invalid-unit-test', server_pw=user_secret
+        server_user='invalid-unit-test'
     )
 
     # 2
     execute_csv2_request(
         gvar, 1, None, 'user "{}" is not a member of any group.'.format(ut_id(gvar, 'ctu1')),
         '/cloud/add/', group=ut_id(gvar, 'ctg1'),
-        server_user=ut_id(gvar, 'ctu1'), server_pw=user_secret
+        server_user=ut_id(gvar, 'ctu1')
     )
 
     # 3
     execute_csv2_request(
         gvar, 1, None, 'user "{}" is not a member of any group.'.format(ut_id(gvar, 'ctu2')),
         '/cloud/add/', group=ut_id(gvar, 'ctg1'),
-        server_user=ut_id(gvar, 'ctu2'), server_pw=user_secret
+        server_user=ut_id(gvar, 'ctu2')
     )
 
     # 4
     execute_csv2_request(
         gvar, 1, 'CV', 'cloud add request did not contain mandatory parameter "cloud_name".',
         '/cloud/add/', group=ut_id(gvar, 'ctg1'),
-        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
+        server_user=ut_id(gvar, 'ctu3')
     )
 
     # 5
     execute_csv2_request(
         gvar, 1, 'CV', 'cloud add request did not contain mandatory parameter "cloud_name".',
         '/cloud/add/', group=ut_id(gvar, 'ctg1'),
-        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
+        server_user=ut_id(gvar, 'ctu3')
     )
 
     # 6
@@ -51,47 +51,47 @@ def main(gvar, user_secret):
         gvar, 1, 'CV', 'cloud add request contained a bad parameter "invalid-unit-test".',
         '/cloud/add/', group=ut_id(gvar, 'ctg1'),
         form_data={'cloud_name': ut_id(gvar, 'cloud-invalid-unit-test'), 'invalid-unit-test': 'invalid-unit-test'},
-        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
+        server_user=ut_id(gvar, 'ctu3')
     )
 
     # 7
     execute_csv2_request(
         gvar, 1, 'CV', 'cannot switch to invalid group "invalid-unit-test".',
         '/cloud/add/', group='invalid-unit-test', form_data={'cloud_name': ut_id(gvar, 'cloud-invalid-unit-test')},
-        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
+        server_user=ut_id(gvar, 'ctu3')
     )
 
     # 8
     execute_csv2_request(
         gvar, 1, 'CV', 'cannot switch to invalid group "{}".'.format(ut_id(gvar, 'ctg2')),
         '/cloud/add/', group=ut_id(gvar, 'ctg2'), form_data={'cloud_name': ut_id(gvar, 'cloud-invalid-unit-test')},
-        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
+        server_user=ut_id(gvar, 'ctu3')
     )
 
     # 9
     execute_csv2_request(
         gvar, 1, 'CV', 'value specified for "cloud_name" must be all lower case, numeric digits, and dashes but cannot start or end with dashes.',
         '/cloud/add/', group=ut_id(gvar, 'ctg1'), form_data={'cloud_name': 'Invalid-Unit-Test'},
-        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
+        server_user=ut_id(gvar, 'ctu3')
     )
 
     # 10
     execute_csv2_request(
         gvar, 1, 'CV', 'value specified for "cloud_name" must be all lower case, numeric digits, and dashes but cannot start or end with dashes.',
         '/cloud/add/', group=ut_id(gvar, 'ctg1'), form_data={'cloud_name': 'invalid-unit-test-'},
-        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
+        server_user=ut_id(gvar, 'ctu3')
     )
 
     # 11
     execute_csv2_request(
         gvar, 1, 'CV', 'value specified for "cloud_name" must be all lower case, numeric digits, and dashes but cannot start or end with dashes.',
         '/cloud/add/', group=ut_id(gvar, 'ctg1'), form_data={'cloud_name': 'invalid-unit-test!'},
-        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
+        server_user=ut_id(gvar, 'ctu3')
     )
 
     # 12
     execute_csv2_request(
-        gvar, 1, 'CV', 'cloud add request did not contain mandatory (but not empty) parameter "authurl".',
+        gvar, 1, 'CV', 'cloud add request did not contain mandatory parameter "authurl".',
         '/cloud/add/', group=ut_id(gvar, 'ctg1'), form_data={
             'cloud_name': ut_id(gvar, 'cloud-invalid-unit-test'),
             'project': 'invalid-unit-test',
@@ -100,12 +100,12 @@ def main(gvar, user_secret):
             'region': 'invalid-unit-test',
             'cloud_type': 'local'
             },
-        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
+        server_user=ut_id(gvar, 'ctu3')
     )
 
     # 13
     execute_csv2_request(
-        gvar, 1, 'CV', 'cloud add request did not contain mandatory (but not empty) parameter "project".',
+        gvar, 1, 'CV', 'cloud add request did not contain mandatory parameter "project".',
             '/cloud/add/', group=ut_id(gvar, 'ctg1'), form_data={
             'cloud_name': ut_id(gvar, 'cloud-invalid-unit-test'),
             'authurl': 'invalid-unit-test',
@@ -114,12 +114,12 @@ def main(gvar, user_secret):
             'region': 'invalid-unit-test',
             'cloud_type': 'local'
             },
-        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
+        server_user=ut_id(gvar, 'ctu3')
     )
 
     # 14
     execute_csv2_request(
-        gvar, 1, 'CV', 'cloud add request did not contain mandatory (but not empty) parameter "username".',
+        gvar, 1, 'CV', 'cloud add request did not contain mandatory parameter "username".',
         '/cloud/add/', group=ut_id(gvar, 'ctg1'), form_data={
             'cloud_name': ut_id(gvar, 'cloud-invalid-unit-test'),
             'authurl': 'invalid-unit-test',
@@ -128,12 +128,12 @@ def main(gvar, user_secret):
             'region': 'invalid-unit-test',
             'cloud_type': 'local'
             },
-        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
+        server_user=ut_id(gvar, 'ctu3')
     )
 
     # 15
     execute_csv2_request(
-        gvar, 1, 'CV', 'cloud add request did not contain mandatory (but not empty) parameter "password".',
+        gvar, 1, 'CV', 'cloud add request did not contain mandatory parameter "password".',
         '/cloud/add/', group=ut_id(gvar, 'ctg1'), form_data={
             'cloud_name': ut_id(gvar, 'cloud-invalid-unit-test'),
             'authurl': 'invalid-unit-test',
@@ -142,12 +142,12 @@ def main(gvar, user_secret):
             'region': 'invalid-unit-test',
             'cloud_type': 'local'
             },
-        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
+        server_user=ut_id(gvar, 'ctu3')
     )
 
     # 16
     execute_csv2_request(
-        gvar, 1, 'CV', 'cloud add request did not contain mandatory (but not empty) parameter "region".',
+        gvar, 1, 'CV', 'cloud add request did not contain mandatory parameter "region".',
         '/cloud/add/', group=ut_id(gvar, 'ctg1'), form_data={
             'cloud_name': ut_id(gvar, 'cloud-invalid-unit-test'),
             'authurl': 'invalid-unit-test',
@@ -156,7 +156,7 @@ def main(gvar, user_secret):
             'password': 'invalid-unit-test',
             'cloud_type': 'local'
             },
-        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
+        server_user=ut_id(gvar, 'ctu3')
     )
 
     # 17
@@ -170,7 +170,7 @@ def main(gvar, user_secret):
             'password': 'invalid-unit-test',
             'region': 'invalid-unit-test'
             },
-        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
+        server_user=ut_id(gvar, 'ctu3')
     )
 
     # 18
@@ -185,7 +185,7 @@ def main(gvar, user_secret):
             'region': 'invalid-unit-test',
             'cloud_type': 'invalid-unit-test'
             },
-        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
+        server_user=ut_id(gvar, 'ctu3')
     )
 
     # 19
@@ -200,7 +200,7 @@ def main(gvar, user_secret):
             'region': 'invalid-unit-test',
             'cloud_type': 'local',
             },
-        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
+        server_user=ut_id(gvar, 'ctu3')
     )
 
     # 20
@@ -215,7 +215,7 @@ def main(gvar, user_secret):
             'region': 'invalid-unit-test',
             'cloud_type': 'local',
             },
-        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
+        server_user=ut_id(gvar, 'ctu3')
     )
 
     # 21
@@ -230,7 +230,7 @@ def main(gvar, user_secret):
             'region': 'invalid-unit-test',
             'cloud_type': 'local',
             },
-        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
+        server_user=ut_id(gvar, 'ctu3')
     )
 
     # 22
@@ -245,7 +245,7 @@ def main(gvar, user_secret):
             'region': 'invalid-unit-test',
             'cloud_type': 'local',
             },
-        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
+        server_user=ut_id(gvar, 'ctu3')
     )
 
     # 23
@@ -260,7 +260,7 @@ def main(gvar, user_secret):
             'region': 'invalid-unit-test',
             'cloud_type': 'local',
             },
-        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
+        server_user=ut_id(gvar, 'ctu3')
     )
 
     # 24
@@ -275,7 +275,7 @@ def main(gvar, user_secret):
             'region': '',
             'cloud_type': 'local',
             },
-        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
+        server_user=ut_id(gvar, 'ctu3')
     )
 
     # 25
@@ -291,7 +291,7 @@ def main(gvar, user_secret):
             'cloud_type': 'local',
             'server_meta_ctl': 'invalid-unit-test'
             },
-        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
+        server_user=ut_id(gvar, 'ctu3')
     )
 
     # 26
@@ -307,7 +307,7 @@ def main(gvar, user_secret):
             'cloud_type': 'local',
             'instances_ctl': 'invalid-unit-test'
             },
-        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
+        server_user=ut_id(gvar, 'ctu3')
     )
 
     # 27
@@ -323,7 +323,7 @@ def main(gvar, user_secret):
             'cloud_type': 'local',
             'personality_ctl': 'invalid-unit-test'
             },
-        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
+        server_user=ut_id(gvar, 'ctu3')
     )
 
     # 28
@@ -339,7 +339,7 @@ def main(gvar, user_secret):
             'cloud_type': 'local',
             'image_meta_ctl': 'invalid-unit-test'
             },
-        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
+        server_user=ut_id(gvar, 'ctu3')
     )
 
     # 29
@@ -355,7 +355,7 @@ def main(gvar, user_secret):
             'cloud_type': 'local',
             'personality_size_ctl': 'invalid-unit-test'
             },
-        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
+        server_user=ut_id(gvar, 'ctu3')
     )
 
     # 30
@@ -371,7 +371,7 @@ def main(gvar, user_secret):
             'cloud_type': 'local',
             'ram_ctl': 'invalid-unit-test'
             },
-        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
+        server_user=ut_id(gvar, 'ctu3')
     )
 
     # 31
@@ -387,7 +387,7 @@ def main(gvar, user_secret):
             'cloud_type': 'local',
             'server_groups_ctl': 'invalid-unit-test'
             },
-        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
+        server_user=ut_id(gvar, 'ctu3')
     )
 
     # 32
@@ -403,7 +403,7 @@ def main(gvar, user_secret):
             'cloud_type': 'local',
             'security_group_rules_ctl': 'invalid-unit-test'
             },
-        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
+        server_user=ut_id(gvar, 'ctu3')
     )
 
     # 33
@@ -419,7 +419,7 @@ def main(gvar, user_secret):
             'cloud_type': 'local',
             'keypairs_ctl': 'invalid-unit-test'
             },
-        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
+        server_user=ut_id(gvar, 'ctu3')
     )
 
     # 34
@@ -435,7 +435,7 @@ def main(gvar, user_secret):
             'cloud_type': 'local',
             'security_groups_ctl': 'invalid-unit-test'
             },
-        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
+        server_user=ut_id(gvar, 'ctu3')
     )
 
     # 35
@@ -451,7 +451,7 @@ def main(gvar, user_secret):
             'cloud_type': 'local',
             'server_group_members_ctl': 'invalid-unit-test'
             },
-        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
+        server_user=ut_id(gvar, 'ctu3')
     )
 
     # 36
@@ -467,7 +467,7 @@ def main(gvar, user_secret):
             'cloud_type': 'local',
             'floating_ips_ctl': 'invalid-unit-test'
             },
-        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
+        server_user=ut_id(gvar, 'ctu3')
     )
 
     # 37
@@ -483,7 +483,7 @@ def main(gvar, user_secret):
             'cloud_type': 'local',
             'cores_ctl': 'invalid-unit-test'
             },
-        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
+        server_user=ut_id(gvar, 'ctu3')
     )
 
     # 38
@@ -499,7 +499,7 @@ def main(gvar, user_secret):
             'cloud_type': 'local',
             'vm_keep_alive': 'invalid-unit-test'
             },
-        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
+        server_user=ut_id(gvar, 'ctu3')
     )
 
     # 39
@@ -515,7 +515,7 @@ def main(gvar, user_secret):
             'cloud_type': 'local',
             'enabled': 'invalid-unit-test'
             },
-        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
+        server_user=ut_id(gvar, 'ctu3')
     )
 
     # 40
@@ -530,7 +530,7 @@ def main(gvar, user_secret):
             'region': 'invalid-unit-test',
             'cloud_type': 'local'
             },
-        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
+        server_user=ut_id(gvar, 'ctu3')
     )
 
     # 41
@@ -546,7 +546,7 @@ def main(gvar, user_secret):
             'cloud_type': 'local',
             'spot_price': 'invalid-unit-test'
             },
-        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
+        server_user=ut_id(gvar, 'ctu3')
     )
 
     # 42
@@ -562,7 +562,7 @@ def main(gvar, user_secret):
             'cloud_type': 'local',
             'metadata_name': 'invalid-unit-test'
             },
-        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
+        server_user=ut_id(gvar, 'ctu3')
     )
 
     # 43
@@ -579,7 +579,7 @@ def main(gvar, user_secret):
             'metadata_name.1': ut_id(gvar, 'cty1'),
             'metadata_name.2': 'invalid-unit-test'
             },
-        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
+        server_user=ut_id(gvar, 'ctu3')
     )
 
     # 44
@@ -596,10 +596,11 @@ def main(gvar, user_secret):
             'metadata_name.1': ut_id(gvar, 'cty1'),
             'metadata_name.2': ut_id(gvar, 'cty1'),
             },
-        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
+        server_user=ut_id(gvar, 'ctu3')
     )
 
     # 45
+    # Known to fail if run twice without setup or cleanup in between.
     execute_csv2_request(
         gvar, 0, None, 'cloud "{}::{}" successfully added.'.format(ut_id(gvar, 'ctg1'), ut_id(gvar, 'ctc5')),
         '/cloud/add/', group=ut_id(gvar, 'ctg1'), form_data={
@@ -607,9 +608,13 @@ def main(gvar, user_secret):
             'authurl': 'unit-test-cloud-five.ca',
             'project': 'unit-test-cloud-five',
             'username': ut_id(gvar, 'ctu3'),
-            'password': user_secret,
+            'password': gvar['user_secret'],
             'region': ut_id(gvar, 'ctc5-r'),
             'cloud_type': 'local',
+            'priority': 0,
+            'cacertificate': None,
+            'user_domain_name': 'Default',
+            'project_domain_name': '\'Default\'',
             'vm_flavor': '',
             'vm_image': '',
             'vm_keyname': '',
@@ -617,9 +622,10 @@ def main(gvar, user_secret):
             'enabled': 0,
             'vm_keep_alive': 10,
             'metadata_name': ut_id(gvar, 'cty1'),
-            'spot_price': 10
+            'spot_price': 10,
+            'cores_softmax': -1,
             },
-        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
+        server_user=ut_id(gvar, 'ctu3')
     )
 
     # 46
@@ -636,6 +642,10 @@ def main(gvar, user_secret):
             'username': ut_id(gvar, 'ctu3'),
             'region': ut_id(gvar, 'ctc5-r'),
             'cloud_type': 'local',
+            'cloud_priority': 0,
+            'cacertificate': None,
+            'user_domain_name': 'Default',
+            'project_domain_name': '\'Default\'',
             'vm_flavor': '',
             'vm_image': '',
             'vm_keyname': '',
@@ -643,12 +653,15 @@ def main(gvar, user_secret):
             'enabled': 0,
             'vm_keep_alive': 10,
             'group_exclusions': ut_id(gvar, 'cty1'),
-            'spot_price': 10
+            'spot_price': 10,
+            'cores_used': 0,
+            'ram_used': 0
             },
-        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
+        server_user=ut_id(gvar, 'ctu3')
     )
 
     # 47
+    # Known to fail if run twice without setup or cleanup in between.
     execute_csv2_request(
         gvar, 0, None, 'cloud "{}::{}" successfully added.'.format(ut_id(gvar, 'ctg1'), ut_id(gvar, 'ctc6')),
         '/cloud/add/', group=ut_id(gvar, 'ctg1'), form_data={
@@ -656,18 +669,14 @@ def main(gvar, user_secret):
             'authurl': 'unit-test-cloud-six.ca',
             'project': 'unit-test-cloud-six',
             'username': ut_id(gvar, 'ctu3'),
-            'password': user_secret,
+            'password': gvar['user_secret'],
             'region': ut_id(gvar, 'ctc6-r'),
             'cloud_type': 'local',
-            'vm_flavor': '',
-            'vm_image': '',
-            'vm_keyname': '',
-            'vm_network': '',
             'metadata_name.1': ut_id(gvar, 'cty1'),
             'metadata_name.2': ut_id(gvar, 'cty2'),
             'metadata_name.3': ut_id(gvar, 'cty3')
             },
-        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
+        server_user=ut_id(gvar, 'ctu3')
     )
 
     # 48
@@ -681,7 +690,7 @@ def main(gvar, user_secret):
             'cloud_name': ut_id(gvar, 'ctc6'),
             'group_exclusions': ut_id(gvar, 'cty1,cty2,cty3')
             },
-        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
+        server_user=ut_id(gvar, 'ctu3')
     )
 
     # 49
@@ -692,11 +701,11 @@ def main(gvar, user_secret):
             'authurl': 'unit-test-cloud-five.ca',
             'project': 'unit-test-cloud-five',
             'username': ut_id(gvar, 'ctu3'),
-            'password': user_secret,
+            'password': gvar['user_secret'],
             'region': ut_id(gvar, 'ctc5-r'),
             'cloud_type': 'local'
             },
-        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
+        server_user=ut_id(gvar, 'ctu3')
     )
 
     # 50
@@ -707,12 +716,12 @@ def main(gvar, user_secret):
             'authurl': 'unit-test-cloud-seven.ca',
             'project': 'unit-test-cloud-seven',
             'username': ut_id(gvar, 'ctu3'),
-            'password': user_secret,
+            'password': gvar['user_secret'],
             'region': ut_id(gvar, 'ctc7-r'),
             'cloud_type': 'local',
             'vm_image': 'invalid-unit-test',
             },
-        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
+        server_user=ut_id(gvar, 'ctu3')
     )
 
     # 51
@@ -723,12 +732,12 @@ def main(gvar, user_secret):
             'authurl': 'unit-test-cloud-seven.ca',
             'project': 'unit-test-cloud-seven',
             'username': ut_id(gvar, 'ctu3'),
-            'password': user_secret,
+            'password': gvar['user_secret'],
             'region': ut_id(gvar, 'ctc7-r'),
             'cloud_type': 'local',
             'vm_flavor': 'invalid-unit-test',
             },
-        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
+        server_user=ut_id(gvar, 'ctu3')
     )
 
     # 52
@@ -739,12 +748,12 @@ def main(gvar, user_secret):
             'authurl': 'unit-test-cloud-seven.ca',
             'project': 'unit-test-cloud-seven',
             'username': ut_id(gvar, 'ctu3'),
-            'password': user_secret,
+            'password': gvar['user_secret'],
             'region': ut_id(gvar, 'ctc7-r'),
             'cloud_type': 'local',
             'vm_network': 'invalid-unit-test',
             },
-        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
+        server_user=ut_id(gvar, 'ctu3')
     )
 
     # 53
@@ -755,12 +764,12 @@ def main(gvar, user_secret):
             'authurl': 'unit-test-cloud-seven.ca',
             'project': 'unit-test-cloud-seven',
             'username': ut_id(gvar, 'ctu3'),
-            'password': user_secret,
+            'password': gvar['user_secret'],
             'region': ut_id(gvar, 'ctc7-r'),
             'cloud_type': 'local',
             'vm_keyname': 'invalid-unit-test',
             },
-        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
+        server_user=ut_id(gvar, 'ctu3')
     )
 
 if __name__ == "__main__":

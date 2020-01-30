@@ -4,7 +4,7 @@ create or replace view view_condor_host as
 select
     cv.group_name,
     cloud_name,
-    htcondor_fqdn,
+    case when ifnull(htcondor_container_hostname,'')!='' then htcondor_container_hostname else htcondor_fqdn end as htcondor_fqdn,
     vmid,
     hostname,
     htcondor_partitionable_slots as primary_slots,

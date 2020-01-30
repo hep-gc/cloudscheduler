@@ -23,9 +23,9 @@
     state: present
 
 - name: install HTCondor
-  yum: name={{ item }} state=latest
-  with_items:
-  - condor-all
+  yum:
+    name: ['condor-all']
+    state: latest
 
 - name: HTCondor local configuration
   copy:
@@ -73,10 +73,9 @@
   - reconfigure condor
 
 - name: install GSI tools
-  yum: name={{ item }} state=latest
-  with_items:
-  - fetch-crl
-  - globus-proxy-utils
+  yum:
+    name: ['fetch-crl', 'globus-proxy-utils']
+    state: latest
   when:
   - htcondor_cert is defined
   - htcondor_worker_cert is defined
@@ -130,7 +129,7 @@
 
 - name: install the grid-mapfile if defined
   copy:
-    src: "{{ grid_mapfile }}"
+    src: etc_grid-security_grid-mapfile
     dest: /etc/grid-security/grid-mapfile
     owner: root
     group: root
@@ -142,8 +141,9 @@
 
 - name: install host certificate file
   copy:
-    src: "{{ htcondor_cert }}"
+    src: "/etc/letsencrypt/live/{{ i_external_connection.0.ipv4fqdn }}/cert.pem"
     dest: /etc/grid-security/hostcert.pem
+    remote_src: yes
     owner: root
     group: root
     mode: 0644
@@ -153,8 +153,9 @@
 
 - name: install host private key file
   copy:
-    src: "{{ htcondor_key }}"
+    src: "/etc/letsencrypt/live/{{ i_external_connection.0.ipv4fqdn }}/privkey.pem"
     dest: /etc/grid-security/hostkey.pem
+    remote_src: yes
     owner: root
     group: root
     mode: 0400
@@ -173,93 +174,24 @@
   - htcondor_cert is defined
   - htcondor_worker_cert is defined
 
-- name: install condor certificate file
-  copy:
-    src: "{{ htcondor_cert }}"
-    dest: /etc/grid-security/condor/condorcert.pem
-    owner: condor
-    group: condor
-    mode: 0644
-  when:
-  - htcondor_cert is defined
-  - htcondor_key is defined
-  - htcondor_worker_cert is defined
-  - htcondor_worker_key is defined
-
-- name: install condor private key file
-  copy:
-    src: "{{ htcondor_key }}"
-    dest: /etc/grid-security/condor/condorkey.pem
-    owner: condor
-    group: condor
-    mode: 0400
-  when:
-  - htcondor_cert is defined
-  - htcondor_key is defined
-  - htcondor_worker_cert is defined
-  - htcondor_worker_key is defined
-
-- name: install condorworker certificate file
-  copy:
-    src: "{{ htcondor_worker_cert }}"
-    dest: /etc/grid-security/condor/worker/condorworkercert.pem
-    owner: condor
-    group: condor
-    mode: 0644
-  when:
-  - htcondor_cert is defined
-  - htcondor_key is defined
-  - htcondor_worker_cert is defined
-  - htcondor_worker_key is defined
-
-- name: install condorworker private key file
-  copy:
-    src: "{{ htcondor_worker_key }}"
-    dest: /etc/grid-security/condor/worker/condorworkerkey.pem
-    owner: condor
-    group: condor
-    mode: 0400
-  when:
-  - htcondor_cert is defined
-  - htcondor_key is defined
-  - htcondor_worker_cert is defined
-  - htcondor_worker_key is defined
-
-- name: install condor admin proxy utility
-  template:
-    src: usr_local_sbin_create_condor_admin_proxy.j2
-    dest: /usr/local/sbin/create_condor_admin_proxy
-    owner: root
-    group: root
-    mode: 0700
-  when:
-  - htcondor_cert is defined
-  - htcondor_key is defined
-
-- name: install condor proxy crontab
-  copy:
-    src: etc_cron.d_create_condor_proxies
-    dest: /etc/cron.d/create_condor_proxies
-    owner: root
-    group: root
-    mode: 0700
-  when:
-  - htcondor_cert is defined
-  - htcondor_key is defined
-
-- name: create an admin proxy certificate
-  command: /usr/local/sbin/create_condor_admin_proxy
-  args:
-    creates: /tmp/x509up_u0
-  when:
-  - htcondor_cert is defined
-  - htcondor_key is defined
-
 - name: ensure HTCondor is running
   service:
     name: condor
     enabled: yes
     state: started
   ignore_errors: yes
+
+- name: install letsencrypt certificte chain
+  shell: |
+    git clone https://github.com/cilogon/letsencrypt-certificates.git
+    cd letsencrypt-certificates/
+    make check
+    sudo make install
+  args:
+    executable: /bin/bash
+
+- name: wait for condor
+  wait_for:
+    timeout: 5
 
 - meta: flush_handlers

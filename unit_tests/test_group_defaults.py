@@ -3,7 +3,7 @@ from sys import argv
 
 # lno: GV - error code identifier.
 
-def main(gvar, user_secret):
+def main(gvar):
     if not gvar:
         gvar = {}
         if len(argv) > 1:
@@ -11,41 +11,39 @@ def main(gvar, user_secret):
         else:
             initialize_csv2_request(gvar, argv[0])
 
-#   gvar['user_settings']['expose-API'] = True
-
     # 1
     execute_csv2_request(
         gvar, 2, None, 'HTTP response code 401, unauthorized.',
         '/group/defaults/', group=ut_id(gvar, 'gtg4'),
-        server_user=ut_id(gvar, 'invalid-unit-test'), server_pw=user_secret
+        server_user=ut_id(gvar, 'invalid-unit-test')
     )
 
     # 2
     execute_csv2_request(
         gvar, 1, 'GV', 'user "{}" is not a member of any group.'.format(ut_id(gvar, 'gtu1')),
         '/group/defaults/', group=ut_id(gvar, 'gtg4'),
-        server_user=ut_id(gvar, 'gtu1'), server_pw=user_secret
+        server_user=ut_id(gvar, 'gtu1')
     )
 
     # 3
     execute_csv2_request(
         gvar, 0, None, None,
         '/group/defaults/', group=ut_id(gvar, 'gtg4'),
-        server_user=ut_id(gvar, 'gtu3'), server_pw=user_secret
+        server_user=ut_id(gvar, 'gtu3')
     )
 
     # 4
     execute_csv2_request(
         gvar, 1, 'GV', 'cannot switch to invalid group "invalid-unit-test".',
         '/group/defaults/', group='invalid-unit-test',
-        server_user=ut_id(gvar, 'gtu3'), server_pw=user_secret
+        server_user=ut_id(gvar, 'gtu3')
     )
 
     # 5
     execute_csv2_request(
         gvar, 1, 'GV', 'cannot switch to invalid group "{}".'.format(ut_id(gvar, 'gtg7')),
         '/group/defaults/', group=ut_id(gvar, 'gtg7'),
-        server_user=ut_id(gvar, 'gtu3'), server_pw=user_secret
+        server_user=ut_id(gvar, 'gtu3')
     )
 
     # 6
@@ -53,7 +51,7 @@ def main(gvar, user_secret):
         gvar, 1, 'GV', 'request contained a bad parameter "invalid-unit-test".',
         '/group/defaults/', group=(ut_id(gvar, 'gtg4'))
 , form_data={'invalid-unit-test': 'invalid-unit-test'},
-        server_user=ut_id(gvar, 'gtu3'), server_pw=user_secret
+        server_user=ut_id(gvar, 'gtu3')
     )
 
     # 7
@@ -62,7 +60,7 @@ def main(gvar, user_secret):
         '/group/defaults/', group=ut_id(gvar, 'gtg4'), form_data={
             'job_cpus': 'invalid-unit-test'
             },
-        server_user=ut_id(gvar, 'gtu3'), server_pw=user_secret
+        server_user=ut_id(gvar, 'gtu3')
     )
 
     # 8
@@ -71,7 +69,7 @@ def main(gvar, user_secret):
         '/group/defaults/', group=ut_id(gvar, 'gtg4'), form_data={
             'job_ram': 'invalid-unit-test'
             },
-        server_user=ut_id(gvar, 'gtu3'), server_pw=user_secret
+        server_user=ut_id(gvar, 'gtu3')
     )
 
     # 9
@@ -80,7 +78,7 @@ def main(gvar, user_secret):
         '/group/defaults/', group=ut_id(gvar, 'gtg4'), form_data={
             'job_disk': 'invalid-unit-test'
             },
-        server_user=ut_id(gvar, 'gtu3'), server_pw=user_secret
+        server_user=ut_id(gvar, 'gtu3')
     )
 
     # 10
@@ -89,7 +87,7 @@ def main(gvar, user_secret):
         '/group/defaults/', group=ut_id(gvar, 'gtg4'), form_data={
             'job_scratch': 'invalid-unit-test'
             },
-        server_user=ut_id(gvar, 'gtu3'), server_pw=user_secret
+        server_user=ut_id(gvar, 'gtu3')
     )
 
     # 11
@@ -98,7 +96,7 @@ def main(gvar, user_secret):
         '/group/defaults/', group=ut_id(gvar, 'gtg4'), form_data={
             'job_swap': 'invalid-unit-test'
             },
-        server_user=ut_id(gvar, 'gtu3'), server_pw=user_secret
+        server_user=ut_id(gvar, 'gtu3')
     )
 
     # 12
@@ -107,7 +105,7 @@ def main(gvar, user_secret):
         '/group/defaults/', group=ut_id(gvar, 'gtg4'), form_data={
             'vm_keep_alive': 'invalid-unit-test'
             },
-        server_user=ut_id(gvar, 'gtu3'), server_pw=user_secret
+        server_user=ut_id(gvar, 'gtu3')
     )
 
     # 13
@@ -124,7 +122,7 @@ def main(gvar, user_secret):
             'vm_keyname': '',
             'vm_network': '',
         },
-        server_user=ut_id(gvar, 'gtu3'), server_pw=user_secret
+        server_user=ut_id(gvar, 'gtu3')
     )
 
     # 14
@@ -133,7 +131,7 @@ def main(gvar, user_secret):
         '/group/defaults/', group=ut_id(gvar, 'gtg4'), form_data={
             'vm_image': 'invalid-unit-test'
             },
-        server_user=ut_id(gvar, 'gtu3'), server_pw=user_secret
+        server_user=ut_id(gvar, 'gtu3')
     )
 
     # 15
@@ -142,7 +140,7 @@ def main(gvar, user_secret):
         '/group/defaults/', group=ut_id(gvar, 'gtg4'), form_data={
             'vm_flavor': 'invalid-unit-test'
             },
-        server_user=ut_id(gvar, 'gtu3'), server_pw=user_secret
+        server_user=ut_id(gvar, 'gtu3')
     )
 
     # 16
@@ -151,7 +149,7 @@ def main(gvar, user_secret):
         '/group/defaults/', group=ut_id(gvar, 'gtg4'), form_data={
             'vm_network': 'invalid-unit-test'
             },
-        server_user=ut_id(gvar, 'gtu3'), server_pw=user_secret
+        server_user=ut_id(gvar, 'gtu3')
     )
 
     # 17
@@ -160,7 +158,7 @@ def main(gvar, user_secret):
         '/group/defaults/', group=ut_id(gvar, 'gtg4'), form_data={
             'vm_keyname': 'invalid-unit-test'
             },
-        server_user=ut_id(gvar, 'gtu3'), server_pw=user_secret
+        server_user=ut_id(gvar, 'gtu3')
     )
 
 if __name__ == "__main__":

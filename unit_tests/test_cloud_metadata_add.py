@@ -3,7 +3,7 @@ from sys import argv
 
 # lno: CV - error code identifier.
 
-def main(gvar, user_secret):
+def main(gvar):
     if not gvar:
         gvar = {}
         if len(argv) > 1:
@@ -15,49 +15,49 @@ def main(gvar, user_secret):
     execute_csv2_request(
         gvar, 2, None, 'HTTP response code 401, unauthorized.',
         '/cloud/metadata-add/', group=ut_id(gvar, 'ctg1'),
-        server_user='invalid-unit-test', server_pw=user_secret
+        server_user='invalid-unit-test'
     )
 
     # 2
     execute_csv2_request(
         gvar, 1, None, 'user "{}" is not a member of any group.'.format(ut_id(gvar, 'ctu1')),
         '/cloud/metadata-add/', group=ut_id(gvar, 'ctg1'),
-        server_user=ut_id(gvar, 'ctu1'), server_pw=user_secret
+        server_user=ut_id(gvar, 'ctu1')
     )
 
     # 3
     execute_csv2_request(
         gvar, 1, None, 'user "{}" is not a member of any group.'.format(ut_id(gvar, 'ctu2')),
         '/cloud/metadata-add/', group=ut_id(gvar, 'ctg1'),
-        server_user=ut_id(gvar, 'ctu2'), server_pw=user_secret
+        server_user=ut_id(gvar, 'ctu2')
     )
 
     # 4
     execute_csv2_request(
         gvar, 1, 'CV', 'cloud metadata-add request did not contain mandatory parameters "cloud_name" and "metadata_name".',
         '/cloud/metadata-add/', group=ut_id(gvar, 'ctg1'),
-        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
+        server_user=ut_id(gvar, 'ctu3')
     )
 
     # 5
     execute_csv2_request(
         gvar, 1, None, 'cannot switch to invalid group "invalid-unit-test".',
         '/cloud/metadata-add/', group='invalid-unit-test',
-        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
+        server_user=ut_id(gvar, 'ctu3')
     )
 
     # 6
     execute_csv2_request(
         gvar, 1, None, 'cannot switch to invalid group "{}".'.format(ut_id(gvar, 'ctg2')),
         '/cloud/metadata-add/', group=ut_id(gvar, 'ctg2'),
-        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
+        server_user=ut_id(gvar, 'ctu3')
     )
 
     # 7
     execute_csv2_request(
         gvar, 1, 'CV', 'cloud metadata-add request did not contain mandatory parameters "cloud_name" and "metadata_name".',
         '/cloud/metadata-add/', group=ut_id(gvar, 'ctg1'),
-        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
+        server_user=ut_id(gvar, 'ctu3')
     )
 
     # 8
@@ -65,7 +65,7 @@ def main(gvar, user_secret):
         gvar, 1, 'CV', 'cloud metadata-add request did not contain mandatory parameter "cloud_name".',
         '/cloud/metadata-add/', group=(ut_id(gvar, 'ctg1')),
         form_data={'metadata_name': ut_id(gvar, 'cloud-md-invalid-unit-test')},
-        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
+        server_user=ut_id(gvar, 'ctu3')
     )
 
     # 9
@@ -73,7 +73,7 @@ def main(gvar, user_secret):
         gvar, 1, 'CV', 'cloud metadata-add request did not contain mandatory parameter "metadata_name".',
         '/cloud/metadata-add/', group=(ut_id(gvar, 'ctg1')),
         form_data={'cloud_name': 'invalid-unit-test'},
-        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
+        server_user=ut_id(gvar, 'ctu3')
     )
 
     # 10
@@ -85,7 +85,7 @@ def main(gvar, user_secret):
             'metadata_name': ut_id(gvar, 'cloud-md-invalid-unit-test'),
             'invalid-unit-test': 'invalid-unit-test'
         },
-        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
+        server_user=ut_id(gvar, 'ctu3')
     )
 
     # 11
@@ -96,7 +96,7 @@ def main(gvar, user_secret):
             'cloud_name': 'Invalid-unit-test',
             'metadata_name': ut_id(gvar, 'cloud-md-invalid-unit-test')
         },
-        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
+        server_user=ut_id(gvar, 'ctu3')
     )
 
     # 12
@@ -107,7 +107,7 @@ def main(gvar, user_secret):
             'cloud_name': 'invalid-unit-test-',
             'metadata_name': ut_id(gvar, 'cloud-md-invalid-unit-test')
         },
-        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
+        server_user=ut_id(gvar, 'ctu3')
     )
 
     # 13
@@ -118,7 +118,7 @@ def main(gvar, user_secret):
             'cloud_name': 'invalid-unit-test!',
             'metadata_name': ut_id(gvar, 'cloud-md-invalid-unit-test')
         },
-        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
+        server_user=ut_id(gvar, 'ctu3')
     )
 
     # 14
@@ -129,7 +129,7 @@ def main(gvar, user_secret):
             'cloud_name': 'invalid-unit-test',
             'metadata_name': 'Invalid-unit-test'
         },
-        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
+        server_user=ut_id(gvar, 'ctu3')
     )
 
     # 15
@@ -141,7 +141,7 @@ def main(gvar, user_secret):
             'metadata_name': ut_id(gvar, 'cloud-md-invalid-unit-test'),
             'enabled': 'invalid-unit-test'
         },
-        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
+        server_user=ut_id(gvar, 'ctu3')
     )
 
     # 16
@@ -153,7 +153,7 @@ def main(gvar, user_secret):
             'metadata_name': ut_id(gvar, 'cloud-md-invalid-unit-test'),
             'mime_type': 'invalid-unit-test'
         },
-        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
+        server_user=ut_id(gvar, 'ctu3')
     )
 
     # 17
@@ -165,7 +165,7 @@ def main(gvar, user_secret):
             'metadata_name': 'invalid-unit-test.yaml',
             'metadata': 'foo: somebody said I should put a colon here: so I did'
         },
-        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
+        server_user=ut_id(gvar, 'ctu3')
     )
 
     # 18
@@ -176,7 +176,7 @@ def main(gvar, user_secret):
             'cloud_name': 'invalid-unit-test',
             'metadata_name': ut_id(gvar, 'cloud-md-invalid-unit-test')
         },
-        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
+        server_user=ut_id(gvar, 'ctu3')
     )
 
     # 19
@@ -187,7 +187,7 @@ def main(gvar, user_secret):
             'cloud_name': ut_id(gvar, 'ctc3'),
             'metadata_name': ut_id(gvar, 'cloud-md-invalid-unit-test')
         },
-        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
+        server_user=ut_id(gvar, 'ctu3')
     )
 
     # 20
@@ -200,7 +200,7 @@ def main(gvar, user_secret):
             'metadata': 'invalid-unit-test',
             'priority': 'invalid-unit-test'
         },
-        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
+        server_user=ut_id(gvar, 'ctu3')
     )
 
     # 21
@@ -212,7 +212,7 @@ def main(gvar, user_secret):
             'metadata_name': ut_id(gvar, 'cloud-md-invalid-unit-test'),
             'metadata': 'invalid-unit-test'
         },
-        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
+        server_user=ut_id(gvar, 'ctu3')
     )
 
     # 22
@@ -224,7 +224,7 @@ def main(gvar, user_secret):
             'metadata_name': '',
             'metadata': 'invalid-unit-test'
         },
-        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
+        server_user=ut_id(gvar, 'ctu3')
     )
 
     # 23
@@ -236,7 +236,7 @@ def main(gvar, user_secret):
             'metadata_name': ut_id(gvar, 'cty1'),
             'metadata': 'foo: somebody said I should put a colon here: so I did'
         },
-        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
+        server_user=ut_id(gvar, 'ctu3')
     )
 
     # 24
@@ -248,7 +248,7 @@ def main(gvar, user_secret):
             'metadata_name': ut_id(gvar, 'cty1'),
             'metadata': 'foo: somebody said I should put a colon here: so I did'
         },
-        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
+        server_user=ut_id(gvar, 'ctu3')
     )
 
     # 25
@@ -260,7 +260,7 @@ def main(gvar, user_secret):
             'metadata_name': ut_id(gvar, 'cty1.yaml'),
             'metadata': '- example: yes'
         },
-        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
+        server_user=ut_id(gvar, 'ctu3')
     )
 
 if __name__ == "__main__":

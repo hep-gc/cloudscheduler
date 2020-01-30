@@ -2,15 +2,15 @@ from unit_test_common import execute_csv2_request, initialize_csv2_request, ut_i
 from sys import argv
 import vm_requests_cleanup
 
-def main(gvar, user_secret):
+def main(gvar):
     if not gvar:
         gvar = {}
         if len(argv) > 1:
             initialize_csv2_request(gvar, argv[0], selections=argv[1])
         else:
             initialize_csv2_request(gvar, argv[0])
-    if not user_secret:
-        user_secret = generate_secret()
+    if not gvar['user_secret']:
+        gvar['user_secret'] = generate_secret()
     
     vm_requests_cleanup.main(gvar)
 
@@ -19,8 +19,8 @@ def main(gvar, user_secret):
         gvar, 0, None, 'user "{}" successfully added.'.format(ut_id(gvar, 'vtu1')),
         '/user/add/', form_data={
             'username': ut_id(gvar, 'vtu1'),
-            'password1': user_secret,
-            'password2': user_secret,
+            'password1': gvar['user_secret'],
+            'password2': gvar['user_secret'],
             'cert_cn': ut_id(gvar, 'vm test user one')
         }
     )
@@ -30,8 +30,8 @@ def main(gvar, user_secret):
         gvar, 0, None, 'user "{}" successfully added.'.format(ut_id(gvar, 'vtu2')),
         '/user/add/', form_data={
             'username': ut_id(gvar, 'vtu2'),
-            'password1': user_secret,
-            'password2': user_secret,
+            'password1': gvar['user_secret'],
+            'password2': gvar['user_secret'],
             'cert_cn': ut_id(gvar, 'vm test user two'),
             'is_superuser': 1
         }
@@ -60,8 +60,8 @@ def main(gvar, user_secret):
         gvar, 0, None, 'user "{}" successfully added.'.format(ut_id(gvar, 'vtu3')),
         '/user/add/', form_data={
             'username': ut_id(gvar, 'vtu3'),
-            'password1': user_secret,
-            'password2': user_secret,
+            'password1': gvar['user_secret'],
+            'password2': gvar['user_secret'],
             'cert_cn': ut_id(gvar, 'vm test user three'),
             'group_name.1': ut_id(gvar, 'vtg1')
         }
@@ -72,8 +72,8 @@ def main(gvar, user_secret):
         gvar, 0, None, 'user "{}" successfully added.'.format(ut_id(gvar, 'vtu4')),
         '/user/add/', form_data={
             'username': ut_id(gvar, 'vtu4'),
-            'password1': user_secret,
-            'password2': user_secret,
+            'password1': gvar['user_secret'],
+            'password2': gvar['user_secret'],
             'cert_cn': ut_id(gvar, 'vm test user four'),
             'is_superuser': 1,
             'group_name.1': ut_id(gvar, 'vtg1')

@@ -13,10 +13,9 @@
     gpgcheck: no
 
 - name: install InfluxDB
-  yum: name={{ item }} state=latest
-  with_items:
-  - influxdb
-
+  yum:
+    name: ['influxdb']
+    state: latest
 
 - name: Start service InfluxDB
   service:

@@ -1,6 +1,13 @@
 ---
 # file: define_users.yaml - define users on elephant nodes.
 
+- set_fact:
+    i_groups:
+    -
+        group: hep
+        gid: 34244
+  when: i_groups is not defined
+
 - name: remove obsolete sudoers
   file:
     path: "/etc/sudoers.d/{{ item.userid }}"

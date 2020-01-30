@@ -2,13 +2,11 @@
 # install_configure_httpd.yaml
 
 - name: install packages required by httpd
-  yum: name={{ item }} state=latest
+  yum:
+    name: ['httpd', 'httpd-tools', 'mod_ssl']
+    state: latest
   notify:
   - restart httpd
-  with_items:
-  - httpd
-  - httpd-tools
-  - mod_ssl
 
 - name: enable and start httpd
   service:

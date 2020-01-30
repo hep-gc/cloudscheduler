@@ -3,11 +3,10 @@
 Unit tests.
 """
 
-from os import listdir, makedirs, open as os_open, O_CREAT, O_WRONLY, path, umask
-from os.path import expanduser
+from os import listdir, path
 from re import sub
 from sys import argv
-from unit_test_common import initialize_csv2_request, generate_secret
+from unit_test_common import initialize_csv2_request
 
 TEST_OBJECTS = ['user', 'group', 'cloud', 'job', 'vm', 'cli', 'server']
 
@@ -98,23 +97,11 @@ def main():
     else:
         initialize_csv2_request(gvar, argv[0])
 
-    # Get user_secret.
-    umask(0)
-    try:
-        with open(expanduser('~/.pw/csv2-unit-test.txt'), 'r') as pw_file:
-            user_secret = pw_file.read()
-    except FileNotFoundError:
-        user_secret = generate_secret()
-        # Create ~/.pw/csv2-unit-test.txt with all permissions for the current user and none for others. Save user_secret there in plain text.
-        makedirs(expanduser('~/.pw'), exist_ok=True)
-        with open(os_open(expanduser('~/.pw/csv2-unit-test.txt'), O_CREAT | O_WRONLY, 0o700), 'w') as pw_file:
-            pw_file.write(user_secret)
-
     for obj in user_options['objects']:
         if user_options['setup']:
             exec('import {}_requests_setup'.format(obj), globals(), locals())
             print('Setting up {} tests...'.format(obj))
-            exec('{}_requests_setup.main(hidden_gvar, user_secret)'.format(obj), globals(), locals())
+            exec('{}_requests_setup.main(hidden_gvar)'.format(obj), globals(), locals())
         if hidden_gvar['ut_failed'] == 0:
             for ((f, n), s) in user_options['tests']:
                 if s is None:
@@ -122,12 +109,12 @@ def main():
                         exec('import {}'.format(f), globals(), locals())
                         gvar['ut_count'][1] = 0
                         print('\n*** Testing {} ***\n'.format(n))
-                        exec('{}.main(gvar, user_secret)'.format(f), globals(), locals())
+                        exec('{}.main(gvar)'.format(f), globals(), locals())
                 else:
                     if n.startswith(obj):
                         exec('import {}'.format(f), globals(), locals())
                         print('\n*** Testing {} ***\n'.format(n))
-                        exec('{}.main(s, user_secret)'.format(f), globals(), locals())
+                        exec('{}.main(s)'.format(f), globals(), locals())
         if user_options['cleanup']:
             exec('import {}_requests_cleanup'.format(obj))
             print('Cleaning up {} tests...'.format(obj))
@@ -146,5 +133,5 @@ def main():
         total_failed += s['ut_failed']
     exit(total_failed)
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()

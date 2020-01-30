@@ -48,6 +48,7 @@ def main(args):
             'mysql',
             '-u%s' % gvar['csv2_config']['database']['db_user'],
             '-p%s' % gvar['csv2_config']['database']['db_password'],
+            '-h%s' % gvar['csv2_config']['database']['db_host'],
             '-e',
             'show tables;',
             gvar['csv2_config']['database']['db_name']
@@ -85,6 +86,7 @@ def main(args):
                 'mysql',
                 '-u%s' % gvar['csv2_config']['database']['db_user'],
                 '-p%s' % gvar['csv2_config']['database']['db_password'],
+                '-h%s' % gvar['csv2_config']['database']['db_host'],
                 '-e',
                 'show columns from %s;' % table,
                 gvar['csv2_config']['database']['db_name']

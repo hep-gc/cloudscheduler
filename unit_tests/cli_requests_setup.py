@@ -2,15 +2,15 @@ from unit_test_common import execute_csv2_command, execute_csv2_request, initial
 from sys import argv
 import cli_requests_cleanup
 
-def main(gvar, user_secret):
+def main(gvar):
     if not gvar:
         gvar = {}
         if len(argv) > 1:
             initialize_csv2_request(gvar, argv[0], selections=argv[1])
         else:
             initialize_csv2_request(gvar, argv[0])
-    if not user_secret:
-        user_secret = generate_secret()
+    if not gvar['user_secret']:
+        gvar['user_secret'] = generate_secret()
     
     cli_requests_cleanup.main(gvar)
 
@@ -20,8 +20,8 @@ def main(gvar, user_secret):
         '/user/add/'
 , form_data={
             'username': ut_id(gvar, 'clu1'),
-            'password1': user_secret,
-            'password2': user_secret,
+            'password1': gvar['user_secret'],
+            'password2': gvar['user_secret'],
             'cert_cn': ut_id(gvar, 'command line user one')
         }
     )
@@ -32,8 +32,8 @@ def main(gvar, user_secret):
         '/user/add/'
 , form_data={
             'username': ut_id(gvar, 'clu2'),
-            'password1': user_secret,
-            'password2': user_secret,
+            'password1': gvar['user_secret'],
+            'password2': gvar['user_secret'],
             'cert_cn': ut_id(gvar, 'command line user two'),
             'is_superuser': 1
         }
@@ -45,8 +45,8 @@ def main(gvar, user_secret):
         '/user/add/'
 , form_data={
             'username': ut_id(gvar, 'test'),
-            'password1': user_secret,
-            'password2': user_secret,
+            'password1': gvar['user_secret'],
+            'password2': gvar['user_secret'],
             'cert_cn': ut_id(gvar, 'test'),
             'is_superuser': 0,
         }
@@ -59,7 +59,6 @@ def main(gvar, user_secret):
 , form_data={
             'group_name': ut_id(gvar, 'clg1'),
             'htcondor_fqdn': 'unit-test-group-one.ca',
-            'username.1': ut_id(gvar, '')[:-1],
             'username.2': ut_id(gvar, 'test'),
         }
     )
@@ -100,8 +99,8 @@ def main(gvar, user_secret):
         '/user/add/'
 , form_data={
             'username': ut_id(gvar, 'clu3'),
-            'password1': user_secret,
-            'password2': user_secret,
+            'password1': gvar['user_secret'],
+            'password2': gvar['user_secret'],
             'cert_cn': ut_id(gvar, 'command line user three'),
             'group_name.1': ut_id(gvar, 'clg1')
         }
@@ -113,8 +112,8 @@ def main(gvar, user_secret):
         '/user/add/'
 , form_data={
             'username': ut_id(gvar, 'clu4'),
-            'password1': user_secret,
-            'password2': user_secret,
+            'password1': gvar['user_secret'],
+            'password2': gvar['user_secret'],
             'cert_cn': ut_id(gvar, 'command line user four'),
             'is_superuser': 1,
             'group_name.1': ut_id(gvar, 'clg1'),
@@ -128,7 +127,7 @@ def main(gvar, user_secret):
         '/user/add/'
 , form_data={
             'username': ut_id(gvar, 'clu5'),
-            'password': user_secret,
+            'password': gvar['user_secret'],
             'cert_cn': ut_id(gvar, 'command line user five')
         }
     )
@@ -139,7 +138,7 @@ def main(gvar, user_secret):
         '/user/add/'
 , form_data={
             'username': ut_id(gvar, 'clu6'),
-            'password': user_secret,
+            'password': gvar['user_secret'],
             'cert_cn': ut_id(gvar, 'command line user six'),
             'group_name': ut_id(gvar, 'clg1')
         }
@@ -151,7 +150,7 @@ def main(gvar, user_secret):
         '/user/add/'
 , form_data={
             'username': ut_id(gvar, 'clu7'),
-            'password': user_secret,
+            'password': gvar['user_secret'],
             'cert_cn': ut_id(gvar, 'command line user seven')
         }
     )
@@ -167,7 +166,8 @@ def main(gvar, user_secret):
             'password': 'unit-test-cloud-one',
             'region': ut_id(gvar, 'clc1-r'),
             'cloud_type': 'local'
-        }
+        },
+        server_user=ut_id(gvar, 'clu4')
     )
 
     # cloud to be deleted
@@ -181,7 +181,8 @@ def main(gvar, user_secret):
             'password': 'unit-test-cloud-three',
             'region': ut_id(gvar, 'clc3-r'),
             'cloud_type': 'local'
-        }
+        },
+        server_user=ut_id(gvar, 'clu4')
     )
 
     # cloud to be listed and edited
@@ -195,7 +196,8 @@ def main(gvar, user_secret):
             'password': 'unit-test-cloud-two',
             'region': ut_id(gvar, 'clc2-r'),
             'cloud_type': 'local'
-        }
+        },
+        server_user=ut_id(gvar, 'clu4')
     )
 
     # group metadata to be deleted
@@ -204,7 +206,8 @@ def main(gvar, user_secret):
         '/group/metadata-add/', group=ut_id(gvar, 'clg1'), form_data={
             'metadata_name': ut_id(gvar, 'clm1'),
             'metadata': '- example: yaml'
-        }
+        },
+        server_user=ut_id(gvar, 'clu4')
     )
 
     # group metadata to be edited
@@ -213,7 +216,8 @@ def main(gvar, user_secret):
         '/group/metadata-add/', group=ut_id(gvar, 'clg1'), form_data={
             'metadata_name': ut_id(gvar, 'clm2'),
             'metadata': '- example: yaml'
-        }
+        },
+        server_user=ut_id(gvar, 'clu4')
     )
 
     execute_csv2_request(
@@ -221,7 +225,8 @@ def main(gvar, user_secret):
         '/group/metadata-add/', group=ut_id(gvar, 'clg1'), form_data={
             'metadata_name': ut_id(gvar, 'clm2.yaml'),
             'metadata': '- example: yaml'
-        }
+        },
+        server_user=ut_id(gvar, 'clu4')
     )
 
     execute_csv2_request(
@@ -229,7 +234,8 @@ def main(gvar, user_secret):
         '/group/metadata-add/', group=ut_id(gvar, 'clg1'), form_data={
             'metadata_name': ut_id(gvar, 'clm3'),
             'metadata': '- example: yaml'
-        }
+        },
+        server_user=ut_id(gvar, 'clu4')
     )
 
     # cloud metadata to be deleted
@@ -240,7 +246,8 @@ def main(gvar, user_secret):
             'cloud_name': ut_id(gvar, 'clc2'),
             'metadata_name': ut_id(gvar, 'clm1'),
             'metadata': '- example: yes'
-        }
+        },
+        server_user=ut_id(gvar, 'clu4')
     )
 
     execute_csv2_request(
@@ -250,7 +257,8 @@ def main(gvar, user_secret):
             'cloud_name': ut_id(gvar, 'clc2'),
             'metadata_name': ut_id(gvar, 'clm3'),
             'metadata': '- example: yes'
-        }
+        },
+        server_user=ut_id(gvar, 'clu4')
     )
 
     # cloud metadata to be edited
@@ -261,7 +269,8 @@ def main(gvar, user_secret):
             'cloud_name': ut_id(gvar, 'clc2'),
             'metadata_name': ut_id(gvar, 'clm2'),
             'metadata': '- example: yes'
-        }
+        },
+        server_user=ut_id(gvar, 'clu4')
     )
 
     execute_csv2_request(
@@ -271,12 +280,8 @@ def main(gvar, user_secret):
             'cloud_name': ut_id(gvar, 'clc2'),
             'metadata_name': ut_id(gvar, 'clm2.yaml'),
             'metadata': '- example: yes'
-        }
-    )
-    
-    execute_csv2_command(
-        gvar, 0, None, None,
-        ['cloudscheduler', 'defaults', 'set', '-s', 'unit-test-un', '-su', ut_id(gvar, 'test'), '-spw', user_secret]
+        },
+        server_user=ut_id(gvar, 'clu4')
     )
 
 if __name__ == "__main__":

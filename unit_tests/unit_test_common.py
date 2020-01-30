@@ -5,12 +5,6 @@ def _caller():
         return os.path.basename(inspect.stack()[-4][1]).split('.')[0]
     return os.path.basename(inspect.stack()[-3][1]).split('.')[0]
 
-def decode_bytes(obj):
-    if isinstance(obj, str):
-        return obj
-
-    return obj.decode('utf-8')
-
 def _execute_selections(gvar, request, expected_text, expected_values):
     from unit_test_common import _caller
     
@@ -20,48 +14,75 @@ def _execute_selections(gvar, request, expected_text, expected_values):
         return True
     else:
         gvar['ut_skipped'] += 1
-        print('%04d (%04d) %s Skipping: %s, %s, %s' % (gvar['ut_count'][0], gvar['ut_count'][1], _caller(), repr(request), repr(expected_text), expected_values))
+        # print('%04d (%04d) %s Skipping: \'%s\', %s, %s' % (gvar['ut_count'][0], gvar['ut_count'][1], _caller(), request, repr(expected_text), expected_values))
         return False
    
-def execute_csv2_command(gvar, expected_rc, expected_modid, expected_text, cmd, expected_list=None, columns=None):
+def execute_csv2_command(gvar, expected_rc, expected_modid, expected_text, cmd, expected_list=None, columns=None, timeout=None):
 
-    from subprocess import Popen, PIPE
+    from subprocess import PIPE, run, TimeoutExpired
     from unit_test_common import _caller, _execute_selections
+    import re
 
     if _execute_selections(gvar, cmd, expected_text, None):
-        p = Popen(cmd, stdout=PIPE, stderr=PIPE)
-        stdout, stderr = p.communicate()
+
+        # If the `-s` flag is not used tests will sometimes hang because cloudscheduler is waiting for a server web address (but this prompt is not visible to the tester)
+        if '-s' not in cmd:
+            cmd.extend(['-s', 'unit-test'])
+        if '-spw' not in cmd:
+            try:
+                su_index = cmd.index('-su')
+                if cmd[su_index + 1] == gvar['user_settings']['server-user']:
+                    cmd.extend(['-spw', gvar['user_settings']['server-password']])
+                else:
+                    cmd.extend(['-spw', gvar['user_secret']])
+            except ValueError:
+                pass
+        
+        try:
+            process = run(cmd, stdout=PIPE, stderr=PIPE, timeout=timeout)
+            stdout = process.stdout.decode()
+            stderr = process.stderr.decode()
+            return_code = process.returncode
+        except TimeoutExpired as err:
+            stdout = err.stdout.decode()
+            stderr = err.stderr.decode()
+            return_code = None
 
         failed = False
 
-        if expected_rc and expected_rc != p.returncode:
+        if expected_rc and expected_rc != return_code:
             failed = True
 
-        if p.returncode == 0 or not expected_modid:
+        if return_code == 0 or not expected_modid:
             modid = expected_modid
         else:
-            modid = decode_bytes(stdout).replace('-', ' ').split()[1]
+            modid = stdout.replace('-', ' ').split()[1]
             if expected_modid and modid != expected_modid:
                 failed = True
 
         list_error = ''
         if expected_list:
-            list_index = str(stdout).find(expected_list)
-            row_index = str(stdout).find('Rows:', list_index)
-            if list_index < 0:
+            if expected_list not in stdout:
                 failed = True
-                list_error = 'list "{}" not found'.format(expected_list)
+                list_error = 'list \'{}\' not found'.format(expected_list)
             elif columns:
                 columns_found = []
-                rows = decode_bytes(stdout).split('\n')
+                rows = stdout.split('\n')
                 for row in rows:
                     if len(row) > 1 and row[:2] == '+ ':
-                        columns_found += row[2:-2].replace('|', ' ').split()
-                if set(columns) != set(columns_found):
+                        row_trimmed = row[2:-2].strip()
+                        # Split on either '<zero or more spaces>|<zero or more spaces>' occurring one or more times, or two or more spaces in a row. Then filter out empty strings.
+                        columns_found.extend(filter(None, re.split(r'(?:\s*\|\s*)+|(?:\s{2,})', row_trimmed)))
+                columns_set = set(columns)
+                columns_found_set = set(columns_found)
+                if columns_set != columns_found_set:
                     failed = True
-                    list_error = 'columns expected:{}\n\t\tcolumns found:{}'.format(columns, columns_found)
+                    list_error = '\tActual columns found: {}\n \
+                    \tColumns expected but not found: {}\n \
+                    \tColumns not expected but found: {}\n'\
+                    .format(columns_found_set, columns_set - columns_found_set, columns_found_set - columns_set)
 
-        if expected_text and str(stdout).find(expected_text) < 0:
+        if expected_text and expected_text not in stdout:
             failed = True
 
         if failed:
@@ -69,13 +90,13 @@ def execute_csv2_command(gvar, expected_rc, expected_modid, expected_text, cmd, 
             if not gvar['hidden']:
                 # repr() is used because it puts quotes around strings *unless* they are None.
                 print('\n%04d (%04d) %s \033[91mFailed\033[0m: expected_rc=%s, expected_modid=%s, expected_text=%s, cmd=%s' % (gvar['ut_count'][0], gvar['ut_count'][1], _caller(), expected_rc, repr(expected_modid), repr(expected_text), cmd))
-                print('    return code=%s' % p.returncode)
-                print('    module ID=%s' % repr(modid))
-                print('    stdout=%s' % str(stdout))
-                print('    stderr=%s' % str(stderr))
+                print('\treturn code=%s' % return_code)
+                print('\tmodule ID=%s' % repr(modid))
+                print('\tstdout=%s' % stdout)
+                print('\tstderr=%s' % stderr)
                 if list_error:
-                    print('\tlist_error={}'.format(list_error))
-                print('')
+                    print('List error: {}'.format(list_error))
+                print()
 
             return 1
         else:
@@ -93,24 +114,11 @@ def execute_csv2_request(gvar, expected_rc, expected_modid, expected_text, reque
 
     from unit_test_common import _caller, _execute_selections, _requests
 
-#   # Retrieve the current user.
-#   if server_user and server_pw:
-#       current_user = server_user
-
-#   elif 'server-grid-cert' in gvar['user_settings'] and \
-#       os.path.exists(gvar['user_settings']['server-grid-cert']) and \
-#       'server-grid-key' in gvar['user_settings'] and \
-#       os.path.exists(gvar['user_settings']['server-grid-key']):
-#       current_user = gvar['user_settings']['server-grid-cert']
-
-#   elif 'server-user' in gvar['user_settings']:
-#       current_user = gvar['user_settings']['server-user']
-#   
-#   if current_user not in gvar['active_user_group']:
-#       gvar['active_user_group'][current_user] = '-'
-
-#   if current_user not in gvar['active_user_group']:
-#       gvar['active_user_group'][current_user] = '-'
+    if server_user and not server_pw:
+        if server_user == gvar['user_settings']['server-user']:
+            server_pw = gvar['user_settings']['server-password']
+        else:
+            server_pw = gvar['user_secret']
 
     if _execute_selections(gvar, 'req=%s, group=%s, form=%s, query=%s' % (request, group, form_data, query_data), expected_text, values):
         if server_user and server_pw:
@@ -122,43 +130,6 @@ def execute_csv2_request(gvar, expected_rc, expected_modid, expected_text, reque
         if form_data:
             if not gvar['csrf']:
                 response = _requests(gvar, '/settings/prepare/', server_user=server_user, server_pw=server_pw)
-
-###########################################################################################################################
-#           group_request = request
-#           group_form_data = form_data
-
-#           if 'group' not in form_data and gvar['active_user_group'][current_user] != '-':
-#               group_form_data['group'] = gvar['active_user_group'][current_user]
-#       
-#       # For GET requests (form_data is null), insert the current active group.
-#       else:
-#           group_form_data = {}
-#           if gvar['active_user_group'][current_user] != '-':
-#               if request[-1] == '/':
-#                   group_request = '%s?%s' % (request[:-1], gvar['active_user_group'][current_user])
-#               else:
-#                   group_request = '%s?%s' % (request, gvar['active_user_group'][current_user])
-#           else:
-#               group_request = request
-
-#       # Obtain a CSRF as required.
-#       if form_data and not gvar['csrf']:
-#           response = _requests(gvar, '/settings/prepare/', server_user=server_user, server_pw=server_pw)
-#       
-#       # Group change requested but the request is not a POST.
-#       elif not form_data and 'group' in gvar['command_args']:
-#           if not gvar['csrf']:
-#               response = _requests(gvar, '/settings/prepare/', server_user=server_user, server_pw=server_pw)
-#       
-#           response = _requests(gvar,
-#                   '/settings/prepare/',
-#                   form_data = {
-#                       'group': gvar['command_args']['group'],
-#                       },
-#                   server_user=server_user,
-#                   server_pw=server_pw       
-#               ) 
-###########################################################################################################################
 
         # Perform the callers request.
         response = _requests(gvar, request, group, form_data=form_data, query_data=query_data, server_user=server_user, server_pw=server_pw, html=html)
@@ -190,7 +161,7 @@ def execute_csv2_request(gvar, expected_rc, expected_modid, expected_text, reque
             gvar['ut_failed'] += 1
 
             if not gvar['hidden']:
-                print('\n%04d (%04d) %s \033[91mFailed\033[0m: expected_rc=%s, expected_modid=%s, expected_text=%s, request=%s, group=%s, form_data=%s, query_data=%s' % (gvar['ut_count'][0], gvar['ut_count'][1], _caller(), expected_rc, repr(expected_modid), repr(expected_text), repr(request), repr(group), form_data, query_data))
+                print('\n%04d (%04d) %s \033[91mFailed\033[0m: expected_rc=%s, expected_modid=%s, expected_text=%s, request=\'%s\', group=%s, form_data=%s, query_data=%s' % (gvar['ut_count'][0], gvar['ut_count'][1], _caller(), expected_rc, repr(expected_modid), repr(expected_text), request, group, form_data, query_data))
                 if gvar['user_settings']['server-address'] in gvar['active_server_user_group'] and server_user in gvar['active_server_user_group'][gvar['user_settings']['server-address']]:
                     print('    server=%s, user=%s, group=%s' % (repr(gvar['server']), repr(server_user), repr(gvar['active_server_user_group'][gvar['user_settings']['server-address']][server_user])))
                 else:
@@ -198,53 +169,68 @@ def execute_csv2_request(gvar, expected_rc, expected_modid, expected_text, reque
                 print('    response code=%s' % response['response_code'])
                 if response['response_code'] != 0:
                     print('    module ID=%s' % repr(modid))
-                print('    message=%s\n' % repr(response['message']))
+                print('    message=\'%s\'\n' % response['message'])
 
             return 1
-        else:
-            if expected_list and list_filter and values and (expected_list not in response):
+        elif expected_list and list_filter and values:
+            if expected_list not in response:
                 failed = True
                 if not gvar['hidden']:
-                    print('\n%04d (%04d) %s \033[91mFailed\033[0m: request=%s, group=%s, expected_list=%s, list_filter=%s, values=%s' % (gvar['ut_count'][0], gvar['ut_count'][1], _caller(), repr(request), repr(group), expected_list, list_filter, values))
-                    print('\tNo list "{}" in response.\n'.format(expected_list))
-            if expected_list and list_filter and values and expected_list in response:
-                found = False
+                    print('\n%04d (%04d) %s \033[91mFailed\033[0m: request=\'%s\', group=%s, expected_list=\'%s\', list_filter=%s, values=%s' % (gvar['ut_count'][0], gvar['ut_count'][1], _caller(), request, group, expected_list, list_filter, values))
+                    print('\tNo list \'%s\' in response. The message from the server was: \'%s\'\n' % (expected_list, response['message']))
+            # expected_list in response
+            else:
+                found_perfect_row = False
+                filtered_rows = []
+                mismatches_in_filtered_rows = []
                 for row in response[expected_list]:
-                    match = True
-                    for key in list_filter:
-                        if (key not in row.keys()) or (list_filter[key] != row[key]):
-                            match = False
-                            break
+                    if all((key in row) and (list_filter[key] == row[key]) for key in list_filter):
+                        filtered_rows.append(row)
 
-                    if match:
-                        found = True
-                        failed = False
-                        for key in values:
-                            if (key not in row.keys()) or (values[key] != row[key]):
-                                failed = True
-                                if not gvar['hidden']:
-                                    print('\n%04d (%04d) %s \033[91mRow Check\033[0m: request=%s, group=%s, expected_list=%s, list_filter=%s, values=%s' % (gvar['ut_count'][0], gvar['ut_count'][1], _caller(), repr(request), repr(group), expected_list, list_filter, values))
-                                    print('\trow=%s\n' % row)
-                                break
-                        if not failed:
-                            break
+                for row in filtered_rows:
+                    mismatches = []
+                    for expected_key in values:
+                        if expected_key not in row:
+                            mismatches.append((expected_key, values[expected_key]))
+                        elif values[expected_key] != row[expected_key]:
+                            mismatches.append((expected_key, values[expected_key], row[expected_key]))
+                    if mismatches:
+                        mismatches_in_filtered_rows.append(mismatches)
+                    else:
+                        if not gvar['hidden']:
+                            print('%04d (%04d) %s \033[92mOK\033[0m: request=\'%s\', group=%s, form_data=%s, expected_list=%s, list_filter=%s' % (gvar['ut_count'][0], gvar['ut_count'][1], _caller(), request, group, form_data, expected_list, list_filter))
+                            return 0
 
-                if not found:
-                    failed = True
+                # At this point we know the test has failed.
+                # Found mismatched values.
+                if mismatches_in_filtered_rows:
                     if not gvar['hidden']:
-                        print('\n%04d (%04d) %s \033[91mFailed\033[0m: request=%s, group=%s, expected_list=%s, list_filter=%s, values=%s' % (gvar['ut_count'][0], gvar['ut_count'][1], _caller(), repr(request), repr(group), expected_list, list_filter, values))
-                        print('\tFilter didn\'t match any rows\n')
-
-                if failed:
-                    gvar['ut_failed'] += 1
-                    return 1
+                        print('\n%04d (%04d) %s \033[91mRow Check\033[0m: request=\'%s\', group=%s, expected_list=\'%s\', list_filter=%s' % (gvar['ut_count'][0], gvar['ut_count'][1], _caller(), request, group, expected_list, list_filter))
+                        print('\t%s rows were accepted by the filter.' % len(mismatches_in_filtered_rows))
+                        for row_index, mismatches_in_row in enumerate(mismatches_in_filtered_rows):
+                            print('\tRow %s:' % row_index)
+                            print('\t\tActual values in response: %s' % filtered_rows[row_index])
+                            for mismatch in mismatches_in_row:
+                                if len(mismatch) == 2:
+                                    print('\t\tFor the key %s: expected %s, but the key was not in the response.' % mismatch)
+                                # len(mismatch) == 3
+                                else:
+                                    print('\t\tFor the key %s: expected %s, but got %s.' % mismatch)
+                    print()
+                # All rows were rejected by the filter.
                 else:
                     if not gvar['hidden']:
-                        print('%04d (%04d) %s \033[92mOK\033[0m: request=%s, group=%s, form_data=%s, expected_list=%s, list_filter=%s, values=%s' % (gvar['ut_count'][0], gvar['ut_count'][1], _caller(), repr(request), repr(group), form_data, expected_list, list_filter, values))
-                    return 0
+                        print('\n%04d (%04d) %s \033[91mFailed\033[0m: request=\'%s\', group=%s, expected_list=%s, list_filter=%s' % (gvar['ut_count'][0], gvar['ut_count'][1], _caller(), request, group, expected_list, list_filter))
+                        print('\tFilter did not match any rows. The message from the server was: \'%s\'\n' % response['message'])
 
-            if not failed and not gvar['hidden']:
-                print('%04d (%04d) %s \033[92mOK\033[0m: expected_rc=%s, expected_modid=%s, expected_text=%s, request=%s, group=%s, form_data=%s' % (gvar['ut_count'][0], gvar['ut_count'][1], _caller(), expected_rc, repr(expected_modid), repr(expected_text), repr(request), repr(group), form_data))
+                gvar['ut_failed'] += 1
+                return 1
+
+        # not failed
+        elif not gvar['hidden']:
+            print('%04d (%04d) %s \033[92mOK\033[0m: expected_rc=%s, expected_modid=%s, expected_text=%s, request=\'%s\', group=%s, form_data=%s' % (gvar['ut_count'][0], gvar['ut_count'][1], _caller(), expected_rc, repr(expected_modid), repr(expected_text), request, group, form_data))
+
+    # _execute_selections returned False.
     else:
         return 0
 
@@ -307,6 +293,18 @@ def initialize_csv2_request(gvar, command, selections=None, hidden=False):
     gvar['user_settings'] = yaml.full_load(fd.read())
     fd.close()
 
+    # Get user_secret.
+    os.umask(0)
+    try:
+        with open(os.path.expanduser('~/.pw/csv2-unit-test.txt'), 'r') as pw_file:
+            gvar['user_secret'] = pw_file.read()
+    except FileNotFoundError:
+        gvar['user_secret'] = generate_secret()
+        # Create ~/.pw/csv2-unit-test.txt with all permissions for the current user and none for others. Save user_secret there in plain text.
+        os.makedirs(os.path.expanduser('~/.pw'), exist_ok=True)
+        with open(os.open(os.path.expanduser('~/.pw/csv2-unit-test.txt'), os.O_CREAT | os.O_WRONLY, 0o700), 'w') as pw_file:
+            pw_file.write(gvar['user_secret'])
+
     return
 
 def _requests(gvar, request, group=None, form_data={}, query_data={}, server_user=None, server_pw=None, html=False):
@@ -324,13 +322,6 @@ def _requests(gvar, request, group=None, form_data={}, query_data={}, server_use
         print('Error: user settings for server "%s" does not contain a URL value.' % gvar['server'])
         exit(1)
 
-#   if form_data:
-#       _function = py_requests.post
-#       _form_data = {**form_data, **{'csrfmiddlewaretoken': gvar['csrf']}}
-#   else:
-#       _function = py_requests.get
-#       _form_data = {}
-    
     if html:
         headers={'Referer': gvar['user_settings']['server-address']}
     else:
@@ -341,7 +332,6 @@ def _requests(gvar, request, group=None, form_data={}, query_data={}, server_use
 
         _r = _function(
             _request,
-#           '%s%s' % (gvar['user_settings']['server-address'], request),
             headers=headers,
             auth=(server_user, server_pw),
             data=_form_data,
@@ -357,7 +347,6 @@ def _requests(gvar, request, group=None, form_data={}, query_data={}, server_use
 
         _r = _function(
             _request,
-#           '%s%s' % (gvar['user_settings']['server-address'], request),
             headers=headers,
             cert=(gvar['user_settings']['server-grid-cert'], gvar['user_settings']['server-grid-key']),
             data=_form_data,
@@ -372,7 +361,6 @@ def _requests(gvar, request, group=None, form_data={}, query_data={}, server_use
 
         _r = _function(
             _request,
-#           '%s%s' % (gvar['user_settings']['server-address'], request),
             headers=headers,
             auth=(gvar['user_settings']['server-user'], gvar['user_settings']['server-password']),
             data=_form_data,
@@ -515,10 +503,44 @@ def _requests_insert_controls(gvar, request, group, form_data, query_data, serve
 def ut_id(gvar, IDs):
     ids = IDs.split(',')
     return '%s-%s' % (gvar['user_settings']['server-user'], (',%s-' % gvar['user_settings']['server-user']).join(ids))
+ 
+def condor_setup(gvar):
+    '''Check that condor is installed and find and return the address of the unit-test server.'''
+    import os.path
+    import re
+    import subprocess
+    import yaml
+
+    # Check that condor is installed so that we can submit a job to view using /job/list/
+    requirements = ['condor_submit', 'condor_rm']
+    for requirement in requirements:
+        if subprocess.run(['which', requirement], stdout=subprocess.DEVNULL).returncode != 0:
+            condor_error('{} is not installed'.format(requirement))
+            return None
+
+    # Get the address of the unit-test server
+    try:
+        yaml_path = os.path.expanduser('~/.csv2/unit-test/settings.yaml')
+        with open(yaml_path) as yaml_file:
+            server_address = yaml.safe_load(yaml_file)['server-address']
+    except FileNotFoundError:
+        condor_error('{} does not exist'.format(yaml_path))
+        return None
+    except yaml.YAMLError as err:
+        condor_error('YAML encountered an error while parsing {}: {}'.format(yaml_path, err))
+        return None
+    if server_address.startswith('http'):
+        return re.match(r'https?://(.*)', server_address)[1]
+    else:
+        condor_error('the server address in {} is \'{}\', which does not start with \'http\''.format(yaml_path, server_address))
+        return None
+
+def condor_error(gvar, err):
+    print('\n\033[91mSkipping all database tests because {}.\033[0m'.format(err))
+    gvar['ut_failed'] += 1
 
 def main():
     return
 
 if __name__ == "__main__":
     main()
-

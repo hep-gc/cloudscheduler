@@ -8,7 +8,7 @@ from sys import argv
 
 import user_requests_cleanup
 
-def main(gvar, user_secret):
+def main(gvar):
     if not gvar:
         gvar = {}
         if len(argv) > 1:
@@ -16,8 +16,8 @@ def main(gvar, user_secret):
         else:
             initialize_csv2_request(gvar, argv[0])
     
-    if not user_secret:
-        user_secret = generate_secret()
+    if not gvar['user_secret']:
+        gvar['user_secret'] = generate_secret()
 
     user_requests_cleanup.main(gvar)
 
@@ -26,8 +26,8 @@ def main(gvar, user_secret):
         gvar, 0, None, 'user "{}" successfully added.'.format(ut_id(gvar, 'utu1')),
         '/user/add/', form_data={
             'username': ut_id(gvar, 'utu1'),
-            'password1': user_secret,
-            'password2': user_secret,
+            'password1': gvar['user_secret'],
+            'password2': gvar['user_secret'],
             'cert_cn': ut_id(gvar, 'user test user one')
         }
     )
@@ -37,8 +37,8 @@ def main(gvar, user_secret):
         gvar, 0, None, 'user "{}" successfully added.'.format(ut_id(gvar, 'utu2')),
         '/user/add/', form_data={
             'username': ut_id(gvar, 'utu2'),
-            'password1': user_secret,
-            'password2': user_secret,
+            'password1': gvar['user_secret'],
+            'password2': gvar['user_secret'],
             'cert_cn': ut_id(gvar, 'user test user two'),
             'is_superuser': 1
         }
@@ -67,8 +67,8 @@ def main(gvar, user_secret):
         gvar, 0, None, 'user "{}" successfully added.'.format(ut_id(gvar, 'utu3')),
         '/user/add/', form_data={
             'username': ut_id(gvar, 'utu3'),
-            'password1': user_secret,
-            'password2': user_secret,
+            'password1': gvar['user_secret'],
+            'password2': gvar['user_secret'],
             'cert_cn': ut_id(gvar, 'user test user three'),
             'group_name': ut_id(gvar, 'utg1')
         }
@@ -79,7 +79,7 @@ def main(gvar, user_secret):
         gvar, 0, None, 'user "{}" successfully added.'.format(ut_id(gvar, 'utu4')),
         '/user/add/', form_data={
             'username': ut_id(gvar, 'utu4'),
-            'password': user_secret,
+            'password': gvar['user_secret'],
             'cert_cn': '%s test user four' % ut_id(gvar, 'user'),
             'group_name': ut_id(gvar, 'utg1'),
             'is_superuser': 1
@@ -91,7 +91,7 @@ def main(gvar, user_secret):
         gvar, 0, None, 'user "{}" successfully added.'.format(ut_id(gvar, 'utu5')),
         '/user/add/', form_data={
             'username': ut_id(gvar, 'utu5'),
-            'password': user_secret
+            'password': gvar['user_secret']
         }
     )
 
@@ -100,7 +100,7 @@ def main(gvar, user_secret):
         gvar, 0, None, 'user "{}" successfully added.'.format(ut_id(gvar, 'utu6')),
         '/user/add/', form_data={
             'username': ut_id(gvar, 'utu6'),
-            'password': user_secret
+            'password': gvar['user_secret']
         }
     )
 
