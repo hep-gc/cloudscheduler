@@ -969,7 +969,7 @@ def set_user_groups(config, request, super_user=True):
         new_active_user.active_group = new_active_user.default_group
     else:
         new_active_user.active_group = new_active_user.user_groups[0]
-
+    
     if new_active_user.active_group not in new_active_user.user_groups:
 #       return 1,'cannot switch to invalid group "%s".' % new_active_user.active_group, new_active_user, new_active_user.user_groups
         return 1,'cannot switch to invalid group "%s".' % new_active_user.active_group, new_active_user
@@ -1459,13 +1459,15 @@ def validate_fields(config, request, fields, tables, active_user):
         for field in primary_key_columns + Mandatory:
             if field not in Fields and (field not in Formats or  Formats[field] != 'ignore'):
                 return 1, 'request did not contain mandatory parameter "%s".' % field, None, None, None
+#           if field in Fields and Fields[field] == '':
+#               return 1, 'mandatory parameter "%s" contains an empty string which is specifically disallowed.' % field, None, None, None
 
         for field in NotEmpty:
-            if field in Fields:
+            if field in request.POST:
                 if Fields[field] == '':
-                    return 1, 'mandatory parameter "%s" contains an empty string which is specifically disallowed.' % field, None, None, None
-            else:
-                return 1, 'request did not contain mandatory (but not empty) parameter "%s".' % field, None, None, None
+                    return 1, 'parameter "%s" contains an empty string which is specifically disallowed.' % field, None, None, None
+            #else:
+            #    return 1, 'request did not contain mandatory (but not empty) parameter "%s".' % field, None, None, None
 
     return 0, None, Fields, Tables, Columns
 

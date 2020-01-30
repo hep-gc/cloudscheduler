@@ -60,11 +60,13 @@ GROUP_KEYS = {
         'server_group_members_ctl':                   'reject',
         'floating_ips_ctl':                           'reject',
         },
+    }
+
+GROUP_ADD_KEYS = {
     'not_empty': [
         'htcondor_fqdn',
         ],
     }
-
 
 UNPRIVILEGED_GROUP_KEYS = {
     'auto_active_group': True,
@@ -151,7 +153,7 @@ def add(request):
     if request.method == 'POST':
         
         # Validate input fields.
-        rc, msg, fields, tables, columns = validate_fields(config, request, [GROUP_KEYS], ['csv2_groups', 'csv2_user_groups', 'csv2_user,n', 'csv2_group_metadata,n'], active_user)
+        rc, msg, fields, tables, columns = validate_fields(config, request, [GROUP_KEYS, GROUP_ADD_KEYS], ['csv2_groups', 'csv2_user_groups', 'csv2_user,n', 'csv2_group_metadata,n'], active_user)
         if rc != 0:
             config.db_close()
             return list(request, active_user=active_user, response_code=1, message='%s group add %s' % (lno(MODID), msg))
@@ -345,8 +347,8 @@ def defaults(request, active_user=None, response_code=0, message=None):
             prune=['password']    
             )
 
-        # Check to see if GSI is installed and active:
-        gsi_state = query_htc_gsi()
+    # Check to see if GSI is installed and active:
+    gsi_state = query_htc_gsi()
 
     # Render the page.
     context = {
@@ -1069,7 +1071,7 @@ def update(request):
                 config.db_close()
                 return list(request, active_user=active_user, response_code=1, message='%s group update, "%s" failed - %s.' % (lno(MODID), fields['group_name'], msg))
         else:
-            if 'username' not in fields:
+            if 'username' not in fields and request.META['HTTP_ACCEPT'] == 'application/json':
                 config.db_close()
                 return list(request, active_user=active_user, response_code=1, message='%s group update must specify at least one field to update.' % lno(MODID))
 

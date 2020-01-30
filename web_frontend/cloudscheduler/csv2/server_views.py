@@ -53,6 +53,7 @@ def configuration(request):
                             key_values[key] = request.POST[key]
 
                         key_values.pop('csrfmiddlewaretoken', None)
+                        key_values.pop('group', None)
                         category = key_values.pop('category', None)
 
                     if rc == 0:

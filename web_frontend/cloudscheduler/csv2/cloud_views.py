@@ -92,7 +92,18 @@ CLOUD_KEYS = {
         'username',
         'password',
         'region',
-        ],
+        ]
+    }
+
+CLOUD_ADD_KEYS = {
+    'mandatory': [
+        'authurl',
+        'project',
+        'username',
+        'password',
+        'region',
+        'cloud_type',
+        ]
     }
 
 METADATA_KEYS = {
@@ -435,7 +446,7 @@ def add(request):
     if request.method == 'POST':
 
         # Validate input fields.
-        rc, msg, fields, tables, columns = validate_fields(config, request, [CLOUD_KEYS], ['csv2_clouds', 'csv2_cloud_flavor_exclusions,n', 'csv2_group_metadata,n', 'csv2_group_metadata_exclusions,n'], active_user)
+        rc, msg, fields, tables, columns = validate_fields(config, request, [CLOUD_KEYS, CLOUD_ADD_KEYS], ['csv2_clouds', 'csv2_cloud_flavor_exclusions,n', 'csv2_group_metadata,n', 'csv2_group_metadata_exclusions,n'], active_user)
         if rc != 0: 
             config.db_close()
             return list(request, active_user=active_user, response_code=1, message='%s cloud add %s' % (lno(MODID), msg))
@@ -486,7 +497,8 @@ def add(request):
         # Verify cloud credentials.
         rc, msg, owner_id = verify_cloud_credentials(config, fields, active_user)
         if rc == 0:
-            fields['ec2_owner_id'] = owner_id
+            if owner_id:
+                fields['ec2_owner_id'] = owner_id
         else:
             config.db_close()
             return list(request, active_user=active_user, response_code=1, message='%s cloud add "%s::%s" failed - %s.' % (lno(MODID), fields['group_name'], fields['cloud_name'], msg))
@@ -1734,7 +1746,8 @@ def update(request):
         # Verify cloud credentials.
         rc, msg, owner_id = verify_cloud_credentials(config, fields, active_user)
         if rc == 0:
-            fields['ec2_owner_id'] = owner_id
+            if owner_id:
+                fields['ec2_owner_id'] = owner_id
         else:
             config.db_close()
             return list(request, active_user=active_user, response_code=1, message='%s cloud update "%s::%s" failed - %s.' % (lno(MODID), fields['group_name'], fields['cloud_name'], msg))
@@ -1742,6 +1755,7 @@ def update(request):
         # update the cloud.
         table = tables['csv2_clouds']
         cloud_updates = table_fields(fields, table, columns, 'update')
+        
         updates = len(cloud_updates)
         if updates > 0:
             rc, msg = config.db_session_execute(table.update().where((table.c.group_name==fields['group_name']) & (table.c.cloud_name==fields['cloud_name'])).values(cloud_updates))

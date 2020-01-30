@@ -421,7 +421,7 @@ def update(request):
                 config.db_close()
                 return list(request, active_user=active_user, response_code=1, message='%s user update, "%s" failed - %s.' % (lno(MODID), fields['username'], msg))
         else:
-            if 'group_name' not in fields:
+            if 'group_name' not in fields and request.META['HTTP_ACCEPT'] == 'application/json':
                 config.db_close()
                 return list(request, active_user=active_user, response_code=1, message='%s user update must specify at least one field to update.' % lno(MODID))
             
