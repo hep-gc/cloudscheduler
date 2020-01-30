@@ -1,3 +1,0 @@
-#!/bin/bash
-echo "- example: metadata" > $HOME/.csv2/unit-test-un/files/$USER-clg1/$USER-clc2/metadata/$USER-clm2
-exit

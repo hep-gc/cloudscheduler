@@ -3,7 +3,7 @@ from sys import argv
 
 # lno: CV - error code identifier.
 
-def main(gvar, user_secret):
+def main(gvar):
     if not gvar:
         gvar = {}
         if len(argv) > 1:
@@ -61,7 +61,7 @@ def main(gvar, user_secret):
 
     # 09
     execute_csv2_command(
-        gvar, 0, None, 'Server: unit-test-un, Active User: {}, Active Group: {}'.format(ut_id(gvar, 'clu4'), ut_id(gvar, 'clg1')),
+        gvar, 0, None, 'Server: unit-test, Active User: {}, Active Group: {}'.format(ut_id(gvar, 'clu4'), ut_id(gvar, 'clg1')),
         ['cloudscheduler', 'cloud', 'metadata-collation', '-g', ut_id(gvar, 'clg1'), '-su', ut_id(gvar, 'clu4')]
     )
 
@@ -73,7 +73,7 @@ def main(gvar, user_secret):
 
     # 11
     execute_csv2_command(
-        gvar, 0, None, 'Server: unit-test-un, Active User: {}, Active Group: {}'.format(ut_id(gvar, 'clu4'), ut_id(gvar, 'clg1')),
+        gvar, 0, None, 'Server: unit-test, Active User: {}, Active Group: {}'.format(ut_id(gvar, 'clu4'), ut_id(gvar, 'clg1')),
         ['cloudscheduler', 'cloud', 'metadata-collation', '-su', ut_id(gvar, 'clu4')]
     )
 
@@ -132,4 +132,4 @@ def main(gvar, user_secret):
     )
 
 if __name__ == "__main__":
-    main(None, None)
+    main(None)
