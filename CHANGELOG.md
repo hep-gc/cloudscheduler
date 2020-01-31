@@ -28,4 +28,5 @@
   - Fixes:
     - Server configuration request to ignore the 'group' key (passed on all requests).
     - Log level change without service restart.
+    - Ignore invalid default_group user setting (picks first valid group).
      
