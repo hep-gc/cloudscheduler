@@ -344,7 +344,7 @@ def job_poller():
     JOB_SCHED = config.db_map.classes.csv2_job_schedulers
 
     try:
-        inventory = get_inventory_item_hash_from_database(config.db_engine, JOB, 'global_job_id', debug_hash=(config.categories["csjobs.py"]["log_level"]<20))
+        inventory = get_inventory_item_hash_from_database(config.db_engine, JOB, 'global_job_id', debug_hash=(config.categories["csjobs.py"]["log_level"]<20), condor_host=config.local_host_id)
         config.db_open()
         while True:
             #
@@ -588,6 +588,7 @@ def job_poller():
                         continue
 
                     logging.debug("Adding job %s", job_dict["global_job_id"])
+                    job_dict["htcondor_host_id"] = config.local_host_id
                     new_job = JOB(**job_dict)
                     try:
                         db_session.merge(new_job)
@@ -677,7 +678,7 @@ def job_poller():
 
             if delete_cycle:
                 # Check for deletes
-                delete_obsolete_database_items('Jobs', inventory, db_session, JOB, 'global_job_id', poll_time=new_poll_time, failure_dict=failure_dict)
+                delete_obsolete_database_items('Jobs', inventory, db_session, JOB, 'global_job_id', poll_time=new_poll_time, failure_dict=failure_dict, condor_host=config.local_host_id)
                 delete_cycle = False
 
             cycle_count = cycle_count + 1
@@ -827,7 +828,7 @@ def machine_poller():
     failure_dict = {}
 
     try:
-        inventory = get_inventory_item_hash_from_database(config.db_engine, RESOURCE, 'name', debug_hash=(config.categories["csmachines.py"]["log_level"]<20))
+        inventory = get_inventory_item_hash_from_database(config.db_engine, RESOURCE, 'name', debug_hash=(config.categories["csmachines.py"]["log_level"]<20), condor_host=config.local_host_id)
         configure_htc(config, logging)
         config.db_open()
         while True:
@@ -979,6 +980,7 @@ def machine_poller():
                         continue
 
                     logging.info("Adding/updating machine %s", r_dict["name"])
+                    r_dict["htcondor_host_id"] = config.local_host_id
                     new_resource = RESOURCE(**r_dict)
                     try:
                         db_session.merge(new_resource)
@@ -1031,7 +1033,7 @@ def machine_poller():
 
             if delete_cycle:
                 # Check for deletes
-                delete_obsolete_database_items('Machines', inventory, db_session, RESOURCE, 'name', poll_time=new_poll_time, failure_dict=failure_dict)
+                delete_obsolete_database_items('Machines', inventory, db_session, RESOURCE, 'name', poll_time=new_poll_time, failure_dict=failure_dict, condor_host=config.local_host_id)
                 delete_cycle = False
             config.db_session.commit()
             cycle_count = cycle_count + 1
@@ -1466,20 +1468,20 @@ def worker_gsi_poller():
                     logging.info('The following obsolete HTCondor worker certs have been deleted from condor_worker_gsi: %s' % deleted)
 
             for condor in sorted(condor_dict):
-                ''''
-                condor_rpc = RPC(config.categories['AMQP']['host'], config.categories['AMQP']['port'], config.categories['AMQP']['queue_prefix_htc'] +"_" + condor, "csv2_htc_" + condor)
-                worker_cert = condor_rpc.call({'command': 'query_condor_worker_cert'})
-                '''
                 worker_cert = {}
                 if 'GSI_DAEMON_CERT' in htcondor.param:
-                    if 'condor_worker_cert' in config:
-                        worker_cert['subject'], worker_cert['eol'] = get_gsi_cert_subject_and_eol(config['condor_worker_cert'])
-                        worker_cert['cert'] = zip_base64(config['condor_worker_cert'])
+                    try:
+                        worker_cert['subject'], worker_cert['eol'] = get_gsi_cert_subject_and_eol(config.condor_poller['condor_worker_cert'])
+                        worker_cert['cert'] = zip_base64(config.condor_poller['condor_worker_cert'])
+                    except:
+                        logging.info("Unable to find condor_worker_cert from local configuration.")
 
-                    if 'condor_worker_key' in config:
-                        worker_cert['key'] = zip_base64(config['condor_worker_key'])
+                    try:
+                        worker_cert['key'] = zip_base64(config.condor_poller['condor_worker_key'])
                         if worker_cert['key'] == 'unreadable':
                             worker_cert['eol'] = -999999
+                    except:
+                        logging.info("Unable to find condor_worker_key from local configuration")
                 if worker_cert:
                     try:
                         config.db_session.execute('insert into condor_worker_gsi values("%s", "%s", %d, "%s", "%s");' % (condor, if_null(worker_cert['subject']), worker_cert['eol'], if_null(worker_cert['cert']), if_null(worker_cert['key'])))
@@ -1559,17 +1561,14 @@ def condor_gsi_poller():
             condor_dict = get_condor_dict(config, logging)
 
             for condor in sorted(condor_dict):
-                '''
-                condor_rpc = RPC(config.categories['AMQP']['host'], config.categories['AMQP']['port'], config.categories['AMQP']['queue_prefix_htc'] +"_" + condor, "csv2_htc_" + condor)
-                condor_cert = condor_rpc.call({'command': 'query_condor_cert'})
-                '''
                 condor_cert = {}
                 if 'GSI_DAEMON_CERT' in htcondor.param:
                     condor_hostcert = htcondor.param['GSI_DAEMON_CERT']
-                elif 'condor_hostcert' in config:
-                    condor_hostcert = config['condor_hostcert']
                 else:
-                    condor_hostcert = None
+                    try:
+                        condor_host_cert = config.condor_poller.get("condor_hostcert")
+                    except:
+                        condor_hostcert = None
 
                 if condor_hostcert:
                     condor_cert['subject'], condor_cert['eol'] = get_gsi_cert_subject_and_eol(condor_hostcert)

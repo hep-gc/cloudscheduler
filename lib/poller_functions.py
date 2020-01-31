@@ -51,7 +51,7 @@ def build_inventory_for_condor(inventory, db_session, group_resources_class):
     for cloud in cloud_list:
         set_inventory_group_and_cloud(inventory, cloud.group_name, "-",)
 
-def delete_obsolete_database_items(type, inventory, db_session, base_class, base_class_key, poll_time=None, failure_dict=None, cloud_type=None):
+def delete_obsolete_database_items(type, inventory, db_session, base_class, base_class_key, poll_time=None, failure_dict=None, cloud_type=None, condor_host=None):
     inventory_deletions = []
     logging.debug("Delete Cycle - checking database for consistency")
     for group_name in inventory:
@@ -71,7 +71,13 @@ def delete_obsolete_database_items(type, inventory, db_session, base_class, base
                         base_class.last_updated < poll_time,
                         base_class.cloud_type == cloud_type
                         )
-
+                elif condor_host is not None:
+                    obsolete_items = db_session.query(base_class).filter(
+                        base_class.group_name == group_name,
+                        base_class.cloud_name == cloud_name,
+                        base_class.htcondor_host_id == condor_host,
+                        base_class.last_updated < poll_time
+                        )
                 else:
                     obsolete_items = db_session.query(base_class).filter(
                         base_class.group_name == group_name,
@@ -84,6 +90,11 @@ def delete_obsolete_database_items(type, inventory, db_session, base_class, base
                         base_class.group_name == group_name,
                         base_class.cloud_type == cloud_type
                         )
+                elif condor_host is not None:
+                    obsolete_items = db_session.query(base_class).filter(
+                        base_class.group_name == group_name,
+                        base_class.htcondor_host_id == condor_host
+                        )
                 else:
                     obsolete_items = db_session.query(base_class).filter(
                         base_class.group_name == group_name
@@ -94,6 +105,12 @@ def delete_obsolete_database_items(type, inventory, db_session, base_class, base
                         base_class.group_name == group_name,
                         base_class.cloud_name == cloud_name,
                         base_class.cloud_type == cloud_type
+                        )
+                elif condor_host is not None:
+                    obsolete_items = db_session.query(base_class).filter(
+                        base_class.group_name == group_name,
+                        base_class.cloud_name == cloud_name,
+                        base_class.htcondor_host_id == condor_host
                         )
                 else:
                     obsolete_items = db_session.query(base_class).filter(
@@ -158,12 +175,14 @@ def foreign(vm):
     else:
         return True
 
-def get_inventory_item_hash_from_database(db_engine, base_class, base_class_key, debug_hash=False, cloud_type=None):
+def get_inventory_item_hash_from_database(db_engine, base_class, base_class_key, debug_hash=False, cloud_type=None, condor_host=None):
     inventory = {}
     try:
         db_session = Session(db_engine)
         if cloud_type is not None:
             rows =db_session.query(base_class).filter(base_class.cloud_type == cloud_type)
+        elif condor_host is not None:
+            rows = db_session.query(base_class).filter(base_class.htcondor_host_id == condor_host)
         else:
             rows = db_session.query(base_class)
         for row in rows:
