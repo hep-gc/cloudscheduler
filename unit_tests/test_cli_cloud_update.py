@@ -14,7 +14,7 @@ def main(gvar):
     # 01
     execute_csv2_command(
         gvar, 1, None, 'the following mandatory parameters must be specfied on the command line',
-        ['cloudscheduler', 'cloud', 'update', '-su', ut_id(gvar, 'clu4')], timeout=5 #DEBUG
+        ['cloudscheduler', 'cloud', 'update', '-su', ut_id(gvar, 'clu4')]
     )
 
     # 02
