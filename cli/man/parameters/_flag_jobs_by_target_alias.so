@@ -1,0 +1,4 @@
+.TP
+\fB\-sjta \fIoption\fR, \fB\-\-flag-jobs-by-target-alias \fIoption\fR
+Specify if jobs by target alias are shown by the \fBcloudscheduler cloud status\fR action and on the status page.
+\fIoption\fR can be any of yes, no, true, false, 1, or 0.

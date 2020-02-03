@@ -1,0 +1,4 @@
+.TP
+\fB\-sri \fIinterval\fR, \fB\-\-status-refresh-interval \fIinterval\fR
+Specify the delay in seconds between refreshes of the status page.
+The value for \fIinterval\fR must be an integer value.
