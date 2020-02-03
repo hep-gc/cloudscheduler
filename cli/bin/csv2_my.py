@@ -66,7 +66,7 @@ def settings(gvar):
         gvar,
         response['user_list'],
         [
-            'username/Group,k',
+            'username/Username,k',
             'cert_cn/Cert Common Name',
             'default_group/Default Group',
             'flag_show_foreign_global_vms/Foreign VMs/Status',
