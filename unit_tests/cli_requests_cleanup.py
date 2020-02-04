@@ -96,6 +96,11 @@ def main(gvar):
 
     execute_csv2_request(
         gvar, None, None, None,
+        '/group/delete/', form_data={'group_name': ut_id(gvar, 'clg5')}
+    )
+
+    execute_csv2_request(
+        gvar, None, None, None,
         '/group/delete/', form_data={'group_name': ut_id(gvar, 'clg10')}
     )
 

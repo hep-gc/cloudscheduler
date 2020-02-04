@@ -91,10 +91,7 @@ def execute_csv2_command(gvar, expected_rc, expected_modid, expected_text, cmd, 
                 print('\n%04d (%04d) %s \033[91mFailed\033[0m: expected_rc=%s, expected_modid=%s, expected_text=%s, cmd=%s' % (gvar['ut_count'][0], gvar['ut_count'][1], _caller(), expected_rc, repr(expected_modid), repr(expected_text), cmd))
                 print('\treturn code=%s' % return_code)
                 print('\tmodule ID=%s' % repr(modid))
-                if len(stdout) > 1000:
-                    print('\tstdout (truncated)=%s' % stdout[:1000])
-                else:
-                    print('\tstdout=%s' % stdout)
+                print('\tstdout=%s' % stdout)
                 print('\tstderr=%s' % stderr)
                 if list_error:
                     print('List error: {}'.format(list_error))
