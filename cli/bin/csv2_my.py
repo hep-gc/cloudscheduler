@@ -55,9 +55,13 @@ def settings(gvar):
         if 'server' not in gvar['command_args']:
             gvar['command_args']['server'] = gvar['pid_defaults']['server']
 
-        gvar['user_settings']['server-password'] = gvar['user_settings']['user-password']
-        del gvar['user_settings']['user-password']
-        csv2_defaults.set(gvar)
+        # If the user in defaults is changing their password, update it locally for them.
+        with open(os.path.expanduser('~/.csv2/{}/settings.yaml').format(gvar['command_args']['server'])) as settings_file:
+            saved_user = yaml_full_load(settings_file)['server-user']
+        if gvar['user_settings']['server-user'] == saved_user:
+            gvar['user_settings']['server-password'] = gvar['user_settings']['user-password']
+            del gvar['user_settings']['user-password']
+            csv2_defaults.set(gvar)
 
     # Print report.
     show_active_user_groups(gvar, response)
