@@ -545,7 +545,6 @@ def main(gvar):
         ['cloudscheduler', 'user', 'update', '-un', ut_id(gvar, 'clu7'), '-go', 'delete', '-su', ut_id(gvar, 'clu4')]
     )
 
-    # TODO: is this expected?
     # 88
     execute_csv2_command(
         gvar, 0, None, 'user "{}" successfully updated.'.format(ut_id(gvar, 'clu7')),
