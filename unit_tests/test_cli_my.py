@@ -50,8 +50,9 @@ def main(gvar):
     # SETTINGS
     # 07
     execute_csv2_command(
-        gvar, 1, None, 'Error: "cloudscheduler my settings" requires at least one option to update.',
-        ['cloudscheduler', 'my', 'settings', '-su', ut_id(gvar, 'clu4')]
+        gvar, 0, None, 'Server: unit-test, Active User: {}, Active Group: {}'.format(ut_id(gvar, 'clu4'), ut_id(gvar, 'clg1')),
+        ['cloudscheduler', 'my', 'settings', '-su', ut_id(gvar, 'clu4')],
+        expected_list='Settings', columns=['Username', 'Cert Common Name', 'Default Group', 'Status', 'Foreign VMs', 'Global Switch', 'Jobs by Target Alias', 'Refresh Interval', 'Slot Detail', 'Slot Flavors']
     )
 
     # 08
@@ -74,63 +75,56 @@ def main(gvar):
 
     # 11
     execute_csv2_command(
-        gvar, 1, None, 'Server: unit-test, Active User: {}, Active Group: {}'.format(ut_id(gvar, 'clu4'), ut_id(gvar, 'clg1')),
-        ['cloudscheduler', 'my', 'settings', '-su', ut_id(gvar, 'clu4')],
-        expected_list='Settings', columns=['Group', 'Cert Common Name', 'Default Group', 'Status', 'Foreign VMs', 'Global Switch', 'Jobs by Target Alias', 'Refresh Interval', 'Slot Detail', 'Slot Flavors']
-    )
-
-    # 12
-    execute_csv2_command(
         gvar, 0, None, 'Help requested for "cloudscheduler my settings".',
         ['cloudscheduler', 'my', 'settings', '-h', '-su', ut_id(gvar, 'clu4')]
     )
 
-    # 13
+    # 12
     execute_csv2_command(
         gvar, 0, None, 'General Commands Manual',
         ['cloudscheduler', 'my', 'settings', '-H', '-su', ut_id(gvar, 'clu4')]
     )
 
-    # 14
+    # 13
     execute_csv2_command(
-        gvar, 1, None, 'Expose API requested',
+        gvar, 0, None, 'Expose API requested',
         ['cloudscheduler', 'my', 'settings', '-xA', '-su', ut_id(gvar, 'clu4')]
     )
 
-    # 15
+    # 14
     execute_csv2_command(
         gvar, 1, None, 'cannot switch to invalid group "invalid-unit-test".',
         ['cloudscheduler', 'my', 'settings', '-g', 'invalid-unit-test', '-su', ut_id(gvar, 'clu4')]
     )
 
-    # 16
+    # 15
     execute_csv2_command(
         gvar, 1, None, 'Error: The following command line arguments were invalid: group',
         ['cloudscheduler', 'my', 'settings', '-g', ut_id(gvar, 'clg1'), '-su', ut_id(gvar, 'clu4')]
     )
 
-    # 17
+    # 16
     execute_csv2_command(
         gvar, 1, 'UV', 'user update, value specified for a password is less than 6 characters.',
         ['cloudscheduler', 'my', 'settings', '-upw', 'abc', '-su', ut_id(gvar, 'clu4')]
     )
 
-    # 18
+    # 17
     execute_csv2_command(
         gvar, 1, 'UV', 'user update, value specified for a password is less then 16 characters, and does not contain a mixture of upper, lower, and numerics.',
         ['cloudscheduler', 'my', 'settings', '-upw', 'abcdef', '-su', ut_id(gvar, 'clu4')]
     )
 
-    # 19
+    # 18
     execute_csv2_command(
         gvar, 0, None, 'user "{}" successfully updated.'.format(ut_id(gvar, 'clu4')),
         ['cloudscheduler', 'my', 'settings', '-upw', 'Abc123', '-su', ut_id(gvar, 'clu4')]
     )
 
-    # 20
+    # 19
     execute_csv2_command(
         gvar, 0, None, 'user "{}" successfully updated.'.format(ut_id(gvar, 'clu4')),
-        ['cloudscheduler', 'my', 'settings', '-upw', gvar['user_secret'], '-su', ut_id(gvar, 'clu4')]
+        ['cloudscheduler', 'my', 'settings', '-upw', gvar['user_secret'], '-su', ut_id(gvar, 'clu4'), '-spw', 'Abc123']
     )
 
 if __name__ == '__main__':

@@ -91,7 +91,10 @@ def execute_csv2_command(gvar, expected_rc, expected_modid, expected_text, cmd, 
                 print('\n%04d (%04d) %s \033[91mFailed\033[0m: expected_rc=%s, expected_modid=%s, expected_text=%s, cmd=%s' % (gvar['ut_count'][0], gvar['ut_count'][1], _caller(), expected_rc, repr(expected_modid), repr(expected_text), cmd))
                 print('\treturn code=%s' % return_code)
                 print('\tmodule ID=%s' % repr(modid))
-                print('\tstdout=%s' % stdout)
+                if len(stdout) > 1000:
+                    print('\tstdout (truncated)=%s' % stdout[:1000])
+                else:
+                    print('\tstdout=%s' % stdout)
                 print('\tstderr=%s' % stderr)
                 if list_error:
                     print('List error: {}'.format(list_error))
@@ -108,7 +111,7 @@ def execute_csv2_command(gvar, expected_rc, expected_modid, expected_text, cmd, 
 def execute_csv2_request(gvar, expected_rc, expected_modid, expected_text, request, group=None, form_data={}, query_data={}, expected_list=None, list_filter=None, values=None, server_user=None, server_pw=None, html=False):
     """
     Make RESTful requests via the _requests function and return the response. This function will
-    obtain a CSRF (for POST requests) prior to making the atual request.
+    obtain a CSRF (for POST requests) prior to making the actual request.
     """
 
     from unit_test_common import _caller, _execute_selections, _requests
