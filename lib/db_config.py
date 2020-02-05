@@ -17,7 +17,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy.ext.automap import automap_base
 
 class Config:
-    def __init__(self, db_yaml, categories, db_config_dict=False, db_config_only=False, pool_size=5, max_overflow=0, refreshable=False, signals=False):
+    def __init__(self, db_yaml, categories, db_config_dict=False, db_config_only=False, pool_size=5, max_overflow=0, signals=False):
         """
         Read the DB configuration file and the specified categories configuration from the database.
         """
@@ -92,33 +92,8 @@ class Config:
             except Exception as msg:
                 print("Error updating csv2_host_id in db_config: %s" % msg)
 
-        # Retrieve the configuration for the specified category.
-        if refreshable:
-            self.categories = self.get_config_by_category(categories)
-
-        # Retrieve the configuration for the specified category.
-        else:
-            if isinstance(categories, str):
-                category_list = [ categories ]
-            else:
-                category_list = categories
-
-            for category in category_list:
-                rows = self.db_session.query(self.db_map.classes[self.db_table]).filter(
-                    self.db_map.classes[self.db_table].category == category
-                    )
-
-                for row in rows:
-                    if row.config_type == 'bool':
-                        self.__dict__[row.config_key] = row.config_value == '1' or row.config_value.lower() == 'yes' or row.config_value.lower() == 'true'
-                    elif row.config_type == 'float':
-                        self.__dict__[row.config_key] = float(row.config_value)
-                    elif row.config_type == 'int':
-                        self.__dict__[row.config_key] = int(row.config_value)
-                    elif row.config_type == 'null':
-                        self.__dict__[row.config_key] = None
-                    else:
-                        self.__dict__[row.config_key] = row.config_value
+        # Retrieve the configuration for the specified categories.
+        self.categories = self.get_config_by_category(categories)
 
         # Close the session.
         self.db_close()
@@ -279,7 +254,7 @@ class Config:
             close_on_exit = True
             self.db_open()
 
-        timestamps = self.db_connection.execute('select last_updated from csv2_timestamps where entity="csv2_configuration";')
+        timestamps = self.db_connection.execute('select last_updated from csv2_service_catalog where provider="csv2_configuration" and host_id=0;')
         if timestamps.rowcount < 1 or timestamps.first()['last_updated'] > self.categories['__timestamp__']['last_updated']:
             self.categories = self.get_config_by_category(list(self.categories.keys()))
 

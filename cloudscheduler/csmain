@@ -40,7 +40,7 @@ def main():
     """
     multiprocessing.current_process().name = "csmain"
 
-    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', ['csmain', 'GSI'], pool_size=25, refreshable=True)
+    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', ['csmain', 'GSI'], pool_size=25)
     config.db_engine.dispose()
     if not config:
         print("Problem loading config file.")
@@ -427,7 +427,7 @@ def check_view_idle_vms():
     multiprocessing.current_process().name = "csmain_idle_vms"
     log = logging.getLogger(__name__)
     config = Config('/etc/cloudscheduler/cloudscheduler.yaml', 'csmain',
-                    pool_size=15, refreshable=True)
+                    pool_size=15)
     config.db_engine.dispose()
     if not config:
         print("Problem loading config file.")
