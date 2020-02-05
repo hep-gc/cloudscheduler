@@ -32,6 +32,10 @@ class Config:
         else:
             raise Exception('Configuration file "%s" does not exist.' % db_yaml)
 
+        for system in base_config:
+            if system != 'database':
+                self.__dict__[system] = base_config[system]
+
         db_config = {}
         if 'database' in base_config:
             for item in base_config['database']:
@@ -100,9 +104,7 @@ class Config:
 
         # Optionally, retrieve original signal configuration.
         if signals:
-            if 'signals' in base_config:
-                self.signals = base_config['signals']
-            else:
+            if not hasattr(self, 'signals'):
                 self.signals = {}
 
             self.signals['SIGINT'] = signal.getsignal(signal.SIGINT)
@@ -271,6 +273,50 @@ class Config:
         self.db_session.commit()
         return 1
 
+#-------------------------------------------------------------------------------
+
+    def update_service_catalog(self, provider=os.path.basename(sys.argv[0]), host_id=None, error=None, counter=None):
+        if 'ProcessMonitor' in self.categories and self.categories['ProcessMonitor']['pause'] == True:
+            return
+
+        if not self.db_session:
+            auto_close = True
+            self.db_open()
+        else:
+            auto_close = False
+
+        if host_id:
+            try:
+                current_host_id = int(float(host_id))
+            except:
+                current_host_id = self.local_host_id
+        else:
+            current_host_id = self.local_host_id
+
+        if counter:
+            try:
+                current_counter = int(float(counter))
+            except:
+                current_counter = 0
+
+            result = self.db_session.execute('update csv2_service_catalog set counter=%s where provider="%s" and host_id=%s;' % (current_counter, provider, current_host_id))
+            if result.rowcount == 0:
+                self.db_session.execute('insert into csv2_service_catalog (provider,host_id,counter) values("%s",%s,%s);' % (provider, current_host_id, current_counter))
+
+        elif error:
+            result = self.db_session.execute('update csv2_service_catalog set last_error=unix_timestamp(), error_message="%s" where provider="%s" and host_id=%s;' % (error, provider, current_host_id))
+            if result.rowcount == 0:
+                self.db_session.execute('insert into csv2_service_catalog (provider,host_id,last_error,error_message) values("%s",%s,unix_timestamp(),"%s");' % (provider, current_host_id, error))
+
+        else:
+            result = self.db_session.execute('update csv2_service_catalog set last_updated=unix_timestamp() where provider="%s" and host_id=%s;' % (provider, current_host_id))
+            if result.rowcount == 0:
+                self.db_session.execute('insert into csv2_service_catalog (provider,host_id,last_updated) values("%s",%s,unix_timestamp());' % (provider, current_host_id))
+
+        if auto_close:
+            self.db_close(commit=True)
+        else:
+            self.db_session.commit()
 
 #-------------------------------------------------------------------------------
 
