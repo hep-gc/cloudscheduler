@@ -1,0 +1,37 @@
+create or replace view view_service_status as
+select
+    alias,
+    case when last_updated is null or last_updated + cc1.config_value < unix_timestamp() then
+        'down'
+    else
+        case when last_error is not null and last_error + cc2.config_value > unix_timestamp() then
+            'warn'
+        else
+            'up'
+        end
+    end as state,
+    case when last_updated is null or last_updated + cc1.config_value < unix_timestamp() then
+        '0'
+    else
+        case when last_error is not null and last_error + cc2.config_value > unix_timestamp() then
+            '1'
+        else
+            '2'
+        end
+    end as plotable_state,
+    error_message
+from csv2_service_providers as csp
+left outer join csv2_service_catalog as csc on
+    csp.provider=csc.provider
+join csv2_configuration as cc1 on
+    cc1.category='web_frontend' and
+    cc1.config_key='service_alive_interval'
+join csv2_configuration as cc2 on
+    cc2.category='web_frontend' and
+    cc2.config_key='service_error_interval'
+where
+    alias is not null
+order by
+    alias_priority,
+    alias
+;
