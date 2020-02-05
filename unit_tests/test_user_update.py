@@ -543,22 +543,13 @@ def main(gvar):
 
     # 54
     execute_csv2_request(
-        gvar, 0, None, 'user "{}" successfully updated.'.format(ut_id(gvar, 'utu6')),
+        gvar, 0, None, 'user update, parameter "group_name" contains an empty string which is specifically disallowed.'.format(ut_id(gvar, 'utu6')),
         '/user/update/'
 , form_data={
             'username': ut_id(gvar, 'utu6'),
             'group_name': ''
         },
         server_user=ut_id(gvar, 'utu4'), html=True
-    )
-
-    # 55
-    execute_csv2_request(
-        gvar, 0, None, None,
-        '/user/list/',
-        expected_list='user_list', list_filter={'username': ut_id(gvar, 'utu6')},
-        values={'username': ut_id(gvar, 'utu6'), 'user_groups': None},
-        server_user=ut_id(gvar, 'utu4')
     )
 
 if __name__ == "__main__":

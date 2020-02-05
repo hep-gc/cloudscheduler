@@ -147,7 +147,7 @@ def main(gvar):
 
     # 15
     execute_csv2_request(
-        gvar, 1, 'GV', 'group metadata-add mandatory parameter "metadata_name" contains an empty string which is specifically disallowed.',
+        gvar, 1, 'GV', 'group metadata-add parameter "metadata_name" contains an empty string which is specifically disallowed.',
         '/group/metadata-add/', group=ut_id(gvar, 'gtg5'), form_data={
             'metadata_name': '',
             'metadata': 'invalid-unit-test',
@@ -192,7 +192,7 @@ def main(gvar):
             'metadata': '- example: metadata',
             'priority': 1
             },
-        server_user=ut_id(gvar, 'gtu3')
+        server_user=ut_id(gvar, 'gtu5')
     )
 
     # 19 Verify that 17 actually added metadata
@@ -205,7 +205,7 @@ def main(gvar):
             'htcondor_other_submitters': None,
             'metadata_names': ','.join(sorted([ut_id(gvar, 'gty1.yaml'),'default.yaml.j2']))
         },
-        server_user=ut_id(gvar, 'gtu3')
+        server_user=ut_id(gvar, 'gtu5')
     )
 
     # 20

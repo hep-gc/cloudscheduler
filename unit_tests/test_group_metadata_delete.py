@@ -80,24 +80,6 @@ def main(gvar):
 
     # 09
     execute_csv2_request(
-        gvar, 0, None, 'file "{}::{}" successfully deleted.'.format(ut_id(gvar, 'gtg5'), ut_id(gvar, 'gty4')),
-        '/group/metadata-delete/', group=ut_id(gvar, 'gtg5'), form_data={
-            'metadata_name': ut_id(gvar, 'gty4')
-            },
-        server_user=ut_id(gvar, 'gtu3')
-    )
-
-    # Deleting group metadata that is in a clouds exceptions list should remove it from that list
-    # 10
-    execute_csv2_request(
-        gvar, 0, None, None,
-        '/cloud/list/', group=ut_id(gvar, 'gtg5'),expected_list='cloud_list', list_filter={'cloud_name': ut_id(gvar, 'gtc1')},
-        values={'cloud_name': ut_id(gvar, 'gtc1'), 'group_name': ut_id(gvar, 'gtg5'), 'group_exclusions': ut_id(gvar, 'gty6')},
-        server_user=ut_id(gvar, 'gtu3')
-    )
-
-    # 11
-    execute_csv2_request(
         gvar, 0, None, 'file "{}::{}" successfully deleted.'.format(ut_id(gvar, 'gtg5'), ut_id(gvar, 'gty6')),
         '/group/metadata-delete/', group=ut_id(gvar, 'gtg5'), form_data={
             'metadata_name': ut_id(gvar, 'gty6')
@@ -105,16 +87,16 @@ def main(gvar):
         server_user=ut_id(gvar, 'gtu3')
     )
 
-    # 12
+    # Deleting group metadata that is in a cloud's exceptions list should remove it from that list.
+    # 10
     execute_csv2_request(
         gvar, 0, None, None,
-        '/cloud/list/', group=ut_id(gvar, 'gtg5'),
-        expected_list='cloud_list', list_filter={'cloud_name': ut_id(gvar, 'gtc1')},
-        values={'cloud_name': ut_id(gvar, 'gtc1'), 'group_name': ut_id(gvar, 'gtg5'), 'group_exclusions': None},
+        '/cloud/list/', group=ut_id(gvar, 'gtg5'),expected_list='cloud_list', list_filter={'cloud_name': ut_id(gvar, 'gtc1')},
+        values={'cloud_name': ut_id(gvar, 'gtc1'), 'group_name': ut_id(gvar, 'gtg5'), 'group_exclusions': ut_id(gvar, 'gty4')},
         server_user=ut_id(gvar, 'gtu3')
     )
 
-    # 13
+    # 11
     execute_csv2_request(
         gvar, 1, 'GV', 'group metadata-delete request did not contain mandatory parameter "metadata_name".',
         '/group/metadata-delete/',

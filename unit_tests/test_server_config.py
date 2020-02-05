@@ -114,7 +114,7 @@ def main(gvar):
 
     # 14
     execute_csv2_request(
-        gvar, 1, None, None,
+        gvar, 0, None, None,
         '/server/config/', group=ut_id(gvar, 'stg2')
 , form_data={
             'category': 'web_frontend',
@@ -157,7 +157,7 @@ def main(gvar):
 
     # 18
     execute_csv2_request(
-        gvar, 1, 'SV', 'server config must specify at least one field to update.',
+        gvar, 0, 'SV', None,
         '/server/config/', group=ut_id(gvar, 'stg2')
 , form_data={
             'category': 'web_frontend',
