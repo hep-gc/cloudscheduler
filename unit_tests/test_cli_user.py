@@ -547,7 +547,7 @@ def main(gvar):
 
     # 88
     execute_csv2_command(
-        gvar, 0, None, 'user "{}" successfully updated.'.format(ut_id(gvar, 'clu7')),
+        gvar, 0, None, 'user update, parameter "group_name" contains an empty string which is specifically disallowed.'.format(ut_id(gvar, 'clu7')),
         ['cloudscheduler', 'user', 'update', '-un', ut_id(gvar, 'clu7'), '-gn', '', '-su', ut_id(gvar, 'clu4')]
     )
 
