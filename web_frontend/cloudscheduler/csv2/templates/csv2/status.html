@@ -123,7 +123,6 @@
 
                         <th class="jobs-style">Condor FQDN</th>
                         <th class="jobs-style">Condor Status</th>
-                        <th class="jobs-style">Agent Status</th>
                         <th class="jobs-style">Condor Cert</th>
                         <th class="jobs-style">Worker Cert</th>
                     </tr>
@@ -186,23 +185,15 @@
                                 <td data-path="{{group.group_name}} jobs_htcondor_fqdn" class="more-style">{{group.htcondor_fqdn}}</td>
 
                                 <td data-path="{{group.group_name}} jobs_htcondor_status" class="more-style float-center plottable">
-                                {% if group.htcondor_status == -1 %}
-                                    <span class="orange-symbol">?</span></td>
-                                {% elif group.htcondor_status == 1 %}
+                                {% if process_monitor_pause == 1 %}
+                                    <span class="blue-symbol">&#x1F4A4;</span></td>
+                                {% elif group.state == 'up' %}
                                     <span class="green-symbol">&#x2714;</span></td>
+                                {% elif group.state == 'warn' %}
+                                    <span class="orange-symbol">&#x2757;</span></td>
                                 {% else %}
                                     <span class="red-symbol">&#x2718;</span></td>
                                 {% endif %}
-
-                                <td data-path="{{group.group_name}} jobs_agent_status" class="more-style float-center plottable">
-                                {% if group.agent_status == -1 %}
-                                    <span class="orange-symbol">?</span></td>
-                                {% elif group.agent_status == 1 %}
-                                    <span class="green-symbol">&#x2714;</span></td>
-                                {% else %}
-                                    <span class="red-symbol">&#x2718;</span></td>
-                                {% endif %}
-
 
                                 {% trans "yes" as can_start_vms %}
                                 {% trans "no" as no %}
@@ -320,7 +311,7 @@
                     {% endfor %}
 
                     <tr class="bottom-row">
-                        <td colspan="11"></td>
+                        <td colspan="100"></td>
                         <td class="extra-row">&nbsp;</td>
                     </tr>
 
@@ -952,12 +943,25 @@
     <table class="system-services" id="system-services">
 
             <tr>
-                <th colspan="12">CS system services</th>
+                <th colspan="{{ service_status | length }}">CS system services</th>
                 <th class="col-spacer">&nbsp;</th>
                 <th colspan="4">CS system resources</th>
             </tr>
 
             <tr>
+                {% for service in service_status %}
+                    {% if process_monitor_pause == 1 %}
+                        <td><span class="blue-symbol">&#x1F4A4;</span></td>
+                    {% elif service.state == 'up' %}
+                        <td><span class="green-symbol">&#x2714;</span></td>
+                    {% elif service.state == 'warn' %}
+                        <td><span class="orange-symbol">&#x2757;</span></td>
+                    {% else %}
+                        <td><span class="red-symbol">&#x2718;</span></td>
+                    {% endif %}
+                {% endfor %}
+
+<!--                
                 <td data-path="csv2_status_status" class="more-style float-center plottable" tooltip="{{ system_list.csv2_status_msg }}">
                 {% if system_list.csv2_status_status == 1 %}
                     <span class="green-symbol bigger">&#x2714;</span></td>
@@ -1080,7 +1084,7 @@
                     <span class="red-symbol bigger">&#x2718;</span></td>
                 {% endif %}
 
-
+-->
 
                 <td class="col-spacer">&nbsp;</td>
 
@@ -1094,18 +1098,9 @@
 
             </tr>
             <tr>
-                <td>status</td>
-                <td>main</td>
-                <td>database</td>
-                <td>rabbitmq</td>
-                <td>openstack</td>
-                <td>jobs</td>
-                <td>machines</td>
-                <td>timeseries</td>
-                <td>ec2</td>
-                <td>watch</td>
-                <td>VMdata</td>
-                <td><nobr>Cert Info</nobr></td>
+                {% for service in service_status %}
+                    <td>{{ service.alias }}</td>
+                {% endfor %}
 
                 <td class="col-spacer">&nbsp;</td>
 

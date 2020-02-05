@@ -464,6 +464,10 @@ body.status-nav{
   width: 20px;
 }
 
+.blue-symbol {
+  color: blue;
+}
+
 .green-symbol {
   color: green;
 }
