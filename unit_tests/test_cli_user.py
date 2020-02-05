@@ -320,7 +320,7 @@ def main(gvar):
     execute_csv2_command(
         gvar, 0, None, None,
         ['cloudscheduler', 'user', 'list', '-su', ut_id(gvar, 'clu4')],
-        expected_list='Users', columns=['Username', 'Super User']
+        expected_list='Users', columns=['Username', 'Common Name', 'Active Group', 'User Groups', 'Username', 'Not In Groups', 'Super User', 'Joined']
     )
 
     # 52

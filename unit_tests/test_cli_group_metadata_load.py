@@ -31,8 +31,8 @@ def main(gvar):
 
     # 04
     execute_csv2_command(
-        gvar, 1, None, 'Error: the specified server "invalid-unit-test" does not exist in your defaults.',
-        ['cloudscheduler', 'metadata', 'load', '-mn', 'invalid-unit-test', '-f', 'ut.yaml', '-s', 'invalid-unit-test', '-su', ut_id(gvar, 'clu4')]
+        gvar, None, None, 'Error: the specified server "invalid-unit-test" does not exist in your defaults.',
+        ['cloudscheduler', 'metadata', 'load', '-mn', 'invalid-unit-test', '-f', 'ut.yaml', '-s', 'invalid-unit-test', '-su', ut_id(gvar, 'clu4')], timeout=8
     )
 
     # 05
@@ -85,7 +85,7 @@ def main(gvar):
 
     # 13
     execute_csv2_command(
-        gvar, 1, 'GV', r'value specified for "mime_type" must be one of the following options: [\'cloud-config\', \'ucernvm-config\'].',
+        gvar, 1, 'GV', 'value specified for "mime_type" must be one of the following options: [\'cloud-config\', \'ucernvm-config\'].',
         ['cloudscheduler', 'metadata', 'load', '-f', 'ut.yaml', '-mn', ut_id(gvar, 'cli-invalid-unit-test'), '-mmt', 'invalid-unit-test', '-su', ut_id(gvar, 'clu4')]
     )
 

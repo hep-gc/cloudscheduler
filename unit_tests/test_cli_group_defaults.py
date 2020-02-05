@@ -122,11 +122,12 @@ def main(gvar):
 
     # 19
     execute_csv2_command(
-        gvar, 0, None, '''metadata group-defaults, 1. Active Group Defaults: keys=group_name, columns=htcondor_fqdn,htcondor_name,htcondor_other_submitters,vm_flavor,vm_image,vm_keep_alive,vm_keyname,vm_network,vm_security_groups,job_cpus,job_disk,job_ram,job_swap
-            metadata group-defaults, 2. Flavors (optional): keys=group_name,cloud_name, columns=name
-            metadata group-defaults, 3. Images (optional): keys=group_name,cloud_name, columns=name
-            metadata group-defaults, 4. Networks (optional): keys=group_name,cloud_name, columns=name
-            metadata group-defaults, 5. Security Groups (optional): keys=group_name,cloud_name, columns=name''',
+        gvar, 0, None, '''metadata group-defaults, 1. Active Group Defaults: keys=group_name, columns=htcondor_fqdn,htcondor_container_hostname,htcondor_other_submitters,vm_flavor,vm_image,vm_keep_alive,vm_keyname,vm_network,vm_security_groups,job_cpus,job_disk,job_ram,job_swap
+metadata group-defaults, 2. Flavors (optional): keys=group_name,cloud_name, columns=name
+metadata group-defaults, 3. Images (optional): keys=group_name,cloud_name, columns=name
+metadata group-defaults, 4. Keypairs (optional): keys=group_name,cloud_name,key_name, columns=fingerprint,cloud_type
+metadata group-defaults, 5. Networks (optional): keys=group_name,cloud_name, columns=name
+metadata group-defaults, 6. Security Groups (optional): keys=group_name,cloud_name, columns=name''',
         ['cloudscheduler', 'metadata', 'group-defaults', '-VC', '-su', ut_id(gvar, 'clu4')]
     )
 
