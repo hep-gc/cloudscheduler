@@ -8,6 +8,5 @@ User=cloudscheduler
 ExecStart=/usr/bin/python3 /opt/cloudscheduler/data_collectors/ec2/ec2cloudPoller.py
 Restart=on-abort
 
-
 [Install]
 WantedBy=multi-user.target

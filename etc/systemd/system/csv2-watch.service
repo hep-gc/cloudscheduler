@@ -8,6 +8,5 @@ User=cloudscheduler
 ExecStart=/usr/bin/python3 /opt/cloudscheduler/utilities/watch_csv2 append
 Restart=always
 
-
 [Install]
 WantedBy=multi-user.target

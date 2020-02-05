@@ -8,6 +8,5 @@ User=root
 ExecStart=/usr/bin/python3 /opt/cloudscheduler/data_collectors/vm/vm_data_via_https.py
 Restart=always
 
-
 [Install]
 WantedBy=multi-user.target

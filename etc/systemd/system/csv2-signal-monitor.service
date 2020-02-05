@@ -1,0 +1,12 @@
+[Unit]
+Description=Periodic functional testing of the CSV2 signal delivery system 
+After=network.target
+
+[Service]
+Type=simple
+User=cloudscheduler
+ExecStart=/usr/bin/python3 /opt/cloudscheduler/agents/signal_monitor
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
