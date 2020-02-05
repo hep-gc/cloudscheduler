@@ -6,9 +6,11 @@ from cloudscheduler.lib.poller_functions import \
 from cloudscheduler.lib.rpc_client import RPC
 
 import multiprocessing
+from subprocess import Popen, PIPE
 import time
 import logging
 import os
+import re
 import signal
 import socket
 import sys

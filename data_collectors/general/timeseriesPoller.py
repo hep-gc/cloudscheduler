@@ -14,6 +14,7 @@ from cloudscheduler.lib.schema import view_cloud_status
 from cloudscheduler.lib.schema import view_job_status
 from cloudscheduler.lib.schema import view_cloud_status_slot_detail
 from cloudscheduler.lib.schema import view_condor_jobs_group_defaults_applied
+from cloudscheduler.lib.schema import view_service_status
 
 from cloudscheduler.lib.poller_functions import start_cycle, wait_cycle
 
@@ -38,7 +39,7 @@ def timeseries_data_transfer():
     # A new row will also need to be added to csv2_system_status to track any crashes/errors that occur in this file
     # once that new row is added you will need to replace "N/A" with the name of the column for
     # "orange_count_row" in ProccessMonitor initialization in __main__
-    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', [os.path.basename(sys.argv[0]), "ProcessMonitor"], refreshable=True, signals=True)
+    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', [os.path.basename(sys.argv[0]), "ProcessMonitor"], signals=True)
     PID_FILE = config.categories["ProcessMonitor"]["pid_path"] + os.path.basename(sys.argv[0])
 
 
@@ -60,8 +61,7 @@ def timeseries_data_transfer():
             config.refresh()
             db_session = config.db_session
             
-            STATUS = config.db_map.classes.csv2_system_status
-            statuses = db_session.query(STATUS)
+            statuses = db_session.query(view_service_status)
 
             # Query mariadb for cloud status and job status view
             cloud_status = db_session.query(view_cloud_status)
@@ -77,7 +77,6 @@ def timeseries_data_transfer():
                 'jobs_other',
                 'jobs_foreign',
                 'jobs_htcondor_status',
-                'jobs_agent_status'
             ]
             service_status_list = [
                 'csv2_main_status',
@@ -88,7 +87,6 @@ def timeseries_data_transfer():
                 'csv2_status_error_count',
                 'csv2_timeseries_status',
                 'csv2_ec2_status', 
-                'csv2_htc_agent_status', 
                 'csv2_glint_status', 
                 'csv2_watch_status', 
                 'csv2_startd_errors_status', 
@@ -113,12 +111,17 @@ def timeseries_data_transfer():
             url_string = 'http://localhost:8086/write'
             
             # Parse service status data into line protocol for influxdb
+            '''
             for status in statuses:
                 status_dict = vars(status)
                 for column in status_dict:
                     if(column in service_status_list):
                         new_point = "{0} value={1} {2}".format(column, status_dict[column], ts)
                         data_points.append(new_point)
+            '''
+            for status in statuses:
+                new_point = "{0} value={1} {2}".format(status.alias, status.plotable_state, ts)
+                data_points.append(new_point)
             
             # Parse cloud status data into line protocol for influxdb
             for line in cloud_status:
@@ -156,9 +159,7 @@ def timeseries_data_transfer():
                 data_points.append(new_point)
                 new_point = "{0},group={1} value={2}i {3}".format(job_column_list[6], group, _cast_int(line.foreign), ts)
                 data_points.append(new_point)
-                new_point = "{0},group={1} value={2}i {3}".format(job_column_list[7], group, _cast_int(line.htcondor_status), ts)
-                data_points.append(new_point)
-                new_point = "{0},group={1} value={2}i {3}".format(job_column_list[8], group, _cast_int(line.agent_status), ts)
+                new_point = "{0},group={1} value={2}i {3}".format(job_column_list[7], group, _cast_int(line.plotable_state), ts)
                 data_points.append(new_point)
 
 
@@ -310,6 +311,7 @@ if __name__ == '__main__':
         signal.signal(signal.SIGTERM, terminate)
         while True:
             config.refresh()
+            config.update_service_catalog()
             stop = check_pid(PID_FILE)
             procMon.check_processes(stop=stop)
             time.sleep(config.categories["ProcessMonitor"]["sleep_interval_main_long"])

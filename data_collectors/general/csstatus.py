@@ -81,7 +81,7 @@ def status_poller():
     #        )
     #    )
     #Base.prepare(db_engine, reflect=True)
-    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', [os.path.basename(sys.argv[0]),"ProcessMonitor"], refreshable=True, signals=True)
+    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', [os.path.basename(sys.argv[0]),"ProcessMonitor"], signals=True)
     PID_FILE = config.categories["ProcessMonitor"]["pid_path"] + os.path.basename(sys.argv[0])
 
     STATUS = config.db_map.classes.csv2_system_status

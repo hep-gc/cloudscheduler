@@ -15,7 +15,7 @@ from . import glint_utils
 logger = get_task_logger(__name__)
 
 db_category_list = ["general", "glintPoller.py"]
-config = Config('/etc/cloudscheduler/cloudscheduler.yaml', db_category_list, pool_size=4, refreshable=True)
+config = Config('/etc/cloudscheduler/cloudscheduler.yaml', db_category_list, pool_size=4)
 
 # Indicate Celery to use the default Django settings module
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'cloudscheduler_web.settings')

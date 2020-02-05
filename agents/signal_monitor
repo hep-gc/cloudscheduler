@@ -49,6 +49,7 @@ def signal_test_send():
     PID_FILE = config.categories["ProcessMonitor"]["pid_path"] + os.path.basename(sys.argv[0])
 
     while True:
+        config.refresh()
         event_signal_send(config, 'signal_tests')
 
         try:

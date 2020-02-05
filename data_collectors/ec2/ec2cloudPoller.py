@@ -205,7 +205,7 @@ def refresh_instance_types(config, file_path, region):
 def ec2_filterer():
     multiprocessing.current_process().name = "EC2 Filterer"    
     db_category_list = [os.path.basename(sys.argv[0]), "general", "ProcessMonitor"]
-    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', db_category_list, pool_size=20, refreshable=True, signals=True)
+    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', db_category_list, pool_size=20, signals=True)
     PID_FILE = config.categories["ProcessMonitor"]["pid_path"] + os.path.basename(sys.argv[0])
 
     CLOUD = config.db_map.classes.csv2_clouds
@@ -359,7 +359,7 @@ def flavor_poller():
     multiprocessing.current_process().name = "Flavor Poller"
 
     db_category_list = [os.path.basename(sys.argv[0]), "general", "ProcessMonitor"]
-    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', db_category_list, pool_size=20, refreshable=True, signals=True)
+    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', db_category_list, pool_size=20, signals=True)
     PID_FILE = config.categories["ProcessMonitor"]["pid_path"] + os.path.basename(sys.argv[0])
 
     FLAVOR = config.db_map.classes.cloud_flavors
@@ -414,7 +414,7 @@ def image_poller():
     multiprocessing.current_process().name = "Image Poller"
 
     db_category_list = [os.path.basename(sys.argv[0]), "general", "signal_manager", "ProcessMonitor"]
-    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', db_category_list, pool_size=8, refreshable=True, signals=True)
+    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', db_category_list, pool_size=8, signals=True)
     PID_FILE = config.categories["ProcessMonitor"]["pid_path"] + os.path.basename(sys.argv[0])
 
     EC2_IMAGE = config.db_map.classes.ec2_images
@@ -831,7 +831,7 @@ def keypair_poller():
     multiprocessing.current_process().name = "Keypair Poller"
 
     db_category_list = [os.path.basename(sys.argv[0]), "general", "signal_manager", "ProcessMonitor"]
-    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', db_category_list, pool_size=8, refreshable=True, signals=True)
+    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', db_category_list, pool_size=8, signals=True)
     PID_FILE = config.categories["ProcessMonitor"]["pid_path"] + os.path.basename(sys.argv[0])
 
     KEYPAIR = config.db_map.classes.cloud_keypairs
@@ -1007,7 +1007,7 @@ def limit_poller():
     multiprocessing.current_process().name = "Limit Poller"
 
     db_category_list = [os.path.basename(sys.argv[0]), "general", "signal_manager", "ProcessMonitor"]
-    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', db_category_list, pool_size=8, refreshable=True, signals=True)
+    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', db_category_list, pool_size=8, signals=True)
     PID_FILE = config.categories["ProcessMonitor"]["pid_path"] + os.path.basename(sys.argv[0])
 
     LIMIT = config.db_map.classes.cloud_limits
@@ -1226,7 +1226,7 @@ def network_poller():
     multiprocessing.current_process().name = "Network Poller"
 
     db_category_list = [os.path.basename(sys.argv[0]), "general", "signal_manager", "ProcessMonitor"]
-    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', db_category_list, pool_size=8, refreshable=True, signals=True)
+    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', db_category_list, pool_size=8, signals=True)
     PID_FILE = config.categories["ProcessMonitor"]["pid_path"] + os.path.basename(sys.argv[0])
 
     NETWORK = config.db_map.classes.cloud_networks
@@ -1412,7 +1412,7 @@ def security_group_poller():
     multiprocessing.current_process().name = "Security Group Poller"
 
     db_category_list = [os.path.basename(sys.argv[0]), "general", "signal_manager", "ProcessMonitor"]
-    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', db_category_list, pool_size=8, refreshable=True, signals=True)
+    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', db_category_list, pool_size=8, signals=True)
     PID_FILE = config.categories["ProcessMonitor"]["pid_path"] + os.path.basename(sys.argv[0])
 
     SECURITY_GROUP = config.db_map.classes.cloud_security_groups
@@ -1601,7 +1601,7 @@ def security_group_poller():
 def vm_poller():
     multiprocessing.current_process().name = "VM Poller"
 
-    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', [os.path.basename(sys.argv[0]), "SQL", "ProcessMonitor"], pool_size=8, refreshable=True, signals=True)
+    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', [os.path.basename(sys.argv[0]), "SQL", "ProcessMonitor"], pool_size=8, signals=True)
     PID_FILE = config.categories["ProcessMonitor"]["pid_path"] + os.path.basename(sys.argv[0])
 
     VM = config.db_map.classes.csv2_vms
@@ -1972,58 +1972,6 @@ def vm_poller():
         del db_session
 
 
-def service_registrar():
-    multiprocessing.current_process().name = "Service Registrar"
-
-    # database setup
-    db_category_list = [os.path.basename(sys.argv[0]), "general", "ProcessMonitor"]
-    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', db_category_list, pool_size=8, refreshable=True, signals=True)
-    PID_FILE = config.categories["ProcessMonitor"]["pid_path"] + os.path.basename(sys.argv[0])
-
-    SERVICE_CATALOG = config.db_map.classes.csv2_service_catalog
-
-    service_fqdn = socket.gethostname()
-    service_name = "csv2-amazon"
-
-    cycle_start_time = 0
-    new_poll_time = 0
-    poll_time_history = [0,0,0,0]
-
-    while True:
-        config.db_open()
-        config.refresh()
-
-        if not os.path.exists(PID_FILE):
-            logging.debug("Stop set, exiting...")
-            break
-
-        signal.signal(signal.SIGINT, signal.SIG_IGN)
-        new_poll_time, cycle_start_time = start_cycle(new_poll_time, cycle_start_time)
-
-        service_dict = {
-            "service": service_name,
-            "fqdn": service_fqdn,
-            "last_updated": None,
-            "yaml_attribute_name": "cs_condor_remote_amazon_poller"
-        }
-        service = SERVICE_CATALOG(**service_dict)
-        try:
-            config.db_session.merge(service)
-            config.db_close(commit=True)
-        except Exception as exc:
-            logging.exception("Failed to merge service catalog entry, aborting...")
-            logging.error(exc)
-            return -1
-
-        if not os.path.exists(PID_FILE):
-            logging.info("Stop set, exiting...")
-            break
-        signal.signal(signal.SIGINT, config.signals['SIGINT'])
-        wait_cycle(cycle_start_time, poll_time_history, config.categories["general"]["sleep_interval_registrar"], config)
-
-    return -1
-
-
 ## Main.
 
 if __name__ == '__main__':
@@ -2034,7 +1982,6 @@ if __name__ == '__main__':
         'limit': limit_poller,
         'network': network_poller,
         'vm': vm_poller,
-        'registrar': service_registrar,
         'filterer': ec2_filterer,
         'security_group_poller': security_group_poller
     }
@@ -2059,6 +2006,7 @@ if __name__ == '__main__':
         signal.signal(signal.SIGTERM, terminate)
         while True:
             config.refresh()
+            config.update_service_catalog()
             stop = check_pid(PID_FILE)
             procMon.check_processes(stop=stop)
             time.sleep(config.categories["ProcessMonitor"]["sleep_interval_main_long"])

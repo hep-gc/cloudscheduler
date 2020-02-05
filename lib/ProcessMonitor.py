@@ -21,7 +21,7 @@ class ProcessMonitor:
     logging = None
 
     def __init__(self, config_params, pool_size, orange_count_row, process_ids=None):
-        self.config = Config('/etc/cloudscheduler/cloudscheduler.yaml', config_params, pool_size=pool_size, refreshable=True)
+        self.config = Config('/etc/cloudscheduler/cloudscheduler.yaml', config_params, pool_size=pool_size)
         self.logging = logging.getLogger()
         logging.basicConfig(
             filename=self.config.categories[os.path.basename(sys.argv[0])]["log_file"],
@@ -122,6 +122,7 @@ class ProcessMonitor:
                     orange = True
                     logging.error("%s process died, restarting...", process)
                     logging.debug("exit code: %s" , self.processes[process].exitcode)
+                    self.config.update_service_catalog(error="%s process died, exit code: %s" % (process, self.processes[process].exitcode))
                     del self.processes[process]
                 else:
                     self.logging.info("Restarting %s process", process)

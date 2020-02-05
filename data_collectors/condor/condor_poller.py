@@ -3,7 +3,9 @@ import time
 import logging
 import signal
 import socket
+from subprocess import Popen, PIPE
 import os
+import re
 import sys
 import yaml
 
@@ -86,7 +88,7 @@ def _get_openstack_session_v1_v2(auth_url, username, password, project, user_dom
                 username=username,
                 password=password,
                 tenant_name=project)
-            sess = session.Session(auth=auth, verify=config.categories["csmachines.py"]["cacerts"])
+            sess = session.Session(auth=auth, verify=config.categories["condor_poller.py"]["cacerts"])
         except Exception as exc:
             logging.error("Problem importing keystone modules, and getting session for grp:cloud - %s::%s" % (auth_url, exc))
             logging.error("Connection parameters: \n authurl: %s \n username: %s \n project: %s", (auth_url, username, project))
@@ -102,7 +104,7 @@ def _get_openstack_session_v1_v2(auth_url, username, password, project, user_dom
                 project_name=project,
                 user_domain_name=user_domain,
                 project_domain_name=project_domain_name)
-            sess = session.Session(auth=auth, verify=config.categories["csmachines.py"]["cacerts"])
+            sess = session.Session(auth=auth, verify=config.categories["condor_poller.py"]["cacerts"])
         except Exception as exc:
             logging.error("Problem importing keystone modules, and getting session for grp:cloud - %s: %s", exc)
             logging.error("Connection parameters: \n authurl: %s \n username: %s \n project: %s \n user_domain: %s \n project_domain: %s", (auth_url, username, project, user_domain, project_domain_name))
@@ -127,7 +129,7 @@ def trim_keys(dict_to_trim, key_list):
     for key in dict_to_trim:
         if key == "group_name" or key == "target_alias":
             continue
-        if key not in key_list or isinstance(dict_to_trim[key], classad.classad.Value):
+        if key not in key_list or isinstance(dict_to_trim[key], classad.Value):
             keys_to_trim.append(key)
     for key in keys_to_trim:
         dict_to_trim.pop(key, None)
@@ -333,7 +335,7 @@ def job_poller():
     uncommitted_updates = 0
     failure_dict = {}
 
-    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', [os.path.basename(sys.argv[0]), "ProcessMonitor"], pool_size=3, refreshable=True, signals=True)
+    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', [os.path.basename(sys.argv[0]), "ProcessMonitor", "csjobs.py"], pool_size=3, signals=True)
     PID_FILE = config.categories["ProcessMonitor"]["pid_path"] + os.path.basename(sys.argv[0])
 
 
@@ -341,7 +343,6 @@ def job_poller():
     CLOUDS = config.db_map.classes.csv2_clouds
     GROUPS = config.db_map.classes.csv2_groups
     USERS = config.db_map.classes.csv2_user_groups
-    JOB_SCHED = config.db_map.classes.csv2_job_schedulers
 
     try:
         inventory = get_inventory_item_hash_from_database(config.db_engine, JOB, 'global_job_id', debug_hash=(config.categories["csjobs.py"]["log_level"]<20), condor_host=config.local_host_id)
@@ -359,7 +360,7 @@ def job_poller():
             signal.signal(signal.SIGINT, signal.SIG_IGN)
 
             db_session = config.db_session
-            groups = db_session.query(GROUPS)
+            groups = db_session.query(GROUPS).filter(GROUPS.htcondor_host_id == config.local_host_id)
             condor_hosts_set = set() # use a set here so we dont re-query same host if multiple groups have same host
             condor_host_groups = {}
             group_users = {}
@@ -428,19 +429,6 @@ def job_poller():
                                     fail_count = failure_dict[group.group_name]
                     logging.error("Failed to locate condor daemon, skipping: %s" % condor_host)
                     logging.debug(exc)
-                    jsched = {
-                        "htcondor_fqdn": condor_host,
-                        "condor_status": 0
-                    }
-                    new_jsched = JOB_SCHED(**jsched)
-                    js = config.db_session.query(JOB_SCHED).filter(JOB_SCHED.htcondor_fqdn==condor_host)
-                    if js.count()>0:
-                        config.db_session.merge(new_jsched)
-                        uncommitted_updates += 1
-                    else:
-                        config.db_session.execute('insert into csv2_job_schedulers (htcondor_fqdn) values("%s")' % condor_host)
-                        config.db_session.merge(new_jsched)
-                        uncommitted_updates += 1
 
                     if fail_count > 3 and fail_count < 1500:
                         logging.critical("%s failed polls on host: %s, Configuration error or condor issues" % (fail_count, condor_host))
@@ -614,20 +602,9 @@ def job_poller():
                         logging.error("Aborting cycle...")
                         abort_cycle = True
                         break
-                jsched = {
-                    "htcondor_fqdn": condor_host,
-                    "condor_status": 1,
-                    "foreign_jobs":  foreign_jobs
-                }
-                new_jsched = JOB_SCHED(**jsched)
-                js = config.db_session.query(JOB_SCHED).filter(JOB_SCHED.htcondor_fqdn==condor_host)
-                if js.count()>0:
-                    config.db_session.merge(new_jsched)
-                    uncommitted_updates += 1
-                else:
-                    config.db_session.execute('insert into csv2_job_schedulers (htcondor_fqdn) values("%s")' % condor_host)
-                    config.db_session.merge(new_jsched)
-                    uncommitted_updates += 1
+
+
+                config.update_service_catalog(counter=foreign_jobs)
 
                         
                 if foreign_jobs > 0:
@@ -700,7 +677,7 @@ def job_poller():
 def job_command_poller():
     multiprocessing.current_process().name = "Job Command Poller"
 
-    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', [os.path.basename(sys.argv[0]), "ProcessMonitor"], pool_size=3, refreshable=True, signals=True)
+    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', [os.path.basename(sys.argv[0]), "ProcessMonitor", "csjobs.py"], pool_size=3, signals=True)
     PID_FILE = config.categories["ProcessMonitor"]["pid_path"] + os.path.basename(sys.argv[0])
     Job = config.db_map.classes.condor_jobs
     GROUPS = config.db_map.classes.csv2_groups
@@ -723,7 +700,7 @@ def job_command_poller():
             new_poll_time, cycle_start_time = start_cycle(new_poll_time, cycle_start_time)
 
             db_session = config.db_session
-            groups = db_session.query(GROUPS)
+            groups = db_session.query(GROUPS).filter(GROUPS.htcondor_host_id == config.local_host_id)
             condor_hosts_set = set() # use a set here so we dont re-query same host if multiple groups have same host
             for group in groups:
                 # for containers we will have to issue the commands directly to the container and not the condor fqdn so here it takes precedence 
@@ -808,7 +785,7 @@ def machine_poller():
                            "Start", "RemoteOwner", "SlotType", "TotalSlots", "group_name", \
                            "cloud_name", "cs_host_id", "condor_host", "flavor", "TotalDisk"]
 
-    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', [os.path.basename(sys.argv[0]), "SQL", "ProcessMonitor"], pool_size=3, refreshable=True, signals=True)
+    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', [os.path.basename(sys.argv[0]), "SQL", "ProcessMonitor", "csmachines.py"], pool_size=3, signals=True)
     PID_FILE = config.categories["ProcessMonitor"]["pid_path"] + os.path.basename(sys.argv[0])
 
 
@@ -841,7 +818,7 @@ def machine_poller():
             signal.signal(signal.SIGINT, signal.SIG_IGN)
 
             db_session = config.db_session
-            groups = db_session.query(GROUPS)
+            groups = db_session.query(GROUPS).filter(GROUPS.htcondor_host_id == config.local_host_id)
             condor_hosts_set = set() # use a set here so we dont re-query same host if multiple groups have same host
             for group in groups:
                 if group.htcondor_container_hostname is not None and group.htcondor_container_hostname != "":
@@ -854,7 +831,7 @@ def machine_poller():
             #       - group_name (in both group_name and machine)
             #       - cloud_name (only in machine?)
             host_groups = {}
-            groups = db_session.query(GROUPS)
+            groups = db_session.query(GROUPS).filter(GROUPS.htcondor_host_id == config.local_host_id)
             for group in groups:
                 cloud_list = []
                 clouds = config.db_session.query(CLOUDS).filter(CLOUDS.group_name == group.group_name)
@@ -1057,14 +1034,13 @@ def machine_command_poller():
     multiprocessing.current_process().name = "Machine Command Poller"
 
     # database setup
-    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', [os.path.basename(sys.argv[0]), "AMQP", "ProcessMonitor"], pool_size=3, refreshable=True, signals=True)
+    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', [os.path.basename(sys.argv[0]), "AMQP", "ProcessMonitor", "csmachines.py"], pool_size=3, signals=True)
     PID_FILE = config.categories["ProcessMonitor"]["pid_path"] + os.path.basename(sys.argv[0])
 
     Resource = config.db_map.classes.condor_machines
     GROUPS = config.db_map.classes.csv2_groups
     VM = config.db_map.classes.csv2_vms
     CLOUD = config.db_map.classes.csv2_clouds
-    JOB_SCHED = config.db_map.classes.csv2_job_schedulers
 
     cycle_start_time = 0
     new_poll_time = 0
@@ -1088,7 +1064,7 @@ def machine_command_poller():
             new_poll_time, cycle_start_time = start_cycle(new_poll_time, cycle_start_time)
 
             db_session = config.db_session
-            groups = db_session.query(GROUPS)
+            groups = db_session.query(GROUPS).filter(GROUPS.htcondor_host_id == config.local_host_id)
             condor_hosts_set = set() # use a set here so we dont re-query same host if multiple groups have same host
             for group in groups:
                 if group.htcondor_container_hostname is not None and group.htcondor_container_hostname != "":
@@ -1434,7 +1410,7 @@ def machine_command_poller():
 def worker_gsi_poller():
     multiprocessing.current_process().name = "Worker GSI Poller"
 
-    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', [os.path.basename(sys.argv[0]), 'AMQP', 'ProcessMonitor'], refreshable=True, pool_size=6, signals=True)
+    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', [os.path.basename(sys.argv[0]), 'AMQP', 'ProcessMonitor', 'condor_gsi.py'], pool_size=6, signals=True)
     PID_FILE = config.categories["ProcessMonitor"]["pid_path"] + os.path.basename(sys.argv[0])
 
     cycle_start_time = 0
@@ -1539,7 +1515,7 @@ def worker_gsi_poller():
 def condor_gsi_poller():
     multiprocessing.current_process().name = "Condor GSI Poller"
 
-    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', [os.path.basename(sys.argv[0]), 'AMQP', 'ProcessMonitor'], refreshable=True, pool_size=6, signals=True)
+    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', [os.path.basename(sys.argv[0]), 'AMQP', 'ProcessMonitor', 'condor_gsi.py'], pool_size=6, signals=True)
     PID_FILE = config.categories["ProcessMonitor"]["pid_path"] + os.path.basename(sys.argv[0])
 
     cycle_start_time = 0
@@ -1608,64 +1584,15 @@ def condor_gsi_poller():
         logging.error(exc)
         config.db_close()
 
-
-
-
-def service_registrar():
-    multiprocessing.current_process().name = "Service Registrar"
-
-    # database setup
-    db_category_list = [os.path.basename(sys.argv[0]), "general", "ProcessMonitor"]
-    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', db_category_list, pool_size=3, refreshable=True, signals=True)
-    PID_FILE = config.categories["ProcessMonitor"]["pid_path"] + os.path.basename(sys.argv[0])
-    SERVICE_CATALOG = config.db_map.classes.csv2_service_catalog_old
-
-    service_fqdn = socket.gethostname()
-    service_name = "csv2-machines"
-
-    cycle_start_time = 0
-    new_poll_time = 0
-    poll_time_history = [0,0,0,0]
-
-    config.db_open()
-    while True:
-        config.refresh()
-        if not os.path.exists(PID_FILE):
-            logging.info("Stop set, exiting...")
-            break
-
-        service_dict = {
-            "service":             service_name,
-            "fqdn":                service_fqdn,
-            "last_updated":        None,
-            "flag_htcondor_allow": 1,
-            "yaml_attribute_name": "cs_condor_remote_machine_poller"
-        }
-        service = SERVICE_CATALOG(**service_dict)
-        try:
-            config.db_session.merge(service)
-            config.db_session.commit()
-        except Exception as exc:
-            logging.exception("Failed to merge service catalog entry, aborting...")
-            logging.error(exc)
-            return -1
-        wait_cycle(cycle_start_time, poll_time_history, config.categories["general"]["sleep_interval_registrar"], config)
-
-    return -1
-
-
-
-
 if __name__ == '__main__':
 
     process_ids = {
-#        'job_command':      job_command_poller,
+        'job_command':      job_command_poller,
         'job':              job_poller,
-#        'machine_command':  machine_command_poller,
+        'machine_command':  machine_command_poller,
         'machine':          machine_poller,
         'condor_gsi':       condor_gsi_poller,
         'worker_gsi':       worker_gsi_poller,
-        'registrar':        service_registrar,
     }
 
     db_category_list = [os.path.basename(sys.argv[0]), "ProcessMonitor", "general", "signal_manager"]
@@ -1688,6 +1615,7 @@ if __name__ == '__main__':
         signal.signal(signal.SIGTERM, terminate)
         while True:
             config.refresh()
+            config.update_service_catalog()
             stop = check_pid(PID_FILE)
             procMon.check_processes(stop=stop)
             time.sleep(config.categories["ProcessMonitor"]["sleep_interval_main_long"])

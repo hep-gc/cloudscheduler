@@ -16,7 +16,7 @@ def apel_accounting_cleanup():
     multiprocessing.current_process().name = "APEL Accounting Cleanup"
 
     my_config_category = os.path.basename(sys.argv[0])
-    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', [my_config_category, "ProcessMonitor"], pool_size=4, refreshable=True, signals=True)
+    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', [my_config_category, "ProcessMonitor"], pool_size=4, signals=True)
     PID_FILE = config.categories["ProcessMonitor"]["pid_path"] + os.path.basename(sys.argv[0])
 
     config.db_open()
@@ -66,7 +66,7 @@ def vm_data_poller():
     multiprocessing.current_process().name = "VM data poller"
 
     my_config_category = os.path.basename(sys.argv[0])
-    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', [my_config_category, "ProcessMonitor"], pool_size=4, refreshable=True, signals=True)
+    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', [my_config_category, "ProcessMonitor"], pool_size=4, signals=True)
     PID_FILE = config.categories["ProcessMonitor"]["pid_path"] + os.path.basename(sys.argv[0])
 
     VMS = config.db_map.classes.csv2_vms
@@ -199,6 +199,7 @@ if __name__ == '__main__':
         signal.signal(signal.SIGTERM, terminate)
         while True:
             config.refresh()
+            config.update_service_catalog()
             stop = check_pid(PID_FILE)
             procMon.check_processes(stop=stop)
             time.sleep(config.categories['ProcessMonitor']['sleep_interval_main_long'])
