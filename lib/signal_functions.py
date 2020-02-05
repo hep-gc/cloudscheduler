@@ -9,30 +9,6 @@ import signal as Signal
 import socket
 import time
 
-def _event_signal_delivery_(channel, method, properties, body):
-    """
-    Internal pika callback function to handle incoming AMQP messages.
-    """
-
-    global signals_config
-    event, signame, caller = body.decode('utf-8').split(',', 2)
-
-    try:
-        signo = Signal.Signals[signame].value
-
-        if event in signals_config.signals['events']:
-            for pid_file in os.listdir('%s/%s' % (signals_config.signals['registry'], event)):
-                pid = _verify_event_registration_(signals_config, event, pid_file)
-                if pid:
-                    os.kill(pid, int(signo))
-                    _log_signal_(signals_config, event, 'delivered', signame=signame, depth=8)
-
-        else:
-            _log_signal_(signals_config, event, 'undeliverable_event_undefined', signame=signame, depth=8)
-
-    except:
-        _log_signal_(signals_config, event, 'undeliverable_signal', signame=signame, depth=8)
-
 def _get_amqp_connection_(config, log=False):
     """
     Internal function to establish a connection with the AMQP (RabbitMQ) server.
@@ -82,6 +58,9 @@ def _log_signal_(config, event, action, pid=os.getpid(), signame='-', depth=2):
     """
     Internal function to log messages to the database.
     """
+
+    if event == 'signal_tests' and 'signal_monitor' in config.categories and config.categories['signal_monitor']['log_signal_tests'] == False:
+        return
 
     if not config.db_session:
         auto_close = True
@@ -161,8 +140,42 @@ def deliver_event_signals(config_file, categories=[]):
     a message processing loop with the 'start_consuming()' statement. 
     """
 
+    def _event_signal_delivery_(channel, method, properties, body):
+        """
+        Internal pika callback function to handle incoming AMQP messages.
+        """
+
+        global signals_config
+        signals_config.refresh()
+        event, signame, caller = body.decode('utf-8').split(',', 2)
+
+        try:
+            signo = Signal.Signals[signame].value
+
+            if event in signals_config.signals['events']:
+                for pid_file in os.listdir('%s/%s' % (signals_config.signals['registry'], event)):
+                    pid = _verify_event_registration_(signals_config, event, pid_file)
+                    if pid:
+                        os.kill(pid, int(signo))
+                        _log_signal_(signals_config, event, 'delivered', signame=signame, depth=8)
+
+            else:
+                _log_signal_(signals_config, event, 'undeliverable_event_undefined', signame=signame, depth=8)
+
+        except:
+            _log_signal_(signals_config, event, 'undeliverable_signal', signame=signame, depth=8)
+
     global signals_config
-    signals_config = Config(config_file, categories, signals=True)
+    if isinstance(categories, str):
+        current_categories = categories.split(',')
+    else:
+        current_categories = categories
+
+
+    if 'signal_monitor' not in current_categories:
+        current_categories += ['signal_monitor']
+    
+    signals_config = Config(config_file, current_categories, signals=True)
 
     connection = _get_amqp_connection_(signals_config, log=True)
     channel = connection.channel()
