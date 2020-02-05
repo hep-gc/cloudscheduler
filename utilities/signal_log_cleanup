@@ -1,0 +1,10 @@
+#!/usr/bin/env python3
+from cloudscheduler.lib.db_config import Config
+import time
+config = Config('/etc/cloudscheduler/cloudscheduler.yaml', ['general'])
+obsolete = time.time() - (86400 * config.categories['general']['signal_log_retention_days'])
+config.db_open()
+result = config.db_session.execute('delete from csv2_signal_log where timestamp<%s;' % obsolete)
+config.db_close(commit=True)
+print('csv2_signal_log: %s rows older than %s deleted.' % (result.rowcount, obsolete))
+
