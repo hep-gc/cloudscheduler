@@ -1,0 +1,126 @@
+#!/usr/bin/env python3
+import sys
+import os
+
+def get_table_from_sql(line):
+    phrases = line.replace(';', '').replace(')', '').replace("'", '').replace('"', '').split('db_session.execute(')
+    if len(phrases) < 2:
+        phrases = line.replace(';', '').replace(')', '').replace("'", '').replace('"', '').split('db_connection.execute(')
+
+    if len(phrases) > 1:
+        words = phrases[1].strip().lower().split()
+
+        if words[0] ==  'delete':
+            return words[2], 'delete'
+        elif words[0] == 'insert':
+            return words[2], 'insert'
+        elif words[0] == 'select':
+            ix = words.index('from')
+            if ix > -1:
+                return words[ix+1], 'select'
+        elif words[0] == 'update':
+            return words[1], 'update'
+
+    return None, None
+
+def resolve_refs(handles):
+    resolved = {}
+    for line in lines:
+        for handle in handles:
+            if line.find('%s' % handle) > -1:
+                words = line.split()
+                if words[0] == 'for':
+                    new_handle = words[1]
+                else:
+                    new_handle = words[0]
+ 
+                if new_handle not in handles and new_handle not in resolved:
+                    resolved[new_handle] = handles[handle]
+
+    return resolved
+
+if len(sys.argv) < 2:
+    print('Synopsis: mysql_privileges <blank_seperated_python_module_list>')
+    exit(0)
+
+tables = {}
+for ix in range(1, len(sys.argv)):
+    if os.path.isfile(sys.argv[ix]) and sys.argv[ix] != 'try':
+        try:
+            with open(sys.argv[ix]) as fd:
+               lines = fd.read().split('\n')
+        except:
+            continue
+
+        handles = {}
+        for line in lines:
+           if line.find('db_map') > -1:
+               handle = line.split()
+               table = line.split('.')
+               handles[handle[0]] = table[-1]
+               handles[table[-1]] = table[-1]
+
+        for line in lines:
+           table, ignore = get_table_from_sql(line)
+           if table and table not in handles:
+               handles[table] = table
+
+        while True:
+            resolved = resolve_refs(handles)
+            if len(resolved) > 0:
+                handles = {**handles, **resolved}
+            else:
+                break
+
+        for handle in handles:
+            if handles[handle] not in tables:
+                tables[handles[handle]] = {'merge': False, 'delete': False, 'privileges': []}
+
+        for line in lines:
+
+           if line.find('db_connection') > -1 or line.find('db_session') > -1:
+               table, action = get_table_from_sql(line)
+               if table and action == 'delete':
+                   tables[table]['merge'] = True
+                   tables[table]['delete'] = True
+
+               elif table and (action == 'insert' or action == 'update'):
+                   tables[table]['merge'] = True
+
+               elif line.find('delete_obsolete_database_items(') > -1:
+                   words = line.replace(',', 'delete_obsolete_database_items(').split('delete_obsolete_database_items(')
+                   handle = words[4].strip()
+                   if handle in handles and handles[handle] in tables:
+                       tables[handles[handle]]['merge'] = True
+                       tables[handles[handle]]['delete'] = True
+
+               elif line.find('.delete(') > -1:
+                   words = line.replace(')', 'delete(').split('delete(')
+                   handle = words[1].strip()
+                   if handle in handles and handles[handle] in tables:
+                       tables[handles[handle]]['merge'] = True
+                       tables[handles[handle]]['delete'] = True
+
+               elif line.find('.merge(') > -1:
+                   words = line.replace(')', 'merge(').split('merge(')
+                   handle = words[1].strip()
+                   if handle in handles and handles[handle] in tables:
+                       tables[handles[handle]]['merge'] = True
+
+
+privileges = ['csv2.*:SELECT']
+for table in sorted(tables):
+    if tables[table]['merge']:
+        tables[table]['privileges'].append('INSERT')
+        tables[table]['privileges'].append('UPDATE')
+
+    if tables[table]['delete']:
+        tables[table]['privileges'].append('DELETE')
+
+    if len(tables[table]['privileges']) > 0:
+        privileges.append('csv2.%s:%s' % (table, ','.join(tables[table]['privileges'])))
+
+    print("%-48s: %s" % (table, tables[table]))
+
+print("\n%s" % '/'.join(privileges))
+
