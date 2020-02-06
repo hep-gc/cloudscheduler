@@ -951,7 +951,7 @@
 
             <tr>
                 {% for service in service_status %}
-                    <td data-path="{{group.group_name}} jobs_htcondor_status" class="more-style float-center plottable">
+                    <td data-path="{{group.group_name}} {{service.alias}}" class="more-style float-center plottable">
                     {% if process_monitor_pause == 1 %}
                         <span class="blue-symbol">&#x1F4A4;</span>
                     {% elif service.state == 'up' %}
