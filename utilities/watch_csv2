@@ -200,21 +200,21 @@ def initialize(args, action):
     gvar = {
         'action': action,
         'args': args,
-        'db_config': Config('/etc/cloudscheduler/cloudscheduler.yaml', ['watch_csv2'], db_config_dict=True),
+        'db_config': Config('/etc/cloudscheduler/cloudscheduler.yaml', ['signal_monitor', 'watch_csv2'], db_config_dict=True),
         'left_right': 0,
         'log_file_map_sfx': '.map',
         'watch': [],
         'up_down': 0,
         }
 
-    gvar['log_dir'] = os.path.dirname(gvar['db_config'].log_file)
-    gvar['log_file_pfx'] = os.path.basename(gvar['db_config'].log_file)
+    gvar['log_dir'] = os.path.dirname(gvar['db_config'].categories['watch_csv2']['log_file'])
+    gvar['log_file_pfx'] = os.path.basename(gvar['db_config'].categories['watch_csv2']['log_file'])
 
-    if not os.path.isfile(gvar['db_config'].config_file):
-        print('Error: Configuration file "%s" does not exist.' % gvar['db_config'].config_file)
+    if not os.path.isfile(gvar['db_config'].categories['watch_csv2']['config_file']):
+        print('Error: Configuration file "%s" does not exist.' % gvar['db_config'].categories['watch_csv2']['config_file'])
         exit(1)
 
-    fd = open(gvar['db_config'].config_file)
+    fd = open(gvar['db_config'].categories['watch_csv2']['config_file'])
     watch_list = fd.read().replace('\n', ' ').split(';')
     fd.close()
 
@@ -250,9 +250,12 @@ def initialize(args, action):
 
 def log_append(gvar):
     while True:
+        gvar['db_config'].refresh()
+        gvar['db_config'].update_service_catalog()
+
         get_real_time_data(gvar)
 
-        fd = open(gvar['db_config'].log_file, 'a')
+        fd = open(gvar['db_config'].categories['watch_csv2']['log_file'], 'a')
 
         for cmd in gvar['watch']:
             if 'change' not in cmd or cmd['change']:
@@ -262,14 +265,14 @@ def log_append(gvar):
 
         fd.close()
 
-        time.sleep(gvar['db_config'].sleep_time)
+        time.sleep(gvar['db_config'].categories['watch_csv2']['sleep_time'])
             
 def log_enumerate(gvar):
     watch_xref = {}
     for ix in range(len(gvar['watch'])):
         watch_xref[gvar['watch'][ix]['id']] = ix
 
-    fd = open(gvar['db_config'].log_file)
+    fd = open(gvar['db_config'].categories['watch_csv2']['log_file'])
     lines = fd.read().split('\n')
     fd.close()
 
@@ -614,7 +617,7 @@ def log_rotate(gvar):
             fn[-len(gvar['log_file_map_sfx']):] != gvar['log_file_map_sfx']:
             obsolete.append(fn)
 
-    for fn in obsolete[gvar['db_config'].log_file_retain:]:
+    for fn in obsolete[gvar['db_config'].categories['watch_csv2']['log_file_retain']:]:
         os.remove('%s/%s' % (gvar['log_dir'], fn))
         os.remove('%s/%s%s' % (gvar['log_dir'], fn, gvar['log_file_map_sfx']))
   
@@ -666,7 +669,7 @@ def real_time_watch(gvar):
             for ix in range(min(len(frame_data), gvar['yx'][0]-2)):
                 stdscr.addnstr(ix, 0, frame_data[ix+gvar['up_down']][gvar['left_right']:], gvar['yx'][1])
 
-            sleep_time = gvar['db_config'].sleep_time
+            sleep_time = gvar['db_config'].categories['watch_csv2']['sleep_time']
             while True:
                 stdscr.addnstr(gvar['yx'][0]-1, 0, 'Watching (%s)  \u2190\u2191\u2193\u2192Scroll  q-quit' % sleep_time, gvar['yx'][1], curses.A_BOLD)
                 stdscr.clrtoeol()
