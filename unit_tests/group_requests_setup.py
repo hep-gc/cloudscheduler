@@ -168,4 +168,4 @@ def main(gvar):
     )
 
 if __name__ == "__main__":
-    main(None4
+    main(None)

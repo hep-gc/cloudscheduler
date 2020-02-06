@@ -50,7 +50,8 @@ def execute_csv2_command(gvar, expected_rc, expected_modid, expected_text, cmd, 
 
         failed = False
 
-        if expected_rc and expected_rc != return_code:
+        # Comparison with None is necessary because we want to compare expected and actual if expected is 0.
+        if expected_rc != None and expected_rc != return_code:
             failed = True
 
         if return_code == 0 or not expected_modid:
@@ -139,7 +140,8 @@ def execute_csv2_request(gvar, expected_rc, expected_modid, expected_text, reque
 
         failed = False
 
-        if expected_rc and expected_rc != response['response_code']:
+        # Comparison with None is necessary because we want to compare expected and actual if expected is 0.
+        if expected_rc != None and expected_rc != response['response_code']:
             failed = True
 
         if response['response_code'] == 0 or not expected_modid:
