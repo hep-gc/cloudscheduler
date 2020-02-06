@@ -1,18 +1,32 @@
 database:
     db_user: "csv2"
-    db_password: "{{ mariadb_cloudscheduler }}"
-    db_host: "{{ db_hostname }}"
+    db_password: "{{ database_user_passwords.csv2 }}"
+    db_host: "localhost"
     db_port: 3306
     db_name: "csv2"
     db_table: "csv2_configuration"
 
-htc_agent:
-#   condor_hostcert: /etc/grid-security/hostcert.pem
+signals:
+    protocol: "amqp" 
+    host: "localhost"
+    port: 5672
+    user: "csv2" 
+    password: "{{ amqp_user_passwords.csv2 }}"
+    registry: "/var/local/cloudscheduler/signals"
+    events:
+        - "insert_csv2_clouds_amazon"
+        - "insert_csv2_clouds_openstack"
+        - "signal_tests"
+        - "update_csv2_clouds_amazon"
+        - "update_csv2_clouds_openstack"
+        - "update_ec2_image_filter"
+        - "update_ec2_instance_type_filter"
+    queue: "signals"
+
+
+condor_poller:
     condor_worker_cert: /etc/grid-security/condor/worker/condorworkercert.pem
     condor_worker_key: /etc/grid-security/condor/worker/condorworkerkey.pem
-    csv2_host: {{ db_hostname }}
-    csv2_htc_queue_prefix: csv2_htc
-    csv2_port: 5672
     log_file: /var/log/cloudscheduler/csv2_htc_agent.log
     log_level: 20
 

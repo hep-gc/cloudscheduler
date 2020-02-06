@@ -573,7 +573,7 @@
   mysql_user:
       name: csv2
       host: "localhost"
-      password: '{{ mariadb_cloudscheduler }}'
+      password: '{{ database_user_passwords.csv2 }}'
       priv: 'csv2.*:ALL'
       state: present
       login_user: root
@@ -583,7 +583,7 @@
   mysql_user:
       name: csv2
       host: "{{ i_external_connection.0.ipv4fqdn }}"
-      password: '{{ mariadb_cloudscheduler }}'
+      password: '{{ database_user_passwords.csv2 }}'
       priv: 'csv2.*:ALL'
       state: present
       login_user: root
