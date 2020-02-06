@@ -1644,109 +1644,119 @@ def defaults_replication():
 
     config.db_open()
     while True:
-        config.refresh()
-        if not os.path.exists(PID_FILE):
-            logging.debug("Stop set, exiting...")
-            break
+        try:
+            config.refresh()
+            if not os.path.exists(PID_FILE):
+                logging.debug("Stop set, exiting...")
+                break
 
-        signal.signal(signal.SIGINT, signal.SIG_IGN)
-        new_poll_time, cycle_start_time = start_cycle(new_poll_time, cycle_start_time)
+            signal.signal(signal.SIGINT, signal.SIG_IGN)
+            new_poll_time, cycle_start_time = start_cycle(new_poll_time, cycle_start_time)
 
-        db_session = config.db_session
-        group_list = db_session.query(GROUPS)
-        for group in group_list:
-            src_keypair = None
-            src_image = None
-            default_image_name = group.vm_image
-            default_key_name = group.vm_keyname
-            cloud_list = db_session.query(CLOUDS).filter(CLOUDS.group_name == group.group_name, CLOUDS.cloud_type == "openstack")
-            for cloud in cloud_list:
-                # if there is a default image for the group, check for default image in the cloud
-                if default_image_name is not None:
-                    images = db_session.query(IMAGES).filter(IMAGES.group_name == group.group_name, IMAGES.cloud_name == cloud.cloud_name, IMAGES.name == default_image_name)
-                    if images.count() == 0:
-                        # gasp, image isn't there, lets queue up a transfer.
-                        if src_image is None:
-                           image_candidates = db_session.query(IMAGES).filter(IMAGES.group_name == group.group_name, IMAGES.name == default_image_name) 
-                           img_count = image_candidates.count()
-                           if img_count == 0:
-                               #default image not defined
-                               logging.error("Default image %s not present on any openstack clouds in group %s. Failed to replicate default image." % (default_image_name, group.group_name))
-                               continue
-                           elif img_count > 1:
-                               logging.warning("More than one candidate image with name %s" % default_image_name)
-                               src_image = image_candidates[0]
-                               logging.warning("selecting candidate with checksum: %s" % src_image.checksum)
-                           else:
-                               # no ambiguity about default image, simply select it
-                               src_image = image_candidates[0]
-                        # We've got a source image, time to queue a transfer
-                        # but first check the cache to see if we need to queue a pull request
-                        cache_result = check_cache(config, default_image_name, src_image.checksum, src_image.group_name, "cloudscheduler")
-                        if cache_result is False:
-                            #Something went wrong checking the cache or queueing a pull request
-                            logging.error("Failure checking cache or queuing pull request for image: %s" % default_image_name)
-                            logging.error("...continuing to queue transfer (transfer task will queue up a pull request if needed)")
-                        #Once here the image is in the cache of a pull request has been queued so we can go ahead and queue the transfer
+            db_session = config.db_session
+            group_list = db_session.query(GROUPS)
+            for group in group_list:
+                src_keypair = None
+                src_image = None
+                default_image_name = group.vm_image
+                default_key_name = group.vm_keyname
+                cloud_list = db_session.query(CLOUDS).filter(CLOUDS.group_name == group.group_name, CLOUDS.cloud_type == "openstack")
+                for cloud in cloud_list:
+                    # if there is a default image for the group, check for default image in the cloud
+                    if default_image_name is not None:
+                        images = db_session.query(IMAGES).filter(IMAGES.group_name == group.group_name, IMAGES.cloud_name == cloud.cloud_name, IMAGES.name == default_image_name)
+                        if images.count() == 0:
+                            # gasp, image isn't there, lets queue up a transfer.
+                            if src_image is None:
+                               image_candidates = db_session.query(IMAGES).filter(IMAGES.group_name == group.group_name, IMAGES.name == default_image_name) 
+                               img_count = image_candidates.count()
+                               if img_count == 0:
+                                   #default image not defined
+                                   logging.error("Default image %s not present on any openstack clouds in group %s. Failed to replicate default image." % (default_image_name, group.group_name))
+                                   continue
+                               elif img_count > 1:
+                                   logging.warning("More than one candidate image with name %s" % default_image_name)
+                                   src_image = image_candidates[0]
+                                   logging.warning("selecting candidate with checksum: %s" % src_image.checksum)
+                               else:
+                                   # no ambiguity about default image, simply select it
+                                   src_image = image_candidates[0]
+                            # We've got a source image, time to queue a transfer
+                            # but first check the cache to see if we need to queue a pull request
+                            cache_result = check_cache(config, default_image_name, src_image.checksum, src_image.group_name, "cloudscheduler")
+                            if cache_result is False:
+                                #Something went wrong checking the cache or queueing a pull request
+                                logging.error("Failure checking cache or queuing pull request for image: %s" % default_image_name)
+                                logging.error("...continuing to queue transfer (transfer task will queue up a pull request if needed)")
+                            #Once here the image is in the cache of a pull request has been queued so we can go ahead and queue the transfer
 
-                        #on second thought lets check to see we don't already have one queue'd up so we don't bombard the request queue
-                        pending_xfers = db_session.query(IMAGE_TX).filter(IMAGE_TX.target_group_name == group.group_name, IMAGE_TX.target_cloud_name == cloud.cloud_name, IMAGE_TX.image_name == default_image_name, or_(IMAGE_TX.status == "pending", IMAGE_TX.status == "error"))
-                        if pending_xfers.count() > 0:
-                            logging.info("Default image (%s) transfer already queued for cloud: %s... skipping" % (default_image_name, cloud.cloud_name))
-                            continue
-                        tx_id = generate_tx_id()
-                        tx_req = {
-                            "tx_id":             tx_id,
-                            "status":            "pending",
-                            "target_group_name": group.group_name,
-                            "target_cloud_name": cloud.cloud_name,
-                            "image_name":        default_image_name,
-                            "image_id":          src_image.id,
-                            "checksum":          src_image.checksum,
-                            "requester":         "cloudscheduler",
-                        }
-                        new_tx_req = IMAGE_TX(**tx_req)
-                        db_session.merge(new_tx_req)
-                        db_session.commit()
-                        #tx_request.delay(tx_id = tx_id)
-                        logging.info("Transfer queued")
-                        tx_request.apply_async((tx_id,), queue='tx_requests')
+                            #on second thought lets check to see we don't already have one queue'd up so we don't bombard the request queue
+                            pending_xfers = db_session.query(IMAGE_TX).filter(IMAGE_TX.target_group_name == group.group_name, IMAGE_TX.target_cloud_name == cloud.cloud_name, IMAGE_TX.image_name == default_image_name, or_(IMAGE_TX.status == "pending", IMAGE_TX.status == "error"))
+                            if pending_xfers.count() > 0:
+                                logging.info("Default image (%s) transfer already queued for cloud: %s... skipping" % (default_image_name, cloud.cloud_name))
+                                continue
+                            tx_id = generate_tx_id()
+                            tx_req = {
+                                "tx_id":             tx_id,
+                                "status":            "pending",
+                                "target_group_name": group.group_name,
+                                "target_cloud_name": cloud.cloud_name,
+                                "image_name":        default_image_name,
+                                "image_id":          src_image.id,
+                                "checksum":          src_image.checksum,
+                                "requester":         "cloudscheduler",
+                            }
+                            new_tx_req = IMAGE_TX(**tx_req)
+                            db_session.merge(new_tx_req)
+                            db_session.commit()
+                            #tx_request.delay(tx_id = tx_id)
+                            logging.info("Transfer queued")
+                            tx_request.apply_async((tx_id,), queue='tx_requests')
 
-                        
-                else:
-                    logging.info("No default image for group %s, skipping image transfers for cloud %s" % (group.group_name, cloud.cloud_name))
+                            
+                    else:
+                        logging.info("No default image for group %s, skipping image transfers for cloud %s" % (group.group_name, cloud.cloud_name))
 
-                # now lets check keys- if there is a default key, check the keys for the cloud
-                if default_key_name is not None:
-                    keys = db_session.query(KEYPAIRS).filter(KEYPAIRS.group_name == group.group_name, KEYPAIRS.cloud_name == cloud.cloud_name, KEYPAIRS.key_name == default_key_name)
-                    if keys.count() == 0:
-                        # gasp again, keypair isn't present, keypairs are fast so lets just go ahead and do the transfer
-                        if src_keypair == None:
-                            # we haven't dug up a source keypair yet so lets grab one
-                            db_keypair = db_session.query(KEYPAIRS).filter(KEYPAIRS.group_name == group.group_name, KEYPAIRS.key_name == default_key_name).first()
-                            if db_keypair == None:
-                                #we couldn't find a source keypair for this group, yikes
-                                logging.error("Unable to locate a source keypair: %s for group %s, skipping group." % (default_key_name, group.group_name))
-                                break
-                            src_cloud = db_session.query(CLOUDS).get((db_keypair.group_name, db_keypair.cloud_name))
-                            src_keypair = get_keypair(default_key_name, src_cloud)
+                    # now lets check keys- if there is a default key, check the keys for the cloud
+                    if default_key_name is not None:
+                        keys = db_session.query(KEYPAIRS).filter(KEYPAIRS.group_name == group.group_name, KEYPAIRS.cloud_name == cloud.cloud_name, KEYPAIRS.key_name == default_key_name)
+                        if keys.count() == 0:
+                            # gasp again, keypair isn't present, keypairs are fast so lets just go ahead and do the transfer
                             if src_keypair == None:
-                                #we couldn't find a source keypair for this group, yikes
-                                logging.error("Unable to locate a source keypair: %s for group %s, skipping group." % (default_key_name, group.group_name))
-                                break
-                            #transfer keypair
-                            logging.info("Source keypair found, uploading new keypair")
-                            try:
-                                transfer_keypair(src_keypair, src_cloud)
-                                logging.info("Keypair %s transferred to cloud %s successfully" % (default_key_name, cloud.cloud_name))
-                            except Exception as exc:
-                                logging.error("Keypair transfer failed:")
-                                logging.error(exc)
+                                # we haven't dug up a source keypair yet so lets grab one
+                                db_keypair = db_session.query(KEYPAIRS).filter(KEYPAIRS.group_name == group.group_name, KEYPAIRS.key_name == default_key_name).first()
+                                if db_keypair == None:
+                                    #we couldn't find a source keypair for this group, yikes
+                                    logging.error("Unable to locate a source keypair: %s for group %s, skipping group." % (default_key_name, group.group_name))
+                                    break
+                                src_cloud = db_session.query(CLOUDS).get((db_keypair.group_name, db_keypair.cloud_name))
+                                try:
+                                    src_keypair = get_keypair(default_key_name, src_cloud)
+                                except Exception as exc:
+                                    logging.error("Exception while locating source keypair:")
+                                    logging.error(exc)
+                                    src_keypair = None
+                                if src_keypair == None:
+                                    #we couldn't find a source keypair for this group, yikes
+                                    logging.error("Unable to locate a source keypair: %s for group %s, skipping group." % (default_key_name, group.group_name))
+                                    break
+                                #transfer keypair
+                                logging.info("Source keypair found, uploading new keypair")
+                                try:
+                                    transfer_keypair(src_keypair, src_cloud)
+                                    logging.info("Keypair %s transferred to cloud %s successfully" % (default_key_name, cloud.cloud_name))
+                                except Exception as exc:
+                                    logging.error("Keypair transfer failed:")
+                                    logging.error(exc)
 
-                else:
-                    logging.info("No default keypair for group %s, skipping keypair transfers for cloud %s" % (group.group_name, cloud.cloud_name))
-        
-        db_session.commit()
+                    else:
+                        logging.info("No default keypair for group %s, skipping keypair transfers for cloud %s" % (group.group_name, cloud.cloud_name))
+            
+            db_session.commit()
+
+        except Exception as exc:
+            logging.error("Exception during general operation:")
+            logging.error(exc)
 
         if not os.path.exists(PID_FILE):
             logging.info("Stop set, exiting...")
