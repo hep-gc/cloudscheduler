@@ -46,16 +46,8 @@ def main():
         print("Problem loading config file.")
     log = logging.getLogger(__name__)
 
-    service_catalog_yaml_fqdns = {}
     try:
         config.db_open()
-        service_catalog = config.db_map.classes.csv2_service_catalog
-        services = config.db_session.query(service_catalog)
-        for service in services:
-            service_catalog_yaml_fqdns[service.yaml_attribute_name] = service.fqdn
-    except TimeoutError as ex:
-        log.exception(ex)
-        sys.exit(1)
     except Exception as ex:
         log.exception(ex)
 
@@ -320,17 +312,17 @@ def main():
                                 
                                 if boot_flavor.get("worker_cert") is not None:
                                     if boot_flavor.get("worker_cert")[-1] == '\n':
-                                        cloud_worker_cert = boot_flavor.get("worker_cert")[:-1].replace('\n', '\n        ')
+                                        cloud_worker_cert = boot_flavor.get("worker_cert").decode()[:-1].replace('\n', '\n        ')
                                     else:
-                                        cloud_worker_cert = boot_flavor.get("worker_cert").replace('\n', '\n        ')
+                                        cloud_worker_cert = boot_flavor.get("worker_cert").decode().replace('\n', '\n        ')
                                 else:
                                     cloud_worker_cert = None
 
                                 if boot_flavor.get("worker_key") is not None:
                                     if boot_flavor.get("worker_key")[-1] == '\n':
-                                        cloud_worker_key = boot_flavor.get("worker_key")[:-1].replace('\n', '\n        ')
+                                        cloud_worker_key = boot_flavor.get("worker_key").decode()[:-1].replace('\n', '\n        ')
                                     else:
-                                        cloud_worker_key = boot_flavor.get("worker_key").replace('\n', '\n        ')
+                                        cloud_worker_key = boot_flavor.get("worker_key").decode().replace('\n', '\n        ')
                                 else:
                                     cloud_worker_key = None
 
@@ -348,7 +340,6 @@ def main():
                                                  'cs_condorworker_optional_gsi_messages': config.categories['csmain']['condorworker_optional_gsi_msgs'],
                                                  'cs_condorworker_cert': cloud_worker_cert,
                                                  'cs_condorworker_key': cloud_worker_key}
-                                template_dict.update(service_catalog_yaml_fqdns)
                                 ######## log.debug(template_dict)
 
                                 # Let's try to boot
