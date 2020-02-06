@@ -114,7 +114,7 @@ def execute_csv2_request(gvar, expected_rc, expected_modid, expected_text, reque
 
     from unit_test_common import _caller, _execute_selections, _requests
 
-    if server_user and not server_pw:
+    if server_user and server_pw == None:
         if server_user == gvar['user_settings']['server-user']:
             server_pw = gvar['user_settings']['server-password']
         else:
