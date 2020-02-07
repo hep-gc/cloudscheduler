@@ -162,7 +162,7 @@ def main(gvar):
             'password': gvar['user_secret'],
             'region': ut_id(gvar, 'gtc1-r'),
             'cloud_type': 'local',
-            'metadata_name': ut_id(gvar, 'gty6')
+            'metadata_name': ut_id(gvar, 'gty4')
         },
         server_user=ut_id(gvar, 'gtu3')
     )

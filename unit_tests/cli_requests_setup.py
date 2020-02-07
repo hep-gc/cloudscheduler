@@ -39,19 +39,6 @@ def main(gvar):
         }
     )
 
-    # user for unprivleged tests
-    execute_csv2_request(
-        gvar, 0, None, None,
-        '/user/add/'
-, form_data={
-            'username': ut_id(gvar, 'test'),
-            'password1': gvar['user_secret'],
-            'password2': gvar['user_secret'],
-            'cert_cn': ut_id(gvar, 'test'),
-            'is_superuser': 0,
-        }
-    )
-
     # group with users
     execute_csv2_request(
         gvar, 0, None, 'group "{}" successfully added.'.format(ut_id(gvar, 'clg1')),
@@ -59,17 +46,6 @@ def main(gvar):
 , form_data={
             'group_name': ut_id(gvar, 'clg1'),
             'htcondor_fqdn': 'unit-test-group-one.ca',
-            'username.2': ut_id(gvar, 'test'),
-        }
-    )
-
-    # group without users
-    execute_csv2_request(
-        gvar, 0, None, 'group "{}" successfully added.'.format(ut_id(gvar, 'clg2')),
-        '/group/add/'
-, form_data={
-            'group_name': ut_id(gvar, 'clg2'),
-            'htcondor_fqdn': 'unit-test-group-two.ca'
         }
     )
 
@@ -90,6 +66,15 @@ def main(gvar):
 , form_data={
             'group_name': ut_id(gvar, 'clg4'),
             'htcondor_fqdn': 'unit-test-group-four.ca'
+        }
+    )
+
+    # group for users to be added to
+    execute_csv2_request(
+        gvar, 0, None, 'group "{}" successfully added.'.format(ut_id(gvar, 'clg5')),
+        '/group/add/', form_data={
+            'group_name': ut_id(gvar, 'clg5'),
+            'htcondor_fqdn': 'unit-test-group-five.ca'
         }
     )
 

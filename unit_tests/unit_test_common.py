@@ -50,7 +50,8 @@ def execute_csv2_command(gvar, expected_rc, expected_modid, expected_text, cmd, 
 
         failed = False
 
-        if expected_rc and expected_rc != return_code:
+        # Comparison with None is necessary because we want to compare expected and actual if expected is 0.
+        if expected_rc != None and expected_rc != return_code:
             failed = True
 
         if return_code == 0 or not expected_modid:
@@ -66,21 +67,20 @@ def execute_csv2_command(gvar, expected_rc, expected_modid, expected_text, cmd, 
                 failed = True
                 list_error = 'list \'{}\' not found'.format(expected_list)
             elif columns:
-                columns_found = []
+                columns_found = set()
                 rows = stdout.split('\n')
                 for row in rows:
                     if len(row) > 1 and row[:2] == '+ ':
                         row_trimmed = row[2:-2].strip()
                         # Split on either '<zero or more spaces>|<zero or more spaces>' occurring one or more times, or two or more spaces in a row. Then filter out empty strings.
-                        columns_found.extend(filter(None, re.split(r'(?:\s*\|\s*)+|(?:\s{2,})', row_trimmed)))
-                columns_set = set(columns)
-                columns_found_set = set(columns_found)
-                if columns_set != columns_found_set:
+                        columns_found.update(filter(None, re.split(r'(?:\s*\|\s*)+|(?:\s{2,})', row_trimmed)))
+                columns_expected = set(columns)
+                if columns_expected != columns_found:
                     failed = True
                     list_error = '\tActual columns found: {}\n \
                     \tColumns expected but not found: {}\n \
                     \tColumns not expected but found: {}\n'\
-                    .format(columns_found_set, columns_set - columns_found_set, columns_found_set - columns_set)
+                    .format(columns_found, columns_expected - columns_found, columns_found - columns_expected)
 
         if expected_text and expected_text not in stdout:
             failed = True
@@ -109,12 +109,12 @@ def execute_csv2_command(gvar, expected_rc, expected_modid, expected_text, cmd, 
 def execute_csv2_request(gvar, expected_rc, expected_modid, expected_text, request, group=None, form_data={}, query_data={}, expected_list=None, list_filter=None, values=None, server_user=None, server_pw=None, html=False):
     """
     Make RESTful requests via the _requests function and return the response. This function will
-    obtain a CSRF (for POST requests) prior to making the atual request.
+    obtain a CSRF (for POST requests) prior to making the actual request.
     """
 
     from unit_test_common import _caller, _execute_selections, _requests
 
-    if server_user and not server_pw:
+    if server_user and server_pw == None:
         if server_user == gvar['user_settings']['server-user']:
             server_pw = gvar['user_settings']['server-password']
         else:
@@ -140,7 +140,8 @@ def execute_csv2_request(gvar, expected_rc, expected_modid, expected_text, reque
 
         failed = False
 
-        if expected_rc and expected_rc != response['response_code']:
+        # Comparison with None is necessary because we want to compare expected and actual if expected is 0.
+        if expected_rc != None and expected_rc != response['response_code']:
             failed = True
 
         if response['response_code'] == 0 or not expected_modid:

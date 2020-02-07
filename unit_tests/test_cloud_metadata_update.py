@@ -20,14 +20,14 @@ def main(gvar):
 
     # 2
     execute_csv2_request(
-        gvar, 1, None, 'user "{}" is not a member of any group.'.format(ut_id(gvar, 'ctu1')),
+        gvar, 1, None, 'user "{}" is not a member of any group.'.formatut_id(gvar, 'ctu1'),
         '/cloud/metadata-update/', group=ut_id(gvar, 'ctg1'),
         server_user=ut_id(gvar, 'ctu1')
     )
 
     # 3
     execute_csv2_request(
-        gvar, 1, None, 'user "{}" is not a member of any group.'.format(ut_id(gvar, 'ctu2')),
+        gvar, 1, None, 'user "{}" is not a member of any group.'.formatut_id(gvar, 'ctu2'),
         '/cloud/metadata-update/', group=ut_id(gvar, 'ctg1'),
         server_user=ut_id(gvar, 'ctu2')
     )
@@ -48,7 +48,7 @@ def main(gvar):
 
     # 6
     execute_csv2_request(
-        gvar, 1, None, 'cannot switch to invalid group "{}".'.format(ut_id(gvar, 'ctg2')),
+        gvar, 1, None, 'cannot switch to invalid group "{}".'.formatut_id(gvar, 'ctg2'),
         '/cloud/metadata-update/', group=ut_id(gvar, 'ctg2'),
         server_user=ut_id(gvar, 'ctu3')
     )
@@ -63,7 +63,7 @@ def main(gvar):
     # 8
     execute_csv2_request(
         gvar, 1, 'CV', 'cloud metadata-update request did not contain mandatory parameter "cloud_name".',
-        '/cloud/metadata-update/', group=(ut_id(gvar, 'ctg1')), 
+        '/cloud/metadata-update/', group=ut_id(gvar, 'ctg1'), 
         form_data={'metadata_name': 'invalid-unit-test'},
         server_user=ut_id(gvar, 'ctu3')
     )
@@ -71,7 +71,7 @@ def main(gvar):
     # 9
     execute_csv2_request(
         gvar, 1, 'CV', 'cloud metadata-update request did not contain mandatory parameter "metadata_name".',
-        '/cloud/metadata-update/', group=(ut_id(gvar, 'ctg1')),
+        '/cloud/metadata-update/', group=ut_id(gvar, 'ctg1'),
         form_data={'cloud_name': 'invalid-unit-test'},
         server_user=ut_id(gvar, 'ctu3')
     )
@@ -79,7 +79,7 @@ def main(gvar):
     # 10
     execute_csv2_request(
         gvar, 1, 'CV', 'cloud metadata-update request contained a bad parameter "invalid-unit-test".',
-        '/cloud/metadata-update/', group=(ut_id(gvar, 'ctg1')),
+        '/cloud/metadata-update/', group=ut_id(gvar, 'ctg1'),
         form_data={
             'cloud_name': 'invalid-unit-test',
             'metadata_name': 'invalid-unit-test',
@@ -91,7 +91,7 @@ def main(gvar):
     # 11
     execute_csv2_request(
         gvar, 1, 'CV', 'value specified for "cloud_name" must be all lower case, numeric digits, and dashes but cannot start or end with dashes.',
-        '/cloud/metadata-update/', group=(ut_id(gvar, 'ctg1')),
+        '/cloud/metadata-update/', group=ut_id(gvar, 'ctg1'),
         form_data={
             'cloud_name': 'Invalid-unit-test',
             'metadata_name': 'invalid-unit-test'
@@ -102,7 +102,7 @@ def main(gvar):
     # 12
     execute_csv2_request(
         gvar, 1, 'CV', 'value specified for "cloud_name" must be all lower case, numeric digits, and dashes but cannot start or end with dashes.',
-        '/cloud/metadata-update/', group=(ut_id(gvar, 'ctg1')),
+        '/cloud/metadata-update/', group=ut_id(gvar, 'ctg1'),
         form_data={
             'cloud_name': 'invalid-unit-test-',
             'metadata_name': 'invalid-unit-test'
@@ -113,7 +113,7 @@ def main(gvar):
     # 13
     execute_csv2_request(
         gvar, 1, 'CV', 'value specified for "cloud_name" must be all lower case, numeric digits, and dashes but cannot start or end with dashes.',
-        '/cloud/metadata-update/', group=(ut_id(gvar, 'ctg1')),
+        '/cloud/metadata-update/', group=ut_id(gvar, 'ctg1'),
         form_data={
             'cloud_name': 'invalid-unit-test!',
             'metadata_name': 'invalid-unit-test'
@@ -124,7 +124,7 @@ def main(gvar):
     # 14
     execute_csv2_request(
         gvar, 1, 'CV', 'value specified for "metadata_name" must be all lower case.',
-        '/cloud/metadata-update/', group=(ut_id(gvar, 'ctg1')),
+        '/cloud/metadata-update/', group=ut_id(gvar, 'ctg1'),
         form_data={
             'cloud_name': 'invalid-unit-test',
             'metadata_name': 'Invalid-unit-test'
@@ -135,7 +135,7 @@ def main(gvar):
     # 15
     execute_csv2_request(
         gvar, 1, 'CV', 'boolean value specified for "enabled" must be one of the following: true, false, yes, no, 1, or 0.',
-        '/cloud/metadata-update/', group=(ut_id(gvar, 'ctg1')),
+        '/cloud/metadata-update/', group=ut_id(gvar, 'ctg1'),
         form_data={
             'cloud_name': 'invalid-unit-test',
             'metadata_name': 'invalid-unit-test',
@@ -147,7 +147,7 @@ def main(gvar):
     # 16
     execute_csv2_request(
         gvar, 1, 'CV', 'value specified for "mime_type" must be one of the following options: [\'cloud-config\', \'ucernvm-config\'].',
-        '/cloud/metadata-update/', group=(ut_id(gvar, 'ctg1')),
+        '/cloud/metadata-update/', group=ut_id(gvar, 'ctg1'),
         form_data={
             'cloud_name': 'invalid-unit-test',
             'metadata_name': 'invalid-unit-test',
@@ -159,7 +159,7 @@ def main(gvar):
     # 17
     execute_csv2_request(
         gvar, 1, 'CV', 'the request did not match any rows.',
-        '/cloud/metadata-update/', group=(ut_id(gvar, 'ctg1')),
+        '/cloud/metadata-update/', group=ut_id(gvar, 'ctg1'),
         form_data={
             'cloud_name': 'invalid-unit-test',
             'metadata_name': 'invalid-unit-test',
@@ -171,7 +171,7 @@ def main(gvar):
     # 18
     execute_csv2_request(
         gvar, 1, 'CV', 'the request did not match any rows.',
-        '/cloud/metadata-update/', group=(ut_id(gvar, 'ctg1')),
+        '/cloud/metadata-update/', group=ut_id(gvar, 'ctg1'),
         form_data={
             'cloud_name': ut_id(gvar, 'ctc3'),
             'metadata_name': 'invalid-unit-test',
@@ -183,7 +183,7 @@ def main(gvar):
     # 19
     execute_csv2_request(
         gvar, 1, 'CV', 'You have an error in your SQL syntax',
-        '/cloud/metadata-update/', group=(ut_id(gvar, 'ctg1')),
+        '/cloud/metadata-update/', group=ut_id(gvar, 'ctg1'),
         form_data={
             'cloud_name': ut_id(gvar, 'ctc3'),
             'metadata_name': ut_id(gvar, 'cty3')
@@ -194,7 +194,7 @@ def main(gvar):
     # 20
     execute_csv2_request(
         gvar, 1, 'CV', 'yaml value specified for "metadata (metadata_name)" is invalid - scanner error',
-        '/cloud/metadata-update/', group=(ut_id(gvar, 'ctg1')),
+        '/cloud/metadata-update/', group=ut_id(gvar, 'ctg1'),
         form_data={
             'cloud_name': ut_id(gvar, 'ctc3'),
             'metadata_name': ut_id(gvar, 'cty3.yaml'),
@@ -206,7 +206,7 @@ def main(gvar):
     # 21
     execute_csv2_request(
         gvar, 1, 'CV', 'value specified for "priority" must be an integer value.',
-        '/cloud/metadata-update/', group=(ut_id(gvar, 'ctg1')),
+        '/cloud/metadata-update/', group=ut_id(gvar, 'ctg1'),
         form_data={
             'cloud_name': ut_id(gvar, 'ctc3'),
             'metadata_name': ut_id(gvar, 'cty3.yaml'),
@@ -217,8 +217,8 @@ def main(gvar):
 
     # 22
     execute_csv2_request(
-        gvar, 0, None, 'cloud metadata file "{}::{}::{}" successfully  updated.'.format(ut_id(gvar, 'ctg1'), ut_id(gvar, 'ctc3'), ut_id(gvar, 'cty3')),
-        '/cloud/metadata-update/', group=(ut_id(gvar, 'ctg1')),
+        gvar, 0, None, 'cloud metadata file "{}::{}::{}" successfully  updated.'.formatut_id(gvar, 'ctg1'), ut_id(gvar, 'ctc3'), ut_id(gvar, 'cty3'),
+        '/cloud/metadata-update/', group=ut_id(gvar, 'ctg1'),
         form_data={
             'cloud_name': ut_id(gvar, 'ctc3'),
             'metadata_name': ut_id(gvar, 'cty3'),
@@ -229,8 +229,8 @@ def main(gvar):
 
     # 23
     execute_csv2_request(
-        gvar, 0, None, 'cloud metadata file "{}::{}::{}" successfully  updated.'.format(ut_id(gvar, 'ctg1'), ut_id(gvar, 'ctc3'), ut_id(gvar, 'cty3.yaml')),
-        '/cloud/metadata-update/', group=(ut_id(gvar, 'ctg1')),
+        gvar, 0, None, 'cloud metadata file "{}::{}::{}" successfully  updated.'.formatut_id(gvar, 'ctg1'), ut_id(gvar, 'ctc3'), ut_id(gvar, 'cty3.yaml'),
+        '/cloud/metadata-update/', group=ut_id(gvar, 'ctg1'),
         form_data={
             'cloud_name': ut_id(gvar, 'ctc3'),
             'metadata_name': ut_id(gvar, 'cty3.yaml'),
@@ -241,8 +241,8 @@ def main(gvar):
 
     # 24
     execute_csv2_request(
-        gvar, 0, None, 'cloud metadata file "{}::{}::{}" successfully  updated.'.format(ut_id(gvar, 'ctg1'), ut_id(gvar, 'ctc3'), ut_id(gvar, 'cty3.yaml')),
-        '/cloud/metadata-update/', group=(ut_id(gvar, 'ctg1')),
+        gvar, 0, None, 'cloud metadata file "{}::{}::{}" successfully  updated.'.formatut_id(gvar, 'ctg1'), ut_id(gvar, 'ctc3'), ut_id(gvar, 'cty3.yaml'),
+        '/cloud/metadata-update/', group=ut_id(gvar, 'ctg1'),
         form_data={
             'cloud_name': ut_id(gvar, 'ctc3'),
             'metadata_name': ut_id(gvar, 'cty3.yaml'),
@@ -253,8 +253,8 @@ def main(gvar):
 
     # 25
     execute_csv2_request(
-        gvar, 0, None, 'cloud metadata file "{}::{}::{}" successfully  updated.'.format(ut_id(gvar, 'ctg1'), ut_id(gvar, 'ctc3'), ut_id(gvar, 'cty3.yaml')),
-        '/cloud/metadata-update/', group=(ut_id(gvar, 'ctg1')),
+        gvar, 0, None, 'cloud metadata file "{}::{}::{}" successfully  updated.'.formatut_id(gvar, 'ctg1'), ut_id(gvar, 'ctc3'), ut_id(gvar, 'cty3.yaml'),
+        '/cloud/metadata-update/', group=ut_id(gvar, 'ctg1'),
         form_data={
             'cloud_name': ut_id(gvar, 'ctc3'),
             'metadata_name': ut_id(gvar, 'cty3.yaml'),
@@ -265,8 +265,8 @@ def main(gvar):
 
     # 26
     execute_csv2_request(
-        gvar, 0, None, 'cloud metadata file "{}::{}::{}" successfully  updated.'.format(ut_id(gvar, 'ctg1'), ut_id(gvar, 'ctc3'), ut_id(gvar, 'cty3.yaml')),
-        '/cloud/metadata-update/', group=(ut_id(gvar, 'ctg1')),
+        gvar, 0, None, 'cloud metadata file "{}::{}::{}" successfully  updated.'.formatut_id(gvar, 'ctg1'), ut_id(gvar, 'ctc3'), ut_id(gvar, 'cty3.yaml'),
+        '/cloud/metadata-update/', group=ut_id(gvar, 'ctg1'),
         form_data={
             'cloud_name': ut_id(gvar, 'ctc3'),
             'metadata_name': ut_id(gvar, 'cty3.yaml'),

@@ -3,7 +3,7 @@ from sys import argv
 
 # lno: GV - error code identifier.
 
-def main(gvar, user_secret):
+def main(gvar):
     if not gvar:
         gvar = {}
         if len(argv) > 1:
@@ -11,130 +11,130 @@ def main(gvar, user_secret):
         else:
             initialize_csv2_request(gvar, argv[0])
 
-    # 001
+    # 01
     execute_csv2_command(
         gvar, 1, None, 'The following command line arguments were unrecognized',
-        ['cloudscheduler', 'group', 'list', '-xx', 'yy']
+        ['cloudscheduler', 'group', 'list', '-xx', 'yy', '-su', ut_id(gvar, 'clu4')]
     )
 
-    # 002
+    # 02
     execute_csv2_command(
         gvar, 1, None, 'The following command line arguments were invalid: cloud-name',
-        ['cloudscheduler', 'group', 'list', '-cn', 'invalid-unit-test']
+        ['cloudscheduler', 'group', 'list', '-cn', 'invalid-unit-test', '-su', ut_id(gvar, 'clu4')]
     )
 
-    # 003
+    # 03
     execute_csv2_command(
-        gvar, 1, None, 'Error: the specified server "invalid-unit-test" does not exist in your defaults.',
-        ['cloudscheduler', 'group', 'list', '-s', 'invalid-unit-test']
+        gvar, None, None, 'Error: the specified server "invalid-unit-test" does not exist in your defaults.',
+        ['cloudscheduler', 'group', 'list', '-s', 'invalid-unit-test', '-su', ut_id(gvar, 'clu4')], timeout=8
     )
 
-    # 004
+    # 04
     execute_csv2_command(
         gvar, 1, None, 'You are not authorized to access object "group";',
-        ['cloudscheduler', 'group', 'list', '-s', 'unit-test-un']
+        ['cloudscheduler', 'group', 'list', '-su', ut_id(gvar, 'clu3')]
     )
 
-    # 005
+    # 05
     execute_csv2_command(
         gvar, 0, None, None,
-        ['cloudscheduler', 'group', 'list', '-s', 'unit-test']
+        ['cloudscheduler', 'group', 'list', '-su', ut_id(gvar, 'clu4')]
     )
 
-    # 006
+    # 06
     execute_csv2_command(
         gvar, 0, None, 'Help requested for "cloudscheduler group list".',
-        ['cloudscheduler', 'group', 'list', '-h']
+        ['cloudscheduler', 'group', 'list', '-h', '-su', ut_id(gvar, 'clu4')]
     )
 
-    # 007
+    # 07
     execute_csv2_command(
         gvar, 0, None, 'General Commands Manual',
-        ['cloudscheduler', 'group', 'list', '-H']
+        ['cloudscheduler', 'group', 'list', '-H', '-su', ut_id(gvar, 'clu4')]
     )
 
-    # 008
+    # 08
     execute_csv2_command(
         gvar, 0, None, 'Expose API requested',
-        ['cloudscheduler', 'group', 'list', '-xA']
+        ['cloudscheduler', 'group', 'list', '-xA', '-su', ut_id(gvar, 'clu4')]
     )
 
-    # 009
+    # 09
     execute_csv2_command(
         gvar, 1, None, 'cannot switch to invalid group "invalid-unit-test".',
-        ['cloudscheduler', 'group', 'list', '-g', 'invalid-unit-test']
+        ['cloudscheduler', 'group', 'list', '-g', 'invalid-unit-test', '-su', ut_id(gvar, 'clu4')]
     )
 
-    # 010
+    # 10
     execute_csv2_command(
-        gvar, 0, None, 'Server: unit-test, Active User: {}, Active Group: {}'.format(ut_id(gvar, '')[:-1], ut_id(gvar, 'clg1')),
-        ['cloudscheduler', 'group', 'list', '-g', ut_id(gvar, 'clg1')]
+        gvar, 0, None, 'Server: unit-test, Active User: {}, Active Group: {}'.format(ut_id(gvar, 'clu4'), ut_id(gvar, 'clg1')),
+        ['cloudscheduler', 'group', 'list', '-g', ut_id(gvar, 'clg1'), '-su', ut_id(gvar, 'clu4')]
     )
 
-    # 011
+    # 11
     execute_csv2_command(
-        gvar, 0, None, 'Server: unit-test, Active User: {}, Active Group: {}'.format(ut_id(gvar, '')[:-1], ut_id(gvar, 'clg1')),
-        ['cloudscheduler', 'group', 'list']
+        gvar, 0, None, 'Server: unit-test, Active User: {}, Active Group: {}'.format(ut_id(gvar, 'clu4'), ut_id(gvar, 'clg1')),
+        ['cloudscheduler', 'group', 'list', '-su', ut_id(gvar, 'clu4')]
     )
 
-    # 012
+    # 12
     execute_csv2_command(
         gvar, 0, None, 'Rows: 0',
-        ['cloudscheduler', 'group', 'list', '-gn', 'invalid-unit-test']
+        ['cloudscheduler', 'group', 'list', '-gn', 'invalid-unit-test', '-su', ut_id(gvar, 'clu4')]
     )
 
-    # 013
+    # 13
     execute_csv2_command(
         gvar, 0, None, 'Rows: 1',
-        ['cloudscheduler', 'group', 'list', '-gn', ut_id(gvar, 'clg1')]
+        ['cloudscheduler', 'group', 'list', '-gn', ut_id(gvar, 'clg1'), '-su', ut_id(gvar, 'clu4')]
     )
 
-    # 014
+    # 14
     execute_csv2_command(
         gvar, 0, None, None,
-        ['cloudscheduler', 'group', 'list', '-ok'],
-        list='Groups', columns=['Group']
+        ['cloudscheduler', 'group', 'list', '-ok', '-su', ut_id(gvar, 'clu4')],
+        expected_list='Groups', columns=['Group']
     )
 
-    # 015
+    # 15
     execute_csv2_command(
-        gvar, 0, None, 'group list, 1. Groups: keys=group_name, columns=htcondor_fqdn,metadata_names',
-        ['cloudscheduler', 'group', 'list', '-VC']
+        gvar, 0, None, 'group list, 1. Groups: keys=group_name, columns=htcondor_fqdn,htcondor_container_hostname,htcondor_other_submitters,metadata_names',
+        ['cloudscheduler', 'group', 'list', '-VC', '-su', ut_id(gvar, 'clu4')]
     )
 
-    # 016
-    execute_csv2_command(
-        gvar, 0, None, None,
-        ['cloudscheduler', 'group', 'list', '-NV'],
-        list='Groups', columns=['Group', 'Central', 'Manager', 'Metadata', 'Filenames']
-    )
-
-    # 017
+    # 16
     execute_csv2_command(
         gvar, 0, None, None,
-        ['cloudscheduler', 'group', 'list', '-V', 'metadata_names'],
-        list='Groups', columns=['Group', 'Metadata', 'Filenames']
+        ['cloudscheduler', 'group', 'list', '-NV', '-su', ut_id(gvar, 'clu4')],
+        expected_list='Groups', columns=['Group', 'HTCondor', 'FQDN', 'Container Hostname', 'Other Submitters', 'Metadata Filenames']
     )
 
-    # 018
+    # 17
     execute_csv2_command(
         gvar, 0, None, None,
-        ['cloudscheduler', 'group', 'list'],
-        list='Groups', columns=['Group', 'Metadata', 'Filenames']
+        ['cloudscheduler', 'group', 'list', '-V', 'metadata_names', '-su', ut_id(gvar, 'clu4')],
+        expected_list='Groups', columns=['Group', 'Metadata Filenames']
     )
 
-    # 019
+    # 18
     execute_csv2_command(
         gvar, 0, None, None,
-        ['cloudscheduler', 'group', 'list', '-r'],
-        list='Groups', columns=['Key', 'Value']
+        ['cloudscheduler', 'group', 'list', '-su', ut_id(gvar, 'clu4')],
+        expected_list='Groups', columns=['Group', 'Metadata Filenames']
     )
 
-    # 020
+    # 19
     execute_csv2_command(
         gvar, 0, None, None,
-        ['cloudscheduler', 'group', 'list', '-V', ''],
-        list='Groups', columns=['Group', 'Central', 'Manager', 'Metadata', 'Filenames']
+        ['cloudscheduler', 'group', 'list', '-r', '-su', ut_id(gvar, 'clu4')],
+        expected_list='Groups', columns=['Key', 'Value']
+    )
+
+    # 20
+    execute_csv2_command(
+        gvar, 0, None, None,
+        ['cloudscheduler', 'group', 'list', '-V', '', '-su', ut_id(gvar, 'clu4')],
+        expected_list='Groups', columns=['Group', 'HTCondor', 'FQDN', 'Container Hostname', 'Other Submitters', 'Metadata Filenames']
     )
 
 if __name__ == "__main__":

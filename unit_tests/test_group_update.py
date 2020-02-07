@@ -113,7 +113,6 @@ def main(gvar):
     )
 
     ''' Currently htcondor_fqdn is allowed to be the empty string.
-    # 15
     execute_csv2_request(
         gvar, 1, 'GV', 'group update parameter "htcondor_fqdn" contains an empty string which is specifically disallowed.',
         '/group/update/', form_data={
@@ -124,7 +123,7 @@ def main(gvar):
     )
     '''
 
-    # 16
+    # 15
     execute_csv2_request(
         gvar, 0, None, 'group "{}" successfully updated.'.format(ut_id(gvar, 'gtg4')),
         '/group/update/', 
@@ -135,7 +134,7 @@ def main(gvar):
         server_user=ut_id(gvar, 'gtu5')
     )
 
-    # 17
+    # 16
     execute_csv2_request(
         gvar, 0, None, None,
         '/group/list/',
@@ -144,7 +143,7 @@ def main(gvar):
         server_user=ut_id(gvar, 'gtu5')
     )
 
-    # 18
+    # 17
     execute_csv2_request(
         gvar, 1, 'GV', 'specified user "invalid-unit-test" does not exist.',
         '/group/update/', 
@@ -155,7 +154,7 @@ def main(gvar):
         server_user=ut_id(gvar, 'gtu5')
     )
 
-    # 19
+    # 18
     execute_csv2_request(
         gvar, 1, 'GV', 'group update, "{}" failed - user "{}" was specified twice.'.format(ut_id(gvar, 'gtg4'), ut_id(gvar, 'gtu4')),
         '/group/update/',
@@ -167,7 +166,7 @@ def main(gvar):
         server_user=ut_id(gvar, 'gtu5')
     )
 
-    # 20
+    # 19
     execute_csv2_request(
         gvar, 0, None, None,
         '/group/list/',
@@ -176,7 +175,7 @@ def main(gvar):
         server_user=ut_id(gvar, 'gtu5')
     )
 
-    # 21
+    # 20
     execute_csv2_request(
         gvar, 0, None, 'group "{}" successfully updated.'.format(ut_id(gvar, 'gtg4')),
         '/group/update/',
@@ -187,7 +186,7 @@ def main(gvar):
         server_user=ut_id(gvar, 'gtu5')
     )
 
-    # 22
+    # 21
     execute_csv2_request(
         gvar, 0, None, None,
         '/group/list/',
@@ -196,16 +195,16 @@ def main(gvar):
         server_user=ut_id(gvar, 'gtu5')
     )
 
-    # 23
+    # 22
     execute_csv2_request(
         gvar, 0, None, None,
-        '/user/list/', #I assume /user/list does not need a group name specification since it is listing users, I could be wrong though
+        '/user/list/',
         expected_list='user_list', list_filter={'username': ut_id(gvar, 'gtu4')},
         values={'user_groups': ut_id(gvar, 'gtg4')},
         server_user=ut_id(gvar, 'gtu5')
     )
 
-    # 24 Remove gtu4 (and all others) from gtg4
+    # 23 Remove gtu4 (and all others) from gtg4
     execute_csv2_request(
         gvar, 0, None, 'group "{}" successfully updated.'.format(ut_id(gvar, 'gtg4')),
         '/group/update/',
@@ -216,16 +215,16 @@ def main(gvar):
         server_user=ut_id(gvar, 'gtu5'), html=True
     )
 
-    # 25 Verify that 24 actually removed gtu4 from gtg4
+    # 24 Verify that 23 actually removed gtu4 from gtg4
     execute_csv2_request(
         gvar, 0, None, None,
-        '/user/list/', #I assume /user/list does not need a group name specification since it is listing users, I could be wrong though
+        '/user/list/', group=ut_id(gvar, 'gtg5'),
         expected_list='user_list', list_filter={'username': ut_id(gvar, 'gtu4')},
         values={'user_groups': None},
         server_user=ut_id(gvar, 'gtu5')
     )
 
-    # 26
+    # 25
     execute_csv2_request(
         gvar, 0, None, 'group "{}" successfully updated.'.format(ut_id(gvar, 'gtg4')),
         '/group/update/',
@@ -236,16 +235,16 @@ def main(gvar):
         server_user=ut_id(gvar, 'gtu5'), html=True
     )
 
-    # 27
+    # 26
     execute_csv2_request(
         gvar, 0, None, None,
-        '/user/list/', #I assume /user/list does not need a group name specification since it is listing users, I could be wrong though
+        '/user/list/',
         expected_list='user_list', list_filter={'username': ut_id(gvar, 'gtu4')},
         values={'user_groups': ut_id(gvar, 'gtg4')},
         server_user=ut_id(gvar, 'gtu5')
     )
 
-    # 28
+    # 27
     execute_csv2_request(
         gvar, 0, None, 'group "{}" successfully updated.'.format(ut_id(gvar, 'gtg4')),
         '/group/update/',
@@ -256,22 +255,34 @@ def main(gvar):
         server_user=ut_id(gvar, 'gtu5'), html=True
     )
 
-    # 29
+    # 28 Ensure that 27 actually replaced gtu4 with gtu5 in gtg4 (and gtu4 is therefore not in any groups).
     execute_csv2_request(
         gvar, 0, None, None,
-        '/user/list/', #I assume /user/list does not need a group name specification since it is listing users, I could be wrong though
+        '/user/list/',
         expected_list='user_list', list_filter={'username': ut_id(gvar, 'gtu4')},
         values={'user_groups': None},
-        server_user=ut_id(gvar, 'gtg5')
+        server_user=ut_id(gvar, 'gtu5')
     )
 
-    # 30
+    # 29 We want to check that 27 added gtu5 to gtg4, but if group_add has been run since the last setup, it will have added gtu5 to gtg1.
+    # So we remove all users from gtg1, but ignore any error if gtg1 doesn't exist.
+    execute_csv2_request(
+        gvar, None, None, None,
+        '/group/update/',
+        form_data={
+            'group_name': ut_id(gvar, 'gtg1'),
+            'username': ''
+        },
+        server_user=ut_id(gvar, 'gtu5'), html=True
+    )
+
+    # 30 Now we can assume that gtu5 is in only gtg4 and gtg5.
     execute_csv2_request(
         gvar, 0, None, None,
-        '/user/list/', #I assume /user/list does not need a group name specification since it is listing users, I could be wrong though
+        '/user/list/',
         expected_list='user_list', list_filter={'username': ut_id(gvar, 'gtu5')},
         values={'user_groups': ut_id(gvar, 'gtg4,gtg5')},
-        server_user=ut_id(gvar, 'gtg5')
+        server_user=ut_id(gvar, 'gtu5')
     )
 
     # 31
@@ -283,25 +294,25 @@ def main(gvar):
             'username.1': ut_id(gvar, 'gtu4'),
             'username.2': ut_id(gvar, 'gtu5')
         },
-        server_user=ut_id(gvar, 'gtg5'), html=True
+        server_user=ut_id(gvar, 'gtu5'), html=True
     )
 
     # 32
     execute_csv2_request(
         gvar, 0, None, None,
-        '/user/list/', #I assume /user/list does not need a group name specification since it is listing users, I could be wrong though
+        '/user/list/',
         expected_list='user_list', list_filter={'username': ut_id(gvar, 'gtu4')},
         values={'user_groups': ut_id(gvar, 'gtg4')},
-        server_user=ut_id(gvar, 'gtg5')
+        server_user=ut_id(gvar, 'gtu5')
     )
 
     # 33
     execute_csv2_request(
         gvar, 0, None, None,
-        '/user/list/', #I assume /user/list does not need a group name specification since it is listing users, I could be wrong though
+        '/user/list/',
         expected_list='user_list', list_filter={'username': ut_id(gvar, 'gtu5')},
         values={'user_groups': ut_id(gvar, 'gtg4,gtg5')},
-        server_user=ut_id(gvar, 'gtg5')
+        server_user=ut_id(gvar, 'gtu5')
     )
 
 if __name__ == "__main__":

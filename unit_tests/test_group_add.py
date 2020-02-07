@@ -15,7 +15,7 @@ def main(gvar):
     execute_csv2_request(
         gvar, 1, 'GV', 'invalid method "GET" specified.',
         '/group/add/',
-        server_user=ut_id(gvar, 'gtg5')
+        server_user=ut_id(gvar, 'gtu5')
     )
 
     # 02
@@ -36,49 +36,49 @@ def main(gvar):
     execute_csv2_request(
         gvar, 1, 'GV', 'cannot switch to invalid group "invalid-unit-test".',
         '/group/add/', group='invalid-unit-test',
-        server_user=ut_id(gvar, 'gtg5')
+        server_user=ut_id(gvar, 'gtu5')
     )
 
     # 05
     execute_csv2_request(
         gvar, 1, 'GV', 'request did not contain mandatory parameter "group_name".',
         '/group/add/', form_data={'htcondor_fqdn': 'invalid-unit-test'},
-        server_user=ut_id(gvar, 'gtg5')
+        server_user=ut_id(gvar, 'gtu5')
     )
 
     # 06
     execute_csv2_request(
         gvar, 1, 'GV', 'Data too long for column \'group_name\' at row 1',
         '/group/add/', form_data={'group_name': ut_id(gvar, 'group-invalid-unit-test-too-long')},
-        server_user=ut_id(gvar, 'gtg5')
+        server_user=ut_id(gvar, 'gtu5')
     )
 
     # 07
     execute_csv2_request(
         gvar, 1, 'GV', 'request contained a bad parameter "invalid-unit-test".',
         '/group/add/', form_data={'invalid-unit-test': 'invalid-unit-test'},
-        server_user=ut_id(gvar, 'gtg5')
+        server_user=ut_id(gvar, 'gtu5')
     )
 
     # 08
     execute_csv2_request(
         gvar, 1, 'GV', 'value specified for "group_name" must be all lower case, numeric digits, and dashes but cannot start or end with dashes.',
         '/group/add/', form_data={'group_name': 'Invalid-Unit-Test'},
-        server_user=ut_id(gvar, 'gtg5')
+        server_user=ut_id(gvar, 'gtu5')
     )
 
     # 09
     execute_csv2_request(
         gvar, 1, 'GV', 'value specified for "group_name" must be all lower case, numeric digits, and dashes but cannot start or end with dashes.',
         '/group/add/', form_data={'group_name': 'invalid-unit-test-'},
-        server_user=ut_id(gvar, 'gtg5')
+        server_user=ut_id(gvar, 'gtu5')
     )
 
     # 10
     execute_csv2_request(
         gvar, 1, 'GV', 'value specified for "group_name" must be all lower case, numeric digits, and dashes but cannot start or end with dashes.',
         '/group/add/', form_data={'group_name': 'invalid!unit!test'},
-        server_user=ut_id(gvar, 'gtg5')
+        server_user=ut_id(gvar, 'gtu5')
     )
 
     # 11
@@ -88,7 +88,7 @@ def main(gvar):
             'group_name': ut_id(gvar, 'thisisagroupnametoolongtoinsertintothedatabasethisisagroupnametoolongtoinsertintothedatabasethisisagroupnametoolongtoinsertintothedatabase'),
             'htcondor_fqdn': 'invalid-unit-test'
         },
-        server_user=ut_id(gvar, 'gtg5')
+        server_user=ut_id(gvar, 'gtu5')
     )
 
     # 12
@@ -98,7 +98,7 @@ def main(gvar):
             'group_name': '',
             'htcondor_fqdn': 'invalid-unit-test'
         },
-        server_user=ut_id(gvar, 'gtg5')
+        server_user=ut_id(gvar, 'gtu5')
     )
 
 
@@ -109,7 +109,7 @@ def main(gvar):
             'group_name': 'invalid-unit-test',
             'htcondor_fqdn': ''
         },
-        server_user=ut_id(gvar, 'gtg5')
+        server_user=ut_id(gvar, 'gtu5')
     )
 
     # 14
@@ -120,7 +120,7 @@ def main(gvar):
             'group_name': ut_id(gvar, 'group-invalid-unit-test'),
             'htcondor_fqdn': 'invalid-unit-test'
         },
-        server_user=ut_id(gvar, 'gtg5')
+        server_user=ut_id(gvar, 'gtu5')
     )
 
     # 15
@@ -131,7 +131,7 @@ def main(gvar):
             'group_name': ut_id(gvar, 'group-invalid-unit-test'),
             'htcondor_fqdn': 'invalid-unit-test'
         },
-        server_user=ut_id(gvar, 'gtg5')
+        server_user=ut_id(gvar, 'gtu5')
     )
 
     # 16
@@ -143,7 +143,7 @@ def main(gvar):
             'username.2': ut_id(gvar, 'gtu3'),
             'htcondor_fqdn': 'invalid-unit-test'
         },
-        server_user=ut_id(gvar, 'gtg5')
+        server_user=ut_id(gvar, 'gtu5')
     )
 
     # 17
@@ -154,7 +154,7 @@ def main(gvar):
             'username.1': ut_id(gvar, 'gtu5'),
             'htcondor_fqdn': 'group-unit-test-one.ca'
         },
-        server_user=ut_id(gvar, 'gtg5')
+        server_user=ut_id(gvar, 'gtu5')
     )
 
     # 18 Verify that 17 actually added a group.
@@ -177,14 +177,14 @@ def main(gvar):
         '/user/list/',
         expected_list='user_list', list_filter={'username': ut_id(gvar, 'gtu5')},
         values={'username': ut_id(gvar, 'gtu5'), 'user_groups': ut_id(gvar, 'gtg1,gtg4,gtg5')},
-        server_user=ut_id(gvar, 'gtg5')
+        server_user=ut_id(gvar, 'gtu5')
     )
 
     # 20
     execute_csv2_request(
         gvar, 1, 'GV', '"{0}" failed - (1062, "Duplicate entry \'{0}\' for key \'PRIMARY\'").'.format(ut_id(gvar, 'gtg1')),
         '/group/add/', form_data={'group_name': ut_id(gvar, 'gtg1'), 'htcondor_fqdn': 'invalid-unit-test'},
-        server_user=ut_id(gvar, 'gtg5')
+        server_user=ut_id(gvar, 'gtu5')
     )
 
     # 21 Verify that users don't need to be added to a group when it is created
@@ -194,7 +194,7 @@ def main(gvar):
             'group_name': ut_id(gvar, 'gtg2'),
             'htcondor_fqdn': 'unit-test-group-two.ca',
         },
-        server_user=ut_id(gvar, 'gtg5')
+        server_user=ut_id(gvar, 'gtu5')
     )
 
     # 22 Verify that 21 actually created a group
@@ -208,7 +208,7 @@ def main(gvar):
             'htcondor_other_submitters': None,
             'metadata_names': 'default.yaml.j2'
         },
-        server_user=ut_id(gvar, 'gtg5')
+        server_user=ut_id(gvar, 'gtu5')
     )
 
     # 23
@@ -219,7 +219,7 @@ def main(gvar):
             'htcondor_fqdn': 'unit-test-group-three.ca',
             'job_cpus': 'invalid-unit-test'
         },
-        server_user=ut_id(gvar, 'gtg5')
+        server_user=ut_id(gvar, 'gtu5')
     )
 
     # 24
@@ -230,7 +230,7 @@ def main(gvar):
             'htcondor_fqdn': 'unit-test-group-three.ca',
             'job_ram': 'invalid-unit-test'
         },
-        server_user=ut_id(gvar, 'gtg5')
+        server_user=ut_id(gvar, 'gtu5')
     )
 
     # 25
@@ -241,7 +241,7 @@ def main(gvar):
             'htcondor_fqdn': 'unit-test-group-three.ca',
             'job_disk': 'invalid-unit-test'
         },
-        server_user=ut_id(gvar, 'gtg5')
+        server_user=ut_id(gvar, 'gtu5')
     )
 
     # 26
@@ -252,7 +252,7 @@ def main(gvar):
             'htcondor_fqdn': 'unit-test-group-three.ca',
             'job_scratch': 'invalid-unit-test'
         },
-        server_user=ut_id(gvar, 'gtg5')
+        server_user=ut_id(gvar, 'gtu5')
     )
 
     # 27
@@ -263,7 +263,7 @@ def main(gvar):
             'htcondor_fqdn': 'unit-test-group-three.ca',
             'job_swap': 'invalid-unit-test'
         },
-        server_user=ut_id(gvar, 'gtg5')
+        server_user=ut_id(gvar, 'gtu5')
     )
 
     # 28
@@ -281,7 +281,7 @@ def main(gvar):
             'vm_keyname': '',
             'vm_network': '',
         },
-        server_user=ut_id(gvar, 'gtg5')
+        server_user=ut_id(gvar, 'gtu5')
     )
 
     # 29
@@ -292,7 +292,7 @@ def main(gvar):
             'htcondor_fqdn': 'invalid-unit-test.ca',
             'vm_image': 'invalid-unit-test',
         },
-        server_user=ut_id(gvar, 'gtg5')
+        server_user=ut_id(gvar, 'gtu5')
     )
 
     # 30
@@ -303,7 +303,7 @@ def main(gvar):
             'htcondor_fqdn': 'invalid-unit-test.ca',
             'vm_flavor': 'invalid-unit-test',
         },
-        server_user=ut_id(gvar, 'gtg5')
+        server_user=ut_id(gvar, 'gtu5')
     )
 
     # 31
@@ -314,7 +314,7 @@ def main(gvar):
             'htcondor_fqdn': 'invalid-unit-test.ca',
             'vm_network': 'invalid-unit-test',
         },
-        server_user=ut_id(gvar, 'gtg5')
+        server_user=ut_id(gvar, 'gtu5')
     )
 
     # 32
@@ -325,7 +325,7 @@ def main(gvar):
             'htcondor_fqdn': 'invalid-unit-test.ca',
             'vm_keyname': 'invalid-unit-test',
         },
-        server_user=ut_id(gvar, 'gtg5')
+        server_user=ut_id(gvar, 'gtu5')
     )
 
 if __name__ == "__main__":

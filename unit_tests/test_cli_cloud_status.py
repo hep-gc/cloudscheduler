@@ -111,9 +111,8 @@ def main(gvar):
 
     # 17
     execute_csv2_command(
-        gvar, 0, None, '''cloud status, 1. Job status: keys=group_name, columns=Jobs,Idle,Running,Completed,Other,foreign,htcondor_status,agent_status,htcondor_fqdn,condor_days_left,worker_days_left
-            cloud status, 2. Cloud status: keys=group_name,cloud_name, columns=enabled,default_flavor,default_image,keep_alive,communication_up,communication_rt,VMs_quota,VMs,VMs_starting,VMs_unregistered,VMs_idle,VMs_running,VMs_retiring,VMs_manual,VMs_in_error,VMs_other,cores_quota,cores_limit,cores_ctl,cores_idle,cores_native,ram_quota,ram_limit,ram_ctl,ram_idle,ram_native,slot_count,slot_core_count,slot_idle_core_count,Foreign_VMs,cores_foreign,ram_foreign''',
-        ['cloudscheduler', 'cloud', 'status', '-NV', '-VC']
+        gvar, 0, None, 'cloud status, 1. Job status: keys=group_name, columns=Jobs,Idle,Running,Completed,Other,foreign,htcondor_status,agent_status,htcondor_fqdn,condor_days_left,worker_days_left\ncloud status, 2. Cloud status: keys=group_name,cloud_name, columns=enabled,default_flavor,default_image,keep_alive,communication_up,communication_rt,VMs_quota,VMs,VMs_starting,VMs_unregistered,VMs_idle,VMs_running,VMs_retiring,VMs_manual,VMs_in_error,VMs_other,cores_quota,cores_limit,cores_ctl,cores_idle,cores_native,ram_quota,ram_limit,ram_ctl,ram_idle,ram_native,slot_count,slot_core_count,slot_idle_core_count,Foreign_VMs,cores_foreign,ram_foreign',
+        ['cloudscheduler', 'cloud', 'status', '-NV', '-VC', '-su', ut_id(gvar, 'clu4')]
     )
 
     # 18 We have to include all the columns expected for both the Cloud status list and the Job status list here and in the next test because of the way that the common code checks them.
