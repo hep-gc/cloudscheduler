@@ -582,7 +582,7 @@ if __name__ == '__main__':
         'registrar': service_registrar,
     }
 
-    procMon = ProcessMonitor(config_params=[os.path.basename(sys.argv[0]), "general", "ProcessMonitor"], pool_size=3, orange_count_row='csv2_jobs_error_count', process_ids=process_ids)
+    procMon = ProcessMonitor(config_params=[os.path.basename(sys.argv[0]), "general", "ProcessMonitor"], pool_size=3, process_ids=process_ids)
     config = procMon.get_config()
     logging = procMon.get_logging()
     version = config.get_version()

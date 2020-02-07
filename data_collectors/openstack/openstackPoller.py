@@ -1780,7 +1780,7 @@ if __name__ == '__main__':
     }
     db_categories = [os.path.basename(sys.argv[0]), "general", "signal_manager", "ProcessMonitor"]
 
-    procMon = ProcessMonitor(config_params=db_categories, pool_size=3, orange_count_row='csv2_openstack_error_count', process_ids=process_ids)
+    procMon = ProcessMonitor(config_params=db_categories, pool_size=3, process_ids=process_ids)
     config = procMon.get_config()
     logging = procMon.get_logging()
     version = config.get_version()

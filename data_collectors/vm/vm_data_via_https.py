@@ -181,7 +181,7 @@ if __name__ == '__main__':
     }
 
     my_config_category = os.path.basename(sys.argv[0])
-    procMon = ProcessMonitor(config_params=[my_config_category, "general", 'ProcessMonitor'], pool_size=4, orange_count_row='csv2_jobs_error_count', process_ids=process_ids)
+    procMon = ProcessMonitor(config_params=[my_config_category, "general", 'ProcessMonitor'], pool_size=4, process_ids=process_ids)
     config = procMon.get_config()
     logging = procMon.get_logging()
     version = config.get_version()

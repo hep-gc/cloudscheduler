@@ -38,7 +38,6 @@ def timeseries_data_transfer():
     # You will need to define new poll times for whatever you decide to call this file in csv2_configuration
     # A new row will also need to be added to csv2_system_status to track any crashes/errors that occur in this file
     # once that new row is added you will need to replace "N/A" with the name of the column for
-    # "orange_count_row" in ProccessMonitor initialization in __main__
     config = Config('/etc/cloudscheduler/cloudscheduler.yaml', [os.path.basename(sys.argv[0]), "ProcessMonitor"], signals=True)
     PID_FILE = config.categories["ProcessMonitor"]["pid_path"] + os.path.basename(sys.argv[0])
 
@@ -294,7 +293,7 @@ if __name__ == '__main__':
         'timeseries data transfer': timeseries_data_transfer,
     }
     
-    procMon = ProcessMonitor(config_params=[os.path.basename(sys.argv[0]), "ProcessMonitor"], pool_size=3, orange_count_row='csv2_timeseries_error_count', process_ids=process_ids)
+    procMon = ProcessMonitor(config_params=[os.path.basename(sys.argv[0]), "ProcessMonitor"], pool_size=3, process_ids=process_ids)
     config = procMon.get_config()
     logging = procMon.get_logging()
 

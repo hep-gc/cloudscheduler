@@ -9,26 +9,20 @@ import os
 import sys
 
 from cloudscheduler.lib.db_config import Config
-from cloudscheduler.lib.poller_functions import set_orange_count
 
 class ProcessMonitor:
     config = None
     processes = {}
     process_ids = {}
-    orange_count_row = None
-    previous_orange_count = 0
-    current_orange_count = 0
     logging = None
 
-    def __init__(self, config_params, pool_size, orange_count_row, process_ids=None):
+    def __init__(self, config_params, pool_size,  process_ids=None):
         self.config = Config('/etc/cloudscheduler/cloudscheduler.yaml', config_params, pool_size=pool_size)
         self.logging = logging.getLogger()
         logging.basicConfig(
             filename=self.config.categories[os.path.basename(sys.argv[0])]["log_file"],
             level=self.config.categories[os.path.basename(sys.argv[0])]["log_level"],
             format='%(asctime)s - %(processName)-12s - %(process)d - %(levelname)s - %(message)s')
-        self.orange_count_row = orange_count_row
-        self.previous_orange_count, self.current_orange_count = set_orange_count(self.logging, self.config, orange_count_row, 1, 0)
         self.process_ids = process_ids
 
     def get_process_ids(self):
@@ -100,7 +94,6 @@ class ProcessMonitor:
                 logging.error("failed to join process %s", pro.name)
 
     def check_processes(self, stop=False):
-        orange = False
         if stop and len(self.process_ids) == 0:
             logging.info("Stop set and all children shut down, exiting...")
             exit(0)
@@ -119,10 +112,10 @@ class ProcessMonitor:
                     del self.processes[process]
                     continue
                 if process in self.processes:
-                    orange = True
                     logging.error("%s process died, restarting...", process)
                     logging.debug("exit code: %s" , self.processes[process].exitcode)
-                    self.config.update_service_catalog(error="%s process died, exit code: %s" % (process, self.processes[process].exitcode))
+#                    self.config.update_service_catalog(error="%s process died, exit code: %s" % (process, self.processes[process].exitcode))
+                    self.config.update_service_catalog(host_id=self.config.local_host_id, error="%s process died, exit code: %s" % (process, self.processes[process].exitcode))
                     del self.processes[process]
                 else:
                     self.logging.info("Restarting %s process", process)
@@ -132,11 +125,6 @@ class ProcessMonitor:
             p = psutil.Process(self.processes[process].pid)
         for proc in procs_to_remove:
             self.process_ids.pop(proc)
-        if orange:
-            self.previous_orange_count, self.current_orange_count = set_orange_count(self.logging, self.config, self.orange_count_row, self.previous_orange_count, self.current_orange_count+2)
-        else:
-            self.previous_orange_count, self.current_orange_count = set_orange_count(self.logging, self.config, self.orange_count_row, self.previous_orange_count, self.current_orange_count-1)
-        logging.debug("Current error count:%s" % self.current_orange_count)
 
 
     def _cleanup_event_pids(self, pid):

@@ -17,15 +17,15 @@ def updateEC2RegionsTable():
     db_session = config.db_session
 
     try:
-        tables = get_html_tables(config.ec2_regions_and_endpoints_url)
+        tables = get_html_tables(config.categories['ec2cloudPoller.py']['ec2_regions_and_endpoints_url'])
 
-        if config.ec2_regions_and_endpoints_table not in tables:
-            logging.error("EC2 region table \"{}\" not found in html at {}. Exiting...".format(config.ec2_regions_and_endpoints_table,config.ec2_regions_and_endpoints_url))
+        if config.categories['ec2cloudPoller.py']['ec2_regions_and_endpoints_table'] not in tables:
+            logging.error("EC2 region table \"{}\" not found in html at {}. Exiting...".format(config.categories['ec2cloudPoller.py']['ec2_regions_and_endpoints_table'],config.categories['ec2cloudPoller.py']['ec2_regions_and_endpoints_url']))
             close(config, db_session)
             return
 
         region_dict_list = []
-        for table in [config.ec2_regions_and_endpoints_table]:
+        for table in [config.categories['ec2cloudPoller.py']['ec2_regions_and_endpoints_table']]:
             #print(table)
             if 'heads' in tables[table]:
                 #print('   ', '%-48s' * len(tables[table]['heads']) % tuple(tables[table]['heads']))
@@ -38,7 +38,7 @@ def updateEC2RegionsTable():
                         region_dict[head] = row[i]
                     region_dict_list.append(region_dict)
             else:
-                logging.error("Could not get headings/column names from table: {}. Exiting...".format(config.ec2_regions_and_endpoints_table))
+                logging.error("Could not get headings/column names from table: {}. Exiting...".format(config.categories['ec2cloudPoller.py']['ec2_regions_and_endpoints_table']))
                 close(config, db_session)
                 return
 

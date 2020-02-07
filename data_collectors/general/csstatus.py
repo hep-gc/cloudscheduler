@@ -160,7 +160,7 @@ if __name__ == '__main__':
         'status': status_poller,
     }
 
-    procMon = ProcessMonitor(config_params=[os.path.basename(sys.argv[0]), "ProcessMonitor"], pool_size=8, orange_count_row='csv2_status_error_count', process_ids=process_ids)
+    procMon = ProcessMonitor(config_params=[os.path.basename(sys.argv[0]), "ProcessMonitor"], pool_size=8, process_ids=process_ids)
     config = procMon.get_config()
     logging = procMon.get_logging()
 
