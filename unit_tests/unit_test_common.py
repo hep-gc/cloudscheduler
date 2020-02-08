@@ -235,6 +235,30 @@ def execute_csv2_request(gvar, expected_rc, expected_modid, expected_text, reque
     else:
         return 0
 
+def parameters_requests(gvar, request, group, server_user, PARAMETERS):
+    '''Execute requests with missing parameters and bad parameters.
+    PARAMETERS is an iterable of 2-tuples and 3-tuples, each containing:
+    0. The name of a parameter to test (str).
+    1. An iterable of 2-tuples, each containing:
+        1.0. An invalid value for this parameter that will be cast to a str.
+        1.1. The message to expect when this value is sent in an otherwise valid request.
+    [2. A valid value for the parameter. This should be given exactly when the parameter is mandatory, and if given will be sent in requests containing bad values for other parameters.]'''
+    for param in PARAMETERS:
+        other_mandatory_params = {p[0]: p[2] for p in PARAMETERS if len(p) > 2 and p[0] != param[0]}
+        # If the parameter is mandatory.
+        if len(param) > 2:
+            # Do not provide the parameter at all.
+            execute_csv2_request(
+                gvar, 1, None, 'request did not contain mandatory parameter "{}".'.format(param[0]),
+                request, group=group, form_data=other_mandatory_params, server_user=server_user
+            )
+        # Give the parameter with invalid values.
+        for invalid in param[1]:
+            execute_csv2_request(
+                gvar, 1, None, invalid[1],
+                request, group=group, form_data={param[0]: invalid[0], **other_mandatory_params}, server_user=server_user
+            )
+
 def generate_secret():
     from string import ascii_letters, digits
     from random import SystemRandom, choice

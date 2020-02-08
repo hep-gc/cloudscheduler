@@ -14,7 +14,7 @@ def main(gvar):
 
     alias_requests_cleanup.main(gvar)
 
-    # 04 unprivileged user in atg1
+    # 04 Unprivileged user in atg1.
     execute_csv2_request(
         gvar, 0, None, 'user "{}" successfully added.'.format(ut_id(gvar, 'atu1')),
         '/user/add/', form_data={
@@ -25,7 +25,7 @@ def main(gvar):
         }
     )
 
-    # 05 unprivileged user in no groups
+    # 05 Unprivileged user in no groups.
     execute_csv2_request(
         gvar, 0, None, 'user "{}" successfully added.'.format(ut_id(gvar, 'atu2')),
         '/user/add/', form_data={
@@ -36,7 +36,7 @@ def main(gvar):
         }
     )
 
-    # 06 group containing atu1
+    # 06 Group containing atu1.
     execute_csv2_request(
         gvar, 0, None, 'group "{}" successfully added.'.format(ut_id(gvar, 'atg1')),
         '/group/add/', form_data={
@@ -46,7 +46,7 @@ def main(gvar):
         }
     )
 
-    # group containing no users
+    # Group containing no users.
     execute_csv2_request(
         gvar, 0, None, 'group "{}" successfully added.'.format(ut_id(gvar, 'atg2')),
         '/group/add/', form_data={
@@ -55,12 +55,47 @@ def main(gvar):
         }
     )
 
-    # cloud to create aliases for
+    # Cloud to create aliases for.
     execute_csv2_request(
-        gvar, 0, None, 'TODO',
-        '/cloud/add/', form_data={
-        }
+        gvar, 0, None, 'cloud "{}::{}" successfully added.'.format(ut_id(gvar, 'atg1'), ut_id(gvar, 'atc1')),
+        '/cloud/add/', group=ut_id(gvar, 'atg1'), form_data={
+            'cloud_name': ut_id(gvar, 'atc1'),
+            'cloud_type': 'local',
+            'authurl': 'alias-test-cloud-1.ca',
+            'project': ut_id(gvar, 'atp1'),
+            'region': ut_id(gvar, 'atr1'),
+            'username': ut_id(gvar, 'atu1'),
+            'password': gvar['user_secret']
+        },
+        server_user=ut_id(gvar, 'atu1')
     )
-            
+
+    # Cloud to create aliases for.
+    execute_csv2_request(
+        gvar, 0, None, 'cloud "{}::{}" successfully added.'.format(ut_id(gvar, 'atg1'), ut_id(gvar, 'atc2')),
+        '/cloud/add/', group=ut_id(gvar, 'atg1'), form_data={
+            'cloud_name': ut_id(gvar, 'atc2'),
+            'cloud_type': 'local',
+            'authurl': 'alias-test-cloud-2.ca',
+            'project': ut_id(gvar, 'atp2'),
+            'region': ut_id(gvar, 'atr2'),
+            'username': ut_id(gvar, 'atu1'),
+            'password': gvar['user_secret']
+        },
+        server_user=ut_id(gvar, 'atu1')
+    )
+
+    ''' Disabled because deleting the group fails to delete this alias.
+    # Alias to be deleted.
+    execute_csv2_request(
+        gvar, 0, None, 'cloud alias "{}.{}" successfully added.'.format(ut_id(gvar, 'atg1'), ut_id(gvar, 'atc1a1')),
+        '/alias/add/', group=ut_id(gvar, 'atg1'), form_data={
+            'cloud_name': ut_id(gvar, 'atc1'),
+            'alias_name': ut_id(gvar, 'atc1a1')
+        },
+        server_user=ut_id(gvar, 'atu1')
+    )
+    '''
+
 if __name__ == '__main__':
     main(None)
