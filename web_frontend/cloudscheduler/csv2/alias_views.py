@@ -34,13 +34,16 @@ CLOUD_ALIAS_KEYS = {
     'auto_active_group': True,
     'format': {
         'alias_name':          'lowercase',
-
-        'cloud_name':          'ignore',
+        'cloud_name':          'lowerdash',
         'cloud_option':        ['add', 'delete'],
         'csrfmiddlewaretoken': 'ignore',
         'group':               'ignore',
         },
-    }
+    'mandatory': [
+        'cloud_name',
+        'alias_name',
+    ],
+}
 
 LIST_KEYS = {
     # Named argument formats (anything else is a string).

@@ -965,7 +965,7 @@ def set_user_groups(config, request, super_user=True):
 
     if len(new_active_user.args) > 0:
         new_active_user.active_group = new_active_user.args[0]
-    elif new_active_user.default_group and new_active_user.default_group != '-':
+    elif new_active_user.default_group and new_active_user.default_group in new_active_user.user_groups:
         new_active_user.active_group = new_active_user.default_group
     else:
         new_active_user.active_group = new_active_user.user_groups[0]
