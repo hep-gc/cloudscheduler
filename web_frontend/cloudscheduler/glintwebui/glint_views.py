@@ -2,6 +2,7 @@ import time
 import logging
 import os
 import json
+import urllib3
 
 from django.conf import settings
 config = settings.CSV2_CONFIG
@@ -613,14 +614,14 @@ def upload(request, group_name=None):
             # Filename exists locally, lets add some suffix and check again
             suffix = 1
             new_path = file_path + str(suffix)
-            while os.path.path.exists(new_path):
+            while os.path.exists(new_path):
                 suffix = suffix + 1
                 new_path = file_path + str(suffix)
             file_path = new_path
 
         #before we save it locally let us check if it is already in the repos
         cloud_name_list = request.POST.getlist('clouds')
-        image_list = config.db_session.query(IMAGES).filter(IMAGES.image_name == image_file.name, IMAGES.group_name == group_name)
+        image_list = config.db_session.query(IMAGES).filter(IMAGES.name == image_name, IMAGES.group_name == group_name)
         bad_clouds = []
         if image_list.count() > 0:
             #we've got some images by this name already lets see if any are in the target clouds
@@ -655,7 +656,8 @@ def upload(request, group_name=None):
             return render(request, 'glintwebui/upload_image.html', context)
             
 
-        image_data = urllib3.urlopen(img_url)
+        http = urllib3.PoolManager()
+        image_data = http.request('GET', img_url)
 
         with open(file_path, "wb") as image_file:
             image_file.write(image_data.read())
@@ -670,7 +672,7 @@ def upload(request, group_name=None):
         os_session = get_openstack_session(target_cloud)
         glance = get_glance_client(os_session, target_cloud.region)
 
-        image = upload_image(glance, None, image_file.name, file_path, request.POST.get('disk_format'))
+        image = upload_image(glance, None, image_file.name, file_path, disk_format=request.POST.get('disk_format'))
         # add it to the csv2_images table
         if image.size == "":
             size = 0
@@ -699,7 +701,7 @@ def upload(request, group_name=None):
         config.db_session.merge(new_image)
         config.db_session.commit()
         # now we have the os image object, lets rename the file and add it to out cache
-        cache_path = config.categories["glintPoller.py"]["image_cache_dir"] + image_file.name + "---" + image.checksum
+        cache_path = image_file.name + "---" + image.checksum
         os.rename(file_path, cache_path)
 
         cache_dict = {
