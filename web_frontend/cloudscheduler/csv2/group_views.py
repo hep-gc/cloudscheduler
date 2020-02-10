@@ -36,7 +36,7 @@ GROUP_KEYS = {
     'auto_active_group': False,
     # Named argument formats (anything else is a string).
     'format': {
-        'group_name':                                 'lowerdash',
+        'group_name':                                 'lower',
         'csrfmiddlewaretoken':                        'ignore',
         'group':                                      'ignore',
         'job_cpus':                                   'integer',
@@ -91,7 +91,7 @@ METADATA_KEYS = {
         'enabled':                                    'dboolean',
         'priority':                                   'integer',
         'metadata':                                   'metadata',
-        'metadata_name':                             'lowercase',
+        'metadata_name':                              'lower',
         'mime_type':                                  ('csv2_mime_types', 'mime_type'),
 
         'csrfmiddlewaretoken':                        'ignore',
@@ -897,7 +897,7 @@ def metadata_query(request):
         'auto_active_group': True,
         # Named argument formats (anything else is a string).
         'format': {
-            'metadata_name':                        'lowercase',
+            'metadata_name':                        'lower',
 
             'csrfmiddlewaretoken':                  'ignore',
             'group':                                'ignore',

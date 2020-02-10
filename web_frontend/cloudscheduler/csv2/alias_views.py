@@ -33,8 +33,8 @@ CLOUD_ALIAS_KEYS = {
     # Named argument formats (anything else is a string).
     'auto_active_group': True,
     'format': {
-        'alias_name':          'lowercase',
-        'cloud_name':          'lowerdash',
+        'alias_name':          'lower',
+        'cloud_name':          'lower',
         'cloud_option':        ['add', 'delete'],
         'csrfmiddlewaretoken': 'ignore',
         'group':               'ignore',

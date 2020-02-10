@@ -32,7 +32,7 @@ MODID = 'UV'
 USER_GROUP_KEYS = {
     # Named argument formats (anything else is a string).
     'format': {
-        'username':            'lowercase',
+        'username':            'lower',
         'is_superuser':        'dboolean',
         'password':            'password',
         'password1':           'password1',
@@ -57,7 +57,7 @@ UNPRIVILEGED_USER_KEYS = {
     'unnamed_fields_are_bad': True,
     # Named argument formats (anything else is a string).
     'format': {
-        'default_group':                'lowerdash',
+        'default_group':                'lower',
         'password':                     'password',
         'password1':                    'password1',
         'password2':                    'password2',

@@ -1110,10 +1110,9 @@ def validate_fields(config, request, fields, tables, active_user):
     float                  - A floating point value.
     ignore                 - Ignore missing mandatory fields or fields for undefined columns.
     integer                - An integer value.
-    lowercase              - Make sure the input value is all lowercase (or error).
-    lowerdash              - Make sure the input value is all lowercase, nummerics, and dashes but 
-    lowernull              - Make sure the input value is all lowercasei or empty string (null).
-                             can't start or end with a dash (or error).
+    lower                  - Ensure that the input value consists only of lowercase letters, digits,
+                             dashes, underscores, periods, and colons; does not contain '--'; and
+                             does not start or end with a dash (or error).
     metadata               - Identifies a pair of fields (eg. "xxx' and xxx_name) that contain ar
                              metadata string and a metadata filename. If the filename conforms to
                              pre-defined patterns (eg. ends with ".yaml"), the string will be 
@@ -1122,7 +1121,9 @@ def validate_fields(config, request, fields, tables, active_user):
     password1              - A password value to be verified against password2, checked and hashed.
     password2              - A password value to be verified against password1, checked and hashed.
     reject                 - Reject an otherwise valid field.
-    uppercase              - Make sure the input value is all uppercase (or error).
+    upper                  - Ensure that the input value consists only of uppercase letters, digits,
+                             dashes, underscores, periods, and colons; does not contain '--'; and
+                             does not start or end with a dash (or error).
 
     POSTed fields in the form "name.1", "name.2", etc. will be treated as array fields, 
     returning the variable "name" as a list of strings. 
@@ -1167,6 +1168,7 @@ def validate_fields(config, request, fields, tables, active_user):
     # Process fields parameter:
     Formats = {}
     Mandatory = []
+    AllowEmpty = []
     NotEmpty = []
     Options = {
         'accept_primary_keys_only': False,
@@ -1185,6 +1187,11 @@ def validate_fields(config, request, fields, tables, active_user):
                     Mandatory += option_set[option]
                 else:
                     Mandatory.append(option_set[option])
+            elif option == 'allow_empty':
+                if isinstance(option_set[option], list):
+                    AllowEmpty += option_set[option]
+                else:
+                    AllowEmpty.append(option_set[option])
             elif option == 'not_empty':
                 if isinstance(option_set[option], list):
                     NotEmpty += option_set[option]
@@ -1350,24 +1357,14 @@ def validate_fields(config, request, fields, tables, active_user):
                     except:
                         return 1, 'value specified for "%s" must be an integer value.' % field, None, None, None
 
-                elif Formats[field] == 'lowerdash':
-                    if len(request.POST[field]) > 0 and re.match("^[a-z0-9_\-]*$", request.POST[field]) and request.POST[field][0] != '-' and request.POST[field][-1] != '-':
+                elif Formats[field] == 'lower':
+                    if field == '' and field not in AllowEmpty:
+                        return 1, 'value specified for "%s" must not be the empty string.' % field, None, None, None
+                        # Match the empty string or <a valid non-dash optionally followed by a dash> any number of times, followed by a valid non-dash.
+                    elif re.fullmatch('(([a-z0-9_.:]-?)*[a-z0-9_.:])?', request.POST[field]):
                         value = request.POST[field]
                     else:
-                        return 1, 'value specified for "%s" must be all lower case, numeric digits, and dashes but cannot start or end with dashes.' % field, None, None, None
-
-                elif Formats[field] == 'lowercase':
-                    value = request.POST[field].lower()
-                    if request.POST[field] != value:
-                        return 1, 'value specified for "%s" must be all lower case.' % field, None, None, None
-
-                elif Formats[field] == 'lowernull':
-                    value = request.POST[field].lower()
-                    if value == '':
-                        value = None
-                    else:
-                        if request.POST[field] != value:
-                            return 1, 'value specified for "%s" must be all lower case.' % field, None, None, None
+                        return 1, 'value specified for "%s" must be all lowercase letters, digits, dashes, underscores, periods, and colons, and cannot contain a more than one consecutive dash or start or end with a dash.' % field, None, None, None
 
                 elif Formats[field] == 'mandatory':
                     if value.strip() == '':
@@ -1420,10 +1417,14 @@ def validate_fields(config, request, fields, tables, active_user):
                 elif Formats[field] == 'reject':
                     return 1, 'request contained a rejected/bad parameter "%s".' % field, None, None, None
 
-                elif Formats[field] == 'uppercase':
-                    value = request.POST[field].upper()
-                    if request.POST[field] != value:
-                        return 1, 'value specified for "%s" must be all upper case.' % field, None, None, None
+                elif Formats[field] == 'upper':
+                    if field == '' and field not in AllowEmpty:
+                        return 1, 'value specified for "%s" must not be the empty string.' % field, None, None, None
+                        # Match the empty string or <a valid non-dash optionally followed by a dash> any number of times, followed by a valid non-dash.
+                    elif re.fullmatch('(([A-Z0-9_.:]-?)*[A-Z0-9_.:])?', request.POST[field]):
+                        value = request.POST[field]
+                    else:
+                        return 1, 'value specified for "%s" must be all uppercase letters, digits, dashes, underscores, periods, and colons, and cannot contain a more than one consecutive dash or start or end with a dash.' % field, None, None, None
 
             if field_alias in all_columns:
                 Fields[field_alias] = value

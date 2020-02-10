@@ -50,7 +50,7 @@ CLOUD_KEYS = {
     'auto_active_group': True,
     # Named argument formats (anything else is a string).
     'format': {
-        'cloud_name':                           'lowerdash',
+        'cloud_name':                           'lower',
         'cloud_type':                           ('csv2_cloud_types', 'cloud_type'),
         'enabled':                              'dboolean',
         'priority':                             'integer',
@@ -110,11 +110,11 @@ METADATA_KEYS = {
     'auto_active_group': True,
     # Named argument formats (anything else is a string).
     'format': {
-        'cloud_name':                           'lowerdash',
+        'cloud_name':                           'lower',
         'enabled':                              'dboolean',
         'priority':                             'integer',
         'metadata':                             'metadata',
-        'metadata_name':                        'lowercase',
+        'metadata_name':                        'lower',
         'mime_type':                            ('csv2_mime_types', 'mime_type'),
 
         'csrfmiddlewaretoken':                  'ignore',
@@ -1078,8 +1078,8 @@ def metadata_query(request):
         'auto_active_group': True,
         # Named argument formats (anything else is a string).
         'format': {
-            'cloud_name':                           'lowerdash',
-            'metadata_name':                        'lowercase',
+            'cloud_name':                           'lower',
+            'metadata_name':                        'lower',
 
             'csrfmiddlewaretoken':                  'ignore',
             'group':                                'ignore',
