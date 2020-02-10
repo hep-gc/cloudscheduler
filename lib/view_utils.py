@@ -1133,8 +1133,10 @@ def validate_fields(config, request, fields, tables, active_user):
     from sqlalchemy import Table, MetaData
     from sqlalchemy.sql import select
     import cloudscheduler.lib.schema
+    import ipaddress
     import json
     import re
+    import socket
 
     # Retrieve relevant (re: tables) schema.
     all_columns = []
@@ -1329,6 +1331,20 @@ def validate_fields(config, request, fields, tables, active_user):
                         if len(picked_keys) < min_pick:
                             return 1, 'At least %s of %s (%s) selectable keys are required for %s; dictionary specified only %s (%s) keys.' % (min_pick, len(pick_keys), pick_keys, field, len(picked_keys), picked_keys), None, None, None
 
+                elif Formats[field][:4] == 'fqdn':
+                    words = Formats[field].split(',')
+                    if value == '':
+                        value = None
+                        if len(words) > 1:
+                            Fields[words[1]] = 0
+                    else:
+                        try:
+                            current_hostname = socket.gethostbyname(value)
+                            if len(words) > 1:
+                                Fields[words[1]] = int(ipaddress.IPv4Address(current_hostname))
+                        except:
+                            return 1, 'The value specified for %s (%s) is not a valid FQDN.' % (field, value), None, None, None
+
                 elif Formats[field] == 'dboolean':
                     lower_value = value.lower()
                     if lower_value == 'true' or lower_value == 'yes' or lower_value == 'on' or lower_value == '1':
@@ -1438,6 +1454,7 @@ def validate_fields(config, request, fields, tables, active_user):
                         Fields[field] = value
                     else:
                         return 1, 'request contained a bad parameter "%s".' % field, None, None, None
+
 
         if Options['auto_active_group'] and 'group_name' not in Fields:
             Fields['group_name'] = active_user.active_group

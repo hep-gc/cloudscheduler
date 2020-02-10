@@ -39,6 +39,7 @@ GROUP_KEYS = {
         'group_name':                                 'lowerdash',
         'csrfmiddlewaretoken':                        'ignore',
         'group':                                      'ignore',
+        'htcondor_fqdn':                              'fqdn,htcondor_host_id',
         'job_cpus':                                   'integer',
         'job_disk':                                   'integer',
         'job_ram':                                    'integer',
@@ -60,9 +61,6 @@ GROUP_KEYS = {
         'server_group_members_ctl':                   'reject',
         'floating_ips_ctl':                           'reject',
         },
-    'not_empty': [
-        'htcondor_fqdn',
-        ],
     }
 
 
@@ -72,6 +70,7 @@ UNPRIVILEGED_GROUP_KEYS = {
     'format': {
         'csrfmiddlewaretoken':                        'ignore',
         'group':                                      'ignore',
+        'htcondor_fqdn':                              'fqdn,htcondor_host_id',
         'job_cpus':                                   'integer',
         'job_disk':                                   'integer',
         'job_ram':                                    'integer',
@@ -252,6 +251,7 @@ def defaults(request, active_user=None, response_code=0, message=None):
                 config.db_close()
                 return render(request, 'csv2/group_defaults.html', {'response_code': 1, 'message': '%s default update/list %s' % (lno(MODID), msg), 'active_user': active_user.username, 'active_group': active_user.active_group, 'user_groups': active_user.user_groups})
 
+            print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>", fields)
 
             if rc == 0 and ('vm_flavor' in fields) and (fields['vm_flavor']):
                 rc, msg = validate_by_filtered_table_entries(config, fields['vm_flavor'], 'vm_flavor', 'cloud_flavors', 'name', [['group_name', fields['group_name']]])
@@ -1063,6 +1063,7 @@ def update(request):
         # Update the group.
         table = tables['csv2_groups']
         group_updates = table_fields(fields, table, columns, 'update')
+        print("???????????????????????????????????", group_updates)
         if len(group_updates) > 0:
             rc, msg = config.db_session_execute(table.update().where(table.c.group_name==fields['group_name']).values(group_updates), allow_no_rows=False)
             if rc != 0:
