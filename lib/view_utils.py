@@ -1358,12 +1358,10 @@ def validate_fields(config, request, fields, tables, active_user):
                         return 1, 'value specified for "%s" must be an integer value.' % field, None, None, None
 
                 elif Formats[field] == 'lower':
-                    if field == '' and field not in AllowEmpty:
+                    if value == '' and value not in AllowEmpty:
                         return 1, 'value specified for "%s" must not be the empty string.' % field, None, None, None
                         # Match the empty string or <a valid non-dash optionally followed by a dash> any number of times, followed by a valid non-dash.
-                    elif re.fullmatch('(([a-z0-9_.:]-?)*[a-z0-9_.:])?', request.POST[field]):
-                        value = request.POST[field]
-                    else:
+                    elif not re.fullmatch('(([a-z0-9_.:]-?)*[a-z0-9_.:])?', value):
                         return 1, 'value specified for "%s" must be all lowercase letters, digits, dashes, underscores, periods, and colons, and cannot contain a more than one consecutive dash or start or end with a dash.' % field, None, None, None
 
                 elif Formats[field] == 'mandatory':
