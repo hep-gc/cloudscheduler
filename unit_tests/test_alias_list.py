@@ -13,7 +13,7 @@ def main(gvar):
 
     # Bad requests.
     # 01 - 04
-    sanity_requests(gvar, '/alias/list', ut_id(gvar, 'atg1'), ut_id(gvar, 'atu1'), ut_id(gvar, 'atg2'), ut_id(gvar, 'atu2'))
+    sanity_requests(gvar, '/alias/list/', ut_id(gvar, 'atg1'), ut_id(gvar, 'atu1'), ut_id(gvar, 'atg2'), ut_id(gvar, 'atu2'))
 
     # 05
     execute_csv2_request(
