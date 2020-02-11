@@ -1,4 +1,4 @@
-from unit_test_common import execute_csv2_request, initialize_csv2_request, ut_id, generate_secret, parameters_requests
+from unit_test_common import execute_csv2_request, initialize_csv2_request, ut_id, generate_secret, sanity_requests, parameters_requests
 from sys import argv
 
 def main(gvar):
@@ -12,33 +12,8 @@ def main(gvar):
         gvar['user_secret'] = generate_secret()
 
     # Bad requests.
-    # 01
-    execute_csv2_request(
-        gvar, 2, None, 'server "unit-test", HTTP response code 401, unauthorized.',
-        '/alias/add/', group=ut_id(gvar, 'atg1'),
-        server_user='invalid-unit-test'
-    )
-
-    # 02
-    execute_csv2_request(
-        gvar, 1, None, 'user "{}" is not a member of any group.'.format(ut_id(gvar, 'atu2')),
-        '/alias/add/', group=ut_id(gvar, 'atg1'),
-        server_user=ut_id(gvar, 'atu2')
-    )
-
-    # 03
-    execute_csv2_request(
-        gvar, 2, None, 'server "unit-test", HTTP response code 401, unauthorized.',
-        '/alias/add/', group=ut_id(gvar, 'atg1'),
-        server_user=ut_id(gvar, 'atu1'), server_pw='invalid-unit-test'
-    )
-
-    # 04 Attempt to switch to a group that the user is not in.
-    execute_csv2_request(
-        gvar, 1, None, 'cannot switch to invalid group "{}".'.format(ut_id(gvar, 'atg2')),
-        '/alias/add/', group=ut_id(gvar, 'atg2'),
-        server_user=ut_id(gvar, 'atu1')
-    )
+    # 01 - 04
+    sanity_requests(gvar, '/alias/add/', ut_id(gvar, 'atg1'), ut_id(gvar, 'atu1'), ut_id(gvar, 'atg2'), ut_id(gvar, 'atu2'))
 
     # 05
     execute_csv2_request(

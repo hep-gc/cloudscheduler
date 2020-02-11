@@ -209,7 +209,7 @@ def execute_csv2_request(gvar, expected_rc, expected_modid, expected_text, reque
                         print('\n%04d (%04d) %s \033[91mRow Check\033[0m: request=\'%s\', group=%s, expected_list=\'%s\', list_filter=%s' % (gvar['ut_count'][0], gvar['ut_count'][1], _caller(), request, group, expected_list, list_filter))
                         print('\t%s rows were accepted by the filter.' % len(mismatches_in_filtered_rows))
                         for row_index, mismatches_in_row in enumerate(mismatches_in_filtered_rows):
-                            print('\tRow %s:' % row_index)
+                            print('\tRow %s:' % row_index + 1)
                             print('\t\tActual values in response: %s' % filtered_rows[row_index])
                             for mismatch in mismatches_in_row:
                                 if len(mismatch) == 2:
@@ -234,6 +234,26 @@ def execute_csv2_request(gvar, expected_rc, expected_modid, expected_text, reque
     # _execute_selections returned False.
     else:
         return 0
+
+def sanity_requests(gvar, request, group, server_user, userless_group, groupless_server_user):
+    '''Perform sanity checks that should pass for all non-CLI tests.'''
+    execute_csv2_request(
+        gvar, 2, None, 'server "unit-test", HTTP response code 401, unauthorized.',
+        request, group=group, server_user='invalid-unit-test'
+    )
+    execute_csv2_request(
+        gvar, 1, None, 'user "{}" is not a member of any group.'.format(groupless_server_user),
+        request, group=group, server_user=groupless_server_user
+    )
+    execute_csv2_request(
+        gvar, 2, None, 'server "unit-test", HTTP response code 401, unauthorized.',
+        request, group=group,
+        server_user=server_user, server_pw='invalid-unit-test'
+    )
+    execute_csv2_request(
+        gvar, 1, None, 'cannot switch to invalid group "{}".'.format(userless_group),
+        request, group=userless_group, server_user=server_user
+    )
 
 def parameters_requests(gvar, request, group, server_user, PARAMETERS):
     '''Execute requests with missing parameters and bad parameters.

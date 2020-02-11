@@ -85,7 +85,6 @@ def main(gvar):
         server_user=ut_id(gvar, 'atu1')
     )
 
-    ''' Disabled because deleting the group fails to delete this alias.
     # Alias to be deleted.
     execute_csv2_request(
         gvar, 0, None, 'cloud alias "{}.{}" successfully added.'.format(ut_id(gvar, 'atg1'), ut_id(gvar, 'atc1a1')),
@@ -95,7 +94,6 @@ def main(gvar):
         },
         server_user=ut_id(gvar, 'atu1')
     )
-    '''
 
 if __name__ == '__main__':
     main(None)
