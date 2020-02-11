@@ -113,6 +113,7 @@ IGNORE_METADATA_NAME = {
 
 IGNORE_KEYS = {
     'format': {
+        'alias_name':                                 'ignore',
         'cloud_name':                                 'ignore',
         'fingerprint':                                'ignore',
         'id':                                         'ignore',
@@ -399,6 +400,7 @@ def delete(request):
                 'csv2_groups',
                 'csv2_group_metadata',
                 'csv2_clouds',
+                'csv2_cloud_aliases',
                 'csv2_cloud_metadata',
                 'csv2_group_metadata_exclusions',
                 'csv2_user_groups',
@@ -413,6 +415,16 @@ def delete(request):
         if rc != 0:
             config.db_close()
             return list(request, active_user=active_user, response_code=1, message='%s group delete %s' % (lno(MODID), msg))
+
+        # Delete the csv2_cloud_aliases.
+        table = tables['csv2_cloud_aliases']
+        rc, msg = config.db_session_execute(
+            table.delete(table.c.group_name==fields['group_name']),
+            allow_no_rows=True
+            )
+        if rc != 0:
+            config.db_close()
+            return list(request, active_user=active_user, response_code=1, message='%s group resources delete "%s" failed - %s.' % (lno(MODID), fields['group_name'], msg))
 
         # Delete any group metadata files for the group.
         s = select([view_groups_with_metadata_names]).where((view_groups_with_metadata_names.c.group_name == fields['group_name']))

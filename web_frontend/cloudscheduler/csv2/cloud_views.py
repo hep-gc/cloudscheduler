@@ -560,7 +560,7 @@ def delete(request):
 
     if request.method == 'POST':
         # Validate input fields.
-        rc, msg, fields, tables, columns = validate_fields(config, request, [CLOUD_KEYS, IGNORE_METADATA_NAME], ['csv2_clouds', 'csv2_cloud_metadata', 'csv2_group_metadata_exclusions'], active_user)
+        rc, msg, fields, tables, columns = validate_fields(config, request, [CLOUD_KEYS, IGNORE_METADATA_NAME], ['csv2_clouds', 'csv2_cloud_aliases,n', 'csv2_cloud_metadata', 'csv2_group_metadata_exclusions'], active_user)
         if rc != 0:
             config.db_close()
             return list(request, active_user=active_user, response_code=1, message='%s cloud delete %s' % (lno(MODID), msg))
@@ -570,6 +570,15 @@ def delete(request):
         if rc != 0:
             config.db_close()
             return list(request, active_user=active_user, response_code=1, message='%s cloud delete "%s::%s" failed - %s.' % (lno(MODID), fields['group_name'], fields['cloud_name'], msg))
+
+        # Delete the cloud from any aliases it is a part of.
+        table = tables['csv2_cloud_aliases']
+        rc, msg = config.db_session_execute(
+            table.delete((table.c.group_name==fields['group_name']) & (table.c.cloud_name==fields['cloud_name'])),
+            allow_no_rows=True)
+        if rc != 0:
+            config.db_close()
+            return list(request, active_user=active_user, response_code=1, message='%s delete cloud "%s::%s" from aliases failed - %s.' % (lno(MODID), fields['group_name'], fields['cloud_name'], msg))
 
         # Delete any metadata files for the cloud.
         table = tables['csv2_cloud_metadata']
