@@ -12,17 +12,17 @@ def main(gvar):
         gvar['user_secret'] = generate_secret()
 
     # Bad requests.
-    # 01 - 04
+    # 01 - 05
     sanity_requests(gvar, '/alias/list/', ut_id(gvar, 'atg1'), ut_id(gvar, 'atu1'), ut_id(gvar, 'atg2'), ut_id(gvar, 'atu2'))
 
-    # 05
+    # 06
     execute_csv2_request(
         gvar, 1, None, 'cloud alias list, request contained a bad parameter "invalid-unit-test".',
         '/alias/list/', group=ut_id(gvar, 'atg1'), form_data={'invalid-unit-test': 'invalid-unit-test'},
         server_user=ut_id(gvar, 'atu1')
     )
 
-    # 16 Find atc1a1 in the list.
+    # 07 Find atc1a1 in the list.
     execute_csv2_request(
         gvar, 0, None, None,
         '/alias/list/', group=ut_id(gvar, 'atg1'),

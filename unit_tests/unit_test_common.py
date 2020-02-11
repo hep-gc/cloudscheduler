@@ -247,8 +247,11 @@ def sanity_requests(gvar, request, group, server_user, userless_group, groupless
     )
     execute_csv2_request(
         gvar, 2, None, 'server "unit-test", HTTP response code 401, unauthorized.',
-        request, group=group,
-        server_user=server_user, server_pw='invalid-unit-test'
+        request, group=group, server_user=server_user, server_pw='invalid-unit-test'
+    )
+    execute_csv2_request(
+        gvar, 1, None, 'cannot switch to invalid group "invalid-unit-test".',
+        request, group='invalid-unit-test', server_user=server_user
     )
     execute_csv2_request(
         gvar, 1, None, 'cannot switch to invalid group "{}".'.format(userless_group),

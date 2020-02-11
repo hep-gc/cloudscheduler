@@ -1,4 +1,4 @@
-from unit_test_common import execute_csv2_request, initialize_csv2_request, ut_id
+from unit_test_common import execute_csv2_request, initialize_csv2_request, ut_id, sanity_requests, parameters_requests
 from sys import argv
 
 # lno: CV - error code identifier.
@@ -10,566 +10,104 @@ def main(gvar):
             initialize_csv2_request(gvar, argv[0], selections=argv[1])
         else:
             initialize_csv2_request(gvar, argv[0])
+
+    # 20-02-11: Do not trust test numbering.
+
+    # Bad requests.
+    # 01 - 04
+    sanity_requests(gvar, '/cloud/add/', ut_id(gvar, 'ctg1'), ut_id(gvar, 'ctu3'), ut_id(gvar, 'ctg2'), ut_id(gvar, 'ctu1'))
     
-    # 1
-    execute_csv2_request(
-        gvar, 2, None, 'HTTP response code 401, unauthorized.',
-        '/cloud/add/', group=ut_id(gvar, 'ctg1'),
-        server_user='invalid-unit-test'
-    )
-
-    # 2
-    execute_csv2_request(
-        gvar, 1, None, 'user "{}" is not a member of any group.'.format(ut_id(gvar, 'ctu1')),
-        '/cloud/add/', group=ut_id(gvar, 'ctg1'),
-        server_user=ut_id(gvar, 'ctu1')
-    )
-
-    # 3
-    execute_csv2_request(
-        gvar, 1, None, 'user "{}" is not a member of any group.'.format(ut_id(gvar, 'ctu2')),
-        '/cloud/add/', group=ut_id(gvar, 'ctg1'),
-        server_user=ut_id(gvar, 'ctu2')
-    )
-
-    # 4
+    # 4 Omit form_data.
     execute_csv2_request(
         gvar, 1, 'CV', 'cloud add request did not contain mandatory parameter "cloud_name".',
         '/cloud/add/', group=ut_id(gvar, 'ctg1'),
         server_user=ut_id(gvar, 'ctu3')
     )
 
-    # 5
-    execute_csv2_request(
-        gvar, 1, 'CV', 'cloud add request did not contain mandatory parameter "cloud_name".',
-        '/cloud/add/', group=ut_id(gvar, 'ctg1'),
-        server_user=ut_id(gvar, 'ctu3')
-    )
+    PARAMETERS = [
+        # 05 Give an invalid parameter.
+        # 06 Omit cloud_name.
+        ('cloud_name', [
+            # 07
+            ('', 'cloud add value specified for "cloud_name" must not be the empty string.'),
+            # 08
+            ('Invalid-Unit-Test', 'cloud add value specified for "cloud_name" must be all lowercase letters, digits, dashes, underscores, periods, and colons, and cannot contain more than one consecutive dash or start or end with a dash.'),
+            # 09
+            ('-invalid-unit-test', 'cloud add value specified for "cloud_name" must be all lowercase letters, digits, dashes, underscores, periods, and colons, and cannot contain more than one consecutive dash or start or end with a dash.'),
+            # 10
+            ('invalid-unit-test!', 'cloud add value specified for "cloud_name" must be all lowercase letters, digits, dashes, underscores, periods, and colons, and cannot contain more than one consecutive dash or start or end with a dash.'),
+            # 11
+            ('cloud-name-that-is-too-long-for-the-database', 'Data too long for column \'cloud_name\' at row 1')
+        ], 'invalid-unit-test'),
+        # 12 Omit cloud_type.
+        # 13
+        ('cloud_type', [('invalid-unit-test', 'cloud add value specified for "cloud_type" must be one of the following options: [\'amazon\', \'azure\', \'google\', \'local\', \'opennebula\', \'openstack\'].')], 'local'),
+        # 14 Omit authurl.
+        # 15
+        ('authurl', [('', 'cloud add parameter "authurl" contains an empty string which is specifically disallowed.')], 'invalid-unit-test'),
+        # 16 Omit username.
+        # 17
+        ('username', [('', 'cloud add parameter "username" contains an empty string which is specifically disallowed.')], 'invalid-unit-test'),
+        # 18 Omit password.
+        # 19
+        ('password', [('', 'cloud add parameter "password" contains an empty string which is specifically disallowed.')], 'invalid-unit-test'),
+        # 20 Omit project.
+        # 21
+        ('project', [('', 'cloud add parameter "project" contains an empty string which is specifically disallowed.')], 'invalid-unit-test'),
+        # 22 Omit region.
+        # 23
+        ('region', [('', 'cloud add parameter "region" contains an empty string which is specifically disallowed.')], 'invalid-unit-test'),
+        # 24 Specify a parameter that is explicitly rejected.
+        ('server_meta_ctl', [('invalid-unit-test', 'bad parameter "server_meta_ctl"')]),
+        # 25
+        ('ram_ctl', [
+            ('invalid-unit-test', 'cloud add value specified for "ram_ctl" must be an integer value.'),
+            (-3, 'TODO')
+        ]),
+        # 26
+        ('cores_ctl', [('invalid-unit-test', 'cloud add value specified for "cores_ctl" must be an integer value.')]),
+        # 27
+        ('vm_keep_alive', [('invalid-unit-test', 'cloud add value specified for "vm_keep_alive" must be an integer value.')]),
+        # 28
+        ('enabled', [('invalid-unit-test', 'cloud add boolean value specified for "enabled" must be one of the following: true, false, yes, no, 1, or 0.')]),
+        # 29
+        ('spot_price', [('invalid-unit-test', 'cloud add value specified for "spot_price" must be a floating point value.')]),
+        # 30
+        ('metadata_name', [('invalid-unit-test', 'cloud add, "invalid-unit-test" failed - specified metadata_name "invalid-unit-test" does not exist.')]),
+        # 31
+        ('vm_image', [('invalid-unit-test', 'cloud add, "invalid-unit-test" failed - specified item does not exist: vm_image=invalid-unit-test, group_name={}, cloud_name=invalid-unit-test.'.format(ut_id(gvar, 'ctg1')))]),
+        # 32
+        ('vm_flavor', [('invalid-unit-test', 'cloud add, "invalid-unit-test" failed - specified item does not exist: vm_flavor=invalid-unit-test, group_name={}, cloud_name=invalid-unit-test.'.format(ut_id(gvar, 'ctg1')))]),
+        # 33
+        ('vm_network', [('invalid-unit-test', 'cloud add, "invalid-unit-test" failed - specified item does not exist: vm_network=invalid-unit-test, group_name={}, cloud_name=invalid-unit-test.'.format(ut_id(gvar, 'ctg1')))]),
+        # 34
+        ('vm_keyname', [('invalid-unit-test', 'cloud add, "invalid-unit-test" failed - specified item does not exist: vm_keyname=invalid-unit-test, group_name={}, cloud_name=invalid-unit-test.'.format(ut_id(gvar, 'ctg1')))])
+    ]
 
-    # 6
-    execute_csv2_request(
-        gvar, 1, 'CV', 'cloud add request contained a bad parameter "invalid-unit-test".',
-        '/cloud/add/', group=ut_id(gvar, 'ctg1'),
-        form_data={'cloud_name': ut_id(gvar, 'cloud-invalid-unit-test'), 'invalid-unit-test': 'invalid-unit-test'},
-        server_user=ut_id(gvar, 'ctu3')
-    )
+    parameters_requests(gvar, '/cloud/add/', ut_id(gvar, 'ctg1'), ut_id(gvar, 'ctu3'), PARAMETERS)
 
-    # 7
+    # Parameter combinations that do not fit well into the above format.
+    # 35 Give two cloud names.
     execute_csv2_request(
-        gvar, 1, 'CV', 'cannot switch to invalid group "invalid-unit-test".',
-        '/cloud/add/', group='invalid-unit-test', form_data={'cloud_name': ut_id(gvar, 'cloud-invalid-unit-test')},
-        server_user=ut_id(gvar, 'ctu3')
-    )
-
-    # 8
-    execute_csv2_request(
-        gvar, 1, 'CV', 'cannot switch to invalid group "{}".'.format(ut_id(gvar, 'ctg2')),
-        '/cloud/add/', group=ut_id(gvar, 'ctg2'), form_data={'cloud_name': ut_id(gvar, 'cloud-invalid-unit-test')},
-        server_user=ut_id(gvar, 'ctu3')
-    )
-
-    # 9
-    execute_csv2_request(
-        gvar, 1, 'CV', 'value specified for "cloud_name" must be all lower case, numeric digits, and dashes but cannot start or end with dashes.',
-        '/cloud/add/', group=ut_id(gvar, 'ctg1'), form_data={'cloud_name': 'Invalid-Unit-Test'},
-        server_user=ut_id(gvar, 'ctu3')
-    )
-
-    # 10
-    execute_csv2_request(
-        gvar, 1, 'CV', 'value specified for "cloud_name" must be all lower case, numeric digits, and dashes but cannot start or end with dashes.',
-        '/cloud/add/', group=ut_id(gvar, 'ctg1'), form_data={'cloud_name': 'invalid-unit-test-'},
-        server_user=ut_id(gvar, 'ctu3')
-    )
-
-    # 11
-    execute_csv2_request(
-        gvar, 1, 'CV', 'value specified for "cloud_name" must be all lower case, numeric digits, and dashes but cannot start or end with dashes.',
-        '/cloud/add/', group=ut_id(gvar, 'ctg1'), form_data={'cloud_name': 'invalid-unit-test!'},
-        server_user=ut_id(gvar, 'ctu3')
-    )
-
-    # 12
-    execute_csv2_request(
-        gvar, 1, 'CV', 'cloud add request did not contain mandatory parameter "authurl".',
+        gvar, 1, 'CV', 'Operand should contain 1 column(s)',
         '/cloud/add/', group=ut_id(gvar, 'ctg1'), form_data={
-            'cloud_name': ut_id(gvar, 'cloud-invalid-unit-test'),
-            'project': 'invalid-unit-test',
-            'username': 'invalid-unit-test',
-            'password': 'invalid-unit-test',
-            'region': 'invalid-unit-test',
-            'cloud_type': 'local'
-            },
-        server_user=ut_id(gvar, 'ctu3')
-    )
-
-    # 13
-    execute_csv2_request(
-        gvar, 1, 'CV', 'cloud add request did not contain mandatory parameter "project".',
-            '/cloud/add/', group=ut_id(gvar, 'ctg1'), form_data={
-            'cloud_name': ut_id(gvar, 'cloud-invalid-unit-test'),
-            'authurl': 'invalid-unit-test',
-            'username': 'invalid-unit-test',
-            'password': 'invalid-unit-test',
-            'region': 'invalid-unit-test',
-            'cloud_type': 'local'
-            },
-        server_user=ut_id(gvar, 'ctu3')
-    )
-
-    # 14
-    execute_csv2_request(
-        gvar, 1, 'CV', 'cloud add request did not contain mandatory parameter "username".',
-        '/cloud/add/', group=ut_id(gvar, 'ctg1'), form_data={
-            'cloud_name': ut_id(gvar, 'cloud-invalid-unit-test'),
-            'authurl': 'invalid-unit-test',
-            'project': 'invalid-unit-test',
-            'password': 'invalid-unit-test',
-            'region': 'invalid-unit-test',
-            'cloud_type': 'local'
-            },
-        server_user=ut_id(gvar, 'ctu3')
-    )
-
-    # 15
-    execute_csv2_request(
-        gvar, 1, 'CV', 'cloud add request did not contain mandatory parameter "password".',
-        '/cloud/add/', group=ut_id(gvar, 'ctg1'), form_data={
-            'cloud_name': ut_id(gvar, 'cloud-invalid-unit-test'),
-            'authurl': 'invalid-unit-test',
-            'project': 'invalid-unit-test',
-            'username': 'invalid-unit-test',
-            'region': 'invalid-unit-test',
-            'cloud_type': 'local'
-            },
-        server_user=ut_id(gvar, 'ctu3')
-    )
-
-    # 16
-    execute_csv2_request(
-        gvar, 1, 'CV', 'cloud add request did not contain mandatory parameter "region".',
-        '/cloud/add/', group=ut_id(gvar, 'ctg1'), form_data={
-            'cloud_name': ut_id(gvar, 'cloud-invalid-unit-test'),
-            'authurl': 'invalid-unit-test',
-            'project': 'invalid-unit-test',
-            'username': 'invalid-unit-test',
-            'password': 'invalid-unit-test',
-            'cloud_type': 'local'
-            },
-        server_user=ut_id(gvar, 'ctu3')
-    )
-
-    # 17
-    execute_csv2_request(
-        gvar, 1, 'CV', 'cloud add request did not contain mandatory parameter "cloud_type".',
-        '/cloud/add/', group=ut_id(gvar, 'ctg1'), form_data={
-            'cloud_name': ut_id(gvar, 'cloud-invalid-unit-test'),
-            'authurl': 'invalid-unit-test',
-            'project': 'invalid-unit-test',
-            'username': 'invalid-unit-test',
-            'password': 'invalid-unit-test',
-            'region': 'invalid-unit-test'
-            },
-        server_user=ut_id(gvar, 'ctu3')
-    )
-
-    # 18
-    execute_csv2_request(
-        gvar, 1, 'CV', 'value specified for "cloud_type" must be one of the following options: [\'amazon\', \'azure\', \'google\', \'local\', \'opennebula\', \'openstack\'].',
-        '/cloud/add/', group=ut_id(gvar, 'ctg1'), form_data={
-            'cloud_name': ut_id(gvar, 'cloud-invalid-unit-test'),
-            'authurl': 'invalid-unit-test',
-            'project': 'invalid-unit-test',
-            'username': 'invalid-unit-test',
-            'password': 'invalid-unit-test',
-            'region': 'invalid-unit-test',
-            'cloud_type': 'invalid-unit-test'
-            },
-        server_user=ut_id(gvar, 'ctu3')
-    )
-
-    # 19
-    execute_csv2_request(
-        gvar, 1, 'CV', 'value specified for "cloud_name" must be all lower case, numeric digits, and dashes but cannot start or end with dashes.',
-        '/cloud/add/', group=ut_id(gvar, 'ctg1'), form_data={
-            'cloud_name': '',
-            'authurl': 'invalid-unit-test',
-            'project': 'invalid-unit-test',
-            'username': 'invalid-unit-test',
-            'password': 'invalid-unit-test',
-            'region': 'invalid-unit-test',
+            'cloud_name.1': 'invalid-unit-test',
+            'cloud_name.2': 'invalid-unit-test',
             'cloud_type': 'local',
-            },
-        server_user=ut_id(gvar, 'ctu3')
-    )
-
-    # 20
-    execute_csv2_request(
-        gvar, 1, 'CV', 'cloud add parameter "authurl" contains an empty string which is specifically disallowed.',
-        '/cloud/add/', group=ut_id(gvar, 'ctg1'), form_data={
-            'cloud_name': ut_id(gvar, 'cloud-invalid-unit-test'),
-            'authurl': '',
-            'project': 'invalid-unit-test',
+            'authurl': 'invalid-unit-test',
             'username': 'invalid-unit-test',
             'password': 'invalid-unit-test',
-            'region': 'invalid-unit-test',
-            'cloud_type': 'local',
-            },
-        server_user=ut_id(gvar, 'ctu3')
-    )
-
-    # 21
-    execute_csv2_request(
-        gvar, 1, 'CV', 'cloud add parameter "project" contains an empty string which is specifically disallowed.',
-        '/cloud/add/', group=ut_id(gvar, 'ctg1'), form_data={
-            'cloud_name': ut_id(gvar, 'cloud-invalid-unit-test'),
-            'authurl': 'invalid-unit-test',
-            'project': '',
-            'username': 'invalid-unit-test',
-            'password': 'invalid-unit-test',
-            'region': 'invalid-unit-test',
-            'cloud_type': 'local',
-            },
-        server_user=ut_id(gvar, 'ctu3')
-    )
-
-    # 22
-    execute_csv2_request(
-        gvar, 1, 'CV', 'cloud add parameter "username" contains an empty string which is specifically disallowed.',
-        '/cloud/add/', group=ut_id(gvar, 'ctg1'), form_data={
-            'cloud_name': ut_id(gvar, 'cloud-invalid-unit-test'),
-            'authurl': 'invalid-unit-test',
             'project': 'invalid-unit-test',
-            'username': '',
-            'password': 'invalid-unit-test',
             'region': 'invalid-unit-test',
-            'cloud_type': 'local',
-            },
-        server_user=ut_id(gvar, 'ctu3')
-    )
-
-    # 23
-    execute_csv2_request(
-        gvar, 1, 'CV', 'cloud add parameter "password" contains an empty string which is specifically disallowed.',
-        '/cloud/add/', group=ut_id(gvar, 'ctg1'), form_data={
-            'cloud_name': ut_id(gvar, 'cloud-invalid-unit-test'),
-            'authurl': 'invalid-unit-test',
-            'project': 'invalid-unit-test',
-            'username': 'invalid-unit-test',
-            'password': '',
-            'region': 'invalid-unit-test',
-            'cloud_type': 'local',
-            },
-        server_user=ut_id(gvar, 'ctu3')
-    )
-
-    # 24
-    execute_csv2_request(
-        gvar, 1, 'CV', 'cloud add parameter "region" contains an empty string which is specifically disallowed.',
-        '/cloud/add/', group=ut_id(gvar, 'ctg1'), form_data={
-            'cloud_name': ut_id(gvar, 'cloud-invalid-unit-test'),
-            'authurl': 'invalid-unit-test',
-            'project': 'invalid-unit-test',
-            'username': 'invalid-unit-test',
-            'password': 'invalid-unit-test',
-            'region': '',
-            'cloud_type': 'local',
-            },
-        server_user=ut_id(gvar, 'ctu3')
-    )
-
-    # 25
-    execute_csv2_request(
-        gvar, 1, 'CV', 'bad parameter "server_meta_ctl"',
-        '/cloud/add/', group=ut_id(gvar, 'ctg1'), form_data={
-            'cloud_name': ut_id(gvar, 'cloud-invalid-unit-test'),
-            'authurl': 'invalid-unit-test',
-            'project': 'invalid-unit-test',
-            'username': 'invalid-unit-test',
-            'password': 'invalid-unit-test',
-            'region': 'invalid-unit-test',
-            'cloud_type': 'local',
-            'server_meta_ctl': 'invalid-unit-test'
-            },
-        server_user=ut_id(gvar, 'ctu3')
-    )
-
-    # 26
-    execute_csv2_request(
-        gvar, 1, 'CV', 'bad parameter "instances_ctl"',
-        '/cloud/add/', group=ut_id(gvar, 'ctg1'), form_data={
-            'cloud_name': ut_id(gvar, 'cloud-invalid-unit-test'),
-            'authurl': 'invalid-unit-test',
-            'project': 'invalid-unit-test',
-            'username': 'invalid-unit-test',
-            'password': 'invalid-unit-test',
-            'region': 'invalid-unit-test',
-            'cloud_type': 'local',
-            'instances_ctl': 'invalid-unit-test'
-            },
-        server_user=ut_id(gvar, 'ctu3')
-    )
-
-    # 27
-    execute_csv2_request(
-        gvar, 1, 'CV', 'bad parameter "personality_ctl"',
-        '/cloud/add/', group=ut_id(gvar, 'ctg1'), form_data={
-            'cloud_name': ut_id(gvar, 'cloud-invalid-unit-test'),
-            'authurl': 'invalid-unit-test',
-            'project': 'invalid-unit-test',
-            'username': 'invalid-unit-test',
-            'password': 'invalid-unit-test',
-            'region': 'invalid-unit-test',
-            'cloud_type': 'local',
-            'personality_ctl': 'invalid-unit-test'
-            },
-        server_user=ut_id(gvar, 'ctu3')
-    )
-
-    # 28
-    execute_csv2_request(
-        gvar, 1, 'CV', 'bad parameter "image_meta_ctl"',
-        '/cloud/add/', group=ut_id(gvar, 'ctg1'), form_data={
-            'cloud_name': ut_id(gvar, 'cloud-invalid-unit-test'),
-            'authurl': 'invalid-unit-test',
-            'project': 'invalid-unit-test',
-            'username': 'invalid-unit-test',
-            'password': 'invalid-unit-test',
-            'region': 'invalid-unit-test',
-            'cloud_type': 'local',
-            'image_meta_ctl': 'invalid-unit-test'
-            },
-        server_user=ut_id(gvar, 'ctu3')
-    )
-
-    # 29
-    execute_csv2_request(
-        gvar, 1, 'CV', 'bad parameter "personality_size_ctl"',
-        '/cloud/add/', group=ut_id(gvar, 'ctg1'), form_data={
-            'cloud_name': ut_id(gvar, 'cloud-invalid-unit-test'),
-            'authurl': 'invalid-unit-test',
-            'project': 'invalid-unit-test',
-            'username': 'invalid-unit-test',
-            'password': 'invalid-unit-test',
-            'region': 'invalid-unit-test',
-            'cloud_type': 'local',
-            'personality_size_ctl': 'invalid-unit-test'
-            },
-        server_user=ut_id(gvar, 'ctu3')
-    )
-
-    # 30
-    execute_csv2_request(
-        gvar, 1, 'CV', 'value specified for "ram_ctl" must be an integer value.',
-        '/cloud/add/', group=ut_id(gvar, 'ctg1'), form_data={
-            'cloud_name': ut_id(gvar, 'cloud-invalid-unit-test'),
-            'authurl': 'invalid-unit-test',
-            'project': 'invalid-unit-test',
-            'username': 'invalid-unit-test',
-            'password': 'invalid-unit-test',
-            'region': 'invalid-unit-test',
-            'cloud_type': 'local',
-            'ram_ctl': 'invalid-unit-test'
-            },
-        server_user=ut_id(gvar, 'ctu3')
-    )
-
-    # 31
-    execute_csv2_request(
-        gvar, 1, 'CV', 'bad parameter "server_groups_ctl"',
-        '/cloud/add/', group=ut_id(gvar, 'ctg1'), form_data={
-            'cloud_name': ut_id(gvar, 'cloud-invalid-unit-test'),
-            'authurl': 'invalid-unit-test',
-            'project': 'invalid-unit-test',
-            'username': 'invalid-unit-test',
-            'password': 'invalid-unit-test',
-            'region': 'invalid-unit-test',
-            'cloud_type': 'local',
-            'server_groups_ctl': 'invalid-unit-test'
-            },
-        server_user=ut_id(gvar, 'ctu3')
-    )
-
-    # 32
-    execute_csv2_request(
-        gvar, 1, 'CV', 'bad parameter "security_group_rules_ctl"',
-        '/cloud/add/', group=ut_id(gvar, 'ctg1'), form_data={
-            'cloud_name': ut_id(gvar, 'cloud-invalid-unit-test'),
-            'authurl': 'invalid-unit-test',
-            'project': 'invalid-unit-test',
-            'username': 'invalid-unit-test',
-            'password': 'invalid-unit-test',
-            'region': 'invalid-unit-test',
-            'cloud_type': 'local',
-            'security_group_rules_ctl': 'invalid-unit-test'
-            },
-        server_user=ut_id(gvar, 'ctu3')
-    )
-
-    # 33
-    execute_csv2_request(
-        gvar, 1, 'CV', 'bad parameter "keypairs_ctl"',
-        '/cloud/add/', group=ut_id(gvar, 'ctg1'), form_data={
-            'cloud_name': ut_id(gvar, 'cloud-invalid-unit-test'),
-            'authurl': 'invalid-unit-test',
-            'project': 'invalid-unit-test',
-            'username': 'invalid-unit-test',
-            'password': 'invalid-unit-test',
-            'region': 'invalid-unit-test',
-            'cloud_type': 'local',
-            'keypairs_ctl': 'invalid-unit-test'
-            },
-        server_user=ut_id(gvar, 'ctu3')
-    )
-
-    # 34
-    execute_csv2_request(
-        gvar, 1, 'CV', 'bad parameter "security_groups_ctl"',
-        '/cloud/add/', group=ut_id(gvar, 'ctg1'), form_data={
-            'cloud_name': ut_id(gvar, 'cloud-invalid-unit-test'),
-            'authurl': 'invalid-unit-test',
-            'project': 'invalid-unit-test',
-            'username': 'invalid-unit-test',
-            'password': 'invalid-unit-test',
-            'region': 'invalid-unit-test',
-            'cloud_type': 'local',
-            'security_groups_ctl': 'invalid-unit-test'
             },
         server_user=ut_id(gvar, 'ctu3')
     )
 
     # 35
     execute_csv2_request(
-        gvar, 1, 'CV', 'bad parameter "server_group_members_ctl"',
+        gvar, 1, 'CV', 'cloud add, "invalid-unit-test" failed - specified metadata_name "invalid-unit-test" does not exist.',
         '/cloud/add/', group=ut_id(gvar, 'ctg1'), form_data={
-            'cloud_name': ut_id(gvar, 'cloud-invalid-unit-test'),
-            'authurl': 'invalid-unit-test',
-            'project': 'invalid-unit-test',
-            'username': 'invalid-unit-test',
-            'password': 'invalid-unit-test',
-            'region': 'invalid-unit-test',
-            'cloud_type': 'local',
-            'server_group_members_ctl': 'invalid-unit-test'
-            },
-        server_user=ut_id(gvar, 'ctu3')
-    )
-
-    # 36
-    execute_csv2_request(
-        gvar, 1, 'CV', 'bad parameter "floating_ips_ctl"',
-        '/cloud/add/', group=ut_id(gvar, 'ctg1'), form_data={
-            'cloud_name': ut_id(gvar, 'cloud-invalid-unit-test'),
-            'authurl': 'invalid-unit-test',
-            'project': 'invalid-unit-test',
-            'username': 'invalid-unit-test',
-            'password': 'invalid-unit-test',
-            'region': 'invalid-unit-test',
-            'cloud_type': 'local',
-            'floating_ips_ctl': 'invalid-unit-test'
-            },
-        server_user=ut_id(gvar, 'ctu3')
-    )
-
-    # 37
-    execute_csv2_request(
-        gvar, 1, 'CV', 'value specified for "cores_ctl" must be an integer value.',
-        '/cloud/add/', group=ut_id(gvar, 'ctg1'), form_data={
-            'cloud_name': ut_id(gvar, 'cloud-invalid-unit-test'),
-            'authurl': 'invalid-unit-test',
-            'project': 'invalid-unit-test',
-            'username': 'invalid-unit-test',
-            'password': 'invalid-unit-test',
-            'region': 'invalid-unit-test',
-            'cloud_type': 'local',
-            'cores_ctl': 'invalid-unit-test'
-            },
-        server_user=ut_id(gvar, 'ctu3')
-    )
-
-    # 38
-    execute_csv2_request(
-        gvar, 1, 'CV', 'value specified for "vm_keep_alive" must be an integer value.',
-        '/cloud/add/', group=ut_id(gvar, 'ctg1'), form_data={
-            'cloud_name': ut_id(gvar, 'cloud-invalid-unit-test'),
-            'authurl': 'invalid-unit-test',
-            'project': 'invalid-unit-test',
-            'username': 'invalid-unit-test',
-            'password': 'invalid-unit-test',
-            'region': 'invalid-unit-test',
-            'cloud_type': 'local',
-            'vm_keep_alive': 'invalid-unit-test'
-            },
-        server_user=ut_id(gvar, 'ctu3')
-    )
-
-    # 39
-    execute_csv2_request(
-        gvar, 1, 'CV', 'boolean value specified for "enabled" must be one of the following: true, false, yes, no, 1, or 0.',
-        '/cloud/add/', group=ut_id(gvar, 'ctg1'), form_data={
-            'cloud_name': ut_id(gvar, 'cloud-invalid-unit-test'),
-            'authurl': 'invalid-unit-test',
-            'project': 'invalid-unit-test',
-            'username': 'invalid-unit-test',
-            'password': 'invalid-unit-test',
-            'region': 'invalid-unit-test',
-            'cloud_type': 'local',
-            'enabled': 'invalid-unit-test'
-            },
-        server_user=ut_id(gvar, 'ctu3')
-    )
-
-    # 40
-    execute_csv2_request(
-        gvar, 1, 'CV', 'Data too long for column \'cloud_name\' at row 1',
-        '/cloud/add/', group=ut_id(gvar, 'ctg1'), form_data={
-            'cloud_name': 'cloudnametoolongtobeinsertedintodb',
-            'authurl': 'invalid-unit-test',
-            'project': 'invalid-unit-test',
-            'username': 'invalid-unit-test',
-            'password': 'invalid-unit-test',
-            'region': 'invalid-unit-test',
-            'cloud_type': 'local'
-            },
-        server_user=ut_id(gvar, 'ctu3')
-    )
-
-    # 41
-    execute_csv2_request(
-        gvar, 1, 'CV', 'cloud add value specified for "spot_price" must be a floating point value.',
-        '/cloud/add/', group=ut_id(gvar, 'ctg1'), form_data={
-            'cloud_name': ut_id(gvar, 'cloud-invalid-unit-test'),
-            'authurl': 'invalid-unit-test',
-            'project': 'invalid-unit-test',
-            'username': 'invalid-unit-test',
-            'password': 'invalid-unit-test',
-            'region': 'invalid-unit-test',
-            'cloud_type': 'local',
-            'spot_price': 'invalid-unit-test'
-            },
-        server_user=ut_id(gvar, 'ctu3')
-    )
-
-    # 42
-    execute_csv2_request(
-        gvar, 1, 'CV', 'cloud add, "{}" failed - specified metadata_name "invalid-unit-test" does not exist.'.format(ut_id(gvar, 'cloud-invalid-unit-test')),
-        '/cloud/add/', group=ut_id(gvar, 'ctg1'), form_data={
-            'cloud_name': ut_id(gvar, 'cloud-invalid-unit-test'),
-            'authurl': 'invalid-unit-test',
-            'project': 'invalid-unit-test',
-            'username': 'invalid-unit-test',
-            'password': 'invalid-unit-test',
-            'region': 'invalid-unit-test',
-            'cloud_type': 'local',
-            'metadata_name': 'invalid-unit-test'
-            },
-        server_user=ut_id(gvar, 'ctu3')
-    )
-
-    # 43
-    execute_csv2_request(
-        gvar, 1, 'CV', 'cloud add, "{}" failed - specified metadata_name "invalid-unit-test" does not exist.'.format(ut_id(gvar, 'cloud-invalid-unit-test')),
-        '/cloud/add/', group=ut_id(gvar, 'ctg1'), form_data={
-            'cloud_name': ut_id(gvar, 'cloud-invalid-unit-test'),
+            'cloud_name': 'invalid-unit-test',
             'authurl': 'invalid-unit-test',
             'project': 'invalid-unit-test',
             'username': 'invalid-unit-test',
@@ -582,7 +120,7 @@ def main(gvar):
         server_user=ut_id(gvar, 'ctu3')
     )
 
-    # 44
+    # 36
     execute_csv2_request(
         gvar, 1, 'CV', 'cloud add, "{}" failed - metadata name "{}" was specified twice.'.format(ut_id(gvar, 'cloud-invalid-unit-test'), ut_id(gvar, 'cty1')),
         '/cloud/add/', group=ut_id(gvar, 'ctg1'), form_data={
@@ -599,8 +137,7 @@ def main(gvar):
         server_user=ut_id(gvar, 'ctu3')
     )
 
-    # 45
-    # Known to fail if run twice without setup or cleanup in between.
+    # 37 Known to fail if run twice without setup or cleanup in between.
     execute_csv2_request(
         gvar, 0, None, 'cloud "{}::{}" successfully added.'.format(ut_id(gvar, 'ctg1'), ut_id(gvar, 'ctc5')),
         '/cloud/add/', group=ut_id(gvar, 'ctg1'), form_data={
@@ -628,8 +165,7 @@ def main(gvar):
         server_user=ut_id(gvar, 'ctu3')
     )
 
-    # 46
-    # Ensure that 45 actually created a cloud.
+    # 38 Ensure that 45 actually created a cloud.
     execute_csv2_request(
         gvar, 0, None, None,
         '/cloud/list/', group=ut_id(gvar, 'ctg1'),
@@ -660,8 +196,7 @@ def main(gvar):
         server_user=ut_id(gvar, 'ctu3')
     )
 
-    # 47
-    # Known to fail if run twice without setup or cleanup in between.
+    # 39 Known to fail if run twice without setup or cleanup in between.
     execute_csv2_request(
         gvar, 0, None, 'cloud "{}::{}" successfully added.'.format(ut_id(gvar, 'ctg1'), ut_id(gvar, 'ctc6')),
         '/cloud/add/', group=ut_id(gvar, 'ctg1'), form_data={
@@ -679,8 +214,7 @@ def main(gvar):
         server_user=ut_id(gvar, 'ctu3')
     )
 
-    # 48
-    # Ensure that 47 actually created a cloud.
+    # 40 Ensure that 47 actually created a cloud.
     execute_csv2_request(
         gvar, 0, None, None,
         '/cloud/list/', group=ut_id(gvar, 'ctg1'),
@@ -693,7 +227,7 @@ def main(gvar):
         server_user=ut_id(gvar, 'ctu3')
     )
 
-    # 49
+    # 41 Attempt to create a cloud that already exists.
     execute_csv2_request(
         gvar, 1, 'CV', 'Duplicate entry \'{}-{}\' for key \'PRIMARY\''.format(ut_id(gvar, 'ctg1'), ut_id(gvar, 'ctc5')),
         '/cloud/add/', group=ut_id(gvar, 'ctg1'), form_data={
@@ -704,70 +238,6 @@ def main(gvar):
             'password': gvar['user_secret'],
             'region': ut_id(gvar, 'ctc5-r'),
             'cloud_type': 'local'
-            },
-        server_user=ut_id(gvar, 'ctu3')
-    )
-
-    # 50
-    execute_csv2_request(
-        gvar, 1, 'CV', 'cloud add, "{0}" failed - specified item does not exist: vm_image=invalid-unit-test, group_name={1}, cloud_name={0}.'.format(ut_id(gvar, 'invalid-unit-test'), ut_id(gvar, 'ctg1')),
-        '/cloud/add/', group=ut_id(gvar, 'ctg1'), form_data={
-            'cloud_name': ut_id(gvar, 'invalid-unit-test'),
-            'authurl': 'unit-test-cloud-seven.ca',
-            'project': 'unit-test-cloud-seven',
-            'username': ut_id(gvar, 'ctu3'),
-            'password': gvar['user_secret'],
-            'region': ut_id(gvar, 'ctc7-r'),
-            'cloud_type': 'local',
-            'vm_image': 'invalid-unit-test',
-            },
-        server_user=ut_id(gvar, 'ctu3')
-    )
-
-    # 51
-    execute_csv2_request(
-        gvar, 1, 'CV', 'cloud add, "{0}" failed - specified item does not exist: vm_flavor=invalid-unit-test, group_name={1}, cloud_name={0}.'.format(ut_id(gvar, 'invalid-unit-test'), ut_id(gvar, 'ctg1')),
-        '/cloud/add/', group=ut_id(gvar, 'ctg1'), form_data={
-            'cloud_name': ut_id(gvar, 'invalid-unit-test'),
-            'authurl': 'unit-test-cloud-seven.ca',
-            'project': 'unit-test-cloud-seven',
-            'username': ut_id(gvar, 'ctu3'),
-            'password': gvar['user_secret'],
-            'region': ut_id(gvar, 'ctc7-r'),
-            'cloud_type': 'local',
-            'vm_flavor': 'invalid-unit-test',
-            },
-        server_user=ut_id(gvar, 'ctu3')
-    )
-
-    # 52
-    execute_csv2_request(
-        gvar, 1, 'CV', 'cloud add, "{0}" failed - specified item does not exist: vm_network=invalid-unit-test, group_name={1}, cloud_name={0}.'.format(ut_id(gvar, 'invalid-unit-test'), ut_id(gvar, 'ctg1')),
-        '/cloud/add/', group=ut_id(gvar, 'ctg1'), form_data={
-            'cloud_name': ut_id(gvar, 'invalid-unit-test'),
-            'authurl': 'unit-test-cloud-seven.ca',
-            'project': 'unit-test-cloud-seven',
-            'username': ut_id(gvar, 'ctu3'),
-            'password': gvar['user_secret'],
-            'region': ut_id(gvar, 'ctc7-r'),
-            'cloud_type': 'local',
-            'vm_network': 'invalid-unit-test',
-            },
-        server_user=ut_id(gvar, 'ctu3')
-    )
-
-    # 53
-    execute_csv2_request(
-        gvar, 1, 'CV', 'cloud add, "{0}" failed - specified item does not exist: vm_keyname=invalid-unit-test, group_name={1}, cloud_name={0}.'.format(ut_id(gvar, 'invalid-unit-test'), ut_id(gvar, 'ctg1')),
-        '/cloud/add/', group=ut_id(gvar, 'ctg1'), form_data={
-            'cloud_name': ut_id(gvar, 'invalid-unit-test'),
-            'authurl': 'unit-test-cloud-seven.ca',
-            'project': 'unit-test-cloud-seven',
-            'username': ut_id(gvar, 'ctu3'),
-            'password': gvar['user_secret'],
-            'region': ut_id(gvar, 'ctc7-r'),
-            'cloud_type': 'local',
-            'vm_keyname': 'invalid-unit-test',
             },
         server_user=ut_id(gvar, 'ctu3')
     )
