@@ -1,9 +1,0 @@
-List of unit test files which have been updated as of December 2019
-
-The unit tests were written and unused since 2017, as such some of them are depricated and require updating. One large change from 2017 to now is the default group setting for GET
-requests. Before, cloudscheduler would keep track of the default group based on the previous request (every new request would update the default group to that group). Now the user sets their
-default group and cloudscheduler does not change unless it is told to. Because of this some of the tests fail since they assume the default group has switched based on the last request when
-it has not. All of the files were changed but see notes below.
-
-Note: None of the cli tests were looked at as I assume they aren't issuing requests directly.
-I have done some initial testing of the fixes I made but have not completed everything. I made a mistake where I used double quotes for the group lookup (ie /request/command/?"group" vs /request/command/?group) which may need to be fixed in some more of the tests. I also got the cli tests to start running (before the setup was failing but now they work) but more work needs to be done to see what needs to be updated.

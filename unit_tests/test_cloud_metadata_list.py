@@ -1,4 +1,4 @@
-from unit_test_common import execute_csv2_request, initialize_csv2_request, ut_id
+from unit_test_common import execute_csv2_request, initialize_csv2_request, ut_id, sanity_requests
 from sys import argv
 
 # lno: CV - error code identifier.
@@ -10,47 +10,14 @@ def main(gvar):
             initialize_csv2_request(gvar, argv[0], selections=argv[1])
         else:
             initialize_csv2_request(gvar, argv[0])
-
-    # 1
-    execute_csv2_request(
-        gvar, 2, None, 'HTTP response code 401, unauthorized.',
-        '/cloud/metadata-list/', group=ut_id(gvar, 'ctg1'),
-        server_user='invalid-unit-test'
-    )
-
-    # 2
-    execute_csv2_request(
-        gvar, 1, None, 'user "{}" is not a member of any group.'.format(ut_id(gvar, 'ctu1')),
-        '/cloud/metadata-list/', group=ut_id(gvar, 'ctg1'),
-        server_user=ut_id(gvar, 'ctu1')
-    )
-
-    # 3
-    execute_csv2_request(
-        gvar, 1, None, 'user "{}" is not a member of any group.'.format(ut_id(gvar, 'ctu2')),
-        '/cloud/metadata-list/', group=ut_id(gvar, 'ctg1'),
-        server_user=ut_id(gvar, 'ctu2')
-    )
-
-    # 4
-    execute_csv2_request(
-        gvar, 1, None, 'cannot switch to invalid group "invalid-unit-test".',
-        '/cloud/metadata-list/', group='invalid-unit-test',
-        server_user=ut_id(gvar, 'ctu3')
-    )
-
-    # 5
-    execute_csv2_request(
-        gvar, 1, None, 'cannot switch to invalid group "{}".'.format(ut_id(gvar, 'ctg2')),
-        '/cloud/metadata-list/', group=ut_id(gvar, 'ctg2'),
-        server_user=ut_id(gvar, 'ctu3')
-    )
+    # 01 - 05
+    sanity_requests(gvar, '/cloud/metadata-list/', ut_id(gvar, 'ctg1'), ut_id(gvar, 'ctu3'), ut_id(gvar, 'ctg2'), ut_id(gvar, 'ctu1'))
 
     # 6
     execute_csv2_request(
-        gvar, 1, 'CV', 'request contained a bad parameter "metadata_list_option".',
+        gvar, 1, 'CV', 'request contained a bad parameter "invalid-unit-test".',
         '/cloud/metadata-list/', group=(ut_id(gvar, 'ctg1')),
-        form_data={'metadata_list_option': 'invalid-unit-test'},
+        form_data={'invalid-unit-test': 'invalid-unit-test'},
         server_user=ut_id(gvar, 'ctu3')
     )
 

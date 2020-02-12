@@ -543,9 +543,7 @@ def _requests_insert_controls(gvar, request, group, form_data, query_data, serve
                 _request = '%s%s' % (server_address, request)
 
         if query_data:
-            query_list = []
-            for key in sorted(query_data):
-                query_list.append('%s=%s' % (key, query_data[key]))
+            query_list = ['%s=%s' % (key, query_data[key]) for key in query_data]
 
             if _request[-1] == '/':
                _request = '%s?%s' % (_request[:-1], '&'.join(query_list))
