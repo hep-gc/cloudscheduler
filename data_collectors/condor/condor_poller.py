@@ -312,6 +312,328 @@ def zip_base64(path):
 
     return None
 
+def check_pair_pid(pair, config, cloud_table):
+    cloud = config.db_session.query(cloud_table).get({'group_name':pair.group_name, 'cloud_name': pair.cloud_name})
+    pid = cloud.pid
+    # Sending signal 0 to a pid will raise an OSError exception if the pid is not running, and do nothing otherwise
+    try:
+        os.kill(pid, 0)
+    except OSError:
+        return False
+    else:
+        return True
+
+
+
+def process_group_cloud_commands(pair, config):
+
+    group_name = pair.group_name
+    cloud_name = pair.cloud_name
+
+    VM = config.db_map.classes.csv2_vms
+    CLOUD = config.db_map.classes.csv2_clouds
+
+    pid = os.get_pid()
+    config.db_connection.execute('update csv2_clouds set pid=%s where group_name==%s, cloud_name==%s' % (pid, group_name, cloud_name))
+
+    logging.info("Processing commands for group:%s, cloud:%s" % (group_name, cloud_name))
+
+
+    # RETIRE CODE:
+    # Query database for machines to be retired.
+    abort_cycle = False
+    for resource in db_session.query(view_condor_host).filter(view_condor_host.c.htcondor_fqdn==condor_host, view_condor_host.c.cloud_name==cloud_name, view_condor_host.c.group_name==group_name, or_(view_condor_host.c.retire>=1, view_condor_host.c.terminate>=1)):
+        # Since we are querying a view we dont get an automapped object and instead get a 'result' tuple of the following format
+        #index=attribute
+        #0=group
+        #1=cloud
+        #2=htcondor_fqdn
+        #3=vmid
+        #4=hostname
+        ##5primary_slots
+        ##6dynamic_slots
+        #7=retireflag
+        #8=terminate flag
+        #9=machine
+        #10=updater
+        #logging.debug("%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s" % (resource.group_name, resource.cloud_name, resource.htcondor_fqdn, resource.vmid, resource.hostname, resource[5], resource[6], resource.retire, resource.retiring, resource.terminate, resource.machine))
+        # First check the slots to see if its time to terminate this machine
+
+        #check if retire flag set & a successful retire has happened  and  (htcondor_dynamic_slots<1 || NULL) and htcondor_partitionable_slots>0, issue condor_off and increment retire by 1.
+        if resource.retire >= 1:
+            if (resource[6] is None or resource[6]<1) and (resource[5] is None or resource[5]<1):
+                #check if terminate has already been set
+                if not resource[8] >= 1:
+                  # set terminate=1
+                  # need to get vm classad because we can't update via the view.
+                  try:
+                      logging.info("slots are zero or null on %s, setting terminate, last updater: %s" % (resource.hostname, resource.updater))
+                      vm_row = db_session.query(VM).filter(VM.group_name==resource.group_name, VM.cloud_name==resource.cloud_name, VM.vmid==resource.vmid)[0]
+                      vm_row.terminate = 1
+                      vm_row.updater = str(get_frame_info() + ":t1")
+                      db_session.merge(vm_row)
+                      db_session.commit()
+                      #uncommitted_updates = uncommitted_updates + 1
+
+                  except Exception as exc:
+                      # unable to get VM row error
+                      logging.exception(exc)
+                      logging.error("%s ready to be terminated but unable to locate vm_row" % resource.vmid)
+                      continue
+            if resource.retire >= 10:
+                continue
+
+
+        if config.categories["csmachines.py"]["retire_off"]:
+            logging.critical("Retires disabled, normal operation would retire %s" % resource.hostname)
+            continue
+
+
+        # check the retire time to see if it has been enough time since the last retire was issued
+        # if it's none we haven't issued a retire yet and can skip the check
+        if resource.retire_time is not None:
+            if int(time.time()) - resource.retire_time < config.categories["csmachines.py"]["retire_interval"]:
+                # if the time since last retire is less than the configured retire interval, continue
+                logging.debug("Resource has been retired recently... skipping for now.")
+                continue
+
+
+        logging.info("Retiring (%s) machine %s primary slots: %s dynamic slots: %s, last updater: %s" % (resource.retire, resource.machine, resource[5], resource[6], resource.updater))
+        try:
+            condor_session = get_condor_session()
+            if resource.machine is not "":
+                condor_classad = condor_session.query(master_type, 'Name=="%s"' % resource.machine)[0]
+            else:
+                condor_classad = condor_session.query(master_type, 'regexp("%s", Name, "i")' % resource.hostname)[0]
+
+            if not condor_classad or condor_classad == -1:
+                #there was a condor error
+                logging.error("Unable to retrieve condor classad, skipping %s ..." % resource.machine)
+
+            master_result = htcondor.send_command(condor_classad, htcondor.DaemonCommands.DaemonsOffPeaceful)
+            
+            if master_result is None:
+                logging.error("Retire failed for machine: %s//%s" % (resource.machine, resource.hostname))
+                continue
+            else:
+                #it was successfull
+                logging.debug("retire results: %s" % command_results[1])
+                
+            #get vm entry and update retire = 2
+            vm_row = db_session.query(VM).filter(VM.group_name==resource.group_name, VM.cloud_name==resource.cloud_name, VM.vmid==resource.vmid)[0]
+            vm_row.retire = vm_row.retire + 1
+            vm_row.updater = str(get_frame_info() + ":r+")
+            vm_row.retire_time = int(time.time())
+            db_session.merge(vm_row)
+            uncommitted_updates = uncommitted_updates + 1
+            if uncommitted_updates >= config.categories["csmachines.py"]["batch_commit_size"]:
+                try:
+                    db_session.commit()
+                    uncommitted_updates = 0
+                except Exception as exc:
+                    logging.exception("Failed to commit batch of retired machines, aborting cycle...")
+                    logging.error(exc)
+                    abort_cycle = True
+                    break
+
+        except Exception as exc:
+            logging.exception(exc)
+            logging.error("Failed to issue DaemonsOffPeacefull to machine: %s, hostname: %s missing classad or condor miscomunication." % (resource.machine, resource.hostname))
+            logging.debug(condor_host)
+            continue
+
+    if uncommitted_updates > 0:
+        try:
+            db_session.commit()
+        except Exception as exc:
+            logging.exception("Failed to commit retire machine, aborting cycle...")
+            logging.error(exc)
+            config.db_session.rollback()
+            time.sleep(config.categories["csmachines.py"]["sleep_interval_command"])
+            continue
+
+    #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    # Terminate code:
+    master_list = []
+    startd_list = []
+    #get list of vm/machines from this condor host
+    redundant_machine_list = db_session.query(view_condor_host).filter(view_condor_host.c.htcondor_fqdn == condor_host, view_condor_host.c.cloud_name==cloud_name, view_condor_host.c.group_name==group_name, view_condor_host.c.terminate >= 1)
+    for resource in redundant_machine_list:
+        if resource[6] is not None:
+            if resource[5] is not None:
+                if resource.terminate == 1 and resource[6] >= 1 and resource[5] >=1:
+                    logging.info("VM still has active slots, skipping terminate on %s" % resource.vmid)
+                    continue
+
+
+        # we need the relevent vm row to check if its in manual mode and if not, terminate and update termination status
+        try:
+            vm_row = db_session.query(VM).filter(VM.group_name == resource.group_name, VM.cloud_name == resource.cloud_name, VM.vmid == resource.vmid)[0]
+        except Exception as exc:
+            logging.error("Unable to retrieve VM row for vmid: %s, skipping terminate..." % resource.vmid)
+            continue
+        if vm_row.manual_control == 1:
+            logging.info("VM %s under manual control, skipping terminate..." % resource.vmid)
+            continue
+
+
+        # Get session with hosting cloud.
+        cloud = db_session.query(CLOUD).filter(
+            CLOUD.group_name == vm_row.group_name,
+            CLOUD.cloud_name == vm_row.cloud_name).first()
+
+        if cloud.cloud_type == "openstack":
+            session = _get_openstack_session(cloud)
+            if session is False:
+                continue
+         
+            if config.categories["csmachines.py"]["terminate_off"]:
+                logging.critical("Terminates disabled, normal operation would terminate %s" % vm_row.hostname)
+                continue
+
+            # terminate the vm
+            nova = _get_nova_client(session, region=cloud.region)
+            try:
+                # may want to check for result here Returns: An instance of novaclient.base.TupleWithMeta so probably not that useful
+                vm_row.terminate = vm_row.terminate + 1
+                old_updater = vm_row.updater
+                vm_row.updater = str(get_frame_info() + ":t+")
+
+                try:
+                    nova.servers.delete(vm_row.vmid)
+                except novaclient.exceptions.NotFound:
+                    logging.error("VM not found on cloud, deleting vm entry %s" % vm_row.vmid)
+                    db_session.delete(vm_row)
+                    uncommitted_updates = uncommitted_updates+1
+                    if uncommitted_updates > 10:
+                        try:
+                            db_session.commit()
+                            uncomitted_updates = 0
+                        except Exception as exc:
+                            logging.exception("Failed to commit vm delete, aborting cycle...")
+                            logging.error(exc)
+                            abort_cycle = True
+                            break
+                    continue #skip rest of logic since this vm is gone anywheres 
+                        
+
+                except Exception as exc:
+                    logging.error("Unable to delete vm, vm doesnt exist or openstack failure:")
+                    exc_type, exc_obj, exc_tb = sys.exc_info()
+                    logging.error(exc_type)
+                    logging.error(exc)
+                    continue
+                logging.info("VM Terminated(%s): %s primary slots: %s dynamic slots: %s, last updater: %s" % (vm_row.terminate, vm_row.hostname, vm_row.htcondor_partitionable_slots, vm_row.htcondor_dynamic_slots, old_updater))
+                db_session.merge(vm_row)
+                # log here if terminate # /10 = remainder zero
+                if vm_row.terminate %10 == 0:
+                    logging.critical("%s failed terminates on %s user action required" % (vm_row.terminate - 1, vm_row.hostname))
+            except Exception as exc:
+                logging.error("Failed to terminate VM: %s, terminates issued: %s" % (vm_row.hostname, vm_row.terminate - 1))
+                logging.error(exc)
+
+            # Now that the machine is terminated, we can speed up operations by invalidating the related classads
+            # double check that a condor_session exists
+            if not condor_session:
+                condor_session = get_condor_session()
+            if resource.machine is not None:
+                logging.info("Removing classads for machine %s" % resource.machine)
+            else:
+                logging.info("Removing classads for machine %s" % resource.hostname)
+            try:
+                master_classad = get_master_classad(condor_session, resource.machine, resource.hostname)
+                if not master_classad:
+                    # there was no matching classad
+                    logging.error("Classad not found for %s//%s" % (resource.machine, resource.hostname))
+
+                master_result = invalidate_master_classad(condor_session, master_classad)
+                logging.debug("Invalidate master result: %s" % master_result)
+                startd_classads = get_startd_classads(condor_session, resource.hostname)
+                startd_result = invalidate_startd_classads(condor_session, startd_classads)
+                logging.debug("Invalidate startd result: %s" % startd_result)
+
+
+                #if resource.machine is not None and resource.machine is not "":
+                #    condor_classad = condor_session.query(master_type, 'Name=="%s"' % resource.machine)[0]
+                #else:
+                #    condor_classad = condor_session.query(master_type, 'regexp("%s", Name, "i")' % resource.hostname)[0]
+                #master_list.append(condor_classad)
+
+                # this could be a list of adds if a machine has many slots
+                #condor_classads = condor_session.query(startd_type, 'Machine=="%s"' % resource.hostname)
+                #for classad in condor_classads:
+                #    startd_list.append(classad)
+            #except IndexError as exc:
+            #    pass
+            except Exception as exc:
+                logging.error("Failed to get condor classads or issue invalidate:")
+                logging.error(exc)
+                abort_cycle = True
+                break
+
+        elif cloud.cloud_type == "amazon":
+            if config.categories["csmachines.py"]["terminate_off"]:
+                logging.critical("Terminates disabled, normal operation would terminate %s" % vm_row.hostname)
+                continue
+            #terminate the vm
+            amz_session = _get_ec2_session(cloud)
+            amz_client = _get_ec2_client(amz_session)
+            try:
+                vm_row.terminate = vm_row.terminate + 1
+                old_updater = vm_row.updater
+                vm_row.updater = str(get_frame_info() + ":t+")
+                #destroy amazon vm, first we'll need to check if its a reservation
+                if vm_row.vmid[0:3].lower() == "sir":
+                    #its a reservation just delete it and destroy the vm
+                    # not sure what the difference between a client and connection from csv1 is but there is more work to be done here
+                    #
+                    # need the command to remove reservation:
+                    # cancel_spot_instance_requests(list_of_request_ids)
+                    #
+                    # need to terminate request, and possible image if instance_id isn't empty
+                    try:
+                        logging.info("Canceling amazon spot price request: %s" % vm_row.vmid)
+                        amz_client.cancel_spot_instance_requests(SpotInstanceRequestIds=[vm_row.vmid])
+                        if vm_row.instance_id is not None:
+                            #spot price vm running need to terminate it:
+                            logging.info("Terminating amazon vm: %s" % vm_row.instance_id)
+                            amz_client.terminate_instances(InstanceIds=[vm_row.instance_id])
+                    except Exception as exc:
+                        logging.error("Unable to terminate %s due to:" % vm_row.vmid)
+                        logging.error(exc)
+                else:
+                    #its a regular instance and just terminate it
+                    logging.info("Terminating amazon vm: %s" % vm_row.vmid)
+                    amz_client.terminate_instances(InstanceIds=[vm_row.vmid])
+            except Exception as exc:
+                logging.error("Unable to terminate %s due to:" % vm_row.vmid)
+                logging.error(exc)
+
+
+        else:
+            # Other cloud types will need to be implemented here to terminate any vms not from openstack
+            logging.info("Vm not from openstack, or amazon cloud, skipping...")
+            continue
+    if uncommitted_updates > 0:
+        try:
+            db_session.commit()
+        except Exception as exc:
+            logging.exception("Failed to commit retire machine, aborting cycle...")
+            logging.error(exc)
+            config.db_session.rollback()
+            time.sleep(config.categories["csmachines.py"]["sleep_interval_command"])
+            continue
+
+    if abort_cycle:
+        abort_cycle = False
+        continue
+
+    config.db_connection.execute('update csv2_clouds set pid=%s where group_name==%s, cloud_name==%s' % (None, group_name, cloud_name)) #may need to use sqlalchemy.sql.null()
+    return True
+
+
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 def job_poller():
@@ -1074,318 +1396,22 @@ def machine_command_poller():
 
             uncommitted_updates = 0
             logging.debug(condor_hosts_set)
+            
             for condor_host in condor_hosts_set:
                 master_type = htcondor.AdTypes.Master
                 startd_type = htcondor.AdTypes.Startd
 
-                # Query database for machines to be retired.
-                abort_cycle = False
-                for resource in db_session.query(view_condor_host).filter(view_condor_host.c.htcondor_fqdn==condor_host, or_(view_condor_host.c.retire>=1, view_condor_host.c.terminate>=1)):
-                    # Since we are querying a view we dont get an automapped object and instead get a 'result' tuple of the following format
-                    #index=attribute
-                    #0=group
-                    #1=cloud
-                    #2=htcondor_fqdn
-                    #3=vmid
-                    #4=hostname
-                    ##5primary_slots
-                    ##6dynamic_slots
-                    #7=retireflag
-                    #8=terminate flag
-                    #9=machine
-                    #10=updater
-                    #logging.debug("%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s" % (resource.group_name, resource.cloud_name, resource.htcondor_fqdn, resource.vmid, resource.hostname, resource[5], resource[6], resource.retire, resource.retiring, resource.terminate, resource.machine))
-                    # First check the slots to see if its time to terminate this machine
+                # Get unique group,cloud pairs
+                grp_cld_pairs = config.db_connection.execute('select distinct group_name, cloud_name from view_condor_host')
 
-                    #check if retire flag set & a successful retire has happened  and  (htcondor_dynamic_slots<1 || NULL) and htcondor_partitionable_slots>0, issue condor_off and increment retire by 1.
-                    if resource.retire >= 1:
-                        if (resource[6] is None or resource[6]<1) and (resource[5] is None or resource[5]<1):
-                            #check if terminate has already been set
-                            if not resource[8] >= 1:
-                              # set terminate=1
-                              # need to get vm classad because we can't update via the view.
-                              try:
-                                  logging.info("slots are zero or null on %s, setting terminate, last updater: %s" % (resource.hostname, resource.updater))
-                                  vm_row = db_session.query(VM).filter(VM.group_name==resource.group_name, VM.cloud_name==resource.cloud_name, VM.vmid==resource.vmid)[0]
-                                  vm_row.terminate = 1
-                                  vm_row.updater = str(get_frame_info() + ":t1")
-                                  db_session.merge(vm_row)
-                                  db_session.commit()
-                                  #uncommitted_updates = uncommitted_updates + 1
-
-                              except Exception as exc:
-                                  # unable to get VM row error
-                                  logging.exception(exc)
-                                  logging.error("%s ready to be terminated but unable to locate vm_row" % resource.vmid)
-                                  continue
-                        if resource.retire >= 10:
-                            continue
-
-
-                    if config.categories["csmachines.py"]["retire_off"]:
-                        logging.critical("Retires disabled, normal operation would retire %s" % resource.hostname)
-                        continue
-
-
-                    # check the retire time to see if it has been enough time since the last retire was issued
-                    # if it's none we haven't issued a retire yet and can skip the check
-                    if resource.retire_time is not None:
-                        if int(time.time()) - resource.retire_time < config.categories["csmachines.py"]["retire_interval"]:
-                            # if the time since last retire is less than the configured retire interval, continue
-                            logging.debug("Resource has been retired recently... skipping for now.")
-                            continue
-
-
-                    logging.info("Retiring (%s) machine %s primary slots: %s dynamic slots: %s, last updater: %s" % (resource.retire, resource.machine, resource[5], resource[6], resource.updater))
-                    try:
-                        condor_session = get_condor_session()
-                        if resource.machine is not "":
-                            condor_classad = condor_session.query(master_type, 'Name=="%s"' % resource.machine)[0]
-                        else:
-                            condor_classad = condor_session.query(master_type, 'regexp("%s", Name, "i")' % resource.hostname)[0]
-
-                        if not condor_classad or condor_classad == -1:
-                            #there was a condor error
-                            logging.error("Unable to retrieve condor classad, skipping %s ..." % resource.machine)
-
-                        master_result = htcondor.send_command(condor_classad, htcondor.DaemonCommands.DaemonsOffPeaceful)
-                        
-                        if master_result is None:
-                            logging.error("Retire failed for machine: %s//%s" % (resource.machine, resource.hostname))
-                            continue
-                        else:
-                            #it was successfull
-                            logging.debug("retire results: %s" % command_results[1])
-                            
-                        #get vm entry and update retire = 2
-                        vm_row = db_session.query(VM).filter(VM.group_name==resource.group_name, VM.cloud_name==resource.cloud_name, VM.vmid==resource.vmid)[0]
-                        vm_row.retire = vm_row.retire + 1
-                        vm_row.updater = str(get_frame_info() + ":r+")
-                        vm_row.retire_time = int(time.time())
-                        db_session.merge(vm_row)
-                        uncommitted_updates = uncommitted_updates + 1
-                        if uncommitted_updates >= config.categories["csmachines.py"]["batch_commit_size"]:
-                            try:
-                                db_session.commit()
-                                uncommitted_updates = 0
-                            except Exception as exc:
-                                logging.exception("Failed to commit batch of retired machines, aborting cycle...")
-                                logging.error(exc)
-                                abort_cycle = True
-                                break
-
-                    except Exception as exc:
-                        logging.exception(exc)
-                        logging.error("Failed to issue DaemonsOffPeacefull to machine: %s, hostname: %s missing classad or condor miscomunication." % (resource.machine, resource.hostname))
-                        logging.debug(condor_host)
-                        continue
-
-            if uncommitted_updates > 0:
-                try:
-                    db_session.commit()
-                except Exception as exc:
-                    logging.exception("Failed to commit retire machine, aborting cycle...")
-                    logging.error(exc)
-                    config.db_session.rollback()
-                    time.sleep(config.categories["csmachines.py"]["sleep_interval_command"])
-                    continue
-
-            # Now do the same thing for vms that need to be terminated
-            # Query view for list of vms to terminate
-            # Get vm_row for terminate
-            # issue terminate, update vm_row
-            # invalidate classads related to that vm
-            
-            for condor_host in condor_hosts_set:
-                master_list = []
-                startd_list = []
-                #get list of vm/machines from this condor host
-                redundant_machine_list = db_session.query(view_condor_host).filter(view_condor_host.c.htcondor_fqdn == condor_host, view_condor_host.c.terminate >= 1)
-                for resource in redundant_machine_list:
-                    if resource[6] is not None:
-                        if resource[5] is not None:
-                            if resource.terminate == 1 and resource[6] >= 1 and resource[5] >=1:
-                                logging.info("VM still has active slots, skipping terminate on %s" % resource.vmid)
-                                continue
-
-
-                    # we need the relevent vm row to check if its in manual mode and if not, terminate and update termination status
-                    try:
-                        vm_row = db_session.query(VM).filter(VM.group_name == resource.group_name, VM.cloud_name == resource.cloud_name, VM.vmid == resource.vmid)[0]
-                    except Exception as exc:
-                        logging.error("Unable to retrieve VM row for vmid: %s, skipping terminate..." % resource.vmid)
-                        continue
-                    if vm_row.manual_control == 1:
-                        logging.info("VM %s under manual control, skipping terminate..." % resource.vmid)
-                        continue
-
-
-                    # Get session with hosting cloud.
-                    cloud = db_session.query(CLOUD).filter(
-                        CLOUD.group_name == vm_row.group_name,
-                        CLOUD.cloud_name == vm_row.cloud_name).first()
-
-                    if cloud.cloud_type == "openstack":
-                        session = _get_openstack_session(cloud)
-                        if session is False:
-                            continue
-                     
-                        if config.categories["csmachines.py"]["terminate_off"]:
-                            logging.critical("Terminates disabled, normal operation would terminate %s" % vm_row.hostname)
-                            continue
-
-                        # terminate the vm
-                        nova = _get_nova_client(session, region=cloud.region)
-                        try:
-                            # may want to check for result here Returns: An instance of novaclient.base.TupleWithMeta so probably not that useful
-                            vm_row.terminate = vm_row.terminate + 1
-                            old_updater = vm_row.updater
-                            vm_row.updater = str(get_frame_info() + ":t+")
-
-                            try:
-                                nova.servers.delete(vm_row.vmid)
-                            except novaclient.exceptions.NotFound:
-                                logging.error("VM not found on cloud, deleting vm entry %s" % vm_row.vmid)
-                                db_session.delete(vm_row)
-                                uncommitted_updates = uncommitted_updates+1
-                                if uncommitted_updates > 10:
-                                    try:
-                                        db_session.commit()
-                                        uncomitted_updates = 0
-                                    except Exception as exc:
-                                        logging.exception("Failed to commit vm delete, aborting cycle...")
-                                        logging.error(exc)
-                                        abort_cycle = True
-                                        break
-                                continue #skip rest of logic since this vm is gone anywheres 
-                                    
-
-                            except Exception as exc:
-                                logging.error("Unable to delete vm, vm doesnt exist or openstack failure:")
-                                exc_type, exc_obj, exc_tb = sys.exc_info()
-                                logging.error(exc_type)
-                                logging.error(exc)
-                                continue
-                            logging.info("VM Terminated(%s): %s primary slots: %s dynamic slots: %s, last updater: %s" % (vm_row.terminate, vm_row.hostname, vm_row.htcondor_partitionable_slots, vm_row.htcondor_dynamic_slots, old_updater))
-                            db_session.merge(vm_row)
-                            # log here if terminate # /10 = remainder zero
-                            if vm_row.terminate %10 == 0:
-                                logging.critical("%s failed terminates on %s user action required" % (vm_row.terminate - 1, vm_row.hostname))
-                        except Exception as exc:
-                            logging.error("Failed to terminate VM: %s, terminates issued: %s" % (vm_row.hostname, vm_row.terminate - 1))
-                            logging.error(exc)
-
-                        # Now that the machine is terminated, we can speed up operations by invalidating the related classads
-                        # double check that a condor_session exists
-                        if not condor_session:
-                            condor_session = get_condor_session()
-                        if resource.machine is not None:
-                            logging.info("Removing classads for machine %s" % resource.machine)
-                        else:
-                            logging.info("Removing classads for machine %s" % resource.hostname)
-                        try:
-                            master_classad = get_master_classad(condor_session, resource.machine, resource.hostname)
-                            if not master_classad:
-                                # there was no matching classad
-                                logging.error("Classad not found for %s//%s" % (resource.machine, resource.hostname))
-
-                            master_result = invalidate_master_classad(condor_session, master_classad)
-                            logging.debug("Invalidate master result: %s" % master_result)
-                            startd_classads = get_startd_classads(condor_session, resource.hostname)
-                            startd_result = invalidate_startd_classads(condor_session, startd_classads)
-                            logging.debug("Invalidate startd result: %s" % startd_result)
-
-
-                            #if resource.machine is not None and resource.machine is not "":
-                            #    condor_classad = condor_session.query(master_type, 'Name=="%s"' % resource.machine)[0]
-                            #else:
-                            #    condor_classad = condor_session.query(master_type, 'regexp("%s", Name, "i")' % resource.hostname)[0]
-                            #master_list.append(condor_classad)
-
-                            # this could be a list of adds if a machine has many slots
-                            #condor_classads = condor_session.query(startd_type, 'Machine=="%s"' % resource.hostname)
-                            #for classad in condor_classads:
-                            #    startd_list.append(classad)
-                        #except IndexError as exc:
-                        #    pass
-                        except Exception as exc:
-                            logging.error("Failed to get condor classads or issue invalidate:")
-                            logging.error(exc)
-                            abort_cycle = True
-                            break
-
-                    elif cloud.cloud_type == "amazon":
-                        if config.categories["csmachines.py"]["terminate_off"]:
-                            logging.critical("Terminates disabled, normal operation would terminate %s" % vm_row.hostname)
-                            continue
-                        #terminate the vm
-                        amz_session = _get_ec2_session(cloud)
-                        amz_client = _get_ec2_client(amz_session)
-                        try:
-                            vm_row.terminate = vm_row.terminate + 1
-                            old_updater = vm_row.updater
-                            vm_row.updater = str(get_frame_info() + ":t+")
-                            #destroy amazon vm, first we'll need to check if its a reservation
-                            if vm_row.vmid[0:3].lower() == "sir":
-                                #its a reservation just delete it and destroy the vm
-                                # not sure what the difference between a client and connection from csv1 is but there is more work to be done here
-                                #
-                                # need the command to remove reservation:
-                                # cancel_spot_instance_requests(list_of_request_ids)
-                                #
-                                # need to terminate request, and possible image if instance_id isn't empty
-                                try:
-                                    logging.info("Canceling amazon spot price request: %s" % vm_row.vmid)
-                                    amz_client.cancel_spot_instance_requests(SpotInstanceRequestIds=[vm_row.vmid])
-                                    if vm_row.instance_id is not None:
-                                        #spot price vm running need to terminate it:
-                                        logging.info("Terminating amazon vm: %s" % vm_row.instance_id)
-                                        amz_client.terminate_instances(InstanceIds=[vm_row.instance_id])
-                                except Exception as exc:
-                                    logging.error("Unable to terminate %s due to:" % vm_row.vmid)
-                                    logging.error(exc)
-                            else:
-                                #its a regular instance and just terminate it
-                                logging.info("Terminating amazon vm: %s" % vm_row.vmid)
-                                amz_client.terminate_instances(InstanceIds=[vm_row.vmid])
-                        except Exception as exc:
-                            logging.error("Unable to terminate %s due to:" % vm_row.vmid)
-                            logging.error(exc)
-
-
-                    else:
-                        # Other cloud types will need to be implemented here to terminate any vms not from openstack
-                        logging.info("Vm not from openstack, or amazon cloud, skipping...")
-                        continue
-                if uncommitted_updates > 0:
-                    try:
-                        db_session.commit()
-                    except Exception as exc:
-                        logging.exception("Failed to commit retire machine, aborting cycle...")
-                        logging.error(exc)
-                        config.db_session.rollback()
-                        time.sleep(config.categories["csmachines.py"]["sleep_interval_command"])
-                        continue
-
-                if abort_cycle:
-                    abort_cycle = False
-                    continue
-
-                # Execute condor_advertise to remove classads.
-                #if startd_list:
-                #    startd_advertise_result = condor_session.advertise(startd_list, "INVALIDATE_STARTD_ADS")
-                #    logging.info("condor_advertise result for startd ads: %s", startd_advertise_result)
-
-                #if master_list:
-                #    master_advertise_result = condor_session.advertise(master_list, "INVALIDATE_MASTER_ADS")
-                #    logging.info("condor_advertise result for master ads: %s", master_advertise_result)
-
-            logging.debug("Completed command consumer cycle")
-            cycle_count = cycle_count + 1
-            # Every ~5 cycles check
-            if cycle_count > 5:
-                cycle_count = 0
-
+                for pair in grp_cld_pairs:
+                    #
+                    # First check pid of cloud entry
+                    pid = check_pair_pid(pair, config, CLOUD)
+                    if not pid:
+                    #    subprocess this eventually
+                    process_group_cloud_commands(pair, config)
+                    
             
             try:
                 config.db_session.commit()
@@ -1393,8 +1419,6 @@ def machine_command_poller():
                 logging.error("Error during final commit, likely that a vm was removed from database before final terminate update was comitted..")
                 logging.exception(exc)
 
-            if 'db_session'in locals():
-                del db_session
             
             signal.signal(signal.SIGINT, config.signals['SIGINT'])
             if not os.path.exists(PID_FILE):
