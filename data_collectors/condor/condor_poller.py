@@ -314,7 +314,7 @@ def zip_base64(path):
 
 def check_pair_pid(pair, config, cloud_table):
     cloud = config.db_session.query(cloud_table).get({'group_name':pair.group_name, 'cloud_name': pair.cloud_name})
-    pid = cloud.pid
+    pid = cloud.machine_subprocess_pid
     # Sending signal 0 to a pid will raise an OSError exception if the pid is not running, and do nothing otherwise
     try:
         os.kill(pid, 0)
@@ -628,7 +628,7 @@ def process_group_cloud_commands(pair, config):
         abort_cycle = False
         continue
 
-    config.db_connection.execute('update csv2_clouds set pid=%s where group_name==%s, cloud_name==%s' % (None, group_name, cloud_name)) #may need to use sqlalchemy.sql.null()
+    config.db_connection.execute('update csv2_clouds set pid=%s where group_name==%s, cloud_name==%s' % (-1, group_name, cloud_name)) 
     return True
 
 
