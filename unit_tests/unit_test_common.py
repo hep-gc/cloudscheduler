@@ -209,7 +209,7 @@ def execute_csv2_request(gvar, expected_rc, expected_modid, expected_text, reque
                         print('\n%04d (%04d) %s \033[91mRow Check\033[0m: request=\'%s\', group=%s, expected_list=\'%s\', list_filter=%s' % (gvar['ut_count'][0], gvar['ut_count'][1], _caller(), request, group, expected_list, list_filter))
                         print('\t%s rows were accepted by the filter.' % len(mismatches_in_filtered_rows))
                         for row_index, mismatches_in_row in enumerate(mismatches_in_filtered_rows):
-                            print('\tRow %s:' % row_index + 1)
+                            print('\tRow %s:' % (row_index + 1))
                             print('\t\tActual values in response: %s' % filtered_rows[row_index])
                             for mismatch in mismatches_in_row:
                                 if len(mismatch) == 2:
@@ -262,10 +262,8 @@ def parameters_requests(gvar, request, group, server_user, PARAMETERS):
     '''Execute requests with missing parameters and bad parameters.
     PARAMETERS is an iterable of 2-tuples and 3-tuples, each containing:
     0. The name of a parameter to test (str).
-    1. An iterable of 2-tuples, each containing:
-        1.0. An invalid value for this parameter that will be cast to a str.
-        1.1. The message to expect when this value is sent in an otherwise valid request.
-    [2. A valid value for the parameter. This should be given exactly when the parameter is mandatory, and if given will be sent in requests containing bad values for other parameters.]'''
+    1. A dictionary. Each key should be an invalid value for this parameter that will be cast to a str. Each value should be the message to expect when this invalid value is sent in an otherwise valid request.
+    [2. A valid value for the parameter. This should be given exactly when the parameter is mandatory, and if given will be sent in requests that contain bad values for other parameters.]'''
 
     mandatory_params = {param[0]: param[2] for param in PARAMETERS if len(param) > 2}
     # Give an invalid parameter.
@@ -285,10 +283,10 @@ def parameters_requests(gvar, request, group, server_user, PARAMETERS):
                 request, group=group, form_data=mandatory_params, server_user=server_user
             )
         # Give the parameter with invalid values.
-        for invalid in param[1]:
+        for value, message in param[1].items():
             execute_csv2_request(
-                gvar, 1, None, invalid[1],
-                request, group=group, form_data={param[0]: invalid[0], **mandatory_params}, server_user=server_user
+                gvar, 1, None, message,
+                request, group=group, form_data={param[0]: value, **mandatory_params}, server_user=server_user
             )
         # Add the parameter back in if it was mandatory.
         if len(param) > 2:

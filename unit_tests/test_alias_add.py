@@ -25,34 +25,34 @@ def main(gvar):
     PARAMETERS = [
         # 07 Give invalid parameter.
         # 08 Omit cloud_name.
-        ('cloud_name', [
+        ('cloud_name', {
             # 09
-            ('', 'cloud alias add, value specified for "cloud_name" must not be the empty string.'),
+            '': 'cloud alias add, value specified for "cloud_name" must not be the empty string.',
             # 10
-            ('3E1', 'cloud alias add, value specified for "cloud_name" must be all lowercase letters, digits, dashes, underscores, periods, and colons, and cannot contain a more than one consecutive dash or start or end with a dash.'),
+            '3E1': 'cloud alias add, value specified for "cloud_name" must be all lowercase letters, digits, dashes, underscores, periods, and colons, and cannot contain more than one consecutive dash or start or end with a dash.',
             # 11
-            ('-invalid-unit-test', 'cloud alias add, value specified for "cloud_name" must be all lowercase letters, digits, dashes, underscores, periods, and colons, and cannot contain a more than one consecutive dash or start or end with a dash.'),
+            '-invalid-unit-test': 'cloud alias add, value specified for "cloud_name" must be all lowercase letters, digits, dashes, underscores, periods, and colons, and cannot contain more than one consecutive dash or start or end with a dash.',
             # 12 Name of a non-existent cloud.
-            ('invalid-unit-test', 'cloud alias add, "invalid-unit-test" failed - specified value in list of values does not exist: cloud_name=invalid-unit-test, group_name={}.'.format(ut_id(gvar, 'atg1')))
-        ], ut_id(gvar, 'atc1')),
+            'invalid-unit-test': 'cloud alias add, "invalid-unit-test" failed - specified value in list of values does not exist: cloud_name=invalid-unit-test, group_name={}.'.format(ut_id(gvar, 'atg1'))},
+        ut_id(gvar, 'atc1')),
         # 13 Omit alias_name.
-        ('alias_name', [
+        ('alias_name', {
             # 14
-            ('', 'cloud alias add, value specified for "alias_name" must not be the empty string.'),
+            '': 'cloud alias add, value specified for "alias_name" must not be the empty string.',
             # 15
-            ('\\invalid-unit-test', 'value specified for "alias_name" must be all lowercase letters, digits, dashes, underscores, periods, and colons, and cannot contain a more than one consecutive dash or start or end with a dash.'),
+            '\\invalid-unit-test': 'value specified for "alias_name" must be all lowercase letters, digits, dashes, underscores, periods, and colons, and cannot contain more than one consecutive dash or start or end with a dash.',
             # 16
-            ('alias-name-that-is-too-long-for-the-database', 'Data too long for column \'alias_name\'')
-        ], 'invalid-unit-test'),
+            'alias-name-that-is-too-long-for-the-database': 'Data too long for column \'alias_name\''
+        }, 'invalid-unit-test')
     ]
 
     parameters_requests(gvar, '/alias/add/', ut_id(gvar, 'atg1'), ut_id(gvar, 'atu1'), PARAMETERS)
     
     # 17 Create an alias properly.
     execute_csv2_request(
-        gvar, 0, None, 'cloud alias "{}.{}" successfully added.'.format(ut_id(gvar, 'atg1'), ut_id(gvar, 'ata2')),
+        gvar, 0, None, 'cloud alias "{}.{}" successfully added.'.format(ut_id(gvar, 'atg1'), ut_id(gvar, 'ata3')),
         '/alias/add/', group=ut_id(gvar, 'atg1'), form_data={
-            'alias_name': ut_id(gvar, 'ata2'),
+            'alias_name': ut_id(gvar, 'ata3'),
             'cloud_name': ut_id(gvar, 'atc1')
         },
         server_user=ut_id(gvar, 'atu1')
@@ -60,9 +60,9 @@ def main(gvar):
 
     # 18 Attempt to create an alias with a name that is taken.
     execute_csv2_request(
-        gvar, 1, None, 'cloud alias add "{}.{}" failed - specified alias already exists.'.format(ut_id(gvar, 'atg1'), ut_id(gvar, 'ata2')),
+        gvar, 1, None, 'cloud alias add "{}.{}" failed - specified alias already exists.'.format(ut_id(gvar, 'atg1'), ut_id(gvar, 'ata3')),
         '/alias/add/', group=ut_id(gvar, 'atg1'), form_data={
-            'alias_name': ut_id(gvar, 'ata2'),
+            'alias_name': ut_id(gvar, 'ata3'),
             'cloud_name': ut_id(gvar, 'atc1')
         },
         server_user=ut_id(gvar, 'atu1')

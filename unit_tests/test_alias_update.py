@@ -25,23 +25,21 @@ def main(gvar):
     PARAMETERS = [
         # 07 Give invalid parameter.
         # 08 Omit cloud_name.
-        ('cloud_name', [
+        ('cloud_name', {
             # 09
-            ('', 'cloud alias update, value specified for "cloud_name" must not be the empty string.'),
+            '': 'cloud alias update, value specified for "cloud_name" must not be the empty string.',
             # 10
-            ('invalid-unit-test', 'cloud alias update, "{}" failed - specified value in list of values does not exist: cloud_name=invalid-unit-test'.format(ut_id(gvar, 'ata1')))
-        ], ut_id(gvar, 'atc1')),
+            'invalid-unit-test': 'cloud alias update, "{}" failed - specified value in list of values does not exist: cloud_name=invalid-unit-test'.format(ut_id(gvar, 'ata1'))
+        }, ut_id(gvar, 'atc1')),
         # 11 Omit alias_name.
-        ('alias_name', [
+        ('alias_name', {
             # 12
-            ('', 'cloud alias update, value specified for "alias_name" must not be the empty string.'),
+            '': 'cloud alias update, value specified for "alias_name" must not be the empty string.',
             # 13
-            ('invalid-unit-test', 'cloud alias group update "{}.invalid-unit-test" failed - specified alias does not exist.'.format(ut_id(gvar, 'atg1')))
-        ], ut_id(gvar, 'ata1')),
-        ('cloud_option', [
-            # 14
-            ('invalid-unit-test', 'cloud alias update, value specified for "cloud_option" must be one of the following options: [\'add\', \'delete\'].')
-        ])
+            'invalid-unit-test': 'cloud alias group update "{}.invalid-unit-test" failed - specified alias does not exist.'.format(ut_id(gvar, 'atg1'))
+        }, ut_id(gvar, 'ata1')),
+        # 14
+        ('cloud_option', {'invalid-unit-test': 'cloud alias update, value specified for "cloud_option" must be one of the following options: [\'add\', \'delete\'].'})
     ]
 
     parameters_requests(gvar, '/alias/update/', ut_id(gvar, 'atg1'), ut_id(gvar, 'atu1'), PARAMETERS)
