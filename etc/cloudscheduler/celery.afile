@@ -2,7 +2,7 @@
 # here we have a single node
 #CELERYD_NODES="w1"
 #Having only 1 transfer node ensures there is no collisions if the same cloud is defined twice and both experience a transfer of the same image
-CELERYD_NODES="w1, w3, w4"
+CELERYD_NODES="w1 w3 w4"
 # or we could have four nodes:
 #CELERYD_NODES="w1 w2 w3 w4"
 

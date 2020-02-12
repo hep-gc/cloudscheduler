@@ -1,3 +1,0 @@
-#!/bin/bash
-    condor_id=$(ps -C condor_master  -o %U --no-headers)
-    /bin/cp -f /tmp/x509up_u0 /tmp/x509up_u$(id -u $condor_id) && chown $condor_id.$condor_id /tmp/x509up_u$(id -u $condor_id)
