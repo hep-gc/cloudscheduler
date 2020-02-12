@@ -37,6 +37,12 @@ from sqlalchemy.orm import Session
 from sqlalchemy.ext.automap import automap_base
 
 
+
+
+MASTER_TYPE = htcondor.AdTypes.Master
+STARTD_TYPE = htcondor.AdTypes.Startd
+
+
 def _get_nova_client(session, region=None):
     nova = novaclient.Client("2", session=session, region_name=region, timeout=10)
     return nova
@@ -313,8 +319,13 @@ def zip_base64(path):
     return None
 
 def check_pair_pid(pair, config, cloud_table):
-    cloud = config.db_session.query(cloud_table).get({'group_name':pair.group_name, 'cloud_name': pair.cloud_name})
+    logging.error("Checking for active child pid")
+    cloud = config.db_session.query(cloud_table).get((pair.group_name, pair.cloud_name))
     pid = cloud.machine_subprocess_pid
+    logging.error(pid)
+    if pid is None or pid == -1:
+        # No subprocess ever started
+        return False
     # Sending signal 0 to a pid will raise an OSError exception if the pid is not running, and do nothing otherwise
     try:
         os.kill(pid, 0)
@@ -325,24 +336,25 @@ def check_pair_pid(pair, config, cloud_table):
 
 
 
-def process_group_cloud_commands(pair, config):
-
+def process_group_cloud_commands(pair, config, condor_host):
     group_name = pair.group_name
     cloud_name = pair.cloud_name
 
     VM = config.db_map.classes.csv2_vms
     CLOUD = config.db_map.classes.csv2_clouds
+    master_type = htcondor.AdTypes.Master
+    startd_type = htcondor.AdTypes.Startd
 
-    pid = os.get_pid()
-    config.db_connection.execute('update csv2_clouds set pid=%s where group_name==%s, cloud_name==%s' % (pid, group_name, cloud_name))
+    pid = os.getpid()
+    sql = 'update csv2_clouds set machine_subprocess_pid=%s where group_name="%s" and cloud_name="%s";' % (pid, group_name, cloud_name)
+    config.db_connection.execute(sql)
 
     logging.info("Processing commands for group:%s, cloud:%s" % (group_name, cloud_name))
 
 
     # RETIRE CODE:
     # Query database for machines to be retired.
-    abort_cycle = False
-    for resource in db_session.query(view_condor_host).filter(view_condor_host.c.htcondor_fqdn==condor_host, view_condor_host.c.cloud_name==cloud_name, view_condor_host.c.group_name==group_name, or_(view_condor_host.c.retire>=1, view_condor_host.c.terminate>=1)):
+    for resource in config.db_session.query(view_condor_host).filter(view_condor_host.c.htcondor_fqdn==condor_host, view_condor_host.c.cloud_name==cloud_name, view_condor_host.c.group_name==group_name, or_(view_condor_host.c.retire>=1, view_condor_host.c.terminate>=1)):
         # Since we are querying a view we dont get an automapped object and instead get a 'result' tuple of the following format
         #index=attribute
         #0=group
@@ -368,12 +380,11 @@ def process_group_cloud_commands(pair, config):
                   # need to get vm classad because we can't update via the view.
                   try:
                       logging.info("slots are zero or null on %s, setting terminate, last updater: %s" % (resource.hostname, resource.updater))
-                      vm_row = db_session.query(VM).filter(VM.group_name==resource.group_name, VM.cloud_name==resource.cloud_name, VM.vmid==resource.vmid)[0]
+                      vm_row = config.db_session.query(VM).filter(VM.group_name==resource.group_name, VM.cloud_name==resource.cloud_name, VM.vmid==resource.vmid)[0]
                       vm_row.terminate = 1
                       vm_row.updater = str(get_frame_info() + ":t1")
-                      db_session.merge(vm_row)
-                      db_session.commit()
-                      #uncommitted_updates = uncommitted_updates + 1
+                      config.db_session.merge(vm_row)
+                      config.db_session.commit()
 
                   except Exception as exc:
                       # unable to get VM row error
@@ -410,31 +421,29 @@ def process_group_cloud_commands(pair, config):
                 #there was a condor error
                 logging.error("Unable to retrieve condor classad, skipping %s ..." % resource.machine)
 
+            logging.info("Issuing DaemonsOffPeaceful to %s" % condor_classad)
             master_result = htcondor.send_command(condor_classad, htcondor.DaemonCommands.DaemonsOffPeaceful)
+            logging.info("Result: %s " % master_result)
             
             if master_result is None:
-                logging.error("Retire failed for machine: %s//%s" % (resource.machine, resource.hostname))
+                logging.info("Retire failed for machine: %s//%s" % (resource.machine, resource.hostname))
                 continue
             else:
                 #it was successfull
                 logging.debug("retire results: %s" % command_results[1])
                 
             #get vm entry and update retire = 2
-            vm_row = db_session.query(VM).filter(VM.group_name==resource.group_name, VM.cloud_name==resource.cloud_name, VM.vmid==resource.vmid)[0]
+            vm_row = config.db_session.query(VM).filter(VM.group_name==resource.group_name, VM.cloud_name==resource.cloud_name, VM.vmid==resource.vmid)[0]
             vm_row.retire = vm_row.retire + 1
             vm_row.updater = str(get_frame_info() + ":r+")
             vm_row.retire_time = int(time.time())
-            db_session.merge(vm_row)
-            uncommitted_updates = uncommitted_updates + 1
-            if uncommitted_updates >= config.categories["csmachines.py"]["batch_commit_size"]:
-                try:
-                    db_session.commit()
-                    uncommitted_updates = 0
-                except Exception as exc:
-                    logging.exception("Failed to commit batch of retired machines, aborting cycle...")
-                    logging.error(exc)
-                    abort_cycle = True
-                    break
+            config.db_session.merge(vm_row)
+            try:
+                config.db_session.commit()
+            except Exception as exc:
+                logging.exception("Failed to commit batch of retired machines, aborting cycle...")
+                logging.error(exc)
+                break
 
         except Exception as exc:
             logging.exception(exc)
@@ -442,22 +451,13 @@ def process_group_cloud_commands(pair, config):
             logging.debug(condor_host)
             continue
 
-    if uncommitted_updates > 0:
-        try:
-            db_session.commit()
-        except Exception as exc:
-            logging.exception("Failed to commit retire machine, aborting cycle...")
-            logging.error(exc)
-            config.db_session.rollback()
-            time.sleep(config.categories["csmachines.py"]["sleep_interval_command"])
-            continue
 
     #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     # Terminate code:
     master_list = []
     startd_list = []
     #get list of vm/machines from this condor host
-    redundant_machine_list = db_session.query(view_condor_host).filter(view_condor_host.c.htcondor_fqdn == condor_host, view_condor_host.c.cloud_name==cloud_name, view_condor_host.c.group_name==group_name, view_condor_host.c.terminate >= 1)
+    redundant_machine_list = config.db_session.query(view_condor_host).filter(view_condor_host.c.htcondor_fqdn == condor_host, view_condor_host.c.cloud_name==cloud_name, view_condor_host.c.group_name==group_name, view_condor_host.c.terminate >= 1)
     for resource in redundant_machine_list:
         if resource[6] is not None:
             if resource[5] is not None:
@@ -468,7 +468,7 @@ def process_group_cloud_commands(pair, config):
 
         # we need the relevent vm row to check if its in manual mode and if not, terminate and update termination status
         try:
-            vm_row = db_session.query(VM).filter(VM.group_name == resource.group_name, VM.cloud_name == resource.cloud_name, VM.vmid == resource.vmid)[0]
+            vm_row = config.db_session.query(VM).filter(VM.group_name == resource.group_name, VM.cloud_name == resource.cloud_name, VM.vmid == resource.vmid)[0]
         except Exception as exc:
             logging.error("Unable to retrieve VM row for vmid: %s, skipping terminate..." % resource.vmid)
             continue
@@ -478,7 +478,7 @@ def process_group_cloud_commands(pair, config):
 
 
         # Get session with hosting cloud.
-        cloud = db_session.query(CLOUD).filter(
+        cloud = config.db_session.query(CLOUD).filter(
             CLOUD.group_name == vm_row.group_name,
             CLOUD.cloud_name == vm_row.cloud_name).first()
 
@@ -503,17 +503,13 @@ def process_group_cloud_commands(pair, config):
                     nova.servers.delete(vm_row.vmid)
                 except novaclient.exceptions.NotFound:
                     logging.error("VM not found on cloud, deleting vm entry %s" % vm_row.vmid)
-                    db_session.delete(vm_row)
-                    uncommitted_updates = uncommitted_updates+1
-                    if uncommitted_updates > 10:
-                        try:
-                            db_session.commit()
-                            uncomitted_updates = 0
-                        except Exception as exc:
-                            logging.exception("Failed to commit vm delete, aborting cycle...")
-                            logging.error(exc)
-                            abort_cycle = True
-                            break
+                    config.db_session.delete(vm_row)
+                    try:
+                        config.db_session.commit()
+                    except Exception as exc:
+                        logging.exception("Failed to commit vm delete, aborting cycle...")
+                        logging.error(exc)
+                        break
                     continue #skip rest of logic since this vm is gone anywheres 
                         
 
@@ -524,7 +520,7 @@ def process_group_cloud_commands(pair, config):
                     logging.error(exc)
                     continue
                 logging.info("VM Terminated(%s): %s primary slots: %s dynamic slots: %s, last updater: %s" % (vm_row.terminate, vm_row.hostname, vm_row.htcondor_partitionable_slots, vm_row.htcondor_dynamic_slots, old_updater))
-                db_session.merge(vm_row)
+                config.db_session.merge(vm_row)
                 # log here if terminate # /10 = remainder zero
                 if vm_row.terminate %10 == 0:
                     logging.critical("%s failed terminates on %s user action required" % (vm_row.terminate - 1, vm_row.hostname))
@@ -568,7 +564,6 @@ def process_group_cloud_commands(pair, config):
             except Exception as exc:
                 logging.error("Failed to get condor classads or issue invalidate:")
                 logging.error(exc)
-                abort_cycle = True
                 break
 
         elif cloud.cloud_type == "amazon":
@@ -614,21 +609,17 @@ def process_group_cloud_commands(pair, config):
             # Other cloud types will need to be implemented here to terminate any vms not from openstack
             logging.info("Vm not from openstack, or amazon cloud, skipping...")
             continue
-    if uncommitted_updates > 0:
-        try:
-            db_session.commit()
-        except Exception as exc:
-            logging.exception("Failed to commit retire machine, aborting cycle...")
-            logging.error(exc)
-            config.db_session.rollback()
-            time.sleep(config.categories["csmachines.py"]["sleep_interval_command"])
-            continue
+    try:
+        config.db_session.commit()
+    except Exception as exc:
+        logging.exception("Failed to commit retire machine, aborting cycle...")
+        logging.error(exc)
+        config.db_session.rollback()
+        sql = "update csv2_clouds set machine_subprocess_pid=%s where group_name='%s' and cloud_name='%s';" % (-1, group_name, cloud_name)
+        return False
 
-    if abort_cycle:
-        abort_cycle = False
-        continue
-
-    config.db_connection.execute('update csv2_clouds set pid=%s where group_name==%s, cloud_name==%s' % (-1, group_name, cloud_name)) 
+    sql = "update csv2_clouds set machine_subprocess_pid=%s where group_name='%s' and cloud_name='%s';" % (-1, group_name, cloud_name)
+    config.db_connection.execute(sql) 
     return True
 
 
@@ -1398,19 +1389,18 @@ def machine_command_poller():
             logging.debug(condor_hosts_set)
             
             for condor_host in condor_hosts_set:
-                master_type = htcondor.AdTypes.Master
-                startd_type = htcondor.AdTypes.Startd
 
                 # Get unique group,cloud pairs
                 grp_cld_pairs = config.db_connection.execute('select distinct group_name, cloud_name from view_condor_host')
 
                 for pair in grp_cld_pairs:
-                    #
                     # First check pid of cloud entry
-                    pid = check_pair_pid(pair, config, CLOUD)
-                    if not pid:
-                    #    subprocess this eventually
-                    process_group_cloud_commands(pair, config)
+                    pid_active = check_pair_pid(pair, config, CLOUD)
+                    logging.error(pid_active)
+                    if not pid_active:
+                        #subprocess this eventually
+                        logging.info("No pid active, starting commands")
+                        process_group_cloud_commands(pair, config, condor_host)
                     
             
             try:
