@@ -65,8 +65,8 @@ from (
         cc.vm_image
     end as cascading_vm_image,
 
-    case when ifnull(cc.vm_keep_alive,'')='' then
-        case when ifnull(cg.vm_keep_alive,'')='' then
+    case when cc.vm_keep_alive=-1 then
+        case when cg.vm_keep_alive=-1 then
             0
         else
             cg.vm_keep_alive
