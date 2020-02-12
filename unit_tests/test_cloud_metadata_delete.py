@@ -1,4 +1,4 @@
-from unit_test_common import execute_csv2_request, initialize_csv2_request, ut_id
+from unit_test_common import execute_csv2_request, initialize_csv2_request, ut_id, sanity_requests, parameters_requests
 from sys import argv
 
 # lno: CV - error code identifier.
@@ -11,105 +11,43 @@ def main(gvar):
         else:
             initialize_csv2_request(gvar, argv[0])
     
-    # 1
-    execute_csv2_request(
-        gvar, 2, None, 'HTTP response code 401, unauthorized.',
-        '/cloud/metadata-delete/', group=ut_id(gvar, 'ctg1'),
-        server_user='invalid-unit-test'
-    )
+    # 01 - 05
+    sanity_requests(gvar, '/cloud/metadata-delete/', ut_id(gvar, 'ctg1'), ut_id(gvar, 'ctu3'), ut_id(gvar, 'ctg2'), ut_id(gvar, 'ctu1'))
 
-    # 2
-    execute_csv2_request(
-        gvar, 1, None, 'user "{}" is not a member of any group.'.format(ut_id(gvar, 'ctu1')),
-        '/cloud/metadata-delete/', group=ut_id(gvar, 'ctg1'),
-        server_user=ut_id(gvar, 'ctu1')
-    )
-
-    # 3
-    execute_csv2_request(
-        gvar, 1, None, 'user "{}" is not a member of any group.'.format(ut_id(gvar, 'ctu2')),
-        '/cloud/metadata-delete/', group=ut_id(gvar, 'ctg1'),
-        server_user=ut_id(gvar, 'ctu2')
-    )
-
-    # 4
+    # 06
     execute_csv2_request(
         gvar, 1, 'CV', 'cloud metadata-delete request did not contain mandatory parameters "cloud_name" and "metadata_name".',
         '/cloud/metadata-delete/', group=ut_id(gvar, 'ctg1'),
         server_user=ut_id(gvar, 'ctu3')
     )
 
-    # 5
-    execute_csv2_request(
-        gvar, 1, None, 'cannot switch to invalid group "invalid-unit-test".',
-        '/cloud/metadata-delete/', group='invalid-unit-test',
-        server_user=ut_id(gvar, 'ctu3')
-    )
+    PARAMETERS = [
+        # 07 Give an invalid parameter.
+        # 08 Omit cloud_name.
+        ('cloud_name', {
+            # 09
+            '': 'cloud metadata-delete value specified for "cloud_name" must not be the empty string.',
+            # 10
+            'Invalid-unit-test': 'cloud metadata-delete value specified for "cloud_name" must be all lowercase letters, digits, dashes, underscores, periods, and colons, and cannot contain more than one consecutive dash or start or end with a dash.',
+            # 11
+            'invalid-unit-test-': 'cloud metadata-delete value specified for "cloud_name" must be all lowercase letters, digits, dashes, underscores, periods, and colons, and cannot contain more than one consecutive dash or start or end with a dash.',
+            # 12
+            'invalid-unit-test!': 'cloud metadata-delete value specified for "cloud_name" must be all lowercase letters, digits, dashes, underscores, periods, and colons, and cannot contain more than one consecutive dash or start or end with a dash.',
+            # 13 Tests both a cloud that does not exist and metadata that does not exist.
+            'invalid-unit-test': 'the request did not match any rows.'
+        }, 'invalid-unit-test'),
+        # 14 Omit metadata_name.
+        ('metadata_name', {
+            # 15
+            '': 'cloud metadata-delete value specified for "metadata_name" must not be the empty string.',
+            # 16
+            'invalid-unit-test!': 'cloud metadata-delete value specified for "metadata_name" must be all lowercase letters, digits, dashes, underscores, periods, and colons, and cannot contain more than one consecutive dash or start or end with a dash.'
+        }, 'invalid-unit-test')
+    ]
 
-    # 6
-    execute_csv2_request(
-        gvar, 1, None, 'cannot switch to invalid group "{}".'.format(ut_id(gvar, 'ctg2')),
-        '/cloud/metadata-delete/', group=ut_id(gvar, 'ctg2'),
-        server_user=ut_id(gvar, 'ctu3')
-    )
+    parameters_requests(gvar, '/cloud/metadata-delete/', ut_id(gvar, 'ctg1'), ut_id(gvar, 'ctu3'), PARAMETERS)
 
-    # 7
-    execute_csv2_request(
-        gvar, 1, 'CV', 'cloud metadata-delete request did not contain mandatory parameters "cloud_name" and "metadata_name".',
-        '/cloud/metadata-delete/', group=ut_id(gvar, 'ctg1'),
-        server_user=ut_id(gvar, 'ctu3')
-    )
-
-    # 8
-    execute_csv2_request(
-        gvar, 1, 'CV', 'cloud metadata-delete request did not contain mandatory parameter "metadata_name".',
-        '/cloud/metadata-delete/', group=(ut_id(gvar, 'ctg1')),
-        form_data={'cloud_name': 'invalid-unit-test'},
-        server_user=ut_id(gvar, 'ctu3')
-    )
-
-    # 9
-    execute_csv2_request(
-        gvar, 1, 'CV', 'cloud metadata-delete request did not contain mandatory parameter "cloud_name".',
-        '/cloud/metadata-delete/', group=(ut_id(gvar, 'ctg1')),
-        form_data={'metadata_name': 'invalid-unit-test'},
-        server_user=ut_id(gvar, 'ctu3')
-    )
-
-    # 10
-    execute_csv2_request(
-        gvar, 1, 'CV', 'value specified for "cloud_name" must be all lower case, numeric digits, and dashes but cannot start or end with dashes.',
-        '/cloud/metadata-delete/', group=(ut_id(gvar, 'ctg1')),
-        form_data={
-            'cloud_name': 'Invalid-unit-test',
-            'metadata_name': 'invalid-unit-test'
-        },
-        server_user=ut_id(gvar, 'ctu3')
-    )
-
-    # 11
-    execute_csv2_request(
-        gvar, 1, 'CV', 'value specified for "metadata_name" must be all lower case.',
-        '/cloud/metadata-delete/', group=(ut_id(gvar, 'ctg1')),
-        form_data={
-            'cloud_name': 'invalid-unit-test',
-            'metadata_name': 'Invalid-unit-test'
-        },
-        server_user=ut_id(gvar, 'ctu3')
-    )
-
-    # 12
-    execute_csv2_request(
-        gvar, 1, 'CV', 'the request did not match any rows.',
-        '/cloud/metadata-delete/', group=(ut_id(gvar, 'ctg1')),
-        form_data={
-            'cloud_name': 'invalid-unit-test',
-            'metadata_name': 'invalid-unit-test'
-        },
-        server_user=ut_id(gvar, 'ctu3')
-    )
-
-    # 13
+    # 17
     execute_csv2_request(
         gvar, 0, None, 'cloud metadata file "{}::{}::{}" successfully deleted.'.format(ut_id(gvar, 'ctg1'), ut_id(gvar, 'ctc3'), ut_id(gvar, 'cty2')),
         '/cloud/metadata-delete/', group=(ut_id(gvar, 'ctg1')),

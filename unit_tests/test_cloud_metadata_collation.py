@@ -1,4 +1,4 @@
-from unit_test_common import execute_csv2_request, initialize_csv2_request, ut_id
+from unit_test_common import execute_csv2_request, initialize_csv2_request, ut_id, sanity_requests
 from sys import argv
 
 # lno: CV - error code identifier.
@@ -11,40 +11,8 @@ def main(gvar):
         else:
             initialize_csv2_request(gvar, argv[0])
     
-    # 01
-    execute_csv2_request(
-        gvar, 2, None, 'HTTP response code 401, unauthorized.',
-        '/cloud/metadata-collation/', group=ut_id(gvar, 'ctg1'),
-        server_user='invalid-unit-test'
-    )
-
-    # 02
-    execute_csv2_request(
-        gvar, 1, None, 'user "{}" is not a member of any group.'.format(ut_id(gvar, 'ctu1')),
-        '/cloud/metadata-collation/', group=ut_id(gvar, 'ctg1'),
-        server_user=ut_id(gvar, 'ctu1')
-    )
-
-    # 03
-    execute_csv2_request(
-        gvar, 1, None, 'user "{}" is not a member of any group.'.format(ut_id(gvar, 'ctu2')),
-        '/cloud/metadata-collation/', group=ut_id(gvar, 'ctg1'),
-        server_user=ut_id(gvar, 'ctu2')
-    )
-
-    # 04
-    execute_csv2_request(
-        gvar, 1, None, 'cannot switch to invalid group "invalid-unit-test".',
-        '/cloud/metadata-collation/', group='invalid-unit-test',
-        server_user=ut_id(gvar, 'ctu3')
-    )
-
-    # 05
-    execute_csv2_request(
-        gvar, 1, None, 'cannot switch to invalid group "{}".'.format(ut_id(gvar, 'ctg2')),
-        '/cloud/metadata-collation/', group=ut_id(gvar, 'ctg2'),
-        server_user=ut_id(gvar, 'ctu3')
-    )
+    # 01 - 05
+    sanity_requests(gvar, '/cloud/metadata-collation/', ut_id(gvar, 'ctg1'), ut_id(gvar, 'ctu3'), ut_id(gvar, 'ctg2'), ut_id(gvar, 'ctu1'))
 
     # 06
     execute_csv2_request(

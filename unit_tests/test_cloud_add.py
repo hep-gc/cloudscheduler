@@ -31,58 +31,60 @@ def main(gvar):
             # 10
             'Invalid-Unit-Test': 'cloud add value specified for "cloud_name" must be all lowercase letters, digits, dashes, underscores, periods, and colons, and cannot contain more than one consecutive dash or start or end with a dash.',
             # 11
-            '-invalid-unit-test': 'cloud add value specified for "cloud_name" must be all lowercase letters, digits, dashes, underscores, periods, and colons, and cannot contain more than one consecutive dash or start or end with a dash.',
+            'invalid-unit--test': 'cloud add value specified for "cloud_name" must be all lowercase letters, digits, dashes, underscores, periods, and colons, and cannot contain more than one consecutive dash or start or end with a dash.',
             # 12
-            'invalid-unit-test!': 'cloud add value specified for "cloud_name" must be all lowercase letters, digits, dashes, underscores, periods, and colons, and cannot contain more than one consecutive dash or start or end with a dash.',
+            '-invalid-unit-test': 'cloud add value specified for "cloud_name" must be all lowercase letters, digits, dashes, underscores, periods, and colons, and cannot contain more than one consecutive dash or start or end with a dash.',
             # 13
+            'invalid-unit-test!': 'cloud add value specified for "cloud_name" must be all lowercase letters, digits, dashes, underscores, periods, and colons, and cannot contain more than one consecutive dash or start or end with a dash.',
+            # 14
             'cloud-name-that-is-too-long-for-the-database': 'Data too long for column \'cloud_name\' at row 1'
         }, 'invalid-unit-test'),
-        # 14 Omit cloud_type.
-        # 15
+        # 15 Omit cloud_type.
+        # 16
         ('cloud_type', {'invalid-unit-test': 'cloud add value specified for "cloud_type" must be one of the following options: [\'amazon\', \'azure\', \'google\', \'local\', \'opennebula\', \'openstack\'].'}, 'local'),
-        # 16 Omit authurl.
-        # 17
+        # 17 Omit authurl.
+        # 18
         ('authurl', {'': 'cloud add parameter "authurl" contains an empty string which is specifically disallowed.'}, 'invalid-unit-test'),
-        # 18 Omit username.
-        # 19
+        # 19 Omit username.
+        # 20
         ('username', {'': 'cloud add parameter "username" contains an empty string which is specifically disallowed.'}, 'invalid-unit-test'),
-        # 20 Omit password.
-        # 21
+        # 21 Omit password.
+        # 22
         ('password', {'': 'cloud add parameter "password" contains an empty string which is specifically disallowed.'}, 'invalid-unit-test'),
-        # 22 Omit project.
-        # 23
+        # 23 Omit project.
+        # 24
         ('project', {'': 'cloud add parameter "project" contains an empty string which is specifically disallowed.'}, 'invalid-unit-test'),
-        # 24 Omit region.
-        # 25
+        # 25 Omit region.
+        # 26
         ('region', {'': 'cloud add parameter "region" contains an empty string which is specifically disallowed.'}, 'invalid-unit-test'),
-        # 26 Specify a parameter that is explicitly rejected.
+        # 27 Specify a parameter that is explicitly rejected.
         ('server_meta_ctl', {'invalid-unit-test': 'bad parameter "server_meta_ctl"'}),
-        # 27
-        ('ram_ctl', {'invalid-unit-test': 'cloud add value specified for "ram_ctl" must be an integer value.'}),
         # 28
-        ('cores_ctl', {'invalid-unit-test': 'cloud add value specified for "cores_ctl" must be an integer value.'}),
+        ('ram_ctl', {'invalid-unit-test': 'cloud add value specified for "ram_ctl" must be an integer value.'}),
         # 29
-        ('vm_keep_alive', {'invalid-unit-test': 'cloud add value specified for "vm_keep_alive" must be an integer value.'}),
+        ('cores_ctl', {'invalid-unit-test': 'cloud add value specified for "cores_ctl" must be an integer value.'}),
         # 30
-        ('enabled', {'invalid-unit-test': 'cloud add boolean value specified for "enabled" must be one of the following: true, false, yes, no, 1, or 0.'}),
+        ('vm_keep_alive', {'invalid-unit-test': 'cloud add value specified for "vm_keep_alive" must be an integer value.'}),
         # 31
-        ('spot_price', {'invalid-unit-test': 'cloud add value specified for "spot_price" must be a floating point value.'}),
+        ('enabled', {'invalid-unit-test': 'cloud add boolean value specified for "enabled" must be one of the following: true, false, yes, no, 1, or 0.'}),
         # 32
-        ('metadata_name', {'invalid-unit-test': 'cloud add, "invalid-unit-test" failed - specified metadata_name "invalid-unit-test" does not exist.'}),
+        ('spot_price', {'invalid-unit-test': 'cloud add value specified for "spot_price" must be a floating point value.'}),
         # 33
-        ('vm_image', {'invalid-unit-test': 'cloud add, "invalid-unit-test" failed - specified item does not exist: vm_image=invalid-unit-test, group_name={}, cloud_name=invalid-unit-test.'.format(ut_id(gvar, 'ctg1'))}),
+        ('metadata_name', {'invalid-unit-test': 'cloud add, "invalid-unit-test" failed - specified metadata_name "invalid-unit-test" does not exist.'}),
         # 34
-        ('vm_flavor', {'invalid-unit-test': 'cloud add, "invalid-unit-test" failed - specified item does not exist: vm_flavor=invalid-unit-test, group_name={}, cloud_name=invalid-unit-test.'.format(ut_id(gvar, 'ctg1'))}),
+        ('vm_image', {'invalid-unit-test': 'cloud add, "invalid-unit-test" failed - specified item does not exist: vm_image=invalid-unit-test, group_name={}, cloud_name=invalid-unit-test.'.format(ut_id(gvar, 'ctg1'))}),
         # 35
-        ('vm_network', {'invalid-unit-test': 'cloud add, "invalid-unit-test" failed - specified item does not exist: vm_network=invalid-unit-test, group_name={}, cloud_name=invalid-unit-test.'.format(ut_id(gvar, 'ctg1'))}),
+        ('vm_flavor', {'invalid-unit-test': 'cloud add, "invalid-unit-test" failed - specified item does not exist: vm_flavor=invalid-unit-test, group_name={}, cloud_name=invalid-unit-test.'.format(ut_id(gvar, 'ctg1'))}),
         # 36
+        ('vm_network', {'invalid-unit-test': 'cloud add, "invalid-unit-test" failed - specified item does not exist: vm_network=invalid-unit-test, group_name={}, cloud_name=invalid-unit-test.'.format(ut_id(gvar, 'ctg1'))}),
+        # 37
         ('vm_keyname', {'invalid-unit-test': 'cloud add, "invalid-unit-test" failed - specified item does not exist: vm_keyname=invalid-unit-test, group_name={}, cloud_name=invalid-unit-test.'.format(ut_id(gvar, 'ctg1'))})
     ]
 
     parameters_requests(gvar, '/cloud/add/', ut_id(gvar, 'ctg1'), ut_id(gvar, 'ctu3'), PARAMETERS)
 
     # Parameter combinations that do not fit well into the above format.
-    # 37 Give two cloud names.
+    # 38 Give two cloud names.
     execute_csv2_request(
         gvar, 1, 'CV', 'Operand should contain 1 column(s)',
         '/cloud/add/', group=ut_id(gvar, 'ctg1'), form_data={
@@ -98,7 +100,7 @@ def main(gvar):
         server_user=ut_id(gvar, 'ctu3')
     )
 
-    # 38
+    # 39
     execute_csv2_request(
         gvar, 1, 'CV', 'cloud add, "invalid-unit-test" failed - specified metadata_name "invalid-unit-test" does not exist.',
         '/cloud/add/', group=ut_id(gvar, 'ctg1'), form_data={
@@ -115,7 +117,7 @@ def main(gvar):
         server_user=ut_id(gvar, 'ctu3')
     )
 
-    # 39
+    # 40
     execute_csv2_request(
         gvar, 1, 'CV', 'cloud add, "{}" failed - metadata name "{}" was specified twice.'.format(ut_id(gvar, 'cloud-invalid-unit-test'), ut_id(gvar, 'cty1')),
         '/cloud/add/', group=ut_id(gvar, 'ctg1'), form_data={
@@ -132,7 +134,7 @@ def main(gvar):
         server_user=ut_id(gvar, 'ctu3')
     )
 
-    # 40 Known to fail if run twice without setup or cleanup in between.
+    # 41 Known to fail if run twice without setup or cleanup in between.
     execute_csv2_request(
         gvar, 0, None, 'cloud "{}::{}" successfully added.'.format(ut_id(gvar, 'ctg1'), ut_id(gvar, 'ctc5')),
         '/cloud/add/', group=ut_id(gvar, 'ctg1'), form_data={
@@ -160,7 +162,7 @@ def main(gvar):
         server_user=ut_id(gvar, 'ctu3')
     )
 
-    # 41 Ensure that 40 actually created a cloud.
+    # 42 Ensure that 40 actually created a cloud.
     execute_csv2_request(
         gvar, 0, None, None,
         '/cloud/list/', group=ut_id(gvar, 'ctg1'),
@@ -191,7 +193,7 @@ def main(gvar):
         server_user=ut_id(gvar, 'ctu3')
     )
 
-    # 42 Known to fail if run twice without setup or cleanup in between.
+    # 43 Known to fail if run twice without setup or cleanup in between.
     execute_csv2_request(
         gvar, 0, None, 'cloud "{}::{}" successfully added.'.format(ut_id(gvar, 'ctg1'), ut_id(gvar, 'ctc6')),
         '/cloud/add/', group=ut_id(gvar, 'ctg1'), form_data={
@@ -209,7 +211,7 @@ def main(gvar):
         server_user=ut_id(gvar, 'ctu3')
     )
 
-    # 43 Ensure that 42 actually created a cloud.
+    # 44 Ensure that 42 actually created a cloud.
     execute_csv2_request(
         gvar, 0, None, None,
         '/cloud/list/', group=ut_id(gvar, 'ctg1'),
@@ -222,7 +224,7 @@ def main(gvar):
         server_user=ut_id(gvar, 'ctu3')
     )
 
-    # 44 Attempt to create a cloud that already exists.
+    # 45 Attempt to create a cloud that already exists.
     execute_csv2_request(
         gvar, 1, 'CV', 'Duplicate entry \'{}-{}\' for key \'PRIMARY\''.format(ut_id(gvar, 'ctg1'), ut_id(gvar, 'ctc5')),
         '/cloud/add/', group=ut_id(gvar, 'ctg1'), form_data={

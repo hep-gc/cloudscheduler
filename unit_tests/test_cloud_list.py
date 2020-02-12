@@ -1,4 +1,4 @@
-from unit_test_common import execute_csv2_request, initialize_csv2_request, ut_id
+from unit_test_common import execute_csv2_request, initialize_csv2_request, ut_id, sanity_requests
 from sys import argv
 
 # lno: CV - error code identifier.
@@ -11,42 +11,10 @@ def main(gvar):
         else:
             initialize_csv2_request(gvar, argv[0])
 
-    #1 
-    execute_csv2_request(
-        gvar, 2, None, 'HTTP response code 401, unauthorized.',
-        '/cloud/list/', group=ut_id(gvar, 'ctg1'),
-        server_user='invalid-unit-test'
-    )
+    # 01 - 05
+    sanity_requests(gvar, '/cloud/list', ut_id(gvar, 'ctg1'), ut_id(gvar, 'ctu3'), ut_id(gvar, 'ctg2'), ut_id(gvar, 'ctu1'))
 
-    #2
-    execute_csv2_request(
-        gvar, 1, None, 'user "{}" is not a member of any group.'.format(ut_id(gvar, 'ctu1')),
-        '/cloud/list/', group=ut_id(gvar, 'ctg1'),
-        server_user=ut_id(gvar, 'ctu1')
-    )
-
-    #3
-    execute_csv2_request(
-        gvar, 1, None, 'user "{}" is not a member of any group.'.format(ut_id(gvar, 'ctu2')),
-        '/cloud/list/', group=ut_id(gvar, 'ctg1'),
-        server_user=ut_id(gvar, 'ctu2')
-    )
-
-    #4
-    execute_csv2_request(
-        gvar, 1, None, 'cannot switch to invalid group "invalid-unit-test".',
-        '/cloud/list/', group='invalid-unit-test',
-        server_user=ut_id(gvar, 'ctu3')
-    )
-
-    #5
-    execute_csv2_request(
-        gvar, 1, None, 'cannot switch to invalid group "{}".'.format(ut_id(gvar, 'ctg2')),
-        '/cloud/list/', group=ut_id(gvar, 'ctg2'),
-        server_user=ut_id(gvar, 'ctu3')
-    )
-
-    #6
+    # 06
     execute_csv2_request(
         gvar, 0, None, None,
         '/cloud/list/', group=ut_id(gvar, 'ctg1'),
@@ -67,7 +35,7 @@ def main(gvar):
         server_user=ut_id(gvar, 'ctu3')
     )
 
-    #7
+    # 07
     execute_csv2_request(
         gvar, 1, 'CV', 'request contained a bad parameter "invalid-unit-test".',
         '/cloud/list/', group=(ut_id(gvar, 'ctg1')),
@@ -75,7 +43,7 @@ def main(gvar):
         server_user=ut_id(gvar, 'ctu3')
     )
 
-    #8
+    # 08
     execute_csv2_request(
         gvar, 0, None, None,
         '/cloud/list/', group=ut_id(gvar, 'ctg1'),
