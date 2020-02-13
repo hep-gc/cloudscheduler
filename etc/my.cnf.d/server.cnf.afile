@@ -40,6 +40,8 @@ max_connections = 10000
 # If you use the same .cnf file for MySQL and MariaDB,
 # you can put MariaDB-only options here
 [mariadb]
+ssl_cert = /var/lib/mysql/.globus/usercert.pem
+ssl_key = /var/lib/mysql/.globus/userkey.pem
 
 # This group is only read by MariaDB-10.2 servers.
 # If you use the same .cnf file for MariaDB of different versions,
