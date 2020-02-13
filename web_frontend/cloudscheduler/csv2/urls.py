@@ -20,12 +20,12 @@ urlpatterns = [
     path('accounting/apel/',                       accounting_views.apel),
 
     path('alias/add/',                             alias_views.add),
-    path('alias/list/',                            alias_views.list),
+    path('alias/list/',                            alias_views.alias_list),
     path('alias/update/',                          alias_views.update),
 
     path('cloud/add/',                             cloud_views.add),
     path('cloud/delete/',                          cloud_views.delete),
-    path('cloud/list/',                            cloud_views.list),
+    path('cloud/list/',                            cloud_views.cloud_list),
     path('cloud/status/',                          cloud_views.status),
     path('cloud/status/plot',                      cloud_views.request_ts_data),
     path('cloud/update/',                          cloud_views.update),
@@ -44,7 +44,7 @@ urlpatterns = [
     path('group/add/',                             group_views.add),
     path('group/defaults/',                        group_views.defaults),
     path('group/delete/',                          group_views.delete),
-    path('group/list/',                            group_views.list),
+    path('group/list/',                            group_views.group_list),
     path('group/update/',                          group_views.update),
     path('group/metadata-add/',                    group_views.metadata_add),
     path('group/metadata-delete/',                 group_views.metadata_delete),
@@ -54,7 +54,7 @@ urlpatterns = [
     path('group/metadata-query/',                  group_views.metadata_query),
     path('group/metadata-update/',                 group_views.metadata_update),
 
-    path('job/list/',                              job_views.list),
+    path('job/list/',                              job_views.job_list),
 ##  path('job/modify/',                            job_views.modify),
 
     path('server/config/',                         server_views.configuration),
@@ -65,12 +65,12 @@ urlpatterns = [
 
     path('user/add/',                              user_views.add),
     path('user/delete/',                           user_views.delete),
-    path('user/list/',                             user_views.list),
+    path('user/list/',                             user_views.user_list),
     path('user/settings/',                         user_views.settings),
     path('user/update/',                           user_views.update),
 
     path('vm/foreign/',                            vm_views.foreign),
-    path('vm/list/',                               vm_views.list),
+    path('vm/list/',                               vm_views.vm_list),
     path('vm/update/',                             vm_views.update),
 
 ]

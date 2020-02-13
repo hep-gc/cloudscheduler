@@ -72,7 +72,7 @@ LIST_KEYS = {
 
 @silkp(name="Job List")
 @requires_csrf_token
-def list(request):
+def job_list(request):
 
     # open the database.
     config.db_open() 
@@ -91,7 +91,7 @@ def list(request):
 
     # Retrieve VM information.
     s = select([view_condor_jobs_group_defaults_applied]).where(view_condor_jobs_group_defaults_applied.c.group_name == active_user.active_group)
-    job_list = qt(config.db_connection.execute(s), convert={'entered_current_status': 'datetime', 'q_date': 'datetime'})
+    _job_list = qt(config.db_connection.execute(s), convert={'entered_current_status': 'datetime', 'q_date': 'datetime'})
 
     config.db_close()
     
@@ -100,7 +100,7 @@ def list(request):
             'active_user': active_user.username,
             'active_group': active_user.active_group,
             'user_groups': active_user.user_groups,
-            'job_list': job_list,
+            'job_list': _job_list,
             'response_code': 0,
             'message': None,
             'is_superuser': active_user.is_superuser,

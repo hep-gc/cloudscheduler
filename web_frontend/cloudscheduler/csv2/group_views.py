@@ -149,7 +149,7 @@ def add(request):
     rc, msg, active_user = set_user_groups(config, request)
     if rc != 0:
         config.db_close()
-        return list(request, active_user=active_user, response_code=1, message='%s %s' % (lno(MODID), msg))
+        return group_list(request, active_user=active_user, response_code=1, message='%s %s' % (lno(MODID), msg))
 
     if request.method == 'POST':
         
@@ -157,57 +157,57 @@ def add(request):
         rc, msg, fields, tables, columns = validate_fields(config, request, [GROUP_KEYS, GROUP_ADD_KEYS], ['csv2_groups', 'csv2_user_groups', 'csv2_user,n', 'csv2_group_metadata,n'], active_user)
         if rc != 0:
             config.db_close()
-            return list(request, active_user=active_user, response_code=1, message='%s group add %s' % (lno(MODID), msg))
+            return group_list(request, active_user=active_user, response_code=1, message='%s group add %s' % (lno(MODID), msg))
 
         if 'vm_flavor' in fields and fields['vm_flavor']:
             rc, msg = validate_by_filtered_table_entries(config, fields['vm_flavor'], 'vm_flavor', 'cloud_flavors', 'name', [['group_name', fields['group_name']]])
             if rc != 0:
                 config.db_close()
-                return list(request, active_user=active_user, response_code=1, message='%s group add, "%s" failed - %s.' % (lno(MODID), fields['group_name'], msg))
+                return group_list(request, active_user=active_user, response_code=1, message='%s group add, "%s" failed - %s.' % (lno(MODID), fields['group_name'], msg))
         if 'vm_image' in fields and fields['vm_image']:
             rc, msg = validate_by_filtered_table_entries(config, fields['vm_image'], 'vm_image', 'cloud_images', 'name', [['group_name', fields['group_name']]])
             if rc != 0:
                 config.db_close()
-                return list(request, active_user=active_user, response_code=1, message='%s group add, "%s" failed - %s.' % (lno(MODID), fields['group_name'], msg))
+                return group_list(request, active_user=active_user, response_code=1, message='%s group add, "%s" failed - %s.' % (lno(MODID), fields['group_name'], msg))
 
         if 'vm_keyname' in fields and fields['vm_keyname']:
             rc, msg = validate_by_filtered_table_entries(config, fields['vm_keyname'], 'vm_keyname', 'cloud_keypairs', 'key_name', [['group_name', fields['group_name']]])
             if rc != 0:
                 config.db_close()
-                return list(request, active_user=active_user, response_code=1, message='%s group add, "%s" failed - %s.' % (lno(MODID), fields['group_name'], msg))
+                return group_list(request, active_user=active_user, response_code=1, message='%s group add, "%s" failed - %s.' % (lno(MODID), fields['group_name'], msg))
 
         if 'vm_network' in fields and fields['vm_network']:
             rc, msg = validate_by_filtered_table_entries(config, fields['vm_network'], 'vm_network', 'cloud_networks', 'name', [['group_name', fields['group_name']]])
             if rc != 0:
                 config.db_close()
-                return list(request, active_user=active_user, response_code=1, message='%s group add, "%s" failed - %s.' % (lno(MODID), fields['group_name'], msg))
+                return group_list(request, active_user=active_user, response_code=1, message='%s group add, "%s" failed - %s.' % (lno(MODID), fields['group_name'], msg))
 
         if 'vm_security_groups' in fields and fields['vm_security_groups']:
             rc, msg = validate_by_filtered_table_entries(config, fields['vm_security_groups'], 'vm_security_groups', 'cloud_security_groups', 'name', [['group_name', fields['group_name']]], allow_value_list=True)
             if rc != 0:
                 config.db_close()
-                return list(request, active_user=active_user, response_code=1, message='%s group add, "%s" failed - %s.' % (lno(MODID), fields['group_name'], msg))
+                return group_list(request, active_user=active_user, response_code=1, message='%s group add, "%s" failed - %s.' % (lno(MODID), fields['group_name'], msg))
 
         # Validity check the specified users.
         if 'username' in fields:
             rc, msg = manage_user_group_verification(config, tables, fields['username'], None) 
             if rc != 0:
                 config.db_close()
-                return list(request, active_user=active_user, response_code=1, message='%s group add, "%s" failed - %s.' % (lno(MODID), fields['group_name'], msg))
+                return group_list(request, active_user=active_user, response_code=1, message='%s group add, "%s" failed - %s.' % (lno(MODID), fields['group_name'], msg))
 
         # Add the group.
         table = tables['csv2_groups']
         rc, msg = config.db_session_execute(table.insert().values(table_fields(fields, table, columns, 'insert')))
         if rc != 0:
             config.db_close()
-            return list(request, active_user=active_user, response_code=1, message='%s group add "%s" failed - %s.' % (lno(MODID), fields['group_name'], msg))
+            return group_list(request, active_user=active_user, response_code=1, message='%s group add "%s" failed - %s.' % (lno(MODID), fields['group_name'], msg))
 
         # Add user_groups.
         if 'username' in fields:
             rc, msg = manage_group_users(config, tables, fields['group_name'], fields['username'])
             if rc != 0:
                 config.db_close()
-                return list(request, active_user=active_user, response_code=1, message='%s group add "%s" failed - %s.' % (lno(MODID), fields['group_name'], msg))
+                return group_list(request, active_user=active_user, response_code=1, message='%s group add "%s" failed - %s.' % (lno(MODID), fields['group_name'], msg))
 
 
         # Add the default metadata file.
@@ -219,18 +219,18 @@ def add(request):
         rc, msg = config.db_session_execute(table.insert().values(group_name=fields['group_name'], metadata_name=filename, enabled=1 ,priority=0, metadata=filedata, mime_type="cloud-config"))
         if rc != 0:
             config.db_close()
-            return list(request, active_user=active_user, response_code=1, message='%s group add "%s" failed - %s.' % (lno(MODID), fields['group_name'], msg))
+            return group_list(request, active_user=active_user, response_code=1, message='%s group add "%s" failed - %s.' % (lno(MODID), fields['group_name'], msg))
 
 
         # Commit the updates, configure condor (gsi_daemon_name, firewall), and return.
         config.db_session.commit()
         configure_htc(config)
         config.db_close()
-        return list(request, active_user=active_user, response_code=0, message='group "%s" successfully added.' % (fields['group_name']))
+        return group_list(request, active_user=active_user, response_code=0, message='group "%s" successfully added.' % (fields['group_name']))
 
     ### Bad request.
     else:
-        return list(request, active_user=active_user, response_code=1, message='%s group add, invalid method "%s" specified.' % (lno(MODID), request.method))
+        return group_list(request, active_user=active_user, response_code=1, message='%s group add, invalid method "%s" specified.' % (lno(MODID), request.method))
 
 #-------------------------------------------------------------------------------
 
@@ -332,7 +332,7 @@ def defaults(request, active_user=None, response_code=0, message=None):
 
         # Get the group default metadata list:
         s = select([view_groups_with_metadata_info]).where(csv2_groups.c.group_name==active_user.active_group)
-        group_list, metadata_dict = qt(
+        _group_list, metadata_dict = qt(
             config.db_connection.execute(s),
             keys = {
                 'primary': [
@@ -391,7 +391,7 @@ def delete(request):
     rc, msg, active_user = set_user_groups(config, request)
     if rc != 0:
         config.db_close()
-        return list(request, active_user=active_user, response_code=1, message='%s %s' % (lno(MODID), msg))
+        return group_list(request, active_user=active_user, response_code=1, message='%s %s' % (lno(MODID), msg))
 
     if request.method == 'POST':
 
@@ -414,7 +414,7 @@ def delete(request):
             ], active_user)
         if rc != 0:
             config.db_close()
-            return list(request, active_user=active_user, response_code=1, message='%s group delete %s' % (lno(MODID), msg))
+            return group_list(request, active_user=active_user, response_code=1, message='%s group delete %s' % (lno(MODID), msg))
 
         # Delete the csv2_cloud_aliases.
         table = tables['csv2_cloud_aliases']
@@ -424,12 +424,12 @@ def delete(request):
             )
         if rc != 0:
             config.db_close()
-            return list(request, active_user=active_user, response_code=1, message='%s group resources delete "%s" failed - %s.' % (lno(MODID), fields['group_name'], msg))
+            return group_list(request, active_user=active_user, response_code=1, message='%s group resources delete "%s" failed - %s.' % (lno(MODID), fields['group_name'], msg))
 
         # Delete any group metadata files for the group.
         s = select([view_groups_with_metadata_names]).where((view_groups_with_metadata_names.c.group_name == fields['group_name']))
-        group_list = qt(config.db_connection.execute(s))
-        for row in group_list:
+        _group_list = qt(config.db_connection.execute(s))
+        for row in _group_list:
             if row['group_name'] == fields['group_name'] and row['metadata_names']:
                 metadata_names = row['metadata_names'].split(',')
                 table = tables['csv2_group_metadata']
@@ -440,7 +440,7 @@ def delete(request):
                         )
                     if rc != 0:
                         config.db_close()
-                        return list(request, active_user=active_user, response_code=1, message='%s group metadata file delete "%s::%s" failed - %s.' % (lno(MODID), fields['group_name'], metadata_name, msg))
+                        return group_list(request, active_user=active_user, response_code=1, message='%s group metadata file delete "%s::%s" failed - %s.' % (lno(MODID), fields['group_name'], metadata_name, msg))
 
         # Delete the csv2_clouds.
         table = tables['csv2_clouds']
@@ -450,7 +450,7 @@ def delete(request):
             )
         if rc != 0:
             config.db_close()
-            return list(request, active_user=active_user, response_code=1, message='%s group resources delete "%s" failed - %s.' % (lno(MODID), fields['group_name'], msg))
+            return group_list(request, active_user=active_user, response_code=1, message='%s group resources delete "%s" failed - %s.' % (lno(MODID), fields['group_name'], msg))
 
         # Delete the csv2_cloud_metadata.
         table = tables['csv2_cloud_metadata']
@@ -460,7 +460,7 @@ def delete(request):
             )
         if rc != 0:
             config.db_close()
-            return list(request, active_user=active_user, response_code=1, message='%s group resource metadata delete "%s" failed - %s.' % (lno(MODID), fields['group_name'], msg))
+            return group_list(request, active_user=active_user, response_code=1, message='%s group resource metadata delete "%s" failed - %s.' % (lno(MODID), fields['group_name'], msg))
 
         # Delete the csv2_group_metadata_exclusions.
         table = tables['csv2_group_metadata_exclusions']
@@ -470,7 +470,7 @@ def delete(request):
             )
         if rc != 0:
             config.db_close()
-            return list(request, active_user=active_user, response_code=1, message='%s delete group metadata exclusions for group "%s" failed - %s.' % (lno(MODID), fields['group_name'], msg))
+            return group_list(request, active_user=active_user, response_code=1, message='%s delete group metadata exclusions for group "%s" failed - %s.' % (lno(MODID), fields['group_name'], msg))
 
         # Delete the csv2_user_groups.
         table = tables['csv2_user_groups']
@@ -480,7 +480,7 @@ def delete(request):
             )
         if rc != 0:
             config.db_close()
-            return list(request, active_user=active_user, response_code=1, message='%s group users delete "%s" failed - %s.' % (lno(MODID), fields['group_name'], msg))
+            return group_list(request, active_user=active_user, response_code=1, message='%s group users delete "%s" failed - %s.' % (lno(MODID), fields['group_name'], msg))
 
         # Delete the csv2_vms.
         table = tables['csv2_vms']
@@ -490,7 +490,7 @@ def delete(request):
             )
         if rc != 0:
             config.db_close()
-            return list(request, active_user=active_user, response_code=1, message='%s group VMs defaults delete "%s" failed - %s.' % (lno(MODID), fields['group_name'], msg))
+            return group_list(request, active_user=active_user, response_code=1, message='%s group VMs defaults delete "%s" failed - %s.' % (lno(MODID), fields['group_name'], msg))
 
         # Delete the cloud_keypairs.
         table = tables['cloud_keypairs']
@@ -500,7 +500,7 @@ def delete(request):
             )
         if rc != 0:
             config.db_close()
-            return list(request, active_user=active_user, response_code=1, message='%s group keynames delete "%s" failed - %s.' % (lno(MODID), fields['group_name'], msg))
+            return group_list(request, active_user=active_user, response_code=1, message='%s group keynames delete "%s" failed - %s.' % (lno(MODID), fields['group_name'], msg))
 
         # Delete the cloud_networks.
         table = tables['cloud_networks']
@@ -510,7 +510,7 @@ def delete(request):
             )
         if rc != 0:
             config.db_close()
-            return list(request, active_user=active_user, response_code=1, message='%s group networks delete "%s" failed - %s.' % (lno(MODID), fields['group_name'], msg))
+            return group_list(request, active_user=active_user, response_code=1, message='%s group networks delete "%s" failed - %s.' % (lno(MODID), fields['group_name'], msg))
 
         # Delete the cloud_security_groups.
         table = tables['cloud_security_groups']
@@ -520,7 +520,7 @@ def delete(request):
             )
         if rc != 0:
             config.db_close()
-            return list(request, active_user=active_user, response_code=1, message='%s group  security groups delete "%s" failed - %s.' % (lno(MODID), fields['group_name'], msg))
+            return group_list(request, active_user=active_user, response_code=1, message='%s group  security groups delete "%s" failed - %s.' % (lno(MODID), fields['group_name'], msg))
 
         # Delete the cloud_limits.
         table = tables['cloud_limits']
@@ -530,7 +530,7 @@ def delete(request):
             )
         if rc != 0:
             config.db_close()
-            return list(request, active_user=active_user, response_code=1, message='%s group limits delete "%s" failed - %s.' % (lno(MODID), fields['group_name'], msg))
+            return group_list(request, active_user=active_user, response_code=1, message='%s group limits delete "%s" failed - %s.' % (lno(MODID), fields['group_name'], msg))
 
         # Delete the cloud_images.
         table = tables['cloud_images']
@@ -540,7 +540,7 @@ def delete(request):
             )
         if rc != 0:
             config.db_close()
-            return list(request, active_user=active_user, response_code=1, message='%s group images delete "%s" failed - %s.' % (lno(MODID), fields['group_name'], msg))
+            return group_list(request, active_user=active_user, response_code=1, message='%s group images delete "%s" failed - %s.' % (lno(MODID), fields['group_name'], msg))
 
         # Delete the cloud_flavors.
         table = tables['cloud_flavors']
@@ -549,7 +549,7 @@ def delete(request):
             allow_no_rows=True
             )
         if rc != 0:
-            return list(request, active_user=active_user, response_code=1, message='%s group flavors delete "%s" failed - %s.' % (lno(MODID), fields['group_name'], msg))
+            return group_list(request, active_user=active_user, response_code=1, message='%s group flavors delete "%s" failed - %s.' % (lno(MODID), fields['group_name'], msg))
 
         # Delete the group.
         table = tables['csv2_groups']
@@ -561,19 +561,19 @@ def delete(request):
             config.db_session.commit()
             configure_htc(config)
             config.db_close()
-            return list(request, active_user=active_user, response_code=0, message='group "%s" successfully deleted.' % (fields['group_name']))
+            return group_list(request, active_user=active_user, response_code=0, message='group "%s" successfully deleted.' % (fields['group_name']))
         else:
             config.db_close()
-            return list(request, active_user=active_user, response_code=1, message='%s group delete "%s" failed - %s.' % (lno(MODID), fields['group_name'], msg))
+            return group_list(request, active_user=active_user, response_code=1, message='%s group delete "%s" failed - %s.' % (lno(MODID), fields['group_name'], msg))
 
     ### Bad request.
     else:
-        return list(request, active_user=active_user, response_code=1, message='%s group delete request did not contain mandatory parameter "group_name".' % lno(MODID))
+        return group_list(request, active_user=active_user, response_code=1, message='%s group delete request did not contain mandatory parameter "group_name".' % lno(MODID))
 
 #-------------------------------------------------------------------------------
 
 @silkp(name='Group List')
-def list(request, active_user=None, response_code=0, message=None):
+def group_list(request, active_user=None, response_code=0, message=None):
 
     group_list_path = '/group/list/'
 
@@ -599,11 +599,11 @@ def list(request, active_user=None, response_code=0, message=None):
     # Retrieve group information.
     if request.META['HTTP_ACCEPT'] == 'application/json':
         s = select([view_groups_with_metadata_names]).order_by('group_name')
-        group_list = qt(config.db_connection.execute(s))
+        _group_list = qt(config.db_connection.execute(s))
         metadata_dict = {}
     else:
         s = select([view_groups_with_metadata_info]).order_by('group_name')
-        group_list, metadata_dict = qt(
+        _group_list, metadata_dict = qt(
             config.db_connection.execute(s),
             keys = {
                 'primary': [
@@ -640,8 +640,8 @@ def list(request, active_user=None, response_code=0, message=None):
 #   elif len(obj_act_id) > 3 and len(obj_act_id[3]) > 0:
 #       current_group = str(obj_act_id[3])
 #   else:
-    if len(group_list) > 0:
-        current_group = str(group_list[0]['group_name'])
+    if len(_group_list) > 0:
+        current_group = str(_group_list[0]['group_name'])
     else:
         current_group = ''
 
@@ -651,7 +651,7 @@ def list(request, active_user=None, response_code=0, message=None):
             'active_group': active_user.active_group,
             'user_groups': active_user.user_groups,
             'group_defaults': group_defaults,
-            'group_list': group_list,
+            'group_list': _group_list,
             'groups_per_user': groups_per_user,
             'metadata_dict': metadata_dict,
             'current_group': current_group,
@@ -1028,7 +1028,7 @@ def update(request):
     rc, msg, active_user = set_user_groups(config, request)
     if rc != 0:
         config.db_close()
-        return list(request, active_user=active_user, response_code=1, message='%s %s' % (lno(MODID), msg))
+        return group_list(request, active_user=active_user, response_code=1, message='%s %s' % (lno(MODID), msg))
 
     if request.method == 'POST':
 
@@ -1036,43 +1036,43 @@ def update(request):
         rc, msg, fields, tables, columns = validate_fields(config, request, [GROUP_KEYS], ['csv2_groups','csv2_user_groups', 'csv2_user,n'], active_user)
         if rc != 0:
             config.db_close()
-            return list(request, active_user=active_user, response_code=1, message='%s group update %s' % (lno(MODID), msg))
+            return group_list(request, active_user=active_user, response_code=1, message='%s group update %s' % (lno(MODID), msg))
 
         if 'vm_flavor' in fields and fields['vm_flavor']:
             rc, msg = validate_by_filtered_table_entries(config, fields['vm_flavor'], 'vm_flavor', 'cloud_flavors', 'name', [['group_name', fields['group_name']]])
             if rc != 0:
                 config.db_close()
-                return list(request, active_user=active_user, response_code=1, message='%s group update, "%s" failed - %s.' % (lno(MODID), fields['group_name'], msg))
+                return group_list(request, active_user=active_user, response_code=1, message='%s group update, "%s" failed - %s.' % (lno(MODID), fields['group_name'], msg))
 
         if 'vm_image' in fields and fields['vm_image']:
             rc, msg = validate_by_filtered_table_entries(config, fields['vm_image'], 'vm_image', 'cloud_images', 'name', [['group_name', fields['group_name']]])
             if rc != 0:
                 config.db_close()
-                return list(request, active_user=active_user, response_code=1, message='%s group update, "%s" failed - %s.' % (lno(MODID), fields['group_name'], msg))
+                return group_list(request, active_user=active_user, response_code=1, message='%s group update, "%s" failed - %s.' % (lno(MODID), fields['group_name'], msg))
 
         if 'vm_keyname' in fields and fields['vm_keyname']:
             rc, msg = validate_by_filtered_table_entries(config, fields['vm_keyname'], 'vm_keyname', 'cloud_keypairs', 'key_name', [['group_name', fields['group_name']]])
             if rc != 0:
                 config.db_close()
-                return list(request, active_user=active_user, response_code=1, message='%s group update, "%s" failed - %s.' % (lno(MODID), fields['group_name'], msg))
+                return group_list(request, active_user=active_user, response_code=1, message='%s group update, "%s" failed - %s.' % (lno(MODID), fields['group_name'], msg))
 
         if 'vm_network' in fields and fields['vm_network']:
             rc, msg = validate_by_filtered_table_entries(config, fields['vm_network'], 'vm_network', 'cloud_networks', 'name', [['group_name', fields['group_name']]])
             if rc != 0:
                 config.db_close()
-                return list(request, active_user=active_user, response_code=1, message='%s group update, "%s" failed - %s.' % (lno(MODID), fields['group_name'], msg))
+                return group_list(request, active_user=active_user, response_code=1, message='%s group update, "%s" failed - %s.' % (lno(MODID), fields['group_name'], msg))
 
         if 'vm_security_groups' in fields and fields['vm_security_groups']:
             rc, msg = validate_by_filtered_table_entries(config, fields['vm_security_groups'], 'vm_security_groups', 'cloud_security_groups', 'name', [['group_name', fields['group_name']]], allow_value_list=True)
             if rc != 0:
                 config.db_close()
-                return list(request, active_user=active_user, response_code=1, message='%s group update, "%s" failed - %s.' % (lno(MODID), fields['group_name'], msg))
+                return group_list(request, active_user=active_user, response_code=1, message='%s group update, "%s" failed - %s.' % (lno(MODID), fields['group_name'], msg))
 
         # Validity check the specified users.
         if 'username' in fields:
             rc, msg = manage_user_group_verification(config, tables, fields['username'], None) 
             if rc != 0:
-                return list(request, active_user=active_user, response_code=1, message='%s group update, "%s" failed - %s.' % (lno(MODID), fields['group_name'], msg))
+                return group_list(request, active_user=active_user, response_code=1, message='%s group update, "%s" failed - %s.' % (lno(MODID), fields['group_name'], msg))
 
         # Update the group.
         table = tables['csv2_groups']
@@ -1081,11 +1081,11 @@ def update(request):
             rc, msg = config.db_session_execute(table.update().where(table.c.group_name==fields['group_name']).values(group_updates), allow_no_rows=False)
             if rc != 0:
                 config.db_close()
-                return list(request, active_user=active_user, response_code=1, message='%s group update, "%s" failed - %s.' % (lno(MODID), fields['group_name'], msg))
+                return group_list(request, active_user=active_user, response_code=1, message='%s group update, "%s" failed - %s.' % (lno(MODID), fields['group_name'], msg))
         else:
             if 'username' not in fields and request.META['HTTP_ACCEPT'] == 'application/json':
                 config.db_close()
-                return list(request, active_user=active_user, response_code=1, message='%s group update must specify at least one field to update.' % lno(MODID))
+                return group_list(request, active_user=active_user, response_code=1, message='%s group update must specify at least one field to update.' % lno(MODID))
 
 
         # Update user groups.
@@ -1107,12 +1107,12 @@ def update(request):
             config.db_session.commit()
             configure_htc(config)
             config.db_close()
-            return list(request, active_user=active_user, response_code=0, message='group "%s" successfully updated.' % (fields['group_name']))
+            return group_list(request, active_user=active_user, response_code=0, message='group "%s" successfully updated.' % (fields['group_name']))
         else:
             config.db_close()
-            return list(request, active_user=active_user, response_code=1, message='%s group update "%s" failed - %s.' % (lno(MODID), fields['group_name'], msg))
+            return group_list(request, active_user=active_user, response_code=1, message='%s group update "%s" failed - %s.' % (lno(MODID), fields['group_name'], msg))
 
     ### Bad request.
     else:
-        return list(request, active_user=active_user, response_code=1, message='%s group update, invalid method "%s" specified.' % (lno(MODID), request.method))
+        return group_list(request, active_user=active_user, response_code=1, message='%s group update, invalid method "%s" specified.' % (lno(MODID), request.method))
 
