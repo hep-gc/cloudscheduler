@@ -263,7 +263,7 @@ def parameters_requests(gvar, request, group, server_user, PARAMETERS):
     PARAMETERS is an iterable of 2-tuples and 3-tuples, each containing:
     0. The name of a parameter to test (str).
     1. A dictionary. Each key should be an invalid value for this parameter that will be cast to a str. Each value should be the message to expect when this invalid value is sent in an otherwise valid request.
-    [2. A valid value for the parameter. This should be given exactly when the parameter is mandatory, and if given will be sent in requests that contain bad values for other parameters.]'''
+    [2. A value for the parameter that has the correct format. This should be given exactly when the parameter is mandatory, and if given will be sent in requests that contain bad values for other parameters. It may refer to an object that does not exist.]'''
 
     mandatory_params = {param[0]: param[2] for param in PARAMETERS if len(param) > 2}
     # Give an invalid parameter.
