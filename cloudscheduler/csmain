@@ -594,8 +594,12 @@ if __name__ == '__main__':
         'idle_vms': check_view_idle_vms,
     }
 
-    procMon = ProcessMonitor(config_params=[os.path.basename(sys.argv[0]), "csmain", 'ProcessMonitor'], pool_size=15,
-                             orange_count_row='csv2_scheduler_error_count', process_ids=process_ids)
+    procMon = ProcessMonitor(
+        config_params=[os.path.basename(sys.argv[0]), "csmain", 'ProcessMonitor'],
+        pool_size=15,
+        process_ids=process_ids
+        )
+
     config = procMon.get_config()
     log = procMon.get_logging()
     version = config.get_version()
