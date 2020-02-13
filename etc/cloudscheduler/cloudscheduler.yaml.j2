@@ -13,7 +13,12 @@ signals:
     user: "csv2" 
     password: "{{ amqp_user_passwords['csv2'] }}"
     registry: "/var/local/cloudscheduler/signals"
-    events: "insert_csv2_clouds,update_csv2_clouds"
+    events:
+        - "insert_csv2_clouds_amazon"
+        - "insert_csv2_clouds_openstack"
+        - "signal_tests" 
+        - "update_csv2_clouds_amazon"
+        - "update_csv2_clouds_openstack"
     queue: "signals"
 
 
