@@ -1,4 +1,4 @@
-from unit_test_common import execute_csv2_request, initialize_csv2_request, ut_id
+from unit_test_common import execute_csv2_request, initialize_csv2_request, ut_id, sanity_requests
 from sys import argv
 
 # lno: CV - error code identifier.
@@ -10,51 +10,15 @@ def main(gvar):
             initialize_csv2_request(gvar, argv[0], selections=argv[1])
         else:
             initialize_csv2_request(gvar, argv[0])
-
-    
-    # 01
-    execute_csv2_request(
-        gvar, 2, None, 'server "unit-test", HTTP response code 401, unauthorized.',
-        '/cloud/status/', group=ut_id(gvar, 'ctg1'),
-        server_user='invalid-unit-test'
-    )
-
-    # 02
-    execute_csv2_request(
-        gvar, 1, 'CV', 'user "{}" is not a member of any group.'.format(ut_id(gvar, 'ctu1')),
-        '/cloud/status/', group=ut_id(gvar, 'ctg1'),
-        server_user=ut_id(gvar, 'ctu1')
-    )
-
-    # 03
-    execute_csv2_request(
-        gvar, 1, 'CV', 'user "{}" is not a member of any group.'.format(ut_id(gvar, 'ctu2')),
-        '/cloud/status/', group=ut_id(gvar, 'ctg1'),
-        server_user=ut_id(gvar, 'ctu2')
-    )
-
-    # 04
-    execute_csv2_request(
-        gvar, 1, 'CV', 'cannot switch to invalid group "invalid-unit-test".',
-        '/cloud/status/', group='invalid-unit-test',
-        server_user=ut_id(gvar, 'ctu3')
-    )
-
-    # 05
-    execute_csv2_request(
-        gvar, 1, 'CV', 'cannot switch to invalid group "{}".'.format(ut_id(gvar, 'ctg2')),
-        '/cloud/status/', group=ut_id(gvar, 'ctg2'),
-        server_user=ut_id(gvar, 'ctu3')
-    )
+    # 01 - 05
+    sanity_requests(gvar, '/cloud/status/', ut_id(gvar, 'ctg1'), ut_id(gvar, 'ctu3'), ut_id(gvar, 'ctu2'), ut_id(gvar, 'ctu1'))
 
     # 06
     execute_csv2_request(
         gvar, 0, None, None,
         '/cloud/status/', group=ut_id(gvar, 'ctg1'),
-        expected_list='cloud_status_list', list_filter={'cloud_name': ut_id(gvar, 'ctc2')},
+        expected_list='cloud_status_list', list_filter={'group_name': ut_id(gvar, 'ctg1'), 'cloud_name': ut_id(gvar, 'ctc2')},
         values={
-            'group_name': ut_id(gvar, 'ctg1'),
-            'cloud_name': ut_id(gvar, 'ctc2'),
             'VMs': '0',
             'VMs_manual': '0',
             'VMs_in_error': '0',

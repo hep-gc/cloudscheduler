@@ -18,10 +18,8 @@ def main(gvar):
     execute_csv2_request(
         gvar, 0, None, None,
         '/cloud/list/', group=ut_id(gvar, 'ctg1'),
-        expected_list='cloud_list', list_filter={'cloud_name': ut_id(gvar, 'ctc2')},
+        expected_list='cloud_list', list_filter={'group_name': ut_id(gvar, 'ctg1'), 'cloud_name': ut_id(gvar, 'ctc2')},
         values={
-            'cloud_name': ut_id(gvar, 'ctc2'),
-            'group_name': ut_id(gvar, 'ctg1'),
             'authurl': 'unit-test-cloud-two.ca',
             'project': 'unit-test-cloud-two',
             'username': ut_id(gvar, 'ctu3'),
