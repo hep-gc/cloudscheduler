@@ -938,46 +938,49 @@ def metadata_fetch(request, response_code=0, message=None, metadata_name=None, c
     s = select([csv2_mime_types])
     mime_types_list = qt(config.db_connection.execute(s))
 
-
-    # If we are NOT returning from an update, we are fetching from webpage
-    if metadata_name == None:
-        metadata_name = active_user.kwargs['metadata_name']
-
+    # Check mandatory parameters.
+    # If we are NOT returning from an update, we are fetching from webpage.
     if cloud_name == None:
-        cloud_name = active_user.kwargs['cloud_name']
-
+        if 'cloud_name' in active_user.kwargs:
+            if active_user.kwargs['cloud_name'] == '':
+                return render(request, 'csv2/meta_editor.html', {'response_code': 1, 'message': 'cloud metadata_fetch, value specified for "cloud_name" must not be the empty string.'})
+            else:
+                cloud_name = active_user.kwargs['cloud_name']
+        else:
+            return render(request, 'csv2/meta_editor.html', {'response_code': 1, 'message': 'cloud metadata_fetch, request did not contain mandatory parameter "cloud_name".'})
+    if metadata_name == None:
+        if 'metadata_name' in active_user.kwargs:
+            if active_user.kwargs['metadata_name'] == '':
+                return render(request, 'csv2/meta_editor.html', {'response_code': 1, 'message': 'cloud metadata_fetch, value specified for "metadata_name" must not be the empty string.'})
+            else:
+                metadata_name = active_user.kwargs['metadata_name']
+        else:
+            return render(request, 'csv2/meta_editor.html', {'response_code': 1, 'message': 'cloud metadata_fetch, request did not contain mandatory parameter "metadata_name".'})
 
     # Retrieve metadata file.
-    if cloud_name and metadata_name:
-        METADATA = config.db_map.classes.csv2_cloud_metadata
-        METADATAobj = config.db_session.query(METADATA).filter((METADATA.group_name == active_user.active_group) & (METADATA.cloud_name==cloud_name) & (METADATA.metadata_name==metadata_name))
-        if METADATAobj:
-            for row in METADATAobj:
-                context = {
-                    'group_name': row.group_name,
-                    'cloud_name': row.cloud_name,
-                    'metadata': row.metadata,
-                    'metadata_enabled': row.enabled,
-                    'metadata_priority': row.priority,
-                    'metadata_mime_type': row.mime_type,
-                    'metadata_name': row.metadata_name,
-                    'mime_types_list': mime_types_list,
-                    'response_code': response_code,
-                    'message': message,
-                    'is_superuser': active_user.is_superuser,
-                    'version': config.get_version()
-                    }
-
-                config.db_close()
-                return render(request, 'csv2/meta_editor.html', context)
-
+    METADATA = config.db_map.classes.csv2_cloud_metadata
+    METADATAobj = config.db_session.query(METADATA).filter((METADATA.group_name == active_user.active_group) & (METADATA.cloud_name==cloud_name) & (METADATA.metadata_name==metadata_name))
+    if METADATAobj:
+        for row in METADATAobj:
+            context = {
+                'group_name': row.group_name,
+                'cloud_name': row.cloud_name,
+                'metadata': row.metadata,
+                'metadata_enabled': row.enabled,
+                'metadata_priority': row.priority,
+                'metadata_mime_type': row.mime_type,
+                'metadata_name': row.metadata_name,
+                'mime_types_list': mime_types_list,
+                'response_code': response_code,
+                'message': message,
+                'is_superuser': active_user.is_superuser,
+                'version': config.get_version()
+                }
+            config.db_close()
+            return render(request, 'csv2/meta_editor.html', context)
 
     config.db_close()
-
-    if 'cloud_name' in active_user.kwargs and 'metadata_name' in active_user.kwargs:
-      return render(request, 'csv2/meta_editor.html', {'response_code': 1, 'message': 'cloud metadata_fetch, received an invalid metadata file id "%s::%s::%s".' % (active_user.active_group, active_user.kwargs['cloud_name'], active_user.kwargs['metadata_name'])})
-    else:
-      return render(request, 'csv2/meta_editor.html', {'response_code': 1, 'message': 'cloud metadata_fetch, metadata file id omitted.'})
+    return render(request, 'csv2/meta_editor.html', {'response_code': 1, 'message': 'cloud metadata_fetch, received an invalid metadata file id "%s::%s::%s".' % (active_user.active_group, cloud_name, metadata_name)})
 
 #-------------------------------------------------------------------------------
 
