@@ -140,8 +140,7 @@ def main(gvar):
     # 16
     execute_csv2_request(#I assume this request does not need a group specification
         gvar, 0, None, 'user "{}" successfully updated.'.format(ut_id(gvar, 'utu3')),
-        '/user/settings/'
-, form_data={
+        '/user/settings/', form_data={
             'password1': new_secret,
             'password2': new_secret
         },
@@ -151,8 +150,7 @@ def main(gvar):
     # 17
     execute_csv2_request(#I assume this request does not need a group specification
         gvar, 0, None, 'user "{}" successfully updated.'.format(ut_id(gvar, 'utu3')),
-        '/user/settings/'
-, form_data={
+        '/user/settings/', form_data={
             'password1': gvar['user_secret'],
             'password2': gvar['user_secret']
         },

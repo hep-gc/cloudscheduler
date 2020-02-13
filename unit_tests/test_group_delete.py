@@ -63,32 +63,28 @@ def main(gvar):
     # 8
     execute_csv2_request(
         gvar, 1, 'GV', 'group delete "invalid-unit-test" failed - the request did not match any rows.',
-        '/group/delete/'
-, form_data={'group_name': 'invalid-unit-test'},
+        '/group/delete/', form_data={'group_name': 'invalid-unit-test'},
         server_user=ut_id(gvar, 'gtu5')
     )
 
     # 9
     execute_csv2_request(
         gvar, 1, 'GV', 'group delete value specified for "group_name" must be all lower case, numeric digits, and dashes but cannot start or end with dashes.',
-        '/group/delete/'
-, form_data={'group_name': 'Invalid-Unit-Test'},
+        '/group/delete/', form_data={'group_name': 'Invalid-Unit-Test'},
         server_user=ut_id(gvar, 'gtu5')
     )
 
     # 10
     execute_csv2_request(
         gvar, 1, 'GV', 'group delete value specified for "user_option" must be one of the following options: [\'add\', \'delete\'].',
-        '/group/delete/'
-, form_data={'user_option': 'invalid-unit-test'},
+        '/group/delete/', form_data={'user_option': 'invalid-unit-test'},
         server_user=ut_id(gvar, 'gtu5')
     )
 
     # i1
     execute_csv2_request(
         gvar, 0, None, 'group "{}" successfully deleted.'.format(ut_id(gvar, 'gtg6')),
-        '/group/delete/'
-, form_data={'group_name': ut_id(gvar, 'gtg6')},
+        '/group/delete/', form_data={'group_name': ut_id(gvar, 'gtg6')},
         server_user=ut_id(gvar, 'gtu5')
     )
 

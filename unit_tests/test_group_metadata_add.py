@@ -28,32 +28,28 @@ def main(gvar):
     # 03
     execute_csv2_request(
         gvar, 1, 'GV', 'user "%s" is not a member of any group.' % ut_id(gvar, 'gtu1'),
-        '/group/metadata-add/'
-, form_data={'invalid-unit-test': 'invalid-unit-test'},
+        '/group/metadata-add/', form_data={'invalid-unit-test': 'invalid-unit-test'},
         server_user=ut_id(gvar, 'gtu1')
     )
 
     # 04
     execute_csv2_request(
         gvar, 1, 'GV', 'user "%s" is not a member of any group.' % ut_id(gvar, 'gtu2'),
-        '/group/metadata-add/'
-, form_data={'invalid-unit-test': 'invalid-unit-test'},
+        '/group/metadata-add/', form_data={'invalid-unit-test': 'invalid-unit-test'},
         server_user=ut_id(gvar, 'gtu2')
     )
     
     # 05
     execute_csv2_request(
         gvar, 1, 'GV', 'group metadata-add request did not contain mandatory parameter "metadata_name".',
-        '/group/metadata-add/'
-, form_data={'enabled': 1},
+        '/group/metadata-add/', form_data={'enabled': 1},
         server_user=ut_id(gvar, 'gtu3')
     )
 
     # 06
     execute_csv2_request(
         gvar, 1, 'GV', 'group metadata-add request contained a bad parameter "invalid-unit-test".',
-        '/group/metadata-add/'
-, form_data={
+        '/group/metadata-add/', form_data={
             'metadata_name': ut_id(gvar, 'group-md-invalid-unit-test'),
             'invalid-unit-test': 'invalid-unit-test'
         },

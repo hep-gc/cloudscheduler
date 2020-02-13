@@ -28,8 +28,8 @@ def main(gvar):
     # 03
     execute_csv2_request(
         gvar, 1, 'GV', 'user "%s" is not a member of any group.' % ut_id(gvar, 'gtu1'),
-        '/group/metadata-delete/'
-, form_data={'invalid-unit-test': 'invalid-unit-test'},
+        '/group/metadata-delete/', form_data={
+        'invalid-unit-test': 'invalid-unit-test'},
         server_user=ut_id(gvar, 'gtu1')
     )
 
@@ -43,8 +43,7 @@ def main(gvar):
     # 05
     execute_csv2_request(
         gvar, 1, 'GV', 'request contained a bad parameter "invalid-unit-test".',
-        '/group/metadata-delete/', group=ut_id(gvar, 'gtg5')
-, form_data={
+        '/group/metadata-delete/', group=ut_id(gvar, 'gtg5'), form_data={
             'metadata_name': 'invalid-unit-test',
             'invalid-unit-test': 'invalid-unit-test'
         },

@@ -78,8 +78,7 @@ def main(gvar):
     # 10
     execute_csv2_request(
         gvar, 1, 'UV', 'Data too long for column \'username\' at row 1',
-        '/user/add/'
-, form_data={
+        '/user/add/', form_data={
             'username': 'thisisausernamethatistoolongtobei',
             'password': gvar['user_secret'],
             'cert_cn': 'invalid-unit-test'
@@ -90,8 +89,7 @@ def main(gvar):
     # 11
     execute_csv2_request(
         gvar, 1, 'UV', 'Field \'password\' doesn\'t have a default value',
-        '/user/add/'
-, form_data={
+        '/user/add/', form_data={
             'username': ut_id(gvar, 'user-invalid-unit-test')
         },
         server_user=ut_id(gvar, 'utu4')
@@ -100,8 +98,7 @@ def main(gvar):
     # 12
     execute_csv2_request(
         gvar, 1, 'UV', 'boolean value specified for "is_superuser" must be one of the following: true, false, yes, no, 1, or 0.',
-        '/user/add/'
-, form_data={
+        '/user/add/', form_data={
             'is_superuser': 'invalid-unit-test'
         },
         server_user=ut_id(gvar, 'utu4')
@@ -110,8 +107,7 @@ def main(gvar):
     # 13
     execute_csv2_request(
         gvar, 1, 'UV', 'value specified for a password is less than 6 characters.',
-        '/user/add/'
-, form_data={
+        '/user/add/', form_data={
             'username': ut_id(gvar, 'user-invalid-unit-test'),
             'password': 'test'
         },
@@ -121,8 +117,7 @@ def main(gvar):
     # 14
     execute_csv2_request(
         gvar, 1, 'UV', 'value specified for a password is less then 16 characters, and does not contain a mixture of upper, lower, and numerics.',
-        '/user/add/'
-, form_data={
+        '/user/add/', form_data={
             'username': ut_id(gvar, 'user-invalid-unit-test'),
             'password': 'invalid'
         },
@@ -132,8 +127,7 @@ def main(gvar):
     # 15
     execute_csv2_request(
         gvar, 1, 'UV', 'password update received a password but no verify password; both are required.',
-        '/user/add/'
-, form_data={
+        '/user/add/', form_data={
             'username': ut_id(gvar, 'user-invalid-unit-test'),
             'password1': 'test'
         },
@@ -143,8 +137,7 @@ def main(gvar):
     # 16
     execute_csv2_request(
         gvar, 1, 'UV', 'password update received a verify password but no password; both are required.',
-        '/user/add/'
-, form_data={
+        '/user/add/', form_data={
             'username': ut_id(gvar, 'user-invalid-unit-test'),
             'password2': 'test'
         },
@@ -154,8 +147,7 @@ def main(gvar):
     # 17
     execute_csv2_request(
         gvar, 1, 'UV', 'value specified for a password is less than 6 characters.',
-        '/user/add/'
-, form_data={
+        '/user/add/', form_data={
             'username': ut_id(gvar, 'user-invalid-unit-test'),
             'password1': 'test',
             'password2': 'test'
@@ -166,8 +158,7 @@ def main(gvar):
     # 18
     execute_csv2_request(
         gvar, 1, 'UV', 'value specified for a password is less then 16 characters, and does not contain a mixture of upper, lower, and numerics.',
-        '/user/add/'
-, form_data={
+        '/user/add/', form_data={
             'username': ut_id(gvar, 'user-invalid-unit-test'),
             'password1': 'invalid',
             'password2': 'invalid'
@@ -178,8 +169,7 @@ def main(gvar):
     # 19
     execute_csv2_request(
         gvar, 1, 'UV', 'values specified for passwords do not match.',
-        '/user/add/'
-, form_data={
+        '/user/add/', form_data={
             'username': ut_id(gvar, 'user-invalid-unit-test'),
             'password1': 'Abc123',
             'password2': '321cbA'
@@ -190,8 +180,7 @@ def main(gvar):
     # 20
     execute_csv2_request(
         gvar, 1, 'UV', 'empty string',
-        '/user/add/'
-, form_data={
+        '/user/add/', form_data={
             'username': '',
             'password': gvar['user_secret']
         },
@@ -201,8 +190,7 @@ def main(gvar):
     # 21
     execute_csv2_request(
         gvar, 1, 'UV', 'request contained a rejected/bad parameter "join_date".',
-        '/user/add/'
-, form_data={
+        '/user/add/', form_data={
             'username': ut_id(gvar, 'user-invalid-unit-test'),
             'password': gvar['user_secret'],
             'join_date': 'invalid-unit-test'
@@ -213,8 +201,7 @@ def main(gvar):
     # 22
     execute_csv2_request(
         gvar, 1, 'UV', 'request contained a rejected/bad parameter "active_group".',
-        '/user/add/'
-, form_data={
+        '/user/add/', form_data={
             'username': ut_id(gvar, 'user-invalid-unit-test'),
             'password': gvar['user_secret'],
             'active_group': 'invalid-unit-test'
@@ -225,8 +212,7 @@ def main(gvar):
     # 23
     execute_csv2_request(
         gvar, 1, 'UV', 'specified group "invalid-unit-test" does not exist.',
-        '/user/add/'
-, form_data={
+        '/user/add/', form_data={
             'username': ut_id(gvar, 'user-invalid-unit-test'),
             'group_name': 'invalid-unit-test'
         },
@@ -236,8 +222,7 @@ def main(gvar):
     # 24
     execute_csv2_request(
         gvar, 1, 'UV', 'request contained a bad parameter "condor_central_manager".',
-        '/user/add/'
-, form_data={
+        '/user/add/', form_data={
             'username': ut_id(gvar, 'user-invalid-unit-test'),
             'condor_central_manager': 'invalid-unit-test'
         },
@@ -247,8 +232,7 @@ def main(gvar):
     # 25
     execute_csv2_request(
         gvar, 1, 'UV', 'user add, "{}" failed - group "{}" was specified twice.'.format(ut_id(gvar, 'user-invalid-unit-test'), ut_id(gvar, 'utg1')),
-        '/user/add/'
-, form_data={
+        '/user/add/', form_data={
             'username': ut_id(gvar, 'user-invalid-unit-test'),
             'password': gvar['user_secret'],
             'group_name.1': ut_id(gvar, 'utg1'),
@@ -260,8 +244,7 @@ def main(gvar):
     # 26
     execute_csv2_request(
         gvar, 0, None, 'user "{}" successfully added.'.format(ut_id(gvar, 'utu10')),
-        '/user/add/'
-, form_data={
+        '/user/add/', form_data={
             'username': ut_id(gvar, 'utu10'),
             'password': gvar['user_secret'],
             'cert_cn': ut_id(gvar, 'user test user 10')
@@ -286,8 +269,7 @@ def main(gvar):
     # 28
     execute_csv2_request(
         gvar, 0, None, 'user "{}" successfully added.'.format(ut_id(gvar, 'utu11')),
-        '/user/add/'
-, form_data={
+        '/user/add/', form_data={
             'username': ut_id(gvar, 'utu11'),
             'password1': gvar['user_secret'],
             'password2': gvar['user_secret'],
@@ -313,8 +295,7 @@ def main(gvar):
     # 30
     execute_csv2_request(
         gvar, 1, 'UV', 'username "{}" unavailable.'.format(ut_id(gvar, 'utu10')),
-        '/user/add/'
-, form_data={
+        '/user/add/', form_data={
             'username': ut_id(gvar, 'utu10'),
             'password': gvar['user_secret'],
             'cert_cn': ut_id(gvar, 'user test user 12')
@@ -325,8 +306,7 @@ def main(gvar):
     # 31
     execute_csv2_request(
         gvar, 1, 'UV', 'common name "{}" conflicts with registered user "{}".'.format(ut_id(gvar, 'user test user 10'), ut_id(gvar, 'utu10')),
-        '/user/add/'
-, form_data={
+        '/user/add/', form_data={
             'username': ut_id(gvar, 'utu12'),
             'password': gvar['user_secret'],
             'cert_cn': ut_id(gvar, 'user test user 10')
@@ -337,8 +317,7 @@ def main(gvar):
     # 32
     execute_csv2_request(
         gvar, 1, 'UV', 'common name "{0}" conflicts with registered user "{0}".'.format(ut_id(gvar, 'utu10')),
-        '/user/add/'
-, form_data={
+        '/user/add/', form_data={
             'username': ut_id(gvar, 'utu12'),
             'password': gvar['user_secret'],
             'cert_cn': ut_id(gvar, 'utu10')
@@ -349,8 +328,7 @@ def main(gvar):
     # 33
     execute_csv2_request(
         gvar, 0, None, 'user "{}" successfully added.'.format(ut_id(gvar, 'utu12')),
-        '/user/add/'
-, form_data={
+        '/user/add/', form_data={
             'username': ut_id(gvar, 'utu12'),
             'password': gvar['user_secret'],
             'group_name': ut_id(gvar, 'utg1')
@@ -374,8 +352,7 @@ def main(gvar):
     # 35
     execute_csv2_request(
         gvar, 0, None, 'user "{}" successfully added.'.format(ut_id(gvar, 'utu13')),
-        '/user/add/'
-, form_data={
+        '/user/add/', form_data={
             'username': ut_id(gvar, 'utu13'),
             'password': gvar['user_secret'],
             'group_name.1': ut_id(gvar, 'utg1'),
