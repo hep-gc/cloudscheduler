@@ -184,7 +184,14 @@
 
                                 <td data-path="{{group.group_name}} jobs_htcondor_fqdn" class="more-style">{{group.htcondor_fqdn}}</td>
 
-                                <td data-path="{{group.group_name}} jobs_htcondor_status" class="more-style float-center plottable">
+                                {% if group.state == 'up' %}
+                                    <td data-path="{{group.group_name}} jobs_htcondor_status" class="more-style float-center plottable" tooltip="Active">
+                                {% elif group.state == 'warn' %}
+                                    <td data-path="{{group.group_name}} jobs_htcondor_status" class="more-style float-center plottable" tooltip="ERROR: {{ group.error_message }}">
+                                {% else %}
+                                    <td data-path="{{group.group_name}} jobs_htcondor_status" class="more-style float-center plottable" tooltip="Not Running">
+                                {% endif %}
+
                                 {% if process_monitor_pause == 1 %}
                                     <span class="blue-symbol">&#x1F4A4;</span>
                                 {% elif group.state == 'up' %}
@@ -951,7 +958,14 @@
 
             <tr>
                 {% for service in service_status %}
-                    <td data-path="{{group.group_name}} {{service.alias}}" class="more-style float-center plottable">
+                    {% if service.state == 'up' %}
+                        <td data-path="{{group.group_name}} {{service.alias}}" class="more-style float-center plottable" tooltip="Active">
+                    {% elif service.state == 'warn' %}
+                        <td data-path="{{group.group_name}} {{service.alias}}" class="more-style float-center plottable" tooltip="ERROR: {{ service.error_message }}">
+                    {% else %}
+                        <td data-path="{{group.group_name}} {{service.alias}}" class="more-style float-center plottable" tooltip="Not Running">
+                    {% endif %}
+
                     {% if process_monitor_pause == 1 %}
                         <span class="blue-symbol">&#x1F4A4;</span>
                     {% elif service.state == 'up' %}
