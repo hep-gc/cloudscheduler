@@ -10,6 +10,7 @@ def main(gvar):
             initialize_csv2_request(gvar, argv[0], selections=argv[1])
         else:
             initialize_csv2_request(gvar, argv[0])
+
     # 01 - 05
     sanity_requests(gvar, '/cloud/metadata-list/', ut_id(gvar, 'ctg1'), ut_id(gvar, 'ctu3'), ut_id(gvar, 'ctg2'), ut_id(gvar, 'ctu1'))
 
@@ -22,14 +23,6 @@ def main(gvar):
     )
 
     # 7
-    execute_csv2_request(
-        gvar, 1, 'CV', 'request contained a bad parameter "invalid-unit-test".',
-        '/cloud/metadata-list/', group=(ut_id(gvar, 'ctg1')), 
-        form_data={'invalid-unit-test': 'invalid-unit-test'},
-        server_user=ut_id(gvar, 'ctu3')
-    )
-
-    # 8
     execute_csv2_request(
         gvar, 0, None, None,
         '/cloud/metadata-list/', group=ut_id(gvar, 'ctg1'),

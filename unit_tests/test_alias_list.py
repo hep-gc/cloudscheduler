@@ -22,12 +22,12 @@ def main(gvar):
         server_user=ut_id(gvar, 'atu1')
     )
 
-    # 07 Find atc1a1 in the list.
+    # 07 Find ata1 in the list.
     execute_csv2_request(
         gvar, 0, None, None,
         '/alias/list/', group=ut_id(gvar, 'atg1'),
         expected_list='cloud_alias_list', list_filter={'group_name': ut_id(gvar, 'atg1'), 'cloud_name': ut_id(gvar, 'atc1')},
-        values={'alias_name': ut_id(gvar, 'atc1a1')},
+        values={'alias_name': ut_id(gvar, 'ata1')},
         server_user=ut_id(gvar, 'atu1')
     )
 

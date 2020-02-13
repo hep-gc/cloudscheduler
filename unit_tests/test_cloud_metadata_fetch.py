@@ -14,70 +14,49 @@ def main(gvar):
     # 01 - 05
     sanity_requests(gvar, '/cloud/metadata-fetch/', ut_id(gvar, 'ctg1'), ut_id(gvar, 'ctu3'), ut_id(gvar, 'ctg2'), ut_id(gvar, 'ctu1'))
 
-    # 06
+    # 06 Omit all parameters.
     execute_csv2_request(
-        gvar, 1, None, 'TODO',
+        gvar, 1, None, 'cloud metadata_fetch, request did not contain mandatory parameter "cloud_name".',
         '/cloud/metadata-fetch/', group=ut_id(gvar, 'ctg1'),
         server_user=ut_id(gvar, 'ctu3')
     )
 
-    # 07 Give an invalid parameter.
+    # 07 Omit cloud_name.
     execute_csv2_request(
-        gvar, 1, None, 'TODO',
-        '/cloud/metadata-fetch/', group=ut_id(gvar, 'ctg1'), form_data={'invalid-unit-test': 'invalid-unit-test'},
-        server_user=ut_id(gvar, 'ctu3')
-    )
-
-    # Omit cloud_name.
-    execute_csv2_request(
-        gvar, 1, None, 'TODO'.format(ut_id(gvar, 'ctg1')),
+        gvar, 1, None, 'cloud metadata_fetch, request did not contain mandatory parameter "cloud_name".',
         '/cloud/metadata-fetch/', group=ut_id(gvar, 'ctg1'), query_data={'metadata_name': 'invalid-unit-test'},
         server_user=ut_id(gvar, 'ctu3')
     )
 
-    # Give empty cloud_name.
+    # 08 Give empty cloud_name.
     execute_csv2_request(
-        gvar, 1, None, 'TODO'.format(ut_id(gvar, 'ctg1')),
+        gvar, 1, None, 'cloud metadata_fetch, value specified for "cloud_name" must not be the empty string.',
         '/cloud/metadata-fetch/', group=ut_id(gvar, 'ctg1'), query_data={'cloud_name': '', 'metadata_name': 'invalid-unit-test'},
         server_user=ut_id(gvar, 'ctu3')
     )
 
-    # Give a cloud_name with the wrong format.
+    # 09 Omit metadata_name.
     execute_csv2_request(
-        gvar, 1, None, 'TODO'.format(ut_id(gvar, 'ctg1')),
-        '/cloud/metadata-fetch/', group=ut_id(gvar, 'ctg1'), query_data={'cloud_name': 'invalid-unit-test!', 'metadata_name': 'invalid-unit-test'},
-        server_user=ut_id(gvar, 'ctu3')
-    )
-
-    # Omit metadata_name.
-    execute_csv2_request(
-        gvar, 1, None, 'TODO'.format(ut_id(gvar, 'ctg1')),
+        gvar, 1, None, 'cloud metadata_fetch, request did not contain mandatory parameter "metadata_name".',
         '/cloud/metadata-fetch/', group=ut_id(gvar, 'ctg1'), query_data={'cloud_name': 'invalid-unit-test'},
         server_user=ut_id(gvar, 'ctu3')
     )
 
-    # Give empty metadata_name.
+    # 10 Give empty metadata_name.
     execute_csv2_request(
-        gvar, 1, None, 'TODO'.format(ut_id(gvar, 'ctg1')),
+        gvar, 1, None, 'cloud metadata_fetch, value specified for "metadata_name" must not be the empty string.',
         '/cloud/metadata-fetch/', group=ut_id(gvar, 'ctg1'), query_data={'cloud_name': 'invalid-unit-test', 'metadata_name': ''},
         server_user=ut_id(gvar, 'ctu3')
     )
 
-    # Give a metadata_name with the wrong format.
+    # 11 Give a cloud_name / metadata_name combination that does not exist.
     execute_csv2_request(
-        gvar, 1, None, 'TODO'.format(ut_id(gvar, 'ctg1')),
-        '/cloud/metadata-fetch/', group=ut_id(gvar, 'ctg1'), query_data={'cloud_name': 'invalid-unit-test', 'metadata_name': 'invalid-unit-test!'},
-        server_user=ut_id(gvar, 'ctu3')
-    )
-
-    # Give a cloud_name / metadata_name combination that does not exist.
-    execute_csv2_request(
-        gvar, 1, None, 'TODO'.format(ut_id(gvar, 'ctg1')),
+        gvar, 1, None, 'cloud metadata_fetch, received an invalid metadata file id "grobertson-ctg1::invalid-unit-test::invalid-unit-test".',
         '/cloud/metadata-fetch/', group=ut_id(gvar, 'ctg1'), query_data={'cloud_name': 'invalid-unit-test', 'metadata_name': 'invalid-unit-test'},
         server_user=ut_id(gvar, 'ctu3')
     )
 
-    # Fetch metadata properly.
+    # 12 Fetch metadata properly.
     execute_csv2_request(
         gvar, 0, None, None,
         '/cloud/metadata-fetch/', group=ut_id(gvar, 'ctg1'), query_data={'cloud_name': ut_id(gvar, 'ctc2'), 'metadata_name': ut_id(gvar, 'cty1')},
