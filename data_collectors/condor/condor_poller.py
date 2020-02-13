@@ -368,7 +368,7 @@ def process_group_cloud_commands(pair, config, condor_host):
         #8=terminate flag
         #9=machine
         #10=updater
-        #logging.debug("%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s" % (resource.group_name, resource.cloud_name, resource.htcondor_fqdn, resource.vmid, resource.hostname, resource[5], resource[6], resource.retire, resource.retiring, resource.terminate, resource.machine))
+        #logging.debug("%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s" % (resource.group_name, resource.cloud_name, resource.htcondor_fqdn, resource.vmid, resource.hostname, resource[5], resource[6], resource.retire, resource.updater, resource.terminate, resource.machine))
         # First check the slots to see if its time to terminate this machine
 
         #check if retire flag set & a successful retire has happened  and  (htcondor_dynamic_slots<1 || NULL) and htcondor_partitionable_slots>0, issue condor_off and increment retire by 1.
@@ -380,6 +380,7 @@ def process_group_cloud_commands(pair, config, condor_host):
                   # need to get vm classad because we can't update via the view.
                   try:
                       logging.info("slots are zero or null on %s, setting terminate, last updater: %s" % (resource.hostname, resource.updater))
+                      logging.debug("group_name:%s\ncloud_name:%s\nhtcondor_fqdn:%s\nvmid:%s\nhostname%s\nPrimary Slots:%s\nDynamic Slots:%s\nretire:%s\nupdater:%s\nterminate:%s\nmachine:%s" % (resource.group_name, resource.cloud_name, resource.htcondor_fqdn, resource.vmid, resource.hostname, resource[5], resource[6], resource.retire, resource.updater, resource.terminate, resource.machine))
                       vm_row = config.db_session.query(VM).filter(VM.group_name==resource.group_name, VM.cloud_name==resource.cloud_name, VM.vmid==resource.vmid)[0]
                       vm_row.terminate = 1
                       vm_row.updater = str(get_frame_info() + ":t1")
@@ -423,14 +424,8 @@ def process_group_cloud_commands(pair, config, condor_host):
 
             logging.info("Issuing DaemonsOffPeaceful to %s" % condor_classad)
             master_result = htcondor.send_command(condor_classad, htcondor.DaemonCommands.DaemonsOffPeaceful)
-            logging.info("Result: %s " % master_result)
+            logging.debug("Result: %s " % master_result)
             
-            if master_result is None:
-                logging.info("Retire failed for machine: %s//%s" % (resource.machine, resource.hostname))
-                continue
-            else:
-                #it was successfull
-                logging.debug("retire results: %s" % command_results[1])
                 
             #get vm entry and update retire = 2
             vm_row = config.db_session.query(VM).filter(VM.group_name==resource.group_name, VM.cloud_name==resource.cloud_name, VM.vmid==resource.vmid)[0]
@@ -1347,7 +1342,7 @@ def machine_command_poller():
     multiprocessing.current_process().name = "Machine Command Poller"
 
     # database setup
-    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', [os.path.basename(sys.argv[0]), "AMQP", "ProcessMonitor", "csmachines.py"], pool_size=3, signals=True)
+    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', [os.path.basename(sys.argv[0]),  "ProcessMonitor", "csmachines.py"], pool_size=3, signals=True)
     PID_FILE = config.categories["ProcessMonitor"]["pid_path"] + os.path.basename(sys.argv[0])
 
     Resource = config.db_map.classes.condor_machines
@@ -1424,7 +1419,7 @@ def machine_command_poller():
 def worker_gsi_poller():
     multiprocessing.current_process().name = "Worker GSI Poller"
 
-    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', [os.path.basename(sys.argv[0]), 'AMQP', 'ProcessMonitor', 'condor_gsi.py'], pool_size=6, signals=True)
+    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', [os.path.basename(sys.argv[0]), 'ProcessMonitor', 'condor_gsi.py'], pool_size=6, signals=True)
     PID_FILE = config.categories["ProcessMonitor"]["pid_path"] + os.path.basename(sys.argv[0])
 
     cycle_start_time = 0
@@ -1529,7 +1524,7 @@ def worker_gsi_poller():
 def condor_gsi_poller():
     multiprocessing.current_process().name = "Condor GSI Poller"
 
-    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', [os.path.basename(sys.argv[0]), 'AMQP', 'ProcessMonitor', 'condor_gsi.py'], pool_size=6, signals=True)
+    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', [os.path.basename(sys.argv[0]), 'ProcessMonitor', 'condor_gsi.py'], pool_size=6, signals=True)
     PID_FILE = config.categories["ProcessMonitor"]["pid_path"] + os.path.basename(sys.argv[0])
 
     cycle_start_time = 0

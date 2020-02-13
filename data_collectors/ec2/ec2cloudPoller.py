@@ -1973,111 +1973,6 @@ def vm_poller():
         del db_session
 
 
-def updateEC2RegionsTable():
-    multiprocessing.current_process().name = "Region Poller"
-
-    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', [os.path.basename(sys.argv[0]), "SQL", "ProcessMonitor"], pool_size=8, signals=True)
-    PID_FILE = config.categories["ProcessMonitor"]["pid_path"] + os.path.basename(sys.argv[0])
-    REGION = config.db_map.classes.ec2_regions
-
-
-    cycle_start_time = 0
-    new_poll_time = 0
-    poll_time_history = [0,0,0,0]
-
-    config.db_open()
-    db_session = config.db_session
-    while(True):
-        try:
-            if not os.path.exists(PID_FILE):
-                logging.debug("Stop set, exiting...")
-                break
-            signal.signal(signal.SIGINT, signal.SIG_IGN)
-
-            new_poll_time, cycle_start_time = start_cycle(new_poll_time, cycle_start_time)
-
-
-            tables = get_html_tables(config.categories['ec2cloudPoller.py']['ec2_regions_and_endpoints_url'])
-            logging.error(tables)
-
-            if config.categories['ec2cloudPoller.py']['ec2_regions_and_endpoints_table'] not in tables:
-                logging.error("EC2 region table \"{}\" not found in html at {}. ".format(config.categories['ec2cloudPoller.py']['ec2_regions_and_endpoints_table'],config.categories['ec2cloudPoller.py']['ec2_regions_and_endpoints_url']))
-                raise Exception("Unable to find html table:%s containing regions at url %s" % (config.categories['ec2cloudPoller.py']['ec2_regions_and_endpoints_table'], config.categories['ec2cloudPoller.py']['ec2_regions_and_endpoints_url']))
-
-            region_dict_list = []
-            for table in [config.categories['ec2cloudPoller.py']['ec2_regions_and_endpoints_table']]:
-                #print(table)
-                if 'heads' in tables[table]:
-                    #print('   ', '%-48s' * len(tables[table]['heads']) % tuple(tables[table]['heads']))
-                    headings = tables[table]['heads']
-                    headings.remove("Protocol")
-                    for row in tables[table]['rows']:
-                        #print('   ', '%-48s' * len(row) % tuple(row))
-                        region_dict = {}
-                        for i,head in enumerate(headings):
-                            region_dict[head] = row[i]
-                        region_dict_list.append(region_dict)
-                else:
-                    logging.error("Could not get headings/column names from table: {}. Exiting...".format(config.categories['ec2cloudPoller.py']['ec2_regions_and_endpoints_table']))
-                    return
-
-            # Update ec2_regions table
-            uncommitted_updates = 0
-            for region_dict in region_dict_list:
-                region_dict, unmapped = map_attributes(src="ec2_regions", dest="csv2", attr_dict=region_dict)
-                if unmapped:
-                    logging.error("Unmapped columns found during mapping: {}".format(unmapped))
-                    logging.error("Exiting...")
-                    return
-                new_region = REGION(**region_dict)
-                try:
-                    db_session.merge(new_region)
-                    uncommitted_updates += 1
-                except Exception as exc:
-                    logging.exception("Failed to merge region entry for {}. Exiting with {} uncommitted updates ...".format(region_dict["region"], uncommitted_updates))
-                    return
-            if uncommitted_updates > 0:
-                try:
-                    db_session.commit()
-                    logging.info("Region updates comitted: {}".format(uncommitted_updates))
-                except Exception as exc:
-                    logging.exception("Failed to commit region updates for ec2 region table. Exiting...")
-                    return
-
-            # Delete any regions not updated
-            uncommitted_deletions = 0
-            regions = db_session.query(REGION)
-            for region in regions:
-                if region.region not in [new_region["Region"] for new_region in region_dict_list]:
-                    try:
-                        db_session.delete(region)
-                        uncommitted_deletions += 1
-                    except Exception as exc:
-                        logging.exception("Failed to delete region entry for {}. Exiting with {} uncommitted deletions ...".format(region, uncommitted_deletions))
-                        return
-            if uncommitted_deletions > 0:
-                try:
-                    db_session.commit()
-                    logging.info("Region deletions comitted: {}".format(uncommitted_deletions))
-                except Exception as exc:
-                    logging.exception("Failed to commit region deletions for ec2 region table. Exiting...")
-                    return
-            
-
-            logging.info("************************** ec2 table update complete **************************")
-
-        except Exception as exc:
-            logging.exception("Unhandled exception during ec2 region table update process...")
-        if not os.path.exists(PID_FILE):
-            logging.info("Stop set, exiting...")
-            break
-        signal.signal(signal.SIGINT, config.signals['SIGINT'])
-
-        wait_cycle(cycle_start_time, poll_time_history, 60*60*24, config)
-
-
-
-
 ## Main.
 
 if __name__ == '__main__':
@@ -2090,7 +1985,6 @@ if __name__ == '__main__':
         'vm': vm_poller,
         'filterer': ec2_filterer,
         'security_group_poller': security_group_poller
-#        'regions': updateEC2RegionsTable             # The regions function no longer works as amazon has changed their page content to load via javascript
     }
     db_categories = [os.path.basename(sys.argv[0]), "general", "signal_manager", "ProcessMonitor"]
     procMon = ProcessMonitor(config_params=db_categories, pool_size=9, process_ids=process_ids)
