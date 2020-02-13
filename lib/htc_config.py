@@ -73,10 +73,14 @@ def configure_htc(config, logger=None, other_dns=[]):
         # firewall-cmd rich-rules
         rr_xref = {}
         new_fw_set = set()
-        for fqdn in config.db_connection.execute('select distinct htcondor_fqdn from csv2_groups where htcondor_fqdn is not null'):
+        for fqdn in config.db_connection.execute('select distinct htcondor_fqdn from csv2_groups where htcondor_fqdn is not null and htcondor_fqdn!="localhost"'):
             try:
                 ip_addr = socket.gethostbyname(fqdn['htcondor_fqdn'])
-                rr = 'rule family="ipv4" source address="%s" port port="5672" protocol="tcp" accept' % ip_addr
+                rr = 'rule family="ipv4" source address="%s" port port="%s" protocol="tcp" accept' % (ip_addr, config.public_ports['amqp'])
+                rr_xref[rr] = fqdn['htcondor_fqdn']
+                new_fw_set.add(rr)
+
+                rr = 'rule family="ipv4" source address="%s" port port="%s" protocol="tcp" accept' % (ip_addr, config.public_ports['database'])
                 rr_xref[rr] = fqdn['htcondor_fqdn']
                 new_fw_set.add(rr)
             except:
