@@ -1855,5 +1855,5 @@ def update(request):
 
     ### Bad request.
     else:
-        return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud update, invalid method "%s" specified.' % (lno(MODID), request.method))
-
+      # return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud update, invalid method "%s" specified.' % (lno(MODID), request.method))
+        return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud update request did not contain mandatory parameter "cloud_name".' % lno(MODID))
