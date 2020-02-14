@@ -22,6 +22,7 @@ from cloudscheduler.lib.poller_functions import \
     build_inventory_for_condor, \
     start_cycle, \
     wait_cycle
+from cloudscheduler.lib.signal_functions import *
 
 from keystoneclient.auth.identity import v2, v3
 from keystoneauth1 import session
