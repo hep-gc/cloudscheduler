@@ -58,6 +58,7 @@ class Config:
                 str(db_config['db_port']),
                 db_config['db_name']
                 ),
+            connect_args={'ssl': True},
             isolation_level="READ_COMMITTED",
             pool_pre_ping=True,
             pool_size=pool_size,
