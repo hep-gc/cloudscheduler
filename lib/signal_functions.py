@@ -14,7 +14,13 @@ def _get_amqp_connection_(config, log=False):
     Internal function to establish a connection with the AMQP (RabbitMQ) server.
     """
 
-    URL = 'amqp://%s:%s@%s:%s/%%2F' % (
+    if config.signals['port'] == config.public_ports['amqp']:
+        protocol = 'amqps'
+    else:
+        protocol = 'amqp'
+
+    URL = '%s://%s:%s@%s:%s/%%2F' % (
+        protocol,
         config.signals['user'],
         config.signals['password'],
         config.signals['host'],
