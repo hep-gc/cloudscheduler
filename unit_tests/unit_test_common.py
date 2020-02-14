@@ -318,17 +318,16 @@ def html_message(text):
 
 def initialize_csv2_request(gvar, command, selections=None, hidden=False):
     import os
+    from getpass import getpass
     import yaml
 
-    if not os.path.isfile('%s/.csv2/unit-test/settings.yaml' % os.path.expanduser('~')):
-        raise Exception('You must create a minimal cloudscheduler defaults for server "unit-test" containing the server address and user credentials.')
-
     gvar['active_server_user_group'] = {}
+    gvar['cloud_credentials'] = {}
     gvar['command_args'] = {}
     gvar['cookies'] = None
     gvar['csrf'] = None
     gvar['server'] = 'unit-test'
-    gvar['ut_count'] = [0,0]
+    gvar['ut_count'] = [0, 0]
     gvar['ut_failed'] = 0
     gvar['ut_skipped'] = 0
     gvar['ut_dir'] = os.path.dirname(os.path.abspath(command))
@@ -347,21 +346,31 @@ def initialize_csv2_request(gvar, command, selections=None, hidden=False):
     else:
         gvar['selections'] = []
 
-    fd = open('%s/.csv2/unit-test/settings.yaml' % os.path.expanduser('~'))
-    gvar['user_settings'] = yaml.full_load(fd.read())
-    fd.close()
+    try:
+        with open(os.path.expanduser('~/.csv2/unit-test/settings.yaml')) as settings_file:
+            gvar['user_settings'] = yaml.full_load(settings_file.read())
+    except FileNotFoundError:
+        raise Exception('You must create a minimal cloudscheduler defaults for server "unit-test" containing the server address and user credentials.')
 
-    # Get user_secret.
+    # Get user_secret and cloud credentials.
+    CREDENTIALS_PATH = os.path.expanduser('~/cloudscheduler/unit_tests/credentials.yaml')
     os.umask(0)
     try:
-        with open(os.path.expanduser('~/.pw/csv2-unit-test.txt'), 'r') as pw_file:
-            gvar['user_secret'] = pw_file.read()
+        with open(os.path.expanduser('~/cloudscheduler/unit_tests/credentials.yaml'), 'r') as credentials_file:
+            credentials = yaml.full_load(credentials_file.read())
+            gvar.update(credentials)
     except FileNotFoundError:
+        print('No unit test credentials file found at {}.'.format(CREDENTIALS_PATH))
         gvar['user_secret'] = generate_secret()
-        # Create ~/.pw/csv2-unit-test.txt with all permissions for the current user and none for others. Save user_secret there in plain text.
-        os.makedirs(os.path.expanduser('~/.pw'), exist_ok=True)
-        with open(os.open(os.path.expanduser('~/.pw/csv2-unit-test.txt'), os.O_CREAT | os.O_WRONLY, 0o700), 'w') as pw_file:
-            pw_file.write(gvar['user_secret'])
+        gvar['cloud_credentials']['address'] = input('Enter a URL to be used as the cloud address for test clouds: ')
+        gvar['cloud_credentials']['username'] = input('Enter a username to be used for test clouds: ')
+        gvar['cloud_credentials']['password'] = getpass('Enter a password to use for test clouds: ')
+        # Create credentials file with read / write permissions for the current user and none for others. Save user_secret there in plain text.
+        os.makedirs(CREDENTIALS_PATH.rsplit('/', maxsplit=1)[0], exist_ok=True)
+        with open(os.open(CREDENTIALS_PATH, os.O_CREAT | os.O_WRONLY, 0o600), 'w') as credentials_file:
+            credentials_file.write(yaml.dump({'user_secret': gvar['user_secret'], 'cloud_credentials': gvar['cloud_credentials']}))
+    except yaml.YAMLError as err:
+        print('YAML encountered an error while parsing {}: {}'.format(CREDENTIALS_PATH, err))
 
     return
 
@@ -561,7 +570,8 @@ def ut_id(gvar, IDs):
     return '%s-%s' % (gvar['user_settings']['server-user'], (',%s-' % gvar['user_settings']['server-user']).join(ids))
  
 def condor_setup(gvar):
-    '''Check that condor is installed and find and return the address of the unit-test server.'''
+    '''Check that condor is installed and find and return the address of the unit-test server.
+    Used only by database tests.'''
     import os.path
     import re
     import subprocess
@@ -576,22 +586,23 @@ def condor_setup(gvar):
 
     # Get the address of the unit-test server
     try:
-        yaml_path = os.path.expanduser('~/.csv2/unit-test/settings.yaml')
-        with open(yaml_path) as yaml_file:
+        YAML_PATH = os.path.expanduser('~/.csv2/unit-test/settings.yaml')
+        with open(YAML_PATH) as yaml_file:
             server_address = yaml.safe_load(yaml_file)['server-address']
     except FileNotFoundError:
-        condor_error('{} does not exist'.format(yaml_path))
+        condor_error('{} does not exist'.format(YAML_PATH))
         return None
     except yaml.YAMLError as err:
-        condor_error('YAML encountered an error while parsing {}: {}'.format(yaml_path, err))
+        condor_error('YAML encountered an error while parsing {}: {}'.format(YAML_PATH, err))
         return None
     if server_address.startswith('http'):
         return re.match(r'https?://(.*)', server_address)[1]
     else:
-        condor_error('the server address in {} is \'{}\', which does not start with \'http\''.format(yaml_path, server_address))
+        condor_error('the server address in {} is \'{}\', which does not start with \'http\''.format(YAML_PATH, server_address))
         return None
 
 def condor_error(gvar, err):
+    '''Used only by database tests.'''
     print('\n\033[91mSkipping all database tests because {}.\033[0m'.format(err))
     gvar['ut_failed'] += 1
 
