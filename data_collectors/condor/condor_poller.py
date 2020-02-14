@@ -4,6 +4,7 @@ import logging
 import signal
 import socket
 from subprocess import Popen, PIPE
+from multiprocessing import Process
 import os
 import re
 import sys
@@ -320,10 +321,8 @@ def zip_base64(path):
     return None
 
 def check_pair_pid(pair, config, cloud_table):
-    logging.error("Checking for active child pid")
     cloud = config.db_session.query(cloud_table).get((pair.group_name, pair.cloud_name))
     pid = cloud.machine_subprocess_pid
-    logging.error(pid)
     if pid is None or pid == -1:
         # No subprocess ever started
         return False
@@ -337,12 +336,20 @@ def check_pair_pid(pair, config, cloud_table):
 
 
 
-def process_group_cloud_commands(pair, config, condor_host):
+def process_group_cloud_commands(pair, condor_host):
     group_name = pair.group_name
     cloud_name = pair.cloud_name
 
+    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', [os.path.basename(sys.argv[0]),  "ProcessMonitor", "csmachines.py"], pool_size=3, signals=True)
+    config.db_open()
+
     VM = config.db_map.classes.csv2_vms
     CLOUD = config.db_map.classes.csv2_clouds
+
+    terminate_off = config.categories["csmachines.py"]["terminate_off"]
+    retire_off = config.categories["csmachines.py"]["terminate_off"]
+    retire_interval = config.categories["csmachines.py"]["retire_interval"]
+
     master_type = htcondor.AdTypes.Master
     startd_type = htcondor.AdTypes.Startd
 
@@ -397,7 +404,7 @@ def process_group_cloud_commands(pair, config, condor_host):
                 continue
 
 
-        if config.categories["csmachines.py"]["retire_off"]:
+        if retire_off:
             logging.critical("Retires disabled, normal operation would retire %s" % resource.hostname)
             continue
 
@@ -405,7 +412,7 @@ def process_group_cloud_commands(pair, config, condor_host):
         # check the retire time to see if it has been enough time since the last retire was issued
         # if it's none we haven't issued a retire yet and can skip the check
         if resource.retire_time is not None:
-            if int(time.time()) - resource.retire_time < config.categories["csmachines.py"]["retire_interval"]:
+            if int(time.time()) - resource.retire_time < retire_interval:
                 # if the time since last retire is less than the configured retire interval, continue
                 logging.debug("Resource has been retired recently... skipping for now.")
                 continue
@@ -483,7 +490,7 @@ def process_group_cloud_commands(pair, config, condor_host):
             if session is False:
                 continue
          
-            if config.categories["csmachines.py"]["terminate_off"]:
+            if terminate_off:
                 logging.critical("Terminates disabled, normal operation would terminate %s" % vm_row.hostname)
                 continue
 
@@ -563,7 +570,7 @@ def process_group_cloud_commands(pair, config, condor_host):
                 break
 
         elif cloud.cloud_type == "amazon":
-            if config.categories["csmachines.py"]["terminate_off"]:
+            if terminate_off:
                 logging.critical("Terminates disabled, normal operation would terminate %s" % vm_row.hostname)
                 continue
             #terminate the vm
@@ -612,11 +619,13 @@ def process_group_cloud_commands(pair, config, condor_host):
         logging.error(exc)
         config.db_session.rollback()
         sql = "update csv2_clouds set machine_subprocess_pid=%s where group_name='%s' and cloud_name='%s';" % (-1, group_name, cloud_name)
-        return False
+        return
 
+    logging.info("Commands complete, closing subprocess")
     sql = "update csv2_clouds set machine_subprocess_pid=%s where group_name='%s' and cloud_name='%s';" % (-1, group_name, cloud_name)
     config.db_connection.execute(sql) 
-    return True
+    config.db_close()
+    return
 
 
 
@@ -1391,12 +1400,16 @@ def machine_command_poller():
 
                 for pair in grp_cld_pairs:
                     # First check pid of cloud entry
+                    logging.info("Checking child pid for pair: %s, %s" % (pair.group_name, pair.cloud_name))
                     pid_active = check_pair_pid(pair, config, CLOUD)
-                    logging.error(pid_active)
+                    if pid_active:
+                        logging.info("Child pid still active...")
                     if not pid_active:
                         #subprocess this eventually
                         logging.info("No pid active, starting commands")
-                        process_group_cloud_commands(pair, config, condor_host)
+                        #process_group_cloud_commands(pair, condor_host)
+                        p = Process(target=process_group_cloud_commands, args=(pair, condor_host))
+                        p.start()
                     
             
             try:
@@ -1411,7 +1424,6 @@ def machine_command_poller():
                 logging.info("Stop set, exiting...")
                 break
             wait_cycle(cycle_start_time, poll_time_history, config.categories["csmachines.py"]["sleep_interval_command"], config)
-            time.sleep(config.categories["csmachines.py"]["sleep_interval_command"])
 
     except Exception as exc:
         logging.exception("Command consumer while loop exception, process terminating...")
