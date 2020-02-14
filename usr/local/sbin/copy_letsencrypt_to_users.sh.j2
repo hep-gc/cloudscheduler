@@ -3,11 +3,11 @@
 R=0
 M=$(
 {% for user in letsencrypt_users %}
-    /bin/cp -f /etc/letsencrypt/live/csv2-dev2.heprc.uvic.ca/cert.pem {{ user.2 }}/.globus/usercert.pem 2>&1 &&
+    /bin/cp -f /etc/letsencrypt/live/{{ csv2_host }}/cert.pem {{ user.2 }}/.globus/usercert.pem 2>&1 &&
 {% if loop.last %}
-    /bin/cp -f /etc/letsencrypt/live/csv2-dev2.heprc.uvic.ca/privkey.pem {{ user.2 }}/.globus/userkey.pem 2>&1
+    /bin/cp -f /etc/letsencrypt/live/{{ csv2_host }}/privkey.pem {{ user.2 }}/.globus/userkey.pem 2>&1
 {% else %}
-    /bin/cp -f /etc/letsencrypt/live/csv2-dev2.heprc.uvic.ca/privkey.pem {{ user.2 }}/.globus/userkey.pem 2>&1 &&
+    /bin/cp -f /etc/letsencrypt/live/{{ csv2_host }}/privkey.pem {{ user.2 }}/.globus/userkey.pem 2>&1 &&
 {% endif %}
 {% endfor %}
 ) || R=1
