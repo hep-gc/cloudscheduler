@@ -1564,7 +1564,7 @@ def condor_gsi_poller():
                     condor_hostcert = htcondor.param['GSI_DAEMON_CERT']
                 else:
                     try:
-                        condor_host_cert = config.condor_poller.get("condor_hostcert")
+                        condor_hostcert = config.condor_poller.get("condor_hostcert")
                     except:
                         condor_hostcert = None
 
