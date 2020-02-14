@@ -82,19 +82,20 @@ class Config:
         self.local_host_id = int(ipaddress.IPv4Address(socket.gethostbyname(socket.gethostname())))
 
         self.db_open()
-        rows = self.db_session.query(self.db_map.classes[self.db_table]).filter(
-            (self.db_map.classes[self.db_table].category == 'SQL') &
-            (self.db_map.classes[self.db_table].config_key == 'csv2_host_id')
-            )
+        if self.local_host_id == self.csv2_host_id:
+            rows = self.db_session.query(self.db_map.classes[self.db_table]).filter(
+                (self.db_map.classes[self.db_table].category == 'SQL') &
+                (self.db_map.classes[self.db_table].config_key == 'csv2_host_id')
+                )
 
-        if self.csv2_host_id != rows[0].config_value:
-            try:
-                self.db_session.execute('update %s set config_value="%s" where category="SQL" and config_key="csv2_host_id";' % (self.db_table, self.csv2_host_id))
+            if self.csv2_host_id != rows[0].config_value:
+                try:
+                    self.db_session.execute('update %s set config_value="%s" where category="SQL" and config_key="csv2_host_id";' % (self.db_table, self.csv2_host_id))
 
-                self.db_session.commit()
+                    self.db_session.commit()
 
-            except Exception as msg:
-                print("Error updating csv2_host_id in db_config: %s" % msg)
+                except Exception as msg:
+                    print("Error updating csv2_host_id in db_config: %s" % msg)
 
         # Retrieve the configuration for the specified categories.
         self.categories = self.get_config_by_category(categories)
