@@ -29,8 +29,7 @@ def main(gvar):
     # 4
     execute_csv2_request(
         gvar, 0, None, 'user "{}" successfully added.'.format(ut_id(gvar, 'dtu1')),
-        '/user/add/'
-, form_data={
+        '/user/add/', form_data={
             'username': ut_id(gvar, 'dtu1'),
             'password1': gvar['user_secret'],
             'password2': gvar['user_secret'],

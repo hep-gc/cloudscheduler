@@ -17,8 +17,7 @@ def main(gvar):
     # unprivileged user in no groups
     execute_csv2_request(
         gvar, 0, None, 'user "{}" successfully added.'.format(ut_id(gvar, 'clu1')),
-        '/user/add/'
-, form_data={
+        '/user/add/', form_data={
             'username': ut_id(gvar, 'clu1'),
             'password1': gvar['user_secret'],
             'password2': gvar['user_secret'],
@@ -29,8 +28,7 @@ def main(gvar):
     # privileged user in no groups
     execute_csv2_request(
         gvar, 0, None, 'user "{}" successfully added.'.format(ut_id(gvar, 'clu2')),
-        '/user/add/'
-, form_data={
+        '/user/add/', form_data={
             'username': ut_id(gvar, 'clu2'),
             'password1': gvar['user_secret'],
             'password2': gvar['user_secret'],
@@ -42,8 +40,7 @@ def main(gvar):
     # group with users
     execute_csv2_request(
         gvar, 0, None, 'group "{}" successfully added.'.format(ut_id(gvar, 'clg1')),
-        '/group/add/'
-, form_data={
+        '/group/add/', form_data={
             'group_name': ut_id(gvar, 'clg1'),
             'htcondor_fqdn': 'unit-test-group-one.ca',
         }
@@ -52,8 +49,7 @@ def main(gvar):
     # group to be deleted without users
     execute_csv2_request(
         gvar, 0, None, 'group "{}" successfully added.'.format(ut_id(gvar, 'clg3')),
-        '/group/add/'
-, form_data={
+        '/group/add/', form_data={
             'group_name': ut_id(gvar, 'clg3'),
             'htcondor_fqdn': 'unit-test-group-three.ca'
         }
@@ -62,8 +58,7 @@ def main(gvar):
     # group to be deleted with users
     execute_csv2_request(
         gvar, 0, None, 'group "{}" successfully added.'.format(ut_id(gvar, 'clg4')),
-        '/group/add/'
-, form_data={
+        '/group/add/', form_data={
             'group_name': ut_id(gvar, 'clg4'),
             'htcondor_fqdn': 'unit-test-group-four.ca'
         }
@@ -81,8 +76,7 @@ def main(gvar):
     # unprivileged user in clg1
     execute_csv2_request(
         gvar, 0, None, 'user "{}" successfully added.'.format(ut_id(gvar, 'clu3')),
-        '/user/add/'
-, form_data={
+        '/user/add/', form_data={
             'username': ut_id(gvar, 'clu3'),
             'password1': gvar['user_secret'],
             'password2': gvar['user_secret'],
@@ -94,8 +88,7 @@ def main(gvar):
     # privileged user in clg1
     execute_csv2_request(
         gvar, 0, None, 'user "{}" successfully added.'.format(ut_id(gvar, 'clu4')),
-        '/user/add/'
-, form_data={
+        '/user/add/', form_data={
             'username': ut_id(gvar, 'clu4'),
             'password1': gvar['user_secret'],
             'password2': gvar['user_secret'],
@@ -109,8 +102,7 @@ def main(gvar):
     # user to be deleted in no groups
     execute_csv2_request(
         gvar, 0, None, 'user "{}" successfully added.'.format(ut_id(gvar, 'clu5')),
-        '/user/add/'
-, form_data={
+        '/user/add/', form_data={
             'username': ut_id(gvar, 'clu5'),
             'password': gvar['user_secret'],
             'cert_cn': ut_id(gvar, 'command line user five')
@@ -120,8 +112,7 @@ def main(gvar):
     # user to be deleted in groups
     execute_csv2_request(
         gvar, 0, None, 'user "{}" successfully added.'.format(ut_id(gvar, 'clu6')),
-        '/user/add/'
-, form_data={
+        '/user/add/', form_data={
             'username': ut_id(gvar, 'clu6'),
             'password': gvar['user_secret'],
             'cert_cn': ut_id(gvar, 'command line user six'),
@@ -132,8 +123,7 @@ def main(gvar):
     # user to be updated
     execute_csv2_request(
         gvar, 0, None, 'user "{}" successfully added.'.format(ut_id(gvar, 'clu7')),
-        '/user/add/'
-, form_data={
+        '/user/add/', form_data={
             'username': ut_id(gvar, 'clu7'),
             'password': gvar['user_secret'],
             'cert_cn': ut_id(gvar, 'command line user seven')
@@ -226,8 +216,7 @@ def main(gvar):
     # cloud metadata to be deleted
     execute_csv2_request(
         gvar, 0, None, 'cloud metadata file "{}::{}::{}" successfully added.'.format(ut_id(gvar, 'clg1'), ut_id(gvar, 'clc2'), ut_id(gvar, 'clm1')),
-        '/cloud/metadata-add/', group=ut_id(gvar, 'clg1')
-, form_data={
+        '/cloud/metadata-add/', group=ut_id(gvar, 'clg1'), form_data={
             'cloud_name': ut_id(gvar, 'clc2'),
             'metadata_name': ut_id(gvar, 'clm1'),
             'metadata': '- example: yes'
@@ -237,8 +226,7 @@ def main(gvar):
 
     execute_csv2_request(
         gvar, 0, None, 'cloud metadata file "{}::{}::{}" successfully added.'.format(ut_id(gvar, 'clg1'), ut_id(gvar, 'clc2'), ut_id(gvar, 'clm3')),
-        '/cloud/metadata-add/', group=ut_id(gvar, 'clg1')
-, form_data={
+        '/cloud/metadata-add/', group=ut_id(gvar, 'clg1'), form_data={
             'cloud_name': ut_id(gvar, 'clc2'),
             'metadata_name': ut_id(gvar, 'clm3'),
             'metadata': '- example: yes'
@@ -249,8 +237,7 @@ def main(gvar):
     # cloud metadata to be edited
     execute_csv2_request(
         gvar, 0, None, 'cloud metadata file "{}::{}::{}" successfully added.'.format(ut_id(gvar, 'clg1'), ut_id(gvar, 'clc2'), ut_id(gvar, 'clm2')),
-        '/cloud/metadata-add/', group=ut_id(gvar, 'clg1')
-, form_data={
+        '/cloud/metadata-add/', group=ut_id(gvar, 'clg1'), form_data={
             'cloud_name': ut_id(gvar, 'clc2'),
             'metadata_name': ut_id(gvar, 'clm2'),
             'metadata': '- example: yes'
@@ -260,8 +247,7 @@ def main(gvar):
 
     execute_csv2_request(
         gvar, 0, None, 'cloud metadata file "{}::{}::{}" successfully added.'.format(ut_id(gvar, 'clg1'), ut_id(gvar, 'clc2'), ut_id(gvar, 'clm2.yaml')),
-        '/cloud/metadata-add/', group=ut_id(gvar, 'clg1')
-, form_data={
+        '/cloud/metadata-add/', group=ut_id(gvar, 'clg1'), form_data={
             'cloud_name': ut_id(gvar, 'clc2'),
             'metadata_name': ut_id(gvar, 'clm2.yaml'),
             'metadata': '- example: yes'

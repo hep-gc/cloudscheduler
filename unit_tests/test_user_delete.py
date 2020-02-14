@@ -63,24 +63,21 @@ def main(gvar):
     # 08
     execute_csv2_request(
         gvar, 1, 'UV', 'request contained superfluous parameter "invalid-unit-test".',
-        '/user/delete/'
-, form_data={'invalid-unit-test': 'invalid-unit-test'},
+        '/user/delete/', form_data={'invalid-unit-test': 'invalid-unit-test'},
         server_user=ut_id(gvar, 'utu4')
     )
 
     # 09
     execute_csv2_request(
         gvar, 1, 'UV', 'value specified for "username" must be all lower case.',
-        '/user/delete/'
-, form_data={'username': 'Invalid-unit-test'},
+        '/user/delete/', form_data={'username': 'Invalid-unit-test'},
         server_user=ut_id(gvar, 'utu4')
     )
 
     # 10
     execute_csv2_request(
         gvar, 1, 'UV', 'request contained superfluous parameter "password".',
-        '/user/delete/'
-, form_data={'password': 'invalid-unit-test'},
+        '/user/delete/', form_data={'password': 'invalid-unit-test'},
         server_user=ut_id(gvar, 'utu4')
     )
 

@@ -51,64 +51,56 @@ def main(gvar):
     # 6
     execute_csv2_request(
         gvar, 1, 'UV', 'request contained a unnamed/bad parameter "invalid-unit-test".',
-        '/user/settings/' #I assume this request does not need a group specification
-, form_data={'invalid-unit-test': 'invalid-unit-test'},
+        '/user/settings/' , form_data={'invalid-unit-test': 'invalid-unit-test'},
         server_user=ut_id(gvar, 'utu3')
     )
 
     # 7
     execute_csv2_request(
         gvar, 1, 'UV', 'value specified for a password is less than 6 characters.',
-        '/user/settings/' #I assume this request does not need a group specification
-, form_data={'password': 'test'},
+        '/user/settings/' , form_data={'password': 'test'},
         server_user=ut_id(gvar, 'utu3')
     )
 
     # 8
     execute_csv2_request(
         gvar, 1, 'UV', 'value specified for a password is less then 16 characters, and does not contain a mixture of upper, lower, and numerics.',
-        '/user/settings/'#I assume this request does not need a group specification
-, form_data={'password': 'invalid'},
+        '/user/settings/', form_data={'password': 'invalid'},
         server_user=ut_id(gvar, 'utu3')
     )
 
     # 9
     execute_csv2_request(
         gvar, 0, None, 'user "{}" successfully updated.'.format(ut_id(gvar, 'utu3')),
-        '/user/settings/'#I assume this request does not need a group specification
-, form_data={'password': new_secret},
+        '/user/settings/', form_data={'password': new_secret},
         server_user=ut_id(gvar, 'utu3')
     )
 
     # 10
     execute_csv2_request(
         gvar, 0, None, 'user "{}" successfully updated.'.format(ut_id(gvar, 'utu3')),
-        '/user/settings/'#I assume this request does not need a group specification
-, form_data={'password': gvar['user_secret']},
+        '/user/settings/', form_data={'password': gvar['user_secret']},
         server_user=ut_id(gvar, 'utu3'), server_pw=new_secret
     )
 
     # 11
     execute_csv2_request(
         gvar, 1, 'UV', 'password update received a password but no verify password; both are required.',
-        '/user/settings/'#I assume this request does not need a group specification
-, form_data={'password1': 'test'},
+        '/user/settings/', form_data={'password1': 'test'},
         server_user=ut_id(gvar, 'utu3')
     )
 
     # 12
     execute_csv2_request(
         gvar, 1, 'UV', 'password update received a verify password but no password; both are required.',
-        '/user/settings/'#I assume this request does not need a group specification
-, form_data={'password2': 'test'},
+        '/user/settings/', form_data={'password2': 'test'},
         server_user=ut_id(gvar, 'utu3')
     )
 
     # 13
     execute_csv2_request(
         gvar, 1, 'UV', 'value specified for a password is less than 6 characters.',
-        '/user/settings/'#I assume this request does not need a group specification
-, form_data={
+        '/user/settings/', form_data={
             'password1': 'test',
             'password2': 'test'
         },
@@ -118,8 +110,7 @@ def main(gvar):
     # 14
     execute_csv2_request(
         gvar, 1, 'UV', 'value specified for a password is less then 16 characters, and does not contain a mixture of upper, lower, and numerics.',
-        '/user/settings/'#I assume this request does not need a group specification
-, form_data={
+        '/user/settings/', form_data={
             'password1': 'invalid',
             'password2': 'invalid'
         },
@@ -129,8 +120,7 @@ def main(gvar):
     # 15
     execute_csv2_request(
         gvar, 1, 'UV', 'values specified for passwords do not match.',
-        '/user/settings/'#I assume this request does not need a group specification
-, form_data={
+        '/user/settings/', form_data={
             'password1': 'Abc123',
             'password2': '321cbA'
         },
@@ -138,7 +128,7 @@ def main(gvar):
     )
 
     # 16
-    execute_csv2_request(#I assume this request does not need a group specification
+    execute_csv2_request(
         gvar, 0, None, 'user "{}" successfully updated.'.format(ut_id(gvar, 'utu3')),
         '/user/settings/', form_data={
             'password1': new_secret,
@@ -148,7 +138,7 @@ def main(gvar):
     )
 
     # 17
-    execute_csv2_request(#I assume this request does not need a group specification
+    execute_csv2_request(
         gvar, 0, None, 'user "{}" successfully updated.'.format(ut_id(gvar, 'utu3')),
         '/user/settings/', form_data={
             'password1': gvar['user_secret'],

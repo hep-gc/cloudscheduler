@@ -167,8 +167,7 @@ def main(gvar, user_secret):
     # 9
     execute_csv2_request(
         gvar, 0, None, "vm update, VMs set to manual control: 1.",
-        '/vm/update/', group(ut_id(gvar, 'dtg1'))
-, form_data={'vm_option': 'manctl', 'hostname': 'vm-test-group--vm-test-cloud--vmid1'}
+        '/vm/update/', group(ut_id(gvar, 'dtg1')), form_data={'vm_option': 'manctl', 'hostname': 'vm-test-group--vm-test-cloud--vmid1'}
     )
 
     # 10
@@ -180,8 +179,7 @@ def main(gvar, user_secret):
     # 11
     execute_csv2_request(
         gvar, 0, None, "vm update, VMs set to manual control: 3.",
-        '/vm/update/', group(ut_id(gvar, 'dtg1'))
-, form_data={'vm_option': 'manctl'}
+        '/vm/update/', group(ut_id(gvar, 'dtg1')), form_data={'vm_option': 'manctl'}
     )
 
     # 12
@@ -332,8 +330,7 @@ def main(gvar, user_secret):
     # Setting System Control
     execute_csv2_request(
         gvar, 0, None, "vm update, VMs set to system control: 0.",
-        '/vm/update/', group=(ut_id(gvar, 'dtg1'))
-, form_data={'vm_option': 'sysctl', 'hostname': 'foreign-cloud--vmid4'}
+        '/vm/update/', group=(ut_id(gvar, 'dtg1')), form_data={'vm_option': 'sysctl', 'hostname': 'foreign-cloud--vmid4'}
     )
 
     # 20
@@ -345,8 +342,7 @@ def main(gvar, user_secret):
     # 21
     execute_csv2_request(
         gvar, 0, None, "vm update, VMs set to system control: 1.",
-        '/vm/update/', group=(ut_id(gvar, 'dtg1'))
-, form_data={'vm_option': 'sysctl', 'hostname': 'vm-test-group--vm-test-cloud--vmid2'}
+        '/vm/update/', group=(ut_id(gvar, 'dtg1')), form_data={'vm_option': 'sysctl', 'hostname': 'vm-test-group--vm-test-cloud--vmid2'}
     )
 
     # 22
@@ -358,8 +354,7 @@ def main(gvar, user_secret):
     # 23
     execute_csv2_request(
         gvar, 0, None, "vm update, VMs set to system control: 3.",
-        '/vm/update/', group=(ut_id(gvar, 'dtg1'))
-, form_data={'vm_option': 'sysctl'}
+        '/vm/update/', group=(ut_id(gvar, 'dtg1')), form_data={'vm_option': 'sysctl'}
     )
 
     # 24
@@ -510,8 +505,7 @@ def main(gvar, user_secret):
     # Setting Retire
     execute_csv2_request(
         gvar, 0, None, "vm update, VMs retired: 0.",
-        '/vm/update/', group=(ut_id(gvar, 'dtg1'))
-, form_data={'vm_option': 'retire', 'hostname': 'foreign-cloud--vmid4'}
+        '/vm/update/', group=(ut_id(gvar, 'dtg1')), form_data={'vm_option': 'retire', 'hostname': 'foreign-cloud--vmid4'}
     )
 
     # 32
@@ -523,8 +517,7 @@ def main(gvar, user_secret):
     # 33
     execute_csv2_request(
         gvar, 0, None, "vm update, VMs retired: 1.",
-        '/vm/update/', group=(ut_id(gvar, 'dtg1'))
-, form_data={'vm_option': 'retire', 'hostname': 'vm-test-group--vm-test-cloud--vmid3'}
+        '/vm/update/', group=(ut_id(gvar, 'dtg1')), form_data={'vm_option': 'retire', 'hostname': 'vm-test-group--vm-test-cloud--vmid3'}
     )
 
     # 34
@@ -536,8 +529,7 @@ def main(gvar, user_secret):
     # 35
     execute_csv2_request(
         gvar, 0, None, "vm update, VMs retired: 3.",
-        '/vm/update/', group=(ut_id(gvar, 'dtg1'))
-, form_data={'vm_option': 'retire'}
+        '/vm/update/', group=(ut_id(gvar, 'dtg1')), form_data={'vm_option': 'retire'}
     )
 
     # 36
@@ -619,8 +611,7 @@ def main(gvar, user_secret):
     # Setting Kill
     execute_csv2_request(
         gvar, 0, None, "vm update, VMs killed: 0.",
-        '/vm/update/', group=(ut_id(gvar, 'dtg1'))
-, form_data={'vm_option': 'kill', 'hostname': 'foreign-cloud--vmid4'}
+        '/vm/update/', group=(ut_id(gvar, 'dtg1')), form_data={'vm_option': 'kill', 'hostname': 'foreign-cloud--vmid4'}
     )
 
     # 41
@@ -632,8 +623,7 @@ def main(gvar, user_secret):
     # 42
     execute_csv2_request(
         gvar, 0, None, "vm update, VMs killed: 1.",
-        '/vm/update/', group=(ut_id(gvar, 'dtg1'))
-, form_data={'vm_option': 'kill', 'hostname': 'vm-test-group--vm-test-cloud--vmid1'}
+        '/vm/update/', group=(ut_id(gvar, 'dtg1')), form_data={'vm_option': 'kill', 'hostname': 'vm-test-group--vm-test-cloud--vmid1'}
     )
 
     # 43
@@ -645,8 +635,7 @@ def main(gvar, user_secret):
     # 44
     execute_csv2_request(
         gvar, 0, None, "vm update, VMs killed: 3.",
-        '/vm/update/', group=(ut_id(gvar, 'dtg1'))
-, form_data={'vm_option': 'kill'}
+        '/vm/update/', group=(ut_id(gvar, 'dtg1')), form_data={'vm_option': 'kill'}
     )
 
     # 45

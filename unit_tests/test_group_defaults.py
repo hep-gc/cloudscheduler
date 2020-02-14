@@ -49,8 +49,7 @@ def main(gvar):
     # 6
     execute_csv2_request(
         gvar, 1, 'GV', 'request contained a bad parameter "invalid-unit-test".',
-        '/group/defaults/', group=(ut_id(gvar, 'gtg4'))
-, form_data={'invalid-unit-test': 'invalid-unit-test'},
+        '/group/defaults/', group=(ut_id(gvar, 'gtg4')), form_data={'invalid-unit-test': 'invalid-unit-test'},
         server_user=ut_id(gvar, 'gtu3')
     )
 

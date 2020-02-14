@@ -70,8 +70,7 @@ def main(gvar):
     # 09
     execute_csv2_request(
         gvar, 1, 'UV', 'value specified for "username" must be all lower case.',
-        '/user/add/'
-, form_data={'username': 'Invalid-unit-test'},
+        '/user/add/', form_data={'username': 'Invalid-unit-test'},
         server_user=ut_id(gvar, 'utu4')
     )
 

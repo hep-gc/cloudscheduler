@@ -28,32 +28,28 @@ def main(gvar):
     # 03
     execute_csv2_request(
         gvar, 1, 'GV', 'user "%s" is not a member of any group.' % ut_id(gvar, 'gtu2'),
-        '/group/metadata-update/'
-, form_data={'invalid-unit-test': 'invalid-unit-test'},
+        '/group/metadata-update/', form_data={'invalid-unit-test': 'invalid-unit-test'},
         server_user=ut_id(gvar, 'gtu2')
     )
 
     # 04
     execute_csv2_request(
         gvar, 1, 'GV', 'group metadata-update request did not contain mandatory parameter "metadata_name".',
-        '/group/metadata-update/', group=(ut_id(gvar, 'gtg5'))
-, form_data={'enabled': 0},
+        '/group/metadata-update/', group=(ut_id(gvar, 'gtg5')), form_data={'enabled': 0},
         server_user=ut_id(gvar, 'gtu3')
     )
 
     # 05
     execute_csv2_request(
         gvar, 1, 'GV', 'group metadata-update "%s::invalid-unit-test" specified no fields to update and was ignored.' % ut_id(gvar, 'gtg4'),
-        '/group/metadata-update/', group=(ut_id(gvar, 'gtg4'))
-, form_data={'metadata_name': 'invalid-unit-test'},
+        '/group/metadata-update/', group=(ut_id(gvar, 'gtg4')), form_data={'metadata_name': 'invalid-unit-test'},
         server_user=ut_id(gvar, 'gtu3')
     )
 
     # 06
     execute_csv2_request(
         gvar, 1, 'GV', 'request contained a bad parameter "invalid-unit-test".',
-        '/group/metadata-update/', group=(ut_id(gvar, 'gtg5'))
-, form_data={'metadata_name': 'invalid-unit-test', 'invalid-unit-test': 'invalid-unit-test'},
+        '/group/metadata-update/', group=(ut_id(gvar, 'gtg5')), form_data={'metadata_name': 'invalid-unit-test', 'invalid-unit-test': 'invalid-unit-test'},
         server_user=ut_id(gvar, 'gtu3')
     )
 
@@ -74,16 +70,14 @@ def main(gvar):
     # 09
     execute_csv2_request(
         gvar, 1, 'GV', 'value specified for "metadata_name" must be all lower case.',
-        '/group/metadata-update/', group=(ut_id(gvar, 'gtg5'))
-, form_data={'metadata_name': 'Invalid-Unit-Test'},
+        '/group/metadata-update/', group=(ut_id(gvar, 'gtg5')), form_data={'metadata_name': 'Invalid-Unit-Test'},
         server_user=ut_id(gvar, 'gtu3')
     )
 
     # 10
     execute_csv2_request(
         gvar, 1, 'GV', 'boolean value specified for "enabled" must be one of the following: true, false, yes, no, 1, or 0.',
-        '/group/metadata-update/', group=(ut_id(gvar, 'gtg5'))
-, form_data={
+        '/group/metadata-update/', group=(ut_id(gvar, 'gtg5')), form_data={
             'metadata_name': 'invalid-unit-test',
             'enabled': 'invalid-unit-test'
         },
@@ -93,8 +87,7 @@ def main(gvar):
     # 11
     execute_csv2_request(
         gvar, 1, 'GV', 'value specified for "mime_type" must be one of the following options: [\'cloud-config\', \'ucernvm-config\'].',
-        '/group/metadata-update/', group=(ut_id(gvar, 'gtg5'))
-, form_data={
+        '/group/metadata-update/', group=(ut_id(gvar, 'gtg5')), form_data={
             'metadata_name': 'invalid-unit-test',
             'enabled': 0,
             'mime_type': 'invalid-unit-test'
