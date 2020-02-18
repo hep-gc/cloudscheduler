@@ -42,7 +42,7 @@ def main(gvar):
         gvar, 0, None, 'group "{}" successfully added.'.format(ut_id(gvar, 'clg1')),
         '/group/add/', form_data={
             'group_name': ut_id(gvar, 'clg1'),
-            'htcondor_fqdn': 'unit-test-group-one.ca',
+            'htcondor_fqdn': gvar['user_settings']['server-address'],
         }
     )
 
@@ -51,7 +51,7 @@ def main(gvar):
         gvar, 0, None, 'group "{}" successfully added.'.format(ut_id(gvar, 'clg3')),
         '/group/add/', form_data={
             'group_name': ut_id(gvar, 'clg3'),
-            'htcondor_fqdn': 'unit-test-group-three.ca'
+            'htcondor_fqdn': gvar['user_settings']['server-address']
         }
     )
 
@@ -60,7 +60,7 @@ def main(gvar):
         gvar, 0, None, 'group "{}" successfully added.'.format(ut_id(gvar, 'clg4')),
         '/group/add/', form_data={
             'group_name': ut_id(gvar, 'clg4'),
-            'htcondor_fqdn': 'unit-test-group-four.ca'
+            'htcondor_fqdn': gvar['user_settings']['server-address']
         }
     )
 
@@ -69,7 +69,7 @@ def main(gvar):
         gvar, 0, None, 'group "{}" successfully added.'.format(ut_id(gvar, 'clg5')),
         '/group/add/', form_data={
             'group_name': ut_id(gvar, 'clg5'),
-            'htcondor_fqdn': 'unit-test-group-five.ca'
+            'htcondor_fqdn': gvar['user_settings']['server-address']
         }
     )
 
@@ -135,7 +135,7 @@ def main(gvar):
         gvar, 0, None, 'cloud "{}::{}" successfully added.'.format(ut_id(gvar, 'clg1'), ut_id(gvar, 'clc1')),
         '/cloud/add/', group=ut_id(gvar, 'clg1'), form_data={
             'cloud_name': ut_id(gvar, 'clc1'),
-            'authurl': 'unit-test-cloud-one.ca',
+            'authurl': gvar['cloud_credentials']['address'],
             'project': 'unit-test-cloud-one',
             'username': ut_id(gvar, 'clc1'),
             'password': 'unit-test-cloud-one',
@@ -150,7 +150,7 @@ def main(gvar):
         gvar, 0, None, 'cloud "{}::{}" successfully added.'.format(ut_id(gvar, 'clg1'), ut_id(gvar, 'clc3')),
         '/cloud/add/', group=ut_id(gvar, 'clg1'), form_data={
             'cloud_name': ut_id(gvar, 'clc3'),
-            'authurl': 'unit-test-cloud-three.ca',
+            'authurl': gvar['cloud_credentials']['address'],
             'project': 'unit-test-cloud-three',
             'username': ut_id(gvar, 'clc3'),
             'password': 'unit-test-cloud-three',
@@ -165,7 +165,7 @@ def main(gvar):
         gvar, 0, None, 'cloud "{}::{}" successfully added.'.format(ut_id(gvar, 'clg1'), ut_id(gvar, 'clc2')),
         '/cloud/add/', group=ut_id(gvar, 'clg1'), form_data={
             'cloud_name': ut_id(gvar, 'clc2'),
-            'authurl': 'unit-test-cloud-two.ca',
+            'authurl': gvar['cloud_credentials']['address'],
             'project': 'unit-test-cloud-two',
             'username': ut_id(gvar, 'clc2'),
             'password': 'unit-test-cloud-two',
