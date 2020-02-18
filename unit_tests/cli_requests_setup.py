@@ -135,8 +135,7 @@ def main(gvar):
         gvar, 0, None, 'cloud "{}::{}" successfully added.'.format(ut_id(gvar, 'clg1'), ut_id(gvar, 'clc1')),
         '/cloud/add/', group=ut_id(gvar, 'clg1'), form_data={
             'cloud_name': ut_id(gvar, 'clc1'),
-            'region': ut_id(gvar, 'clc1-r'),
-            'cloud_type': 'local',
+            'cloud_type': 'openstack',
             **gvar['cloud_credentials']
         },
         server_user=ut_id(gvar, 'clu4')
@@ -147,8 +146,7 @@ def main(gvar):
         gvar, 0, None, 'cloud "{}::{}" successfully added.'.format(ut_id(gvar, 'clg1'), ut_id(gvar, 'clc2')),
         '/cloud/add/', group=ut_id(gvar, 'clg1'), form_data={
             'cloud_name': ut_id(gvar, 'clc2'),
-            'region': ut_id(gvar, 'clc2-r'),
-            'cloud_type': 'local',
+            'cloud_type': 'openstack',
             **gvar['cloud_credentials']
         },
         server_user=ut_id(gvar, 'clu4')
@@ -159,8 +157,7 @@ def main(gvar):
         gvar, 0, None, 'cloud "{}::{}" successfully added.'.format(ut_id(gvar, 'clg1'), ut_id(gvar, 'clc3')),
         '/cloud/add/', group=ut_id(gvar, 'clg1'), form_data={
             'cloud_name': ut_id(gvar, 'clc3'),
-            'region': ut_id(gvar, 'clc3-r'),
-            'cloud_type': 'local',
+            'cloud_type': 'openstack',
             **gvar['cloud_credentials']
         },
         server_user=ut_id(gvar, 'clu4')

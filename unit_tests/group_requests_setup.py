@@ -156,8 +156,7 @@ def main(gvar):
         gvar, 0, None, 'cloud "{}::{}" successfully added.'.format(ut_id(gvar, 'gtg5'), ut_id(gvar, 'gtc1')),
         '/cloud/add/', group=ut_id(gvar, 'gtg5'), form_data={
             'cloud_name': ut_id(gvar, 'gtc1'),
-            'region': ut_id(gvar, 'gtc1-r'),
-            'cloud_type': 'local',
+            'cloud_type': 'openstack',
             'metadata_name': ut_id(gvar, 'gty4'),
             **gvar['cloud_credentials']
         },

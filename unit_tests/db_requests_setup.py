@@ -43,7 +43,6 @@ def main(gvar):
         gvar, 0, None, 'cloud "{}::{}" successfully added.'.format(ut_id(gvar, 'dtg1'), ut_id(gvar, 'dtc1')),
         '/cloud/add/', group=ut_id(gvar, 'dtg1'), form_data={
             'cloud_name': ut_id(gvar, 'dtc1'),
-            'region': ut_id(gvar, 'dtr1'),
             'cloud_type': 'openstack',
             **gvar['cloud_credentials']
         },

@@ -232,8 +232,6 @@ def main(gvar):
         gvar, 0, None, 'cloud "{}::{}" successfully updated.'.format(ut_id(gvar, 'clg1'), ut_id(gvar, 'clc2')),
         ['cloudscheduler', 'cloud', 'update',
             '-cn', ut_id(gvar, 'clc2'),
-            '-cr', 'clc10-r',
-            '-ct', 'local',
             '-ce', 'no',
             '-vi', '',
             '-vf', '',
@@ -251,8 +249,6 @@ def main(gvar):
         gvar, 0, None, 'cloud "{}::{}" successfully updated.'.format(ut_id(gvar, 'clg1'), ut_id(gvar, 'clc2')),
         ['cloudscheduler', 'cloud', 'update',
             '-cn', ut_id(gvar, 'clc2'),
-            '-cr', 'clc10-r',
-            '-ct', 'local',
             '-gme', ut_id(gvar, 'clm2.yaml,clm3'),
             '-su', ut_id(gvar, 'clu4')
         ]
@@ -263,8 +259,6 @@ def main(gvar):
         gvar, 0, None, 'cloud "{}::{}" successfully updated.'.format(ut_id(gvar, 'clg1'), ut_id(gvar, 'clc2')),
         ['cloudscheduler', 'cloud', 'update',
             '-cn', ut_id(gvar, 'clc2'),
-            '-cr', 'clc10-r',
-            '-ct', 'local',
             '-gme', ut_id(gvar, 'clm2.yaml'),
             '-gmo', 'delete',
             '-su', ut_id(gvar, 'clu4')
@@ -276,8 +270,6 @@ def main(gvar):
         gvar, 0, None, 'cloud "{}::{}" successfully updated.'.format(ut_id(gvar, 'clg1'), ut_id(gvar, 'clc2')),
         ['cloudscheduler', 'cloud', 'update',
             '-cn', ut_id(gvar, 'clc2'),
-            '-cr', 'clc10-r',
-            '-ct', 'local',
             '-gme', ut_id(gvar, 'clm2,clm3'),
             '-gmo', 'delete',
             '-su', ut_id(gvar, 'clu4')
@@ -289,8 +281,6 @@ def main(gvar):
         gvar, 0, None, 'cloud "{}::{}" successfully updated.'.format(ut_id(gvar, 'clg1'), ut_id(gvar, 'clc2')),
         ['cloudscheduler', 'cloud', 'update',
             '-cn', ut_id(gvar, 'clc2'),
-            '-cr', 'clc10-r',
-            '-ct', 'local',
             '-gme', ut_id(gvar, 'clm2'),
             '-gmo', 'add',
             '-su', ut_id(gvar, 'clu4')
@@ -302,8 +292,6 @@ def main(gvar):
         gvar, 0, None, 'cloud "{}::{}" successfully updated.'.format(ut_id(gvar, 'clg1'), ut_id(gvar, 'clc2')),
         ['cloudscheduler', 'cloud', 'update',
             '-cn', ut_id(gvar, 'clc2'),
-            '-cr', 'clc10-r',
-            '-ct', 'local',
             '-gme', ut_id(gvar, 'clm2.yaml,clm3'),
             '-gmo', 'add',
             '-su', ut_id(gvar, 'clu4')
@@ -315,8 +303,6 @@ def main(gvar):
         gvar, 0, None, 'cloud "{}::{}" successfully updated.'.format(ut_id(gvar, 'clg1'), ut_id(gvar, 'clc2')),
         ['cloudscheduler', 'cloud', 'update',
             '-cn', ut_id(gvar, 'clc2'),
-            '-cr', 'clc10-r',
-            '-ct', 'local',
             '-gmo', 'add',
             '-g', ut_id(gvar, 'clg1'),
             '-su', ut_id(gvar, 'clu4')

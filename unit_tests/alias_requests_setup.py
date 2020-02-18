@@ -60,8 +60,7 @@ def main(gvar):
         gvar, 0, None, 'cloud "{}::{}" successfully added.'.format(ut_id(gvar, 'atg1'), ut_id(gvar, 'atc1')),
         '/cloud/add/', group=ut_id(gvar, 'atg1'), form_data={
             'cloud_name': ut_id(gvar, 'atc1'),
-            'cloud_type': 'local',
-            'region': ut_id(gvar, 'atr1'),
+            'cloud_type': 'openstack',
             **gvar['cloud_credentials']
         },
         server_user=ut_id(gvar, 'atu1')
@@ -72,8 +71,7 @@ def main(gvar):
         gvar, 0, None, 'cloud "{}::{}" successfully added.'.format(ut_id(gvar, 'atg1'), ut_id(gvar, 'atc2')),
         '/cloud/add/', group=ut_id(gvar, 'atg1'), form_data={
             'cloud_name': ut_id(gvar, 'atc2'),
-            'cloud_type': 'local',
-            'region': ut_id(gvar, 'atr2'),
+            'cloud_type': 'openstack',
             **gvar['cloud_credentials']
         },
         server_user=ut_id(gvar, 'atu1')

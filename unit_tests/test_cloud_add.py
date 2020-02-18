@@ -139,8 +139,7 @@ def main(gvar):
         gvar, 0, None, 'cloud "{}::{}" successfully added.'.format(ut_id(gvar, 'ctg1'), ut_id(gvar, 'ctc5')),
         '/cloud/add/', group=ut_id(gvar, 'ctg1'), form_data={
             'cloud_name': ut_id(gvar, 'ctc5'),
-            'region': ut_id(gvar, 'ctc5-r'),
-            'cloud_type': 'local',
+            'cloud_type': 'openstack',
             'priority': '31',
             'cacertificate': None,
             'user_domain_name': 'Default',
@@ -169,9 +168,9 @@ def main(gvar):
             'cloud_name': ut_id(gvar, 'ctc5'),
             'authurl': gvar['cloud_credentials']['authurl'],
             'username': gvar['cloud_credentials']['username'],
+            'region': gvar['cloud_credentials']['region'],
             'project': gvar['cloud_credentials']['project'],
-            'region': ut_id(gvar, 'ctc5-r'),
-            'cloud_type': 'local',
+            'cloud_type': 'openstack',
             'cloud_priority': 31,
             'cacertificate': None,
             'user_domain_name': 'Default',
@@ -195,8 +194,7 @@ def main(gvar):
         gvar, 0, None, 'cloud "{}::{}" successfully added.'.format(ut_id(gvar, 'ctg1'), ut_id(gvar, 'ctc6')),
         '/cloud/add/', group=ut_id(gvar, 'ctg1'), form_data={
             'cloud_name': ut_id(gvar, 'ctc6'),
-            'region': ut_id(gvar, 'ctc6-r'),
-            'cloud_type': 'local',
+            'cloud_type': 'openstack',
             'metadata_name.1': ut_id(gvar, 'cty1'),
             'metadata_name.2': ut_id(gvar, 'cty2'),
             'metadata_name.3': ut_id(gvar, 'cty3'),
@@ -223,7 +221,7 @@ def main(gvar):
         gvar, 1, 'CV', 'Duplicate entry \'{}-{}\' for key \'PRIMARY\''.format(ut_id(gvar, 'ctg1'), ut_id(gvar, 'ctc5')),
         '/cloud/add/', group=ut_id(gvar, 'ctg1'), form_data={
             'cloud_name': ut_id(gvar, 'ctc5'),
-            'region': ut_id(gvar, 'ctc5-r'),
+            'region': 'invalid-unit-test',
             'cloud_type': 'local',
             **gvar['cloud_credentials']
             },
