@@ -23,11 +23,10 @@ signals:
         - "update_ec2_instance_types"
     queue: "signals"
 
-
 condor_poller:
     condor_worker_cert: /etc/grid-security/condor/worker/condorworkercert.pem
     condor_worker_key: /etc/grid-security/condor/worker/condorworkerkey.pem
-    log_file: /var/log/cloudscheduler/csv2_htc_agent.log
+    log_file: /var/log/cloudscheduler/condor_poller.log
     log_level: 20
 
 public_ports:
