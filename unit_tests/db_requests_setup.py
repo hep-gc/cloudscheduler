@@ -21,7 +21,7 @@ def main(gvar):
         gvar, 0, None, 'group "{}" successfully added.'.format(ut_id(gvar, 'dtg1')),
         '/group/add/', form_data={
             'group_name': ut_id(gvar, 'dtg1'),
-            'htcondor_fqdn': 'csv2-dev.heprc.uvic.ca',
+            'htcondor_fqdn': gvar['user_settings']['server-address'],
             'username.1': gvar['user_settings']['server-user']
         }
     )
@@ -43,7 +43,7 @@ def main(gvar):
         gvar, 0, None, 'cloud "{}::{}" successfully added.'.format(ut_id(gvar, 'dtg1'), ut_id(gvar, 'dtc1')),
         '/cloud/add/', group=ut_id(gvar, 'dtg1'), form_data={
             'cloud_name': ut_id(gvar, 'dtc1'),
-            'authurl': 'csv2-dev.heprc.uvic.ca',
+            'authurl': gvar['cloud_credentials']['address'],
             'project': 'db-test-cloud-one',
             'username': ut_id(gvar, 'dtu1'),
             'password': gvar['user_secret'],

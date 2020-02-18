@@ -41,7 +41,7 @@ def main(gvar):
         gvar, 0, None, 'group "{}" successfully added.'.format(ut_id(gvar, 'atg1')),
         '/group/add/', form_data={
             'group_name': ut_id(gvar, 'atg1'),
-            'htcondor_fqdn': 'alias-test-group-1.ca',
+            'htcondor_fqdn': gvar['user_settings']['server-address'],
             'username.1': ut_id(gvar, 'atu1')
         }
     )
@@ -51,7 +51,7 @@ def main(gvar):
         gvar, 0, None, 'group "{}" successfully added.'.format(ut_id(gvar, 'atg2')),
         '/group/add/', form_data={
             'group_name': ut_id(gvar, 'atg2'),
-            'htcondor_fqdn': 'alias-test-group-2.ca'
+            'htcondor_fqdn': gvar['user_settings']['server-address']
         }
     )
 
@@ -61,7 +61,7 @@ def main(gvar):
         '/cloud/add/', group=ut_id(gvar, 'atg1'), form_data={
             'cloud_name': ut_id(gvar, 'atc1'),
             'cloud_type': 'local',
-            'authurl': 'alias-test-cloud-1.ca',
+            'authurl': gvar['cloud_credentials']['address'],
             'project': ut_id(gvar, 'atp1'),
             'region': ut_id(gvar, 'atr1'),
             'username': ut_id(gvar, 'atu1'),
@@ -76,7 +76,7 @@ def main(gvar):
         '/cloud/add/', group=ut_id(gvar, 'atg1'), form_data={
             'cloud_name': ut_id(gvar, 'atc2'),
             'cloud_type': 'local',
-            'authurl': 'alias-test-cloud-2.ca',
+            'authurl': gvar['cloud_credentials']['address'],
             'project': ut_id(gvar, 'atp2'),
             'region': ut_id(gvar, 'atr2'),
             'username': ut_id(gvar, 'atu1'),

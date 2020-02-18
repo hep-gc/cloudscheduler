@@ -42,7 +42,7 @@ def main(gvar):
         gvar, 0, None, 'group "{}" successfully added.'.format(ut_id(gvar, 'ctg1')),
         '/group/add/', form_data={
             'group_name': ut_id(gvar, 'ctg1'),
-            'htcondor_fqdn': 'unit-test-group-one.ca'
+            'htcondor_fqdn': gvar['user_settings']['server-address']
         }
     )
 
@@ -51,7 +51,7 @@ def main(gvar):
         gvar, 0, None, 'group "{}" successfully added.'.format(ut_id(gvar, 'ctg2')),
         '/group/add/', form_data={
             'group_name': ut_id(gvar, 'ctg2'),
-            'htcondor_fqdn': 'unit-test-group-two.ca'
+            'htcondor_fqdn': gvar['user_settings']['server-address']
         }
     )
 
@@ -85,7 +85,7 @@ def main(gvar):
         gvar, 0, None, 'cloud "{}::{}" successfully added.'.format(ut_id(gvar, 'ctg1'), ut_id(gvar, 'ctc1')),
         '/cloud/add/', group=ut_id(gvar, 'ctg1'), form_data={
             'cloud_name': ut_id(gvar, 'ctc1'),
-            'authurl': 'unit-test-cloud-one.ca',
+            'authurl': gvar['cloud_credentials']['address'],
             'project': 'unit-test-cloud-one',
             'username': ut_id(gvar, 'ctu3'),
             'password': gvar['user_secret'],
@@ -100,7 +100,7 @@ def main(gvar):
         gvar, 0, None, 'cloud "{}::{}" successfully added.'.format(ut_id(gvar, 'ctg1'), ut_id(gvar, 'ctc2')),
         '/cloud/add/', group=ut_id(gvar, 'ctg1'), form_data={
             'cloud_name': ut_id(gvar, 'ctc2'),
-            'authurl': 'unit-test-cloud-two.ca',
+            'authurl': gvar['cloud_credentials']['address'],
             'project': 'unit-test-cloud-two',
             'username': ut_id(gvar, 'ctu3'),
             'password': gvar['user_secret'],
@@ -119,7 +119,7 @@ def main(gvar):
         gvar, 0, None, 'cloud "{}::{}" successfully added.'.format(ut_id(gvar, 'ctg1'), ut_id(gvar, 'ctc3')),
         '/cloud/add/', group=ut_id(gvar, 'ctg1'), form_data={
             'cloud_name': ut_id(gvar, 'ctc3'),
-            'authurl': 'unit-test-cloud-three.ca',
+            'authurl': gvar['cloud_credentials']['address'],
             'project': 'unit-test-cloud-three',
             'username': ut_id(gvar, 'ctu3'),
             'password': gvar['user_secret'],

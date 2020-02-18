@@ -42,7 +42,7 @@ def main(gvar):
         gvar, 0, None, 'group "{}" successfully added.'.format(ut_id(gvar, 'gtg4')),
         '/group/add/', form_data={
             'group_name': ut_id(gvar, 'gtg4'),
-            'htcondor_fqdn': 'unit-test-group-four.ca'
+            'htcondor_fqdn': gvar['user_settings']['server-address']
         }
     )
 
@@ -51,7 +51,7 @@ def main(gvar):
         gvar, 0, None, 'group "{}" successfully added.'.format(ut_id(gvar, 'gtg5')),
         '/group/add/', form_data={
             'group_name': ut_id(gvar, 'gtg5'),
-            'htcondor_fqdn': 'unit-test-group-five.ca',
+            'htcondor_fqdn': gvar['user_settings']['server-address'],
         }
     )
 
@@ -60,7 +60,7 @@ def main(gvar):
         gvar, 0, None, 'group "{}" successfully added.'.format(ut_id(gvar, 'gtg6')),
         '/group/add/', form_data={
             'group_name': ut_id(gvar, 'gtg6'),
-            'htcondor_fqdn': 'unit-test-group-six.ca',
+            'htcondor_fqdn': gvar['user_settings']['server-address'],
         }
     )
 
@@ -69,7 +69,7 @@ def main(gvar):
         gvar, 0, None, 'group "{}" successfully added.'.format(ut_id(gvar, 'gtg7')),
         '/group/add/', form_data={
             'group_name': ut_id(gvar, 'gtg7'),
-            'htcondor_fqdn': 'unit-test-group-seven.ca',
+            'htcondor_fqdn': gvar['user_settings']['server-address'],
         }
     )
 
@@ -156,7 +156,7 @@ def main(gvar):
         gvar, 0, None, 'cloud "{}::{}" successfully added.'.format(ut_id(gvar, 'gtg5'), ut_id(gvar, 'gtc1')),
         '/cloud/add/', group=ut_id(gvar, 'gtg5'), form_data={
             'cloud_name': ut_id(gvar, 'gtc1'),
-            'authurl': 'unit-test-cloud-one.ca',
+            'authurl': gvar['cloud_credentials']['address'],
             'project': 'unit-test-cloud-one',
             'username': ut_id(gvar, 'gtu3'),
             'password': gvar['user_secret'],
