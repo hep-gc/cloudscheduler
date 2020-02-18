@@ -13,8 +13,8 @@ M=$(
 ) || R=1
 
 # echo $R
-if [ $R -eq 0 ]; then
+if [ $R -eq 1 ]; then
     /usr/bin/echo -e "copy of letsencrypt certificates failed for one or more users:\n$M" | \
-    /usr/bin/mail -s "user key/cert problem on $(hostname)" seuster@uvic.ca # "heprc-operations@lists.uvic.ca"
+    /usr/bin/mail -s "user key/cert problem on $(hostname)" "{{ admin_email }}"
 fi
 
