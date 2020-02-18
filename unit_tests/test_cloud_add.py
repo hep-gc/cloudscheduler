@@ -139,10 +139,6 @@ def main(gvar):
         gvar, 0, None, 'cloud "{}::{}" successfully added.'.format(ut_id(gvar, 'ctg1'), ut_id(gvar, 'ctc5')),
         '/cloud/add/', group=ut_id(gvar, 'ctg1'), form_data={
             'cloud_name': ut_id(gvar, 'ctc5'),
-            'authurl': 'unit-test-cloud-five.ca',
-            'project': 'unit-test-cloud-five',
-            'username': ut_id(gvar, 'ctu3'),
-            'password': gvar['user_secret'],
             'region': ut_id(gvar, 'ctc5-r'),
             'cloud_type': 'local',
             'priority': '31',
@@ -158,6 +154,7 @@ def main(gvar):
             'metadata_name': ut_id(gvar, 'cty1'),
             'spot_price': 10,
             'cores_softmax': -1,
+            **gvar['cloud_credentials']
             },
         server_user=ut_id(gvar, 'ctu3')
     )
@@ -170,9 +167,9 @@ def main(gvar):
         values={
             'group_name': ut_id(gvar, 'ctg1'),
             'cloud_name': ut_id(gvar, 'ctc5'),
-            'authurl': 'unit-test-cloud-five.ca',
-            'project': 'unit-test-cloud-five',
-            'username': ut_id(gvar, 'ctu3'),
+            'authurl': gvar['cloud_credentials']['authurl'],
+            'username': gvar['cloud_credentials']['username'],
+            'project': gvar['cloud_credentials']['project'],
             'region': ut_id(gvar, 'ctc5-r'),
             'cloud_type': 'local',
             'cloud_priority': 31,
@@ -198,15 +195,12 @@ def main(gvar):
         gvar, 0, None, 'cloud "{}::{}" successfully added.'.format(ut_id(gvar, 'ctg1'), ut_id(gvar, 'ctc6')),
         '/cloud/add/', group=ut_id(gvar, 'ctg1'), form_data={
             'cloud_name': ut_id(gvar, 'ctc6'),
-            'authurl': 'unit-test-cloud-six.ca',
-            'project': 'unit-test-cloud-six',
-            'username': ut_id(gvar, 'ctu3'),
-            'password': gvar['user_secret'],
             'region': ut_id(gvar, 'ctc6-r'),
             'cloud_type': 'local',
             'metadata_name.1': ut_id(gvar, 'cty1'),
             'metadata_name.2': ut_id(gvar, 'cty2'),
-            'metadata_name.3': ut_id(gvar, 'cty3')
+            'metadata_name.3': ut_id(gvar, 'cty3'),
+            **gvar['cloud_credentials']
             },
         server_user=ut_id(gvar, 'ctu3')
     )
@@ -229,12 +223,9 @@ def main(gvar):
         gvar, 1, 'CV', 'Duplicate entry \'{}-{}\' for key \'PRIMARY\''.format(ut_id(gvar, 'ctg1'), ut_id(gvar, 'ctc5')),
         '/cloud/add/', group=ut_id(gvar, 'ctg1'), form_data={
             'cloud_name': ut_id(gvar, 'ctc5'),
-            'authurl': 'unit-test-cloud-five.ca',
-            'project': 'unit-test-cloud-five',
-            'username': ut_id(gvar, 'ctu3'),
-            'password': gvar['user_secret'],
             'region': ut_id(gvar, 'ctc5-r'),
-            'cloud_type': 'local'
+            'cloud_type': 'local',
+            **gvar['cloud_credentials']
             },
         server_user=ut_id(gvar, 'ctu3')
     )

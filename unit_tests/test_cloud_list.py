@@ -20,9 +20,9 @@ def main(gvar):
         '/cloud/list/', group=ut_id(gvar, 'ctg1'),
         expected_list='cloud_list', list_filter={'group_name': ut_id(gvar, 'ctg1'), 'cloud_name': ut_id(gvar, 'ctc2')},
         values={
-            'authurl': 'unit-test-cloud-two.ca',
-            'project': 'unit-test-cloud-two',
-            'username': ut_id(gvar, 'ctu3'),
+            'authurl': gvar['cloud_credentials']['authurl'],
+            'username': gvar['cloud_credentials']['username'],
+            'project': gvar['cloud_credentials']['project'],
             'region': ut_id(gvar, 'ctc2-r'),
             'cloud_type': 'local',
             'cloud_priority': 0,

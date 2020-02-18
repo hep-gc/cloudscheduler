@@ -94,6 +94,9 @@ def main(gvar):
         gvar, 0, None, None,
         '/cloud/list/', group=ut_id(gvar, 'ctg1'), expected_list='cloud_list', list_filter={'group_name': ut_id(gvar, 'ctg1'), 'cloud_name': ut_id(gvar, 'ctc3')},
         values={
+            'authurl': gvar['cloud_credentials']['authurl'],
+            'username': gvar['cloud_credentials']['username'],
+            'project': gvar['cloud_credentials']['project'],
             'cloud_priority': 0,
             'spot_price': -1.0,
             'vm_flavor': '',
@@ -108,13 +111,10 @@ def main(gvar):
             'cascading_vm_keyname': None,
             'cascading_vm_network': None,
             'cascading_vm_security_groups': None,
-            'authurl': 'unit-test-cloud-three.ca',
             'project_domain_name': "'Default'",
             'project_domain_id': '',
-            'project': 'unit-test-cloud-three',
             'user_domain_name': 'Default',
             'user_domain_id': '',
-            'username': ut_id(gvar, 'ctu3'),
             'cacertificate': None,
             'region': ut_id(gvar, 'ctc3-r'),
             'cloud_type': 'local',
@@ -158,10 +158,6 @@ def main(gvar):
         gvar, 0, None, 'cloud "{}::{}" successfully updated.'.format(ut_id(gvar, 'ctg1'), ut_id(gvar, 'ctc3')),
         '/cloud/update/', group=ut_id(gvar, 'ctg1'), form_data={
             'cloud_name': ut_id(gvar, 'ctc3'),
-            'authurl': 'updated-value',
-            'project': 'updated-value',
-            'username': 'updated-value',
-            'password': 'updated-value',
             'cacertificate': 'updated-value',
             'region': 'updated-value',
             'user_domain_name': 'updated-value',
@@ -182,14 +178,11 @@ def main(gvar):
         server_user=ut_id(gvar, 'ctu3')
     )
 
-    # 32 Ensure that 31 updated correctly.
+    # 32 Ensure that 31 updated correctly. Known to fail if one's cloud_credentials (in ~/cloudscheduler/unit_tests/credentials.yaml) are rejected.
     execute_csv2_request(
         gvar, 0, None, None,
         '/cloud/list/', group=ut_id(gvar, 'ctg1'), expected_list='cloud_list', list_filter={'group_name': ut_id(gvar, 'ctg1'), 'cloud_name': ut_id(gvar, 'ctc3')},
         values={
-            'authurl': 'updated-value',
-            'project': 'updated-value',
-            'username': 'updated-value',
             'cacertificate': 'updated-value',
             'region': 'updated-value',
             'user_domain_name': 'updated-value',

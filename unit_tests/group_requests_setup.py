@@ -156,13 +156,10 @@ def main(gvar):
         gvar, 0, None, 'cloud "{}::{}" successfully added.'.format(ut_id(gvar, 'gtg5'), ut_id(gvar, 'gtc1')),
         '/cloud/add/', group=ut_id(gvar, 'gtg5'), form_data={
             'cloud_name': ut_id(gvar, 'gtc1'),
-            'authurl': gvar['cloud_credentials']['address'],
-            'project': 'unit-test-cloud-one',
-            'username': ut_id(gvar, 'gtu3'),
-            'password': gvar['user_secret'],
             'region': ut_id(gvar, 'gtc1-r'),
             'cloud_type': 'local',
-            'metadata_name': ut_id(gvar, 'gty4')
+            'metadata_name': ut_id(gvar, 'gty4'),
+            **gvar['cloud_credentials']
         },
         server_user=ut_id(gvar, 'gtu3')
     )

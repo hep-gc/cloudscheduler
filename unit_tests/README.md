@@ -4,6 +4,7 @@
 
 Create a `unit-test` server alias in defaults (using the `cloudscheduler defaults set` cli command).
 The `unit-test` server should have the `server-address`, `server-user`, and `server-password` of a privleged user.
+Server credentials used to create test clouds (username, password, and project) and a randomly generated password used to create test users are saved in `~/cloudscheduler/unit-tests/credentials.yaml`. If you attempt to run the tests without this file, you will be prompted for the server credentials (which will then be saved in the file).
 
 To run tests:
 

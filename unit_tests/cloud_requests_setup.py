@@ -85,12 +85,9 @@ def main(gvar):
         gvar, 0, None, 'cloud "{}::{}" successfully added.'.format(ut_id(gvar, 'ctg1'), ut_id(gvar, 'ctc1')),
         '/cloud/add/', group=ut_id(gvar, 'ctg1'), form_data={
             'cloud_name': ut_id(gvar, 'ctc1'),
-            'authurl': gvar['cloud_credentials']['address'],
-            'project': 'unit-test-cloud-one',
-            'username': ut_id(gvar, 'ctu3'),
-            'password': gvar['user_secret'],
             'region': ut_id(gvar, 'ctc1-r'),
-            'cloud_type': 'local'
+            'cloud_type': 'local',
+            **gvar['cloud_credentials']
         },
         server_user=ut_id(gvar, 'ctu3')
     )
@@ -100,16 +97,13 @@ def main(gvar):
         gvar, 0, None, 'cloud "{}::{}" successfully added.'.format(ut_id(gvar, 'ctg1'), ut_id(gvar, 'ctc2')),
         '/cloud/add/', group=ut_id(gvar, 'ctg1'), form_data={
             'cloud_name': ut_id(gvar, 'ctc2'),
-            'authurl': gvar['cloud_credentials']['address'],
-            'project': 'unit-test-cloud-two',
-            'username': ut_id(gvar, 'ctu3'),
-            'password': gvar['user_secret'],
             'region': ut_id(gvar, 'ctc2-r'),
             'cloud_type': 'local',
             'priority': 0,
             'cacertificate': None,
             'user_domain_name': 'Default',
             'project_domain_name': '\'Default\'',
+            **gvar['cloud_credentials']
         },
         server_user=ut_id(gvar, 'ctu3')
     )
@@ -119,12 +113,9 @@ def main(gvar):
         gvar, 0, None, 'cloud "{}::{}" successfully added.'.format(ut_id(gvar, 'ctg1'), ut_id(gvar, 'ctc3')),
         '/cloud/add/', group=ut_id(gvar, 'ctg1'), form_data={
             'cloud_name': ut_id(gvar, 'ctc3'),
-            'authurl': gvar['cloud_credentials']['address'],
-            'project': 'unit-test-cloud-three',
-            'username': ut_id(gvar, 'ctu3'),
-            'password': gvar['user_secret'],
             'region': ut_id(gvar, 'ctc3-r'),
             'cloud_type': 'local',
+            **gvar['cloud_credentials']
         },
         server_user=ut_id(gvar, 'ctu3')
     )

@@ -6,9 +6,9 @@ def main(gvar):
     if not gvar:
         gvar = {}
         if len(argv) > 1:
-            initialize_csv1_request(gvar, argv[0], selections=argv[1])
+            initialize_csv2_request(gvar, argv[0], selections=argv[1])
         else:
-            initialize_csv1_request(gvar, argv[0])
+            initialize_csv2_request(gvar, argv[0])
     if not gvar['user_secret']:
         gvar['user_secret'] = generate_secret()
 
@@ -61,11 +61,8 @@ def main(gvar):
         '/cloud/add/', group=ut_id(gvar, 'atg1'), form_data={
             'cloud_name': ut_id(gvar, 'atc1'),
             'cloud_type': 'local',
-            'authurl': gvar['cloud_credentials']['address'],
-            'project': ut_id(gvar, 'atp1'),
             'region': ut_id(gvar, 'atr1'),
-            'username': ut_id(gvar, 'atu1'),
-            'password': gvar['user_secret']
+            **gvar['cloud_credentials']
         },
         server_user=ut_id(gvar, 'atu1')
     )
@@ -76,11 +73,8 @@ def main(gvar):
         '/cloud/add/', group=ut_id(gvar, 'atg1'), form_data={
             'cloud_name': ut_id(gvar, 'atc2'),
             'cloud_type': 'local',
-            'authurl': gvar['cloud_credentials']['address'],
-            'project': ut_id(gvar, 'atp2'),
             'region': ut_id(gvar, 'atr2'),
-            'username': ut_id(gvar, 'atu1'),
-            'password': gvar['user_secret']
+            **gvar['cloud_credentials']
         },
         server_user=ut_id(gvar, 'atu1')
     )

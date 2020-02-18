@@ -294,12 +294,12 @@ def main(gvar):
         gvar, 0, None, 'cloud "{}::{}" successfully added.'.format(ut_id(gvar, 'clg1'), ut_id(gvar, 'clc10')),
         ['cloudscheduler', 'cloud', 'add',
             '-cn', ut_id(gvar, 'clc10'),
-            '-ca', 'command-line-cloud-ten.ca',
-            '-cpw', 'command-line-cloud-ten',
-            '-cP', 'command-line-cloud-ten',
+            '-ca', gvar['cloud_credentials']['authurl'],
+            '-cU', gvar['cloud_credentials']['username'],
+            '-cpw', gvar['cloud_credentials']['password'],
+            '-cP', gvar['cloud_credentials']['project'],
             '-cr', 'clc10-r',
             '-ct', 'local',
-            '-cU', ut_id(gvar, 'clc10'),
             '-ce', 'yes',
             '-vi', '',
             '-vf', '',
@@ -316,13 +316,13 @@ def main(gvar):
     execute_csv2_command(
         gvar, 1, 'CV', 'Duplicate entry \'{}-{}\' for key \'PRIMARY\''.format(ut_id(gvar, 'clg1'), ut_id(gvar, 'clc10')),
         ['cloudscheduler', 'cloud', 'add',
+            '-ca', gvar['cloud_credentials']['authurl'],
+            '-cU', gvar['cloud_credentials']['username'],
+            '-cpw', gvar['cloud_credentials']['password'],
+            '-cP', gvar['cloud_credentials']['project'],
             '-cn', ut_id(gvar, 'clc10'),
-            '-ca', 'command-line-cloud-ten.ca',
-            '-cpw', 'command-line-cloud-ten',
-            '-cP', 'command-line-cloud-ten',
             '-cr', 'clc10-r',
             '-ct', 'local',
-            '-cU', ut_id(gvar, 'clc10'),
             '-su', ut_id(gvar, 'clu4')
         ]
     )
@@ -331,13 +331,13 @@ def main(gvar):
     execute_csv2_command(
         gvar, 0, None, 'cloud "{}::{}" successfully added.'.format(ut_id(gvar, 'clg1'), ut_id(gvar, 'clc11')),
         ['cloudscheduler', 'cloud', 'add',
+            '-ca', gvar['cloud_credentials']['authurl'],
+            '-cU', gvar['cloud_credentials']['username'],
+            '-cpw', gvar['cloud_credentials']['password'],
+            '-cP', gvar['cloud_credentials']['project'],
             '-cn', ut_id(gvar, 'clc11'),
-            '-ca', 'command-line-cloud-11.ca',
-            '-cpw', 'command-line-cloud-11',
-            '-cP', 'command-line-cloud-11',
             '-cr', 'clc11-r',
             '-ct', 'local',
-            '-cU', ut_id(gvar, 'clc11'),
             '-gme', ut_id(gvar, 'clm2,clm2.yaml'),
             '-su', ut_id(gvar, 'clu4')
         ]
@@ -347,13 +347,13 @@ def main(gvar):
     execute_csv2_command(
         gvar, 0, None, 'cloud "{}::{}" successfully added.'.format(ut_id(gvar, 'clg1'), ut_id(gvar, 'clc12')),
         ['cloudscheduler', 'cloud', 'add',
+            '-ca', gvar['cloud_credentials']['authurl'],
+            '-cU', gvar['cloud_credentials']['username'],
+            '-cpw', gvar['cloud_credentials']['password'],
+            '-cP', gvar['cloud_credentials']['project'],
             '-cn', ut_id(gvar, 'clc12'),
-            '-ca', 'command-line-cloud-12.ca',
-            '-cpw', 'command-line-cloud-12',
-            '-cP', 'command-line-cloud-12',
             '-cr', 'clc12-r',
             '-ct', 'local',
-            '-cU', ut_id(gvar, 'clc12'),
             '-su', ut_id(gvar, 'clu4')
         ]
     )

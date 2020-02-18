@@ -362,9 +362,10 @@ def initialize_csv2_request(gvar, command, selections=None, hidden=False):
     except FileNotFoundError:
         print('No unit test credentials file found at {}.'.format(CREDENTIALS_PATH))
         gvar['user_secret'] = generate_secret()
-        gvar['cloud_credentials']['address'] = input('Enter a URL to be used as the cloud address for test clouds: ')
-        gvar['cloud_credentials']['username'] = input('Enter a username to be used for test clouds: ')
-        gvar['cloud_credentials']['password'] = getpass('Enter a password to use for test clouds: ')
+        gvar['cloud_credentials']['authurl'] = input('Enter the URL to use as the cloud address for test clouds: ')
+        gvar['cloud_credentials']['username'] = input('Enter the username to use for test clouds: ')
+        gvar['cloud_credentials']['password'] = getpass('Enter the password to use for test clouds: ')
+        gvar['cloud_credentials']['project'] = input('Enter the project to use for test clouds: ')
         # Create credentials file with read / write permissions for the current user and none for others. Save user_secret there in plain text.
         os.makedirs(CREDENTIALS_PATH.rsplit('/', maxsplit=1)[0], exist_ok=True)
         with open(os.open(CREDENTIALS_PATH, os.O_CREAT | os.O_WRONLY, 0o600), 'w') as credentials_file:

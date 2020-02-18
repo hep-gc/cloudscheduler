@@ -135,27 +135,9 @@ def main(gvar):
         gvar, 0, None, 'cloud "{}::{}" successfully added.'.format(ut_id(gvar, 'clg1'), ut_id(gvar, 'clc1')),
         '/cloud/add/', group=ut_id(gvar, 'clg1'), form_data={
             'cloud_name': ut_id(gvar, 'clc1'),
-            'authurl': gvar['cloud_credentials']['address'],
-            'project': 'unit-test-cloud-one',
-            'username': ut_id(gvar, 'clc1'),
-            'password': 'unit-test-cloud-one',
             'region': ut_id(gvar, 'clc1-r'),
-            'cloud_type': 'local'
-        },
-        server_user=ut_id(gvar, 'clu4')
-    )
-
-    # cloud to be deleted
-    execute_csv2_request(
-        gvar, 0, None, 'cloud "{}::{}" successfully added.'.format(ut_id(gvar, 'clg1'), ut_id(gvar, 'clc3')),
-        '/cloud/add/', group=ut_id(gvar, 'clg1'), form_data={
-            'cloud_name': ut_id(gvar, 'clc3'),
-            'authurl': gvar['cloud_credentials']['address'],
-            'project': 'unit-test-cloud-three',
-            'username': ut_id(gvar, 'clc3'),
-            'password': 'unit-test-cloud-three',
-            'region': ut_id(gvar, 'clc3-r'),
-            'cloud_type': 'local'
+            'cloud_type': 'local',
+            **gvar['cloud_credentials']
         },
         server_user=ut_id(gvar, 'clu4')
     )
@@ -165,12 +147,21 @@ def main(gvar):
         gvar, 0, None, 'cloud "{}::{}" successfully added.'.format(ut_id(gvar, 'clg1'), ut_id(gvar, 'clc2')),
         '/cloud/add/', group=ut_id(gvar, 'clg1'), form_data={
             'cloud_name': ut_id(gvar, 'clc2'),
-            'authurl': gvar['cloud_credentials']['address'],
-            'project': 'unit-test-cloud-two',
-            'username': ut_id(gvar, 'clc2'),
-            'password': 'unit-test-cloud-two',
             'region': ut_id(gvar, 'clc2-r'),
-            'cloud_type': 'local'
+            'cloud_type': 'local',
+            **gvar['cloud_credentials']
+        },
+        server_user=ut_id(gvar, 'clu4')
+    )
+
+    # cloud to be deleted
+    execute_csv2_request(
+        gvar, 0, None, 'cloud "{}::{}" successfully added.'.format(ut_id(gvar, 'clg1'), ut_id(gvar, 'clc3')),
+        '/cloud/add/', group=ut_id(gvar, 'clg1'), form_data={
+            'cloud_name': ut_id(gvar, 'clc3'),
+            'region': ut_id(gvar, 'clc3-r'),
+            'cloud_type': 'local',
+            **gvar['cloud_credentials']
         },
         server_user=ut_id(gvar, 'clu4')
     )
