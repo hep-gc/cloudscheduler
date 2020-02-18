@@ -4,7 +4,7 @@ After=network.target
 
 [Service]
 Type=simple
-User=cloudscheduler
+User=condor
 ExecStart=/usr/bin/python3 /opt/cloudscheduler/data_collectors/condor/condor_poller.py
 Restart=always
 
