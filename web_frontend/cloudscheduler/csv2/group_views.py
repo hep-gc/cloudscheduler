@@ -468,6 +468,10 @@ def delete(request):
             config.db_close()
             return list(request, active_user=active_user, response_code=1, message='%s group users delete "%s" failed - %s.' % (lno(MODID), fields['group_name'], msg))
 
+
+        # Delete the csv2 cloud aliases.
+        rc = config.db_connection.execute('delete from csv2_cloud_aliases where group_name="%s";' % fields['group_name'])
+
         # Delete the csv2_vms.
         table = tables['csv2_vms']
         rc, msg = config.db_session_execute(
