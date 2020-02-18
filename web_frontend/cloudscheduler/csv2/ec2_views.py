@@ -18,6 +18,8 @@ from cloudscheduler.lib.view_utils import \
 
 from cloudscheduler.lib.schema import *
 
+from cloudscheduler.lib.signal_functions import event_signal_send
+
 from cloudscheduler.lib.log_tools import get_frame_info
 
 from cloudscheduler.lib.web_profiler import silk_profile as silkp
@@ -79,6 +81,8 @@ def images(request, message=None, response_code=0):
 
         config.db_session.commit()
 
+        event_signal_send(config, "update_ec2_images")
+
         response_code = 0
         message = "update successful"
 
@@ -116,7 +120,6 @@ def images(request, message=None, response_code=0):
         config.db_close()
         return render(request, 'csv2/ec2_images.html', {'response_code': 1, 'message': '%s ec2 images, %s' % (lno(MODID), msg)})
 
-    print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>", sql_select)
     ec2_images = qt(config.db_connection.execute(sql_select))
 
     config.db_close()
@@ -195,6 +198,8 @@ def instance_types(request, message=None, response_code=0):
             return render(request, 'csv2/ec2_instance_types.html', {'response_code': 1, 'message': '%s ec2 instance-types, %s' % (lno(MODID), msg)})
 
         config.db_session.commit()
+
+        event_signal_send(config, "update_ec2_instance_types")
 
         response_code = 0
         message = "update successful"

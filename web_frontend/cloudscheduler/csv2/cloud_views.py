@@ -194,6 +194,8 @@ def ec2_filters(config, group_name, cloud_name, cloud_type=None):
             if rc != 0:
                 return 1, 'failed to add EC2 image filter - %s' % msg
 
+            event_signal_send(config, "update_ec2_images")
+
         if not ec2_instance_type_filter:
             defaults = config.get_config_by_category('ec2_instance_type_filter')
 
@@ -211,6 +213,8 @@ def ec2_filters(config, group_name, cloud_name, cloud_type=None):
                 }))
             if rc != 0:
                 return 1, 'failed to add EC2 instance_type filter - %s' % msg
+
+            event_signal_send(config, "update_ec2_instance_types")
 
     # Ensure EC2 filters do not exist for non-amazon clouds.
     else:
@@ -537,7 +541,7 @@ def add(request):
 @requires_csrf_token
 def delete(request):
     """
- function should recieve a post request with a payload of cloud name
+    Function should recieve a post request with a payload of cloud name
     to be deleted.
     """
 
@@ -1790,48 +1794,4 @@ def update(request):
     ### Bad request.
     else:
         return list(request, active_user=active_user, response_code=1, message='%s cloud add request did not contain mandatory parameter "cloud_name".' % lno(MODID))
-
-#-------------------------------------------------------------------------------
-
-@silkp(name="Cloud Delete")
-@requires_csrf_token
-def delete(request):
-    """
- function should recieve a post request with a payload of cloud name
-    to be deleted.
-    """
-
-    # open the database.
-    config.db_open()
-
-    # Retrieve the active user, associated group list and optionally set the active group.
-    rc, msg, active_user = set_user_groups(config, request, super_user=False)
-    if rc != 0:
-        config.db_close()
-        return list(request, active_user=active_user, response_code=1, message='%s %s' % (lno(MODID), msg))
-
-    if request.method == 'POST':
-        # Validate input fields.
-        rc, msg, fields, tables, columns = validate_fields(config, request, [CLOUD_KEYS, IGNORE_METADATA_NAME], ['csv2_clouds', 'csv2_cloud_metadata', 'csv2_group_metadata_exclusions'], active_user)
-        if rc != 0:
-            config.db_close()
-            return list(request, active_user=active_user, response_code=1, message='%s cloud delete %s' % (lno(MODID), msg))
-
-        # For EC2 clouds, delete filters.
-        rc, msg = ec2_filters(config, fields['group_name'], fields['cloud_name'])
-        if rc != 0:
-            config.db_close()
-            return list(request, active_user=active_user, response_code=1, message='%s cloud delete "%s::%s" failed - %s.' % (lno(MODID), fields['group_name'], fields['cloud_name'], msg))
-
-        # Delete any metadata files for the cloud.
-            config.db_close(commit=True)
-            return list(request, active_user=active_user, response_code=0, message='cloud "%s::%s" successfully updated.' % (fields['group_name'], fields['cloud_name']))
-        else:
-            act_usr = active_user.username
-            config.db_close()
-            return list(request, active_user=active_user, response_code=1, message='%s cloud update must specify at least one field to update.' % lno(MODID))
-
-    ### Bad request.
-    else:
-        return list(request, active_user=active_user, response_code=1, message='%s cloud update, invalid method "%s" specified.' % (lno(MODID), request.method))
 
