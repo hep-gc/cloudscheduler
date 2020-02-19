@@ -129,7 +129,7 @@ def execute_csv2_request(gvar, expected_rc, expected_modid, expected_text, reque
         # the current active group.
         if form_data:
             if not gvar['csrf']:
-                response = _requests(gvar, '/settings/prepare/', server_user=server_user, server_pw=server_pw)
+                _requests(gvar, '/settings/prepare/', server_user=server_user, server_pw=server_pw)
 
         # Perform the callers request.
         response = _requests(gvar, request, group, form_data=form_data, query_data=query_data, server_user=server_user, server_pw=server_pw, html=html)
@@ -316,9 +316,11 @@ def html_message(text):
         return False, re.sub(r'</?[a-z]{2}>', '', m.group(1).strip())
     return False, 'no message found'
 
+# The command parameter is never used.
 def initialize_csv2_request(gvar, command, selections=None, hidden=False):
-    import os
     from getpass import getpass
+    import os
+    import re
     import yaml
 
     gvar['active_server_user_group'] = {}
@@ -326,11 +328,12 @@ def initialize_csv2_request(gvar, command, selections=None, hidden=False):
     gvar['command_args'] = {}
     gvar['cookies'] = None
     gvar['csrf'] = None
+    # Used as the htcondor_fqdn of test groups.
+    gvar['fqdn'] = None
     gvar['server'] = 'unit-test'
     gvar['ut_count'] = [0, 0]
     gvar['ut_failed'] = 0
     gvar['ut_skipped'] = 0
-    gvar['ut_dir'] = os.path.dirname(os.path.abspath(command))
     gvar['hidden'] = hidden
 
     if selections:
@@ -351,6 +354,8 @@ def initialize_csv2_request(gvar, command, selections=None, hidden=False):
             gvar['user_settings'] = yaml.full_load(settings_file.read())
     except FileNotFoundError:
         raise Exception('You must create a minimal cloudscheduler defaults for server "unit-test" containing the server address and user credentials.')
+
+    gvar['fqdn'] = re.sub(r'^https?://', '', gvar['user_settings']['server-address'])
 
     # Get user_secret and cloud credentials.
     CREDENTIALS_PATH = os.path.expanduser('~/cloudscheduler/unit_tests/credentials.yaml')

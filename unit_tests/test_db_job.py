@@ -23,7 +23,7 @@ def main(gvar):
             'request_ram': 1,
             'request_disk': '0.0010',
             'job_priority': 10
-        }
+        }, server_user=ut_id(gvar, 'dtu1')
     )
 
 if __name__ == "__main__":
