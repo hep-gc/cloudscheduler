@@ -16,7 +16,7 @@ def main(gvar):
 
     db_requests_cleanup.main(gvar)
 
-    # 3 The test runner is added to this group so that they can submit jobs to it
+    # 05 The test runner is added to this group so that they can submit jobs to it
     execute_csv2_request(
         gvar, 0, None, 'group "{}" successfully added.'.format(ut_id(gvar, 'dtg1')),
         '/group/add/', form_data={
@@ -26,7 +26,7 @@ def main(gvar):
         }
     )
 
-    # 4
+    # 06 unprivileged user in dtg1
     execute_csv2_request(
         gvar, 0, None, 'user "{}" successfully added.'.format(ut_id(gvar, 'dtu1')),
         '/user/add/', form_data={
@@ -38,15 +38,24 @@ def main(gvar):
         }
     )
 
-    # 5
+    # 07 group with no users
     execute_csv2_request(
-        gvar, 0, None, 'cloud "{}::{}" successfully added.'.format(ut_id(gvar, 'dtg1'), ut_id(gvar, 'dtc1')),
-        '/cloud/add/', group=ut_id(gvar, 'dtg1'), form_data={
-            'cloud_name': ut_id(gvar, 'dtc1'),
-            'cloud_type': 'openstack',
-            **gvar['cloud_credentials']
-        },
-        server_user=ut_id(gvar, 'dtu1')
+        gvar, 0, None, 'group "{}" successfully added.'.format(ut_id(gvar, 'dtg2')),
+        '/group/add/', form_data={
+            'group_name': ut_id(gvar, 'dtg2'),
+            'htcondor_fqdn': gvar['user_settings']['server-address'],
+        }
+    )
+
+    # 08 user in no groups
+    execute_csv2_request(
+        gvar, 0, None, 'user "{}" successfully added.'.format(ut_id(gvar, 'dtu2')),
+        '/user/add/', form_data={
+            'username': ut_id(gvar, 'dtu2'),
+            'password1': gvar['user_secret'],
+            'password2': gvar['user_secret'],
+            'cert_cn': '{} test user two'.format(ut_id(gvar, 'database')),
+        }
     )
 
     job_path = 'db_job.sh'

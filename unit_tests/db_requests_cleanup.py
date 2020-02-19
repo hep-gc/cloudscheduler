@@ -13,20 +13,32 @@ def main(gvar):
     server_address = condor_setup(gvar)
     if not server_address:
         return
-    # Remove all jobs submitted to dtg1
-    # The return code is not checked because condor gives an error if there are no jobs to remove
+    # Remove all jobs submitted to dtg1.
+    # The return code is not checked because condor gives an error if there are no jobs to remove (and cleanup should not fail if run twice in a row).
     subprocess.run(['condor_rm', ut_id(gvar, 'dtg1'), '-name', server_address, '-pool', server_address], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
-    # 1
+    # 01
     execute_csv2_request(
         gvar, None, None, None,
         '/group/delete/', form_data={'group_name': ut_id(gvar, 'dtg1')}
     )
 
-    # 2
+    # 02
+    execute_csv2_request(
+        gvar, None, None, None,
+        '/group/delete/', form_data={'group_name': ut_id(gvar, 'dtg2')}
+    )
+
+    # 03
     execute_csv2_request(
         gvar, None, None, None,
         '/user/delete/', form_data={'username': ut_id(gvar, 'dtu1')}
+    )
+
+    # 04
+    execute_csv2_request(
+        gvar, None, None, None,
+        '/user/delete/', form_data={'username': ut_id(gvar, 'dtu2')}
     )
 
 if __name__ == "__main__":
