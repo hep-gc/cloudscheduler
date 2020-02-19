@@ -12,9 +12,10 @@ def main(gvar):
     if not gvar['user_secret']:
         gvar['user_secret'] = generate_secret()
 
+    # 01 - 04
     alias_requests_cleanup.main(gvar)
 
-    # 01 Unprivileged user in atg1.
+    # 05 Unprivileged user in atg1.
     execute_csv2_request(
         gvar, 0, None, 'user "{}" successfully added.'.format(ut_id(gvar, 'atu1')),
         '/user/add/', form_data={
@@ -25,7 +26,7 @@ def main(gvar):
         }
     )
 
-    # 02 Unprivileged user in no groups.
+    # 06 Unprivileged user in no groups.
     execute_csv2_request(
         gvar, 0, None, 'user "{}" successfully added.'.format(ut_id(gvar, 'atu2')),
         '/user/add/', form_data={
@@ -36,7 +37,7 @@ def main(gvar):
         }
     )
 
-    # 03 Group containing atu1.
+    # 07 Group containing atu1.
     execute_csv2_request(
         gvar, 0, None, 'group "{}" successfully added.'.format(ut_id(gvar, 'atg1')),
         '/group/add/', form_data={
@@ -46,7 +47,7 @@ def main(gvar):
         }
     )
 
-    # 04 Group containing no users.
+    # 08 Group containing no users.
     execute_csv2_request(
         gvar, 0, None, 'group "{}" successfully added.'.format(ut_id(gvar, 'atg2')),
         '/group/add/', form_data={
@@ -55,7 +56,7 @@ def main(gvar):
         }
     )
 
-    # 05 Cloud to create aliases for.
+    # 09 Cloud to create aliases for.
     execute_csv2_request(
         gvar, 0, None, 'cloud "{}::{}" successfully added.'.format(ut_id(gvar, 'atg1'), ut_id(gvar, 'atc1')),
         '/cloud/add/', group=ut_id(gvar, 'atg1'), form_data={
@@ -66,7 +67,7 @@ def main(gvar):
         server_user=ut_id(gvar, 'atu1')
     )
 
-    # 06 Cloud to create aliases for.
+    # 10 Cloud to create aliases for.
     execute_csv2_request(
         gvar, 0, None, 'cloud "{}::{}" successfully added.'.format(ut_id(gvar, 'atg1'), ut_id(gvar, 'atc2')),
         '/cloud/add/', group=ut_id(gvar, 'atg1'), form_data={
@@ -77,7 +78,7 @@ def main(gvar):
         server_user=ut_id(gvar, 'atu1')
     )
 
-    # 07 Alias to be listed. Should always exist and contain atc1.
+    # 11 Alias to be listed. Should always exist and contain atc1.
     execute_csv2_request(
         gvar, 0, None, 'cloud alias "{}.{}" successfully added.'.format(ut_id(gvar, 'atg1'), ut_id(gvar, 'ata1')),
         '/alias/add/', group=ut_id(gvar, 'atg1'), form_data={
@@ -87,7 +88,7 @@ def main(gvar):
         server_user=ut_id(gvar, 'atu1')
     )
 
-    # 08 Alias to be updated and deleted.
+    # 12 Alias to be updated and deleted.
     execute_csv2_request(
         gvar, 0, None, 'cloud alias "{}.{}" successfully added.'.format(ut_id(gvar, 'atg1'), ut_id(gvar, 'ata2')),
         '/alias/add/', group=ut_id(gvar, 'atg1'), form_data={
