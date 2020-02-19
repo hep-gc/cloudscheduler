@@ -86,6 +86,7 @@ def main(gvar):
         '/cloud/add/', group=ut_id(gvar, 'ctg1'), form_data={
             'cloud_name': ut_id(gvar, 'ctc1'),
             'cloud_type': 'openstack',
+            'enabled': 1,
             **gvar['cloud_credentials']
         },
         server_user=ut_id(gvar, 'ctu3')
@@ -98,6 +99,7 @@ def main(gvar):
             'cloud_name': ut_id(gvar, 'ctc2'),
             'cloud_type': 'openstack',
             'priority': 0,
+            'enabled': 1,
             **gvar['cloud_credentials']
         },
         server_user=ut_id(gvar, 'ctu3')
@@ -109,6 +111,7 @@ def main(gvar):
         '/cloud/add/', group=ut_id(gvar, 'ctg1'), form_data={
             'cloud_name': ut_id(gvar, 'ctc3'),
             'cloud_type': 'openstack',
+            'enabled': 1,
             **gvar['cloud_credentials']
         },
         server_user=ut_id(gvar, 'ctu3')
