@@ -16,10 +16,6 @@ def main(gvar):
 
     db_requests_cleanup.main(gvar)
 
-    # Save the test runner's current group so we can switch them back to it at the end.
-    # I don't know whether it is creating dtg1 or submitting the job, but something seems to switch them to dtg1 on the server side.
-    original_test_runner_group = gvar['active_server_user_group'][gvar['user_settings']['server-address']][gvar['user_settings']['server-user']]
-
     # 05 The test runner is added to this group so that they can submit jobs to it.
     execute_csv2_request(
         gvar, 0, None, 'group "{}" successfully added.'.format(ut_id(gvar, 'dtg1')),
@@ -30,7 +26,16 @@ def main(gvar):
         }
     )
 
-    # 06 unprivileged user in dtg1
+    # 06 group with no users
+    execute_csv2_request(
+        gvar, 0, None, 'group "{}" successfully added.'.format(ut_id(gvar, 'dtg2')),
+        '/group/add/', form_data={
+            'group_name': ut_id(gvar, 'dtg2'),
+            'htcondor_fqdn': gvar['fqdn'],
+        }
+    )
+
+    # 07 unprivileged user in dtg1
     execute_csv2_request(
         gvar, 0, None, 'user "{}" successfully added.'.format(ut_id(gvar, 'dtu1')),
         '/user/add/', form_data={
@@ -39,15 +44,6 @@ def main(gvar):
             'password2': gvar['user_secret'],
             'cert_cn': '{} test user one'.format(ut_id(gvar, 'database')),
             'group_name.1': ut_id(gvar, 'dtg1')
-        }
-    )
-
-    # 07 group with no users
-    execute_csv2_request(
-        gvar, 0, None, 'group "{}" successfully added.'.format(ut_id(gvar, 'dtg2')),
-        '/group/add/', form_data={
-            'group_name': ut_id(gvar, 'dtg2'),
-            'htcondor_fqdn': gvar['fqdn'],
         }
     )
 
@@ -62,42 +58,33 @@ def main(gvar):
         }
     )
 
-    job_path = 'db_job.sh'
+    JOB_PATH = 'db_job.sh'
     # If condor_setup encounters an error, it reports it and returns None.
-    server_address = condor_setup(gvar)
-    if server_address:
+    SERVER_ADDRESS = condor_setup(gvar)
+    if SERVER_ADDRESS:
         # Change group in job to be submitted
         try:
-            with open(job_path) as job_file:
+            with open(JOB_PATH) as job_file:
                 job_lines = job_file.readlines()
         except FileNotFoundError:
-            condor_error(gvar, 'job file {} not found'.format(job_path))
+            condor_error(gvar, 'job file {} not found'.format(JOB_PATH))
             return
         for i, line in enumerate(job_lines):
             if line.startswith('Requirements'):
                 job_lines[i] = 'Requirements = group_name =?= "{}" && TARGET.Arch == "x86_64"\n'.format(ut_id(gvar, 'dtg1'))
                 break
-        with open(job_path, 'w') as job_file:
+        with open(JOB_PATH, 'w') as job_file:
             job_file.writelines(job_lines)
         # Submit a job for /job/list/ to the unit-test server using condor
-        if subprocess.run(['condor_submit', job_path, '-name', server_address, '-pool', server_address], stdout=subprocess.DEVNULL).returncode != 0:
+        if subprocess.run(['condor_submit', JOB_PATH, '-name', SERVER_ADDRESS, '-pool', SERVER_ADDRESS], stdout=subprocess.DEVNULL).returncode != 0:
             condor_error(gvar, 'condor_submit failed')
             return
         # We need to wait a while for the job to be added to the database
         config_list = _requests(gvar, '/server/config', group=ut_id(gvar, 'dtg1'))['config_list']
-        sleep_interval = next(int(d['config_value']) for d in config_list if d['category'] == 'csjobs.py' and d['config_key'] == 'sleep_interval_job')
-        we_wait = round(sleep_interval * 1.8)
-        print('Waiting {} seconds for the submitted job to be added to the database.'.format(we_wait))
-        sleep(we_wait)
+        SLEEP_INTERVAL = next(int(d['config_value']) for d in config_list if d['category'] == 'csjobs.py' and d['config_key'] == 'sleep_interval_job')
+        WE_WAIT = round(SLEEP_INTERVAL * 1.8)
+        print('Waiting {} seconds for the submitted job to be added to the database.'.format(WE_WAIT))
+        sleep(WE_WAIT)
     
-    # 09
-    execute_csv2_request(
-        gvar, 0, None, None,
-        '/group/update/', group=original_test_runner_group, form_data={
-            'group_name': ut_id(gvar, 'dtg1'),
-            'username': ut_id(gvar, 'dtu1')
-        }
-    )
-
 if __name__ == "__main__":
     main(None)

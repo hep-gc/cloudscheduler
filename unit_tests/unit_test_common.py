@@ -114,11 +114,10 @@ def execute_csv2_request(gvar, expected_rc, expected_modid, expected_text, reque
 
     from unit_test_common import _caller, _execute_selections, _requests
 
-    if server_user and server_pw == None:
-        if server_user == gvar['user_settings']['server-user']:
-            server_pw = gvar['user_settings']['server-password']
-        else:
-            server_pw = gvar['user_secret']
+    # If a test user was specified, insert the test password.
+    # Note that if neither server_user nor server_pw is specified, _requests() pulls both from gvar['user_settings'].
+    if server_user and server_pw == None and server_user != gvar['user_settings']['server-user']:
+        server_pw = gvar['user_secret']
 
     if _execute_selections(gvar, 'req=%s, group=%s, form=%s, query=%s' % (request, group, form_data, query_data), expected_text, values):
         if server_user and server_pw:

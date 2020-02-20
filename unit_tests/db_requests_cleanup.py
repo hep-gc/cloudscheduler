@@ -23,6 +23,13 @@ def main(gvar):
         '/group/delete/', form_data={'group_name': ut_id(gvar, 'dtg1')}
     )
 
+    # The test runner's active group might be dtg1, which we have just deleted. In this case we need to change their active group, but we don't know what the test runner's active group was before running the tests. So we just remove dtg1 and let the server figure out what group to make the active group.
+    # Use .get() to avoid KeyErrors.
+    active_group = gvar['active_server_user_group'].get(gvar['user_settings']['server-address'], {}).get(gvar['user_settings']['server-user'])
+    print(f'DEBUG: active group: {active_group}')
+    if gvar['active_server_user_group'].get(gvar['user_settings']['server-address'], {}).get(gvar['user_settings']['server-user']) == ut_id(gvar, 'dtg1'):
+        del gvar['active_server_user_group'][gvar['user_settings']['server-address']][gvar['user_settings']['server-user']]
+
     # 02
     execute_csv2_request(
         gvar, None, None, None,
