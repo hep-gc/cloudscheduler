@@ -46,6 +46,29 @@ def wait_cycle(start_time, poll_time_history, config_sleep_time, config):
     return
 
 
+def cleanup_inventory(inventory, base_class_key, poll_time=None):
+    logging.debug("Starting Inventory Cleanup")
+    items_to_clean = []
+    for group_name in inventory:
+        for cloud_name in inventory[group_name]:
+            for item in inventory[group_name][cloud_name]:
+                if base_class_key == '-': 
+                    if inventory[group_name][cloud_name]['-']['poll_time'] < poll_time:
+                        items_to_clean.append((group_name, cloud_name))
+                else:
+                    if inventory[group_name][cloud_name][item.__dict__[base_class_key]]['poll_time'] < poll_time:
+                        items_to_clean.append((group_name, cloud_name, item.__dict__[base_class_key]))
+
+    for item in items_to_clean:
+        if base_class_key == '-':
+            logging.debug("Cleaning up %s - %s" % (item[0], item[1]))
+            inventory[item[0]].pop(item[1], None)
+        else:
+            logging.debug("Cleaning up %s - %s - %s" % (item[0], item[1], item[2]))
+            inventory[item[0]][item[1]].pop(item[2], None)
+
+
+
 def build_inventory_for_condor(inventory, db_session, group_resources_class):
     cloud_list = db_session.query(group_resources_class)
     for cloud in cloud_list:

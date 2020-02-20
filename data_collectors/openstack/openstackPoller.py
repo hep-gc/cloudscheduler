@@ -26,7 +26,8 @@ from cloudscheduler.lib.poller_functions import \
     get_inventory_item_hash_from_database, \
     test_and_set_inventory_item_hash, \
     start_cycle, \
-    wait_cycle
+    wait_cycle, \
+    cleanup_inventory
 #   get_last_poll_time_from_database, \
 #   set_inventory_group_and_cloud, \
 #   set_inventory_item, \
@@ -43,6 +44,60 @@ from novaclient import client as novaclient
 from neutronclient.v2_0 import client as neuclient
 from cinderclient import client as cinclient
 import glanceclient
+import openstack
+
+
+
+'''
+
+#Below is an attempt to reduce the log output of the openstack api calls but even all this seems to supress everything
+
+#openstack.enable_logging(
+#    debug=False, path='/tmp/openstack.log', stream=sys.stdout)
+
+stream_handler = logging.StreamHandler()
+stream_handler.setLevel(logging.INFO)
+
+# Configure the default behavior of all keystoneauth logging to log at the
+# INFO level.
+logger = logging.getLogger('keystoneauth')
+logger.setLevel(logging.INFO)
+
+# Emit INFO messages from all keystoneauth loggers to stdout
+logger.addHandler(stream_handler)
+
+# Create an output formatter that includes logger name and timestamp.
+formatter = logging.Formatter('%(asctime)s %(name)s %(message)s')
+
+# Create a file output for request ids and response headers
+request_handler = logging.FileHandler('/tmp/openstack.log')
+request_handler.setFormatter(formatter)
+
+# Create a file output for request commands, response headers and bodies
+body_handler = logging.FileHandler('/tmp/openstack.log')
+body_handler.setFormatter(formatter)
+
+# Log all HTTP interactions at the DEBUG level
+session_logger = logging.getLogger('keystoneauth.session')
+session_logger.setLevel(logging.DEBUG)
+
+# Emit request ids to the request log
+request_id_logger = logging.getLogger('keystoneauth.session.request-id')
+request_id_logger.addHandler(request_handler)
+
+# Emit response headers to both the request log and the body log
+header_logger = logging.getLogger('keystoneauth.session.response')
+header_logger.addHandler(request_handler)
+header_logger.addHandler(body_handler)
+
+# Emit request commands to the body log
+request_logger = logging.getLogger('keystoneauth.session.request')
+request_logger.addHandler(body_handler)
+
+# Emit bodies only to the body log
+body_logger = logging.getLogger('keystoneauth.session.body')
+body_logger.addHandler(body_handler)
+'''
 
 # The purpose of this file is to get some information from the various registered
 # openstack clouds and place it in a database for use by cloudscheduler
@@ -58,15 +113,15 @@ import glanceclient
 ## Poller sub-functions.
 
 def _get_neutron_client(session, region=None):
-    neutron = neuclient.Client(session=session, region_name=region, timeout=10)
+    neutron = neuclient.Client(session=session, region_name=region, timeout=10, logger=None)
     return neutron
 
 def _get_nova_client(session, region=None):
-    nova = novaclient.Client("2", session=session, region_name=region, timeout=10)
+    nova = novaclient.Client("2", session=session, region_name=region, timeout=10, logger=None)
     return nova
 
 def _get_glance_client(session, region=None):
-    glance = glanceclient.Client("2", session=session, region_name=region)
+    glance = glanceclient.Client("2", session=session, region_name=region, logger=None)
     return glance
 
 def _get_openstack_session(cloud):
@@ -99,7 +154,7 @@ def _get_openstack_session(cloud):
         else:
             logging.error(
                 "Connection parameters: \n authurl: %s \n username: %s \n project: %s \n user_domain: %s \n project_domain: %s",
-                (cloud.authurl, cloud.username, cloud.project, cloud.user_domain, cloud.project_domain_name))
+                (cloud.authurl, cloud.username, cloud.project, cloud.user_domain_name, cloud.project_domain_name))
     return session
 
 def _get_openstack_session_v1_v2(auth_url, username, password, project, user_domain="Default", project_domain_name="Default",
@@ -117,7 +172,7 @@ def _get_openstack_session_v1_v2(auth_url, username, password, project, user_dom
                 username=username,
                 password=password,
                 tenant_name=project)
-            sess = session.Session(auth=auth, verify=config.categories["openstackPoller.py"]["cacerts"])
+            sess = session.Session(auth=auth, verify=config.categories["openstackPoller.py"]["cacerts"], split_loggers=False)
         except Exception as exc:
             logging.error("Problem importing keystone modules, and getting session for grp:cloud - %s::%s" % (auth_url, exc))
             logging.error("Connection parameters: \n authurl: %s \n username: %s \n project: %s", (auth_url, username, project))
@@ -133,8 +188,8 @@ def _get_openstack_session_v1_v2(auth_url, username, password, project, user_dom
                 project_name=project,
                 user_domain_name=user_domain,
                 project_domain_name=project_domain_name,
-                project_domain_id=project_domain_id,)
-            sess = session.Session(auth=auth, verify=config.categories["openstackPoller.py"]["cacerts"])
+                project_domain_id=project_domain_id)
+            sess = session.Session(auth=auth, verify=config.categories["openstackPoller.py"]["cacerts"], split_loggers=False)
         except Exception as exc:
             logging.error("Problem importing keystone modules, and getting session for grp:cloud - %s: %s", exc)
             logging.error("Connection parameters: \n authurl: %s \n username: %s \n project: %s \n user_domain: %s \n project_domain: %s", (auth_url, username, project, user_domain, project_domain_name))
@@ -891,6 +946,8 @@ def limit_poller():
                 delete_obsolete_database_items('Limit', inventory, db_session, LIMIT, '-', poll_time=new_poll_time, failure_dict=new_f_dict, cloud_type="openstack")
 
                 config.db_session.rollback()
+                # Cleanup inventory, this function will clean up inventory entries for deleted clouds
+                cleanup_inventory(inventory, '-', cycle_start_time)
 
                 if not os.path.exists(PID_FILE):
                     logging.info("Stop set, exiting...")
@@ -914,17 +971,7 @@ def limit_poller():
 
 def network_poller():
     multiprocessing.current_process().name = "Network Poller"
-    #Base = automap_base()
-    #db_engine = create_engine(
-    #    'mysql://%s:%s@%s:%s/%s' % (
-    #        config.db_user,
-    #        config.db_password,
-    #        config.db_host,
-    #        str(config.db_port),
-    #        config.db_name
-    #        )
-    #    )
-    #Base.prepare(db_engine, reflect=True)
+
     db_category_list = [os.path.basename(sys.argv[0]), "general", "signal_manager", "ProcessMonitor"]
     config = Config('/etc/cloudscheduler/cloudscheduler.yaml', db_category_list, pool_size=3, signals=True)
     PID_FILE = config.categories["ProcessMonitor"]["pid_path"] + os.path.basename(sys.argv[0])
