@@ -46,7 +46,7 @@ def main(gvar):
         }
     )
 
-    # 04 group to be changed in group_yaml_*
+    # 04 group to be changed in group_metadata_*
     execute_csv2_request(
         gvar, 0, None, 'group "{}" successfully added.'.format(ut_id(gvar, 'gtg5')),
         '/group/add/', form_data={

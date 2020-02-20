@@ -23,7 +23,7 @@ def main(gvar):
     )
 
     PARAMETERS = [
-        # 07 Give invalid parameter.
+        # 07 Give an invalid parameter.
         # 08 Omit cloud_name.
         ('cloud_name', {
             # 09
@@ -35,8 +35,8 @@ def main(gvar):
             # 12
             'invalid-unit-test-': 'cloud alias add, value specified for "cloud_name" must be all lowercase letters, digits, dashes, underscores, periods, and colons, and cannot contain more than one consecutive dash or start or end with a dash.',
             # 13 Name of a non-existent cloud.
-            'invalid-unit-test': 'cloud alias add, "invalid-unit-test" failed - specified value in list of values does not exist: cloud_name=invalid-unit-test, group_name={}.'.format(ut_id(gvar, 'atg1'))},
-        ut_id(gvar, 'atc1')),
+            'invalid-unit-test': 'cloud alias add, "invalid-unit-test" failed - specified value in list of values does not exist: cloud_name=invalid-unit-test, group_name={}.'.format(ut_id(gvar, 'atg1'))
+        }, ut_id(gvar, 'atc1')),
         # 14 Omit alias_name.
         ('alias_name', {
             # 15
