@@ -281,6 +281,13 @@ def parameters_requests(gvar, request, group, server_user, PARAMETERS):
                 gvar, 1, None, 'request did not contain mandatory parameter "{}".'.format(param[0]),
                 request, group=group, form_data=mandatory_params, server_user=server_user
             )
+            '''
+            # Provide the parameter twice.
+            execute_csv2_request(
+                gvar, 1, None, '>>>>>>>>>>>>>>>>>> TODO',
+                request, group=group, form_data={'{}.1'.format(param[0]): param[2], '{}.2'.format(param[0]): param[2], **mandatory_params}, server_user=server_user
+            )
+            '''
         # Give the parameter with invalid values.
         for value, message in param[1].items():
             execute_csv2_request(
@@ -316,7 +323,7 @@ def html_message(text):
     return False, 'no message found'
 
 # The command parameter is never used.
-def initialize_csv2_request(gvar, command, selections=None, hidden=False):
+def initialize_csv2_request(gvar, selections=None, hidden=False):
     from getpass import getpass
     import os
     import re

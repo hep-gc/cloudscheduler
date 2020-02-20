@@ -7,9 +7,9 @@ def main(gvar):
     if not gvar:
         gvar = {}
         if len(argv) > 1:
-            initialize_csv2_request(gvar, argv[0], selections=argv[1])
+            initialize_csv2_request(gvar, selections=argv[1])
         else:
-            initialize_csv2_request(gvar, argv[0])
+            initialize_csv2_request(gvar)
     
     # 01 - 05
     sanity_requests(gvar, '/job/list/', ut_id(gvar, 'dtg1'), ut_id(gvar, 'dtu1'), ut_id(gvar, 'dtg2'), ut_id(gvar, 'dtu2'))
