@@ -340,15 +340,15 @@ def process_group_cloud_commands(pair, condor_host):
     group_name = pair.group_name
     cloud_name = pair.cloud_name
 
-    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', [os.path.basename(sys.argv[0]),  "ProcessMonitor", "csmachines.py"], pool_size=3, signals=True)
+    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', [os.path.basename(sys.argv[0]),  "ProcessMonitor"], pool_size=3, signals=True)
     config.db_open()
 
     VM = config.db_map.classes.csv2_vms
     CLOUD = config.db_map.classes.csv2_clouds
 
-    terminate_off = config.categories["csmachines.py"]["terminate_off"]
-    retire_off = config.categories["csmachines.py"]["terminate_off"]
-    retire_interval = config.categories["csmachines.py"]["retire_interval"]
+    terminate_off = config.categories["condor_poller.py"]["terminate_off"]
+    retire_off = config.categories["condor_poller.py"]["terminate_off"]
+    retire_interval = config.categories["condor_poller.py"]["retire_interval"]
 
     master_type = htcondor.AdTypes.Master
     startd_type = htcondor.AdTypes.Startd
@@ -653,7 +653,7 @@ def job_poller():
     uncommitted_updates = 0
     failure_dict = {}
 
-    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', [os.path.basename(sys.argv[0]), "ProcessMonitor", "csjobs.py"], pool_size=3, signals=True)
+    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', [os.path.basename(sys.argv[0]), "ProcessMonitor"], pool_size=3, signals=True)
     PID_FILE = config.categories["ProcessMonitor"]["pid_path"] + os.path.basename(sys.argv[0])
 
 
@@ -663,7 +663,7 @@ def job_poller():
     USERS = config.db_map.classes.csv2_user_groups
 
     try:
-        inventory = get_inventory_item_hash_from_database(config.db_engine, JOB, 'global_job_id', debug_hash=(config.categories["csjobs.py"]["log_level"]<20), condor_host=config.local_host_id)
+        inventory = get_inventory_item_hash_from_database(config.db_engine, JOB, 'global_job_id', debug_hash=(config.categories["condor_poller.py"]["log_level"]<20), condor_host=config.local_host_id)
         config.db_open()
         while True:
             #
@@ -890,7 +890,7 @@ def job_poller():
                         logging.error(unmapped)
 
                     # Check if this item has changed relative to the local cache, skip it if it's unchanged
-                    if test_and_set_inventory_item_hash(inventory, job_dict["group_name"], "-", job_dict["global_job_id"], job_dict, new_poll_time, debug_hash=(config.categories["csjobs.py"]["log_level"]<20)):
+                    if test_and_set_inventory_item_hash(inventory, job_dict["group_name"], "-", job_dict["global_job_id"], job_dict, new_poll_time, debug_hash=(config.categories["condor_poller.py"]["log_level"]<20)):
                         continue
 
                     logging.debug("Adding job %s", job_dict["global_job_id"])
@@ -968,7 +968,7 @@ def job_poller():
                     logging.error(exc)
                     config.db_session.rollback()
                     signal.signal(signal.SIGINT, config.signals['SIGINT'])
-                    time.sleep(config.categories["csjobs.py"]["sleep_interval_job"])
+                    time.sleep(config.categories["condor_poller.py"]["sleep_interval_job"])
                     continue
 
             if delete_cycle:
@@ -977,7 +977,7 @@ def job_poller():
                 delete_cycle = False
 
             cycle_count = cycle_count + 1
-            if cycle_count >= config.categories["csjobs.py"]["delete_cycle_interval"]:
+            if cycle_count >= config.categories["condor_poller.py"]["delete_cycle_interval"]:
                 delete_cycle = True
                 cycle_count = 0
 
@@ -985,7 +985,7 @@ def job_poller():
                 logging.info("Stop set, exiting...")
                 break
             signal.signal(signal.SIGINT, config.signals['SIGINT'])    
-            wait_cycle(cycle_start_time, poll_time_history, config.categories["csjobs.py"]["sleep_interval_job"], config)
+            wait_cycle(cycle_start_time, poll_time_history, config.categories["condor_poller.py"]["sleep_interval_job"], config)
 
     except Exception as exc:
         logging.exception("Job Poller while loop exception, process terminating...")
@@ -995,7 +995,7 @@ def job_poller():
 def job_command_poller():
     multiprocessing.current_process().name = "Job Command Poller"
 
-    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', [os.path.basename(sys.argv[0]), "ProcessMonitor", "csjobs.py"], pool_size=3, signals=True)
+    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', [os.path.basename(sys.argv[0]), "ProcessMonitor"], pool_size=3, signals=True)
     PID_FILE = config.categories["ProcessMonitor"]["pid_path"] + os.path.basename(sys.argv[0])
     Job = config.db_map.classes.condor_jobs
     GROUPS = config.db_map.classes.csv2_groups
@@ -1052,7 +1052,7 @@ def job_command_poller():
                         db_session.merge(job)
                         uncommitted_updates = uncommitted_updates + 1
 
-                        if uncommitted_updates >= config.batch_commit_size:
+                        if uncommitted_updates >= config.categories['condor_poller.py']['batch_commit_size']:
                             try:
                                 db_session.commit()
                                 uncommitted_updates = 0
@@ -1070,7 +1070,7 @@ def job_command_poller():
                 if abort_cycle:
                     del condor_session
                     config.db_session.rollback()
-                    wait_cycle(cycle_start_time, poll_time_history, config.categories["csjobs.py"]["sleep_interval_command"], config)
+                    wait_cycle(cycle_start_time, poll_time_history, config.categories["condor_poller.py"]["sleep_interval_command"], config)
                     continue
 
             if uncommitted_updates > 0:
@@ -1081,7 +1081,7 @@ def job_command_poller():
                     logging.error(exc)
                     del condor_session
                     config.db_session.rollback()
-                    time.sleep(config.categories["csjobs.py"]["sleep_interval_command"])
+                    time.sleep(config.categories["condor_poller.py"]["sleep_interval_command"])
                     continue
 
             logging.debug("Completed command consumer cycle")
@@ -1089,7 +1089,7 @@ def job_command_poller():
             if not os.path.exists(PID_FILE):
                 logging.info("Stop set, exiting...")
                 break
-            wait_cycle(cycle_start_time, poll_time_history, config.categories["csjobs.py"]["sleep_interval_command"], config)
+            wait_cycle(cycle_start_time, poll_time_history, config.categories["condor_poller.py"]["sleep_interval_command"], config)
 
     except Exception as exc:
         logging.exception("Job poller while loop exception, process terminating...")
@@ -1103,7 +1103,7 @@ def machine_poller():
                            "Start", "RemoteOwner", "SlotType", "TotalSlots", "group_name", \
                            "cloud_name", "cs_host_id", "condor_host", "flavor", "TotalDisk"]
 
-    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', [os.path.basename(sys.argv[0]), "SQL", "ProcessMonitor", "csmachines.py"], pool_size=3, signals=True)
+    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', [os.path.basename(sys.argv[0]), "SQL", "ProcessMonitor"], pool_size=3, signals=True)
     PID_FILE = config.categories["ProcessMonitor"]["pid_path"] + os.path.basename(sys.argv[0])
 
 
@@ -1123,7 +1123,7 @@ def machine_poller():
     failure_dict = {}
 
     try:
-        inventory = get_inventory_item_hash_from_database(config.db_engine, RESOURCE, 'name', debug_hash=(config.categories["csmachines.py"]["log_level"]<20), condor_host=config.local_host_id)
+        inventory = get_inventory_item_hash_from_database(config.db_engine, RESOURCE, 'name', debug_hash=(config.categories["condor_poller.py"]["log_level"]<20), condor_host=config.local_host_id)
         configure_htc(config, logging)
         config.db_open()
         while True:
@@ -1271,7 +1271,7 @@ def machine_poller():
                         logging.error(unmapped)
 
                     # Check if this item has changed relative to the local cache, skip it if it's unchanged
-                    if test_and_set_inventory_item_hash(inventory, r_dict["group_name"], r_dict["cloud_name"], r_dict["name"], r_dict, new_poll_time, debug_hash=(config.categories["csmachines.py"]["log_level"]<20)):
+                    if test_and_set_inventory_item_hash(inventory, r_dict["group_name"], r_dict["cloud_name"], r_dict["name"], r_dict, new_poll_time, debug_hash=(config.categories["condor_poller.py"]["log_level"]<20)):
                         continue
 
                     logging.info("Adding/updating machine %s", r_dict["name"])
@@ -1323,7 +1323,7 @@ def machine_poller():
                     logging.exception("Failed to commit machine updates, aborting cycle...")
                     logging.error(exc)
                     config.db_session.rollback()
-                    time.sleep(config.categories["csmachines.py"]["sleep_interval_machine"])
+                    time.sleep(config.categories["condor_poller.py"]["sleep_interval_machine"])
                     continue
 
             if delete_cycle:
@@ -1332,7 +1332,7 @@ def machine_poller():
                 delete_cycle = False
             config.db_session.commit()
             cycle_count = cycle_count + 1
-            if cycle_count > config.categories["csmachines.py"]["delete_cycle_interval"]:
+            if cycle_count > config.categories["condor_poller.py"]["delete_cycle_interval"]:
                 delete_cycle = True
                 cycle_count = 0
             
@@ -1340,7 +1340,7 @@ def machine_poller():
                 logging.info("Stop set, exiting...")
                 break
             signal.signal(signal.SIGINT, config.signals['SIGINT'])
-            wait_cycle(cycle_start_time, poll_time_history, config.categories["csmachines.py"]["sleep_interval_machine"], config)
+            wait_cycle(cycle_start_time, poll_time_history, config.categories["condor_poller.py"]["sleep_interval_machine"], config)
 
     except Exception as exc:
         logging.exception("Machine poller while loop exception, process terminating...")
@@ -1352,7 +1352,7 @@ def machine_command_poller():
     multiprocessing.current_process().name = "Machine Command Poller"
 
     # database setup
-    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', [os.path.basename(sys.argv[0]),  "ProcessMonitor", "csmachines.py"], pool_size=3, signals=True)
+    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', [os.path.basename(sys.argv[0]),  "ProcessMonitor"], pool_size=3, signals=True)
     PID_FILE = config.categories["ProcessMonitor"]["pid_path"] + os.path.basename(sys.argv[0])
 
     Resource = config.db_map.classes.condor_machines
@@ -1423,7 +1423,7 @@ def machine_command_poller():
             if not os.path.exists(PID_FILE):
                 logging.info("Stop set, exiting...")
                 break
-            wait_cycle(cycle_start_time, poll_time_history, config.categories["csmachines.py"]["sleep_interval_command"], config)
+            wait_cycle(cycle_start_time, poll_time_history, config.categories["condor_poller.py"]["sleep_interval_command"], config)
 
     except Exception as exc:
         logging.exception("Command consumer while loop exception, process terminating...")
@@ -1432,7 +1432,7 @@ def machine_command_poller():
 def worker_gsi_poller():
     multiprocessing.current_process().name = "Worker GSI Poller"
 
-    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', [os.path.basename(sys.argv[0]), 'ProcessMonitor', 'condor_gsi.py'], pool_size=6, signals=True)
+    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', [os.path.basename(sys.argv[0]), 'ProcessMonitor'], pool_size=6, signals=True)
     PID_FILE = config.categories["ProcessMonitor"]["pid_path"] + os.path.basename(sys.argv[0])
 
     cycle_start_time = 0
@@ -1525,7 +1525,7 @@ def worker_gsi_poller():
                 logging.info("Stop set, exiting...")
                 break
 
-            wait_cycle(cycle_start_time, poll_time_history, config.categories['condor_gsi.py']['sleep_interval_worker_gsi'], config)
+            wait_cycle(cycle_start_time, poll_time_history, config.categories['condor_poller.py']['sleep_interval_worker_gsi'], config)
 
     except Exception as exc:
         logging.exception("Worker GSI while loop exception, process terminating...")
@@ -1537,7 +1537,7 @@ def worker_gsi_poller():
 def condor_gsi_poller():
     multiprocessing.current_process().name = "Condor GSI Poller"
 
-    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', [os.path.basename(sys.argv[0]), 'ProcessMonitor', 'condor_gsi.py'], pool_size=6, signals=True)
+    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', [os.path.basename(sys.argv[0]), 'ProcessMonitor'], pool_size=6, signals=True)
     PID_FILE = config.categories["ProcessMonitor"]["pid_path"] + os.path.basename(sys.argv[0])
 
     cycle_start_time = 0
@@ -1599,7 +1599,7 @@ def condor_gsi_poller():
                 logging.info("Stop set, exiting...")
                 break
 
-            wait_cycle(cycle_start_time, poll_time_history, config.categories['condor_gsi.py']['sleep_interval_condor_gsi'], config)
+            wait_cycle(cycle_start_time, poll_time_history, config.categories['condor_poller.py']['sleep_interval_condor_gsi'], config)
 
     except Exception as exc:
         logging.exception("Condor GSI while loop exception, process terminating...")
