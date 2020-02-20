@@ -568,7 +568,8 @@ def delete(request):
 
     ### Bad request.
     else:
-        return group_list(request, active_user=active_user, response_code=1, message='%s group delete request did not contain mandatory parameter "group_name".' % lno(MODID))
+      # return group_list(request, active_user=active_user, response_code=1, message='%s group delete request did not contain mandatory parameter "group_name".' % lno(MODID))
+        return group_list(request, active_user=active_user, response_code=1, message='%s group delete, invalid method "%s" specified.' % (lno(MODID), request.method))
 
 #-------------------------------------------------------------------------------
 
@@ -764,8 +765,8 @@ def metadata_delete(request):
 
     ### Bad request.
     else:
-        return render(request, 'csv2/blank_msg.html', {'response_code': 1, 'message': '%s group metadata-delete request did not contain mandatory parameter "metadata_name".' % lno(MODID)})
-
+      # return render(request, 'csv2/blank_msg.html', {'response_code': 1, 'message': '%s group metadata-delete request did not contain mandatory parameter "metadata_name".' % lno(MODID)})
+        return render(request, 'csv2/blank_msg.html', {'response_code': 1, 'message': '%s group metadata-delete, invalid method "%s" specified.' % lno(MODID)})
 
 #-------------------------------------------------------------------------------
 

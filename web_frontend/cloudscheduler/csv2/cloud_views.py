@@ -537,7 +537,8 @@ def add(request):
                     
     ### Bad request.
     else:
-        return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud add request did not contain mandatory parameter "cloud_name".' % lno(MODID))
+      # return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud add request did not contain mandatory parameter "cloud_name".' % lno(MODID))
+        return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud add, invalid method "%s" specified.' % (lno(MODID), request.method))
 
 #-------------------------------------------------------------------------------
 
@@ -608,8 +609,8 @@ def delete(request):
 
     ### Bad request.
     else:
-#       return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud delete, invalid method "%s" specified.' % (lno(MODID), request.method))
-        return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud delete request did not contain mandatory parameter "cloud_name".' % lno(MODID))
+      # return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud delete request did not contain mandatory parameter "cloud_name".' % lno(MODID))
+        return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud delete, invalid method "%s" specified.' % (lno(MODID), request.method))
 
 #-------------------------------------------------------------------------------
 
@@ -796,8 +797,8 @@ def metadata_add(request):
 
     ### Bad request.
     else:
-#       return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud metadata_add, invalid method "%s" specified.' % (lno(MODID), request.method))
-        return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud metadata-add request did not contain mandatory parameters "cloud_name" and "metadata_name".' % lno(MODID))
+      # return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud metadata-add request did not contain mandatory parameters "cloud_name" and "metadata_name".' % lno(MODID))
+        return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud metadata_add, invalid method "%s" specified.' % (lno(MODID), request.method))
 
 #-------------------------------------------------------------------------------
 
@@ -916,8 +917,8 @@ def metadata_delete(request):
 
     ### Bad request.
     else:
-#       return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud metadata_delete, invalid method "%s" specified.' % (lno(MODID), request.method))
-        return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud metadata-delete request did not contain mandatory parameters "cloud_name" and "metadata_name".' % lno(MODID))
+      # return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud metadata-delete request did not contain mandatory parameters "cloud_name" and "metadata_name".' % lno(MODID))
+        return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud metadata_delete, invalid method "%s" specified.' % (lno(MODID), request.method))
 
 #-------------------------------------------------------------------------------
 
@@ -1203,8 +1204,8 @@ def metadata_update(request):
 
     ### Bad request.
     else:
-#       return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud metadata_update, invalid method "%s" specified.' % (lno(MODID), request.method))
-        return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud metadata-update request did not contain mandatory parameters "cloud_name" and "metadata_name".' % lno(MODID))
+      # return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud metadata-update request did not contain mandatory parameters "cloud_name" and "metadata_name".' % lno(MODID))
+        return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud metadata_update, invalid method "%s" specified.' % (lno(MODID), request.method))
 
 #-------------------------------------------------------------------------------
 
@@ -1855,5 +1856,5 @@ def update(request):
 
     ### Bad request.
     else:
-      # return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud update, invalid method "%s" specified.' % (lno(MODID), request.method))
-        return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud update request did not contain mandatory parameter "cloud_name".' % lno(MODID))
+      # return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud update request did not contain mandatory parameter "cloud_name".' % lno(MODID))
+        return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud update, invalid method "%s" specified.' % (lno(MODID), request.method))
