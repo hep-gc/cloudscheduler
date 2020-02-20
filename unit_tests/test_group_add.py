@@ -1,4 +1,4 @@
-from unit_test_common import execute_csv2_request, initialize_csv2_request, ut_id
+from unit_test_common import execute_csv2_request, initialize_csv2_request, ut_id, sanity_requests, parameters_requests
 from sys import argv
 
 # lno: GV - error code identifier.
@@ -11,130 +11,74 @@ def main(gvar):
         else:
             initialize_csv2_request(gvar, argv[0])
     
-    # 01
-    execute_csv2_request(
-        gvar, 1, 'GV', 'invalid method "GET" specified.',
-        '/group/add/',
-        server_user=ut_id(gvar, 'gtu5')
-    )
+    # 01 - 05
+    sanity_requests(gvar, '/group/add/', ut_id(gvar, 'gtg5'), ut_id(gvar, 'gtu5'), ut_id(gvar, 'gtg7'), ut_id(gvar, 'gtu2'))
 
-    # 02
+    # 06 Attempt as an unprivileged user.
     execute_csv2_request(
         gvar, 2, None, 'HTTP response code 403, forbidden.',
         '/group/add/',
-        server_user=ut_id(gvar, 'gtu1')
+        server_user=ut_id(gvar, 'gtu3')
     )
 
-    # 03
-    execute_csv2_request(
-        gvar, 1, None, 'user "{}" is not a member of any group.'.format(ut_id(gvar, 'gtu2')),
-        '/group/add/',
-        server_user=ut_id(gvar, 'gtu2')
-    )
+    PARAMETERS = [
+        # 07 Give an invalid parameter.
+        # 08 Omit group_name.
+        ('group_name', {
+            # 09
+            '': 'group add value specified for "group_name" must not be the empty string.',
+            # 10
+            'Invalid-Unit-Test': 'group add value specified for "group_name" must be all lowercase letters, digits, dashes, underscores, periods, and colons, and cannot contain more than one consecutive dash or start or end with a dash.',
+            # 11
+            'invalid-unit--test': 'group add value specified for "group_name" must be all lowercase letters, digits, dashes, underscores, periods, and colons, and cannot contain more than one consecutive dash or start or end with a dash.',
+            # 12
+            '-invalid-unit-test': 'group add value specified for "group_name" must be all lowercase letters, digits, dashes, underscores, periods, and colons, and cannot contain more than one consecutive dash or start or end with a dash.',
+            # 13
+            'invalid-unit-test!': 'group add value specified for "group_name" must be all lowercase letters, digits, dashes, underscores, periods, and colons, and cannot contain more than one consecutive dash or start or end with a dash.',
+            # 14
+            'group-name-that-is-too-long-for-the-database': 'Data too long for column \'group_name\' at row 1'
+        }, 'invalid-unit-test'),
+        # 15
+        ('htcondor_fqdn', {'': 'parameter "htcondor_fqdn" contains an empty string which is specifically disallowed.'}),
+        # 16
+        ('username.1', {'invalid-unit-test': 'specified user "invalid-unit-test" does not exist.'}),
+        # 17
+        ('user_option', {'invalid-unit-test': 'value specified for "user_option" must be one of the following options: [\'add\', \'delete\'].'}),
+        # 18
+        ('job_cpus', {'invalid-unit-test': 'group add value specified for "job_cpus" must be an integer value.'}),
+        # 19
+        ('job_ram', {'invalid-unit-test': 'group add value specified for "job_ram" must be an integer value.'}),
+        # 20
+        ('job_disk', {'invalid-unit-test': 'group add value specified for "job_disk" must be an integer value.'}),
+        # 21
+        ('job_swap', {'invalid-unit-test': 'group add value specified for "job_swap" must be an integer value.'}),
+        # 22
+        ('job_scratch', {'invalid-unit-test': 'request contained a rejected/bad parameter "job_scratch".'}),
+        # 23
+        ('vm_image', {'invalid-unit-test': 'group add, "invalid-unit-test" failed - specified item does not exist: vm_image=invalid-unit-test, group_name=invalid-unit-test.'}),
+        # 24
+        ('vm_flavor', {'invalid-unit-test': 'group add, "invalid-unit-test" failed - specified item does not exist: vm_flavor=invalid-unit-test, group_name=invalid-unit-test.'}),
+        # 25
+        ('vm_network', {'invalid-unit-test': 'group add, "invalid-unit-test" failed - specified item does not exist: vm_network=invalid-unit-test, group_name=invalid-unit-test.'}),
+        # 26
+        ('vm_keyname', {'invalid-unit-test': 'group add, "invalid-unit-test" failed - specified item does not exist: vm_keyname=invalid-unit-test, group_name=invalid-unit-test.'})
+    ]
 
-    # 04
-    execute_csv2_request(
-        gvar, 1, 'GV', 'cannot switch to invalid group "invalid-unit-test".',
-        '/group/add/', group='invalid-unit-test',
-        server_user=ut_id(gvar, 'gtu5')
-    )
+    parameters_requests(gvar, '/group/add/', ut_id(gvar, 'gtg5'), ut_id(gvar, 'gtu5'), PARAMETERS)
 
-    # 05
+    # Parameter combinations that do not fit the above format.
+    #
     execute_csv2_request(
-        gvar, 1, 'GV', 'request did not contain mandatory parameter "group_name".',
-        '/group/add/', form_data={'htcondor_fqdn': 'invalid-unit-test'},
-        server_user=ut_id(gvar, 'gtu5')
-    )
-
-    # 06
-    execute_csv2_request(
-        gvar, 1, 'GV', 'Data too long for column \'group_name\' at row 1',
-        '/group/add/', form_data={'group_name': ut_id(gvar, 'group-invalid-unit-test-too-long')},
-        server_user=ut_id(gvar, 'gtu5')
-    )
-
-    # 07
-    execute_csv2_request(
-        gvar, 1, 'GV', 'request contained a bad parameter "invalid-unit-test".',
-        '/group/add/', form_data={'invalid-unit-test': 'invalid-unit-test'},
-        server_user=ut_id(gvar, 'gtu5')
-    )
-
-    # 08
-    execute_csv2_request(
-        gvar, 1, 'GV', 'value specified for "group_name" must be all lower case, numeric digits, and dashes but cannot start or end with dashes.',
-        '/group/add/', form_data={'group_name': 'Invalid-Unit-Test'},
-        server_user=ut_id(gvar, 'gtu5')
-    )
-
-    # 09
-    execute_csv2_request(
-        gvar, 1, 'GV', 'value specified for "group_name" must be all lower case, numeric digits, and dashes but cannot start or end with dashes.',
-        '/group/add/', form_data={'group_name': 'invalid-unit-test-'},
-        server_user=ut_id(gvar, 'gtu5')
-    )
-
-    # 10
-    execute_csv2_request(
-        gvar, 1, 'GV', 'value specified for "group_name" must be all lower case, numeric digits, and dashes but cannot start or end with dashes.',
-        '/group/add/', form_data={'group_name': 'invalid!unit!test'},
-        server_user=ut_id(gvar, 'gtu5')
-    )
-
-    # 11
-    execute_csv2_request(
-        gvar, 1, 'GV', 'Data too long for column \'group_name\' at row 1',
+        gvar, 1, 'GV', 'Operand should contain 1 column(s)',
         '/group/add/', form_data={
-            'group_name': ut_id(gvar, 'thisisagroupnametoolongtoinsertintothedatabasethisisagroupnametoolongtoinsertintothedatabasethisisagroupnametoolongtoinsertintothedatabase'),
+            'group_name.1': 'invalid-unit-test-1',
+            'group_name.2': 'invalid-unit-test-2',
             'htcondor_fqdn': 'invalid-unit-test'
         },
         server_user=ut_id(gvar, 'gtu5')
     )
 
-    # 12
-    execute_csv2_request(
-        gvar, 1, 'GV', 'value specified for "group_name" must be all lower case, numeric digits, and dashes but cannot start or end with dashes.',
-        '/group/add/', form_data={
-            'group_name': '',
-            'htcondor_fqdn': 'invalid-unit-test'
-        },
-        server_user=ut_id(gvar, 'gtu5')
-    )
-
-
-    # 13
-    execute_csv2_request(
-        gvar, 1, 'GV', 'parameter "htcondor_fqdn" contains an empty string which is specifically disallowed.',
-        '/group/add/', form_data={
-            'group_name': 'invalid-unit-test',
-            'htcondor_fqdn': ''
-        },
-        server_user=ut_id(gvar, 'gtu5')
-    )
-
-    # 14
-    execute_csv2_request(
-        gvar, 1, 'GV', 'specified user "invalid-unit-test" does not exist.',
-        '/group/add/', form_data={
-            'username.1': 'invalid-unit-test',
-            'group_name': ut_id(gvar, 'group-invalid-unit-test'),
-            'htcondor_fqdn': 'invalid-unit-test'
-        },
-        server_user=ut_id(gvar, 'gtu5')
-    )
-
-    # 15
-    execute_csv2_request(
-        gvar, 1, 'GV', 'value specified for "user_option" must be one of the following options: [\'add\', \'delete\'].',
-        '/group/add/', form_data={
-            'user_option': 'invalid-unit-test',
-            'group_name': ut_id(gvar, 'group-invalid-unit-test'),
-            'htcondor_fqdn': 'invalid-unit-test'
-        },
-        server_user=ut_id(gvar, 'gtu5')
-    )
-
-    # 16
+    # 27
     execute_csv2_request(
         gvar, 1, 'GV', 'group add, "{}" failed - user "{}" was specified twice.'.format(ut_id(gvar, 'group-invalid-unit-test'), ut_id(gvar, 'gtu3')),
         '/group/add/', form_data={
@@ -146,24 +90,24 @@ def main(gvar):
         server_user=ut_id(gvar, 'gtu5')
     )
 
-    # 17
+    # 28
     execute_csv2_request(
         gvar, 0, None, 'group "{}" successfully added.'.format(ut_id(gvar, 'gtg1')),
         '/group/add/', form_data={
             'group_name': ut_id(gvar, 'gtg1'),
             'username.1': ut_id(gvar, 'gtu5'),
-            'htcondor_fqdn': 'group-unit-test-one.ca'
+            'htcondor_fqdn': gvar['fqdn']
         },
         server_user=ut_id(gvar, 'gtu5')
     )
 
-    # 18 Verify that 17 actually added a group.
+    # 29 Verify that 17 actually added a group.
     execute_csv2_request(
         gvar, 0, None, None,
         '/group/list/', group=ut_id(gvar, 'gtg1'),
         expected_list='group_list', list_filter={'group_name': ut_id(gvar, 'gtg1')},
-        values={'group_name': ut_id(gvar, 'gtg1'),
-            'htcondor_fqdn': 'group-unit-test-one.ca',
+        values={
+            'htcondor_fqdn': gvar['fqdn'],
             'htcondor_container_hostname': None,
             'htcondor_other_submitters': None,
             'metadata_names': 'default.yaml.j2'
@@ -171,10 +115,9 @@ def main(gvar):
         server_user=ut_id(gvar, 'gtu5')
     )
 
-    # 19 Verify that the user was updated correctly
+    # 30 Verify that the user was updated correctly.
     execute_csv2_request(
-        gvar, 0, None, None,
-        '/user/list/',
+        gvar, 0, None, None, '/user/list/',
         expected_list='user_list', list_filter={'username': ut_id(gvar, 'gtu5')},
         values={'username': ut_id(gvar, 'gtu5'), 'user_groups': ut_id(gvar, 'gtg1,gtg4,gtg5')},
         server_user=ut_id(gvar, 'gtu5')
@@ -187,12 +130,12 @@ def main(gvar):
         server_user=ut_id(gvar, 'gtu5')
     )
 
-    # 21 Verify that users don't need to be added to a group when it is created
+    # 21 Verify that users don't need to be given.
     execute_csv2_request(
         gvar, 0, None, 'group "{}" successfully added.'.format(ut_id(gvar, 'gtg2')),
         '/group/add/', form_data={
             'group_name': ut_id(gvar, 'gtg2'),
-            'htcondor_fqdn': 'unit-test-group-two.ca',
+            'htcondor_fqdn': gvar['fqdn'],
         },
         server_user=ut_id(gvar, 'gtu5')
     )
@@ -203,65 +146,10 @@ def main(gvar):
         '/group/list/',
         expected_list='group_list', list_filter={'group_name': ut_id(gvar, 'gtg2')},
         values={'group_name': ut_id(gvar, 'gtg2'),
-            'htcondor_fqdn': 'unit-test-group-two.ca',
+            'htcondor_fqdn': gvar['fqdn'],
             'htcondor_container_hostname': None,
             'htcondor_other_submitters': None,
             'metadata_names': 'default.yaml.j2'
-        },
-        server_user=ut_id(gvar, 'gtu5')
-    )
-
-    # 23
-    execute_csv2_request(
-        gvar, 1, 'GV', 'group add value specified for "job_cpus" must be an integer value.',
-        '/group/add/', form_data={
-            'group_name': ut_id(gvar, 'gtg3'),
-            'htcondor_fqdn': 'unit-test-group-three.ca',
-            'job_cpus': 'invalid-unit-test'
-        },
-        server_user=ut_id(gvar, 'gtu5')
-    )
-
-    # 24
-    execute_csv2_request(
-        gvar, 1, 'GV', 'group add value specified for "job_ram" must be an integer value.',
-        '/group/add/', form_data={
-            'group_name': ut_id(gvar, 'gtg3'),
-            'htcondor_fqdn': 'unit-test-group-three.ca',
-            'job_ram': 'invalid-unit-test'
-        },
-        server_user=ut_id(gvar, 'gtu5')
-    )
-
-    # 25
-    execute_csv2_request(
-        gvar, 1, 'GV', 'group add value specified for "job_disk" must be an integer value.',
-        '/group/add/', form_data={
-            'group_name': ut_id(gvar, 'gtg3'),
-            'htcondor_fqdn': 'unit-test-group-three.ca',
-            'job_disk': 'invalid-unit-test'
-        },
-        server_user=ut_id(gvar, 'gtu5')
-    )
-
-    # 26
-    execute_csv2_request(
-        gvar, 1, 'GV', 'request contained a rejected/bad parameter "job_scratch".',
-        '/group/add/', form_data={
-            'group_name': ut_id(gvar, 'gtg3'),
-            'htcondor_fqdn': 'unit-test-group-three.ca',
-            'job_scratch': 'invalid-unit-test'
-        },
-        server_user=ut_id(gvar, 'gtu5')
-    )
-
-    # 27
-    execute_csv2_request(
-        gvar, 1, 'GV', 'group add value specified for "job_swap" must be an integer value.',
-        '/group/add/', form_data={
-            'group_name': ut_id(gvar, 'gtg3'),
-            'htcondor_fqdn': 'unit-test-group-three.ca',
-            'job_swap': 'invalid-unit-test'
         },
         server_user=ut_id(gvar, 'gtu5')
     )
@@ -271,7 +159,7 @@ def main(gvar):
         gvar, 0, None, 'group "{}" successfully added.'.format(ut_id(gvar, 'gtg3')),
         '/group/add/', form_data={
             'group_name': ut_id(gvar, 'gtg3'),
-            'htcondor_fqdn': 'unit-test-group-three.ca',
+            'htcondor_fqdn': gvar['fqdn'],
             'job_cpus': 1,
             'job_ram': 1,
             'job_disk': 1,
@@ -280,50 +168,6 @@ def main(gvar):
             'vm_image': '',
             'vm_keyname': '',
             'vm_network': '',
-        },
-        server_user=ut_id(gvar, 'gtu5')
-    )
-
-    # 29
-    execute_csv2_request(
-        gvar, 1, 'GV', 'group add, "{0}" failed - specified item does not exist: vm_image=invalid-unit-test, group_name={0}.'.format(ut_id(gvar, 'invalid-unit-test')),
-        '/group/add/', form_data={
-            'group_name': ut_id(gvar, 'invalid-unit-test'),
-            'htcondor_fqdn': 'invalid-unit-test.ca',
-            'vm_image': 'invalid-unit-test',
-        },
-        server_user=ut_id(gvar, 'gtu5')
-    )
-
-    # 30
-    execute_csv2_request(
-        gvar, 1, 'GV', 'group add, "{0}" failed - specified item does not exist: vm_flavor=invalid-unit-test, group_name={0}.'.format(ut_id(gvar, 'invalid-unit-test')),
-        '/group/add/', form_data={
-            'group_name': ut_id(gvar, 'invalid-unit-test'),
-            'htcondor_fqdn': 'invalid-unit-test.ca',
-            'vm_flavor': 'invalid-unit-test',
-        },
-        server_user=ut_id(gvar, 'gtu5')
-    )
-
-    # 31
-    execute_csv2_request(
-        gvar, 1, 'GV', 'group add, "{0}" failed - specified item does not exist: vm_network=invalid-unit-test, group_name={0}.'.format(ut_id(gvar, 'invalid-unit-test')),
-        '/group/add/', form_data={
-            'group_name': ut_id(gvar, 'invalid-unit-test'),
-            'htcondor_fqdn': 'invalid-unit-test.ca',
-            'vm_network': 'invalid-unit-test',
-        },
-        server_user=ut_id(gvar, 'gtu5')
-    )
-
-    # 32
-    execute_csv2_request(
-        gvar, 1, 'GV', 'group add, "{0}" failed - specified item does not exist: vm_keyname=invalid-unit-test, group_name={0}.'.format(ut_id(gvar, 'invalid-unit-test')),
-        '/group/add/', form_data={
-            'group_name': ut_id(gvar, 'invalid-unit-test'),
-            'htcondor_fqdn': 'invalid-unit-test.ca',
-            'vm_keyname': 'invalid-unit-test',
         },
         server_user=ut_id(gvar, 'gtu5')
     )

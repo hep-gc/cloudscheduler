@@ -1,4 +1,4 @@
-from unit_test_common import execute_csv2_request, initialize_csv2_request, ut_id
+from unit_test_common import execute_csv2_request, initialize_csv2_request, ut_id, sanity_requests, parameters_requests
 from sys import argv
 
 # lno: GV - error code identifier.
@@ -11,19 +11,8 @@ def main(gvar):
         else:
             initialize_csv2_request(gvar, argv[0])
 
-    # 1
-    execute_csv2_request(
-        gvar, 2, None, 'HTTP response code 401, unauthorized.',
-        '/group/delete/',
-        server_user=ut_id(gvar, 'invalid-unit-test')
-    )
-
-    # 2
-    execute_csv2_request(
-        gvar, 1, None, 'user "{}" is not a member of any group.'.format(ut_id(gvar, 'gtu2')),
-        '/group/delete/',
-        server_user=ut_id(gvar, 'gtu2')
-    )
+    # 01 - 05
+    sanity_requests(gvar, '/group/delete/', ut_id(gvar, 'gtg5'), ut_id(gvar, 'gtu5'), ut_id(gvar, 'gtg7'), ut_id(gvar, 'gtu2'))
 
     # 3
     execute_csv2_request(
@@ -38,6 +27,15 @@ def main(gvar):
         '/group/delete/',
         server_user=ut_id(gvar, 'gtu5')
     )
+
+    PARAMETERS = [
+        # Omit group_name.
+        ('group_name', {
+            '': 'TODO',
+        }, 'invalid-unit-test')
+    ]
+
+    parameters_requests(gvar, '/group/delete/', ut_id(gvar, 'gtg5'), ut_id(gvar, 'gtu5'), ut_id(gvar, 'gtg7'), ut_id(gvar, 'gtu2'), PARAMETERS)
 
     # 5
     execute_csv2_request(
