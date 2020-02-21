@@ -19,6 +19,7 @@ from cloudscheduler.lib.view_utils import \
     table_fields, \
     validate_by_filtered_table_entries, \
     validate_fields, \
+    get_target_cloud, \
     verify_cloud_credentials
 
 import bcrypt
@@ -488,7 +489,7 @@ def add(request):
                 return list(request, active_user=active_user, response_code=1, message='%s cloud add, "%s" failed - %s.' % (lno(MODID), fields['cloud_name'], msg))
 
         # Verify cloud credentials.
-        rc, msg, owner_id = verify_cloud_credentials(config, fields, active_user)
+        rc, msg, owner_id = verify_cloud_credentials(config, {**fields, **{'group_name': active_user.active_group}})
         if rc == 0:
             fields['ec2_owner_id'] = owner_id
         else:
@@ -1700,7 +1701,7 @@ def update(request):
                 return list(request, active_user=active_user, response_code=1, message='%s cloud update, "%s" failed - %s.' % (lno(MODID), fields['cloud_name'], msg))
 
         # Verify cloud credentials.
-        rc, msg, owner_id = verify_cloud_credentials(config, fields, active_user)
+        rc, msg, owner_id = verify_cloud_credentials(config, {**fields, **{'group_name': active_user.active_group}})
         if rc == 0:
             fields['ec2_owner_id'] = owner_id
         else:
@@ -1780,16 +1781,25 @@ def update(request):
                 config.db_close()
                 return list(request, active_user=active_user, response_code=1, message='%s cloud update "%s::%s" failed - %s.' % (lno(MODID), fields['group_name'], fields['cloud_name'], msg))
 
+        config.db_session.commit()
         if updates > 0:
-            act_usr = active_user.username
+            if 'cloud_type' in fields:
+                cloud_type = fields['cloud_type']
+            else:
+                rc, msg, target_cloud = get_target_cloud(config, active_user.active_group, fields['cloud_name'])
+                if rc == 0:
+                    cloud_type = target_cloud['cloud_type']
+                else:
+                    cloud_type = None
+
             # Signal the pollers that a cloud has been updated.
-            if fields['cloud_type'] == 'amazon':
+            if cloud_type == 'amazon':
                 event_signal_send(config, "update_csv2_clouds_amazon")
-            elif fields['cloud_type'] == 'openstack':
+            elif cloud_type == 'openstack':
                 event_signal_send(config, "update_csv2_clouds_openstack")
 
-        config.db_close(commit=True)
-        return list(request, active_user=active_user, response_code=0, message='cloud "%s::%s" successfully added.' % (fields['group_name'], fields['cloud_name']))
+        config.db_close()
+        return list(request, active_user=active_user, response_code=0, message='cloud "%s::%s" successfully updated.' % (fields['group_name'], fields['cloud_name']))
                     
     ### Bad request.
     else:
