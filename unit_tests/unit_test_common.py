@@ -258,45 +258,63 @@ def sanity_requests(gvar, request, group, server_user, userless_group, groupless
     )
 
 def parameters_requests(gvar, request, group, server_user, PARAMETERS):
-    '''Execute requests with missing parameters and bad parameters.
-    PARAMETERS is an iterable of 2-tuples and 3-tuples, each containing:
-    0. The name of a parameter to test (str).
-    1. A dictionary. Each key should be an invalid value for this parameter that will be cast to a str. Each value should be the message to expect when this invalid value is sent in an otherwise valid request.
-    [2. A value for the parameter that has the correct format. This should be given exactly when the parameter is mandatory, and if given will be sent in requests that contain bad values for other parameters. It may refer to an object that does not exist.]'''
+    '''
+    Execute requests with missing parameters and bad parameters.
+    PARAMETERS is a dictionary in which each key is the name of a parameter (str), and each key is itself a dictionary, containing:
+    0. 'test_cases': A dictionary of test cases. Each key should be an invalid value for this parameter (which will be cast to a str). Each value should be the message to expect when this invalid value is sent in an otherwise valid request (str). Giving only invalid values in this dict means that none of the requests sent my this function should actually change anything on the server side (because they are all invalid in one way or another).
+    1. 'valid': A valid value for the parameter (which will be cast to a str). If the parameter is mandatory, this will be sent in requests that contain bad values for other parameters.
+    [2. Optional: 'mandatory': A boolean indicating whether this parameter must be provided in all requests. If not given, the parameter will be treated as optional.]
+    [3. Optional: 'allows_multiple': A boolean indicating whether giving multiple values for this parameter using the `{'param.1': value1, 'param.2': value2}` syntax is allowed. If not given, this will be treated as False.]
+    '''
 
-    mandatory_params = {param[0]: param[2] for param in PARAMETERS if len(param) > 2}
+    mandatory_params = {name: details['valid'] for name, details in PARAMETERS.items() if details.get('mandatory')}
+    # Omit form_data entirely.
+    execute_csv2_request(
+        gvar, 1, None, ' invalid method "GET" specified.',
+        request, group=group, server_user=server_user
+    )
     # Give an invalid parameter.
     execute_csv2_request(
         gvar, 1, None, 'request contained a bad parameter "invalid-unit-test".',
         request, group=group, form_data={'invalid-unit-test': 'invalid-unit-test', **mandatory_params}, server_user=server_user
     )
 
-    for param in PARAMETERS:
-        # If the parameter is mandatory.
-        if len(param) > 2:
+    for p_name, p_details in PARAMETERS.items():
+        if p_details.get('mandatory'):
             # Temporarily remove.
-            valid_param_value = mandatory_params.pop(param[0])
-            # Do not provide the parameter at all.
-            execute_csv2_request(
-                gvar, 1, None, 'request did not contain mandatory parameter "{}".'.format(param[0]),
-                request, group=group, form_data=mandatory_params, server_user=server_user
-            )
-            '''
+            del mandatory_params[p_name]
+            # If there are other mandatory parameters, send a request without the current one.
+            if mandatory_params:
+                execute_csv2_request(
+                    gvar, 1, None, 'request did not contain mandatory parameter "{}".'.format(p_name),
+                    request, group=group, form_data=mandatory_params, server_user=server_user
+                )
+            # Else see if we can find an optional one to send by itself (to avoid 'invalid method').
+            else:
+                try:
+                    optional_name, optional_value = next(((name, details['valid']) for name, details in PARAMETERS.items() if not details.get('mandatory')))
+                    execute_csv2_request(
+                        gvar, 1, None, 'request did not contain mandatory parameter "{}".'.format(p_name),
+                        request, group=group, form_data={optional_name: optional_value}, server_user=server_user
+                    )
+                # We have exactly one parameter, and it is mandatory, so we cannot exclude it without getting 'invalid method' (which we already tested for).
+                except StopIteration:
+                    pass
+        if not p_details.get('allows_multiple'):
             # Provide the parameter twice.
             execute_csv2_request(
                 gvar, 1, None, '>>>>>>>>>>>>>>>>>> TODO',
-                request, group=group, form_data={'{}.1'.format(param[0]): param[2], '{}.2'.format(param[0]): param[2], **mandatory_params}, server_user=server_user
+                request, group=group, form_data={'{}.1'.format(p_name): p_details['valid'], '{}.2'.format(p_name): p_details['valid'], **mandatory_params}, server_user=server_user
             )
-            '''
         # Give the parameter with invalid values.
-        for value, message in param[1].items():
+        for value, message in p_details['test_cases'].items():
             execute_csv2_request(
                 gvar, 1, None, message,
-                request, group=group, form_data={param[0]: value, **mandatory_params}, server_user=server_user
+                request, group=group, form_data={p_name: value, **mandatory_params}, server_user=server_user
             )
         # Add the parameter back in if it was mandatory.
-        if len(param) > 2:
-            mandatory_params[param[0]] = valid_param_value
+        if p_details.get('mandatory'):
+            mandatory_params[p_name] = p_details['valid']
 
 def generate_secret():
     from string import ascii_letters, digits

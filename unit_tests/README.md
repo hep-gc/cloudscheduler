@@ -22,7 +22,7 @@ To run tests:
 # run tests from multiple groups
 ./run_tests user_list user_add[1-5,10] user_delete
 # skip setup, cleanup, and all tests
-./run_tests [999] -ss -sc
+./run_tests [9999] -ss -sc
 ```
 ## To Develop
 
