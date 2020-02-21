@@ -33,5 +33,5 @@
     - Server configuration request to ignore the 'group' key (passed on all requests).
     - Log level change without service restart.
     - Ignore invalid default_group user setting (picks first valid group).
-    - Cleanup local inventories to remove obsolete items at th end of each polling cycle.
+    - Cleanup local inventories to remove obsolete items at the end of each polling cycle.
      
