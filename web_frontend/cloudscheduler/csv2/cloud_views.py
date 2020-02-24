@@ -129,9 +129,6 @@ METADATA_KEYS = {
         ],
     'not_empty': [
         'metadata_name',
-        ],
-    'array_fields': [
-        'metadata_name',
         ]
     }
 

@@ -62,7 +62,7 @@ GROUP_KEYS = {
         },
     'array_fields': [
         'username'
-    ]
+        ]
     }
 
 GROUP_ADD_KEYS = {
@@ -101,9 +101,6 @@ METADATA_KEYS = {
         'group':                                      'ignore',
         },
     'mandatory': [
-        'metadata_name',
-        ],
-    'not_empty': [
         'metadata_name',
         ],
     }
