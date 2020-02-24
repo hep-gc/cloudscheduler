@@ -50,6 +50,9 @@ USER_GROUP_KEYS = {
         'username',
         'group_name'
         ],
+    'array_fields': [
+        'group_name'
+    ]
     }
 
 UNPRIVILEGED_USER_KEYS = {
