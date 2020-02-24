@@ -1,0 +1,22 @@
+SEC_DEFAULT_AUTHENTICATION = REQUIRED
+SEC_DEFAULT_AUTHENTICATION_METHODS = GSI
+SEC_DEFAULT_ENCRYPTION = REQUIRED
+SEC_DEFAULT_ENCRYPTION_METHODS = 3DES
+SEC_DEFAULT_INTEGRITY = REQUIRED
+GRIDMAP = /etc/grid-security/grid-mapfile
+GSI_DAEMON_CERT = /var/lib/condor/.globus/usercert.pem
+GSI_DAEMON_KEY = /var/lib/condor/.globus/userkey.pem
+GSI_DAEMON_TRUSTED_CA_DIR = /etc/grid-security/certificates/
+GSI_DELEGATION_KEYBITS = 1024
+GSI_SKIP_HOST_CHECK=true
+
+# clear out any host-based authorizations
+# (unnecessary if you leave authentication REQUIRED,
+#  but useful if you make it optional and want to
+#  allow some unauthenticated operations, such as
+#  ALLOW_READ = */*.cs.wisc.edu)
+HOSTALLOW_READ = *
+HOSTALLOW_WRITE = *
+HOSTALLOW_NEGOTIATOR =
+HOSTALLOW_ADMINISTRATOR =
+
