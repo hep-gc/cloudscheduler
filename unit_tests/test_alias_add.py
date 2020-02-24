@@ -30,7 +30,7 @@ def main(gvar):
             'invalid-unit-test-': 'cloud alias add, value specified for "cloud_name" must be all lowercase letters, digits, dashes, underscores, periods, and colons, and cannot contain more than one consecutive dash or start or end with a dash.',
             # 13 Name of a non-existent cloud.
             'invalid-unit-test': 'cloud alias add, "invalid-unit-test" failed - specified value in list of values does not exist: cloud_name=invalid-unit-test, group_name={}.'.format(ut_id(gvar, 'atg1'))
-        }, 'mandatory': True, 'allows_multiple': True},
+        }, 'mandatory': True, 'array_field': True},
         # 14 Omit alias_name.
         # 15 Give two alias_names.
         'alias_name': {'valid': 'invalid-unit-test', 'test_cases': {

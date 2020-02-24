@@ -264,7 +264,7 @@ def parameters_requests(gvar, request, group, server_user, PARAMETERS):
     0. 'test_cases': A dictionary of test cases. Each key should be an invalid value for this parameter (which will be cast to a str). Each value should be the message to expect when this invalid value is sent in an otherwise valid request (str). Giving only invalid values in this dict means that none of the requests sent my this function should actually change anything on the server side (because they are all invalid in one way or another).
     1. 'valid': A valid value for the parameter (which will be cast to a str). If the parameter is mandatory, this will be sent in requests that contain bad values for other parameters.
     [2. Optional: 'mandatory': A boolean indicating whether this parameter must be provided in all requests. If not given, the parameter will be treated as optional.]
-    [3. Optional: 'allows_multiple': A boolean indicating whether giving multiple values for this parameter using the `{'param.1': value1, 'param.2': value2}` syntax is allowed. If not given, this will be treated as False.]
+    [3. Optional: 'array_field': A boolean indicating whether giving multiple values for this parameter using the `{'param.1': value1, 'param.2': value2}` syntax is allowed. If not given, this will be treated as False.]
     '''
 
     mandatory_params = {name: details['valid'] for name, details in PARAMETERS.items() if details.get('mandatory')}
@@ -300,10 +300,10 @@ def parameters_requests(gvar, request, group, server_user, PARAMETERS):
                 # We have exactly one parameter, and it is mandatory, so we cannot exclude it without getting 'invalid method' (which we already tested for).
                 except StopIteration:
                     pass
-        if not p_details.get('allows_multiple'):
+        if not p_details.get('array_field'):
             # Provide the parameter twice.
             execute_csv2_request(
-                gvar, 1, None, '>>>>>>>>>>>>>>>>>> TODO',
+                gvar, 1, None, 'request contained a bad parameter "{}.1".'.format(p_name),
                 request, group=group, form_data={'{}.1'.format(p_name): p_details['valid'], '{}.2'.format(p_name): p_details['valid'], **mandatory_params}, server_user=server_user
             )
         # Give the parameter with invalid values.
