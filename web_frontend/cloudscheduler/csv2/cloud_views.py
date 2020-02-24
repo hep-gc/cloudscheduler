@@ -92,6 +92,9 @@ CLOUD_KEYS = {
         'username',
         'password',
         'region',
+        ],
+    'array_field': [
+        'group_name',
         ]
     }
 
@@ -124,9 +127,12 @@ METADATA_KEYS = {
         'cloud_name',
         'metadata_name',
         ],
-     'not_empty': [
+    'not_empty': [
         'metadata_name',
         ],
+    'array_fields': [
+        'metadata_name',
+        ]
     }
 
 IGNORE_METADATA_NAME = {

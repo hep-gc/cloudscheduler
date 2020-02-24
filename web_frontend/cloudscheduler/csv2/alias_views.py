@@ -43,6 +43,9 @@ CLOUD_ALIAS_KEYS = {
         'cloud_name',
         'alias_name',
     ],
+    'array_fields': [
+        'cloud_name'
+    ]
 }
 
 LIST_KEYS = {
@@ -76,7 +79,7 @@ def manage_cloud_aliases(config, tables, group_name, alias_name, clouds, option=
         cloud_list = []
 
     # Retrieve the list of clouds the cloud alias already has.
-    db_clouds=[]
+    db_clouds = []
     
     s = select([table]).where((table.c.group_name==group_name) & (table.c.alias_name==alias_name))
     _alias_list = qt(config.db_connection.execute(s))

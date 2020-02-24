@@ -60,6 +60,9 @@ GROUP_KEYS = {
         'server_group_members_ctl':                   'reject',
         'floating_ips_ctl':                           'reject',
         },
+    'array_fields': [
+        'username'
+    ]
     }
 
 GROUP_ADD_KEYS = {
