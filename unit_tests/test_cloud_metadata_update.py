@@ -21,10 +21,10 @@ def main(gvar):
         server_user=ut_id(gvar, 'ctu3')
     )
 
-    PARAMETERS = [
+    PARAMETERS = {
         # 07 Give an invalid parameter.
         # 08 Omit cloud_name.
-        ('cloud_name', {
+        'cloud_name': {'valid': ut_id(gvar, 'ctc3'), 'test_cases': {
             # 09
             '': 'cloud metadata-update value specified for "cloud_name" must not be the empty string.',
             # 10
@@ -33,20 +33,20 @@ def main(gvar):
             'invalid-unit-test-': 'cloud metadata-update value specified for "cloud_name" must be all lowercase letters, digits, dashes, underscores, periods, and colons, and cannot contain more than one consecutive dash or start or end with a dash.',
             # 12
             'invalid-unit-test!': 'cloud metadata-update value specified for "cloud_name" must be all lowercase letters, digits, dashes, underscores, periods, and colons, and cannot contain more than one consecutive dash or start or end with a dash.',
-        }, 'invalid-unit-test'),
+        }, 'mandatory': True},
         # 13 Omit metadata_name.
-        ('metadata_name', {
+        'metadata_name': {'valid': ut_id(gvar, 'cty3'), 'test_cases': {
             # 14
             '': 'cloud metadata-update value specified for "metadata_name" must not be the empty string.',
             # 15
             'invalid-unit-test!': 'cloud metadata-update value specified for "metadata_name" must be all lowercase letters, digits, dashes, underscores, periods, and colons, and cannot contain more than one consecutive dash or start or end with a dash.'
-        }, 'invalid-unit-test'),
+        }, 'mandatory': True},
         # 16
-        ('enabled', {'invalid-unit-test': 'boolean value specified for "enabled" must be one of the following: true, false, yes, no, 1, or 0.'}),
+        'enabled': {'valid': , 'test_cases': {'invalid-unit-test': 'boolean value specified for "enabled" must be one of the following: true, false, yes, no, 1, or 0.'}},
         # 17
-        ('mime_type', {'invalid-unit-test': 'value specified for "mime_type" must be one of the following options: [\'cloud-config\', \'ucernvm-config\'].'}),
+        'mime_type': {'valid': , 'test_cases': {'invalid-unit-test': 'value specified for "mime_type" must be one of the following options: [\'cloud-config\', \'ucernvm-config\'].'}},
         # 18
-        ('priority', {'invalid-unit-test': 'value specified for "priority" must be an integer value.'})
+        'priority': {'valid': , 'test_cases': {'invalid-unit-test': 'value specified for "priority" must be an integer value.'}}
     ]
 
     parameters_requests(gvar, '/cloud/metadata-update/', ut_id(gvar, 'ctg1'), ut_id(gvar, 'ctu3'), PARAMETERS)

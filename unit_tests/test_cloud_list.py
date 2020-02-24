@@ -28,7 +28,7 @@ def main(gvar):
             'cloud_priority': 0,
             'cacertificate': None,
             'user_domain_name': 'Default',
-            'project_domain_name': '\'Default\'',
+            'project_domain_name': 'Default',
         },
         server_user=ut_id(gvar, 'ctu3')
     )

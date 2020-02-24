@@ -14,17 +14,11 @@ def main(gvar):
     # 01 - 05
     sanity_requests(gvar, '/cloud/metadata-add/', ut_id(gvar, 'ctg1'), ut_id(gvar, 'ctu3'), ut_id(gvar, 'ctg2'), ut_id(gvar, 'ctu1'))
 
-    # 06
-    execute_csv2_request(
-        gvar, 1, 'CV', 'cloud metadata-add request did not contain mandatory parameters "cloud_name" and "metadata_name".',
-        '/cloud/metadata-add/', group=ut_id(gvar, 'ctg1'),
-        server_user=ut_id(gvar, 'ctu3')
-    )
-
-    PARAMETERS = [
+    PARAMETERS = {
+        # 06 Send GET request.
         # 07 Give an invalid parameter.
         # 08 Omit cloud_name.
-        ('cloud_name', {
+        'cloud_name': {'valid': ut_id(gvar, 'ctc2'), 'test_cases': {
             # 09
             '': 'cloud metadata-add value specified for "cloud_name" must not be the empty string.',
             # 10
@@ -37,21 +31,21 @@ def main(gvar):
             'invalid-unit-test!': 'cloud metadata-add value specified for "cloud_name" must be all lowercase letters, digits, dashes, underscores, periods, and colons, and cannot contain more than one consecutive dash or start or end with a dash.',
             # 14
             'invalid-unit-test': 'cloud name  "invalid-unit-test" does not exist.'
-        }, 'invalid-unit-test'),
+        }, 'mandatory': True},
         # 15 Omit metadata_name.
-        ('metadata_name', {
+        'metadata_name': {'valid': ut_id(gvar, 'cty1'), 'test_cases': {
             # 16
             '': 'cloud metadata-add value specified for "metadata_name" must not be the empty string.',
             # 17
             'invalid-unit-test-': 'cloud metadata-add value specified for "metadata_name" must be all lowercase letters, digits, dashes, underscores, periods, and colons, and cannot contain more than one consecutive dash or start or end with a dash.'
-        }, 'invalid-unit-test'),
+        }, 'mandatory': True},
         # 18
-        ('enabled', {'invalid-unit-test': 'boolean value specified for "enabled" must be one of the following: true, false, yes, no, 1, or 0.'}),
+        'enabled': {'valid': 0, 'test_cases': {'invalid-unit-test': 'boolean value specified for "enabled" must be one of the following: true, false, yes, no, 1, or 0.'}},
         # 19
-        ('mime_type', {'invalid-unit-test': 'value specified for "mime_type" must be one of the following options: [\'cloud-config\', \'ucernvm-config\'].'}),
+        'mime_type': {'valid': 'cloud-config', 'test_cases': {'invalid-unit-test': 'value specified for "mime_type" must be one of the following options: [\'cloud-config\', \'ucernvm-config\'].'}},
         # 20
-        ('priority', {'invalid-unit-test': 'value specified for "priority" must be an integer value.'})
-    ]
+        'priority': {'valid': 0, 'test_cases': {'invalid-unit-test': 'value specified for "priority" must be an integer value.'}}
+    }
 
     parameters_requests(gvar, '/cloud/metadata-add/', ut_id(gvar, 'ctg1'), ut_id(gvar, 'ctu3'), PARAMETERS)
 
@@ -68,7 +62,7 @@ def main(gvar):
         server_user=ut_id(gvar, 'ctu3')
     )
 
-    # 22
+    # 22 Test that .yaml files are parsed as YAML.
     execute_csv2_request(
         gvar, 1, 'CV', 'cloud metadata-add yaml value specified for "metadata (metadata_name)" is invalid - scanner error',
         '/cloud/metadata-add/', group=(ut_id(gvar, 'ctg1')),
@@ -103,7 +97,7 @@ def main(gvar):
         server_user=ut_id(gvar, 'ctu3')
     )
 
-    # 25 Attempt to add the metadata added in 23 again.
+    # 25 Attempt to add the metadata added in 2 again.
     execute_csv2_request(
         gvar, 1, 'CV', 'Duplicate entry \'{}-{}-{}\' for key \'PRIMARY\''.format(ut_id(gvar, 'ctg1'), ut_id(gvar, 'ctc3'), ut_id(gvar, 'cty1')),
         '/cloud/metadata-add/', group=(ut_id(gvar, 'ctg1')),
