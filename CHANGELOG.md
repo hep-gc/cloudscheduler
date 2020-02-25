@@ -13,8 +13,11 @@
   - Process monitor changes:
     - graceful shutdown of services.
     - pause services for backup.
+    - self reporting service statuses
 
   - Removal of 'target_clouds'.
+  
+  - Removal of apel_accounting
 
   - db_upgrade utility enhancements:
     - When in batch mode ('-i' option), error message and exit (rather than prompt) when manual input required.
@@ -29,9 +32,16 @@
  
   - OpenStack credentials now verified prior to adding or updating any cloud.
   
+  - Certificate Management Improvements
+  
+  - Configuration table merge and cleanup
+  
+  - Seperate logrotate files
+  
   - Fixes:
     - Server configuration request to ignore the 'group' key (passed on all requests).
     - Log level change without service restart.
     - Ignore invalid default_group user setting (picks first valid group).
+    - Remove group related data from tables (aliases, default groups, etc) when a group is deleted.
     - Cleanup local inventories to remove obsolete items at the end of each polling cycle.
      
