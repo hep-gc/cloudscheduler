@@ -18,23 +18,24 @@ def main(gvar):
         # 06 Send a GET request.
         # 07 Give an invalid parameter.
         # 08 Omit cloud_name.
+        # 09 Give two cloud_names.
         'cloud_name': {'valid': ut_id(gvar, 'ctc1'), 'test_cases': {
-            # 09
-            '': 'cloud delete value specified for "cloud_name" must not be the empty string.',
             # 10
-            'Invalid-Unit-Test': 'cloud delete value specified for "cloud_name" must be all lowercase letters, digits, dashes, underscores, periods, and colons, and cannot contain more than one consecutive dash or start or end with a dash.',
+            '': 'cloud delete value specified for "cloud_name" must not be the empty string.',
             # 11
-            'invalid-unit-test-': 'cloud delete value specified for "cloud_name" must be all lowercase letters, digits, dashes, underscores, periods, and colons, and cannot contain more than one consecutive dash or start or end with a dash.',
+            'Invalid-Unit-Test': 'cloud delete value specified for "cloud_name" must be all lowercase letters, digits, dashes, underscores, periods, and colons, and cannot contain more than one consecutive dash or start or end with a dash.',
             # 12
-            'invalid-unit-test!': 'cloud delete value specified for "cloud_name" must be all lowercase letters, digits, dashes, underscores, periods, and colons, and cannot contain more than one consecutive dash or start or end with a dash.',
+            'invalid-unit-test-': 'cloud delete value specified for "cloud_name" must be all lowercase letters, digits, dashes, underscores, periods, and colons, and cannot contain more than one consecutive dash or start or end with a dash.',
             # 13
+            'invalid-unit-test!': 'cloud delete value specified for "cloud_name" must be all lowercase letters, digits, dashes, underscores, periods, and colons, and cannot contain more than one consecutive dash or start or end with a dash.',
+            # 14
             'invalid-unit-test': 'the request did not match any rows.',
         }, 'mandatory': True}
     }
 
     parameters_requests(gvar, '/cloud/delete/', ut_id(gvar, 'ctg1'), ut_id(gvar, 'ctu3'), PARAMETERS)
 
-    # 14
+    # 15
     execute_csv2_request(
         gvar, 0, None, 'cloud "{}::{}" successfully deleted.'.format(ut_id(gvar, 'ctg1'), ut_id(gvar, 'ctc1')),
         '/cloud/delete/', group=ut_id(gvar, 'ctg1'), form_data={'cloud_name': ut_id(gvar, 'ctc1')},

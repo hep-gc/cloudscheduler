@@ -32,21 +32,23 @@ def main(gvar):
             'invalid-unit-test': 'cloud alias update, "{}" failed - specified value in list of values does not exist: cloud_name=invalid-unit-test'.format(ut_id(gvar, 'ata2'))
         }, 'mandatory': True, 'array_field': True},
         # 14 Omit alias_name.
+        # 15 Give two alias_names.
         'alias_name': {'valid': ut_id(gvar, 'ata2'), 'test_cases': {
-            # 15
-            '': 'cloud alias update, value specified for "alias_name" must not be the empty string.',
             # 16
-            'invalid-unit-test!': 'cloud alias update, value specified for "alias_name" must be all lowercase letters, digits, dashes, underscores, periods, and colons, and cannot contain more than one consecutive dash or start or end with a dash.',
+            '': 'cloud alias update, value specified for "alias_name" must not be the empty string.',
             # 17
+            'invalid-unit-test!': 'cloud alias update, value specified for "alias_name" must be all lowercase letters, digits, dashes, underscores, periods, and colons, and cannot contain more than one consecutive dash or start or end with a dash.',
+            # 18
             'invalid-unit-test': 'cloud alias group update "{}.invalid-unit-test" failed - specified alias does not exist.'.format(ut_id(gvar, 'atg1'))
         }, 'mandatory': True},
-        # 18
+        # 19
+        # 20 Give two cloud_options.
         'cloud_option': {'valid': 'add', 'test_cases': {'invalid-unit-test': 'cloud alias update, value specified for "cloud_option" must be one of the following options: [\'add\', \'delete\'].'}}
     }
 
     parameters_requests(gvar, '/alias/update/', ut_id(gvar, 'atg1'), ut_id(gvar, 'atu1'), PARAMETERS)
 
-    # 19 Add atc2 to ata2.
+    # 21 Add atc2 to ata2.
     execute_csv2_request(
         gvar, 0, None, 'cloud alias "{}.{}" successfully updated.'.format(ut_id(gvar, 'atg1'), ut_id(gvar, 'ata2')),
         '/alias/update/', group=ut_id(gvar, 'atg1'), form_data={
@@ -56,7 +58,7 @@ def main(gvar):
         server_user=ut_id(gvar, 'atu1')
     )
 
-    # 20 Ensure that 19 actually added atc2.
+    # 22 Ensure that 19 actually added atc2.
     execute_csv2_request(
         gvar, 0, None, None,
         '/alias/list/', group=ut_id(gvar, 'atg1'),
@@ -67,7 +69,7 @@ def main(gvar):
 
     # Currently adding a cloud to an alias that it is already "in" causes the server to do nothing and give a successful response.
 
-    # 21 Remove atc1 from ata2.
+    # 23 Remove atc1 from ata2.
     execute_csv2_request(
         gvar, 0, None, 'cloud alias "{}.{}" successfully updated.'.format(ut_id(gvar, 'atg1'), ut_id(gvar, 'ata2')),
         '/alias/update/', group=ut_id(gvar, 'atg1'), form_data={
@@ -78,7 +80,7 @@ def main(gvar):
         server_user=ut_id(gvar, 'atu1')
     )
 
-    # 22 Remove atc2 from ata2, causing ata2 to be deleted.
+    # 24 Remove atc2 from ata2, causing ata2 to be deleted.
     execute_csv2_request(
         gvar, 0, None, 'cloud alias "{}.{}" successfully updated.'.format(ut_id(gvar, 'atg1'), ut_id(gvar, 'ata2')),
         '/alias/update/', group=ut_id(gvar, 'atg1'), form_data={

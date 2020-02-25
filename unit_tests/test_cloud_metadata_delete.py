@@ -18,30 +18,32 @@ def main(gvar):
         # 06 Send a GET request.
         # 07 Give an invalid parameter.
         # 08 Omit cloud_name.
+        # 09 Give two cloud_names.
         'cloud_name': {'valid': ut_id(gvar, 'ctc3'), 'test_cases': {
-            # 09
-            '': 'cloud metadata-delete value specified for "cloud_name" must not be the empty string.',
             # 10
-            'Invalid-unit-test': 'cloud metadata-delete value specified for "cloud_name" must be all lowercase letters, digits, dashes, underscores, periods, and colons, and cannot contain more than one consecutive dash or start or end with a dash.',
+            '': 'cloud metadata-delete value specified for "cloud_name" must not be the empty string.',
             # 11
-            'invalid-unit-test-': 'cloud metadata-delete value specified for "cloud_name" must be all lowercase letters, digits, dashes, underscores, periods, and colons, and cannot contain more than one consecutive dash or start or end with a dash.',
+            'Invalid-unit-test': 'cloud metadata-delete value specified for "cloud_name" must be all lowercase letters, digits, dashes, underscores, periods, and colons, and cannot contain more than one consecutive dash or start or end with a dash.',
             # 12
+            'invalid-unit-test-': 'cloud metadata-delete value specified for "cloud_name" must be all lowercase letters, digits, dashes, underscores, periods, and colons, and cannot contain more than one consecutive dash or start or end with a dash.',
+            # 13
             'invalid-unit-test!': 'cloud metadata-delete value specified for "cloud_name" must be all lowercase letters, digits, dashes, underscores, periods, and colons, and cannot contain more than one consecutive dash or start or end with a dash.',
-            # 13 Tests both a cloud that does not exist and metadata that does not exist.
+            # 14 Tests both a cloud that does not exist and metadata that does not exist.
             'invalid-unit-test': 'the request did not match any rows.'
         }, 'mandatory': True},
-        # 14 Omit metadata_name.
+        # 15 Omit metadata_name.
+        # 16 Give two metadata_names.
         'metadata_name': {'valid': ut_id(gvar, 'cty2'), 'test_cases': {
-            # 15
+            # 17
             '': 'cloud metadata-delete value specified for "metadata_name" must not be the empty string.',
-            # 16
+            # 18
             'invalid-unit-test!': 'cloud metadata-delete value specified for "metadata_name" must be all lowercase letters, digits, dashes, underscores, periods, and colons, and cannot contain more than one consecutive dash or start or end with a dash.'
         }, 'mandatory': True}
     }
 
     parameters_requests(gvar, '/cloud/metadata-delete/', ut_id(gvar, 'ctg1'), ut_id(gvar, 'ctu3'), PARAMETERS)
 
-    # 17
+    # 19
     execute_csv2_request(
         gvar, 0, None, 'cloud metadata file "{}::{}::{}" successfully deleted.'.format(ut_id(gvar, 'ctg1'), ut_id(gvar, 'ctc3'), ut_id(gvar, 'cty2')),
         '/cloud/metadata-delete/', group=(ut_id(gvar, 'ctg1')),
