@@ -22,7 +22,9 @@ from cloudscheduler.lib.poller_functions import \
     test_and_set_inventory_item_hash, \
     build_inventory_for_condor, \
     start_cycle, \
-    wait_cycle
+    wait_cycle, \
+    cleanup_inventory
+
 from cloudscheduler.lib.signal_functions import *
 
 from keystoneclient.auth.identity import v2, v3
@@ -676,6 +678,9 @@ def job_poller():
                 logging.debug("Stop set, exiting...")
                 break
             signal.signal(signal.SIGINT, signal.SIG_IGN)
+            # Cleanup inventory, this function will clean up inventory entries for deleted clouds
+            group_clouds = config.db_connection.execute('select distinct group_name, cloud_name from csv2_clouds where cloud_type="openstack"')
+            cleanup_inventory(inventory, group_clouds)                                                          
 
             db_session = config.db_session
             groups = db_session.query(GROUPS).filter(GROUPS.htcondor_host_id == config.local_host_id)
@@ -1015,6 +1020,7 @@ def job_command_poller():
                 break
 
             signal.signal(signal.SIGINT, signal.SIG_IGN)
+
             new_poll_time, cycle_start_time = start_cycle(new_poll_time, cycle_start_time)
 
             db_session = config.db_session
@@ -1134,6 +1140,10 @@ def machine_poller():
                 logging.debug("Stop set, exiting...")
                 break
             signal.signal(signal.SIGINT, signal.SIG_IGN)
+            # Cleanup inventory, this function will clean up inventory entries for deleted clouds
+            group_clouds = config.db_connection.execute('select distinct group_name, cloud_name from csv2_clouds where cloud_type="openstack"')
+            cleanup_inventory(inventory, group_clouds)
+
 
             db_session = config.db_session
             groups = db_session.query(GROUPS).filter(GROUPS.htcondor_host_id == config.local_host_id)
