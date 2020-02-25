@@ -1,0 +1,43 @@
+#!/bin/bash
+
+R=0
+{% if htcondor_cert is defined and htcondor_key is defined and htcondor_worker_cert is defined and htcondor_worker_key is defined %}
+    {% for host in certificate_users %}
+if [ $R -eq 0 ]; then
+    M=$(
+        {% for user in certificate_users.host %}
+        /bin/cp -f /etc/grid-security/{{ host }}/cert.pem {{ user.2 }}/.globus/{{ user.3 }}cert.pem 2>&1 &&
+            {% if loop.last %}
+        /bin/cp -f /etc/grid-security/{{ host }}/privkey.pem {{ user.2 }}/.globus/{{ user.3 }}key.pem 2>&1
+            {% else %}
+        /bin/cp -f /etc/grid-security/{{ host }}/privkey.pem {{ user.2 }}/.globus/{{ user.3 }}key.pem 2>&1 &&
+            {% endif %}
+        {% endfor %}
+    ) || R=1
+fi
+
+    {% endfor %}
+{% else %}
+    {% for host in certificate_users %}
+if [ $R -eq 0 ]; then
+    M=$(
+        {% for user in certificate_users.host %}
+        /bin/cp -f /etc/letsencrypt/live/{{ host }}/cert.pem {{ user.2 }}/.globus/{{ user.3 }}cert.pem 2>&1 &&
+            {% if loop.last %}
+        /bin/cp -f /etc/letsencrypt/live/{{ host }}/privkey.pem {{ user.2 }}/.globus/{{ user.3 }}key.pem 2>&1
+            {% else %}
+        /bin/cp -f /etc/letsencrypt/live/{{ host }}/privkey.pem {{ user.2 }}/.globus/{{ user.3 }}key.pem 2>&1 &&
+            {% endif %}
+        {% endfor %}
+    ) || R=1
+fi
+
+    {% endfor %}
+{% endif %}
+
+# echo $R
+if [ $R -eq 1 ]; then
+    /usr/bin/echo -e "copy of letsencrypt certificates failed for one or more users:\n$M" | \
+    /usr/bin/mail -s "user key/cert problem on $(hostname)" "{{ admin_email }}"
+fi
+
