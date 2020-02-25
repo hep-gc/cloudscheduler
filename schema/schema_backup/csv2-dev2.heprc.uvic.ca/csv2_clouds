@@ -36,7 +36,7 @@ CREATE TABLE `csv2_clouds` (
   `region` varchar(32) NOT NULL,
   `user_domain_name` varchar(20) NOT NULL DEFAULT 'Default',
   `user_domain_id` varchar(64) DEFAULT NULL,
-  `project_domain_name` varchar(20) NOT NULL DEFAULT '''Default''',
+  `project_domain_name` varchar(20) NOT NULL DEFAULT 'Default',
   `project_domain_id` varchar(64) DEFAULT NULL,
   `cloud_type` varchar(64) NOT NULL,
   `ec2_owner_id` varchar(32) DEFAULT NULL,
@@ -80,4 +80,4 @@ CREATE TABLE `csv2_clouds` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2020-02-12  8:49:05
+-- Dump completed on 2020-02-25 10:54:23

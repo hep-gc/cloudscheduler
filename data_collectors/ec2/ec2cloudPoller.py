@@ -24,7 +24,8 @@ from cloudscheduler.lib.poller_functions import \
     get_inventory_item_hash_from_database, \
     test_and_set_inventory_item_hash, \
     start_cycle, \
-    wait_cycle
+    wait_cycle, \
+    cleanup_inventory
 #   get_last_poll_time_from_database, \
 #   set_inventory_group_and_cloud, \
 #   set_inventory_item, \
@@ -390,6 +391,10 @@ def flavor_poller():
             new_poll_time, cycle_start_time = start_cycle(new_poll_time, cycle_start_time)
             config.db_open()
             db_session = config.db_session
+            # Cleanup inventory, this function will clean up inventory entries for deleted clouds
+            group_clouds = config.db_connection.execute('select distinct group_name, cloud_name from csv2_clouds where cloud_type="openstack"')
+            cleanup_inventory(inventory, group_clouds)
+
 
             # First check that our ec2 instance types table is up to date:
             check_instance_types(config)
@@ -862,6 +867,10 @@ def keypair_poller():
                 config.db_open()
                 config.refresh()
                 db_session = config.db_session
+                # Cleanup inventory, this function will clean up inventory entries for deleted clouds
+                group_clouds = config.db_connection.execute('select distinct group_name, cloud_name from csv2_clouds where cloud_type="openstack"')
+                cleanup_inventory(inventory, group_clouds)
+
 
                 abort_cycle = False
                 cloud_list = db_session.query(CLOUD).filter(CLOUD.cloud_type == "amazon")
@@ -1038,6 +1047,10 @@ def limit_poller():
                 config.db_open()
                 config.refresh()
                 db_session = config.db_session
+                # Cleanup inventory, this function will clean up inventory entries for deleted clouds
+                group_clouds = config.db_connection.execute('select distinct group_name, cloud_name from csv2_clouds where cloud_type="openstack"')
+                cleanup_inventory(inventory, group_clouds)
+
 
                 abort_cycle = False
                 cloud_list = db_session.query(CLOUD).filter(CLOUD.cloud_type == "amazon")
@@ -1257,6 +1270,10 @@ def network_poller():
                 config.refresh()
                 db_session = config.db_session
 
+                # Cleanup inventory, this function will clean up inventory entries for deleted clouds
+                group_clouds = config.db_connection.execute('select distinct group_name, cloud_name from csv2_clouds where cloud_type="openstack"')
+                cleanup_inventory(inventory, group_clouds)
+
                 abort_cycle = False
                 cloud_list = db_session.query(CLOUD).filter(CLOUD.cloud_type == "amazon")
 
@@ -1444,6 +1461,10 @@ def security_group_poller():
                 config.db_open()
                 config.refresh()
                 db_session = config.db_session
+
+                # Cleanup inventory, this function will clean up inventory entries for deleted clouds
+                group_clouds = config.db_connection.execute('select distinct group_name, cloud_name from csv2_clouds where cloud_type="openstack"')
+                cleanup_inventory(inventory, group_clouds)
 
                 abort_cycle = False
                 cloud_list = db_session.query(CLOUD).filter(CLOUD.cloud_type == "amazon")
@@ -1640,6 +1661,10 @@ def vm_poller():
             config.db_open()
             config.refresh()
             db_session = config.db_session
+
+            # Cleanup inventory, this function will clean up inventory entries for deleted clouds
+            group_clouds = config.db_connection.execute('select distinct group_name, cloud_name from csv2_clouds where cloud_type="openstack"')
+            cleanup_inventory(inventory, group_clouds)
 
             # For each amazon region, retrieve and process VMs.
             abort_cycle = False
