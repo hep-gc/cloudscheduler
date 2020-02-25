@@ -146,11 +146,11 @@ def execute_csv2_request(gvar, expected_rc, expected_modid, expected_text, reque
         if response['response_code'] == 0 or not expected_modid:
             modid = expected_modid
         else:
-            modid = response['message'].replace('-', ' ').split()[0]
+            modid = response['message'].replace('-', ' ').split(maxsplit=1)[0]
             if expected_modid and modid != expected_modid:
                 failed = True
 
-        if expected_text and str(response['message']).find(expected_text) < 0:
+        if expected_text and expected_text not in response['message']:
             failed = True
 
         # Colour a missing group red.
@@ -270,7 +270,7 @@ def parameters_requests(gvar, request, group, server_user, PARAMETERS):
     mandatory_params = {name: details['valid'] for name, details in PARAMETERS.items() if details.get('mandatory')}
     # Omit form_data entirely.
     execute_csv2_request(
-        gvar, 1, None, ' invalid method "GET" specified.',
+        gvar, 1, None, 'invalid method "GET" specified.',
         request, group=group, server_user=server_user
     )
     # Give an invalid parameter.
