@@ -300,7 +300,13 @@ def parameters_requests(gvar, request, group, server_user, PARAMETERS):
                 # We have exactly one parameter, and it is mandatory, so we cannot exclude it without getting 'invalid method' (which we already tested for).
                 except StopIteration:
                     pass
-        if not p_details.get('array_field'):
+        if p_details.get('array_field'):
+            # Mix single and multiple parameter syntaxes.
+            execute_csv2_request(
+                gvar, 1, None, 'request contained parameter "{0}.1" and parameter "{0}".'.format(p_name),
+                request, group=group, form_data={p_name: p_details['valid'], '{}.1'.format(p_name): p_details['valid'], **mandatory_params}, server_user=server_user
+            )
+        else:
             # Provide the parameter twice.
             execute_csv2_request(
                 gvar, 1, None, 'request contained a bad parameter "{}.1".'.format(p_name),
