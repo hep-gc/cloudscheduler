@@ -1170,6 +1170,7 @@ def validate_fields(config, request, fields, tables, active_user):
     Mandatory = []
     AllowEmpty = []
     NotEmpty = []
+    ArrayFields = []
     Options = {
         'accept_primary_keys_only': False,
         'auto_active_group': False,
@@ -1197,6 +1198,11 @@ def validate_fields(config, request, fields, tables, active_user):
                     NotEmpty += option_set[option]
                 else:
                     NotEmpty.append(option_set[option])
+            elif option == 'array_fields':
+                if isinstance(option_set[option], list):
+                    ArrayFields += option_set[option]
+                else:
+                    ArrayFields.append(option_set[option])
             else:
                 Options[option] = option_set[option]
 
@@ -1428,7 +1434,7 @@ def validate_fields(config, request, fields, tables, active_user):
                 Fields[field_alias] = value
             else: 
                 array_field = field.split('.')
-                if len(array_field) > 1 and (array_field[0] in all_columns or array_field[0] in Formats):
+                if len(array_field) > 1 and array_field[0] in ArrayFields:
                     if array_field[0] not in Fields:
                         Fields[array_field[0]] = []
                     Fields[array_field[0]].append(value)
