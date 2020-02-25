@@ -45,27 +45,39 @@ def wait_cycle(start_time, poll_time_history, config_sleep_time, config):
         time.sleep(config_sleep_time)
     return
 
-
-def cleanup_inventory(inventory, base_class_key, poll_time=None):
+# cleans up any groups or clouds that don't exist anymore
+# accepts the inventory dictionary and a list of group, cloud pairings
+# removes any grp-clds from inventory not present in the list
+def cleanup_inventory(inventory, group_cloud_list):
     logging.debug("Starting Inventory Cleanup")
-    items_to_clean = []
+    
+    group_list = []
+    group_cloud_set = set()
+    #Make group and group_cloud list
+    for item in group_cloud_list:
+        group_list.append(item.group_name)
+        group_cloud_set.add((item.group_name, item.cloud_name))
+
+    # Remove deleted groups
+    grps_to_pop = []
+    for group_name in inventory:
+        if group_name not in group_list:
+            grps_to_pop.append(group_name)
+
+    for group in grps_to_pop:
+        logging.info("Cleaning up removed group: %s" % group)
+        inventory.pop(group)
+
+    # Remove deleted clouds
+    grp_clds_to_pop = []
     for group_name in inventory:
         for cloud_name in inventory[group_name]:
-            for item in inventory[group_name][cloud_name]:
-                if base_class_key == '-': 
-                    if inventory[group_name][cloud_name]['-']['poll_time'] < poll_time:
-                        items_to_clean.append((group_name, cloud_name))
-                else:
-                    if inventory[group_name][cloud_name][item.__dict__[base_class_key]]['poll_time'] < poll_time:
-                        items_to_clean.append((group_name, cloud_name, item.__dict__[base_class_key]))
+            if (group_name, cloud_name) not in group_cloud_set:
+                grp_clds_to_pop.append((group_name, cloud_name))
 
-    for item in items_to_clean:
-        if base_class_key == '-':
-            logging.debug("Cleaning up %s - %s" % (item[0], item[1]))
-            inventory[item[0]].pop(item[1], None)
-        else:
-            logging.debug("Cleaning up %s - %s - %s" % (item[0], item[1], item[2]))
-            inventory[item[0]][item[1]].pop(item[2], None)
+    for grp, cld in grp_clds_to_pop:
+        logging.info("Cleaning up removed group-cloud: %s - %s" % (grp, cld))
+        inventory[grp].pop(cld)
 
 
 

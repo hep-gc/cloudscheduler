@@ -383,6 +383,11 @@ def flavor_poller():
                 if not os.path.exists(PID_FILE):
                     logging.info("Stop set, exiting...")
                     break
+                # Cleanup inventory, this function will clean up inventory entries for deleted clouds
+                group_clouds = config.db_connection.execute('select distinct group_name, cloud_name from csv2_clouds where cloud_type="openstack"')
+                cleanup_inventory(inventory, group_clouds)
+
+
                 signal.signal(signal.SIGINT, config.signals['SIGINT'])
                 try:
                     wait_cycle(cycle_start_time, poll_time_history, config.categories["openstackPoller.py"]["sleep_interval_flavor"], config)
@@ -593,6 +598,11 @@ def image_poller():
                 if not os.path.exists(PID_FILE):
                     logging.info("Stop set, exiting...")
                     break
+                # Cleanup inventory, this function will clean up inventory entries for deleted clouds
+                group_clouds = config.db_connection.execute('select distinct group_name, cloud_name from csv2_clouds where cloud_type="openstack"')
+                cleanup_inventory(inventory, group_clouds)
+
+
                 signal.signal(signal.SIGINT, config.signals['SIGINT'])
 
                 try:
@@ -770,6 +780,11 @@ def keypair_poller():
                 if not os.path.exists(PID_FILE):
                     logging.info("Stop set, exiting...")
                     break
+                # Cleanup inventory, this function will clean up inventory entries for deleted clouds
+                group_clouds = config.db_connection.execute('select distinct group_name, cloud_name from csv2_clouds where cloud_type="openstack"')
+                cleanup_inventory(inventory, group_clouds)
+
+
                 signal.signal(signal.SIGINT, config.signals['SIGINT'])
 
                 try:
@@ -947,7 +962,8 @@ def limit_poller():
 
                 config.db_session.rollback()
                 # Cleanup inventory, this function will clean up inventory entries for deleted clouds
-                cleanup_inventory(inventory, '-', cycle_start_time)
+                group_clouds = config.db_connection.execute('select distinct group_name, cloud_name from csv2_clouds where cloud_type="openstack"')
+                cleanup_inventory(inventory, group_clouds)
 
                 if not os.path.exists(PID_FILE):
                     logging.info("Stop set, exiting...")
@@ -1135,6 +1151,11 @@ def network_poller():
                 if not os.path.exists(PID_FILE):
                     logging.info("Stop set, exiting...")
                     break
+
+                # Cleanup inventory, this function will clean up inventory entries for deleted clouds
+                group_clouds = config.db_connection.execute('select distinct group_name, cloud_name from csv2_clouds where cloud_type="openstack"')
+                cleanup_inventory(inventory, group_clouds)
+
                 signal.signal(signal.SIGINT, config.signals['SIGINT'])
 
                 try:
@@ -1320,6 +1341,11 @@ def security_group_poller():
                 if not os.path.exists(PID_FILE):
                     logging.info("Stop set, exiting...")
                     break
+                # Cleanup inventory, this function will clean up inventory entries for deleted clouds
+                group_clouds = config.db_connection.execute('select distinct group_name, cloud_name from csv2_clouds where cloud_type="openstack"')
+                cleanup_inventory(inventory, group_clouds)
+
+
                 signal.signal(signal.SIGINT, config.signals['SIGINT'])
 
                 try:
@@ -1663,6 +1689,11 @@ def vm_poller():
             if not os.path.exists(PID_FILE):
                 logging.info("Stop set, exiting...")
                 break
+
+            # Cleanup inventory, this function will clean up inventory entries for deleted clouds
+            group_clouds = config.db_connection.execute('select distinct group_name, cloud_name from csv2_clouds where cloud_type="openstack"')
+            cleanup_inventory(inventory, group_clouds)
+
             signal.signal(signal.SIGINT, config.signals['SIGINT'])
 
             wait_cycle(cycle_start_time, poll_time_history, config.categories["openstackPoller.py"]["sleep_interval_vm"], config)
