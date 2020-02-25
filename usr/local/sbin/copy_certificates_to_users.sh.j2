@@ -4,20 +4,20 @@ R=0
 M=$(
 {% if htcondor_cert is defined and htcondor_key is defined and htcondor_worker_cert is defined and htcondor_worker_key is defined %}
     {% for user in certificate_users %}
-    /bin/cp -f /etc/grid-security/{{ user.host }}/cert.pem {{ user.home }}/.globus/{{ user.pfx }}cert.pem 2>&1 &&
+/bin/cp -f /etc/grid-security/{{ user.host }}/cert.pem {{ user.home }}/.globus/{{ user.pfx }}cert.pem 2>&1 &&
         {% if loop.last %}
-    /bin/cp -f /etc/grid-security/{{ user.host }}/privkey.pem {{ user.home }}/.globus/{{ user.pfx }}key.pem 2>&1
+/bin/cp -f /etc/grid-security/{{ user.host }}/privkey.pem {{ user.home }}/.globus/{{ user.pfx }}key.pem 2>&1
         {% else %}
-    /bin/cp -f /etc/grid-security/{{ user.host }}/privkey.pem {{ user.home }}/.globus/{{ user.pfx }}key.pem 2>&1 &&
+/bin/cp -f /etc/grid-security/{{ user.host }}/privkey.pem {{ user.home }}/.globus/{{ user.pfx }}key.pem 2>&1 &&
         {% endif %}
     {% endfor %}
 {% else %}
     {% for user in certificate_users %}
-    /bin/cp -f /etc/letsencrypt/live/{{ user.host }}/cert.pem {{ user.home }}/.globus/{{ user.pfx }}cert.pem 2>&1 &&
+/bin/cp -f /etc/letsencrypt/live/{{ user.host }}/cert.pem {{ user.home }}/.globus/{{ user.pfx }}cert.pem 2>&1 &&
         {% if loop.last %}
-    /bin/cp -f /etc/letsencrypt/live/{{ user.host }}/privkey.pem {{ user.home }}/.globus/{{ user.pfx }}key.pem 2>&1
+/bin/cp -f /etc/letsencrypt/live/{{ user.host }}/privkey.pem {{ user.home }}/.globus/{{ user.pfx }}key.pem 2>&1
         {% else %}
-    /bin/cp -f /etc/letsencrypt/live/{{ user.host }}/privkey.pem {{ user.home }}/.globus/{{ user.pfx }}key.pem 2>&1 &&
+/bin/cp -f /etc/letsencrypt/live/{{ user.host }}/privkey.pem {{ user.home }}/.globus/{{ user.pfx }}key.pem 2>&1 &&
         {% endif %}
     {% endfor %}
 {% endif %}
@@ -29,5 +29,3 @@ if [ $R -eq 1 ]; then
     /usr/bin/mail -s "user key/cert problem on $(hostname)" "{{ admin_email }}"
 fi
 
-if [ $R -eq 0 ]; then
-fi
