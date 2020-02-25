@@ -62,7 +62,7 @@ GROUP_KEYS = {
         },
     'array_fields': [
         'username'
-        ]
+        ],
     }
 
 GROUP_ADD_KEYS = {
@@ -82,7 +82,6 @@ UNPRIVILEGED_GROUP_KEYS = {
         'job_ram':                                    'integer',
         'job_swap':                                   'integer',
         'vm_keep_alive':                              'integer',
-
         'job_scratch':                                'reject',
         },
     }
@@ -102,6 +101,12 @@ METADATA_KEYS = {
         },
     'mandatory': [
         'metadata_name',
+        ],
+    }
+
+METADATA_ADD_KEYS = {
+    'mandatory': [
+        'metadata',
         ],
     }
 
@@ -685,7 +690,7 @@ def metadata_add(request):
 
     if request.method == 'POST':
         # Validate input fields.
-        rc, msg, fields, tables, columns = validate_fields(config, request, [METADATA_KEYS], ['csv2_group_metadata'], active_user)
+        rc, msg, fields, tables, columns = validate_fields(config, request, [METADATA_KEYS, METADATA_ADD_KEYS], ['csv2_group_metadata'], active_user)
         if rc != 0:
             config.db_close()
             return render(request, 'csv2/blank_msg.html', {'response_code': 1, 'message': '%s group metadata-add %s' % (lno(MODID), msg)})
