@@ -1437,7 +1437,10 @@ def validate_fields(config, request, fields, tables, active_user):
                 if len(array_field) > 1 and array_field[0] in ArrayFields:
                     if array_field[0] not in Fields:
                         Fields[array_field[0]] = []
-                    Fields[array_field[0]].append(value)
+                    elif isinstance(Fields[array_field[0]], list):
+                        Fields[array_field[0]].append(value)
+                    else:
+                        return 1, 'request contained parameter "%s" and parameter "%s".' % (field, array_field[0]), None, None, None
                 else:
                     if field in Formats:
                         Fields[field] = value
