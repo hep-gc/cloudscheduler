@@ -1,4 +1,4 @@
-from unit_test_common import execute_csv2_request, initialize_csv2_request, ut_id
+from unit_test_common import execute_csv2_request, initialize_csv2_request, ut_id, sanity_requests
 from sys import argv
 
 # lno: GV - error code identifier.
@@ -11,103 +11,48 @@ def main(gvar):
         else:
             initialize_csv2_request(gvar)
 
-    # 1
-    execute_csv2_request(
-        gvar, 2, None, 'HTTP response code 401, unauthorized.',
-        '/group/defaults/', group=ut_id(gvar, 'gtg4'),
-        server_user=ut_id(gvar, 'invalid-unit-test')
-    )
+    # 01 - 05
+    sanity_requests(gvar, '/group/defaults/', ut_id(gvar, 'gtg4'), ut_id(gvar, 'gtu3'), ut_id(gvar, 'gtg7'), ut_id(gvar, 'gtu1'))
 
-    # 2
-    execute_csv2_request(
-        gvar, 1, 'GV', 'user "{}" is not a member of any group.'.format(ut_id(gvar, 'gtu1')),
-        '/group/defaults/', group=ut_id(gvar, 'gtg4'),
-        server_user=ut_id(gvar, 'gtu1')
-    )
-
-    # 3
-    execute_csv2_request(
-        gvar, 0, None, None,
-        '/group/defaults/', group=ut_id(gvar, 'gtg4'),
-        server_user=ut_id(gvar, 'gtu3')
-    )
-
-    # 4
-    execute_csv2_request(
-        gvar, 1, 'GV', 'cannot switch to invalid group "invalid-unit-test".',
-        '/group/defaults/', group='invalid-unit-test',
-        server_user=ut_id(gvar, 'gtu3')
-    )
-
-    # 5
-    execute_csv2_request(
-        gvar, 1, 'GV', 'cannot switch to invalid group "{}".'.format(ut_id(gvar, 'gtg7')),
-        '/group/defaults/', group=ut_id(gvar, 'gtg7'),
-        server_user=ut_id(gvar, 'gtu3')
-    )
-
-    # 6
+    # We cannot use parameters_requests here because /group/defaults/ accepts GET requests (in addition to POSTs).
+    # 06
     execute_csv2_request(
         gvar, 1, 'GV', 'request contained a bad parameter "invalid-unit-test".',
         '/group/defaults/', group=(ut_id(gvar, 'gtg4')), form_data={'invalid-unit-test': 'invalid-unit-test'},
         server_user=ut_id(gvar, 'gtu3')
     )
 
-    # 7
-    execute_csv2_request(
-        gvar, 1, 'GV', 'default update/list value specified for "job_cpus" must be an integer value.',
-        '/group/defaults/', group=ut_id(gvar, 'gtg4'), form_data={
-            'job_cpus': 'invalid-unit-test'
-            },
-        server_user=ut_id(gvar, 'gtu3')
-    )
+    # 07 - 16
+    INT_PARAMETERS = ['job_cpus', 'job_ram', 'job_disk', 'job_swap', 'vm_keep_alive']
+    for param in INT_PARAMETERS:
+        execute_csv2_request(
+            gvar, 1, 'GV', 'default update/list request contained a bad parameter "{}.1".'.format(param),
+            '/group/defaults/', group=ut_id(gvar, 'gtg4'), form_data={param: 0, '{}.1'.format(param): 0},
+            server_user=ut_id(gvar, 'gtu3')
+        )
+        execute_csv2_request(
+            gvar, 1, 'GV', 'default update/list value specified for "{}" must be an integer value.'.format(param),
+            '/group/defaults/', group=ut_id(gvar, 'gtg4'), form_data={param: 'invalid-unit-test'},
+            server_user=ut_id(gvar, 'gtu3')
+        )
 
-    # 8
-    execute_csv2_request(
-        gvar, 1, 'GV', 'default update/list value specified for "job_ram" must be an integer value.',
-        '/group/defaults/', group=ut_id(gvar, 'gtg4'), form_data={
-            'job_ram': 'invalid-unit-test'
-            },
-        server_user=ut_id(gvar, 'gtu3')
-    )
-
-    # 9
-    execute_csv2_request(
-        gvar, 1, 'GV', 'default update/list value specified for "job_disk" must be an integer value.',
-        '/group/defaults/', group=ut_id(gvar, 'gtg4'), form_data={
-            'job_disk': 'invalid-unit-test'
-            },
-        server_user=ut_id(gvar, 'gtu3')
-    )
-
-    # 10
+    # 17
     execute_csv2_request(
         gvar, 1, 'GV', 'request contained a rejected/bad parameter "job_scratch".',
-        '/group/defaults/', group=ut_id(gvar, 'gtg4'), form_data={
-            'job_scratch': 'invalid-unit-test'
-            },
+        '/group/defaults/', group=ut_id(gvar, 'gtg4'), form_data={'job_scratch': 'invalid-unit-test'},
         server_user=ut_id(gvar, 'gtu3')
     )
 
-    # 11
-    execute_csv2_request(
-        gvar, 1, 'GV', 'default update/list value specified for "job_swap" must be an integer value.',
-        '/group/defaults/', group=ut_id(gvar, 'gtg4'), form_data={
-            'job_swap': 'invalid-unit-test'
-            },
-        server_user=ut_id(gvar, 'gtu3')
-    )
+    # 18 - 21
+    VM_PARAMETERS = ['vm_image', 'vm_flavor', 'vm_network', 'vm_keyname']
+    for param in VM_PARAMETERS:
+        execute_csv2_request(
+            gvar, 1, 'GV', 'group defaults update specified item does not exist: {}=invalid-unit-test, group_name={}.'.format(param, ut_id(gvar, 'gtg4')),
+            '/group/defaults/', group=ut_id(gvar, 'gtg4'), form_data={param: 'invalid-unit-test'},
+            server_user=ut_id(gvar, 'gtu3')
+        )
 
-    # 12
-    execute_csv2_request(
-        gvar, 1, 'GV', 'default update/list value specified for "vm_keep_alive" must be an integer value.',
-        '/group/defaults/', group=ut_id(gvar, 'gtg4'), form_data={
-            'vm_keep_alive': 'invalid-unit-test'
-            },
-        server_user=ut_id(gvar, 'gtu3')
-    )
-
-    # 13
+    # 22 Proper POST request.
     execute_csv2_request(
         gvar, 0, None, '"{}" successfully updated.'.format(ut_id(gvar, 'gtg4')),
         '/group/defaults/', group=ut_id(gvar, 'gtg4'), form_data={
@@ -124,39 +69,21 @@ def main(gvar):
         server_user=ut_id(gvar, 'gtu3')
     )
 
-    # 14
+    # 23 Proper GET request checking that the POST worked.
     execute_csv2_request(
-        gvar, 1, 'GV', 'group defaults update specified item does not exist: vm_image=invalid-unit-test, group_name={0}.'.format(ut_id(gvar, 'gtg4')),
-        '/group/defaults/', group=ut_id(gvar, 'gtg4'), form_data={
-            'vm_image': 'invalid-unit-test'
-            },
-        server_user=ut_id(gvar, 'gtu3')
-    )
-
-    # 15
-    execute_csv2_request(
-        gvar, 1, 'GV', 'group defaults update specified item does not exist: vm_flavor=invalid-unit-test, group_name={0}.'.format(ut_id(gvar, 'gtg4')),
-        '/group/defaults/', group=ut_id(gvar, 'gtg4'), form_data={
-            'vm_flavor': 'invalid-unit-test'
-            },
-        server_user=ut_id(gvar, 'gtu3')
-    )
-
-    # 16
-    execute_csv2_request(
-        gvar, 1, 'GV', 'group defaults update specified item does not exist: vm_network=invalid-unit-test, group_name={0}.'.format(ut_id(gvar, 'gtg4')),
-        '/group/defaults/', group=ut_id(gvar, 'gtg4'), form_data={
-            'vm_network': 'invalid-unit-test'
-            },
-        server_user=ut_id(gvar, 'gtu3')
-    )
-
-    # 17
-    execute_csv2_request(
-        gvar, 1, 'GV', 'group defaults update specified item does not exist: vm_keyname=invalid-unit-test, group_name={0}.'.format(ut_id(gvar, 'gtg4')),
-        '/group/defaults/', group=ut_id(gvar, 'gtg4'), form_data={
-            'vm_keyname': 'invalid-unit-test'
-            },
+        gvar, 0, None, None,
+        '/group/defaults/', group=ut_id(gvar, 'gtg4'),
+        expected_list='defaults_list', list_filter={'group_name': ut_id(gvar, 'gtg4')}, values={
+            'htcondor_fqdn': gvar['fqdn'],
+            'job_cpus': 1,
+            'job_ram': 1,
+            'job_disk': 1,
+            'vm_keep_alive': 1,
+            'vm_flavor': '',
+            'vm_image': '',
+            'vm_keyname': '',
+            'vm_network': '',
+        },
         server_user=ut_id(gvar, 'gtu3')
     )
 

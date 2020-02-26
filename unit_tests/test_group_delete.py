@@ -12,47 +12,47 @@ def main(gvar):
             initialize_csv2_request(gvar)
 
     # 01 - 05
-    sanity_requests(gvar, '/group/delete/', ut_id(gvar, 'gtg5'), ut_id(gvar, 'gtu5'), ut_id(gvar, 'gtg7'), ut_id(gvar, 'gtu2'))
+    sanity_requests(gvar, '/group/delete/', ut_id(gvar, 'gtg4'), ut_id(gvar, 'gtu5'), ut_id(gvar, 'gtg7'), ut_id(gvar, 'gtu2'))
 
     # 06 Attempt as an unprivileged user.
     execute_csv2_request(
         gvar, 2, None, 'HTTP response code 403, forbidden.',
-        '/group/delete/',
+        '/group/delete/', group=ut_id(gvar, 'gtg4'),
         server_user=ut_id(gvar, 'gtu3')
     )
 
     PARAMETERS = {
-        # 0 Send a GET request.
-        # 0 Omit group_name.
-        # 0 Give two group_names.
+        # 07 Send a GET request.
+        # 08 Omit group_name.
+        # 09 Give two group_names.
         'group_name': {'valid': ut_id(gvar, 'gtg6'), 'test_cases': {
-            # 0
+            # 10
             '': 'group delete value specified for "group_name" must not be the empty string.',
-            # 0
+            # 11
             'Invalid-Unit-Test': 'group delete value specified for "group_name" must be all lowercase letters, digits, dashes, underscores, periods, and colons, and cannot contain more than one consecutive dash or start or end with a dash.',
-            # 0
+            # 12
             'invalid-unit-test-': 'group delete value specified for "group_name" must be all lowercase letters, digits, dashes, underscores, periods, and colons, and cannot contain more than one consecutive dash or start or end with a dash.',
-            # 0
+            # 13
             'invalid-unit-test!': 'group delete value specified for "group_name" must be all lowercase letters, digits, dashes, underscores, periods, and colons, and cannot contain more than one consecutive dash or start or end with a dash.',
         }, 'mandatory': True},
-        # 0 Give two user_options.
-        # 0
+        # 14 Give two user_options.
+        # 15
         'user_option': {'valid': 'add', 'test_cases': {'invalid-unit-test': 'group delete value specified for "user_option" must be one of the following options: [\'add\', \'delete\'].'}}
     }
 
-    parameters_requests(gvar, '/group/delete/', ut_id(gvar, 'gtg5'), ut_id(gvar, 'gtu5'), PARAMETERS)
+    parameters_requests(gvar, '/group/delete/', ut_id(gvar, 'gtg4'), ut_id(gvar, 'gtu5'), PARAMETERS)
 
-    # 0 Attempt to delete a group that does not exist.
+    # 16 Attempt to delete a group that does not exist.
     execute_csv2_request(
         gvar, 1, None, 'group delete "invalid-unit-test" failed - the request did not match any rows.',
-        '/group/delete/', form_data={'group_name': 'invalid-unit-test'},
+        '/group/delete/', group=ut_id(gvar, 'gtg4'), form_data={'group_name': 'invalid-unit-test'},
         server_user=ut_id(gvar, 'gtu5')
     )
 
-    # 0
+    # 17
     execute_csv2_request(
         gvar, 0, None, 'group "{}" successfully deleted.'.format(ut_id(gvar, 'gtg6')),
-        '/group/delete/', form_data={'group_name': ut_id(gvar, 'gtg6')},
+        '/group/delete/', group=ut_id(gvar, 'gtg4'), form_data={'group_name': ut_id(gvar, 'gtg6')},
         server_user=ut_id(gvar, 'gtu5')
     )
 

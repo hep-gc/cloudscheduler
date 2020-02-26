@@ -42,7 +42,7 @@ def main(gvar):
         gvar, 0, None, 'group "{}" successfully added.'.format(ut_id(gvar, 'gtg4')),
         '/group/add/', form_data={
             'group_name': ut_id(gvar, 'gtg4'),
-            'htcondor_fqdn': gvar['user_settings']['server-address']
+            'htcondor_fqdn': gvar['fqdn']
         }
     )
 
@@ -51,7 +51,7 @@ def main(gvar):
         gvar, 0, None, 'group "{}" successfully added.'.format(ut_id(gvar, 'gtg5')),
         '/group/add/', form_data={
             'group_name': ut_id(gvar, 'gtg5'),
-            'htcondor_fqdn': gvar['user_settings']['server-address'],
+            'htcondor_fqdn': gvar['fqdn']
         }
     )
 
@@ -60,7 +60,7 @@ def main(gvar):
         gvar, 0, None, 'group "{}" successfully added.'.format(ut_id(gvar, 'gtg6')),
         '/group/add/', form_data={
             'group_name': ut_id(gvar, 'gtg6'),
-            'htcondor_fqdn': gvar['user_settings']['server-address'],
+            'htcondor_fqdn': gvar['fqdn']
         }
     )
 
@@ -69,7 +69,7 @@ def main(gvar):
         gvar, 0, None, 'group "{}" successfully added.'.format(ut_id(gvar, 'gtg7')),
         '/group/add/', form_data={
             'group_name': ut_id(gvar, 'gtg7'),
-            'htcondor_fqdn': gvar['user_settings']['server-address'],
+            'htcondor_fqdn': gvar['fqdn']
         }
     )
 

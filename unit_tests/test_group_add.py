@@ -12,12 +12,12 @@ def main(gvar):
             initialize_csv2_request(gvar)
     
     # 01 - 05
-    sanity_requests(gvar, '/group/add/', ut_id(gvar, 'gtg5'), ut_id(gvar, 'gtu5'), ut_id(gvar, 'gtg7'), ut_id(gvar, 'gtu2'))
+    sanity_requests(gvar, '/group/add/', ut_id(gvar, 'gtg4'), ut_id(gvar, 'gtu5'), ut_id(gvar, 'gtg7'), ut_id(gvar, 'gtu2'))
 
     # 06 Attempt as an unprivileged user.
     execute_csv2_request(
         gvar, 2, None, 'HTTP response code 403, forbidden.',
-        '/group/add/',
+        '/group/add/', group=ut_id(gvar, 'gtg4'),
         server_user=ut_id(gvar, 'gtu3')
     )
 
@@ -75,13 +75,13 @@ def main(gvar):
         'vm_keyname': {'valid': '', 'test_cases': {'invalid-unit-test': 'group add, "invalid-unit-test" failed - specified item does not exist: vm_keyname=invalid-unit-test, group_name=invalid-unit-test.'}}
     }
 
-    parameters_requests(gvar, '/group/add/', ut_id(gvar, 'gtg5'), ut_id(gvar, 'gtu5'), PARAMETERS)
+    parameters_requests(gvar, '/group/add/', ut_id(gvar, 'gtg4'), ut_id(gvar, 'gtu5'), PARAMETERS)
 
     # Parameter combinations that do not fit the above format.
     # 39
     execute_csv2_request(
         gvar, 1, 'GV', 'request contained a rejected/bad parameter "job_scratch".',
-        '/group/add/', form_data={
+        '/group/add/', group=ut_id(gvar, 'gtg4'), form_data={
             'group_name': 'invalid-unit-test',
             'htcondor_fqdn': gvar['fqdn'],
             'job_scratch': 0
@@ -92,7 +92,7 @@ def main(gvar):
     # 40
     execute_csv2_request(
         gvar, 1, 'GV', 'group add, "{}" failed - user "{}" was specified twice.'.format(ut_id(gvar, 'group-invalid-unit-test'), ut_id(gvar, 'gtu3')),
-        '/group/add/', form_data={
+        '/group/add/', group=ut_id(gvar, 'gtg4'), form_data={
             'group_name': ut_id(gvar, 'group-invalid-unit-test'),
             'username.1': ut_id(gvar, 'gtu3'),
             'username.2': ut_id(gvar, 'gtu3'),
@@ -104,7 +104,7 @@ def main(gvar):
     # 41
     execute_csv2_request(
         gvar, 0, None, 'group "{}" successfully added.'.format(ut_id(gvar, 'gtg1')),
-        '/group/add/', form_data={
+        '/group/add/', group=ut_id(gvar, 'gtg4'), form_data={
             'group_name': ut_id(gvar, 'gtg1'),
             'username.1': ut_id(gvar, 'gtu5'),
             'htcondor_fqdn': gvar['fqdn']
@@ -128,7 +128,7 @@ def main(gvar):
 
     # 43 Verify that the user was updated correctly.
     execute_csv2_request(
-        gvar, 0, None, None, '/user/list/',
+        gvar, 0, None, None, '/user/list/', group=ut_id(gvar, 'gtg4'),
         expected_list='user_list', list_filter={'username': ut_id(gvar, 'gtu5')},
         values={'username': ut_id(gvar, 'gtu5'), 'user_groups': ut_id(gvar, 'gtg1,gtg4,gtg5')},
         server_user=ut_id(gvar, 'gtu5')
@@ -137,14 +137,17 @@ def main(gvar):
     # 44
     execute_csv2_request(
         gvar, 1, 'GV', '"{0}" failed - (1062, "Duplicate entry \'{0}\' for key \'PRIMARY\'").'.format(ut_id(gvar, 'gtg1')),
-        '/group/add/', form_data={'group_name': ut_id(gvar, 'gtg1'), 'htcondor_fqdn': gvar['fqdn']},
+        '/group/add/', group=ut_id(gvar, 'gtg4'), form_data={
+            'group_name': ut_id(gvar, 'gtg1'),
+            'htcondor_fqdn': gvar['fqdn']
+        },
         server_user=ut_id(gvar, 'gtu5')
     )
 
     # 45 Verify that users don't need to be given.
     execute_csv2_request(
         gvar, 0, None, 'group "{}" successfully added.'.format(ut_id(gvar, 'gtg2')),
-        '/group/add/', form_data={
+        '/group/add/', group=ut_id(gvar, 'gtg4'), form_data={
             'group_name': ut_id(gvar, 'gtg2'),
             'htcondor_fqdn': gvar['fqdn'],
         },
@@ -154,7 +157,7 @@ def main(gvar):
     # 46 Verify that 21 actually created a group
     execute_csv2_request(
         gvar, 0, None, None,
-        '/group/list/',
+        '/group/list/', group=ut_id(gvar, 'gtg4'),
         expected_list='group_list', list_filter={'group_name': ut_id(gvar, 'gtg2')},
         values={'group_name': ut_id(gvar, 'gtg2'),
             'htcondor_fqdn': gvar['fqdn'],
@@ -168,7 +171,7 @@ def main(gvar):
     # 47
     execute_csv2_request(
         gvar, 0, None, 'group "{}" successfully added.'.format(ut_id(gvar, 'gtg3')),
-        '/group/add/', form_data={
+        '/group/add/', group=ut_id(gvar, 'gtg4'), form_data={
             'group_name': ut_id(gvar, 'gtg3'),
             'htcondor_fqdn': gvar['fqdn'],
             'job_cpus': 1,

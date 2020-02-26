@@ -369,13 +369,13 @@ def initialize_csv2_request(gvar, selections=None, hidden=False):
     if selections:
         gvar['selections'] = []
         tmp_selections = selections.split(',')
-        for ix in range(len(tmp_selections)):
-            w = tmp_selections[ix].split('-')
-            if len(w) == 2:
-                for iy in range(int(w[0]), int(w[1])+1):
-                    gvar['selections'].append(str(iy))
+        for sel in tmp_selections:
+            bounds = sel.split('-')
+            if len(bounds) == 2:
+                for i in range(int(bounds[0]), int(bounds[1]) + 1):
+                    gvar['selections'].append(str(i))
             else:
-                gvar['selections'].append(tmp_selections[ix])
+                gvar['selections'].append(sel)
     else:
         gvar['selections'] = []
 
@@ -385,7 +385,7 @@ def initialize_csv2_request(gvar, selections=None, hidden=False):
     except FileNotFoundError:
         raise Exception('You must create a minimal cloudscheduler defaults for server "unit-test" containing the server address and user credentials.')
 
-    gvar['fqdn'] = re.sub(r'^https?://', '', gvar['user_settings']['server-address'])
+    gvar['fqdn'] = re.sub(r'^https?://', '', gvar['user_settings']['server-address'], count=1)
 
     # Get user_secret and cloud credentials.
     CREDENTIALS_PATH = os.path.expanduser('~/cloudscheduler/unit_tests/credentials.yaml')
