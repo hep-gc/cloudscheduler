@@ -15,7 +15,7 @@ from cloudscheduler.lib.db_config import Config
 from cloudscheduler.lib.ProcessMonitor import ProcessMonitor, check_pid, terminate
 from cloudscheduler.lib.schema import view_condor_host
 from cloudscheduler.lib.log_tools import get_frame_info
-from cloudscheduler.lib.htc_config import configure_htc
+from cloudscheduler.lib.fw_config import configure_fw
 from cloudscheduler.lib.poller_functions import \
     delete_obsolete_database_items, \
     get_inventory_item_hash_from_database, \
@@ -24,8 +24,6 @@ from cloudscheduler.lib.poller_functions import \
     start_cycle, \
     wait_cycle, \
     cleanup_inventory
-
-from cloudscheduler.lib.signal_functions import *
 
 from keystoneclient.auth.identity import v2, v3
 from keystoneauth1 import session
@@ -38,9 +36,6 @@ import boto3
 import sqlalchemy.exc
 from sqlalchemy import create_engine, or_
 from sqlalchemy.orm import Session
-from sqlalchemy.ext.automap import automap_base
-
-
 
 
 MASTER_TYPE = htcondor.AdTypes.Master
@@ -535,7 +530,7 @@ def process_group_cloud_commands(pair, condor_host):
 
             # Now that the machine is terminated, we can speed up operations by invalidating the related classads
             # double check that a condor_session exists
-            if not condor_session:
+            if 'condor_session' not in locals():
                 condor_session = get_condor_session()
             if resource.machine is not None:
                 logging.info("Removing classads for machine %s" % resource.machine)
@@ -664,6 +659,7 @@ def job_poller():
     GROUPS = config.db_map.classes.csv2_groups
     USERS = config.db_map.classes.csv2_user_groups
 
+
     try:
         inventory = get_inventory_item_hash_from_database(config.db_engine, JOB, 'global_job_id', debug_hash=(config.categories["condor_poller.py"]["log_level"]<20), condor_host=config.local_host_id)
         config.db_open()
@@ -678,9 +674,6 @@ def job_poller():
                 logging.debug("Stop set, exiting...")
                 break
             signal.signal(signal.SIGINT, signal.SIG_IGN)
-            # Cleanup inventory, this function will clean up inventory entries for deleted clouds
-            group_clouds = config.db_connection.execute('select distinct group_name, cloud_name from csv2_clouds where cloud_type="openstack"')
-            cleanup_inventory(inventory, group_clouds)                                                          
 
             db_session = config.db_session
             groups = db_session.query(GROUPS).filter(GROUPS.htcondor_host_id == config.local_host_id)
@@ -979,6 +972,10 @@ def job_poller():
             if delete_cycle:
                 # Check for deletes
                 delete_obsolete_database_items('Jobs', inventory, db_session, JOB, 'global_job_id', poll_time=new_poll_time, failure_dict=failure_dict, condor_host=config.local_host_id)
+
+                # Cleanup inventory, this function will clean up inventory entries for deleted clouds
+                #group_clouds = config.db_connection.execute('select distinct group_name, cloud_name from csv2_clouds where cloud_type="openstack"')
+                #cleanup_inventory(inventory, group_clouds)                                                          
                 delete_cycle = False
 
             cycle_count = cycle_count + 1
@@ -1130,7 +1127,7 @@ def machine_poller():
 
     try:
         inventory = get_inventory_item_hash_from_database(config.db_engine, RESOURCE, 'name', debug_hash=(config.categories["condor_poller.py"]["log_level"]<20), condor_host=config.local_host_id)
-        configure_htc(config, logging)
+        configure_fw(config, logging)
         config.db_open()
         while True:
             new_poll_time, cycle_start_time = start_cycle(new_poll_time, cycle_start_time)
@@ -1141,8 +1138,8 @@ def machine_poller():
                 break
             signal.signal(signal.SIGINT, signal.SIG_IGN)
             # Cleanup inventory, this function will clean up inventory entries for deleted clouds
-            group_clouds = config.db_connection.execute('select distinct group_name, cloud_name from csv2_clouds where cloud_type="openstack"')
-            cleanup_inventory(inventory, group_clouds)
+            #group_clouds = config.db_connection.execute('select distinct group_name, cloud_name from csv2_clouds where cloud_type="openstack"')
+            #cleanup_inventory(inventory, group_clouds)
 
 
             db_session = config.db_session

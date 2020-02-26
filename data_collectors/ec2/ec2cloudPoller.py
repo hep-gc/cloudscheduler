@@ -12,7 +12,6 @@ import copy
 from cloudscheduler.lib.attribute_mapper import map_attributes
 from cloudscheduler.lib.db_config import Config
 from cloudscheduler.lib.ProcessMonitor import ProcessMonitor, terminate, check_pid
-#from cloudscheduler.lib.signal_manager import register_signal_receiver
 from cloudscheduler.lib.schema import view_vm_kill_retire_over_quota
 from cloudscheduler.lib.view_utils import kill_retire
 from cloudscheduler.lib.log_tools import get_frame_info
@@ -29,6 +28,8 @@ from cloudscheduler.lib.poller_functions import \
 #   get_last_poll_time_from_database, \
 #   set_inventory_group_and_cloud, \
 #   set_inventory_item, \
+
+from cloudscheduler.lib.signal_functions import event_receiver_registration
 
 from cloudscheduler.lib.select_ec2 import select_ec2_images, select_ec2_instance_types
 
@@ -220,6 +221,12 @@ def ec2_filterer():
     poll_time_history = [0,0,0,0]
 
 
+    event_receiver_registration(config, "insert_csv2_clouds_amazon")
+    event_receiver_registration(config, "insert_csv2_clouds_amazon")
+    event_receiver_registration(config, "update_ec2_instance_types")
+    event_receiver_registration(config, "update_ec2_images")
+
+
     while True:
         try:
             config.db_open()
@@ -373,8 +380,9 @@ def flavor_poller():
     new_poll_time = 0
     poll_time_history = [0,0,0,0]
     failure_dict = {}
-   # register_signal_receiver(config, "insert_csv2_clouds")
-   # register_signal_receiver(config, "update_csv2_clouds")
+
+    event_receiver_registration(config, "insert_csv2_clouds_amazon")
+    event_receiver_registration(config, "update_csv2_clouds_amazon")
 
 
     while True:
@@ -433,8 +441,8 @@ def image_poller():
     poll_time_history = [0, 0, 0, 0]
     failure_dict = {}
 
-    #register_signal_receiver(config, "insert_csv2_clouds")
-    #register_signal_receiver(config, "update_csv2_clouds")
+    event_receiver_registration(config, "insert_csv2_clouds_amazon")
+    event_receiver_registration(config, "update_csv2_clouds_amazon")
 
     try:
         #inventory = get_inventory_item_hash_from_database(config.db_engine, EC2_IMAGE, 'id',
@@ -848,8 +856,8 @@ def keypair_poller():
     poll_time_history = [0, 0, 0, 0]
     failure_dict = {}
 
-    #register_signal_receiver(config, "insert_csv2_clouds")
-    #register_signal_receiver(config, "update_csv2_clouds")
+    event_receiver_registration(config, "insert_csv2_clouds_amazon")
+    event_receiver_registration(config, "update_csv2_clouds_amazon")
 
     try:
         inventory = get_inventory_item_hash_from_database(config.db_engine, KEYPAIR, 'key_name',
@@ -1028,8 +1036,8 @@ def limit_poller():
     poll_time_history = [0, 0, 0, 0]
     failure_dict = {}
 
-    #register_signal_receiver(config, "insert_csv2_clouds")
-    #register_signal_receiver(config, "update_csv2_clouds")
+    event_receiver_registration(config, "insert_csv2_clouds_amazon")
+    event_receiver_registration(config, "update_csv2_clouds_amazon")
 
     try:
         inventory = get_inventory_item_hash_from_database(config.db_engine, LIMIT, '-',
@@ -1251,8 +1259,8 @@ def network_poller():
     poll_time_history = [0, 0, 0, 0]
     failure_dict = {}
 
-    #register_signal_receiver(config, "insert_csv2_clouds")
-    #register_signal_receiver(config, "update_csv2_clouds")
+    event_receiver_registration(config, "insert_csv2_clouds_amazon")
+    event_receiver_registration(config, "update_csv2_clouds_amazon")
 
     try:
         inventory = get_inventory_item_hash_from_database(config.db_engine, NETWORK, 'name',
@@ -1442,8 +1450,8 @@ def security_group_poller():
     failure_dict = {}
     my_pid = os.getpid()
 
-    #register_signal_receiver(config, "insert_csv2_clouds")
-    #register_signal_receiver(config, "update_csv2_clouds")
+    event_receiver_registration(config, "insert_csv2_clouds_amazon")
+    event_receiver_registration(config, "update_csv2_clouds_amazon")
 
     try:
         inventory = get_inventory_item_hash_from_database(config.db_engine, SECURITY_GROUP, 'id',
@@ -1637,6 +1645,9 @@ def vm_poller():
     poll_time_history = [0,0,0,0]
     failure_dict = {}
     ec2_status_dict = {}
+
+    event_receiver_registration(config, "insert_csv2_clouds_amazon")
+    event_receiver_registration(config, "update_csv2_clouds_amazon")
 
     config.db_open()
     ec2_status = config.db_session.query(EC2_STATUS)

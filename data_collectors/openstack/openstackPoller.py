@@ -32,6 +32,8 @@ from cloudscheduler.lib.poller_functions import \
 #   set_inventory_group_and_cloud, \
 #   set_inventory_item, \
 
+from cloudscheduler.lib.signal_functions import event_receiver_registration
+
 from sqlalchemy import create_engine, or_
 from sqlalchemy.orm import Session
 from sqlalchemy.ext.automap import automap_base
@@ -214,8 +216,8 @@ def flavor_poller():
     poll_time_history = [0,0,0,0]
     failure_dict = {}
 
-    #register_signal_receiver(config, "insert_csv2_clouds")
-    #register_signal_receiver(config, "update_csv2_clouds")
+    event_receiver_registration(config, "insert_csv2_clouds_openstack")
+    event_receiver_registration(config, "update_csv2_clouds_openstack")
 
     try:
         inventory = get_inventory_item_hash_from_database(config.db_engine, FLAVOR, 'name', debug_hash=(config.categories["openstackPoller.py"]["log_level"]<20), cloud_type="openstack")
@@ -419,8 +421,8 @@ def image_poller():
     poll_time_history = [0,0,0,0]
     failure_dict = {}
 
-    #register_signal_receiver(config, "insert_csv2_clouds")
-    #register_signal_receiver(config, "update_csv2_clouds")
+    event_receiver_registration(config, "insert_csv2_clouds_openstack")
+    event_receiver_registration(config, "update_csv2_clouds_openstack")
 
     try:
         inventory = get_inventory_item_hash_from_database(config.db_engine, IMAGE, 'id', debug_hash=(config.categories["openstackPoller.py"]["log_level"]<20), cloud_type="openstack")
@@ -636,8 +638,8 @@ def keypair_poller():
     poll_time_history = [0,0,0,0]
     failure_dict = {}
 
-    #register_signal_receiver(config, "insert_csv2_clouds")
-    #register_signal_receiver(config, "update_csv2_clouds")
+    event_receiver_registration(config, "insert_csv2_clouds_openstack")
+    event_receiver_registration(config, "update_csv2_clouds_openstack")
 
     try:
         inventory = get_inventory_item_hash_from_database(config.db_engine, KEYPAIR, 'key_name', debug_hash=(config.categories["openstackPoller.py"]["log_level"]<20), cloud_type="openstack")
@@ -816,8 +818,8 @@ def limit_poller():
     poll_time_history = [0,0,0,0]
     failure_dict = {}
 
-    #register_signal_receiver(config, "insert_csv2_clouds")
-    #register_signal_receiver(config, "update_csv2_clouds")
+    event_receiver_registration(config, "insert_csv2_clouds_openstack")
+    event_receiver_registration(config, "update_csv2_clouds_openstack")
 
     try:
         inventory = get_inventory_item_hash_from_database(config.db_engine, LIMIT, '-', debug_hash=(config.categories["openstackPoller.py"]["log_level"]<20), cloud_type="openstack")
@@ -999,8 +1001,8 @@ def network_poller():
     poll_time_history = [0,0,0,0]
     failure_dict = {}
 
-    #register_signal_receiver(config, "insert_csv2_clouds")
-    #register_signal_receiver(config, "update_csv2_clouds")
+    event_receiver_registration(config, "insert_csv2_clouds_openstack")
+    event_receiver_registration(config, "update_csv2_clouds_openstack")
 
     try:
         inventory = get_inventory_item_hash_from_database(config.db_engine, NETWORK, 'name', debug_hash=(config.categories["openstackPoller.py"]["log_level"]<20), cloud_type="openstack")
@@ -1190,8 +1192,8 @@ def security_group_poller():
     failure_dict = {}
     my_pid = os.getpid()
 
-    #register_signal_receiver(config, "insert_csv2_clouds")
-    #register_signal_receiver(config, "update_csv2_clouds")
+    event_receiver_registration(config, "insert_csv2_clouds_openstack")
+    event_receiver_registration(config, "update_csv2_clouds_openstack")
 
     try:
         inventory = get_inventory_item_hash_from_database(config.db_engine, SECURITY_GROUP, 'id', debug_hash=(config.categories["openstackPoller.py"]["log_level"]<20), cloud_type="openstack")
@@ -1381,6 +1383,9 @@ def vm_poller():
     new_poll_time = 0
     poll_time_history = [0,0,0,0]
     failure_dict = {}
+
+    event_receiver_registration(config, "insert_csv2_clouds_openstack")
+    event_receiver_registration(config, "update_csv2_clouds_openstack")
     
     try:
         inventory = get_inventory_item_hash_from_database(config.db_engine, VM, 'hostname', debug_hash=(config.categories["openstackPoller.py"]["log_level"]<20), cloud_type="openstack")
