@@ -1,4 +1,4 @@
-from unit_test_common import execute_csv2_request, initialize_csv2_request, ut_id
+from unit_test_common import execute_csv2_request, initialize_csv2_request, ut_id, sanity_requests, parameters_requests
 from sys import argv
 
 # lno: GV - error code identifier.
@@ -11,78 +11,24 @@ def main(gvar):
         else:
             initialize_csv2_request(gvar)
     
-    # 01
-    execute_csv2_request(
-        gvar, 2, None, 'HTTP response code 401, unauthorized.',
-        '/group/metadata-delete/',
-        server_user='invalid-unit-test'
-    )
+    # 01 - 05
+    sanity_requests(gvar, '/group/metadata-delete/', ut_id(gvar, 'gtg4'), ut_id(gvar, 'gtu5'), ut_id(gvar, 'gtg7'), ut_id(gvar, 'gtu2'))
 
-    # 02
-    execute_csv2_request(
-        gvar, 1, 'GV', 'user "{}" is not a member of any group.'.format(ut_id(gvar, 'gtu1')),
-        '/group/metadata-delete/',
-        server_user=ut_id(gvar, 'gtu1')
-    )
+    PARAMETERS = {
+        # 0 Send a GET request.
+        # 0 Give an invalid parameter.
+        # 0 Omit metadata_name.
+        # 0 Give two metadata_names.
+        # 0
+        'metdata_name': {'valid': ut_id(gvar, 'gty6'), 'test_cases': {'invalid-unit-test': '"{}::invalid-unit-test" failed - the request did not match any rows.'.format(ut_id(gvar, 'gtg5'))},'mandatory': True}
+    }
 
-    # 03
-    execute_csv2_request(
-        gvar, 1, 'GV', 'user "%s" is not a member of any group.' % ut_id(gvar, 'gtu1'),
-        '/group/metadata-delete/', form_data={
-        'invalid-unit-test': 'invalid-unit-test'},
-        server_user=ut_id(gvar, 'gtu1')
-    )
-
-    # 04
-    execute_csv2_request(
-        gvar, 1, 'GV', 'group metadata-delete request did not contain mandatory parameter "metadata_name".',
-        '/group/metadata-delete/', group=ut_id(gvar, 'gtg5'),
-        server_user=ut_id(gvar, 'gtu3')
-    )
-
-    # 05
-    execute_csv2_request(
-        gvar, 1, 'GV', 'request contained a bad parameter "invalid-unit-test".',
-        '/group/metadata-delete/', group=ut_id(gvar, 'gtg5'), form_data={
-            'metadata_name': 'invalid-unit-test',
-            'invalid-unit-test': 'invalid-unit-test'
-        },
-        server_user=ut_id(gvar, 'gtu3')
-    )
-
-    # 06
-    execute_csv2_request(
-        gvar, 1, 'GV', 'cannot switch to invalid group "invalid-unit-test".',
-        '/group/metadata-delete/', group='invalid-unit-test', form_data={
-            'metadata_name': 'invalid-unit-test'
-            },
-        server_user=ut_id(gvar, 'gtu3')
-    )
-
-    # 07
-    execute_csv2_request(
-        gvar, 1, 'GV', 'cannot switch to invalid group "{}".'.format(ut_id(gvar, 'gtg7')),
-        '/group/metadata-delete/', group=ut_id(gvar, 'gtg7'), form_data={
-            'metadata_name': 'invalid-unit-test'
-            },
-        server_user=ut_id(gvar, 'gtu3')
-    )
-
-    # 08
-    execute_csv2_request(
-        gvar, 1, 'GV', '"{}::invalid-unit-test" failed - the request did not match any rows.'.format(ut_id(gvar, 'gtg5')),
-        '/group/metadata-delete/', group=ut_id(gvar, 'gtg5'), form_data={
-            'metadata_name': 'invalid-unit-test'
-            },
-        server_user=ut_id(gvar, 'gtu3')
-    )
+    parameters_requests(gvar, '/group/metadata-delete/', ut_id(gvar, 'gtg5'), ut_id(gvar, 'gtu5'), PARAMETERS)
 
     # 09
     execute_csv2_request(
         gvar, 0, None, 'file "{}::{}" successfully deleted.'.format(ut_id(gvar, 'gtg5'), ut_id(gvar, 'gty6')),
-        '/group/metadata-delete/', group=ut_id(gvar, 'gtg5'), form_data={
-            'metadata_name': ut_id(gvar, 'gty6')
-            },
+        '/group/metadata-delete/', group=ut_id(gvar, 'gtg5'), form_data={'metadata_name': ut_id(gvar, 'gty6')},
         server_user=ut_id(gvar, 'gtu3')
     )
 
@@ -90,8 +36,8 @@ def main(gvar):
     # 10
     execute_csv2_request(
         gvar, 0, None, None,
-        '/cloud/list/', group=ut_id(gvar, 'gtg5'),expected_list='cloud_list', list_filter={'cloud_name': ut_id(gvar, 'gtc1')},
-        values={'cloud_name': ut_id(gvar, 'gtc1'), 'group_name': ut_id(gvar, 'gtg5'), 'group_exclusions': ut_id(gvar, 'gty4')},
+        '/cloud/list/', group=ut_id(gvar, 'gtg5'), expected_list='cloud_list',
+        list_filter={'group_name': ut_id(gvar, 'gtg5'), 'cloud_name': ut_id(gvar, 'gtc1')}, values={'group_exclusions': ut_id(gvar, 'gty4')},
         server_user=ut_id(gvar, 'gtu3')
     )
 

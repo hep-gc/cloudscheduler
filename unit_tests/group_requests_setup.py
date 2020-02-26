@@ -130,7 +130,7 @@ def main(gvar):
         server_user=ut_id(gvar, 'gtu3')
     )
 
-    # 12 metadata to be deleted in a cloud exception
+    # 12 metadata to be deleted in group_metadata_delete.
     execute_csv2_request(
         gvar, 0, None, 'group metadata file "{}::{}" successfully added.'.format(ut_id(gvar, 'gtg5'), ut_id(gvar, 'gty6')),
         '/group/metadata-add/', group=ut_id(gvar, 'gtg5'), form_data={
