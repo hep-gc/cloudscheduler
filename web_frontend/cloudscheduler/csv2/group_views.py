@@ -798,7 +798,13 @@ def metadata_fetch(request, response_code=0, message=None, metadata_name=None):
 
     # If we are NOT returning from an update, we are fetching from webpage
     if metadata_name == None:
-        metadata_name = active_user.kwargs['metadata_name']
+        if 'metadata_name' in active_user.kwargs:
+            if active_user.kwargs['metadata_name'] == '':
+                return render(request, 'csv2/meta_editor.html', {'response_code': 1, 'message': 'group metadata_fetch, value specified for "metadata_name" must not be the empty string.'})
+            else:
+                metadata_name = active_user.kwargs['metadata_name']
+        else:
+            return render(request, 'csv2/meta_editor.html', {'response_code': 1, 'message': 'group metadata_fetch, request did not contain mandatory parameter "metadata_name".'})
 
     # Retrieve metadata file.
     if metadata_name:
