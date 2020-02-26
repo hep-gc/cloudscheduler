@@ -61,7 +61,7 @@ GROUP_KEYS = {
         'floating_ips_ctl':                           'reject',
         },
     'array_fields': [
-        'username'
+        'username',
         ],
     }
 
@@ -100,6 +100,9 @@ METADATA_KEYS = {
         'group':                                      'ignore',
         },
     'mandatory': [
+        'metadata_name',
+        ],
+    'not_empty': [
         'metadata_name',
         ],
     }
