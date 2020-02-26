@@ -295,7 +295,7 @@ class Config:
         else:
             current_host_id = self.local_host_id
 
-        if counter:
+        if counter is not None:
             try:
                 current_counter = int(float(counter))
             except:
