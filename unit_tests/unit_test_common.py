@@ -150,7 +150,7 @@ def execute_csv2_request(gvar, expected_rc, expected_modid, expected_text, reque
             if expected_modid and modid != expected_modid:
                 failed = True
 
-        if expected_text and expected_text not in response['message']:
+        if expected_text and (not response['message'] or expected_text not in response['message']):
             failed = True
 
         # Colour a missing group red.

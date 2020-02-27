@@ -39,7 +39,7 @@ def main(gvar):
             'username': ut_id(gvar, 'jtu1'),
             'password1': gvar['user_secret'],
             'password2': gvar['user_secret'],
-            'cert_cn': 'job test user 1',
+            'cert_cn': '{} test user 1'.format(ut_id(gvar, 'job')),
             'group_name.1': ut_id(gvar, 'jtg1')
         }
     )
@@ -51,7 +51,7 @@ def main(gvar):
             'username': ut_id(gvar, 'jtu2'),
             'password1': gvar['user_secret'],
             'password2': gvar['user_secret'],
-            'cert_cn': 'job test user 2'
+            'cert_cn': '{} test user 2'.format(ut_id(gvar, 'job'))
         }
     )
     

@@ -9,31 +9,31 @@ def main(gvar):
         else:
             initialize_csv2_request(gvar)
     
+    # 01
     execute_csv2_request(
         gvar, None, None, None,
         '/user/delete/', form_data={'username': ut_id(gvar, 'stu1')}
     )
 
+    # 02
     execute_csv2_request(
         gvar, None, None, None,
         '/user/delete/', form_data={'username': ut_id(gvar, 'stu2')}
     )
 
+    # 03
     execute_csv2_request(
         gvar, None, None, None,
         '/user/delete/', form_data={'username': ut_id(gvar, 'stu3')}
     )
 
-    execute_csv2_request(
-        gvar, None, None, None,
-        '/user/delete/', form_data={'username': ut_id(gvar, 'stu4')}
-    )
-
+    # 04
     execute_csv2_request(
         gvar, None, None, None,
         '/group/delete/', form_data={'group_name': ut_id(gvar, 'stg1')}
     )
 
+    # 05
     execute_csv2_request(
         gvar, None, None, None,
         '/group/delete/', form_data={'group_name': ut_id(gvar, 'stg2')}
