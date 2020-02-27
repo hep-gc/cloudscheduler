@@ -1,15 +1,22 @@
 ## System accounts
-"/C=CA/O=Grid/CN=condor/condor.heprc.uvic.ca" condor
-"/C=CA/O=Grid/OU=triumf.ca/CN=Asoka De Silva GC1" apf
-"/C=CA/O=Grid/OU=triumf.ca/CN=Asoka De Silva GC2" autopyfactory
-"/CN=csv2-sa.heprc.uvic.ca" condor
+"{{ htcondor_gsi_dn }}" condor
+"{{ htcondor_worker_gsi_dn }}" condor
+{% if grid_mapfile.systems is defined %}
+{% for system in grid_mapfile.systems %}
+{{ system }}
+{% endfor %}
+{% endif %}
 
-## Users for testing purposes
+## User accounts
 "/C=CA/O=Grid/OU=westgrid.ca/CN=Ryan Taylor btj-681" rptaylor
 "/DC=ch/DC=cern/OU=Organic Units/OU=Users/CN=berghaus/CN=662325/CN=Frank Olaf Berghaus" frank
 "/C=CA/O=Grid/OU=uvic.ca/CN=Randall Sobie" rsobie
 "/C=CA/O=Grid/OU=phys.uvic.ca/CN=Colin Leavett-Brown" crlb
-"/C=CA/O=Grid/OU=phys.UVic.CA/CN=Michael Paterson" mhp
 "/C=CA/O=Grid/OU=phys.uvic.ca/CN=Colson Driemel" colsond
 "/C=CA/O=Grid/OU=uvic.ca/CN=Marcus Ebert" mebert
-"/C=CA/O=Grid/OU=westgrid.ca/CN=Rolf Seuster pez-764" seuster
+{% if grid_mapfile.users is defined %}
+{% for user in grid_mapfile.users %}
+{{ user }}
+{% endfor %}
+{% endif %}
+

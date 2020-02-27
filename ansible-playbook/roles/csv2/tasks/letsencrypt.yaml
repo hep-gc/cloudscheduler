@@ -117,6 +117,23 @@
   notify:
   - run get_letsencrypt_cert
 
+- name: create certificates directory
+  file:
+    dest: /etc/grid-security/certificates
+    state: directory
+    owner: root
+    group: root
+    mode: 0755
+
+- name: install letsencrypt certificte chain
+  shell: |
+    git clone https://github.com/cilogon/letsencrypt-certificates.git
+    cd letsencrypt-certificates/
+    make check
+    sudo make install
+  args:
+    executable: /bin/bash
+
 - meta: flush_handlers
 
 - name: archive SSL certificates
