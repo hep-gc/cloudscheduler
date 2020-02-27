@@ -556,7 +556,11 @@
                                             <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} cores_limit{{cloud.tag}}" class="sysctl-style float-center plottable">{{cloud.cores_limit}}</td>
                                         {% endif %}
                                     {% else %}
-                                        <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} cores_limit{{cloud.tag}}" class="manual-style float-center plottable">{{cloud.cores_limit}}</td>
+                                        {% if cloud.cores_limit >= 999999999 %}
+                                            <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} cores_limit{{cloud.tag}}" class="sysctl-style float-center plottable">&#x221E;</td>
+                                        {% else %}
+                                            <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} cores_limit{{cloud.tag}}" class="manual-style float-center plottable">{{cloud.cores_limit}}</td>
+                                        {% endif %}
                                     {% endif %}
                                     
                                     <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} ram_native{{cloud.tag}}" class="float-center plottable">
