@@ -38,6 +38,8 @@
   
   - Seperate logrotate files
   
+  - Ansible installation playbook re-organization/enhancements.
+  
   - Fixes:
     - Server configuration request to ignore the 'group' key (passed on all requests).
     - Log level change without service restart.
