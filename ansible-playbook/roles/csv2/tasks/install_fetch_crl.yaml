@@ -1,0 +1,25 @@
+# Install fetch-crl.
+
+- name: install GSI tools
+  yum:
+    name: ['fetch-crl', 'globus-proxy-utils']
+    state: latest
+
+- name: make sure fetch-crl is quiet about unsuccessful CRL validations
+  copy:
+    src:  etc_fetch-crl.d_noerrors.conf
+    dest: /etc/fetch-crl.d/noerrors.conf
+    owner: root
+    group: root
+    mode: 0644
+
+- name: ensure fetch-crl services are enabled and started
+  service:
+    name: "{{ item }}"
+    enabled: yes
+    state: started
+  ignore_errors: yes
+  with_items:
+  - fetch-crl-boot
+  - fetch-crl-cron
+

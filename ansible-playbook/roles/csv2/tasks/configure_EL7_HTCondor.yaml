@@ -1,0 +1,106 @@
+# configure_EL7_HTCondor.yaml
+
+- name: open HTCondor service port
+  firewalld: zone=public port="{{ htcondor_collector_port }}/tcp"  state=enabled immediate=yes permanent=yes
+  when: (container is undefined) or (container == False)
+  ignore_errors: yes
+
+- name: open HTCondor ephemeral ports
+  firewalld: zone=public port="{{ htcondor_low_port }}-{{ htcondor_high_port }}/tcp"  state=enabled immediate=yes permanent=yes
+  when: (container is undefined) or (container == False)
+  ignore_errors: yes
+
+- name: HTCondor local configuration
+  copy:
+    src: etc_condor_condor_config.local
+    dest: /etc/condor/condor_config.local
+    owner: root
+    group: root
+    mode: 0644
+  notify:
+  - reconfigure condor
+  when: (container is undefined) or (container == False)
+
+- name: HTCondor local container configuration
+  copy:
+    src: etc_condor_condor_config.local.container  
+    dest: /etc/condor/condor_config.local
+    owner: root
+    group: root
+    mode: 0644
+  notify:
+  - reconfigure condor
+  when: (container is defined) and (container == True)
+
+- name: HTCondor configure 
+  template:
+    src:  "etc_condor_config.d_{{ item }}.j2"
+    dest: "/etc/condor/config.d/{{ item }}"
+    owner: root
+    group: root
+    mode: 0644
+  with_items:
+  - ports
+  notify:
+  - reconfigure condor
+
+- name: HTCondor configure 
+  copy:
+    src:  "etc_condor_config.d_{{ item }}"
+    dest: "/etc/condor/config.d/{{ item }}"
+    owner: root
+    group: root
+    mode: 0644
+  with_items:
+  - default_request
+  - defrag
+  - scaling
+  - system_hold
+  notify:
+  - reconfigure condor
+
+- name: disable HTCondor GSI if it is not required
+  file:
+    dest: "{{ item }}"
+    state: absent
+  with_items:
+  - /etc/condor/config.d/gsi
+  - /etc/grid-security/grid-mapfile
+  notify:
+  - reconfigure condor
+  when:
+  - (htcondorGSI is undefined) or (htcondorGSI == False)
+
+- name: install the grid-mapfile if GSI is required
+  template:
+    src: etc_grid-security_grid-mapfile.j2
+    dest: /etc/grid-security/grid-mapfile
+    owner: root
+    group: root
+    mode: 0644
+  when:
+  - (htcondorGSI is defined) and (htcondorGSI == True)
+
+- name:  enable HTCondor GSI configuration 
+  template:
+    src:  etc_condor_config.d_gsi.j2
+    dest: /etc/condor/config.d/gsi
+    owner: root
+    group: root
+    mode: 0644
+  notify:
+  - reconfigure condor
+  when:
+  - (htcondorGSI is defined) and (htcondorGSI == True)
+
+- name: ensure HTCondor is running
+  service:
+    name: condor
+    enabled: yes
+    state: started
+  ignore_errors: yes
+
+- name: wait for condor
+  wait_for:
+    timeout: 5
+
