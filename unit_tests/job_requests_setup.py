@@ -14,71 +14,46 @@ def main(gvar):
     
     job_requests_cleanup.main(gvar)
 
-    # unprivileged user in no groups
+    # 05 group with users
+    execute_csv2_request(
+        gvar, 0, None, 'group "{}" successfully added.'.format(ut_id(gvar, 'jtg1')),
+        '/group/add/', form_data={
+            'group_name': ut_id(gvar, 'jtg1'),
+            'htcondor_fqdn': gvar['fqdn']
+        }
+    )
+
+    # 06 group without users
+    execute_csv2_request(
+        gvar, 0, None, 'group "{}" successfully added.'.format(ut_id(gvar, 'jtg2')),
+        '/group/add/', form_data={
+            'group_name': ut_id(gvar, 'jtg2'),
+            'htcondor_fqdn': gvar['fqdn']
+        }
+    )
+
+    # 07 unprivileged user in jtg1
     execute_csv2_request(
         gvar, 0, None, 'user "{}" successfully added.'.format(ut_id(gvar, 'jtu1')),
         '/user/add/', form_data={
             'username': ut_id(gvar, 'jtu1'),
             'password1': gvar['user_secret'],
             'password2': gvar['user_secret'],
-            'cert_cn': ut_id(gvar, 'job test user one')
+            'cert_cn': 'job test user 1',
+            'group_name.1': ut_id(gvar, 'jtg1')
         }
     )
-    
-    # privileged user in no groups
+
+    # 08 unprivileged user in no groups
     execute_csv2_request(
         gvar, 0, None, 'user "{}" successfully added.'.format(ut_id(gvar, 'jtu2')),
         '/user/add/', form_data={
             'username': ut_id(gvar, 'jtu2'),
             'password1': gvar['user_secret'],
             'password2': gvar['user_secret'],
-            'cert_cn': ut_id(gvar, 'job test user two'),
-            'is_superuser': 1
-        }
-    )
-
-    # group with users
-    execute_csv2_request(
-        gvar, 0, None, 'group "{}" successfully added.'.format(ut_id(gvar, 'jtg1')),
-        '/group/add/', form_data={
-            'group_name': ut_id(gvar, 'jtg1'),
-            'htcondor_fqdn': gvar['user_settings']['server-address']
-        }
-    )
-
-    # group without users
-    execute_csv2_request(
-        gvar, 0, None, 'group "{}" successfully added.'.format(ut_id(gvar, 'jtg2')),
-        '/group/add/', form_data={
-            'group_name': ut_id(gvar, 'jtg2'),
-            'htcondor_fqdn': gvar['user_settings']['server-address']
-        }
-    )
-
-    # unprivileged user in jtg1
-    execute_csv2_request(
-        gvar, 0, None, 'user "{}" successfully added.'.format(ut_id(gvar, 'jtu3')),
-        '/user/add/', form_data={
-            'username': ut_id(gvar, 'jtu3'),
-            'password1': gvar['user_secret'],
-            'password2': gvar['user_secret'],
-            'cert_cn': ut_id(gvar, 'job test user three'),
-            'group_name.1': ut_id(gvar, 'jtg1')
+            'cert_cn': 'job test user 2'
         }
     )
     
-    # privileged user in jtg1
-    execute_csv2_request(
-        gvar, 0, None, 'user "{}" successfully added.'.format(ut_id(gvar, 'jtu4')),
-        '/user/add/', form_data={
-            'username': ut_id(gvar, 'jtu4'),
-            'password1': gvar['user_secret'],
-            'password2': gvar['user_secret'],
-            'cert_cn': ut_id(gvar, 'job test user four'),
-            'is_superuser': 1,
-            'group_name.1': ut_id(gvar, 'jtg1')
-        }
-    )
-
 if __name__ == "__main__":
     main(None)
