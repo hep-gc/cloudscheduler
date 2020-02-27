@@ -6,7 +6,7 @@ SEC_DEFAULT_INTEGRITY = REQUIRED
 GRIDMAP = /etc/grid-security/grid-mapfile
 GSI_DAEMON_CERT = /etc/grid-security/hostcert.pem
 GSI_DAEMON_KEY = /etc/grid-security/hostkey.pem
-GSI_DAEMON_NAME = /CN=csv2-sa.heprc.uvic.ca,{{ htcondor_gsi_dn }},{{ htcondor_worker_gsi_dn }}
+GSI_DAEMON_NAME = {{ htcondor_gsi_dn }},{{ htcondor_worker_gsi_dn }}
 GSI_DAEMON_TRUSTED_CA_DIR = /etc/grid-security/certificates/
 GSI_DELEGATION_KEYBITS = 1024
 GSI_SKIP_HOST_CHECK=true
