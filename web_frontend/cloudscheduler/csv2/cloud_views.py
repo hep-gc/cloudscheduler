@@ -488,6 +488,10 @@ def add(request):
                 config.db_close()
                 return list(request, active_user=active_user, response_code=1, message='%s cloud add, "%s" failed - %s.' % (lno(MODID), fields['cloud_name'], msg))
 
+        if 'cloud_type' in fields:
+            if fields['cloud_type'] == 'amazon':
+                fields['cores_softmax'] = config.categories['web_frontend']['default_softmax']
+
         # Verify cloud credentials.
         rc, msg, owner_id = verify_cloud_credentials(config, {**fields, **{'group_name': active_user.active_group}})
         if rc == 0:
