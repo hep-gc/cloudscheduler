@@ -205,7 +205,7 @@ def get_condor_session(hostname=None):
 
 def get_gsi_cert_subject_and_eol(cert):
     if not os.access(cert, os.R_OK):
-        logger.warning('function: get_gsi_cert_subject_and_eol, pem: %s is unreadable.' % cert)
+        logging.warning('function: get_gsi_cert_subject_and_eol, pem: %s is unreadable.' % cert)
         return 'unreadable', -999999
 
     if os.path.isfile(cert):
@@ -243,11 +243,11 @@ def get_gsi_cert_subject_and_eol(cert):
                 eol = int(time.mktime(time.strptime(decode(stdout[:-1]), '%b %d %H:%M:%S %Y %Z')))
                 return subject, eol
             else:
-                logger.error('function: get_gsi_cert_subject_and_eol(openssl x509 -dates), cert: %s, rc: %s, stdout: %s, stderr: %s' % (cert, p2.returncode, decode(stdout), decode(stderr)))
+                logging.error('function: get_gsi_cert_subject_and_eol(openssl x509 -dates), cert: %s, rc: %s, stdout: %s, stderr: %s' % (cert, p2.returncode, decode(stdout), decode(stderr)))
         else:
-            logger.error('function: get_gsi_cert_subject_and_eol(openssl x509 -subject), cert: %s, rc: %s, stdout: %s, stderr: %s' % (cert, p1.returncode, decode(stdout), decode(stderr)))
+            logging.error('function: get_gsi_cert_subject_and_eol(openssl x509 -subject), cert: %s, rc: %s, stdout: %s, stderr: %s' % (cert, p1.returncode, decode(stdout), decode(stderr)))
     else:
-        logger.error('function: get_gsi_cert_subject_and_eol(openssl x509 -subject), cert: "%s" does not exist.' % cert)
+        logging.error('function: get_gsi_cert_subject_and_eol(openssl x509 -subject), cert: "%s" does not exist.' % cert)
 
     return None, None
 
@@ -295,7 +295,7 @@ def yaml_full_load(yaml_string):
 
 def zip_base64(path):
     if not os.access(path, os.R_OK):
-        logger.warning('function: zip_base64, pem: %s is unreadable.' % path)
+        logging.warning('function: zip_base64, pem: %s is unreadable.' % path)
         return 'unreadable'
 
     if os.path.isfile(path):
@@ -313,7 +313,7 @@ def zip_base64(path):
         if p2.returncode == 0:
             return decode(stdout)
         else:
-            logger.error('function: zip_base64, pem: %s, rc: %s, stdout: %s, stderr: %s' % (path, p2.returncode, decode(stdout), decode(stderr)))
+            logging.error('function: zip_base64, pem: %s, rc: %s, stdout: %s, stderr: %s' % (path, p2.returncode, decode(stdout), decode(stderr)))
 
     return None
 
@@ -337,7 +337,7 @@ def process_group_cloud_commands(pair, condor_host):
     group_name = pair.group_name
     cloud_name = pair.cloud_name
 
-    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', [os.path.basename(sys.argv[0]),  "ProcessMonitor"], pool_size=3, signals=True)
+    config = Config(sys.argv[1], [os.path.basename(sys.argv[0]),  "ProcessMonitor"], pool_size=3, signals=True)
     config.db_open()
 
     VM = config.db_map.classes.csv2_vms
@@ -650,7 +650,7 @@ def job_poller():
     uncommitted_updates = 0
     failure_dict = {}
 
-    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', [os.path.basename(sys.argv[0]), "ProcessMonitor"], pool_size=3, signals=True)
+    config = Config(sys.argv[1], [os.path.basename(sys.argv[0]), "ProcessMonitor"], pool_size=3, signals=True)
     PID_FILE = config.categories["ProcessMonitor"]["pid_path"] + os.path.basename(sys.argv[0])
 
 
@@ -997,7 +997,7 @@ def job_poller():
 def job_command_poller():
     multiprocessing.current_process().name = "Job Command Poller"
 
-    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', [os.path.basename(sys.argv[0]), "ProcessMonitor"], pool_size=3, signals=True)
+    config = Config(sys.argv[1], [os.path.basename(sys.argv[0]), "ProcessMonitor"], pool_size=3, signals=True)
     PID_FILE = config.categories["ProcessMonitor"]["pid_path"] + os.path.basename(sys.argv[0])
     Job = config.db_map.classes.condor_jobs
     GROUPS = config.db_map.classes.csv2_groups
@@ -1106,7 +1106,7 @@ def machine_poller():
                            "Start", "RemoteOwner", "SlotType", "TotalSlots", "group_name", \
                            "cloud_name", "cs_host_id", "condor_host", "flavor", "TotalDisk"]
 
-    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', [os.path.basename(sys.argv[0]), "SQL", "ProcessMonitor"], pool_size=3, signals=True)
+    config = Config(sys.argv[1], [os.path.basename(sys.argv[0]), "SQL", "ProcessMonitor"], pool_size=3, signals=True)
     PID_FILE = config.categories["ProcessMonitor"]["pid_path"] + os.path.basename(sys.argv[0])
 
 
@@ -1359,7 +1359,7 @@ def machine_command_poller():
     multiprocessing.current_process().name = "Machine Command Poller"
 
     # database setup
-    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', [os.path.basename(sys.argv[0]),  "ProcessMonitor"], pool_size=3, signals=True)
+    config = Config(sys.argv[1], [os.path.basename(sys.argv[0]),  "ProcessMonitor"], pool_size=3, signals=True)
     PID_FILE = config.categories["ProcessMonitor"]["pid_path"] + os.path.basename(sys.argv[0])
 
     Resource = config.db_map.classes.condor_machines
@@ -1439,7 +1439,7 @@ def machine_command_poller():
 def worker_gsi_poller():
     multiprocessing.current_process().name = "Worker GSI Poller"
 
-    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', [os.path.basename(sys.argv[0]), 'ProcessMonitor'], pool_size=6, signals=True)
+    config = Config(sys.argv[1], [os.path.basename(sys.argv[0]), 'ProcessMonitor'], pool_size=6, signals=True)
     PID_FILE = config.categories["ProcessMonitor"]["pid_path"] + os.path.basename(sys.argv[0])
 
     cycle_start_time = 0
@@ -1462,69 +1462,60 @@ def worker_gsi_poller():
             condor_dict = get_condor_dict(config, logging)
 
             deleted = []
-            condor_list = config.db_connection.execute('select htcondor_fqdn from condor_worker_gsi;')
-            for condor in condor_list:
-                if condor['htcondor_fqdn'] not in condor_dict:
-                    config.db_session.execute('delete from condor_worker_gsi where htcondor_fqdn="%s";' % condor['htcondor_fqdn'])
-                    deleted.append(condor['htcondor_fqdn'])
+            condor = socket.gethostname()
+            worker_cert = {}
+            if 'GSI_DAEMON_CERT' in htcondor.param:
+                try:
+                    worker_cert['subject'], worker_cert['eol'] = get_gsi_cert_subject_and_eol(config.condor_poller['condor_worker_cert'])
+                    worker_cert['cert'] = zip_base64(config.condor_poller['condor_worker_cert'])
+                except:
+                    logging.info("Unable to find condor_worker_cert from local configuration.")
 
-                if len(deleted) > 0:
+                try:
+                    worker_cert['key'] = zip_base64(config.condor_poller['condor_worker_key'])
+                    if worker_cert['key'] == 'unreadable':
+                        worker_cert['eol'] = -999999
+                except Exception as ex:
+                    logging.info("Unable to find condor_worker_key from local configuration")
+                    logging.info(ex)
+            if worker_cert:
+                try:
+                    config.db_session.execute('insert into condor_worker_gsi values("%s", "%s", %d, "%s", "%s");' % (condor, if_null(worker_cert['subject']), worker_cert['eol'], if_null(worker_cert['cert']), if_null(worker_cert['key'])))
                     config.db_session.commit()
-                    logging.info('The following obsolete HTCondor worker certs have been deleted from condor_worker_gsi: %s' % deleted)
 
-            for condor in sorted(condor_dict):
-                worker_cert = {}
-                if 'GSI_DAEMON_CERT' in htcondor.param:
-                    try:
-                        worker_cert['subject'], worker_cert['eol'] = get_gsi_cert_subject_and_eol(config.condor_poller['condor_worker_cert'])
-                        worker_cert['cert'] = zip_base64(config.condor_poller['condor_worker_cert'])
-                    except:
-                        logging.info("Unable to find condor_worker_cert from local configuration.")
+                    if worker_cert['subject']:
+                        logging.info('Condor host: "%s", condor_worker_gsi inserted.' % condor)
+                    else:
+                        logging.info('Condor host: "%s", condor_worker_gsi (not configured) inserted.' % condor)
+
+                except Exception as ex:
+                    if not (isinstance(ex, sqlalchemy.exc.IntegrityError) and str(ex.orig)[1:-1].split(',')[0] == '1062'):
+                        logging.warning('Condor host: "%s", condor_worker_gsi insert failed, exception: %s' % (condor, ex))
 
                     try:
-                        worker_cert['key'] = zip_base64(config.condor_poller['condor_worker_key'])
-                        if worker_cert['key'] == 'unreadable':
-                            worker_cert['eol'] = -999999
-                    except:
-                        logging.info("Unable to find condor_worker_key from local configuration")
-                if worker_cert:
-                    try:
-                        config.db_session.execute('insert into condor_worker_gsi values("%s", "%s", %d, "%s", "%s");' % (condor, if_null(worker_cert['subject']), worker_cert['eol'], if_null(worker_cert['cert']), if_null(worker_cert['key'])))
+                        config.db_session.execute('update condor_worker_gsi set %s,worker_eol=%d,%s,%s where htcondor_fqdn="%s";' % (
+                            if_null(worker_cert['subject'], col='worker_dn'),
+                            worker_cert['eol'],
+                            if_null(worker_cert['cert'], col='worker_cert'),
+                            if_null(worker_cert['key'], col='worker_key'),
+                            condor))
                         config.db_session.commit()
 
                         if worker_cert['subject']:
-                            logging.info('Condor host: "%s", condor_worker_gsi inserted.' % condor)
+                            logging.info('Condor host: "%s", condor_worker_gsi updated.' % condor)
                         else:
-                            logging.info('Condor host: "%s", condor_worker_gsi (not configured) inserted.' % condor)
+                            logging.info('Condor host: "%s", condor_worker_gsi (not configured) updated.' % condor)
 
                     except Exception as ex:
-                        if not (isinstance(ex, sqlalchemy.exc.IntegrityError) and str(ex.orig)[1:-1].split(',')[0] == '1062'):
-                            logging.warning('Condor host: "%s", condor_worker_gsi insert failed, exception: %s' % (condor, ex))
+                        config.db_session.rollback()
 
-                        try:
-                            config.db_session.execute('update condor_worker_gsi set %s,worker_eol=%d,%s,%s where htcondor_fqdn="%s";' % (
-                                if_null(worker_cert['subject'], col='worker_dn'),
-                                worker_cert['eol'],
-                                if_null(worker_cert['cert'], col='worker_cert'),
-                                if_null(worker_cert['key'], col='worker_key'),
-                                condor))
-                            config.db_session.commit()
+                        if worker_cert['subject']:
+                            logging.error('Condor host: "%s", condor_worker_gsi update failed, exception: %s' % (condor, ex))
+                        else:
+                            logging.error('Condor host: "%s", condor_worker_gsi (not configured) update failed, exception: %s' % (condor, ex))
 
-                            if worker_cert['subject']:
-                                logging.info('Condor host: "%s", condor_worker_gsi updated.' % condor)
-                            else:
-                                logging.info('Condor host: "%s", condor_worker_gsi (not configured) updated.' % condor)
-
-                        except Exception as ex:
-                            config.db_session.rollback()
-
-                            if worker_cert['subject']:
-                                logging.error('Condor host: "%s", condor_worker_gsi update failed, exception: %s' % (condor, ex))
-                            else:
-                                logging.error('Condor host: "%s", condor_worker_gsi (not configured) update failed, exception: %s' % (condor, ex))
-
-                else:
-                    logging.warning('Condor host: "%s", request timed out.' % condor)
+            else:
+                logging.warning('Condor host: "%s", GSI not enabled, nothing to do...' % condor)
 
             config.db_close()
             signal.signal(signal.SIGINT, config.signals['SIGINT'])
@@ -1544,7 +1535,7 @@ def worker_gsi_poller():
 def condor_gsi_poller():
     multiprocessing.current_process().name = "Condor GSI Poller"
 
-    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', [os.path.basename(sys.argv[0]), 'ProcessMonitor'], pool_size=6, signals=True)
+    config = Config(sys.argv[1], [os.path.basename(sys.argv[0]), 'ProcessMonitor'], pool_size=6, signals=True)
     PID_FILE = config.categories["ProcessMonitor"]["pid_path"] + os.path.basename(sys.argv[0])
 
     cycle_start_time = 0
@@ -1563,42 +1554,40 @@ def condor_gsi_poller():
                 break
             signal.signal(signal.SIGINT, signal.SIG_IGN)
 
-            condor_dict = get_condor_dict(config, logging)
 
-            for condor in sorted(condor_dict):
-                condor_cert = {}
-                if 'GSI_DAEMON_CERT' in htcondor.param:
-                    condor_hostcert = htcondor.param['GSI_DAEMON_CERT']
-                else:
-                    try:
-                        condor_hostcert = config.condor_poller.get("condor_hostcert")
-                    except:
-                        condor_hostcert = None
+            condor = socket.gethostname()
+            condor_cert = {}
+            if 'GSI_DAEMON_CERT' in htcondor.param:
+                condor_hostcert = htcondor.param['GSI_DAEMON_CERT']
+            else:
+                try:
+                    condor_hostcert = config.condor_poller.get("condor_hostcert")
+                except:
+                    condor_hostcert = None
 
-                if condor_hostcert:
-                    condor_cert['subject'], condor_cert['eol'] = get_gsi_cert_subject_and_eol(condor_hostcert)
-                
-                if condor_cert:
-                    try:
-                        for group in sorted(condor_dict[condor]):
-                            config.db_session.execute('update csv2_groups set %s,htcondor_gsi_eol=%d where group_name="%s";' % (if_null(condor_cert['subject'], col='htcondor_gsi_dn'), condor_cert['eol'], group))
-                        config.db_session.commit()
+            if condor_hostcert:
+                condor_cert['subject'], condor_cert['eol'] = get_gsi_cert_subject_and_eol(condor_hostcert)
+            
+            if condor_cert:
+                try:
+                    config.db_session.execute('update csv2_groups set %s,htcondor_gsi_eol=%d where htcondor_fqdn="%s";' % (if_null(condor_cert['subject'], col='htcondor_gsi_dn'), condor_cert['eol'], condor))
+                    config.db_session.commit()
 
-                        if condor_cert['subject']:
-                            logging.info('Condor host: "%s", %s group(s) (%s) GSI updated.' % (condor, len(condor_dict[condor]), condor_dict[condor]))
-                        else:
-                            logging.info('Condor host: "%s", %s group(s) (%s) GSI (not configured) updated.' % (condor, len(condor_dict[condor]), condor_dict[condor]))
+                    if condor_cert['subject']:
+                        logging.info('Condor host: "%s" GSI updated.' % condor)
+                    else:
+                        logging.info('Condor host: "%s" GSI (not configured) updated.' % condor)
 
-                    except Exception as ex:
-                        config.db_session.rollback()
+                except Exception as ex:
+                    config.db_session.rollback()
 
-                        if condor_cert['subject']:
-                            logging.error('Condor host: "%s", %s group(s) (%s) GSI update failed, exception: %s' % (condor, len(condor_dict[condor]), condor_dict[condor], ex))
-                        else:
-                            logging.error('Condor host: "%s", %s group(s) (%s) GSI (not configured) update failed, exception: %s' % (condor, len(condor_dict[condor]), condor_dict[condor], ex))
+                    if condor_cert['subject']:
+                        logging.error('Condor host: "%s" GSI update failed, exception: %s' % (condor, ex))
+                    else:
+                        logging.error('Condor host: "%s",  GSI (not configured) update failed, exception: %s' % (condor, ex))
 
-                else:
-                    logging.warning('Unable to retrieve certificate')
+            else:
+                logging.warning('Unable to retrieve certificate')
 
             config.db_session.rollback()
 
@@ -1626,7 +1615,7 @@ if __name__ == '__main__':
 
     db_category_list = [os.path.basename(sys.argv[0]), "ProcessMonitor", "general", "signal_manager"]
 
-    procMon = ProcessMonitor(config_params=db_category_list, pool_size=3, process_ids=process_ids)
+    procMon = ProcessMonitor(config_params=db_category_list, pool_size=3, process_ids=process_ids, config_file=sys.argv[1])
     config = procMon.get_config()
     logging = procMon.get_logging()
     version = config.get_version()

@@ -16,12 +16,16 @@ class ProcessMonitor:
     process_ids = {}
     logging = None
 
-    def __init__(self, config_params, pool_size,  process_ids=None):
-        self.config = Config('/etc/cloudscheduler/cloudscheduler.yaml', config_params, pool_size=pool_size)
+    def __init__(self, config_params, pool_size,  process_ids=None, config_file='/etc/cloudscheduler/cloudscheduler.yaml', log_file=None, log_level=None):
+        self.config = Config(config_file, config_params, pool_size=pool_size)
+        if log_file is None:
+            log_file = self.config.categories[os.path.basename(sys.argv[0])]["log_file"]
+        if log_level is None:
+            log_level = self.config.categories[os.path.basename(sys.argv[0])]["log_level"]
         self.logging = logging.getLogger()
         logging.basicConfig(
-            filename=self.config.categories[os.path.basename(sys.argv[0])]["log_file"],
-            level=self.config.categories[os.path.basename(sys.argv[0])]["log_level"],
+            filename=log_file,
+            level=log_level,
             format='%(asctime)s - %(processName)-12s - %(process)d - %(levelname)s - %(message)s')
         self.process_ids = process_ids
 
