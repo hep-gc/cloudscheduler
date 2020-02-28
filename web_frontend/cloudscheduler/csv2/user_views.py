@@ -58,12 +58,6 @@ USER_GROUP_KEYS = {
         ],
     }
 
-USER_ADD_KEYS = {
-    'mandatory': [
-        'password',
-        ],
-    }
-
 UNPRIVILEGED_USER_KEYS = {
     'auto_active_user': True,
     'unnamed_fields_are_bad': True,
