@@ -1,0 +1,30 @@
+database:
+    db_user: "condor_poller"
+    db_password: "{{ database_user_passwords['condor_poller'] }}"
+    db_host: "{{ ansible_fqdn }}"
+    db_port: "{{ database_public_port }}"
+    db_name: "csv2"
+    db_table: "csv2_configuration"
+
+signals:
+    protocol: "amqp" 
+    host: "{{ ansible_fqdn }}"
+    port: "{{ amqp_public_port }}"
+    user: "condor_poller" 
+    password: "{{ amqp_user_passwords['condor_poller'] }}"
+    registry: "/var/local/cloudscheduler/signals"
+    events:
+        - "insert_csv2_clouds_amazon"
+        - "insert_csv2_clouds_openstack"
+        - "signal_tests" 
+        - "update_csv2_clouds_amazon"
+        - "update_csv2_clouds_openstack"
+        - "update_ec2_images"
+        - "update_ec2_instance_types"
+    queue: "signals"
+
+condor_poller:
+    condor_worker_cert: /var/lib/condor/.globus/condorworkercert.pem
+    condor_worker_key: /var/lib/condor/.globus/condorworkerkey.pem
+    log_file: /var/log/condor/condor_poller.log
+    log_level: 20
