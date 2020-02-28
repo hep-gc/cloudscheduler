@@ -1,0 +1,12 @@
+[Unit]
+Description=Queries htcondor for job and machine data and executes condor commands
+After=network.target
+
+[Service]
+Type=simple
+User=condor
+ExecStart=/usr/bin/python3 /opt/cloudscheduler/data_collectors/condor/condor_poller.py /opt/cloudscheduleri/etc/cloudscheduler/condor_poller.yaml
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
