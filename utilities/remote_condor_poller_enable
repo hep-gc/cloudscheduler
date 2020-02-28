@@ -1,0 +1,62 @@
+#!/bin/bash 
+###
+### This utility checks the pre-requisite software for the condor_poller, installing and upgrading packages
+### as necessary. Subseqently it installs the service file, then enables and starts the service.
+###
+check_sw () {
+    # $1 - package
+    # $2 - tested version
+
+    IFS=. read tv1 tv2 tv3 <<EOF
+$2
+EOF
+    TV=$(( ( ( ( $tv1 * 1000 ) + $tv2 ) * 1000 ) + $tv3 ))
+    echo $TV
+
+    version=$(pip3 show $1 | awk '/^Version/ {print $2}')
+    IFS=. read av1 av2 av3 <<EOF
+$version
+EOF
+
+    if [ "X$version" == 'X' ]; then
+        read -p "The python package '$1' is not installed. Would you like to install it now? (y | n):" answer
+        if [ "X$answer" == 'Xy' ]; then
+            pip3 install "$1==$2"
+        fi
+    else
+        AV=$(( ( ( ( $av1 * 1000 ) + $av2 ) * 1000 ) + $av3 ))
+
+        if [ $AV -gt $TV ]; then
+           echo "Warning: The python package '$1' version $version is installed.  This is a later version than tested ($2)."
+
+        elif [ $AV -lt $TV ]; then
+            read -p "The python package '$1' version $version is installed. Would you like to upgrade it to the tested vesion ($2)? (y | n):" answer
+            if [ "X$answer" == 'Xy' ]; then
+                pip3 install "$1==$2" --upgrade 
+            fi
+        fi
+    fi  
+}
+
+    python3=$(which python3 2>&1)
+    pip3=$(which pip3 2>&1)
+    if [ "${python3:0:10}" == 'which: no ' ] || [ "${pip3:0:10}" == 'which: no ' ]; then
+        echo 'ERROR: You need to install python3 and pip3 before we can proceed.'
+        exit 1
+    fi  
+
+    if [ "$EUID" != '0' ]; then
+        echo 'ERROR: This process needs to run as root.'
+        exit 1
+    fi  
+
+    check_sw boto3 1.9.130
+    check_sw htcondor 8.9.0
+    check_sw keystoneclient 3.16.0
+    check_sw novaclient 10.3.0
+    check_sw SQLAlchemy 1.2.7
+
+    cp /opt/cloudscheduler/etc/systemd/system/csv2-condor-poller.service.afile /etc/systemd/system/csv2-condor-poller.service
+    systemctl enable csv2-condor-poller
+    systemctl start csv2-condor-poller
+
