@@ -131,7 +131,7 @@ def add(request):
 
     if request.method == 'POST':
         # Validate input fields.
-        rc, msg, fields, tables, columns = validate_fields(config, request, [USER_GROUP_KEYS, USER_ADD_KEYS], ['csv2_user', 'csv2_groups,n', 'csv2_user_groups,n'], active_user)
+        rc, msg, fields, tables, columns = validate_fields(config, request, [USER_GROUP_KEYS], ['csv2_user', 'csv2_groups,n', 'csv2_user_groups,n'], active_user)
         if rc != 0:
             config.db_close()
             return user_list(request, active_user=active_user, response_code=1, message='%s user add, %s' % (lno(MODID), msg))
