@@ -28,7 +28,7 @@ def main(gvar):
             'username': ut_id(gvar, 'utu1'),
             'password1': gvar['user_secret'],
             'password2': gvar['user_secret'],
-            'cert_cn': ut_id(gvar, 'user test user one')
+            'cert_cn': ut_id(gvar, 'user test user 1')
         }
     )
 
@@ -39,7 +39,7 @@ def main(gvar):
             'username': ut_id(gvar, 'utu2'),
             'password1': gvar['user_secret'],
             'password2': gvar['user_secret'],
-            'cert_cn': ut_id(gvar, 'user test user two'),
+            'cert_cn': ut_id(gvar, 'user test user 2'),
             'is_superuser': 1
         }
     )
@@ -49,7 +49,7 @@ def main(gvar):
         gvar, 0, None, 'group "{}" successfully added.'.format(ut_id(gvar, 'utg1')),
         '/group/add/', form_data={
             'group_name': ut_id(gvar, 'utg1'),
-            'htcondor_fqdn': gvar['user_settings']['server-address']
+            'htcondor_fqdn': gvar['fqdn']
         }
     )
 
@@ -58,7 +58,7 @@ def main(gvar):
         gvar, 0, None, 'group "{}" successfully added.'.format(ut_id(gvar, 'utg2')),
         '/group/add/', form_data={
             'group_name': ut_id(gvar, 'utg2'),
-            'htcondor_fqdn': gvar['user_settings']['server-address']
+            'htcondor_fqdn': gvar['fqdn']
         }
     )
 

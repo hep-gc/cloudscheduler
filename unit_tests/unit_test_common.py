@@ -275,7 +275,8 @@ def parameters_requests(gvar, request, group, server_user, PARAMETERS):
     )
     # Give an invalid parameter.
     execute_csv2_request(
-        gvar, 1, None, 'request contained a bad parameter "invalid-unit-test".',
+        # Response is sometimes 'request contained a bad parameter...' and sometimes 'request contained superfluous parameter...'.
+        gvar, 1, None, 'parameter "invalid-unit-test".',
         request, group=group, form_data={'invalid-unit-test': 'invalid-unit-test', **mandatory_params}, server_user=server_user
     )
 
@@ -309,7 +310,7 @@ def parameters_requests(gvar, request, group, server_user, PARAMETERS):
         else:
             # Provide the parameter twice.
             execute_csv2_request(
-                gvar, 1, None, 'request contained a bad parameter "{}.1".'.format(p_name),
+                gvar, 1, None, 'parameter "{}.1".'.format(p_name),
                 request, group=group, form_data={'{}.1'.format(p_name): p_details['valid'], '{}.2'.format(p_name): p_details['valid'], **mandatory_params}, server_user=server_user
             )
         # Give the parameter with invalid values.
@@ -403,7 +404,7 @@ def initialize_csv2_request(gvar, selections=None, hidden=False):
         gvar['cloud_credentials']['region'] = input('region: ')
         gvar['cloud_credentials']['project'] = input('project: ')
         # Create credentials file with read / write permissions for the current user and none for others. Save user_secret there in plain text.
-        os.makedirs(CREDENTIALS_PATH.rsplit('/', maxsplit=1)[0], exist_ok=True)
+        os.makedirs(os.path.dirname(CREDENTIALS_PATH), mode=0o700, exist_ok=True)
         with open(os.open(CREDENTIALS_PATH, os.O_CREAT | os.O_WRONLY, 0o600), 'w') as credentials_file:
             credentials_file.write(yaml.dump({'user_secret': gvar['user_secret'], 'cloud_credentials': gvar['cloud_credentials']}))
     except yaml.YAMLError as err:
