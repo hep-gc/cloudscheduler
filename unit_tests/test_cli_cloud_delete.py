@@ -83,11 +83,5 @@ def main(gvar):
         ['cloudscheduler', 'cloud', 'delete', '-cn', ut_id(gvar, 'clc1'), '-Y', '-su', ut_id(gvar, 'clu4')]
     )
 
-    # 13
-    execute_csv2_command(
-        gvar, 0, None, 'cloud "{}::{}" successfully deleted.'.format(ut_id(gvar, 'clg1'), ut_id(gvar, 'clc3')),
-        ['cloudscheduler', 'cloud', 'delete', '-cn', ut_id(gvar, 'clc3'), '-Y', '-su', ut_id(gvar, 'clu4')]
-    )
-
 if __name__ == "__main__":
     main(None)

@@ -46,6 +46,15 @@ def main(gvar):
         }
     )
 
+    # group without users
+    execute_csv2_request(
+        gvar, 0, None, 'group "{}" successfully added.'.format(ut_id(gvar, 'clg2')),
+        '/group/add/', form_data={
+            'group_name': ut_id(gvar, 'clg2'),
+            'htcondor_fqdn': gvar['user_settings']['server-address'],
+        }
+    )
+
     # group to be deleted without users
     execute_csv2_request(
         gvar, 0, None, 'group "{}" successfully added.'.format(ut_id(gvar, 'clg3')),
@@ -64,7 +73,7 @@ def main(gvar):
         }
     )
 
-    # group for users to be added to
+    # group to be updated and for users to be added to
     execute_csv2_request(
         gvar, 0, None, 'group "{}" successfully added.'.format(ut_id(gvar, 'clg5')),
         '/group/add/', form_data={
@@ -146,17 +155,6 @@ def main(gvar):
         gvar, 0, None, 'cloud "{}::{}" successfully added.'.format(ut_id(gvar, 'clg1'), ut_id(gvar, 'clc2')),
         '/cloud/add/', group=ut_id(gvar, 'clg1'), form_data={
             'cloud_name': ut_id(gvar, 'clc2'),
-            'cloud_type': 'openstack',
-            **gvar['cloud_credentials']
-        },
-        server_user=ut_id(gvar, 'clu4')
-    )
-
-    # cloud to be deleted
-    execute_csv2_request(
-        gvar, 0, None, 'cloud "{}::{}" successfully added.'.format(ut_id(gvar, 'clg1'), ut_id(gvar, 'clc3')),
-        '/cloud/add/', group=ut_id(gvar, 'clg1'), form_data={
-            'cloud_name': ut_id(gvar, 'clc3'),
             'cloud_type': 'openstack',
             **gvar['cloud_credentials']
         },
