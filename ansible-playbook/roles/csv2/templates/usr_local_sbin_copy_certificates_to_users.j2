@@ -4,11 +4,11 @@ R=0
 M=$(
 {% if htcondor_cert is defined and htcondor_key is defined and htcondor_worker_cert is defined and htcondor_worker_key is defined %}
     {% for user in certificate_users %}
-/bin/cp -f /etc/grid-security/htcondor/{{ user.host }}/cert.pem {{ user.globus }}/{{ user.pfx }}cert.pem 2>&1 &&
+/bin/cp -f /usr/local/etc/certificates/{{ user.host }}/cert.pem {{ user.globus }}/{{ user.pfx }}cert.pem 2>&1 &&
         {% if loop.last %}
-/bin/cp -f /etc/grid-security/htcondor/{{ user.host }}/privkey.pem {{ user.globus }}/{{ user.pfx }}key.pem 2>&1
+/bin/cp -f /usr/local/etc/certificates/{{ user.host }}/privkey.pem {{ user.globus }}/{{ user.pfx }}key.pem 2>&1
         {% else %}
-/bin/cp -f /etc/grid-security/htcondor/{{ user.host }}/privkey.pem {{ user.globus }}/{{ user.pfx }}key.pem 2>&1 &&
+/bin/cp -f /usr/local/etc/certificates/{{ user.host }}/privkey.pem {{ user.globus }}/{{ user.pfx }}key.pem 2>&1 &&
         {% endif %}
     {% endfor %}
 {% else %}
