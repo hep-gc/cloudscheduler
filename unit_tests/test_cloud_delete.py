@@ -12,7 +12,7 @@ def main(gvar):
             initialize_csv2_request(gvar)
 
     # 01 - 05
-    sanity_requests(gvar, '/cloud/delete/', ut_id(gvar, 'ctg1'), ut_id(gvar, 'ctu3'), ut_id(gvar, 'ctg2'), ut_id(gvar, 'ctu1'))
+    sanity_requests(gvar, '/cloud/delete/', ut_id(gvar, 'ctg1'), ut_id(gvar, 'ctu1'), ut_id(gvar, 'ctg2'), ut_id(gvar, 'ctu2'))
     
     PARAMETERS = {
         # 06 Send a GET request.
@@ -33,13 +33,13 @@ def main(gvar):
         }, 'mandatory': True}
     }
 
-    parameters_requests(gvar, '/cloud/delete/', ut_id(gvar, 'ctg1'), ut_id(gvar, 'ctu3'), PARAMETERS)
+    parameters_requests(gvar, '/cloud/delete/', ut_id(gvar, 'ctg1'), ut_id(gvar, 'ctu1'), PARAMETERS)
 
     # 15
     execute_csv2_request(
         gvar, 0, None, 'cloud "{}::{}" successfully deleted.'.format(ut_id(gvar, 'ctg1'), ut_id(gvar, 'ctc1')),
         '/cloud/delete/', group=ut_id(gvar, 'ctg1'), form_data={'cloud_name': ut_id(gvar, 'ctc1')},
-        server_user=ut_id(gvar, 'ctu3')
+        server_user=ut_id(gvar, 'ctu1')
     )
 
 if __name__ == "__main__":

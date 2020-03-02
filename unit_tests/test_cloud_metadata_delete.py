@@ -12,7 +12,7 @@ def main(gvar):
             initialize_csv2_request(gvar)
     
     # 01 - 05
-    sanity_requests(gvar, '/cloud/metadata-delete/', ut_id(gvar, 'ctg1'), ut_id(gvar, 'ctu3'), ut_id(gvar, 'ctg2'), ut_id(gvar, 'ctu1'))
+    sanity_requests(gvar, '/cloud/metadata-delete/', ut_id(gvar, 'ctg1'), ut_id(gvar, 'ctu1'), ut_id(gvar, 'ctg2'), ut_id(gvar, 'ctu2'))
 
     PARAMETERS = {
         # 06 Send a GET request.
@@ -41,7 +41,7 @@ def main(gvar):
         }, 'mandatory': True}
     }
 
-    parameters_requests(gvar, '/cloud/metadata-delete/', ut_id(gvar, 'ctg1'), ut_id(gvar, 'ctu3'), PARAMETERS)
+    parameters_requests(gvar, '/cloud/metadata-delete/', ut_id(gvar, 'ctg1'), ut_id(gvar, 'ctu1'), PARAMETERS)
 
     # 19
     execute_csv2_request(
@@ -51,7 +51,7 @@ def main(gvar):
             'cloud_name': ut_id(gvar, 'ctc3'),
             'metadata_name': ut_id(gvar, 'cty2')
         },
-        server_user=ut_id(gvar, 'ctu3')
+        server_user=ut_id(gvar, 'ctu1')
     )
 
 if __name__ == "__main__":

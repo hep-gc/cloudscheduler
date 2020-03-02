@@ -11,7 +11,7 @@ def main(gvar):
         else:
             initialize_csv2_request(gvar)
     # 01 - 05
-    sanity_requests(gvar, '/cloud/status/', ut_id(gvar, 'ctg1'), ut_id(gvar, 'ctu3'), ut_id(gvar, 'ctu2'), ut_id(gvar, 'ctu1'))
+    sanity_requests(gvar, '/cloud/status/', ut_id(gvar, 'ctg1'), ut_id(gvar, 'ctu1'), ut_id(gvar, 'ctu2'), ut_id(gvar, 'ctu2'))
 
     # 06
     execute_csv2_request(
@@ -32,21 +32,14 @@ def main(gvar):
             'slot_count': '0',
             'slot_core_count': '0',
             'slot_idle_core_count': '0',
-            'Foreign_VMs': '0',
             'cores_ctl': -1,
-            'cores_limit': 0,
-            'VMs_quota': 0,
-            'VMs_native_foreign': '0',
-            'cores_quota': 0,
             'cores_foreign': '0',
             'cores_native_foreign': '0',
             'ram_ctl': -1,
-            'ram_limit': 0,
-            'ram_quota': 0,
             'ram_foreign': 0,
             'ram_native_foreign': 0,
         },
-        server_user=ut_id(gvar, 'ctu3')
+        server_user=ut_id(gvar, 'ctu1')
     )
 
 if __name__ == "__main__":

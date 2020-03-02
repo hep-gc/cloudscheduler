@@ -13,7 +13,7 @@ def main(gvar):
 
     # Bad requests.
     # 01 - 05
-    sanity_requests(gvar, '/cloud/add/', ut_id(gvar, 'ctg1'), ut_id(gvar, 'ctu3'), ut_id(gvar, 'ctg2'), ut_id(gvar, 'ctu1'))
+    sanity_requests(gvar, '/cloud/add/', ut_id(gvar, 'ctg1'), ut_id(gvar, 'ctu1'), ut_id(gvar, 'ctg2'), ut_id(gvar, 'ctu2'))
     
     PARAMETERS = {
         # 06 Send a GET request.
@@ -91,7 +91,7 @@ def main(gvar):
         'vm_keyname': {'valid': '', 'test_cases': {'invalid-unit-test': 'cloud add, "invalid-unit-test" failed - specified item does not exist: vm_keyname=invalid-unit-test, group_name={}, cloud_name=invalid-unit-test.'.format(ut_id(gvar, 'ctg1'))}}
     }
 
-    parameters_requests(gvar, '/cloud/add/', ut_id(gvar, 'ctg1'), ut_id(gvar, 'ctu3'), PARAMETERS)
+    parameters_requests(gvar, '/cloud/add/', ut_id(gvar, 'ctg1'), ut_id(gvar, 'ctu1'), PARAMETERS)
 
     # Parameter combinations that do not fit well into the above format.
     # 54 Known to fail if run twice without setup or cleanup in between.
@@ -111,7 +111,7 @@ def main(gvar):
             'cores_softmax': -1,
             **gvar['cloud_credentials']
             },
-        server_user=ut_id(gvar, 'ctu3')
+        server_user=ut_id(gvar, 'ctu1')
     )
 
     # 55 Ensure that 40 actually created a cloud.
@@ -136,7 +136,7 @@ def main(gvar):
             'group_exclusions': ut_id(gvar, 'cty1'),
             'spot_price': 10,
             },
-        server_user=ut_id(gvar, 'ctu3')
+        server_user=ut_id(gvar, 'ctu1')
     )
 
     # 56 Known to fail if run twice without setup or cleanup in between.
@@ -150,7 +150,7 @@ def main(gvar):
             'metadata_name.3': ut_id(gvar, 'cty3'),
             **gvar['cloud_credentials']
             },
-        server_user=ut_id(gvar, 'ctu3')
+        server_user=ut_id(gvar, 'ctu1')
     )
 
     # 57 Ensure that 42 actually created a cloud.
@@ -163,7 +163,7 @@ def main(gvar):
             'cloud_name': ut_id(gvar, 'ctc6'),
             'group_exclusions': ut_id(gvar, 'cty1,cty2,cty3')
             },
-        server_user=ut_id(gvar, 'ctu3')
+        server_user=ut_id(gvar, 'ctu1')
     )
 
 if __name__ == "__main__":

@@ -12,7 +12,7 @@ def main(gvar):
             initialize_csv2_request(gvar)
 
     # 01 - 05
-    sanity_requests(gvar, '/cloud/metadata-update/', ut_id(gvar, 'ctg1'), ut_id(gvar, 'ctu3'), ut_id(gvar, 'ctg2'), ut_id(gvar, 'ctu1'))
+    sanity_requests(gvar, '/cloud/metadata-update/', ut_id(gvar, 'ctg1'), ut_id(gvar, 'ctu1'), ut_id(gvar, 'ctg2'), ut_id(gvar, 'ctu2'))
 
     PARAMETERS = {
         # 06 Submit a GET request.
@@ -48,7 +48,7 @@ def main(gvar):
         'priority': {'valid': 0, 'test_cases': {'invalid-unit-test': 'value specified for "priority" must be an integer value.'}}
     }
 
-    parameters_requests(gvar, '/cloud/metadata-update/', ut_id(gvar, 'ctg1'), ut_id(gvar, 'ctu3'), PARAMETERS)
+    parameters_requests(gvar, '/cloud/metadata-update/', ut_id(gvar, 'ctg1'), ut_id(gvar, 'ctu1'), PARAMETERS)
 
     # 24
     execute_csv2_request(
@@ -58,7 +58,7 @@ def main(gvar):
             'cloud_name': 'invalid-unit-test',
             'metadata_name': 'invalid-unit-test' 
         },
-        server_user=ut_id(gvar, 'ctu3')
+        server_user=ut_id(gvar, 'ctu1')
     )
 
     # 25 Attempt to update non-existent metadata.
@@ -71,7 +71,7 @@ def main(gvar):
             # We need to specify at least one field to update.
             'priority': 1
         },
-        server_user=ut_id(gvar, 'ctu3')
+        server_user=ut_id(gvar, 'ctu1')
     )
 
     # 26 Attempt to give incorrectly formatted YAML metadata.
@@ -83,7 +83,7 @@ def main(gvar):
             'metadata_name': ut_id(gvar, 'cty3.yaml'),
             'metadata': 'foo: this is invalid: yaml'
         },
-        server_user=ut_id(gvar, 'ctu3')
+        server_user=ut_id(gvar, 'ctu1')
     )
 
     # 27 Ensure that YAML formatting is not enforced on all metadata and that correct parameters are accepted.
@@ -98,7 +98,7 @@ def main(gvar):
             'mime_type': 'ucernvm-config',
             'enabled': 'false'
         },
-        server_user=ut_id(gvar, 'ctu3')
+        server_user=ut_id(gvar, 'ctu1')
     )
 
     # 28 Give correct YAML metadata.
@@ -110,7 +110,7 @@ def main(gvar):
             'metadata_name': ut_id(gvar, 'cty3.yaml'),
             'metadata': '- foo: this is valid yaml'
         },
-        server_user=ut_id(gvar, 'ctu3')
+        server_user=ut_id(gvar, 'ctu1')
     )
 
 if __name__ == "__main__":

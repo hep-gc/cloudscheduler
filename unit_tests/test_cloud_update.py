@@ -12,7 +12,7 @@ def main(gvar):
             initialize_csv2_request(gvar)
 
     # 01 - 05
-    sanity_requests(gvar, '/cloud/update/', ut_id(gvar, 'ctg1'), ut_id(gvar, 'ctu3'), ut_id(gvar, 'ctg2'), ut_id(gvar, 'ctu1'))
+    sanity_requests(gvar, '/cloud/update/', ut_id(gvar, 'ctg1'), ut_id(gvar, 'ctu1'), ut_id(gvar, 'ctg2'), ut_id(gvar, 'ctu2'))
 
     PARAMETERS = {
         # 06 Send a GET request.
@@ -76,27 +76,27 @@ def main(gvar):
         'vm_keyname': {'valid': '', 'test_cases': {'invalid-unit-test': 'cloud update, "{0}" failed - specified item does not exist: vm_keyname=invalid-unit-test, group_name={1}, cloud_name={0}.'.format(ut_id(gvar, 'ctc3'), ut_id(gvar, 'ctg1'))}}
     }
 
-    parameters_requests(gvar, '/cloud/update/', ut_id(gvar, 'ctg1'), ut_id(gvar, 'ctu3'), PARAMETERS)
+    parameters_requests(gvar, '/cloud/update/', ut_id(gvar, 'ctg1'), ut_id(gvar, 'ctu1'), PARAMETERS)
 
     # 44 Ensure that metadata_option by itself does not qualify as a field to update.
     execute_csv2_request(
         gvar, 1, 'CV', 'cloud update must specify at least one field to update',
         '/cloud/update/', group=ut_id(gvar, 'ctg1'), form_data={'cloud_name': ut_id(gvar, 'ctc3'), 'metadata_option': 'add'},
-        server_user=ut_id(gvar, 'ctu3')
+        server_user=ut_id(gvar, 'ctu1')
     )
 
     # 45 Attempt to implicitly add metadata that does not exist.
     execute_csv2_request(
         gvar, 1, 'CV', 'cloud update, "{}" failed - specified metadata_name "invalid-unit-test" does not exist.'.format(ut_id(gvar, 'ctc3')),
         '/cloud/update/', group=ut_id(gvar, 'ctg1'), form_data={'cloud_name': ut_id(gvar, 'ctc3'), 'metadata_name': 'invalid-unit-test'},
-        server_user=ut_id(gvar, 'ctu3')
+        server_user=ut_id(gvar, 'ctu1')
     )
 
     # 46 Attempt to delete non-existent metadata.
     execute_csv2_request(
         gvar, 1, 'CV', 'cloud update, "{}" failed - specified metadata_name "invalid-unit-test" does not exist.'.format(ut_id(gvar, 'ctc3')),
         '/cloud/update/', group=ut_id(gvar, 'ctg1'), form_data={'cloud_name': ut_id(gvar, 'ctc3'), 'metadata_name': 'invalid-unit-test', 'metadata_option': 'delete'},
-        server_user=ut_id(gvar, 'ctu3')
+        server_user=ut_id(gvar, 'ctu1')
     )
 
     # 47 Ensures that values are as expected before executing requests that are expected to succeed. Known to fail if run twice without setup / cleanup in between.
@@ -140,7 +140,7 @@ def main(gvar):
             'vm_network': '',
             'vm_security_groups': None
             },
-        server_user=ut_id(gvar, 'ctu3')
+        server_user=ut_id(gvar, 'ctu1')
     )
 
     # 48 Update several values and explicitly add one metadata.
@@ -159,7 +159,7 @@ def main(gvar):
             'metadata_name': ut_id(gvar, 'cty1'),
             'metadata_option': 'add'
             },
-        server_user=ut_id(gvar, 'ctu3')
+        server_user=ut_id(gvar, 'ctu1')
     )
 
     # 49 Ensure that 48 updated correctly. Known to fail if one's cloud_credentials (in ~/cloudscheduler/unit_tests/credentials.yaml) are invalid.
@@ -177,7 +177,7 @@ def main(gvar):
             'spot_price': 1,
             'group_exclusions': ut_id(gvar, 'cty1')
             },
-        server_user=ut_id(gvar, 'ctu3')
+        server_user=ut_id(gvar, 'ctu1')
     )
 
     # 50 Implicitly add one metadata.
@@ -187,7 +187,7 @@ def main(gvar):
             'cloud_name': ut_id(gvar, 'ctc3'),
             'metadata_name': ut_id(gvar, 'cty2')
             },
-        server_user=ut_id(gvar, 'ctu3')
+        server_user=ut_id(gvar, 'ctu1')
     )
 
     # 51 Ensure that 50 added metadata.
@@ -195,7 +195,7 @@ def main(gvar):
         gvar, 0, None, None,
         '/cloud/list/', group=ut_id(gvar, 'ctg1'), expected_list='cloud_list', list_filter={'group_name': ut_id(gvar, 'ctg1'), 'cloud_name': ut_id(gvar, 'ctc3')},
         values={'group_exclusions': ut_id(gvar, 'cty1,cty2')},
-        server_user=ut_id(gvar, 'ctu3')
+        server_user=ut_id(gvar, 'ctu1')
     )
 
     # 52 Delete one metadata.
@@ -206,7 +206,7 @@ def main(gvar):
             'metadata_name': ut_id(gvar, 'cty2'),
             'metadata_option': 'delete'
             },
-        server_user=ut_id(gvar, 'ctu3')
+        server_user=ut_id(gvar, 'ctu1')
     )
 
     # 53 Ensure that 52 deleted metadata.
@@ -214,7 +214,7 @@ def main(gvar):
         gvar, 0, None, None,
         '/cloud/list/', group=ut_id(gvar, 'ctg1'), expected_list='cloud_list', list_filter={'group_name': ut_id(gvar, 'ctg1'), 'cloud_name': ut_id(gvar, 'ctc3')},
         values={'group_exclusions': ut_id(gvar, 'cty1')},
-        server_user=ut_id(gvar, 'ctu3')
+        server_user=ut_id(gvar, 'ctu1')
     )
     
     # 54 Explicitly add a metadata.
@@ -225,7 +225,7 @@ def main(gvar):
             'metadata_name': ut_id(gvar, 'cty1'),
             'metadata_option': 'add'
             },
-        server_user=ut_id(gvar, 'ctu3')
+        server_user=ut_id(gvar, 'ctu1')
     )
 
     # 55 Ensure that 54 added metadata.
@@ -237,7 +237,7 @@ def main(gvar):
             'group_name': ut_id(gvar, 'ctg1'),
             'group_exclusions': ut_id(gvar, 'cty1')
             },
-        server_user=ut_id(gvar, 'ctu3')
+        server_user=ut_id(gvar, 'ctu1')
     )
 
     # 56 Implicitly add metadata.
@@ -247,7 +247,7 @@ def main(gvar):
             'cloud_name': ut_id(gvar, 'ctc3'),
             'metadata_name': ut_id(gvar, 'cty2'),
             },
-        server_user=ut_id(gvar, 'ctu3')
+        server_user=ut_id(gvar, 'ctu1')
     )
 
     # 57 Ensure that 58 added metadata.
@@ -255,7 +255,7 @@ def main(gvar):
         gvar, 0, None, None,
         '/cloud/list/', group=ut_id(gvar, 'ctg1'), expected_list='cloud_list', list_filter={'group_name': ut_id(gvar, 'ctg1'), 'cloud_name': ut_id(gvar, 'ctc3')},
         values={'group_exclusions': ut_id(gvar, 'cty1,cty2')},
-        server_user=ut_id(gvar, 'ctu3')
+        server_user=ut_id(gvar, 'ctu1')
     )
 
 if __name__ == "__main__":

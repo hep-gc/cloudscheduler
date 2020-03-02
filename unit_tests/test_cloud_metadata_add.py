@@ -12,7 +12,7 @@ def main(gvar):
             initialize_csv2_request(gvar)
 
     # 01 - 05
-    sanity_requests(gvar, '/cloud/metadata-add/', ut_id(gvar, 'ctg1'), ut_id(gvar, 'ctu3'), ut_id(gvar, 'ctg2'), ut_id(gvar, 'ctu1'))
+    sanity_requests(gvar, '/cloud/metadata-add/', ut_id(gvar, 'ctg1'), ut_id(gvar, 'ctu1'), ut_id(gvar, 'ctg2'), ut_id(gvar, 'ctu2'))
 
     PARAMETERS = {
         # 06 Send GET request.
@@ -52,7 +52,7 @@ def main(gvar):
         'priority': {'valid': 0, 'test_cases': {'invalid-unit-test': 'value specified for "priority" must be an integer value.'}}
     }
 
-    parameters_requests(gvar, '/cloud/metadata-add/', ut_id(gvar, 'ctg1'), ut_id(gvar, 'ctu3'), PARAMETERS)
+    parameters_requests(gvar, '/cloud/metadata-add/', ut_id(gvar, 'ctg1'), ut_id(gvar, 'ctu1'), PARAMETERS)
 
     # Parameter combinations that do not fit the above pattern.
     # 26
@@ -64,7 +64,7 @@ def main(gvar):
             'metadata_name': 'metadata-name-that-is-too-long-for-the-database_____________________',
             'metadata': 'invalid-unit-test'
         },
-        server_user=ut_id(gvar, 'ctu3')
+        server_user=ut_id(gvar, 'ctu1')
     )
 
     # 27 Test that .yaml files are parsed as YAML.
@@ -76,7 +76,7 @@ def main(gvar):
             'metadata_name': 'invalid-unit-test.yaml',
             'metadata': 'invalid: unit: test'
         },
-        server_user=ut_id(gvar, 'ctu3')
+        server_user=ut_id(gvar, 'ctu1')
     )
 
     # 28
@@ -87,7 +87,7 @@ def main(gvar):
             'cloud_name': ut_id(gvar, 'ctc3'),
             'metadata_name': 'invalid-unit-test'
         },
-        server_user=ut_id(gvar, 'ctu3')
+        server_user=ut_id(gvar, 'ctu1')
     )
 
     # 29 Add metadata properly.
@@ -99,7 +99,7 @@ def main(gvar):
             'metadata_name': ut_id(gvar, 'cty1'),
             'metadata': 'unit-test: unit-test'
         },
-        server_user=ut_id(gvar, 'ctu3')
+        server_user=ut_id(gvar, 'ctu1')
     )
 
     # 30 Attempt to add the metadata added in 2 again.
@@ -111,7 +111,7 @@ def main(gvar):
             'metadata_name': ut_id(gvar, 'cty1'),
             'metadata': 'unit-test: unit-test'
         },
-        server_user=ut_id(gvar, 'ctu3')
+        server_user=ut_id(gvar, 'ctu1')
     )
 
     # 31 Add YAML metadata properly.
@@ -123,7 +123,7 @@ def main(gvar):
             'metadata_name': ut_id(gvar, 'cty1.yaml'),
             'metadata': '- example: yes'
         },
-        server_user=ut_id(gvar, 'ctu3')
+        server_user=ut_id(gvar, 'ctu1')
     )
 
 if __name__ == "__main__":

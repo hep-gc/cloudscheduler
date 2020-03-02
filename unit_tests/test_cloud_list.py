@@ -12,7 +12,7 @@ def main(gvar):
             initialize_csv2_request(gvar)
 
     # 01 - 05
-    sanity_requests(gvar, '/cloud/list', ut_id(gvar, 'ctg1'), ut_id(gvar, 'ctu3'), ut_id(gvar, 'ctg2'), ut_id(gvar, 'ctu1'))
+    sanity_requests(gvar, '/cloud/list', ut_id(gvar, 'ctg1'), ut_id(gvar, 'ctu1'), ut_id(gvar, 'ctg2'), ut_id(gvar, 'ctu2'))
 
     # 06
     execute_csv2_request(
@@ -23,14 +23,14 @@ def main(gvar):
             'authurl': gvar['cloud_credentials']['authurl'],
             'username': gvar['cloud_credentials']['username'],
             'project': gvar['cloud_credentials']['project'],
-            'region': ut_id(gvar, 'ctc2-r'),
-            'cloud_type': 'local',
+            'region': gvar['cloud_credentials']['region'],
+            'cloud_type': 'openstack',
             'cloud_priority': 0,
             'cacertificate': None,
             'user_domain_name': 'Default',
             'project_domain_name': 'Default',
         },
-        server_user=ut_id(gvar, 'ctu3')
+        server_user=ut_id(gvar, 'ctu1')
     )
 
     # 07
@@ -38,7 +38,7 @@ def main(gvar):
         gvar, 1, 'CV', 'request contained a bad parameter "invalid-unit-test".',
         '/cloud/list/', group=(ut_id(gvar, 'ctg1')),
         form_data={'invalid-unit-test': 'invalid-unit-test'},
-        server_user=ut_id(gvar, 'ctu3')
+        server_user=ut_id(gvar, 'ctu1')
     )
 
     # 08
@@ -46,7 +46,7 @@ def main(gvar):
         gvar, 0, None, None,
         '/cloud/list/', group=ut_id(gvar, 'ctg1'),
         expected_list='cloud_list',
-        server_user=ut_id(gvar, 'ctu3'), html=True
+        server_user=ut_id(gvar, 'ctu1'), html=True
     )
 
 if __name__ == "__main__":
