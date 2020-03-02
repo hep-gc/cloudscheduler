@@ -56,7 +56,14 @@ EOF
     check_sw novaclient 10.3.0
     check_sw SQLAlchemy 1.2.7
 
-    cp /opt/cloudscheduler/etc/systemd/system/csv2-condor-poller.service.afile /etc/systemd/system/csv2-condor-poller.service
-    systemctl enable csv2-condor-poller
-    systemctl start csv2-condor-poller
+    systemctl=$(which systemctl 2>&1)
+    if [ "${systemctl:0:10}" == 'which: no ' ]; then
+        cp /opt/cloudscheduler/etc/init.d/csv2-condor-poller.afle /etc/init.d/csv2-condor-poller
+        chkconfig --add csv2-condor-poller
+        service csv2-condor-poller start
+    else
+        cp /opt/cloudscheduler/etc/systemd/system/csv2-condor-poller.service.afile /etc/systemd/system/csv2-condor-poller.service
+        systemctl enable csv2-condor-poller
+        systemctl start csv2-condor-poller
+    fi
 
