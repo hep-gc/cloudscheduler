@@ -1480,7 +1480,7 @@ def worker_gsi_poller():
                     logging.info(ex)
             if worker_cert:
                 try:
-                    config.db_session.execute('insert into condor_worker_gsi values("%s", "%s", %d, "%s", "%s");' % (condor, if_null(worker_cert['subject']), worker_cert['eol'], if_null(worker_cert['cert']), if_null(worker_cert['key'])))
+                    config.db_session.execute('insert into condor_worker_gsi (htcondor_fqdn, htcondor_host_id, worker_dn, worker_eol, worker_cert, worker_key) values("%s",%d "%s", %d, "%s", "%s");' % (condor, config.local_host_id, if_null(worker_cert['subject']), worker_cert['eol'], if_null(worker_cert['cert']), if_null(worker_cert['key'])))
                     config.db_session.commit()
 
                     if worker_cert['subject']:
@@ -1493,8 +1493,9 @@ def worker_gsi_poller():
                         logging.warning('Condor host: "%s", condor_worker_gsi insert failed, exception: %s' % (condor, ex))
 
                     try:
-                        config.db_session.execute('update condor_worker_gsi set %s,worker_eol=%d,%s,%s where htcondor_fqdn="%s";' % (
+                        config.db_session.execute('update condor_worker_gsi set %s, htcondor_host_id=%d,worker_eol=%d,%s,%s where htcondor_fqdn="%s";' % (
                             if_null(worker_cert['subject'], col='worker_dn'),
+                            config.local_host_id,
                             worker_cert['eol'],
                             if_null(worker_cert['cert'], col='worker_cert'),
                             if_null(worker_cert['key'], col='worker_key'),
