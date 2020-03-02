@@ -183,7 +183,7 @@ def get_grid_proxy(gvar):
 
     if os.path.exists('%s/.globus/usercert.pem' % gvar['home_dir']) and \
         os.path.exists('%s/.globus/userkey.pem' % gvar['home_dir']):
-        if gvar['user_settings']['use-x509-authentication']:
+        if 'user_settings' in gvar and 'use-x509-authentication' in gvar['user_settings'] and gvar['user_settings']['use-x509-authentication']:
             x509 = 'yes'
         else:
             x509 = input('Would you like to authenticate with your x509 certificate (%s/.globus/{usercert.pem,userkey.pem})? (y|n): ' % gvar['home_dir'])
