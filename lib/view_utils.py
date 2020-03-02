@@ -1763,6 +1763,7 @@ def get_openstack_session(config, cloud, target_cloud=None):
                 return 0, None, session
 
             except Exception as exc:
+                C.pop("password")
                 return 1, 'failed to esablish openstack v2 session, credentials: %s, error: %s' % (C, exc), None
 
         else:
@@ -1794,6 +1795,7 @@ def get_openstack_session(config, cloud, target_cloud=None):
                 return 0, None, session
 
             except Exception as exc:
+                C.pop("password")
                 return 1, 'failed to esablish openstack v3 session, credentials: %s, error: %s' % (C, exc), None
 
         else:
