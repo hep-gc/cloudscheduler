@@ -6,6 +6,7 @@ cs_git_branch: stable-2.7
 db_upgrade_file: none
 schema_model: stable-2.7.rc3
 install_phpMyAdmin: False
+install_phpMyAdmin_apache_group: cloudscheduler
 
 # For production systems, this should be set to False.
 web_debug: False
