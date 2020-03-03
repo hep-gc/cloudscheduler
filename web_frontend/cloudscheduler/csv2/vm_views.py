@@ -45,8 +45,11 @@ VM_KEYS = {
         'cloud_name':                                                   'ignore',
         'csrfmiddlewaretoken':                                          'ignore',
         'group':                                                        'ignore',
-        'vm_hosts':                                                     'lower',
+        'vm_hosts':                                                     'ignore',
         },
+    'not_empty': [
+        'vm_hosts',
+        ],
     }
 
 LIST_KEYS = {
@@ -175,9 +178,7 @@ def vm_list(request, args=None, response_code=0, message=None):
 
 @silkp(name="VM Update")
 @requires_csrf_token
-def update(
-    request, 
-    ):
+def update(request):
     """
     Update VMs.
     """
@@ -224,50 +225,44 @@ def update(
 
 
         # Retrieve VM information.
-        #if fields['vm_hosts'].isnumeric():
-        if isinstance(fields['vm_hosts'], int):
-           
-            if 'cloud_name' in fields:
-                count = kill_retire(config, active_user.active_group, fields['cloud_name'], fields['vm_option'], fields['vm_hosts'], get_frame_info())
-#               count = kill_retire(config, active_user.active_group, fields['cloud_name'], 'control', [50,1000000], get_frame_info())
-            else:
-                count = kill_retire(config, active_user.active_group, '-', fields['vm_option'], fields['vm_hosts'], get_frame_info())
+        if fields['vm_hosts'].isnumeric():
+#       if isinstance(fields['vm_hosts'], int):
+            count = kill_retire(config, active_user.active_group, fields.get('cloud_name', default='-'), fields['vm_option'], fields['vm_hosts'], get_frame_info())
+#           count = kill_retire(config, active_user.active_group, fields['cloud_name'], 'control', [50,1000000], get_frame_info())
         else:
             count = 0
-            if fields['vm_hosts'] != '':
-                if fields['vm_hosts'] == 'all':
-                    s = select([view_vms]).where(view_vms.c.group_name == active_user.active_group)
-                    _vm_list = qt(config.db_connection.execute(s), filter=qt_filter_get(['cloud_name', 'poller_status'], fields, aliases=ALIASES))
+            if fields['vm_hosts'] == 'all':
+                s = select([view_vms]).where(view_vms.c.group_name == active_user.active_group)
+                _vm_list = qt(config.db_connection.execute(s), filter=qt_filter_get(['cloud_name', 'poller_status'], fields, aliases=ALIASES))
+            else:
+                fields['hostname'] = fields['vm_hosts']
+                s = select([view_vms]).where(view_vms.c.group_name == active_user.active_group)
+                _vm_list = qt(config.db_connection.execute(s), filter=qt_filter_get(['cloud_name', 'hostname', 'poller_status'], fields, aliases=ALIASES))
+
+            for vm in _vm_list:
+                if fields['vm_option'] == 'kill':
+                    update = table.update().where(table.c.vmid == vm['vmid']).values({'terminate': 2, 'updater': get_frame_info()})
+                elif fields['vm_option'] == 'retire':
+                    update = table.update().where(table.c.vmid == vm['vmid']).values({'retire': 1, 'updater': get_frame_info()})
+                elif fields['vm_option'] == 'manctl':
+                    update = table.update().where(table.c.vmid == vm['vmid']).values({'manual_control': 1})
+                elif fields['vm_option'] == 'sysctl':
+                    update = table.update().where(table.c.vmid == vm['vmid']).values({'manual_control': 0})
+
+                rc, msg = config.db_session_execute(update, allow_no_rows=True)
+                if rc == 0:
+                    count += msg
                 else:
-                    fields['hostname'] = fields['vm_hosts']
-                    s = select([view_vms]).where(view_vms.c.group_name == active_user.active_group)
-                    _vm_list = qt(config.db_connection.execute(s), filter=qt_filter_get(['cloud_name', 'hostname', 'poller_status'], fields, aliases=ALIASES))
-
-                for vm in _vm_list:
-                    if fields['vm_option'] == 'kill':
-                        update = table.update().where(table.c.vmid == vm['vmid']).values({'terminate': 2, 'updater': get_frame_info()})
-                    elif fields['vm_option'] == 'retire':
-                        update = table.update().where(table.c.vmid == vm['vmid']).values({'retire': 1, 'updater': get_frame_info()})
-                    elif fields['vm_option'] == 'manctl':
-                        update = table.update().where(table.c.vmid == vm['vmid']).values({'manual_control': 1})
-                    elif fields['vm_option'] == 'sysctl':
-                        update = table.update().where(table.c.vmid == vm['vmid']).values({'manual_control': 0})
-
-                    rc, msg = config.db_session_execute(update, allow_no_rows=True)
-                    if rc == 0:
-                        count += msg
-                    else:
-                        config.db_close()
-                        return render(request, 'csv2/vms.html', {'response_code': 1, 'message': '%s vm update (%s) failed - %s' % (lno(MODID), fields['vm_option'], msg), 'active_user': active_user.username, 'active_group': active_user.active_group, 'user_groups': active_user.user_groups})
-#                       return vm_list(request, selector, response_code=1, message='%s vm update (%s) failed - %s' % (lno(MODID), fields['vm_option'], msg))
+                    config.db_close()
+                    return render(request, 'csv2/vms.html', {'response_code': 1, 'message': '%s vm update (%s) failed - %s' % (lno(MODID), fields['vm_option'], msg), 'active_user': active_user.username, 'active_group': active_user.active_group, 'user_groups': active_user.user_groups})
+#                   return vm_list(request, selector, response_code=1, message='%s vm update (%s) failed - %s' % (lno(MODID), fields['vm_option'], msg))
 
         if count > 0:
             config.db_close(commit=True)
         else:
             config.db_close()
 
-
-        args={}
+        args = {}
         if 'cloud_name' in fields:
             args['cloud_name'] =  fields['cloud_name']
         if 'poller_status' in fields:
