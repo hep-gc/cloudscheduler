@@ -22,9 +22,10 @@ def main(gvar):
         # 10
         'vm_option': {'valid': 'retain', 'test_cases': {'invalid-unit-test': 'vm update value specified for "vm_option" must be one of the following options: [\'kill\', \'manctl\', \'retain\', \'retire\', \'sysctl\'].'}, 'mandatory': True},
         # 11 Give two vm_hosts.
-        'vm_hosts': {'valid': 'invalid-unit-test', 'test_cases': {}},
-        # 12 Give two poller_statuses.
-        # 13
+        # 12
+        'vm_hosts': {'valid': 'invalid-unit-test', 'test_cases': {'': 'vm update parameter "vm_hosts" contains an empty string which is specifically disallowed.'}},
+        # 13 Give two poller_statuses.
+        # 14
         'poller_status': {'valid': 'idle', 'test_cases': {'invalid-unit-test': 'vm update value specified for "poller_status" must be one of the following options: [\'error\', \'idle\', \'manual\', \'native\', \'other\', \'retiring\', \'running\', \'starting\', \'unregistered\'].'}}
     }
 
@@ -32,49 +33,49 @@ def main(gvar):
 
     # 'vm_hosts' specifies which VMs to update, so setting it to 'valid-unit-test' selects 0 VMs.
     # This means the tests below aren't actually testing much.
-    # 14
+    # 15
     execute_csv2_request(
         gvar, 0, None, "vm update, VMs set to system control: 0.",
         '/vm/update/', group=ut_id(gvar, 'vtg1'), form_data={'vm_option': 'sysctl', 'vm_hosts': 'valid-unit-test'},
         server_user=ut_id(gvar, 'vtu1')
     )
 
-    # 15
+    # 16
     execute_csv2_request(
         gvar, 0, None, "vm update, VMs killed: 0.",
-        '/vm/update/', group=ut_id(gvar, 'vtg1'), form_data={'vm_option': 'kill', 'vm_hosts': 'valid-unit-test'},
+        '/vm/update/', group=ut_id(gvar, 'vtg1'), form_data={'vm_option': 'kill', 'vm_hosts': 'valid-unit-test-0,valid-unit-test-1'},
         server_user=ut_id(gvar, 'vtu1')
     )
 
-    # 16
+    # 17
     execute_csv2_request(
         gvar, 0, None, "vm update, VMs set to manual control: 0.",
         '/vm/update/', group=ut_id(gvar, 'vtg1'), form_data={'vm_option': 'manctl', 'vm_hosts': 'valid-unit-test'},
         server_user=ut_id(gvar, 'vtu1')
     )
 
-    # 17
+    # 18
     execute_csv2_request(
         gvar, 0, None, "vm update, VMs retired: 0.",
         '/vm/update/', group=ut_id(gvar, 'vtg1'), form_data={'vm_option': 'retire', 'vm_hosts': 'valid-unit-test'},
         server_user=ut_id(gvar, 'vtu1')
     )
 
-    # 18
+    # 19
     execute_csv2_request(
         gvar, 0, None, "vm update, VMs set to system control: 0.",
         '/vm/update/', group=ut_id(gvar, 'vtg1'), form_data={'vm_option': 'sysctl', 'poller_status': 'error', 'vm_hosts': 'valid-unit-test'},
         server_user=ut_id(gvar, 'vtu1')
     )
 
-    # 19
+    # 20
     execute_csv2_request(
         gvar, 0, None, "vm update, VMs set to system control: 0.",
         '/vm/update/', group=ut_id(gvar, 'vtg1'), form_data={'vm_option': 'sysctl', 'cloud_name': 'valid-unit-test', 'vm_hosts': 'valid-unit-test'},
         server_user=ut_id(gvar, 'vtu1')
     )
 
-    # 20
+    # 21
     execute_csv2_request(
         gvar, 0, None, "vm update, VMs set to system control: 0.",
         '/vm/update/', group=ut_id(gvar, 'vtg1'), form_data={'vm_option': 'sysctl', 'vm_hosts': 'valid-unit-test'},
