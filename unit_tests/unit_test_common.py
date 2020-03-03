@@ -35,8 +35,11 @@ def execute_csv2_command(gvar, expected_rc, expected_modid, expected_text, cmd, 
                     cmd.extend(['-spw', gvar['user_settings']['server-password']])
                 else:
                     cmd.extend(['-spw', gvar['user_secret']])
+            # su has been omitted.
             except ValueError:
-                pass
+                # As a privileged user in a group, clu4 is very often the server user, so it is useful to make it the default.
+                cmd.extend(['-su', ut_id(gvar, 'clu4'), '-spw', gvar['user_secret']])
+        cmd.insert(0, 'cloudscheduler')
         
         try:
             process = run(cmd, stdout=PIPE, stderr=PIPE, timeout=timeout)
@@ -70,10 +73,10 @@ def execute_csv2_command(gvar, expected_rc, expected_modid, expected_text, cmd, 
                 columns_found = set()
                 rows = stdout.split('\n')
                 for row in rows:
-                    if len(row) > 1 and row[:2] == '+ ':
+                    if len(row) > 1 and row.startswith('+ '):
                         row_trimmed = row[2:-2].strip()
                         # Split on either '<zero or more spaces>|<zero or more spaces>' occurring one or more times, or two or more spaces in a row. Then filter out empty strings.
-                        columns_found.update(filter(None, re.split(r'(?:\s*\|\s*)+|(?:\s{2,})', row_trimmed)))
+                        columns_found.update(filter(None, re.split(r'(\s*\|\s*)+|(\s{2,})', row_trimmed)))
                 columns_expected = set(columns)
                 if columns_expected != columns_found:
                     failed = True
@@ -236,22 +239,27 @@ def execute_csv2_request(gvar, expected_rc, expected_modid, expected_text, reque
 
 def sanity_requests(gvar, request, group, server_user, userless_group, groupless_server_user):
     '''Perform sanity checks that should pass for all non-CLI tests.'''
+    # Attempt as a non-existent user.
     execute_csv2_request(
         gvar, 2, None, 'server "unit-test", HTTP response code 401, unauthorized.',
         request, group=group, server_user='invalid-unit-test'
     )
+    # Attempt as a user who is not in any groups.
     execute_csv2_request(
         gvar, 1, None, 'user "{}" is not a member of any group.'.format(groupless_server_user),
         request, group=group, server_user=groupless_server_user
     )
+    # Attempt with an incorrect password.
     execute_csv2_request(
         gvar, 2, None, 'server "unit-test", HTTP response code 401, unauthorized.',
         request, group=group, server_user=server_user, server_pw='invalid-unit-test'
     )
+    # Attempt to change to a group that does not exist.
     execute_csv2_request(
         gvar, 1, None, 'cannot switch to invalid group "invalid-unit-test".',
         request, group='invalid-unit-test', server_user=server_user
     )
+    # Attempt to change to a group that the user is not in.
     execute_csv2_request(
         gvar, 1, None, 'cannot switch to invalid group "{}".'.format(userless_group),
         request, group=userless_group, server_user=server_user
@@ -260,11 +268,13 @@ def sanity_requests(gvar, request, group, server_user, userless_group, groupless
 def parameters_requests(gvar, request, group, server_user, PARAMETERS):
     '''
     Execute requests with missing parameters and bad parameters.
+    request is the location to make the requests too, e.g. `/alias/add/`.
     PARAMETERS is a dictionary in which each key is the name of a parameter (str), and each key is itself a dictionary, containing:
     0. 'test_cases': A dictionary of test cases. Each key should be an invalid value for this parameter (which will be cast to a str). Each value should be the message to expect when this invalid value is sent in an otherwise valid request (str). Giving only invalid values in this dict means that none of the requests sent my this function should actually change anything on the server side (because they are all invalid in one way or another).
     1. 'valid': A valid value for the parameter (which will be cast to a str). If the parameter is mandatory, this will be sent in requests that contain bad values for other parameters.
     [2. Optional: 'mandatory': A boolean indicating whether this parameter must be provided in all requests. If not given, the parameter will be treated as optional.]
     [3. Optional: 'array_field': A boolean indicating whether giving multiple values for this parameter using the `{'param.1': value1, 'param.2': value2}` syntax is allowed. If not given, this will be treated as False.]
+    GET requests are assumed to be invalid.
     '''
 
     mandatory_params = {name: details['valid'] for name, details in PARAMETERS.items() if details.get('mandatory')}
@@ -323,6 +333,34 @@ def parameters_requests(gvar, request, group, server_user, PARAMETERS):
         if p_details.get('mandatory'):
             mandatory_params[p_name] = p_details['valid']
 
+def sanity_commands(gvar, obj, action=None):
+    '''
+    Perform sanity checks that should pass for all CLI tests.
+    obj and action are both strs and together make up the request, e.g. 'alias' and 'add'.
+    Group and user names are hardcoded because they are the same regardless of the obj / action pair.'''
+    request = [obj, action] if action else [obj]
+
+    # Attempt as a non-existent user.
+    execute_csv2_command(
+        gvar, 1, None, 'TODO', request + ['-su', 'invalid-unit-test']
+    )
+    # Attempt with a blank password.
+    execute_csv2_command(
+        gvar, 1, None, 'TODO', request + ['-su', ut_id(gvar, 'clu4'), '-spw', '""']
+    )
+    # Attempt as a user who is not in any groups.
+    execute_csv2_command(
+        gvar, 1, None, 'TODO', request + ['-su', ut_id(gvar, 'clu1'), '-spw', '""']
+    )
+    # Attempt to change to a group that does not exist.
+    execute_csv2_command(
+        gvar, 1, None, 'TODO', request + ['-g', 'invalid-unit-test']
+    )
+    # Attempt to change to a group that the user is not in.
+    execute_csv2_command(
+        gvar, 1, None, 'TODO', request + ['-g', ut_id(gvar, 'clg2'), '-su', ut_id(gvar, 'clu4')]
+    )
+
 def generate_secret():
     from string import ascii_letters, digits
     from random import SystemRandom, choice
@@ -347,7 +385,6 @@ def html_message(text):
         return False, re.sub(r'</?[a-z]{2}>', '', m.group(1).strip())
     return False, 'no message found'
 
-# The command parameter is never used.
 def initialize_csv2_request(gvar, selections=None, hidden=False):
     from getpass import getpass
     import os
