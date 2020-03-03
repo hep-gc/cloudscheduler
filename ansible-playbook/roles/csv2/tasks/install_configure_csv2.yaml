@@ -163,6 +163,7 @@
   - /etc/logrotate.d/cspollers.conf
   - /etc/logrotate.d/csv2-pollers
   - /var/local/cloudscheduler/etc/condor/config.d/htcondor_distinguished_names
+  - /var/lib/condor/.globus
 
 - name: fetch cloudscheduler templates
   fetch:
@@ -170,6 +171,7 @@
     dest: /tmp/cloudscheduler/
   with_items:
   - '/opt/cloudscheduler/etc/cloudscheduler/cloudscheduler.yaml.j2'
+  - '/opt/cloudscheduler/etc/cloudscheduler/condor_poller.yaml.j2'
   - '/opt/cloudscheduler/usr/local/etc/haproxy.conf.j2'
   - '/opt/cloudscheduler/etc/httpd/conf.d/csv2_ssl.conf.j2'
   - '/opt/cloudscheduler/web_frontend/cloudscheduler/cloudscheduler_web/settings.py.j2'
@@ -426,7 +428,7 @@
       owner=root
       group=cloudscheduler
 
-- name: add cloudscheduler yaml config template
+- name: install cloudscheduler.yaml config file
   template:
     src: "/tmp/cloudscheduler/{{ ansible_facts.fqdn }}/opt/cloudscheduler/etc/cloudscheduler/cloudscheduler.yaml.j2"
     dest: /etc/cloudscheduler/cloudscheduler.yaml
@@ -474,18 +476,9 @@
       - ec2Poller.log
       - main.log
       - openstackpoller.log
+      - condor_poller.log
       - timeseriesPoller.log
       - watch_csv2.logging
-
-- name: create empty cloudscheduler log files (owner=condor, group=condor)
-  file:
-      path: "/var/log/cloudscheduler/{{ item }}"
-      owner: condor
-      group: condor
-      mode: 0644
-      state: touch
-  with_items:
-  - condor_poller.log
 
 - name: create empty cloudscheduler log files (owner=root, group=root)
   file:

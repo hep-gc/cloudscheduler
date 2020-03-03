@@ -59,5 +59,6 @@
 - import_tasks: install_fetch_crl.yaml
 - import_tasks: install_EL7_HTCondor.yaml
 - import_tasks: install_configure_csv2.yaml
+- import_tasks: create_remote_condor_poller_installation_tarball.yaml
 - import_tasks: install_configure_filebeat.yaml
 - import_tasks: install_influxdb.yaml
