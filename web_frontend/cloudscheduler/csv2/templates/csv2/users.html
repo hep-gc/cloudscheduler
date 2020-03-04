@@ -37,7 +37,7 @@
 <div class="main-div">
     <div class="menu">
     {% for user in user_list %}
-        <div id="{{user.username}}"> 
+        <div id="{{user.username}}" style="padding-top: 60px;margin-top: -60px;"> 
 
             <div class="menu2-div">
                 <a href="#{{user.username}}" class="menu2-link" onclick="save_location('{{user.username}}')">{{user.username}}</a>
