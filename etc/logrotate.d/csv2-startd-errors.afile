@@ -1,4 +1,4 @@
-/var/log/cloudscheduler/openstack.log {
+/var/log/cloudscheduler/startd_errors.logging {
   weekly
   su cloudscheduler cloudscheduler
   notifempty

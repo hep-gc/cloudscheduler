@@ -1,4 +1,4 @@
-/var/log/cloudscheduler/ec2Poller.log {
+/var/log/cloudscheduler/ec2.log {
   weekly
   su cloudscheduler cloudscheduler
   notifempty

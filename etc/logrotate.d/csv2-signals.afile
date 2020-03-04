@@ -1,0 +1,19 @@
+/var/log/cloudscheduler/signal_monitor.logging {
+  weekly
+  su cloudscheduler cloudscheduler
+  notifempty
+  missingok
+  compress
+  copytruncate
+  create 0644 cloudscheduler cloudscheduler
+}
+
+/var/log/cloudscheduler/signal_manager.logging {
+  weekly
+  su cloudscheduler cloudscheduler
+  notifempty
+  missingok
+  compress
+  copytruncate
+  create 0644 cloudscheduler cloudscheduler
+}

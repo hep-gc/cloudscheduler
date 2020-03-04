@@ -1,4 +1,4 @@
-/var/log/cloudscheduler/csv2_web.log {
+/var/log/cloudscheduler/web.log {
   weekly
   su cloudscheduler cloudscheduler
   notifempty

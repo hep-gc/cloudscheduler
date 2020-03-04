@@ -1,4 +1,4 @@
-/var/log/cloudscheduler/vm_data.log {
+/var/log/cloudscheduler/vm_data.logging {
   weekly
   su cloudscheduler cloudscheduler
   notifempty
