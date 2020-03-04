@@ -41,7 +41,9 @@ def main(args):
     gvar['path_info'] = gvar['cmd_path'].split('/')
     gvar['ix'] = gvar['path_info'].index('cloudscheduler')
     gvar['schema_path'] = '%s/lib/schema.py' % '/'.join(gvar['path_info'][:gvar['ix']+1])
+    gvar['schema_na_path'] = '%s/lib/schema_na.py' % '/'.join(gvar['path_info'][:gvar['ix']+1])
     gvar['fd'] = open(gvar['schema_path'], 'w')
+    gvar['schema_na'] = {}
 
     _p1 = Popen(
         [
@@ -80,6 +82,7 @@ def main(args):
     tables = stdout.decode('ascii').split()
     for table in tables:
         _stdout = ["%s = Table('%s', metadata,\n" % (table, table)]
+        gvar['schema_na'][table] = {'keys': [], 'columns': {}}
 
         _p1 = Popen(
             [
@@ -113,10 +116,13 @@ def main(args):
             _w = columns[_ix].split()
             if len(_w) > 2:
                 _stdout.append("  Column('%s'," % _w[0])
+                gvar['schema_na'][table]['columns'][_w[0]] = []
+
                 if _w[1][:5] == 'char(' or \
                     _w[1][:8] == 'varchar(':
                     _w2 = _w[1].translate(REMOVE_BRACKETS).split()
                     _stdout.append(" String(%s)" % _w2[1])
+                    gvar['schema_na'][table]['columns'][_w[0]] += ['str', _w2[1]]
 
                 elif _w[1][:4] == 'int(' or \
                 _w[1][:6] == 'bigint' or \
@@ -127,16 +133,19 @@ def main(args):
                 _w[1][:9] == 'timestamp' or \
                 _w[1][:7] == 'tinyint':
                     _stdout.append(" Integer")
+                    gvar['schema_na'][table]['columns'][_w[0]] += ['int']
 
                 elif _w[1] == 'text' or \
                 _w[1] == 'tinytext' or \
                 _w[1] == 'longtext' or \
                 _w[1] == 'mediumtext':
                     _stdout.append(" String")
+                    gvar['schema_na'][table]['columns'][_w[0]] += ['str']
 
                 elif _w[1][:7] == 'double' or \
                 _w[1][:5] == 'float':
                     _stdout.append(" Float")
+                    gvar['schema_na'][table]['columns'][_w[0]] += ['float']
 
                 else:
                     print('Table %s, unknown data type for column: %s' % (table, columns[_ix]))
@@ -144,6 +153,7 @@ def main(args):
 
                 if len(_w) > 3 and _w[3] == 'PRI':
                     _stdout.append(", primary_key=True")
+                    gvar['schema_na'][table]['keys'].append(_w[0])
 
                 if _ix < len(columns) - 2:
                     _stdout.append("),\n")
@@ -151,6 +161,42 @@ def main(args):
                     _stdout.append(")\n  )\n")
 
         gvar['fd'].write('%s\n' % ''.join(_stdout))
+
+    gvar['fd'].close()
+
+    gvar['fd'] = open(gvar['schema_na_path'], 'w')
+    gvar['fd'].write('schema = {\n')
+    tix = 0
+    for table in sorted(gvar['schema_na']):
+        gvar['fd'].write('    "%s": {\n        "keys": [\n' % table)
+        ix = 0
+        for key in gvar['schema_na'][table]['keys']:
+            if ix < len(gvar['schema_na'][table]['keys'])-1:
+              gvar['fd'].write('            "%s",\n' % key)
+            else:
+              gvar['fd'].write('            "%s"\n' % key)
+            ix += 1
+        gvar['fd'].write('            ],\n        "columns": {\n')
+        ix = 0
+        for column in gvar['schema_na'][table]['columns']:
+            if ix < len(gvar['schema_na'][table]['columns'])-1:
+                if len(gvar['schema_na'][table]['columns'][column]) < 2:
+                    gvar['fd'].write('            "%s": ["%s"],\n' % (column, gvar['schema_na'][table]['columns'][column][0]))
+                else:
+                    gvar['fd'].write('            "%s": ["%s", %s],\n' % (column, gvar['schema_na'][table]['columns'][column][0], gvar['schema_na'][table]['columns'][column][1]))
+            else:
+                if len(gvar['schema_na'][table]['columns'][column]) < 2:
+                    gvar['fd'].write('            "%s": ["%s"]\n' % (column, gvar['schema_na'][table]['columns'][column][0]))
+                else:
+                    gvar['fd'].write('            "%s": ["%s", %s]\n' % (column, gvar['schema_na'][table]['columns'][column][0], gvar['schema_na'][table]['columns'][column][1]))
+            ix += 1
+
+        if tix < len(gvar['schema_na'])-1:
+            gvar['fd'].write('            }\n        },\n')
+        else:
+            gvar['fd'].write('            }\n        }\n    }\n')
+
+        tix += 1
 
     gvar['fd'].close()
 
