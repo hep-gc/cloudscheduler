@@ -25,7 +25,8 @@ def execute_csv2_command(gvar, expected_rc, expected_modid, expected_text, cmd, 
 
     if _execute_selections(gvar, cmd, expected_text, None):
 
-        # If the `-s` flag is not used tests will sometimes hang because cloudscheduler is waiting for a server web address (but this prompt is not visible to the tester)
+        # If the `-s` flag is not used tests will sometimes hang because cloudscheduler is waiting for a server web address (but this prompt is not visible to the tester).
+        cmd.insert(0, 'cloudscheduler')
         if '-s' not in cmd:
             cmd.extend(['-s', 'unit-test'])
         if '-spw' not in cmd:
@@ -35,11 +36,10 @@ def execute_csv2_command(gvar, expected_rc, expected_modid, expected_text, cmd, 
                     cmd.extend(['-spw', gvar['user_settings']['server-password']])
                 else:
                     cmd.extend(['-spw', gvar['user_secret']])
-            # su has been omitted.
+            # `-su` has been omitted.
             except ValueError:
-                # As a privileged user in a group, clu4 is very often the server user, so it is useful to make it the default.
+                # As a privileged user in a group, `clu4` is very often the server user, so it is useful to make it the default.
                 cmd.extend(['-su', ut_id(gvar, 'clu4'), '-spw', gvar['user_secret']])
-        cmd.insert(0, 'cloudscheduler')
         
         try:
             process = run(cmd, stdout=PIPE, stderr=PIPE, timeout=timeout)
@@ -49,7 +49,7 @@ def execute_csv2_command(gvar, expected_rc, expected_modid, expected_text, cmd, 
         except TimeoutExpired as err:
             stdout = err.stdout.decode()
             stderr = err.stderr.decode()
-            return_code = None
+            return_code = -1
 
         failed = False
 
@@ -71,9 +71,8 @@ def execute_csv2_command(gvar, expected_rc, expected_modid, expected_text, cmd, 
                 list_error = 'list \'{}\' not found'.format(expected_list)
             elif columns:
                 columns_found = set()
-                rows = stdout.split('\n')
-                for row in rows:
-                    if len(row) > 1 and row.startswith('+ '):
+                for row in stdout.split('\n'):
+                    if row.startswith('+ '):
                         row_trimmed = row[2:-2].strip()
                         # Split on either '<zero or more spaces>|<zero or more spaces>' occurring one or more times, or two or more spaces in a row. Then filter out empty strings.
                         columns_found.update(filter(None, re.split(r'(\s*\|\s*)+|(\s{2,})', row_trimmed)))
@@ -129,9 +128,8 @@ def execute_csv2_request(gvar, expected_rc, expected_modid, expected_text, reque
 
         # For POST requests (form_data is not null), ensure we have CSRF and insert
         # the current active group.
-        if form_data:
-            if not gvar['csrf']:
-                _requests(gvar, '/settings/prepare/', server_user=server_user, server_pw=server_pw)
+        if form_data and not gvar['csrf']:
+            _requests(gvar, '/settings/prepare/', server_user=server_user, server_pw=server_pw)
 
         # Perform the callers request.
         response = _requests(gvar, request, group, form_data=form_data, query_data=query_data, server_user=server_user, server_pw=server_pw, html=html)
@@ -269,11 +267,11 @@ def parameters_requests(gvar, request, group, server_user, PARAMETERS):
     '''
     Execute requests with missing parameters and bad parameters.
     request is the location to make the requests too, e.g. `/alias/add/`.
-    PARAMETERS is a dictionary in which each key is the name of a parameter (str), and each key is itself a dictionary, containing:
-    0. 'test_cases': A dictionary of test cases. Each key should be an invalid value for this parameter (which will be cast to a str). Each value should be the message to expect when this invalid value is sent in an otherwise valid request (str). Giving only invalid values in this dict means that none of the requests sent my this function should actually change anything on the server side (because they are all invalid in one way or another).
-    1. 'valid': A valid value for the parameter (which will be cast to a str). If the parameter is mandatory, this will be sent in requests that contain bad values for other parameters.
-    [2. Optional: 'mandatory': A boolean indicating whether this parameter must be provided in all requests. If not given, the parameter will be treated as optional.]
-    [3. Optional: 'array_field': A boolean indicating whether giving multiple values for this parameter using the `{'param.1': value1, 'param.2': value2}` syntax is allowed. If not given, this will be treated as False.]
+    PARAMETERS is a dictionary in which each key is the name of a parameter (str), and each value is itself a dictionary, containing:
+        'test_cases': A dictionary of test cases. Each key should be an invalid value for this parameter (which will be cast to a str). Each value should be the message to expect when this invalid value is sent in an otherwise valid request (str). Giving only invalid values in this dict means that none of the requests sent my this function should actually change anything on the server side (because they are all invalid in one way or another).
+        'valid': A valid value for the parameter (which will be cast to a str). If the parameter is mandatory, this will be sent in requests that contain bad values for other parameters.
+        [Optional: 'mandatory': A boolean indicating whether this parameter must be provided in all requests. If not given, the parameter will be treated as optional.]
+        [Optional: 'array_field': A boolean indicating whether giving multiple values for this parameter using the `{'param.1': value1, 'param.2': value2}` syntax is allowed. If not given, this will be treated as False.]
     GET requests are assumed to be invalid.
     '''
 
@@ -337,29 +335,105 @@ def sanity_commands(gvar, obj, action=None):
     '''
     Perform sanity checks that should pass for all CLI tests.
     obj and action are both strs and together make up the request, e.g. 'alias' and 'add'.
-    Group and user names are hardcoded because they are the same regardless of the obj / action pair.'''
+    Group and user names are hardcoded because they are the same regardless of the obj / action pair.
+    '''
     request = [obj, action] if action else [obj]
 
-    # Attempt as a non-existent user.
+    # 01 Attempt as a non-existent user.
     execute_csv2_command(
-        gvar, 1, None, 'TODO', request + ['-su', 'invalid-unit-test']
+        gvar, 1, None, 'HTTP response code 401, unauthorized.', request + ['-su', 'invalid-unit-test']
     )
-    # Attempt with a blank password.
+    # 02 Attempt with a blank password.
     execute_csv2_command(
-        gvar, 1, None, 'TODO', request + ['-su', ut_id(gvar, 'clu4'), '-spw', '""']
+        gvar, 1, None, 'HTTP response code 401, unauthorized.', request + ['-su', ut_id(gvar, 'clu4'), '-spw', '""']
     )
-    # Attempt as a user who is not in any groups.
+    # 03 Attempt with an incorrect password.
     execute_csv2_command(
-        gvar, 1, None, 'TODO', request + ['-su', ut_id(gvar, 'clu1'), '-spw', '""']
+        gvar, 1, None, 'HTTP response code 401, unauthorized.', request + ['-su', ut_id(gvar, 'clu4'), '-spw', 'invalid-unit-test']
     )
-    # Attempt to change to a group that does not exist.
+    # 04 Attempt as a user who is not in any groups.
+    # execute_csv2_command inserts the correct password for us.
     execute_csv2_command(
-        gvar, 1, None, 'TODO', request + ['-g', 'invalid-unit-test']
+        gvar, 1, 'SV', 'user "grobertson-clu1" is not a member of any group.', request + ['-su', ut_id(gvar, 'clu1')]
     )
-    # Attempt to change to a group that the user is not in.
+    # 05 Attempt to change to a group that does not exist.
+    # execute_csv2_command inserts `-su` (`clu4`) and `-spw` for us.
     execute_csv2_command(
-        gvar, 1, None, 'TODO', request + ['-g', ut_id(gvar, 'clg2'), '-su', ut_id(gvar, 'clu4')]
+        gvar, 1, 'SV', 'cannot switch to invalid group "invalid-unit-test".', request + ['-g', 'invalid-unit-test']
     )
+    # 06 Attempt to change to a group that the user is not in.
+    execute_csv2_command(
+        gvar, 1, 'SV', 'cannot switch to invalid group "grobertson-clg2".', request + ['-g', ut_id(gvar, 'clg2'), '-su', ut_id(gvar, 'clu4')]
+    )
+    # 07 Fail to specify an action.
+    execute_csv2_command(
+        gvar, 1, None, 'No action specified for object "{}"'.format(obj), [obj]
+    )
+    # 08 Specify an invalid action.
+    execute_csv2_command(
+        gvar, 1, None, 'Invalid action "invalid-unit-test" for object "cloud"', [obj, 'invalid-unit-test']
+    )
+    # 09 Specify an unknown server.
+    execute_csv2_command(
+        gvar, -1, None, 'Error: the specified server "invalid-unit-test" does not exist in your defaults.', request + ['-s', 'invalid-unit-test'], timeout=8
+    )
+    # 10 Request short help.
+    execute_csv2_command(
+        gvar, 0, None, 'Help requested for "cloudscheduler {}".'.format(' '.join(request)), request + ['-h']
+    )
+    # 11 Request long help.
+    execute_csv2_command(
+        gvar, 0, None, 'General Commands Manual', request + ['-H']
+    )
+    # 12 Request exposed API.
+    execute_csv2_command(
+        gvar, 0, None, 'Expose API requested:', request + ['-xA']
+    )
+
+def parameters_commands(gvar, obj, action, group, server_user, PARAMETERS):
+    '''
+    Execute commands with missing parameters and bad parameters.
+    obj and action are both strs and together make up the request, e.g. 'alias' and 'add'.
+    The structure of PARAMETERS is similar to parameters_requests's PARAMETERS, with two exceptions:
+        Parameter names should be given in the form they are given to the CLI, e.g. '-an' or '--alias-name'.
+        'array_field' is replaced by 'allows_csv', which indicates whether the parameter allows comma-separated values, whether it parses them as such or not.
+    No assumption is made about the validity of GET requests.
+    '''
+
+    # `-spw` added by execute_csv2_command.
+    print(f'DEBUG: {obj}, {action}')
+    base_cmd = [obj, action, '-su', server_user, '-g', group]
+    for name, details in PARAMETERS.items():
+        if details.get('mandatory'):
+            base_cmd.extend([name, details['valid']])
+
+    # Give an invalid parameter.
+    execute_csv2_command(
+        gvar, 1, None, 'Error: The following command line arguments were unrecognized: [\'--invalid-unit-test\', \'invalid-unit-test\']',
+        base_cmd + ['--invalid-unit-test', 'invalid-unit-test']
+    )
+
+    for p_name, p_details in PARAMETERS.items():
+        if p_details.get('mandatory'):
+            # Temporarily remove.
+            p_index = base_cmd.index(p_name)
+            base_cmd.pop(p_index)
+            base_cmd.pop(p_index)
+            # Execute a command without the current parameter.
+            execute_csv2_command(
+                gvar, 1, None, 'Error: "cloudscheduler {} {}" - the following mandatory parameters must be specfied on the command line:'.format(obj, action),
+                base_cmd.copy()
+            )
+        if not p_details.get('allows_csv'):
+            # Give multiple, comma-separated values.
+            execute_csv2_command(gvar, 1, None, 'TODO', base_cmd + [p_name, '{0},{0}'.format(p_details['valid'])])
+        # Give the parameter with invalid values.
+        for value, message in p_details['test_cases'].items():
+            print(f'DEBUG: {base_cmd} + [{p_name}, {value}]')
+            execute_csv2_command(gvar, 1, None, message, base_cmd + [p_name, value])
+        # Add the parameter back in if it was mandatory.
+        if p_details.get('mandatory'):
+            base_cmd.extend([p_name, p_details['valid']])
 
 def generate_secret():
     from string import ascii_letters, digits
