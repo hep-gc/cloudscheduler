@@ -1,5 +1,5 @@
 .TP
-\fB\-cUI \fIdomain\fR, \fB\-\-cloud-user-domain_id \fIdomain\fR
+\fB\-cUI \fIdomain\fR, \fB\-\-cloud-user-domain-id \fIdomain\fR
 The user's domain ID for the cloud provider.
 See OpenStack documentation for more information.
 Default: None

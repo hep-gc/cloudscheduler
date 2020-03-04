@@ -1,5 +1,5 @@
 .TP
-\fB\-cPI \fIdomain\fR, \fB\-\-cloud-project-domain_id \fIdomain\fR
+\fB\-cPI \fIdomain\fR, \fB\-\-cloud-project-domain-id \fIdomain\fR
 The project's domain ID for the cloud provider.
 See OpenStack documentation for more information.
 Default: None
