@@ -387,7 +387,7 @@ def sanity_commands(gvar, obj, action=None):
     )
     # 12 Request exposed API.
     execute_csv2_command(
-        gvar, 0, None, 'Expose API requested:', request + ['-xA']
+        gvar, None, None, 'Expose API requested:', request + ['-xA']
     )
 
 def parameters_commands(gvar, obj, action, group, server_user, PARAMETERS):
@@ -396,12 +396,10 @@ def parameters_commands(gvar, obj, action, group, server_user, PARAMETERS):
     obj and action are both strs and together make up the request, e.g. 'alias' and 'add'.
     The structure of PARAMETERS is similar to parameters_requests's PARAMETERS, with two exceptions:
         Parameter names should be given in the form they are given to the CLI, e.g. '-an' or '--alias-name'.
-        'array_field' is replaced by 'allows_csv', which indicates whether the parameter allows comma-separated values, whether it parses them as such or not.
-    No assumption is made about the validity of GET requests.
+        'array_field' is ignored (so it should be omitted), because the CLI does not send multiple values for a parameter unless the server expects this.
     '''
 
     # `-spw` added by execute_csv2_command.
-    print(f'DEBUG: {obj}, {action}')
     base_cmd = [obj, action, '-su', server_user, '-g', group]
     for name, details in PARAMETERS.items():
         if details.get('mandatory'):
@@ -424,12 +422,8 @@ def parameters_commands(gvar, obj, action, group, server_user, PARAMETERS):
                 gvar, 1, None, 'Error: "cloudscheduler {} {}" - the following mandatory parameters must be specfied on the command line:'.format(obj, action),
                 base_cmd.copy()
             )
-        if not p_details.get('allows_csv'):
-            # Give multiple, comma-separated values.
-            execute_csv2_command(gvar, 1, None, 'TODO', base_cmd + [p_name, '{0},{0}'.format(p_details['valid'])])
         # Give the parameter with invalid values.
         for value, message in p_details['test_cases'].items():
-            print(f'DEBUG: {base_cmd} + [{p_name}, {value}]')
             execute_csv2_command(gvar, 1, None, message, base_cmd + [p_name, value])
         # Add the parameter back in if it was mandatory.
         if p_details.get('mandatory'):
