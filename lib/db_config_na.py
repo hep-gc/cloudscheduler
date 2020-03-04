@@ -136,12 +136,16 @@ class Config:
         if not self.db_cursor:
             self.db_cursor = self.db_connection.cursor()
 
+
 #-------------------------------------------------------------------------------
 
     def db_query(self, table, select=[], where=None, order_by=None, allow_no_rows=False):
         """
         Execute a DB query and return the response. Also, trap and return errors.
         """
+
+        if not self.db_cursor:
+            return 1, 'the database is not open', []
 
         if len(select) > 0:
             selected = list(select)
@@ -164,24 +168,120 @@ class Config:
                 for ix in range(len(selected)):
                     rows[-1][selected[ix]] = row[ix]
             if len(rows) < 1 and not allow_no_rows:
-                return 1, 'query returned no rows', []
+                return 1, 'the request did not match any rows', []
             else:
                 return 0, None, rows
         except Exception as ex:
             return 1, ex, []
 
+
 #-------------------------------------------------------------------------------
 
-    def db_execute(self, request, allow_no_rows=False):
+    def db_merge(self, table, column_dict, keys=[], allow_update_all=False):
         """
-        Execute a DB request and return the response. Also, trap and return errors.
+        Execute a DB update. If successful, set rc=0 to indicate that
+        self.db_cursor has the response. Otherwise, return rc=1 and the
+        error message.
         """
 
+        if not self.db_cursor:
+            return 1, 'the database is not open'
+
+        rc, msg = self.db_update(table, column_dict, keys=keys, allow_update_all=allow_update_all)
+        if rc == 0 and self.db_cursor.rowcount < 1:
+            rc, msg = self.db_insert(table, column_dict)
+
+        return rc, msg
+
+
+#-------------------------------------------------------------------------------
+
+    def db_insert(self, table, column_dict):
+        """
+        Execute a DB update. If successful, set rc=0 to indicate that
+        self.db_cursor has the response. Otherwise, return rc=1 and the
+        error message.
+        """
+
+        if not self.db_cursor:
+            return 1, 'the database is not open'
+            
+        for column in sorted(column_dict):
+            if column_dict[key][0] == 'str':
+                value_bits.append('"%s"' % (column, column_dict[column]))
+            else:
+                value_bits.append('%s' % (column, column_dict[column]))
+        
+        sql_bits = ['insert into %s' % table]
+        sql_bits.append('(%s)' % ','.join(sorted(column_dict)))
+        sql_bits.append('values (%s)' % ','.join(value_bits))
+
+
+#-------------------------------------------------------------------------------
+
+    def db_update(self, table, column_dict, keys=[], allow_update_all=False):
+        """
+        Execute a DB update. If successful, set rc=0 to indicate that
+        self.db_cursor has the response. Otherwise, return rc=1 and the
+        error message.
+        """
+
+        if not self.db_cursor:
+            return 1, 'the database is not open'
+            
+        if len(keys) > 0:
+            update_keys = keys
+        else:
+            update_keys = self.schema[table]['keys']
+            
+
+        updates = []
+        for column in sorted(column_dict):
+            if column not in update_keys:
+                if column_dict[key][0] == 'str':
+                    updates.append('%s="%s"' % (column, column_dict[column]))
+                else:
+                    updates.append('%s=%s' % (column, column_dict[column]))
+
+        where_bits = []
+        for key in update_keys:
+            if key in column_dict:
+                if column_dict[key][0] == 'str':
+                    where_bits.append('%s="%s"' % (key, column_dict[key]))
+                else:
+                    where_bits.append('%s=%s' % (key, column_dict[key]))
+            else:
+                return 1, 'key column "%s" is not within the column dictionary' % key
+
+        if not allow_none and len(where_bits) < 1:
+            return 1, 'not allowed to update all records'
+
+        sql_bits = ['update %s' % table]
+        sql_bits.append('set %s' % ','.join(updates))
+        sql_bits.append('where %s' % ' and '.join(where_bits))
+
         try:
-            result_proxy = self.db_cursor.execute(request)
-            if result_proxy.rowcount == 0 and not allow_no_rows:
-                return 1, 'the request did not match any rows'
-            return 0, result_proxy.rowcount
+            self.db_cursor.execute('%s;' % ' '.join(sql_bits))
+            return 0, None
+        except Exception as ex:
+            return 1, ex
+
+
+#-------------------------------------------------------------------------------
+
+    def db_execute(self, request):
+        """
+        Execute a DB request. If successful, iset rc=0 to indicate that
+        self.db_cursor has the response. Otherwise, return rc=1 and the
+        error message.
+        """
+
+        if not self.db_cursor:
+            return 1, 'the database is not open'
+
+        try:
+            self.db_cursor.execute(request)
+            return 0, None
         except Exception as ex:
             return 1, ex
 
