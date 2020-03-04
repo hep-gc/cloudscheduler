@@ -136,7 +136,7 @@
                                 <option value=""></option>
                                 {% for key in keypairs_list %}
                                     {% if key.key_name == group.vm_keyname %}
-                                        <option value="{{ key.key_name }}" selected>{{ keyname.name }}</option>
+                                        <option value="{{ key.key_name }}" selected>{{ key.key_name }}</option>
                                     {% else %}
                                         <option value="{{ key.key_name }}">{{ key.key_name }}</option>
                                     {% endif %}
