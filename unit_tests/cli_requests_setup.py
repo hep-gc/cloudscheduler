@@ -161,6 +161,27 @@ def main(gvar):
         server_user=ut_id(gvar, 'clu4')
     )
 
+    # Alias to be listed. Should always exist and contain clc2.
+    execute_csv2_request(
+        gvar, 0, None, 'cloud alias "{}.{}" successfully added.'.format(ut_id(gvar, 'clg1'), ut_id(gvar, 'cla1')),
+        '/alias/add/', group=ut_id(gvar, 'clg1'), form_data={
+            'alias_name': ut_id(gvar, 'cla1'),
+            'cloud_name': ut_id(gvar, 'clc2')
+        },
+        server_user=ut_id(gvar, 'clu4')
+    )
+
+    # Alias to be updated and deleted.
+    execute_csv2_request(
+        gvar, 0, None, 'cloud alias "{}.{}" successfully added.'.format(ut_id(gvar, 'clg1'), ut_id(gvar, 'cla2')),
+        '/alias/add/', group=ut_id(gvar, 'clg1'), form_data={
+            'alias_name': ut_id(gvar, 'cla2'),
+            'cloud_name': ut_id(gvar, 'clc2')
+        },
+        server_user=ut_id(gvar, 'clu4')
+    )
+
+
     # group metadata to be deleted
     execute_csv2_request(
         gvar, 0, None, 'file "{}::{}" successfully added.'.format(ut_id(gvar, 'clg1'), ut_id(gvar, 'clm1')),

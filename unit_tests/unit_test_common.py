@@ -75,7 +75,8 @@ def execute_csv2_command(gvar, expected_rc, expected_modid, expected_text, cmd, 
                     if row.startswith('+ '):
                         row_trimmed = row[2:-2].strip()
                         # Split on either '<zero or more spaces>|<zero or more spaces>' occurring one or more times, or two or more spaces in a row. Then filter out empty strings.
-                        columns_found.update(filter(None, re.split(r'(\s*\|\s*)+|(\s{2,})', row_trimmed)))
+                        # The non-capturing nature of the `(?:)` parentheses prevents these groups from being added to the list produced by split().
+                        columns_found.update(filter(None, re.split(r'(?:\s*\|\s*)+|(?:\s{2,})', row_trimmed)))
                 columns_expected = set(columns)
                 if columns_expected != columns_found:
                     failed = True
@@ -345,7 +346,7 @@ def sanity_commands(gvar, obj, action=None):
     )
     # 02 Attempt with a blank password.
     execute_csv2_command(
-        gvar, 1, None, 'HTTP response code 401, unauthorized.', request + ['-su', ut_id(gvar, 'clu4'), '-spw', '""']
+        gvar, 1, None, 'HTTP response code 401, unauthorized.', request + ['-su', ut_id(gvar, 'clu4'), '-spw', '']
     )
     # 03 Attempt with an incorrect password.
     execute_csv2_command(
@@ -371,7 +372,7 @@ def sanity_commands(gvar, obj, action=None):
     )
     # 08 Specify an invalid action.
     execute_csv2_command(
-        gvar, 1, None, 'Invalid action "invalid-unit-test" for object "cloud"', [obj, 'invalid-unit-test']
+        gvar, 1, None, 'Invalid action "invalid-unit-test" for object "{}"'.format(obj), [obj, 'invalid-unit-test']
     )
     # 09 Specify an unknown server.
     execute_csv2_command(
@@ -397,6 +398,7 @@ def parameters_commands(gvar, obj, action, group, server_user, PARAMETERS):
     The structure of PARAMETERS is similar to parameters_requests's PARAMETERS, with two exceptions:
         Parameter names should be given in the form they are given to the CLI, e.g. '-an' or '--alias-name'.
         'array_field' is ignored (so it should be omitted), because the CLI does not send multiple values for a parameter unless the server expects this.
+    There is no way to specify parameters that do not take values (like `--rotate` for tables), so these must be tested separately.
     '''
 
     # `-spw` added by execute_csv2_command.
