@@ -84,7 +84,7 @@ def list(gvar):
         response['cloud_list'],
         [
             'group_name/Group,k',
-            'cloud_name/Alias,k',
+            'cloud_name/Cloud,k',
             ],
         title="Clouds",
         optional=True,
