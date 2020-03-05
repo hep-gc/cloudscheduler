@@ -4,6 +4,7 @@ DB utilities and configuration.
 
 import schema_na
 
+import logging
 import os
 import signal
 import socket
@@ -13,6 +14,7 @@ import yaml
 import ipaddress
 
 from subprocess import Popen, PIPE
+from inspect import stack
 
 import mysql.connector
 
@@ -63,7 +65,7 @@ class Config:
         if db_config_only:
             return
 
-        self.db_map = schema_na.schema
+        self.db_schema = schema_na.schema
 
         #
         # Use the integer value of the public IPv4 address to create a unique instance IDs for the
@@ -111,6 +113,56 @@ class Config:
 
 #-------------------------------------------------------------------------------
 
+    def __db_get_where__(self, table, column_dict, where):
+        """
+        Extract the components of a where clasue from the caller's parameters.
+        """
+
+        if where == None:
+            where_bits = []
+            for key in self.db_schema[table]['keys']:
+                if key in column_dict:
+                    if self.db_schema[table]['columns'][key][0] == 'str':
+                        where_bits.append('%s="%s"' % (key, column_dict[key]))
+                    else:
+                        where_bits.append('%s=%s' % (key, column_dict[key]))
+                else:
+                    return 1, 'key column "%s" is not within the column dictionary' % key, None
+
+            if len(where_bits) < 1:
+                return 1, 'table has no keyes', None
+
+            return 0, None, where_bits
+
+        elif where == '*':
+            return 0, None, []
+
+        else:
+            return 0, None, [str(where)]
+
+
+#-------------------------------------------------------------------------------
+
+    def __db_logging_return__(self, rc, msg, rows=None):
+        """
+        Depending on the rc parameter (0=debug, otherwise warning) log the
+        message together with the caller ID.
+        """
+
+        callers_stack = stack()
+
+        if rc > 0:
+            logging.warning('function: %s, rc: %s, msg: %s' % (callers_stack[1].function, rc, msg))
+        else:
+            logging.debug('function: %s, rc: %s, msg: %s' % (callers_stack[1].function, rc, msg))
+
+        if isinstance(rows, list):
+            return rc, msg, rows
+        else:
+            return rc, msg
+
+#-------------------------------------------------------------------------------
+
     def db_close(self, commit=False):
         """
         Commit/rollback and close a session.
@@ -126,146 +178,62 @@ class Config:
             self.db_cursor.close()
             self.db_cursor = None
 
-#-------------------------------------------------------------------------------
-
-    def db_open(self):
-        """
-        Open and return a database connection.
-        """
-
-        if not self.db_cursor:
-            self.db_cursor = self.db_connection.cursor()
-
+        return self.__db_logging_return__(0, None)
 
 #-------------------------------------------------------------------------------
 
-    def db_query(self, table, select=[], where=None, order_by=None, allow_no_rows=False):
+    def db_commit(self):
         """
-        Execute a DB query and return the response. Also, trap and return errors.
+        Commit updates.
         """
 
         if not self.db_cursor:
-            return 1, 'the database is not open', []
+            return self.__db_logging_return__(1, 'the database is not open')
 
-        if len(select) > 0:
-            selected = list(select)
-        else:
-            selected = list(self.db_map[table]['columns'].keys())
+        self.db_connection.commit()
+        return self.__db_logging_return__(0, None)
 
-        sql_bits = ['select %s from %s' % (','.join(selected), table)]
+#-------------------------------------------------------------------------------
 
-        if where:
-           sql_bits.append('where %s' % where)
+    def db_delete(self, table, where):
+        """
+        Execute a DB delete. If successful, set rc=0 to indicate that
+        self.db_cursor has the response. Otherwise, return rc=1 and the
+        error message.
+
+        The "where" parameter can either be:
         
-        if order_by:
-           sql_bits.append('order by %s' % order_by)
+            o A column dictionary, or
+            o A string to be used as the where clause, or
+            o None, in which case all rows will be deleted.
+           
+        If a column dictionary is specified, it must contain all the primary
+        keys of the table and only rows matching the primary key values will
+        be deleted.
+        """
+
+        if not self.db_cursor:
+            return self.__db_logging_return__(1, 'the database is not open')
+            
+        if isinstance(where, dict):
+            rc, msg, where_bits = self.__db_get_where__(table, where, None)
+        else:
+            rc, msg, where_bits = self.__db_get_where__(table, None, where)
+
+        if rc != 0:
+            return self.__db_logging_return__(rc, msg)
+        
+        sql_bits = ['delete from %s' % table]
+        if len(where_bits) > 0:
+             sql_bits.append('where %s' % ' and '.join(where_bits))
+
+        request = '%s;' % ' '.join(sql_bits)
 
         try:
-            self.db_cursor.execute('%s;' % ' '.join(sql_bits))
-            rows = []
-            for row in self.db_cursor:
-                rows.append({})
-                for ix in range(len(selected)):
-                    rows[-1][selected[ix]] = row[ix]
-            if len(rows) < 1 and not allow_no_rows:
-                return 1, 'the request did not match any rows', []
-            else:
-                return 0, None, rows
+            self.db_cursor.execute(request)
+            return self.__db_logging_return__(0, request)
         except Exception as ex:
-            return 1, ex, []
-
-
-#-------------------------------------------------------------------------------
-
-    def db_merge(self, table, column_dict, keys=[], allow_update_all=False):
-        """
-        Execute a DB update. If successful, set rc=0 to indicate that
-        self.db_cursor has the response. Otherwise, return rc=1 and the
-        error message.
-        """
-
-        if not self.db_cursor:
-            return 1, 'the database is not open'
-
-        rc, msg = self.db_update(table, column_dict, keys=keys, allow_update_all=allow_update_all)
-        if rc == 0 and self.db_cursor.rowcount < 1:
-            rc, msg = self.db_insert(table, column_dict)
-
-        return rc, msg
-
-
-#-------------------------------------------------------------------------------
-
-    def db_insert(self, table, column_dict):
-        """
-        Execute a DB update. If successful, set rc=0 to indicate that
-        self.db_cursor has the response. Otherwise, return rc=1 and the
-        error message.
-        """
-
-        if not self.db_cursor:
-            return 1, 'the database is not open'
-            
-        for column in sorted(column_dict):
-            if column_dict[key][0] == 'str':
-                value_bits.append('"%s"' % (column, column_dict[column]))
-            else:
-                value_bits.append('%s' % (column, column_dict[column]))
-        
-        sql_bits = ['insert into %s' % table]
-        sql_bits.append('(%s)' % ','.join(sorted(column_dict)))
-        sql_bits.append('values (%s)' % ','.join(value_bits))
-
-
-#-------------------------------------------------------------------------------
-
-    def db_update(self, table, column_dict, keys=[], allow_update_all=False):
-        """
-        Execute a DB update. If successful, set rc=0 to indicate that
-        self.db_cursor has the response. Otherwise, return rc=1 and the
-        error message.
-        """
-
-        if not self.db_cursor:
-            return 1, 'the database is not open'
-            
-        if len(keys) > 0:
-            update_keys = keys
-        else:
-            update_keys = self.schema[table]['keys']
-            
-
-        updates = []
-        for column in sorted(column_dict):
-            if column not in update_keys:
-                if column_dict[key][0] == 'str':
-                    updates.append('%s="%s"' % (column, column_dict[column]))
-                else:
-                    updates.append('%s=%s' % (column, column_dict[column]))
-
-        where_bits = []
-        for key in update_keys:
-            if key in column_dict:
-                if column_dict[key][0] == 'str':
-                    where_bits.append('%s="%s"' % (key, column_dict[key]))
-                else:
-                    where_bits.append('%s=%s' % (key, column_dict[key]))
-            else:
-                return 1, 'key column "%s" is not within the column dictionary' % key
-
-        if not allow_none and len(where_bits) < 1:
-            return 1, 'not allowed to update all records'
-
-        sql_bits = ['update %s' % table]
-        sql_bits.append('set %s' % ','.join(updates))
-        sql_bits.append('where %s' % ' and '.join(where_bits))
-
-        try:
-            self.db_cursor.execute('%s;' % ' '.join(sql_bits))
-            return 0, None
-        except Exception as ex:
-            return 1, ex
-
+            return self.__db_logging_return__(1, ex)
 
 #-------------------------------------------------------------------------------
 
@@ -277,14 +245,182 @@ class Config:
         """
 
         if not self.db_cursor:
-            return 1, 'the database is not open'
+            return self.__db_logging_return__(1, 'the database is not open')
 
         try:
             self.db_cursor.execute(request)
-            return 0, None
+            return self.__db_logging_return__(0, request)
         except Exception as ex:
-            return 1, ex
+            return self.__db_logging_return__(1, ex)
 
+#-------------------------------------------------------------------------------
+
+    def db_insert(self, table, column_dict):
+        """
+        Execute a DB insert. If successful, set rc=0 to indicate that
+        self.db_cursor has the response. Otherwise, return rc=1 and the
+        error message.
+        """
+
+        if not self.db_cursor:
+            return self.__db_logging_return__(1, 'the database is not open')
+            
+        columns = []
+        for column in sorted(column_dict):
+            if column not in self.db_schema[table]['columns']:
+                self.__db_logging_return__(0, 'ignoring column "%s" in column dictionary parameter' % column)
+                continue
+
+            columns.append(column)
+
+        value_bits = []
+        for column in sorted(column_dict):
+            if column not in self.db_schema[table]['columns']:
+                continue
+
+            if self.db_schema[table]['columns'][column][0] == 'str':
+                value_bits.append('"%s"' % column_dict[column])
+            else:
+                value_bits.append('%s' % column_dict[column])
+        
+        sql_bits = ['insert into %s' % table]
+        sql_bits.append('(%s)' % ','.join(sorted(columns)))
+        sql_bits.append('values (%s)' % ','.join(value_bits))
+        request = '%s;' % ' '.join(sql_bits)
+
+        try:
+            self.db_cursor.execute(request)
+            return self.__db_logging_return__(0, request)
+        except Exception as ex:
+            return self.__db_logging_return__(1, ex)
+
+#-------------------------------------------------------------------------------
+
+    def db_merge(self, table, column_dict):
+        """
+        Execute a DB merge. A merge request attempts an update which may result 
+        in a return code 0, but a row count of 0. This could mean an identical
+        row already exists or no row matching the keys exist. If this condition
+        occurrs, merge will attempt to insert the row and ignore any duplicate
+        row messages.
+
+        In all cases, success is indicated by rc=0 and self.db_cursor has the
+        response. Otherwise, rc=1 and the error message are returned.
+        """
+
+        if not self.db_cursor:
+            return self.__db_logging_return__(1, 'the database is not open')
+
+        rc, msg = self.db_update(table, column_dict)
+        if rc == 0 and self.db_cursor.rowcount < 1:
+            rc, msg = self.db_insert(table, column_dict)
+            if rc == 1:
+                words = str(msg).split()
+                if words[0] == '1062' and words[2] == 'Duplicate' and words[3] == 'entry':
+                    return self.__db_logging_return__(0, None)
+
+        return self.__db_logging_return__(rc, msg)
+
+#-------------------------------------------------------------------------------
+
+    def db_open(self):
+        """
+        Open and return a database connection.
+        """
+
+        if not self.db_cursor:
+            self.db_cursor = self.db_connection.cursor()
+
+#-------------------------------------------------------------------------------
+
+    def db_query(self, table, select=[], where=None, order_by=None, allow_no_rows=True):
+        """
+        Execute a DB query and return the response. Also, trap and return errors.
+        """
+
+        if not self.db_cursor:
+            return self.__db_logging_return__(1, 'the database is not open', [])
+
+        if len(select) > 0:
+            selected = list(select)
+        else:
+            selected = list(self.db_schema[table]['columns'].keys())
+
+        sql_bits = ['select %s from %s' % (','.join(selected), table)]
+
+        if where:
+           sql_bits.append('where %s' % where)
+        
+        if order_by:
+           sql_bits.append('order by %s' % order_by)
+
+        request = '%s;' % ' '.join(sql_bits)
+        try:
+            self.db_cursor.execute(request)
+            rows = []
+            for row in self.db_cursor:
+                rows.append({})
+                for ix in range(len(selected)):
+                    rows[-1][selected[ix]] = row[ix]
+            if len(rows) < 1 and not allow_no_rows:
+                return self.__db_logging_return__(1, 'the request did not match any rows', [])
+            else:
+                return self.__db_logging_return__(0, request, rows)
+        except Exception as ex:
+            return self.__db_logging_return__(1, ex, [])
+
+#-------------------------------------------------------------------------------
+
+    def db_rollback(self):
+        """
+        Rollback updates.
+        """
+
+        if not self.db_cursor:
+            return self.__db_logging_return__(1, 'the database is not open')
+
+        self.db_connection.rollback()
+        return self.__db_logging_return__(0, None)
+
+#-------------------------------------------------------------------------------
+
+    def db_update(self, table, column_dict, where=None):
+        """
+        Execute a DB update. If successful, set rc=0 to indicate that
+        self.db_cursor has the response. Otherwise, return rc=1 and the
+        error message.
+        """
+
+        if not self.db_cursor:
+            return self.__db_logging_return__(1, 'the database is not open')
+            
+        updates = []
+        for column in sorted(column_dict):
+            if column not in self.db_schema[table]['columns']:
+                self.__db_logging_return__(0, 'ignoring column "%s" in column dictionary parameter' % column)
+                continue
+
+            if column not in self.db_schema[table]['keys']:
+                if self.db_schema[table]['columns'][column][0] == 'str':
+                    updates.append('%s="%s"' % (column, column_dict[column]))
+                else:
+                    updates.append('%s=%s' % (column, column_dict[column]))
+
+        rc, msg, where_bits = self.__db_get_where__(table, column_dict, where)
+        if rc != 0:
+            return self.__db_logging_return__(rc, msg)
+        
+        sql_bits = ['update %s' % table]
+        sql_bits.append('set %s' % ','.join(updates))
+        if len(where_bits) > 0:
+            sql_bits.append('where %s' % ' and '.join(where_bits))
+        request = '%s;' % ' '.join(sql_bits)
+
+        try:
+            self.db_cursor.execute(request)
+            return self.__db_logging_return__(0, request)
+        except Exception as ex:
+            return self.__db_logging_return__(1, ex)
 
 #-------------------------------------------------------------------------------
 
@@ -354,7 +490,7 @@ class Config:
 #-------------------------------------------------------------------------------
 
     def incr_cloud_error(self, group_name, cloud_name):
-        CLOUD = self.db_map.classes.csv2_clouds
+        CLOUD = self.db_schema.classes.csv2_clouds
         cloud = self.db_session.query(CLOUD).filter(CLOUD.group_name == group_name, CLOUD.cloud_name == cloud_name)[0]
         if cloud.error_count is None:
             cloud.error_count = 0
@@ -385,7 +521,7 @@ class Config:
 #-------------------------------------------------------------------------------
 
     def reset_cloud_error(self, group_name, cloud_name):
-        CLOUD = self.db_map.classes.csv2_clouds
+        CLOUD = self.db_schema.classes.csv2_clouds
         cloud = self.db_session.query(CLOUD).filter(CLOUD.group_name == group_name, CLOUD.cloud_name == cloud_name)[0]
         cloud.error_count = 0
         self.db_session.merge(cloud)

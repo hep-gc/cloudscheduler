@@ -844,6 +844,15 @@ schema = {
             "endpoint": ["str", 128]
             }
         },
+    "testing": {
+        "keys": [
+            "test_key"
+            ],
+        "columns": {
+            "test_key": ["str", 16],
+            "test_value": ["int"]
+            }
+        },
     "view_active_resource_shortfall": {
         "keys": [
             ],
