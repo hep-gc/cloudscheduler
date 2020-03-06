@@ -14,7 +14,7 @@ def main(gvar):
     # 01 - 05
     sanity_requests(gvar, '/group/metadata-add/', ut_id(gvar, 'gtg4'), ut_id(gvar, 'gtu3'), ut_id(gvar, 'gtg7'), ut_id(gvar, 'gtu1'))
 
-    PARAMETERS = {
+    parameters = {
         # 06 Send a GET request.
         # 07 Give an invalid parameter.
         # 08 Omit metadata_name.
@@ -47,7 +47,7 @@ def main(gvar):
         'priority': {'valid': 0, 'test_cases': {'invalid-unit-test': 'value specified for "priority" must be an integer value.'}}
     }
 
-    parameters_requests(gvar, '/group/metadata-add/', ut_id(gvar, 'gtg5'), ut_id(gvar, 'gtu3'), PARAMETERS)
+    parameters_requests(gvar, '/group/metadata-add/', ut_id(gvar, 'gtg5'), ut_id(gvar, 'gtu3'), parameters)
     
     # 24
     execute_csv2_request(

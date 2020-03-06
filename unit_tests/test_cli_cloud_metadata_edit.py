@@ -17,7 +17,7 @@ def main(gvar):
     # 01 - 14
     sanity_commands(gvar, 'cloud', 'metadata-edit')
 
-    PARAMETERS = {
+    parameters = {
         # 15 Omit --cloud-name.
         '--cloud-name': {'valid': ut_id(gvar, 'clc2'), 'test_cases': {
             # 16
@@ -41,7 +41,7 @@ def main(gvar):
         }, 'mandatory': True}
     }
 
-    parameters_commands(gvar, 'cloud', 'metadata-edit', ut_id(gvar, 'clg1'), ut_id(gvar, 'clu3'), PARAMETERS)
+    parameters_commands(gvar, 'cloud', 'metadata-edit', ut_id(gvar, 'clg1'), ut_id(gvar, 'clu3'), parameters)
 
     # 24
     execute_csv2_command(

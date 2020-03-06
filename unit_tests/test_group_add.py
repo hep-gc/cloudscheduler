@@ -21,7 +21,7 @@ def main(gvar):
         server_user=ut_id(gvar, 'gtu3')
     )
 
-    PARAMETERS = {
+    parameters = {
         # 07 Send a GET request.
         # 08 Give an invalid parameter.
         # 09 Omit group_name.
@@ -75,7 +75,7 @@ def main(gvar):
         'vm_keyname': {'valid': '', 'test_cases': {'invalid-unit-test': 'group add, "invalid-unit-test" failed - specified item does not exist: vm_keyname=invalid-unit-test, group_name=invalid-unit-test.'}}
     }
 
-    parameters_requests(gvar, '/group/add/', ut_id(gvar, 'gtg4'), ut_id(gvar, 'gtu5'), PARAMETERS)
+    parameters_requests(gvar, '/group/add/', ut_id(gvar, 'gtg4'), ut_id(gvar, 'gtu5'), parameters)
 
     # Parameter combinations that do not fit the above format.
     # 39

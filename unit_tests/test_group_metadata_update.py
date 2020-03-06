@@ -14,7 +14,7 @@ def main(gvar):
     # 01 - 05
     sanity_requests(gvar, '/group/metadata-update/', ut_id(gvar, 'gtg4'), ut_id(gvar, 'gtu3'), ut_id(gvar, 'gtg7'), ut_id(gvar, 'gtu1'))
 
-    PARAMETERS = {
+    parameters = {
         # 06 Send a GET request.
         # 07 Give a bad parameter.
         # 08 Omit metadata_name.
@@ -37,7 +37,7 @@ def main(gvar):
         'mime_type': {'valid': 'cloud-config', 'test_cases': {'invalid-unit-test': 'value specified for "mime_type" must be one of the following options: [\'cloud-config\', \'ucernvm-config\'].'}}
     }
 
-    parameters_requests(gvar, '/group/metadata-update/', ut_id(gvar, 'gtg5'), ut_id(gvar, 'gtu3'), PARAMETERS)
+    parameters_requests(gvar, '/group/metadata-update/', ut_id(gvar, 'gtg5'), ut_id(gvar, 'gtu3'), parameters)
 
     # 18 Attempt to update metadata that does not exist.
     execute_csv2_request(

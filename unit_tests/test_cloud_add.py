@@ -15,7 +15,7 @@ def main(gvar):
     # 01 - 05
     sanity_requests(gvar, '/cloud/add/', ut_id(gvar, 'ctg1'), ut_id(gvar, 'ctu1'), ut_id(gvar, 'ctg2'), ut_id(gvar, 'ctu2'))
     
-    PARAMETERS = {
+    parameters = {
         # 06 Send a GET request.
         # 07 Give an invalid parameter.
         # 08 Omit cloud_name.
@@ -91,7 +91,7 @@ def main(gvar):
         'vm_keyname': {'valid': '', 'test_cases': {'invalid-unit-test': 'cloud add, "invalid-unit-test" failed - specified item does not exist: vm_keyname=invalid-unit-test, group_name={}, cloud_name=invalid-unit-test.'.format(ut_id(gvar, 'ctg1'))}}
     }
 
-    parameters_requests(gvar, '/cloud/add/', ut_id(gvar, 'ctg1'), ut_id(gvar, 'ctu1'), PARAMETERS)
+    parameters_requests(gvar, '/cloud/add/', ut_id(gvar, 'ctg1'), ut_id(gvar, 'ctu1'), parameters)
 
     # Parameter combinations that do not fit well into the above format.
     # 54 Known to fail if run twice without setup or cleanup in between.

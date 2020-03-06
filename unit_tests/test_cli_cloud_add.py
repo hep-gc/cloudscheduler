@@ -17,7 +17,7 @@ def main(gvar):
     # 14 - 27
     sanity_commands(gvar, 'cloud', 'add')
 
-    PARAMETERS = {
+    parameters = {
         # 28 Give an invalid parameter.
         # 29 Omit name.
         '--cloud-name': {'valid': 'invalid-unit-test', 'test_cases': {
@@ -84,7 +84,7 @@ def main(gvar):
         '--vm-ram': {'valid': 0, 'test_cases': {'invalid-unit-test': 'cloud add value specified for "ram_ctl" must be an integer value.'}},
     }
 
-    parameters_commands(gvar, 'cloud', 'add', ut_id(gvar, 'clg1'), ut_id(gvar, 'clu3'), PARAMETERS)
+    parameters_commands(gvar, 'cloud', 'add', ut_id(gvar, 'clg1'), ut_id(gvar, 'clu3'), parameters)
 
     # 62
     execute_csv2_command(

@@ -23,8 +23,8 @@ def main(gvar):
     )
 
     # 07 - 16
-    INT_PARAMETERS = ['job_cpus', 'job_ram', 'job_disk', 'job_swap', 'vm_keep_alive']
-    for param in INT_PARAMETERS:
+    int_parameters = ['job_cpus', 'job_ram', 'job_disk', 'job_swap', 'vm_keep_alive']
+    for param in int_parameters:
         execute_csv2_request(
             gvar, 1, 'GV', 'default update/list request contained a bad parameter "{}.1".'.format(param),
             '/group/defaults/', group=ut_id(gvar, 'gtg4'), form_data={param: 0, '{}.1'.format(param): 0},
@@ -44,8 +44,8 @@ def main(gvar):
     )
 
     # 18 - 21
-    VM_PARAMETERS = ['vm_image', 'vm_flavor', 'vm_network', 'vm_keyname']
-    for param in VM_PARAMETERS:
+    vm_parameters = ['vm_image', 'vm_flavor', 'vm_network', 'vm_keyname']
+    for param in vm_parameters:
         execute_csv2_request(
             gvar, 1, 'GV', 'group defaults update specified item does not exist: {}=invalid-unit-test, group_name={}.'.format(param, ut_id(gvar, 'gtg4')),
             '/group/defaults/', group=ut_id(gvar, 'gtg4'), form_data={param: 'invalid-unit-test'},

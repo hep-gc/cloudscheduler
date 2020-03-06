@@ -15,7 +15,7 @@ def main(gvar):
     # 01 - 05
     sanity_requests(gvar, '/alias/add/', ut_id(gvar, 'atg1'), ut_id(gvar, 'atu1'), ut_id(gvar, 'atg2'), ut_id(gvar, 'atu2'))
 
-    PARAMETERS = {
+    parameters = {
         # 06 Send a GET request.
         # 07 Give an invalid parameter.
         # 08 Omit cloud_name.
@@ -46,7 +46,7 @@ def main(gvar):
         }, 'mandatory': True}
     }
 
-    parameters_requests(gvar, '/alias/add/', ut_id(gvar, 'atg1'), ut_id(gvar, 'atu1'), PARAMETERS)
+    parameters_requests(gvar, '/alias/add/', ut_id(gvar, 'atg1'), ut_id(gvar, 'atu1'), parameters)
     
     # 21 Create an alias properly.
     execute_csv2_request(

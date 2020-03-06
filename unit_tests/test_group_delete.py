@@ -21,7 +21,7 @@ def main(gvar):
         server_user=ut_id(gvar, 'gtu3')
     )
 
-    PARAMETERS = {
+    parameters = {
         # 07 Send a GET request.
         # 08 Omit group_name.
         # 09 Give two group_names.
@@ -40,7 +40,7 @@ def main(gvar):
         'user_option': {'valid': 'add', 'test_cases': {'invalid-unit-test': 'group delete value specified for "user_option" must be one of the following options: [\'add\', \'delete\'].'}}
     }
 
-    parameters_requests(gvar, '/group/delete/', ut_id(gvar, 'gtg4'), ut_id(gvar, 'gtu5'), PARAMETERS)
+    parameters_requests(gvar, '/group/delete/', ut_id(gvar, 'gtg4'), ut_id(gvar, 'gtu5'), parameters)
 
     # 16 Attempt to delete a group that does not exist.
     execute_csv2_request(

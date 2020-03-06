@@ -17,7 +17,7 @@ def main(gvar):
     # 14 - 27
     sanity_commands(gvar, 'alias', 'add')
 
-    PARAMETERS = {
+    parameters = {
         # 28 Omit name.
         '--cloud-name': {'valid': ut_id(gvar, 'clc2'), 'test_cases': {
             # 29
@@ -48,7 +48,7 @@ def main(gvar):
         }, 'mandatory': True},
     }
 
-    parameters_commands(gvar, 'alias', 'add', ut_id(gvar, 'clg1'), ut_id(gvar, 'clu3'), PARAMETERS)
+    parameters_commands(gvar, 'alias', 'add', ut_id(gvar, 'clg1'), ut_id(gvar, 'clu3'), parameters)
 
     # 41 Create an alias properly.
     execute_csv2_command(

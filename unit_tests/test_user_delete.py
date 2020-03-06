@@ -21,7 +21,7 @@ def main(gvar):
         server_user=ut_id(gvar, 'utu3')
     )
 
-    PARAMETERS = {
+    parameters = {
         # 07 Give an invalid parameter.
         # 08 Omit username.
         # 09 Give two usernames.
@@ -39,7 +39,7 @@ def main(gvar):
         }, 'mandatory': True},
     }
 
-    parameters_requests(gvar, '/user/delete/', ut_id(gvar, 'utg1'), ut_id(gvar, 'utu4'), PARAMETERS)
+    parameters_requests(gvar, '/user/delete/', ut_id(gvar, 'utg1'), ut_id(gvar, 'utu4'), parameters)
 
     # 15
     execute_csv2_request(

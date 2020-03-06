@@ -14,7 +14,7 @@ def main(gvar):
     # 01 - 14
     sanity_commands(gvar, 'alias', 'update')
 
-    PARAMETERS = {
+    parameters = {
         # 15 Omit name.
         '--cloud-name': {'valid': ut_id(gvar, 'clc2'), 'test_cases': {
             # 16
@@ -49,7 +49,7 @@ def main(gvar):
         }}
     }
 
-    parameters_commands(gvar, 'alias', 'update', ut_id(gvar, 'clg1'), ut_id(gvar, 'clu3'), PARAMETERS)
+    parameters_commands(gvar, 'alias', 'update', ut_id(gvar, 'clg1'), ut_id(gvar, 'clu3'), parameters)
 
     # 29 Attempt to remove a cloud that an alias does not have.
     execute_csv2_command(

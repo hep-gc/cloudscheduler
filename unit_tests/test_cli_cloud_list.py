@@ -23,7 +23,7 @@ def main(gvar):
     # 16
     execute_csv2_command(
         gvar, 0, None, 'Rows: 0',
-        ['cloud', 'list', '-cn', 'invalid-unit-test', '-su', ut_id(gvar, 'clu3')]
+        ['cloud', 'list', '-cn', 'valid-unit-test', '-su', ut_id(gvar, 'clu3')]
     )
 
     # 17

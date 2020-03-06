@@ -14,7 +14,7 @@ def main(gvar):
     # 01 - 05
     sanity_requests(gvar, '/group/metadata-delete/', ut_id(gvar, 'gtg4'), ut_id(gvar, 'gtu5'), ut_id(gvar, 'gtg7'), ut_id(gvar, 'gtu2'))
 
-    PARAMETERS = {
+    parameters = {
         # 0 Send a GET request.
         # 0 Give an invalid parameter.
         # 0 Omit metadata_name.
@@ -23,7 +23,7 @@ def main(gvar):
         'metdata_name': {'valid': ut_id(gvar, 'gty6'), 'test_cases': {'invalid-unit-test': '"{}::invalid-unit-test" failed - the request did not match any rows.'.format(ut_id(gvar, 'gtg5'))},'mandatory': True}
     }
 
-    parameters_requests(gvar, '/group/metadata-delete/', ut_id(gvar, 'gtg5'), ut_id(gvar, 'gtu5'), PARAMETERS)
+    parameters_requests(gvar, '/group/metadata-delete/', ut_id(gvar, 'gtg5'), ut_id(gvar, 'gtu5'), parameters)
 
     # 09
     execute_csv2_request(

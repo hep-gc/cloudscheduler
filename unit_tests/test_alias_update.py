@@ -15,7 +15,7 @@ def main(gvar):
     # 01 - 05
     sanity_requests(gvar, '/alias/update/', ut_id(gvar, 'atg1'), ut_id(gvar, 'atu1'), ut_id(gvar, 'atg2'), ut_id(gvar, 'atu2'))
 
-    PARAMETERS = {
+    parameters = {
         # 06 Send a GET request.
         # 07 Give invalid parameter.
         # 08 Omit cloud_name.
@@ -47,7 +47,7 @@ def main(gvar):
         'cloud_option': {'valid': 'add', 'test_cases': {'invalid-unit-test': 'cloud alias update, value specified for "cloud_option" must be one of the following options: [\'add\', \'delete\'].'}}
     }
 
-    parameters_requests(gvar, '/alias/update/', ut_id(gvar, 'atg1'), ut_id(gvar, 'atu1'), PARAMETERS)
+    parameters_requests(gvar, '/alias/update/', ut_id(gvar, 'atg1'), ut_id(gvar, 'atu1'), parameters)
 
     # 22 Add atc2 to ata2.
     execute_csv2_request(

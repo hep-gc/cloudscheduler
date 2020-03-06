@@ -14,7 +14,7 @@ def main(gvar):
     # 01 - 05
     sanity_requests(gvar, '/user/update/', ut_id(gvar, 'utg1'), ut_id(gvar, 'utu4'), ut_id(gvar, 'utg2'), ut_id(gvar, 'utu2'))
 
-    PARAMETERS = {
+    parameters = {
         # 06 Send a GET request.
         # 07 Give an invalid parameter.
         # 08 Omit username.
@@ -64,7 +64,7 @@ def main(gvar):
         'is_superuser': {'valid': 0, 'test_cases': {'invalid-unit-test': 'boolean value specified for "is_superuser" must be one of the following: true, false, yes, no, 1, or 0.'}}
     }
 
-    parameters_requests(gvar, '/user/update/', ut_id(gvar, 'utg1'), ut_id(gvar, 'utu4'), PARAMETERS)
+    parameters_requests(gvar, '/user/update/', ut_id(gvar, 'utg1'), ut_id(gvar, 'utu4'), parameters)
 
     # 29 Attempt to update a non-existent user.
     execute_csv2_request(

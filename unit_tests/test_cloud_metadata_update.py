@@ -14,7 +14,7 @@ def main(gvar):
     # 01 - 05
     sanity_requests(gvar, '/cloud/metadata-update/', ut_id(gvar, 'ctg1'), ut_id(gvar, 'ctu1'), ut_id(gvar, 'ctg2'), ut_id(gvar, 'ctu2'))
 
-    PARAMETERS = {
+    parameters = {
         # 06 Submit a GET request.
         # 07 Give an invalid parameter.
         # 08 Omit cloud_name.
@@ -48,7 +48,7 @@ def main(gvar):
         'priority': {'valid': 0, 'test_cases': {'invalid-unit-test': 'value specified for "priority" must be an integer value.'}}
     }
 
-    parameters_requests(gvar, '/cloud/metadata-update/', ut_id(gvar, 'ctg1'), ut_id(gvar, 'ctu1'), PARAMETERS)
+    parameters_requests(gvar, '/cloud/metadata-update/', ut_id(gvar, 'ctg1'), ut_id(gvar, 'ctu1'), parameters)
 
     # 24
     execute_csv2_request(

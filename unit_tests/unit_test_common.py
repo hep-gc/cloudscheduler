@@ -76,7 +76,7 @@ def execute_csv2_command(gvar, expected_rc, expected_modid, expected_text, cmd, 
 
         list_error = ''
         if not failed and expected_list:
-            if expected_list in stdout:
+            if '{}:\n'.format(expected_list) in stdout:
                 stdout_lines = stdout.split('\n')
                 # Columns are initially saved in a list rather than a set so that their order is preserved when checking values later.
                 columns_ordered = []
@@ -294,19 +294,19 @@ def sanity_requests(gvar, request, group, server_user, userless_group, groupless
         request, group=userless_group, server_user=server_user
     )
 
-def parameters_requests(gvar, request, group, server_user, PARAMETERS):
+def parameters_requests(gvar, request, group, server_user, parameters):
     '''
     Execute requests with missing parameters and bad parameters.
     request is the location to make the requests too, e.g. `/alias/add/`.
-    `PARAMETERS` is a dictionary in which each key is the name of a parameter (str), and each value is itself a dictionary, containing:
+    `parameters` is a dictionary in which each key is the name of a parameter (str), and each value is itself a dictionary, containing:
         'test_cases': A dictionary of test cases. Each key should be an invalid value for this parameter (which will be cast to a str). Each value should be the message to expect when this invalid value is sent in an otherwise valid request (str). Giving only invalid values in this dict means that none of the requests sent my this function should actually change anything on the server side (because they are all invalid in one way or another).
         'valid': A valid value for the parameter (which will be cast to a str). If the parameter is mandatory, this will be sent in requests that contain bad values for other parameters.
-        [Optional: 'mandatory' (bool): Indicates whether this parameter must be provided in all requests. If not given, the parameter will be treated as optional.]
+        [Optional: 'mandatory' (bool): Indicates whether this parameter must be provided in all requests. (In the terminology of the server code, this includes 'mandatory' parameters and 'required' parameters.) If not given, the parameter will be treated as optional.]
         [Optional: 'array_field' (bool): Indicates whether giving multiple values for this parameter using the `{'param.1': value1, 'param.2': value2}` syntax is allowed. If not given, this will be treated as False.]
     GET requests are assumed to be invalid.
     '''
 
-    mandatory_params = {name: details['valid'] for name, details in PARAMETERS.items() if details.get('mandatory')}
+    mandatory_params = {name: details['valid'] for name, details in parameters.items() if details.get('mandatory')}
     # Omit form_data entirely.
     execute_csv2_request(
         gvar, 1, None, 'invalid method "GET" specified.',
@@ -319,7 +319,7 @@ def parameters_requests(gvar, request, group, server_user, PARAMETERS):
         request, group=group, form_data={'invalid-unit-test': 'invalid-unit-test', **mandatory_params}, server_user=server_user
     )
 
-    for p_name, p_details in PARAMETERS.items():
+    for p_name, p_details in parameters.items():
         if p_details.get('mandatory'):
             # Temporarily remove.
             del mandatory_params[p_name]
@@ -332,7 +332,7 @@ def parameters_requests(gvar, request, group, server_user, PARAMETERS):
             # Else see if we can find an optional one to send by itself (to avoid 'invalid method').
             else:
                 try:
-                    optional_name, optional_value = next(((name, details['valid']) for name, details in PARAMETERS.items() if not details.get('mandatory')))
+                    optional_name, optional_value = next(((name, details['valid']) for name, details in parameters.items() if not details.get('mandatory')))
                     execute_csv2_request(
                         gvar, 1, None, 'request did not contain mandatory parameter "{}".'.format(p_name),
                         request, group=group, form_data={optional_name: optional_value}, server_user=server_user
@@ -432,11 +432,11 @@ def sanity_commands(gvar, obj, action=None):
         )
 
 
-def parameters_commands(gvar, obj, action, group, server_user, PARAMETERS):
+def parameters_commands(gvar, obj, action, group, server_user, parameters):
     '''
     Execute commands with missing parameters and bad parameters.
     `obj` (str) and `action` (str) together make up the request, e.g. 'alias' and 'add'.
-    The structure of `PARAMETERS` is similar to parameters_requests's `PARAMETERS`, with two exceptions:
+    The structure of `parameters` is similar to parameters_requests's `parameters`, with two exceptions:
         Parameter names should be given in the form they are given to the CLI, e.g. '-an' or '--alias-name' (not 'alias_name').
         'array_field' is ignored, because the CLI does not send multiple values for a parameter unless the server expects this.
     There is no way to specify parameters that do not take values (like `--rotate` for tables), so these must be tested separately.
@@ -444,21 +444,19 @@ def parameters_commands(gvar, obj, action, group, server_user, PARAMETERS):
 
     # `-spw` added by execute_csv2_command.
     base_cmd = [obj, action, '-su', server_user, '-g', group]
-    for name, details in PARAMETERS.items():
+    for name, details in parameters.items():
         if details.get('mandatory'):
             base_cmd.extend([name, details['valid']])
 
-    for p_name, p_details in PARAMETERS.items():
+    for p_name, p_details in parameters.items():
         if p_details.get('mandatory'):
             # Temporarily remove.
             p_index = base_cmd.index(p_name)
             base_cmd.pop(p_index)
             base_cmd.pop(p_index)
             # Execute a command without the current parameter.
-            execute_csv2_command(
-                gvar, 1, None, 'Error: "cloudscheduler {} {}" - the following mandatory parameters must be specified on the command line:'.format(obj, action),
-                base_cmd.copy()
-            )
+            # The message is usually 'the following mandatory parameters must be specified...', but is not always (e.g. --text-editor in cli_cloud_metadata_edit).
+            execute_csv2_command(gvar, 1, None, p_name, base_cmd.copy())
         # Give the parameter with invalid values.
         for value, message in p_details['test_cases'].items():
             execute_csv2_command(gvar, 1, None, message, base_cmd + [p_name, value])

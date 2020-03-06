@@ -25,7 +25,7 @@ def main(gvar):
         server_user=ut_id(gvar, 'gtu3')
     )
 
-    PARAMETERS = {
+    parameters = {
         # 07 Send a GET request.
         # 08 Give an invalid parameter.
         # 09 Omit metadata_name.
@@ -49,7 +49,7 @@ def main(gvar):
         'username': {'valid': ut_id(gvar, 'gtu4'), 'test_cases': {}, 'array_field': True}
     }
 
-    parameters_requests(gvar, '/group/update/', ut_id(gvar, 'gtg4'), ut_id(gvar, 'gtu5'), PARAMETERS)
+    parameters_requests(gvar, '/group/update/', ut_id(gvar, 'gtg4'), ut_id(gvar, 'gtu5'), parameters)
 
     # 19 Attempt to modify a group that does not exist.
     execute_csv2_request(

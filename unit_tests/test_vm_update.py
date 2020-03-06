@@ -14,7 +14,7 @@ def main(gvar):
     # 01 - 05
     sanity_requests(gvar, '/vm/update/', ut_id(gvar, 'vtg1'), ut_id(gvar, 'vtu1'), ut_id(gvar, 'vtg2'), ut_id(gvar, 'vtu2'))
 
-    PARAMETERS = {
+    parameters = {
         # 06 Send a GET request.
         # 07 Send an invalid parameter.
         # 08 Omit vm_option.
@@ -29,7 +29,7 @@ def main(gvar):
         'poller_status': {'valid': 'idle', 'test_cases': {'invalid-unit-test': 'vm update value specified for "poller_status" must be one of the following options: [\'error\', \'idle\', \'manual\', \'native\', \'other\', \'retiring\', \'running\', \'starting\', \'unregistered\'].'}}
     }
 
-    parameters_requests(gvar, '/vm/update/', ut_id(gvar, 'vtg1'), ut_id(gvar, 'vtu1'), PARAMETERS)
+    parameters_requests(gvar, '/vm/update/', ut_id(gvar, 'vtg1'), ut_id(gvar, 'vtu1'), parameters)
 
     # 'vm_hosts' specifies which VMs to update, so setting it to 'valid-unit-test' selects 0 VMs.
     # This means the tests below aren't actually testing much.
