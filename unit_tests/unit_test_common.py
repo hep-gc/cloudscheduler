@@ -416,14 +416,21 @@ def sanity_commands(gvar, obj, action=None):
     execute_csv2_command(
         gvar, 0, None, 'General Commands Manual', request + ['-H']
     )
-    # 12 Request exposed API.
-    execute_csv2_command(
-        gvar, None, None, 'Expose API requested:', request + ['-xA']
-    )
-    # 13 Request version.
+    # 12 Request version. `expected_rc` is not specified because it depends on whether the command has mandatory parameters.
     execute_csv2_command(
         gvar, None, None, 'Cloudscheduler CLI, Version:', request + ['-v']
     )
+    # 13 Request exposed API.
+    execute_csv2_command(
+        gvar, None, None, 'Expose API requested:', request + ['-xA']
+    )
+    # 14 Give an invalid parameter.
+    if action:
+        execute_csv2_command(
+            gvar, 1, None, 'Error: The following command line arguments were unrecognized: [\'--invalid-unit-test\', \'invalid-unit-test\']',
+            request + ['--invalid-unit-test', 'invalid-unit-test']
+        )
+
 
 def parameters_commands(gvar, obj, action, group, server_user, PARAMETERS):
     '''
@@ -440,12 +447,6 @@ def parameters_commands(gvar, obj, action, group, server_user, PARAMETERS):
     for name, details in PARAMETERS.items():
         if details.get('mandatory'):
             base_cmd.extend([name, details['valid']])
-
-    # Give an invalid parameter.
-    execute_csv2_command(
-        gvar, 1, None, 'Error: The following command line arguments were unrecognized: [\'--invalid-unit-test\', \'invalid-unit-test\']',
-        base_cmd + ['--invalid-unit-test', 'invalid-unit-test']
-    )
 
     for p_name, p_details in PARAMETERS.items():
         if p_details.get('mandatory'):

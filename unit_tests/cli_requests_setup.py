@@ -161,6 +161,17 @@ def main(gvar):
         server_user=ut_id(gvar, 'clu4')
     )
 
+    # Cloud to be added to an alias in cli_alias_update.
+    execute_csv2_request(
+        gvar, 0, None, 'cloud "{}::{}" successfully added.'.format(ut_id(gvar, 'clg1'), ut_id(gvar, 'clc3')),
+        '/cloud/add/', group=ut_id(gvar, 'clg1'), form_data={
+            'cloud_name': ut_id(gvar, 'clc3'),
+            'cloud_type': 'openstack',
+            **gvar['cloud_credentials']
+        },
+        server_user=ut_id(gvar, 'clu4')
+    )
+
     # Alias to be listed. Should always exist and contain clc2.
     execute_csv2_request(
         gvar, 0, None, 'cloud alias "{}.{}" successfully added.'.format(ut_id(gvar, 'clg1'), ut_id(gvar, 'cla1')),

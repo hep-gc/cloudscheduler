@@ -14,11 +14,10 @@ def main(gvar):
     # 01 - 13
     sanity_commands(gvar, 'alias')
 
-    # 14 - 26
+    # 14 - 27
     sanity_commands(gvar, 'alias', 'add')
 
     PARAMETERS = {
-        # 27 Give an invalid parameter.
         # 28 Omit name.
         '--cloud-name': {'valid': ut_id(gvar, 'clc2'), 'test_cases': {
             # 29
@@ -41,25 +40,17 @@ def main(gvar):
             # 37
             '': 'cloud alias add, value specified for "alias_name" must not be the empty string.',
             # 38
-            'Invalid-Unit-Test': 'cloud alias add, value specified for "alias_name" must be all lowercase letters, digits, dashes, underscores, periods, and colons, and cannot contain more than one consecutive dash or start or end with a dash.',
-            # 39
-            'invalid-unit--test': 'cloud alias add, value specified for "alias_name" must be all lowercase letters, digits, dashes, underscores, periods, and colons, and cannot contain more than one consecutive dash or start or end with a dash.',
-            # 40
-            'invalid-unit-test-': 'cloud alias add, value specified for "alias_name" must be all lowercase letters, digits, dashes, underscores, periods, and colons, and cannot contain more than one consecutive dash or start or end with a dash.',
-            # 41
             'invalid-unit-test!': 'cloud alias add, value specified for "alias_name" must be all lowercase letters, digits, dashes, underscores, periods, and colons, and cannot contain more than one consecutive dash or start or end with a dash.',
-            # 42
-            'invalid,unit,test': 'cloud alias add, value specified for "alias_name" must be all lowercase letters, digits, dashes, underscores, periods, and colons, and cannot contain more than one consecutive dash or start or end with a dash.',
-            # 43
+            # 39
             'alias-name-that-is-too-long-for-the-database': 'Data too long for column \'alias_name\' at row 1',
-            # 44 Attempt to create a cloud that already exists.
+            # 40 Attempt to create an alias that already exists.
             ut_id(gvar, 'cla1'): 'cloud alias add "{}.{}" failed - specified alias already exists.'.format(ut_id(gvar, 'clg1'), ut_id(gvar, 'cla1'))
         }, 'mandatory': True},
     }
 
     parameters_commands(gvar, 'alias', 'add', ut_id(gvar, 'clg1'), ut_id(gvar, 'clu3'), PARAMETERS)
 
-    # 45 Create an alias properly.
+    # 41 Create an alias properly.
     execute_csv2_command(
         gvar, 0, None, 'cloud alias "{}.{}" successfully added.'.format(ut_id(gvar, 'clg1'), ut_id(gvar, 'cla3')),
         ['alias', 'add', '-g', ut_id(gvar, 'clg1'), '--alias-name', ut_id(gvar, 'cla3'), '--cloud-name', ut_id(gvar, 'clc2'), '-su', ut_id(gvar, 'clu3')],
