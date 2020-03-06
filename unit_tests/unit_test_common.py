@@ -456,7 +456,7 @@ def parameters_commands(gvar, obj, action, group, server_user, PARAMETERS):
             base_cmd.pop(p_index)
             # Execute a command without the current parameter.
             execute_csv2_command(
-                gvar, 1, None, 'Error: "cloudscheduler {} {}" - the following mandatory parameters must be specfied on the command line:'.format(obj, action),
+                gvar, 1, None, 'Error: "cloudscheduler {} {}" - the following mandatory parameters must be specified on the command line:'.format(obj, action),
                 base_cmd.copy()
             )
         # Give the parameter with invalid values.
