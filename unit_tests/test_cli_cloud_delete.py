@@ -11,22 +11,22 @@ def main(gvar):
         else:
             initialize_csv2_request(gvar)
 
-    # 01 - 12
+    # 01 - 14
     sanity_commands(gvar, 'cloud', 'delete')
 
-    # 13
+    # 15
     execute_csv2_command(
         gvar, 1, None, 'The following command line arguments were invalid: metadata-mime-type',
         ['cloud', 'delete', '-mmt', 'invalid-unit-test', '-g', ut_id(gvar, 'clg1'), '-su', ut_id(gvar, 'clu3')]
     )
 
-    # 14
+    # 16
     execute_csv2_command(
         gvar, 1, None, 'cannot delete "invalid-unit-test", cloud doesn\'t exist in group "{}".'.format(ut_id(gvar, 'clg1')),
         ['cloud', 'delete', '-cn', 'invalid-unit-test', '-su', ut_id(gvar, 'clu3')]
     )
 
-    # 15
+    # 17
     execute_csv2_command(
         gvar, 0, None, 'cloud "{}::{}" successfully deleted.'.format(ut_id(gvar, 'clg1'), ut_id(gvar, 'clc1')),
         ['cloud', 'delete', '-cn', ut_id(gvar, 'clc1'), '-Y', '-su', ut_id(gvar, 'clu3')]
