@@ -1,4 +1,5 @@
 def _caller():
+    '''Determine which unit test has called my caller, which is probably a common function.'''
     import inspect
     import os
     if inspect.stack()[-3][1] == '<string>':
@@ -6,6 +7,7 @@ def _caller():
     return os.path.basename(inspect.stack()[-3][1]).split('.')[0]
 
 def _execute_selections(gvar, request, expected_text, expected_values):
+    '''Tell execute_csv2_* whether or not it should run a particular test based on the user's selections.'''
     from unit_test_common import _caller
     
     gvar['ut_count'][0] += 1
@@ -17,8 +19,14 @@ def _execute_selections(gvar, request, expected_text, expected_values):
         # print('%04d (%04d) %s Skipping: \'%s\', %s, %s' % (gvar['ut_count'][0], gvar['ut_count'][1], _caller(), request, repr(expected_text), expected_values))
         return False
    
-def execute_csv2_command(gvar, expected_rc, expected_modid, expected_text, cmd, expected_list=None, columns=None, timeout=None):
-
+def execute_csv2_command(gvar, expected_rc, expected_modid, expected_text, cmd, expected_list=None, columns=[], values={}, timeout=None):
+    '''
+    Execute a Cloudscheduler CLI command using subprocess and print a message explaining whether the output of the command was as expected.
+    `cmd` (list of strs) contains the parameters to be given to the `cloudscheduler` command, e.g. `['alias', 'add', '-H']`. 'cloudscheduler' should be *excluded*, because it is automatically added at the beginning of the list.
+    `expected_list` (str) is the title of a table that is expected to be in the output, e.g. 'Aliases'.
+    `columns` (list of strs) contains the expected headers of the table specified by `expected_list`. These should be what is acutally displayed (e.g. 'Alias') not the name used in the CLI code (e.g. 'alias_name'). This list must contain all the expected headers, not just a subset. Ignored if `expected_list` is not specified.
+    `values` (dict) are header-value pairs that are expected to all match one particular row in the table specified by `expected_list`. The matching row may have columns not mentioned in `values`. Ignored if `expected_list` is not specified.
+    '''
     from subprocess import PIPE, run, TimeoutExpired
     from unit_test_common import _caller, _execute_selections
     import re
@@ -56,37 +64,55 @@ def execute_csv2_command(gvar, expected_rc, expected_modid, expected_text, cmd, 
         # Comparison with None is necessary because we want to compare expected and actual if expected is 0.
         if expected_rc != None and expected_rc != return_code:
             failed = True
-
         if return_code == 0 or not expected_modid:
             modid = expected_modid
         else:
             modid = stdout.replace('-', ' ').split()[1]
             if expected_modid and modid != expected_modid:
                 failed = True
+        if expected_text and expected_text not in stdout:
+            failed = True
+
 
         list_error = ''
-        if expected_list:
-            if expected_list not in stdout:
-                failed = True
-                list_error = 'list \'{}\' not found'.format(expected_list)
-            elif columns:
-                columns_found = set()
-                for row in stdout.split('\n'):
-                    if row.startswith('+ '):
+        if not failed and expected_list:
+            if expected_list in stdout:
+                stdout_lines = stdout.split('\n')
+                # Columns are initially saved in a list rather than a set so that their order is preserved when checking values later.
+                columns_ordered = []
+                for row in stdout_lines:
+                    if row.startswith('+ ') and row.endswith(' +'):
                         row_trimmed = row[2:-2].strip()
                         # Split on either '<zero or more spaces>|<zero or more spaces>' occurring one or more times, or two or more spaces in a row. Then filter out empty strings.
                         # The non-capturing nature of the `(?:)` parentheses prevents these groups from being added to the list produced by split().
-                        columns_found.update(filter(None, re.split(r'(?:\s*\|\s*)+|(?:\s{2,})', row_trimmed)))
-                columns_expected = set(columns)
-                if columns_expected != columns_found:
-                    failed = True
-                    list_error = '\tActual columns found: {}\n \
-                    \tColumns expected but not found: {}\n \
-                    \tColumns not expected but found: {}\n'\
-                    .format(columns_found, columns_expected - columns_found, columns_found - columns_expected)
+                        columns_ordered.extend(filter(None, re.split(r'(?:\s*\|\s*)+|(?:\s{2,})', row_trimmed)))
 
-        if expected_text and expected_text not in stdout:
-            failed = True
+                if columns:
+                    columns_expected = set(columns)
+                    columns_actual = set(columns_ordered)
+                    if columns_expected != columns_actual:
+                        failed = True
+                        list_error = '\tActual columns found: {}\n \
+                        \tColumns expected but not found: {}\n \
+                        \tColumns not expected but found: {}\n'\
+                        .format(columns_actual, columns_expected - columns_actual, columns_actual - columns_expected)
+
+                if not failed and values:
+                    for row in stdout_lines:
+                        if row.startswith('| ') and row.endswith(' |'):
+                            # Split on '<one or more spaces>|<one or more spaces>', consuming as many spaces as possible.
+                            values_actual = re.split(r'\s+\|\s+', row[2:-2].strip())
+                            if all(values_actual[columns_ordered.index(key)] == expected_value for key, expected_value in values.items()):
+                                print(f'DEBUG: Found perfect row: {values_actual}.')
+                                break
+                    # Else branch of the for loop, i.e. if the loop did not break.
+                    else:
+                        failed = True
+                        list_error = 'No row found with values: {}'.format(values)
+            # expected_list not in stdout
+            else:
+                failed = True
+                list_error = 'Expected list \'{}\' not found'.format(expected_list)
 
         if failed:
             gvar['ut_failed'] += 1
@@ -111,8 +137,12 @@ def execute_csv2_command(gvar, expected_rc, expected_modid, expected_text, cmd, 
 
 def execute_csv2_request(gvar, expected_rc, expected_modid, expected_text, request, group=None, form_data={}, query_data={}, expected_list=None, list_filter=None, values=None, server_user=None, server_pw=None, html=False):
     """
-    Make RESTful requests via the _requests function and return the response. This function will
-    obtain a CSRF (for POST requests) prior to making the actual request.
+    Make RESTful requests via the _requests function and print a message explaining whether the response was as expected.
+    This function will obtain a CSRF (for POST requests) prior to making the actual request.
+    `form_data` (dict) is send in the body of a POST request, while `query_data` (dict) is for adding parameters to the URL of a GET request.
+    `expected_list` (str) is the name of a list to expect in the response.
+    `list_filter` (dict) specifies key-value pairs that rows in the expected list must have to be rows of interest.
+    `values` (dict) specifies key-value pairs that at least one row of interest is expected to have (for the test to succeed). The matching row may have other keys that are not in `values`.
     """
 
     from unit_test_common import _caller, _execute_selections, _requests
@@ -174,14 +204,14 @@ def execute_csv2_request(gvar, expected_rc, expected_modid, expected_text, reque
                 print('    message=\'%s\'\n' % response['message'])
 
             return 1
-        elif expected_list and list_filter and values:
+        elif expected_list:
             if expected_list not in response:
                 failed = True
                 if not gvar['hidden']:
                     print('\n%04d (%04d) %s \033[91mFailed\033[0m: request=\'%s\', group=%s, expected_list=\'%s\', list_filter=%s, values=%s' % (gvar['ut_count'][0], gvar['ut_count'][1], _caller(), request, group, expected_list, list_filter, values))
                     print('\tNo list \'%s\' in response. The message from the server was: \'%s\'\n' % (expected_list, response['message']))
             # expected_list in response
-            else:
+            elif list_filter and values:
                 found_perfect_row = False
                 filtered_rows = []
                 mismatches_in_filtered_rows = []
@@ -268,11 +298,11 @@ def parameters_requests(gvar, request, group, server_user, PARAMETERS):
     '''
     Execute requests with missing parameters and bad parameters.
     request is the location to make the requests too, e.g. `/alias/add/`.
-    PARAMETERS is a dictionary in which each key is the name of a parameter (str), and each value is itself a dictionary, containing:
+    `PARAMETERS` is a dictionary in which each key is the name of a parameter (str), and each value is itself a dictionary, containing:
         'test_cases': A dictionary of test cases. Each key should be an invalid value for this parameter (which will be cast to a str). Each value should be the message to expect when this invalid value is sent in an otherwise valid request (str). Giving only invalid values in this dict means that none of the requests sent my this function should actually change anything on the server side (because they are all invalid in one way or another).
         'valid': A valid value for the parameter (which will be cast to a str). If the parameter is mandatory, this will be sent in requests that contain bad values for other parameters.
-        [Optional: 'mandatory': A boolean indicating whether this parameter must be provided in all requests. If not given, the parameter will be treated as optional.]
-        [Optional: 'array_field': A boolean indicating whether giving multiple values for this parameter using the `{'param.1': value1, 'param.2': value2}` syntax is allowed. If not given, this will be treated as False.]
+        [Optional: 'mandatory' (bool): Indicates whether this parameter must be provided in all requests. If not given, the parameter will be treated as optional.]
+        [Optional: 'array_field' (bool): Indicates whether giving multiple values for this parameter using the `{'param.1': value1, 'param.2': value2}` syntax is allowed. If not given, this will be treated as False.]
     GET requests are assumed to be invalid.
     '''
 
@@ -335,7 +365,7 @@ def parameters_requests(gvar, request, group, server_user, PARAMETERS):
 def sanity_commands(gvar, obj, action=None):
     '''
     Perform sanity checks that should pass for all CLI tests.
-    obj and action are both strs and together make up the request, e.g. 'alias' and 'add'.
+    `obj` (str) and `action` (str) together make up the request, e.g. 'alias' and 'add'.
     Group and user names are hardcoded because they are the same regardless of the obj / action pair.
     '''
     request = [obj, action] if action else [obj]
@@ -390,14 +420,18 @@ def sanity_commands(gvar, obj, action=None):
     execute_csv2_command(
         gvar, None, None, 'Expose API requested:', request + ['-xA']
     )
+    # 13 Request version.
+    execute_csv2_command(
+        gvar, None, None, 'Cloudscheduler CLI, Version:', request + ['-v']
+    )
 
 def parameters_commands(gvar, obj, action, group, server_user, PARAMETERS):
     '''
     Execute commands with missing parameters and bad parameters.
-    obj and action are both strs and together make up the request, e.g. 'alias' and 'add'.
-    The structure of PARAMETERS is similar to parameters_requests's PARAMETERS, with two exceptions:
-        Parameter names should be given in the form they are given to the CLI, e.g. '-an' or '--alias-name'.
-        'array_field' is ignored (so it should be omitted), because the CLI does not send multiple values for a parameter unless the server expects this.
+    `obj` (str) and `action` (str) together make up the request, e.g. 'alias' and 'add'.
+    The structure of `PARAMETERS` is similar to parameters_requests's `PARAMETERS`, with two exceptions:
+        Parameter names should be given in the form they are given to the CLI, e.g. '-an' or '--alias-name' (not 'alias_name').
+        'array_field' is ignored, because the CLI does not send multiple values for a parameter unless the server expects this.
     There is no way to specify parameters that do not take values (like `--rotate` for tables), so these must be tested separately.
     '''
 
@@ -432,6 +466,7 @@ def parameters_commands(gvar, obj, action, group, server_user, PARAMETERS):
             base_cmd.extend([p_name, p_details['valid']])
 
 def generate_secret():
+    '''Generate a new, pseudorandom password to use as the password for test users.'''
     from string import ascii_letters, digits
     from random import SystemRandom, choice
     alphabet = ascii_letters + digits
@@ -456,6 +491,7 @@ def html_message(text):
     return False, 'no message found'
 
 def initialize_csv2_request(gvar, selections=None, hidden=False):
+    '''Setup gvar before running unit tests.'''
     from getpass import getpass
     import os
     import re
@@ -521,7 +557,7 @@ def initialize_csv2_request(gvar, selections=None, hidden=False):
 
 def _requests(gvar, request, group=None, form_data={}, query_data={}, server_user=None, server_pw=None, html=False):
     """
-    Make RESTful request and return response.
+    Make a RESTful request and return the response.
     """
     
     from getpass import getpass
@@ -662,7 +698,7 @@ def _requests(gvar, request, group=None, form_data={}, query_data={}, server_use
               
 def _requests_insert_controls(gvar, request, group, form_data, query_data, server_address, server_user):
     """
-    Add controls (csrf, group, etc.) to python request.
+    Add controls (CSRF, group, etc.) to a Python request.
     """
 
     import requests as py_requests
@@ -711,6 +747,7 @@ def _requests_insert_controls(gvar, request, group, form_data, query_data, serve
 #-------------------------------------------------------------------------------
 
 def ut_id(gvar, IDs):
+    '''Format the test runner's username with IDs (str) to create a unique ID for a test object.'''
     ids = IDs.split(',')
     return '%s-%s' % (gvar['user_settings']['server-user'], (',%s-' % gvar['user_settings']['server-user']).join(ids))
  
@@ -750,9 +787,3 @@ def condor_error(gvar, err):
     '''Used only by database tests.'''
     print('\n\033[91mSkipping all database tests because {}.\033[0m'.format(err))
     gvar['ut_failed'] += 1
-
-def main():
-    return
-
-if __name__ == "__main__":
-    main()
