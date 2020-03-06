@@ -318,7 +318,7 @@ def zip_base64(path):
 
 def check_pair_pid(pair, config, cloud_table):
     #cloud = config.db_session.query(cloud_table).get((pair.group_name, pair.cloud_name))
-    where_clause = "group_name='%s' and cloud_name='%s'" % (pair.group_name, pair.cloud_name)
+    where_clause = "group_name='%s' and cloud_name='%s'" % (pair["group_name"], pair["cloud_name"])
 
     #returns list of dictionaries? this query should always have zero or 1 result
     try:
@@ -326,7 +326,7 @@ def check_pair_pid(pair, config, cloud_table):
     except Exception as ex:
         logging.error("Failed to retrieve cloud row for: %s" % pair)
         return False
-    pid = cloud.machine_subprocess_pid
+    pid = cloud["machine_subprocess_pid"]
     if pid is None or pid == -1:
         # No subprocess ever started
         return False
@@ -341,8 +341,8 @@ def check_pair_pid(pair, config, cloud_table):
 
 
 def process_group_cloud_commands(pair, condor_host):
-    group_name = pair.group_name
-    cloud_name = pair.cloud_name
+    group_name = pair["group_name"]
+    cloud_name = pair["cloud_name"]
 
     config = Config(sys.argv[1], ["condor_poller.py",  "ProcessMonitor"], pool_size=3, signals=True)
     config.db_open()
