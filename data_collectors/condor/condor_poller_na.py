@@ -668,10 +668,10 @@ def job_poller():
     PID_FILE = config.categories["ProcessMonitor"]["pid_path"] + os.path.basename(sys.argv[0])
 
 
-    JOB = config.db_map.classes.condor_jobs
-    CLOUDS = config.db_map.classes.csv2_clouds
-    GROUPS = config.db_map.classes.csv2_groups
-    USERS = config.db_map.classes.csv2_user_groups
+    JOB = "condor_jobs"
+    CLOUDS = "csv2_clouds"
+    GROUPS = "csv2_groups"
+    USERS = "csv2_user_groups"
 
 
     try:
@@ -689,41 +689,42 @@ def job_poller():
                 break
             signal.signal(signal.SIGINT, signal.SIG_IGN)
 
-            db_session = config.db_session
-            groups = db_session.query(GROUPS).filter(GROUPS.htcondor_host_id == config.local_host_id)
+            where_clause = "htcondor_host_id='%s'" % config.local_host_id
+            groups = config.db_query(GROUPS, where=where_clause)
             condor_hosts_set = set() # use a set here so we dont re-query same host if multiple groups have same host
             condor_host_groups = {}
             group_users = {}
             for group in groups:
-                if group.htcondor_container_hostname is not None and group.htcondor_container_hostname != "":
-                    condor_central_manager = group.htcondor_container_hostname
-                    condor_hosts_set.add(group.htcondor_container_hostname)
-                elif group.htcondor_fqdn is not None and group.htcondor_fqdn != "":
-                    condor_central_manager = group.htcondor_fqdn
-                    condor_hosts_set.add(group.htcondor_fqdn)   
+                if group["htcondor_container_hostname"] is not None and group["htcondor_container_hostname"] != "":
+                    condor_central_manager = group["htcondor_container_hostname"]
+                    condor_hosts_set.add(group["htcondor_container_hostname"])
+                elif group.get("htcondor_fqdn") is not None and group.get("htcondor_fqdn") != "":
+                    condor_central_manager = group.get("htcondor_fqdn")
+                    condor_hosts_set.add(group.get("htcondor_fqdn"))
                 else:
                     # no condor location set
                     logging.debug("No condor location set")
                     continue                
 
                 if condor_central_manager not in condor_host_groups:
-                    condor_host_groups[condor_central_manager] = [group.group_name]
+                    condor_host_groups[condor_central_manager] = [group["group_name"]]
                 else:
-                    condor_host_groups[condor_central_manager].append(group.group_name)
+                    condor_host_groups[condor_central_manager].append(group["group_name"])
 
                 # build group_users dict
-                users = config.db_session.query(USERS).filter(USERS.group_name == group.group_name)
-                htcondor_other_submitters = group.htcondor_other_submitters
+                where_clause = "group_name='%s'" % group["group_name"]
+                users = config.db_query(USERS, where=where_clause)
+                htcondor_other_submitters = group["htcondor_other_submitters"]
                 if htcondor_other_submitters is not None:
-                    user_list = group.htcondor_other_submitters.split(',')
+                    user_list = group.["htcondor_other_submitters"].split(',')
                 else:
                     user_list = []
                 # need to append users from group defaultts (htcondor_supplementary_submitters) here
                 # alternatively we can just have 2 lists and check both wich would save on memory if there was a ton of users but cost cycles
                 for usr in users:
-                    user_list.append(usr.username)
+                    user_list.append(usr["username"])
 
-                group_users[group.group_name] = user_list
+                group_users[group["group_name"] = user_list
 
             uncommitted_updates = 0
             foreign_jobs = 0
@@ -741,22 +742,22 @@ def job_poller():
                     # if we fail we need to mark all these groups as failed so we don't delete the entrys later
                     fail_count = 0
                     for group in groups:
-                        if group.htcondor_fqdn is not None and group.htcondor_fqdn != "":
-                            if group.htcondor_fqdn == condor_host:
-                                if group.group_name not in failure_dict:
-                                    failure_dict[group.group_name] = 1
-                                    fail_count = failure_dict[group.group_name]
+                        if group.get("htcondor_fqdn") is not None and group["htcondor_fqdn"] != "":
+                            if group.["htcondor_fqdn"] == condor_host:
+                                if group["group_name"] not in failure_dict:
+                                    failure_dict[group["group_name"]] = 1
+                                    fail_count = failure_dict[group["group_name"]]
                                 else:
-                                    failure_dict[group.group_name] = failure_dict[group.group_name] + 1
+                                    failure_dict[group["group_name"]] = failure_dict[group["group_name"]] + 1
                                     fail_count = failure_dict[group.group_name]
                         else:
-                            if group.htcondor_container_hostname == condor_host:
-                                if group.group_name not in failure_dict:
-                                    failure_dict[group.group_name] = 1
-                                    fail_count = failure_dict[group.group_name]
+                            if group["htcondor_container_hostname"] == condor_host:
+                                if group["group_name"] not in failure_dict:
+                                    failure_dict[group["group_name"]] = 1
+                                    fail_count = failure_dict[group["group_name"]]
                                 else:
-                                    failure_dict[group.group_name] = failure_dict[group.group_name] + 1
-                                    fail_count = failure_dict[group.group_name]
+                                    failure_dict[group["group_name"]] = failure_dict[group["group_name"]] + 1
+                                    fail_count = failure_dict[group["group_name"]]
                     logging.error("Failed to locate condor daemon, skipping: %s" % condor_host)
                     logging.debug(exc)
 
@@ -783,22 +784,22 @@ def job_poller():
                     # if we fail we need to mark all these groups as failed so we don't delete the entrys later
                     fail_count = 0
                     for group in groups:
-                        if group.htcondor_fqdn is not None and group.htcondor_fqdn != "":
-                            if group.htcondor_fqdn == condor_host:
-                                if group.group_name not in failure_dict:
-                                    failure_dict[group.group_name] = 1
-                                    fail_count = failure_dict[group.group_name]
+                        if group.get("htcondor_fqdn") is not None and group["htcondor_fqdn"] != "":
+                            if group["htcondor_fqdn"] == condor_host:
+                                if group["group_name"] not in failure_dict:
+                                    failure_dict[group["group_name"]] = 1
+                                    fail_count = failure_dict[group["group_name"]]
                                 else:
-                                    failure_dict[group.group_name] = failure_dict[group.group_name] + 1
-                                    fail_count = failure_dict[group.group_name]
+                                    failure_dict[group["group_name"]] = failure_dict[group["group_name"]] + 1
+                                    fail_count = failure_dict[group["group_name"]]
                         else:
-                            if group.htcondor_container_hostname == condor_host:
-                                if group.group_name not in failure_dict:
-                                    failure_dict[group.group_name] = 1
-                                    fail_count = failure_dict[group.group_name]
+                            if group["htcondor_container_hostname"] == condor_host:
+                                if group["group_name"] not in failure_dict:
+                                    failure_dict[group["group_name"]] = 1
+                                    fail_count = failure_dict[group["group_name"]]
                                 else:
-                                    failure_dict[group.group_name] = failure_dict[group.group_name] + 1
-                                    fail_count = failure_dict[group.group_name]
+                                    failure_dict[group["group_name"]] = failure_dict[group["group_name"]] + 1
+                                    fail_count = failure_dict[group["group_name"]]
                     logging.error("Failed to get jobs from condor scheddd object, aborting poll on host: %s" % condor_host)
                     logging.error(exc)
                     if fail_count > 3:
@@ -908,9 +909,8 @@ def job_poller():
 
                     logging.debug("Adding job %s", job_dict["global_job_id"])
                     job_dict["htcondor_host_id"] = config.local_host_id
-                    new_job = JOB(**job_dict)
                     try:
-                        db_session.merge(new_job)
+                        config.db_merge(job_dict)
                         uncommitted_updates += 1
                     except Exception as exc:
                         logging.error("Failed to merge job entry, aborting cycle...")
@@ -959,22 +959,21 @@ def job_poller():
 
                 # Poll successful, update failure_dict accordingly
                 for group in groups:
-                    if group.htcondor_fqdn is not None and group.htcondor_fqdn != "":
-                        if group.htcondor_fqdn == condor_host:
-                             failure_dict.pop(group.group_name, None)
+                    if group.get("htcondor_fqdn") is not None and group["htcondor_fqdn"] != "":
+                        if group["htcondor_fqdn"] == condor_host:
+                             failure_dict.pop(group["group_name"], None)
                     else:
-                        if group.htcondor_container_hostname == condor_host:
-                            failure_dict.pop(group.group_name, None)
+                        if group["htcondor_container_hostname"] == condor_host:
+                            failure_dict.pop(group["group_name"], None)
 
 
                 if abort_cycle:
-                    del condor_session
-                    config.db_session.rollback()
+                    config.db_rollback()
                     break
 
             if uncommitted_updates > 0:
                 try:
-                    db_session.commit()
+                    config.db_commit()
                     logging.info("Job updates committed: %d" % uncommitted_updates)
                 except Exception as exc:
                     logging.error("Failed to commit new jobs, aborting cycle...")
@@ -1011,8 +1010,8 @@ def job_command_poller():
 
     config = Config(sys.argv[1], ["condor_poller.py", "ProcessMonitor"], pool_size=3, signals=True)
     PID_FILE = config.categories["ProcessMonitor"]["pid_path"] + os.path.basename(sys.argv[0])
-    Job = config.db_map.classes.condor_jobs
-    GROUPS = config.db_map.classes.csv2_groups
+    Job = "condor_jobs"
+    GROUPS = "csv2_groups"
 
     cycle_start_time = 0
     new_poll_time = 0
@@ -1032,15 +1031,15 @@ def job_command_poller():
 
             new_poll_time, cycle_start_time = start_cycle(new_poll_time, cycle_start_time)
 
-            db_session = config.db_session
-            groups = db_session.query(GROUPS).filter(GROUPS.htcondor_host_id == config.local_host_id)
+            where_clause = "htcondor_host_id='%s'" % config.local_host_id
+            groups = config.db_query(GROUPS, where=where_clause)
             condor_hosts_set = set() # use a set here so we dont re-query same host if multiple groups have same host
             for group in groups:
                 # for containers we will have to issue the commands directly to the container and not the condor fqdn so here it takes precedence 
-                if group.htcondor_container_hostname is not None and group.htcondor_container_hostname != "":
-                    condor_hosts_set.add(group.htcondor_container_hostname)
+                if group.get("htcondor_container_hostname") is not None and group["htcondor_container_hostname"] != "":
+                    condor_hosts_set.add(group["htcondor_container_hostname"])
                 else:
-                    condor_hosts_set.add(group.htcondor_fqdn)
+                    condor_hosts_set.add(group["htcondor_fqdn"])
 
             uncommitted_updates = 0
             for condor_host in condor_hosts_set: 
@@ -1055,16 +1054,17 @@ def job_command_poller():
 
                 #Query database for any entries that have a command flag
                 abort_cycle = False
-                for job in db_session.query(Job).filter(Job.hold_job_reason != None):
-                    logging.info("Holding job %s, reason=%s" % (job.global_job_id, job.hold_job_reason))
-                    local_job_id = job.global_job_id.split('#')[1]
+                where_clause = "hold_job_reason is not NULL"
+                for job in config.db_query(Job, where=where_clause):
+                    logging.info("Holding job %s, reason=%s" % (job["global_job_id"], job["hold_job_reason"]))
+                    local_job_id = job["global_job_id"].split('#')[1]
                     try:
                         condor_session.edit([local_job_id,], "JobStatus", "5")
-                        condor_session.edit([local_job_id,], "HoldReason", '"%s"' % job.hold_job_reason)
+                        condor_session.edit([local_job_id,], "HoldReason", '"%s"' % job["hold_job_reason"])
 
-                        job.job_status = 5
-                        job.hold_job_reason = None
-                        db_session.merge(job)
+                        job["job_status"] = 5
+                        job["hold_job_reason"] = None
+                        config.db_merge(job)
                         uncommitted_updates = uncommitted_updates + 1
 
                         if uncommitted_updates >= config.categories['condor_poller.py']['batch_commit_size']:
@@ -1083,7 +1083,6 @@ def job_command_poller():
                         exit(1)
 
                 if abort_cycle:
-                    del condor_session
                     config.db_session.rollback()
                     wait_cycle(cycle_start_time, poll_time_history, config.categories["condor_poller.py"]["sleep_interval_command"], config)
                     continue
@@ -1122,9 +1121,9 @@ def machine_poller():
     PID_FILE = config.categories["ProcessMonitor"]["pid_path"] + os.path.basename(sys.argv[0])
 
 
-    RESOURCE = config.db_map.classes.condor_machines
-    CLOUDS = config.db_map.classes.csv2_clouds
-    GROUPS = config.db_map.classes.csv2_groups
+    RESOURCE = "condor_machines"
+    CLOUDS = "csv2_clouds"
+    GROUPS = "csv2_groups"
 
     cycle_start_time = 0
     new_poll_time = 0
@@ -1150,28 +1149,27 @@ def machine_poller():
                 break
             signal.signal(signal.SIGINT, signal.SIG_IGN)
 
-
-            db_session = config.db_session
-            groups = db_session.query(GROUPS).filter(GROUPS.htcondor_host_id == config.local_host_id)
+            where_clause = "htcondor_host_id='%s'" % config.local_host_id
+            groups = config.db_query(GROUPS, where=where_clause)
             condor_hosts_set = set() # use a set here so we dont re-query same host if multiple groups have same host
             for group in groups:
-                if group.htcondor_container_hostname is not None and group.htcondor_container_hostname != "":
-                    condor_hosts_set.add(group.htcondor_container_hostname)
+                if group.get("htcondor_container_hostname") is not None and group["htcondor_container_hostname"] != "":
+                    condor_hosts_set.add(group["htcondor_container_hostname"])
                 else:
-                    condor_hosts_set.add(group.htcondor_fqdn)
+                    condor_hosts_set.add(group["htcondor_fqdn"])
 
             # need to make a data structure so that we can verify the the polled machines actually fit into a valid grp-cloud
             # need to check:
             #       - group_name (in both group_name and machine)
             #       - cloud_name (only in machine?)
             host_groups = {}
-            groups = db_session.query(GROUPS).filter(GROUPS.htcondor_host_id == config.local_host_id)
             for group in groups:
                 cloud_list = []
-                clouds = config.db_session.query(CLOUDS).filter(CLOUDS.group_name == group.group_name)
+                where_clause = "group_name='%s'" % group["group_name"]
+                clouds = config.db_query(CLOUDS, where=where_clause)
                 for cloud in clouds:
-                    cloud_list.append(cloud.cloud_name)
-                host_groups[group.group_name] = cloud_list
+                    cloud_list.append(cloud["cloud_name"])
+                host_groups[group["group_name"]] = cloud_list
 
             for condor_host in condor_hosts_set:
                 logging.debug("Polling condor host: %s" % condor_host)
@@ -1197,22 +1195,22 @@ def machine_poller():
                     # if we fail we need to mark all these groups as failed so we don't delete the entrys later
                     fail_count = 0
                     for group in groups:
-                        if group.htcondor_fqdn is not None and group.htcondor_fqdn != "":
-                            if group.htcondor_fqdn == condor_host:
-                                if group.group_name not in failure_dict:
-                                    failure_dict[group.group_name] = 1
-                                    fail_count = failure_dict[group.group_name]
+                        if group.get("htcondor_fqdn") is not None and group["htcondor_fqdn"] != "":
+                            if group["htcondor_fqdn"] == condor_host:
+                                if group["group_name"] not in failure_dict:
+                                    failure_dict[group["group_name"]] = 1
+                                    fail_count = failure_dict[group["group_name"]]
                                 else:
-                                    failure_dict[group.group_name] = failure_dict[group.group_name] + 1
-                                    fail_count = failure_dict[group.group_name]
+                                    failure_dict[group["group_name"]] = failure_dict[group["group_name"]] + 1
+                                    fail_count = failure_dict[group["group_name"]]
                         else:
-                            if group.htcondor_container_hostname == condor_host:
-                                if group.group_name not in failure_dict:
-                                    failure_dict[group.group_name] = 1
-                                    fail_count = failure_dict[group.group_name]
+                            if group["htcondor_container_hostname"] == condor_host:
+                                if group["group_name"] not in failure_dict:
+                                    failure_dict[group["group_name"]] = 1
+                                    fail_count = failure_dict[group["group_name"]]
                                 else:
-                                    failure_dict[group.group_name] = failure_dict[group.group_name] + 1
-                                    fail_count = failure_dict[group.group_name]
+                                    failure_dict[group["group_name"]] = failure_dict[group["group_name"]] + 1
+                                    fail_count = failure_dict[group["group_name"]]
 
                     logging.error("Failed to get machines from condor collector object, aborting poll on host %s" % condor_host)
                     logging.error(exc)
@@ -1292,9 +1290,8 @@ def machine_poller():
 
                     logging.info("Adding/updating machine %s", r_dict["name"])
                     r_dict["htcondor_host_id"] = config.local_host_id
-                    new_resource = RESOURCE(**r_dict)
                     try:
-                        db_session.merge(new_resource)
+                        config.db_merge(r_dict)
                         uncommitted_updates += 1
                     except Exception as exc:
                         logging.exception("Failed to merge machine entry, aborting cycle...")
@@ -1318,27 +1315,26 @@ def machine_poller():
 
                 # Poll successful, update failure_dict accordingly
                 for group in groups:
-                    if group.htcondor_container_hostname is not None and group.htcondor_container_hostname != "":
-                        if group.htcondor_container_hostname == condor_host:
-                             failure_dict.pop(group.group_name, None)
+                    if group.get("htcondor_container_hostname") is not None and group["htcondor_container_hostname"] != "":
+                        if group["htcondor_container_hostname"] == condor_host:
+                             failure_dict.pop(group["group_name"], None)
                     else:
-                        if group.htcondor_fqdn == condor_host:
-                            failure_dict.pop(group.group_name, None)
+                        if group["htcondor_fqdn"] == condor_host:
+                            failure_dict.pop(group["group_name"], None)
 
                            
                 if abort_cycle:
-                    del condor_session
-                    config.db_session.rollback()
+                    config.db_rollback()
                     break
 
-            if 'db_session'in locals() and uncommitted_updates > 0:
+            if uncommitted_updates > 0:
                 try:
-                    db_session.commit()
+                    config.db_commit()
                     logging.info("Machine updates committed: %d" % uncommitted_updates)
                 except Exception as exc:
                     logging.exception("Failed to commit machine updates, aborting cycle...")
                     logging.error(exc)
-                    config.db_session.rollback()
+                    config.db_rollback()
                     time.sleep(config.categories["condor_poller.py"]["sleep_interval_machine"])
                     continue
 
@@ -1346,7 +1342,7 @@ def machine_poller():
                 # Check for deletes
                 delete_obsolete_database_items('Machines', inventory, db_session, RESOURCE, 'name', poll_time=new_poll_time, failure_dict=failure_dict, condor_host=config.local_host_id)
                 delete_cycle = False
-            config.db_session.commit()
+            config.db_commit()
             cycle_count = cycle_count + 1
             if cycle_count > config.categories["condor_poller.py"]["delete_cycle_interval"]:
                 delete_cycle = True
@@ -1371,10 +1367,10 @@ def machine_command_poller():
     config = Config(sys.argv[1], "condor_poller.py",  "ProcessMonitor"], pool_size=3, signals=True)
     PID_FILE = config.categories["ProcessMonitor"]["pid_path"] + os.path.basename(sys.argv[0])
 
-    Resource = config.db_map.classes.condor_machines
-    GROUPS = config.db_map.classes.csv2_groups
-    VM = config.db_map.classes.csv2_vms
-    CLOUD = config.db_map.classes.csv2_clouds
+    Resource = "condor_machines"
+    GROUPS = "csv2_groups"
+    VM = "csv2_vms"
+    CLOUD = "csv2_clouds"
 
     cycle_start_time = 0
     new_poll_time = 0
@@ -1397,14 +1393,14 @@ def machine_command_poller():
             signal.signal(signal.SIGINT, signal.SIG_IGN)
             new_poll_time, cycle_start_time = start_cycle(new_poll_time, cycle_start_time)
 
-            db_session = config.db_session
-            groups = db_session.query(GROUPS).filter(GROUPS.htcondor_host_id == config.local_host_id)
+            where_clause = "htcondor_host_id='%s'" % config.local_host_id
+            groups = config.db_query(GROUPS, where=where_clause)
             condor_hosts_set = set() # use a set here so we dont re-query same host if multiple groups have same host
             for group in groups:
-                if group.htcondor_container_hostname is not None and group.htcondor_container_hostname != "":
-                    condor_hosts_set.add(group.htcondor_container_hostname)
+                if group.get("htcondor_container_hostname") is not None and group["htcondor_container_hostname"] != "":
+                    condor_hosts_set.add(group["htcondor_container_hostname"])
                 else:
-                    condor_hosts_set.add(group.htcondor_fqdn)
+                    condor_hosts_set.add(group["htcondor_fqdn"])
 
             uncommitted_updates = 0
             logging.debug(condor_hosts_set)
@@ -1412,11 +1408,11 @@ def machine_command_poller():
             for condor_host in condor_hosts_set:
 
                 # Get unique group,cloud pairs
-                grp_cld_pairs = config.db_connection.execute('select distinct group_name, cloud_name from view_condor_host')
+                grp_cld_pairs = config.db_execute('select distinct group_name, cloud_name from view_condor_host')
 
                 for pair in grp_cld_pairs:
                     # First check pid of cloud entry
-                    logging.info("Checking child pid for pair: %s, %s" % (pair.group_name, pair.cloud_name))
+                    logging.info("Checking child pid for pair: %s, %s" % (pair["group_name"], pair.["cloud_name"]))
                     pid_active = check_pair_pid(pair, config, CLOUD)
                     if pid_active:
                         logging.info("Child pid still active...")
@@ -1429,7 +1425,7 @@ def machine_command_poller():
                     
             
             try:
-                config.db_session.commit()
+                config.db_commit()
             except Exception as exc:
                 logging.error("Error during final commit, likely that a vm was removed from database before final terminate update was comitted..")
                 logging.exception(exc)
@@ -1489,8 +1485,8 @@ def worker_gsi_poller():
                     logging.info(ex)
             if worker_cert:
                 try:
-                    config.db_session.execute('insert into condor_worker_gsi (htcondor_fqdn, htcondor_host_id, worker_dn, worker_eol, worker_cert, worker_key) values("%s",%d "%s", %d, "%s", "%s");' % (condor, config.local_host_id, if_null(worker_cert['subject']), worker_cert['eol'], if_null(worker_cert['cert']), if_null(worker_cert['key'])))
-                    config.db_session.commit()
+                    config.db_execute('insert into condor_worker_gsi (htcondor_fqdn, htcondor_host_id, worker_dn, worker_eol, worker_cert, worker_key) values("%s",%d "%s", %d, "%s", "%s");' % (condor, config.local_host_id, if_null(worker_cert['subject']), worker_cert['eol'], if_null(worker_cert['cert']), if_null(worker_cert['key'])))
+                    config.db_commit()
 
                     if worker_cert['subject']:
                         logging.info('Condor host: "%s", condor_worker_gsi inserted.' % condor)
@@ -1502,14 +1498,14 @@ def worker_gsi_poller():
                         logging.warning('Condor host: "%s", condor_worker_gsi insert failed, exception: %s' % (condor, ex))
 
                     try:
-                        config.db_session.execute('update condor_worker_gsi set %s, htcondor_host_id=%d,worker_eol=%d,%s,%s where htcondor_fqdn="%s";' % (
+                        config.db_execute('update condor_worker_gsi set %s, htcondor_host_id=%d,worker_eol=%d,%s,%s where htcondor_fqdn="%s";' % (
                             if_null(worker_cert['subject'], col='worker_dn'),
                             config.local_host_id,
                             worker_cert['eol'],
                             if_null(worker_cert['cert'], col='worker_cert'),
                             if_null(worker_cert['key'], col='worker_key'),
                             condor))
-                        config.db_session.commit()
+                        config.db_commit()
 
                         if worker_cert['subject']:
                             logging.info('Condor host: "%s", condor_worker_gsi updated.' % condor)
@@ -1517,7 +1513,7 @@ def worker_gsi_poller():
                             logging.info('Condor host: "%s", condor_worker_gsi (not configured) updated.' % condor)
 
                     except Exception as ex:
-                        config.db_session.rollback()
+                        config.db_rollback()
 
                         if worker_cert['subject']:
                             logging.error('Condor host: "%s", condor_worker_gsi update failed, exception: %s' % (condor, ex))
@@ -1580,8 +1576,8 @@ def condor_gsi_poller():
             
             if condor_cert:
                 try:
-                    config.db_session.execute('update csv2_groups set %s,htcondor_gsi_eol=%d where htcondor_fqdn="%s";' % (if_null(condor_cert['subject'], col='htcondor_gsi_dn'), condor_cert['eol'], condor))
-                    config.db_session.commit()
+                    config.db_execute('update csv2_groups set %s,htcondor_gsi_eol=%d where htcondor_fqdn="%s";' % (if_null(condor_cert['subject'], col='htcondor_gsi_dn'), condor_cert['eol'], condor))
+                    config.db_commit()
 
                     if condor_cert['subject']:
                         logging.info('Condor host: "%s" GSI updated.' % condor)
@@ -1589,7 +1585,7 @@ def condor_gsi_poller():
                         logging.info('Condor host: "%s" GSI (not configured) updated.' % condor)
 
                 except Exception as ex:
-                    config.db_session.rollback()
+                    config.db_rollback()
 
                     if condor_cert['subject']:
                         logging.error('Condor host: "%s" GSI update failed, exception: %s' % (condor, ex))
@@ -1599,7 +1595,7 @@ def condor_gsi_poller():
             else:
                 logging.warning('Unable to retrieve certificate')
 
-            config.db_session.rollback()
+            config.db_rollback()
 
             if not os.path.exists(PID_FILE):
                 logging.info("Stop set, exiting...")
