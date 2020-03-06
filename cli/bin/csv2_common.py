@@ -46,7 +46,7 @@ def check_keys(gvar, mp, rp, op, not_optional=[], key_map=None, requires_server=
             missing.append(key[1])
 
     if missing:
-        print('Error: "%s %s %s" - the following mandatory parameters must be specfied on the command line:' % (gvar['command_name'], gvar['object'], gvar['action']))
+        print('Error: "%s %s %s" - the following mandatory parameters must be specified on the command line:' % (gvar['command_name'], gvar['object'], gvar['action']))
         for key in missing:
             print('  %s' % key)
         print('For more information, use -H.')
