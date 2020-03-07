@@ -102,8 +102,12 @@ def execute_csv2_command(gvar, expected_rc, expected_modid, expected_text, cmd, 
                         if row.startswith('| ') and row.endswith(' |'):
                             # Split on '<one or more spaces>|<one or more spaces>', consuming as many spaces as possible.
                             values_actual = re.split(r'\s+\|\s+', row[2:-2].strip())
-                            if all(values_actual[columns_ordered.index(key)] == expected_value for key, expected_value in values.items()):
-                                print(f'DEBUG: Found perfect row: {values_actual}.')
+                            try:
+                                if all(values_actual[columns_ordered.index(key)] == expected_value for key, expected_value in values.items()):
+                                    break
+                            except ValueError as err:
+                                failed = True
+                                list_error = 'No row found with the specified values, because column {} was missing'.format(str(err)[:-len(' is not in list')])
                                 break
                     # Else branch of the for loop, i.e. if the loop did not break.
                     else:
