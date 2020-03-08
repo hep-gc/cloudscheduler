@@ -2,26 +2,28 @@
 import sys
 import os
 
-def get_table_from_sql(line):
-    phrases = line.replace(';', '').replace(')', '').replace("'", '').replace('"', '').split('db_session.execute(')
-    if len(phrases) < 2:
-        phrases = line.replace(';', '').replace(')', '').replace("'", '').replace('"', '').split('db_connection.execute(')
-
-    if len(phrases) > 1:
-        words = phrases[1].strip().lower().split()
-
-        if words[0] ==  'delete':
-            return words[2], 'delete'
-        elif words[0] == 'insert':
-            return words[2], 'insert'
-        elif words[0] == 'select':
-            ix = words.index('from')
-            if ix > -1:
-                return words[ix+1], 'select'
-        elif words[0] == 'update':
-            return words[1], 'update'
-
-    return None, None
+functions = [
+#          if line.find('signal_functions') > -1:
+#              tables['csv2_signal_log'] = {'merge': True, 'delete': False, 'privileges': []}
+    {'name': 'signal_functions', 'tix': 'SIG', 'alchemy': False},
+    {'name': 'inventory_delete_obsolete_database_items(', 'tix': 3, 'mode': 'delete', 'alchemy': False},
+    {'name': '.db_delete(', 'tix': 0, 'mode': 'delete', 'alchemy': False},
+    {'name': '.db_execute(', 'tix': 'SQL', 'alchemy': False},
+    {'name': '.db_insert(', 'tix': 0, 'mode': 'merge', 'alchemy': False},
+    {'name': '.db_merge(', 'tix': 0, 'mode': 'merge', 'alchemy': False},
+    {'name': '.db_query(', 'tix': 'REF', 'alchemy': False},
+    {'name': '.db_update(', 'tix': 0, 'mode': 'merge', 'alchemy': False},
+    {'name': 'db_map', 'tix': 'MAP', 'alchemy': True},
+    {'name': 'delete_obsolete_database_items(', 'tix': 3, 'mode': 'delete', 'alchemy': True},
+    {'name': '.db_connection.delete(', 'tix': 0, 'mode': 'delete', 'alchemy': True},
+    {'name': '.db_connection.execute(', 'tix': 'SQL', 'alchemy': True},
+    {'name': '.db_connection.merge(', 'tix': 0, 'mode': 'merge', 'alchemy': True},
+    {'name': '.db_connection.query(', 'tix': 'REF', 'alchemy': True},
+    {'name': '.db_session.delete(', 'tix': 0, 'mode': 'delete', 'alchemy': True},
+    {'name': '.db_session.execute(', 'tix': 'SQL', 'alchemy': True},
+    {'name': '.db_session.merge(', 'tix': 0, 'mode': 'merge', 'alchemy': True},
+    {'name': '.db_session.query(', 'tix': 'REF', 'alchemy': True}
+    ]
 
 def resolve_refs(handles):
     resolved = {}
@@ -53,64 +55,74 @@ for ix in range(1, len(sys.argv)):
             continue
 
         handles = {}
+        db_calls = []
         for line in lines:
-           if line.find('signal_functions') > -1:
-               tables['csv2_signal_log'] = {'merge': True, 'delete': False, 'privileges': []}
+            for function in functions:
+                words1 = line.split(function['name'])
+                if len(words1) > 1:
+                    if function['tix'] == 'SQL':
+                        words2 = words1[1][1:].split()
+                        if len(words2) > 2 and words2[0] ==  'delete':
+                            db_calls.append([words2[2], 'delete', function['alchemy']])
+                        if len(words2) > 2 and words2[0] ==  'insert':
+                            db_calls.append([words2[2], 'merge', function['alchemy']])
+                        if len(words2) > 1 and words2[0] ==  'update':
+                            db_calls.append([words2[1], 'merge', function['alchemy']])
 
-           if line.find('db_map') > -1:
-               handle = line.split()
-               table = line.split('.')
-               handles[handle[0]] = table[-1]
-               handles[table[-1]] = table[-1]
+                    elif function['tix'] == 'MAP':
+                        handle = line.split()
+                        table = line.split('.')
+                        handles[handle[0]] = table[-1]
+                        handles[table[-1]] = table[-1]
 
-        for line in lines:
-           table, ignore = get_table_from_sql(line)
-           if table and table not in handles:
-               handles[table] = table
+                    elif function['tix'] == 'REF':
+                        words2 = words1[1].replace(')', ',').split(',')
+                        handle = words2[0]
 
-        while True:
-            resolved = resolve_refs(handles)
-            if len(resolved) > 0:
-                handles = {**handles, **resolved}
-            else:
-                break
+                        words3 = line.split('=')
+                        words4 = words3[0].split()
+                        if len(words3) > 2 and len(words4[0]) > 0 and words4[0] != handle and handle in handles:
+                            handles[words4[0]] = handles[handle]
 
-        for handle in handles:
-            if handles[handle] not in tables:
-                tables[handles[handle]] = {'merge': False, 'delete': False, 'privileges': []}
+                    elif function['tix'] == 'SIG':
+                        tables['csv2_signal_log'] = {'merge': True, 'delete': False, 'privileges': []}
 
-        for line in lines:
+                    elif function['tix'] >= 0:
+                        words2 = words1[1].split(',')
+                        if words2[function['tix']][-1] == ')':
+                            db_calls.append([words2[function['tix']][:-1].strip(), function['mode'], function['alchemy']])
+                        else:
+                            db_calls.append([words2[function['tix']].strip(), function['mode'], function['alchemy']])
 
-           if line.find('db_connection') > -1 or line.find('db_session') > -1:
-               table, action = get_table_from_sql(line)
-               if table and action == 'delete':
-                   tables[table]['merge'] = True
-                   tables[table]['delete'] = True
+        if len(handles) > 0:
+            print('SQLAlchemy object to table mappings(%s):' % len(handles), file=sys.stderr)
+            for handle in sorted(handles):
+                print('    %s -> %s' % (handle, handles[handle]), file=sys.stderr)
 
-               elif table and (action == 'insert' or action == 'update'):
-                   tables[table]['merge'] = True
+            print('', file=sys.stderr)
 
-               elif line.find('delete_obsolete_database_items(') > -1:
-                   words = line.replace(',', 'delete_obsolete_database_items(').split('delete_obsolete_database_items(')
-                   handle = words[4].strip()
-                   if handle in handles and handles[handle] in tables:
-                       tables[handles[handle]]['merge'] = True
-                       tables[handles[handle]]['delete'] = True
+        if len(db_calls) > 0:
+            print('Database call summary (%s):' % len(db_calls), file=sys.stderr)
+            for db_call in db_calls:
+                if db_call[0] in handles:
+                    table = handles[db_call[0]]
+                else:
+                    table = db_call[0]
 
-               elif line.find('.delete(') > -1:
-                   words = line.replace(')', 'delete(').split('delete(')
-                   handle = words[1].strip()
-                   if handle in handles and handles[handle] in tables:
-                       tables[handles[handle]]['merge'] = True
-                       tables[handles[handle]]['delete'] = True
+                if table not in tables:
+                    tables[table] = {'merge': True, 'delete': False, 'privileges': []}
 
-               elif line.find('.merge(') > -1:
-                   words = line.replace(')', 'merge(').split('merge(')
-                   handle = words[1].strip()
-                   if handle in handles and handles[handle] in tables:
-                       tables[handles[handle]]['merge'] = True
+                if db_call[1] == 'delete':
+                    tables[table]['delete'] = True
+                  
+                if db_call[2]:
+                    print('    %-6s %s (SQLAlchemy)' % (db_call[1], table), file=sys.stderr)
+                else:
+                    print('    %-6s %s' % (db_call[1], table), file=sys.stderr)
 
+            print('', file=sys.stderr)
 
+print('Privileges summary:', file=sys.stderr)
 privileges = ['csv2.*:SELECT']
 for table in sorted(tables):
     if tables[table]['merge']:
@@ -123,7 +135,9 @@ for table in sorted(tables):
     if len(tables[table]['privileges']) > 0:
         privileges.append('csv2.%s:%s' % (table, ','.join(tables[table]['privileges'])))
 
-    print("%-48s: %s" % (table, tables[table]))
+    print("    %-48s: %s" % (table, tables[table]), file=sys.stderr)
 
-print("\n%s" % '/'.join(privileges))
+print('', file=sys.stderr)
+
+print("%s" % '/'.join(privileges))
 
