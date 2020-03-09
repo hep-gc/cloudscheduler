@@ -5,13 +5,6 @@ import sys
 import os
 import yaml
 
-cmd_path = os.path.realpath(sys.argv[0]).split('/')
-cmd_path_ix = cmd_path.index('cloudscheduler')
-config_path = '%s/etc/mysql_privileges.yaml' % '/'.join(cmd_path[:cmd_path_ix+1])
-
-with open(config_path) as fd:
-    db_privileges = yaml.full_load(fd.read())
-
 functions = [
     {'name': 'mysql_privileges', 'tix': 'DEF', 'alchemy': True},
     {'name': 'signal_functions', 'tix': 'SIG', 'alchemy': False},
@@ -50,9 +43,16 @@ def resolve_refs(handles):
 
     return resolved
 
-if len(sys.argv) < 2:
-    print('Synopsis: mysql_privileges <blank_seperated_python_module_list>')
+if len(sys.argv) < 3:
+    print('Synopsis: mysql_privileges <db_user> <db_user_password> <blank_seperated_python_module_list>')
     exit(0)
+
+cmd_path = os.path.realpath(sys.argv[0]).split('/')
+cmd_path_ix = cmd_path.index('cloudscheduler')
+config_path = '%s/etc/mysql_privileges.yaml' % '/'.join(cmd_path[:cmd_path_ix+1])
+
+with open(config_path) as fd:
+    db_privileges = yaml.full_load(fd.read())
 
 config = Config('/etc/cloudscheduler/cloudscheduler.yaml', [], db_config_only=True)
 
@@ -161,7 +161,7 @@ for table in db_privileges['block']:
             allowed[table].append(words[0])
 
 tables = {}
-for ix in range(1, len(sys.argv)):
+for ix in range(3, len(sys.argv)):
     if os.path.isfile(sys.argv[ix]) and sys.argv[ix] != 'try':
         try:
             with open(sys.argv[ix]) as fd:
@@ -282,15 +282,12 @@ for ix in range(1, len(sys.argv)):
                 print('', file=sys.stderr)
                      
 print('Privileges summary:', file=sys.stderr)
-privileges = []
+privileges = ['create user "%s"@"%%" identified by "%s";' % (sys.argv[1], sys.argv[2])]
 for table in sorted(tables):
     table_privileges = [[], []]
     if tables[table]['delete']:
         table_privileges[0].append('DELETE')
-        if table in allowed:
-            table_privileges[1].append('DELETE(%s)' % ','.join(allowed[table]))
-        else:
-            table_privileges[1].append('DELETE')
+        table_privileges[1].append('DELETE')
 
     if tables[table]['merge']:
         table_privileges[0].append('INSERT')
@@ -314,7 +311,7 @@ for table in sorted(tables):
             table_privileges[1].append('SELECT')
 
     if len(table_privileges[1]) > 0:
-        privileges.append('csv2.%s:%s' % (table, ','.join(sorted(table_privileges[1]))))
+        privileges.append('grant %s on %s to "%s@"%%";' % (', '.join(sorted(table_privileges[1])), table, sys.argv[1]))
 
     if table in db_privileges['block']:
         print("    %-32s %s, *** EXCEPT ***: %s" % (','.join(sorted(table_privileges[0])), table, ', '.join(db_privileges['block'][table])), file=sys.stderr)
@@ -323,5 +320,6 @@ for table in sorted(tables):
 
 print('', file=sys.stderr)
 
-print("%s" % '/'.join(privileges))
+for privilege in privileges:
+    print(privilege)
 
