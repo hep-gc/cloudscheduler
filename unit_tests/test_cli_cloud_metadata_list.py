@@ -23,7 +23,7 @@ def main(gvar):
     # 16
     execute_csv2_command(
         gvar, 0, None, None,
-        ['cloud', 'metadata-list', '-su', ut_id(gvar, 'clu3')],
+        ['cloud', 'metadata-list', '-NV', '-su', ut_id(gvar, 'clu3')],
         expected_list='Clouds/Metadata', columns=['Group', 'Cloud', 'Metadata Filename', 'Enabled', 'Priority', 'MIME Type']
     )
 

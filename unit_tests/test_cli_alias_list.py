@@ -17,7 +17,7 @@ def main(gvar):
     # 15
     execute_csv2_command(
         gvar, 0, None, None,
-        ['alias', 'list', '-g', ut_id(gvar, 'clg1'), '-su', ut_id(gvar, 'clu3')],
+        ['alias', 'list', '-NV', '-g', ut_id(gvar, 'clg1'), '-su', ut_id(gvar, 'clu3')],
         expected_list='Aliases', columns=['Group', 'Alias', 'Clouds']
     )
 

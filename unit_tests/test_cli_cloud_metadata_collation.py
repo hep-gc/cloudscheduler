@@ -23,7 +23,7 @@ def main(gvar):
     # 16
     execute_csv2_command(
         gvar, 0, None, 'Server: unit-test, Active User: {}, Active Group: {}'.format(ut_id(gvar, 'clu3'), ut_id(gvar, 'clg1')),
-        ['cloud', 'metadata-collation', '-su', ut_id(gvar, 'clu3')],
+        ['cloud', 'metadata-collation', '-NV', '-su', ut_id(gvar, 'clu3')],
         expected_list='Clouds/Metadata Collation', columns=['Group', 'Cloud', 'Metadata Filename', 'Priority', 'Type']
     )
 
