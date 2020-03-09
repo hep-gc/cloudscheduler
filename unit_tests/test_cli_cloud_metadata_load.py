@@ -11,7 +11,9 @@ def main(gvar):
         else:
             initialize_csv2_request(gvar)
 
+    # Filepath of a file containing valid YAML metadata.
     METADATA_FILEPATH = 'ut.yaml'
+    # Filepath of a file containing text that cannot be parsed as YAML.
     INVALID_YAML_FILEPATH = 'notyamlfile.txt'
 
     # 01 - 14
@@ -58,7 +60,7 @@ def main(gvar):
     # 30
     execute_csv2_command(
         gvar, 1, None, 'The following command line arguments were invalid: only-keys',
-        ['cloud', 'metadata-load', '-ok', '-su', ut_id(gvar, 'clu3')]
+        ['cloud', 'metadata-load', '-ok', '-g', ut_id(gvar, 'clg1'),'-su', ut_id(gvar, 'clu3')]
     )
 
     # 31 Attempt to give text not parsable as YAML as YAML metadata.
