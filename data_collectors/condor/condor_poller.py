@@ -22,8 +22,7 @@ from cloudscheduler.lib.poller_functions import \
     test_and_set_inventory_item_hash, \
     build_inventory_for_condor, \
     start_cycle, \
-    wait_cycle, \
-    cleanup_inventory
+    wait_cycle
 
 from keystoneclient.auth.identity import v2, v3
 from keystoneauth1 import session
@@ -41,6 +40,7 @@ from sqlalchemy.orm import Session
 MASTER_TYPE = htcondor.AdTypes.Master
 STARTD_TYPE = htcondor.AdTypes.Startd
 
+# mysql_privileges cloud_table csv2_clouds
 
 def _get_nova_client(session, region=None):
     nova = novaclient.Client("2", session=session, region_name=region, timeout=10)
@@ -754,6 +754,7 @@ def job_poller():
 
 
                 if not condor_inventory_built:
+                    # Initializes the cloud field to "-" since a job has no concept of a cloud
                     build_inventory_for_condor(inventory, db_session, CLOUDS)
                     condor_inventory_built = True
 
@@ -973,9 +974,6 @@ def job_poller():
                 # Check for deletes
                 delete_obsolete_database_items('Jobs', inventory, db_session, JOB, 'global_job_id', poll_time=new_poll_time, failure_dict=failure_dict, condor_host=config.local_host_id)
 
-                # Cleanup inventory, this function will clean up inventory entries for deleted clouds
-                #group_clouds = config.db_connection.execute('select distinct group_name, cloud_name from csv2_clouds where cloud_type="openstack"')
-                #cleanup_inventory(inventory, group_clouds)                                                          
                 delete_cycle = False
 
             cycle_count = cycle_count + 1
@@ -1137,9 +1135,6 @@ def machine_poller():
                 logging.debug("Stop set, exiting...")
                 break
             signal.signal(signal.SIGINT, signal.SIG_IGN)
-            # Cleanup inventory, this function will clean up inventory entries for deleted clouds
-            #group_clouds = config.db_connection.execute('select distinct group_name, cloud_name from csv2_clouds where cloud_type="openstack"')
-            #cleanup_inventory(inventory, group_clouds)
 
 
             db_session = config.db_session
