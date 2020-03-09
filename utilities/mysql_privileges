@@ -51,7 +51,7 @@ def resolve_refs(handles):
     return resolved
 
 if len(sys.argv) < 2:
-    print('Synopsis: mysql_privileges <db_user> <blank_seperated_python_module_list>')
+    print('Synopsis: mysql_privileges <blank_seperated_python_module_list>')
     exit(0)
 
 config = Config('/etc/cloudscheduler/cloudscheduler.yaml', [], db_config_only=True)
@@ -129,7 +129,7 @@ for table in db_privileges['block']:
             allowed[table].append(words[0])
 
 tables = {}
-for ix in range(2, len(sys.argv)):
+for ix in range(1, len(sys.argv)):
     if os.path.isfile(sys.argv[ix]) and sys.argv[ix] != 'try':
         try:
             with open(sys.argv[ix]) as fd:
