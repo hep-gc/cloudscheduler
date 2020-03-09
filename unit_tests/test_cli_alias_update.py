@@ -63,13 +63,6 @@ def main(gvar):
         ['alias', 'update', '--alias-name', ut_id(gvar, 'cla2'), '--cloud-name', ut_id(gvar, 'clc3'), '--cloud-option', 'add', '-su', ut_id(gvar, 'clu3')],
     )
 
-    # 31 Ensure that clc3 was added to cla2.
-    execute_csv2_command(
-        gvar, 0, None, None,
-        ['alias', 'list', '-su', ut_id(gvar, 'clu3')],
-        expected_list='Aliases', values={'Group': ut_id(gvar, 'clg1'), 'Alias': ut_id(gvar, 'cla2'), 'Clouds': ut_id(gvar, 'clc2,clc3')}
-    )
-
     # 32 Explicitly remove clc2 and clc3 from cla2, causing cla2 to be deleted.
     execute_csv2_command(
         gvar, 0, None, 'cloud alias "{}.{}" successfully updated.'.format(ut_id(gvar, 'clg1'), ut_id(gvar, 'cla2')),

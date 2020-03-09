@@ -36,9 +36,9 @@ def main(gvar):
 
     # 18
     execute_csv2_command(
-        gvar, 0, None, None,
+        gvar, 0, None, ut_id(gvar, 'clm2'),
         ['cloud', 'metadata-collation', '--cloud-name', ut_id(gvar, 'clc2'), '-su', ut_id(gvar, 'clu3')],
-        expected_list='Clouds/Metadata Collation', values={'Group': ut_id(gvar, 'clg1'), 'Cloud': ut_id(gvar, 'clc2'), 'Metadata Filename': ut_id(gvar, 'clm2')}
+        expected_list='Clouds/Metadata Collation'
     )
 
     # 19

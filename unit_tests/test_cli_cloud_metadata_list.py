@@ -45,10 +45,17 @@ def main(gvar):
     execute_csv2_command(
         gvar, 0, None, 'Server: unit-test, Active User: {}, Active Group: {}'.format(ut_id(gvar, 'clu3'), ut_id(gvar, 'clg1')),
         ['cloud', 'metadata-list', '--cloud-name', ut_id(gvar, 'clc2'), '--metadata-name', ut_id(gvar, 'clm2'), '-su', ut_id(gvar, 'clu3')],
-        expected_list='Clouds/Metadata', values={'Group': ut_id(gvar, 'clg1'), 'Cloud': ut_id(gvar, 'clc2'), 'Metadata Filename': ut_id(gvar, 'clm2')}
+        expected_list='Clouds/Metadata'
     )
 
     # 20
+    execute_csv2_command(
+        gvar, 0, None, 'Rows: 1',
+        ['cloud', 'metadata-list', '--cloud-name', ut_id(gvar, 'clc2'), '--metadata-name', ut_id(gvar, 'clm2'), '-su', ut_id(gvar, 'clu3')],
+        expected_list='Clouds/Metadata'
+    )
+
+    # 21
     execute_csv2_command(
         gvar, 0, None, 'cloud metadata-list, 1. Clouds/Metadata: keys=group_name,cloud_name,metadata_name, columns=enabled,priority,mime_type',
         ['cloud', 'metadata-list', '--view-columns', '-su', ut_id(gvar, 'clu3')]

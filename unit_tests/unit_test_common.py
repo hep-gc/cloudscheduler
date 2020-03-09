@@ -22,7 +22,7 @@ def _execute_selections(gvar, request, expected_text, expected_values):
 def execute_csv2_command(gvar, expected_rc, expected_modid, expected_text, cmd, expected_list=None, columns=[], values={}, timeout=None):
     '''
     Execute a Cloudscheduler CLI command using subprocess and print a message explaining whether the output of the command was as expected.
-    `cmd` (list of strs) contains the parameters to be given to the `cloudscheduler` command, e.g. `['alias', 'add', '-H']`. 'cloudscheduler' should be *excluded*, because it is automatically added at the beginning of the list.
+    `cmd` (list, tuple, or other iterable of strs) contains the parameters to be given to the `cloudscheduler` command, e.g. `['alias', 'add', '-H']`. 'cloudscheduler' should be excluded, because it is automatically added at the beginning of the list.
     `expected_list` (str) is the title of a table that is expected to be in the output, e.g. 'Aliases'.
     `columns` (list of strs) contains the expected headers of the table specified by `expected_list`. These should be what is acutally displayed (e.g. 'Alias') not the name used in the CLI code (e.g. 'alias_name'). This list must contain all the expected headers, not just a subset. Ignored if `expected_list` is not specified.
     `values` (dict) are header-value pairs that are expected to all match one particular row in the table specified by `expected_list`. The matching row may have columns not mentioned in `values`. Ignored if `expected_list` is not specified.
@@ -33,8 +33,10 @@ def execute_csv2_command(gvar, expected_rc, expected_modid, expected_text, cmd, 
 
     if _execute_selections(gvar, cmd, expected_text, None):
 
-        # If the `-s` flag is not used tests will sometimes hang because cloudscheduler is waiting for a server web address (but this prompt is not visible to the tester).
+        # Allow int and float values to be specified. (subprocess raises an exception if given ints or floats.)
+        cmd = [str(c) for c in cmd]
         cmd.insert(0, 'cloudscheduler')
+        # If the `-s` flag is not used tests will sometimes hang because cloudscheduler is waiting for a server web address (but this prompt is not visible to the tester).
         if '-s' not in cmd:
             cmd.extend(['-s', 'unit-test'])
         if '-spw' not in cmd:
@@ -76,7 +78,7 @@ def execute_csv2_command(gvar, expected_rc, expected_modid, expected_text, cmd, 
 
         list_error = ''
         if not failed and expected_list:
-            if '{}:\n'.format(expected_list) in stdout:
+            if '\n{}:'.format(expected_list) in stdout:
                 stdout_lines = stdout.split('\n')
                 # Columns are initially saved in a list rather than a set so that their order is preserved when checking values later.
                 columns_ordered = []
