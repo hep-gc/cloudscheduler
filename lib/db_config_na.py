@@ -2,7 +2,7 @@
 DB utilities and configuration.
 """
 
-import schema_na
+import cloudscheduler.lib.schema_na as schema_na
 
 import logging
 import os
@@ -511,8 +511,8 @@ class Config:
             close_on_exit = True
             self.db_open()
 
-        timestamps = self.db_cursor.execute('select last_updated from csv2_service_catalog where provider="csv2_configuration" and host_id=0;')
-        if timestamps.rowcount < 1 or timestamps.first()['last_updated'] > self.categories['__timestamp__']['last_updated']:
+        timestamps = self.db_execute('select last_updated from csv2_service_catalog where provider="csv2_configuration" and host_id=0;')
+        if len(timestamps) < 1 or timestamps[0]['last_updated'] > self.categories['__timestamp__']['last_updated']:
             self.categories = self.get_config_by_category(list(self.categories.keys()))
 
         if close_on_exit:
