@@ -27,8 +27,13 @@ def main(gvar):
         ['alias', 'list', '--view-columns', '-g', ut_id(gvar, 'clg1'), '-su', ut_id(gvar, 'clu3')]
     )
 
-    # 1 - 17
-    table_commands(gvar, 'alias', 'list', ut_id(gvar, 'clg1'), ut_id(gvar, 'clu3'))
+    table_headers = {
+        'Aliases': ['Group', 'Alias', 'Clouds'],
+        'Clouds': ['Group', 'Cloud']
+    }
+
+    # 17 - 33
+    table_commands(gvar, 'alias', 'list', ut_id(gvar, 'clg1'), ut_id(gvar, 'clu3'), table_headers)
 
 if __name__ == '__main__':
     main(None)

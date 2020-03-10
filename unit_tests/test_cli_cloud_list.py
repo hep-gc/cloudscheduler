@@ -1,4 +1,4 @@
-from unit_test_common import execute_csv2_command, initialize_csv2_request, ut_id, sanity_commands
+from unit_test_common import execute_csv2_command, initialize_csv2_request, ut_id, sanity_commands, table_commands
 from sys import argv
 
 # lno: CV - error code identifier.
@@ -43,7 +43,12 @@ def main(gvar):
         ['cloud', 'list', '-VC', '-su', ut_id(gvar, 'clu3')]
     )
 
-    # Other common table options are tested in cli_alias_list.
+    table_headers = {
+        'Clouds': ['Group', 'Cloud', 'Enabled', 'Priority', 'URL', 'Project', 'Name', 'Domain Name', 'Domain ID', 'User', 'Name', 'Domain Name', 'Domain ID', 'Region', 'Spot Price', 'Cloud Type', 'Cores', 'Control', 'SoftMax', 'Max', 'RAM', 'Control', 'Max', 'Cloud Default', 'Boot Volume', 'Flavor', 'Image', 'Keep Alive', 'Keyname', 'Network', 'Security Groups', 'Cascading Default', 'Flavor', 'Image', 'Keep Alive', 'Keyname', 'Network', 'Security Groups', 'CA Certificate', 'Cloud', 'Flavor Exclusions', 'Flavors', 'Metadata', 'Group Exclusions', 'Filenames']
+    }
+
+    # 19 - 25
+    table_commands(gvar, 'cloud', 'list', ut_id(gvar, 'clg1'), ut_id(gvar, 'clu3'), table_headers)
 
 if __name__ == "__main__":
     main(None)
