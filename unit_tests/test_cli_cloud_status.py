@@ -3,6 +3,9 @@ from sys import argv
 
 # lno: CV - error code identifier.
 
+# We have to include all the columns expected for both the Cloud status list and the Job status list when we are looking for either list, because both are included in the output.
+CLOUD_JOB_COLUMNS = ['Group', 'Jobs', 'Idle', 'Running', 'Completed', 'Other', 'Foreign', 'Status', 'HTCondor', 'Agent', 'HTCondor FQDN', 'Days Left on Certificates', 'Condor', 'Worker', 'Group', 'Cloud', 'Defaults', 'Enabled', 'Flavor', 'Image', 'Keep Alive', 'Communications', 'Up', 'Request Time', 'VMs', 'Quota', 'Total', 'Starting', 'Unregistered', 'idle', 'Running', 'Retiring', 'Manual', 'Error', 'Other', 'Cores', 'Quota', 'Limit', 'Setting', 'Idle', 'Used', 'RAM', 'Quota', 'Limit', 'Setting', 'Idle', 'Used', 'Condor Slots', 'Busy', 'Busy Cores', 'Idle Cores', 'Foreign', 'VMs', 'Cores', 'RAM']
+
 def main(gvar):
     if not gvar:
         gvar = {}
@@ -19,9 +22,6 @@ def main(gvar):
         gvar, 1, None, 'The following command line arguments were invalid: metadata-mime-type',
         ['cloud', 'status', '-mmt', 'invalid-unit-test', '-g', ut_id(gvar, 'clg1'), '-su', ut_id(gvar, 'clu3')]
     )
-
-    # We have to include all the columns expected for both the Cloud status list and the Job status list when we are looking for either list, because both are included in the output.
-    CLOUD_JOB_COLUMNS = ['Group', 'Jobs', 'Idle', 'Running', 'Completed', 'Other', 'Foreign', 'Status', 'HTCondor', 'Agent', 'HTCondor FQDN', 'Days Left on Certificates', 'Condor', 'Worker', 'Group', 'Cloud', 'Defaults', 'Enabled', 'Flavor', 'Image', 'Keep Alive', 'Communications', 'Up', 'Request Time', 'VMs', 'Quota', 'Total', 'Starting', 'Unregistered', 'idle', 'Running', 'Retiring', 'Manual', 'Error', 'Other', 'Cores', 'Quota', 'Limit', 'Setting', 'Idle', 'Used', 'RAM', 'Quota', 'Limit', 'Setting', 'Idle', 'Used', 'Condor Slots', 'Busy', 'Busy Cores', 'Idle Cores', 'Foreign', 'VMs', 'Cores', 'RAM']
 
     # 16
     execute_csv2_command(

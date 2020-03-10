@@ -19,15 +19,14 @@ def _execute_selections(gvar, request, expected_text, expected_values):
         # print('%04d (%04d) %s Skipping: \'%s\', %s, %s' % (gvar['ut_count'][0], gvar['ut_count'][1], _caller(), request, repr(expected_text), expected_values))
         return False
    
-def execute_csv2_command(gvar, expected_rc, expected_modid, expected_text, cmd, expected_list=None, columns=[], values={}, timeout=None):
+def execute_csv2_command(gvar, expected_rc, expected_modid, expected_text, cmd, expected_list=None, columns=[], timeout=None):
     '''
     Execute a Cloudscheduler CLI command using subprocess and print a message explaining whether the output of the command was as expected.
     `cmd` (list, tuple, or other iterable of strs) contains the parameters to be given to the `cloudscheduler` command, e.g. `['alias', 'add', '-H']`. 'cloudscheduler' should be excluded, because it is automatically added at the beginning of the list.
     `expected_list` (str) is the title of a table that is expected to be in the output, e.g. 'Aliases'.
     `columns` (list of strs) contains the expected headers of the table specified by `expected_list`. These should be what is acutally displayed (e.g. 'Alias') not the name used in the CLI code (e.g. 'alias_name'). This list must contain all the expected headers, not just a subset. Ignored if `expected_list` is not specified.
-    `values` (dict) are header-value pairs that are expected to all match one particular row in the table specified by `expected_list`. The matching row may have columns not mentioned in `values`. Ignored if `expected_list` is not specified.
     '''
-    from subprocess import PIPE, run, TimeoutExpired
+    import subprocess
     from unit_test_common import _caller, _execute_selections
     import re
 
@@ -52,11 +51,11 @@ def execute_csv2_command(gvar, expected_rc, expected_modid, expected_text, cmd, 
                 cmd.extend(['-su', ut_id(gvar, 'clu4'), '-spw', gvar['user_secret']])
         
         try:
-            process = run(cmd, stdout=PIPE, stderr=PIPE, timeout=timeout)
+            process = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=timeout)
             stdout = process.stdout.decode()
             stderr = process.stderr.decode()
             return_code = process.returncode
-        except TimeoutExpired as err:
+        except subprocess.TimeoutExpired as err:
             stdout = err.stdout.decode()
             stderr = err.stderr.decode()
             return_code = -1
@@ -99,22 +98,6 @@ def execute_csv2_command(gvar, expected_rc, expected_modid, expected_text, cmd, 
                         \tColumns not expected but found: {}\n'\
                         .format(columns_actual, columns_expected - columns_actual, columns_actual - columns_expected)
 
-                if not failed and values:
-                    for row in stdout_lines:
-                        if row.startswith('| ') and row.endswith(' |'):
-                            # Split on '<one or more spaces>|<one or more spaces>', consuming as many spaces as possible.
-                            values_actual = re.split(r'\s+\|\s+', row[2:-2].strip())
-                            try:
-                                if all(values_actual[columns_ordered.index(key)] == expected_value for key, expected_value in values.items()):
-                                    break
-                            except ValueError as err:
-                                failed = True
-                                list_error = 'No row found with the specified values, because column {} was missing'.format(str(err)[:-len(' is not in list')])
-                                break
-                    # Else branch of the for loop, i.e. if the loop did not break.
-                    else:
-                        failed = True
-                        list_error = 'No row found with values: {}'.format(values)
             # expected_list not in stdout
             else:
                 failed = True
@@ -469,6 +452,97 @@ def parameters_commands(gvar, obj, action, group, server_user, parameters):
         # Add the parameter back in if it was mandatory.
         if p_details.get('mandatory'):
             base_cmd.extend([p_name, p_details['valid']])
+
+def table_commands(gvar, obj, action, group, server_user, tables):
+    '''
+    Test options that are common to all table-printing commands.
+    tables is a dictionary in which the keys are names of tables to be tested (as the CLI prints them, e.g. 'Aliases'), and the values are 2-tuples of lists.
+        1. keys (list of strs) contains all mandatory headers, i.e. those that print when `--only-keys` is specified.
+        2. columns (list of strs) contains all optional headers, i.e. those that appear when `--no-view` is specified, but not when `--only-keys` is.
+    The options tested are --comma-separated-values (-CSV), --comma-separated-values-separator (-CSEP), --no-view (-NV), --only-keys (-ok), --rotate (-r), --view (-V), and --with (-w).
+    `--view-columns` is assumed to work, so this function will crash if the option is missing or gives information in a different format than expected.
+    '''
+    import re
+
+    for table in tables:
+        all_columns.extend(keys + columns)
+        if not optional:
+            default_columns.extend(keys + columns)
+
+    user_group_message = 'Server: unit-test, Active User: {}, Active Group: {}'.format(server_user, group)
+    for i, table in enumerate(tables):
+        name, optional, keys, columns = table
+        base_cmd = [obj, action, '-g', group, '-su', server_user]
+        extra_columns = default_columns if optional else []
+
+        if optional:
+            # --with using table name.
+            execute_csv2_command(
+                gvar, 0, None, user_group_message,
+                base_cmd + ['--with', name],
+                expected_list=name, columns=keys + columns + extra_columns
+            )
+
+            # --with using table index.
+            execute_csv2_command(
+                gvar, 0, None, user_group_message,
+                base_cmd + ['--with', i, '--view', columns[:-1]],
+                expected_list=name, columns=keys + columns[:-1] + extra_columns
+            )
+
+            # --with using 'ALL'.
+            execute_csv2_command(
+                gvar, 0, None, user_group_message,
+                base_cmd + ['--with', 'ALL', '--view', ''],
+                expected_list=name, columns=all_columns
+            )
+
+            base_cmd.extend(['--with', name])
+
+        # --view.
+        execute_csv2_command(
+            gvar, 0, None, user_group_message,
+            base_cmd + ['--view', ','.join(columns[1:]) if columns else key[0]],
+            expected_list=name, columns=keys + columns[1:] + extra_columns
+        )
+
+        # --no-view. Temporarily override the view.
+        execute_csv2_command(
+            gvar, 0, None, user_group_message, base_cmd + ['--no-view'],
+            expected_list=name, columns=keys + columns + extra_columns
+        )
+
+        # --rotate.
+        execute_csv2_command(
+            gvar, 0, None, user_group_message, base_cmd + ['--rotate'],
+            expected_list=name, columns=['Key', 'Value']
+        )
+
+        # --comma-separated-values[-separator].
+        execute_csv2_command(
+            gvar, 0, None, '.',
+            base_cmd + ['--comma-separated-values', '', '--comma-separated-values-separator', '.']
+        )
+
+        # The view defined above should still have effect here.
+        execute_csv2_command(
+            gvar, 0, None, user_group_message, base_cmd + ['--with', name],
+            expected_list=name, columns=keys + columns[1:] + extra_columns
+        )
+
+        # Remove the view.
+        execute_csv2_command(
+            gvar, 0, None, user_group_message,
+            base_cmd + ['--view', '', '-su', server_user],
+            expected_list=name, columns=keys + columns + extra_columns
+        )
+
+        # --only-keys.
+        execute_csv2_command(
+            gvar, 0, None, user_group_message, base_cmd + ['--only-keys'],
+            expected_list=name, columns=keys + extra_columns
+        )
+
 
 def generate_secret():
     '''Generate a new, pseudorandom password to use as the password for test users.'''
