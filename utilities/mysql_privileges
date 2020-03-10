@@ -282,7 +282,7 @@ for ix in range(3, len(sys.argv)):
                 print('', file=sys.stderr)
                      
 print('Privileges summary:', file=sys.stderr)
-privileges = ['create user "%s"@"%%" identified by "%s"' % (sys.argv[1], sys.argv[2])]
+privileges = ['create user if not exists "%s"@"%%" identified by "%s"' % (sys.argv[1], sys.argv[2])]
 for table in sorted(tables):
     table_privileges = [[], []]
     if tables[table]['delete']:
