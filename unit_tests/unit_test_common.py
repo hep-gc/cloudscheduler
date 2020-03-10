@@ -354,7 +354,6 @@ def parameters_requests(gvar, request, group, server_user, parameters):
 def sanity_commands(gvar, obj, action=None):
     '''
     Perform sanity checks that should pass for all CLI tests.
-    `obj` (str) and `action` (str) together make up the request, e.g. 'alias' and 'add'.
     Group and user names are hardcoded because they are the same regardless of the obj / action pair.
     '''
     request = [obj, action] if action else [obj]
@@ -424,7 +423,6 @@ def sanity_commands(gvar, obj, action=None):
 def parameters_commands(gvar, obj, action, group, server_user, parameters):
     '''
     Execute commands with missing parameters and bad parameters.
-    `obj` (str) and `action` (str) together make up the request, e.g. 'alias' and 'add'.
     The structure of `parameters` is similar to parameters_requests's `parameters`, with two exceptions:
         Parameter names should be given in the form they are given to the CLI, e.g. '-an' or '--alias-name' (not 'alias_name').
         'array_field' is ignored, because the CLI does not send multiple values for a parameter unless the server expects this.
@@ -453,63 +451,91 @@ def parameters_commands(gvar, obj, action, group, server_user, parameters):
         if p_details.get('mandatory'):
             base_cmd.extend([p_name, p_details['valid']])
 
-def table_commands(gvar, obj, action, group, server_user, tables):
+def table_commands(gvar, obj, action, group, server_user, table_headers):
     '''
     Test options that are common to all table-printing commands.
-    tables is a dictionary in which the keys are names of tables to be tested (as the CLI prints them, e.g. 'Aliases'), and the values are 2-tuples of lists.
-        1. keys (list of strs) contains all mandatory headers, i.e. those that print when `--only-keys` is specified.
-        2. columns (list of strs) contains all optional headers, i.e. those that appear when `--no-view` is specified, but not when `--only-keys` is.
-    The options tested are --comma-separated-values (-CSV), --comma-separated-values-separator (-CSEP), --no-view (-NV), --only-keys (-ok), --rotate (-r), --view (-V), and --with (-w).
-    `--view-columns` is assumed to work, so this function will crash if the option is missing or gives information in a different format than expected.
+    `server_user` is assumed to have `gvar['user_secret']` as their password (which will be inserted by `execute_csv2_command()`).
+    The `obj` / `action` pair must support the `--view_columns` option, and the output of `--view-columns` is assumed to be correct.
+    `table_headers` is a dictionary in which each key is the name of a table to test, and its value is a complete list of all of the table's expected keys and columns (as strs). These must be in the order that they are listed when `--view-columns` is specified (keys being before columns). Optional tables can be omitted from testing by omitting them from `table_headers` (but default tables must be included). Any specifications of non-existent tables will be ignored.
+    The options tested are `--comma-separated-values` (`-CSV`), `--comma-separated-values-separator` (`-CSEP`), `--no-view` (`-NV`), `--only-keys` (`-ok`), `--rotate` (`-r`), `--view` (`-V`), and `--with` (`-w`).
+    'headers' is used to refer to keys and columns collectively.
     '''
+
+    import subprocess
     import re
 
-    for table in tables:
-        all_columns.extend(keys + columns)
-        if not optional:
-            default_columns.extend(keys + columns)
+    tables = []
+    all_headers = []
+    default_headers = []
+    default_keys = []
+
+    process = subprocess.run(['cloudscheduler', obj, action, '--view-columns', '-g', group, '-su', server_user, '-spw', gvar['user_secret']], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    stdout = process.stdout.decode()
+    # Omit the last char, which should be '\n'.
+    stdout_lines = stdout[:-1].split('\n')
+    stderr = process.stderr.decode()
+    for line in stdout_lines:
+        if stderr:
+            print('Error retrieving table metadata: {}'.format(stderr))
+            exit(1)
+        try:
+            name, optional_str, keys_str, columns_str = re.search(r'(\w+)( \(optional\))?: keys=([\w,]*?), columns=([\w,]*)', line).groups()
+        except AttributeError:
+            print('Error parsing `--view-columns` output. The specified obj / action pair might not support this option, or the regex in table_commands() may need to be updated to match a change in the format of the output produced by specifying `--view-columns`. stdout was:\n{}'.format(stdout))
+        display_headers = table_headers.get(name)
+        if display_headers:
+            keys = keys_str.split(',') if keys_str else []
+            optional = bool(optional_str)
+            tables.append((name, optional, keys, columns_str.split(',') if columns_str else [], display_headers))
+            all_headers.extend(display_headers)
+            # If boolean is given and True.
+            if not optional:
+                default_headers.extend(display_headers)
+                default_keys.extend(display_headers[:len(keys)])
 
     user_group_message = 'Server: unit-test, Active User: {}, Active Group: {}'.format(server_user, group)
     for i, table in enumerate(tables):
-        name, optional, keys, columns = table
+        name, optional, keys, columns, display_headers = table
         base_cmd = [obj, action, '-g', group, '-su', server_user]
-        extra_columns = default_columns if optional else []
+        headers = display_headers + default_headers if optional else display_headers
 
         if optional:
             # --with using table name.
             execute_csv2_command(
                 gvar, 0, None, user_group_message,
                 base_cmd + ['--with', name],
-                expected_list=name, columns=keys + columns + extra_columns
+                expected_list=name, columns=headers
             )
 
             # --with using table index.
             execute_csv2_command(
                 gvar, 0, None, user_group_message,
-                base_cmd + ['--with', i, '--view', columns[:-1]],
-                expected_list=name, columns=keys + columns[:-1] + extra_columns
+                base_cmd + ['--with', i + 1],
+                expected_list=name, columns=headers
             )
 
             # --with using 'ALL'.
             execute_csv2_command(
                 gvar, 0, None, user_group_message,
                 base_cmd + ['--with', 'ALL', '--view', ''],
-                expected_list=name, columns=all_columns
+                # All columns in all tables.
+                expected_list=name, columns=all_headers
             )
 
             base_cmd.extend(['--with', name])
 
+        view_headers = (display_headers[:-1] if columns else display_headers) + (default_headers if optional else [])
         # --view.
         execute_csv2_command(
             gvar, 0, None, user_group_message,
-            base_cmd + ['--view', ','.join(columns[1:]) if columns else key[0]],
-            expected_list=name, columns=keys + columns[1:] + extra_columns
+            base_cmd + ['--view', ('/' * i) + (','.join(columns[:-1]) if len(columns) > 1 else keys[0])],
+            expected_list=name, columns=view_headers
         )
 
         # --no-view. Temporarily override the view.
         execute_csv2_command(
             gvar, 0, None, user_group_message, base_cmd + ['--no-view'],
-            expected_list=name, columns=keys + columns + extra_columns
+            expected_list=name, columns=headers
         )
 
         # --rotate.
@@ -526,21 +552,22 @@ def table_commands(gvar, obj, action, group, server_user, tables):
 
         # The view defined above should still have effect here.
         execute_csv2_command(
+            # Check that specifying `--with` for a table that is already included does not cause problems.
             gvar, 0, None, user_group_message, base_cmd + ['--with', name],
-            expected_list=name, columns=keys + columns[1:] + extra_columns
+            expected_list=name, columns=view_headers
         )
 
         # Remove the view.
         execute_csv2_command(
             gvar, 0, None, user_group_message,
             base_cmd + ['--view', '', '-su', server_user],
-            expected_list=name, columns=keys + columns + extra_columns
+            expected_list=name, columns=headers
         )
 
         # --only-keys.
         execute_csv2_command(
             gvar, 0, None, user_group_message, base_cmd + ['--only-keys'],
-            expected_list=name, columns=keys + extra_columns
+            expected_list=name, columns=display_headers[:len(keys)] + default_keys
         )
 
 
