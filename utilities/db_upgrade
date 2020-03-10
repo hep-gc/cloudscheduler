@@ -50,10 +50,6 @@ def main(args):
     gvar['run_mode'] = 'test'
     gvar['temp_dir'] = tempfile.mkdtemp()
 
-    if gvar['my_fqdn'] == gvar['model_fqdn']:
-        print('Error: the FQDN for the current host cannot be used for the schema model.')
-        exit(1)
-
     if not os.path.isdir('%s/%s' % (gvar['backup_dir'], gvar['model_fqdn'])):
         print('Error: backup directory "%s/%s" for specified model does not exist.' % (gvar['backup_dir'], gvar['model_fqdn']))
         exit(1)
@@ -120,6 +116,10 @@ def main(args):
 
             else:
                 raise Exception('Unknown parameter "%s".' % args[args_ix])
+
+    if gvar['my_fqdn'] == gvar['model_fqdn']:
+        print('Error: the target and model (%s) cannot be equal.' % gvar['my_fqdn'])
+        exit(1)
 
     my_fqdn = gvar['my_fqdn']
     model_fqdn = gvar['model_fqdn']
