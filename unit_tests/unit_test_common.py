@@ -77,7 +77,7 @@ def execute_csv2_command(gvar, expected_rc, expected_modid, expected_text, cmd, 
 
         list_error = ''
         if not failed and expected_list:
-            if '\n{}:'.format(expected_list) in stdout:
+            if expected_list in stdout:
                 stdout_lines = stdout.split('\n')
                 # Columns are initially saved in a list rather than a set so that their order is preserved when checking values later.
                 columns_ordered = []
