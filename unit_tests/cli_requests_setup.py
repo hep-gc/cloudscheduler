@@ -1,4 +1,4 @@
-from unit_test_common import execute_csv2_command, execute_csv2_request, initialize_csv2_request, ut_id, generate_secret
+from unit_test_common import execute_csv2_request, initialize_csv2_request, ut_id, generate_secret
 from sys import argv
 import cli_requests_cleanup
 

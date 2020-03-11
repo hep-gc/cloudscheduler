@@ -1,4 +1,4 @@
-from unit_test_common import execute_csv2_command, initialize_csv2_request, ut_id, sanity_commands, parameters_commands
+from unit_test_common import execute_csv2_command, initialize_csv2_request, ut_id, sanity_commands
 from sys import argv
 
 # lno: CV - error code identifier.

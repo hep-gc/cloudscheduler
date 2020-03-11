@@ -209,7 +209,7 @@ def main(gvar):
     # 33
     execute_csv2_command(
         gvar, 0, None, 'user "{}" successfully added.'.format(ut_id(gvar, 'clu12')),
-        ['cloudscheduler', 'user', 'add', '-un', ut_id(gvar, 'clu12'), '-upw', gvar['user_secret'], '-ucn', ut_id(gvar, 'command line user 12'), '-gn', ut_id(gvar, 'clg5'), '-su', ut_id(gvar, 'clu4')]
+        ['cloudscheduler', 'user', 'add', '-un', ut_id(gvar, 'clu12'), '-upw', gvar['user_secret'], '-ucn', ut_id(gvar, 'command line user 12'), '-gn', ut_id(gvar, 'clg3'), '-su', ut_id(gvar, 'clu4')]
     )
 
     # 34
@@ -584,7 +584,7 @@ def main(gvar):
     # 94
     execute_csv2_command(
         gvar, 0, None, 'user "{}" successfully updated.'.format(ut_id(gvar, 'clu7')),
-        ['cloudscheduler', 'user', 'update', '-un', ut_id(gvar, 'clu7'), '-gn', ut_id(gvar, 'clg5'), '-go', 'add', '-su', ut_id(gvar, 'clu4')]
+        ['cloudscheduler', 'user', 'update', '-un', ut_id(gvar, 'clu7'), '-gn', ut_id(gvar, 'clg3'), '-go', 'add', '-su', ut_id(gvar, 'clu4')]
     )
 
     # 95
@@ -613,4 +613,3 @@ def main(gvar):
 
 if __name__ == "__main__":
     main(None)
-

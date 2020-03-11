@@ -486,7 +486,7 @@ def table_commands(gvar, obj, action, group, server_user, table_headers):
         try:
             name, optional_str, keys_str, columns_str = re.search(r' ([\w ]+)( \(optional\))?: keys=([\w,]*?), columns=([\w,]*)', line).groups()
         except AttributeError:
-            print('Error parsing `--view-columns` output. The specified obj / action pair might not support this option, or the regex in table_commands() may need to be updated to match a change in the format of the output produced by specifying `--view-columns`. stdout was:\n{}'.format(stdout))
+            print('\nError parsing `--view-columns` output. The specified obj / action pair might not support this option, or the regex in table_commands() may need to be updated to match a change in the format of the output produced by specifying `--view-columns`. stdout was:\n{}'.format(stdout))
             exit(1)
         display_headers = table_headers.get(name)
         if display_headers:

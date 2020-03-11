@@ -1,4 +1,4 @@
-from unit_test_common import execute_csv2_request, initialize_csv2_request, ut_id, condor_setup, condor_error
+from unit_test_common import execute_csv2_request, initialize_csv2_request, ut_id, condor_setup
 from sys import argv
 import subprocess
 
@@ -25,7 +25,6 @@ def main(gvar):
 
     # The test runner's active group might be dtg1, which we have just deleted. In this case we need to change their active group, but we don't know what the test runner's active group was before running the tests. So we just remove dtg1 and let the server figure out what group to make the active group.
     # Use .get() to avoid KeyErrors.
-    active_group = gvar['active_server_user_group'].get(gvar['user_settings']['server-address'], {}).get(gvar['user_settings']['server-user'])
     if gvar['active_server_user_group'].get(gvar['user_settings']['server-address'], {}).get(gvar['user_settings']['server-user']) == ut_id(gvar, 'dtg1'):
         del gvar['active_server_user_group'][gvar['user_settings']['server-address']][gvar['user_settings']['server-user']]
 
