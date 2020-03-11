@@ -329,11 +329,11 @@ class Config:
         """
 
         if not self.db_cursor:
-            self.db_cursor = self.db_connection.cursor()
+            self.db_cursor = self.db_connection.cursor(buffered=True, dictionary=True)
 
 #-------------------------------------------------------------------------------
 
-    def db_query(self, table, select=[], where=None, order_by=None, allow_no_rows=True):
+    def db_query(self, table, select=[], distinct=False, where=None, order_by=None, allow_no_rows=True):
         """
         Execute a DB query and return the response. Also, trap and return errors.
         """
@@ -346,7 +346,11 @@ class Config:
         else:
             selected = list(self.db_schema[table]['columns'].keys())
 
-        sql_bits = ['select %s from %s' % (','.join(selected), table)]
+        if distinct:
+            sql_bits = ['select distinct %s from %s' % (','.join(selected), table)] 
+        else:
+            sql_bits = ['select %s from %s' % (','.join(selected), table)] 
+
 
         if where:
            sql_bits.append('where %s' % where)
@@ -359,9 +363,7 @@ class Config:
             self.db_cursor.execute(request)
             rows = []
             for row in self.db_cursor:
-                rows.append({})
-                for ix in range(len(selected)):
-                    rows[-1][selected[ix]] = row[ix]
+                rows.append(row)
             if len(rows) < 1 and not allow_no_rows:
                 return self.__db_logging_return__(1, 'the request did not match any rows', [])
             else:
@@ -512,7 +514,7 @@ class Config:
             self.db_open()
 
         timestamps = self.db_execute('select last_updated from csv2_service_catalog where provider="csv2_configuration" and host_id=0;')
-        if len(timestamps) < 1 or timestamps[0]['last_updated'] > self.categories['__timestamp__']['last_updated']:
+        if len(timestamps) < 1 or timestamps[0] > self.categories['__timestamp__']['last_updated']:
             self.categories = self.get_config_by_category(list(self.categories.keys()))
 
         if close_on_exit:
@@ -534,7 +536,7 @@ class Config:
         if 'ProcessMonitor' in self.categories and self.categories['ProcessMonitor']['pause'] == True:
             return
 
-        if not self.db_session:
+        if not self.db_cursor:
             auto_close = True
             self.db_open()
         else:
@@ -554,19 +556,19 @@ class Config:
             except:
                 current_counter = 0
 
-            result = self.db_session.execute('update csv2_service_catalog set counter=%s where provider="%s" and host_id=%s;' % (current_counter, provider, current_host_id))
-            if result.rowcount == 0:
-                self.db_session.execute('insert into csv2_service_catalog (provider,host_id,counter) values("%s",%s,%s);' % (provider, current_host_id, current_counter))
+            result = self.db_execute('update csv2_service_catalog set counter=%s where provider="%s" and host_id=%s;' % (current_counter, provider, current_host_id))
+            if self.db_cursor.rowcount == 0:
+                self.db_execute('insert into csv2_service_catalog (provider,host_id,counter) values("%s",%s,%s);' % (provider, current_host_id, current_counter))
 
         elif error:
-            result = self.db_session.execute('update csv2_service_catalog set last_error=unix_timestamp(), error_message="%s" where provider="%s" and host_id=%s;' % (error, provider, current_host_id))
-            if result.rowcount == 0:
-                self.db_session.execute('insert into csv2_service_catalog (provider,host_id,last_error,error_message) values("%s",%s,unix_timestamp(),"%s");' % (provider, current_host_id, error))
+            result = self.db_execute('update csv2_service_catalog set last_error=unix_timestamp(), error_message="%s" where provider="%s" and host_id=%s;' % (error, provider, current_host_id))
+            if self.db_cursor.rowcount == 0:
+                self.db_execute('insert into csv2_service_catalog (provider,host_id,last_error,error_message) values("%s",%s,unix_timestamp(),"%s");' % (provider, current_host_id, error))
 
         else:
-            result = self.db_session.execute('update csv2_service_catalog set last_updated=unix_timestamp() where provider="%s" and host_id=%s;' % (provider, current_host_id))
-            if result.rowcount == 0:
-                self.db_session.execute('insert into csv2_service_catalog (provider,host_id,last_updated) values("%s",%s,unix_timestamp());' % (provider, current_host_id))
+            result = self.db_execute('update csv2_service_catalog set last_updated=unix_timestamp() where provider="%s" and host_id=%s;' % (provider, current_host_id))
+            if self.db_cursor.rowcount == 0:
+                self.db_execute('insert into csv2_service_catalog (provider,host_id,last_updated) values("%s",%s,unix_timestamp());' % (provider, current_host_id))
 
         if auto_close:
             self.db_close(commit=True)
