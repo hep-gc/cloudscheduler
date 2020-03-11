@@ -457,6 +457,7 @@ def table_commands(gvar, obj, action, group, server_user, table_headers):
     `server_user` is assumed to have `gvar['user_secret']` as their password (which will be inserted by `execute_csv2_command()`).
     The `obj` / `action` pair must support the `--view_columns` option, and the output of `--view-columns` is assumed to be correct.
     `table_headers` is a dictionary in which each key is the name of a table to test (in the form that the CLI prints, e.g. 'Aliases'), and its value is a complete list of all of the table's expected keys and columns (as strs) (in the form that the CLI prints, e.g. 'Group'). These must be in the order that they are listed when `--view-columns` is specified (keys being before columns). When super-headers appear over a group of columns in the CLI output (e.g. 'Project' in the output of `cloud list`), these should be included in this list and may be in any position except at the end. Optional tables can be omitted from testing by omitting them from `table_headers` (but default tables must be included). Any specifications of non-existent tables will be ignored.
+    Default tables undergo 7 tests each, and optional tables 10.
     The options tested are `--comma-separated-values` (`-CSV`), `--comma-separated-values-separator` (`-CSEP`), `--no-view` (`-NV`), `--only-keys` (`-ok`), `--rotate` (`-r`), `--view` (`-V`), and `--with` (`-w`).
     'headers' is used to refer to keys and columns collectively.
     '''
@@ -469,7 +470,8 @@ def table_commands(gvar, obj, action, group, server_user, table_headers):
     default_headers = []
     default_keys = []
 
-    process = subprocess.run(['cloudscheduler', obj, action, '--view-columns', '-g', group, '-su', server_user, '-spw', gvar['user_secret']], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    print(f'DEBUG: {group}.')
+    process = subprocess.run(['cloudscheduler', obj, action, '--view-columns', '-g', group, '-su', server_user], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     stdout = process.stdout.decode()
     # Omit the last char, which should be '\n'.
     stdout_lines = stdout[:-1].split('\n')
@@ -482,6 +484,7 @@ def table_commands(gvar, obj, action, group, server_user, table_headers):
             name, optional_str, keys_str, columns_str = re.search(r'(\w+)( \(optional\))?: keys=([\w,]*?), columns=([\w,]*)', line).groups()
         except AttributeError:
             print('Error parsing `--view-columns` output. The specified obj / action pair might not support this option, or the regex in table_commands() may need to be updated to match a change in the format of the output produced by specifying `--view-columns`. stdout was:\n{}'.format(stdout))
+            exit(1)
         display_headers = table_headers.get(name)
         if display_headers:
             keys = keys_str.split(',') if keys_str else []
