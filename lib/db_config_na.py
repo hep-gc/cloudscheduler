@@ -24,6 +24,9 @@ class Config:
         Read the DB configuration file and the specified categories configuration from the database.
         """
 
+        # show we are initializing.
+        self.initialized = False
+
         # Calculate csv2 version
         self.version = self._calculate_version()
 
@@ -63,6 +66,7 @@ class Config:
             )
 
         if db_config_only:
+            self.initialized = True
             return
 
         self.db_schema = schema_na.schema
@@ -111,6 +115,8 @@ class Config:
             self.signals['SIGUSR1'] = signal.getsignal(signal.SIGUSR1)
             self.signals['SIGUSR2'] = signal.getsignal(signal.SIGUSR2)
 
+        self.initialized = True
+
 #-------------------------------------------------------------------------------
 
     def __db_get_where__(self, table, column_dict, where):
@@ -149,12 +155,13 @@ class Config:
         message together with the caller ID.
         """
 
-        callers_stack = stack()
+        if self.initialized:
+            callers_stack = stack()
 
-        if rc > 0:
-            logging.warning('function: %s, rc: %s, msg: %s' % (callers_stack[1].function, rc, msg))
-        else:
-            logging.debug('function: %s, rc: %s, msg: %s' % (callers_stack[1].function, rc, msg))
+            if rc > 0:
+                logging.warning('function: %s, rc: %s, msg: %s' % (callers_stack[1].function, rc, msg))
+            else:
+                logging.debug('function: %s, rc: %s, msg: %s' % (callers_stack[1].function, rc, msg))
 
         if isinstance(rows, list):
             return rc, msg, rows
@@ -492,14 +499,13 @@ class Config:
 #-------------------------------------------------------------------------------
 
     def incr_cloud_error(self, group_name, cloud_name):
-        CLOUD = self.db_schema.classes.csv2_clouds
-        cloud = self.db_session.query(CLOUD).filter(CLOUD.group_name == group_name, CLOUD.cloud_name == cloud_name)[0]
-        if cloud.error_count is None:
-            cloud.error_count = 0
-        cloud.error_count = cloud.error_count + 1
-        cloud.error_time = time.time()
-        self.db_session.merge(cloud)
-        self.db_session.commit()
+        rc, msg, cloud_list = self.db_query('csv2_clouds', select=['group_name', cloud_name', 'error_count', 'error_time'], where='group_name="%s" and cloud_name="%s"' % (group_name, cloud_name))
+        if cloud_list[0]['error_count'] is None:
+            cloud_list[0]['error_count'] = 0
+        cloud_list[0]['error_count'] = cloud_list[0]['error_count'] + 1
+        cloud_list[0]['error_time'] = time.time()
+        self.db_merge(cloud_list[0])
+        self.db_commit()
         return 1
 
 
@@ -523,11 +529,10 @@ class Config:
 #-------------------------------------------------------------------------------
 
     def reset_cloud_error(self, group_name, cloud_name):
-        CLOUD = self.db_schema.classes.csv2_clouds
-        cloud = self.db_session.query(CLOUD).filter(CLOUD.group_name == group_name, CLOUD.cloud_name == cloud_name)[0]
-        cloud.error_count = 0
-        self.db_session.merge(cloud)
-        self.db_session.commit()
+        rc, msg, cloud_list = self.db_query('csv2_clouds', select=['group_name', cloud_name', 'error_count'], where='group_name="%s" and cloud_name="%s"' % (group_name, cloud_name))
+        cloud_list[0]['error_count'] = 0
+        self.db_merge(cloud_list[0])
+        self.db_commit()
         return 1
 
 #-------------------------------------------------------------------------------
@@ -573,7 +578,7 @@ class Config:
         if auto_close:
             self.db_close(commit=True)
         else:
-            self.db_session.commit()
+            self.db_commit()
 
 #-------------------------------------------------------------------------------
 
