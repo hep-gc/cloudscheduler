@@ -499,7 +499,7 @@ class Config:
 #-------------------------------------------------------------------------------
 
     def incr_cloud_error(self, group_name, cloud_name):
-        rc, msg, cloud_list = self.db_query('csv2_clouds', select=['group_name', cloud_name', 'error_count', 'error_time'], where='group_name="%s" and cloud_name="%s"' % (group_name, cloud_name))
+        rc, msg, cloud_list = self.db_query('csv2_clouds', select=['group_name', 'cloud_name', 'error_count', 'error_time'], where='group_name="%s" and cloud_name="%s"' % (group_name, cloud_name))
         if cloud_list[0]['error_count'] is None:
             cloud_list[0]['error_count'] = 0
         cloud_list[0]['error_count'] = cloud_list[0]['error_count'] + 1
@@ -529,7 +529,7 @@ class Config:
 #-------------------------------------------------------------------------------
 
     def reset_cloud_error(self, group_name, cloud_name):
-        rc, msg, cloud_list = self.db_query('csv2_clouds', select=['group_name', cloud_name', 'error_count'], where='group_name="%s" and cloud_name="%s"' % (group_name, cloud_name))
+        rc, msg, cloud_list = self.db_query('csv2_clouds', select=['group_name', 'cloud_name', 'error_count'], where='group_name="%s" and cloud_name="%s"' % (group_name, cloud_name))
         cloud_list[0]['error_count'] = 0
         self.db_merge(cloud_list[0])
         self.db_commit()
