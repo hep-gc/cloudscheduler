@@ -55,7 +55,7 @@ def main(gvar):
         }
     )
 
-    # group to be deleted without users
+    # group to be updated and for users to be added to
     execute_csv2_request(
         gvar, 0, None, 'group "{}" successfully added.'.format(ut_id(gvar, 'clg3')),
         '/group/add/', form_data={
@@ -69,15 +69,6 @@ def main(gvar):
         gvar, 0, None, 'group "{}" successfully added.'.format(ut_id(gvar, 'clg4')),
         '/group/add/', form_data={
             'group_name': ut_id(gvar, 'clg4'),
-            'htcondor_fqdn': gvar['user_settings']['server-address']
-        }
-    )
-
-    # group to be updated and for users to be added to
-    execute_csv2_request(
-        gvar, 0, None, 'group "{}" successfully added.'.format(ut_id(gvar, 'clg5')),
-        '/group/add/', form_data={
-            'group_name': ut_id(gvar, 'clg5'),
             'htcondor_fqdn': gvar['user_settings']['server-address']
         }
     )

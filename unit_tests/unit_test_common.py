@@ -256,7 +256,8 @@ def execute_csv2_request(gvar, expected_rc, expected_modid, expected_text, reque
         return 0
 
 def sanity_requests(gvar, request, group, server_user, userless_group, groupless_server_user):
-    '''Perform sanity checks that should pass for all non-CLI tests.'''
+    '''
+    Perform 5 sanity checks that should pass for all non-CLI tests.'''
     # Attempt as a non-existent user.
     execute_csv2_request(
         gvar, 2, None, 'server "unit-test", HTTP response code 401, unauthorized.',
@@ -292,6 +293,7 @@ def parameters_requests(gvar, request, group, server_user, parameters):
         'valid': A valid value for the parameter (which will be cast to a str). If the parameter is mandatory, this will be sent in requests that contain bad values for other parameters.
         [Optional: 'mandatory' (bool): Indicates whether this parameter must be provided in all requests. (In the terminology of the server code, this includes 'mandatory' parameters and 'required' parameters.) If not given, the parameter will be treated as optional.]
         [Optional: 'array_field' (bool): Indicates whether giving multiple values for this parameter using the `{'param.1': value1, 'param.2': value2}` syntax is allowed. If not given, this will be treated as False.]
+    The number of tests executed can be caluclated as: 2 + len(parameters) + (number of mandatory parameters) + (number of test cases), *unless* only one parameter is specified and this parameter is mandatory, in which case it will be: 3 + (number of test cases).
     GET requests are assumed to be invalid.
     '''
 
@@ -355,7 +357,9 @@ def sanity_commands(gvar, obj, action=None):
     '''
     Perform sanity checks that should pass for all CLI tests.
     Group and user names are hardcoded because they are the same regardless of the obj / action pair.
+    Executes 14 tests if action is specified, and 13 if it is not.
     '''
+
     request = [obj, action] if action else [obj]
 
     # 01 Attempt as a non-existent user.
@@ -373,16 +377,16 @@ def sanity_commands(gvar, obj, action=None):
     # 04 Attempt as a user who is not in any groups.
     # execute_csv2_command inserts the correct password for us.
     execute_csv2_command(
-        gvar, 1, 'SV', 'user "grobertson-clu1" is not a member of any group.', request + ['-su', ut_id(gvar, 'clu1')]
+        gvar, 1, None, 'user "grobertson-clu1" is not a member of any group.', request + ['-su', ut_id(gvar, 'clu1')]
     )
     # 05 Attempt to change to a group that does not exist.
     # execute_csv2_command inserts `-su` (`clu4`) and `-spw` for us.
     execute_csv2_command(
-        gvar, 1, 'SV', 'cannot switch to invalid group "invalid-unit-test".', request + ['-g', 'invalid-unit-test']
+        gvar, 1, None, 'cannot switch to invalid group "invalid-unit-test".', request + ['-g', 'invalid-unit-test']
     )
     # 06 Attempt to change to a group that the user is not in.
     execute_csv2_command(
-        gvar, 1, 'SV', 'cannot switch to invalid group "grobertson-clg2".', request + ['-g', ut_id(gvar, 'clg2'), '-su', ut_id(gvar, 'clu4')]
+        gvar, 1, None, 'cannot switch to invalid group "grobertson-clg2".', request + ['-g', ut_id(gvar, 'clg2'), '-su', ut_id(gvar, 'clu4')]
     )
     # 07 Fail to specify an action.
     execute_csv2_command(
@@ -426,6 +430,7 @@ def parameters_commands(gvar, obj, action, group, server_user, parameters):
     The structure of `parameters` is similar to parameters_requests's `parameters`, with two exceptions:
         Parameter names should be given in the form they are given to the CLI, e.g. '-an' or '--alias-name' (not 'alias_name').
         'array_field' is ignored, because the CLI does not send multiple values for a parameter unless the server expects this.
+    The number of tests executed can be calculated as the sum of the number of mandatory parameters and the total number of test cases.
     There is no way to specify parameters that do not take values (like `--rotate` for tables), so these must be tested separately.
     '''
 
@@ -442,7 +447,7 @@ def parameters_commands(gvar, obj, action, group, server_user, parameters):
             base_cmd.pop(p_index)
             base_cmd.pop(p_index)
             # Execute a command without the current parameter.
-            # The message is usually 'the following mandatory parameters must be specified...', but is not always (e.g. --text-editor in cli_cloud_metadata_edit).
+            # The message is usually 'the following mandatory parameters must be specified...', but not always (e.g. --text-editor in cli_cloud_metadata_edit).
             execute_csv2_command(gvar, 1, None, p_name, base_cmd.copy())
         # Give the parameter with invalid values.
         for value, message in p_details['test_cases'].items():
@@ -454,9 +459,9 @@ def parameters_commands(gvar, obj, action, group, server_user, parameters):
 def table_commands(gvar, obj, action, group, server_user, table_headers):
     '''
     Test options that are common to all table-printing commands.
-    `server_user` is assumed to have `gvar['user_secret']` as their password (which will be inserted by `execute_csv2_command()`).
+    `server_user` is assumed to have `gvar['user_secret']` as their password (which will mostly be inserted by `execute_csv2_command()`).
     The `obj` / `action` pair must support the `--view_columns` option, and the output of `--view-columns` is assumed to be correct.
-    `table_headers` is a dictionary in which each key is the name of a table to test (in the form that the CLI prints, e.g. 'Aliases'), and its value is a complete list of all of the table's expected keys and columns (as strs) (in the form that the CLI prints, e.g. 'Group'). These must be in the order that they are listed when `--view-columns` is specified (keys being before columns). When super-headers appear over a group of columns in the CLI output (e.g. 'Project' in the output of `cloud list`), these should be included in this list and may be in any position except at the end. Optional tables can be omitted from testing by omitting them from `table_headers` (but default tables must be included). Any specifications of non-existent tables will be ignored.
+    `table_headers` is a dictionary in which each key is the name of a table to test (in the form that the CLI prints, e.g. 'Aliases'), and its value is a complete list of all of the table's expected keys and columns (as strs) (in the form that the CLI prints, e.g. 'Group'). These must be in the order that they are listed when `--view-columns` is specified (keys being before columns). When super-headers appear over a group of columns in the CLI output (e.g. 'Project' in the output of `cloud list`), these should be included in this list and may be in any position after the keys, except at the end. Optional tables which are listed last by `--view-columns` can be omitted from testing by omitting them from `table_headers` (but other tables must be included). Any specifications of non-existent tables will be ignored.
     Default tables undergo 7 tests each, and optional tables 10.
     The options tested are `--comma-separated-values` (`-CSV`), `--comma-separated-values-separator` (`-CSEP`), `--no-view` (`-NV`), `--only-keys` (`-ok`), `--rotate` (`-r`), `--view` (`-V`), and `--with` (`-w`).
     'headers' is used to refer to keys and columns collectively.
@@ -466,12 +471,10 @@ def table_commands(gvar, obj, action, group, server_user, table_headers):
     import re
 
     tables = []
-    all_headers = []
     default_headers = []
     default_keys = []
 
-    print(f'DEBUG: {group}.')
-    process = subprocess.run(['cloudscheduler', obj, action, '--view-columns', '-g', group, '-su', server_user], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    process = subprocess.run(['cloudscheduler', obj, action, '--view-columns', '-g', group, '-su', server_user, '-spw', gvar['user_secret']], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     stdout = process.stdout.decode()
     # Omit the last char, which should be '\n'.
     stdout_lines = stdout[:-1].split('\n')
@@ -481,7 +484,7 @@ def table_commands(gvar, obj, action, group, server_user, table_headers):
             print('Error retrieving table metadata: {}'.format(stderr))
             exit(1)
         try:
-            name, optional_str, keys_str, columns_str = re.search(r'(\w+)( \(optional\))?: keys=([\w,]*?), columns=([\w,]*)', line).groups()
+            name, optional_str, keys_str, columns_str = re.search(r' ([\w ]+)( \(optional\))?: keys=([\w,]*?), columns=([\w,]*)', line).groups()
         except AttributeError:
             print('Error parsing `--view-columns` output. The specified obj / action pair might not support this option, or the regex in table_commands() may need to be updated to match a change in the format of the output produced by specifying `--view-columns`. stdout was:\n{}'.format(stdout))
             exit(1)
@@ -490,8 +493,6 @@ def table_commands(gvar, obj, action, group, server_user, table_headers):
             keys = keys_str.split(',') if keys_str else []
             optional = bool(optional_str)
             tables.append((name, optional, keys, columns_str.split(',') if columns_str else [], display_headers))
-            all_headers.extend(display_headers)
-            # If boolean is given and True.
             if not optional:
                 default_headers.extend(display_headers)
                 default_keys.extend(display_headers[:len(keys)])
@@ -521,8 +522,8 @@ def table_commands(gvar, obj, action, group, server_user, table_headers):
             execute_csv2_command(
                 gvar, 0, None, user_group_message,
                 base_cmd + ['--with', 'ALL', '--view', ''],
-                # All columns in all tables.
-                expected_list=name, columns=all_headers
+                # Columns are not specified because some optional tables may have been omitted from table_headers.
+                expected_list=name
             )
 
             base_cmd.extend(['--with', name])

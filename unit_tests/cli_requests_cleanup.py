@@ -36,76 +36,70 @@ def main(gvar):
     # 05
     execute_csv2_request(
         gvar, None, None, None,
-        '/group/delete/', form_data={'group_name': ut_id(gvar, 'clg5')}
+        '/group/delete/', form_data={'group_name': ut_id(gvar, 'clg10')}
     )
 
     # 06
     execute_csv2_request(
         gvar, None, None, None,
-        '/group/delete/', form_data={'group_name': ut_id(gvar, 'clg10')}
+        '/user/delete/', form_data={'username': ut_id(gvar, 'clu1')}
     )
 
     # 07
     execute_csv2_request(
         gvar, None, None, None,
-        '/user/delete/', form_data={'username': ut_id(gvar, 'clu1')}
+        '/user/delete/', form_data={'username': ut_id(gvar, 'clu2')}
     )
 
     # 08
     execute_csv2_request(
         gvar, None, None, None,
-        '/user/delete/', form_data={'username': ut_id(gvar, 'clu2')}
+        '/user/delete/', form_data={'username': ut_id(gvar, 'clu3')}
     )
 
     # 09
     execute_csv2_request(
         gvar, None, None, None,
-        '/user/delete/', form_data={'username': ut_id(gvar, 'clu3')}
+        '/user/delete/', form_data={'username': ut_id(gvar, 'clu4')}
     )
 
     # 10
     execute_csv2_request(
         gvar, None, None, None,
-        '/user/delete/', form_data={'username': ut_id(gvar, 'clu4')}
+        '/user/delete/', form_data={'username': ut_id(gvar, 'clu5')}
     )
 
     # 11
     execute_csv2_request(
         gvar, None, None, None,
-        '/user/delete/', form_data={'username': ut_id(gvar, 'clu5')}
+        '/user/delete/', form_data={'username': ut_id(gvar, 'clu6')}
     )
 
     # 12
     execute_csv2_request(
         gvar, None, None, None,
-        '/user/delete/', form_data={'username': ut_id(gvar, 'clu6')}
+        '/user/delete/', form_data={'username': ut_id(gvar, 'clu7')}
     )
 
     # 13
     execute_csv2_request(
         gvar, None, None, None,
-        '/user/delete/', form_data={'username': ut_id(gvar, 'clu7')}
+        '/user/delete/', form_data={'username': ut_id(gvar, 'clu10')}
     )
 
     # 14
     execute_csv2_request(
         gvar, None, None, None,
-        '/user/delete/', form_data={'username': ut_id(gvar, 'clu10')}
+        '/user/delete/', form_data={'username': ut_id(gvar, 'clu11')}
     )
 
     # 15
     execute_csv2_request(
         gvar, None, None, None,
-        '/user/delete/', form_data={'username': ut_id(gvar, 'clu11')}
-    )
-
-    # 16
-    execute_csv2_request(
-        gvar, None, None, None,
         '/user/delete/', form_data={'username': ut_id(gvar, 'clu12')}
     )
 
-    # 17
+    # 16
     execute_csv2_request(
         gvar, None, None, None,
         '/user/delete/', form_data={'username': ut_id(gvar, 'clu13')}
