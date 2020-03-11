@@ -54,7 +54,7 @@ EOF
         systemctl enable csv2-condor-poller >/dev/null 2>&1
     fi
 
-    if [ $? -eq 0 ];
+    if [ $? -eq 0 ]; then
         echo 'Service csv2-condor-poller already enabled.'
         exit 0
     fi

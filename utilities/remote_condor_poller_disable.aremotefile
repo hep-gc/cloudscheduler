@@ -17,7 +17,7 @@
         systemctl enable csv2-condor-poller >/dev/null 2>&1
     fi
 
-    if [ $? -ne 0 ];
+    if [ $? -ne 0 ]; then
         echo 'Service csv2-condor-poller already disabled.'
         exit 0
     fi
