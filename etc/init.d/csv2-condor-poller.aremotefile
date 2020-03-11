@@ -7,6 +7,9 @@
 # Source function library.
 . /etc/init.d/functions
 
+# activate the Python3 virtuaal environment
+. /opt/cloudscheduler/python3/bin/activate
+
 exec="$(which python3) /opt/cloudscheduler/data_collectors/condor/condor_poller.py"
 config="/opt/cloudscheduler/etc/cloudscheduler/condor_poller.yaml"
 pidfile="/tmp/csv2_condor_poller.pid"
