@@ -1,7 +1,14 @@
 #!/bin/bash 
 ###
-### This utility checks the pre-requisite software for the condor_poller, installing and upgrading packages
-### as necessary. Subseqently it installs the service file, then enables and starts the service.
+### This utility must be run as root. It performs the following:
+###
+### 1. Ensure remote csv2-condor-poller is not already installed.
+### 2. Checks to see if we are running as root.
+### 3. Checks to see if we are installed correctly in /opt.
+### 4. Checks to see if python3 is installed.
+### 5. Creates a python3 virtual environment.
+### 6. Checks/installs prerequisite pip modules.
+### 7. Installs, enables, and starts csv2-condor-poller initd/systemd service.
 ###
 check_sw () {
     # $1 - package
@@ -37,17 +44,61 @@ EOF
     fi  
 }
 
+###
+### 1. Ensure remote csv2-condor-poller is not already installed.
+###
+    systemctl=$(which systemctl 2>&1)
+    if [ "${systemctl:0:10}" == 'which: no ' ]; then
+        chkconfig csv2-condor-poller
+    else
+        systemctl enable csv2-condor-poller >/dev/null 2>&1
+    fi
+
+    if [ $? -eq 0 ];
+        echo 'Service csv2-condor-poller already enabled.'
+        exit 0
+    fi
+
+###
+### 2. Checks to see if we are running as root.
+###
+    if [ "$EUID" != '0' ]; then
+        echo 'ERROR: This process needs to run as root.'
+        exit 1
+    fi  
+
+###
+### 3. Checks to see if we are installed correctly in /opt.
+###
+    home=$(realpath $0) $1
+    if [ $home != '/opt/cloudscheduler/utilities/remote_condor_poller_enable' ]; then
+        echo 'ERROR: Remote csv2-condor-poller must be installed in /opt.'
+        exit 1
+    fi
+    exit 0
+
+###
+### 4. Checks to see if python3 is installed.
+###
     python3=$(which python3 2>&1)
     if [ "${python3:0:10}" == 'which: no ' ]; then
         echo 'ERROR: You need to install python3 before we can proceed.'
         exit 1
     fi  
 
-    if [ "$EUID" != '0' ]; then
-        echo 'ERROR: This process needs to run as root.'
-        exit 1
-    fi  
+###
+### 5. Creates a python3 virtual environment.
+###
+    stat /opt/cloudscheduler/python3 >/dev/null 2>&1
+    if [ $? -ne 0 ];
+        python3 -m venv /opt/cloudscheduler/python3
+    fi
 
+    source /opt/cloudscheduler/python3/bin/activate
+
+###
+### 6. Checks/installs prerequisite pip modules.
+###
     check_sw boto3 1.9.130
     check_sw htcondor 8.9.0
     check_sw mysql-connector 2.2.9
@@ -60,9 +111,11 @@ EOF
     check_sw python-novaclient 10.3.0
 
 
-    systemctl=$(which systemctl 2>&1)
+###
+### 7. Installs, enables, and starts csv2-condor-poller initd/systemd service.
+###
     if [ "${systemctl:0:10}" == 'which: no ' ]; then
-        cp /opt/cloudscheduler/etc/init.d/csv2-condor-poller.afle /etc/init.d/csv2-condor-poller
+        cp /opt/cloudscheduler/etc/init.d/csv2-condor-poller.afile /etc/init.d/csv2-condor-poller
         chkconfig --add csv2-condor-poller
         service csv2-condor-poller start
     else
