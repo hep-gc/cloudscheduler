@@ -107,7 +107,7 @@ def execute_csv2_command(gvar, expected_rc, expected_modid, expected_text, cmd, 
             gvar['ut_failed'] += 1
             if not gvar['hidden']:
                 # repr() is used because it puts quotes around strings *unless* they are None.
-                print('\n%04d (%04d) %s \033[91mFailed\033[0m: expected_rc=%s, expected_modid=%s, expected_text=%s, cmd=%s' % (gvar['ut_count'][0], gvar['ut_count'][1], _caller(), expected_rc, repr(expected_modid), repr(expected_text), cmd))
+                print('\n%04d (%04d) %s \033[91mFailed\033[0m: expected_rc=%s, expected_modid=%s, expected_text=%s, cmd=%s' % (gvar['ut_count'][0], gvar['ut_count'][1], _caller(), expected_rc, repr(expected_modid), repr(expected_text), ' '.join((word if word else '""' for word in cmd))))
                 print('\treturn code=%s' % return_code)
                 print('\tmodule ID=%s' % repr(modid))
                 print('\tstdout=%s' % stdout)
@@ -119,7 +119,7 @@ def execute_csv2_command(gvar, expected_rc, expected_modid, expected_text, cmd, 
             return 1
         else:
             if not gvar['hidden']:
-                print('%04d (%04d) %s \033[92mOK\033[0m: expected_rc=%s, expected_modid=%s, expected_text=%s, cmd=%s' % (gvar['ut_count'][0], gvar['ut_count'][1], _caller(), expected_rc, repr(expected_modid), repr(expected_text), cmd))
+                print('%04d (%04d) %s \033[92mOK\033[0m: expected_rc=%s, expected_modid=%s, expected_text=%s, cmd=%s' % (gvar['ut_count'][0], gvar['ut_count'][1], _caller(), expected_rc, repr(expected_modid), repr(expected_text), ' '.join((word if word else '""' for word in cmd))))
             return 0
     else:
         return 0
