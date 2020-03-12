@@ -119,33 +119,73 @@ class Config:
 
 #-------------------------------------------------------------------------------
 
-    def __db_get_where__(self, table, column_dict, where):
+    def __db_column_list_csv__(self, column_list):
         """
-        Extract the components of a where clasue from the caller's parameters.
+        Return a quoted comma separated value list of column names.
         """
 
-        if where == None:
+        columns = []
+        for column in list(column_list):
+            columns.append('`%s`' % column)
+
+        return ','.join(columns)
+
+#-------------------------------------------------------------------------------
+
+    def __db_get_where_clause__(self, table, column_dict, where):
+        """
+        Convert the caller's column_dict and where parameters into a valid
+        where clause.
+
+        The "where" parameter can either be:
+        
+            o A dictionary of column names and values, or
+            o A list of column names in the column_dict, or
+            o A valid where_clause string (used as is), or
+            o The value '*' (ie. all rows; no where clause), or
+            o None, in which case a where clause using the keys of
+              the current table and column_dict will be returned.
+
+        """
+
+        def ___get_where_bits_from_dict___(table, column_dict, keys):
             where_bits = []
-            for key in self.db_schema[table]['keys']:
-                if key in column_dict:
-                    if self.db_schema[table]['columns'][key][0] == 'str':
-                        where_bits.append('%s="%s"' % (key, column_dict[key]))
+            for key in keys:
+                if key in self.db_schema[table]['columns']:
+                    if key in column_dict:
+                        if self.db_schema[table]['columns'][key]['type'] == 'str':
+                            where_bits.append('`%s`=%s' % (key, self.__db_strings__(table, key, column_dict[key])))
+                        else:
+                            where_bits.append('`%s`=%s' % (key, column_dict[key]))
                     else:
-                        where_bits.append('%s=%s' % (key, column_dict[key]))
+                        return 1, 'invalid "where" specification, key column "%s" is not within the column dictionary "%s"' % (key, column_dict), None
                 else:
-                    return 1, 'key column "%s" is not within the column dictionary' % key, None
+                    return 1, 'invalid "where" specification, key column "%s" is not within the table columns "%s(%s)"' % (key, table, self.db_schema[table]['columns'].keys()), None
 
             if len(where_bits) < 1:
                 return 1, 'table has no keyes', None
 
-            return 0, None, where_bits
+            return 0, None, ' and '.join(where_bits)
 
-        elif where == '*':
-            return 0, None, []
+        if isinstance(where, str):
+            if where == '*':
+                return 0, None, ''
+            else:
+                return 0, None, where
 
-        else:
-            return 0, None, [str(where)]
+        elif column_dict == None and where == None:
+                return 0, None, ''
 
+        elif isinstance(where, dict):
+            return ___get_where_bits_from_dict___(table, where, list(where.keys()))
+
+        elif isinstance(where, list):
+            return ___get_where_bits_from_dict___(table, column_dict, where)
+
+        elif column_dict !=  None and where == None:
+            return ___get_where_bits_from_dict___(table, column_dict, self.db_schema[table]['keys'])
+
+        return 1, 'invalid "where" specification, table: %s, column_dict: %s, where: %s' % (table, column_dict, where), None
 
 #-------------------------------------------------------------------------------
 
@@ -159,7 +199,10 @@ class Config:
             callers_stack = stack()
 
             if rc > 0:
-                logging.warning('function: %s, rc: %s, msg: %s' % (callers_stack[1].function, rc, msg))
+                if callers_stack[1].function == 'db_merge':
+                    logging.warning('function: %s, called from: %s(%s), line: %s, rc: %s, msg: %s' % (callers_stack[1].function, callers_stack[3].filename, callers_stack[3].function, callers_stack[3].lineno, rc, msg))
+                else:
+                    logging.warning('function: %s, called from: %s(%s), line: %s, rc: %s, msg: %s' % (callers_stack[1].function, callers_stack[2].filename, callers_stack[2].function, callers_stack[2].lineno, rc, msg))
             else:
                 logging.debug('function: %s, rc: %s, msg: %s' % (callers_stack[1].function, rc, msg))
 
@@ -167,6 +210,23 @@ class Config:
             return rc, msg, rows
         else:
             return rc, msg
+#-------------------------------------------------------------------------------
+
+    def __db_strings__(self, table, column, value, allow_nulls=False):
+        """
+        This function return strings values to be inserted or updated in the
+        database. If the string value is empty (None or '') and the table
+        columne accepts nulls, the null value will be returned. Otherwise,
+        a quoted/escaped string will be returned.
+        """
+
+        if allow_nulls and (not value or value == ''):
+            if self.db_schema[table]['columns'][column]['nulls'] == 'YES':
+                return 'null'
+            else:
+                return '""'
+
+        return '"%s"' % str(value).replace('"', '\\"')
 
 #-------------------------------------------------------------------------------
 
@@ -202,7 +262,7 @@ class Config:
 
 #-------------------------------------------------------------------------------
 
-    def db_delete(self, table, where):
+    def db_delete(self, table, column_dict, where=None):
         """
         Execute a DB delete. If successful, set rc=0 to indicate that
         self.db_cursor has the response. Otherwise, return rc=1 and the
@@ -222,17 +282,14 @@ class Config:
         if not self.db_cursor:
             return self.__db_logging_return__(1, 'the database is not open')
             
-        if isinstance(where, dict):
-            rc, msg, where_bits = self.__db_get_where__(table, where, None)
-        else:
-            rc, msg, where_bits = self.__db_get_where__(table, None, where)
-
+        rc, msg, where_clause = self.__db_get_where_clause__(table, column_dict, where)
         if rc != 0:
             return self.__db_logging_return__(rc, msg)
         
         sql_bits = ['delete from %s' % table]
-        if len(where_bits) > 0:
-             sql_bits.append('where %s' % ' and '.join(where_bits))
+
+        if len(where_clause) > 0:
+             sql_bits.append('where %s' % where_clause)
 
         request = '%s;' % ' '.join(sql_bits)
 
@@ -258,7 +315,7 @@ class Config:
             self.db_cursor.execute(request)
             return self.__db_logging_return__(0, request)
         except Exception as ex:
-            return self.__db_logging_return__(1, ex)
+            return self.__db_logging_return__(1, '%s >>> %s' % (request, ex))
 
 #-------------------------------------------------------------------------------
 
@@ -285,13 +342,13 @@ class Config:
             if column not in self.db_schema[table]['columns']:
                 continue
 
-            if self.db_schema[table]['columns'][column][0] == 'str':
-                value_bits.append('"%s"' % column_dict[column])
+            if self.db_schema[table]['columns'][column]['type'] == 'str':
+                value_bits.append(self.__db_strings__(table, column, column_dict[column], allow_nulls=True))
             else:
                 value_bits.append('%s' % column_dict[column])
         
         sql_bits = ['insert into %s' % table]
-        sql_bits.append('(%s)' % ','.join(sorted(columns)))
+        sql_bits.append('(%s)' % self.__db_column_list_csv__(sorted(columns)))
         sql_bits.append('values (%s)' % ','.join(value_bits))
         request = '%s;' % ' '.join(sql_bits)
 
@@ -299,7 +356,7 @@ class Config:
             self.db_cursor.execute(request)
             return self.__db_logging_return__(0, request)
         except Exception as ex:
-            return self.__db_logging_return__(1, ex)
+            return self.__db_logging_return__(1, '%s >>> %s' % (request, ex))
 
 #-------------------------------------------------------------------------------
 
@@ -354,13 +411,16 @@ class Config:
             selected = list(self.db_schema[table]['columns'].keys())
 
         if distinct:
-            sql_bits = ['select distinct %s from %s' % (','.join(selected), table)] 
+            sql_bits = ['select distinct %s from %s' % (self.__db_column_list_csv__(selected), table)] 
         else:
-            sql_bits = ['select %s from %s' % (','.join(selected), table)] 
+            sql_bits = ['select %s from %s' % (self.__db_column_list_csv__(selected), table)] 
 
+        rc, msg, where_clause = self.__db_get_where_clause__(table, None, where)
+        if rc != 0:
+            return self.__db_logging_return__(rc, msg)
 
-        if where:
-           sql_bits.append('where %s' % where)
+        if len(where_clause) > 0:
+           sql_bits.append('where %s' % where_clause)
         
         if order_by:
            sql_bits.append('order by %s' % order_by)
@@ -376,7 +436,7 @@ class Config:
             else:
                 return self.__db_logging_return__(0, request, rows)
         except Exception as ex:
-            return self.__db_logging_return__(1, ex, [])
+            return self.__db_logging_return__(1, '%s >>> %s' % (request, ex), [])
 
 #-------------------------------------------------------------------------------
 
@@ -410,26 +470,28 @@ class Config:
                 continue
 
             if column not in self.db_schema[table]['keys']:
-                if self.db_schema[table]['columns'][column][0] == 'str':
-                    updates.append('%s="%s"' % (column, column_dict[column]))
+                if self.db_schema[table]['columns'][column]['type'] == 'str':
+                    updates.append('`%s`=%s' % (column, self.__db_strings__(table, column, column_dict[column], allow_nulls=True)))
                 else:
-                    updates.append('%s=%s' % (column, column_dict[column]))
+                    updates.append('`%s`=%s' % (column, column_dict[column]))
 
-        rc, msg, where_bits = self.__db_get_where__(table, column_dict, where)
+        rc, msg, where_clause = self.__db_get_where_clause__(table, column_dict, where)
         if rc != 0:
             return self.__db_logging_return__(rc, msg)
         
         sql_bits = ['update %s' % table]
         sql_bits.append('set %s' % ','.join(updates))
-        if len(where_bits) > 0:
-            sql_bits.append('where %s' % ' and '.join(where_bits))
+
+        if len(where_clause) > 0:
+            sql_bits.append('where %s' % where_clause)
+
         request = '%s;' % ' '.join(sql_bits)
 
         try:
             self.db_cursor.execute(request)
             return self.__db_logging_return__(0, request)
         except Exception as ex:
-            return self.__db_logging_return__(1, ex)
+            return self.__db_logging_return__(1, '%s >>> %s' % (request, ex))
 
 #-------------------------------------------------------------------------------
 
@@ -561,19 +623,25 @@ class Config:
             except:
                 current_counter = 0
 
-            result = self.db_execute('update csv2_service_catalog set counter=%s where provider="%s" and host_id=%s;' % (current_counter, provider, current_host_id))
-            if self.db_cursor.rowcount == 0:
+            rc, msg = self.db_execute('update csv2_service_catalog set counter=%s where provider="%s" and host_id=%s;' % (current_counter, provider, current_host_id))
+            if rc == 0 and self.db_cursor.rowcount == 0:
+                self.initialized = False
                 self.db_execute('insert into csv2_service_catalog (provider,host_id,counter) values("%s",%s,%s);' % (provider, current_host_id, current_counter))
+                self.initialized = True
 
         elif error:
-            result = self.db_execute('update csv2_service_catalog set last_error=unix_timestamp(), error_message="%s" where provider="%s" and host_id=%s;' % (error, provider, current_host_id))
-            if self.db_cursor.rowcount == 0:
+            rc, msg = self.db_execute('update csv2_service_catalog set last_error=unix_timestamp(), error_message="%s" where provider="%s" and host_id=%s;' % (error, provider, current_host_id))
+            if rc == 0 and self.db_cursor.rowcount == 0:
+                self.initialized = False
                 self.db_execute('insert into csv2_service_catalog (provider,host_id,last_error,error_message) values("%s",%s,unix_timestamp(),"%s");' % (provider, current_host_id, error))
+                self.initialized = True
 
         else:
-            result = self.db_execute('update csv2_service_catalog set last_updated=unix_timestamp() where provider="%s" and host_id=%s;' % (provider, current_host_id))
-            if self.db_cursor.rowcount == 0:
+            rc, msg = self.db_execute('update csv2_service_catalog set last_updated=unix_timestamp() where provider="%s" and host_id=%s;' % (provider, current_host_id))
+            if rc == 0 and self.db_cursor.rowcount == 0:
+                self.initialized = False
                 self.db_execute('insert into csv2_service_catalog (provider,host_id,last_updated) values("%s",%s,unix_timestamp());' % (provider, current_host_id))
+                self.initialized = True
 
         if auto_close:
             self.db_close(commit=True)

@@ -10,6 +10,7 @@ schema to stdout. To use the schema definitions:
 
 from subprocess import Popen, PIPE
 from tempfile import mkdtemp
+import json
 import os
 import sys
 import yaml
@@ -116,36 +117,37 @@ def main(args):
             _w = columns[_ix].split()
             if len(_w) > 2:
                 _stdout.append("  Column('%s'," % _w[0])
-                gvar['schema_na'][table]['columns'][_w[0]] = []
+#               gvar['schema_na'][table]['columns'][_w[0]] = []
 
                 if _w[1][:5] == 'char(' or \
                     _w[1][:8] == 'varchar(':
                     _w2 = _w[1].translate(REMOVE_BRACKETS).split()
                     _stdout.append(" String(%s)" % _w2[1])
-                    gvar['schema_na'][table]['columns'][_w[0]] += ['str', _w2[1]]
+                    gvar['schema_na'][table]['columns'][_w[0]] = {'type': 'str', 'len': _w2[1], 'nulls': _w[2]}
 
                 elif _w[1][:4] == 'int(' or \
                 _w[1][:6] == 'bigint' or \
-                _w[1][:4] == 'date' or \
-                _w[1][:8] == 'datetime' or \
                 _w[1][:7] == 'decimal' or \
                 _w[1][:8] == 'smallint' or \
-                _w[1][:9] == 'timestamp' or \
                 _w[1][:7] == 'tinyint':
                     _stdout.append(" Integer")
-                    gvar['schema_na'][table]['columns'][_w[0]] += ['int']
+                    gvar['schema_na'][table]['columns'][_w[0]] = {'type': 'int'}
 
                 elif _w[1] == 'text' or \
+                _w[1][:4] == 'date' or \
+                _w[1][:8] == 'datetime' or \
+                _w[1][:4] == 'time' or \
+                _w[1][:9] == 'timestamp' or \
                 _w[1] == 'tinytext' or \
                 _w[1] == 'longtext' or \
                 _w[1] == 'mediumtext':
                     _stdout.append(" String")
-                    gvar['schema_na'][table]['columns'][_w[0]] += ['str']
+                    gvar['schema_na'][table]['columns'][_w[0]] = {'type': 'str', 'nulls': _w[2]}
 
                 elif _w[1][:7] == 'double' or \
                 _w[1][:5] == 'float':
                     _stdout.append(" Float")
-                    gvar['schema_na'][table]['columns'][_w[0]] += ['float']
+                    gvar['schema_na'][table]['columns'][_w[0]] = {'type': 'float'}
 
                 else:
                     print('Table %s, unknown data type for column: %s' % (table, columns[_ix]))
@@ -180,15 +182,9 @@ def main(args):
         ix = 0
         for column in gvar['schema_na'][table]['columns']:
             if ix < len(gvar['schema_na'][table]['columns'])-1:
-                if len(gvar['schema_na'][table]['columns'][column]) < 2:
-                    gvar['fd'].write('            "%s": ["%s"],\n' % (column, gvar['schema_na'][table]['columns'][column][0]))
-                else:
-                    gvar['fd'].write('            "%s": ["%s", %s],\n' % (column, gvar['schema_na'][table]['columns'][column][0], gvar['schema_na'][table]['columns'][column][1]))
+                gvar['fd'].write('            "%s": %s,\n' % (column, json.dumps(gvar['schema_na'][table]['columns'][column])))
             else:
-                if len(gvar['schema_na'][table]['columns'][column]) < 2:
-                    gvar['fd'].write('            "%s": ["%s"]\n' % (column, gvar['schema_na'][table]['columns'][column][0]))
-                else:
-                    gvar['fd'].write('            "%s": ["%s", %s]\n' % (column, gvar['schema_na'][table]['columns'][column][0], gvar['schema_na'][table]['columns'][column][1]))
+                gvar['fd'].write('            "%s": %s\n' % (column, json.dumps(gvar['schema_na'][table]['columns'][column])))
             ix += 1
 
         if tix < len(gvar['schema_na'])-1:
