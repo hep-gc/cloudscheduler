@@ -3,6 +3,11 @@ from sys import argv
 
 # lno: CV - error code identifier.
 
+# Filepath of a file containing valid YAML metadata.
+METADATA_FILEPATH = 'ut.yaml'
+# Filepath of a file containing text that cannot be parsed as YAML.
+INVALID_YAML_FILEPATH = 'notyamlfile.txt'
+
 def main(gvar):
     if not gvar:
         gvar = {}
@@ -10,11 +15,6 @@ def main(gvar):
             initialize_csv2_request(gvar, selections=argv[1])
         else:
             initialize_csv2_request(gvar)
-
-    # Filepath of a file containing valid YAML metadata.
-    METADATA_FILEPATH = 'ut.yaml'
-    # Filepath of a file containing text that cannot be parsed as YAML.
-    INVALID_YAML_FILEPATH = 'notyamlfile.txt'
 
     # 01 - 14
     sanity_commands(gvar, 'cloud', 'metadata-load')

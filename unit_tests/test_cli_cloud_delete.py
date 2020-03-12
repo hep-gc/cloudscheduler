@@ -28,6 +28,12 @@ def main(gvar):
 
     # 17
     execute_csv2_command(
+        gvar, -1, None, 'Are you sure you want to delete cloud "{}::{}"?'.format(ut_id(gvar, 'clg1'), ut_id(gvar, 'clc1')),
+        ['cloud', 'delete', '-cn', ut_id(gvar, 'clc1'), '-su', ut_id(gvar, 'clu3')], timeout=8
+    )
+
+    # 18
+    execute_csv2_command(
         gvar, 0, None, 'cloud "{}::{}" successfully deleted.'.format(ut_id(gvar, 'clg1'), ut_id(gvar, 'clc1')),
         ['cloud', 'delete', '-cn', ut_id(gvar, 'clc1'), '-Y', '-su', ut_id(gvar, 'clu3')]
     )

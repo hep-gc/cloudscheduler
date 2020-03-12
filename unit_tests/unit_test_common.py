@@ -424,13 +424,14 @@ def sanity_commands(gvar, obj, action=None):
         )
 
 
-def parameters_commands(gvar, obj, action, group, server_user, parameters):
+def parameters_commands(gvar, obj, action, group, server_user, parameters, requires_confirmation=False):
     '''
     Execute commands with missing parameters and bad parameters.
     The structure of `parameters` is similar to parameters_requests's `parameters`, with two exceptions:
         Parameter names should be given in the form they are given to the CLI, e.g. '-an' or '--alias-name' (not 'alias_name').
         'array_field' is ignored, because the CLI does not send multiple values for a parameter unless the server expects this.
-    The number of tests executed can be calculated as the sum of the number of mandatory parameters and the total number of test cases.
+    requires_confirmation (bool) indicates whether the command asks for confirmation from the user before acting. If True, `--yes` will be passed with all commands except for one, which will check that a confirmation message is printed.
+    The number of tests executed can be calculated as the sum of the number of mandatory parameters and the total number of test cases, plus one if `requires_confirmation`.
     There is no way to specify parameters that do not take values (like `--rotate` for tables), so these must be tested separately.
     '''
 
@@ -439,6 +440,11 @@ def parameters_commands(gvar, obj, action, group, server_user, parameters):
     for name, details in parameters.items():
         if details.get('mandatory'):
             base_cmd.extend([name, details['valid']])
+
+    if requires_confirmation:
+        # Attempt without confirmation.
+        execute_csv2_command(gvar, -1, None, 'Are you sure you want to ', base_cmd.copy(), timeout=8)
+        base_cmd.append('--yes')
 
     for p_name, p_details in parameters.items():
         if p_details.get('mandatory'):
@@ -462,7 +468,7 @@ def table_commands(gvar, obj, action, group, server_user, table_headers):
     `server_user` is assumed to have `gvar['user_secret']` as their password (which will mostly be inserted by `execute_csv2_command()`).
     The `obj` / `action` pair must support the `--view_columns` option, and the output of `--view-columns` is assumed to be correct.
     `table_headers` is a dictionary in which each key is the name of a table to test (in the form that the CLI prints, e.g. 'Aliases'), and its value is a complete list of all of the table's expected keys and columns (as strs) (in the form that the CLI prints, e.g. 'Group'). These must be in the order that they are listed when `--view-columns` is specified (keys being before columns). When super-headers appear over a group of columns in the CLI output (e.g. 'Project' in the output of `cloud list`), these should be included in this list and may be in any position after the keys, except at the end. Optional tables which are listed last by `--view-columns` can be omitted from testing by omitting them from `table_headers` (but other tables must be included). Any specifications of non-existent tables will be ignored.
-    Default tables undergo 7 tests each, and optional tables 10.
+    If table_headers specifies more than one table, the total number of tests executed can be calculated as: 7 * (number of default tables specified) + 10 * (number of optional tables specified). Otherwise, it can be calculated as 7 * (number of tables specified).
     The options tested are `--comma-separated-values` (`-CSV`), `--comma-separated-values-separator` (`-CSEP`), `--no-view` (`-NV`), `--only-keys` (`-ok`), `--rotate` (`-r`), `--view` (`-V`), and `--with` (`-w`).
     'headers' is used to refer to keys and columns collectively.
     '''
@@ -484,15 +490,18 @@ def table_commands(gvar, obj, action, group, server_user, table_headers):
             print('Error retrieving table metadata: {}'.format(stderr))
             exit(1)
         try:
-            name, optional_str, keys_str, columns_str = re.search(r' ([\w ]+)( \(optional\))?: keys=([\w,]*?), columns=([\w,]*)', line).groups()
+            name, optional_str, keys_str, columns_str = re.search(r' ([\w /]+)( \(optional\))?: keys=([\w,]*?), columns=([\w,]*)', line).groups()
         except AttributeError:
             print('\nError parsing `--view-columns` output. The specified obj / action pair might not support this option, or the regex in table_commands() may need to be updated to match a change in the format of the output produced by specifying `--view-columns`. stdout was:\n{}'.format(stdout))
             exit(1)
         display_headers = table_headers.get(name)
         if display_headers:
             keys = keys_str.split(',') if keys_str else []
+            columns = columns_str.split(',') if columns_str else []
             optional = bool(optional_str)
-            tables.append((name, optional, keys, columns_str.split(',') if columns_str else [], display_headers))
+            if len(keys) + len(columns) != len(display_headers):
+                print('Error: --view-columns reported {} headers for the table {}, but {} were specified.'.format(len(keys) + len(columns), name, len(display_headers)))
+            tables.append((name, optional, keys, columns, display_headers))
             if not optional:
                 default_headers.extend(display_headers)
                 default_keys.extend(display_headers[:len(keys)])
@@ -503,7 +512,8 @@ def table_commands(gvar, obj, action, group, server_user, table_headers):
         base_cmd = [obj, action, '-g', group, '-su', server_user]
         headers = display_headers + default_headers if optional else display_headers
 
-        if optional:
+        # Commands that only have one table often reject `--with`.
+        if optional and len(tables) > 1:
             # --with using table name.
             execute_csv2_command(
                 gvar, 0, None, user_group_message,
@@ -557,7 +567,7 @@ def table_commands(gvar, obj, action, group, server_user, table_headers):
         # The view defined above should still have effect here.
         execute_csv2_command(
             # Check that specifying `--with` for a table that is already included does not cause problems.
-            gvar, 0, None, user_group_message, base_cmd + ['--with', name],
+            gvar, 0, None, user_group_message, base_cmd + (['--with', name] if len(tables) > 1 else []),
             expected_list=name, columns=view_headers
         )
 

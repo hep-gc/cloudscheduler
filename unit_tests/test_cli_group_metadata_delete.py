@@ -1,4 +1,4 @@
-from unit_test_common import execute_csv2_command, initialize_csv2_request, ut_id, sanity_commands
+from unit_test_common import execute_csv2_command, initialize_csv2_request, ut_id, sanity_commands, parameters_commands
 from sys import argv
 
 # lno: GV - error code identifier.
@@ -14,31 +14,28 @@ def main(gvar):
     # 01 - 14
     sanity_commands(gvar, 'metadata', 'delete')
 
-    # 15
-    execute_csv2_command(
-        gvar, 1, None, 'the following mandatory parameters must be specified on the command line',
-        ['metadata', 'delete', '-su', ut_id(gvar, 'clu3')]
-    )
+    parameters = {
+        # 15 Attempt without confirmation.
+        # 16 Omit `--metadata-name`.
+        '--metadata-name': {'valid': ut_id(gvar, 'clm1'), 'test_cases': {
+            # 17
+            '': 'TODO',
+            # 18
+            'invalid-unit-test!': 'TODO',
+            # 19
+            'invalid-unit-test': 'the request did not match any rows.'
+        }, 'mandatory': True}
+    }
 
-    # 16
-    execute_csv2_command(
-        gvar, 1, None, 'The following command line arguments were unrecognized: [\'--invalid-unit-test\', \'invalid-unit-test\']',
-        ['metadata', 'delete', '--invalid-unit-test', 'invalid-unit-test', '-g', ut_id(gvar, 'clg1'), '-su', ut_id(gvar, 'clu4')]
-    )
+    parameters_commands(gvar, 'metadata', 'delete', ut_id(gvar, 'clg1'), ut_id(gvar, 'clu3'), parameters, requires_confirmation=True)
 
-    # 17
+    # 20
     execute_csv2_command(
         gvar, 1, None, 'The following command line arguments were invalid: job-cores',
-        ['metadata', 'delete', '-jc', 'invalid-unit-test', '-su', ut_id(gvar, 'clu3')]
+        ['metadata', 'delete', '-jc', 'invalid-unit-test', '-Y', '-su', ut_id(gvar, 'clu3')]
     )
 
-    # 18
-    execute_csv2_command(
-        gvar, 1, 'GV', 'the request did not match any rows.',
-        ['metadata', 'delete', '-mn', 'invalid-unit-test', '-Y', '-su', ut_id(gvar, 'clu3')]
-    )
-
-    # 19
+    # 21
     execute_csv2_command(
         gvar, 0, None, 'group metadata file "{}::{}" successfully deleted.'.format(ut_id(gvar, 'clg1'), ut_id(gvar, 'clm1')),
         ['metadata', 'delete', '-mn', ut_id(gvar, 'clm1'), '-Y', '-su', ut_id(gvar, 'clu3')]

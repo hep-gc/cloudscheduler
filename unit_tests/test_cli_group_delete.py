@@ -30,12 +30,13 @@ def main(gvar):
         }, 'mandatory': True}
     }
 
-    parameters_commands(gvar, 'group', 'delete', '', ut_id(gvar, 'clu4'), parameters)
+    # `group delete` rejects the `--group` option (not to be confused with `--group-name`), even though it is global.
+    parameters_commands(gvar, 'group', 'delete', '', ut_id(gvar, 'clu4'), parameters, requires_confirmation=True)
 
     # 19
     execute_csv2_command(
         gvar, 1, None, 'The following command line arguments were invalid: job-cores',
-        ['group', 'delete', '-jc', 'invalid-unit-test', '-su', ut_id(gvar, 'clu4')]
+        ['group', 'delete', '-jc', 'invalid-unit-test', '-Y', '-su', ut_id(gvar, 'clu4')]
     )
 
     # 20
