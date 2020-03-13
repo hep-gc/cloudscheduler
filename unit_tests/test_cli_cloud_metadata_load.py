@@ -36,46 +36,48 @@ def main(gvar):
             # 21
             'invalid-unit-test-': 'cloud metadata-add value specified for "metadata_name" must be all lowercase letters, digits, dashes, underscores, periods, and colons, and cannot contain more than one consecutive dash or start or end with a dash.',
             # 22
-            'invalid-unit-test!': 'cloud metadata-add value specified for "metadata_name" must be all lowercase letters, digits, dashes, underscores, periods, and colons, and cannot contain more than one consecutive dash or start or end with a dash.',
+            'invalid-unit--test': 'cloud metadata-add value specified for "metadata_name" must be all lowercase letters, digits, dashes, underscores, periods, and colons, and cannot contain more than one consecutive dash or start or end with a dash.',
             # 23
+            'invalid-unit-test!': 'cloud metadata-add value specified for "metadata_name" must be all lowercase letters, digits, dashes, underscores, periods, and colons, and cannot contain more than one consecutive dash or start or end with a dash.',
+            # 24
             'metadata-name-that-is-too-long-for-the-database_______________________': 'Data too long for column \'metadata_name\''
         }, 'mandatory': True},
-        # 24 Omit --file-path.
+        # 25 Omit --file-path.
         '--file-path': {'valid': METADATA_FILEPATH, 'test_cases': {
-            # 25
-            '': 'The specified metadata file "" does not exist.',
             # 26
+            '': 'The specified metadata file "" does not exist.',
+            # 27
             'invalid-unit-test': 'The specified metadata file "invalid-unit-test" does not exist.'
         }, 'mandatory': True},
-        # 27
-        '--metadata-enabled': {'valid': 0, 'test_cases': {'invalid-unit-test': 'boolean value specified for "enabled" must be one of the following: true, false, yes, no, 1, or 0.'}},
         # 28
-        '--metadata-mime-type': {'valid': 'cloud-config', 'test_cases': {'invalid-unit-test': 'value specified for "mime_type" must be one of the following options: [\'cloud-config\', \'ucernvm-config\'].'}},
+        '--metadata-enabled': {'valid': 0, 'test_cases': {'invalid-unit-test': 'boolean value specified for "enabled" must be one of the following: true, false, yes, no, 1, or 0.'}},
         # 29
+        '--metadata-mime-type': {'valid': 'cloud-config', 'test_cases': {'invalid-unit-test': 'value specified for "mime_type" must be one of the following options: [\'cloud-config\', \'ucernvm-config\'].'}},
+        # 30
         '--metadata-priority': {'valid': 0, 'test_cases': {'invalid-unit-test': 'value specified for "priority" must be an integer value.'}}
     }
 
     parameters_commands(gvar, 'cloud', 'metadata-load', ut_id(gvar, 'clg1'), ut_id(gvar, 'clu3'), parameters)
 
-    # 30
+    # 31
     execute_csv2_command(
         gvar, 1, None, 'The following command line arguments were invalid: only-keys',
         ['cloud', 'metadata-load', '-ok', '-g', ut_id(gvar, 'clg1'),'-su', ut_id(gvar, 'clu3')]
     )
 
-    # 31 Attempt to give text not parsable as YAML as YAML metadata.
+    # 32 Attempt to give text not parsable as YAML as YAML metadata.
     execute_csv2_command(
         gvar, 1, 'CV', 'value specified for "metadata (metadata_name)" is invalid - scanner error',
         ['cloud', 'metadata-load', '-cn', ut_id(gvar, 'clc2'), '-f', INVALID_YAML_FILEPATH, '-mn', 'invalid-unit-test.yaml', '-su', ut_id(gvar, 'clu3')]
     )
 
-    # 32 Properly add non-YAML metadata.
+    # 33 Properly add non-YAML metadata.
     execute_csv2_command(
         gvar, 0, None, 'file "{}::{}::{}" successfully added.'.format(ut_id(gvar, 'clg1'), ut_id(gvar, 'clc2'), ut_id(gvar, 'clm10')),
         ['cloud', 'metadata-load', '-cn', ut_id(gvar, 'clc2'), '-f', INVALID_YAML_FILEPATH, '-mn', ut_id(gvar, 'clm10'), '-su', ut_id(gvar, 'clu3')]
     )
 
-    # 33 Properly add YAML metadata.
+    # 34 Properly add YAML metadata.
     execute_csv2_command(
         gvar, 0, None, 'file "{}::{}::{}" successfully added.'.format(ut_id(gvar, 'clg1'), ut_id(gvar, 'clc2'), ut_id(gvar, 'clm10.yaml')),
         ['cloud', 'metadata-load', '-cn', ut_id(gvar, 'clc2'), '-f', 'ut.yaml', '-mn', ut_id(gvar, 'clm10.yaml'), '-su', ut_id(gvar, 'clu3')]
