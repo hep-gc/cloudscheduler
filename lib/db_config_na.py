@@ -385,11 +385,6 @@ class Config:
             if rc == 0 and self.db_cursor.rowcount < 1:
                 rc, msg = self.db_insert(table, column_dict)
 
-#               if rc == 1:
-#                   words = str(msg).split()
-#                   if words[0] == '1062' and words[2] == 'Duplicate' and words[3] == 'entry':
-#                       return self.__db_logging_return__(0, None)
-
         return self.__db_logging_return__(rc, msg)
 
 #-------------------------------------------------------------------------------
