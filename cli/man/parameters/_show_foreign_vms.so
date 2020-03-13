@@ -1,4 +1,4 @@
 .TP
-\fB\-sfv \fIoption\fR, \fB\-\-flag-show-foreign-global-vms \fIoption\fR
+\fB\-sfv \fIoption\fR, \fB\-\-show-foreign-vms \fIoption\fR
 Specify if foreign / global VM information is shown by the \fBcloudscheduler cloud status\fR action and on the status page.
 \fIoption\fR can be any of yes, no, true, false, 1, or 0.

@@ -1,4 +1,4 @@
 .TP
-\fB\-ssf \fIoption\fR, \fB\-\-flag-show-slot-flavors \fIoption\fR
+\fB\-ssf \fIoption\fR, \fB\-\-show-slot-flavors \fIoption\fR
 Specify if slot flavor info is shown by the \fBcloudscheduler cloud status\fR action and on the status page.
 \fIoption\fR can be any of yes, no, true, false, 1, or 0.
