@@ -17,13 +17,13 @@ def main(gvar):
     # 15
     execute_csv2_command(
         gvar, 1, None, 'The following command line arguments were unrecognized: [\'--invalid-unit-test\', \'invalid-unit-test\']',
-        ['group', 'list', '--invalid-unit-test', 'invalid-unit-test', '-g', ut_id(gvar, 'clg1'), '-su', ut_id(gvar, 'clu4')]
+        ['group', 'list', '--invalid-unit-test', 'invalid-unit-test', '-g', ut_id(gvar, 'clg1')]
     )
 
     # 16
     execute_csv2_command(
         gvar, 1, None, 'The following command line arguments were invalid: cloud-name',
-        ['group', 'list', '-cn', 'invalid-unit-test', '-g', ut_id(gvar, 'clg1'), '-su', ut_id(gvar, 'clu4')]
+        ['group', 'list', '-cn', 'invalid-unit-test', '-g', ut_id(gvar, 'clg1')]
     )
 
     # 17
@@ -35,26 +35,26 @@ def main(gvar):
     # 18
     execute_csv2_command(
         gvar, 0, None, 'Server: unit-test, Active User: {}, Active Group: {}'.format(ut_id(gvar, 'clu4'), ut_id(gvar, 'clg1')),
-        ['group', 'list', '-NV', '-su', ut_id(gvar, 'clu4')],
+        ['group', 'list', '-NV'],
         expected_list='Groups', columns=['Group', 'HTCondor', 'FQDN', 'Container Hostname', 'Other Submitters', 'Metadata Filenames']
     )
 
     # 19
     execute_csv2_command(
         gvar, 0, None, 'Rows: 0',
-        ['group', 'list', '-gn', 'invalid-unit-test', '-su', ut_id(gvar, 'clu4')]
+        ['group', 'list', '-gn', 'invalid-unit-test']
     )
 
     # 20
     execute_csv2_command(
         gvar, 0, None, 'Rows: 1',
-        ['group', 'list', '-gn', ut_id(gvar, 'clg1'), '-su', ut_id(gvar, 'clu4')]
+        ['group', 'list', '-gn', ut_id(gvar, 'clg1')]
     )
 
     # 21
     execute_csv2_command(
         gvar, 0, None, 'group list, 1. Groups: keys=group_name, columns=htcondor_fqdn,htcondor_container_hostname,htcondor_other_submitters,metadata_names',
-        ['group', 'list', '-VC', '-su', ut_id(gvar, 'clu4')]
+        ['group', 'list', '-VC']
     )
 
 if __name__ == "__main__":
