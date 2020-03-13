@@ -132,7 +132,7 @@ class Config:
 
 #-------------------------------------------------------------------------------
 
-    def __db_get_where_clause__(self, table, column_dict, where):
+    def __db_get_where_clause__(self, table, column_dict, where, drop_invalid_keys=False):
         """
         Convert the caller's column_dict and where parameters into a valid
         where clause.
@@ -151,12 +151,16 @@ class Config:
         def ___get_where_bits_from_dict___(table, column_dict, keys):
             where_bits = []
             for key in keys:
+                if drop_invalid_keys and key not in self.db_schema[table]['columns']:
+                    continue
+
                 if key in self.db_schema[table]['columns']:
                     if key in column_dict:
-                        if self.db_schema[table]['columns'][key]['type'] == 'str':
-                            where_bits.append('`%s`=%s' % (key, self.__db_strings__(table, key, column_dict[key])))
+                        value = self.__db_column_value__(table, key, column_dict[key])
+                        if value != None:
+                            where_bits.append('`%s`=%s' % (key, value))
                         else:
-                            where_bits.append('`%s`=%s' % (key, column_dict[key]))
+                            return 1, 'invalid "where" specification, "%s=None"' % key, None
                     else:
                         return 1, 'invalid "where" specification, key column "%s" is not within the column dictionary "%s"' % (key, column_dict), None
                 else:
@@ -197,12 +201,19 @@ class Config:
 
         if self.initialized:
             callers_stack = stack()
-
             if rc > 0:
-                if callers_stack[1].function == 'db_merge':
-                    logging.warning('function: %s, called from: %s(%s), line: %s, rc: %s, msg: %s' % (callers_stack[1].function, callers_stack[3].filename, callers_stack[3].function, callers_stack[3].lineno, rc, msg))
-                else:
-                    logging.warning('function: %s, called from: %s(%s), line: %s, rc: %s, msg: %s' % (callers_stack[1].function, callers_stack[2].filename, callers_stack[2].function, callers_stack[2].lineno, rc, msg))
+                stack_trace = ''
+                for ix in range(1, len(callers_stack)):
+                   function = callers_stack[ix].function
+                   if function != '<module>':
+                       stack_trace = ' -> %s%s' % (callers_stack[ix].function, stack_trace)
+
+                   if callers_stack[ix].filename[-15:] != 'db_config_na.py':
+                       if function != '<module>':
+                           stack_trace = 'Function: %s' % stack_trace[4:]
+                       break
+
+                logging.warning('file: %s, line: %s %s, rc: %s, msg: %s' % (callers_stack[ix].filename, callers_stack[ix].lineno, stack_trace, rc, msg))
             else:
                 logging.debug('function: %s, rc: %s, msg: %s' % (callers_stack[1].function, rc, msg))
 
@@ -212,7 +223,7 @@ class Config:
             return rc, msg
 #-------------------------------------------------------------------------------
 
-    def __db_strings__(self, table, column, value, allow_nulls=False):
+    def __db_column_value__(self, table, column, value, allow_nulls=False):
         """
         This function return strings values to be inserted or updated in the
         database. If the string value is empty (None or '') and the table
@@ -220,13 +231,21 @@ class Config:
         a quoted/escaped string will be returned.
         """
 
-        if allow_nulls and (not value or value == ''):
-            if self.db_schema[table]['columns'][column]['nulls'] == 'YES':
-                return 'null'
-            else:
-                return '""'
+        if value == None:
+            return None
 
-        return '"%s"' % str(value).replace('"', '\\"')
+        elif self.db_schema[table]['columns'][column]['type'] == 'str':
+            if value == '' or value == 'null':
+                if allow_nulls and self.db_schema[table]['columns'][column]['nulls'] == 'YES':
+                    result = 'null'
+                else:
+                    result = ''
+            else:
+                result = '"%s"' % str(value).replace('"', '\\"')
+        else:
+            result = value
+
+        return str(result)
 
 #-------------------------------------------------------------------------------
 
@@ -267,16 +286,6 @@ class Config:
         Execute a DB delete. If successful, set rc=0 to indicate that
         self.db_cursor has the response. Otherwise, return rc=1 and the
         error message.
-
-        The "where" parameter can either be:
-        
-            o A column dictionary, or
-            o A string to be used as the where clause, or
-            o None, in which case all rows will be deleted.
-           
-        If a column dictionary is specified, it must contain all the primary
-        keys of the table and only rows matching the primary key values will
-        be deleted.
         """
 
         if not self.db_cursor:
@@ -330,22 +339,15 @@ class Config:
             return self.__db_logging_return__(1, 'the database is not open')
             
         columns = []
-        for column in sorted(column_dict):
-            if column not in self.db_schema[table]['columns']:
-                self.__db_logging_return__(0, 'ignoring column "%s" in column dictionary parameter' % column)
-                continue
-
-            columns.append(column)
-
         value_bits = []
         for column in sorted(column_dict):
             if column not in self.db_schema[table]['columns']:
                 continue
 
-            if self.db_schema[table]['columns'][column]['type'] == 'str':
-                value_bits.append(self.__db_strings__(table, column, column_dict[column], allow_nulls=True))
-            else:
-                value_bits.append('%s' % column_dict[column])
+            value = self.__db_column_value__(table, column, column_dict[column], allow_nulls=True)
+            if value != None:
+                columns.append(column)
+                value_bits.append(value)
         
         sql_bits = ['insert into %s' % table]
         sql_bits.append('(%s)' % self.__db_column_list_csv__(sorted(columns)))
@@ -377,11 +379,14 @@ class Config:
 
         rc, msg = self.db_update(table, column_dict)
         if rc == 0 and self.db_cursor.rowcount < 1:
-            rc, msg = self.db_insert(table, column_dict)
-            if rc == 1:
-                words = str(msg).split()
-                if words[0] == '1062' and words[2] == 'Duplicate' and words[3] == 'entry':
-                    return self.__db_logging_return__(0, None)
+            rc, msg, rows = self.db_query(table, where=column_dict)
+            if rc == 0 and self.db_cursor.rowcount < 1:
+                rc, msg = self.db_insert(table, column_dict)
+
+#               if rc == 1:
+#                   words = str(msg).split()
+#                   if words[0] == '1062' and words[2] == 'Duplicate' and words[3] == 'entry':
+#                       return self.__db_logging_return__(0, None)
 
         return self.__db_logging_return__(rc, msg)
 
@@ -415,7 +420,7 @@ class Config:
         else:
             sql_bits = ['select %s from %s' % (self.__db_column_list_csv__(selected), table)] 
 
-        rc, msg, where_clause = self.__db_get_where_clause__(table, None, where)
+        rc, msg, where_clause = self.__db_get_where_clause__(table, None, where, drop_invalid_keys=True)
         if rc != 0:
             return self.__db_logging_return__(rc, msg)
 
@@ -470,10 +475,9 @@ class Config:
                 continue
 
             if column not in self.db_schema[table]['keys']:
-                if self.db_schema[table]['columns'][column]['type'] == 'str':
-                    updates.append('`%s`=%s' % (column, self.__db_strings__(table, column, column_dict[column], allow_nulls=True)))
-                else:
-                    updates.append('`%s`=%s' % (column, column_dict[column]))
+                value = self.__db_column_value__(table, column, column_dict[column], allow_nulls=True)
+                if value != None:
+                    updates.append('`%s`=%s' % (column, value))
 
         rc, msg, where_clause = self.__db_get_where_clause__(table, column_dict, where)
         if rc != 0:
