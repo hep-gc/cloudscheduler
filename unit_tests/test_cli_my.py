@@ -1,7 +1,9 @@
-from unit_test_common import execute_csv2_command, initialize_csv2_request, ut_id
+from unit_test_common import execute_csv2_command, initialize_csv2_request, ut_id, sanity_commands, table_commands
 from sys import argv
 
 # lno: MV - error code identifier.
+
+MY_SETTINGS_COLUMNS = ['Username', 'Cert Common Name', 'Default Group', 'Status', 'Foreign VMs', 'Global Switch', 'Jobs by Target Alias', 'Refresh Interval', 'Slot Detail', 'Slot Flavors']
 
 def main(gvar):
     if not gvar:
@@ -11,120 +13,103 @@ def main(gvar):
         else:
             initialize_csv2_request(gvar)
 
-    # 01
+    # 01 - 13
+    sanity_commands(gvar, 'my')
+
+    #### SETTINGS ####
+    # 14 - 27
+    sanity_commands(gvar, 'my', 'settings')
+
+    # 28 - 34
+    # `my settings` rejects `--group`.
+    table_commands(gvar, 'my', 'settings', '', ut_id(gvar, 'clu3'), {'Settings': MY_SETTINGS_COLUMNS})
+
+    # 35
     execute_csv2_command(
-        gvar, 1, None, 'No action specified for object "my"',
-        ['cloudscheduler', 'my', '-su', ut_id(gvar, 'clu4')]
+        gvar, 0, None, 'Server: unit-test, Active User: {}, Active Group: {}'.format(ut_id(gvar, 'clu3'), ut_id(gvar, 'clg1')),
+        ['my', 'settings', '-su', ut_id(gvar, 'clu3')],
+        expected_list='Settings', columns=MY_SETTINGS_COLUMNS
     )
 
-    # 02
-    execute_csv2_command(
-        gvar, 1, None, 'Invalid action "invalid-unit-test" for object "my"',
-        ['cloudscheduler', 'my', 'invalid-unit-test', '-su', ut_id(gvar, 'clu4')]
-    )
-
-    # 03
-    execute_csv2_command(
-        gvar, None, None, 'Error: the specified server "invalid-unit-test" does not exist in your defaults.',
-        ['cloudscheduler', 'my', '-s', 'invalid-unit-test', '-su', ut_id(gvar, 'clu4')], timeout=8
-    )
-
-    # 04
-    execute_csv2_command(
-        gvar, 1, None, 'No action specified for object "my"; use -h or -H for help.',
-        ['cloudscheduler', 'my', '-su', ut_id(gvar, 'clu4')]
-    )
-
-    # 05
-    execute_csv2_command(
-        gvar, 0, None, 'Help requested for "cloudscheduler my".',
-        ['cloudscheduler', 'my', '-h', '-su', ut_id(gvar, 'clu4')]
-    )
-
-    # 06
-    execute_csv2_command(
-        gvar, 0, None, 'General Commands Manual',
-        ['cloudscheduler', 'my', '-H', '-su', ut_id(gvar, 'clu4')]
-    )
-
-    # SETTINGS
-    # 07
-    execute_csv2_command(
-        gvar, 0, None, 'Server: unit-test, Active User: {}, Active Group: {}'.format(ut_id(gvar, 'clu4'), ut_id(gvar, 'clg1')),
-        ['cloudscheduler', 'my', 'settings', '-su', ut_id(gvar, 'clu4')],
-        expected_list='Settings', columns=['Username', 'Cert Common Name', 'Default Group', 'Status', 'Foreign VMs', 'Global Switch', 'Jobs by Target Alias', 'Refresh Interval', 'Slot Detail', 'Slot Flavors']
-    )
-
-    # 08
-    execute_csv2_command(
-        gvar, 1, None, 'The following command line arguments were unrecognized: [\'-xx\', \'yy\']',
-        ['cloudscheduler', 'my', 'settings', '-xx', 'yy', '-su', ut_id(gvar, 'clu4')]
-    )
-
-    # 09
-    execute_csv2_command(
-        gvar, 1, None, 'The following command line arguments were invalid: metadata-mime-type',
-        ['cloudscheduler', 'my', 'settings', '-mmt', 'invalid-unit-test', '-su', ut_id(gvar, 'clu4')]
-    )
-
-    # 10
-    execute_csv2_command(
-        gvar, None, None, 'Error: the specified server "invalid-unit-test" does not exist in your defaults.',
-        ['cloudscheduler', 'my', 'settings', '-s', 'invalid-unit-test', '-su', ut_id(gvar, 'clu4')], timeout=8
-    )
-
-    # 11
-    execute_csv2_command(
-        gvar, 0, None, 'Help requested for "cloudscheduler my settings".',
-        ['cloudscheduler', 'my', 'settings', '-h', '-su', ut_id(gvar, 'clu4')]
-    )
-
-    # 12
-    execute_csv2_command(
-        gvar, 0, None, 'General Commands Manual',
-        ['cloudscheduler', 'my', 'settings', '-H', '-su', ut_id(gvar, 'clu4')]
-    )
-
-    # 13
-    execute_csv2_command(
-        gvar, 0, None, 'Expose API requested',
-        ['cloudscheduler', 'my', 'settings', '-xA', '-su', ut_id(gvar, 'clu4')]
-    )
-
-    # 14
-    execute_csv2_command(
-        gvar, 1, None, 'cannot switch to invalid group "invalid-unit-test".',
-        ['cloudscheduler', 'my', 'settings', '-g', 'invalid-unit-test', '-su', ut_id(gvar, 'clu4')]
-    )
-
-    # 15
+    # 36
     execute_csv2_command(
         gvar, 1, None, 'Error: The following command line arguments were invalid: group',
-        ['cloudscheduler', 'my', 'settings', '-g', ut_id(gvar, 'clg1'), '-su', ut_id(gvar, 'clu4')]
+        ['my', 'settings', '-g', ut_id(gvar, 'clg1'), '-su', ut_id(gvar, 'clu3')]
     )
 
-    # 16
+    # We cannot use `parameters_commands()` here because it specifies a group in each request, and `my settings` rejects `--group`.
+    # 37 Give a password that is too short.
     execute_csv2_command(
         gvar, 1, 'UV', 'user update, value specified for a password is less than 6 characters.',
-        ['cloudscheduler', 'my', 'settings', '-upw', 'abc', '-su', ut_id(gvar, 'clu4')]
+        ['my', 'settings', '-upw', 'abc', '-su', ut_id(gvar, 'clu3')]
     )
 
-    # 17
+    # 38 Give a password that is too weak.
     execute_csv2_command(
         gvar, 1, 'UV', 'user update, value specified for a password is less then 16 characters, and does not contain a mixture of upper, lower, and numerics.',
-        ['cloudscheduler', 'my', 'settings', '-upw', 'abcdef', '-su', ut_id(gvar, 'clu4')]
+        ['my', 'settings', '-upw', 'abcdef', '-su', ut_id(gvar, 'clu3')]
     )
 
-    # 18
+    # I tried to test `--user-password ???` here, but it somehow caused terminal input to be invisible after the tests had ran. I think this is because the CLI uses `getpass.getpass()` to get the password.
+
+    # 39
     execute_csv2_command(
-        gvar, 0, None, 'user "{}" successfully updated.'.format(ut_id(gvar, 'clu4')),
-        ['cloudscheduler', 'my', 'settings', '-upw', 'Abc123', '-su', ut_id(gvar, 'clu4')]
+        gvar, 1, None, 'value specified for "default_group" must not be the empty string.',
+        ['my', 'settings', '--group-name', '', '-su', ut_id(gvar, 'clu3')]
     )
 
-    # 19
+    # 40
     execute_csv2_command(
-        gvar, 0, None, 'user "{}" successfully updated.'.format(ut_id(gvar, 'clu4')),
-        ['cloudscheduler', 'my', 'settings', '-upw', gvar['user_secret'], '-su', ut_id(gvar, 'clu4'), '-spw', 'Abc123']
+        gvar, 1, None, 'unable to update default - user is not a member of the specified group (invalid-unit-test).',
+        ['my', 'settings', '--group-name', 'invalid-unit-test', '-su', ut_id(gvar, 'clu3')]
+    )
+
+    # 41
+    execute_csv2_command(
+        gvar, 1, None, 'boolean value specified for "flag_show_foreign_global_vms" must be one of the following: true, false, yes, no, 1, or 0.',
+        ['my', 'settings', '--show-foreign-vms', 'invalid-unit-test', '-su', ut_id(gvar, 'clu3')]
+    )
+
+    # 42
+    execute_csv2_command(
+        gvar, 1, None, 'boolean value specified for "flag_global_status" must be one of the following: true, false, yes, no, 1, or 0.',
+        ['my', 'settings', '--show-global-status', 'invalid-unit-test', '-su', ut_id(gvar, 'clu3')]
+    )
+
+    # 43
+    execute_csv2_command(
+        gvar, 1, None, 'boolean value specified for "flag_jobs_by_target_alias" must be one of the following: true, false, yes, no, 1, or 0.',
+        ['my', 'settings', '--show-jobs-by-target-alias', 'invalid-unit-test', '-su', ut_id(gvar, 'clu3')]
+    )
+
+    # 44
+    execute_csv2_command(
+        gvar, 1, None, 'value specified for "status_refresh_interval" must be an integer value.',
+        ['my', 'settings', '--status-refresh-interval', 'invalid-unit-test', '-su', ut_id(gvar, 'clu3')]
+    )
+
+    # 45
+    execute_csv2_command(
+        gvar, 1, None, 'boolean value specified for "flag_show_slot_detail" must be one of the following: true, false, yes, no, 1, or 0.',
+        ['my', 'settings', '--show-slot-detail', 'invalid-unit-test', '-su', ut_id(gvar, 'clu3')]
+    )
+
+    # 46
+    execute_csv2_command(
+        gvar, 1, None, 'boolean value specified for "flag_show_slot_flavors" must be one of the following: true, false, yes, no, 1, or 0.',
+        ['my', 'settings', '--show-slot-flavors', 'invalid-unit-test', '-su', ut_id(gvar, 'clu3')]
+    )
+
+    # 47
+    execute_csv2_command(
+        gvar, 0, None, 'user "{}" successfully updated.'.format(ut_id(gvar, 'clu3')),
+        ['my', 'settings', '-upw', 'Abc123', '-su', ut_id(gvar, 'clu3')]
+    )
+
+    # 48 Revert the password change for future tests.
+    execute_csv2_command(
+        gvar, 0, None, 'user "{}" successfully updated.'.format(ut_id(gvar, 'clu3')),
+        ['my', 'settings', '-upw', gvar['user_secret'], '-su', ut_id(gvar, 'clu3'), '-spw', 'Abc123']
     )
 
 if __name__ == '__main__':

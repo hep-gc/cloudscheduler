@@ -25,6 +25,7 @@ def execute_csv2_command(gvar, expected_rc, expected_modid, expected_text, cmd, 
     `cmd` (list, tuple, or other iterable of strs) contains the parameters to be given to the `cloudscheduler` command, e.g. `['alias', 'add', '-H']`. 'cloudscheduler' should be excluded, because it is automatically added at the beginning of the list.
     `expected_list` (str) is the title of a table that is expected to be in the output, e.g. 'Aliases'.
     `columns` (list of strs) contains the expected headers of the table specified by `expected_list`. These should be what is acutally displayed (e.g. 'Alias') not the name used in the CLI code (e.g. 'alias_name'). This list must contain all the expected headers, not just a subset. Ignored if `expected_list` is not specified.
+    `timeout` (int) is passed to `subprocess.run()` and specifies the maximum number of seconds that a process will be allowed to run before `subprocess` stops it and we examine stdout. If `None`, the process will be allowed to run indefinitely. If a process is expected to timeout, `expected_rc` should be set to -1. This option does not seem to work well if the process hangs because it is waiting for input using `getpass.getpass()`.
     '''
     import subprocess
     from unit_test_common import _caller, _execute_selections
@@ -499,8 +500,6 @@ def table_commands(gvar, obj, action, group, server_user, table_headers):
             keys = keys_str.split(',') if keys_str else []
             columns = columns_str.split(',') if columns_str else []
             optional = bool(optional_str)
-            if len(keys) + len(columns) != len(display_headers):
-                print('Error: --view-columns reported {} headers for the table {}, but {} were specified.'.format(len(keys) + len(columns), name, len(display_headers)))
             tables.append((name, optional, keys, columns, display_headers))
             if not optional:
                 default_headers.extend(display_headers)
@@ -559,8 +558,9 @@ def table_commands(gvar, obj, action, group, server_user, table_headers):
         )
 
         # --comma-separated-values[-separator].
+        # We cannot assert anything about the output because it may be the empty string (e.g. `job list` if there are no jobs).
         execute_csv2_command(
-            gvar, 0, None, '.',
+            gvar, 0, None, None,
             base_cmd + ['--comma-separated-values', '', '--comma-separated-values-separator', '.']
         )
 
