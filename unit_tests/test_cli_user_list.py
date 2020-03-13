@@ -1,7 +1,9 @@
-from unit_test_common import execute_csv2_command, initialize_csv2_request, ut_id
+from unit_test_common import execute_csv2_command, initialize_csv2_request, ut_id, sanity_commands, table_commands
 from sys import argv
 
 # lno: UV - error code identifier.
+
+USER_LIST_COLUMNS = ['Username', 'Common Name', 'Active Group', 'User Groups', 'Username', 'Not In Groups', 'Super User', 'Joined']
 
 def main(gvar):
     if not gvar:
@@ -10,107 +12,41 @@ def main(gvar):
             initialize_csv2_request(gvar, selections=argv[1])
         else:
             initialize_csv2_request(gvar)
-    #### LIST ####
-    # 47
-    execute_csv2_command(
-        gvar, 1, None, 'cannot switch to invalid group "invalid-unit-test".',
-        ['user', 'list', '-g', 'invalid-unit-test', '-su', ut_id(gvar, 'clu4')]
-    )
+    # 01 - 14
+    sanity_commands(gvar, 'user', 'list')
 
-    # 48
-    execute_csv2_command(
-        gvar, 1, None, 'The following command line arguments were unrecognized: [\'-xx\', \'yy\']',
-        ['user', 'list', '-xx', 'yy', '-su', ut_id(gvar, 'clu4')]
-    )
-
-    # 49
+    # 15
     execute_csv2_command(
         gvar, 1, None, 'The following command line arguments were invalid: group-option',
-        ['user', 'list', '-go', 'invalid-unit-test', '-su', ut_id(gvar, 'clu4')]
+        ['user', 'list', '-go', 'invalid-unit-test', '-g', ut_id(gvar, 'clg1')]
     )
 
-    # 50
-    execute_csv2_command(
-        gvar, None, None, 'Error: the specified server "invalid-unit-test" does not exist in your defaults.',
-        ['user', 'list', '-s', 'invalid-unit-test', '-su', ut_id(gvar, 'clu4')], timeout=8
-    )
-
-    # 51
-    execute_csv2_command(
-        gvar, 0, None, None,
-        ['user', 'list', '-su', ut_id(gvar, 'clu4')],
-        expected_list='Users', columns=['Username', 'Common Name', 'Active Group', 'User Groups', 'Username', 'Not In Groups', 'Super User', 'Joined']
-    )
-
-    # 52
-    execute_csv2_command(
-        gvar, 0, None, 'Help requested for "cloudscheduler user list".',
-        ['user', 'list', '-h', '-su', ut_id(gvar, 'clu4')]
-    )
-
-    # 53
-    execute_csv2_command(
-        gvar, 0, None, 'General Commands Manual',
-        ['user', 'list', '-H', '-su', ut_id(gvar, 'clu4')]
-    )
-
-    # 54
-    execute_csv2_command(
-        gvar, 0, None, 'Expose API requested',
-        ['user', 'list', '-xA', '-su', ut_id(gvar, 'clu4')]
-    )
-
-    # 55
+    # 16
     execute_csv2_command(
         gvar, 0, None, 'Rows: 0',
-        ['user', 'list', '-un', ut_id(gvar, 'cli-invalid-unit-test'), '-su', ut_id(gvar, 'clu4')]
+        ['user', 'list', '-un', 'invalid-unit-test']
     )
 
-    # 56
+    # 17
     execute_csv2_command(
         gvar, 0, None, 'Rows: 1',
-        ['user', 'list', '-un', ut_id(gvar, 'clu1'), '-su', ut_id(gvar, 'clu4')]
+        ['user', 'list', '-un', ut_id(gvar, 'clu3')]
     )
 
-    # 57
-    execute_csv2_command(
-        gvar, 0, None, None,
-        ['user', 'list', '-ok', '-su', ut_id(gvar, 'clu4')],
-        expected_list='Users', columns=['Username']
-    )
-
-    # 58
+    # 18
     execute_csv2_command(
         gvar, 0, None, 'user list, 1. Users: keys=username, columns=cert_cn,active_group,user_groups,available_groups,is_superuser,join_date',
-        ['user', 'list', '-VC', '-su', ut_id(gvar, 'clu4')]
+        ['user', 'list', '-VC']
     )
 
-    # 59
-    execute_csv2_command(
-        gvar, 0, None, None,
-        ['user', 'list', '-NV', '-su', ut_id(gvar, 'clu4')],
-        expected_list='Users', columns=['Username', 'Common Name', 'Active Group', 'User Groups', 'Username', 'Not In Groups', 'Super User', 'Joined']
-    )
+    # 19 - 25
+    table_commands(gvar, 'user', 'list', ut_id(gvar, 'clg1'), ut_id(gvar, 'clu4'), {'Users': USER_LIST_COLUMNS})
 
-    # 60
+    # 26
     execute_csv2_command(
-        gvar, 0, None, None,
-        ['user', 'list', '-V', 'is_superuser', '-su', ut_id(gvar, 'clu4')],
-        expected_list='Users', columns=['Username', 'Super User']
-    )
-
-    # 61
-    execute_csv2_command(
-        gvar, 0, None, None,
-        ['user', 'list', '-r', '-su', ut_id(gvar, 'clu4')],
-        expected_list='Users', columns=['Key', 'Value']
-    )
-
-    # 62
-    execute_csv2_command(
-        gvar, 0, None, None,
-        ['user', 'list', '-V', '', '-su', ut_id(gvar, 'clu4')],
-        expected_list='Users', columns=['Username', 'Common Name', 'Active Group', 'User Groups', 'Username', 'Not In Groups', 'Super User', 'Joined']
+        gvar, 0, None, 'Server: unit-test, Active User: {}, Active Group: {}'.format(ut_id(gvar, 'clu4'), ut_id(gvar, 'clg1')),
+        ['user', 'list'],
+        expected_list='Users', columns=USER_LIST_COLUMNS
     )
 
 if __name__ == "__main__":
