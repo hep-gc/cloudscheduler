@@ -6,9 +6,9 @@ import os
 import yaml
 
 functions = [
-    {'name': 'mysql_privileges', 'tix': 'DEF', 'alchemy': True},
+    {'name': '# map', 'tix': 'DEF', 'alchemy': False},
     {'name': 'signal_functions', 'tix': 'SIG', 'alchemy': False},
-    {'name': 'inventory_delete_obsolete_database_items(', 'tix': 3, 'mode': 'delete', 'alchemy': False},
+    {'name': 'inventory_obsolete_database_item_delete(', 'tix': 5, 'mode': 'delete', 'alchemy': False},
     {'name': '.db_delete(', 'tix': 0, 'mode': 'delete', 'alchemy': False},
     {'name': '.db_execute(', 'tix': 'SQL', 'alchemy': False},
     {'name': '.db_insert(', 'tix': 0, 'mode': 'merge', 'alchemy': False},
@@ -27,6 +27,9 @@ functions = [
     {'name': '.db_session.query(', 'tix': 0, 'mode': 'query', 'alchemy': True}
     ]
 
+def strip_quotes(value):
+    return value.replace('"', '').replace("'", "").strip()
+
 def resolve_refs(handles):
     resolved = {}
     for line in lines:
@@ -43,9 +46,17 @@ def resolve_refs(handles):
 
     return resolved
 
-if len(sys.argv) < 3:
-    print('Synopsis: mysql_privileges <db_user> <db_user_password> <blank_seperated_python_module_list>')
+if len(sys.argv) < 2:
+    print('Synopsis: mysql_privileges [ <db_user>,<db_pw ]  <db_user_password> <blank_seperated_python_module_list>')
     exit(0)
+
+words = sys.argv[1].split(',', 1)
+if len(words) < 2:
+    aix = 1
+else:
+    aix = 2
+    db_user = words[0]
+    db_pw = words[1]
 
 cmd_path = os.path.realpath(sys.argv[0]).split('/')
 cmd_path_ix = cmd_path.index('cloudscheduler')
@@ -161,38 +172,43 @@ for table in db_privileges['block']:
             allowed[table].append(words[0])
 
 tables = {}
-for ix in range(3, len(sys.argv)):
-    if os.path.isfile(sys.argv[ix]) and sys.argv[ix] != 'try':
+for ix in range(aix, len(sys.argv)):
+    realpath = os.path.realpath(sys.argv[ix])
+    if os.path.isfile(realpath):
         try:
-            with open(sys.argv[ix]) as fd:
+            with open(realpath) as fd:
                lines = fd.read().split('\n')
         except:
             continue
 
-        handles = {}
         db_calls = []
+        handles = {}
+        lineno = 0
         for line in lines:
+            lineno += 1
             for function in functions:
                 words1 = line.split(function['name'])
                 if len(words1) > 1:
                     if function['tix'] == 'SQL':
                         words2 = words1[1][1:].split()
                         if len(words2) > 2 and words2[0] ==  'delete':
-                            db_calls.append([words2[2], 'delete', function['alchemy']])
+                            db_calls.append([strip_quotes(words2[2]), 'delete', function['alchemy'], realpath, lineno])
 
                         if len(words2) > 2 and words2[0] ==  'insert':
-                            db_calls.append([words2[2], 'merge', function['alchemy']])
+                            db_calls.append([strip_quotes(words2[2]), 'merge', function['alchemy'], realpath, lineno])
 
                         if len(words2) > 1 and words2[0] ==  'update':
-                            db_calls.append([words2[1], 'merge', function['alchemy']])
+                            db_calls.append([strip_quotes(words2[1]), 'merge', function['alchemy'], realpath, lineno])
 
                         if len(words2) > 0 and words2[0] ==  'select':
                             stix = words2.index('from')
-                            db_calls.append([words2[stix+1].translate({ord(c): None for c in ';\'")'}), 'query', function['alchemy']])
+                            db_calls.append([strip_quotes(words2[stix+1].translate({ord(c): None for c in ';\'")'})), 'query', function['alchemy'], realpath, lineno])
 
                     elif function['tix'] == 'DEF':
                         words2 = words1[1].split()
-                        handles[words2[0]] = words2[1]
+                        table = words2[0]
+                        for hix in range(1, len(words2)):
+                            handles[words2[hix]] = table
 
                     elif function['tix'] == 'MAP':
                         handle = line.split()
@@ -206,7 +222,7 @@ for ix in range(3, len(sys.argv)):
                     elif function['tix'] >= 0:
                         words2 = words1[1].split(',')
                         words3 = words2[function['tix']].split(')')
-                        db_calls.append([words3[0].strip(), function['mode'], function['alchemy']])
+                        db_calls.append([strip_quotes(words3[0]), function['mode'], function['alchemy'], realpath, lineno])
 
                         if function['mode'] == 'query' and function['alchemy']:
                             words2 = words1[1].replace(')', ',').split(',')
@@ -233,7 +249,7 @@ for ix in range(3, len(sys.argv)):
                 else:
                     table = db_call[0]
 
-                if table in valid_tables:
+                if (db_call[1] == 'query' and table in valid_tables + list(valid_views)) or table in valid_tables:
                     if table not in tables:
                         tables[table] = {'query': False, 'merge': False, 'delete': False, 'privileges': []}
 
@@ -247,9 +263,9 @@ for ix in range(3, len(sys.argv)):
                         tables[table]['query'] = True
                       
                     if db_call[2]:
-                        print('    %-6s (SQLAlchemy) %s' % (db_call[1], table), file=sys.stderr)
+                        print('    %-6s (SQLAlchemy) %s %s(%s)' % (db_call[1], table, db_call[3], db_call[4]), file=sys.stderr)
                     else:
-                        print('    %-6s %s' % (db_call[1], table), file=sys.stderr)
+                        print('    %-6s %s %s(%s)' % (db_call[1], table, db_call[3], db_call[4]), file=sys.stderr)
 
                 elif table in valid_views and db_call[1] == 'query':
                     for backing_table in valid_views[table]:
@@ -276,13 +292,20 @@ for ix in range(3, len(sys.argv)):
                     else:
                         table = db_call[0]
 
-                    if table not in valid_tables or (table not in valid_views and db_call[1] != 'query'):
-                        print('    %-6s %s' % (db_call[1], table), file=sys.stderr)
+
+                    if not ((db_call[1] == 'query' and table in valid_tables + list(valid_views)) or table in valid_tables):
+                        if db_call[2]:
+                            print('    %-6s (SQLAlchemy) %s %s(%s)' % (db_call[1], table, db_call[3], db_call[4]), file=sys.stderr)
+                        else:
+                            print('    %-6s %s %s(%s)' % (db_call[1], table, db_call[3], db_call[4]), file=sys.stderr)
 
                 print('', file=sys.stderr)
                      
 print('Privileges summary:', file=sys.stderr)
-privileges = ['create user if not exists "%s"@"%%" identified by "%s"' % (sys.argv[1], sys.argv[2])]
+privileges = []
+if aix > 1:
+    privileges.append('create user if not exists "%s"@"%%" identified by "%s"' % (db_user, db_pw))
+
 for table in sorted(tables):
     table_privileges = [[], []]
     if tables[table]['delete']:
