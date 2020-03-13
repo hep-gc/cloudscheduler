@@ -132,7 +132,7 @@ class Config:
 
 #-------------------------------------------------------------------------------
 
-    def __db_get_where_clause__(self, table, column_dict, where, drop_invalid_keys=False):
+    def __db_get_where_clause__(self, table, column_dict, where):
         """
         Convert the caller's column_dict and where parameters into a valid
         where clause.
@@ -151,7 +151,8 @@ class Config:
         def ___get_where_bits_from_dict___(table, column_dict, keys):
             where_bits = []
             for key in keys:
-                if drop_invalid_keys and key not in self.db_schema[table]['columns']:
+                if key not in self.db_schema[table]['columns']:
+                    self.__db_logging_return__(0, 'column "%s" not defined in table "%s", column dropped from where clause' % (key, table))
                     continue
 
                 if key in self.db_schema[table]['columns']:
@@ -342,6 +343,7 @@ class Config:
         value_bits = []
         for column in sorted(column_dict):
             if column not in self.db_schema[table]['columns']:
+                self.__db_logging_return__(0, 'column "%s" not defined in table "%s", column dropped from insert' % (column, table))
                 continue
 
             value = self.__db_column_value__(table, column, column_dict[column], allow_nulls=True)
@@ -420,7 +422,7 @@ class Config:
         else:
             sql_bits = ['select %s from %s' % (self.__db_column_list_csv__(selected), table)] 
 
-        rc, msg, where_clause = self.__db_get_where_clause__(table, None, where, drop_invalid_keys=True)
+        rc, msg, where_clause = self.__db_get_where_clause__(table, None, where)
         if rc != 0:
             return self.__db_logging_return__(rc, msg)
 
@@ -471,7 +473,7 @@ class Config:
         updates = []
         for column in sorted(column_dict):
             if column not in self.db_schema[table]['columns']:
-                self.__db_logging_return__(0, 'ignoring column "%s" in column dictionary parameter' % column)
+                self.__db_logging_return__(0, 'column "%s" not defined in table "%s", column dropped from update' % (column, table))
                 continue
 
             if column not in self.db_schema[table]['keys']:
