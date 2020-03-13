@@ -21,7 +21,7 @@ def main(gvar):
             'username': ut_id(gvar, 'clu1'),
             'password1': gvar['user_secret'],
             'password2': gvar['user_secret'],
-            'cert_cn': ut_id(gvar, 'command line user one')
+            'cert_cn': ut_id(gvar, 'command-line-user-1')
         }
     )
     
@@ -32,7 +32,7 @@ def main(gvar):
             'username': ut_id(gvar, 'clu2'),
             'password1': gvar['user_secret'],
             'password2': gvar['user_secret'],
-            'cert_cn': ut_id(gvar, 'command line user two'),
+            'cert_cn': ut_id(gvar, 'command-line-user-2'),
             'is_superuser': 1
         }
     )
@@ -80,7 +80,7 @@ def main(gvar):
             'username': ut_id(gvar, 'clu3'),
             'password1': gvar['user_secret'],
             'password2': gvar['user_secret'],
-            'cert_cn': ut_id(gvar, 'command line user three'),
+            'cert_cn': ut_id(gvar, 'command-line-user-3'),
             'group_name.1': ut_id(gvar, 'clg1')
         }
     )
@@ -92,7 +92,7 @@ def main(gvar):
             'username': ut_id(gvar, 'clu4'),
             'password1': gvar['user_secret'],
             'password2': gvar['user_secret'],
-            'cert_cn': ut_id(gvar, 'command line user four'),
+            'cert_cn': ut_id(gvar, 'command-line-user-4'),
             'is_superuser': 1,
             'group_name.1': ut_id(gvar, 'clg1'),
             'group_name.2': ut_id(gvar, 'clg4')
@@ -105,7 +105,7 @@ def main(gvar):
         '/user/add/', form_data={
             'username': ut_id(gvar, 'clu5'),
             'password': gvar['user_secret'],
-            'cert_cn': ut_id(gvar, 'command line user five')
+            'cert_cn': ut_id(gvar, 'command-line-user-5')
         }
     )
 
@@ -115,7 +115,7 @@ def main(gvar):
         '/user/add/', form_data={
             'username': ut_id(gvar, 'clu6'),
             'password': gvar['user_secret'],
-            'cert_cn': ut_id(gvar, 'command line user six'),
+            'cert_cn': ut_id(gvar, 'command-line-user-6'),
             'group_name': ut_id(gvar, 'clg1')
         }
     )
@@ -126,7 +126,7 @@ def main(gvar):
         '/user/add/', form_data={
             'username': ut_id(gvar, 'clu7'),
             'password': gvar['user_secret'],
-            'cert_cn': ut_id(gvar, 'command line user seven')
+            'cert_cn': ut_id(gvar, 'command-line-user-7')
         }
     )
 

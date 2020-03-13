@@ -93,17 +93,5 @@ def main(gvar):
         '/user/delete/', form_data={'username': ut_id(gvar, 'clu11')}
     )
 
-    # 15
-    execute_csv2_request(
-        gvar, None, None, None,
-        '/user/delete/', form_data={'username': ut_id(gvar, 'clu12')}
-    )
-
-    # 16
-    execute_csv2_request(
-        gvar, None, None, None,
-        '/user/delete/', form_data={'username': ut_id(gvar, 'clu13')}
-    )
-
 if __name__ == "__main__":
     main(None)
