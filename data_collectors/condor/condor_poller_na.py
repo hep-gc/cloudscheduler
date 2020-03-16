@@ -24,11 +24,6 @@ from cloudscheduler.lib.poller_functions_na import \
     wait_cycle
 from cloudscheduler.lib.ProcessMonitor_na import ProcessMonitor, check_pid, terminate
 
-from keystoneclient.auth.identity import v2, v3
-from keystoneauth1 import session
-from keystoneauth1 import exceptions
-from novaclient import client as novaclient
-
 import htcondor
 import classad
 import boto3
@@ -48,89 +43,8 @@ STARTD_TYPE = htcondor.AdTypes.Startd
 #    mysql_privileges_map_table_to_variables csv2_user        USERS
 #    mysql_privileges_map_table_to_variables csv2_vms         VM
 
-def _get_nova_client(session, region=None):
-    nova = novaclient.Client("2", session=session, region_name=region, timeout=10)
-    return nova
-
-def _get_openstack_session(cloud):
-    authsplit = cloud["authurl"].split('/')
-    try:
-        version = int(float(authsplit[-1][1:])) if len(authsplit[-1]) > 0 else int(float(authsplit[-2][1:]))
-    except ValueError:
-        logging.error("Bad OpenStack URL, could not determine version, skipping %s", cloud["authurl"])
-        return False
-    if version == 2:
-        session = _get_openstack_session_v1_v2(
-            auth_url=cloud["authurl"],
-            username=cloud["username"],
-            password=cloud["password"],
-            project=cloud["project"])
-    else:
-        session = _get_openstack_session_v1_v2(
-            auth_url=cloud["authurl"],
-            username=cloud["username"],
-            password=cloud["password"],
-            project=cloud["project"],
-            user_domain=cloud["user_domain_name"],
-            project_domain_name=cloud["project_domain_name"])
-    if session is False:
-        logging.error("Failed to setup session, skipping %s", cloud["cloud_name"])
-        if version == 2:
-            logging.error("Connection parameters: \n authurl: %s \n username: %s \n project: %s" %
-                          (cloud["authurl"], cloud["username"], cloud["project"]))
-        else:
-            logging.error(
-                "Connection parameters: \n authurl: %s \n username: %s \n project: %s \n user_domain: %s \n project_domain: %s" %
-                (cloud["authurl"], cloud["username"], cloud["project"], cloud["user_domain_name"], cloud["project_domain_name"]))
-    return session
 
 
-def _get_openstack_session_v1_v2(auth_url, username, password, project, user_domain="Default", project_domain_name="Default"):
-    authsplit = auth_url.split('/')
-    try:
-        version = int(float(authsplit[-1][1:])) if len(authsplit[-1]) > 0 else int(float(authsplit[-2][1:]))
-    except ValueError:
-        logging.error("Bad openstack URL: %s, could not determine version, aborting session", auth_url)
-        return False
-    if version == 2:
-        try:
-            auth = v2.Password(
-                auth_url=auth_url,
-                username=username,
-                password=password,
-                tenant_name=project)
-            sess = session.Session(auth=auth, verify=config.categories["condor_poller.py"]["cacerts"])
-        except Exception as exc:
-            logging.error("Problem importing keystone modules, and getting session for grp:cloud - %s::%s" % (auth_url, exc))
-            logging.error("Connection parameters: \n authurl: %s \n username: %s \n project: %s", (auth_url, username, project))
-            return False
-        return sess
-    elif version == 3:
-        #connect using keystone v3
-        try:
-            auth = v3.Password(
-                auth_url=auth_url,
-                username=username,
-                password=password,
-                project_name=project,
-                user_domain_name=user_domain,
-                project_domain_name=project_domain_name)
-            sess = session.Session(auth=auth, verify=config.categories["condor_poller.py"]["cacerts"])
-        except Exception as exc:
-            logging.error("Problem importing keystone modules, and getting session for grp:cloud - %s: %s", exc)
-            logging.error("Connection parameters: \n authurl: %s \n username: %s \n project: %s \n user_domain: %s \n project_domain: %s", (auth_url, username, project, user_domain, project_domain_name))
-            return False
-        return sess
-
-
-
-def _get_ec2_session(cloud):
-    return boto3.session.Session(region_name=cloud.region,
-                                 aws_access_key_id=cloud.username,
-                                 aws_secret_access_key=cloud.password)
-
-def _get_ec2_client(session):
-    return session.client('ec2')
 
 # condor likes to return extra keys not defined in the projection
 # this function will trim the extra ones so that we can use kwargs
@@ -476,171 +390,6 @@ def process_group_cloud_commands(pair, condor_host):
             logging.debug(condor_host)
             continue
 
-
-    #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    # Terminate code:
-    master_list = []
-    startd_list = []
-    #get list of vm/machines from this condor host
-    where_clause = "htcondor_fqdn='%s' and cloud_name='%s' and group_name='%s' and terminate >= 1" % (condor_host, cloud_name, group_name)
-    rc, msg, redundant_machine_list = config.db_query("view_condor_host", where=where_clause)
-
-    for resource in redundant_machine_list:
-        logging.error(resource)
-        if resource["dynamic_slots"] is not None:
-            if resource["primary_slots"] is not None:
-                if resource["terminate"] == 1 and resource["dynamic_slots"] >= 1 and resource["primary_slots"] >=1:
-                    logging.info("VM still has active slots, skipping terminate on %s" % resource["vmid"])
-                    continue
-
-
-        # we need the relevent vm row to check if its in manual mode and if not, terminate and update termination status
-        try:
-            where_clause = "group_name='%s' and cloud_name='%s' and vmid='%s'" % (resource["group_name"], resource["cloud_name"], resource["vmid"])
-            rc, msg, vm_rows = config.db_query(VM, where=where_clause)
-            vm_row = vm_rows[0]
-        except Exception as exc:
-            logging.error("Unable to retrieve VM row for vmid: %s, skipping terminate..." % resource["vmid"])
-            continue
-        if vm_row["manual_control"] == 1:
-            logging.info("VM %s under manual control, skipping terminate..." % resource["vmid"])
-            continue
-
-
-        # Get session with hosting cloud.
-        where_clause = "group_name='%s'  and cloud_name='%s'" % (vm_row["group_name"], vm_row["cloud_name"])
-        rc, msg, cloud_rows = config.db_query(CLOUD, where=where_clause)
-        cloud = cloud_rows[0]
-
-        if cloud["cloud_type"] == "openstack":
-            session = _get_openstack_session(cloud)
-            if session is False:
-                logging.error("Failed to create cloud session with cloud: %s" % cloud)
-                continue
-         
-            if terminate_off:
-                logging.critical("Terminates disabled, normal operation would terminate %s" % vm_row["hostname"])
-                continue
-
-            # terminate the vm
-            nova = _get_nova_client(session, region=cloud["region"])
-            try:
-                # may want to check for result here Returns: An instance of novaclient.base.TupleWithMeta so probably not that useful
-                vm_row["terminate"] = vm_row["terminate"] + 1
-                old_updater = vm_row["updater"]
-                vm_row["updater"] = str(get_frame_info() + ":t+")
-
-                try:
-                    logging.info("Terminating vm: %s" % vm_row["vmid"])
-                    nova.servers.delete(vm_row["vmid"])
-                except novaclient.exceptions.NotFound:
-                    logging.error("VM not found on cloud, deleting vm entry %s" % vm_row["vmid"])
-                    config.db_delete("csv2_vms", vm_row)
-                    try:
-                        config.db_commit()
-                    except Exception as exc:
-                        logging.exception("Failed to commit vm delete, aborting cycle...")
-                        logging.error(exc)
-                        break
-                    continue #skip rest of logic since this vm is gone anywheres 
-                        
-
-                except Exception as exc:
-                    logging.error("Unable to delete vm, vm doesnt exist or openstack failure:")
-                    exc_type, exc_obj, exc_tb = sys.exc_info()
-                    logging.error(exc_type)
-                    logging.error(exc)
-                    continue
-                logging.info("VM Terminated(%s): %s primary slots: %s dynamic slots: %s, last updater: %s" % (vm_row["terminate"], vm_row["hostname"], vm_row["htcondor_partitionable_slots"], vm_row["htcondor_dynamic_slots"], old_updater))
-                config.db_merge(VM, vm_row)
-                # log here if terminate # /10 = remainder zero
-                if vm_row["terminate"] %10 == 0:
-                    logging.critical("%s failed terminates on %s user action required" % (vm_row["terminate"] - 1, vm_row["hostname"]))
-            except Exception as exc:
-                logging.error("Failed to terminate VM: %s, terminates issued: %s" % (vm_row["hostname"], vm_row["terminate"] - 1))
-                logging.error(exc)
-
-            # Now that the machine is terminated, we can speed up operations by invalidating the related classads
-            # double check that a condor_session exists
-            if 'condor_session' not in locals():
-                condor_session = get_condor_session()
-            if resource.machine is not None:
-                logging.info("Removing classads for machine %s" % resource["machine"])
-            else:
-                logging.info("Removing classads for machine %s" % resource["hostname"])
-            try:
-                master_classad = get_master_classad(condor_session, resource["machine"], resource["hostname"])
-                if not master_classad:
-                    # there was no matching classad
-                    logging.error("Classad not found for %s//%s" % (resource["machine"], resource["hostname"]))
-
-                master_result = invalidate_master_classad(condor_session, master_classad)
-                logging.debug("Invalidate master result: %s" % master_result)
-                startd_classads = get_startd_classads(condor_session, resource["hostname"])
-                startd_result = invalidate_startd_classads(condor_session, startd_classads)
-                logging.debug("Invalidate startd result: %s" % startd_result)
-
-
-                #if resource.machine is not None and resource.machine is not "":
-                #    condor_classad = condor_session.query(master_type, 'Name=="%s"' % resource["machine"])[0]
-                #else:
-                #    condor_classad = condor_session.query(master_type, 'regexp("%s", Name, "i")' % resource["hostname"])[0]
-                #master_list.append(condor_classad)
-
-                # this could be a list of adds if a machine has many slots
-                #condor_classads = condor_session.query(startd_type, 'Machine=="%s"' % resource["hostname"])
-                #for classad in condor_classads:
-                #    startd_list.append(classad)
-            #except IndexError as exc:
-            #    pass
-            except Exception as exc:
-                logging.error("Failed to get condor classads or issue invalidate:")
-                logging.error(exc)
-                break
-
-        elif cloud.cloud_type == "amazon":
-            if terminate_off:
-                logging.critical("Terminates disabled, normal operation would terminate %s" % vm_row["hostname"])
-                continue
-            #terminate the vm
-            amz_session = _get_ec2_session(cloud)
-            amz_client = _get_ec2_client(amz_session)
-            try:
-                vm_row.terminate = vm_row["terminate"] + 1
-                old_updater = vm_row["updater"]
-                vm_row["updater"] = str(get_frame_info() + ":t+")
-                #destroy amazon vm, first we'll need to check if its a reservation
-                if vm_row["vmid"][0:3].lower() == "sir":
-                    #its a reservation just delete it and destroy the vm
-                    # not sure what the difference between a client and connection from csv1 is but there is more work to be done here
-                    #
-                    # need the command to remove reservation:
-                    # cancel_spot_instance_requests(list_of_request_ids)
-                    #
-                    # need to terminate request, and possible image if instance_id isn't empty
-                    try:
-                        logging.info("Canceling amazon spot price request: %s" % vm_row["vmid"])
-                        amz_client.cancel_spot_instance_requests(SpotInstanceRequestIds=[vm_row["vmid"]])
-                        if vm_row.get("instance_id") is not None:
-                            #spot price vm running need to terminate it:
-                            logging.info("Terminating amazon vm: %s" % vm_row["instance_id"])
-                            amz_client.terminate_instances(InstanceIds=[vm_row["instance_id"]])
-                    except Exception as exc:
-                        logging.error("Unable to terminate %s due to:" % vm_row["vmid"])
-                        logging.error(exc)
-                else:
-                    #its a regular instance and just terminate it
-                    logging.info("Terminating amazon vm: %s" % vm_row["vmid"])
-                    amz_client.terminate_instances(InstanceIds=[vm_row["vmid"]])
-            except Exception as exc:
-                logging.error("Unable to terminate %s due to:" % vm_row["vmid"])
-                logging.error(exc)
-
-
-        else:
-            # Other cloud types will need to be implemented here to terminate any vms not from openstack
-            logging.info("Vm not from openstack, or amazon cloud, skipping...")
-            continue
     try:
         config.db_commit()
     except Exception as exc:
@@ -795,7 +544,7 @@ def job_poller():
                 if not condor_inventory_built:
                     # New version of inventory functions:
                     where_clause = "htcondor_host_id='%s'" % config.local_host_id
-                    rc, msg, rows = config.db_query(JOB, where_clause)
+                    rc, msg, rows = config.db_query(JOB, where=where_clause)
                     inventory_get_item_hash_from_db_query_rows(ikey_names, rows)
                     condor_inventory_built = True
 
