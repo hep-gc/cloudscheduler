@@ -29,11 +29,542 @@ from cloudscheduler.lib.view_utils import qt
 from cloudscheduler.lib.log_tools import get_frame_info
 from cloudscheduler.lib.ec2_translations import get_ami_dictionary
 from cloudscheduler.lib.ProcessMonitor import ProcessMonitor, check_pid, terminate
+from cloudscheduler.lib.poller_functions import start_cycle, wait_cycle
 
 import openstackcloud
 import localhostcloud
 import ec2cloud
 
+import htcondor
+import classad
+import boto3
+
+from keystoneclient.auth.identity import v2, v3
+from keystoneauth1 import session
+from keystoneauth1 import exceptions
+from novaclient import client as novaclient
+
+
+
+# Supporting functions
+def _get_nova_client(session, region=None):
+    nova = novaclient.Client("2", session=session, region_name=region, timeout=10)
+    return nova
+
+def _get_openstack_session(cloud):
+    authsplit = cloud.authurl.split('/')
+    try:
+        version = int(float(authsplit[-1][1:])) if len(authsplit[-1]) > 0 else int(float(authsplit[-2][1:]))
+    except ValueError:
+        logging.error("Bad OpenStack URL, could not determine version, skipping %s", cloud.authurl)
+        return False
+    if version == 2:
+        session = _get_openstack_session_v1_v2(
+            auth_url=cloud.authurl,
+            username=cloud.username,
+            password=cloud.password,
+            project=cloud.project)
+    else:
+        session = _get_openstack_session_v1_v2(
+            auth_url=cloud.authurl,
+            username=cloud.username,
+            password=cloud.password,
+            project=cloud.project,
+            user_domain=cloud.user_domain_name,
+            project_domain_name=cloud.project_domain_name)
+    if session is False:
+        logging.error("Failed to setup session, skipping %s", cloud.cloud_name)
+        if version == 2:
+            logging.error("Connection parameters: \n authurl: %s \n username: %s \n project: %s" %
+                          (cloud.authurl, cloud.username, cloud.project))
+        else:
+            logging.error(
+                "Connection parameters: \n authurl: %s \n username: %s \n project: %s \n user_domain: %s \n project_domain: %s" %
+                (cloud.authurl, cloud.username, cloud.project, cloud.user_domain_name, cloud.project_domain_name))
+    return session
+
+
+def _get_openstack_session_v1_v2(auth_url, username, password, project, user_domain="Default", project_domain_name="Default"):
+    authsplit = auth_url.split('/')
+    try:
+        version = int(float(authsplit[-1][1:])) if len(authsplit[-1]) > 0 else int(float(authsplit[-2][1:]))
+    except ValueError:
+        logging.error("Bad openstack URL: %s, could not determine version, aborting session", auth_url)
+        return False
+    if version == 2:
+        try:
+            auth = v2.Password(
+                auth_url=auth_url,
+                username=username,
+                password=password,
+                tenant_name=project)
+            sess = session.Session(auth=auth, verify=config.categories["condor_poller.py"]["cacerts"])
+        except Exception as exc:
+            logging.error("Problem importing keystone modules, and getting session for grp:cloud - %s::%s" % (auth_url, exc))
+            logging.error("Connection parameters: \n authurl: %s \n username: %s \n project: %s", (auth_url, username, project))
+            return False
+        return sess
+    elif version == 3:
+        #connect using keystone v3
+        try:
+            auth = v3.Password(
+                auth_url=auth_url,
+                username=username,
+                password=password,
+                project_name=project,
+                user_domain_name=user_domain,
+                project_domain_name=project_domain_name)
+            sess = session.Session(auth=auth, verify=config.categories["condor_poller.py"]["cacerts"])
+        except Exception as exc:
+            logging.error("Problem importing keystone modules, and getting session for grp:cloud - %s: %s", exc)
+            logging.error("Connection parameters: \n authurl: %s \n username: %s \n project: %s \n user_domain: %s \n project_domain: %s", (auth_url, username, project, user_domain, project_domain_name))
+            return False
+        return sess
+
+
+
+def _get_ec2_session(cloud):
+    return boto3.session.Session(region_name=cloud.region,
+                                 aws_access_key_id=cloud.username,
+                                 aws_secret_access_key=cloud.password)
+
+def _get_ec2_client(session):
+    return session.client('ec2')
+
+
+def get_condor_session(hostname=None):
+    try:
+        condor_session = htcondor.Collector(hostname)
+        return condor_session
+    except Exception as exc:
+        logging.exception("Failed to get condor session for %s:" % hostname)
+        logging.error(exc)
+        return False
+
+
+def get_master_classad(session, machine, hostname):
+    try:
+        if machine is not "":
+            condor_classad = session.query(MASTER_TYPE, 'Name=="%s"' % machine)[0]
+        else:
+            condor_classad = session.query(MASTER_TYPE, 'regexp("%s", Name, "i")' % hostname)[0]
+        return condor_classad
+    except IndexError:
+        logging.error("Failed to retrieve classad from condor. No matching classad")
+    except Exception as exc:
+        logging.error("Failed to retrieve classad from condor. Communication error :")
+        logging.error(exc)
+        return -1
+    return False
+
+
+def get_startd_classads(session, machine):
+    startd_list = []
+    try:
+        condor_classads = session.query(STARTD_TYPE, 'Machine=="%s"' % machine)
+        for classad in condor_classads:
+            startd_list.append(classad)
+        return startd_list
+    except Exception as exc:
+        logging.error("Failed to retrieve machine classads, aborting...")
+        logging.error(exc)
+        return False
+
+
+def invalidate_master_classad(session, classad):
+    return session.advertise([classad], "INVALIDATE_MASTER_ADS")
+
+def invalidate_startd_classads(session, classad_list):
+    return session.advertise(classad_list, "INVALIDATE_STARTD_ADS")
+
+
+def check_pair_pid(pair, config, cloud_table):
+    cloud = config.db_session.query(cloud_table).get((pair.group_name, pair.cloud_name))
+    pid = cloud.machine_subprocess_pid
+    if pid is None or pid == -1:
+        # No subprocess ever started
+        return False
+    # Sending signal 0 to a pid will raise an OSError exception if the pid is not running, and do nothing otherwise
+    try:
+        os.kill(pid, 0)
+    except OSError:
+        return False
+    else:
+        return True
+
+def available_resources_initialize(config):
+    used_resource_list = qt(config.db_session.execute('select * from view_total_used_resources'))
+    used_resources = {'group_cloud': {}, 'provider': {}}
+    for used_resource in used_resource_list:
+        provider = '%s|%s|%s' % (used_resource['authurl'], used_resource['region'], used_resource['project'])
+        if provider not in used_resources['provider']:
+            used_resources['provider'][provider] = {'VMs': 0, 'cores_used': 0, 'disk_used': 0, 'ram_used': 0, 'swap_used': 0}
+
+        used_resources['provider'][provider]['VMs']        += used_resource['VMs']
+        used_resources['provider'][provider]['cores_used'] += used_resource['cores']
+        used_resources['provider'][provider]['disk_used']  += used_resource['disk']
+        used_resources['provider'][provider]['ram_used']   += used_resource['ram']
+        used_resources['provider'][provider]['swap_used']  += used_resource['swap']
+
+    for provider in sorted(used_resources['provider']):
+        log.debug("available_resources_initialize, VMs: %11s, cores: %11s, disk: %11s, RAM: %11s, provider: %s" % (
+            used_resources['provider'][provider]['VMs'],
+            used_resources['provider'][provider]['cores_used'],
+            used_resources['provider'][provider]['disk_used'],
+            used_resources['provider'][provider]['ram_used'],
+            provider
+            ))
+
+    return used_resources
+
+def available_resources_query(used_resources, available_resource):
+    def set_default(ctl, default_value):
+        if ctl < 0:
+            return default_value
+        else:
+            return ctl
+
+    group_cloud = '%s::%s' % (available_resource['group_name'], available_resource['cloud_name'])
+    if group_cloud not in used_resources['group_cloud']:
+        used_resources['group_cloud'][group_cloud] = {
+            'VMs': available_resource['VMs'],
+            'cores_used': available_resource['cores_used'],
+            'disk_used': available_resource['disk_used'],
+            'ram_used': available_resource['ram_used'],
+            'swap_used': available_resource['swap_used'],
+            }
+
+    provider = '%s|%s|%s' % (available_resource['authurl'], available_resource['region'], available_resource['project'])
+    if provider not in used_resources['provider']:
+        used_resources['provider'][provider] = {'VMs': 0, 'cores_used': 0, 'disk_used': 0, 'ram_used': 0, 'swap_used': 0}
+
+    cores_limit = min(
+        set_default(available_resource['cores_ctl'], available_resource['cores_max']),
+        set_default(available_resource['cores_softmax'], available_resource['cores_max']) - max(0, used_resources['provider'][provider]['cores_used'] - used_resources['group_cloud'][group_cloud]['cores_used']),
+        available_resource['cores_max'] - max(0, used_resources['provider'][provider]['cores_used'] - used_resources['group_cloud'][group_cloud]['cores_used'])
+        )
+
+    ram_limit = min(
+        set_default(available_resource['ram_ctl'], available_resource['ram_max']),
+        available_resource['ram_max'] - max(0, used_resources['provider'][provider]['ram_used'] - used_resources['group_cloud'][group_cloud]['ram_used'])
+        )
+
+    log.debug("provider: %s used:%s" % (used_resources['provider'][provider]['VMs'], used_resources['group_cloud'][group_cloud]['VMs'])) 
+
+    slots = min(
+        available_resource['VMs_max'] - used_resources['provider'][provider]['VMs'],
+        int(max(0, cores_limit - used_resources['group_cloud'][group_cloud]['cores_used']) / available_resource['flavor_cores']),
+        int(max(0, ram_limit - used_resources['group_cloud'][group_cloud]['ram_used']) / available_resource['flavor_ram'])
+        )
+
+    log.debug("available_resources_query(%s), VMs(%s/%s), Cores(%s,%s), RAM(%s,%s) Slots(%s) available for resource: %s" % (
+        available_resource['group_name'],
+        used_resources['group_cloud'][group_cloud]['VMs'],
+        used_resources['provider'][provider]['VMs'],
+        used_resources['group_cloud'][group_cloud]['cores_used'],
+        cores_limit,
+        used_resources['group_cloud'][group_cloud]['ram_used'],
+        ram_limit,
+        slots,
+        available_resource['flavor']
+        ))
+    return slots
+
+def available_resources_update(used_resources, available_resource, consumed_slots):
+    consumed_cores = available_resource['flavor_cores'] * consumed_slots
+    consumed_ram = available_resource['flavor_ram'] * consumed_slots
+
+    group_cloud = '%s::%s' % (available_resource['group_name'], available_resource['cloud_name'])
+    if group_cloud not in used_resources['group_cloud']:
+        used_resources['group_cloud'][group_cloud] = {
+            'VMs': available_resource['VMs'],
+            'cores_used': available_resource['cores_used'],
+            'disk_used': available_resource['disk_used'],
+            'ram_used': available_resource['ram_used'],
+            'swap_used': available_resource['swap_used'],
+            }
+
+    provider = '%s|%s|%s' % (available_resource['authurl'], available_resource['region'], available_resource['project'])
+    if provider not in used_resources['provider']:
+        used_resources['provider'][provider] = {'VMs': 0, 'cores_used': 0, 'disk_used': 0, 'ram_used': 0, 'swap_used': 0}
+
+    pre_group_VMs = used_resources['group_cloud'][group_cloud]['VMs']
+    pre_group_cores = used_resources['group_cloud'][group_cloud]['cores_used']
+    pre_group_ram = used_resources['group_cloud'][group_cloud]['ram_used']
+
+    used_resources['group_cloud'][group_cloud]['VMs'] += consumed_slots
+    used_resources['group_cloud'][group_cloud]['cores_used'] += consumed_cores
+    used_resources['group_cloud'][group_cloud]['ram_used'] += consumed_ram
+
+    pre_provider_VMs = used_resources['provider'][provider]['VMs']
+    pre_provider_cores = used_resources['provider'][provider]['cores_used']
+    pre_provider_ram = used_resources['provider'][provider]['ram_used']
+
+    used_resources['provider'][provider]['VMs'] += consumed_slots
+    used_resources['provider'][provider]['cores_used'] += consumed_cores
+    used_resources['provider'][provider]['ram_used'] += consumed_ram
+
+    log.debug("available_resources_update(%s, %s), VMs(%s/%s, %s/%s), Cores(%s/%s, %s/%s), RAM(%s/%s, %s/%s) Slots(%s)" % (
+        available_resource['group_name'],
+        available_resource['flavor'],
+
+        pre_group_VMs,
+        used_resources['group_cloud'][group_cloud]['VMs'],
+        pre_provider_VMs,
+        used_resources['provider'][provider]['VMs'],
+
+        pre_group_cores,
+        used_resources['group_cloud'][group_cloud]['cores_used'],
+        pre_provider_cores,
+        used_resources['provider'][provider]['cores_used'],
+
+        pre_group_ram,
+        used_resources['group_cloud'][group_cloud]['ram_used'],
+        pre_provider_ram,
+        used_resources['provider'][provider]['ram_used'],
+
+        consumed_slots,
+        ))
+
+def check_view_idle_vms():
+    """Query view_idle_vms and retire as needed."""
+    multiprocessing.current_process().name = "csmain_idle_vms"
+    log = logging.getLogger(__name__)
+    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', 'csmain',
+                    pool_size=15)
+    config.db_engine.dispose()
+    if not config:
+        print("Problem loading config file.")
+        return
+    while True:
+        config.refresh()
+        log.debug("-------------------check_view_idle_vms-------------------")
+        try:
+            config.db_open()
+            results = config.db_session.query(view_idle_vms)\
+                .filter(view_idle_vms.c.retire == 0, view_idle_vms.c.terminate == 0)
+            vmids = []
+            for res in results:
+                vmids.append(res.vmid)
+            if vmids:
+                log.debug("Setting retire flag on %s VMs.", len(vmids))
+                vms = config.db_map.classes.csv2_vms
+                update_result = config.db_session.query(vms).filter(vms.vmid.in_(vmids))
+                for row in update_result:
+                    row.retire = 1
+                    old_updater = row.updater
+                    row.updater = get_frame_info() + ":r1"
+                    config.db_session.merge(row)
+                    log.debug("Set retire flag on %s, previous updater: %s",
+                              row.hostname, old_updater)
+            config.db_close(commit=True)
+        except TimeoutError as ex:
+            log.exception(ex)
+            sys.exit(1)
+        except Exception as ex:
+            log.exception(ex)
+            config.db_close()
+        time.sleep(config.categories['csmain']['sleep_interval_main_long'])
+
+
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+def process_group_cloud_terminates(pair, condor_host):
+    group_name = pair.group_name
+    cloud_name = pair.cloud_name
+
+    config = Config(sys.argv[1], [os.path.basename(sys.argv[0]),  "ProcessMonitor"], pool_size=3, signals=True)
+    config.db_open()
+
+    VM = config.db_map.classes.csv2_vms
+    CLOUD = config.db_map.classes.csv2_clouds
+
+    terminate_off = config.categories["condor_poller.py"]["terminate_off"]
+
+    master_type = htcondor.AdTypes.Master
+    startd_type = htcondor.AdTypes.Startd
+
+    pid = os.getpid()
+    sql = 'update csv2_clouds set machine_subprocess_pid=%s where group_name="%s" and cloud_name="%s";' % (pid, group_name, cloud_name)
+    config.db_connection.execute(sql)
+
+    logging.info("Processing commands for group:%s, cloud:%s" % (group_name, cloud_name))
+
+    # Terminate code:
+    master_list = []
+    startd_list = []
+    #get list of vm/machines from this condor host
+    redundant_machine_list = config.db_session.query(view_condor_host).filter(view_condor_host.c.htcondor_fqdn == condor_host, view_condor_host.c.cloud_name==cloud_name, view_condor_host.c.group_name==group_name, view_condor_host.c.terminate >= 1)
+    for resource in redundant_machine_list:
+        if resource[6] is not None:
+            if resource[5] is not None:
+                if resource.terminate == 1 and resource[6] >= 1 and resource[5] >=1:
+                    logging.info("VM still has active slots, skipping terminate on %s" % resource.vmid)
+                    continue
+
+
+        # we need the relevent vm row to check if its in manual mode and if not, terminate and update termination status
+        try:
+            vm_row = config.db_session.query(VM).filter(VM.group_name == resource.group_name, VM.cloud_name == resource.cloud_name, VM.vmid == resource.vmid)[0]
+        except Exception as exc:
+            logging.error("Unable to retrieve VM row for vmid: %s, skipping terminate..." % resource.vmid)
+            continue
+        if vm_row.manual_control == 1:
+            logging.info("VM %s under manual control, skipping terminate..." % resource.vmid)
+            continue
+
+
+        # Get session with hosting cloud.
+        cloud = config.db_session.query(CLOUD).filter(
+            CLOUD.group_name == vm_row.group_name,
+            CLOUD.cloud_name == vm_row.cloud_name).first()
+
+        if cloud.cloud_type == "openstack":
+            session = _get_openstack_session(cloud)
+            if session is False:
+                continue
+         
+            if terminate_off:
+                logging.critical("Terminates disabled, normal operation would terminate %s" % vm_row.hostname)
+                continue
+
+            # terminate the vm
+            nova = _get_nova_client(session, region=cloud.region)
+            try:
+                # may want to check for result here Returns: An instance of novaclient.base.TupleWithMeta so probably not that useful
+                vm_row.terminate = vm_row.terminate + 1
+                old_updater = vm_row.updater
+                vm_row.updater = str(get_frame_info() + ":t+")
+
+                try:
+                    nova.servers.delete(vm_row.vmid)
+                except novaclient.exceptions.NotFound:
+                    logging.error("VM not found on cloud, deleting vm entry %s" % vm_row.vmid)
+                    config.db_session.delete(vm_row)
+                    try:
+                        config.db_session.commit()
+                    except Exception as exc:
+                        logging.exception("Failed to commit vm delete, aborting cycle...")
+                        logging.error(exc)
+                        break
+                    continue #skip rest of logic since this vm is gone anywheres 
+                        
+
+                except Exception as exc:
+                    logging.error("Unable to delete vm, vm doesnt exist or openstack failure:")
+                    exc_type, exc_obj, exc_tb = sys.exc_info()
+                    logging.error(exc_type)
+                    logging.error(exc)
+                    continue
+                logging.info("VM Terminated(%s): %s primary slots: %s dynamic slots: %s, last updater: %s" % (vm_row.terminate, vm_row.hostname, vm_row.htcondor_partitionable_slots, vm_row.htcondor_dynamic_slots, old_updater))
+                config.db_session.merge(vm_row)
+                # log here if terminate # /10 = remainder zero
+                if vm_row.terminate %10 == 0:
+                    logging.critical("%s failed terminates on %s user action required" % (vm_row.terminate - 1, vm_row.hostname))
+            except Exception as exc:
+                logging.error("Failed to terminate VM: %s, terminates issued: %s" % (vm_row.hostname, vm_row.terminate - 1))
+                logging.error(exc)
+
+            # Now that the machine is terminated, we can speed up operations by invalidating the related classads
+            # double check that a condor_session exists
+            if 'condor_session' not in locals():
+                condor_session = get_condor_session()
+            if resource.machine is not None:
+                logging.info("Removing classads for machine %s" % resource.machine)
+            else:
+                logging.info("Removing classads for machine %s" % resource.hostname)
+            try:
+                master_classad = get_master_classad(condor_session, resource.machine, resource.hostname)
+                if not master_classad:
+                    # there was no matching classad
+                    logging.error("Classad not found for %s//%s" % (resource.machine, resource.hostname))
+
+                master_result = invalidate_master_classad(condor_session, master_classad)
+                logging.debug("Invalidate master result: %s" % master_result)
+                startd_classads = get_startd_classads(condor_session, resource.hostname)
+                startd_result = invalidate_startd_classads(condor_session, startd_classads)
+                logging.debug("Invalidate startd result: %s" % startd_result)
+
+
+                #if resource.machine is not None and resource.machine is not "":
+                #    condor_classad = condor_session.query(master_type, 'Name=="%s"' % resource.machine)[0]
+                #else:
+                #    condor_classad = condor_session.query(master_type, 'regexp("%s", Name, "i")' % resource.hostname)[0]
+                #master_list.append(condor_classad)
+
+                # this could be a list of adds if a machine has many slots
+                #condor_classads = condor_session.query(startd_type, 'Machine=="%s"' % resource.hostname)
+                #for classad in condor_classads:
+                #    startd_list.append(classad)
+            #except IndexError as exc:
+            #    pass
+            except Exception as exc:
+                logging.error("Failed to get condor classads or issue invalidate:")
+                logging.error(exc)
+                break
+
+        elif cloud.cloud_type == "amazon":
+            if terminate_off:
+                logging.critical("Terminates disabled, normal operation would terminate %s" % vm_row.hostname)
+                continue
+            #terminate the vm
+            amz_session = _get_ec2_session(cloud)
+            amz_client = _get_ec2_client(amz_session)
+            try:
+                vm_row.terminate = vm_row.terminate + 1
+                old_updater = vm_row.updater
+                vm_row.updater = str(get_frame_info() + ":t+")
+                #destroy amazon vm, first we'll need to check if its a reservation
+                if vm_row.vmid[0:3].lower() == "sir":
+                    #its a reservation just delete it and destroy the vm
+                    # not sure what the difference between a client and connection from csv1 is but there is more work to be done here
+                    #
+                    # need the command to remove reservation:
+                    # cancel_spot_instance_requests(list_of_request_ids)
+                    #
+                    # need to terminate request, and possible image if instance_id isn't empty
+                    try:
+                        logging.info("Canceling amazon spot price request: %s" % vm_row.vmid)
+                        amz_client.cancel_spot_instance_requests(SpotInstanceRequestIds=[vm_row.vmid])
+                        if vm_row.instance_id is not None:
+                            #spot price vm running need to terminate it:
+                            logging.info("Terminating amazon vm: %s" % vm_row.instance_id)
+                            amz_client.terminate_instances(InstanceIds=[vm_row.instance_id])
+                    except Exception as exc:
+                        logging.error("Unable to terminate %s due to:" % vm_row.vmid)
+                        logging.error(exc)
+                else:
+                    #its a regular instance and just terminate it
+                    logging.info("Terminating amazon vm: %s" % vm_row.vmid)
+                    amz_client.terminate_instances(InstanceIds=[vm_row.vmid])
+            except Exception as exc:
+                logging.error("Unable to terminate %s due to:" % vm_row.vmid)
+                logging.error(exc)
+
+
+        else:
+            # Other cloud types will need to be implemented here to terminate any vms not from openstack
+            logging.info("Vm not from openstack, or amazon cloud, skipping...")
+            continue
+    try:
+        config.db_session.commit()
+    except Exception as exc:
+        logging.exception("Failed to commit vm updates, aborting cycle...")
+        logging.error(exc)
+        config.db_session.rollback()
+        sql = "update csv2_clouds set machine_subprocess_pid=%s where group_name='%s' and cloud_name='%s';" % (-1, group_name, cloud_name)
+        return
+
+    logging.info("Commands complete, closing subprocess")
+    sql = "update csv2_clouds set machine_subprocess_pid=%s where group_name='%s' and cloud_name='%s';" % (-1, group_name, cloud_name)
+    config.db_connection.execute(sql) 
+    config.db_close()
+    return
+
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# Main functions
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 def main():
     """
@@ -414,189 +945,105 @@ def main():
         while_counter += 1
         time.sleep(config.categories['csmain']['sleep_interval_main_long'])
 
-def check_view_idle_vms():
-    """Query view_idle_vms and retire as needed."""
-    multiprocessing.current_process().name = "csmain_idle_vms"
-    log = logging.getLogger(__name__)
-    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', 'csmain',
-                    pool_size=15)
-    config.db_engine.dispose()
-    if not config:
-        print("Problem loading config file.")
-        return
-    while True:
-        config.refresh()
-        log.debug("-------------------check_view_idle_vms-------------------")
-        try:
-            config.db_open()
-            results = config.db_session.query(view_idle_vms)\
-                .filter(view_idle_vms.c.retire == 0, view_idle_vms.c.terminate == 0)
-            vmids = []
-            for res in results:
-                vmids.append(res.vmid)
-            if vmids:
-                log.debug("Setting retire flag on %s VMs.", len(vmids))
-                vms = config.db_map.classes.csv2_vms
-                update_result = config.db_session.query(vms).filter(vms.vmid.in_(vmids))
-                for row in update_result:
-                    row.retire = 1
-                    old_updater = row.updater
-                    row.updater = get_frame_info() + ":r1"
-                    config.db_session.merge(row)
-                    log.debug("Set retire flag on %s, previous updater: %s",
-                              row.hostname, old_updater)
-            config.db_close(commit=True)
-        except TimeoutError as ex:
-            log.exception(ex)
-            sys.exit(1)
-        except Exception as ex:
-            log.exception(ex)
-            config.db_close()
-        time.sleep(config.categories['csmain']['sleep_interval_main_long'])
 
-def available_resources_initialize(config):
-    used_resource_list = qt(config.db_session.execute('select * from view_total_used_resources'))
-    used_resources = {'group_cloud': {}, 'provider': {}}
-    for used_resource in used_resource_list:
-        provider = '%s|%s|%s' % (used_resource['authurl'], used_resource['region'], used_resource['project'])
-        if provider not in used_resources['provider']:
-            used_resources['provider'][provider] = {'VMs': 0, 'cores_used': 0, 'disk_used': 0, 'ram_used': 0, 'swap_used': 0}
+def vm_termination():
+    multiprocessing.current_process().name = "VM Termination"
 
-        used_resources['provider'][provider]['VMs']        += used_resource['VMs']
-        used_resources['provider'][provider]['cores_used'] += used_resource['cores']
-        used_resources['provider'][provider]['disk_used']  += used_resource['disk']
-        used_resources['provider'][provider]['ram_used']   += used_resource['ram']
-        used_resources['provider'][provider]['swap_used']  += used_resource['swap']
+    # database setup
+    config = Config(sys.argv[1], ['condor_poller.py',  "ProcessMonitor"], pool_size=3, signals=True)
+    PID_FILE = config.categories["ProcessMonitor"]["pid_path"] + os.path.basename(sys.argv[0])
 
-    for provider in sorted(used_resources['provider']):
-        log.debug("available_resources_initialize, VMs: %11s, cores: %11s, disk: %11s, RAM: %11s, provider: %s" % (
-            used_resources['provider'][provider]['VMs'],
-            used_resources['provider'][provider]['cores_used'],
-            used_resources['provider'][provider]['disk_used'],
-            used_resources['provider'][provider]['ram_used'],
-            provider
-            ))
+    Resource = config.db_map.classes.condor_machines
+    GROUPS = config.db_map.classes.csv2_groups
+    VM = config.db_map.classes.csv2_vms
+    CLOUD = config.db_map.classes.csv2_clouds
 
-    return used_resources
+    cycle_start_time = 0
+    new_poll_time = 0
+    poll_time_history = [0,0,0,0]
 
-def available_resources_query(used_resources, available_resource):
-    def set_default(ctl, default_value):
-        if ctl < 0:
-            return default_value
-        else:
-            return ctl
 
-    group_cloud = '%s::%s' % (available_resource['group_name'], available_resource['cloud_name'])
-    if group_cloud not in used_resources['group_cloud']:
-        used_resources['group_cloud'][group_cloud] = {
-            'VMs': available_resource['VMs'],
-            'cores_used': available_resource['cores_used'],
-            'disk_used': available_resource['disk_used'],
-            'ram_used': available_resource['ram_used'],
-            'swap_used': available_resource['swap_used'],
-            }
+    cycle_count = 0
 
-    provider = '%s|%s|%s' % (available_resource['authurl'], available_resource['region'], available_resource['project'])
-    if provider not in used_resources['provider']:
-        used_resources['provider'][provider] = {'VMs': 0, 'cores_used': 0, 'disk_used': 0, 'ram_used': 0, 'swap_used': 0}
 
-    cores_limit = min(
-        set_default(available_resource['cores_ctl'], available_resource['cores_max']),
-        set_default(available_resource['cores_softmax'], available_resource['cores_max']) - max(0, used_resources['provider'][provider]['cores_used'] - used_resources['group_cloud'][group_cloud]['cores_used']),
-        available_resource['cores_max'] - max(0, used_resources['provider'][provider]['cores_used'] - used_resources['group_cloud'][group_cloud]['cores_used'])
-        )
+    try:
+        config.db_open()
+        while True:
+            logging.debug("Beginning command consumer cycle")
+            config.refresh()
 
-    ram_limit = min(
-        set_default(available_resource['ram_ctl'], available_resource['ram_max']),
-        available_resource['ram_max'] - max(0, used_resources['provider'][provider]['ram_used'] - used_resources['group_cloud'][group_cloud]['ram_used'])
-        )
+            if not os.path.exists(PID_FILE):
+                logging.debug("Stop set, exiting...")
+                break
 
-    log.debug("provider: %s used:%s" % (used_resources['provider'][provider]['VMs'], used_resources['group_cloud'][group_cloud]['VMs'])) 
+            signal.signal(signal.SIGINT, signal.SIG_IGN)
+            new_poll_time, cycle_start_time = start_cycle(new_poll_time, cycle_start_time)
 
-    slots = min(
-        available_resource['VMs_max'] - used_resources['provider'][provider]['VMs'],
-        int(max(0, cores_limit - used_resources['group_cloud'][group_cloud]['cores_used']) / available_resource['flavor_cores']),
-        int(max(0, ram_limit - used_resources['group_cloud'][group_cloud]['ram_used']) / available_resource['flavor_ram'])
-        )
+            db_session = config.db_session
+            groups = db_session.query(GROUPS).filter(GROUPS.htcondor_host_id == config.local_host_id)
+            condor_hosts_set = set() # use a set here so we dont re-query same host if multiple groups have same host
+            for group in groups:
+                if group.htcondor_container_hostname is not None and group.htcondor_container_hostname != "":
+                    condor_hosts_set.add(group.htcondor_container_hostname)
+                else:
+                    condor_hosts_set.add(group.htcondor_fqdn)
 
-    log.debug("available_resources_query(%s), VMs(%s/%s), Cores(%s,%s), RAM(%s,%s) Slots(%s) available for resource: %s" % (
-        available_resource['group_name'],
-        used_resources['group_cloud'][group_cloud]['VMs'],
-        used_resources['provider'][provider]['VMs'],
-        used_resources['group_cloud'][group_cloud]['cores_used'],
-        cores_limit,
-        used_resources['group_cloud'][group_cloud]['ram_used'],
-        ram_limit,
-        slots,
-        available_resource['flavor']
-        ))
-    return slots
+            uncommitted_updates = 0
+            logging.debug(condor_hosts_set)
+            
+            for condor_host in condor_hosts_set:
 
-def available_resources_update(used_resources, available_resource, consumed_slots):
-    consumed_cores = available_resource['flavor_cores'] * consumed_slots
-    consumed_ram = available_resource['flavor_ram'] * consumed_slots
+                # Get unique group,cloud pairs
+                grp_cld_pairs = config.db_connection.execute('select distinct group_name, cloud_name from view_condor_host')
 
-    group_cloud = '%s::%s' % (available_resource['group_name'], available_resource['cloud_name'])
-    if group_cloud not in used_resources['group_cloud']:
-        used_resources['group_cloud'][group_cloud] = {
-            'VMs': available_resource['VMs'],
-            'cores_used': available_resource['cores_used'],
-            'disk_used': available_resource['disk_used'],
-            'ram_used': available_resource['ram_used'],
-            'swap_used': available_resource['swap_used'],
-            }
+                for pair in grp_cld_pairs:
+                    # First check pid of cloud entry
+                    logging.info("Checking child pid for pair: %s, %s" % (pair.group_name, pair.cloud_name))
+                    pid_active = check_pair_pid(pair, config, CLOUD)
+                    if pid_active:
+                        logging.info("Child pid still active...")
+                    if not pid_active:
+                        #subprocess this eventually
+                        logging.info("No pid active, starting commands")
+                        #process_group_cloud_commands(pair, condor_host)
+                        p = Process(target=process_group_cloud_commands, args=(pair, condor_host))
+                        p.start()
+                    
+            
+            try:
+                config.db_session.commit()
+            except Exception as exc:
+                logging.error("Error during final commit, likely that a vm was removed from database before final terminate update was comitted..")
+                logging.exception(exc)
 
-    provider = '%s|%s|%s' % (available_resource['authurl'], available_resource['region'], available_resource['project'])
-    if provider not in used_resources['provider']:
-        used_resources['provider'][provider] = {'VMs': 0, 'cores_used': 0, 'disk_used': 0, 'ram_used': 0, 'swap_used': 0}
+            
+            signal.signal(signal.SIGINT, config.signals['SIGINT'])
+            if not os.path.exists(PID_FILE):
+                logging.info("Stop set, exiting...")
+                break
+            wait_cycle(cycle_start_time, poll_time_history, config.categories["condor_poller.py"]["sleep_interval_command"], config)
 
-    pre_group_VMs = used_resources['group_cloud'][group_cloud]['VMs']
-    pre_group_cores = used_resources['group_cloud'][group_cloud]['cores_used']
-    pre_group_ram = used_resources['group_cloud'][group_cloud]['ram_used']
+    except Exception as exc:
+        logging.exception("Command consumer while loop exception, process terminating...")
+        logging.error(exc)
 
-    used_resources['group_cloud'][group_cloud]['VMs'] += consumed_slots
-    used_resources['group_cloud'][group_cloud]['cores_used'] += consumed_cores
-    used_resources['group_cloud'][group_cloud]['ram_used'] += consumed_ram
+#~~~~~~~~~~~~~~~~~
 
-    pre_provider_VMs = used_resources['provider'][provider]['VMs']
-    pre_provider_cores = used_resources['provider'][provider]['cores_used']
-    pre_provider_ram = used_resources['provider'][provider]['ram_used']
 
-    used_resources['provider'][provider]['VMs'] += consumed_slots
-    used_resources['provider'][provider]['cores_used'] += consumed_cores
-    used_resources['provider'][provider]['ram_used'] += consumed_ram
 
-    log.debug("available_resources_update(%s, %s), VMs(%s/%s, %s/%s), Cores(%s/%s, %s/%s), RAM(%s/%s, %s/%s) Slots(%s)" % (
-        available_resource['group_name'],
-        available_resource['flavor'],
 
-        pre_group_VMs,
-        used_resources['group_cloud'][group_cloud]['VMs'],
-        pre_provider_VMs,
-        used_resources['provider'][provider]['VMs'],
 
-        pre_group_cores,
-        used_resources['group_cloud'][group_cloud]['cores_used'],
-        pre_provider_cores,
-        used_resources['provider'][provider]['cores_used'],
-
-        pre_group_ram,
-        used_resources['group_cloud'][group_cloud]['ram_used'],
-        pre_provider_ram,
-        used_resources['provider'][provider]['ram_used'],
-
-        consumed_slots,
-        ))
 
 if __name__ == '__main__':
 
     process_ids = {
         'scheduler': main,
         'idle_vms': check_view_idle_vms,
+        'vm_termination': vm_termination,
     }
 
     procMon = ProcessMonitor(
-        config_params=[os.path.basename(sys.argv[0]), "csmain", 'ProcessMonitor'],
+        config_params=[os.path.basename(sys.argv[0]), "csmain", 'ProcessMonitor', 'general'],
         pool_size=15,
         process_ids=process_ids
         )
