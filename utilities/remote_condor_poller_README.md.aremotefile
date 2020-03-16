@@ -1,5 +1,0 @@
-To complete the installation of a remote condor_poller, run:
-
-    sudo /opt/cloudscheduler/utilities/remote_condor_poller_enable
-
-This bash script contains comments explaining what it does.
