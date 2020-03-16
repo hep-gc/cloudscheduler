@@ -1,8 +1,8 @@
 import multiprocessing
 import time
-import logging
 import signal
 import socket
+import logging
 from subprocess import Popen, PIPE
 from multiprocessing import Process
 import os
@@ -12,17 +12,17 @@ import yaml
 
 from cloudscheduler.lib.attribute_mapper import map_attributes
 from cloudscheduler.lib.db_config_na import Config
-from cloudscheduler.lib.ProcessMonitor import ProcessMonitor, check_pid, terminate
 from cloudscheduler.lib.schema import view_condor_host
 from cloudscheduler.lib.log_tools import get_frame_info
-from cloudscheduler.lib.fw_config import configure_fw
-from cloudscheduler.lib.poller_functions import \
-    delete_obsolete_database_items, \
-    get_inventory_item_hash_from_database, \
-    test_and_set_inventory_item_hash, \
-    build_inventory_for_condor, \
+from cloudscheduler.lib.fw_config_na import configure_fw
+from cloudscheduler.lib.poller_functions_na import \
+    inventory_cleanup, \
+    inventory_obsolete_database_items_delete, \
+    inventory_get_item_hash_from_db_query_rows, \
+    inventory_test_and_set_item_hash, \
     start_cycle, \
     wait_cycle
+from cloudscheduler.lib.ProcessMonitor_na import ProcessMonitor, check_pid, terminate
 
 from keystoneclient.auth.identity import v2, v3
 from keystoneauth1 import session
@@ -40,41 +40,48 @@ from sqlalchemy.orm import Session
 MASTER_TYPE = htcondor.AdTypes.Master
 STARTD_TYPE = htcondor.AdTypes.Startd
 
+# DB permissions comments:
+#    mysql_privileges_map_table_to_variables condor_machines  RESOURCE
+#    mysql_privileges_map_table_to_variables condor_jobs      JOB Job
+#    mysql_privileges_map_table_to_variables csv2_clouds      CLOUD CLOUDS cloud_table 
+#    mysql_privileges_map_table_to_variables csv2_groups      GROUPS
+#    mysql_privileges_map_table_to_variables csv2_user        USERS
+#    mysql_privileges_map_table_to_variables csv2_vms         VM
 
 def _get_nova_client(session, region=None):
     nova = novaclient.Client("2", session=session, region_name=region, timeout=10)
     return nova
 
 def _get_openstack_session(cloud):
-    authsplit = cloud.authurl.split('/')
+    authsplit = cloud["authurl"].split('/')
     try:
         version = int(float(authsplit[-1][1:])) if len(authsplit[-1]) > 0 else int(float(authsplit[-2][1:]))
     except ValueError:
-        logging.error("Bad OpenStack URL, could not determine version, skipping %s", cloud.authurl)
+        logging.error("Bad OpenStack URL, could not determine version, skipping %s", cloud["authurl"])
         return False
     if version == 2:
         session = _get_openstack_session_v1_v2(
-            auth_url=cloud.authurl,
-            username=cloud.username,
-            password=cloud.password,
-            project=cloud.project)
+            auth_url=cloud["authurl"],
+            username=cloud["username"],
+            password=cloud["password"],
+            project=cloud["project"])
     else:
         session = _get_openstack_session_v1_v2(
-            auth_url=cloud.authurl,
-            username=cloud.username,
-            password=cloud.password,
-            project=cloud.project,
-            user_domain=cloud.user_domain_name,
-            project_domain_name=cloud.project_domain_name)
+            auth_url=cloud["authurl"],
+            username=cloud["username"],
+            password=cloud["password"],
+            project=cloud["project"],
+            user_domain=cloud["user_domain_name"],
+            project_domain_name=cloud["project_domain_name"])
     if session is False:
-        logging.error("Failed to setup session, skipping %s", cloud.cloud_name)
+        logging.error("Failed to setup session, skipping %s", cloud["cloud_name"])
         if version == 2:
             logging.error("Connection parameters: \n authurl: %s \n username: %s \n project: %s" %
-                          (cloud.authurl, cloud.username, cloud.project))
+                          (cloud["authurl"], cloud["username"], cloud["project"]))
         else:
             logging.error(
                 "Connection parameters: \n authurl: %s \n username: %s \n project: %s \n user_domain: %s \n project_domain: %s" %
-                (cloud.authurl, cloud.username, cloud.project, cloud.user_domain_name, cloud.project_domain_name))
+                (cloud["authurl"], cloud["username"], cloud["project"], cloud["user_domain_name"], cloud["project_domain_name"]))
     return session
 
 
@@ -142,7 +149,8 @@ def trim_keys(dict_to_trim, key_list):
 
 def get_condor_dict(config, logging):
     condor_dict = {}
-    group_list = config.db_execute('select group_name,htcondor_fqdn from csv2_groups;')
+    rc, msg, group_list = config.db_query('csv2_groups', select=['group_name', 'htcondor_fqdn'])
+    logging.error(group_list)
     for group in group_list:
         try:
             condor_ip = socket.gethostbyname(group['htcondor_fqdn'])
@@ -198,7 +206,7 @@ def get_condor_session(hostname=None):
         condor_session = htcondor.Collector(hostname)
         return condor_session
     except Exception as exc:
-        logging.exception("Failed to get condor session for %s:" % hostname)
+        logging.error("Failed to get condor session for %s:" % hostname)
         logging.error(exc)
         return False
 
@@ -322,7 +330,8 @@ def check_pair_pid(pair, config, cloud_table):
 
     #returns list of dictionaries? this query should always have zero or 1 result
     try:
-        cloud = config.db_query(cloud_table, where=where_clause)[0]
+        rc, msg, clouds = config.db_query(cloud_table, where=where_clause)
+        cloud = clouds[0]
     except Exception as ex:
         logging.error("Failed to retrieve cloud row for: %s" % pair)
         return False
@@ -366,9 +375,10 @@ def process_group_cloud_commands(pair, condor_host):
 
     # RETIRE CODE:
     # Query database for machines to be retired.
-    where_clause = "htcondor_fqdn='%s' and cloud_name='%s' and group_name='%s' and (retire>=1 or terminate>=1))" % (condor_host, cloud_name, group_name)
+    where_clause = "htcondor_fqdn='%s' and cloud_name='%s' and group_name='%s' and (retire>=1 or terminate>=1)" % (condor_host, cloud_name, group_name)
 
-    for resource in config.db_query("view_condor_host", where=where_clause):
+    rc, msg, resources_list = config.db_query("view_condor_host", where=where_clause)
+    for resource in resources_list:
         # Since we are querying a view we dont get an automapped object and instead get a 'result' tuple of the following format
         #index=attribute
         #0=group
@@ -394,19 +404,20 @@ def process_group_cloud_commands(pair, condor_host):
                   # need to get vm classad because we can't update via the view.
                   try:
                       logging.info("slots are zero or null on %s, setting terminate, last updater: %s" % (resource["hostname"], resource["updater"]))
-                      logging.debug("group_name:%s\ncloud_name:%s\nhtcondor_fqdn:%s\nvmid:%s\nhostname%s\nPrimary Slots:%s\nDynamic Slots:%s\nretire:%s\nupdater:%s\nterminate:%s\nmachine:%s" % (resource["group_name"], resource["cloud_name"], resource["htcondor_fqdn"], resource["vmid"], resource["hostname"], resource["primary_slots"], resource["dyanmic_slots"], resource["retire"], resource["updater"], resource["terminate"], resource["machine"]))
+                      logging.debug("group_name:%s\ncloud_name:%s\nhtcondor_fqdn:%s\nvmid:%s\nhostname%s\nPrimary Slots:%s\nDynamic Slots:%s\nretire:%s\nupdater:%s\nterminate:%s\nmachine:%s" % (resource["group_name"], resource["cloud_name"], resource["htcondor_fqdn"], resource["vmid"], resource["hostname"], resource["primary_slots"], resource["dynamic_slots"], resource["retire"], resource["updater"], resource["terminate"], resource["machine"]))
 
                       where_clause = "group_name='%s' and cloud_name='%s' and vmid='%s'" % (resource["group_name"], resource["cloud_name"], resource["vmid"])
-                      vm_row = config.db_query(VM, where=where_clause)[0]
+                      rc, msg, vm_rows = config.db_query(VM, where=where_clause)
+                      vm_row = vm_rows[0]
                       vm_row["terminate"] = 1
                       vm_row["updater"] = str(get_frame_info() + ":t1")
-                      config.db_merge(vm_row)
+                      config.db_merge(VM, vm_row)
                       config.db_commit()
 
                   except Exception as exc:
                       # unable to get VM row error
-                      logging.exception(exc)
-                      logging.error("%s ready to be terminated but unable to locate vm_row" % resource=["vmid"])
+                      logging.error(exc)
+                      logging.error("%s ready to be terminated but unable to locate vm_row" % resource["vmid"])
                       continue
             if resource["retire"] >= 10:
                 continue
@@ -429,7 +440,8 @@ def process_group_cloud_commands(pair, condor_host):
         logging.info("Retiring (%s) machine %s primary slots: %s dynamic slots: %s, last updater: %s" % (resource["retire"], resource["machine"], resource["dynamic_slots"], resource["primary_slots"], resource["updater"]))
         try:
             condor_session = get_condor_session()
-            if resource["machine"] is not "":
+# crlb #    if resource["machine"] is not "":
+            if resource["machine"] and len(resource["machine"]) > 0:
                 condor_classad = condor_session.query(master_type, 'Name=="%s"' % resource["machine"])[0]
             else:
                 condor_classad = condor_session.query(master_type, 'regexp("%s", Name, "i")' % resource["hostname"])[0]
@@ -445,11 +457,12 @@ def process_group_cloud_commands(pair, condor_host):
                 
             #get vm entry and update retire = 2
             where_clause = "group_name='%s' and cloud_name='%s' and vmid='%s'" % (resource["group_name"], resource["cloud_name"], resource["vmid"])
-            vm_row = config.db_query(VM, where=where_clause)[0]
+            rc, msg, vm_rows = config.db_query(VM, where=where_clause)
+            vm_row = vm_rows[0]
             vm_row["retire"] = vm_row["retire"] + 1
             vm_row["updater"] = str(get_frame_info() + ":r+")
             vm_row["retire_time"] = int(time.time())
-            config.db_merge(vm_row)
+            config.db_merge(VM, vm_row)
             try:
                 config.db_commit()
             except Exception as exc:
@@ -458,7 +471,7 @@ def process_group_cloud_commands(pair, condor_host):
                 break
 
         except Exception as exc:
-            logging.exception(exc)
+            logging.debug(exc)
             logging.error("Failed to issue DaemonsOffPeacefull to machine: %s, hostname: %s missing classad or condor miscomunication." % (resource["machine"], resource["hostname"]))
             logging.debug(condor_host)
             continue
@@ -470,20 +483,22 @@ def process_group_cloud_commands(pair, condor_host):
     startd_list = []
     #get list of vm/machines from this condor host
     where_clause = "htcondor_fqdn='%s' and cloud_name='%s' and group_name='%s' and terminate >= 1" % (condor_host, cloud_name, group_name)
-    redundant_machine_list = config.db_query("view_condor_host", where=where_clause)
+    rc, msg, redundant_machine_list = config.db_query("view_condor_host", where=where_clause)
 
     for resource in redundant_machine_list:
+        logging.error(resource)
         if resource["dynamic_slots"] is not None:
             if resource["primary_slots"] is not None:
                 if resource["terminate"] == 1 and resource["dynamic_slots"] >= 1 and resource["primary_slots"] >=1:
-                    logging.info("VM still has active slots, skipping terminate on %s" % resourcei["vmid"])
+                    logging.info("VM still has active slots, skipping terminate on %s" % resource["vmid"])
                     continue
 
 
         # we need the relevent vm row to check if its in manual mode and if not, terminate and update termination status
         try:
-            where_clause = "group_name='%s' and cloud_name='%' and vmid='%s'" % (resource["group_name"], resource["cloud_name"], resource["vmid"])
-            vm_row = config.db_query(VM, where=where_clause)[0]
+            where_clause = "group_name='%s' and cloud_name='%s' and vmid='%s'" % (resource["group_name"], resource["cloud_name"], resource["vmid"])
+            rc, msg, vm_rows = config.db_query(VM, where=where_clause)
+            vm_row = vm_rows[0]
         except Exception as exc:
             logging.error("Unable to retrieve VM row for vmid: %s, skipping terminate..." % resource["vmid"])
             continue
@@ -493,12 +508,14 @@ def process_group_cloud_commands(pair, condor_host):
 
 
         # Get session with hosting cloud.
-        where_clause = "group_name='%s'  and cloud_name='%s'" % (vm_rowi["group_name"], vm_row["cloud_name"])
-        cloud = config.db_session.query(CLOUD, where=where_clause)[0]
+        where_clause = "group_name='%s'  and cloud_name='%s'" % (vm_row["group_name"], vm_row["cloud_name"])
+        rc, msg, cloud_rows = config.db_query(CLOUD, where=where_clause)
+        cloud = cloud_rows[0]
 
         if cloud["cloud_type"] == "openstack":
             session = _get_openstack_session(cloud)
             if session is False:
+                logging.error("Failed to create cloud session with cloud: %s" % cloud)
                 continue
          
             if terminate_off:
@@ -514,10 +531,11 @@ def process_group_cloud_commands(pair, condor_host):
                 vm_row["updater"] = str(get_frame_info() + ":t+")
 
                 try:
+                    logging.info("Terminating vm: %s" % vm_row["vmid"])
                     nova.servers.delete(vm_row["vmid"])
                 except novaclient.exceptions.NotFound:
                     logging.error("VM not found on cloud, deleting vm entry %s" % vm_row["vmid"])
-                    config.db_delete(vm_row)
+                    config.db_delete("csv2_vms", vm_row)
                     try:
                         config.db_commit()
                     except Exception as exc:
@@ -534,10 +552,10 @@ def process_group_cloud_commands(pair, condor_host):
                     logging.error(exc)
                     continue
                 logging.info("VM Terminated(%s): %s primary slots: %s dynamic slots: %s, last updater: %s" % (vm_row["terminate"], vm_row["hostname"], vm_row["htcondor_partitionable_slots"], vm_row["htcondor_dynamic_slots"], old_updater))
-                config.db_session.merge(vm_row)
+                config.db_merge(VM, vm_row)
                 # log here if terminate # /10 = remainder zero
                 if vm_row["terminate"] %10 == 0:
-                    logging.critical("%s failed terminates on %s user action required" % (vm_row.["terminate"] - 1, vm_row["hostname"]))
+                    logging.critical("%s failed terminates on %s user action required" % (vm_row["terminate"] - 1, vm_row["hostname"]))
             except Exception as exc:
                 logging.error("Failed to terminate VM: %s, terminates issued: %s" % (vm_row["hostname"], vm_row["terminate"] - 1))
                 logging.error(exc)
@@ -664,7 +682,7 @@ def job_poller():
     uncommitted_updates = 0
     failure_dict = {}
 
-    config = Config(sys.argv[1], "condor_poller.py", "ProcessMonitor"], pool_size=3, signals=True)
+    config = Config(sys.argv[1], ["condor_poller.py", "ProcessMonitor"], pool_size=3, signals=True)
     PID_FILE = config.categories["ProcessMonitor"]["pid_path"] + os.path.basename(sys.argv[0])
 
 
@@ -672,11 +690,17 @@ def job_poller():
     CLOUDS = "csv2_clouds"
     GROUPS = "csv2_groups"
     USERS = "csv2_user_groups"
+    ikey_names = ["global_job_id", "group_name", "htcondor_host_id"]
 
 
     try:
-        inventory = get_inventory_item_hash_from_database(config.db_engine, JOB, 'global_job_id', debug_hash=(config.categories["condor_poller.py"]["log_level"]<20), condor_host=config.local_host_id)
         config.db_open()
+        where_clause = "htcondor_host_id='%s'" % config.local_host_id
+        rc, msg, rows = config.db_query(JOB, where=where_clause)
+        inventory = inventory_get_item_hash_from_db_query_rows(ikey_names, rows)
+
+        #old inventory
+        #inventory = get_inventory_item_hash_from_database(config.db_engine, JOB, 'global_job_id', debug_hash=(config.categories["condor_poller.py"]["log_level"]<20), condor_host=config.local_host_id)
         while True:
             #
             # Setup - initialize condor and database objects and build user-group list
@@ -690,7 +714,7 @@ def job_poller():
             signal.signal(signal.SIGINT, signal.SIG_IGN)
 
             where_clause = "htcondor_host_id='%s'" % config.local_host_id
-            groups = config.db_query(GROUPS, where=where_clause)
+            rc, msg, groups = config.db_query(GROUPS, where=where_clause)
             condor_hosts_set = set() # use a set here so we dont re-query same host if multiple groups have same host
             condor_host_groups = {}
             group_users = {}
@@ -713,10 +737,10 @@ def job_poller():
 
                 # build group_users dict
                 where_clause = "group_name='%s'" % group["group_name"]
-                users = config.db_query(USERS, where=where_clause)
+                rc, msg, users = config.db_query(USERS, where=where_clause)
                 htcondor_other_submitters = group["htcondor_other_submitters"]
                 if htcondor_other_submitters is not None:
-                    user_list = group.["htcondor_other_submitters"].split(',')
+                    user_list = group["htcondor_other_submitters"].split(',')
                 else:
                     user_list = []
                 # need to append users from group defaultts (htcondor_supplementary_submitters) here
@@ -724,7 +748,7 @@ def job_poller():
                 for usr in users:
                     user_list.append(usr["username"])
 
-                group_users[group["group_name"] = user_list
+                group_users[group["group_name"]] = user_list
 
             uncommitted_updates = 0
             foreign_jobs = 0
@@ -743,13 +767,13 @@ def job_poller():
                     fail_count = 0
                     for group in groups:
                         if group.get("htcondor_fqdn") is not None and group["htcondor_fqdn"] != "":
-                            if group.["htcondor_fqdn"] == condor_host:
+                            if group["htcondor_fqdn"] == condor_host:
                                 if group["group_name"] not in failure_dict:
                                     failure_dict[group["group_name"]] = 1
                                     fail_count = failure_dict[group["group_name"]]
                                 else:
                                     failure_dict[group["group_name"]] = failure_dict[group["group_name"]] + 1
-                                    fail_count = failure_dict[group.group_name]
+                                    fail_count = failure_dict[group["group_name"]]
                         else:
                             if group["htcondor_container_hostname"] == condor_host:
                                 if group["group_name"] not in failure_dict:
@@ -769,8 +793,10 @@ def job_poller():
 
 
                 if not condor_inventory_built:
-                    # Initializes the cloud field to "-" since a job has no concept of a cloud
-                    build_inventory_for_condor(inventory, db_session, CLOUDS)
+                    # New version of inventory functions:
+                    where_clause = "htcondor_host_id='%s'" % config.local_host_id
+                    rc, msg, rows = config.db_query(JOB, where_clause)
+                    inventory_get_item_hash_from_db_query_rows(ikey_names, rows)
                     condor_inventory_built = True
 
                 # Retrieve jobs.
@@ -898,19 +924,23 @@ def job_poller():
 
                     job_dict = trim_keys(job_dict, job_attributes)
                     job_dict, unmapped = map_attributes(src="condor", dest="csv2", attr_dict=job_dict)
+                    logging.debug("Adding job %s", job_dict["global_job_id"])
+                    job_dict["htcondor_host_id"] = config.local_host_id
                     logging.debug(job_dict)
                     if unmapped:
                         logging.error("attribute mapper found unmapped variables:")
                         logging.error(unmapped)
 
                     # Check if this item has changed relative to the local cache, skip it if it's unchanged
-                    if test_and_set_inventory_item_hash(inventory, job_dict["group_name"], "-", job_dict["global_job_id"], job_dict, new_poll_time, debug_hash=(config.categories["condor_poller.py"]["log_level"]<20)):
+                    # old inventory function
+                    #if test_and_set_inventory_item_hash(inventory, job_dict["group_name"], "-", job_dict["global_job_id"], job_dict, new_poll_time, debug_hash=(config.categories["condor_poller.py"]["log_level"]<20)):
+                    # New inventory function:
+                    if inventory_test_and_set_item_hash(ikey_names, job_dict, inventory, new_poll_time, debug_hash=(config.categories["condor_poller.py"]["log_level"]<20)):
                         continue
 
-                    logging.debug("Adding job %s", job_dict["global_job_id"])
-                    job_dict["htcondor_host_id"] = config.local_host_id
                     try:
-                        config.db_merge(job_dict)
+                        logging.info(job_dict)
+                        config.db_merge(JOB, job_dict)
                         uncommitted_updates += 1
                     except Exception as exc:
                         logging.error("Failed to merge job entry, aborting cycle...")
@@ -978,14 +1008,20 @@ def job_poller():
                 except Exception as exc:
                     logging.error("Failed to commit new jobs, aborting cycle...")
                     logging.error(exc)
-                    config.db_session.rollback()
+                    config.db_rollback()
                     signal.signal(signal.SIGINT, config.signals['SIGINT'])
                     time.sleep(config.categories["condor_poller.py"]["sleep_interval_job"])
                     continue
 
             if delete_cycle:
                 # Check for deletes
-                delete_obsolete_database_items('Jobs', inventory, db_session, JOB, 'global_job_id', poll_time=new_poll_time, failure_dict=failure_dict, condor_host=config.local_host_id)
+                # New poller function:
+                where_clause = "htcondor_host_id='%s'" % config.local_host_id
+                rc, msg, rows = config.db_query(JOB, where=where_clause)
+                inventory_obsolete_database_items_delete(ikey_names, rows, inventory, new_poll_time, config, JOB)
+
+                #old inventory func
+                #delete_obsolete_database_items('Jobs', inventory, db_session, JOB, 'global_job_id', poll_time=new_poll_time, failure_dict=failure_dict, condor_host=config.local_host_id)
 
                 delete_cycle = False
 
@@ -1032,7 +1068,7 @@ def job_command_poller():
             new_poll_time, cycle_start_time = start_cycle(new_poll_time, cycle_start_time)
 
             where_clause = "htcondor_host_id='%s'" % config.local_host_id
-            groups = config.db_query(GROUPS, where=where_clause)
+            rc, msg, groups = config.db_query(GROUPS, where=where_clause)
             condor_hosts_set = set() # use a set here so we dont re-query same host if multiple groups have same host
             for group in groups:
                 # for containers we will have to issue the commands directly to the container and not the condor fqdn so here it takes precedence 
@@ -1055,7 +1091,8 @@ def job_command_poller():
                 #Query database for any entries that have a command flag
                 abort_cycle = False
                 where_clause = "hold_job_reason is not NULL"
-                for job in config.db_query(Job, where=where_clause):
+                rc, msg, job_rows = config.db_query(Job, where=where_clause)
+                for job in job_rows:
                     logging.info("Holding job %s, reason=%s" % (job["global_job_id"], job["hold_job_reason"]))
                     local_job_id = job["global_job_id"].split('#')[1]
                     try:
@@ -1064,12 +1101,12 @@ def job_command_poller():
 
                         job["job_status"] = 5
                         job["hold_job_reason"] = None
-                        config.db_merge(job)
+                        config.db_merge(JOB, job)
                         uncommitted_updates = uncommitted_updates + 1
 
                         if uncommitted_updates >= config.categories['condor_poller.py']['batch_commit_size']:
                             try:
-                                db_session.commit()
+                                db_commit()
                                 uncommitted_updates = 0
                             except Exception as exc:
                                 logging.error("Failed to commit batch of job changes, aborting cycle...")
@@ -1083,18 +1120,18 @@ def job_command_poller():
                         exit(1)
 
                 if abort_cycle:
-                    config.db_session.rollback()
+                    config.db_rollback()
                     wait_cycle(cycle_start_time, poll_time_history, config.categories["condor_poller.py"]["sleep_interval_command"], config)
                     continue
 
             if uncommitted_updates > 0:
                 try:
-                    db_session.commit()
+                    db_commit()
                 except Exception as exc:
                     logging.error("Failed to commit job changes, aborting cycle...")
                     logging.error(exc)
                     del condor_session
-                    config.db_session.rollback()
+                    config.db_rollback()
                     time.sleep(config.categories["condor_poller.py"]["sleep_interval_command"])
                     continue
 
@@ -1117,13 +1154,15 @@ def machine_poller():
                            "Start", "RemoteOwner", "SlotType", "TotalSlots", "group_name", \
                            "cloud_name", "cs_host_id", "condor_host", "flavor", "TotalDisk"]
 
-    config = Config(sys.argv[1], "condor_poller.py", "SQL", "ProcessMonitor"], pool_size=3, signals=True)
+    config = Config(sys.argv[1], ["condor_poller.py", "SQL", "ProcessMonitor"], pool_size=3, signals=True)
     PID_FILE = config.categories["ProcessMonitor"]["pid_path"] + os.path.basename(sys.argv[0])
 
 
     RESOURCE = "condor_machines"
     CLOUDS = "csv2_clouds"
     GROUPS = "csv2_groups"
+
+    ikey_names = ["name", "group_name", "htcondor_host_id"]
 
     cycle_start_time = 0
     new_poll_time = 0
@@ -1137,9 +1176,14 @@ def machine_poller():
     failure_dict = {}
 
     try:
-        inventory = get_inventory_item_hash_from_database(config.db_engine, RESOURCE, 'name', debug_hash=(config.categories["condor_poller.py"]["log_level"]<20), condor_host=config.local_host_id)
-        configure_fw(config, logging)
         config.db_open()
+        where_clause = "htcondor_host_id='%s'" % config.local_host_id
+        rc, msg, rows = config.db_query(RESOURCE, where=where_clause)
+        inventory = inventory_get_item_hash_from_db_query_rows(ikey_names, rows)
+
+        # old inventory func
+        #inventory = get_inventory_item_hash_from_database(config.db_engine, RESOURCE, 'name', debug_hash=(config.categories["condor_poller.py"]["log_level"]<20), condor_host=config.local_host_id)
+        configure_fw(config, logging)
         while True:
             new_poll_time, cycle_start_time = start_cycle(new_poll_time, cycle_start_time)
 
@@ -1150,7 +1194,7 @@ def machine_poller():
             signal.signal(signal.SIGINT, signal.SIG_IGN)
 
             where_clause = "htcondor_host_id='%s'" % config.local_host_id
-            groups = config.db_query(GROUPS, where=where_clause)
+            rc, msg, groups = config.db_query(GROUPS, where=where_clause)
             condor_hosts_set = set() # use a set here so we dont re-query same host if multiple groups have same host
             for group in groups:
                 if group.get("htcondor_container_hostname") is not None and group["htcondor_container_hostname"] != "":
@@ -1166,7 +1210,7 @@ def machine_poller():
             for group in groups:
                 cloud_list = []
                 where_clause = "group_name='%s'" % group["group_name"]
-                clouds = config.db_query(CLOUDS, where=where_clause)
+                rc, msg, clouds = config.db_query(CLOUDS, where=where_clause)
                 for cloud in clouds:
                     cloud_list.append(cloud["cloud_name"])
                 host_groups[group["group_name"]] = cloud_list
@@ -1181,9 +1225,6 @@ def machine_poller():
                     logging.error(exc)
                     continue
 
-                #if not condor_inventory_built:
-                #    build_inventory_for_condor(inventory, db_session, CLOUDS)
-                #    condor_inventory_built = True
 
                 # Retrieve machines.
                 try:
@@ -1283,15 +1324,17 @@ def machine_poller():
                     if unmapped:
                         logging.error("attribute mapper found unmapped variables:")
                         logging.error(unmapped)
-
-                    # Check if this item has changed relative to the local cache, skip it if it's unchanged
-                    if test_and_set_inventory_item_hash(inventory, r_dict["group_name"], r_dict["cloud_name"], r_dict["name"], r_dict, new_poll_time, debug_hash=(config.categories["condor_poller.py"]["log_level"]<20)):
-                        continue
-
                     logging.info("Adding/updating machine %s", r_dict["name"])
                     r_dict["htcondor_host_id"] = config.local_host_id
+
+                    # Check if this item has changed relative to the local cache, skip it if it's unchanged
+                    # old inventory func
+                    #if test_and_set_inventory_item_hash(inventory, r_dict["group_name"], r_dict["cloud_name"], r_dict["name"], r_dict, new_poll_time, debug_hash=(config.categories["condor_poller.py"]["log_level"]<20)):
+                    if inventory_test_and_set_item_hash(ikey_names, r_dict, inventory, new_poll_time, debug_hash=(config.categories["condor_poller.py"]["log_level"]<20)):
+                        continue
+
                     try:
-                        config.db_merge(r_dict)
+                        config.db_merge(RESOURCE, r_dict)
                         uncommitted_updates += 1
                     except Exception as exc:
                         logging.exception("Failed to merge machine entry, aborting cycle...")
@@ -1340,7 +1383,13 @@ def machine_poller():
 
             if delete_cycle:
                 # Check for deletes
-                delete_obsolete_database_items('Machines', inventory, db_session, RESOURCE, 'name', poll_time=new_poll_time, failure_dict=failure_dict, condor_host=config.local_host_id)
+                # New poller function:
+                where_clause = "htcondor_host_id='%s'" % config.local_host_id
+                rc, msg, rows = config.db_query(RESOURCE, where=where_clause)
+                inventory_obsolete_database_items_delete(ikey_names, rows, inventory, new_poll_time, config, RESOURCE)
+
+                #old inventory func
+                #delete_obsolete_database_items('Machines', inventory, db_session, RESOURCE, 'name', poll_time=new_poll_time, failure_dict=failure_dict, condor_host=config.local_host_id)
                 delete_cycle = False
             config.db_commit()
             cycle_count = cycle_count + 1
@@ -1358,13 +1407,12 @@ def machine_poller():
         logging.exception("Machine poller while loop exception, process terminating...")
         logging.error(exc)
         config.db_close()
-        del db_session
 
 def machine_command_poller():
     multiprocessing.current_process().name = "Machine Command Poller"
 
     # database setup
-    config = Config(sys.argv[1], "condor_poller.py",  "ProcessMonitor"], pool_size=3, signals=True)
+    config = Config(sys.argv[1], ["condor_poller.py",  "ProcessMonitor"], pool_size=3, signals=True)
     PID_FILE = config.categories["ProcessMonitor"]["pid_path"] + os.path.basename(sys.argv[0])
 
     Resource = "condor_machines"
@@ -1394,7 +1442,7 @@ def machine_command_poller():
             new_poll_time, cycle_start_time = start_cycle(new_poll_time, cycle_start_time)
 
             where_clause = "htcondor_host_id='%s'" % config.local_host_id
-            groups = config.db_query(GROUPS, where=where_clause)
+            rc, msg, groups = config.db_query(GROUPS, where=where_clause)
             condor_hosts_set = set() # use a set here so we dont re-query same host if multiple groups have same host
             for group in groups:
                 if group.get("htcondor_container_hostname") is not None and group["htcondor_container_hostname"] != "":
@@ -1408,11 +1456,11 @@ def machine_command_poller():
             for condor_host in condor_hosts_set:
 
                 # Get unique group,cloud pairs
-                grp_cld_pairs = config.db_execute('select distinct group_name, cloud_name from view_condor_host')
+                rc, msg, grp_cld_pairs = config.db_query('view_condor_host', select=["group_name", "cloud_name"], distinct=True)
 
                 for pair in grp_cld_pairs:
                     # First check pid of cloud entry
-                    logging.info("Checking child pid for pair: %s, %s" % (pair["group_name"], pair.["cloud_name"]))
+                    logging.info("Checking child pid for pair: %s, %s" % (pair["group_name"], pair["cloud_name"]))
                     pid_active = check_pair_pid(pair, config, CLOUD)
                     if pid_active:
                         logging.info("Child pid still active...")
@@ -1423,13 +1471,6 @@ def machine_command_poller():
                         p = Process(target=process_group_cloud_commands, args=(pair, condor_host))
                         p.start()
                     
-            
-            try:
-                config.db_commit()
-            except Exception as exc:
-                logging.error("Error during final commit, likely that a vm was removed from database before final terminate update was comitted..")
-                logging.exception(exc)
-
             
             signal.signal(signal.SIGINT, config.signals['SIGINT'])
             if not os.path.exists(PID_FILE):
@@ -1444,7 +1485,7 @@ def machine_command_poller():
 def worker_gsi_poller():
     multiprocessing.current_process().name = "Worker GSI Poller"
 
-    config = Config(sys.argv[1], "condor_poller.py", 'ProcessMonitor'], pool_size=6, signals=True)
+    config = Config(sys.argv[1], ["condor_poller.py", 'ProcessMonitor'], pool_size=6, signals=True)
     PID_FILE = config.categories["ProcessMonitor"]["pid_path"] + os.path.basename(sys.argv[0])
 
     cycle_start_time = 0
@@ -1453,6 +1494,7 @@ def worker_gsi_poller():
 
     try:
         while True:
+            config.db_open()
             new_poll_time, cycle_start_time = start_cycle(new_poll_time, cycle_start_time)
 
             config.refresh()
@@ -1462,7 +1504,6 @@ def worker_gsi_poller():
 
             signal.signal(signal.SIGINT, signal.SIG_IGN)
 
-            config.db_open()
 
             condor_dict = get_condor_dict(config, logging)
 
@@ -1541,7 +1582,7 @@ def worker_gsi_poller():
 def condor_gsi_poller():
     multiprocessing.current_process().name = "Condor GSI Poller"
 
-    config = Config(sys.argv[1], "condor_poller.py", 'ProcessMonitor'], pool_size=6, signals=True)
+    config = Config(sys.argv[1], ["condor_poller.py", 'ProcessMonitor'], pool_size=6, signals=True)
     PID_FILE = config.categories["ProcessMonitor"]["pid_path"] + os.path.basename(sys.argv[0])
 
     cycle_start_time = 0
@@ -1621,7 +1662,7 @@ if __name__ == '__main__':
 
     db_category_list = ["condor_poller.py", "ProcessMonitor", "general", "signal_manager"]
 
-    procMon = ProcessMonitor(config_params=db_category_list, pool_size=3, process_ids=process_ids, config_file=sys.argv[1])
+    procMon = ProcessMonitor(config_params=db_category_list, pool_size=3, process_ids=process_ids, config_file=sys.argv[1], log_file="/var/log/cloudscheduler/condor.log", log_level=20)
     config = procMon.get_config()
     logging = procMon.get_logging()
     version = config.get_version()

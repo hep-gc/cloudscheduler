@@ -68,7 +68,7 @@ def get_last_poll_time_from_database(db_engine, base_class_and_key):
     logging.info("Setting last_poll_time: %s" % last_poll_time)
     return last_poll_time
 
-def __inventory_get_hash__(ikey_names, item_dict): 
+def __inventory_get_hash__(ikey_names, item_dict, debug_hash=False): 
     hash_list = []
     hash_object = hashlib.new('md5')
     for hash_item in sorted(item_dict):
@@ -130,19 +130,6 @@ def inventory_cleanup(ikey_names, rows, inventory):
             logging.debug('inventory_cleanup: delete item "%s" from inventory, no matching group_name/cloud_name.' % json.loads(ikey))
 
 
-def inventory_delete_obsolete_database_items(ikey_names, rows, inventory, poll_time, config, table):
-    for row in rows:
-        ikey = __inventory_set_key__(ikey_names, row, inventory)
-
-        if poll_time != None and inventory[ikey]['poll_time'] < poll_time:
-            ikey_list.append(ikey)
-            rc, msg = config.db_delete(table, row)
-            if rc == 0:
-                config.db_commit()
-                del inventory[ikey]
-            else:
-                logging.warning('inventory_delete_obsolete_database_items: failed to delete item "%s" from table "%s" - %s' % (json.loads(ikey), table, msg))
-
 def inventory_get_item_hash_from_db_query_rows(ikey_names, rows):
     inventory = {}
     for row in rows:
@@ -151,8 +138,20 @@ def inventory_get_item_hash_from_db_query_rows(ikey_names, rows):
 
     return inventory
 
+def inventory_obsolete_database_items_delete(ikey_names, rows, inventory, poll_time, config, table):
+    for row in rows:
+        ikey = __inventory_set_key__(ikey_names, row, inventory)
+
+        if poll_time != None and inventory[ikey]['poll_time'] < poll_time:
+            rc, msg = config.db_delete(table, row)
+            if rc == 0:
+                config.db_commit()
+                del inventory[ikey]
+            else:
+                logging.warning('inventory_delete_obsolete_database_items: failed to delete item "%s" from table "%s" - %s' % (json.loads(ikey), table, msg))
+
 def inventory_test_and_set_item_hash(ikey_names, item_dict, inventory, poll_time, debug_hash=False):
-    ikey = __inventory_set_key__(inventory, ikey_names, item_dict)
+    ikey = __inventory_set_key__(inventory=inventory, ikey_names=ikey_names, item_dict=item_dict)
     inventory[ikey]['poll_time'] = poll_time
 
     new_hash = __inventory_get_hash__(ikey_names, item_dict)

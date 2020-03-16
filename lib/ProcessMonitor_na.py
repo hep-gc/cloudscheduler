@@ -8,7 +8,7 @@ import psutil
 import os
 import sys
 
-from cloudscheduler.lib.db_config import Config_na
+from cloudscheduler.lib.db_config_na import Config
 
 class ProcessMonitor:
     config = None
@@ -22,11 +22,11 @@ class ProcessMonitor:
             log_file = self.config.categories[os.path.basename(sys.argv[0])]["log_file"]
         if log_level is None:
             log_level = self.config.categories[os.path.basename(sys.argv[0])]["log_level"]
-        self.logging = logging.getLogger()
         logging.basicConfig(
             filename=log_file,
             level=log_level,
             format='%(asctime)s - %(processName)-12s - %(process)d - %(levelname)s - %(message)s')
+        self.logging = logging.getLogger()
         self.process_ids = process_ids
 
     def get_process_ids(self):
