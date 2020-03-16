@@ -505,7 +505,7 @@ def metadata_load(gvar):
         response = requests(
             gvar,
             '/group/metadata-query/',
-            {
+            query_data={
                 'metadata_name': form_data['metadata_name'],
                 }
             )

@@ -703,7 +703,7 @@ def metadata_load(gvar):
         response = requests(
             gvar,
             '/cloud/metadata-query/',
-            {
+            query_data={
                 'cloud_name': form_data['cloud_name'],
                 'metadata_name': form_data['metadata_name'],
                 }
@@ -728,14 +728,12 @@ def metadata_load(gvar):
     if response['message']:
         print(response['message'])
 
-        
 def metadata_save(gvar):
     """
     boilerplate code for base_metadata_save
     """
     return base_metadata_save(gvar, context='cloud')
 
-        
 def metadata_update(gvar):
     """
     Modify a cloud in the active group.
