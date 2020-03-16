@@ -433,7 +433,9 @@ def validate_url_fields(prefix, request, template, actual_fields, expected_field
     
     for field in expected_fields:
         if field in actual_fields:
-            if not re.fullmatch('([a-z0-9_.:]-?)*[a-z0-9_.:]', actual_fields[field]):
+            if actual_fields[field] == '':
+                return render(request, template, {'response_code': 1, 'message': '%s, value specified for "%s" must not be the empty string.' % (prefix, field)})
+            elif not re.fullmatch('([a-z0-9_.:]-?)*[a-z0-9_.:]', actual_fields[field]):
                 return render(request, template, {'response_code': 1, 'message': '%s, value specified for "%s" must be all lowercase letters, digits, dashes, underscores, periods, and colons, and cannot contain more than one consecutive dash or start or end with a dash.' % (prefix, field)})
         else:
             return render(request, template, {'response_code': 1, 'message': '%s, request did not contain mandatory parameter "%s".' % (prefix, field)})
