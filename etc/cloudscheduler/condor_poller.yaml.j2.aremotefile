@@ -23,6 +23,16 @@ signals:
         - "update_ec2_instance_types"
     queue: "signals"
 
+# The remote condor_poller uses the command "condor_config_val GSI_DAEMON_CERT" to determine
+# whether HTCondor GSI is enable. If it is enabled, the poller will need to be able to read:
+# 
+# - The condor server certificate file, and 
+# - The condor worker certificate and key files.
+# 
+# Having obtained the location of the server certificate, the file should be readable by
+# the "condor" user. The default location of the worker certificate files is specified below.
+# If you would like to place them in a different location update the variables below to point
+# to the preferred location and make sure that they are both readable by the cndor user.
 condor_poller:
     condor_worker_cert: /var/lib/condor/.globus/condorworkercert.pem
     condor_worker_key: /var/lib/condor/.globus/condorworkerkey.pem
