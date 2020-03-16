@@ -6,7 +6,7 @@ import os
 import yaml
 
 functions = [
-    {'name': '# map', 'tix': 'DEF', 'alchemy': False},
+    {'name': 'mysql_privileges_map_table_to_variables', 'tix': 'DEF', 'alchemy': False},
     {'name': 'signal_functions', 'tix': 'SIG', 'alchemy': False},
     {'name': 'inventory_obsolete_database_item_delete(', 'tix': 5, 'mode': 'delete', 'alchemy': False},
     {'name': '.db_delete(', 'tix': 0, 'mode': 'delete', 'alchemy': False},
