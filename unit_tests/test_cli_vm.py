@@ -67,7 +67,7 @@ def main(gvar):
 
     # 42
     execute_csv2_command(
-        gvar, 0, None, 'Server: unit-test, Active User: {}'.format(ut_id(gvar, 'clu3'), ut_id(gvar, 'clg1')),
+        gvar, 0, None, 'Server: unit-test, Active User: {}'.format(ut_id(gvar, 'clu3')),
         ['vm', 'list', '-su', ut_id(gvar, 'clu3')]
     )
 

@@ -19,7 +19,7 @@ def _execute_selections(gvar, request, expected_text, expected_values):
         # print('%04d (%04d) %s Skipping: \'%s\', %s, %s' % (gvar['ut_count'][0], gvar['ut_count'][1], _caller(), request, repr(expected_text), expected_values))
         return False
    
-def execute_csv2_command(gvar, expected_rc, expected_modid, expected_text, cmd, expected_list=None, columns=[], timeout=None):
+def execute_csv2_command(gvar, expected_rc, expected_modid, expected_text, cmd, expected_list=None, columns=None, timeout=None):
     '''
     Execute a Cloudscheduler CLI command using subprocess and print a message explaining whether the output of the command was as expected.
     `cmd` (list, tuple, or other iterable of strs) contains the parameters to be given to the `cloudscheduler` command, e.g. `['alias', 'add', '-H']`. 'cloudscheduler' should be excluded, because it is automatically added at the beginning of the list.
@@ -125,7 +125,7 @@ def execute_csv2_command(gvar, expected_rc, expected_modid, expected_text, cmd, 
     else:
         return 0
 
-def execute_csv2_request(gvar, expected_rc, expected_modid, expected_text, request, group=None, form_data={}, query_data={}, expected_list=None, list_filter=None, values=None, server_user=None, server_pw=None, html=False):
+def execute_csv2_request(gvar, expected_rc, expected_modid, expected_text, request, group=None, form_data=None, query_data=None, expected_list=None, list_filter=None, values=None, server_user=None, server_pw=None, html=False):
     """
     Make RESTful requests via the _requests function and print a message explaining whether the response was as expected.
     This function will obtain a CSRF (for POST requests) prior to making the actual request.
@@ -202,7 +202,6 @@ def execute_csv2_request(gvar, expected_rc, expected_modid, expected_text, reque
                     print('\tNo list \'%s\' in response. The message from the server was: \'%s\'\n' % (expected_list, response['message']))
             # expected_list in response
             elif list_filter and values:
-                found_perfect_row = False
                 filtered_rows = []
                 mismatches_in_filtered_rows = []
                 for row in response[expected_list]:
@@ -588,7 +587,7 @@ def table_commands(gvar, obj, action, group, server_user, table_headers):
 def generate_secret():
     '''Generate a new, pseudorandom password to use as the password for test users.'''
     from string import ascii_letters, digits
-    from random import SystemRandom, choice
+    from random import SystemRandom
     alphabet = ascii_letters + digits
     while True:
         user_secret = ''.join(SystemRandom().choice(alphabet) for _ in range(10))
@@ -675,14 +674,13 @@ def initialize_csv2_request(gvar, selections=None, hidden=False):
 
     return
 
-def _requests(gvar, request, group=None, form_data={}, query_data={}, server_user=None, server_pw=None, html=False):
+def _requests(gvar, request, group=None, form_data=None, query_data=None, server_user=None, server_pw=None, html=False):
     """
     Make a RESTful request and return the response.
     """
     
     from getpass import getpass
     import os
-    import requests as py_requests
 
     EXTRACT_CSRF = str.maketrans('=;', '  ')
 
@@ -856,11 +854,11 @@ def _requests_insert_controls(gvar, request, group, form_data, query_data, serve
             query_list = ['%s=%s' % (key, query_data[key]) for key in query_data]
 
             if _request[-1] == '/':
-               _request = '%s?%s' % (_request[:-1], '&'.join(query_list))
+                _request = '%s?%s' % (_request[:-1], '&'.join(query_list))
             else:
-               _request = '%s&%s' % (_request, '&'.join(query_list))
+                _request = '%s&%s' % (_request, '&'.join(query_list))
          
-        _form_data = {}
+         _form_data = {}
 
     return _function, _request, _form_data
 
@@ -883,8 +881,8 @@ def condor_setup(gvar):
     requirements = ['condor_submit', 'condor_rm']
     for requirement in requirements:
         if subprocess.run(['which', requirement], stdout=subprocess.DEVNULL).returncode != 0:
-            condor_error('{} is not installed'.format(requirement))
-            return None
+            condor_error(gvar, '{} is not installed'.format(requirement))
+            return
 
     # Get the address of the unit-test server
     try:
@@ -892,16 +890,16 @@ def condor_setup(gvar):
         with open(YAML_PATH) as yaml_file:
             server_address = yaml.safe_load(yaml_file)['server-address']
     except FileNotFoundError:
-        condor_error('{} does not exist'.format(YAML_PATH))
-        return None
+        condor_error(gvar, '{} does not exist'.format(YAML_PATH))
+        return
     except yaml.YAMLError as err:
-        condor_error('YAML encountered an error while parsing {}: {}'.format(YAML_PATH, err))
-        return None
+        condor_error(gvar, 'YAML encountered an error while parsing {}: {}'.format(YAML_PATH, err))
+        return
     if server_address.startswith('http'):
         return re.match(r'https?://(.*)', server_address)[1]
     else:
-        condor_error('the server address in {} is \'{}\', which does not start with \'http\''.format(YAML_PATH, server_address))
-        return None
+        condor_error(gvar, 'the server address in {} is \'{}\', which does not start with \'http\''.format(YAML_PATH, server_address))
+        return
 
 def condor_error(gvar, err):
     '''Used only by database tests.'''

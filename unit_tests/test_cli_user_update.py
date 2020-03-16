@@ -84,7 +84,7 @@ def main(gvar):
 
     # 29
     execute_csv2_command(
-        gvar, 1, None, 'user update, parameter "group_name" contains an empty string which is specifically disallowed.'.format(ut_id(gvar, 'clu7')),
+        gvar, 1, None, 'user update, parameter "group_name" contains an empty string which is specifically disallowed.',
         ['user', 'update', '-un', ut_id(gvar, 'clu7'), '-gn', '']
     )
 
