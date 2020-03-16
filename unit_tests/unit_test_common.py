@@ -858,7 +858,7 @@ def _requests_insert_controls(gvar, request, group, form_data, query_data, serve
             else:
                 _request = '%s&%s' % (_request, '&'.join(query_list))
          
-         _form_data = {}
+        _form_data = {}
 
     return _function, _request, _form_data
 
