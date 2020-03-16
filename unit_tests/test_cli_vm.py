@@ -1,7 +1,9 @@
-from unit_test_common import execute_csv2_command, initialize_csv2_request, ut_id
+from unit_test_common import execute_csv2_command, initialize_csv2_request, ut_id, sanity_commands, table_commands
 from sys import argv
 
 # lno: VV - error code identifier.
+
+VM_LIST_COLUMNS = ['Group', 'Cloud', 'Hostname', 'VMID', 'IPs', 'Floating IPs', 'Authorization URL', 'Project', 'Status', 'Flavor ID', 'Task', 'Power Status', 'Start Time', 'HTCondor', 'STARTD Errors', 'STARTD Time', 'Primary Slots', 'Dynamic Slots', 'Slots Timestamp', 'Retire', 'Terminate', 'Last Updated', 'Flavor', 'Condor Slots', 'Foreign', 'cores', 'Disk (GBs)', 'Ram (MBs)', 'Swap (GBs)', 'Poller Status', 'State Age', 'Manual_Control']
 
 def main(gvar):
     if not gvar:
@@ -11,207 +13,70 @@ def main(gvar):
         else:
             initialize_csv2_request(gvar)
 
-    # 01
-    execute_csv2_command(
-        gvar, 1, None, 'No action specified for object "vm"',
-        ['cloudscheduler', 'vm', '-su', ut_id(gvar, 'clu4')]
-    )
-
-    # 02
-    execute_csv2_command(
-        gvar, 1, None, 'Invalid action "invalid-unit-test" for object "vm"',
-        ['cloudscheduler', 'vm', 'invalid-unit-test', '-su', ut_id(gvar, 'clu4')]
-    )
-
-    # 03
-    execute_csv2_command(
-        gvar, None, None, 'Error: the specified server "invalid-unit-test" does not exist in your defaults.',
-        ['cloudscheduler', 'vm', '-s', 'invalid-unit-test', '-su', ut_id(gvar, 'clu4')], timeout=8
-    )
-
-    # 04
-    execute_csv2_command(
-        gvar, 1, None, 'No action specified for object "vm"; use -h or -H for help.',
-        ['cloudscheduler', 'vm', '-su', ut_id(gvar, 'clu4')]
-    )
-
-    # 05
-    execute_csv2_command(
-        gvar, 0, None, 'Help requested for "cloudscheduler vm".',
-        ['cloudscheduler', 'vm', '-h', '-su', ut_id(gvar, 'clu4')]
-    )
-
-    # 06
-    execute_csv2_command(
-        gvar, 0, None, 'General Commands Manual',
-        ['cloudscheduler', 'vm', '-H', '-su', ut_id(gvar, 'clu4')]
-    )
+    # 01 - 13
+    sanity_commands(gvar, 'vm')
 
     #### LIST ####
-    # 07
-    execute_csv2_command(
-        gvar, 1, None, 'The following command line arguments were unrecognized: [\'-xx\', \'yy\']',
-        ['cloudscheduler', 'vm', 'list', '-xx', 'yy', '-su', ut_id(gvar, 'clu4')]
-    )
-    
-    # 08
-    execute_csv2_command(
-        gvar, 1, None, 'The following command line arguments were invalid: vm-option',
-        ['cloudscheduler', 'vm', 'list', '-vo', 'invalid-unit-test', '-su', ut_id(gvar, 'clu4')]
-    )
-
-    # 09
-    execute_csv2_command(
-        gvar, None, None, 'Error: the specified server "invalid-unit-test" does not exist in your defaults.',
-        ['cloudscheduler', 'vm', 'list', '-s', 'invalid-unit-test', '-su', ut_id(gvar, 'clu4')], timeout=8
-    )
-
-    # 10
-    execute_csv2_command(
-        gvar, 0, None, 'Server: unit-test, Active User: {}'.format(ut_id(gvar, 'clu4'), ut_id(gvar, 'clg1')),
-        ['cloudscheduler', 'vm', 'list', '-g', ut_id(gvar, 'clg1'), '-su', ut_id(gvar, 'clu4')]
-    )
-
-    # 11
-    execute_csv2_command(
-        gvar, 0, None, None,
-        ['cloudscheduler', 'vm', 'list', '-su', ut_id(gvar, 'clu4')]
-    )
-
-    # 12
-    execute_csv2_command(
-        gvar, 0, None, 'Help requested for "cloudscheduler vm list".',
-        ['cloudscheduler', 'vm', 'list', '-h', '-su', ut_id(gvar, 'clu4')]
-    )
-
-    # 13
-    execute_csv2_command(
-        gvar, 0, None, 'General Commands Manual',
-        ['cloudscheduler', 'vm', 'list', '-H', '-su', ut_id(gvar, 'clu4')]
-    )
-
-    # 14
-    execute_csv2_command(
-        gvar, 0, None, 'Expose API requested',
-        ['cloudscheduler', 'vm', 'list', '-xA', '-su', ut_id(gvar, 'clu4')]
-    )
-
-    # 15
-    execute_csv2_command(
-        gvar, 1, None, 'cannot switch to invalid group "invalid-unit-test".',
-        ['cloudscheduler', 'vm', 'list', '-g', 'invalid-unit-test', '-su', ut_id(gvar, 'clu4')]
-    )
-
-    # 16
-    execute_csv2_command(
-        gvar, 0, None, None,
-        ['cloudscheduler', 'vm', 'list', '-ok', '-su', ut_id(gvar, 'clu4')],
-        expected_list='VMs', columns=['Group', 'Cloud', 'Hostname']
-    )
-
-    # 17
-    execute_csv2_command(
-        gvar, 0, None, 'vm list, 1. VMs: keys=group_name,cloud_name,hostname, columns=vmid,vm_ips,vm_floating_ips,auth_url,project,status,flavor_id,task,power_status,start_time,htcondor_startd_errors,htcondor_startd_time,htcondor_partitionable_slots,htcondor_dynamic_slots,htcondor_slots_timestamp,retire,terminate,last_updated,flavor_name,condor_slots,foreign_vm,cores,disk,ram,swap,poller_status,age,manual_control',
-        ['cloudscheduler', 'vm', 'list', '-VC', '-su', ut_id(gvar, 'clu4')]
-    )
-
-    # 18
-    execute_csv2_command(
-        gvar, 0, None, None,
-        ['cloudscheduler', 'vm', 'list', '-NV', '-su', ut_id(gvar, 'clu4')],
-        expected_list='VMs', columns=['Group', 'Terminate', 'STARTD Errors', 'Last Updated', 'Manual_Control', 'Swap (GBs)', 'Condor Slots', 'Start Time', 'Hostname', 'Power Status', 'IPs', 'Authorization URL', 'Foreign', 'Cloud', 'cores', 'Floating IPs', 'Flavor ID', 'Project', 'Flavor', 'STARTD Time', 'Dynamic Slots', 'Slots Timestamp', 'Primary Slots', 'State Age', 'Ram (MBs)', 'Disk (GBs)', 'HTCondor', 'VMID', 'Poller Status', 'Retire', 'Status', 'Task']
-    )
-
-    # 19
-    execute_csv2_command(
-        gvar, 0, None, None,
-        ['cloudscheduler', 'vm', 'list', '-V', 'project,task', '-su', ut_id(gvar, 'clu4')],
-        expected_list='VMs', columns=['Group', 'Cloud', 'Hostname', 'Project', 'Task']
-    )
-
-    # 20
-    execute_csv2_command(
-        gvar, 0, None, None,
-        ['cloudscheduler', 'vm', 'list', '-su', ut_id(gvar, 'clu4')],
-        expected_list='VMs', columns=['Group', 'Cloud', 'Hostname', 'Project', 'Task']
-    )
-
-    # 21
-    execute_csv2_command(
-        gvar, 0, None, None,
-        ['cloudscheduler', 'vm', 'list', '-V', '', '-su', ut_id(gvar, 'clu4')],
-        expected_list='VMs', columns=['Group', 'Terminate', 'STARTD Errors', 'Last Updated', 'Manual_Control', 'Swap (GBs)', 'Condor Slots', 'Start Time', 'Hostname', 'Power Status', 'IPs', 'Authorization URL', 'Foreign', 'Cloud', 'cores', 'Floating IPs', 'Flavor ID', 'Project', 'Flavor', 'STARTD Time', 'Dynamic Slots', 'Slots Timestamp', 'Primary Slots', 'State Age', 'Ram (MBs)', 'Disk (GBs)', 'HTCondor', 'VMID', 'Poller Status', 'Retire', 'Status', 'Task']
-    )
-
-    # 22
-    execute_csv2_command(
-        gvar, 0, None, None,
-        ['cloudscheduler', 'vm', 'list', '-r', '-su', ut_id(gvar, 'clu4')],
-        expected_list='VMs', columns=['Key', 'Value']
-    )
-
-    # 23
-    execute_csv2_command(
-        gvar, 0, None, 'Rows: 0',
-        ['cloudscheduler', 'vm', 'list', '-cn', 'invalid-unit-test', '-su', ut_id(gvar, 'clu4')]
-    )
-
-    # 24
-    execute_csv2_command(
-        gvar, 0, None, 'Rows: 0',
-        ['cloudscheduler', 'vm', 'list', '-vc', 'invalid-unit-test', '-su', ut_id(gvar, 'clu4')]
-    )
-
-    # 25
-    execute_csv2_command(
-        gvar, 0, None, 'Rows: 0',
-        ['cloudscheduler', 'vm', 'list', '-vd', 'invalid-unit-test', '-su', ut_id(gvar, 'clu4')]
-    )
-
-    # 26
-    execute_csv2_command(
-        gvar, 1, None, 'The following command line arguments were unrecognized: [\'-ved\', \'invalid-unit-test\']',
-        ['cloudscheduler', 'vm', 'list', '-ved', 'invalid-unit-test', '-su', ut_id(gvar, 'clu4')]
-    )
-
-    # 27
-    execute_csv2_command(
-        gvar, 0, None, 'Rows: 0',
-        ['cloudscheduler', 'vm', 'list', '-vF', 'invalid-unit-test', '-su', ut_id(gvar, 'clu4')]
-    )
+    # 14 - 27
+    sanity_commands(gvar, 'vm', 'list')
 
     # 28
     execute_csv2_command(
-        gvar, 0, None, 'Rows: 0',
-        ['cloudscheduler', 'vm', 'list', '-vf', 'invalid-unit-test', '-su', ut_id(gvar, 'clu4')]
+        gvar, 1, None, 'The following command line arguments were invalid: vm-option',
+        ['vm', 'list', '--vm-option', 'invalid-unit-test', '-g', ut_id(gvar, 'clg1'), '-su', ut_id(gvar, 'clu3')]
     )
 
     # 29
     execute_csv2_command(
-        gvar, 1, None, 'Error: The following command line arguments were invalid: vm-keyname',
-        ['cloudscheduler', 'vm', 'list', '-vk', 'invalid-unit-test', '-su', ut_id(gvar, 'clu4')]
+        gvar, 0, None, 'vm list, 1. VMs: keys=group_name,cloud_name,hostname, columns=vmid,vm_ips,vm_floating_ips,auth_url,project,status,flavor_id,task,power_status,start_time,htcondor_startd_errors,htcondor_startd_time,htcondor_partitionable_slots,htcondor_dynamic_slots,htcondor_slots_timestamp,retire,terminate,last_updated,flavor_name,condor_slots,foreign_vm,cores,disk,ram,swap,poller_status,age,manual_control',
+        ['vm', 'list', '-VC', '-su', ut_id(gvar, 'clu3')]
     )
 
-    # 30
+    # 30 - 36
+    table_commands(gvar, 'vm', 'list', ut_id(gvar, 'clg1'), ut_id(gvar, 'clu3'), {'VMs': VM_LIST_COLUMNS})
+
+    # 37
     execute_csv2_command(
         gvar, 0, None, 'Rows: 0',
-        ['cloudscheduler', 'vm', 'list', '-vr', 'invalid-unit-test', '-su', ut_id(gvar, 'clu4')]
+        ['vm', 'list', '--cloud-name', 'invalid-unit-test', '-su', ut_id(gvar, 'clu3')]
     )
 
-    # 31
+    # 38
     execute_csv2_command(
         gvar, 0, None, 'Rows: 0',
-        ['cloudscheduler', 'vm', 'list', '-vS', 'invalid-unit-test', '-su', ut_id(gvar, 'clu4')]
+        ['vm', 'list', '--vm-cores', 'invalid-unit-test', '-su', ut_id(gvar, 'clu3')]
     )
 
-    # 32
+    # 39
     execute_csv2_command(
         gvar, 0, None, 'Rows: 0',
-        ['cloudscheduler', 'vm', 'list', '-vs', 'invalid-unit-test', '-su', ut_id(gvar, 'clu4')]
+        ['vm', 'list', '--vm-disk', 'invalid-unit-test', '-su', ut_id(gvar, 'clu3')]
+    )
+
+    # 40
+    execute_csv2_command(
+        gvar, 0, None, 'Rows: 0',
+        ['vm', 'list', '--vm-foreign', 'invalid-unit-test', '-su', ut_id(gvar, 'clu3')]
+    )
+
+    # 41
+    execute_csv2_command(
+        gvar, 0, None, 'Rows: 0',
+        ['vm', 'list', '--vm-flavor', 'invalid-unit-test', '--vm-ram', 'invalid-unit-test', '--vm-status', 'invalid-unit-test', '--vm-swap', 'invalid-unit-test', '-su', ut_id(gvar, 'clu3')]
+    )
+
+    # 42
+    execute_csv2_command(
+        gvar, 0, None, 'Server: unit-test, Active User: {}'.format(ut_id(gvar, 'clu3'), ut_id(gvar, 'clg1')),
+        ['vm', 'list', '-su', ut_id(gvar, 'clu3')]
     )
 
     #### UPDATE ####
-    # TODO: Add update tests.
+    # 43 - 56
+    sanity_commands(gvar, 'vm', 'update')
+
+    # In order to test `vm update` properly we would need to know that at least one VM exists, and its identity.
+    # Because of the way that Cloudscheduler works, VMs are not manually added, so this would be difficult to implement and has been left unimplemented for now.
 
 if __name__ == "__main__":
     main(None)

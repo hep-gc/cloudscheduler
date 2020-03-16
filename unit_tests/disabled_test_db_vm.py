@@ -154,7 +154,7 @@ def main(gvar, user_secret):
     # Setting Manual Control
     execute_csv2_request(
         gvar, 0, None, "vm update, VMs set to manual control: 0.",
-        '/vm/update/', group(ut_id(gvar, 'dtg1')),
+        '/vm/update/', group=ut_id(gvar, 'dtg1'),
         form_data={'vm_option': 'manctl', 'hostname': 'foreign-cloud--vmid4'}
     )
 
@@ -167,7 +167,7 @@ def main(gvar, user_secret):
     # 9
     execute_csv2_request(
         gvar, 0, None, "vm update, VMs set to manual control: 1.",
-        '/vm/update/', group(ut_id(gvar, 'dtg1')), form_data={'vm_option': 'manctl', 'hostname': 'vm-test-group--vm-test-cloud--vmid1'}
+        '/vm/update/', group=ut_id(gvar, 'dtg1'), form_data={'vm_option': 'manctl', 'hostname': 'vm-test-group--vm-test-cloud--vmid1'}
     )
 
     # 10
@@ -179,7 +179,7 @@ def main(gvar, user_secret):
     # 11
     execute_csv2_request(
         gvar, 0, None, "vm update, VMs set to manual control: 3.",
-        '/vm/update/', group(ut_id(gvar, 'dtg1')), form_data={'vm_option': 'manctl'}
+        '/vm/update/', group=ut_id(gvar, 'dtg1'), form_data={'vm_option': 'manctl'}
     )
 
     # 12
@@ -780,4 +780,4 @@ def main(gvar, user_secret):
     )
 
 if __name__ == "__main__":
-    main(None, None)
+    main(None)
