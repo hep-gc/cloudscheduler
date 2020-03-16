@@ -37,7 +37,7 @@ import psutil
 
 import requests
 import time
-
+import re
 
 from cloudscheduler.lib.web_profiler import silk_profile as silkp
 
@@ -425,6 +425,18 @@ def manage_group_metadata_verification(tables, active_group, cloud_names, metada
                 valid_metadata[metadata_name] = True
 
     return 0, None
+
+#-------------------------------------------------------------------------------
+
+def validate_url_fields(prefix, request, template, actual_fields, expected_fields):
+    """Ensure values required in a URL are given, that they are not empty, and that they match the lower format."""
+    
+    for field in expected_fields:
+        if field in actual_fields:
+            if not re.fullmatch('([a-z0-9_.:]-?)*[a-z0-9_.:]', actual_fields[field]):
+                return render(request, template, {'response_code': 1, 'message': '%s, value specified for "%s" must be all lowercase letters, digits, dashes, underscores, periods, and colons, and cannot contain more than one consecutive dash or start or end with a dash.' % (prefix, field)})
+        else:
+            return render(request, template, {'response_code': 1, 'message': '%s, request did not contain mandatory parameter "%s".' % (prefix, field)})
 
 #-------------------------------------------------------------------------------
 
@@ -944,22 +956,13 @@ def metadata_fetch(request, response_code=0, message=None, metadata_name=None, c
 
     # Check mandatory parameters.
     # If we are NOT returning from an update, we are fetching from webpage.
-    if cloud_name == None:
-        if 'cloud_name' in active_user.kwargs:
-            if active_user.kwargs['cloud_name'] == '':
-                return render(request, 'csv2/meta_editor.html', {'response_code': 1, 'message': 'cloud metadata_fetch, value specified for "cloud_name" must not be the empty string.'})
-            else:
-                cloud_name = active_user.kwargs['cloud_name']
-        else:
-            return render(request, 'csv2/meta_editor.html', {'response_code': 1, 'message': 'cloud metadata_fetch, request did not contain mandatory parameter "cloud_name".'})
-    if metadata_name == None:
-        if 'metadata_name' in active_user.kwargs:
-            if active_user.kwargs['metadata_name'] == '':
-                return render(request, 'csv2/meta_editor.html', {'response_code': 1, 'message': 'cloud metadata_fetch, value specified for "metadata_name" must not be the empty string.'})
-            else:
-                metadata_name = active_user.kwargs['metadata_name']
-        else:
-            return render(request, 'csv2/meta_editor.html', {'response_code': 1, 'message': 'cloud metadata_fetch, request did not contain mandatory parameter "metadata_name".'})
+    active_user.kwargs
+    if cloud_name == None and metadata_name == None:
+        fields_error = validate_url_fields('%s cloud metadata_fetch' % lno(MODID), request, 'csv2/meta_editor.html', active_user.kwargs, ['cloud_name', 'metadata_name'])
+        if fields_error:
+            return fields_error
+        cloud_name = active_user.kwargs['cloud_name']
+        metadata_name = active_user.kwargs['metadata_name']
 
     # Retrieve metadata file.
     METADATA = config.db_map.classes.csv2_cloud_metadata
@@ -1090,22 +1093,6 @@ def metadata_new(request):
 @requires_csrf_token
 def metadata_query(request):
 
-    keys = {
-        'auto_active_group': True,
-        # Named argument formats (anything else is a string).
-        'format': {
-            'cloud_name':                           'lower',
-            'metadata_name':                        'lower',
-
-            'csrfmiddlewaretoken':                  'ignore',
-            'group':                                'ignore',
-            },
-        'mandatory': [
-            'cloud_name',
-            'metadata_name',
-            ],
-        }
-
     # open the database.
     config.db_open()
 
@@ -1113,13 +1100,12 @@ def metadata_query(request):
     rc, msg, active_user = set_user_groups(config, request, super_user=False)
     if rc != 0:
         config.db_close()
-        return render(request, 'csv2/clouds_metadata_list.html', {'response_code': 1, 'message': '%s cloud metadata-query, %s' % (lno(MODID), msg)})
+        return render(request, 'csv2/clouds_metadata_list.html', {'response_code': 1, 'message': '%s cloud metadata_query, %s' % (lno(MODID), msg)})
 
-    # Validate input fields (should be none).
-    rc, msg, fields, tables, columns = validate_fields(config, request, [keys], [], active_user)
-    if rc != 0:
-        config.db_close()
-        return render(request, 'csv2/clouds_metadata_list.html', {'response_code': 1, 'message': '%s cloud metadata-query, %s' % (lno(MODID), msg)})
+    fields = active_user.kwargs
+    fields_error = validate_url_fields('%s cloud metadata_query' % lno(MODID), request, 'csv2/clouds_metadata_list.html', fields, ['cloud_name', 'metadata_name'])
+    if fields_error:
+        return fields_error
 
     # Retrieve cloud/metadata information.
     s = select([csv2_cloud_metadata]).where((csv2_cloud_metadata.c.group_name == active_user.active_group) & (csv2_cloud_metadata.c.cloud_name == fields['cloud_name']) & (csv2_cloud_metadata.c.metadata_name == fields['metadata_name']))
@@ -1127,10 +1113,7 @@ def metadata_query(request):
     
     config.db_close()
 
-    if len(cloud_metadata_list) < 1:
-        metadata_exists = False
-    else:
-        metadata_exists = True
+    metadata_exists = bool(cloud_metadata_list)
 
     # Render the page.
     context = {
