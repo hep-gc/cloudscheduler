@@ -334,7 +334,7 @@ for table in sorted(tables):
             table_privileges[1].append('SELECT')
 
     if len(table_privileges[1]) > 0:
-        privileges.append('grant %s on %s to "%s"@"%%";' % (', '.join(sorted(table_privileges[1])), table, sys.argv[1]))
+        privileges.append('grant %s on %s to "%s"@"%%";' % (', '.join(sorted(table_privileges[1])), table, db_user))
 
     if table in db_privileges['block']:
         print("    %-32s %s, *** EXCEPT ***: %s" % (','.join(sorted(table_privileges[0])), table, ', '.join(db_privileges['block'][table])), file=sys.stderr)
