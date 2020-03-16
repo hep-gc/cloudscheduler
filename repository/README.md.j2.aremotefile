@@ -1,0 +1,23 @@
+This directory on an instance of CSV2 is accessible through the URL :https://<fqdn>/repo/" and 
+provides additional CSV2 components for installation on remote hosts. Each component within the
+directory is configured to interact with the host from which it was downloaded. The following
+componenents are available:
+
+1: Condor Poller.
+Each CSV2 instance can service one or more HTCondor job schedulers, each running on its' own 
+host and each with it's own instance of the CSV2 condor poller. It can be installed on any host
+with the following commands run as root (feel free to use cut and paste):
+   
+    cd /tmp
+    wget https://{{ ansible_fqdn }}/repo/condor_poller.tar.gz
+    tar -xzvf condor_poller.tar.gz
+    rsync -av cloudscheduler /opt
+
+When these steps have been completed, the new service will need to be enabled. If you are replacing
+an old installation, first disable the old service as follows:
+
+    /opt/cloudscheduler/utilities/service_disable_condor_poller
+
+To enable the new service:
+
+    /opt/cloudscheduler/utilities/service_enable_condor_poller
