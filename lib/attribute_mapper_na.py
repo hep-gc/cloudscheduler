@@ -1,9 +1,5 @@
 from cloudscheduler.lib.db_config_na import Config
 
-from sqlalchemy import create_engine
-from sqlalchemy.orm import Session
-from sqlalchemy.ext.automap import automap_base
-
 rowid_dict = {}
 attr_list_dict = {}
 
