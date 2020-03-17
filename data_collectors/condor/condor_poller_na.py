@@ -273,8 +273,7 @@ def process_group_cloud_commands(pair, condor_host):
     VM = "csv2_vms"
     CLOUD = "csv2_clouds"
 
-    terminate_off = config.categories["condor_poller.py"]["terminate_off"]
-    retire_off = config.categories["condor_poller.py"]["terminate_off"]
+    retire_off = config.categories["condor_poller.py"]["retire_off"]
     retire_interval = config.categories["condor_poller.py"]["retire_interval"]
 
     master_type = htcondor.AdTypes.Master
