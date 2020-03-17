@@ -3,7 +3,7 @@ from sys import argv
 
 # lno: JV - error code identifier.
 
-JOB_LIST_COLUMNS = ['Group', 'Job ID', 'Cluster ID', 'Process ID', 'User', 'User Data', 'Requirements', 'Target Clouds', 'Cloud', 'Instance Type', 'Requested', 'CPUs', 'RAM {MBs}', 'Disk {GBs}', 'Swap (GBs)', 'Jobs per Core', 'Image', 'Network', 'Job', 'Priority', 'Status Code', 'Job Status Flags', 'Idle', 'Running', 'Completed', 'Held', 'Other', 'Keep Alive (seconds)', 'Max Spot Price', 'State Change Date', 'Queued Date', 'Held Job Reason']
+JOB_LIST_COLUMNS = {'Group', 'Job ID', 'Cluster ID', 'Process ID', 'User', 'User Data', 'Requirements', 'Target Clouds', 'Cloud', 'Instance Type', 'Requested', 'CPUs', 'RAM {MBs}', 'Disk {GBs}', 'Swap (GBs)', 'Jobs per Core', 'Image', 'Network', 'Job', 'Priority', 'Status Code', 'Job Status Flags', 'Idle', 'Running', 'Completed', 'Held', 'Other', 'Keep Alive (seconds)', 'Max Spot Price', 'State Change Date', 'Queued Date', 'Held Job Reason'}
 
 def main(gvar):
     if not gvar:

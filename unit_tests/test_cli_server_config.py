@@ -3,7 +3,7 @@ from sys import argv
 
 # lno: SV - error code identifier.
 
-SERVER_CONFIG_COLUMNS = ['Category', 'Config Key', 'Type', 'Value']
+SERVER_CONFIG_COLUMNS = {'Category', 'Config Key', 'Type', 'Value'}
 
 def main(gvar):
     if not gvar:

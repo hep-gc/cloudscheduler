@@ -55,7 +55,7 @@ def main(gvar):
     execute_csv2_command(
         gvar, 0, None, None,
         ['metadata', 'group-defaults', '-ok', '-su', ut_id(gvar, 'clu3')],
-        expected_list='Active Group Defaults', columns=['Group']
+        expected_list='Active Group Defaults', expected_columns={'Group'}
     )
 
     table_headers = {
@@ -85,7 +85,7 @@ metadata group-defaults, 6. Security Groups (optional): keys=group_name,cloud_na
     execute_csv2_command(
         gvar, 0, None, 'Server: unit-test, Active User: {}, Active Group: {}'.format(ut_id(gvar, 'clu3'), ut_id(gvar, 'clg1')),
         ['metadata', 'group-defaults', '-NV', '-su', ut_id(gvar, 'clu3')],
-        expected_list='Active Group Defaults', columns=['Group', 'HTCondor', 'FQDN', 'Container Hostname', 'Other Submitters', 'VM', 'Flavor', 'Image', 'Keep Alive', 'Keyname', 'Network', 'Security Groups', 'Job', 'Cores', 'Disk (GBs)', 'RAM (MBs)', 'Swap (GBs)']
+        expected_list='Active Group Defaults', expected_columns={'Group', 'HTCondor', 'FQDN', 'Container Hostname', 'Other Submitters', 'VM', 'Flavor', 'Image', 'Keep Alive', 'Keyname', 'Network', 'Security Groups', 'Job', 'Cores', 'Disk (GBs)', 'RAM (MBs)', 'Swap (GBs)'}
     )
 
 if __name__ == "__main__":

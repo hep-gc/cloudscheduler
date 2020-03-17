@@ -3,7 +3,7 @@ from sys import argv
 
 # lno: MV - error code identifier.
 
-MY_SETTINGS_COLUMNS = ['Username', 'Cert Common Name', 'Default Group', 'Status', 'Foreign VMs', 'Global Switch', 'Jobs by Target Alias', 'Refresh Interval', 'Slot Detail', 'Slot Flavors']
+MY_SETTINGS_COLUMNS = {'Username', 'Cert Common Name', 'Default Group', 'Status', 'Foreign VMs', 'Global Switch', 'Jobs by Target Alias', 'Refresh Interval', 'Slot Detail', 'Slot Flavors'}
 
 def main(gvar):
     if not gvar:

@@ -3,7 +3,7 @@ from sys import argv
 
 # lno: UV - error code identifier.
 
-USER_LIST_COLUMNS = ['Username', 'Common Name', 'Active Group', 'User Groups', 'Username', 'Not In Groups', 'Super User', 'Joined']
+USER_LIST_COLUMNS = {'Username', 'Common Name', 'Active Group', 'User Groups', 'Username', 'Not In Groups', 'Super User', 'Joined'}
 
 def main(gvar):
     if not gvar:

@@ -24,7 +24,7 @@ def main(gvar):
     execute_csv2_command(
         gvar, 0, None, 'Server: unit-test, Active User: {}, Active Group: {}'.format(ut_id(gvar, 'clu3'), ut_id(gvar, 'clg1')),
         ['cloud', 'metadata-collation', '-NV', '-su', ut_id(gvar, 'clu3')],
-        expected_list='Clouds/Metadata Collation', columns=['Group', 'Cloud', 'Metadata Filename', 'Priority', 'Type']
+        expected_list='Clouds/Metadata Collation', expected_columns={'Group', 'Cloud', 'Metadata Filename', 'Priority', 'Type'}
     )
 
     # 17 Specify a cloud that does not exist.

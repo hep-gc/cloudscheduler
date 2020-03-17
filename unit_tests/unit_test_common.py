@@ -1,5 +1,5 @@
 def _caller():
-    '''Determine which unit test has called my caller, which is probably a common function.'''
+    '''Determine which unit test has called the caller of this function.'''
     import inspect
     import os
     if inspect.stack()[-3][1] == '<string>':
@@ -19,13 +19,13 @@ def _execute_selections(gvar, request, expected_text, expected_values):
         # print('%04d (%04d) %s Skipping: \'%s\', %s, %s' % (gvar['ut_count'][0], gvar['ut_count'][1], _caller(), request, repr(expected_text), expected_values))
         return False
    
-def execute_csv2_command(gvar, expected_rc, expected_modid, expected_text, cmd, expected_list=None, columns=None, timeout=None):
+def execute_csv2_command(gvar, expected_rc, expected_modid, expected_text, cmd, expected_list=None, expected_columns=None, timeout=None):
     '''
     Execute a Cloudscheduler CLI command using subprocess and print a message explaining whether the output of the command was as expected.
     `cmd` (list, tuple, or other iterable of strs) contains the parameters to be given to the `cloudscheduler` command, e.g. `['alias', 'add', '-H']`. 'cloudscheduler' should be excluded, because it is automatically added at the beginning of the list.
     `expected_list` (str) is the title of a table that is expected to be in the output, e.g. 'Aliases'.
-    `columns` (list of strs) contains the expected headers of the table specified by `expected_list`. These should be what is acutally displayed (e.g. 'Alias') not the name used in the CLI code (e.g. 'alias_name'). This list must contain all the expected headers, not just a subset. Ignored if `expected_list` is not specified.
-    `timeout` (int) is passed to `subprocess.run()` and specifies the maximum number of seconds that a process will be allowed to run before `subprocess` stops it and we examine stdout. If `None`, the process will be allowed to run indefinitely. If a process is expected to timeout, `expected_rc` should be set to -1. This option does not seem to work well if the process hangs because it is waiting for input using `getpass.getpass()`.
+    `columns` (set of strs) contains the expected headers of the table specified by `expected_list`. These should be as they are acutally displayed (e.g. 'Alias') not the name used in the CLI code (e.g. 'alias_name'). This set must contain all the expected headers, not just a subset. Ignored if `expected_list` is not specified.
+    `timeout` (number) is passed to `subprocess.run()` and specifies the maximum number of seconds that a process will be allowed to run before `subprocess` stops it and we examine stdout. If `None`, the process will be allowed to run indefinitely. If a process is expected to timeout, `expected_rc` should be set to -1. This option does not seem to work well if the process hangs because it is waiting for input using `getpass.getpass()`.
     '''
     import subprocess
     from unit_test_common import _caller, _execute_selections
@@ -89,15 +89,14 @@ def execute_csv2_command(gvar, expected_rc, expected_modid, expected_text, cmd, 
                         # The non-capturing nature of the `(?:)` parentheses prevents these groups from being added to the list produced by split().
                         columns_ordered.extend(filter(None, re.split(r'(?:\s*\|\s*)+|(?:\s{2,})', row_trimmed)))
 
-                if columns:
-                    columns_expected = set(columns)
-                    columns_actual = set(columns_ordered)
-                    if columns_expected != columns_actual:
+                if expected_columns:
+                    actual_columns = set(columns_ordered)
+                    if expected_columns != actual_columns:
                         failed = True
                         list_error = '\tActual columns found: {}\n \
                         \tColumns expected but not found: {}\n \
                         \tColumns not expected but found: {}\n'\
-                        .format(columns_actual, columns_expected - columns_actual, columns_actual - columns_expected)
+                        .format(actual_columns, expected_columns - actual_columns, actual_columns - expected_columns)
 
             # expected_list not in stdout
             else:
@@ -108,7 +107,7 @@ def execute_csv2_command(gvar, expected_rc, expected_modid, expected_text, cmd, 
             gvar['ut_failed'] += 1
             if not gvar['hidden']:
                 # repr() is used because it puts quotes around strings *unless* they are None.
-                print('\n%04d (%04d) %s \033[91mFailed\033[0m: expected_rc=%s, expected_modid=%s, expected_text=%s, cmd=%s' % (gvar['ut_count'][0], gvar['ut_count'][1], _caller(), expected_rc, repr(expected_modid), repr(expected_text), ' '.join((word if word else '""' for word in cmd))))
+                print('\n%04d (%04d) %s \033[91mFailed\033[0m: expected_rc=%s, expected_modid=%s, expected_text=%s, cmd=%s' % (gvar['ut_count'][0], gvar['ut_count'][1], _caller(), expected_rc, repr(expected_modid), repr(expected_text), ' '.join((word if word else '\'\'' for word in cmd))))
                 print('\treturn code=%s' % return_code)
                 print('\tmodule ID=%s' % repr(modid))
                 print('\tstdout=%s' % stdout)
@@ -470,7 +469,7 @@ def table_commands(gvar, obj, action, group, server_user, table_headers):
     `table_headers` is a dictionary in which each key is the name of a table to test (in the form that the CLI prints, e.g. 'Aliases'), and its value is a complete list of all of the table's expected keys and columns (as strs) (in the form that the CLI prints, e.g. 'Group'). These must be in the order that they are listed when `--view-columns` is specified (keys being before columns). When super-headers appear over a group of columns in the CLI output (e.g. 'Project' in the output of `cloud list`), these should be included in this list and may be in any position after the keys, except at the end. Optional tables which are listed last by `--view-columns` can be omitted from testing by omitting them from `table_headers` (but other tables must be included). Any specifications of non-existent tables will be ignored.
     If table_headers specifies more than one table, the total number of tests executed can be calculated as: 7 * (number of default tables specified) + 10 * (number of optional tables specified). Otherwise, it can be calculated as 7 * (number of tables specified).
     The options tested are `--comma-separated-values` (`-CSV`), `--comma-separated-values-separator` (`-CSEP`), `--no-view` (`-NV`), `--only-keys` (`-ok`), `--rotate` (`-r`), `--view` (`-V`), and `--with` (`-w`).
-    'headers' is used to refer to keys and columns collectively.
+    'headers' is used to refer to keys and columns collectively. When running tests that use this function, the test runner should not have `with` specified in their defaults.
     '''
 
     import subprocess
@@ -508,7 +507,7 @@ def table_commands(gvar, obj, action, group, server_user, table_headers):
     for i, table in enumerate(tables):
         name, optional, keys, columns, display_headers = table
         base_cmd = [obj, action, '-g', group, '-su', server_user]
-        headers = display_headers + default_headers if optional else display_headers
+        headers = set((display_headers + default_headers) if optional else display_headers)
 
         # Commands that only have one table often reject `--with`.
         if optional and len(tables) > 1:
@@ -516,14 +515,14 @@ def table_commands(gvar, obj, action, group, server_user, table_headers):
             execute_csv2_command(
                 gvar, 0, None, user_group_message,
                 base_cmd + ['--with', name],
-                expected_list=name, columns=headers
+                expected_list=name, expected_columns=headers
             )
 
             # --with using table index.
             execute_csv2_command(
                 gvar, 0, None, user_group_message,
                 base_cmd + ['--with', i + 1],
-                expected_list=name, columns=headers
+                expected_list=name, expected_columns=headers
             )
 
             # --with using 'ALL'.
@@ -536,24 +535,24 @@ def table_commands(gvar, obj, action, group, server_user, table_headers):
 
             base_cmd.extend(['--with', name])
 
-        view_headers = (display_headers[:-1] if columns else display_headers) + (default_headers if optional else [])
+        view_headers = set((display_headers[:-1] if columns else display_headers) + (default_headers if optional else []))
         # --view.
         execute_csv2_command(
             gvar, 0, None, user_group_message,
             base_cmd + ['--view', ('/' * i) + (','.join(columns[:-1]) if len(columns) > 1 else keys[0])],
-            expected_list=name, columns=view_headers
+            expected_list=name, expected_columns=view_headers
         )
 
         # --no-view. Temporarily override the view.
         execute_csv2_command(
             gvar, 0, None, user_group_message, base_cmd + ['--no-view'],
-            expected_list=name, columns=headers
+            expected_list=name, expected_columns=headers
         )
 
         # --rotate.
         execute_csv2_command(
             gvar, 0, None, user_group_message, base_cmd + ['--rotate'],
-            expected_list=name, columns=['Key', 'Value']
+            expected_list=name, expected_columns={'Key', 'Value'}
         )
 
         # --comma-separated-values[-separator].
@@ -567,20 +566,20 @@ def table_commands(gvar, obj, action, group, server_user, table_headers):
         execute_csv2_command(
             # Check that specifying `--with` for a table that is already included does not cause problems.
             gvar, 0, None, user_group_message, base_cmd + (['--with', name] if len(tables) > 1 else []),
-            expected_list=name, columns=view_headers
+            expected_list=name, expected_columns=view_headers
         )
 
         # Remove the view.
         execute_csv2_command(
             gvar, 0, None, user_group_message,
             base_cmd + ['--view', '', '-su', server_user],
-            expected_list=name, columns=headers
+            expected_list=name, expected_columns=headers
         )
 
         # --only-keys.
         execute_csv2_command(
             gvar, 0, None, user_group_message, base_cmd + ['--only-keys'],
-            expected_list=name, columns=display_headers[:len(keys)] + default_keys
+            expected_list=name, expected_columns=set(display_headers[:len(keys)] + default_keys)
         )
 
 
