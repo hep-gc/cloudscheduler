@@ -10,7 +10,7 @@ import re
 import sys
 import yaml
 
-from cloudscheduler.lib.attribute_mapper import map_attributes
+from cloudscheduler.lib.attribute_mapper_na import map_attributes
 from cloudscheduler.lib.db_config_na import Config
 from cloudscheduler.lib.schema import view_condor_host
 from cloudscheduler.lib.log_tools import get_frame_info
@@ -249,7 +249,7 @@ def check_pair_pid(pair, config, cloud_table):
     except Exception as ex:
         logging.error("Failed to retrieve cloud row for: %s" % pair)
         return False
-    pid = cloud["machine_subprocess_pid"]
+    pid = cloud["subprocess_id_retire"]
     if pid is None or pid == -1:
         # No subprocess ever started
         return False
@@ -281,7 +281,7 @@ def process_group_cloud_commands(pair, condor_host):
     startd_type = htcondor.AdTypes.Startd
 
     pid = os.getpid()
-    sql = 'update csv2_clouds set machine_subprocess_pid=%s where group_name="%s" and cloud_name="%s";' % (pid, group_name, cloud_name)
+    sql = 'update csv2_clouds set subprocess_id_retire=%s where group_name="%s" and cloud_name="%s";' % (pid, group_name, cloud_name)
     config.db_execute(sql)
 
     logging.info("Processing commands for group:%s, cloud:%s" % (group_name, cloud_name))
@@ -396,11 +396,11 @@ def process_group_cloud_commands(pair, condor_host):
         logging.exception("Failed to commit retire machine, aborting cycle...")
         logging.error(exc)
         config.db_rollback()
-        sql = "update csv2_clouds set machine_subprocess_pid=%s where group_name='%s' and cloud_name='%s';" % (-1, group_name, cloud_name)
+        sql = "update csv2_clouds set subprocess_id_retire=%s where group_name='%s' and cloud_name='%s';" % (-1, group_name, cloud_name)
         return
 
     logging.info("Commands complete, closing subprocess")
-    sql = "update csv2_clouds set machine_subprocess_pid=%s where group_name='%s' and cloud_name='%s';" % (-1, group_name, cloud_name)
+    sql = "update csv2_clouds set subprocess_id_retire=%s where group_name='%s' and cloud_name='%s';" % (-1, group_name, cloud_name)
     config.db_execute(sql) 
     config.db_close()
     return
