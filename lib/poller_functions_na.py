@@ -7,9 +7,6 @@ import time
 
 from cloudscheduler.lib.attribute_mapper_na import map_attributes
 
-from sqlalchemy.orm import Session
-from sqlalchemy.sql import func
-
 ## Poller functions.
 
 def start_cycle(new_poll_time, start_time):
@@ -52,21 +49,6 @@ def foreign(vm):
         return False
     else:
         return True
-
-def get_last_poll_time_from_database(db_engine, base_class_and_key):
-    try:
-        db_session = Session(db_engine)
-        db_query = db_session.query(func.max(base_class_and_key).label("timestamp"))
-        db_response = db_query.one()
-        last_poll_time = db_response.timestamp
-        del db_session
-    except Exception as exc:
-        logging.error("Failed to retrieve last poll time (%s, %s, %s), skipping this cloud..." % (db_engine, base_class, base_class_key))
-        logging.error(exc)
-        last_poll_time = 0
-
-    logging.info("Setting last_poll_time: %s" % last_poll_time)
-    return last_poll_time
 
 def __inventory_get_hash__(ikey_names, item_dict, debug_hash=False): 
     hash_list = []
