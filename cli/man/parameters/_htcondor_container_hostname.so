@@ -1,5 +1,5 @@
 .TP
-\fB\-htcn \fIhtcondor-central-manager-name\fR, \fB\-\-htcondor-name \fIhtcondor-central-manager-name\fR
+\fB\-htch \fIhtcondor-central-manager-name\fR, \fB\-\-htcondor-container-hostname \fIhtcondor-central-manager-name\fR
 Specifies an alternate domain name of the server hosting your HTCondor central manager.
 This field is provided for container support where both the server and the container need to be identified.
 

@@ -1,0 +1,2 @@
+Save locally (i.e. fetch) a cloud metadata file that is on a cloud in the current group.
+Any user may save cloud metadata, provided they are in the group that the cloud they are saving metadata from is in.

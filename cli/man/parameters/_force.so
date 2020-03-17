@@ -1,5 +1,5 @@
 .TP
 .BR "\-F" ", " "\-\-force"
 Specify this option to override non-critical errors.
-For example, cloudscheduler commands to load metedata are implicitly adding a new objects to CSV2; if the specified objects already exist, such commands fail with an error message.
+For example, cloudscheduler commands to load metadata are implicitly adding a new objects to CSV2; if the specified objects already exist, such commands fail with an error message.
 In these situations, the "--force" option changes the implicit add to an implicit "update" and the commands succeed.

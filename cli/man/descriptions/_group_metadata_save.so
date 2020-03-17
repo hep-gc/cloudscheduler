@@ -1,0 +1,2 @@
+The \fBcloudscheduler group metadata-save\fR action saves locally (i.e. fetches) metadata that belongs to the current group on csv2 servers.
+This action is available to priviliged users, provided they are in the group that the metadata belongs to.
