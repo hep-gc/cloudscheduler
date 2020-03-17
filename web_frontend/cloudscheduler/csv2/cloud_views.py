@@ -93,8 +93,9 @@ CLOUD_KEYS = {
         'password',
         'region',
         ],
-    'array_field': [
+    'array_fields': [
         'group_name',
+        'metadata_name',
         ]
     }
 

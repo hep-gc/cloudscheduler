@@ -939,10 +939,10 @@ def metadata_query(request):
     rc, msg, active_user = set_user_groups(config, request, super_user=False)
     if rc != 0:
         config.db_close()
-        return defaults(request, active_user=active_user, response_code=1, message='%s group metadata-query %s' % (lno(MODID), msg))
+        return defaults(request, active_user=active_user, response_code=1, message='%s group metadata_query %s' % (lno(MODID), msg))
 
     fields = active_user.kwargs
-    field_error = validate_url_fields('%s group metadata_fetch' % lno(MODID), request, 'csv2/blank_msg.html', fields, ['metadata_name'])
+    field_error = validate_url_fields('%s group metadata_query' % lno(MODID), request, 'csv2/blank_msg.html', fields, ['metadata_name'])
     if field_error:
         return field_error
 
