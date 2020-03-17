@@ -70,7 +70,7 @@ EOF
 ###
 ### 3. Checks to see if we are installed correctly in /opt.
 ###
-    home=$(realpath $0) $1
+    home=$(readlink -e $0) $1
     if [ $home != '/opt/cloudscheduler/utilities/remote_condor_poller_enable' ]; then
         echo 'ERROR: Remote csv2-condor-poller must be installed in /opt.'
         exit 1
