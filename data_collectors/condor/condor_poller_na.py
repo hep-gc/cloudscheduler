@@ -12,7 +12,6 @@ import yaml
 
 from cloudscheduler.lib.attribute_mapper_na import map_attributes
 from cloudscheduler.lib.db_config_na import Config
-from cloudscheduler.lib.schema import view_condor_host
 from cloudscheduler.lib.log_tools import get_frame_info
 from cloudscheduler.lib.fw_config_na import configure_fw
 from cloudscheduler.lib.poller_functions_na import \
