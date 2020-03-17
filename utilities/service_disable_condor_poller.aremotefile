@@ -10,8 +10,9 @@
 ###
 ### 1. Ensure remote csv2-condor-poller is not already installed.
 ###
-    systemctl=$(which systemctl 2>&1)
-    if [ "${systemctl:0:10}" == 'which: no ' ]; then
+    which systemctl 1>/dev/null 2>&1
+    systemctl=$?
+    if [ $systemctl -eq 1 ]; then
         chkconfig csv2-condor-poller
     else
         systemctl enable csv2-condor-poller >/dev/null 2>&1
@@ -33,7 +34,7 @@
 ###
 ### 3. Stops, disables, and uninstalls csv2-condor-poller initd/systemd service.
 ###
-    if [ "${systemctl:0:10}" == 'which: no ' ]; then
+    if [ $systemctl -eq 1 ]; then
         service csv2-condor-poller stop
         chkconfig --del csv2-condor-poller
         rm -f  /etc/init.d/csv2-condor-poller
