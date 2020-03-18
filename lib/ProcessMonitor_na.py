@@ -15,16 +15,22 @@ class ProcessMonitor:
     processes = {}
     process_ids = {}
     logging = None
+    log_file = None
+    log_level = None
 
     def __init__(self, config_params, pool_size,  process_ids=None, config_file='/etc/cloudscheduler/cloudscheduler.yaml', log_file=None, log_level=None):
         self.config = Config(config_file, config_params, pool_size=pool_size)
         if log_file is None:
-            log_file = self.config.categories[os.path.basename(sys.argv[0])]["log_file"]
+            self.log_file = self.config.categories[os.path.basename(sys.argv[0])]["log_file"]
+        else:
+            self.log_file = log_file
         if log_level is None:
-            log_level = self.config.categories[os.path.basename(sys.argv[0])]["log_level"]
+            self.log_level = self.config.categories[os.path.basename(sys.argv[0])]["log_level"]
+        else:
+            self.log_level = log_level
         logging.basicConfig(
-            filename=log_file,
-            level=log_level,
+            filename=self.log_file,
+            level=self.log_level,
             format='%(asctime)s - %(processName)-12s - %(process)d - %(levelname)s - %(message)s')
         self.logging = logging.getLogger()
         self.process_ids = process_ids
@@ -68,7 +74,7 @@ class ProcessMonitor:
             proc = subprocess.Popen(['tail', '-n', '50', self.config.categories[os.path.basename(sys.argv[0])]["log_file"]], stdout=subprocess.PIPE)
             lines = proc.stdout.readlines()
             timestamp = str(datetime.date.today())
-            with open(''.join([self.config.categories[os.path.basename(sys.argv[0])]["log_file"], '-crash-', timestamp]), 'wb') as f:
+            with open(''.join([self.log_file, '-crash-', timestamp]), 'wb') as f:
                 for line in lines:
                     f.write(line)
         except Exception as ex:

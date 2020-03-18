@@ -26,9 +26,6 @@ from cloudscheduler.lib.ProcessMonitor_na import ProcessMonitor, check_pid, term
 import htcondor
 import classad
 import boto3
-import sqlalchemy.exc
-from sqlalchemy import create_engine, or_
-from sqlalchemy.orm import Session
 
 
 MASTER_TYPE = htcondor.AdTypes.Master
@@ -41,7 +38,7 @@ STARTD_TYPE = htcondor.AdTypes.Startd
 #    mysql_privileges_map_table_to_variables csv2_groups      GROUPS
 #    mysql_privileges_map_table_to_variables csv2_user        USERS
 #    mysql_privileges_map_table_to_variables csv2_vms         VM
-
+#    config.db_merge(csv2_service_catalog)
 
 
 
@@ -1273,7 +1270,10 @@ def worker_gsi_poller():
                     logging.info(ex)
             if worker_cert:
                 try:
-                    config.db_execute('insert into condor_worker_gsi (htcondor_fqdn, htcondor_host_id, worker_dn, worker_eol, worker_cert, worker_key) values("%s",%d "%s", %d, "%s", "%s");' % (condor, config.local_host_id, if_null(worker_cert['subject']), worker_cert['eol'], if_null(worker_cert['cert']), if_null(worker_cert['key'])))
+                    rc, msg = config.db_execute('insert into condor_worker_gsi (htcondor_fqdn, htcondor_host_id, worker_dn, worker_eol, worker_cert, worker_key) values("%s",%d "%s", %d, "%s", "%s");' % (condor, config.local_host_id, if_null(worker_cert['subject']), worker_cert['eol'], if_null(worker_cert['cert']), if_null(worker_cert['key'])))
+                    if rc == 1:
+                        #insert failed, raise exception
+                        raise(msg)
                     config.db_commit()
 
                     if worker_cert['subject']:
@@ -1282,9 +1282,6 @@ def worker_gsi_poller():
                         logging.info('Condor host: "%s", condor_worker_gsi (not configured) inserted.' % condor)
 
                 except Exception as ex:
-                    if not (isinstance(ex, sqlalchemy.exc.IntegrityError) and str(ex.orig)[1:-1].split(',')[0] == '1062'):
-                        logging.warning('Condor host: "%s", condor_worker_gsi insert failed, exception: %s' % (condor, ex))
-
                     try:
                         config.db_execute('update condor_worker_gsi set %s, htcondor_host_id=%d,worker_eol=%d,%s,%s where htcondor_fqdn="%s";' % (
                             if_null(worker_cert['subject'], col='worker_dn'),

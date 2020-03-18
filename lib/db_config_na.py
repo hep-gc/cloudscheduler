@@ -200,23 +200,40 @@ class Config:
         message together with the caller ID.
         """
 
+        def __get_values_from_stack__(stack_entry):
+            # Python < 3.5.
+            if isinstance(stack_entry, tuple):
+                filename = stack_entry[1]
+                lineno = stack_entry[2]
+                function = stack_entry[3]
+
+            # Python >= 3.5.
+            else:
+                filename = stack_entry.filename
+                lineno = stack_entry.lineno
+                function = stack_entry.function
+
+            return filename, lineno, function
+
         if self.initialized:
             callers_stack = stack()
             if rc > 0:
                 stack_trace = ''
                 for ix in range(1, len(callers_stack)):
-                   function = callers_stack[ix].function
-                   if function != '<module>':
-                       stack_trace = ' -> %s%s' % (callers_stack[ix].function, stack_trace)
+                    filename, lineno, function = __get_values_from_stack__(callers_stack[ix])
 
-                   if callers_stack[ix].filename[-15:] != 'db_config_na.py':
-                       if function != '<module>':
-                           stack_trace = 'Function: %s' % stack_trace[4:]
-                       break
+                    if function != '<module>':
+                        stack_trace = ' -> %s%s' % (function, stack_trace)
 
-                logging.warning('file: %s, line: %s %s, rc: %s, msg: %s' % (callers_stack[ix].filename, callers_stack[ix].lineno, stack_trace, rc, msg))
+                    if filename[-15:] != 'db_config_na.py':
+                        if function != '<module>':
+                            stack_trace = 'Function: %s' % stack_trace[4:]
+                        break
+
+                logging.warning('file: %s, line: %s %s, rc: %s, msg: %s' % (filename, lineno, stack_trace, rc, msg))
             else:
-                logging.debug('function: %s, rc: %s, msg: %s' % (callers_stack[1].function, rc, msg))
+                filename, lineno, function = __get_values_from_stack__(callers_stack[1])
+                logging.debug('function: %s, rc: %s, msg: %s' % (function, rc, msg))
 
         if isinstance(rows, list):
             return rc, msg, rows
