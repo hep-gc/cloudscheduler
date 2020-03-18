@@ -60,7 +60,6 @@ def trim_keys(dict_to_trim, key_list):
 def get_condor_dict(config, logging):
     condor_dict = {}
     rc, msg, group_list = config.db_query('csv2_groups', select=['group_name', 'htcondor_fqdn'])
-    logging.error(group_list)
     for group in group_list:
         try:
             condor_ip = socket.gethostbyname(group['htcondor_fqdn'])
