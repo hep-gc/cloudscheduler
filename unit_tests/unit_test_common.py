@@ -390,7 +390,7 @@ def sanity_commands(gvar, obj, action=None):
     )
     # 06 Attempt to change to a group that the user is not in.
     execute_csv2_command(
-        gvar, 1, None, 'cannot switch to invalid group "{}".'.format(ut_id(gvar, 'clu2')), request + ['-g', ut_id(gvar, 'clg2'), '-su', ut_id(gvar, 'clu4')]
+        gvar, 1, None, 'cannot switch to invalid group "{}".'.format(ut_id(gvar, 'clg2')), request + ['-g', ut_id(gvar, 'clg2'), '-su', ut_id(gvar, 'clu4')]
     )
     # 07 Fail to specify an action.
     execute_csv2_command(
@@ -656,9 +656,8 @@ def initialize_csv2_request(gvar, selections=None, hidden=False):
 
     # Get user_secret and cloud credentials.
     CREDENTIALS_PATH = os.path.expanduser('~/cloudscheduler/unit_tests/credentials.yaml')
-    os.umask(0)
     try:
-        with open(os.path.expanduser('~/cloudscheduler/unit_tests/credentials.yaml'), 'r') as credentials_file:
+        with open(os.path.expanduser('~/cloudscheduler/unit_tests/credentials.yaml')) as credentials_file:
             credentials = yaml.full_load(credentials_file.read())
             gvar.update(credentials)
     except FileNotFoundError:
@@ -670,6 +669,7 @@ def initialize_csv2_request(gvar, selections=None, hidden=False):
         gvar['cloud_credentials']['region'] = input('region: ')
         gvar['cloud_credentials']['project'] = input('project: ')
         # Create credentials file with read / write permissions for the current user and none for others. Save user_secret there in plain text.
+        os.umask(0)
         os.makedirs(os.path.dirname(CREDENTIALS_PATH), mode=0o700, exist_ok=True)
         with open(os.open(CREDENTIALS_PATH, os.O_CREAT | os.O_WRONLY, 0o600), 'w') as credentials_file:
             credentials_file.write(yaml.dump({'user_secret': gvar['user_secret'], 'cloud_credentials': gvar['cloud_credentials']}))

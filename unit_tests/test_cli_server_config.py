@@ -3,7 +3,7 @@ from sys import argv
 
 # lno: SV - error code identifier.
 
-SERVER_CONFIG_COLUMNS = {'Category', 'Config Key', 'Type', 'Value'}
+SERVER_CONFIG_COLUMNS = ['Category', 'Config Key', 'Type', 'Value']
 
 def main(gvar):
     if not gvar:
@@ -32,14 +32,14 @@ def main(gvar):
     execute_csv2_command(
         gvar, 0, None, 'Server: unit-test, Active User: {}, Active Group: {}'.format(ut_id(gvar, 'clu4'), ut_id(gvar, 'clg1')),
         ['server', 'config', '-g', ut_id(gvar, 'clg1')],
-        expected_list='Server Configuration', columns=SERVER_CONFIG_COLUMNS
+        expected_list='Server Configuration', expected_columns=set(SERVER_CONFIG_COLUMNS)
     )
 
     # 30 Filter by category.
     execute_csv2_command(
         gvar, 0, None, 'Server: unit-test, Active User: {}, Active Group: {}'.format(ut_id(gvar, 'clu4'), ut_id(gvar, 'clg1')),
         ['server', 'config', '-cc', 'web_frontend'],
-        expected_list='Server Configuration', columns=SERVER_CONFIG_COLUMNS
+        expected_list='Server Configuration', expected_columns=set(SERVER_CONFIG_COLUMNS)
     )
 
     # 31

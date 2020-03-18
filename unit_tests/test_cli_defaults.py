@@ -59,7 +59,7 @@ def main(gvar):
     # 08 The defaults for this fake server are deleted by later tests.
     execute_csv2_command(
         gvar, 0, None, None,
-        ['defaults', 'set', '-s', ut_id(gvar, 'cld1'), '--cloud-enabled', 0, '-su', ut_id(gvar, 'clu3')]
+        ['defaults', 'set', '-s', ut_id(gvar, 'cld1'), '--server-address', gvar['user_settings']['server-address'], '--cloud-enabled', 0, '-su', ut_id(gvar, 'clu3')]
     )
 
     #### LIST ####
@@ -118,7 +118,7 @@ def main(gvar):
     execute_csv2_command(
         gvar, 0, None, None,
         ['defaults', 'list', '-NV', '-su', ut_id(gvar, 'clu3')],
-        expected_list='Defaults', columns=DEFAULTS_COLUMNS
+        expected_list='Defaults', expected_columns=DEFAULTS_COLUMNS
     )
 
     # 18
@@ -130,25 +130,19 @@ def main(gvar):
 
     # 19
     execute_csv2_command(
-        gvar, 0, None, '!',
-        ['defaults', 'list', '-CSV', '', '-CSEP', '!', '-su', ut_id(gvar, 'clu3')],
-    )
-
-    # 20
-    execute_csv2_command(
         gvar, 0, None, None,
         ['defaults', 'list', '-su', ut_id(gvar, 'clu3')],
         expected_list='Defaults', expected_columns={'server', 'server-address', 'server-user'}
     )
 
-    # 21
+    # 20
     execute_csv2_command(
         gvar, 0, None, None,
         ['defaults', 'list', '-V', '', '-su', ut_id(gvar, 'clu3')],
-        expected_list='Defaults', columns=DEFAULTS_COLUMNS
+        expected_list='Defaults', expected_columns=DEFAULTS_COLUMNS
     )
 
-    # 22
+    # 21
     execute_csv2_command(
         gvar, 0, None, None,
         ['defaults', 'list', '-r', '-su', ut_id(gvar, 'clu3')],
@@ -157,37 +151,37 @@ def main(gvar):
 
     #### DELETE ####
 
-    # 23
+    # 22
     execute_csv2_command(
         gvar, 1, None, 'The following command line arguments were unrecognized: [\'--invalid-unit-test\', \'invalid-unit-test\']',
         ['defaults', 'delete', '--invalid-unit-test', 'invalid-unit-test', '-su', ut_id(gvar, 'clu3')]
     )
 
-    # 24
+    # 23
     execute_csv2_command(
         gvar, 0, None, 'Help requested for "cloudscheduler defaults delete".',
         ['defaults', 'delete', '-h', '-su', ut_id(gvar, 'clu3')]
     )
 
-    # 25
+    # 24
     execute_csv2_command(
         gvar, 0, None, 'General Commands Manual',
         ['defaults', 'delete', '-H', '-su', ut_id(gvar, 'clu3')]
     )
 
-    # 26
+    # 25
     execute_csv2_command(
         gvar, None, None, 'Error: the specified server "invalid-unit-test" does not exist in your defaults.',
         ['defaults', 'delete', '-s', 'invalid-unit-test', '-su', ut_id(gvar, 'clu3')], timeout=8
     )
 
-    # 27 Delete defaults created earlier.
+    # 26 Delete defaults created earlier.
     execute_csv2_command(
         gvar, 0, None, None,
         ['defaults', 'delete', '-s', ut_id(gvar, 'cld1'), '-Y', '-su', ut_id(gvar, 'clu3')]
     )
 
-    # 28
+    # 27
     execute_csv2_command(
         gvar, None, None, None,
         ['defaults', '-su', ut_id(gvar, 'clu3')]

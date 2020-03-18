@@ -3,7 +3,7 @@ from sys import argv
 
 # lno: UV - error code identifier.
 
-USER_LIST_COLUMNS = {'Username', 'Common Name', 'Active Group', 'User Groups', 'Username', 'Not In Groups', 'Super User', 'Joined'}
+USER_LIST_COLUMNS = ['Username', 'Common Name', 'Active Group', 'User Groups', 'Username', 'Not In Groups', 'Super User', 'Joined']
 
 def main(gvar):
     if not gvar:
@@ -46,7 +46,7 @@ def main(gvar):
     execute_csv2_command(
         gvar, 0, None, 'Server: unit-test, Active User: {}, Active Group: {}'.format(ut_id(gvar, 'clu4'), ut_id(gvar, 'clg1')),
         ['user', 'list'],
-        expected_list='Users', columns=USER_LIST_COLUMNS
+        expected_list='Users', expected_columns=set(USER_LIST_COLUMNS)
     )
 
 if __name__ == "__main__":

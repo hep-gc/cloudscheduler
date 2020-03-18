@@ -27,14 +27,14 @@ def main(gvar):
     execute_csv2_command(
         gvar, 0, None, 'Server: unit-test, Active User: {}, Active Group: {}'.format(ut_id(gvar, 'clu3'), ut_id(gvar, 'clg1')),
         ['cloud', 'status', '-NV', '-su', ut_id(gvar, 'clu3')],
-        expected_list='Cloud status', columns=CLOUD_JOB_COLUMNS
+        expected_list='Cloud status', expected_columns=CLOUD_JOB_COLUMNS
     )
 
     # 17
     execute_csv2_command(
         gvar, 0, None, ut_id(gvar, 'clc2'),
         ['cloud', 'status', '-cn', ut_id(gvar, 'clc2'), '-NV', '-su', ut_id(gvar, 'clu3')],
-        expected_list='Cloud status', columns=CLOUD_JOB_COLUMNS
+        expected_list='Cloud status', expected_columns=CLOUD_JOB_COLUMNS
     )
 
     # 18
@@ -53,7 +53,7 @@ def main(gvar):
     execute_csv2_command(
         gvar, 0, None, None,
         ['cloud', 'status', '-NV', '-su', ut_id(gvar, 'clu3')],
-        expected_list='Job status', columns=CLOUD_JOB_COLUMNS
+        expected_list='Job status', expected_columns=CLOUD_JOB_COLUMNS
     )
 
 if __name__ == "__main__":

@@ -3,7 +3,7 @@ from sys import argv
 
 # lno: JV - error code identifier.
 
-JOB_LIST_COLUMNS = {'Group', 'Job ID', 'Cluster ID', 'Process ID', 'User', 'User Data', 'Requirements', 'Target Clouds', 'Cloud', 'Instance Type', 'Requested', 'CPUs', 'RAM {MBs}', 'Disk {GBs}', 'Swap (GBs)', 'Jobs per Core', 'Image', 'Network', 'Job', 'Priority', 'Status Code', 'Job Status Flags', 'Idle', 'Running', 'Completed', 'Held', 'Other', 'Keep Alive (seconds)', 'Max Spot Price', 'State Change Date', 'Queued Date', 'Held Job Reason'}
+JOB_LIST_COLUMNS = ['Group', 'Job ID', 'Cluster ID', 'Process ID', 'User', 'User Data', 'Requirements', 'Target Clouds', 'Cloud', 'Instance Type', 'Requested', 'CPUs', 'RAM {MBs}', 'Disk {GBs}', 'Swap (GBs)', 'Jobs per Core', 'Image', 'Network', 'Job', 'Priority', 'Status Code', 'Job Status Flags', 'Idle', 'Running', 'Completed', 'Held', 'Other', 'Keep Alive (seconds)', 'Max Spot Price', 'State Change Date', 'Queued Date', 'Held Job Reason']
 
 def main(gvar):
     if not gvar:
@@ -39,7 +39,7 @@ def main(gvar):
     execute_csv2_command(
         gvar, 0, None, 'Server: unit-test, Active User: {}, Active Group: {}'.format(ut_id(gvar, 'clu3'), ut_id(gvar, 'clg1')),
         ['job', 'list', '-su', ut_id(gvar, 'clu3')],
-        expected_list='Jobs', columns=JOB_LIST_COLUMNS
+        expected_list='Jobs', expected_columns=set(JOB_LIST_COLUMNS)
     )
 
 if __name__ == "__main__":

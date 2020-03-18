@@ -17,7 +17,7 @@ def main(gvar):
     # 15
     execute_csv2_command(
         gvar, 1, None, 'the following mandatory parameters must be specified on the command line',
-        ['user', 'delete', ut_id(gvar, 'clg1')]
+        ['user', 'delete', '-g', ut_id(gvar, 'clg1')]
     )
 
     # 16
