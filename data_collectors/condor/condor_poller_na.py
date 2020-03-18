@@ -682,7 +682,6 @@ def job_poller():
                         continue
 
                     try:
-                        logging.info(job_dict)
                         config.db_merge(JOB, job_dict)
                         uncommitted_updates += 1
                     except Exception as exc:
@@ -1269,7 +1268,16 @@ def worker_gsi_poller():
                     logging.info(ex)
             if worker_cert:
                 try:
-                    rc, msg = config.db_execute('insert into condor_worker_gsi (htcondor_fqdn, htcondor_host_id, worker_dn, worker_eol, worker_cert, worker_key) values("%s",%d "%s", %d, "%s", "%s");' % (condor, config.local_host_id, if_null(worker_cert['subject']), worker_cert['eol'], if_null(worker_cert['cert']), if_null(worker_cert['key'])))
+                    new_cwg = {
+                        "htcondor_fqdn": condor,
+                        "htcondor_host_id": config.local_host_id,
+                        "worker_dn": worker_cert['subject'],
+                        "worker_eol":  worker_cert['eol'],
+                        "worker_cert": worker_cert['cert'],
+                        "worker_key": worker_cert['key']
+                    }
+                    rc, msg = config.db_merge('condor_worker_gsi', new_cwg)
+                    #rc, msg = config.db_execute('insert into condor_worker_gsi (htcondor_fqdn, htcondor_host_id, worker_dn, worker_eol, worker_cert, worker_key) values("%s",%d "%s", %d, "%s", "%s");' % (condor, config.local_host_id, if_null(worker_cert['subject']), worker_cert['eol'], if_null(worker_cert['cert']), if_null(worker_cert['key'])))
                     if rc == 1:
                         #insert failed, raise exception
                         raise(msg)
@@ -1281,28 +1289,12 @@ def worker_gsi_poller():
                         logging.info('Condor host: "%s", condor_worker_gsi (not configured) inserted.' % condor)
 
                 except Exception as ex:
-                    try:
-                        config.db_execute('update condor_worker_gsi set %s, htcondor_host_id=%d,worker_eol=%d,%s,%s where htcondor_fqdn="%s";' % (
-                            if_null(worker_cert['subject'], col='worker_dn'),
-                            config.local_host_id,
-                            worker_cert['eol'],
-                            if_null(worker_cert['cert'], col='worker_cert'),
-                            if_null(worker_cert['key'], col='worker_key'),
-                            condor))
-                        config.db_commit()
+                    config.db_rollback()
 
-                        if worker_cert['subject']:
-                            logging.info('Condor host: "%s", condor_worker_gsi updated.' % condor)
-                        else:
-                            logging.info('Condor host: "%s", condor_worker_gsi (not configured) updated.' % condor)
-
-                    except Exception as ex:
-                        config.db_rollback()
-
-                        if worker_cert['subject']:
-                            logging.error('Condor host: "%s", condor_worker_gsi update failed, exception: %s' % (condor, ex))
-                        else:
-                            logging.error('Condor host: "%s", condor_worker_gsi (not configured) update failed, exception: %s' % (condor, ex))
+                    if worker_cert['subject']:
+                        logging.error('Condor host: "%s", condor_worker_gsi update failed, exception: %s' % (condor, ex))
+                    else:
+                        logging.error('Condor host: "%s", condor_worker_gsi (not configured) update failed, exception: %s' % (condor, ex))
 
             else:
                 logging.warning('Condor host: "%s", GSI not enabled, nothing to do...' % condor)
