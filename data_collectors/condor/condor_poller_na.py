@@ -40,6 +40,7 @@ STARTD_TYPE = htcondor.AdTypes.Startd
 #    mysql_privileges_map_table_to_variables csv2_vms         VM
 #    config.db_merge(csv2_service_catalog)
 #    config.db_merge(csv2_configuration)
+#    config.db_update(csv2_clouds)
 
 
 
