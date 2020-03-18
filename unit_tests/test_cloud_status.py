@@ -18,6 +18,14 @@ def main(gvar):
         gvar, 0, None, None,
         '/cloud/status/', group=ut_id(gvar, 'ctg1'),
         expected_list='cloud_status_list', list_filter={'group_name': ut_id(gvar, 'ctg1'), 'cloud_name': ut_id(gvar, 'ctc2')},
+        values={'VMs': '0'}, server_user=ut_id(gvar, 'ctu1')
+    )
+
+    # 07
+    execute_csv2_request(
+        gvar, 0, None, None,
+        '/cloud/status/', group=ut_id(gvar, 'ctg1'), form_data={'cloud_name': ut_id(gvar, 'ctc2')},
+        expected_list='cloud_status_list', list_filter={'group_name': ut_id(gvar, 'ctg1'), 'cloud_name': ut_id(gvar, 'ctc2')},
         values={
             'VMs': '0',
             'VMs_manual': '0',

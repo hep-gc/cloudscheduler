@@ -56,9 +56,9 @@ def main(gvar):
         # 30 Give two spot_prices.
         # 31
         'spot_price': {'valid': 0.0, 'test_cases': {'invalid-unit-test': 'cloud update value specified for "spot_price" must be a floating point value.'}},
-        # 32 Give two metadata_names.
+        # 32 Give both metadata_name and metadata_name.1.
         # 33
-        'metadata_name': {'valid': ut_id(gvar, 'cty2'), 'test_cases': {'invalid-unit-test': 'cloud update, "grobertson-ctc3" failed - specified metadata_name "invalid-unit-test" does not exist.'}},
+        'metadata_name': {'valid': ut_id(gvar, 'cty2'), 'test_cases': {'invalid-unit-test': 'cloud update, "{}" failed - specified metadata_name "invalid-unit-test" does not exist.'.format(ut_id(gvar, 'ctc3'))}, 'array_field': True},
         # 34 Give two metdata_options.
         # 35
         'metadata_option': {'valid': 'add', 'test_cases': {'invalid-unit-test': 'value specified for "metadata_option" must be one of the following options: [\'add\', \'delete\'].'}},
@@ -121,7 +121,7 @@ def main(gvar):
             'enabled': 1,
             'flavor_exclusions': None,
             'group_exclusions': None,
-            'metadata_names': 'grobertson-cty2,grobertson-cty3,grobertson-cty3.yaml',
+            # We would check metadata_names here, but their order is unpredictable as far as I know.
             'project': gvar['cloud_credentials']['project'],
             'project_domain_id': '',
             'project_domain_name': 'Default',

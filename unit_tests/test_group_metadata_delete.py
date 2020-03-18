@@ -15,17 +15,16 @@ def main(gvar):
     sanity_requests(gvar, '/group/metadata-delete/', ut_id(gvar, 'gtg4'), ut_id(gvar, 'gtu5'), ut_id(gvar, 'gtg7'), ut_id(gvar, 'gtu2'))
 
     parameters = {
-        # 0 Send a GET request.
-        # 0 Give an invalid parameter.
-        # 0 Omit metadata_name.
-        # 0 Give two metadata_names.
-        # 0
-        'metdata_name': {'valid': ut_id(gvar, 'gty6'), 'test_cases': {'invalid-unit-test': '"{}::invalid-unit-test" failed - the request did not match any rows.'.format(ut_id(gvar, 'gtg5'))},'mandatory': True}
+        # 06 Send a GET request.
+        # 07 Give an invalid parameter.
+        # 08 Give two metadata_names.
+        # 09
+        'metadata_name': {'valid': ut_id(gvar, 'gty6'), 'test_cases': {'invalid-unit-test': '"{}::invalid-unit-test" failed - the request did not match any rows.'.format(ut_id(gvar, 'gtg5'))},'mandatory': True}
     }
 
     parameters_requests(gvar, '/group/metadata-delete/', ut_id(gvar, 'gtg5'), ut_id(gvar, 'gtu5'), parameters)
 
-    # 09
+    # 10
     execute_csv2_request(
         gvar, 0, None, 'file "{}::{}" successfully deleted.'.format(ut_id(gvar, 'gtg5'), ut_id(gvar, 'gty6')),
         '/group/metadata-delete/', group=ut_id(gvar, 'gtg5'), form_data={'metadata_name': ut_id(gvar, 'gty6')},
@@ -33,18 +32,11 @@ def main(gvar):
     )
 
     # Deleting group metadata that is in a cloud's exceptions list should remove it from that list.
-    # 10
+    # 11
     execute_csv2_request(
         gvar, 0, None, None,
         '/cloud/list/', group=ut_id(gvar, 'gtg5'), expected_list='cloud_list',
         list_filter={'group_name': ut_id(gvar, 'gtg5'), 'cloud_name': ut_id(gvar, 'gtc1')}, values={'group_exclusions': ut_id(gvar, 'gty4')},
-        server_user=ut_id(gvar, 'gtu3')
-    )
-
-    # 11
-    execute_csv2_request(
-        gvar, 1, 'GV', 'group metadata-delete request did not contain mandatory parameter "metadata_name".',
-        '/group/metadata-delete/',
         server_user=ut_id(gvar, 'gtu3')
     )
 

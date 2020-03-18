@@ -107,9 +107,9 @@ def execute_csv2_command(gvar, expected_rc, expected_modid, expected_text, cmd, 
             gvar['ut_failed'] += 1
             if not gvar['hidden']:
                 # repr() is used because it puts quotes around strings *unless* they are None.
-                print('\n%04d (%04d) %s \033[91mFailed\033[0m: expected_rc=%s, expected_modid=%s, expected_text=%s, cmd=%s' % (gvar['ut_count'][0], gvar['ut_count'][1], _caller(), expected_rc, repr(expected_modid), repr(expected_text), ' '.join((word if word else '\'\'' for word in cmd))))
+                print('\n%04d (%04d) %s \033[91mFailed\033[0m: expected_rc=%s, expected_modid=%s, expected_text=%s, cmd=%s' % (gvar['ut_count'][0], gvar['ut_count'][1], _caller(), expected_rc, expected_modid, repr(expected_text), ' '.join((word if word else '\'\'' for word in cmd))))
                 print('\treturn code=%s' % return_code)
-                print('\tmodule ID=%s' % repr(modid))
+                print('\tmodule ID=%s' % modid)
                 print('\tstdout=%s' % stdout)
                 print('\tstderr=%s' % stderr)
                 if list_error:
@@ -119,7 +119,7 @@ def execute_csv2_command(gvar, expected_rc, expected_modid, expected_text, cmd, 
             return 1
         else:
             if not gvar['hidden']:
-                print('%04d (%04d) %s \033[92mOK\033[0m: expected_rc=%s, expected_modid=%s, expected_text=%s, cmd=%s' % (gvar['ut_count'][0], gvar['ut_count'][1], _caller(), expected_rc, repr(expected_modid), repr(expected_text), ' '.join((word if word else '""' for word in cmd))))
+                print('%04d (%04d) %s \033[92mOK\033[0m: expected_rc=%s, expected_modid=%s, expected_text=%s, cmd=%s' % (gvar['ut_count'][0], gvar['ut_count'][1], _caller(), expected_rc, expected_modid, repr(expected_text), ' '.join((word if word else '""' for word in cmd))))
             return 0
     else:
         return 0
@@ -182,23 +182,23 @@ def execute_csv2_request(gvar, expected_rc, expected_modid, expected_text, reque
             gvar['ut_failed'] += 1
 
             if not gvar['hidden']:
-                print('\n%04d (%04d) %s \033[91mFailed\033[0m: expected_rc=%s, expected_modid=%s, expected_text=%s, request=\'%s\', group=%s, form_data=%s, query_data=%s' % (gvar['ut_count'][0], gvar['ut_count'][1], _caller(), expected_rc, repr(expected_modid), repr(expected_text), request, group, form_data, query_data))
+                print('\n%04d (%04d) %s \033[91mFailed\033[0m: expected_rc=%s, expected_modid=%s, expected_text=%s, request=\'%s\', group=%s, form_data=%s, query_data=%s' % (gvar['ut_count'][0], gvar['ut_count'][1], _caller(), expected_rc, expected_modid, repr(expected_text), request, group, form_data, query_data))
                 if gvar['user_settings']['server-address'] in gvar['active_server_user_group'] and server_user in gvar['active_server_user_group'][gvar['user_settings']['server-address']]:
                     print('    server=%s, user=%s, group=%s' % (repr(gvar['server']), repr(server_user), repr(gvar['active_server_user_group'][gvar['user_settings']['server-address']][server_user])))
                 else:
                     print('    server=%s, user=%s, group=\033[91mNone\033[0m' % (repr(gvar['server']), repr(server_user)))
                 print('    response code=%s' % response['response_code'])
                 if response['response_code'] != 0:
-                    print('    module ID=%s' % repr(modid))
+                    print('    module ID=%s' % modid)
                 print('    message=\'%s\'\n' % response['message'])
-
             return 1
         elif expected_list:
             if expected_list not in response:
-                failed = True
+                gvar['ut_failed'] += 1
                 if not gvar['hidden']:
                     print('\n%04d (%04d) %s \033[91mFailed\033[0m: request=\'%s\', group=%s, expected_list=\'%s\', list_filter=%s, values=%s' % (gvar['ut_count'][0], gvar['ut_count'][1], _caller(), request, group, expected_list, list_filter, values))
                     print('\tNo list \'%s\' in response. The message from the server was: \'%s\'\n' % (expected_list, response['message']))
+                return 1
             # expected_list in response
             elif list_filter and values:
                 filtered_rows = []
@@ -219,9 +219,10 @@ def execute_csv2_request(gvar, expected_rc, expected_modid, expected_text, reque
                     else:
                         if not gvar['hidden']:
                             print('%04d (%04d) %s \033[92mOK\033[0m: request=\'%s\', group=%s, form_data=%s, expected_list=%s, list_filter=%s' % (gvar['ut_count'][0], gvar['ut_count'][1], _caller(), request, group, form_data, expected_list, list_filter))
-                            return 0
+                        return 0
 
                 # At this point we know the test has failed.
+                gvar['ut_failed'] += 1
                 # Found mismatched values.
                 if mismatches_in_filtered_rows:
                     if not gvar['hidden']:
@@ -242,13 +243,17 @@ def execute_csv2_request(gvar, expected_rc, expected_modid, expected_text, reque
                     if not gvar['hidden']:
                         print('\n%04d (%04d) %s \033[91mFailed\033[0m: request=\'%s\', group=%s, expected_list=%s, list_filter=%s' % (gvar['ut_count'][0], gvar['ut_count'][1], _caller(), request, group, expected_list, list_filter))
                         print('\tFilter did not match any rows. The message from the server was: \'%s\'\n' % response['message'])
-
-                gvar['ut_failed'] += 1
                 return 1
 
-        # not failed
+            # expected_list in response, and at least one of list_filter and values was not provided.
+            elif not gvar['hidden']:
+                print('%04d (%04d) %s \033[92mOK\033[0m: expected_rc=%s, expected_modid=%s, expected_text=%s, request=\'%s\', group=%s, form_data=%s' % (gvar['ut_count'][0], gvar['ut_count'][1], _caller(), expected_rc, expected_modid, repr(expected_text), request, group, form_data))
+                return 0
+
+        # not failed and not expected_list
         elif not gvar['hidden']:
-            print('%04d (%04d) %s \033[92mOK\033[0m: expected_rc=%s, expected_modid=%s, expected_text=%s, request=\'%s\', group=%s, form_data=%s' % (gvar['ut_count'][0], gvar['ut_count'][1], _caller(), expected_rc, repr(expected_modid), repr(expected_text), request, group, form_data))
+            print('%04d (%04d) %s \033[92mOK\033[0m: expected_rc=%s, expected_modid=%s, expected_text=%s, request=\'%s\', group=%s, form_data=%s' % (gvar['ut_count'][0], gvar['ut_count'][1], _caller(), expected_rc, expected_modid, repr(expected_text), request, group, form_data))
+            return 0
 
     # _execute_selections returned False.
     else:
@@ -376,7 +381,7 @@ def sanity_commands(gvar, obj, action=None):
     # 04 Attempt as a user who is not in any groups.
     # execute_csv2_command inserts the correct password for us.
     execute_csv2_command(
-        gvar, 1, None, 'user "grobertson-clu1" is not a member of any group.', request + ['-su', ut_id(gvar, 'clu1')]
+        gvar, 1, None, 'user "{}" is not a member of any group.'.format(ut_id(gvar, 'clu1')), request + ['-su', ut_id(gvar, 'clu1')]
     )
     # 05 Attempt to change to a group that does not exist.
     # execute_csv2_command inserts `-su` (`clu4`) and `-spw` for us.
@@ -385,7 +390,7 @@ def sanity_commands(gvar, obj, action=None):
     )
     # 06 Attempt to change to a group that the user is not in.
     execute_csv2_command(
-        gvar, 1, None, 'cannot switch to invalid group "grobertson-clg2".', request + ['-g', ut_id(gvar, 'clg2'), '-su', ut_id(gvar, 'clu4')]
+        gvar, 1, None, 'cannot switch to invalid group "{}".'.format(ut_id(gvar, 'clu2')), request + ['-g', ut_id(gvar, 'clg2'), '-su', ut_id(gvar, 'clu4')]
     )
     # 07 Fail to specify an action.
     execute_csv2_command(
@@ -681,16 +686,16 @@ def _requests(gvar, request, group=None, form_data=None, query_data=None, server
     from getpass import getpass
     import os
 
+    # print(f'DEBUG: _requests(gvar, {request}, group={group}, server_user={server_user}, server_pw={server_pw})')
     EXTRACT_CSRF = str.maketrans('=;', '  ')
 
     if 'server-address' not in gvar['user_settings']:
         print('Error: user settings for server "%s" does not contain a URL value.' % gvar['server'])
         exit(1)
 
-    if html:
-        headers={'Referer': gvar['user_settings']['server-address']}
-    else:
-        headers={'Accept': 'application/json', 'Referer': gvar['user_settings']['server-address']}
+    headers = {'Referer': gvar['user_settings']['server-address']}
+    if not html:
+        headers['Accept'] = 'application/json'
 
     if server_user and server_pw:
         _function, _request, _form_data = _requests_insert_controls(gvar, request, group, form_data, query_data, gvar['user_settings']['server-address'], server_user)
@@ -753,7 +758,7 @@ def _requests(gvar, request, group=None, form_data=None, query_data=None, server
             response = {'response_code': 2, 'message': 'server "%s", HTTP response code %s.' % (gvar['server'], _r.status_code)}
         else:
             response = {'response_code': 2, 'message': 'server "%s", internal server error.' % gvar['server']}
-
+    # print(f'DEBUG: Received response: {str(response)[:100]}... with cloud_list with len {len(response.get("cloud_list", []))}')
     if 'Set-Cookie' in _r.headers:
         new_csrf = _r.headers['Set-Cookie'].translate(EXTRACT_CSRF).split()[1]
         if new_csrf[1]:

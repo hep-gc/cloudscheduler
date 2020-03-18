@@ -75,26 +75,27 @@ def main(gvar):
         # 43 Give two spot_prices.
         # 44
         'spot_price': {'valid': 0.0, 'test_cases': {'invalid-unit-test': 'cloud add value specified for "spot_price" must be a floating point value.'}},
-        # 45
+        # 45 Give metadata_name and metadata_name.1.
+        # 46
         'metadata_name': {'valid': '', 'test_cases': {'invalid-unit-test': 'cloud add, "invalid-unit-test" failed - specified metadata_name "invalid-unit-test" does not exist.'}, 'array_field': True},
-        # 46 Give two vm_images.
-        # 47
+        # 47 Give two vm_images.
+        # 48
         'vm_image': {'valid': '', 'test_cases': {'invalid-unit-test': 'cloud add, "invalid-unit-test" failed - specified item does not exist: vm_image=invalid-unit-test, group_name={}, cloud_name=invalid-unit-test.'.format(ut_id(gvar, 'ctg1'))}},
-        # 48 Give two vm_flavors.
-        # 49
+        # 49 Give two vm_flavors.
+        # 50
         'vm_flavor': {'valid': '', 'test_cases': {'invalid-unit-test': 'cloud add, "invalid-unit-test" failed - specified item does not exist: vm_flavor=invalid-unit-test, group_name={}, cloud_name=invalid-unit-test.'.format(ut_id(gvar, 'ctg1'))}},
-        # 50 Give two vm_networks.
-        # 51
+        # 51 Give two vm_networks.
+        # 52
         'vm_network': {'valid': '', 'test_cases': {'invalid-unit-test': 'cloud add, "invalid-unit-test" failed - specified item does not exist: vm_network=invalid-unit-test, group_name={}, cloud_name=invalid-unit-test.'.format(ut_id(gvar, 'ctg1'))}},
-        # 52 Give two vm_keynames.
-        # 53
+        # 53 Give two vm_keynames.
+        # 54
         'vm_keyname': {'valid': '', 'test_cases': {'invalid-unit-test': 'cloud add, "invalid-unit-test" failed - specified item does not exist: vm_keyname=invalid-unit-test, group_name={}, cloud_name=invalid-unit-test.'.format(ut_id(gvar, 'ctg1'))}}
     }
 
     parameters_requests(gvar, '/cloud/add/', ut_id(gvar, 'ctg1'), ut_id(gvar, 'ctu1'), parameters)
 
     # Parameter combinations that do not fit well into the above format.
-    # 54 Known to fail if run twice without setup or cleanup in between.
+    # 55 Known to fail if run twice without setup or cleanup in between.
     execute_csv2_request(
         gvar, 0, None, 'cloud "{}::{}" successfully added.'.format(ut_id(gvar, 'ctg1'), ut_id(gvar, 'ctc5')),
         '/cloud/add/', group=ut_id(gvar, 'ctg1'), form_data={
@@ -114,7 +115,7 @@ def main(gvar):
         server_user=ut_id(gvar, 'ctu1')
     )
 
-    # 55 Ensure that 40 actually created a cloud.
+    # 56 Ensure that 40 actually created a cloud.
     execute_csv2_request(
         gvar, 0, None, None,
         '/cloud/list/', group=ut_id(gvar, 'ctg1'),
@@ -139,7 +140,7 @@ def main(gvar):
         server_user=ut_id(gvar, 'ctu1')
     )
 
-    # 56 Known to fail if run twice without setup or cleanup in between.
+    # 57 Known to fail if run twice without setup or cleanup in between.
     execute_csv2_request(
         gvar, 0, None, 'cloud "{}::{}" successfully added.'.format(ut_id(gvar, 'ctg1'), ut_id(gvar, 'ctc6')),
         '/cloud/add/', group=ut_id(gvar, 'ctg1'), form_data={
@@ -153,7 +154,7 @@ def main(gvar):
         server_user=ut_id(gvar, 'ctu1')
     )
 
-    # 57 Ensure that 42 actually created a cloud.
+    # 58 Ensure that 42 actually created a cloud.
     execute_csv2_request(
         gvar, 0, None, None,
         '/cloud/list/', group=ut_id(gvar, 'ctg1'),

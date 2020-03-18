@@ -46,7 +46,7 @@ def main(gvar):
         gvar, 0, None, None,
         '/cloud/list/', group=ut_id(gvar, 'ctg1'),
         expected_list='cloud_list',
-        server_user=ut_id(gvar, 'ctu1'), html=True
+        server_user=ut_id(gvar, 'ctu1')
     )
 
 if __name__ == "__main__":

@@ -63,7 +63,7 @@ def main(gvar):
 
     # 25 Attempt to update non-existent metadata.
     execute_csv2_request(
-        gvar, 1, 'CV', 'cloud metadata-update "grobertson-ctg1::invalid-unit-test::invalid-unit-test" failed - the request did not match any rows.',
+        gvar, 1, 'CV', 'cloud metadata-update "{}::invalid-unit-test::invalid-unit-test" failed - the request did not match any rows.'.format(ut_id(gvar, 'ctg1')),
         '/cloud/metadata-update/', group=ut_id(gvar, 'ctg1'),
         form_data={
             'cloud_name': 'invalid-unit-test',
