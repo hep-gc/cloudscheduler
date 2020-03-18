@@ -686,7 +686,6 @@ def _requests(gvar, request, group=None, form_data=None, query_data=None, server
     from getpass import getpass
     import os
 
-    # print(f'DEBUG: _requests(gvar, {request}, group={group}, server_user={server_user}, server_pw={server_pw})')
     EXTRACT_CSRF = str.maketrans('=;', '  ')
 
     if 'server-address' not in gvar['user_settings']:
@@ -758,7 +757,7 @@ def _requests(gvar, request, group=None, form_data=None, query_data=None, server
             response = {'response_code': 2, 'message': 'server "%s", HTTP response code %s.' % (gvar['server'], _r.status_code)}
         else:
             response = {'response_code': 2, 'message': 'server "%s", internal server error.' % gvar['server']}
-    # print(f'DEBUG: Received response: {str(response)[:100]}... with cloud_list with len {len(response.get("cloud_list", []))}')
+
     if 'Set-Cookie' in _r.headers:
         new_csrf = _r.headers['Set-Cookie'].translate(EXTRACT_CSRF).split()[1]
         if new_csrf[1]:
