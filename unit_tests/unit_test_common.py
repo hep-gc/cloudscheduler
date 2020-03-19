@@ -646,6 +646,10 @@ def initialize_csv2_request(gvar, selections=None, hidden=False):
     else:
         gvar['selections'] = []
 
+    gvar.update(load_settings())
+
+def load_settings():
+    '''Also used by the web interface test setup.'''
     try:
         with open(os.path.expanduser('~/.csv2/unit-test/settings.yaml')) as settings_file:
             gvar['user_settings'] = yaml.full_load(settings_file.read())
@@ -672,11 +676,9 @@ def initialize_csv2_request(gvar, selections=None, hidden=False):
         os.umask(0)
         os.makedirs(os.path.dirname(CREDENTIALS_PATH), mode=0o700, exist_ok=True)
         with open(os.open(CREDENTIALS_PATH, os.O_CREAT | os.O_WRONLY, 0o600), 'w') as credentials_file:
-            credentials_file.write(yaml.dump({'user_secret': gvar['user_secret'], 'cloud_credentials': gvar['cloud_credentials']}))
+            credentials_file.write(yaml.safe_dump({'user_secret': gvar['user_secret'], 'cloud_credentials': gvar['cloud_credentials']}))
     except yaml.YAMLError as err:
         print('YAML encountered an error while parsing {}: {}'.format(CREDENTIALS_PATH, err))
-
-    return
 
 def _requests(gvar, request, group=None, form_data=None, query_data=None, server_user=None, server_pw=None, html=False):
     """
