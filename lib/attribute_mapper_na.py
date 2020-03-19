@@ -149,7 +149,6 @@ def build_mapping_dictionaries(config):
             '''
         attr_list_dict[language] = attr_list
 
-    config.db_close()
     return True
 
 def dump_dicts():
