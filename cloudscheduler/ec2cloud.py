@@ -6,8 +6,8 @@ import base64
 import logging
 
 import boto3
-from sqlalchemy.orm import Session
-from sqlalchemy.ext.automap import automap_base
+#from sqlalchemy.orm import Session
+#from sqlalchemy.ext.automap import automap_base
 
 try:
     import basecloud
@@ -20,9 +20,9 @@ class EC2Cloud(basecloud.BaseCloud):
     Cloud Connector class for EC2 API based clouds like AmazonEC2, or OpenNebula.
     """
 
-    def __init__(self, resource=None, metadata=None, extrayaml=None):
+    def __init__(self, config, resource=None, metadata=None, extrayaml=None):
         """Constructor for ec2 based clouds."""
-        basecloud.BaseCloud.__init__(self, name=resource.get("cloud_name"), group = resource.get("group_name"),
+        basecloud.BaseCloud.__init__(self, config, name=resource.get("cloud_name"), group = resource.get("group_name"),
                                      extrayaml=extrayaml, metadata=metadata)
         self.log = logging.getLogger(__name__)
         self.username = resource.get("username")  # Access ID
@@ -104,14 +104,18 @@ class EC2Cloud(basecloud.BaseCloud):
         logging.debug("New vm request complete, result object:")
         logging.debug(new_vm)
         if 'Instances' in new_vm:
-            engine = self._get_db_engine()
-            base = automap_base()
-            base.prepare(engine, reflect=True)
-            db_session = Session(engine)
-            vms = base.classes.csv2_vms
-            EC2_STATUS = base.classes.ec2_instance_status_codes
+#           engine = self._get_db_engine()
+#           base = automap_base()
+#           base.prepare(engine, reflect=True)
+#           db_session = Session(engine)
+#           vms = base.classes.csv2_vms
+            vms = self.config.db_map.classes.csv2_vms
+#           EC2_STATUS = base.classes.ec2_instance_status_codes
+            EC2_STATUS = self.config.db_map.classes.ec2_instance_status_codes
+
+            self.config.db_open()
             ec2_status_dict = {}
-            ec2_status = db_session.query(EC2_STATUS)
+            ec2_status = self.config.db_session.query(EC2_STATUS)
             for row in ec2_status:
                 ec2_status_dict[row.ec2_state] = row.csv2_state
 
@@ -137,18 +141,22 @@ class EC2Cloud(basecloud.BaseCloud):
                     'start_time': int(time.time()),
                 }
                 new_vm = vms(**vm_dict)
-                db_session.merge(new_vm)
-            db_session.commit()
+                self.config.db_session.merge(new_vm)
+            self.config.db_close(commit=True)
         elif 'SpotInstanceRequests' in new_vm:
 
-            engine = self._get_db_engine()
-            base = automap_base()
-            base.prepare(engine, reflect=True)
-            db_session = Session(engine)
-            vms = base.classes.csv2_vms
-            EC2_STATUS = base.classes.ec2_instance_status_codes
+#           engine = self._get_db_engine()
+#           base = automap_base()
+#           base.prepare(engine, reflect=True)
+#           db_session = Session(engine)
+#           vms = base.classes.csv2_vms
+            vms = self.config.db_map.classes.csv2_vms
+#           EC2_STATUS = base.classes.ec2_instance_status_codes
+            EC2_STATUS = self.config.db_map.classes.ec2_instance_status_codes
+
+            self.config.db_open()
             ec2_status_dict = {}
-            ec2_status = db_session.query(EC2_STATUS)
+            ec2_status = self.config.db_session.query(EC2_STATUS)
             for row in ec2_status:
                 ec2_status_dict[row.ec2_state] = row.csv2_state
 
@@ -196,6 +204,5 @@ class EC2Cloud(basecloud.BaseCloud):
                     'start_time': int(time.time()),
                 }
                 new_vm = vms(**vm_dict)
-                db_session.merge(new_vm)
-            db_session.commit()
-        self.log.debug('ec2 vm_create')
+                self.config.db_session.merge(new_vm)
+            self.config.db_close(commit=True)

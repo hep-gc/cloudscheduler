@@ -9,10 +9,10 @@ import logging
 import gzip
 import time
 
-from sqlalchemy import create_engine
+#from sqlalchemy import create_engine
+#from sqlalchemy.ext.automap import automap_base
+#from sqlalchemy.orm import Session
 
-from sqlalchemy.ext.automap import automap_base
-from sqlalchemy.orm import Session
 from email import message_from_file
 
 import libvirt
@@ -26,12 +26,13 @@ class LocalHostCloud(basecloud.BaseCloud):
     """
     Localhost Connector class for cloudscheduler
     """
-    def __init__(self, resource=None, defaultimage=None,
+    def __init__(self, config, resource=None, defaultimage=None,
                  defaultnetwork=None, extrayaml=None, imagerepo='', metadata=None):
 
         """
         Localhost constructor
 
+        :param csmain's db_config
         :param resource: resource row from db
         :param defaultsecuritygroup:
         :param defaultimage:
@@ -39,7 +40,7 @@ class LocalHostCloud(basecloud.BaseCloud):
         :param defaultnetwork:
         :param extrayaml: The cloud specific yaml
         """
-        basecloud.BaseCloud.__init__(self, name=resource.cloud_name,
+        basecloud.BaseCloud.__init__(self, config, name=resource.cloud_name,
                                                     extrayaml=extrayaml, metadata=metadata)
         self.log = logging.getLogger(__name__)
         self.default_image = defaultimage
@@ -211,13 +212,14 @@ class LocalHostCloud(basecloud.BaseCloud):
 
         """
         if instance:
-            new_vm = VM(vmid=instance.ID(), hostname=hostname)
-            self.vms[instance.ID()] = new_vm
-            engine = self._get_db_engine()
-            Base = automap_base()
-            Base.prepare(engine, reflect=True)
-            db_session = Session(engine)
-            vmobj = Base.classes.csv2_vms
+#           new_vm = VM(vmid=instance.ID(), hostname=hostname)
+#           self.vms[instance.ID()] = new_vm
+#           engine = self._get_db_engine()
+#           Base = automap_base()
+#           Base.prepare(engine, reflect=True)
+#           db_session = Session(engine)
+#           vmobj = Base.classes.csv2_vms
+            VM = self.config.db_map.classes.csv2_vms
             vm_dict = {
                 'vmid': instance.ID(),
                 'hostname': hostname,
@@ -225,8 +227,9 @@ class LocalHostCloud(basecloud.BaseCloud):
                 'last_updated': int(time.time())
             }
             new_vm = VM(**vm_dict)
-            db_session.merge(new_vm)
-            db_session.commit()
+            self.config.db_open()
+            self.config.db_session.merge(new_vm)
+            self.config.db_close(commit=True)
         """
         self.log.debug('vm create')
         conn.close()
@@ -315,16 +318,16 @@ class LocalHostCloud(basecloud.BaseCloud):
             self.log.exception("Unable to list networks for %s: Exception: %s", self.name, ex)
         return network
 
-    def _get_db_engine(self):
-        """
-        Get a connection to the database.
-        :return: db connection object.
-        """
-        return create_engine("mysql://" + csconfig.config.db_user + ":" +
-                             csconfig.config.db_password + "@" +
-                             csconfig.config.db_host + ":" +
-                             str(csconfig.config.db_port) + "/" +
-                             csconfig.config.db_name)
+#   def _get_db_engine(self):
+#       """
+#       Get a connection to the database.
+#       :return: db connection object.
+#       """
+#       return create_engine("mysql://" + csconfig.config.db_user + ":" +
+#                            csconfig.config.db_password + "@" +
+#                            csconfig.config.db_host + ":" +
+#                            str(csconfig.config.db_port) + "/" +
+#                            csconfig.config.db_name)
 
     def _generate_meta(self, name):
         instance_id = name

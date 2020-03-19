@@ -373,7 +373,7 @@ def check_view_idle_vms():
 
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-def process_group_cloud_terminates(pair, condor_host):
+def process_group_cloud_terminates(pair):
     group_name = pair.group_name
     cloud_name = pair.cloud_name
 
@@ -397,9 +397,10 @@ def process_group_cloud_terminates(pair, condor_host):
     # Terminate code:
     master_list = []
     startd_list = []
-    #get list of vm/machines from this condor host
-    redundant_machine_list = config.db_session.query(view_condor_host).filter(view_condor_host.c.htcondor_fqdn == condor_host, view_condor_host.c.cloud_name==cloud_name, view_condor_host.c.group_name==group_name, view_condor_host.c.terminate >= 1)
+    redundant_machine_list = config.db_session.query(view_condor_host).filter(view_condor_host.c.cloud_name==cloud_name, view_condor_host.c.group_name==group_name, view_condor_host.c.terminate >= 1)
+    logging.info("Actionable VMS:")
     for resource in redundant_machine_list:
+        logging.info(resource)
         if resource[6] is not None:
             if resource[5] is not None:
                 if resource.terminate == 1 and resource[6] >= 1 and resource[5] >=1:
@@ -887,12 +888,23 @@ def main():
                                     else:
                                         use_image = None
                                      
-                                    if boot_flavor.get("cloud_type") == 'amazon':
+                                    current_cloud_type = boot_flavor.get("cloud_type")
+                                    if current_cloud_type == 'openstack':
+                                        boot_cloud = openstackcloud.OpenStackCloud(config, resource=boot_flavor, metadata=metadata[boot_flavor.get("group_name")][boot_flavor.get("cloud_name")]
+                                                 if metadata and boot_flavor.get("group_name") in metadata
+                                                 else [])
+                                        boot_cloud.vm_create(num=int(num_vms_to_boot),
+                                                   flavor=boot_flavor.get("flavor"),
+                                                   job=idle_job,
+                                                   template_dict=template_dict,
+                                                   image=use_image)
+
+                                    elif current_cloud_type == 'amazon':
                                         if idle_job.get("image"):
                                             use_image = ec2_image_dict[boot_flavor.get("group_name")][boot_flavor.get("cloud_name")][idle_job.get("image")]
                                         elif boot_flavor.get("default_image"):
                                             use_image = ec2_image_dict[boot_flavor.get("group_name")][boot_flavor.get("cloud_name")][boot_flavor.get("default_image")]
-                                        boot_cloud = ec2cloud.EC2Cloud(resource=boot_flavor,
+                                        boot_cloud = ec2cloud.EC2Cloud(config, resource=boot_flavor,
                                                  metadata=metadata[boot_flavor.get("group_name")][boot_flavor.get("cloud_name")]
                                                  if metadata and boot_flavor.get("group_name") in metadata
                                                  else [])
@@ -903,8 +915,8 @@ def main():
                                                    image=use_image)
 
 
-                                    elif boot_flavor.get("cloud_type") == 'localhost':
-                                        boot_cloud = localhostcloud.LocalHostCloud(resource=boot_flavor,
+                                    elif current_cloud_type == 'localhost':
+                                        boot_cloud = localhostcloud.LocalHostCloud(config, resource=boot_flavor,
                                                  metadata=metadata[boot_flavor.get("group_name")][boot_flavor.get("cloud_name")]
                                                  if metadata and boot_flavor.get("group_name") in metadata
                                                  else [])
@@ -914,15 +926,7 @@ def main():
                                                    template_dict=template_dict,
                                                    image=use_image)
                                     else:
-                                        #openstack
-                                        boot_cloud = openstackcloud.OpenStackCloud(resource=boot_flavor, metadata=metadata[boot_flavor.get("group_name")][boot_flavor.get("cloud_name")]
-                                                 if metadata and boot_flavor.get("group_name") in metadata
-                                                 else [])
-                                        boot_cloud.vm_create(num=int(num_vms_to_boot),
-                                                   flavor=boot_flavor.get("flavor"),
-                                                   job=idle_job,
-                                                   template_dict=template_dict,
-                                                   image=use_image)
+                                        log.warning('Boot request for invalid cloud type "%s", ignoring.' % current_cloud_type)
 
                                     ####### log.debug('done booting on cloud %s', boot_flavor.get("cloud_name"))
                                     available_resources_update(used_resources, boot_flavor, num_vms_to_boot)
@@ -984,7 +988,7 @@ def vm_termination():
             new_poll_time, cycle_start_time = start_cycle(new_poll_time, cycle_start_time)
 
             db_session = config.db_session
-            groups = db_session.query(GROUPS).filter(GROUPS.htcondor_host_id == config.local_host_id)
+            groups = db_session.query(GROUPS)
             condor_hosts_set = set() # use a set here so we dont re-query same host if multiple groups have same host
             for group in groups:
                 if group.htcondor_container_hostname is not None and group.htcondor_container_hostname != "":
@@ -1009,7 +1013,7 @@ def vm_termination():
                     if not pid_active:
                         #subprocess this eventually
                         logging.info("No pid active, starting commands")
-                        p = Process(target=process_group_cloud_terminates, args=(pair, condor_host))
+                        p = Process(target=process_group_cloud_terminates, args=(pair,))
                         p.start()
                     
             

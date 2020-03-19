@@ -14,9 +14,9 @@ from keystoneauth1.identity import v3
 from keystoneauth1.exceptions.connection import ConnectFailure
 from keystoneauth1.exceptions.catalog import EmptyCatalog
 from neutronclient.v2_0 import client as neuclient
-from sqlalchemy import create_engine
-from sqlalchemy.orm import Session
-from sqlalchemy.ext.automap import automap_base
+#from sqlalchemy import create_engine
+#from sqlalchemy.orm import Session
+#from sqlalchemy.ext.automap import automap_base
 
 
 #import cloudscheduler.basecloud
@@ -30,17 +30,18 @@ class OpenStackCloud(basecloud.BaseCloud):
     """
     OpenStack Connector class for cloudscheduler
     """
-    def __init__(self, resource=None, extrayaml=None, metadata=None):
+    def __init__(self, config, resource=None, extrayaml=None, metadata=None):
 
         """
         OpenStack constructor
 
+        :param csmain's db_config
         :param resource: resource row from db
         :param defaultsecuritygroup:
         :param defaultnetwork:
         :param extrayaml: The cloud specific yaml
         """
-        basecloud.BaseCloud.__init__(self, group=resource.get("group_name"),
+        basecloud.BaseCloud.__init__(self, config, group=resource.get("group_name"),
                                      name=resource.get("cloud_name"),
                                      extrayaml=extrayaml, metadata=metadata)
         self.log = logging.getLogger(__name__)
@@ -102,11 +103,8 @@ class OpenStackCloud(basecloud.BaseCloud):
                     key_name = self.keyname
                 elif nova.keypairs.findall(name=csconfig.config.keyname):
                     key_name = csconfig.config.keyname
-            except ConnectFailure as ex:
-                self.log.exception("Failed to connect to openstack cloud: %s", ex)
-                raise Exception
-            except EmptyCatalog as ex:
-                self.log.exception("Unable to find key %s ?", self.keyname)
+            except Exception as ex:
+                self.config.update_service_catalog(provider='csmain', error='Error finding keypair for group: %s, cloud: %s - %s' % (self.group, self.name, ex), logger=self.log)
                 raise Exception
         else:
             key_name = ""
@@ -115,6 +113,7 @@ class OpenStackCloud(basecloud.BaseCloud):
         imageobj = None
         image_dict = self._attr_list_to_dict(job.get("image"))
         try:
+            ex = 'no image found'
             glance = self._get_creds_glance()
             if job.get("image") and self.name in image_dict:
                 imageobj = self._find_image(glance, image_dict[self.name])
@@ -124,13 +123,11 @@ class OpenStackCloud(basecloud.BaseCloud):
                 imageobj = self._find_image(glance, image)
             else:
                 imageobj = self._find_image(glance, csconfig.config.default_image)
-        except novaclient.exceptions.EndpointNotFound:
-            self.log.exception("Endpoint not found, region problem")
-            return -1
-        except novaclient.exceptions.NotFound as ex:
-            self.log.exception("Problem finding image. Error: %s on cloud: %s" % (ex, self.name))
+        except Exceptions as ex:
+            imageob = None
+
         if not imageobj:
-            self.log.debug("Unable to find an image to use")
+            self.config.update_service_catalog(provider='csmain', error='Error finding image for group: %s, cloud: %s - %s' % (self.group, self.name, ex), logger=self.log)
             return -1
 
         # check flavor from job, else cloud default, else global default
@@ -149,7 +146,8 @@ class OpenStackCloud(basecloud.BaseCloud):
             else:
                 flavorl = nova.flavors.find(name=csconfig.config.default_instancetype)
         except novaclient.exceptions.NotFound as ex:
-            self.log.exception(ex)
+            self.config.update_service_catalog(provider='csmain', error='Error finding flavor for group: %s, cloud: %s - %s' % (self.group, self.name, ex), logger=self.log)
+
         # Deal with network if needed
         netid = []
         network = None
@@ -179,10 +177,8 @@ class OpenStackCloud(basecloud.BaseCloud):
             self.log.debug("#################")
             self.log.debug(self.volume_info)
             vol_info = json.loads(self.volume_info)
-        except Exception as exc:
-            # Volume info is null or invalid
-            self.log.debug("Invalid or empty volume info, booting without volume")
-            self.log.debug(exc)
+        except Exception as ex:
+            self.log.debug('Invalid or null volume for group: %s, cloud: %s - %s' % (self.group, self.name, ex))
             vol_info = None
 
         try:
@@ -232,22 +228,19 @@ class OpenStackCloud(basecloud.BaseCloud):
                     hostname = self._generate_next_name()
 
 
-        except novaclient.exceptions.OverLimit as ex:
-            self.log.exception(ex)
-            raise novaclient.exceptions.OverLimit
-        except novaclient.exceptions.Conflict as ex:
-            self.log.error(ex)
-            raise novaclient.exceptions.Conflict
         except Exception as ex:
-            self.log.exception(ex)
-            raise Exception
+            self.config.update_service_catalog(provider='csmain', error='Error booting VM for group: %s, cloud: %s - %s' % (self.group, self.name, ex), logger=self.log)
+            instance = None
+            instances = None
+
         if instance:
             self.log.debug("Try to fetch with filter of hostname used")
-            engine = self._get_db_engine()
-            base = automap_base()
-            base.prepare(engine, reflect=True)
-            db_session = Session(engine)
-            vms = base.classes.csv2_vms
+#           engine = self._get_db_engine()
+#           base = automap_base()
+#           base.prepare(engine, reflect=True)
+#           db_session = Session(engine)
+#           vms = base.classes.csv2_vms
+            vms = self.config.db_map.classes.csv2_vms
             for _ in range(0, 3):
                 try:
                     list_vms = nova.servers.list(search_opts={'name':hostname})
@@ -257,6 +250,7 @@ class OpenStackCloud(basecloud.BaseCloud):
                                      "retrying")
                     time.sleep(1)
 
+            self.config.db_open()
             for vm in list_vms:
                 self.log.debug(vm)
 
@@ -280,16 +274,18 @@ class OpenStackCloud(basecloud.BaseCloud):
                     'start_time': int(time.time()),
                 }
                 new_vm = vms(**vm_dict)
-                db_session.merge(new_vm)
-            db_session.commit()
+                self.config.db_session.merge(new_vm)
+            self.config.db_close(commit=True)
         elif instances:
             self.log.debug("Parse instances using block storage")
+            self.config.db_open()
             for instance, i_hostname in instances:
-                engine = self._get_db_engine()
-                base = automap_base()
-                base.prepare(engine, reflect=True)
-                db_session = Session(engine)
-                vms = base.classes.csv2_vms
+#               engine = self._get_db_engine()
+#               base = automap_base()
+#               base.prepare(engine, reflect=True)
+#               db_session = Session(engine)
+#               vms = base.classes.csv2_vms
+                vms = self.config.db_map.classes.csv2_vms
                 for _ in range(0, 3):
                     try:
                         list_vms = nova.servers.list(search_opts={'name':i_hostname})
@@ -322,13 +318,11 @@ class OpenStackCloud(basecloud.BaseCloud):
                         'start_time': int(time.time()),
                     }
                     new_vm = vms(**vm_dict)
-                    db_session.merge(new_vm)
-                db_session.commit()
+                    self.config.db_session.merge(new_vm)
+                self.config.db_session.commit()
+
+            self.config.db_close()
                 
-
-
-        self.log.debug('vm create')
-
     def _get_keystone_session_v2(self):
         """
         Gets a keystone session for version 2 keystone auth url.
@@ -406,7 +400,7 @@ class OpenStackCloud(basecloud.BaseCloud):
         try:
             network = nova.neutron.find_network(netname)
         except Exception as ex:
-            self.log.exception("Unable to list networks for %s: Exception: %s", self.name, ex)
+            self.config.update_service_catalog(provider='csmain', error='Error finding network for group: %s, cloud: %s - %s' % (self.group, self.name, ex), logger=self.log)
         return network
 
     def _get_auth_version(self, authurl):
