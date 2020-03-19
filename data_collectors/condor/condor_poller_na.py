@@ -668,7 +668,7 @@ def job_poller():
 
 
                     job_dict = trim_keys(job_dict, job_attributes)
-                    job_dict, unmapped = map_attributes(src="condor", dest="csv2", attr_dict=job_dict)
+                    job_dict, unmapped = map_attributes(src="condor", dest="csv2", attr_dict=job_dict, config=config)
                     logging.debug("Adding job %s", job_dict["global_job_id"])
                     job_dict["htcondor_host_id"] = config.local_host_id
                     logging.debug(job_dict)
@@ -1064,7 +1064,7 @@ def machine_poller():
                     if "Start" in r_dict:
                         r_dict["Start"] = str(r_dict["Start"])
                     r_dict = trim_keys(r_dict, resource_attributes)
-                    r_dict, unmapped = map_attributes(src="condor", dest="csv2", attr_dict=r_dict)
+                    r_dict, unmapped = map_attributes(src="condor", dest="csv2", attr_dict=r_dict, config=config)
                     if unmapped:
                         logging.error("attribute mapper found unmapped variables:")
                         logging.error(unmapped)

@@ -27,7 +27,7 @@ def map_attribute_names(src, dest, attribute_names):
         attribute_name_list = [str(attribute_names)]
 
     if len(rowid_dict) == 0 or len(attr_list_dict) == 0:
-        build_mapping_dictionaries()
+        build_mapping_dictionaries(config)
 
     mapped_dict = {}
     unmapped_list = []
@@ -39,11 +39,11 @@ def map_attribute_names(src, dest, attribute_names):
     
     return mapped_dict, unmapped_list
 
-def map_attributes(src, dest, attr_dict):
+def map_attributes(src, dest, attr_dict, config):
     global rowid_dict
     global attr_list_dict
     if len(rowid_dict) == 0 or len(attr_list_dict) == 0:
-        build_mapping_dictionaries()
+        build_mapping_dictionaries(config)
 
     unmapped_keys = []
     mapped_dict = {}
@@ -56,11 +56,10 @@ def map_attributes(src, dest, attr_dict):
     
     return mapped_dict, unmapped_keys
 
-def build_mapping_dictionaries():
+def build_mapping_dictionaries(config):
     global rowid_dict
     global attr_list_dict
 
-    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', 'db_only', db_config_dict=True)
     config.db_open()
 
     Mappings = "csv2_attribute_mapping"
