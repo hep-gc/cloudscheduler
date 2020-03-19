@@ -1,5 +1,4 @@
-from cloudscheduler.unit_tests.unit_test_common import ut_id
-import common
+import web_common
 import unittest
 import selenium
 
@@ -9,7 +8,7 @@ VM_TABLE_HEADERS = ['Group', 'Clouds', 'RT (μs)', 'VMs', 'Starting', 'Unreg.', 
 
 class TestStatus(unittest.TestCase):
     def setUpClass():
-        self.server_address = common.setup()
+        self.server_address = web_common.setup()['address']
 
     def setUp(self):
         self.driver = selenium.webdriver.Firefox()
@@ -20,8 +19,10 @@ class TestStatus(unittest.TestCase):
         system_services = self.driver.find_element_by_id_name('system-services')
         self.assertEqual(len(status_tables), 2)
         job_table, vm_table = status_tables
-        job_headers = [elem.get_attribute('innerHTML') for elem in job_table.find_elements_by_tag_name('th')]
-        self.assertEqual(job_headers, JOB_TABLE_HEADERS)
+        actual_job_headers = [elem.get_attribute('innerHTML') for elem in job_table.find_elements_by_tag_name('th')]
+        self.assertEqual(actual_job_headers, JOB_TABLE_HEADERS)
+        actual_vm_headers = [elem.get_attribute('innerHTML') for elem in vm_table.find_elements_by_tag_name('th')]
+        self.assertEqual(actual_vm_headers, VM_TABLE_HEADERS)
 
     def tearDown(self):
         self.driver.close()

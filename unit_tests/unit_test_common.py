@@ -615,10 +615,6 @@ def html_message(text):
 
 def initialize_csv2_request(gvar, selections=None, hidden=False):
     '''Setup gvar before running unit tests.'''
-    from getpass import getpass
-    import os
-    import re
-    import yaml
 
     gvar['active_server_user_group'] = {}
     gvar['cloud_credentials'] = {}
@@ -650,35 +646,44 @@ def initialize_csv2_request(gvar, selections=None, hidden=False):
 
 def load_settings():
     '''Also used by the web interface test setup.'''
+    from getpass import getpass
+    import os
+    import re
+    import yaml
+
     try:
         with open(os.path.expanduser('~/.csv2/unit-test/settings.yaml')) as settings_file:
-            gvar['user_settings'] = yaml.full_load(settings_file.read())
+            settings = {'user_settings': yaml.full_load(settings_file.read())}
     except FileNotFoundError:
         raise Exception('You must create a minimal cloudscheduler defaults for server "unit-test" containing the server address and user credentials.')
 
-    gvar['fqdn'] = re.sub(r'^https?://', '', gvar['user_settings']['server-address'], count=1)
+    settings['fqdn'] = re.sub(r'^https?://', '', settings['user_settings']['server-address'], count=1)
 
     # Get user_secret and cloud credentials.
     CREDENTIALS_PATH = os.path.expanduser('~/cloudscheduler/unit_tests/credentials.yaml')
     try:
         with open(os.path.expanduser('~/cloudscheduler/unit_tests/credentials.yaml')) as credentials_file:
             credentials = yaml.full_load(credentials_file.read())
-            gvar.update(credentials)
+            settings.update(credentials)
     except FileNotFoundError:
         print('No unit test credentials file found at {}. Prompting for credentials to use when creating clouds.'.format(CREDENTIALS_PATH))
-        gvar['user_secret'] = generate_secret()
-        gvar['cloud_credentials']['authurl'] = input('authurl (cloud address): ')
-        gvar['cloud_credentials']['username'] = input('username: ')
-        gvar['cloud_credentials']['password'] = getpass('password: ')
-        gvar['cloud_credentials']['region'] = input('region: ')
-        gvar['cloud_credentials']['project'] = input('project: ')
+        settings['user_secret'] = generate_secret()
+        settings['cloud_credentials']['authurl'] = input('authurl (cloud address): ')
+        settings['cloud_credentials']['username'] = input('username: ')
+        settings['cloud_credentials']['password'] = getpass('password: ')
+        settings['cloud_credentials']['region'] = input('region: ')
+        settings['cloud_credentials']['project'] = input('project: ')
         # Create credentials file with read / write permissions for the current user and none for others. Save user_secret there in plain text.
         os.umask(0)
-        os.makedirs(os.path.dirname(CREDENTIALS_PATH), mode=0o700, exist_ok=True)
+        dir_path = os.path.dirname(CREDENTIALS_PATH)
+        if dir_path:
+            os.makedirs(dir_path, mode=0o700, exist_ok=True)
         with open(os.open(CREDENTIALS_PATH, os.O_CREAT | os.O_WRONLY, 0o600), 'w') as credentials_file:
-            credentials_file.write(yaml.safe_dump({'user_secret': gvar['user_secret'], 'cloud_credentials': gvar['cloud_credentials']}))
+            credentials_file.write(yaml.safe_dump({'user_secret': settings['user_secret'], 'cloud_credentials': settings['cloud_credentials']}))
     except yaml.YAMLError as err:
         print('YAML encountered an error while parsing {}: {}'.format(CREDENTIALS_PATH, err))
+
+    return settings
 
 def _requests(gvar, request, group=None, form_data=None, query_data=None, server_user=None, server_pw=None, html=False):
     """
