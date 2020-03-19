@@ -5,6 +5,8 @@ import sys
 import os
 import yaml
 
+SYNOPSIS = 'Synopsis: mysql_privileges [ <db_user>,<db_pw ] <blank_seperated_python_module_list>'
+
 functions = [
     {'name': 'mysql_privileges_map_table_to_variables', 'tix': 'DEF', 'alchemy': False},
     {'name': 'signal_functions', 'tix': 'SIG', 'alchemy': False},
@@ -47,7 +49,7 @@ def resolve_refs(handles):
     return resolved
 
 if len(sys.argv) < 2:
-    print('Synopsis: mysql_privileges [ <db_user>,<db_pw ]  <db_user_password> <blank_seperated_python_module_list>')
+    print(SYNOPSIS)
     exit(0)
 
 words = sys.argv[1].split(',', 1)
@@ -301,11 +303,14 @@ for ix in range(aix, len(sys.argv)):
 
                 print('', file=sys.stderr)
                      
-print('Privileges summary:', file=sys.stderr)
-privileges = []
-if aix > 1:
-    privileges.append('create user if not exists "%s"@"%%" identified by "%s"' % (db_user, db_pw))
+if aix < 2:
+    db_user = 'NO_USER_SPECIFIED'
+    db_pw = 'NO_PASSWORD_SPECIFIED'
 
+privileges = []
+privileges.append('create user if not exists "%s"@"%%" identified by "%s"' % (db_user, db_pw))
+
+print('Privileges summary:', file=sys.stderr)
 for table in sorted(tables):
     table_privileges = [[], []]
     if tables[table]['delete']:
@@ -343,6 +348,7 @@ for table in sorted(tables):
 
 print('', file=sys.stderr)
 
-for privilege in privileges:
-    print(privilege)
+if aix > 1:
+    for privilege in privileges:
+        print(privilege)
 

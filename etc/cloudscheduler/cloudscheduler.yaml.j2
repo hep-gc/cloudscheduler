@@ -23,12 +23,6 @@ signals:
         - "update_ec2_instance_types"
     queue: "signals"
 
-condor_poller:
-    condor_worker_cert: /home/cloudscheduler/.globus/condor_worker_cert.pem
-    condor_worker_key: /home/cloudscheduler/.globus/condor_worker_key.pem
-    log_file: /var/log/cloudscheduler/condor.log
-    log_level: 20
-
 public_ports:
     amqp: "{{ amqp_public_port }}"
     database: "{{ database_public_port }}"

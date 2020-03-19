@@ -37,7 +37,7 @@ signals:
 # any time, but specifically if you modify this configuration, you may restart the condor
 # poller service (named "csv2-condor") with either the "systemctl" or "service" commands.
 condor_poller:
-    condor_worker_cert: /var/lib/condor/.globus/condorworkercert.pem
-    condor_worker_key: /var/lib/condor/.globus/condorworkerkey.pem
+    condor_worker_cert: /var/lib/condor/.globus/condor_worker_cert.pem
+    condor_worker_key: /var/lib/condor/.globus/condor_worker_key.pem
     log_file: /var/log/condor/condor_poller.log
     log_level: 20

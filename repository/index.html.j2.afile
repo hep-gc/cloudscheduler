@@ -49,9 +49,9 @@
                 /opt/cloudscheduler/utilities/service_enable_condor_poller
             </div>
 
-            <p>If your HTCondor job scheduler is using GSI authentication, then you will need to ensure the 
-            correct condor poller configuration in the file <b>"/opt/cloudscheuler/etc/condor_poller.yaml"</b>. This
-            file contains additional comments as to what is required.
+            <p>If your HTCondor job scheduler is using GSI authentication, then you will need to ensure the correct 
+            condor poller configuration in the file <b>"/opt/cloudscheuler/etc/cloudscheduler/condor_poller.yaml"</b>.
+            This file contains additional comments as to what is required.
         </div>
     </body>
 </html>
