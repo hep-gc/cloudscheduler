@@ -27,7 +27,8 @@ class Config:
 
         # Retrieve the database configuration.
         if os.path.exists(db_yaml):
-            with open(db_yaml, 'r') as ymlfile:
+            self.path = db_yaml
+            with open(self.path, 'r') as ymlfile:
                 base_config = yaml.full_load(ymlfile)
         else:
             raise Exception('Configuration file "%s" does not exist.' % db_yaml)
@@ -277,7 +278,7 @@ class Config:
 
 #-------------------------------------------------------------------------------
 
-    def update_service_catalog(self, provider=os.path.basename(sys.argv[0]), host_id=None, error=None, counter=None):
+    def update_service_catalog(self, provider=os.path.basename(sys.argv[0]), host_id=None, error=None, counter=None, logger=None):
         if 'ProcessMonitor' in self.categories and self.categories['ProcessMonitor']['pause'] == True:
             return
 
@@ -305,15 +306,24 @@ class Config:
             if result.rowcount == 0:
                 self.db_session.execute('insert into csv2_service_catalog (provider,host_id,counter) values("%s",%s,%s);' % (provider, current_host_id, current_counter))
 
+            if logger:
+                logger.debug('Counter update for provider: %s, host ID: %s, counter: %s' % (provider, current_host_id, counter))
+
         elif error:
             result = self.db_session.execute('update csv2_service_catalog set last_error=unix_timestamp(), error_message="%s" where provider="%s" and host_id=%s;' % (error, provider, current_host_id))
             if result.rowcount == 0:
                 self.db_session.execute('insert into csv2_service_catalog (provider,host_id,last_error,error_message) values("%s",%s,unix_timestamp(),"%s");' % (provider, current_host_id, error))
 
+            if logger:
+                logger.error('provider: %s, host ID: %s, error: %s' % (provider, current_host_id, error))
+
         else:
             result = self.db_session.execute('update csv2_service_catalog set last_updated=unix_timestamp() where provider="%s" and host_id=%s;' % (provider, current_host_id))
             if result.rowcount == 0:
                 self.db_session.execute('insert into csv2_service_catalog (provider,host_id,last_updated) values("%s",%s,unix_timestamp());' % (provider, current_host_id))
+
+            if logger:
+                logger.debug('Heartbeat for provider: %s, host ID: %s' % (provider, current_host_id))
 
         if auto_close:
             self.db_close(commit=True)
