@@ -14,6 +14,8 @@ class ProcessMonitor:
     config = None
     processes = {}
     process_ids = {}
+    static_process_ids = {}
+    dynamic_process_ids = {}
     logging = None
     log_file = None
     log_level = None
@@ -34,6 +36,34 @@ class ProcessMonitor:
             format='%(asctime)s - %(processName)-12s - %(process)d - %(levelname)s - %(message)s')
         self.logging = logging.getLogger()
         self.process_ids = process_ids
+        for proc in process_ids:
+            if isinstance(process_ids[proc], list):
+                # add dynamic process
+                function = process_ids[proc][0]
+                select = process_ids[proc][1]
+                self.config.db_open()
+                rc, msg, rows = self.config.db_execute(select)
+                if rc == 0:
+                    #process rows
+                    for row in rows:
+                        logging.debug("Parsing csv2_cloud row: %s" % row)
+                        target_group = row["group_name"]
+                        target_cloud = row["cloud_name"]
+                        dyna_proc = {
+                            "function": function,
+                            "args": [target_group, target_cloud],
+                            "process": None
+                        }
+                        self.dynamic_process_ids[function + "-" + target_group + "-" + target_cloud] = dyna_proc
+                else:
+                    #something wrong with the select
+                    self.logging.error("Failed to retrieve child targets from select statement:%s \n Error: %s" % (select, msg)
+                self.config.db_close()
+            else:
+                # its a static process
+                logging.debug("Adding static process: %s" % process_ids[proc])
+                dyanimc_process_ids[proc] = process_ids[proc]
+        
 
     def get_process_ids(self):
         return self.process_ids
@@ -43,13 +73,17 @@ class ProcessMonitor:
         _init_cpu_sleep_time(process_id)
         return
 
-    def del_process(self, process_id):
+    def del_process(self, process_id, dynamic=False):
         proc = self.processes[process_id]
+        logging.info("Deleting process: %s" % process_id)
         if self.is_alive(proc):
             proc.join()
         del self.processes[process_id]
-        self.process_ids.pop(process_id)
-        self.p_cpu_times.pop(process_id)
+        if dynamic:
+            self.dynamic_process_ids.pop(process_id)
+        else:
+            self.process_ids.pop(process_id)
+            self.static_process_ids.pop(process_id)
         return
 
     def get_logging(self):
@@ -59,7 +93,8 @@ class ProcessMonitor:
         return self.config
 
     def start_all(self):
-        for process in self.process_ids:
+        # start static_ids
+        for process in self.static_process_ids:
             if process not in self.processes or not self.processes[process].is_alive():
                 if process in self.processes:
                     logging.error("Restarting %s...", process)
@@ -68,7 +103,18 @@ class ProcessMonitor:
                 self.processes[process] = Process(target=self.process_ids[process])
                 self.processes[process].start()
 
-    def restart_process(self, process):
+        # start dynamic_ids
+        for process in self.dynamic_process_ids:
+            if process not in self.processes or not self.processes[process].is_alive():
+                if process in self.processes:
+                    logging.error("Restarting %s...", process)
+                else:
+                    logging.info("Starting %s...", process)
+                # key here should be function-group-cloud
+                self.processes[process] = Process(target=dynamic_process_ids[process]["function"], args = (dynamic_process_ids[process]["args"],))
+                self.processes[process].start()
+
+    def restart_process(self, process, dynamic=False):
         # Capture tail of log when process has to restart
         try:
             proc = subprocess.Popen(['tail', '-n', '50', self.config.categories[os.path.basename(sys.argv[0])]["log_file"]], stdout=subprocess.PIPE)
@@ -79,8 +125,12 @@ class ProcessMonitor:
                     f.write(line)
         except Exception as ex:
             self.logging.exception(ex)
-        self.processes[process] = Process(target=self.process_ids[process])
-        self.processes[process].start()
+        if dynamic:
+            self.processes[process] = Process(target=dynamic_process_ids[process]["function"], args = (dynamic_process_ids[process]["args"],))
+            self.processes[process].start()
+        else:
+            self.processes[process] = Process(target=self.process_ids[process])
+            self.processes[process].start()
 
     def is_alive(self, process):
         return self.processes[process].is_alive()
@@ -114,7 +164,8 @@ class ProcessMonitor:
                     self.processes[proc].terminate()
 
         procs_to_remove = []
-        for process in self.process_ids:
+        # handle static processes
+        for process in self.static_process_ids:
             if process not in self.processes or not self.is_alive(process):
                 if stop:
                     # child proc is dead, and stop flag set, don't restart and remove proc id
@@ -133,6 +184,51 @@ class ProcessMonitor:
                 self.restart_process(process)
                 time.sleep(self.config.categories["ProcessMonitor"]["sleep_interval_main_short"])
             p = psutil.Process(self.processes[process].pid)
+        # handle dynamic processes
+        dynamic_procs = self.dynamic_process_ids.keys()
+        dynamic_procs_set = set(dynamic_procs)
+        for proc in self.process_ids:
+            #check if its a list
+            if isinstance(process_ids[proc], list):
+                #TODO ADD STOP LOGIC
+                # add dynamic process
+                function = process_ids[proc][0]
+                select = process_ids[proc][1]
+                self.config.db_open()
+                rc, msg, rows = self.config.db_execute(select)
+                if rc == 0:
+                    #process rows
+                    for row in rows:
+                        target_group = row["group_name"]
+                        target_cloud = row["cloud_name"]
+                        # check if process already in our list, if it is check if it's alive
+                        proc_key = function + "-" + target_group + "-" + target_cloud
+                        dynamic_procs_set.pop(proc_key)
+                        if proc_key in self.processes:
+                            #check if it's alive
+                            if not self.is_alive(proc_key):
+                                #restart it
+                                logging.error("%s process died, restarting...", proc_key)
+                                self.config.update_service_catalog(host_id=self.config.local_host_id, error="%s process died, exit code: %s" % (proc_key, self.processes[proc_key].exitcode))
+                                self.restart_process(proc_key, dynamic=True)
+                        else:
+                            #else create a new thread
+                            dyna_proc = {
+                                "function": function,
+                                "args": [target_group, target_cloud],
+                                "process": None
+                            }
+                            self.dynamic_process_ids[function + "-" + target_group + "-" + target_cloud] = dyna_proc
+                else:
+                    #something wrong with the select
+                    self.logging.error("Failed to retrieve child targets from select statement: %s" % msg)
+
+        #check for any dynamic processes that are no longer needed
+        # anything left in dynamic_procs_set is no longer in the database
+        for proc in dynamic_procs_set:
+            #join it
+            self.del_process(proc, dynamic=True)
+
         for proc in procs_to_remove:
             self.process_ids.pop(proc)
 

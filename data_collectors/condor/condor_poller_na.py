@@ -1391,7 +1391,7 @@ if __name__ == '__main__':
     process_ids = {
         'job_command':      job_command_poller,
         'job':              job_poller,
-        'machine_command':  machine_command_poller,
+        'machine_command':  [machine_command_poller, 'select distinct group_name,cloud_name from csv2_clouds;'],
         'machine':          machine_poller,
         'condor_gsi':       condor_gsi_poller,
         'worker_gsi':       worker_gsi_poller,
@@ -1408,7 +1408,7 @@ if __name__ == '__main__':
     with open(PID_FILE, "w") as fd:
         fd.write(str(os.getpid()))
 
-    logging.info("**************************** starting cscollector - Running %s *********************************" % version)
+    logging.info("**************************** starting condor poller - Running %s *********************************" % version)
 
     # Wait for keyboard input to exit
     try:
