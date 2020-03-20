@@ -5,25 +5,22 @@ import subprocess
 import sys
 import yaml
 
-# os.makedirs() may get confused if '..' is used in SETUP_REQUIRED_FILE.
-SETUP_REQUIRED_FILE = 'setup_required.bool'
+# os.makedirs() may get confused if '..' is used in WEB_SETTINGS_FILE.
+WEB_SETTINGS_FILE = 'web_settings.yaml'
 YAML_METADATA_FILE = '../ut.yaml'
 NON_YAML_METADATA_FILE = '../notyamlfile.txt'
 
 def setup():
     '''Load global settings and create test objects.'''
-    gvar = load_settings()
-    gvar['address'] = gvar['user_settings']['server-address']
-    gvar['user'] = gvar['user_settings']['server-user']
-    del gvar['user_settings']
+    gvar = load_settings(web=True)
 
-    if setup_required():
+    if gvar['setup_required']:
         cleanup(gvar)
 
         server_credentials = ['-su', '{}-wiu1'.format(gvar['user']), '-spw', gvar['user_secret']]
         # To avoid repeating all of this a few times. Only missing mandatory parameter is --cloud-name.
         cloud_template = ['cloud', 'add',
-            *server_credentials, 
+            *server_credentials,
             '-ca', gvar['cloud_credentials']['authurl'],
             '-cU', gvar['cloud_credentials']['username'],
             '-cpw', gvar['cloud_credentials']['password'],
@@ -95,7 +92,7 @@ def setup():
             except subprocess.CalledProcessError as err:
                 raise Exception('Error setting up tests.\ncmd={}\nstderr={}\nstdout={}'.format(format_command(err.cmd), err.stderr, err.stdout))
 
-        setup_required(set_to=False)
+        set_setup_required(False)
     return gvar
 
 def cleanup(gvar):
@@ -110,32 +107,32 @@ def cleanup(gvar):
         # We want to know if the server returns an unexpected HTTP status code, but not if it failed just because the object did not exist.
         if process.returncode > 1:
             raise Exception('Error cleaning up tests.\ncmd={}\nstderr={}\nstdout={}'.format(format_command(command), process.stderr, process.stdout))
-    setup_required(set_to=True)
 
-def setup_required(set_to=None):
-    '''Return a boolean saved in SETUP_REQUIRED_FILE and save set_to in its place, if set_to is specified.'''
+    set_setup_required(True)
+
+def web_settings(setup_required=None):
+    '''Return the web settings saved in WEB_SETTINGS_FILE, creating the file if it does not exist.'''
     try:
-        with open(SETUP_REQUIRED_FILE) as setup_required_file:
-            t = setup_required_file.read()
-            print(f'DEBUG: {t}')
-            required = (t.strip('\n') != '0')
+        with open(WEB_SETTINGS_FILE) as web_settings_file:
+            settings = yaml.safe_load(web_settings_file.read())
     except FileNotFoundError:
         required = True
-        set_to = True
-        # Create the setup_required file.
-        print('Creating file at {} to remember if test objects are setup.'.format(SETUP_REQUIRED_FILE))
+        setup_required = True
+        # Create the web_settings file.
+        print('Creating file at {} to remember if test objects are setup.'.format(WEB_SETTINGS_FILE))
         os.umask(0)
-        dir_path = os.path.dirname(SETUP_REQUIRED_FILE)
+        dir_path = os.path.dirname(WEB_SETTINGS_FILE)
         if dir_path:
             os.makedirs(dir_path, mode=0o700, exist_ok=True)
     except ValueError:
         required = True
-        set_to = True
-        print('Error: Failed to parse {}'.format(SETUP_REQUIRED_FILE), file=sys.stderr)
+        setup_required = True
+        print('Error: Failed to parse {}'.format(WEB_SETTINGS_FILE), file=sys.stderr)
 
-    if set_to != None:
-        with open(SETUP_REQUIRED_FILE, 'w') as setup_required_file:
-            setup_required_file.write(str(int(set_to)))
+def setup_required(
+    if setup_required != None:
+        with open(WEB_SETTINGS_FILE, 'w') as web_settings_file:
+            web_settings_file.write(str(int(setup_required)))
 
     return required
 

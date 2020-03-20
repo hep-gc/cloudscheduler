@@ -13,6 +13,7 @@ class TestStatus(unittest.TestCase):
         cls.server_address = web_common.setup()['address']
         cls.driver = webdriver.Firefox()
         cls.driver.get('{}/cloud/status'.format(cls.server_address))
+		cls.driver.switch_to.alert.accept()
 
     def test_status_display(self):
         status_tables = self.driver.find_elements_by_class_name('status-tables')

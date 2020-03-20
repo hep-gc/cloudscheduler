@@ -184,9 +184,9 @@ def execute_csv2_request(gvar, expected_rc, expected_modid, expected_text, reque
             if not gvar['hidden']:
                 print('\n%04d (%04d) %s \033[91mFailed\033[0m: expected_rc=%s, expected_modid=%s, expected_text=%s, request=\'%s\', group=%s, form_data=%s, query_data=%s' % (gvar['ut_count'][0], gvar['ut_count'][1], _caller(), expected_rc, expected_modid, repr(expected_text), request, group, form_data, query_data))
                 if gvar['user_settings']['server-address'] in gvar['active_server_user_group'] and server_user in gvar['active_server_user_group'][gvar['user_settings']['server-address']]:
-                    print('    server=%s, user=%s, group=%s' % (repr(gvar['server']), repr(server_user), repr(gvar['active_server_user_group'][gvar['user_settings']['server-address']][server_user])))
+                    print('    user=%s, group=%s' % (server_user, repr(gvar['active_server_user_group'][gvar['user_settings']['server-address']][server_user])))
                 else:
-                    print('    server=%s, user=%s, group=\033[91mNone\033[0m' % (repr(gvar['server']), repr(server_user)))
+                    print('    user=%s, group=\033[91mNone\033[0m' % server_user)
                 print('    response code=%s' % response['response_code'])
                 if response['response_code'] != 0:
                     print('    module ID=%s' % modid)
@@ -621,8 +621,6 @@ def initialize_csv2_request(gvar, selections=None, hidden=False):
     gvar['cookies'] = None
     gvar['csrf'] = None
     # Used as the htcondor_fqdn of test groups.
-    gvar['fqdn'] = None
-    gvar['server'] = 'unit-test'
     gvar['ut_count'] = [0, 0]
     gvar['ut_failed'] = 0
     gvar['ut_skipped'] = 0
@@ -643,8 +641,8 @@ def initialize_csv2_request(gvar, selections=None, hidden=False):
 
     gvar.update(load_settings())
 
-def load_settings():
-    '''Also used by the web interface test setup.'''
+def load_settings(web=False):
+    '''web indicates whether web-interface-specific settings should be loaded.'''
     from getpass import getpass
     import os
     import re
@@ -655,33 +653,39 @@ def load_settings():
             settings = {'user_settings': yaml.full_load(settings_file.read())}
     except FileNotFoundError:
         raise Exception('You must create a minimal cloudscheduler defaults for server "unit-test" containing the server address and user credentials.')
-
+	if web:
+		settings['address'] = settings['user_settings']['server-address']
+		settings['user'] = settings['user_settings']['server-user']
+		del settings['user_settings']
     settings['fqdn'] = re.sub(r'^https?://', '', settings['user_settings']['server-address'], count=1)
 
     # Get user_secret and cloud credentials.
-    CREDENTIALS_PATH = os.path.expanduser('~/cloudscheduler/unit_tests/credentials.yaml')
+    credentials_path = os.path.expanduser('~/cloudscheduler/unit_tests/credentials.yaml')
     try:
-        with open(os.path.expanduser('~/cloudscheduler/unit_tests/credentials.yaml')) as credentials_file:
+        with open(credentials_path) as credentials_file:
             credentials = yaml.full_load(credentials_file.read())
             settings.update(credentials)
     except FileNotFoundError:
-        print('No unit test credentials file found at {}. Prompting for credentials to use when creating clouds.'.format(CREDENTIALS_PATH))
+        print('No unit test credentials file found at {}. Prompting for credentials.'.format(credentials_path))
         settings['user_secret'] = generate_secret()
         settings['cloud_credentials'] = {}
-        settings['cloud_credentials']['authurl'] = input('authurl (cloud address): ')
-        settings['cloud_credentials']['username'] = input('username: ')
-        settings['cloud_credentials']['password'] = getpass('password: ')
-        settings['cloud_credentials']['region'] = input('region: ')
-        settings['cloud_credentials']['project'] = input('project: ')
-        # Create credentials file with read / write permissions for the current user and none for others. Save user_secret there in plain text.
+        settings['cloud_credentials']['authurl'] = input('Cloud authurl (cloud address to give test clouds): ')
+        settings['cloud_credentials']['username'] = input('Cloud username: ')
+        settings['cloud_credentials']['password'] = getpass('Cloud password: ')
+        settings['cloud_credentials']['region'] = input('Cloud region: ')
+        settings['cloud_credentials']['project'] = input('Cloud project: ')
+		if web:
+			settings['web']['firefox_profile'] = input('Location of Firefox profile to use for web interface tests: ')
+			settings['web']['setup_required'] = True
+        # Create credentials file with read / write permissions for the current user and none for others.
         os.umask(0)
-        dir_path = os.path.dirname(CREDENTIALS_PATH)
+        dir_path = os.path.dirname(credentials_path)
         if dir_path:
             os.makedirs(dir_path, mode=0o700, exist_ok=True)
-        with open(os.open(CREDENTIALS_PATH, os.O_CREAT | os.O_WRONLY, 0o600), 'w') as credentials_file:
-            credentials_file.write(yaml.safe_dump({'user_secret': settings['user_secret'], 'cloud_credentials': settings['cloud_credentials']}))
+        with open(os.open(credentials_path, os.O_CREAT | os.O_WRONLY, 0o600), 'w') as credentials_file:
+            credentials_file.write(yaml.safe_dump({'user_secret': settings['user_secret'], 'cloud_credentials': settings['cloud_credentials'], 'web': settings['web']}))
     except yaml.YAMLError as err:
-        print('YAML encountered an error while parsing {}: {}'.format(CREDENTIALS_PATH, err))
+        print('YAML encountered an error while parsing {}: {}'.format(credentials_path, err))
 
     return settings
 
@@ -696,7 +700,7 @@ def _requests(gvar, request, group=None, form_data=None, query_data=None, server
     EXTRACT_CSRF = str.maketrans('=;', '  ')
 
     if 'server-address' not in gvar['user_settings']:
-        print('Error: user settings for server "%s" does not contain a URL value.' % gvar['server'])
+        print('Error: user settings for server "unit-test" does not contain a URL value.')
         exit(1)
 
     headers = {'Referer': gvar['user_settings']['server-address']}
@@ -731,7 +735,7 @@ def _requests(gvar, request, group=None, form_data=None, query_data=None, server
 
     elif 'server-user' in gvar['user_settings']:
         if 'server-password' not in gvar['user_settings'] or gvar['user_settings']['server-password'] == '-':
-            gvar['user_settings']['server-password'] = getpass('Enter your csv2 password for server "%s": ' % gvar['server'])
+            gvar['user_settings']['server-password'] = getpass('Enter your csv2 password for server "unit-test": ')
 
         _function, _request, _form_data = _requests_insert_controls(gvar, request, group, form_data, query_data, gvar['user_settings']['server-address'], gvar['user_settings']['server-user'])
 
@@ -751,9 +755,9 @@ def _requests(gvar, request, group=None, form_data=None, query_data=None, server
         response = _r.json()
     except:
         if _r.status_code and _r.status_code == 401:   
-            response = {'response_code': 2, 'message': 'server "%s", HTTP response code %s, unauthorized.' % (gvar['server'], _r.status_code)}
+            response = {'response_code': 2, 'message': 'HTTP response code %s, unauthorized.' % _r.status_code}
         elif _r.status_code and _r.status_code == 403:   
-            response = {'response_code': 2, 'message': 'server "%s", HTTP response code %s, forbidden.' % (gvar['server'], _r.status_code)}
+            response = {'response_code': 2, 'message': 'HTTP response code %s, forbidden.' % _r.status_code}
         elif html and _r.status_code and _r.status_code == 200:
             error, message = html_message(_r.text)
             if error:
@@ -761,9 +765,9 @@ def _requests(gvar, request, group=None, form_data=None, query_data=None, server
             else:
                 response = {'response_code': 0, 'message': message.replace('&quot;', '"')}
         elif _r.status_code:   
-            response = {'response_code': 2, 'message': 'server "%s", HTTP response code %s.' % (gvar['server'], _r.status_code)}
+            response = {'response_code': 2, 'message': 'HTTP response code %s.' % _r.status_code}
         else:
-            response = {'response_code': 2, 'message': 'server "%s", internal server error.' % gvar['server']}
+            response = {'response_code': 2, 'message': 'internal server error.'}
 
     if 'Set-Cookie' in _r.headers:
         new_csrf = _r.headers['Set-Cookie'].translate(EXTRACT_CSRF).split()[1]
