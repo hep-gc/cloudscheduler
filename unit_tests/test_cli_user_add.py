@@ -81,7 +81,7 @@ def main(gvar):
     # 49
     execute_csv2_command(
         gvar, 0, None, 'user "{}" successfully added.'.format(ut_id(gvar, 'clu10')),
-        ['user', 'add', '-un', ut_id(gvar, 'clu10'), '-upw', gvar['user_secret'], '-ucn', ut_id(gvar, 'command-line-user-10'), '-gn', ut_id(gvar, 'clg1,clg5')]
+        ['user', 'add', '-un', ut_id(gvar, 'clu10'), '-upw', gvar['user_secret'], '-ucn', ut_id(gvar, 'command-line-user-10'), '-gn', ut_id(gvar, 'clg1,clg3')]
     )
 
     # 50 We have to specify server and server password explicitly because `--super-user` has to be the last parameter.

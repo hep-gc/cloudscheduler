@@ -130,16 +130,16 @@ def main(gvar):
         ['user', 'update', '-un', ut_id(gvar, 'clu7'), '-gn', ut_id(gvar, 'clg1'), '-go', 'add']
     )
 
-    # 37 Explicitly delete clu7 from clg1 and clg5.
+    # 37 Explicitly delete clu7 from clg1 and clg3.
     execute_csv2_command(
         gvar, 0, None, 'user "{}" successfully updated.'.format(ut_id(gvar, 'clu7')),
-        ['user', 'update', '-un', ut_id(gvar, 'clu7'), '-gn', ut_id(gvar, 'clg1,clg5'), '-go', 'delete']
+        ['user', 'update', '-un', ut_id(gvar, 'clu7'), '-gn', ut_id(gvar, 'clg1,clg3'), '-go', 'delete']
     )
 
-    # 38 Implicitly add clu7 to clg1 and clg5.
+    # 38 Implicitly add clu7 to clg1 and clg3.
     execute_csv2_command(
         gvar, 0, None, 'user "{}" successfully updated.'.format(ut_id(gvar, 'clu7')),
-        ['user', 'update', '-un', ut_id(gvar, 'clu7'), '-gn', ut_id(gvar, 'clg1,clg5')]
+        ['user', 'update', '-un', ut_id(gvar, 'clu7'), '-gn', ut_id(gvar, 'clg1,clg3')]
     )
 
 if __name__ == "__main__":
