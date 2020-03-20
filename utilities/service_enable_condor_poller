@@ -2,7 +2,7 @@
 ###
 ### This utility must be run as root. It performs the following:
 ###
-### 1.  Ensure remote csv2-condor-poller is not already installed.
+### 1.  Ensure csv2-condor-poller is not already installed.
 ### 2.  Checks to see if we are running as root.
 ### 3.  Checks to see if we are installed correctly in /opt.
 ### 4.  Checks to see if python3 is installed.
@@ -49,7 +49,7 @@ EOF
 }
 
 ###
-### 1.  Ensure remote csv2-condor-poller is not already installed.
+### 1.  Ensure csv2-condor-poller is not already installed.
 ###
     which systemctl 1>/dev/null 2>&1
     systemctl=$?
@@ -166,12 +166,12 @@ EOF
 ### 11. Installs, enables, and starts csv2-condor-poller initd/systemd service.
 ###
     if [ $systemctl -eq 1 ]; then
-        cp /opt/cloudscheduler/etc/init.d/csv2-condor-poller.afile /etc/init.d/csv2-condor-poller
+        cp /opt/cloudscheduler/etc/init.d/csv2-condor-poller.pfile /etc/init.d/csv2-condor-poller
         chmod 0755 /etc/init.d/csv2-condor-poller
         chkconfig --add csv2-condor-poller
         service csv2-condor-poller start
     else
-        cp /opt/cloudscheduler/etc/systemd/system/csv2-condor-poller.service.afile /etc/systemd/system/csv2-condor-poller.service
+        cp /opt/cloudscheduler/etc/systemd/system/csv2-condor-poller.service.pfile /etc/systemd/system/csv2-condor-poller.service
         systemctl enable csv2-condor-poller
         systemctl start csv2-condor-poller
     fi

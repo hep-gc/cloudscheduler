@@ -2,13 +2,13 @@
 ###
 ### This utility must be run as root. It performs the following:
 ###
-### 1. Ensure remote csv2-condor-poller is not already disabled.
+### 1. Ensure csv2-condor-poller is not already disabled.
 ### 2. Checks to see if we are running as root.
 ### 3. Stops, disables, and uninstalls csv2-condor-poller initd/systemd service.
 ###
 
 ###
-### 1. Ensure remote csv2-condor-poller is not already installed.
+### 1. Ensure csv2-condor-poller is not already installed.
 ###
     which systemctl 1>/dev/null 2>&1
     systemctl=$?
