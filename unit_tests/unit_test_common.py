@@ -617,7 +617,6 @@ def initialize_csv2_request(gvar, selections=None, hidden=False):
     '''Setup gvar before running unit tests.'''
 
     gvar['active_server_user_group'] = {}
-    gvar['cloud_credentials'] = {}
     gvar['command_args'] = {}
     gvar['cookies'] = None
     gvar['csrf'] = None
@@ -668,6 +667,7 @@ def load_settings():
     except FileNotFoundError:
         print('No unit test credentials file found at {}. Prompting for credentials to use when creating clouds.'.format(CREDENTIALS_PATH))
         settings['user_secret'] = generate_secret()
+        settings['cloud_credentials'] = {}
         settings['cloud_credentials']['authurl'] = input('authurl (cloud address): ')
         settings['cloud_credentials']['username'] = input('username: ')
         settings['cloud_credentials']['password'] = getpass('password: ')

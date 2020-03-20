@@ -1,6 +1,6 @@
 import web_common
 import unittest
-import selenium
+from selenium import webdriver
 
 EXPECTED_JOB_HEADERS = ['Group', 'Jobs', 'Idle', 'Running', 'Completed', 'Held', 'Other', 'Foreign', 'Condor FQDN', 'Condor Status', 'Agent Status', 'Condor Cert', 'Worker Cert']
 EXPECTED_VM_HEADERS = ['Group', 'Clouds', 'RT (μs)', 'VMs', 'Starting', 'Unreg.', 'Idle', 'Running', 'Retiring', 'Manual', 'Error', 'Slots', 'Busy', 'Idle', 'Used', 'Limit', 'RAM']
@@ -11,15 +11,14 @@ class TestStatus(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.server_address = web_common.setup()['address']
-        cls.driver = selenium.webdriver.Firefox()
-        cls.driver.get('{}/cloud/status'.format(self.server_address))
+        cls.driver = webdriver.Firefox()
+        cls.driver.get('{}/cloud/status'.format(cls.server_address))
 
     def test_status_display(self):
         status_tables = self.driver.find_elements_by_class_name('status-tables')
         system_table = self.driver.find_element_by_id_name('system-services')
         self.assertEqual(len(status_tables), 2)
         job_table, vm_table = status_tables
-
         job_headers = [elem.get_attribute('innerHTML') for elem in job_table.find_elements_by_tag_name('th')]
         self.assertEqual(job_headers, EXPECTED_JOB_HEADERS)
         vm_headers = [elem.get_attribute('innerHTML') for elem in vm_table.find_elements_by_tag_name('th')]
