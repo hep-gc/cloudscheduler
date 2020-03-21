@@ -562,7 +562,7 @@ def qt(query, keys=None, prune=[], filter=None, convert=None):
         raise Exception('view_utils.qt: "keys" dictionary requires a "primary/secondary" specification if "match_list" is also specified.')
 
     from decimal import Decimal
-    from .view_utils import _qt, _qt_list, _qt_list_sum
+#   from view_utils import _qt, _qt_list, _qt_list_sum
     import time
 
     # Initialize return structures.
