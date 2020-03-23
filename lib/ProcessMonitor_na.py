@@ -42,7 +42,10 @@ class ProcessMonitor:
                 function = process_ids[proc][0]
                 select = process_ids[proc][1]
                 self.config.db_open()
-                rc, msg, rows = self.config.db_execute(select)
+                rows=[]
+                rc, msg = self.config.db_execute(select)
+                for row in self.config.db_cursor:
+                    rows.append(row)
                 if rc == 0:
                     #process rows
                     for row in rows:
@@ -54,15 +57,15 @@ class ProcessMonitor:
                             "args": [target_group, target_cloud],
                             "process": None
                         }
-                        self.dynamic_process_ids[function + "-" + target_group + "-" + target_cloud] = dyna_proc
+                        self.dynamic_process_ids[proc + "-" + target_group + "-" + target_cloud] = dyna_proc
                 else:
                     #something wrong with the select
-                    self.logging.error("Failed to retrieve child targets from select statement:%s \n Error: %s" % (select, msg)
+                    self.logging.error("Failed to retrieve child targets from select statement:%s \n Error: %s" % (select, msg))
                 self.config.db_close()
             else:
                 # its a static process
                 logging.debug("Adding static process: %s" % process_ids[proc])
-                dyanimc_process_ids[proc] = process_ids[proc]
+                self.static_process_ids[proc] = process_ids[proc]
         
 
     def get_process_ids(self):
@@ -111,7 +114,7 @@ class ProcessMonitor:
                 else:
                     logging.info("Starting %s...", process)
                 # key here should be function-group-cloud
-                self.processes[process] = Process(target=dynamic_process_ids[process]["function"], args = (dynamic_process_ids[process]["args"],))
+                self.processes[process] = Process(target=self.dynamic_process_ids[process]["function"], args = (self.dynamic_process_ids[process]["args"],))
                 self.processes[process].start()
 
     def restart_process(self, process, dynamic=False):
@@ -189,21 +192,24 @@ class ProcessMonitor:
         dynamic_procs_set = set(dynamic_procs)
         for proc in self.process_ids:
             #check if its a list
-            if isinstance(process_ids[proc], list):
+            if isinstance(self.process_ids[proc], list):
                 #TODO ADD STOP LOGIC
                 # add dynamic process
-                function = process_ids[proc][0]
-                select = process_ids[proc][1]
+                function = self.process_ids[proc][0]
+                select = self.process_ids[proc][1]
                 self.config.db_open()
-                rc, msg, rows = self.config.db_execute(select)
+                rows=[]
+                rc, msg = self.config.db_execute(select)
+                for row in self.config.db_cursor:
+                    rows.append(row)
                 if rc == 0:
                     #process rows
                     for row in rows:
                         target_group = row["group_name"]
                         target_cloud = row["cloud_name"]
                         # check if process already in our list, if it is check if it's alive
-                        proc_key = function + "-" + target_group + "-" + target_cloud
-                        dynamic_procs_set.pop(proc_key)
+                        proc_key = proc + "-" + target_group + "-" + target_cloud
+                        dynamic_procs_set.remove(proc_key)
                         if proc_key in self.processes:
                             #check if it's alive
                             if not self.is_alive(proc_key):
@@ -218,7 +224,7 @@ class ProcessMonitor:
                                 "args": [target_group, target_cloud],
                                 "process": None
                             }
-                            self.dynamic_process_ids[function + "-" + target_group + "-" + target_cloud] = dyna_proc
+                            self.dynamic_process_ids[proc + "-" + target_group + "-" + target_cloud] = dyna_proc
                 else:
                     #something wrong with the select
                     self.logging.error("Failed to retrieve child targets from select statement: %s" % msg)

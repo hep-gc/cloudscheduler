@@ -92,7 +92,7 @@ def if_null(val, col=None):
 
 def condor_off(condor_classad):
     try:
-        logging.debug("Sending condor_off to %s" % condor_classad)
+        logging.info("Sending condor_off to %s" % condor_classad)
         master_result = htcondor.send_command(condor_classad, htcondor.DaemonCommands.DaemonsOffPeaceful)
         if master_result is None:
             # None is good in this case it means it was a success
@@ -260,12 +260,10 @@ def check_pair_pid(pair, config, cloud_table):
 
 
 
-def process_group_cloud_commands(pair, condor_host):
+def process_group_cloud_commands(pair, condor_host, config):
     group_name = pair["group_name"]
     cloud_name = pair["cloud_name"]
 
-    config = Config(sys.argv[1], ["condor_poller.py",  "ProcessMonitor"], pool_size=3, signals=True)
-    config.db_open()
 
     VM = "csv2_vms"
     CLOUD = "csv2_clouds"
@@ -276,18 +274,22 @@ def process_group_cloud_commands(pair, condor_host):
     master_type = htcondor.AdTypes.Master
     startd_type = htcondor.AdTypes.Startd
 
-    pid = os.getpid()
-    sql = 'update csv2_clouds set subprocess_id_retire=%s where group_name="%s" and cloud_name="%s";' % (pid, group_name, cloud_name)
-    config.db_execute(sql)
+#    pid = os.getpid()
+#    sql = 'update csv2_clouds set subprocess_id_retire=%s where group_name="%s" and cloud_name="%s";' % (pid, group_name, cloud_name)
+#    config.db_execute(sql)
 
-    logging.info("Processing commands for group:%s, cloud:%s" % (group_name, cloud_name))
+    #logging.info("Processing commands for group:%s, cloud:%s" % (group_name, cloud_name))
+    logging.debug("Processing commands for group:%s, cloud:%s" % (group_name, cloud_name))
 
 
     # RETIRE CODE:
     # Query database for machines to be retired.
     where_clause = "htcondor_fqdn='%s' and cloud_name='%s' and group_name='%s' and (retire>=1 or terminate>=1)" % (condor_host, cloud_name, group_name)
+    logging.debug("Query where clause: %s" % where_clause)
+    #logging.info("Query where clause: %s" % where_clause)
 
     rc, msg, resources_list = config.db_query("view_condor_host", where=where_clause)
+    logging.info("Query returned %s actionable VMs..." % len(resources_list))
     for resource in resources_list:
         # Since we are querying a view we dont get an automapped object and instead get a 'result' tuple of the following format
         #index=attribute
@@ -395,10 +397,9 @@ def process_group_cloud_commands(pair, condor_host):
         sql = "update csv2_clouds set subprocess_id_retire=%s where group_name='%s' and cloud_name='%s';" % (-1, group_name, cloud_name)
         return
 
-    logging.info("Commands complete, closing subprocess")
+    logging.debug("Commands complete...")
     sql = "update csv2_clouds set subprocess_id_retire=%s where group_name='%s' and cloud_name='%s';" % (-1, group_name, cloud_name)
     config.db_execute(sql) 
-    config.db_close()
     return
 
 
@@ -1152,8 +1153,14 @@ def machine_poller():
         logging.error(exc)
         config.db_close()
 
-def machine_command_poller():
-    multiprocessing.current_process().name = "Machine Command Poller"
+def machine_command_poller(arg_list):
+    target_group =  arg_list[0]
+    target_cloud = arg_list[1]
+    pair = {
+        "group_name": target_group,
+        "cloud_name": target_cloud
+    }
+    multiprocessing.current_process().name = "Machine Command Poller - %s:%s" % (target_group, target_cloud)
 
     # database setup
     config = Config(sys.argv[1], ["condor_poller.py",  "ProcessMonitor"], pool_size=3, signals=True)
@@ -1184,7 +1191,9 @@ def machine_command_poller():
 
             signal.signal(signal.SIGINT, signal.SIG_IGN)
             new_poll_time, cycle_start_time = start_cycle(new_poll_time, cycle_start_time)
-
+            local_condor = socket.gethostname()
+            
+            '''
             where_clause = "htcondor_host_id='%s'" % config.local_host_id
             rc, msg, groups = config.db_query(GROUPS, where=where_clause)
             condor_hosts_set = set() # use a set here so we dont re-query same host if multiple groups have same host
@@ -1214,7 +1223,8 @@ def machine_command_poller():
                         #process_group_cloud_commands(pair, condor_host)
                         p = Process(target=process_group_cloud_commands, args=(pair, condor_host))
                         p.start()
-                    
+            '''     
+            process_group_cloud_commands(pair, local_condor, config)
             
             signal.signal(signal.SIGINT, config.signals['SIGINT'])
             if not os.path.exists(PID_FILE):
