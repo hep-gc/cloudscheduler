@@ -650,21 +650,27 @@ def load_settings(web=False):
 
     try:
         with open(os.path.expanduser('~/.csv2/unit-test/settings.yaml')) as settings_file:
-            settings = {'user_settings': yaml.full_load(settings_file.read())}
+            settings = {'user_settings': yaml.safe_load(settings_file)}
     except FileNotFoundError:
         raise Exception('You must create a minimal cloudscheduler defaults for server "unit-test" containing the server address and user credentials.')
-	if web:
-		settings['address'] = settings['user_settings']['server-address']
-		settings['user'] = settings['user_settings']['server-user']
-		del settings['user_settings']
     settings['fqdn'] = re.sub(r'^https?://', '', settings['user_settings']['server-address'], count=1)
+    if web:
+        settings['address'] = settings['user_settings']['server-address']
+        settings['user'] = settings['user_settings']['server-user']
+        del settings['user_settings']
 
     # Get user_secret and cloud credentials.
     credentials_path = os.path.expanduser('~/cloudscheduler/unit_tests/credentials.yaml')
     try:
         with open(credentials_path) as credentials_file:
-            credentials = yaml.full_load(credentials_file.read())
-            settings.update(credentials)
+            credentials = yaml.safe_load(credentials_file)
+        if web and ('web' not in credentials):
+            credentials['web'] = {}
+            credentials['web']['firefox_profile'] = input('Location of Firefox profile to use for web interface tests: ')
+            credentials['web']['setup_required'] = True
+            with open(credentials_path, 'w') as credentials_file:
+                yaml.safe_dump(credentials, credentials_file)
+        settings.update(credentials)
     except FileNotFoundError:
         print('No unit test credentials file found at {}. Prompting for credentials.'.format(credentials_path))
         settings['user_secret'] = generate_secret()
@@ -674,16 +680,16 @@ def load_settings(web=False):
         settings['cloud_credentials']['password'] = getpass('Cloud password: ')
         settings['cloud_credentials']['region'] = input('Cloud region: ')
         settings['cloud_credentials']['project'] = input('Cloud project: ')
-		if web:
-			settings['web']['firefox_profile'] = input('Location of Firefox profile to use for web interface tests: ')
-			settings['web']['setup_required'] = True
+        if web:
+            settings['web']['firefox_profile'] = input('Location of Firefox profile to use for web interface tests: ')
+            settings['web']['setup_required'] = True
         # Create credentials file with read / write permissions for the current user and none for others.
         os.umask(0)
         dir_path = os.path.dirname(credentials_path)
         if dir_path:
             os.makedirs(dir_path, mode=0o700, exist_ok=True)
         with open(os.open(credentials_path, os.O_CREAT | os.O_WRONLY, 0o600), 'w') as credentials_file:
-            credentials_file.write(yaml.safe_dump({'user_secret': settings['user_secret'], 'cloud_credentials': settings['cloud_credentials'], 'web': settings['web']}))
+            yaml.safe_dump(settings, credentials_file)
     except yaml.YAMLError as err:
         print('YAML encountered an error while parsing {}: {}'.format(credentials_path, err))
 
@@ -886,33 +892,20 @@ def ut_id(gvar, IDs):
 def condor_setup(gvar):
     '''Check that condor is installed and find and return the address of the unit-test server.
     Used only by database tests.'''
-    import os.path
     import re
     import subprocess
-    import yaml
 
     # Check that condor is installed so that we can submit a job to view using /job/list/
-    requirements = ['condor_submit', 'condor_rm']
+    requirements = {'condor_submit', 'condor_rm'}
     for requirement in requirements:
         if subprocess.run(['which', requirement], stdout=subprocess.DEVNULL).returncode != 0:
             condor_error(gvar, '{} is not installed'.format(requirement))
             return
 
-    # Get the address of the unit-test server
-    try:
-        YAML_PATH = os.path.expanduser('~/.csv2/unit-test/settings.yaml')
-        with open(YAML_PATH) as yaml_file:
-            server_address = yaml.safe_load(yaml_file)['server-address']
-    except FileNotFoundError:
-        condor_error(gvar, '{} does not exist'.format(YAML_PATH))
-        return
-    except yaml.YAMLError as err:
-        condor_error(gvar, 'YAML encountered an error while parsing {}: {}'.format(YAML_PATH, err))
-        return
-    if server_address.startswith('http'):
-        return re.match(r'https?://(.*)', server_address)[1]
+    if gvar['user_settings']['server-address'].startswith('http'):
+        return re.match(r'https?://(.*)', gvar['user_settings']['server-address'])[1]
     else:
-        condor_error(gvar, 'the server address in {} is \'{}\', which does not start with \'http\''.format(YAML_PATH, server_address))
+        condor_error(gvar, 'the server address in {} is \'{}\', which does not start with \'http\''.format(YAML_PATH, gvar['user_settings']['server-address']))
         return
 
 def condor_error(gvar, err):

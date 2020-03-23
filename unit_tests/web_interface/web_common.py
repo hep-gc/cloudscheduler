@@ -1,12 +1,11 @@
 from cloudscheduler.unit_tests.unit_test_common import generate_secret, load_settings
-import os
+import os.path
 import re
 import subprocess
 import sys
 import yaml
 
-# os.makedirs() may get confused if '..' is used in WEB_SETTINGS_FILE.
-WEB_SETTINGS_FILE = 'web_settings.yaml'
+CREDENTIALS_PATH = os.path.expanduser('~/cloudscheduler/unit_tests/credentials.yaml')
 YAML_METADATA_FILE = '../ut.yaml'
 NON_YAML_METADATA_FILE = '../notyamlfile.txt'
 
@@ -14,7 +13,7 @@ def setup():
     '''Load global settings and create test objects.'''
     gvar = load_settings(web=True)
 
-    if gvar['setup_required']:
+    if gvar['web']['setup_required']:
         cleanup(gvar)
 
         server_credentials = ['-su', '{}-wiu1'.format(gvar['user']), '-spw', gvar['user_secret']]
@@ -110,31 +109,21 @@ def cleanup(gvar):
 
     set_setup_required(True)
 
-def web_settings(setup_required=None):
-    '''Return the web settings saved in WEB_SETTINGS_FILE, creating the file if it does not exist.'''
+def set_setup_required(set_to=True):
     try:
-        with open(WEB_SETTINGS_FILE) as web_settings_file:
-            settings = yaml.safe_load(web_settings_file.read())
+        with open(CREDENTIALS_PATH) as credentials_file:
+            settings = yaml.safe_load(credentials_file)
     except FileNotFoundError:
-        required = True
-        setup_required = True
-        # Create the web_settings file.
-        print('Creating file at {} to remember if test objects are setup.'.format(WEB_SETTINGS_FILE))
-        os.umask(0)
-        dir_path = os.path.dirname(WEB_SETTINGS_FILE)
-        if dir_path:
-            os.makedirs(dir_path, mode=0o700, exist_ok=True)
-    except ValueError:
-        required = True
-        setup_required = True
-        print('Error: Failed to parse {}'.format(WEB_SETTINGS_FILE), file=sys.stderr)
+        load_settings()
+        with open(CREDENTIALS_PATH) as credentials_file:
+            settings = yaml.safe_load(credentials_file)
+    except yaml.YAMLError as err:
+        print('YAML encountered an error while parsing {}: {}'.format(credentials_path, err))
+    
+    settings['web']['setup_required'] = set_to
 
-def setup_required(
-    if setup_required != None:
-        with open(WEB_SETTINGS_FILE, 'w') as web_settings_file:
-            web_settings_file.write(str(int(setup_required)))
-
-    return required
+    with open(CREDENTIALS_PATH, 'w') as credentials_file:
+        credentials_file.write(yaml.safe_dump(settings))
 
 def format_command(command):
     '''Format a list of parameters so that when the formatted string is printed it can be copy-pasted to re-run the command.'''

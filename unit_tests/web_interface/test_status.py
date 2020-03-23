@@ -10,14 +10,14 @@ EXPECTED_SYSTEM_LABELS = ['status', 'main', 'database', 'rabbitmq', 'openstack',
 class TestStatus(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.server_address = web_common.setup()['address']
-        cls.driver = webdriver.Firefox()
-        cls.driver.get('{}/cloud/status'.format(cls.server_address))
-		cls.driver.switch_to.alert.accept()
+        settings = web_common.setup()
+        cls.driver = webdriver.Firefox(webdriver.FirefoxProfile(settings['web']['firefox_profile']))
+        cls.driver.get('{}/cloud/status'.format(settings['address']))
+        cls.driver.switch_to.alert.accept()
 
     def test_status_display(self):
         status_tables = self.driver.find_elements_by_class_name('status-tables')
-        system_table = self.driver.find_element_by_id_name('system-services')
+        system_table = self.driver.find_element_by_id('system-services')
         self.assertEqual(len(status_tables), 2)
         job_table, vm_table = status_tables
         job_headers = [elem.get_attribute('innerHTML') for elem in job_table.find_elements_by_tag_name('th')]
