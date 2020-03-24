@@ -789,7 +789,7 @@ def metadata_delete(request):
     ### Bad request.
     else:
       # return render(request, 'csv2/blank_msg.html', {'response_code': 1, 'message': '%s group metadata-delete request did not contain mandatory parameter "metadata_name".' % lno(MODID)})
-        return render(request, 'csv2/blank_msg.html', {'response_code': 1, 'message': '%s group metadata-delete, invalid method "%s" specified.' % lno(MODID)})
+        return render(request, 'csv2/blank_msg.html', {'response_code': 1, 'message': '%s group metadata-delete, invalid method "%s" specified.' % (lno(MODID), request.method)})
 
 #-------------------------------------------------------------------------------
 
