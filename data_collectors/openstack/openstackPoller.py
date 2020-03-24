@@ -505,9 +505,13 @@ def image_poller():
                         cloud_row = db_session.query(CLOUD).filter(CLOUD.group_name == grp_nm, CLOUD.cloud_name == cld_nm)[0]
                         logging.debug("pre request time:%s   post request time:%s" % (post_req_time, pre_req_time))
                         cloud_row.communication_rt = int(post_req_time - pre_req_time)
-                        db_session.merge(cloud_row)
-                        db_session.commit()
-                        config.reset_cloud_error(grp_nm, cld_nm)
+                        try:
+                            db_session.merge(cloud_row)
+                            db_session.commit()
+                            config.reset_cloud_error(grp_nm, cld_nm)
+                        except Exception as exc:
+                            logging.warning("Failed merge and commit cloud row:")
+                            logging.warning(exc)
 
                     uncommitted_updates = 0
                     try:
