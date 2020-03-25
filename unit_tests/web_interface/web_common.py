@@ -1,16 +1,15 @@
 from cloudscheduler.unit_tests.unit_test_common import generate_secret, load_settings
 import os.path
-import re
-import subprocess
-import sys
-import yaml
 
 CREDENTIALS_PATH = os.path.expanduser('~/cloudscheduler/unit_tests/credentials.yaml')
 YAML_METADATA_FILE = '../ut.yaml'
 NON_YAML_METADATA_FILE = '../notyamlfile.txt'
+EXPECTED_NAV_LINKS = [('/cloud/status/', 'Status'), ('/cloud/list/', 'Clouds'), ('/alias/list/', 'Aliases'), ('/group/defaults/', 'Defaults'), ('/images/', 'Images'), ('/keypairs/', 'Keys'), ('/user/list/', 'Users'), ('/group/list/', 'Groups'), ('/server/config/', 'Config'), ('/user/settings/', 'User Settings'), ('/settings/log-out', 'Log out')]
 
 def setup():
     '''Load global settings and create test objects.'''
+    import subprocess
+
     gvar = load_settings(web=True)
 
     if gvar['web']['setup_required']:
@@ -87,7 +86,7 @@ def setup():
         for command in setup_commands:
             try:
                 process = subprocess.run(['cloudscheduler', *command, '-s', 'unit-test'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True, encoding='utf-8', errors='ignore')
-                print(f'DEBUG: {format_command(command)}')
+                print('-', end='')
             except subprocess.CalledProcessError as err:
                 raise Exception('Error setting up tests.\ncmd={}\nstderr={}\nstdout={}'.format(format_command(err.cmd), err.stderr, err.stdout))
 
@@ -96,13 +95,15 @@ def setup():
 
 def cleanup(gvar):
     '''Delete all the test objects created by setup().'''
+    import subprocess
+
     cleanup_commands = [['group', 'delete', '-gn', '{}-wig{}'.format(gvar['user'], i), '-Y'] for i in range(1, 5)]
     cleanup_commands.extend([['user', 'delete', '-un', '{}-wiu{}'.format(gvar['user'], j), '-Y'] for j in range(1, 6)])
 
     print('Removing test objects.')
     for command in cleanup_commands:
         process = subprocess.run(['cloudscheduler', *command, '-s', 'unit-test'], stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, encoding='utf-8', errors='ignore')
-        print(f'DEBUG: {format_command(command)}')
+        print('-', end='')
         # We want to know if the server returns an unexpected HTTP status code, but not if it failed just because the object did not exist.
         if process.returncode > 1:
             raise Exception('Error cleaning up tests.\ncmd={}\nstderr={}\nstdout={}'.format(format_command(command), process.stderr, process.stdout))
@@ -110,6 +111,8 @@ def cleanup(gvar):
     set_setup_required(True)
 
 def set_setup_required(set_to=True):
+    import yaml
+
     try:
         with open(CREDENTIALS_PATH) as credentials_file:
             settings = yaml.safe_load(credentials_file)
@@ -127,4 +130,14 @@ def set_setup_required(set_to=True):
 
 def format_command(command):
     '''Format a list of parameters so that when the formatted string is printed it can be copy-pasted to re-run the command.'''
+    import re
+
     return ' '.join((word if re.fullmatch(r'[\w\-\.]+', word) else '\'{}\''.format(word) for word in command))
+
+def test_nav(self):
+    '''Factor out testing the top navigation.'''
+    import re
+
+    top_nav = self.driver.find_element_by_class_name('top-nav')
+    nav_links = [(re.match(self.settings['address'] + r'([^?]+)', elem.get_attribute('href'))[1], elem.get_attribute('innerHTML')) for elem in top_nav.find_elements_by_tag_name('a')]
+    self.assertEqual(nav_links, EXPECTED_NAV_LINKS)
