@@ -5,7 +5,7 @@ from selenium.webdriver.support import expected_conditions, ui
 import unittest
 import re
 from time import sleep
-import web_common
+import web_common as wc
 
 EXPECTED_JOB_HEADERS = ['Group', 'Jobs', 'Idle', 'Running', 'Completed', 'Held', 'Other', '&nbsp;', 'Foreign', '&nbsp;', 'Condor FQDN', 'Condor Status', 'Agent Status', 'Condor Cert', 'Worker Cert']
 EXPECTED_VM_HEADERS = ['Group', 'Clouds', 'RT (μs)', '&nbsp;', 'VMs', 'Starting', 'Unreg.', 'Idle', 'Running', 'Retiring', 'Manual', 'Error', '&nbsp;', 'Slots', 'Slot Cores', 'Busy', 'Idle', '&nbsp;', 'Native Cores', 'Used', 'Limit', 'RAM']
@@ -15,12 +15,11 @@ EXPECTED_SYSTEM_LABELS = ['status', 'main', 'database', 'rabbitmq', 'openstack',
 class TestStatus(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.maxDiff = None
-        cls.settings = web_common.setup()
-        cls.driver = webdriver.Firefox(webdriver.FirefoxProfile(cls.settings['web']['firefox_profile']))
+        cls.gvar = wc.setup()
+        cls.driver = webdriver.Firefox(webdriver.FirefoxProfile(cls.gvar['web']['firefox_profile']))
         try:
             wait = ui.WebDriverWait(cls.driver, 20)
-            cls.driver.get('{}/cloud/status'.format(cls.settings['address']))
+            cls.driver.get('{}/cloud/status'.format(cls.gvar['address']))
             wait.until(expected_conditions.alert_is_present()).accept()
             # The internet says that driver.get() should automatically wait for the page to be loaded, but it does not seem to.
             wait.until(expected_conditions.presence_of_element_located((By.CLASS_NAME, 'status-table')))
@@ -28,7 +27,7 @@ class TestStatus(unittest.TestCase):
             cls.driver.quit()
 
     def test_nav(self):
-        web_common.test_nav(self)
+        wc.test_nav(self)
 
     def test_status_tables(self):
         status_tables = self.driver.find_elements_by_class_name('status-table')
@@ -37,7 +36,7 @@ class TestStatus(unittest.TestCase):
         job_headers = [header.get_attribute('innerHTML') for header in job_table.find_elements_by_tag_name('th')]
         self.assertEqual(job_headers, EXPECTED_JOB_HEADERS)
         vm_headers = []
-        # Some headers have tables within them to position parent headers over children headers.
+        # Some headers have tables within them to position parent headers over children headers. We want the headers inside these subtables, but not the tables themselves.
         for header in vm_table.find_elements_by_tag_name('th'):
             try:
                 header.find_element_by_tag_name('table')
@@ -46,10 +45,7 @@ class TestStatus(unittest.TestCase):
         self.assertEqual(vm_headers, EXPECTED_VM_HEADERS)
 
     def test_system_table(self):
-        try:
-            system_table = self.driver.find_element_by_id('system-services')
-        except NoSuchElementException:
-            self.fail('Table with ID \'system-services\' is missing.')
+        system_table = wc.assert_exactly_one(self.driver, By.ID, 'system-services', self.fail)
         system_headers = [header.get_attribute('innerHTML') for header in system_table.find_elements_by_tag_name('th')]
         self.assertEqual(system_headers, EXPECTED_SYSTEM_HEADERS)
         system_rows = system_table.find_elements_by_tag_name('tr')
