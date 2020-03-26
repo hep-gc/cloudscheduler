@@ -498,6 +498,7 @@ def image_poller():
                         logging.info("No images defined for %s, skipping this cloud..." %  cloud_name)
                         continue
 
+                    uncommitted_updates = 0
                     for cloud_tuple in unique_cloud_dict[cloud]['groups']:
                         grp_nm = cloud_tuple[0]
                         cld_nm = cloud_tuple[1]
@@ -507,13 +508,13 @@ def image_poller():
                         cloud_row.communication_rt = int(post_req_time - pre_req_time)
                         try:
                             db_session.merge(cloud_row)
-                            db_session.commit()
+                            uncommitted_updates += 1
                             config.reset_cloud_error(grp_nm, cld_nm)
                         except Exception as exc:
-                            logging.warning("Failed merge and commit cloud row:")
+                            logging.warning("Failed merge and commit an update for communication_rt on cloud row : %s" % cloud_row)
                             logging.warning(exc)
+                            db_session.rollback()
 
-                    uncommitted_updates = 0
                     try:
                       for image in image_list:
                           if image.size == "":
@@ -583,6 +584,7 @@ def image_poller():
                     config.db_session.rollback()
                     time.sleep(config.categories["openstackPoller.py"]["sleep_interval_image"])
                     continue
+                db_session.commit()
                 # Expand failure dict for deletion schema (key needs to be grp+cloud)
                 cloud_list = db_session.query(CLOUD).filter(CLOUD.cloud_type == "openstack")
                 new_f_dict = {}

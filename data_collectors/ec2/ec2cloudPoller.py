@@ -1138,9 +1138,14 @@ def limit_poller():
                         logging.debug("pre request time:%s   post request time:%s" % (post_req_time, pre_req_time))
                         cloud_row.communication_rt = int(post_req_time - pre_req_time)
                         cloud_row.communication_up = 1
-                        db_session.merge(cloud_row)
-                        db_session.commit()
-                        config.reset_cloud_error(grp_nm, cld_nm)
+                        try:
+                            db_session.merge(cloud_row)
+                            uncommitted_updates += 1
+                            config.reset_cloud_error(grp_nm, cld_nm)
+                        except Exception as exc:
+                            logging.warning("Failed to update communication_rt for cloud_row: %s" % cloud_row)
+                            logging.warning(exc)
+                            db_session.rollback()
 
                     if shared_limits_dict is False:
                         logging.info("No limits defined for %s, skipping this cloud..." % cloud_name)
