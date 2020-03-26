@@ -371,14 +371,16 @@ def check_view_idle_vms():
         time.sleep(config.categories['csmain']['sleep_interval_main_long'])
 
 
+def _exit(signal_num, frame):
+    logging.info("Got signal: %s, exiting.." % signal_num)
+    exit(0)
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-def process_group_cloud_terminates(pair):
-    group_name = pair.group_name
-    cloud_name = pair.cloud_name
+def process_group_cloud_terminates(pair, config):
+    group_name = pair["group_name"]
+    cloud_name = pair["cloud_name"]
 
-    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', [os.path.basename(sys.argv[0]),  "ProcessMonitor", "condor_poller.py"], pool_size=3, signals=True)
-    config.db_open()
+    #config.db_open()
 
     VM = config.db_map.classes.csv2_vms
     CLOUD = config.db_map.classes.csv2_clouds
@@ -388,19 +390,20 @@ def process_group_cloud_terminates(pair):
     master_type = htcondor.AdTypes.Master
     startd_type = htcondor.AdTypes.Startd
 
-    pid = os.getpid()
-    sql = 'update csv2_clouds set subprocess_id_terminate=%s where group_name="%s" and cloud_name="%s";' % (pid, group_name, cloud_name)
-    config.db_connection.execute(sql)
+    #Child pid not longer required? clean this up eventually
+   # pid = os.getpid()
+   # sql = 'update csv2_clouds set subprocess_id_terminate=%s where group_name="%s" and cloud_name="%s";' % (pid, group_name, cloud_name)
+   # config.db_connection.execute(sql)
 
-    logging.info("Processing commands for group:%s, cloud:%s" % (group_name, cloud_name))
+    logging.debug("Processing commands for group:%s, cloud:%s" % (group_name, cloud_name))
 
     # Terminate code:
     master_list = []
     startd_list = []
     redundant_machine_list = config.db_session.query(view_condor_host).filter(view_condor_host.c.cloud_name==cloud_name, view_condor_host.c.group_name==group_name, view_condor_host.c.terminate >= 1)
-    logging.info("Actionable VMS:")
+    logging.debug("Actionable VMS:")
     for resource in redundant_machine_list:
-        logging.info(resource)
+        logging.debug(resource)
         if resource[6] is not None:
             if resource[5] is not None:
                 if resource.terminate == 1 and resource[6] >= 1 and resource[5] >=1:
@@ -560,10 +563,10 @@ def process_group_cloud_terminates(pair):
         sql = "update csv2_clouds set subprocess_id_terminate=%s where group_name='%s' and cloud_name='%s';" % (-1, group_name, cloud_name)
         return
 
-    logging.info("Commands complete, closing subprocess")
-    sql = "update csv2_clouds set subprocess_id_terminate=%s where group_name='%s' and cloud_name='%s';" % (-1, group_name, cloud_name)
-    config.db_connection.execute(sql) 
-    config.db_close()
+    logging.debug("Commands complete")
+   # sql = "update csv2_clouds set subprocess_id_terminate=%s where group_name='%s' and cloud_name='%s';" % (-1, group_name, cloud_name)
+   # config.db_connection.execute(sql) 
+   # config.db_close()
     return
 
 
@@ -954,11 +957,16 @@ def main():
         time.sleep(config.categories['csmain']['sleep_interval_main_long'])
 
 
-def vm_termination():
-    multiprocessing.current_process().name = "VM Termination"
+def vm_termination(args_list):
+    target_group = args_list[0]
+    target_cloud = args_list[1]
+    multiprocessing.current_process().name = "VM Termination - %s - %s" % (target_group, target_cloud)
+
+    #over-ride signal handler defined in main
+    signal.signal(signal.SIGTERM, _exit)
 
     # database setup
-    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', ['condor_poller.py',  "ProcessMonitor"], pool_size=3, signals=True)
+    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', ['csmain', 'condor_poller.py',  "ProcessMonitor"], pool_size=3, signals=True)
     PID_FILE = config.categories["ProcessMonitor"]["pid_path"] + os.path.basename(sys.argv[0])
 
     Resource = config.db_map.classes.condor_machines
@@ -984,9 +992,9 @@ def vm_termination():
                 logging.debug("Stop set, exiting...")
                 break
 
-            signal.signal(signal.SIGINT, signal.SIG_IGN)
+#            signal.signal(signal.SIGINT, signal.SIG_IGN)
             new_poll_time, cycle_start_time = start_cycle(new_poll_time, cycle_start_time)
-
+            '''
             db_session = config.db_session
             groups = db_session.query(GROUPS)
             condor_hosts_set = set() # use a set here so we dont re-query same host if multiple groups have same host
@@ -1015,7 +1023,13 @@ def vm_termination():
                         logging.info("No pid active, starting commands")
                         p = Process(target=process_group_cloud_terminates, args=(pair,))
                         p.start()
-                    
+            '''
+       
+            pair = {
+                "group_name": target_group,
+                "cloud_name": target_cloud,
+            }
+            process_group_cloud_terminates(pair, config)
             
             try:
                 config.db_session.commit()
@@ -1024,7 +1038,7 @@ def vm_termination():
                 logging.exception(exc)
 
             
-            signal.signal(signal.SIGINT, config.signals['SIGINT'])
+#            signal.signal(signal.SIGINT, config.signals['SIGINT'])
             if not os.path.exists(PID_FILE):
                 logging.info("Stop set, exiting...")
                 break
@@ -1047,6 +1061,7 @@ if __name__ == '__main__':
         'scheduler': main,
         'idle_vms': check_view_idle_vms,
         'vm_termination': vm_termination,
+        'vm_termination': [vm_termination, 'select distinct group_name,cloud_name from csv2_clouds;'],
     }
 
     procMon = ProcessMonitor(
