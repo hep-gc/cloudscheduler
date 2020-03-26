@@ -289,7 +289,7 @@ def process_group_cloud_commands(pair, condor_host, config):
     #logging.info("Query where clause: %s" % where_clause)
 
     rc, msg, resources_list = config.db_query("view_condor_host", where=where_clause)
-    logging.info("Query returned %s actionable VMs..." % len(resources_list))
+    logging.debug("Query returned %s actionable VMs..." % len(resources_list))
     for resource in resources_list:
         # Since we are querying a view we dont get an automapped object and instead get a 'result' tuple of the following format
         #index=attribute
@@ -1401,7 +1401,7 @@ if __name__ == '__main__':
     process_ids = {
         'job_command':      job_command_poller,
         'job':              job_poller,
-        'machine_command':  [machine_command_poller, 'select distinct group_name,cloud_name from csv2_clouds;'],
+        'machine_command':  [machine_command_poller, 'select distinct cc.group_name, cloud_name from csv2_clouds as cc left outer join csv2_groups as cg on cc.group_name = cg.group_name where htcondor_fqdn = "%s";' % socket.gethostname()],
         'machine':          machine_poller,
         'condor_gsi':       condor_gsi_poller,
         'worker_gsi':       worker_gsi_poller,
