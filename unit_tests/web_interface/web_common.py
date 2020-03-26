@@ -144,46 +144,68 @@ def test_nav(self, privileged=False):
     nav_links = [(re.match(self.gvar['address'] + r'([^?]+)', elem.get_attribute('href'))[1], elem.get_attribute('innerHTML')) for elem in top_nav.find_elements_by_tag_name('a')]
     self.assertEqual(nav_links, expected_nav_links)
 
-def assert_exactly_one(parent, by, identifier, error_reporter, missing_message=None, multiple_message=None):
+def assert_exactly_one(parent, identifier=None, attributes=None, error_reporter=print, missing_message=None, multiple_message=None):
     '''
-    Assert that a parent element contains precisely one child element matching a given identifier, and return this child.
+    Assert that a parent element contains precisely one child element matching the given identifier(s) and attribute(s), and return this child.
     parent (selenium.webdriver.firefox.webdriver.WebDriver, selenium.webdriver.firefox.webelement.FirefoxWebElement, or similar for a different browser): The driver or element expected to contain one element matching the identifier.
-    by (str): Indicates what type of identifier `identifier` is, e.g. 'tag name'. These constants can be found at selenium.webdriver.common.by.By.
-    identifier (str): Identifies the object to expect.
+    identifier (tuple): Specifies an identifier, e.g. 'tag name', and the value that the child must have for this identifier, e.g. 'form'. A list of identifiers can be found at selenium.webdriver.common.by.By.
+    attributes (dict): Maps the names of attributes, e.g. 'type', to the values that the child is expected to have, e.g. 'checkbox'.
     error_reporter (usually unittest.TestCase.fail): Will be called with an error message (str) if the expectation fails.
     missing_message (str): May be given to specify a custom error message used when zero matching elements are found.
     multiple_message (str): May be given to specify a custom error message used when more than one matching element is found.
     '''
 
-    default_message = 'Expected 1 element with {} \'{}\', but found {}'
+    default_message = 'Expected 1 element with identifiers {} and attributes {}, but found {}'
     elements = parent.find_elements(by, identifier)
     count = len(elements)
     if count == 0:
-        test_case.fail(missing_message if missing_message else default_message.format(by, identifier, 0))
+        error_reporter(missing_message if missing_message else default_message.format(identifiers, attributes, 0))
     elif count == 1:
         return elements[0]
     else:
-        test_case.fail(multiple_message if multiple_message else default_message.format(by, identifier, count))
+        error_reporter(multiple_message if multiple_message else default_message.format(identifiers, attributes, count))
 
 def submit_form(form, data, error_reporter):
     '''
     Fill a form with the specified data and submit it.
     form (selenium.webdriver.firefox.webelement.FirefoxWebElement, or similar for a different browser): The form element to fill out.
-    data (dict): Maps the `name` attributes of `<input>` elements in the form to the values that they should have. These values should be bools for checkboxes and radio buttons, and strs for text entries.
-    error_reporter (usually unittest.TestCase.fail): Will be called with an error message if an unexpected input type is encountered.
+    data (dict): Maps the `name` attributes of `<input>` elements in the form to the values that they should have. These values should be bools for checkboxes and radio buttons, and strs for text entries. Any `<input>`s which are not mapped will not be touched.
+    error_reporter (usually unittest.TestCase.fail): Will be called with an error message if an unexpected input type is encountered. Therefore, this function will not continue if `error_reporter` raises an exception.
+    Forms are allowed to be dynamic; i.e. fields are allowed to completely change in response to previous fields being filled out.
     '''
     from selenium.webdriver.common.by import By
+    from time import sleep
+
     for parameter, value in data.items():
-        input_elem = assert_exactly_one(add_form, By.NAME, parameter, 'Input for {} is missing.'.format(parameter))
-        input_type = input_elem.get_attribute('type')
-        if input_type == 'checkbox':
-            if value != input_elem.is_selected():
-                input_elem.click()
-        elif input_type == 'radio':
-            if value == input_elem.get_attribute('value'):
-                input_elem.click()
-        elif input_type == 'text':
-            input_elem.send_keys(value)
+        print(f'DEBUG: Processing {parameter}: {value}')
+        try:
+            entry = form.find_elements_by_name(parameter)[0]
+        except IndexError:
+            error_reporter('Input for \'{}\' is missing.'.format(parameter))
+        entry_tag_name = entry.get_attribute('outerHTML').split(maxsplit=1)[0][1:]
+        if entry_tag_name == 'input':
+            input_type = entry.get_attribute('type')
+            if input_type == 'checkbox':
+                if value != entry.is_selected():
+                    entry.click()
+            # Sometimes two inputs will have the same name and one will be hidden. We want to ignore the hidden one.
+            elif input_type == 'hidden':
+                continue
+            elif input_type == 'radio':
+                if value == entry.get_attribute('value'):
+                    entry.click()
+            elif input_type == 'text' or input_type == 'password':
+                entry.send_keys(value)
+            else:
+                error_reporter('Unrecognized <input> type \'{}\' for parameter \'{}\'.'.format(input_type, parameter))
+        elif entry_tag_name == 'select':
+            try:
+                next(filter(lambda option: option.text == value, entry.find_elements_by_tag_name('option'))).click()
+            except StopIteration:
+                error_reporter('Option \'{}\' not found for parameter \'{}\'.'.format(value, parameter))
         else:
-            failer('Unrecognized input type \'{}\''.format(input_type))
-    next((input_elem for input_elem in form.find_elements_by_tag_name('input') if input_elem.get_attribute('type') == 'submit')).click()
+            error_reporter('Unrecognized tag name <{}> for parameter \'{}\'.'.format(entry_tag_name, parameter))
+    try:
+        next(filter(lambda elem: elem.get_attribute('type') == 'submit', form.find_elements_by_tag_name('input'))).click()
+    except StopIteration:
+        error_reporter('<input> of type \'submit\' not found.')

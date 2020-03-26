@@ -3,7 +3,6 @@ from selenium.common.exceptions import NoSuchElementException, TimeoutException
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions, ui
 import unittest
-import re
 from time import sleep
 import web_common as wc
 
