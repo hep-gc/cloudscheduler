@@ -109,21 +109,23 @@ def cleanup(gvar):
     set_setup_required(True)
 
 def set_setup_required(set_to=True):
+    import os.path
     import yaml
 
+    credentials_path = os.path.expanduser('~/cloudscheduler/unit_tests/credentials.yaml')
     try:
-        with open(CREDENTIALS_PATH) as credentials_file:
+        with open(credentials_path) as credentials_file:
             settings = yaml.safe_load(credentials_file)
     except FileNotFoundError:
         load_settings()
-        with open(CREDENTIALS_PATH) as credentials_file:
+        with open(credentials_path) as credentials_file:
             settings = yaml.safe_load(credentials_file)
     except yaml.YAMLError as err:
         print('YAML encountered an error while parsing {}: {}'.format(credentials_path, err))
     
     settings['web']['setup_required'] = set_to
 
-    with open(CREDENTIALS_PATH, 'w') as credentials_file:
+    with open(credentials_path, 'w') as credentials_file:
         credentials_file.write(yaml.safe_dump(settings))
 
 def format_command(command):
@@ -144,26 +146,31 @@ def test_nav(self, privileged=False):
     nav_links = [(re.match(self.gvar['address'] + r'([^?]+)', elem.get_attribute('href'))[1], elem.get_attribute('innerHTML')) for elem in top_nav.find_elements_by_tag_name('a')]
     self.assertEqual(nav_links, expected_nav_links)
 
-def assert_exactly_one(parent, identifier=None, attributes=None, error_reporter=print, missing_message=None, multiple_message=None):
+def assert_exactly_one(parent, identifier, attributes=None, error_reporter=print, missing_message=None, multiple_message=None):
     '''
     Assert that a parent element contains precisely one child element matching the given identifier(s) and attribute(s), and return this child.
     parent (selenium.webdriver.firefox.webdriver.WebDriver, selenium.webdriver.firefox.webelement.FirefoxWebElement, or similar for a different browser): The driver or element expected to contain one element matching the identifier.
-    identifier (tuple): Specifies an identifier, e.g. 'tag name', and the value that the child must have for this identifier, e.g. 'form'. A list of identifiers can be found at selenium.webdriver.common.by.By.
+    identifier (2-tuple): Specifies an identifier, e.g. 'tag name', and the value that the child must have for this identifier, e.g. 'form'. A list of identifiers can be found at selenium.webdriver.common.by.By.
     attributes (dict): Maps the names of attributes, e.g. 'type', to the values that the child is expected to have, e.g. 'checkbox'.
     error_reporter (usually unittest.TestCase.fail): Will be called with an error message (str) if the expectation fails.
     missing_message (str): May be given to specify a custom error message used when zero matching elements are found.
     multiple_message (str): May be given to specify a custom error message used when more than one matching element is found.
     '''
 
-    default_message = 'Expected 1 element with identifiers {} and attributes {}, but found {}'
-    elements = parent.find_elements(by, identifier)
-    count = len(elements)
-    if count == 0:
-        error_reporter(missing_message if missing_message else default_message.format(identifiers, attributes, 0))
-    elif count == 1:
-        return elements[0]
+    if not attributes:
+        attributes = {}
+    default_message = 'Expected 1 element with identifier {} and attributes {}, but found {}'
+    matching_elems = []
+    for elem in parent.find_elements(*identifier):
+        if all(elem.get_attribute(att_name) == att_value for att_name, att_value in attributes.items()):
+            matching_elems.append(elem)
+
+    if len(matching_elems) == 0:
+        error_reporter(missing_message if missing_message else default_message.format(identifier, attributes, 0))
+    elif len(matching_elems) == 1:
+        return matching_elems[0]
     else:
-        error_reporter(multiple_message if multiple_message else default_message.format(identifiers, attributes, count))
+        error_reporter(multiple_message if multiple_message else default_message.format(identifier, attributes, len(matching_elems)))
 
 def submit_form(form, data, error_reporter):
     '''
@@ -177,7 +184,6 @@ def submit_form(form, data, error_reporter):
     from time import sleep
 
     for parameter, value in data.items():
-        print(f'DEBUG: Processing {parameter}: {value}')
         try:
             entry = form.find_elements_by_name(parameter)[0]
         except IndexError:
