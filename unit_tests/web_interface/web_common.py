@@ -134,18 +134,6 @@ def format_command(command):
 
     return ' '.join((word if re.fullmatch(r'[\w\-\.]+', word) else '\'{}\''.format(word) for word in command))
 
-def test_nav(self, privileged=False):
-    '''Factor out testing the top navigation.'''
-    import re
-
-    expected_nav_links = [('/cloud/status/', 'Status'), ('/cloud/list/', 'Clouds'), ('/alias/list/', 'Aliases'), ('/group/defaults/', 'Defaults'), ('/images/', 'Images'), ('/keypairs/', 'Keys'), ('/user/settings/', 'User Settings'), ('/settings/log-out', 'Log out')]
-    if privileged:
-        # Insert these tuples starting at position 6.
-        expected_nav_links[6:6] = [('/user/list/', 'Users'), ('/group/list/', 'Groups'), ('/server/config/', 'Config')]
-    top_nav = self.driver.find_element_by_class_name('top-nav')
-    nav_links = [(re.match(self.gvar['address'] + r'([^?]+)', elem.get_attribute('href'))[1], elem.get_attribute('innerHTML')) for elem in top_nav.find_elements_by_tag_name('a')]
-    self.assertEqual(nav_links, expected_nav_links)
-
 def assert_exactly_one(parent, identifier, attributes=None, error_reporter=print, missing_message=None, multiple_message=None):
     '''
     Assert that a parent element contains precisely one child element matching the given identifier(s) and attribute(s), and return this child.
@@ -172,46 +160,124 @@ def assert_exactly_one(parent, identifier, attributes=None, error_reporter=print
     else:
         error_reporter(multiple_message if multiple_message else default_message.format(identifier, attributes, len(matching_elems)))
 
-def submit_form(form, data, error_reporter):
+def submit_form(form, parameters, waiter=None, expected_response_regex=None, assert_values_retained=None, error_reporter=print):
     '''
-    Fill a form with the specified data and submit it.
+    Fill a form with the specified parameters and submit it.
     form (selenium.webdriver.firefox.webelement.FirefoxWebElement, or similar for a different browser): The form element to fill out.
-    data (dict): Maps the `name` attributes of `<input>` elements in the form to the values that they should have. These values should be bools for checkboxes and radio buttons, and strs for text entries. Any `<input>`s which are not mapped will not be touched.
-    error_reporter (usually unittest.TestCase.fail): Will be called with an error message if an unexpected input type is encountered. Therefore, this function will not continue if `error_reporter` raises an exception.
+    parameters (dict): Maps the `name` attributes of <input> elements in the form to the values that they should have. These values should be bools for checkboxes and radio buttons, and objects that can be cast to strs for text entries. Any <input>s which are not mapped will not be touched. The value for a <select> tag should be the visible text of an option (not its `value` attribute).
+    waiter (selenium.webdriver.support.ui.WebDriverWait or None): TODO.
+    expected_response_regex (str): TODO.
+    assert_values_retained (bool): If True, assume that after the form is submitted, another form with the same name will appear in the new page. Wait for the old form to become stale, then again to wait for the new form to appear. Assert that all of the parameters given match the values in the new form (except for <input>s with type='password'). Otherwise, return immediately after submitting the form.
+    error_reporter (callable, usually unittest.TestCase.fail): Will be called with an error message if an unexpected input type is encountered. Therefore, this function will not continue with remaining fields if `error_reporter` raises an exception.
     Forms are allowed to be dynamic; i.e. fields are allowed to completely change in response to previous fields being filled out.
     '''
+    from selenium.common.exceptions import NoSuchElementException
     from selenium.webdriver.common.by import By
-    from time import sleep
+    from selenium.webdriver.support import expected_conditions
+    import re
 
-    for parameter, value in data.items():
-        try:
-            entry = form.find_elements_by_name(parameter)[0]
-        except IndexError:
-            error_reporter('Input for \'{}\' is missing.'.format(parameter))
-        entry_tag_name = entry.get_attribute('outerHTML').split(maxsplit=1)[0][1:]
-        if entry_tag_name == 'input':
-            input_type = entry.get_attribute('type')
-            if input_type == 'checkbox':
-                if value != entry.is_selected():
-                    entry.click()
-            # Sometimes two inputs will have the same name and one will be hidden. We want to ignore the hidden one.
-            elif input_type == 'hidden':
-                continue
-            elif input_type == 'radio':
-                if value == entry.get_attribute('value'):
-                    entry.click()
-            elif input_type == 'text' or input_type == 'password':
-                entry.send_keys(value)
-            else:
-                error_reporter('Unrecognized <input> type \'{}\' for parameter \'{}\'.'.format(input_type, parameter))
-        elif entry_tag_name == 'select':
-            try:
-                next(filter(lambda option: option.text == value, entry.find_elements_by_tag_name('option'))).click()
-            except StopIteration:
-                error_reporter('Option \'{}\' not found for parameter \'{}\'.'.format(value, parameter))
+    for parameter, value in parameters.items():
+        entries = form.find_elements_by_name(parameter)
+        if entries:
+            for entry in entries:
+                entry_tag_name = get_tag_name(entry)
+                if entry_tag_name == 'input':
+                    input_type = entry.get_attribute('type')
+                    if input_type == 'checkbox':
+                        if value != entry.is_selected():
+                            entry.click()
+                    # Sometimes two inputs will have the same name and one will be hidden. We want to ignore the hidden one.
+                    elif input_type == 'hidden':
+                        continue
+                    elif input_type == 'radio':
+                        if value == entry.get_attribute('value'):
+                            entry.click()
+                    elif input_type in ['number', 'password', 'text']:
+                        entry.clear()
+                        entry.send_keys(str(value))
+                    else:
+                        error_reporter('Unrecognized <input> type \'{}\' for parameter \'{}\'.'.format(input_type, parameter))
+                elif entry_tag_name == 'select':
+                    assert_exactly_one(entry, (By.TAG_NAME, 'option'), {'text': value}, error_reporter, missing_message='Option \'{}\' not found for parameter \'{}\'.'.format(value, parameter)).click()
+                else:
+                    error_reporter('Unrecognized tag name <{}> for parameter \'{}\'.'.format(entry_tag_name, parameter))
+        # No entries were found.
         else:
-            error_reporter('Unrecognized tag name <{}> for parameter \'{}\'.'.format(entry_tag_name, parameter))
-    try:
-        next(filter(lambda elem: elem.get_attribute('type') == 'submit', form.find_elements_by_tag_name('input'))).click()
-    except StopIteration:
-        error_reporter('<input> of type \'submit\' not found.')
+            error_reporter('Input for \'{}\' is missing.'.format(parameter))
+
+    form_name = form.get_attribute('name')
+    assert_exactly_one(form, (By.TAG_NAME, 'input'), {'type': 'submit'}, error_reporter, missing_message='<input> with type=\'submit\' not found.').click()
+
+    if expected_response_regex:
+        waiter.until(expected_conditions.staleness_of(form))
+        actual_response = assert_exactly_one(driver, (By.ID, 'message'), None, error_reporter).text
+        if not re.search(expected_response_regex, actual_response):
+            error_reporter('Expected a response matching \'{}\', but received \'{}\'.'.format(expected_response_regex, actual_response))
+
+    if assert_values_retained:
+        waiter.until(expected_conditions.staleness_of(form))
+        new_form = waiter.until(expected_conditions.presence_of_element_located((By.XPATH, './/form[@name="{}"]'.format(form_name))))
+        for parameter, expected_value in parameters.items():
+            try:
+                entry = new_form.find_element_by_name(parameter)
+            except NoSuchElementException:
+                error_reporter('Input for \'{}\' is missing.'.format(parameter))
+            entry_tag_name = get_tag_name(entry)
+            if entry_tag_name == 'input':
+                entry_type = entry.get_attribute('type')
+                if entry_type == 'checkbox':
+                    actual_value = entry.is_selected() 
+                elif entry_type == 'hidden' or entry_type == 'password':
+                    continue
+                elif entry_type == 'number' or entry_type == 'text':
+                    actual_value = entry.get_attribute('value') 
+                else:
+                    error_reporter('Unrecognized <input> type \'{}\' for parameter \'{}\'.'.format(input_type, parameter))
+            elif entry_tag_name == 'select':
+                actual_value = next(filter(lambda option: option.is_selected(), entry.find_elements_by_tag_name('option'))).get_attribute('text')
+            else:
+                error_reporter('Unrecognized tag name <{}> for parameter \'{}\'.'.format(entry_tag_name, parameter))
+            if isinstance(expected_value, (int, float)):
+                try:
+                    actual_value = float(actual_value)
+                except ValueError:
+                    error_reporter('Expected the number {} for the parameter \'{}\', but found \'{}\', which is not parsable as a number.'.format(expected_value, parameter, actual_value))
+            # The values here may be strs, floats, a float and an int, or bools.
+            if actual_value != expected_value:
+                error_reporter('Expected {} for the parameter \'{}\', but found {}.'.format(expected_value, parameter, actual_value))
+
+def parameters_submissions(form, parameters, error_reporter):
+    '''Similar in concept to unit_test_common.parameters_requests and parameters_commands.'''
+    
+    mandatory_params = {name: details['valid'] for name, details in parameters.items() if details.get('mandatory')}
+
+    for p_name, p_details in parameters.items():
+        if p_details.get('mandatory'):
+            # Temporarily remove.
+            del mandatory_params[p_name]
+            submit_form(form, 
+        # Give the parameter with invalid values.
+        for value, message in p_details['test_cases'].items():
+            execute_csv2_request(
+                gvar, 1, None, message,
+                request, group=group, form_data={p_name: value, **mandatory_params}, server_user=server_user
+            )
+        # Add the parameter back in if it was mandatory.
+        if p_details.get('mandatory'):
+            mandatory_params[p_name] = p_details['valid']
+
+def get_tag_name(element):
+    return element.get_attribute('outerHTML').split(maxsplit=1)[0][1:]
+
+def test_nav(self, privileged=False):
+    '''Factor out testing the top navigation.'''
+    import re
+
+    expected_nav_links = [('/cloud/status/', 'Status'), ('/cloud/list/', 'Clouds'), ('/alias/list/', 'Aliases'), ('/group/defaults/', 'Defaults'), ('/images/', 'Images'), ('/keypairs/', 'Keys'), ('/user/settings/', 'User Settings'), ('/settings/log-out', 'Log out')]
+    if privileged:
+        # Insert these tuples starting at position 6.
+        expected_nav_links[6:6] = [('/user/list/', 'Users'), ('/group/list/', 'Groups'), ('/server/config/', 'Config')]
+    top_nav = self.driver.find_element_by_class_name('top-nav')
+    nav_links = [(re.match(self.gvar['address'] + r'([^?]+)', elem.get_attribute('href'))[1], elem.get_attribute('innerHTML')) for elem in top_nav.find_elements_by_tag_name('a')]
+    self.assertEqual(nav_links, expected_nav_links)
+
