@@ -235,30 +235,6 @@ def zip_base64(path):
 
     return None
 
-def check_pair_pid(pair, config, cloud_table):
-    #cloud = config.db_session.query(cloud_table).get((pair.group_name, pair.cloud_name))
-    where_clause = "group_name='%s' and cloud_name='%s'" % (pair["group_name"], pair["cloud_name"])
-
-    #returns list of dictionaries? this query should always have zero or 1 result
-    try:
-        rc, msg, clouds = config.db_query(cloud_table, where=where_clause)
-        cloud = clouds[0]
-    except Exception as ex:
-        logging.error("Failed to retrieve cloud row for: %s" % pair)
-        return False
-    pid = cloud["subprocess_id_retire"]
-    if pid is None or pid == -1:
-        # No subprocess ever started
-        return False
-    # Sending signal 0 to a pid will raise an OSError exception if the pid is not running, and do nothing otherwise
-    try:
-        os.kill(pid, 0)
-    except OSError:
-        return False
-    else:
-        return True
-
-
 
 def process_group_cloud_commands(pair, condor_host, config):
     group_name = pair["group_name"]
@@ -274,9 +250,6 @@ def process_group_cloud_commands(pair, condor_host, config):
     master_type = htcondor.AdTypes.Master
     startd_type = htcondor.AdTypes.Startd
 
-#    pid = os.getpid()
-#    sql = 'update csv2_clouds set subprocess_id_retire=%s where group_name="%s" and cloud_name="%s";' % (pid, group_name, cloud_name)
-#    config.db_execute(sql)
 
     #logging.info("Processing commands for group:%s, cloud:%s" % (group_name, cloud_name))
     logging.debug("Processing commands for group:%s, cloud:%s" % (group_name, cloud_name))
@@ -394,12 +367,9 @@ def process_group_cloud_commands(pair, condor_host, config):
         logging.exception("Failed to commit retire machine, aborting cycle...")
         logging.error(exc)
         config.db_rollback()
-        sql = "update csv2_clouds set subprocess_id_retire=%s where group_name='%s' and cloud_name='%s';" % (-1, group_name, cloud_name)
         return
 
     logging.debug("Commands complete...")
-    sql = "update csv2_clouds set subprocess_id_retire=%s where group_name='%s' and cloud_name='%s';" % (-1, group_name, cloud_name)
-    config.db_execute(sql) 
     return
 
 
@@ -1193,37 +1163,6 @@ def machine_command_poller(arg_list):
             new_poll_time, cycle_start_time = start_cycle(new_poll_time, cycle_start_time)
             local_condor = socket.gethostname()
             
-            '''
-            where_clause = "htcondor_host_id='%s'" % config.local_host_id
-            rc, msg, groups = config.db_query(GROUPS, where=where_clause)
-            condor_hosts_set = set() # use a set here so we dont re-query same host if multiple groups have same host
-            for group in groups:
-                if group.get("htcondor_container_hostname") is not None and group["htcondor_container_hostname"] != "":
-                    condor_hosts_set.add(group["htcondor_container_hostname"])
-                else:
-                    condor_hosts_set.add(group["htcondor_fqdn"])
-
-            uncommitted_updates = 0
-            logging.debug(condor_hosts_set)
-            
-            for condor_host in condor_hosts_set:
-
-                # Get unique group,cloud pairs
-                rc, msg, grp_cld_pairs = config.db_query('view_condor_host', select=["group_name", "cloud_name"], distinct=True)
-
-                for pair in grp_cld_pairs:
-                    # First check pid of cloud entry
-                    logging.info("Checking child pid for pair: %s, %s" % (pair["group_name"], pair["cloud_name"]))
-                    pid_active = check_pair_pid(pair, config, CLOUD)
-                    if pid_active:
-                        logging.info("Child pid still active...")
-                    if not pid_active:
-                        #subprocess this eventually
-                        logging.info("No pid active, starting commands")
-                        #process_group_cloud_commands(pair, condor_host)
-                        p = Process(target=process_group_cloud_commands, args=(pair, condor_host))
-                        p.start()
-            '''     
             process_group_cloud_commands(pair, local_condor, config)
             
             signal.signal(signal.SIGINT, config.signals['SIGINT'])
@@ -1407,9 +1346,10 @@ if __name__ == '__main__':
         'worker_gsi':       worker_gsi_poller,
     }
 
-    db_category_list = ["condor_poller.py", "ProcessMonitor", "general", "signal_manager"]
+    db_category_list = ["condor_poller.py", "condor_poller_na.py", "ProcessMonitor", "general", "signal_manager"]
 
-    procMon = ProcessMonitor(config_params=db_category_list, pool_size=3, process_ids=process_ids, config_file=sys.argv[1], log_file="/var/log/cloudscheduler/condor_poller.log", log_level=20)
+    #procMon = ProcessMonitor(config_params=db_category_list, pool_size=3, process_ids=process_ids, config_file=sys.argv[1], log_file="/var/log/cloudscheduler/condor_poller.log", log_level=20)
+    procMon = ProcessMonitor(config_params=db_category_list, pool_size=3, process_ids=process_ids, config_file=sys.argv[1])
     config = procMon.get_config()
     logging = procMon.get_logging()
     version = config.get_version()

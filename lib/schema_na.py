@@ -447,10 +447,7 @@ schema = {
             "vm_network": {"type": "str", "len": "64", "nulls": "NO"},
             "vm_security_groups": {"type": "str", "len": "128", "nulls": "YES"},
             "error_count": {"type": "int"},
-            "error_time": {"type": "int"},
-            "subprocess_id_retire": {"type": "int"},
-            "subprocess_id_terminate": {"type": "int"},
-            "subprocess_id_start": {"type": "int"}
+            "error_time": {"type": "int"}
             }
         },
     "csv2_configuration": {
