@@ -35,7 +35,7 @@ signals:
 # If you would like to place them in a different location update the variables below to point
 # to the preferred location and make sure that they are both readable by the cndor user. At
 # any time, but specifically if you modify this configuration, you may restart the condor
-# poller service (named "csv2-condor") with either the "systemctl" or "service" commands.
+# poller service (named "csv2-condor-poller") with either the "systemctl" or "service" commands.
 condor_poller:
     condor_worker_cert: /var/lib/condor/.globus/condor_worker_cert.pem
     condor_worker_key: /var/lib/condor/.globus/condor_worker_key.pem
