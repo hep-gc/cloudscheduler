@@ -8,7 +8,7 @@ def setup():
     metadata_path = '../notyamlfile.txt'
     gvar = load_settings(web=True)
 
-    if gvar['web']['setup_required']:
+    if gvar['setup_required']:
         cleanup(gvar)
 
         server_credentials = ['-su', '{}-wiu1'.format(gvar['user']), '-spw', gvar['user_secret']]
@@ -78,10 +78,10 @@ def setup():
             ['metadata', 'load', *server_credentials, '-mn', '{}-wigm3'.format(gvar['user']), '-f', metadata_path]
         ]
 
-        print('Creating test objects. Run cleanup.py later to remove them.', end='')
+        print('Creating test objects. Run cleanup.py later to remove them.')
         for command in setup_commands:
             try:
-                process = subprocess.run(['cloudscheduler', *command, '-s', 'unit-test'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True, encoding='utf-8', errors='ignore')
+                process = subprocess.run(['cloudscheduler', *command, '-s', 'unit-test'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True)
                 print('.', end='', flush=True)
             except subprocess.CalledProcessError as err:
                 raise Exception('Error setting up tests.\ncmd={}\nstderr={}\nstdout={}'.format(format_command(err.cmd), err.stderr, err.stdout))
@@ -97,9 +97,9 @@ def cleanup(gvar):
     cleanup_commands = [['group', 'delete', '-gn', '{}-wig{}'.format(gvar['user'], i), '-Y'] for i in range(1, 5)]
     cleanup_commands.extend([['user', 'delete', '-un', '{}-wiu{}'.format(gvar['user'], j), '-Y'] for j in range(1, 6)])
 
-    print('Removing test objects.', end='')
+    print('Removing test objects.')
     for command in cleanup_commands:
-        process = subprocess.run(['cloudscheduler', *command, '-s', 'unit-test'], stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, encoding='utf-8', errors='ignore')
+        process = subprocess.run(['cloudscheduler', *command, '-s', 'unit-test'], stdout=subprocess.PIPE, stderr=subprocess.DEVNULL)
         print('.', end='', flush=True)
         # We want to know if the server returns an unexpected HTTP status code, but not if it failed just because the object did not exist.
         if process.returncode > 1:
@@ -123,7 +123,7 @@ def set_setup_required(set_to=True):
     except yaml.YAMLError as err:
         print('YAML encountered an error while parsing {}: {}'.format(credentials_path, err))
     
-    settings['web']['setup_required'] = set_to
+    settings['setup_required'] = set_to
 
     with open(credentials_path, 'w') as credentials_file:
         credentials_file.write(yaml.safe_dump(settings))
@@ -160,23 +160,25 @@ def assert_exactly_one(parent, identifier, attributes=None, error_reporter=print
     else:
         error_reporter(multiple_message if multiple_message else default_message.format(identifier, attributes, len(matching_elems)))
 
-def submit_form(form, parameters, waiter=None, expected_response_regex=None, assert_values_retained=None, error_reporter=print):
+def submit_form(driver, form_xpath, data, error_reporter=print, max_wait=30, expected_response=None, assert_values_retained=False):
     '''
-    Fill a form with the specified parameters and submit it.
-    form (selenium.webdriver.firefox.webelement.FirefoxWebElement, or similar for a different browser): The form element to fill out.
-    parameters (dict): Maps the `name` attributes of <input> elements in the form to the values that they should have. These values should be bools for checkboxes and radio buttons, and objects that can be cast to strs for text entries. Any <input>s which are not mapped will not be touched. The value for a <select> tag should be the visible text of an option (not its `value` attribute).
-    waiter (selenium.webdriver.support.ui.WebDriverWait or None): TODO.
-    expected_response_regex (str): TODO.
-    assert_values_retained (bool): If True, assume that after the form is submitted, another form with the same name will appear in the new page. Wait for the old form to become stale, then again to wait for the new form to appear. Assert that all of the parameters given match the values in the new form (except for <input>s with type='password'). Otherwise, return immediately after submitting the form.
+    Fill a form with the specified data and submit it.
+    driver (selenium.webdriver.firefox.webdriver.WebDriver or similar for a different browser): The driver that contains the form.
+    form_xpath (str): An absolute XPath that uniquely identifies the form element to fill out.
+    data (dict): Maps the `name` attributes of <input> and <select> elements in the form to the values that they should have. These values should be bools for checkboxes and radio buttons, objects that can be cast to strs for text entries, and the visible text of an option (not its `value` attribute) as a str for <select> tags. Any <input>s which are not mapped will not be touched.
     error_reporter (callable, usually unittest.TestCase.fail): Will be called with an error message if an unexpected input type is encountered. Therefore, this function will not continue with remaining fields if `error_reporter` raises an exception.
+    max_wait (number): The maximum number of seconds to wait for the form to become stale after submitting it if `expected_response` or `assert_values_retained` are specified, and in the latter case to wait for another form with the same name to appear.
+    expected_response (str): If given, assume submitting the form will generate a response containing an element with id='message', and assert that `expected_response` is in its content.
+    assert_values_retained (bool): If True, assume that after the form is submitted, a new page will be served containing a form with the same name. After waiting for the old form to become stale, wait for the new form to appear. Assert that all of the data given match the values in the new form (except for <input>s with type='password', which are ignored).
     Forms are allowed to be dynamic; i.e. fields are allowed to completely change in response to previous fields being filled out.
     '''
     from selenium.common.exceptions import NoSuchElementException
     from selenium.webdriver.common.by import By
-    from selenium.webdriver.support import expected_conditions
+    from selenium.webdriver.support import expected_conditions, ui
     import re
 
-    for parameter, value in parameters.items():
+    form = assert_exactly_one(driver, (By.XPATH, form_xpath), None, error_reporter)
+    for parameter, value in data.items():
         entries = form.find_elements_by_name(parameter)
         if entries:
             for entry in entries:
@@ -205,19 +207,20 @@ def submit_form(form, parameters, waiter=None, expected_response_regex=None, ass
         else:
             error_reporter('Input for \'{}\' is missing.'.format(parameter))
 
-    form_name = form.get_attribute('name')
+    old_form_open_tag = get_open_tag(form)
+    # Submit the form.
     assert_exactly_one(form, (By.TAG_NAME, 'input'), {'type': 'submit'}, error_reporter, missing_message='<input> with type=\'submit\' not found.').click()
 
-    if expected_response_regex:
-        waiter.until(expected_conditions.staleness_of(form))
-        actual_response = assert_exactly_one(driver, (By.ID, 'message'), None, error_reporter).text
-        if not re.search(expected_response_regex, actual_response):
-            error_reporter('Expected a response matching \'{}\', but received \'{}\'.'.format(expected_response_regex, actual_response))
+    wait = ui.WebDriverWait(driver, max_wait)
+    wait.until(expected_conditions.staleness_of(form))
+    if expected_response:
+        actual_response = wait.until(expected_conditions.presence_of_element_located((By.ID, 'message'))).text
+        if expected_response not in actual_response:
+            error_reporter('Expected a response containing \'{}\', but received \'{}\'.'.format(expected_response, actual_response))
 
     if assert_values_retained:
-        waiter.until(expected_conditions.staleness_of(form))
-        new_form = waiter.until(expected_conditions.presence_of_element_located((By.XPATH, './/form[@name="{}"]'.format(form_name))))
-        for parameter, expected_value in parameters.items():
+        new_form = wait.until(expected_conditions.presence_of_element_located((By.XPATH, form_xpath)))
+        for parameter, expected_value in data.items():
             try:
                 entry = new_form.find_element_by_name(parameter)
             except NoSuchElementException:
@@ -246,28 +249,33 @@ def submit_form(form, parameters, waiter=None, expected_response_regex=None, ass
             if actual_value != expected_value:
                 error_reporter('Expected {} for the parameter \'{}\', but found {}.'.format(expected_value, parameter, actual_value))
 
-def parameters_submissions(form, parameters, error_reporter):
-    '''Similar in concept to unit_test_common.parameters_requests and parameters_commands.'''
+def parameters_submissions(driver, form_xpath, parameters, error_reporter, max_wait, clicked_before_submitting=None):
+    '''
+    Submit forms with parameter combinations that are expected to fail.
+    driver (selenium.webdriver.firefox.webdriver.WebDriver or similar for a different browser): The driver that contains the form to submit.
+    form_xpath (str): An absolute XPath that uniquely identifies the form element to fill out.
+    parameters (dict): TODO
+    error_reporter (callable, usually unittest.TestCase.fail): Will be called with an error message if an unexpected input type is encountered. Therefore, this function will not continue with remaining fields if `error_reporter` raises an exception.
+    max_wait (float): The maximum number of seconds to wait for the form to become stale after submitting it if `expected_response` or `assert_values_retained` are specified, and in the latter case to wait for another form with the same name to appear.
+    clicked_before_submitting (str): The absolute XPath of an element. If given, this element will be clicked before every form submission. This is usually used to cause the form to become visible again.
+    '''
     
     mandatory_params = {name: details['valid'] for name, details in parameters.items() if details.get('mandatory')}
-
     for p_name, p_details in parameters.items():
-        if p_details.get('mandatory'):
-            # Temporarily remove.
-            del mandatory_params[p_name]
-            submit_form(form, 
         # Give the parameter with invalid values.
         for value, message in p_details['test_cases'].items():
-            execute_csv2_request(
-                gvar, 1, None, message,
-                request, group=group, form_data={p_name: value, **mandatory_params}, server_user=server_user
-            )
-        # Add the parameter back in if it was mandatory.
-        if p_details.get('mandatory'):
-            mandatory_params[p_name] = p_details['valid']
+            if clicked_before_submitting:
+                assert_exactly_one(driver, ('xpath', clicked_before_submitting), None, error_reporter).click()
+            # mandatory_params are listed first so that p_name overwrites them when necessary.
+            submit_form(driver, form_xpath, {**mandatory_params, p_name: value}, error_reporter, max_wait, expected_response=message)
 
 def get_tag_name(element):
+    '''Return the tag name of an element.'''
     return element.get_attribute('outerHTML').split(maxsplit=1)[0][1:]
+
+def get_open_tag(element):
+    '''Return the opening tag of an element (including all of the attributes defined in it).'''
+    return element.get_attribute('outerHTML').split('>', maxsplit=1)[0] + '>'
 
 def test_nav(self, privileged=False):
     '''Factor out testing the top navigation.'''
@@ -280,4 +288,3 @@ def test_nav(self, privileged=False):
     top_nav = self.driver.find_element_by_class_name('top-nav')
     nav_links = [(re.match(self.gvar['address'] + r'([^?]+)', elem.get_attribute('href'))[1], elem.get_attribute('innerHTML')) for elem in top_nav.find_elements_by_tag_name('a')]
     self.assertEqual(nav_links, expected_nav_links)
-

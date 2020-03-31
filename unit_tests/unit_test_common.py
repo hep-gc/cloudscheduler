@@ -682,6 +682,7 @@ def load_settings(web=False):
         settings['cloud_credentials']['project'] = input('Cloud project: ')
         if web:
             settings['web']['firefox_profile'] = input('Location of Firefox profile to use for web interface tests: ')
+            settings['web']['max_wait'] = input('Maximum number of seconds to wait for webpages to load: ')
             settings['web']['setup_required'] = True
         # Create credentials file with read / write permissions for the current user and none for others.
         os.umask(0)
@@ -692,6 +693,11 @@ def load_settings(web=False):
             yaml.safe_dump(settings, credentials_file)
     except yaml.YAMLError as err:
         print('YAML encountered an error while parsing {}: {}'.format(credentials_path, err))
+
+    if web:
+        # Move everything in settings['web'] up to the top level.
+        settings.update(settings['web'])
+        del settings['web']
 
     return settings
 

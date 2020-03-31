@@ -15,7 +15,7 @@ class TestStatus(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.gvar = wc.setup()
-        cls.driver = webdriver.Firefox(webdriver.FirefoxProfile(cls.gvar['web']['firefox_profile']))
+        cls.driver = webdriver.Firefox(webdriver.FirefoxProfile(cls.gvar['firefox_profile']))
         try:
             wait = ui.WebDriverWait(cls.driver, 20)
             cls.driver.get('{}/cloud/status'.format(cls.gvar['address']))
