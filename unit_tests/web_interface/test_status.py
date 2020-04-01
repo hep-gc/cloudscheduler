@@ -1,7 +1,6 @@
-from selenium import webdriver
-from selenium.common.exceptions import NoSuchElementException, TimeoutException
+from selenium.common.exceptions import NoSuchElementException
+from selenium.webdriver.common import expected_conditions as ec, wait
 from selenium.webdriver.common.by import By
-from selenium.webdriver.support import expected_conditions, ui
 import unittest
 from time import sleep
 import web_common as wc
@@ -14,29 +13,23 @@ EXPECTED_SYSTEM_LABELS = ['status', 'main', 'database', 'rabbitmq', 'openstack',
 class TestStatus(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.gvar = wc.setup()
-        cls.driver = webdriver.Firefox(webdriver.FirefoxProfile(cls.gvar['firefox_profile']))
-        try:
-            wait = ui.WebDriverWait(cls.driver, 20)
-            cls.driver.get('{}/cloud/status'.format(cls.gvar['address']))
-            wait.until(expected_conditions.alert_is_present()).accept()
-            # The internet says that driver.get() should automatically wait for the page to be loaded, but it does not seem to.
-            wait.until(expected_conditions.presence_of_element_located((By.CLASS_NAME, 'status-table')))
-        except TimeoutException:
-            cls.driver.quit()
+        cls.gvar = wc.setup('/cloud/status/')
+        cls.driver = cls.gvar['driver']
+        cls.wait = cls.gvar['wait']
 
     def test_nav(self):
-        wc.test_nav(self)
+        wc.test_nav(self.driver, self.wait, self.fail)
 
     def test_status_tables(self):
-        status_tables = self.driver.find_elements_by_class_name('status-table')
+        status_tables = self.wait.until(ec.presence_of_all_elements_located((By.CLASS_NAME, 'status-table')))
         self.assertEqual(len(status_tables), 2)
         job_table, vm_table = status_tables
-        job_headers = [header.get_attribute('innerHTML') for header in job_table.find_elements_by_tag_name('th')]
+        job_header_elems = wait.WebDriverWait(job_table, gvar['max_wait']).until(ec.presence_of_all_elements_located((By.TAG_NAME, 'th')))
+        job_headers = [header.get_attribute('innerHTML') for header in job_header_elems]
         self.assertEqual(job_headers, EXPECTED_JOB_HEADERS)
         vm_headers = []
         # Some headers have tables within them to position parent headers over children headers. We want the headers inside these subtables, but not the tables themselves.
-        for header in vm_table.find_elements_by_tag_name('th'):
+        for header in wait.WebDriverWait(vm_table, gvar['max_wait']).until(ec.presence_of_all_elements_located((By.TAG_NAME, 'th')):
             try:
                 header.find_element_by_tag_name('table')
             except NoSuchElementException:
@@ -45,9 +38,10 @@ class TestStatus(unittest.TestCase):
 
     def test_system_table(self):
         system_table = wc.assert_exactly_one(self.driver, (By.ID, 'system-services'), None, self.fail)
-        system_headers = [header.get_attribute('innerHTML') for header in system_table.find_elements_by_tag_name('th')]
+        system_header_elems = wait.WebDriverWait(system_table, gvar['max_wait']).until(ec.presence_of_all_elements_located((By.TAG_NAME, 'th')))
+        system_headers = [header.get_attribute('innerHTML') for header in system_header_elems]
         self.assertEqual(system_headers, EXPECTED_SYSTEM_HEADERS)
-        system_rows = system_table.find_elements_by_tag_name('tr')
+        system_rows = wait.WebDriverWait(system_table, gavr['max_wait']).until(ec.presence_of_all_elements_located((By.TAG_NAME, 'tr')))
         self.assertEqual(len(system_rows), 3)
         system_labels = [cell.get_attribute('innerHTML') for cell in system_rows[2].find_elements_by_tag_name('td')]
         self.assertEqual(system_labels, EXPECTED_SYSTEM_LABELS)
@@ -55,14 +49,12 @@ class TestStatus(unittest.TestCase):
             wc.assert_exactly_one(cell, (By.TAG_NAME, 'meter'), None, self.fail)
 
     def test_stop_refresh_button(self):
-        system_divs = self.driver.find_elements_by_class_name('system-div')
-        self.assertEqual(len(system_divs), 1)
-        countdown = system_divs[0].find_element_by_id('CDTimer')
-        stop_buttons = system_divs[0].find_elements_by_class_name('stop-symbol')
-        self.assertEqual(len(stop_buttons), 1)
+        system_div = wc.assert_exactly_one(self.driver, self.wait, self.fail, (By.CLASS_NAME, 'system-div'))
+        countdown = wc.assert_exactly_one(system_div, self.wait, self.fail, (By.ID, 'CDTimer'))
+        stop_button = wc.assert_exactly_one(system_div, self.wait, self.fail, (By.CLASS_NAME, 'stop-symbol'))
         try:
             before = int(countdown.get_attribute('innerHTML'))
-            stop_buttons[0].click()
+            stop_button.click()
             sleep(3)
             after = int(countdown.get_attribute('innerHTML'))
         except ValueError:
