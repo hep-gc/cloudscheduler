@@ -14,13 +14,10 @@ class TestClouds(unittest.TestCase):
         cls.driver = webdriver.Firefox(webdriver.FirefoxProfile(cls.gvar['firefox_profile']))
         try:
             cls.wait = ui.WebDriverWait(cls.driver, cls.gvar['max_wait'])
-            print(f'DEBUG: Before get: {cls.driver.current_url}')
             cls.driver.get('{}/cloud/list/'.format(cls.gvar['address']))
             cls.wait.until(expected_conditions.alert_is_present()).accept()
-            print(f'DEBUG: After get: {cls.driver.current_url}')
             # The internet says that driver.get() should automatically wait for the page to be loaded, but it does not seem to.
             cls.wait.until(expected_conditions.presence_of_element_located((By.CLASS_NAME, 'menu')))
-            print(f'DEBUG: After wait: {cls.driver.current_url}')
         except TimeoutException:
             cls.driver.quit()
             raise
@@ -34,7 +31,7 @@ class TestClouds(unittest.TestCase):
         cls.metadata_to_update = '{}-wicm3'.format(cls.gvar['user'])
         cls.metadata_to_add = '{}-wicm4'.format(cls.gvar['user'])
         cls.cloud_add_parameters = {
-            'cloud_name': {'valid': 'invalid-unit-test', 'test_cases': {
+            'cloud_name': ({
                 '': 'cloud add value specified for "cloud_name" must not be the empty string.',
                 'Invalid-Unit-Test': 'cloud add value specified for "cloud_name" must be all lowercase letters, digits, dashes, underscores, periods, and colons, and cannot contain more than one consecutive dash or start or end with a dash.',
                 'invalid-unit--test': 'cloud add value specified for "cloud_name" must be all lowercase letters, digits, dashes, underscores, periods, and colons, and cannot contain more than one consecutive dash or start or end with a dash.',
@@ -42,24 +39,33 @@ class TestClouds(unittest.TestCase):
                 'invalid-unit-test!': 'cloud add value specified for "cloud_name" must be all lowercase letters, digits, dashes, underscores, periods, and colons, and cannot contain more than one consecutive dash or start or end with a dash.',
                 'cloud-name-that-is-too-long-for-the-database': 'Data too long for column \'cloud_name\' at row 1',
                 cls.cloud_to_list: 'Duplicate entry \'{}-{}\' for key \'PRIMARY\''.format(cls.active_group, cls.cloud_to_list)
-            }, 'mandatory': True},
-            'cloud_type': {'valid': 'openstack', 'test_cases': {}, 'mandatory': True},
-            'authurl': {'valid': cls.gvar['cloud_credentials']['authurl'], 'test_cases': {'': 'cloud add parameter "authurl" contains an empty string which is specifically disallowed.'}, 'mandatory': True},
-            'username': {'valid': cls.gvar['cloud_credentials']['username'], 'test_cases': {'': 'cloud add parameter "username" contains an empty string which is specifically disallowed.'}, 'mandatory': True},
-            'password': {'valid': cls.gvar['cloud_credentials']['password'], 'test_cases': {'': 'cloud add parameter "password" contains an empty string which is specifically disallowed.'}, 'mandatory': True},
-            'project': {'valid': cls.gvar['cloud_credentials']['project'], 'test_cases': {'': 'cloud add parameter "project" contains an empty string which is specifically disallowed.'}, 'mandatory': True},
-            'region': {'valid': cls.gvar['cloud_credentials']['region'], 'test_cases': {'': 'cloud add parameter "region" contains an empty string which is specifically disallowed.'}, 'mandatory': True},
+            }, 'invalid-unit-test'),
+            'priority': ({
+                '': 'cloud add value specified for "priority" must be an integer value.',
+                'invalid-unit-test': 'cloud add value specified for "priority" must be an integer value.',
+                '3.1': 'cloud add value specified for "priority" must be an integer value.'
+            }, 0),
+            'cloud_type': ({}, 'openstack'),
+            'authurl': ({'': 'cloud add parameter "authurl" contains an empty string which is specifically disallowed.'}, cls.gvar['cloud_credentials']['authurl']),
+            'username': ({'': 'cloud add parameter "username" contains an empty string which is specifically disallowed.'}, cls.gvar['cloud_credentials']['username']),
+            'password': ({'': 'cloud add parameter "password" contains an empty string which is specifically disallowed.'}, cls.gvar['cloud_credentials']['password']),
+            'project': ({'': 'cloud add parameter "project" contains an empty string which is specifically disallowed.'}, cls.gvar['cloud_credentials']['project']),
+            'region': ({'': 'cloud add parameter "region" contains an empty string which is specifically disallowed.'}, cls.gvar['cloud_credentials']['region'])
         }
         cls.cloud_add_valid = {'cloud_name': cls.cloud_to_add, 'cloud_type': 'openstack', **cls.gvar['cloud_credentials'], 'enabled': True}
         cls.cloud_update_parameters = {
-            'authurl': {'valid': cls.gvar['cloud_credentials']['authurl'], 'test_cases': {'': 'parameter "authurl" contains an empty string which is specifically disallowed.'}},
-            'username': {'valid': cls.gvar['cloud_credentials']['username'], 'test_cases': {'': 'parameter "username" contains an empty string which is specifically disallowed.'}},
-            'password': {'valid': '', 'test_cases': {}},
-            'project': {'valid': cls.gvar['cloud_credentials']['project'], 'test_cases': {'': 'parameter "project" contains an empty string which is specifically disallowed.'}},
-            'region': {'valid': cls.gvar['cloud_credentials']['region'], 'test_cases': {'': 'parameter "region" contains an empty string which is specifically disallowed.'}},
-            'cloud_type': {'valid': 'local', 'test_cases': {}},
-            'vm_keep_alive': {'valid': 0, 'test_cases': {'invalid-unit-test': 'value specified for "vm_keep_alive" must be an integer value.'}},
-            'spot_price': {'valid': 0.0, 'test_cases': {'invalid-unit-test': 'cloud update value specified for "spot_price" must be a floating point value.'}},
+            'authurl': ({'': 'parameter "authurl" contains an empty string which is specifically disallowed.'},),
+            'username': ({'': 'parameter "username" contains an empty string which is specifically disallowed.'},),
+            'project': ({'': 'parameter "project" contains an empty string which is specifically disallowed.'},),
+            'region': ({'': 'parameter "region" contains an empty string which is specifically disallowed.'},),
+            'cloud_type': ({}, 'local'),
+            'priority': ({
+                '': 'cloud add value specified for "priority" must be an integer value.',
+                'invalid-unit-test': 'cloud add value specified for "priority" must be an integer value.',
+                '3.1': 'cloud add value specified for "priority" must be an integer value.'
+            },),
+            'vm_keep_alive': ({'invalid-unit-test': 'value specified for "vm_keep_alive" must be an integer value.'},),
+            'spot_price': ({'invalid-unit-test': 'cloud update value specified for "spot_price" must be a floating point value.'},)
             # ram_ctl and cores_ctl are <input>s with type='number', meaning the browser prevents the submission of the form unless they are integers.
             # AFAIK it is impossible to test the details of the browser's response, because it shows a message that is not part of the DOM.
         }
@@ -127,7 +133,7 @@ class TestClouds(unittest.TestCase):
         settings_tab.click()
         update_form_xpath = '//*[@class="menu"]//*[@id="{0}"]//form[@name="{0}"]'.format(self.cloud_to_update)
         wc.parameters_submissions(self.driver, update_form_xpath, self.cloud_update_parameters, self.fail, self.gvar['max_wait'])
-        wc.submit_form(self.driver, update_form_xpath, self.cloud_update_valid, self.fail, self.gvar['max_wait'], expected_response='cloud "{}::{}" successfully updated'.format(self.active_group, self.cloud_to_update), assert_values_retained=True)
+        wc.submit_form(self.driver, update_form_xpath, self.cloud_update_valid, self.fail, self.gvar['max_wait'], expected_response='cloud "{}::{}" successfully updated'.format(self.active_group, self.cloud_to_update), retains_values=True)
 
     @unittest.skip
     def test_metadata_tab(self):
@@ -162,10 +168,32 @@ class TestClouds(unittest.TestCase):
         wc.assert_exactly_one(default_flavors, (By.TAG_NAME, 'form'), {'name': '{}-flavor-exclusions'.format(self.cloud_to_list)}, self.fail, missing_message='The form to update flavor exclusions for {} is missing.'.format(self.cloud_to_list))
 
     def select_cloud(self, cloud_name):
+        '''Select the given cloud and return its listing.'''
         menu = wc.assert_exactly_one(self.driver, (By.CLASS_NAME, 'menu'), None, self.fail)
         cloud_listing = wc.assert_exactly_one(menu, (By.ID, cloud_name), None, self.fail, missing_message='{} is missing from the list of clouds.'.format(cloud_name))
         wc.assert_exactly_one(cloud_listing, (By.LINK_TEXT, cloud_name), None, self.fail, missing_message='The link to select {} is missing.'.format(cloud_name)).click()
         return cloud_listing
+    
+    def select_metadata(self, metadata_name):
+        '''Select the given metadata from the cloud_to_update and return the form within the iframe.'''
+        cloud_listing = self.select_cloud(self.cloud_to_update)
+        metadata_tab = cloud_listing.find_elements_by_class_name('tab')[1]
+        metadata_tab.click()
+        # Look within metadata_tab for elements of class 'tab2' (i.e. sub-tabs). Within each of these, look for labels that have text identical to self.metadata_to_list.
+        metadata_listing = wc.assert_exactly_one(metadata_tab, (By.XPATH, './/*[contains(@class, "tab2")][label/text()="{}"]'.format(self.metadata_to_list)), None, self.fail, missing_message='{} is missing from the list of metadata for {}'.format(self.metadata_to_list, self.cloud_to_list))
+        # We already know this label exists, but we need to find it so we can click on it.
+        wc.assert_exactly_one(metadata_listing, (By.TAG_NAME, 'label'), {'innerHTML': self.metadata_to_list}, self.fail).click()
+        try:
+            iframe = ui.WebDriverWait(metadata_listing, self.gvar['max_wait']).until(expected_conditions.presence_of_element_located((By.XPATH, './/iframe[@id="editor-{}-{}"]'.format(self.cloud_to_list, self.metadata_to_list))))
+            self.driver.switch_to.frame(iframe)
+            fetch_form = self.wait.until(expected_conditions.presence_of_element_located((By.NAME, 'metadata-form')))
+            wc.assert_exactly_one(fetch_form, (By.TAG_NAME, 'input'), {'type': 'submit', 'value': 'Update'}, self.fail, missing_message='The \'Update\' button is missing from the form to update {}'.format(self.metadata_to_list))
+            delete_link = wc.assert_exactly_one(fetch_form, (By.TAG_NAME, 'a'), {'href': '{}/cloud/metadata-fetch/?{}&cloud_name={}&metadata_name={}#delete-metadata'.format(self.gvar['address'], self.active_group, self.cloud_to_list, self.metadata_to_list)}, self.fail, missing_message='The button to delete {} is missing.'.format(self.metadata_to_list))
+        except TimeoutException:
+            self.fail('Either the iframe to update {} or the form within it is missing.'.format(self.metadata_to_list))
+        # Switch back out of the iframe so that other tests don't fail if this one does.
+        finally:
+            self.driver.switch_to.default_content()
 
     @classmethod
     def tearDownClass(cls):
