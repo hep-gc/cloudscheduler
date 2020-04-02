@@ -330,18 +330,10 @@ def metadata_delete(gvar):
     # Check for missing arguments or help required.
     check_keys(gvar, mandatory, required, optional)
 
-    # Check that the target groupmetadata file exists.
-    response = requests(gvar, '/group/list/')
-    _found = False
-    for row in response['group_list']:
-        if row['group_name'] == gvar['active_group']:
-            metadata_names = row['metadata_names'].split(',')
-            for metadata_name in metadata_names:
-                if row['group_name'] == gvar['active_group']:
-                    _found = True
-                    break
-   
-    if not _found:
+    # Check that the target group metadata file exists.
+    response = requests(gvar, '/group/metadata-list/')
+
+    if not any(row['metadata_name'] == gvar['user_settings']['metadata-name'] for row in response['group_metadata_list']):
         print('Error: "%s group metadata-delete" cannot delete "%s::%s", file doesn\'t exist.' % (gvar['command_name'], response['active_group'], gvar['user_settings']['metadata-name']))
         exit(1)
 
