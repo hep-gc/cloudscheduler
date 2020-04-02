@@ -1,4 +1,4 @@
-def assert_exactly_one(parent, wait, error_reporter, identifier, attributes=None, missing_message=None, multiple_message=None):
+def assert_exactly_one(parent, driver_wait, error_reporter, identifier, attributes=None, missing_message=None, multiple_message=None):
     '''
     Assert that a parent element contains precisely one child element matching the given identifier(s) and attribute(s), and return this child.
     parent (selenium.webdriver.firefox.webdriver.WebDriver, selenium.webdriver.firefox.webelement.FirefoxWebElement, or similar for a different browser): The driver or element expected to contain one element matching the identifier.
@@ -8,13 +8,13 @@ def assert_exactly_one(parent, wait, error_reporter, identifier, attributes=None
     missing_message (str): May be given to specify a custom error message used when zero matching elements are found.
     multiple_message (str): May be given to specify a custom error message used when more than one matching element is found.
     '''
-    from selenium.webdriver.support import expected_conditions
+    from selenium.webdriver.support import expected_conditions as ec
 
     if not attributes:
         attributes = {}
     default_message = 'Expected 1 element with identifier {} and attributes {}, but found {}'
     matching_elems = []
-    for elem in wait.until(expected_conditions.presence_of_all_elements_located(identifier)):
+    for elem in driver_wait.until(ec.presence_of_all_elements_located(identifier)):
         if all(elem.get_attribute(att_name) == att_value for att_name, att_value in attributes.items()):
             matching_elems.append(elem)
 
@@ -25,7 +25,7 @@ def assert_exactly_one(parent, wait, error_reporter, identifier, attributes=None
     else:
         error_reporter(multiple_message if multiple_message else default_message.format(identifier, attributes, len(matching_elems)))
 
-def submit_form(driver, wait, error_reporter, form_xpath, data, expected_response=None, retains_values=False):
+def submit_form(driver, driver_wait, error_reporter, form_xpath, data, expected_response=None, retains_values=False):
     '''
     Fill a form with the specified data and submit it.
     driver (selenium.webdriver.firefox.webdriver.WebDriver or similar for a different browser): The driver that contains the form.
@@ -38,12 +38,12 @@ def submit_form(driver, wait, error_reporter, form_xpath, data, expected_respons
     Forms are allowed to be dynamic; i.e. fields are allowed to completely change in response to previous fields being filled out.
     '''
     from selenium.webdriver.common.by import By
-    from selenium.webdriver.support import expected_conditions, wait
+    from selenium.webdriver.support import expected_conditions as ec
     import re
 
-    form = assert_exactly_one(driver, wait, error_reporter, (By.XPATH, form_xpath))
+    form = assert_exactly_one(driver, driver_wait, error_reporter, (By.XPATH, form_xpath))
     for parameter, value in data.items():
-        entries = wait.until(expected_conditions.presence_of_all_elements_located((By.NAME, parameter)))
+        entries = driver_wait.until(ec.presence_of_all_elements_located((By.XPATH, '{}//*[@name="{}"]'.format(form_xpath, parameter))))
         if entries:
             for entry in entries:
                 entry_tag_name = get_tag_name(entry)
@@ -64,7 +64,7 @@ def submit_form(driver, wait, error_reporter, form_xpath, data, expected_respons
                     else:
                         error_reporter('Unrecognized <input> type \'{}\' for parameter \'{}\'.'.format(input_type, parameter))
                 elif entry_tag_name == 'select':
-                    assert_exactly_one(entry, wait, error_reporter, (By.TAG_NAME, 'option'), {'text': value}, missing_message='Option \'{}\' not found for parameter \'{}\'.'.format(value, parameter)).click()
+                    assert_exactly_one(entry, driver_wait, error_reporter, (By.XPATH, '{}//select[@name="{}"]//option[text()="{}"]'.format(form_xpath, parameter, value)), missing_message='Option \'{}\' not found for parameter \'{}\'.'.format(value, parameter)).click()
                 else:
                     error_reporter('Unrecognized tag name <{}> for parameter \'{}\'.'.format(entry_tag_name, parameter))
         # No entries were found.
@@ -72,29 +72,30 @@ def submit_form(driver, wait, error_reporter, form_xpath, data, expected_respons
             error_reporter('Input for \'{}\' is missing.'.format(parameter))
 
     # Submit the form.
-    assert_exactly_one(form, wait, error_reporter, (By.TAG_NAME, 'input'), {'type': 'submit'}, missing_message='<input> with type=\'submit\' not found.').click()
+    assert_exactly_one(form, driver_wait, error_reporter, (By.XPATH, '{}//input[@type="submit"]'.format(form_xpath)), missing_message='<input> with type=\'submit\' not found.').click()
 
-    wait.until(expected_conditions.staleness_of(form))
+    driver_wait.until(ec.staleness_of(form))
     if expected_response:
-        actual_response = wait.until(expected_conditions.presence_of_element_located((By.ID, 'message'))).text
+        actual_response = driver_wait.until(ec.presence_of_element_located((By.ID, 'message'))).text
         if expected_response not in actual_response:
             error_reporter('Expected a response containing \'{}\', but received \'{}\'.'.format(expected_response, actual_response))
 
     if retains_values:
-        new_data = get_data_from_form(driver, wait, error_reporter, form_xpath)
+        new_data = get_data_from_form(driver, driver_wait, error_reporter, form_xpath)
+        print(f'DEBUG: {new_data}')
+        # Iterating over the old values allows us to ignore values that were in the form but never specified in data.
         for parameter, old_value in data.items():
             # Allow values in parameters to be given as ints or floats but come back from the server as strs.
             try:
-                old_value = float(old_value)
+                new_data[parameter] = float(new_data[parameter])
+            except KeyError:
+                error_reporter('Expected the parameter \'{}\' to be retained, but the entry for it was missing.'.format(parameter))
             except ValueError:
                 pass
-            try:
-                if new_data[parameter] != old_value:
-                    error_reporter('Expected {} to be retained for the parameter \'{}\', but found {}.'.format(old_value, parameter, new_data[parameter]))
-            except KeyError:
-                error_reporter('Expected the parameter \'{}\' to be retained, but it was missing.'.format(parameter))
+            if new_data[parameter] != old_value:
+                error_reporter('Expected {} to be retained for the parameter \'{}\', but found {}.'.format(old_value, parameter, new_data[parameter]))
 
-def parameters_submissions(driver, wait, error_reporter, form_xpath, parameters, clicked_before_submitting=None):
+def parameters_submissions(driver, driver_wait, error_reporter, form_xpath, parameters, clicked_before_submitting=None):
     '''
     Submit forms with parameter combinations that are expected to fail.
     driver (selenium.webdriver.firefox.webdriver.WebDriver or similar for a different browser): The driver that contains the form to submit.
@@ -107,44 +108,47 @@ def parameters_submissions(driver, wait, error_reporter, form_xpath, parameters,
     from selenium.webdriver.common.by import By
 
     mandatory_params = {name: details[1] for name, details in parameters.items() if len(details) > 1}
-    if mandatory_params:
+    if clicked_before_submitting:
         for p_name, p_details in parameters.items():
             for value, message in p_details[0].items():
-                if clicked_before_submitting:
-                    assert_exactly_one(driver, wait, error_reporter, (By.XPATH, clicked_before_submitting)).click()
+                assert_exactly_one(driver, driver_wait, error_reporter, (By.XPATH, clicked_before_submitting)).click()
                 # mandatory_params are listed first so that p_name overwrites them as necessary.
-                submit_form(driver, wait, error_reporter, form_xpath, {**mandatory_params, p_name: value}, expected_response=message)
+                submit_form(driver, driver_wait, error_reporter, form_xpath, {**mandatory_params, p_name: value}, expected_response=message)
+    else:
+        for p_name, p_details in parameters.items():
+            for value, message in p_details[0].items():
+                submit_form(driver, driver_wait, error_reporter, form_xpath, {**mandatory_params, p_name: value}, expected_response=message)
 
-def get_data_from_form(driver, wait, error_reporter, form_xpath):
+def get_data_from_form(driver, driver_wait, error_reporter, form_xpath):
     from selenium.webdriver.common.by import By
-    from selenium.webdriver.support import expected_conditions
+    from selenium.webdriver.support import expected_conditions as ec
 
-    form = assert_exactly_one(driver, wait, error_reporter, (By.XPATH, form_xpath))
+    form = assert_exactly_one(driver, driver_wait, error_reporter, (By.XPATH, form_xpath))
     data = {}
-    wait.until(expected_conditions.presence_of_all_elements_located((By.TAG_NAME, 'input'))
-    for _input in form.find_elements_by_tag_name('input'):
-        input_type = _input.get_attribute('type')
-        input_name = _input.get_attribute('name')
+    for input_ in driver_wait.until(ec.presence_of_all_elements_located((By.XPATH, '{}//input'.format(form_xpath)))):
+        print(f'DEBUG: {get_open_tag(input_)}')
+        input_type = input_.get_attribute('type')
+        input_name = input_.get_attribute('name')
         # All inputs with no name are ignored.
         if input_name:
             if input_type == 'checkbox':
-                data[input_name] = _input.is_selected() 
-            # Passwords are assumed to have no initial value.
+                data[input_name] = input_.is_selected() 
+            # Password fields are assumed to be blank when received from the server.
             elif input_type == 'hidden' or input_type == 'password':
                 continue
             elif input_type == 'number' or input_type == 'range':
-                value = _input.get_attribute('value')
+                value = input_.get_attribute('value')
                 try:
                     data[input_name]: float(value)
                 except ValueError:
                     error_reporter('Found an <input> with name=\'{}\', type=\'number\', and a value of \'{}\', which is not parsable as a float.'.format(input_name, value))
             elif input_type == 'text':
-                data[input_name] = _input.get_attribute('value') 
+                data[input_name] = input_.get_attribute('value') 
             else:
                 error_reporter('Unrecognized <input> type \'{}\' with name \'{}\'.'.format(input_type, input_name))
 
-    wait.until(expected_conditions.presence_of_all_elements_located((By.TAG_NAME, 'select'))
-    for select in form.find_elements_by_tag_name('select'):
+    driver_wait.until(ec.presence_of_all_elements_located((By.TAG_NAME, 'select')))
+    for select in driver_wait.until(ec.presence_of_all_elements_located((By.XPATH, '{}//select'.format(form_xpath)))):
         select_name = select.get_attribute('name')
         if select_name:
             try:
@@ -155,11 +159,33 @@ def get_data_from_form(driver, wait, error_reporter, form_xpath):
 
     return data
 
+def assert_nav(driver, driver_wait, error_reporter, address, privileged=False):
+    '''Factor out testing the top navigation.'''
+    from selenium.webdriver.common.by import By
+    from selenium.webdriver.support import expected_conditions as ec
+    import re
+
+    expected_nav_links = [('/cloud/status/', 'Status'), ('/cloud/list/', 'Clouds'), ('/alias/list/', 'Aliases'), ('/group/defaults/', 'Defaults'), ('/images/', 'Images'), ('/keypairs/', 'Keys'), ('/user/settings/', 'User Settings'), ('/settings/log-out', 'Log out')]
+    if privileged:
+        # Insert these tuples starting at position 6.
+        expected_nav_links[6:6] = [('/user/list/', 'Users'), ('/group/list/', 'Groups'), ('/server/config/', 'Config')]
+    top_nav = assert_exactly_one(driver, driver_wait, error_reporter, (By.CLASS_NAME, 'top-nav'), missing_message='The top navigation is missing.')
+    nav_links = []
+    link_pattern = re.escape(address) + r'(/[^?]+)'
+    for elem in top_nav.find_elements_by_tag_name('a'):
+        link_match = re.match(link_pattern, elem.get_attribute('href'))
+        if link_match:
+            nav_links.append((link_match[1], elem.get_attribute('innerHTML')))
+        else:
+            error_reporter('Expected the link {} to match the pattern {}'.format(get_open_tag(elem), link_pattern))
+    if nav_links != expected_nav_links:
+        error_reporter('Expected the top nav to contain the links {}, but found the links {}.'.format(expected_nav_links, nav_links))
+
 def setup(address_extension):
     '''Load global settings and create test objects.'''
     from selenium import webdriver
     from selenium.common.exceptions import TimeoutException
-    from selenium.webdriver.common import expected_conditions, wait
+    from selenium.webdriver.support import expected_conditions as ec, wait
     import subprocess
     from cloudscheduler.unit_tests.unit_test_common import load_settings
 
@@ -246,16 +272,16 @@ def setup(address_extension):
         print()
         set_setup_required(False)
 
-        gvar['driver'] = webdriver.Firefox(webdriver.FirefoxProfile(gvar['firefox_profile']))
-        try:
-            gvar['wait'] = wait.WebDriverWait(gvar['driver'], gvar['max_wait'])
-            # The internet says that driver.get() should automatically wait for the page to be loaded, but it does not seem to.
-            gvar['driver'].get(gvar['address'] + address_extension)
-            # The Firefox profile will automatically fill in the server credentials, so we just accept the prompt.
-            gvar['wait'].until(expected_conditions.alert_is_present()).accept()
-        except TimeoutException:
-            gvar['driver'].quit()
-            raise
+    gvar['driver'] = webdriver.Firefox(webdriver.FirefoxProfile(gvar['firefox_profile']))
+    try:
+        gvar['wait'] = wait.WebDriverWait(gvar['driver'], gvar['max_wait'])
+        # The internet says that driver.get() should automatically wait for the page to be loaded, but it does not seem to.
+        gvar['driver'].get(gvar['address'] + address_extension)
+        # The Firefox profile will automatically fill in the server credentials, so we just accept the prompt.
+        gvar['wait'].until(ec.alert_is_present()).accept()
+    except TimeoutException:
+        gvar['driver'].quit()
+        raise
     return gvar
 
 def cleanup(gvar):
@@ -310,15 +336,3 @@ def get_tag_name(element):
 def get_open_tag(element):
     '''Return the opening tag of an element (including all of the attributes defined in it).'''
     return element.get_attribute('outerHTML').split('>', maxsplit=1)[0] + '>'
-
-def test_nav(driver, wait, error_reporter, privileged=False):
-    '''Factor out testing the top navigation.'''
-    import re
-
-    expected_nav_links = [('/cloud/status/', 'Status'), ('/cloud/list/', 'Clouds'), ('/alias/list/', 'Aliases'), ('/group/defaults/', 'Defaults'), ('/images/', 'Images'), ('/keypairs/', 'Keys'), ('/user/settings/', 'User Settings'), ('/settings/log-out', 'Log out')]
-    if privileged:
-        # Insert these tuples starting at position 6.
-        expected_nav_links[6:6] = [('/user/list/', 'Users'), ('/group/list/', 'Groups'), ('/server/config/', 'Config')]
-    top_nav = self.driver.find_element_by_class_name('top-nav')
-    nav_links = [(re.match(self.gvar['address'] + r'([^?]+)', elem.get_attribute('href'))[1], elem.get_attribute('innerHTML')) for elem in top_nav.find_elements_by_tag_name('a')]
-    self.assertEqual(nav_links, expected_nav_links)

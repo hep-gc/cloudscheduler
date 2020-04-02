@@ -8,8 +8,9 @@ import web_common as wc
 EXPECTED_CLOUD_TABS = ['Settings', 'Metadata', 'Exclusions']
 
 class TestClouds(unittest.TestCase):
+    @classmethod
     def setUpClass(cls):
-        cls.gvar = wc.setup('/cloud/status/')
+        cls.gvar = wc.setup('/cloud/list/')
         cls.driver = cls.gvar['driver']
         cls.wait = cls.gvar['wait']
         cls.active_group = '{}-wig1'.format(cls.gvar['user'])
@@ -36,7 +37,8 @@ class TestClouds(unittest.TestCase):
                 'invalid-unit-test': 'cloud add value specified for "priority" must be an integer value.',
                 '3.1': 'cloud add value specified for "priority" must be an integer value.'
             }, 0),
-            'cloud_type': ({}, 'openstack'),
+            # It is important that cloud_type comes before authurl, project, and region, because it can change these fields.
+            'cloud_type': ({}, 'local'),
             'authurl': ({'': 'cloud add parameter "authurl" contains an empty string which is specifically disallowed.'}, cls.gvar['cloud_credentials']['authurl']),
             'username': ({'': 'cloud add parameter "username" contains an empty string which is specifically disallowed.'}, cls.gvar['cloud_credentials']['username']),
             'password': ({'': 'cloud add parameter "password" contains an empty string which is specifically disallowed.'}, cls.gvar['cloud_credentials']['password']),
@@ -45,15 +47,16 @@ class TestClouds(unittest.TestCase):
         }
         cls.cloud_add_valid = {'cloud_name': cls.cloud_to_add, 'cloud_type': 'openstack', **cls.gvar['cloud_credentials'], 'enabled': True}
         cls.cloud_update_parameters = {
-            'authurl': ({'': 'parameter "authurl" contains an empty string which is specifically disallowed.'},),
-            'username': ({'': 'parameter "username" contains an empty string which is specifically disallowed.'},),
-            'project': ({'': 'parameter "project" contains an empty string which is specifically disallowed.'},),
-            'region': ({'': 'parameter "region" contains an empty string which is specifically disallowed.'},),
+            # It is important that cloud_type comes before authurl, project, and region, because it can change these fields.
             'cloud_type': ({}, 'local'),
+            'authurl': ({'': 'cloud update parameter "authurl" contains an empty string which is specifically disallowed.'}, cls.gvar['cloud_credentials']['authurl']),
+            'username': ({'': 'cloud update parameter "username" contains an empty string which is specifically disallowed.'},),
+            'project': ({'': 'cloud update parameter "project" contains an empty string which is specifically disallowed.'}, cls.gvar['cloud_credentials']['project']),
+            'region': ({'': 'cloud update parameter "region" contains an empty string which is specifically disallowed.'}, cls.gvar['cloud_credentials']['region']),
             'priority': ({
-                '': 'cloud add value specified for "priority" must be an integer value.',
-                'invalid-unit-test': 'cloud add value specified for "priority" must be an integer value.',
-                '3.1': 'cloud add value specified for "priority" must be an integer value.'
+                '': 'cloud update value specified for "priority" must be an integer value.',
+                'invalid-unit-test': 'cloud update value specified for "priority" must be an integer value.',
+                '3.1': 'cloud update value specified for "priority" must be an integer value.'
             },),
             'vm_keep_alive': ({'invalid-unit-test': 'value specified for "vm_keep_alive" must be an integer value.'},),
             'spot_price': ({'invalid-unit-test': 'cloud update value specified for "spot_price" must be a floating point value.'},)
@@ -72,7 +75,7 @@ class TestClouds(unittest.TestCase):
         }
 
     def test_nav(self):
-        wc.test_nav(self.driver, self.wait, self.fail)
+        wc.assert_nav(self.driver, self.wait, self.fail, self.gvar['address'])
     
     @unittest.skip
     def test_menu(self):
@@ -82,11 +85,12 @@ class TestClouds(unittest.TestCase):
         # The link text below is not a hyphen but a minus sign (U+2212).
         wc.assert_exactly_one(cloud_listing, self.wait, self.fail, (By.LINK_TEXT, '−'), missing_message='The link to delete {} is missing.'.format(self.cloud_to_list))
         # Look for descendants of cloud_listing that are of class 'tab', then within those look for labels. Create a list of the innerHTMLs of all such labels.
-        cloud_tab_elems = wait.WebDriverWait(cloud_listing, gvar['max_wait']).until(ec.presence_of_all_elements_located((By.XPATH, './/*[@class="tab"]/label'.format(self.cloud_to_list))))
+        cloud_tab_elems = wait.WebDriverWait(cloud_listing, self.gvar['max_wait']).until(ec.presence_of_all_elements_located((By.XPATH, './/*[@class="tab"]/label'.format(self.cloud_to_list))))
         cloud_tabs = [label.get_attribute('innerHTML') for label in cloud_tab_elems]
         self.assertEqual(cloud_tabs, EXPECTED_CLOUD_TABS)
         wc.assert_exactly_one(menu, self.wait, self.fail, (By.ID, 'add-cloud'), missing_message='The link to add a cloud is missing.')
 
+    @unittest.skip
     def test_cloud_add(self):
         menu = wc.assert_exactly_one(self.driver, self.wait, self.fail, (By.CLASS_NAME, 'menu'))
         add_listing = wc.assert_exactly_one(menu, self.wait, self.fail, (By.ID, 'add-cloud'), missing_message='The link to add a cloud is missing.')
@@ -121,73 +125,72 @@ class TestClouds(unittest.TestCase):
     def test_cloud_update(self):
         cloud_listing = self.select_cloud(self.cloud_to_update)
         # self.test_menu() asserts for us the presence and order of the tabs, so we assume it here.
-        settings_tab = wait.WebDriverWait(cloud_listing, gvar['max_wait'].until(ec.presence_of_all_elements_located((By.CLASS_NAME, 'tab')))[0]
+        settings_tab = wait.WebDriverWait(cloud_listing, self.gvar['max_wait']).until(ec.presence_of_all_elements_located((By.CLASS_NAME, 'tab')))[0]
         settings_tab.click()
         update_form_xpath = '//*[@class="menu"]//*[@id="{0}"]//form[@name="{0}"]'.format(self.cloud_to_update)
         wc.parameters_submissions(self.driver, self.wait, self.fail, update_form_xpath, self.cloud_update_parameters)
         wc.submit_form(self.driver, self.wait, self.fail, update_form_xpath, self.cloud_update_valid, expected_response='cloud "{}::{}" successfully updated'.format(self.active_group, self.cloud_to_update), retains_values=True)
 
-    @unittest.skip
-    def test_metadata_tab(self):
-        cloud_listing = self.select_cloud(self.cloud_to_list)
-        settings_tab = wait.WebDriverWait(cloud_listing, gvar['max_wait'].until(ec.presence_of_all_elements_located((By.CLASS_NAME, 'tab')))[1]
-        metadata_tab.click()
-        # Look within metadata_tab for elements of class 'tab2' (i.e. sub-tabs). Within each of these, look for labels that have text identical to self.metadata_to_list.
-        metadata_listing = wc.assert_exactly_one(metadata_tab, self.wait, self.fail, (By.XPATH, './/*[contains(@class, "tab2")][label/text()="{}"]'.format(self.metadata_to_list)), missing_message='{} is missing from the list of metadata for {}'.format(self.metadata_to_list, self.cloud_to_list))
-        # We already know this label exists, but we need to find it so we can click on it.
-        wc.assert_exactly_one(metadata_listing, self.wait, self.fail, (By.TAG_NAME, 'label'), {'innerHTML': self.metadata_to_list}).click()
-        try:
-            iframe = wait.WebDriverWait(metadata_listing, self.gvar['max_wait']).until(ec.presence_of_element_located((By.XPATH, './/iframe[@id="editor-{}-{}"]'.format(self.cloud_to_list, self.metadata_to_list))))
-            self.driver.switch_to.frame(iframe)
-            # self.driver now looks in the iframe for elements, so self.wait does as well.
-            fetch_form = wc.assert_exactly_one(self.driver, self.wait, self.fail, (By.NAME, 'metadata-form'))
-            wc.assert_exactly_one(fetch_form, self.wait, self.fail, (By.TAG_NAME, 'input'), {'type': 'submit', 'value': 'Update'}, missing_message='The \'Update\' button is missing from the form to update {}'.format(self.metadata_to_list))
-            delete_link = wc.assert_exactly_one(fetch_form, self.wait, self.fail, (By.TAG_NAME, 'a'), {'href': '{}/cloud/metadata-fetch/?{}&cloud_name={}&metadata_name={}#delete-metadata'.format(self.gvar['address'], self.active_group, self.cloud_to_list, self.metadata_to_list)}, missing_message='The button to delete {} is missing.'.format(self.metadata_to_list))
-        except TimeoutException:
-            self.fail('Either the iframe to update {} or the form within it is missing.'.format(self.metadata_to_list))
-        # Switch back out of the iframe so that other tests don't fail if this one does.
-        finally:
-            self.driver.switch_to.default_content()
-
     def test_exclusions_tab(self):
         cloud_listing = self.select_cloud(self.cloud_to_list)
-        exclusions_tab = cloud_listing.find_elements_by_class_name('tab')[2]
+        cloud_listing_wait = wait.WebDriverWait(cloud_listing, self.gvar['max_wait'])
+        exclusions_tab = cloud_listing_wait.until(ec.presence_of_all_elements_located((By.CLASS_NAME, 'tab')))[2]
         exclusions_tab.click()
-        default_metadata = wc.assert_exactly_one(exclusions_tab, (By.XPATH, './/*[contains(@class, "tab2")][label/text()="Default metadata"]'), None, self.fail, missing_message='The \'Default metadata\' tab for {} is missing.'.format(self.cloud_to_list))
+        default_metadata = wc.assert_exactly_one(exclusions_tab, cloud_listing_wait, self.fail, (By.XPATH, './/*[@class="tab"]//*[contains(@class, "tab2")][label/text()="Default metadata"]'), missing_message='The \'Default metadata\' tab for {} is missing.'.format(self.cloud_to_list))
         default_metadata.click()
-        wc.assert_exactly_one(default_metadata, (By.TAG_NAME, 'form'), {'name': '{}-metadata-exclusions'.format(self.cloud_to_list)}, self.fail, missing_message='The form to update metadata exclusions for {} is missing'.format(self.cloud_to_list))
-        default_flavors = wc.assert_exactly_one(exclusions_tab, (By.XPATH, './/*[contains(@class, "tab2")][label/text()="Default flavors"]'), None, self.fail, missing_message='The \'Default flavors\' tab for {} is missing.'.format(self.cloud_to_list))
+        wc.assert_exactly_one(default_metadata, cloud_listing_wait, self.fail, (By.TAG_NAME, 'form'), {'name': '{}-metadata-exclusions'.format(self.cloud_to_list)}, missing_message='The form to update metadata exclusions for {} is missing'.format(self.cloud_to_list))
+        default_flavors = wc.assert_exactly_one(exclusions_tab, cloud_listing_wait, self.fail, (By.XPATH, './/*[@class="tab"]//*[contains(@class, "tab2")][label/text()="Default flavors"]'), missing_message='The \'Default flavors\' tab for {} is missing.'.format(self.cloud_to_list))
         default_flavors.click()
-        wc.assert_exactly_one(default_flavors, (By.TAG_NAME, 'form'), {'name': '{}-flavor-exclusions'.format(self.cloud_to_list)}, self.fail, missing_message='The form to update flavor exclusions for {} is missing.'.format(self.cloud_to_list))
+        wc.assert_exactly_one(default_flavors, cloud_listing_wait, self.fail, (By.TAG_NAME, 'form'), {'name': '{}-flavor-exclusions'.format(self.cloud_to_list)}, missing_message='The form to update flavor exclusions for {} is missing.'.format(self.cloud_to_list))
+
+    @unittest.skip
+    def test_metadata_fetch(self):
+        raise NotImplementedError()
+
+    @unittest.skip
+    def test_metadata_add(self):
+        raise NotImplementedError()
+
+    @unittest.skip
+    def test_metadata_delete(self):
+        delete_link = wc.assert_exactly_one(metadata_form, self.wait, self.fail, (By.TAG_NAME, 'a'), {'href': '{}/cloud/metadata-fetch/?{}&cloud_name={}&metadata_name={}#delete-metadata'.format(self.gvar['address'], self.active_group, self.cloud_to_list, self.metadata_to_list)}, missing_message='The button to delete {} is missing.'.format(self.metadata_to_list))
+        raise NotImplementedError()
+
+    @unittest.skip
+    def test_metadata_update(self):
+        wc.assert_exactly_one(metadata_form, self.wait, self.fail, (By.TAG_NAME, 'input'), {'type': 'submit', 'value': 'Update'}, missing_message='The \'Update\' button is missing from the form to update {}'.format(self.metadata_to_list))
+        raise NotImplementedError()
 
     def select_cloud(self, cloud_name):
         '''Select the given cloud and return its listing.'''
-        menu = wc.assert_exactly_one(self.driver, (By.CLASS_NAME, 'menu'), None, self.fail)
-        cloud_listing = wc.assert_exactly_one(menu, (By.ID, cloud_name), None, self.fail, missing_message='{} is missing from the list of clouds.'.format(cloud_name))
-        wc.assert_exactly_one(cloud_listing, (By.LINK_TEXT, cloud_name), None, self.fail, missing_message='The link to select {} is missing.'.format(cloud_name)).click()
+        menu = wc.assert_exactly_one(self.driver, self.wait, self.fail, (By.CLASS_NAME, 'menu'))
+        cloud_listing = wc.assert_exactly_one(menu, self.wait, self.fail, (By.ID, cloud_name), missing_message='{} is missing from the list of clouds.'.format(cloud_name))
+        wc.assert_exactly_one(cloud_listing, self.wait, self.fail, (By.LINK_TEXT, cloud_name), missing_message='The link to select {} is missing.'.format(cloud_name)).click()
         return cloud_listing
     
     def select_metadata(self, metadata_name):
-        '''Select the given metadata from the cloud_to_update and return the form within the iframe.'''
+        '''
+        Select the specified metadata from the cloud_to_update and return the form within the iframe.
+        Leave the driver looking inside the iframe so that the form can be manipulated, but the caller must switch the driver back to default_content.'''
         cloud_listing = self.select_cloud(self.cloud_to_update)
-        metadata_tab = cloud_listing.find_elements_by_class_name('tab')[1]
+        metadata_tab = wait.WebDriverWait(cloud_listing, self.gvar['max_wait']).until(ec.presence_of_all_elements_located((By.CLASS_NAME, 'tab')))[1]
         metadata_tab.click()
-        # Look within metadata_tab for elements of class 'tab2' (i.e. sub-tabs). Within each of these, look for labels that have text identical to self.metadata_to_list.
-        metadata_listing = wc.assert_exactly_one(metadata_tab, (By.XPATH, './/*[contains(@class, "tab2")][label/text()="{}"]'.format(self.metadata_to_list)), None, self.fail, missing_message='{} is missing from the list of metadata for {}'.format(self.metadata_to_list, self.cloud_to_list))
+        # Look within metadata_tab for elements of class 'tab2' (i.e. sub-tabs). Within each of these, look for labels that have text identical to metadata_name.
+        metadata_listing = wc.assert_exactly_one(metadata_tab, self.wait, self.fail, (By.XPATH, './/*[contains(@class, "tab2")][label/text()="{}"]'.format(metadata_name)), missing_message='{} is missing from the list of metadata for {}'.format(metadata_name, self.cloud_to_list))
         # We already know this label exists, but we need to find it so we can click on it.
-        wc.assert_exactly_one(metadata_listing, (By.TAG_NAME, 'label'), {'innerHTML': self.metadata_to_list}, self.fail).click()
+        wc.assert_exactly_one(metadata_listing, self.wait, self.fail, (By.TAG_NAME, 'label'), {'innerHTML': metadata_name}).click()
         try:
-            iframe = wait.WebDriverWait(metadata_listing, self.gvar['max_wait']).until(ec.presence_of_element_located((By.XPATH, './/iframe[@id="editor-{}-{}"]'.format(self.cloud_to_list, self.metadata_to_list))))
+            iframe = wait.WebDriverWait(metadata_listing, self.gvar['max_wait']).until(ec.presence_of_element_located((By.XPATH, './/iframe[@id="editor-{}-{}"]'.format(self.cloud_to_list, metadata_name))))
             self.driver.switch_to.frame(iframe)
-            fetch_form = self.wait.until(ec.presence_of_element_located((By.NAME, 'metadata-form')))
-            wc.assert_exactly_one(fetch_form, (By.TAG_NAME, 'input'), {'type': 'submit', 'value': 'Update'}, self.fail, missing_message='The \'Update\' button is missing from the form to update {}'.format(self.metadata_to_list))
-            delete_link = wc.assert_exactly_one(fetch_form, (By.TAG_NAME, 'a'), {'href': '{}/cloud/metadata-fetch/?{}&cloud_name={}&metadata_name={}#delete-metadata'.format(self.gvar['address'], self.active_group, self.cloud_to_list, self.metadata_to_list)}, self.fail, missing_message='The button to delete {} is missing.'.format(self.metadata_to_list))
+            form = self.wait.until(ec.presence_of_element_located((By.NAME, 'metadata-form')))
         except TimeoutException:
-            self.fail('Either the iframe to update {} or the form within it is missing.'.format(self.metadata_to_list))
-        # Switch back out of the iframe so that other tests don't fail if this one does.
-        finally:
             self.driver.switch_to.default_content()
+            self.fail('Either the iframe to update {} or the form within it is missing.'.format(metadata_name))
+        return form
 
     @classmethod
     def tearDownClass(cls):
         cls.driver.quit()
+
+if __name__ == '__main__':
+    unittest.main()

@@ -18,7 +18,7 @@ class TestStatus(unittest.TestCase):
         cls.wait = cls.gvar['wait']
 
     def test_nav(self):
-        wc.test_nav(self.driver, self.wait, self.fail)
+        wc.assert_nav(self.driver, self.wait, self.fail, self.gvar['address'])
 
     def test_status_tables(self):
         status_tables = self.wait.until(ec.presence_of_all_elements_located((By.CLASS_NAME, 'status-table')))
@@ -65,3 +65,6 @@ class TestStatus(unittest.TestCase):
     @classmethod
     def tearDownClass(cls):
         cls.driver.quit()
+
+if __name__ == '__main__':
+    unittest.main()
