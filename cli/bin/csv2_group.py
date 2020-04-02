@@ -53,7 +53,7 @@ def add(gvar):
 
     mandatory = ['-gn']
     required = []
-    optional = ['-g', '-H', '-h', '-htcf', '-htch', '-htcu', '-jc', '-jd', '-jr', '-js', '-NV', '-ok', '-r', '-s', '-un', '-vf', '-vi', '-vka', '-vk', '-vn', '-vsg', '-v', '-xA']
+    optional = ['-g', '-H', '-h', '-htcf', '-htch', '-htcu', '-jc', '-jd', '-jr', '-js', '-s', '-un', '-vf', '-vi', '-vka', '-vk', '-vn', '-vsg', '-v', '-xA']
 
     if gvar['retrieve_options']:
         return mandatory + required + optional
@@ -288,7 +288,7 @@ def update(gvar):
 
     mandatory = ['-gn']
     required = []
-    optional = ['-g', '-H', '-h', '-htcf', '-htch', '-htcu', '-jc', '-jd', '-jr', '-js', '-NV', '-ok', '-r', '-s', '-un', '-uo', '-vf', '-vi', '-vka', '-vk', '-vn', '-vsg', '-v', '-xA']
+    optional = ['-g', '-H', '-h', '-htcf', '-htch', '-htcu', '-jc', '-jd', '-jr', '-js', '-s', '-un', '-uo', '-vf', '-vi', '-vka', '-vk', '-vn', '-vsg', '-v', '-xA']
 
     if gvar['retrieve_options']:
         return mandatory + required + optional
