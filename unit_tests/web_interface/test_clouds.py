@@ -69,15 +69,14 @@ class TestClouds(unittest.TestCase):
             'project_domain_name': 'unit-test.ca',
             'vm_keep_alive': 3,
             'spot_price': 1.4,
-            'cores_softmax': 1,
-            'cores_ctl': 5,
-            'ram_ctl': 9
+            'cores_softmax': 15,
+            'cores_ctl': 9,
+            'ram_ctl': 2
         }
 
     def test_nav(self):
         wc.assert_nav(self.driver, self.wait, self.fail, self.gvar['address'])
     
-    @unittest.skip
     def test_menu(self):
         cloud_listing = self.select_cloud(self.cloud_to_list)
         # self.select_cloud() already asserted the existence and singularity of menu, but we need to reference it later.
@@ -90,7 +89,6 @@ class TestClouds(unittest.TestCase):
         self.assertEqual(cloud_tabs, EXPECTED_CLOUD_TABS)
         wc.assert_exactly_one(menu, self.wait, self.fail, (By.ID, 'add-cloud'), missing_message='The link to add a cloud is missing.')
 
-    @unittest.skip
     def test_cloud_add(self):
         menu = wc.assert_exactly_one(self.driver, self.wait, self.fail, (By.CLASS_NAME, 'menu'))
         add_listing = wc.assert_exactly_one(menu, self.wait, self.fail, (By.ID, 'add-cloud'), missing_message='The link to add a cloud is missing.')
@@ -100,7 +98,6 @@ class TestClouds(unittest.TestCase):
         wc.assert_exactly_one(self.driver, self.wait, self.fail, (By.XPATH, add_link_xpath)).click()
         wc.submit_form(self.driver, self.wait, self.fail, add_form_xpath, self.cloud_add_valid, expected_response='cloud "{}::{}" successfully added'.format(self.active_group, self.cloud_to_add))
     
-    @unittest.skip
     def test_cloud_delete(self):
         cloud_listing = self.select_cloud(self.cloud_to_delete)
         delete_link = wc.assert_exactly_one(cloud_listing, self.wait, self.fail, (By.LINK_TEXT, '−'), missing_message='The link to delete {} is missing.'.format(self.cloud_to_delete))
@@ -116,11 +113,12 @@ class TestClouds(unittest.TestCase):
             self.fail('{} was removed from the list of clouds even though the deletion was cancelled.'.format(self.cloud_to_delete))
         delete_link.click()
         # Confirm deletion.
-        wc.assert_exactly_one(delete_dialog, self.wait, self.fail, (By.TAG_NAME, 'input'), {'type': 'submit'}, missing_message='The button to confirm deletion is missing from the delete confirmation dialog for {}.'.format(self.cloud_to_delete)).click()
+        wc.assert_exactly_one(delete_dialog, self.wait, self.fail, (By.TAG_NAME, 'form'), {'name': self.cloud_to_delete}, missing_message='The form to confirm deletion is missing from the delete confirmation dialog for {}.'.format(self.cloud_to_delete)).submit()
         # Wait for the deletion to occur.
-        self.wait.until(ec.invisibility_of_element(delete_dialog))
-        # Assert that the cloud has been removed.
-        self.assertRaises(StaleElementReferenceException, cloud_listing.get_attribute, 'id')
+        try:
+            self.wait.until(ec.staleness_of(cloud_listing))
+        except TimeoutException:
+            self.fail('Expected \'{}\' to be removed from the list of clouds, but it was not.'.format(self.cloud_to_delete))
 
     def test_cloud_update(self):
         cloud_listing = self.select_cloud(self.cloud_to_update)

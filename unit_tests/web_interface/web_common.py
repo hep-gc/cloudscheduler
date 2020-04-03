@@ -46,7 +46,7 @@ def submit_form(driver, driver_wait, error_reporter, form_xpath, data, expected_
         entries = driver_wait.until(ec.presence_of_all_elements_located((By.XPATH, '{}//*[@name="{}"]'.format(form_xpath, parameter))))
         if entries:
             for entry in entries:
-                entry_tag_name = get_tag_name(entry)
+                entry_tag_name = entry.tag_name
                 if entry_tag_name == 'input':
                     input_type = entry.get_attribute('type')
                     if input_type == 'checkbox':
@@ -71,8 +71,7 @@ def submit_form(driver, driver_wait, error_reporter, form_xpath, data, expected_
         else:
             error_reporter('Input for \'{}\' is missing.'.format(parameter))
 
-    # Submit the form.
-    assert_exactly_one(form, driver_wait, error_reporter, (By.XPATH, '{}//input[@type="submit"]'.format(form_xpath)), missing_message='<input> with type=\'submit\' not found.').click()
+    form.submit()
 
     driver_wait.until(ec.staleness_of(form))
     if expected_response:
@@ -82,7 +81,6 @@ def submit_form(driver, driver_wait, error_reporter, form_xpath, data, expected_
 
     if retains_values:
         new_data = get_data_from_form(driver, driver_wait, error_reporter, form_xpath)
-        print(f'DEBUG: {new_data}')
         # Iterating over the old values allows us to ignore values that were in the form but never specified in data.
         for parameter, old_value in data.items():
             # Allow values in parameters to be given as ints or floats but come back from the server as strs.
@@ -126,7 +124,6 @@ def get_data_from_form(driver, driver_wait, error_reporter, form_xpath):
     form = assert_exactly_one(driver, driver_wait, error_reporter, (By.XPATH, form_xpath))
     data = {}
     for input_ in driver_wait.until(ec.presence_of_all_elements_located((By.XPATH, '{}//input'.format(form_xpath)))):
-        print(f'DEBUG: {get_open_tag(input_)}')
         input_type = input_.get_attribute('type')
         input_name = input_.get_attribute('name')
         # All inputs with no name are ignored.
@@ -139,7 +136,7 @@ def get_data_from_form(driver, driver_wait, error_reporter, form_xpath):
             elif input_type == 'number' or input_type == 'range':
                 value = input_.get_attribute('value')
                 try:
-                    data[input_name]: float(value)
+                    data[input_name] = float(value)
                 except ValueError:
                     error_reporter('Found an <input> with name=\'{}\', type=\'number\', and a value of \'{}\', which is not parsable as a float.'.format(input_name, value))
             elif input_type == 'text':
@@ -291,6 +288,8 @@ def cleanup(gvar):
     cleanup_commands = [['group', 'delete', '-gn', '{}-wig{}'.format(gvar['user'], i), '-Y'] for i in range(1, 5)]
     cleanup_commands.extend([['user', 'delete', '-un', '{}-wiu{}'.format(gvar['user'], j), '-Y'] for j in range(1, 6)])
 
+    set_setup_required(True)
+
     print('Removing test objects.')
     for command in cleanup_commands:
         process = subprocess.run(['cloudscheduler', *command, '-s', 'unit-test'], stdout=subprocess.PIPE, stderr=subprocess.DEVNULL)
@@ -299,8 +298,6 @@ def cleanup(gvar):
         if process.returncode > 1:
             raise Exception('Error cleaning up tests.\ncmd={}\nstderr={}\nstdout={}'.format(format_command(command), process.stderr, process.stdout))
     print()
-
-    set_setup_required(True)
 
 def set_setup_required(set_to=True):
     import os.path
@@ -328,10 +325,6 @@ def format_command(command):
     import re
 
     return ' '.join((word if re.fullmatch(r'[\w\-\.]+', word) else '\'{}\''.format(word) for word in command))
-
-def get_tag_name(element):
-    '''Return the tag name of an element.'''
-    return element.get_attribute('outerHTML').split(maxsplit=1)[0][1:]
 
 def get_open_tag(element):
     '''Return the opening tag of an element (including all of the attributes defined in it).'''
