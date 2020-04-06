@@ -1349,7 +1349,7 @@ if __name__ == '__main__':
     db_category_list = ["condor_poller.py", "condor_poller_na.py", "ProcessMonitor", "general", "signal_manager"]
 
     #procMon = ProcessMonitor(config_params=db_category_list, pool_size=3, process_ids=process_ids, config_file=sys.argv[1], log_file="/var/log/cloudscheduler/condor_poller.log", log_level=20)
-    procMon = ProcessMonitor(config_params=db_category_list, pool_size=3, process_ids=process_ids, config_file=sys.argv[1])
+    procMon = ProcessMonitor(config_params=db_category_list, pool_size=3, process_ids=process_ids, config_file=sys.argv[1], log_key="condor_poller")
     config = procMon.get_config()
     logging = procMon.get_logging()
     version = config.get_version()
