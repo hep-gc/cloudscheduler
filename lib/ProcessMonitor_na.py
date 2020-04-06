@@ -20,16 +20,23 @@ class ProcessMonitor:
     log_file = None
     log_level = None
 
-    def __init__(self, config_params, pool_size,  process_ids=None, config_file='/etc/cloudscheduler/cloudscheduler.yaml', log_file=None, log_level=None):
+    def __init__(self, config_params, pool_size,  process_ids=None, config_file='/etc/cloudscheduler/cloudscheduler.yaml', log_file=None, log_level=None, log_key=None):
         self.config = Config(config_file, config_params, pool_size=pool_size)
         if log_file is None:
-            self.log_file = self.config.categories[os.path.basename(sys.argv[0])]["log_file"]
+            if log_key is not None:
+                self.log_file = self.config.__dict__[log_key]["log_file"]
+            else:
+                self.log_file = self.config.categories[os.path.basename(sys.argv[0])]["log_file"]
         else:
             self.log_file = log_file
         if log_level is None:
-            self.log_level = self.config.categories[os.path.basename(sys.argv[0])]["log_level"]
+            if log_key is not None:
+                self.log_level = self.config.__dict__[log_key]["log_level"]
+            else:
+                self.log_level = self.config.categories[os.path.basename(sys.argv[0])]["log_level"]
         else:
             self.log_level = log_level
+
         logging.basicConfig(
             filename=self.log_file,
             level=self.log_level,
