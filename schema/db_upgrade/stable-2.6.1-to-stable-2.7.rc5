@@ -1,4 +1,3 @@
-'Ignore or Rename target table "apel_accounting" (in target but NOT in model)? : [''ignore'', ''rename'']': ignore
 ? 'Table: csv2_service_catalog - Ignore or Rename target column "flag_htcondor_allow"
   (in target but NOT in model)? : [''ignore'', ''rename'']'
 : ignore
