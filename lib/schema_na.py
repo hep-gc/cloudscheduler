@@ -1,4 +1,30 @@
 schema = {
+    "apel_accounting": {
+        "keys": [
+            "group_name",
+            "cloud_name",
+            "vmid"
+            ],
+        "columns": {
+            "group_name": {"type": "str", "len": "32", "nulls": "NO"},
+            "cloud_name": {"type": "str", "len": "32", "nulls": "NO"},
+            "vmid": {"type": "str", "len": "128", "nulls": "NO"},
+            "hostname": {"type": "str", "len": "128", "nulls": "NO"},
+            "cloud_type": {"type": "str", "len": "32", "nulls": "YES"},
+            "region": {"type": "str", "len": "32", "nulls": "YES"},
+            "flavor_id": {"type": "str", "len": "128", "nulls": "YES"},
+            "image_id": {"type": "str", "len": "128", "nulls": "YES"},
+            "benchmark_type": {"type": "str", "len": "32", "nulls": "YES"},
+            "benchmark": {"type": "int"},
+            "start_time": {"type": "int"},
+            "end_time": {"type": "int"},
+            "last_update": {"type": "int"},
+            "cpu_time": {"type": "int"},
+            "network_type": {"type": "str", "len": "32", "nulls": "YES"},
+            "rx": {"type": "int"},
+            "tx": {"type": "int"}
+            }
+        },
     "archived_condor_jobs": {
         "keys": [
             "global_job_id"
@@ -560,6 +586,17 @@ schema = {
             "requester": {"type": "str", "len": "64", "nulls": "NO"}
             }
         },
+    "csv2_job_schedulers": {
+        "keys": [
+            "htcondor_fqdn"
+            ],
+        "columns": {
+            "htcondor_fqdn": {"type": "str", "len": "128", "nulls": "NO"},
+            "condor_status": {"type": "int"},
+            "agent_status": {"type": "int"},
+            "foreign_jobs": {"type": "int"}
+            }
+        },
     "csv2_mime_types": {
         "keys": [
             "mime_type"
@@ -609,6 +646,75 @@ schema = {
             "action": {"type": "str", "len": "64", "nulls": "NO"},
             "signame": {"type": "str", "len": "16", "nulls": "NO"},
             "caller": {"type": "str", "len": "256", "nulls": "NO"}
+            }
+        },
+    "csv2_system_status": {
+        "keys": [
+            "id"
+            ],
+        "columns": {
+            "id": {"type": "int"},
+            "csv2_main_status": {"type": "int"},
+            "csv2_main_msg": {"type": "str", "len": "512", "nulls": "YES"},
+            "mariadb_status": {"type": "int"},
+            "mariadb_msg": {"type": "str", "len": "512", "nulls": "YES"},
+            "csv2_openstack_error_count": {"type": "int"},
+            "csv2_openstack_status": {"type": "int"},
+            "csv2_openstack_msg": {"type": "str", "len": "512", "nulls": "YES"},
+            "csv2_jobs_error_count": {"type": "int"},
+            "csv2_jobs_status": {"type": "int"},
+            "csv2_jobs_msg": {"type": "str", "len": "512", "nulls": "YES"},
+            "csv2_machines_error_count": {"type": "int"},
+            "csv2_machines_status": {"type": "int"},
+            "csv2_machines_msg": {"type": "str", "len": "512", "nulls": "YES"},
+            "csv2_condor_gsi_error_count": {"type": "int"},
+            "csv2_condor_gsi_status": {"type": "int"},
+            "csv2_condor_gsi_msg": {"type": "str", "len": "512", "nulls": "YES"},
+            "csv2_status_error_count": {"type": "int"},
+            "csv2_status_status": {"type": "int"},
+            "csv2_status_msg": {"type": "str", "len": "512", "nulls": "YES"},
+            "csv2_timeseries_error_count": {"type": "int"},
+            "csv2_timeseries_status": {"type": "int"},
+            "csv2_timeseries_msg": {"type": "str", "len": "512", "nulls": "YES"},
+            "csv2_ec2_error_count": {"type": "int"},
+            "csv2_ec2_status": {"type": "int"},
+            "csv2_ec2_msg": {"type": "str", "len": "512", "nulls": "YES"},
+            "csv2_htc_agent_error_count": {"type": "int"},
+            "csv2_htc_agent_status": {"type": "int"},
+            "csv2_htc_agent_msg": {"type": "str", "len": "512", "nulls": "YES"},
+            "csv2_glint_error_count": {"type": "int"},
+            "csv2_glint_status": {"type": "int"},
+            "csv2_glint_msg": {"type": "str", "len": "512", "nulls": "YES"},
+            "csv2_watch_error_count": {"type": "int"},
+            "csv2_watch_status": {"type": "int"},
+            "csv2_watch_msg": {"type": "str", "len": "512", "nulls": "YES"},
+            "csv2_vm_data_error_count": {"type": "int"},
+            "csv2_vm_data_status": {"type": "int"},
+            "csv2_vm_data_msg": {"type": "str", "len": "512", "nulls": "YES"},
+            "condor_status": {"type": "int"},
+            "condor_msg": {"type": "str", "len": "512", "nulls": "YES"},
+            "rabbitmq_server_status": {"type": "int"},
+            "rabbitmq_server_msg": {"type": "str", "len": "512", "nulls": "YES"},
+            "load": {"type": "float"},
+            "ram": {"type": "float"},
+            "ram_size": {"type": "float"},
+            "ram_used": {"type": "float"},
+            "swap": {"type": "float"},
+            "swap_size": {"type": "float"},
+            "swap_used": {"type": "float"},
+            "disk": {"type": "float"},
+            "disk_size": {"type": "float"},
+            "disk_used": {"type": "float"},
+            "last_updated": {"type": "int"}
+            }
+        },
+    "csv2_timestamps": {
+        "keys": [
+            "entity"
+            ],
+        "columns": {
+            "entity": {"type": "str", "len": "64", "nulls": "NO"},
+            "last_updated": {"type": "int"}
             }
         },
     "csv2_user": {
