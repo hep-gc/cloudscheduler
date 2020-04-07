@@ -19,23 +19,21 @@ def main(gvar):
         # 16 Omit `--metadata-name`.
         '--metadata-name': {'valid': ut_id(gvar, 'clm1'), 'test_cases': {
             # 17
-            '': 'TODO',
+            '': '"cloudscheduler group metadata-delete" cannot delete "grobertson-clg1::", file doesn\'t exist.',
             # 18
-            'invalid-unit-test!': 'TODO',
-            # 19
-            'invalid-unit-test': 'the request did not match any rows.'
+            'invalid-unit-test': '"cloudscheduler group metadata-delete" cannot delete "grobertson-clg1::invalid-unit-test", file doesn\'t exist.'
         }, 'mandatory': True}
     }
 
     parameters_commands(gvar, 'metadata', 'delete', ut_id(gvar, 'clg1'), ut_id(gvar, 'clu3'), parameters, requires_confirmation=True)
 
-    # 20
+    # 19
     execute_csv2_command(
         gvar, 1, None, 'The following command line arguments were invalid: job-cores',
         ['metadata', 'delete', '-jc', 'invalid-unit-test', '-Y', '-su', ut_id(gvar, 'clu3')]
     )
 
-    # 21
+    # 20
     execute_csv2_command(
         gvar, 0, None, 'group metadata file "{}::{}" successfully deleted.'.format(ut_id(gvar, 'clg1'), ut_id(gvar, 'clm1')),
         ['metadata', 'delete', '-mn', ut_id(gvar, 'clm1'), '-Y', '-su', ut_id(gvar, 'clu3')]

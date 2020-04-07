@@ -264,7 +264,7 @@ def sanity_requests(gvar, request, group, server_user, userless_group, groupless
     Perform 5 sanity checks that should pass for all non-CLI tests.'''
     # Attempt as a non-existent user.
     execute_csv2_request(
-        gvar, 2, None, 'server "unit-test", HTTP response code 401, unauthorized.',
+        gvar, 2, None, 'HTTP response code 401, unauthorized.',
         request, group=group, server_user='invalid-unit-test'
     )
     # Attempt as a user who is not in any groups.
@@ -274,7 +274,7 @@ def sanity_requests(gvar, request, group, server_user, userless_group, groupless
     )
     # Attempt with an incorrect password.
     execute_csv2_request(
-        gvar, 2, None, 'server "unit-test", HTTP response code 401, unauthorized.',
+        gvar, 2, None, 'HTTP response code 401, unauthorized.',
         request, group=group, server_user=server_user, server_pw='invalid-unit-test'
     )
     # Attempt to change to a group that does not exist.
