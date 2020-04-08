@@ -173,7 +173,9 @@ for table in db_privileges['block']:
         if len(words) > 0 and words[0] not in db_privileges['block'][table]:
             allowed[table].append(words[0])
 
+
 tables = {}
+tables['csv2_configuration'] = {'query': True, 'merge': False, 'delete': False, 'privileges': []}
 for ix in range(aix, len(sys.argv)):
     realpath = os.path.realpath(sys.argv[ix])
     if os.path.isfile(realpath):
