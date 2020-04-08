@@ -6,6 +6,7 @@ import unittest
 import web_common as wc
 
 EXPECTED_CLOUD_TABS = ['Settings', 'Metadata', 'Exclusions']
+EXPECTED_CLOUD_TYPES = ['amazon', 'azure', 'google', 'local', 'opennebula', 'openstack']
 
 class TestClouds(unittest.TestCase):
     @classmethod
@@ -21,8 +22,10 @@ class TestClouds(unittest.TestCase):
         cls.metadata_to_delete = '{}-wicm2'.format(cls.gvar['user'])
         cls.metadata_to_update = '{}-wicm3'.format(cls.gvar['user'])
         cls.metadata_to_add = '{}-wicm4'.format(cls.gvar['user'])
-        cls.cloud_add_parameters = {
-            'cloud_name': ({
+        # It is important that cloud_type comes before cloud_credentials, because it can change these fields.
+        cls.cloud_add_mandatory_parameters = {'cloud_name': cls.cloud_to_add, 'cloud_type': 'openstack', **cls.gvar['cloud_credentials']}
+        cls.cloud_add_invalid_combinations = {
+            'cloud_name': {
                 '': 'cloud add value specified for "cloud_name" must not be the empty string.',
                 'Invalid-Unit-Test': 'cloud add value specified for "cloud_name" must be all lowercase letters, digits, dashes, underscores, periods, and colons, and cannot contain more than one consecutive dash or start or end with a dash.',
                 'invalid-unit--test': 'cloud add value specified for "cloud_name" must be all lowercase letters, digits, dashes, underscores, periods, and colons, and cannot contain more than one consecutive dash or start or end with a dash.',
@@ -30,48 +33,45 @@ class TestClouds(unittest.TestCase):
                 'invalid-unit-test!': 'cloud add value specified for "cloud_name" must be all lowercase letters, digits, dashes, underscores, periods, and colons, and cannot contain more than one consecutive dash or start or end with a dash.',
                 'cloud-name-that-is-too-long-for-the-database': 'Data too long for column \'cloud_name\' at row 1',
                 cls.cloud_to_list: 'Duplicate entry \'{}-{}\' for key \'PRIMARY\''.format(cls.active_group, cls.cloud_to_list)
-            }, 'invalid-unit-test'),
-            'priority': ({
+            },
+            'authurl': {'': 'cloud add parameter "authurl" contains an empty string which is specifically disallowed.'},
+            'username': {'': 'cloud add parameter "username" contains an empty string which is specifically disallowed.'},
+            'password': {'': 'cloud add parameter "password" contains an empty string which is specifically disallowed.'},
+            'project': {'': 'cloud add parameter "project" contains an empty string which is specifically disallowed.'},
+            'region': {'': 'cloud add parameter "region" contains an empty string which is specifically disallowed.'},
+            'priority': {
                 '': 'cloud add value specified for "priority" must be an integer value.',
                 'invalid-unit-test': 'cloud add value specified for "priority" must be an integer value.',
                 '3.1': 'cloud add value specified for "priority" must be an integer value.'
-            }, 0),
-            # It is important that cloud_type comes before authurl, project, and region, because it can change these fields.
-            'cloud_type': ({}, 'local'),
-            'authurl': ({'': 'cloud add parameter "authurl" contains an empty string which is specifically disallowed.'}, cls.gvar['cloud_credentials']['authurl']),
-            'username': ({'': 'cloud add parameter "username" contains an empty string which is specifically disallowed.'}, cls.gvar['cloud_credentials']['username']),
-            'password': ({'': 'cloud add parameter "password" contains an empty string which is specifically disallowed.'}, cls.gvar['cloud_credentials']['password']),
-            'project': ({'': 'cloud add parameter "project" contains an empty string which is specifically disallowed.'}, cls.gvar['cloud_credentials']['project']),
-            'region': ({'': 'cloud add parameter "region" contains an empty string which is specifically disallowed.'}, cls.gvar['cloud_credentials']['region'])
+            }
         }
-        cls.cloud_add_valid = {'cloud_name': cls.cloud_to_add, 'cloud_type': 'openstack', **cls.gvar['cloud_credentials'], 'enabled': True}
-        cls.cloud_update_parameters = {
-            # It is important that cloud_type comes before authurl, project, and region, because it can change these fields.
-            'cloud_type': ({}, 'local'),
-            'authurl': ({'': 'cloud update parameter "authurl" contains an empty string which is specifically disallowed.'}, cls.gvar['cloud_credentials']['authurl']),
-            'username': ({'': 'cloud update parameter "username" contains an empty string which is specifically disallowed.'},),
-            'project': ({'': 'cloud update parameter "project" contains an empty string which is specifically disallowed.'}, cls.gvar['cloud_credentials']['project']),
-            'region': ({'': 'cloud update parameter "region" contains an empty string which is specifically disallowed.'}, cls.gvar['cloud_credentials']['region']),
-            'priority': ({
+        cls.cloud_add_valid_combinations = [{'enabled': True}]
+        cls.cloud_update_invalid_combinations = {
+            'authurl': {'': 'cloud update parameter "authurl" contains an empty string which is specifically disallowed.'},
+            'username': {'': 'cloud update parameter "username" contains an empty string which is specifically disallowed.'},
+            'project': {'': 'cloud update parameter "project" contains an empty string which is specifically disallowed.'},
+            'region': {'': 'cloud update parameter "region" contains an empty string which is specifically disallowed.'},
+            'priority': {
                 '': 'cloud update value specified for "priority" must be an integer value.',
                 'invalid-unit-test': 'cloud update value specified for "priority" must be an integer value.',
                 '3.1': 'cloud update value specified for "priority" must be an integer value.'
-            },),
-            'vm_keep_alive': ({'invalid-unit-test': 'value specified for "vm_keep_alive" must be an integer value.'},),
-            'spot_price': ({'invalid-unit-test': 'cloud update value specified for "spot_price" must be a floating point value.'},)
+            },
+            'vm_keep_alive': {'invalid-unit-test': 'value specified for "vm_keep_alive" must be an integer value.'},
+            'spot_price': {'invalid-unit-test': 'cloud update value specified for "spot_price" must be a floating point value.'},
             # ram_ctl and cores_ctl are <input>s with type='number', meaning the browser prevents the submission of the form unless they are integers.
             # AFAIK it is impossible to test the details of the browser's response, because it shows a message that is not part of the DOM.
         }
-        cls.cloud_update_valid = {
-            'enabled': False,
-            'user_domain_name': 'unit-test.ca',
-            'project_domain_name': 'unit-test.ca',
-            'vm_keep_alive': 3,
-            'spot_price': 1.4,
-            'cores_softmax': 15,
-            'cores_ctl': 9,
-            'ram_ctl': 2
-        }
+        cls.cloud_update_valid_combinations = [{
+                'enabled': True,
+                'user_domain_name': 'unit-test.ca',
+                'project_domain_name': 'unit-test.ca',
+                'vm_keep_alive': 3,
+                'spot_price': 1.4,
+                'cores_softmax': 15,
+                'cores_ctl': 9,
+                'ram_ctl': 2
+            }
+        ]
 
     def test_nav(self):
         wc.assert_nav(self.driver_wait, self.fail, self.gvar['address'])
@@ -87,12 +87,25 @@ class TestClouds(unittest.TestCase):
 
     def test_cloud_add(self):
         # Look for links with visible text '+' within elements with id 'add-cloud' which are themselves in elements of class 'menu'.
-        add_link_xpath = '//*[@class="menu"]//*[@id="add-cloud"]//a[text()="+"]'
-        # Look for forms with name 'add_cloud' within elements with id 'add-cloud' which are themselves in elements of class 'menu'.
-        add_form_xpath = '//*[@class="menu"]//*[@id="add-cloud"]//form[@name="add_cloud"]'
-        wc.parameters_submissions(self.driver_wait, self.fail, add_form_xpath, self.cloud_add_parameters, click_before_filling=add_link_xpath)
-        wc.assert_exactly_one(self.driver_wait, self.fail, (By.XPATH, add_link_xpath)).click()
-        wc.submit_form(self.driver_wait, self.fail, add_form_xpath, self.cloud_add_valid, expected_response='cloud "{}::{}" successfully added'.format(self.active_group, self.cloud_to_add))
+        link_xpath = '//*[@class="menu"]//*[@id="add-cloud"]//a[text()="+"]'
+        # Look for forms with name 'cloud' within elements with id 'add-cloud' which are themselves in elements of class 'menu'.
+        form_xpath = '//*[@class="menu"]//*[@id="add-cloud"]//form[@name="cloud"]'
+        wc.submit_invalid_combinations(self.driver_wait, self.fail, form_xpath, self.cloud_invalid_combinations, self.cloud_mandatory_parameters, click_before_filling=link_xpath)
+        wc.assert_exactly_one(self.driver_wait, self.fail, (By.XPATH, link_xpath)).click()
+        wc.submit_valid_combinations(self.driver_wait, self.fail, form_xpath, self.cloud_valid_combinations, self.cloud_mandatory_parameters, expected_response='successfully added')
+        wc.assert_exactly_one(self.driver_wait, self.fail, (By.XPATH, link_xpath)).click()
+        # Assert that the new cloud appears in the list of clouds.
+        wc.assert_exactly_one(self.driver_wait, self.fail, (By.XPATH, '//*[@class="menu"]//*[@id="{}"]'.format(self.cloud_to_add)), missing_message='\'{}\' was missing from the list of clouds.'.format(self.cloud_to_add))
+        # Assert that changing the cloud_type changes other options appropriately.
+        form = self.driver_wait.until(ec.presence_of_element_located((By.XPATH, form_xpath)))
+        form_wait = wait.WebDriverWait(form, self.gvar['max_wait'])
+        cloud_type_input = wc.assert_exactly_one(form_wait, self.fail, (By.TAG_NAME, 'select'), {'name': 'cloud_type'})
+        cloud_type_options = cloud_type_input.find_elements_by_tag_name('option')
+        cloud_types = [option.text for option in cloud_type_options]
+        self.assertEqual(cloud_types, EXPECTED_CLOUD_TYPES)
+        # Amazon.
+        cloud_type_options[0].click()
+        authurl = wc.assert_exactly_one(form_wait, self.fail, (By.TAG_NAME, 'input'), {'name': 'authurl'})
     
     def test_cloud_delete(self):
         cloud_listing, cloud_listing_wait = self.select_cloud(self.cloud_to_delete)
@@ -127,8 +140,8 @@ class TestClouds(unittest.TestCase):
         settings_tab.click()
         # Look for forms with name equal to cloud_to_update within elements with id equal to cloud_to_update which are themselves in elements of class 'menu'.
         update_form_xpath = '//*[@class="menu"]//*[@id="{0}"]//form[@name="{0}"]'.format(self.cloud_to_update)
-        wc.parameters_submissions(self.driver_wait, self.fail, update_form_xpath, self.cloud_update_parameters)
-        wc.submit_form(self.driver_wait, self.fail, update_form_xpath, self.cloud_update_valid, expected_response='cloud "{}::{}" successfully updated'.format(self.active_group, self.cloud_to_update), retains_values=True)
+        wc.submit_invalid_combinations(self.driver_wait, self.fail, update_form_xpath, self.cloud_update_invalid_combinations, self.cloud_update_mandatory_parameters)
+        wc.submit_valid_combinations(self.driver_wait, self.fail, update_form_xpath, self.cloud_update_valid_combinations, expected_response='successfully updated', retains_values=True)
 
     def test_exclusions_tab(self):
         cloud_listing, cloud_listing_wait = self.select_cloud(self.cloud_to_list)

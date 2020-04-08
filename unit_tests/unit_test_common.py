@@ -650,56 +650,56 @@ def load_settings(web=False):
 
     try:
         with open(os.path.expanduser('~/.csv2/unit-test/settings.yaml')) as settings_file:
-            settings = {'user_settings': yaml.safe_load(settings_file)}
+            gvar = {'user_settings': yaml.safe_load(settings_file)}
     except FileNotFoundError:
         raise Exception('You must create a minimal cloudscheduler defaults for server "unit-test" containing the server address and user credentials.')
-    settings['fqdn'] = re.sub(r'^https?://', '', settings['user_settings']['server-address'], count=1)
-    if web:
-        settings['address'] = settings['user_settings']['server-address']
-        settings['user'] = settings['user_settings']['server-user']
-        del settings['user_settings']
+    gvar['fqdn'] = re.sub(r'^https?://', '', gvar['user_settings']['server-address'], count=1)
 
-    # Get user_secret and cloud credentials.
+    # Get unit test credentials.
     credentials_path = os.path.expanduser('~/cloudscheduler/unit_tests/credentials.yaml')
     try:
         with open(credentials_path) as credentials_file:
             credentials = yaml.safe_load(credentials_file)
         if web and ('web' not in credentials):
-            credentials['web'] = {}
-            credentials['web']['firefox_profile'] = input('Location of Firefox profile to use for web interface tests: ')
-            credentials['web']['setup_required'] = True
+            _prompt_for_web_credentials(credentials, gvar['user_settings']['server-user'])
             with open(credentials_path, 'w') as credentials_file:
                 yaml.safe_dump(credentials, credentials_file)
-        settings.update(credentials)
     except FileNotFoundError:
         print('No unit test credentials file found at {}. Prompting for credentials.'.format(credentials_path))
-        settings['user_secret'] = generate_secret()
-        settings['cloud_credentials'] = {}
-        settings['cloud_credentials']['authurl'] = input('Cloud authurl (cloud address to give test clouds): ')
-        settings['cloud_credentials']['username'] = input('Cloud username: ')
-        settings['cloud_credentials']['password'] = getpass('Cloud password: ')
-        settings['cloud_credentials']['region'] = input('Cloud region: ')
-        settings['cloud_credentials']['project'] = input('Cloud project: ')
+        credentials['user_secret'] = generate_secret()
+        credentials['cloud_credentials'] = {}
+        credentials['cloud_credentials']['authurl'] = input('Cloud authurl (cloud address to give test clouds): ')
+        credentials['cloud_credentials']['username'] = input('Cloud username: ')
+        credentials['cloud_credentials']['password'] = getpass('Cloud password: ')
+        credentials['cloud_credentials']['region'] = input('Cloud region: ')
+        credentials['cloud_credentials']['project'] = input('Cloud project: ')
         if web:
-            settings['web']['firefox_profile'] = input('Location of Firefox profile to use for web interface tests: ')
-            settings['web']['max_wait'] = input('Maximum number of seconds to wait for webpages to load: ')
-            settings['web']['setup_required'] = True
+            _prompt_for_web_credentials(credentials, gvar['user_settings']['server-user'])
         # Create credentials file with read / write permissions for the current user and none for others.
         os.umask(0)
         dir_path = os.path.dirname(credentials_path)
         if dir_path:
             os.makedirs(dir_path, mode=0o700, exist_ok=True)
         with open(os.open(credentials_path, os.O_CREAT | os.O_WRONLY, 0o600), 'w') as credentials_file:
-            yaml.safe_dump(settings, credentials_file)
-    except yaml.YAMLError as err:
-        print('YAML encountered an error while parsing {}: {}'.format(credentials_path, err))
+            yaml.safe_dump(credentials, credentials_file)
+    gvar.update(credentials)
 
     if web:
-        # Move everything in settings['web'] up to the top level.
-        settings.update(settings['web'])
-        del settings['web']
+        # Discard unneeded settings.
+        gvar['address'] = gvar['user_settings']['server-address']
+        gvar['user'] = gvar['user_settings']['server-user']
+        del gvar['user_settings']
+        # Move everything in gvar['web'] up to the top level.
+        gvar.update(gvar['web'])
+        del gvar['web']
 
-    return settings
+    return gvar
+
+def _prompt_for_web_credentials(credentials, server_user):
+    credentials['web'] = {}
+    credentials['web']['firefox_profiles'] = [input('Location of a Firefox profile with the credentials for {}-wiu{} saved: '.format(server_user, i)) for i in range(1, 4)]
+    credentials['web']['max_wait'] = float(input('Maximum time in seconds that web interface pages may take to load (float): '))
+    credentials['web']['setup_required'] = True
 
 def _requests(gvar, request, group=None, form_data=None, query_data=None, server_user=None, server_pw=None, html=False):
     """

@@ -99,12 +99,29 @@ def submit_form(driver_wait, error_reporter, form_xpath, data, expected_response
             if new_data[parameter] != old_value:
                 error_reporter('Expected {} to be retained for the parameter \'{}\', but found {}.'.format(old_value, parameter, new_data[parameter]))
 
-def parameters_submissions(driver_wait, error_reporter, form_xpath, parameters, click_before_filling=None):
+def submit_valid_combinations(driver_wait, error_reporter, form_xpath, valid_combinations, mandatory_parameters=None, expected_response=None, click_before_filling=None, retains_values=False):
     '''
-    Submit a form multiple times with parameter combinations that are expected to fail.
+    Submit a form multiple times with parameter combinations that are expected to succeed.
     driver_wait (selenium.webdriver.support.wait.WebDriverWait): A WebDriverWait for the driver that contains the form to submit.
     error_reporter (callable, usually unittest.TestCase.fail): Will be called with an error message (str) as its first and only argument if an error occurs. Therefore, this function will *not* continue with any remaining submissions if and only if `error_reporter` raises an exception.
     form_xpath (str): An absolute XPath that uniquely identifies the form element to fill out. This allows it to be re-found after each submission.
+    clicked_before_filling (str or None): An absolute XPath that uniquely identifies an element. May be given to indicate that an element should be clicked before each time that the form is filled out and submitted. This is usually used to cause the form to become visible again.
+    '''
+    from selenium.webdriver.common.by import By
+
+    if not mandatory_parameters or retains_values:
+        mandatory_parameters = {}
+
+    for valid_combination in valid_combinations:
+        if click_before_filling:
+            assert_exactly_one(driver_wait, error_reporter, (By.XPATH, click_before_filling)).click()
+        # mandatory_parameters are listed first so that they are overwriten as necessary.
+        submit_form(driver_wait, error_reporter, form_xpath, {**mandatory_parameters, **valid_combination}, expected_response=expected_response, retains_values=retains_values)
+
+def submit_invalid_combinations(driver_wait, error_reporter, form_xpath, invalid_combinations, mandatory_parameters=None, click_before_filling=None):
+    '''
+    Submit a form multiple times with parameter combinations that are expected to fail.
+    driver_wait, error_reporter, form_xpath: See `submit_valid_combinations`.
     parameters (dict): A dictionary which maps parameter names to tuples, each of length 1 or 2 and containing:
         A dictionary of test cases which maps bad values for the parameter to the error messages that they are expected to produce.
         Optional: A valid value for the parameter. If and only if this is provided, it will be specified in each form submission for other parameters. This is useful when a form requires certain fields, but comes back blank when it is submitted.
@@ -112,13 +129,15 @@ def parameters_submissions(driver_wait, error_reporter, form_xpath, parameters, 
     '''
     from selenium.webdriver.common.by import By
 
-    mandatory_params = {name: details[1] for name, details in parameters.items() if len(details) > 1}
-    for p_name, p_details in parameters.items():
-        for value, message in p_details[0].items():
+    if not mandatory_parameters:
+        mandatory_parameters = {}
+
+    for name, test_cases in invalid_combinations.items():
+        for value, message in test_cases.items():
             if click_before_filling:
                 assert_exactly_one(driver_wait, error_reporter, (By.XPATH, click_before_filling)).click()
-            # mandatory_params are listed first so that p_name overwrites them as necessary.
-            submit_form(driver_wait, error_reporter, form_xpath, {**mandatory_params, p_name: value}, expected_response=message)
+            # mandatory_parameters are listed first so that they are overwriten as necessary.
+            submit_form(driver_wait, error_reporter, form_xpath, {**mandatory_parameters, name: value}, expected_response=message)
 
 def get_data_from_form(driver_wait, error_reporter, form_xpath):
     '''
@@ -188,12 +207,8 @@ def assert_nav(driver_wait, error_reporter, address, privileged=False):
     if nav_links != expected_nav_links:
         error_reporter('Expected the top nav to contain the links {}, but found the links {}.'.format(expected_nav_links, nav_links))
 
-def setup(address_extension):
+def setup(address_extension, privileged=False):
     '''Load global settings and create test objects.'''
-    from selenium import webdriver
-    from selenium.common.exceptions import TimeoutException
-    from selenium.webdriver.support import expected_conditions as ec, wait
-    import os.path
     import subprocess
     from cloudscheduler.unit_tests.unit_test_common import load_settings
 
@@ -280,17 +295,8 @@ def setup(address_extension):
         print()
         set_setup_required(False)
 
-    # ~/cloudscheduler/unit_tests must exist because we have already loaded settings from the credentials file there.
-    gvar['driver'] = webdriver.Firefox(webdriver.FirefoxProfile(gvar['firefox_profile']), service_log_path=os.path.expanduser('~/cloudscheduler/unit_tests/geckodriver.log'))
-    try:
-        gvar['driver_wait'] = wait.WebDriverWait(gvar['driver'], gvar['max_wait'])
-        # The internet says that driver.get() should automatically wait for the page to be loaded, but it does not seem to.
-        gvar['driver'].get(gvar['address'] + address_extension)
-        # The Firefox profile will automatically fill in the server credentials, so we just accept the prompt.
-        gvar['driver_wait'].until(ec.alert_is_present()).accept()
-    except TimeoutException:
-        gvar['driver'].quit()
-        raise
+    switch_user(gvar, address_extension, 1 if privileged else 0)
+
     return gvar
 
 def cleanup(gvar):
@@ -332,6 +338,32 @@ def set_setup_required(set_to=True):
     with open(credentials_path, 'w') as credentials_file:
         credentials_file.write(yaml.safe_dump(settings))
 
+def switch_user(gvar, address_extension, profile_index):
+    '''
+    UNTESTED
+    Switch to a different Firefox profile, and therefore a different user.
+    profile_index (int): The zero-indexed index of the profile in gvar['firefox_profiles'] to switch to.
+    '''
+    from selenium import webdriver
+    from selenium.common.exceptions import TimeoutException
+    from selenium.webdriver.support import expected_conditions as ec, wait
+    import os.path
+
+    old_driver = gvar.get('driver')
+    if old_driver:
+        old_driver.quit()
+    # ~/cloudscheduler/unit_tests must exist because we have already loaded settings from the credentials file there.
+    gvar['driver'] = webdriver.Firefox(webdriver.FirefoxProfile(gvar['firefox_profiles'][profile_index]), service_log_path=os.path.expanduser('~/cloudscheduler/unit_tests/geckodriver.log'))
+    try:
+        gvar['driver_wait'] = wait.WebDriverWait(gvar['driver'], gvar['max_wait'])
+        # The internet says that driver.get() should automatically wait for the page to be loaded, but it does not seem to.
+        gvar['driver'].get(gvar['address'] + address_extension)
+        # The Firefox profile will automatically fill in the server credentials, so we just accept the prompt.
+        gvar['driver_wait'].until(ec.alert_is_present()).accept()
+    except TimeoutException:
+        gvar['driver'].quit()
+        raise
+
 def format_command(command):
     '''Format a list of parameters so that when the formatted string is printed it can be copy-pasted to re-run the command.'''
     import re
@@ -342,4 +374,5 @@ def get_open_tag(element):
     '''Return the opening tag of an element (including all of the attributes defined in it).'''
     import re
 
+    # Match '<', then (any chars besides '>' and quotes) any number of times and (anything in quotes) any number of times, then '>'.
     return re.match(r'<([^>\'"]+|([\'"]).*?\2)+>', element.text)[0]
