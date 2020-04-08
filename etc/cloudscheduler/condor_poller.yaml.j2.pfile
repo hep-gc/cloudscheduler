@@ -39,5 +39,5 @@ signals:
 condor_poller:
     condor_worker_cert: /var/lib/condor/.globus/condor_worker_cert.pem
     condor_worker_key: /var/lib/condor/.globus/condor_worker_key.pem
-    log_file: /var/log/condor/condor_poller.log
+    log_file: /var/log/cloudscheduler/condor_poller.log
     log_level: 20
