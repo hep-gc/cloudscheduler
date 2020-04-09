@@ -1,4 +1,4 @@
-def assert_exactly_one(parent_wait, error_reporter, identifier, attributes=None, missing_message=None, multiple_message=None):
+def assert_exactly_one(parent, error_reporter, identifier, attributes=None, missing_message=None, multiple_message=None):
     '''
     Assert that a parent element contains precisely one child element matching the given identifier and attribute(s), and return this child.
     parent_wait (selenium.webdriver.wait.WebDriverWait): A WebDriverWait for the driver or element expected to contain the child.
@@ -9,20 +9,19 @@ def assert_exactly_one(parent_wait, error_reporter, identifier, attributes=None,
     multiple_message (str or None): May be given to specify a custom error message to use when multiple matching elements are found.
     '''
     from selenium.common.exceptions import TimeoutException
-    from selenium.webdriver.support import expected_conditions as ec
 
     if not attributes:
         attributes = {}
     default_message = 'Expected 1 element with identifier {} and attributes {}, but found {}'
     matching_elems = []
 
-    try:
-        candidates = parent_wait.until(ec.presence_of_all_elements_located(identifier))
-    except TimeoutException:
+    candidates = parent.find_elements(*identifier)
+    if not candidates:
         error_reporter('Did not find any elements matching the identifier {} (before considering any attributes).'.format(identifier))
-    for elem in candidates:
-        if all(elem.get_attribute(att_name) == att_value for att_name, att_value in attributes.items()):
-            matching_elems.append(elem)
+    else:
+        for elem in candidates:
+            if all(elem.get_attribute(att_name) == att_value for att_name, att_value in attributes.items()):
+                matching_elems.append(elem)
 
     if len(matching_elems) == 0:
         error_reporter(missing_message if missing_message else default_message.format(identifier, attributes, 0))
@@ -31,10 +30,10 @@ def assert_exactly_one(parent_wait, error_reporter, identifier, attributes=None,
     else:
         error_reporter(multiple_message if multiple_message else default_message.format(identifier, attributes, len(matching_elems)))
 
-def submit_form(driver_wait, error_reporter, form_xpath, data, expected_response=None, retains_values=False):
+def submit_form(driver, error_reporter, form_xpath, data, expected_response=None, retains_values=False):
     '''
     Fill an HTML form with the specified data and submit it.
-    driver_wait (selenium.webdriver.support.waitWebDriverWait): A WebDriverWait for the driver that contains the form to submit. (This must be a driver, not an element, if retains_values, because all elements become stale when the form is submitted.)
+    driver (selenium.webdriver.support.waitWebDriverWait): A WebDriverWait for the driver that contains the form to submit. (This must be a driver, not an element, if retains_values, because all elements become stale when the form is submitted.)
     error_reporter (callable, usually unittest.TestCase.fail): Will be called with an error message (str) as its first and only argument if an error occurs. Therefore, this function will *not* continue with any remaining fields after an error if and only if `error_reporter` raises an exception.
     form_xpath (str): An absolute XPath that uniquely identifies the form element to fill out. (This allows the form to be re-found after it is submitted.)
     data (dict): Maps the `name` attributes of <input> and <select> elements in the form to the values that they should have. These values should be bools for checkboxes and radio buttons, objects that can be cast to strs for text entries, and the visible text of an option (not its `value` attribute) as a str for <select> tags. Any <input>s which are not mapped will not be silently ignored.
@@ -43,13 +42,12 @@ def submit_form(driver_wait, error_reporter, form_xpath, data, expected_response
     Forms are allowed to be dynamic; i.e. fields are allowed to completely change in response to previous fields being filled out.
     '''
     from selenium.webdriver.common.by import By
-    from selenium.webdriver.support import expected_conditions as ec
     import re
 
-    form = assert_exactly_one(driver_wait, error_reporter, (By.XPATH, form_xpath))
+    form = assert_exactly_one(driver, error_reporter, (By.XPATH, form_xpath))
     for parameter, value in data.items():
         # Re-finding the entries each time is necessary to support dynamic forms.
-        entries = driver_wait.until(ec.presence_of_all_elements_located((By.XPATH, '{}//*[@name="{}"]'.format(form_xpath, parameter))))
+        entries = driver.find_elements(By.XPATH, '{}//*[@name="{}"]'.format(form_xpath, parameter))
         if entries:
             for entry in entries:
                 entry_tag_name = entry.tag_name
@@ -70,7 +68,7 @@ def submit_form(driver_wait, error_reporter, form_xpath, data, expected_response
                     else:
                         error_reporter('Unrecognized <input> type \'{}\' for parameter \'{}\'.'.format(input_type, parameter))
                 elif entry_tag_name == 'select':
-                    assert_exactly_one(driver_wait, error_reporter, (By.XPATH, '{}//select[@name="{}"]//option[text()="{}"]'.format(form_xpath, parameter, value)), missing_message='Option \'{}\' not found for parameter \'{}\'.'.format(value, parameter)).click()
+                    assert_exactly_one(driver, error_reporter, (By.XPATH, '{}//select[@name="{}"]//option[text()="{}"]'.format(form_xpath, parameter, value)), missing_message='Option \'{}\' not found for parameter \'{}\'.'.format(value, parameter)).click()
                 else:
                     error_reporter('Unrecognized tag name <{}> for parameter \'{}\'.'.format(entry_tag_name, parameter))
         # No entries were found.
@@ -79,14 +77,13 @@ def submit_form(driver_wait, error_reporter, form_xpath, data, expected_response
 
     form.submit()
 
-    driver_wait.until(ec.staleness_of(form))
     if expected_response:
-        actual_response = driver_wait.until(ec.presence_of_element_located((By.ID, 'message'))).text
+        actual_response = assert_exactly_one(driver, error_reporter, (By.ID, 'message')).text
         if expected_response not in actual_response:
             error_reporter('Expected a response containing \'{}\', but received \'{}\'.'.format(expected_response, actual_response))
 
     if retains_values:
-        new_data = get_data_from_form(driver_wait, error_reporter, form_xpath)
+        new_data = get_data_from_form(driver, error_reporter, form_xpath)
         # Iterating over the old values allows us to ignore values that were in the form but never specified in data.
         for parameter, old_value in data.items():
             # Allow values in parameters to be given as ints or floats but come back from the server as strs.
@@ -99,10 +96,10 @@ def submit_form(driver_wait, error_reporter, form_xpath, data, expected_response
             if new_data[parameter] != old_value:
                 error_reporter('Expected {} to be retained for the parameter \'{}\', but found {}.'.format(old_value, parameter, new_data[parameter]))
 
-def submit_valid_combinations(driver_wait, error_reporter, form_xpath, valid_combinations, mandatory_parameters=None, expected_response=None, click_before_filling=None, retains_values=False):
+def submit_valid_combinations(driver, error_reporter, form_xpath, valid_combinations, mandatory_parameters=None, expected_response=None, click_before_filling=None, retains_values=False):
     '''
     Submit a form multiple times with parameter combinations that are expected to succeed.
-    driver_wait (selenium.webdriver.support.wait.WebDriverWait): A WebDriverWait for the driver that contains the form to submit.
+    driver (selenium.webdriver.support.wait.WebDriverWait): A WebDriverWait for the driver that contains the form to submit.
     error_reporter (callable, usually unittest.TestCase.fail): Will be called with an error message (str) as its first and only argument if an error occurs. Therefore, this function will *not* continue with any remaining submissions if and only if `error_reporter` raises an exception.
     form_xpath (str): An absolute XPath that uniquely identifies the form element to fill out. This allows it to be re-found after each submission.
     clicked_before_filling (str or None): An absolute XPath that uniquely identifies an element. May be given to indicate that an element should be clicked before each time that the form is filled out and submitted. This is usually used to cause the form to become visible again.
@@ -114,14 +111,14 @@ def submit_valid_combinations(driver_wait, error_reporter, form_xpath, valid_com
 
     for valid_combination in valid_combinations:
         if click_before_filling:
-            assert_exactly_one(driver_wait, error_reporter, (By.XPATH, click_before_filling)).click()
+            assert_exactly_one(driver, error_reporter, (By.XPATH, click_before_filling)).click()
         # mandatory_parameters are listed first so that they are overwriten as necessary.
-        submit_form(driver_wait, error_reporter, form_xpath, {**mandatory_parameters, **valid_combination}, expected_response=expected_response, retains_values=retains_values)
+        submit_form(driver, error_reporter, form_xpath, {**mandatory_parameters, **valid_combination}, expected_response=expected_response, retains_values=retains_values)
 
-def submit_invalid_combinations(driver_wait, error_reporter, form_xpath, invalid_combinations, mandatory_parameters=None, click_before_filling=None):
+def submit_invalid_combinations(driver, error_reporter, form_xpath, invalid_combinations, mandatory_parameters=None, click_before_filling=None):
     '''
     Submit a form multiple times with parameter combinations that are expected to fail.
-    driver_wait, error_reporter, form_xpath: See `submit_valid_combinations`.
+    driver, error_reporter, form_xpath: See `submit_valid_combinations`.
     parameters (dict): A dictionary which maps parameter names to tuples, each of length 1 or 2 and containing:
         A dictionary of test cases which maps bad values for the parameter to the error messages that they are expected to produce.
         Optional: A valid value for the parameter. If and only if this is provided, it will be specified in each form submission for other parameters. This is useful when a form requires certain fields, but comes back blank when it is submitted.
@@ -135,23 +132,22 @@ def submit_invalid_combinations(driver_wait, error_reporter, form_xpath, invalid
     for name, test_cases in invalid_combinations.items():
         for value, message in test_cases.items():
             if click_before_filling:
-                assert_exactly_one(driver_wait, error_reporter, (By.XPATH, click_before_filling)).click()
+                assert_exactly_one(driver, error_reporter, (By.XPATH, click_before_filling)).click()
             # mandatory_parameters are listed first so that they are overwriten as necessary.
-            submit_form(driver_wait, error_reporter, form_xpath, {**mandatory_parameters, name: value}, expected_response=message)
+            submit_form(driver, error_reporter, form_xpath, {**mandatory_parameters, name: value}, expected_response=message)
 
-def get_data_from_form(driver_wait, error_reporter, form_xpath):
+def get_data_from_form(driver, error_reporter, form_xpath):
     '''
     Retrieve the data currently in an HTML form.
-    driver_wait (selenium.webdriver.support.wait.WebDriverWait): A WebDriverWait for the driver that contains the form to retrieve data from.
+    driver (selenium.webdriver.support.wait.WebDriverWait): A WebDriverWait for the driver that contains the form to retrieve data from.
     error_reporter (callable, usually unittest.TestCase.fail): Will be called with an error message (str) as its first and only argument if an error occurs. Therefore, this function will *not* continue with any remaining fields if and only if `error_reporter` raises an exception.
     form_xpath (str): An absolute XPath that uniquely identifies the form to retrieve data from.
     '''
     from selenium.webdriver.common.by import By
-    from selenium.webdriver.support import expected_conditions as ec
 
-    form = assert_exactly_one(driver_wait, error_reporter, (By.XPATH, form_xpath))
+    form = assert_exactly_one(driver, error_reporter, (By.XPATH, form_xpath))
     data = {}
-    for input_ in driver_wait.until(ec.presence_of_all_elements_located((By.XPATH, '{}//input'.format(form_xpath)))):
+    for input_ in form.find_elements(By.TAG_NAME, 'input'):
         input_type = input_.get_attribute('type')
         input_name = input_.get_attribute('name')
         # All inputs with no name are ignored.
@@ -172,7 +168,7 @@ def get_data_from_form(driver_wait, error_reporter, form_xpath):
             else:
                 error_reporter('Unrecognized <input> type \'{}\' with name \'{}\'.'.format(input_type, input_name))
 
-    for select in driver_wait.until(ec.presence_of_all_elements_located((By.XPATH, '{}//select'.format(form_xpath)))):
+    for select in form.find_elements(By.TAG_NAME, 'select'):
         select_name = select.get_attribute('name')
         if select_name:
             try:
@@ -183,25 +179,25 @@ def get_data_from_form(driver_wait, error_reporter, form_xpath):
 
     return data
 
-def assert_nav(driver_wait, error_reporter, address, privileged=False):
+def assert_nav(driver, error_reporter, address, privileged=False):
     '''Factor out testing the top navigation.
     address (str): The web address that the driver is currently visiting. This is required to assert that links lead to the right places.
-    privileged (bool): Indicates whether the test user who is viewing Cloudscheduler has privileges (and can therefore access more pages).'''
+    privileged (bool): Indicates whether the test user who is viewing Cloudscheduler has privileges (and can therefore access more pages).
+    '''
     from selenium.webdriver.common.by import By
-    from selenium.webdriver.support import expected_conditions as ec
     import re
 
     expected_nav_links = [('/cloud/status/', 'Status'), ('/cloud/list/', 'Clouds'), ('/alias/list/', 'Aliases'), ('/group/defaults/', 'Defaults'), ('/images/', 'Images'), ('/keypairs/', 'Keys'), ('/user/settings/', 'User Settings'), ('/settings/log-out', 'Log out')]
     if privileged:
         # Insert these tuples starting at position 6.
         expected_nav_links[6:6] = [('/user/list/', 'Users'), ('/group/list/', 'Groups'), ('/server/config/', 'Config')]
-    top_nav = assert_exactly_one(driver_wait, error_reporter, (By.CLASS_NAME, 'top-nav'), missing_message='The top navigation is missing.')
+    top_nav = assert_exactly_one(driver, error_reporter, (By.CLASS_NAME, 'top-nav'))
     nav_links = []
     link_pattern = re.escape(address) + r'(/[^?]+)'
-    for elem in top_nav.find_elements_by_tag_name('a'):
+    for elem in top_nav.find_elements(By.TAG_NAME, 'a'):
         link_match = re.match(link_pattern, elem.get_attribute('href'))
         if link_match:
-            nav_links.append((link_match[1], elem.get_attribute('innerHTML')))
+            nav_links.append((link_match[1], elem.text))
         else:
             error_reporter('Expected the link {} to match the pattern {}'.format(get_open_tag(elem), link_pattern))
     if nav_links != expected_nav_links:
@@ -340,27 +336,26 @@ def set_setup_required(set_to=True):
 
 def switch_user(gvar, address_extension, profile_index):
     '''
-    UNTESTED
     Switch to a different Firefox profile, and therefore a different user.
     profile_index (int): The zero-indexed index of the profile in gvar['firefox_profiles'] to switch to.
     '''
     from selenium import webdriver
-    from selenium.common.exceptions import TimeoutException
-    from selenium.webdriver.support import expected_conditions as ec, wait
+    from selenium.common.exceptions import WebDriverBaseException
     import os.path
 
     old_driver = gvar.get('driver')
     if old_driver:
         old_driver.quit()
+
     # ~/cloudscheduler/unit_tests must exist because we have already loaded settings from the credentials file there.
     gvar['driver'] = webdriver.Firefox(webdriver.FirefoxProfile(gvar['firefox_profiles'][profile_index]), service_log_path=os.path.expanduser('~/cloudscheduler/unit_tests/geckodriver.log'))
     try:
-        gvar['driver_wait'] = wait.WebDriverWait(gvar['driver'], gvar['max_wait'])
         # The internet says that driver.get() should automatically wait for the page to be loaded, but it does not seem to.
+        gvar['driver'].implicitly_wait(gvar['max_wait'])
         gvar['driver'].get(gvar['address'] + address_extension)
         # The Firefox profile will automatically fill in the server credentials, so we just accept the prompt.
-        gvar['driver_wait'].until(ec.alert_is_present()).accept()
-    except TimeoutException:
+        gvar['driver'].switch_to.alert.accept()
+    except WebDriverBaseException:
         gvar['driver'].quit()
         raise
 
