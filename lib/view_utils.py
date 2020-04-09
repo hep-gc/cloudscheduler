@@ -1375,23 +1375,24 @@ def validate_fields(config, request, fields, tables, active_user):
                         return 1, 'value specified for "%s" must be an integer value.' % field, None, None, None
 
                 elif Formats[field] == 'lowerdash':
-                    if len(request.POST[field]) > 0 and re.match("^[a-z0-9_\-]*$", request.POST[field]) and request.POST[field][0] != '-' and request.POST[field][-1] != '-':
+                    if re.fullmatch("([a-z0-9.:]-?)*[a-z0-9.:]", request.POST[field]):
                         value = request.POST[field]
                     else:
                         return 1, 'value specified for "%s" must be all lower case, numeric digits, and dashes but cannot start or end with dashes.' % field, None, None, None
 
                 elif Formats[field] == 'lowercase':
-                    value = request.POST[field].lower()
-                    if request.POST[field] != value:
+                    if re.fullmatch("([a-z0-9_.:]-?)*[a-z0-9_.:]", request.POST[field]) or request.POST[field] == '':
+                        value = request.POST[field]
+                    else:
                         return 1, 'value specified for "%s" must be all lower case.' % field, None, None, None
 
                 elif Formats[field] == 'lowernull':
-                    value = request.POST[field].lower()
-                    if value == '':
+                    if re.fullmatch("([a-z0-9_.:]-?)*[a-z0-9_.:]", request.POST[field]):
+                        value = request.POST[field]
+                    elif request.POST[field] == '':
                         value = None
                     else:
-                        if request.POST[field] != value:
-                            return 1, 'value specified for "%s" must be all lower case.' % field, None, None, None
+                        return 1, 'value specified for "%s" must be all lower case.' % field, None, None, None
 
                 elif Formats[field] == 'mandatory':
                     if value.strip() == '':
