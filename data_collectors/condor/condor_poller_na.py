@@ -928,7 +928,7 @@ def machine_poller():
             for group in groups:
                 cloud_list = []
                 where_clause = "group_name='%s'" % group["group_name"]
-                rc, msg, clouds = config.db_query(CLOUDS, where=where_clause)
+                rc, msg, clouds = config.db_query(CLOUDS, select=["cloud_name"], where=where_clause)
                 for cloud in clouds:
                     cloud_list.append(cloud["cloud_name"])
                 host_groups[group["group_name"]] = cloud_list
