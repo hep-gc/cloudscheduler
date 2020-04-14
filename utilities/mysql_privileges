@@ -176,6 +176,7 @@ for table in db_privileges['block']:
 
 tables = {}
 tables['csv2_configuration'] = {'query': True, 'merge': False, 'delete': False, 'privileges': []}
+tables['csv2_service_catalog'] = {'query': True, 'merge': False, 'delete': False, 'privileges': []}
 for ix in range(aix, len(sys.argv)):
     realpath = os.path.realpath(sys.argv[ix])
     if os.path.isfile(realpath):
