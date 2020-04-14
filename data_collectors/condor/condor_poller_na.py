@@ -41,6 +41,7 @@ STARTD_TYPE = htcondor.AdTypes.Startd
 #    config.db_merge(csv2_service_catalog)
 #    config.db_merge(csv2_configuration)
 #    config.db_update(csv2_clouds)
+#    db_query('condor_worker_gsi')
 
 
 
