@@ -1,3 +1,5 @@
+DEFAULT_MAX_WAIT = 30
+
 def assert_exactly_one(parent, error_reporter, identifier, attributes=None, missing_message=None, multiple_message=None):
     '''
     Assert that a parent element contains precisely one child element matching the given identifier and attribute(s), and return this child.
@@ -30,7 +32,47 @@ def assert_exactly_one(parent, error_reporter, identifier, attributes=None, miss
     else:
         error_reporter(multiple_message if multiple_message else default_message.format(identifier, attributes, len(matching_elems)))
 
-def submit_form(driver, error_reporter, form_xpath, data, expected_response=None, retains_values=False):
+def submit_valid_combinations(driver, error_reporter, form_xpath, valid_combinations, mandatory_parameters=None, max_wait=DEFAULT_MAX_WAIT, expected_response=None, click_before_filling=None, retains_values=False):
+    '''
+    Submit a form multiple times with parameter combinations that are expected to succeed.
+    driver (selenium.webdriver.support.wait.WebDriverWait): A WebDriverWait for the driver that contains the form to submit.
+    error_reporter (callable, usually unittest.TestCase.fail): Will be called with an error message (str) as its first and only argument if an error occurs. Therefore, this function will *not* continue with any remaining submissions if and only if `error_reporter` raises an exception.
+    form_xpath (str): An absolute XPath that uniquely identifies the form element to fill out. This allows it to be re-found after each submission.
+    clicked_before_filling (str or None): An absolute XPath that uniquely identifies an element. May be given to indicate that an element should be clicked before each time that the form is filled out and submitted. This is usually used to cause the form to become visible again.
+    '''
+    from selenium.webdriver.common.by import By
+
+    if not mandatory_parameters or retains_values:
+        mandatory_parameters = {}
+
+    for valid_combination in valid_combinations:
+        if click_before_filling:
+            assert_exactly_one(driver, error_reporter, (By.XPATH, click_before_filling)).click()
+        # mandatory_parameters are listed first so that they are overwriten as necessary.
+        submit_form(driver, error_reporter, form_xpath, {**mandatory_parameters, **valid_combination}, max_wait=max_wait, expected_response=expected_response, retains_values=retains_values)
+
+def submit_invalid_combinations(driver, error_reporter, form_xpath, invalid_combinations, mandatory_parameters=None, max_wait=DEFAULT_MAX_WAIT, click_before_filling=None):
+    '''
+    Submit a form multiple times with parameter combinations that are expected to fail.
+    driver, error_reporter, form_xpath: See `submit_valid_combinations`.
+    parameters (dict): A dictionary which maps parameter names to tuples, each of length 1 or 2 and containing:
+        A dictionary of test cases which maps bad values for the parameter to the error messages that they are expected to produce.
+        Optional: A valid value for the parameter. If and only if this is provided, it will be specified in each form submission for other parameters. This is useful when a form requires certain fields, but comes back blank when it is submitted.
+    clicked_before_filling (str or None): An absolute XPath that uniquely identifies an element. May be given to indicate that an element should be clicked before each time that the form is filled out and submitted. This is usually used to cause the form to become visible again.
+    '''
+    from selenium.webdriver.common.by import By
+
+    if not mandatory_parameters:
+        mandatory_parameters = {}
+
+    for name, test_cases in invalid_combinations.items():
+        for value, message in test_cases.items():
+            if click_before_filling:
+                assert_exactly_one(driver, error_reporter, (By.XPATH, click_before_filling)).click()
+            # mandatory_parameters are listed first so that they are overwriten as necessary.
+            submit_form(driver, error_reporter, form_xpath, {**mandatory_parameters, name: value}, max_wait=max_wait, expected_response=message)
+
+def submit_form(driver, error_reporter, form_xpath, data, max_wait=DEFAULT_MAX_WAIT, expected_response=None, retains_values=False):
     '''
     Fill an HTML form with the specified data and submit it.
     driver (selenium.webdriver.support.waitWebDriverWait): A WebDriverWait for the driver that contains the form to submit. (This must be a driver, not an element, if retains_values, because all elements become stale when the form is submitted.)
@@ -42,6 +84,8 @@ def submit_form(driver, error_reporter, form_xpath, data, expected_response=None
     Forms are allowed to be dynamic; i.e. fields are allowed to completely change in response to previous fields being filled out.
     '''
     from selenium.webdriver.common.by import By
+    from selenium.webdriver.support import expected_conditions as ec
+    from selenium.webdriver.support.wait import WebDriverWait
     import re
 
     form = assert_exactly_one(driver, error_reporter, (By.XPATH, form_xpath))
@@ -77,64 +121,27 @@ def submit_form(driver, error_reporter, form_xpath, data, expected_response=None
 
     form.submit()
 
-    if expected_response:
-        actual_response = assert_exactly_one(driver, error_reporter, (By.ID, 'message')).text
-        if expected_response not in actual_response:
-            error_reporter('Expected a response containing \'{}\', but received \'{}\'.'.format(expected_response, actual_response))
+    if expected_response or retains_values:
+        WebDriverWait(driver, max_wait).until(ec.staleness_of(form))
 
-    if retains_values:
-        new_data = get_data_from_form(driver, error_reporter, form_xpath)
-        # Iterating over the old values allows us to ignore values that were in the form but never specified in data.
-        for parameter, old_value in data.items():
-            # Allow values in parameters to be given as ints or floats but come back from the server as strs.
-            try:
-                new_data[parameter] = float(new_data[parameter])
-            except KeyError:
-                error_reporter('Expected the parameter \'{}\' to be retained, but the entry for it was missing.'.format(parameter))
-            except ValueError:
-                pass
-            if new_data[parameter] != old_value:
-                error_reporter('Expected {} to be retained for the parameter \'{}\', but found {}.'.format(old_value, parameter, new_data[parameter]))
+        if expected_response:
+            actual_response = assert_exactly_one(driver, error_reporter, (By.ID, 'message')).text
+            if expected_response not in actual_response:
+                error_reporter('Expected a response containing \'{}\', but received \'{}\'.'.format(expected_response, actual_response))
 
-def submit_valid_combinations(driver, error_reporter, form_xpath, valid_combinations, mandatory_parameters=None, expected_response=None, click_before_filling=None, retains_values=False):
-    '''
-    Submit a form multiple times with parameter combinations that are expected to succeed.
-    driver (selenium.webdriver.support.wait.WebDriverWait): A WebDriverWait for the driver that contains the form to submit.
-    error_reporter (callable, usually unittest.TestCase.fail): Will be called with an error message (str) as its first and only argument if an error occurs. Therefore, this function will *not* continue with any remaining submissions if and only if `error_reporter` raises an exception.
-    form_xpath (str): An absolute XPath that uniquely identifies the form element to fill out. This allows it to be re-found after each submission.
-    clicked_before_filling (str or None): An absolute XPath that uniquely identifies an element. May be given to indicate that an element should be clicked before each time that the form is filled out and submitted. This is usually used to cause the form to become visible again.
-    '''
-    from selenium.webdriver.common.by import By
-
-    if not mandatory_parameters or retains_values:
-        mandatory_parameters = {}
-
-    for valid_combination in valid_combinations:
-        if click_before_filling:
-            assert_exactly_one(driver, error_reporter, (By.XPATH, click_before_filling)).click()
-        # mandatory_parameters are listed first so that they are overwriten as necessary.
-        submit_form(driver, error_reporter, form_xpath, {**mandatory_parameters, **valid_combination}, expected_response=expected_response, retains_values=retains_values)
-
-def submit_invalid_combinations(driver, error_reporter, form_xpath, invalid_combinations, mandatory_parameters=None, click_before_filling=None):
-    '''
-    Submit a form multiple times with parameter combinations that are expected to fail.
-    driver, error_reporter, form_xpath: See `submit_valid_combinations`.
-    parameters (dict): A dictionary which maps parameter names to tuples, each of length 1 or 2 and containing:
-        A dictionary of test cases which maps bad values for the parameter to the error messages that they are expected to produce.
-        Optional: A valid value for the parameter. If and only if this is provided, it will be specified in each form submission for other parameters. This is useful when a form requires certain fields, but comes back blank when it is submitted.
-    clicked_before_filling (str or None): An absolute XPath that uniquely identifies an element. May be given to indicate that an element should be clicked before each time that the form is filled out and submitted. This is usually used to cause the form to become visible again.
-    '''
-    from selenium.webdriver.common.by import By
-
-    if not mandatory_parameters:
-        mandatory_parameters = {}
-
-    for name, test_cases in invalid_combinations.items():
-        for value, message in test_cases.items():
-            if click_before_filling:
-                assert_exactly_one(driver, error_reporter, (By.XPATH, click_before_filling)).click()
-            # mandatory_parameters are listed first so that they are overwriten as necessary.
-            submit_form(driver, error_reporter, form_xpath, {**mandatory_parameters, name: value}, expected_response=message)
+        if retains_values:
+            new_data = get_data_from_form(driver, error_reporter, form_xpath)
+            # Iterating over the old values allows us to ignore values that were in the form but never specified in data.
+            for parameter, old_value in data.items():
+                # Allow values in parameters to be given as ints or floats but come back from the server as strs.
+                try:
+                    new_data[parameter] = float(new_data[parameter])
+                except KeyError:
+                    error_reporter('Expected the parameter \'{}\' to be retained, but the entry for it was missing.'.format(parameter))
+                except ValueError:
+                    pass
+                if new_data[parameter] != old_value:
+                    error_reporter('Expected {} to be retained for the parameter \'{}\', but found {}.'.format(old_value, parameter, new_data[parameter]))
 
 def get_data_from_form(driver, error_reporter, form_xpath):
     '''
@@ -268,11 +275,11 @@ def setup(address_extension, privileged=False):
             # Alias to be updated and deleted.
             ['alias', 'add', *server_credentials, '-an', '{}-wia2'.format(gvar['user']), '-cn', '{}-wic1'.format(gvar['user'])],
             # Cloud metadata that should always exist.
-            ['cloud', 'metadata-load', *server_credentials, '-mn', '{}-wicm1'.format(gvar['user']), '-cn', '{}-wic1'.format(gvar['user']), '-f', metadata_path],
+            ['cloud', 'metadata-load', *server_credentials, '-mn', '{}-wicm1'.format(gvar['user']), '-cn', '{}-wic3'.format(gvar['user']), '-f', metadata_path],
             # Cloud metadata to be deleted.
-            ['cloud', 'metadata-load', *server_credentials, '-mn', '{}-wicm2'.format(gvar['user']), '-cn', '{}-wic1'.format(gvar['user']), '-f', metadata_path],
+            ['cloud', 'metadata-load', *server_credentials, '-mn', '{}-wicm2'.format(gvar['user']), '-cn', '{}-wic3'.format(gvar['user']), '-f', metadata_path],
             # Cloud metadata to be updated.
-            ['cloud', 'metadata-load', *server_credentials, '-mn', '{}-wicm3'.format(gvar['user']), '-cn', '{}-wic1'.format(gvar['user']), '-f', metadata_path],
+            ['cloud', 'metadata-load', *server_credentials, '-mn', '{}-wicm3'.format(gvar['user']), '-cn', '{}-wic3'.format(gvar['user']), '-f', metadata_path],
             # Group metadata that should always exist.
             ['metadata', 'load', *server_credentials, '-mn', '{}-wigm1'.format(gvar['user']), '-f', metadata_path],
             # Group metadata to be deleted.
@@ -291,6 +298,8 @@ def setup(address_extension, privileged=False):
         print()
         set_setup_required(False)
 
+    with open(metadata_path) as metadata_file:
+        gvar['metadata_content'] = metadata_file.read()
     switch_user(gvar, address_extension, 1 if privileged else 0)
 
     return gvar
@@ -340,7 +349,7 @@ def switch_user(gvar, address_extension, profile_index):
     profile_index (int): The zero-indexed index of the profile in gvar['firefox_profiles'] to switch to.
     '''
     from selenium import webdriver
-    from selenium.common.exceptions import WebDriverBaseException
+    from selenium.common.exceptions import WebDriverException
     import os.path
 
     old_driver = gvar.get('driver')
@@ -355,7 +364,7 @@ def switch_user(gvar, address_extension, profile_index):
         gvar['driver'].get(gvar['address'] + address_extension)
         # The Firefox profile will automatically fill in the server credentials, so we just accept the prompt.
         gvar['driver'].switch_to.alert.accept()
-    except WebDriverBaseException:
+    except WebDriverException:
         gvar['driver'].quit()
         raise
 
@@ -366,8 +375,8 @@ def format_command(command):
     return ' '.join((word if re.fullmatch(r'[\w\-\.]+', word) else '\'{}\''.format(word) for word in command))
 
 def get_open_tag(element):
-    '''Return the opening tag of an element (including all of the attributes defined in it).'''
-    import re
+   '''Return the opening tag of an element (including all of the attributes defined in it).'''
+   import re
 
-    # Match '<', then (any chars besides '>' and quotes) any number of times and (anything in quotes) any number of times, then '>'.
-    return re.match(r'<([^>\'"]+|([\'"]).*?\2)+>', element.text)[0]
+   # Match '<', then (any chars besides '>') any number of times and (anything in quotes) any number of times, then '>'.
+   return re.match(r'<([^>]+|(([\'"]).*?\3))+>', element.get_attribute('outerHTML'))[0]
