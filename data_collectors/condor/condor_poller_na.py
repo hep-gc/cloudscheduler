@@ -41,7 +41,8 @@ STARTD_TYPE = htcondor.AdTypes.Startd
 #    config.db_merge(csv2_service_catalog)
 #    config.db_merge(csv2_configuration)
 #    config.db_update(csv2_clouds)
-#    db_query('condor_worker_gsi')
+#    .db_query('condor_worker_gsi')
+#    .db_query('csv2_attribute_mapping')
 
 
 
@@ -473,7 +474,7 @@ def job_poller():
                 foreign_jobs = 0
                 held_jobs = 0
                 held_job_ids = []
-                logging.debug("Polling condor host: %s" % condor_host)
+                logging.info("Polling condor host: %s" % condor_host)
                 try:
                     coll = htcondor.Collector(condor_host)
                     scheddAd = coll.locate(htcondor.DaemonTypes.Schedd, condor_host)
