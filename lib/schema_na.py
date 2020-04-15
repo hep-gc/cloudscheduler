@@ -309,7 +309,7 @@ schema = {
             "hold_reason_code": {"type": "int"},
             "hold_reason_subcode": {"type": "int"},
             "last_remote_host": {"type": "str", "len": "64", "nulls": "YES"},
-            "held_reason": {"type": "str", "len": "128", "nulls": "YES"},
+            "held_reason": {"type": "str", "len": "256", "nulls": "YES"},
             "hold_job_reason": {"type": "str", "len": "64", "nulls": "YES"}
             }
         },
@@ -949,15 +949,6 @@ schema = {
             "endpoint": {"type": "str", "len": "128", "nulls": "NO"}
             }
         },
-    "testing": {
-        "keys": [
-            "test_key"
-            ],
-        "columns": {
-            "test_key": {"type": "str", "len": "16", "nulls": "NO"},
-            "test_value": {"type": "int"}
-            }
-        },
     "view_active_resource_shortfall": {
         "keys": [
             ],
@@ -1406,7 +1397,7 @@ schema = {
             "entered_current_status": {"type": "int"},
             "q_date": {"type": "int"},
             "hold_job_reason": {"type": "str", "len": "64", "nulls": "YES"},
-            "held_reason": {"type": "str", "len": "128", "nulls": "YES"},
+            "held_reason": {"type": "str", "len": "256", "nulls": "YES"},
             "js_idle": {"type": "int"},
             "js_running": {"type": "int"},
             "js_completed": {"type": "int"},
