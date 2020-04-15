@@ -829,17 +829,17 @@ def main():
                                 
                                 if boot_flavor.get("worker_cert") is not None:
                                     if boot_flavor.get("worker_cert")[-1] == '\n':
-                                        cloud_worker_cert = boot_flavor.get("worker_cert").decode()[:-1].replace('\n', '\n        ')
+                                        cloud_worker_cert = boot_flavor.get("worker_cert")[:-1].replace('\n', '\n        ')
                                     else:
-                                        cloud_worker_cert = boot_flavor.get("worker_cert").decode().replace('\n', '\n        ')
+                                        cloud_worker_cert = boot_flavor.get("worker_cert").replace('\n', '\n        ')
                                 else:
                                     cloud_worker_cert = None
 
                                 if boot_flavor.get("worker_key") is not None:
                                     if boot_flavor.get("worker_key")[-1] == '\n':
-                                        cloud_worker_key = boot_flavor.get("worker_key").decode()[:-1].replace('\n', '\n        ')
+                                        cloud_worker_key = boot_flavor.get("worker_key")[:-1].replace('\n', '\n        ')
                                     else:
-                                        cloud_worker_key = boot_flavor.get("worker_key").decode().replace('\n', '\n        ')
+                                        cloud_worker_key = boot_flavor.get("worker_key").replace('\n', '\n        ')
                                 else:
                                     cloud_worker_key = None
 
