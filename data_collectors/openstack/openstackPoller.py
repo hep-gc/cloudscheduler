@@ -1707,7 +1707,11 @@ def vm_poller():
 
             signal.signal(signal.SIGINT, config.signals['SIGINT'])
 
-            wait_cycle(cycle_start_time, poll_time_history, config.categories["openstackPoller.py"]["sleep_interval_vm"], config)
+            try:
+                wait_cycle(cycle_start_time, poll_time_history, config.categories["openstackPoller.py"]["sleep_interval_vm"], config)
+            except KeyboardInterrupt:
+                # sigint recieved, cancel the sleep and start the loop
+                continue
 
     except Exception as exc:
         logging.exception("VM poller cycle while loop exception, process terminating...")
