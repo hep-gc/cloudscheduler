@@ -5,7 +5,7 @@
 ### 1.  Ensure csv2-condor-poller is not already installed.
 ### 2.  Checks to see if we are running as root.
 ### 3.  Checks to see if we are installed correctly in /opt.
-### 4.  Checks to see if python3 is installed.
+### 4.  Checks to see if python3 and header files are installed.
 ### 5.  Create the cloudscheduler user and group.
 ### 6.  Add the condor user to the cloudscheduler group.
 ### 7.  Create the cloudscheduler run directory
