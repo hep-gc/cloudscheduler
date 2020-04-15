@@ -19,7 +19,7 @@
     fi
 
     if [ $? -ne 0 ]; then
-        echo 'Service csv2-condor-poller already disabled.'
+        echo 'Service csv2-condor-poller already disabled or not installed so far.'
         exit 0
     fi
 
