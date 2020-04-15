@@ -30,7 +30,7 @@ class TestStatus(unittest.TestCase):
         self.assert_table_has_headers(vm_table, EXPECTED_VM_HEADERS)
 
     def test_system_table(self):
-        system_table = wc.assert_exactly_one(self.driver_wait, self.fail, (By.ID, 'system-services'))
+        system_table = wc.assert_one(self.driver_wait, self.fail, (By.ID, 'system-services'))
         self.assert_table_has_headers(system_table, EXPECTED_SYSTEM_HEADERS)
         try:
             system_rows = wait.WebDriverWait(system_table, self.gvar['max_wait']).until(ec.presence_of_all_elements_located((By.TAG_NAME, 'tr')))
@@ -42,14 +42,14 @@ class TestStatus(unittest.TestCase):
         indicator_row = system_rows[1]
         for cell in indicator_row.find_elements_by_tag_name('td')[-4:]:
             cell_wait = wait.WebDriverWait(cell, self.gvar['max_wait'])
-            wc.assert_exactly_one(cell_wait, self.fail, (By.TAG_NAME, 'meter'))
+            wc.assert_one(cell_wait, self.fail, (By.TAG_NAME, 'meter'))
 
     def test_stop_refresh_button(self):
-        system_div = wc.assert_exactly_one(self.driver_wait, self.fail, (By.CLASS_NAME, 'system-div'))
+        system_div = wc.assert_one(self.driver_wait, self.fail, (By.CLASS_NAME, 'system-div'))
         system_div_wait = wait.WebDriverWait(system_div, self.gvar['max_wait'])
         # Search for an element that has an id of 'CDTimer' and has text in it. (Text is required because the element is empty when first loaded.)
-        countdown = wc.assert_exactly_one(system_div_wait, self.fail, (By.XPATH, './/*[(@id="CDTimer") and text()]'))
-        stop_button = wc.assert_exactly_one(system_div_wait, self.fail, (By.CLASS_NAME, 'stop-symbol'))
+        countdown = wc.assert_one(system_div_wait, self.fail, (By.XPATH, './/*[(@id="CDTimer") and text()]'))
+        stop_button = wc.assert_one(system_div_wait, self.fail, (By.CLASS_NAME, 'stop-symbol'))
         try:
             before = int(countdown.text)
             stop_button.click()

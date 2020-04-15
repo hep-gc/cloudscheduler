@@ -1,6 +1,6 @@
 DEFAULT_MAX_WAIT = 30
 
-def assert_exactly_one(parent, error_reporter, identifier, attributes=None, missing_message=None, multiple_message=None):
+def assert_one(parent, error_reporter, identifier, attributes=None, missing_message=None, multiple_message=None):
     '''
     Assert that a parent element contains precisely one child element matching the given identifier and attribute(s), and return this child.
     parent_wait (selenium.webdriver.wait.WebDriverWait): A WebDriverWait for the driver or element expected to contain the child.
@@ -47,7 +47,7 @@ def submit_valid_combinations(driver, error_reporter, form_xpath, valid_combinat
 
     for valid_combination in valid_combinations:
         if click_before_filling:
-            assert_exactly_one(driver, error_reporter, (By.XPATH, click_before_filling)).click()
+            assert_one(driver, error_reporter, (By.XPATH, click_before_filling)).click()
         # mandatory_parameters are listed first so that they are overwriten as necessary.
         submit_form(driver, error_reporter, form_xpath, {**mandatory_parameters, **valid_combination}, max_wait=max_wait, expected_response=expected_response, retains_values=retains_values)
 
@@ -68,7 +68,7 @@ def submit_invalid_combinations(driver, error_reporter, form_xpath, invalid_comb
     for name, test_cases in invalid_combinations.items():
         for value, message in test_cases.items():
             if click_before_filling:
-                assert_exactly_one(driver, error_reporter, (By.XPATH, click_before_filling)).click()
+                assert_one(driver, error_reporter, (By.XPATH, click_before_filling)).click()
             # mandatory_parameters are listed first so that they are overwriten as necessary.
             submit_form(driver, error_reporter, form_xpath, {**mandatory_parameters, name: value}, max_wait=max_wait, expected_response=message)
 
@@ -88,7 +88,7 @@ def submit_form(driver, error_reporter, form_xpath, data, max_wait=DEFAULT_MAX_W
     from selenium.webdriver.support.wait import WebDriverWait
     import re
 
-    form = assert_exactly_one(driver, error_reporter, (By.XPATH, form_xpath))
+    form = assert_one(driver, error_reporter, (By.XPATH, form_xpath))
     for parameter, value in data.items():
         # Re-finding the entries each time is necessary to support dynamic forms.
         entries = driver.find_elements(By.XPATH, '{}//*[@name="{}"]'.format(form_xpath, parameter))
@@ -112,7 +112,7 @@ def submit_form(driver, error_reporter, form_xpath, data, max_wait=DEFAULT_MAX_W
                     else:
                         error_reporter('Unrecognized <input> type \'{}\' for parameter \'{}\'.'.format(input_type, parameter))
                 elif entry_tag_name == 'select':
-                    assert_exactly_one(driver, error_reporter, (By.XPATH, '{}//select[@name="{}"]//option[text()="{}"]'.format(form_xpath, parameter, value)), missing_message='Option \'{}\' not found for parameter \'{}\'.'.format(value, parameter)).click()
+                    assert_one(driver, error_reporter, (By.XPATH, '{}//select[@name="{}"]//option[text()="{}"]'.format(form_xpath, parameter, value)), missing_message='Option \'{}\' not found for parameter \'{}\'.'.format(value, parameter)).click()
                 else:
                     error_reporter('Unrecognized tag name <{}> for parameter \'{}\'.'.format(entry_tag_name, parameter))
         # No entries were found.
@@ -125,7 +125,7 @@ def submit_form(driver, error_reporter, form_xpath, data, max_wait=DEFAULT_MAX_W
         WebDriverWait(driver, max_wait).until(ec.staleness_of(form))
 
         if expected_response:
-            actual_response = assert_exactly_one(driver, error_reporter, (By.ID, 'message')).text
+            actual_response = assert_one(driver, error_reporter, (By.ID, 'message')).text
             if expected_response not in actual_response:
                 error_reporter('Expected a response containing \'{}\', but received \'{}\'.'.format(expected_response, actual_response))
 
@@ -152,7 +152,7 @@ def get_data_from_form(driver, error_reporter, form_xpath):
     '''
     from selenium.webdriver.common.by import By
 
-    form = assert_exactly_one(driver, error_reporter, (By.XPATH, form_xpath))
+    form = assert_one(driver, error_reporter, (By.XPATH, form_xpath))
     data = {}
     for input_ in form.find_elements(By.TAG_NAME, 'input'):
         input_type = input_.get_attribute('type')
@@ -198,7 +198,7 @@ def assert_nav(driver, error_reporter, address, privileged=False):
     if privileged:
         # Insert these tuples starting at position 6.
         expected_nav_links[6:6] = [('/user/list/', 'Users'), ('/group/list/', 'Groups'), ('/server/config/', 'Config')]
-    top_nav = assert_exactly_one(driver, error_reporter, (By.CLASS_NAME, 'top-nav'))
+    top_nav = assert_one(driver, error_reporter, (By.CLASS_NAME, 'top-nav'))
     nav_links = []
     link_pattern = re.escape(address) + r'(/[^?]+)'
     for elem in top_nav.find_elements(By.TAG_NAME, 'a'):
@@ -215,8 +215,8 @@ def setup(address_extension, privileged=False):
     import subprocess
     from cloudscheduler.unit_tests.unit_test_common import load_settings
 
-    metadata_path = '../notyamlfile.txt'
     gvar = load_settings(web=True)
+    gvar['metadata_path'] = '../notyamlfile.txt'
 
     if gvar['setup_required']:
         cleanup(gvar)
@@ -275,17 +275,17 @@ def setup(address_extension, privileged=False):
             # Alias to be updated and deleted.
             ['alias', 'add', *server_credentials, '-an', '{}-wia2'.format(gvar['user']), '-cn', '{}-wic1'.format(gvar['user'])],
             # Cloud metadata that should always exist.
-            ['cloud', 'metadata-load', *server_credentials, '-mn', '{}-wicm1'.format(gvar['user']), '-cn', '{}-wic3'.format(gvar['user']), '-f', metadata_path],
+            ['cloud', 'metadata-load', *server_credentials, '-mn', '{}-wicm1'.format(gvar['user']), '-cn', '{}-wic3'.format(gvar['user']), '-f', gvar['metadata_path']],
             # Cloud metadata to be deleted.
-            ['cloud', 'metadata-load', *server_credentials, '-mn', '{}-wicm2'.format(gvar['user']), '-cn', '{}-wic3'.format(gvar['user']), '-f', metadata_path],
+            ['cloud', 'metadata-load', *server_credentials, '-mn', '{}-wicm2'.format(gvar['user']), '-cn', '{}-wic3'.format(gvar['user']), '-f', gvar['metadata_path']],
             # Cloud metadata to be updated.
-            ['cloud', 'metadata-load', *server_credentials, '-mn', '{}-wicm3'.format(gvar['user']), '-cn', '{}-wic3'.format(gvar['user']), '-f', metadata_path],
+            ['cloud', 'metadata-load', *server_credentials, '-mn', '{}-wicm3'.format(gvar['user']), '-cn', '{}-wic3'.format(gvar['user']), '-f', gvar['metadata_path']],
             # Group metadata that should always exist.
-            ['metadata', 'load', *server_credentials, '-mn', '{}-wigm1'.format(gvar['user']), '-f', metadata_path],
+            ['metadata', 'load', *server_credentials, '-mn', '{}-wigm1'.format(gvar['user']), '-f', gvar['metadata_path']],
             # Group metadata to be deleted.
-            ['metadata', 'load', *server_credentials, '-mn', '{}-wigm2'.format(gvar['user']), '-f', metadata_path],
+            ['metadata', 'load', *server_credentials, '-mn', '{}-wigm2'.format(gvar['user']), '-f', gvar['metadata_path']],
             # Group metadata to be updated.
-            ['metadata', 'load', *server_credentials, '-mn', '{}-wigm3'.format(gvar['user']), '-f', metadata_path]
+            ['metadata', 'load', *server_credentials, '-mn', '{}-wigm3'.format(gvar['user']), '-f', gvar['metadata_path']]
         ]
 
         print('Creating test objects. Run `util.py -c` later to remove them.')
@@ -298,8 +298,6 @@ def setup(address_extension, privileged=False):
         print()
         set_setup_required(False)
 
-    with open(metadata_path) as metadata_file:
-        gvar['metadata_content'] = metadata_file.read()
     switch_user(gvar, address_extension, 1 if privileged else 0)
 
     return gvar
