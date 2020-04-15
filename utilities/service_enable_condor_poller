@@ -28,11 +28,11 @@ EOF
 $version
 EOF
 
-    if [ "X$av3" == 'X' ]; then
+    if [ "$av3" == "" ]; then
         av3='0'
     fi
 
-    if [ "X$version" == 'X' ]; then
+    if [ "$version" == "" ]; then
         echo "Installing python package '$1', version '$2'."
         python3 -m pip install "$1==$2"
     else
@@ -75,31 +75,45 @@ EOF
 ###
 ### 3.  Checks to see if we are installed correctly in /opt.
 ###
-    home=$(readlink -e $0) $1
+   # readlink check doesn't work when /opt is a symlink
+   # home=$(readlink -e $0) $1
+
+    dirName=$(dirname $0)
+    filename=$(basename $0)
+    home=$(cd $dirName && pwd)/$filename
+
     if [ $home != '/opt/cloudscheduler/utilities/service_enable_condor_poller' ]; then
         echo 'ERROR: Remote csv2-condor-poller must be installed in /opt.'
         exit 1
     fi
 
 ###
-### 4.  Checks to see if python3 is installed.
+### 4.  Checks to see if python3 is installed and the python3 header files.
 ###
     read tv0 tv1 <<EOF
 $(python3 -V 2>/dev/null)
 EOF
+    returncode=$?
     IFS=. read tv1 tv2 tv3 <<EOF
 $tv1
 EOF
-    if [ "X$tv1" == 'X' ]; then tv1=0; fi
-    if [ "X$tv2" == 'X' ]; then tv2=0; fi
-    if [ "X$tv3" == 'X' ]; then tv3=0; fi
+    if [ "$tv1" == "" ]; then tv1=0; fi
+    if [ "$tv2" == "" ]; then tv2=0; fi
+    if [ "$tv3" == "" ]; then tv3=0; fi
     python3=$(( ( ( ( $tv1 * 1000 ) + $tv2 ) * 1000 ) + $tv3 ))
 
-    if [ $python3 -lt 1 ]; then
+    if [ $returncode -ne 0 ] || [ $tv1 -lt 3 ]; then
         echo 'ERROR: You need to install python3 before we can proceed.'
         exit 1
     fi  
 
+    headercheck=1
+    if [ $tv2 -eq 4 ]; then ls  /usr/include/python3.4m/Python.h &>/dev/null; headercheck=$?; fi
+    if [ $tv2 -eq 6 ]; then ls  /usr/include/python3.6m/Python.h &>/dev/null; headercheck=$?; fi
+    if [ $headercheck -ne 0 ]; then
+       echo 'ERROR: You need to install python3 devel before we can proceed.'
+       exit 1
+    fi
 
 ###
 ### 5.  Create the cloudscheduler user and group.
@@ -154,9 +168,7 @@ EOF
     check_sw boto3 1.9.130
     check_sw htcondor 8.9.2
     check_sw mysql-connector 2.2.9
-#   check_sw mysqlclient 1.3.12    
     check_sw psutil 5.4.6
-#   check_sw PyMySQL 0.8.1 
     check_sw PyYAML 5.1.0
     check_sw python-dateutil 2.8.1
     check_sw python-keystoneclient 3.16.0
