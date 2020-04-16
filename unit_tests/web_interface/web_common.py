@@ -179,7 +179,7 @@ def get_data_from_form(driver, error_reporter, form_xpath):
         select_name = select.get_attribute('name')
         if select_name:
             try:
-                data[select_name] = next(filter(lambda option: option.is_selected(), select.find_elements_by_tag_name('option'))).text
+                data[select_name] = next(filter(lambda option: option.is_selected(), select.find_elements(By.TAG_NAME, 'option'))).text
             except StopIteration:
                 # WebDriver defaults to the first option if the HTML does not specify which is selected (at least for Firefox), so this should only occur if there are no options.
                 continue
@@ -217,6 +217,7 @@ def setup(address_extension, privileged=False):
 
     gvar = load_settings(web=True)
     gvar['metadata_path'] = '../notyamlfile.txt'
+    gvar['metadata_yaml_path'] = '../ut.yaml'
 
     if gvar['setup_required']:
         cleanup(gvar)
@@ -280,6 +281,8 @@ def setup(address_extension, privileged=False):
             ['cloud', 'metadata-load', *server_credentials, '-mn', '{}-wicm2'.format(gvar['user']), '-cn', '{}-wic3'.format(gvar['user']), '-f', gvar['metadata_path']],
             # Cloud metadata to be updated.
             ['cloud', 'metadata-load', *server_credentials, '-mn', '{}-wicm3'.format(gvar['user']), '-cn', '{}-wic3'.format(gvar['user']), '-f', gvar['metadata_path']],
+            # Cloud YAML metadata to be updated.
+            ['cloud', 'metadata-load', *server_credentials, '-mn', '{}-wicm3'.format(gvar['user']), '-cn', '{}-wic3'.format(gvar['user']), '-f', gvar['metadata_yaml_path']],
             # Group metadata that should always exist.
             ['metadata', 'load', *server_credentials, '-mn', '{}-wigm1'.format(gvar['user']), '-f', gvar['metadata_path']],
             # Group metadata to be deleted.

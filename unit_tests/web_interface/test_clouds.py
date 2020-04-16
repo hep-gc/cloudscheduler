@@ -11,6 +11,9 @@ EXPECTED_AMAZON_REGIONS = {'ap-east-1', 'ap-northeast-1', 'ap-northeast-2', 'ap-
 # When Amazon is the cloud type and the 'Image filter' link is clicked, a popup is expected with a form containing these (input_label, input_name) pairs.
 EXPECTED_IMAGE_FILTER_INPUTS = {('Operating Systems', 'operating_systems'), ('Architectures', 'architectures'), ('Owner Alias', 'owner_aliases'), ('Like', 'like'), ('Not Like', 'not_like'), ('Owner IDs', 'owner_ids')}
 EXPECTED_FLAVOR_FILTER_INPUTS = {('Processor Families', 'families'), ('Operating Systems', 'operating_systems'), ('Processors', 'processors'), ('Manufacturers', 'processor_manufacturers'), ('Cores', 'cores'), ('Min RAM (GB)', 'memory_min_gigabytes_per_core'), ('Max RAM (GB)', 'memory_max_gigabytes_per_core')}
+# The form to add new metadata is expected to contain <label>s, <input>s, and <select>s in a table row that match the following (label_text, input_type, input_name) triples. input_type == 'select' indicates a <select> tag.
+EXPECTED_METADATA_ADD_ENTRIES = [('Metadata Name:', 'text', 'metadata_name'), ('Enabled:', 'checkbox', 'enabled'), ('Priority:', 'number', 'priority'), ('MIME Type:', 'select', 'mime_type')]
+EXPECTED_METADATA_MIME_TYPE_OPTIONS = ['cloud-config', 'ucernvm-config']
 
 class TestClouds(unittest.TestCase):
     @classmethod
@@ -73,17 +76,6 @@ class TestClouds(unittest.TestCase):
             # ram_ctl and cores_ctl are <input>s with type='number', meaning the browser prevents the submission of the form unless they are integers.
             # AFAIK it is impossible to test the details of the browser's response (using Selenium), because it shows a message that is not part of the DOM.
         }
-        cls.cloud_update_valid_combinations = [{
-                'enabled': True,
-                'user_domain_name': 'unit-test.ca',
-                'project_domain_name': 'unit-test.ca',
-                'vm_keep_alive': 3,
-                'spot_price': 1.4,
-                'cores_softmax': 15,
-                'cores_ctl': 9,
-                'ram_ctl': 2
-            }
-        ]
 
     def test_nav(self):
         wc.assert_nav(self.driver, self.fail, self.gvar['address'])
@@ -122,6 +114,7 @@ class TestClouds(unittest.TestCase):
         # Assert that the cloud has been removed from the cloud list.
         self.assertRaises(NoSuchElementException, menu.find_element, By.ID, self.cloud_to_delete)
 
+    @unittest.skip
     def test_cloud_update(self):
         self.select_cloud_tab(self.cloud_to_update, 0)
         # Look for forms with name equal to cloud_to_update within elements with id equal to cloud_to_update which are themselves in elements of class 'menu'.
@@ -130,6 +123,7 @@ class TestClouds(unittest.TestCase):
         wc.submit_valid_combinations(self.driver, self.fail, form_xpath, self.cloud_update_valid_combinations, max_wait=self.max_wait, expected_response='successfully updated', retains_values=True)
         self.assert_cloud_types(form_xpath)
 
+    @unittest.skip
     def test_amazon_filters(self):
         self.assert_amazon_popup('Image filter', EXPECTED_IMAGE_FILTER_INPUTS)
         self.assert_amazon_popup('Flavor filter', EXPECTED_FLAVOR_FILTER_INPUTS)
@@ -151,27 +145,91 @@ class TestClouds(unittest.TestCase):
         form = self.select_metadata(self.metadata_to_list)
         try:
             wc.assert_one(form, self.fail, (By.TAG_NAME, 'h2'), {'id': 'metadata-name'})
-            actual_metadata_content = wc.assert_one(form, self.fail, (By.TAG_NAME, 'textarea'), {'class': 'ace_text-input'}).text
+            actual_metadata_content = wc.assert_one(form, self.fail, (By.TAG_NAME, 'textarea'), {'name': 'metadata'}).get_attribute('value')
             self.assertEqual(actual_metadata_content, expected_metadata_content)
         finally:
             self.driver.switch_to.default_content()
 
-    @unittest.skip
     def test_metadata_add(self):
-        self.select_metadata(self.meatadata_to_add)
-        raise NotImplementedError()
+        mandatory_parameters = {'metadata_name': self.metadata_to_add}
+        invalid_metadata_name_values = {
+            '': 'metadata add value specified for "metadata_name" must not be the empty string.',
+            'Invalid-Unit-Test': 'metadata add value specified for "metadata_name" must be all lowercase letters, digits, dashes, underscores, periods, and colons, and cannot contain more than one consecutive dash or start or end with a dash.',
+            'invalid-unit--test': 'metadata add value specified for "metadata_name" must be all lowercase letters, digits, dashes, underscores, periods, and colons, and cannot contain more than one consecutive dash or start or end with a dash.',
+            '-invalid-unit-test': 'metadata add value specified for "metadata_name" must be all lowercase letters, digits, dashes, underscores, periods, and colons, and cannot contain more than one consecutive dash or start or end with a dash.',
+            'invalid-unit-test!': 'metadata add value specified for "metadata_name" must be all lowercase letters, digits, dashes, underscores, periods, and colons, and cannot contain more than one consecutive dash or start or end with a dash.',
+            'metadata-name-that-is-too-long-for-the-database': 'Data too long for column \'metadata_name\' at row 1',
+            self.metadata_to_list: 'Duplicate entry \'{}-{}\' for key \'PRIMARY\''.format(self.active_group, self.metadata_to_list)
+        }
+        valid_combination = {
+            'enabled': True,
+            'priority': 3,
+            'metadata': 'valid metadata content'
+        }
+        self.select_metadata()
+        form_xpath = '//form[@name="metadata-form"]'
+        try:
+            # A modified version of submit_invalid_combinations, because we need to switch out of and back into the iframe after every invalid submission.
+            for value, message in invalid_priority_values.items():
+                # Mandatory parameters are listed first so that they are overwriten as necessary.
+                wc.submit_form(self.driver, self.fail, form_xpath, {**mandatory_parameters, name: value}, max_wait=self.gvar['max_wait'], expected_response=message)
+                self.driver.switch_to.default_content()
+                self.select_metadata()
+            # Submit a name that ends with '.yaml' but content that is invalid as YAML.
+            invalid_yaml_parameters = {**mandatory_parameters, 'metadata_name': '{}.yaml'.format(self.metadata_to_add), 'metadata': 'foo: bar: this is invalid yaml'}
+            wc.submit_form(self.driver, self.fail, form_xpath, invalid_yaml_parameters, self.gvar['max_wait'], expected_response='cloud metadata-add yaml value specified for "metadata (metadata_name)" is invalid - scanner error')
+            self.driver.switch_to.default_content()
+            self.select_metadata()
+            # Submit valid parameters.
+            wc.submit_form(self.driver, self.fail, form_xpath, {**mandatory_parameters, valid_combination}, self.gvar['max_wait'])
+            self.driver.switch_to.default_content()
+            # We cannot assert an expected_response through submit_form() because the driver is set to the iframe that that point (and the message appears outside it).
+            footer = wc.assert_one(self.driver, self.fail, (By.ID, 'message'))
+            self.assertIn('cloud metadata file "grobertson-wig1::grobertson-wic3::foo.yaml" successfully added.', footer.text)
+            form = self.select_metadata()
+            self.assert_metadata_mime_types(form)
+        finally:
+            self.driver.switch_to.default_content()
 
-    @unittest.skip
     def test_metadata_delete(self):
-        self.select_metadata(self.meatadata_to_delete)
-        delete_link = wc.assert_one(metadata_form, self.driver, self.fail, (By.TAG_NAME, 'a'), {'href': '{}/cloud/metadata-fetch/?{}&cloud_name={}&metadata_name={}#delete-metadata'.format(self.gvar['address'], self.active_group, self.cloud_to_list, self.metadata_to_list)}, missing_message='The button to delete {} is missing.'.format(self.metadata_to_list))
-        raise NotImplementedError()
+        form = self.select_metadata(self.metadata_to_delete)
+        try:
+            delete_button = wc.assert_one(form, self.fail, (By.TAG_NAME, 'a'), {'href': '{}/cloud/metadata-fetch/?{}&cloud_name={}&metadata_name={}#delete-metadata'.format(self.gvar['address'], self.active_group, self.cloud_to_update, self.metadata_to_delete)}, missing_message='The button to delete {} is missing.'.format(self.metadata_to_delete))
+            delete_button.click()
+            delete_dialog = wc.assert_one(self.driver, self.fail, (By.ID, 'delete-metadata'))
+            # The link text below is an uppercase letter 'X'.
+            wc.assert_one(delete_dialog, self.fail, (By.LINK_TEXT, 'X')).click()
+            self.assertTrue(ec.invisibility_of_element(delete_dialog))
+            delete_button.click()
+            wc.assert_one(delete_dialog, self.fail, (By.NAME, '{}-{}-delete'.format(self.cloud_to_update, self.metadata_to_delete))).submit()
+            wait.WebDriverWait(self.driver, self.gvar['max_wait']).until(ec.staleness_of(delete_button))
+        finally:
+            self.driver.switch_to.default_content()
 
     @unittest.skip
     def test_metadata_update(self):
-        self.select_metadata(self.metadata_to_update)
-        wc.assert_one(metadata_form, self.driver, self.fail, (By.TAG_NAME, 'input'), {'type': 'submit', 'value': 'Update'}, missing_message='The \'Update\' button is missing from the form to update {}'.format(self.metadata_to_list))
-        raise NotImplementedError()
+        valid_combination = {
+            'enabled': True,
+            'user_domain_name': 'unit-test.ca',
+            'project_domain_name': 'unit-test.ca',
+            'vm_keep_alive': 3,
+            'spot_price': 1.4,
+            'cores_softmax': 15,
+            'cores_ctl': 9,
+            'ram_ctl': 2
+        }
+        form_xpath = '//form[@name="metadata-form"]'
+        self.select_metadata('{}.yaml'.format(self.metadata_to_update))
+        try:
+            wc.submit_form(self.driver, self.fail, form_xpath, {'metadata': 'foo: bar: this is invalid yaml'}, self.gvar['max_wait'], expected_response='TODO')
+            self.driver.switch_to.default_content()
+            self.select_metadata(self.metadata_to_update)
+            wc.submit_form(self.driver, self.fail, form_xpath, valid_combination, self.gvar['max_wait'], expected_message='cloud metadata file "{}::{}::{}" successfully updated.'.format(self.active_group, self.cloud_to_update, self.metadata_to_update), retains_values=True)
+            self.driver.switch_to.default_content()
+            form = self.select_metadata(self.metadata_to_update)
+            self.assert_metadata_mime_types(form)
+        finally:
+            self.driver.switch_to.default_content()
 
     def select_cloud_tab(self, cloud_name, tab_index=None):
         '''Select the tab at the given tab_index under the given cloud and return the tab element.'''
@@ -190,24 +248,23 @@ class TestClouds(unittest.TestCase):
             tab_label.click()
             return tab
 
-    def select_metadata(self, metadata_name):
+    def select_metadata(self, metadata_name=None):
         '''
-        Select the specified metadata from the cloud_to_update and return the form within the iframe.
+        Select the specified metadata from the cloud_to_update and return the form within the iframe. If not metadata_name, select the option to add metadata.
         Leave the driver looking inside the iframe so that the form can be manipulated, but the caller must switch the driver back to default_content.
         '''
         metadata_tab = self.select_cloud_tab(self.cloud_to_update, 1)
         # Look within metadata_tab for elements of class 'tab2' (i.e. sub-tabs) which have within them labels with text equal to metadata_name.
-        metadata_listing = wc.assert_one(metadata_tab, self.fail, (By.XPATH, './/*[contains(@class, "tab2")][label/text()="{}"]'.format(metadata_name)), missing_message='\'{}\' is missing from the list of metadata for {}'.format(metadata_name, self.cloud_to_update))
+        metadata_listing = wc.assert_one(metadata_tab, self.fail, (By.XPATH, './/*[contains(@class, "tab2")][label/text()="{}"]'.format(metadata_name if metadata_name else '+')), missing_message='\'{}\' is missing from the list of metadata for {}'.format(metadata_name if metadata_name else '+', self.cloud_to_update))
         # We already know this label exists, but we need to find it so we can click on it.
-        wc.assert_one(metadata_tab, self.fail, (By.XPATH, './/label[text()="{}"]'.format(metadata_name))).click()
+        wc.assert_one(metadata_tab, self.fail, (By.XPATH, './/label[text()="{}"]'.format(metadata_name if metadata_name else '+'))).click()
+        iframe = wc.assert_one(metadata_listing, self.fail, (By.XPATH, './/iframe[@id="editor-{}-{}"]'.format(self.cloud_to_update, metadata_name if metadata_name else 'add')))
+        self.driver.switch_to.frame(iframe)
         try:
-            iframe = wc.assert_one(metadata_listing, self.fail, (By.XPATH, './/iframe[@id="editor-{}-{}"]'.format(self.cloud_to_update, metadata_name)))
-            self.driver.switch_to.frame(iframe)
-            form = wc.assert_one(self.driver, self.fail, (By.NAME, 'metadata-form'))
+            return wc.assert_one(self.driver, self.fail, (By.TAG_NAME, 'form'), {'name': 'metadata-form'})
         except AssertionError:
             self.driver.switch_to.default_content()
             raise
-        return form
 
     def assert_cloud_types(self, form_xpath):
         '''Assert that the <select> with name='cloud_type' in form has the right <option>s and changes other <input>s appropriately.'''
@@ -258,6 +315,11 @@ class TestClouds(unittest.TestCase):
             wc.assert_one(popup, self.fail, (By.LINK_TEXT, '×')).click()
             # Wait for the page to start reloading.
             wait.WebDriverWait(self.driver, self.max_wait).until(ec.staleness_of(settings_tab))
+
+    def assert_metadata_mime_types(self, form):
+        mime_type_select = wc.assert_one(form, self.fail, (By.TAG_NAME, 'select'), {'name': 'mime_type'})
+        mime_type_options = [option.text for option in mime_type_select.find_elements(By.TAG_NAME, 'option')]
+        self.assertEqual(mime_type_options, EXPECTED_METADATA_MIME_TYPE_OPTIONS)
 
     @classmethod
     def tearDownClass(cls):
