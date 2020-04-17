@@ -620,7 +620,6 @@ def initialize_csv2_request(gvar, selections=None, hidden=False):
     gvar['command_args'] = {}
     gvar['cookies'] = None
     gvar['csrf'] = None
-    # Used as the htcondor_fqdn of test groups.
     gvar['ut_count'] = [0, 0]
     gvar['ut_failed'] = 0
     gvar['ut_skipped'] = 0
