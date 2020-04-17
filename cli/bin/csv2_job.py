@@ -18,7 +18,7 @@ def _filter(gvar, qs):
     for _ix in range(len(qs)-1, -1, -1):
         if 'job-id' in gvar['command_args'] and qs[_ix]['global_job_id'] != gvar['command_args']['job-id']:
             del(qs[_ix])
-        elif 'job-target-clouds' in gvar['command_args'] and qs[_ix]['target_clouds'] != gvar['command_args']['job-target-clouds']:
+        elif 'job-target-alias' in gvar['command_args'] and qs[_ix]['target_alias'] != gvar['command_args']['job-target-alias']:
             del(qs[_ix])
         elif 'job-status' in gvar['command_args'] and str(qs[_ix]['job_status']) != gvar['command_args']['job-status']:
             del(qs[_ix])
@@ -50,7 +50,7 @@ def list(gvar):
 
     mandatory = []
     required = []
-    optional = ['-CSEP', '-CSV', '-g', '-H', '-h', '-jh', '-jI', '-ji', '-jp', '-jR', '-jrc', '-jrd', '-jrr', '-jrs', '-jS', '-jtc', '-ju', '-NV', '-ok', '-r', '-s', '-V', '-VC', '-v', '-xA']
+    optional = ['-CSEP', '-CSV', '-g', '-H', '-h', '-jh', '-jI', '-ji', '-jp', '-jR', '-jrc', '-jrd', '-jrr', '-jrs', '-jS', '-jta', '-ju', '-NV', '-ok', '-r', '-s', '-V', '-VC', '-v', '-x509', '-xA']
 
     if gvar['retrieve_options']:
         return mandatory + required + optional
@@ -85,7 +85,7 @@ def list(gvar):
             'user/User',
             'user_data/User Data',
             'requirements/Requirements',
-            'target_clouds/Target Clouds',
+            'target_alias/Target Alias',
             'cloud_name/Cloud',
             'instance_type/Instance Type',
             'request_cpus/CPUs/Requested',

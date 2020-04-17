@@ -19,6 +19,7 @@ from cloudscheduler.lib.view_utils import \
     table_fields, \
     validate_by_filtered_table_entries, \
     validate_fields, \
+    get_target_cloud, \
     verify_cloud_credentials
 
 import bcrypt
@@ -28,7 +29,7 @@ from sqlalchemy.sql import select
 from sqlalchemy import Table, MetaData
 from cloudscheduler.lib.schema import *
 from cloudscheduler.lib.log_tools import get_frame_info
-from cloudscheduler.lib.signal_manager import send_signals
+from cloudscheduler.lib.signal_functions import event_signal_send
 
 import sqlalchemy.exc
 #import subprocess
@@ -194,6 +195,8 @@ def ec2_filters(config, group_name, cloud_name, cloud_type=None):
             if rc != 0:
                 return 1, 'failed to add EC2 image filter - %s' % msg
 
+            event_signal_send(config, "update_ec2_images")
+
         if not ec2_instance_type_filter:
             defaults = config.get_config_by_category('ec2_instance_type_filter')
 
@@ -211,6 +214,8 @@ def ec2_filters(config, group_name, cloud_name, cloud_type=None):
                 }))
             if rc != 0:
                 return 1, 'failed to add EC2 instance_type filter - %s' % msg
+
+            event_signal_send(config, "update_ec2_instance_types")
 
     # Ensure EC2 filters do not exist for non-amazon clouds.
     else:
@@ -483,8 +488,12 @@ def add(request):
                 config.db_close()
                 return list(request, active_user=active_user, response_code=1, message='%s cloud add, "%s" failed - %s.' % (lno(MODID), fields['cloud_name'], msg))
 
+        if 'cloud_type' in fields:
+            if fields['cloud_type'] == 'amazon':
+                fields['cores_softmax'] = config.categories['web_frontend']['default_softmax']
+
         # Verify cloud credentials.
-        rc, msg, owner_id = verify_cloud_credentials(config, fields, active_user)
+        rc, msg, owner_id = verify_cloud_credentials(config, {**fields, **{'group_name': active_user.active_group}})
         if rc == 0:
             fields['ec2_owner_id'] = owner_id
         else:
@@ -519,7 +528,11 @@ def add(request):
             return list(request, active_user=active_user, response_code=1, message='%s cloud add "%s::%s" failed - %s.' % (lno(MODID), fields['group_name'], fields['cloud_name'], msg))
 
         #signal the pollers a new cloud has been added
-        send_signals(config, "insert_csv2_clouds")
+        if fields['cloud_type'] == 'amazon':
+            event_signal_send(config, "insert_csv2_clouds_amazon")
+        elif fields['cloud_type'] == 'openstack':
+            event_signal_send(config, "insert_csv2_clouds_openstack")
+
         config.db_close(commit=True)
         return list(request, active_user=active_user, response_code=0, message='cloud "%s::%s" successfully added.' % (fields['group_name'], fields['cloud_name']))
                     
@@ -533,7 +546,7 @@ def add(request):
 @requires_csrf_token
 def delete(request):
     """
- function should recieve a post request with a payload of cloud name
+    Function should recieve a post request with a payload of cloud name
     to be deleted.
     """
 
@@ -1488,66 +1501,24 @@ def status(request, group_name=None):
     # Get GSI configuration variables.
     gsi_config = config.get_config_by_category('GSI')
 
-    # First get rows from csv2_system_status, if rows are out of date, do manual update
+    service_status = qt(config.db_connection.execute('select * from view_service_status;'))
+
+    # Determine the system load, RAM and disk usage
     system_list = {}
 
-    s = select([csv2_system_status])
-    try:
-        query_result = qt(config.db_connection.execute(s))[0]
-        
-        if time.time() - query_result["last_updated"] < 120:
-            # it has been updated in the last minute and we can just take it and go
-            system_list.update(query_result)
-        else:
-            # throw exception
-            raise Exception("System status info out of date, need to calculate manually")
+    system_list["load"] = round(100*( os.getloadavg()[0] / os.cpu_count() ),1)
 
-    except:
-        system_list["csv2_status_msg"] = service_msg("csv2-status")
-        system_list["csv2_status_status"] = 0
+    system_list["ram"] = psutil.virtual_memory().percent
+    system_list["ram_size"] = round(psutil.virtual_memory().total/1000000000 , 1)
+    system_list["ram_used"] = round(psutil.virtual_memory().used/1000000000 , 1)
 
-        db_service_names = {
-                        "csv2-main":        "csv2_main", 
-                        "csv2-openstack":   "csv2_openstack", 
-                        "csv2-jobs":        "csv2_jobs", 
-                        "csv2-machines":    "csv2_machines", 
-                        "csv2-timeseries":  "csv2_timeseries",
-                        "csv2-ec2":         "csv2_ec2",
-                        "csv2-htc-agent":   "csv2_htc_agent",
-                        "csv2-watch":       "csv2_watch",
-                        "csv2-startd-errors":"csv2_startd_errors",
-                        "rabbitmq-server":  "rabbitmq_server",
-                        "mariadb":          "mariadb", 
-                        "condor":           "condor"
-                   }
+    system_list["swap"] = psutil.swap_memory().percent
+    system_list["swap_size"] = round(psutil.swap_memory().total/1000000000 , 1)
+    system_list["swap_used"] = round(psutil.swap_memory().used/1000000000 , 1)
 
-        #system_list = {'id': 0}
-        for service, service_name in db_service_names.items():
-            system_list[service_name + "_msg"] = service_msg(service)
-            if "running" in system_list[service_name + "_msg"]:
-                system_list[service_name + "_status"] = 1
-                system_list[service_name + "_error_count"] = 0
-            else:
-                system_list[service_name + "_status"] = 0
-                system_list[service_name + "_error_count"] = 1
-
-
-        # Determine the system load, RAM and disk usage
-
-        system_list["load"] = round(100*( os.getloadavg()[0] / os.cpu_count() ),1)
-
-        system_list["ram"] = psutil.virtual_memory().percent
-        system_list["ram_size"] = round(psutil.virtual_memory().total/1000000000 , 1)
-        system_list["ram_used"] = round(psutil.virtual_memory().used/1000000000 , 1)
-
-        system_list["swap"] = psutil.swap_memory().percent
-        system_list["swap_size"] = round(psutil.swap_memory().total/1000000000 , 1)
-        system_list["swap_used"] = round(psutil.swap_memory().used/1000000000 , 1)
-
-
-        system_list["disk"] = round(100*(psutil.disk_usage('/').used / psutil.disk_usage('/').total),1)
-        system_list["disk_size"] = round(psutil.disk_usage('/').total/1000000000 , 1)
-        system_list["disk_used"] = round(psutil.disk_usage('/').used/1000000000 , 1)
+    system_list["disk"] = round(100*(psutil.disk_usage('/').used / psutil.disk_usage('/').total),1)
+    system_list["disk_size"] = round(psutil.disk_usage('/').total/1000000000 , 1)
+    system_list["disk_used"] = round(psutil.disk_usage('/').used/1000000000 , 1)
 
     context = {
             'active_user': active_user.username,
@@ -1558,8 +1529,10 @@ def status(request, group_name=None):
             'cloud_status_list_totals': cloud_status_list_totals,
             'gsi_config': gsi_config['GSI'],
             #'global_total_list': global_total_list,
+            'process_monitor_pause': config.categories['ProcessMonitor']['pause'],
             'job_status_list': job_status_list,
             'job_totals_list': job_totals_list,
+            'service_status': service_status,
             'system_list' : system_list,
             #'slot_detail_list' : slot_detail_list,
             #'slot_detail_total_list': slot_detail_total_list,
@@ -1732,7 +1705,7 @@ def update(request):
                 return list(request, active_user=active_user, response_code=1, message='%s cloud update, "%s" failed - %s.' % (lno(MODID), fields['cloud_name'], msg))
 
         # Verify cloud credentials.
-        rc, msg, owner_id = verify_cloud_credentials(config, fields, active_user)
+        rc, msg, owner_id = verify_cloud_credentials(config, {**fields, **{'group_name': active_user.active_group}})
         if rc == 0:
             fields['ec2_owner_id'] = owner_id
         else:
@@ -1812,18 +1785,27 @@ def update(request):
                 config.db_close()
                 return list(request, active_user=active_user, response_code=1, message='%s cloud update "%s::%s" failed - %s.' % (lno(MODID), fields['group_name'], fields['cloud_name'], msg))
 
+        config.db_session.commit()
         if updates > 0:
-            act_usr = active_user.username
-            #signal the pollers that a cloud has been updated
-            send_signals(config, "update_csv2_clouds")
-            config.db_close(commit=True)
-            return list(request, active_user=active_user, response_code=0, message='cloud "%s::%s" successfully updated.' % (fields['group_name'], fields['cloud_name']))
-        else:
-            act_usr = active_user.username
-            config.db_close()
-            return list(request, active_user=active_user, response_code=1, message='%s cloud update must specify at least one field to update.' % lno(MODID))
+            if 'cloud_type' in fields:
+                cloud_type = fields['cloud_type']
+            else:
+                rc, msg, target_cloud = get_target_cloud(config, active_user.active_group, fields['cloud_name'])
+                if rc == 0:
+                    cloud_type = target_cloud['cloud_type']
+                else:
+                    cloud_type = None
 
+            # Signal the pollers that a cloud has been updated.
+            if cloud_type == 'amazon':
+                event_signal_send(config, "update_csv2_clouds_amazon")
+            elif cloud_type == 'openstack':
+                event_signal_send(config, "update_csv2_clouds_openstack")
+
+        config.db_close()
+        return list(request, active_user=active_user, response_code=0, message='cloud "%s::%s" successfully updated.' % (fields['group_name'], fields['cloud_name']))
+                    
     ### Bad request.
     else:
-        return list(request, active_user=active_user, response_code=1, message='%s cloud update, invalid method "%s" specified.' % (lno(MODID), request.method))
+        return list(request, active_user=active_user, response_code=1, message='%s cloud add request did not contain mandatory parameter "cloud_name".' % lno(MODID))
 

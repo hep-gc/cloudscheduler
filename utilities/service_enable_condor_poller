@@ -1,0 +1,190 @@
+#!/bin/bash 
+###
+### This utility must be run as root. It performs the following:
+###
+### 1.  Ensure csv2-condor-poller is not already installed.
+### 2.  Checks to see if we are running as root.
+### 3.  Checks to see if we are installed correctly in /opt.
+### 4.  Checks to see if python3 and header files are installed.
+### 5.  Create the cloudscheduler user and group.
+### 6.  Add the condor user to the cloudscheduler group.
+### 7.  Create the cloudscheduler run directory
+### 8.  Create the cloudscheduler logging directory.
+### 9.  Creates a python3 virtual environment.
+### 10. Checks/installs prerequisite pip modules.
+### 11. Installs, enables, and starts csv2-condor-poller initd/systemd service.
+###
+check_sw () {
+    # $1 - package
+    # $2 - tested version
+
+    IFS=. read tv1 tv2 tv3 <<EOF
+$2
+EOF
+    TV=$(( ( ( ( $tv1 * 1000 ) + $tv2 ) * 1000 ) + $tv3 ))
+
+    version=$(python3 -m pip show $1 | awk '/^Version/ {print $2}')
+    IFS=. read av1 av2 av3 <<EOF
+$version
+EOF
+
+    if [ "$av3" == "" ]; then
+        av3='0'
+    fi
+
+    if [ "$version" == "" ]; then
+        echo "Installing python package '$1', version '$2'."
+        python3 -m pip install "$1==$2"
+    else
+        AV=$(( ( ( ( $av1 * 1000 ) + $av2 ) * 1000 ) + $av3 ))
+
+        if [ $AV -gt $TV ]; then
+           echo "Warning: The python package '$1', version '$version' is installed.  This is a later version than tested ($2)."
+
+        elif [ $AV -lt $TV ]; then
+            echo "The python package '$1' version '$version' is installed, updating package to tested vesion '$2'."
+            python3 -m pip install "$1==$2" --upgrade 
+        fi
+    fi  
+}
+
+###
+### 1.  Ensure csv2-condor-poller is not already installed.
+###
+    which systemctl 1>/dev/null 2>&1
+    systemctl=$?
+    if [ $systemctl -eq 1 ]; then
+        chkconfig csv2-condor-poller
+    else
+        systemctl enable csv2-condor-poller >/dev/null 2>&1
+    fi
+
+    if [ $? -eq 0 ]; then
+        echo 'Service csv2-condor-poller already enabled.'
+        exit 0
+    fi
+
+###
+### 2.  Checks to see if we are running as root.
+###
+    if [ "$EUID" != '0' ]; then
+        echo 'ERROR: This process needs to run as root.'
+        exit 1
+    fi  
+
+###
+### 3.  Checks to see if we are installed correctly in /opt.
+###
+   # readlink check doesn't work when /opt is a symlink
+   # home=$(readlink -e $0) $1
+
+    dirName=$(dirname $0)
+    filename=$(basename $0)
+    home=$(cd $dirName && pwd)/$filename
+
+    if [ $home != '/opt/cloudscheduler/utilities/service_enable_condor_poller' ]; then
+        echo 'ERROR: Remote csv2-condor-poller must be installed in /opt.'
+        exit 1
+    fi
+
+###
+### 4.  Checks to see if python3 is installed and the python3 header files.
+###
+    read tv0 tv1 <<EOF
+$(python3 -V 2>/dev/null)
+EOF
+    returncode=$?
+    IFS=. read tv1 tv2 tv3 <<EOF
+$tv1
+EOF
+    if [ "$tv1" == "" ]; then tv1=0; fi
+    if [ "$tv2" == "" ]; then tv2=0; fi
+    if [ "$tv3" == "" ]; then tv3=0; fi
+    python3=$(( ( ( ( $tv1 * 1000 ) + $tv2 ) * 1000 ) + $tv3 ))
+
+    if [ $returncode -ne 0 ] || [ $tv1 -lt 3 ]; then
+        echo 'ERROR: You need to install python3 before we can proceed.'
+        exit 1
+    fi  
+
+    headercheck=1
+    if [ $tv2 -eq 4 ]; then ls  /usr/include/python3.4m/Python.h &>/dev/null; headercheck=$?; fi
+    if [ $tv2 -eq 6 ]; then ls  /usr/include/python3.6m/Python.h &>/dev/null; headercheck=$?; fi
+    if [ $headercheck -ne 0 ]; then
+       echo 'ERROR: You need to install python3 devel before we can proceed.'
+       exit 1
+    fi
+
+###
+### 5.  Create the cloudscheduler user and group.
+###
+    id cloudscheduler >/dev/null 2>&1
+    if [ $? -ne 0 ]; then
+        useradd -s $(which nologin) -d /var/local/cloudscheduler cloudscheduler
+    fi
+
+###
+### 6.  Add the condor user to the cloudscheduler group.
+###
+    usermod -a -G cloudscheduler condor
+
+###
+### 7.  Create the cloudscheduler run directory
+###
+    mkdir -p /var/local/cloudscheduler/run
+    chown cloudscheduler.cloudscheduler /var/local/cloudscheduler
+    chown cloudscheduler.cloudscheduler /var/local/cloudscheduler/run
+    chmod 0775 /var/local/cloudscheduler
+    chmod 0775 /var/local/cloudscheduler/run
+
+###
+### 8.  Create the cloudscheduler log directory.
+###
+    mkdir -p /var/log/cloudscheduler
+    chown cloudscheduler.cloudscheduler /var/log/cloudscheduler
+    chmod 0775 /var/log/cloudscheduler
+
+
+###
+### 9.  Creates a python3 virtual environment.
+###
+    stat /opt/cloudscheduler/python3 >/dev/null 2>&1
+    if [ $? -ne 0 ]; then
+        if [ $python3 -lt 30005000 ]; then
+            python3 -m venv /opt/cloudscheduler/python3
+            source /opt/cloudscheduler/python3/bin/activate
+            python3 -m pip install pip --upgrade
+        else
+            python3 -m venv --without-pip /opt/cloudscheduler/python3
+            source /opt/cloudscheduler/python3/bin/activate
+            curl https://bootstrap.pypa.io/get-pip.py | python3
+        fi
+    fi
+
+
+###
+### 10. Checks/installs prerequisite pip modules.
+###
+    check_sw boto3 1.9.130
+    check_sw htcondor 8.9.2
+    check_sw mysql-connector 2.2.9
+    check_sw psutil 5.4.6
+    check_sw PyYAML 5.1.0
+    check_sw python-dateutil 2.8.1
+    check_sw python-keystoneclient 3.16.0
+    check_sw python-novaclient 10.3.0
+
+###
+### 11. Installs, enables, and starts csv2-condor-poller initd/systemd service.
+###
+    if [ $systemctl -eq 1 ]; then
+        cp /opt/cloudscheduler/etc/init.d/csv2-condor-poller.pfile /etc/init.d/csv2-condor-poller
+        chmod 0755 /etc/init.d/csv2-condor-poller
+        chkconfig --add csv2-condor-poller
+        service csv2-condor-poller start
+    else
+        cp /opt/cloudscheduler/etc/systemd/system/csv2-condor-poller.service.pfile /etc/systemd/system/csv2-condor-poller.service
+        systemctl enable csv2-condor-poller
+        systemctl start csv2-condor-poller
+    fi
+

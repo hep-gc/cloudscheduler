@@ -3,6 +3,14 @@ from django.core.exceptions import PermissionDenied
 import time
 from sqlalchemy.orm.session import make_transient
 
+import boto3
+
+from keystoneclient.auth.identity import v2, v3
+from keystoneauth1 import session as keystone
+from keystoneauth1 import exceptions
+import keystoneclient.v2_0.client as v2c
+import keystoneclient.v3.client as v3c
+
 
 '''
 UTILITY FUNCTIONS
@@ -554,7 +562,7 @@ def qt(query, keys=None, prune=[], filter=None, convert=None):
         raise Exception('view_utils.qt: "keys" dictionary requires a "primary/secondary" specification if "match_list" is also specified.')
 
     from decimal import Decimal
-    from .view_utils import _qt, _qt_list, _qt_list_sum
+#   from view_utils import _qt, _qt_list, _qt_list_sum
     import time
 
     # Initialize return structures.
@@ -1133,8 +1141,10 @@ def validate_fields(config, request, fields, tables, active_user):
     from sqlalchemy import Table, MetaData
     from sqlalchemy.sql import select
     import cloudscheduler.lib.schema
+    import ipaddress
     import json
     import re
+    import socket
 
     # Retrieve relevant (re: tables) schema.
     all_columns = []
@@ -1329,6 +1339,20 @@ def validate_fields(config, request, fields, tables, active_user):
                         if len(picked_keys) < min_pick:
                             return 1, 'At least %s of %s (%s) selectable keys are required for %s; dictionary specified only %s (%s) keys.' % (min_pick, len(pick_keys), pick_keys, field, len(picked_keys), picked_keys), None, None, None
 
+                elif Formats[field][:4] == 'fqdn':
+                    words = Formats[field].split(',')
+                    if value == '':
+                        value = None
+                        if len(words) > 1:
+                            Fields[words[1]] = 0
+                    else:
+                        try:
+                            current_hostname = socket.gethostbyname(value)
+                            if len(words) > 1:
+                                Fields[words[1]] = int(ipaddress.IPv4Address(current_hostname))
+                        except:
+                            return 1, 'The value specified for %s (%s) is not a valid FQDN.' % (field, value), None, None, None
+
                 elif Formats[field] == 'dboolean':
                     lower_value = value.lower()
                     if lower_value == 'true' or lower_value == 'yes' or lower_value == 'on' or lower_value == '1':
@@ -1351,23 +1375,24 @@ def validate_fields(config, request, fields, tables, active_user):
                         return 1, 'value specified for "%s" must be an integer value.' % field, None, None, None
 
                 elif Formats[field] == 'lowerdash':
-                    if len(request.POST[field]) > 0 and re.match("^[a-z0-9_\-]*$", request.POST[field]) and request.POST[field][0] != '-' and request.POST[field][-1] != '-':
+                    if re.fullmatch("([a-z0-9.:]-?)*[a-z0-9.:]", request.POST[field]):
                         value = request.POST[field]
                     else:
                         return 1, 'value specified for "%s" must be all lower case, numeric digits, and dashes but cannot start or end with dashes.' % field, None, None, None
 
                 elif Formats[field] == 'lowercase':
-                    value = request.POST[field].lower()
-                    if request.POST[field] != value:
+                    if re.fullmatch("([a-z0-9_.:]-?)*[a-z0-9_.:]", request.POST[field]) or request.POST[field] == '':
+                        value = request.POST[field]
+                    else:
                         return 1, 'value specified for "%s" must be all lower case.' % field, None, None, None
 
                 elif Formats[field] == 'lowernull':
-                    value = request.POST[field].lower()
-                    if value == '':
+                    if re.fullmatch("([a-z0-9_.:]-?)*[a-z0-9_.:]", request.POST[field]):
+                        value = request.POST[field]
+                    elif request.POST[field] == '':
                         value = None
                     else:
-                        if request.POST[field] != value:
-                            return 1, 'value specified for "%s" must be all lower case.' % field, None, None, None
+                        return 1, 'value specified for "%s" must be all lower case.' % field, None, None, None
 
                 elif Formats[field] == 'mandatory':
                     if value.strip() == '':
@@ -1439,6 +1464,7 @@ def validate_fields(config, request, fields, tables, active_user):
                     else:
                         return 1, 'request contained a bad parameter "%s".' % field, None, None, None
 
+
         if Options['auto_active_group'] and 'group_name' not in Fields:
             Fields['group_name'] = active_user.active_group
 
@@ -1492,50 +1518,290 @@ def _validate_fields_pw_check(pw1, pw2=None):
 
 #-------------------------------------------------------------------------------
 
-def verify_cloud_credentials(config, fields, active_user):
+def verify_cloud_credentials(config, cloud):
     """
-    Validate Amazon EC2 credentials and return OwnerId.
+    Validate cloud credentials and, for Amazon EC2 clouds, return OwnerId.
     """
 
-    import boto3
+    cloud_type = None
+    target_cloud = None
 
-    if 'authurl' in fields and \
-        'cloud_type' in fields and \
-        'region' in fields and \
-        'username' in fields and \
-        'password' in fields:
+    if isinstance(cloud, config.db_map.classes.csv2_clouds):
+        cloud_type = cloud.cloud_type
 
-        authurl = fields['authurl']
-        cloud_type = fields['cloud_type']
-        region = fields['region']
-        username = fields['username']
-        password = fields['password']
+    elif 'cloud_type' in cloud:
+        cloud_type = cloud['cloud_type']
 
-    else:
-        cloud_list = qt(config.db_session.execute('select * from csv2_clouds where group_name="%s" and cloud_name="%s"' % (active_user.active_group, fields['cloud_name'])))
-        if len(cloud_list) != 1:
-            return 1, 'cloud "%s::%s" does not exist' % (active_user.active_group, fields['cloud_name']), None
-
-        authurl = fields.get('authurl', cloud_list[0]['authurl'])
-        cloud_type = fields.get('cloud_type', cloud_list[0]['cloud_type'])
-        region = fields.get('region', cloud_list[0]['region'])
-        username = fields.get('username', cloud_list[0]['username'])
-        password = fields.get('password', cloud_list[0]['password'])
+    elif 'group_name' in cloud and 'cloud_name' in cloud:
+        rc, msg, target_cloud = get_target_cloud(config, cloud['group_name'], cloud['cloud_name'])
+        if rc == 0:
+            cloud_type = target_cloud['cloud_type']
 
     if cloud_type == 'amazon':
-        try:
-            session = boto3.session.Session(region_name=region,
-                aws_access_key_id=username,
-                aws_secret_access_key=password)
-
-            return 0, None, session.client('sts').get_caller_identity().get('Account')
-
-        except:
-            return 1, 'invalid Amazon EC2 credentials', None
+        rc, msg, session = get_amazon_session(config, cloud, target_cloud=target_cloud)
+        if rc == 0:
+            try:
+                return rc, msg, session.client('sts').get_caller_identity().get('Account')
+            except:
+                return 1, 'invalid Amazon EC2 credentials', None
+        else:
+            return rc, msg, None
 
     elif cloud_type == 'openstack':
-       return 0, None, None
+        rc, msg, session = get_openstack_session(config, cloud, target_cloud=target_cloud)
+        return rc, msg, None
 
     else:
-       return 0, None, None
+       return 1, 'unsuppoerted cloud_type', None
+
+#-------------------------------------------------------------------------------
+
+def get_target_cloud(config, group_name, cloud_name):
+    if not config.db_session:
+        auto_close = True
+        config.db_open()
+    else:
+        auto_close = False
+
+    cloud_list = list(config.db_connection.execute('select * from csv2_clouds where group_name="%s" and cloud_name="%s";' % (group_name, cloud_name)))
+
+    if auto_close:
+        config.db_close()
+
+    if len(cloud_list) == 1:
+        return 0, None, cloud_list[0]
+    else:
+        return 1, 'cloud %s::%s does not exist' % (group_name, cloud_name), None
+
+#-------------------------------------------------------------------------------
+
+def get_amazon_session(config, cloud, target_cloud=None):
+    if isinstance(cloud, config.db_map.classes.csv2_clouds):
+        C = {
+            'region': cloud.region,
+            'aws_access_key_id': cloud.username,
+            'aws_secret_access_key': cloud.password
+            }
+
+    else:
+        C = {'region': None}
+        if not target_cloud and 'group_name' in cloud and 'cloud_name' in cloud:
+            rc, msg, target_cloud = get_target_cloud(config, cloud['group_name'], cloud['cloud_name'])
+
+        if target_cloud:
+                C = {
+                    'region': target_cloud['region'],
+                    'aws_access_key_id': target_cloud['username'],
+                    'aws_secret_access_key': target_cloud['password']
+                    }
+
+        if not C['region']:
+            C['aws_access_key_id'] = None
+            C['aws_secret_access_key'] = None
+
+        if 'region' in cloud:
+            C['region'] = cloud['region']
+
+        if 'username' in cloud:
+            C['aws_access_key_id'] = cloud['username']
+
+        if 'password' in cloud:
+            C['aws_secret_access_key'] = cloud['password']
+
+    if C['region'] and C['aws_access_key_id'] and C['aws_secret_access_key']:
+        try:
+            session = boto3.session.Session(region_name=C['region'],
+                aws_access_key_id=C['aws_access_key_id'],
+                aws_secret_access_key=C['aws_secret_access_key'])
+
+            return 0, None, session
+
+        except:
+            return 1, 'invalid Amazon EC2 credentials: %s' % C, None
+
+    else:
+        return 1, 'insufficient credentials to establish Amazon EC2 session: $s' % C, None
+
+#-------------------------------------------------------------------------------
+
+def get_openstack_session(config, cloud, target_cloud=None):
+    def __get_openstack_api_version__(authurl):
+        authsplit = authurl.split('/')
+        try:
+            version = int(float(authsplit[-1][1:])) if len(authsplit[-1]) > 0 else int(float(authsplit[-2][1:]))
+            return 0, None, version
+        except:
+            return 1, 'Bad openstack URL: %s, could not determine version' % authurl, None
+
+    if isinstance(cloud, config.db_map.classes.csv2_clouds):
+        rc, msg, version = __get_openstack_api_version__(cloud.authurl)
+        if rc != 0:
+            return rc, msg, None # could not determine version
+
+        if version == 2:
+            C = {
+                'auth_url': cloud.authurl,
+                'region': cloud.region,
+                'tenant_name': cloud.project,
+                'username': cloud.username,
+                'password': cloud.password
+                }
+
+        elif version == 3:
+            C = {
+                'auth_url': cloud.authurl,
+                'region': cloud.region,
+                'project_domain_id': cloud.project_domain_id,
+                'project_domain_name': cloud.project_domain_name,
+                'project_name': cloud.project,
+                'user_domain_name': cloud.user_domain_name,
+                'username': cloud.username,
+                'password': cloud.password
+                }
+
+    else:
+        C = {'auth_url': None}
+        if not target_cloud and 'group_name' in cloud and 'cloud_name' in cloud:
+            rc, msg, target_cloud = get_target_cloud(config, cloud['group_name'], cloud['cloud_name'])
+
+        if target_cloud:
+            C['auth_url'] = target_cloud['authurl']
+
+        if 'authurl' in cloud:
+            C['auth_url'] = cloud['authurl']
+
+        print(">>>>>>>>>>>>>>>>>>>>>>>>>> CLOUD", cloud, "TARGET", target_cloud, "AUTHURL", C['auth_url'])
+        if C['auth_url']:
+            rc, msg, version = __get_openstack_api_version__(C['auth_url'])
+            if rc != 0:
+                return rc, msg, None # could not determine version
+
+            if version == 2:
+                if target_cloud:
+                    C['region'] = target_cloud['region']
+                    C['tenant_name'] = target_cloud['project']
+                    C['username'] = target_cloud['username']
+                    C['password'] = target_cloud['password']
+
+                else:
+                    C['region'] = None
+                    C['tenant_name'] = None
+                    C['username'] = None
+                    C['password'] = None
+
+                if 'region' in cloud:
+                    C['region'] = cloud['region']
+
+                if 'project' in cloud:
+                    C['tenant_name'] = cloud['project']
+
+                if 'username' in cloud:
+                    C['username'] = cloud['username']
+
+                if 'password' in cloud:
+                    C['password'] = cloud['password']
+
+            elif version == 3:
+                if target_cloud:
+                    C['region'] = target_cloud['region']
+                    C['project_domain_id'] = target_cloud['project_domain_id']
+                    C['project_domain_name'] = target_cloud['project_domain_name']
+                    C['project_name'] = target_cloud['project']
+                    C['user_domain_name'] = target_cloud['user_domain_name']
+                    C['username'] = target_cloud['username']
+                    C['password'] = target_cloud['password']
+
+                else:
+                    C['region'] = None
+                    C['project_domain_id'] = None
+                    C['project_domain_name'] = 'Default'
+                    C['project_name'] = None
+                    C['user_domain_name'] = 'Default'
+                    C['username'] = None
+                    C['password'] = None
+
+                if 'region' in cloud:
+                    C['region'] = cloud['region']
+
+                if 'project_domain_id' in cloud:
+                    C['project_domain_id'] = cloud['project_domain_id']
+
+                if 'project_domain_name' in cloud:
+                    C['project_domain_name'] = cloud['project_domain_name']
+
+                if 'project' in cloud:
+                    C['project_name'] = cloud['project']
+
+                if 'user_domain_name' in cloud:
+                    C['user_domain_name'] = cloud['user_domain_name']
+
+                if 'username' in cloud:
+                    C['username'] = cloud['username']
+
+                if 'password' in cloud:
+                    C['password'] = cloud['password']
+
+        else:
+            return 1, 'Missing openstack URL', None
+            
+    if version == 2:
+        if C['auth_url'] and C['region'] and C['tenant_name'] and C['username'] and C['password']:
+            try:
+                KC = v2c.Client(
+                    auth_url=C['auth_url'],
+                    tenant_name=C['tenant_name'],
+                    username=C['username'],
+                    password=C['password']
+                    )
+
+                auth = v2.Password(
+                    auth_url=C['auth_url'],
+                    tenant_name=C['tenant_name'],
+                    username=C['username'],
+                    password=C['password']
+                    )
+                session = keystone.Session(auth=auth, verify=config.categories["GSI"]["cacerts"])
+                return 0, None, session
+
+            except Exception as exc:
+                C.pop("password")
+                return 1, 'failed to esablish openstack v2 session, credentials: %s, error: %s' % (C, exc), None
+
+        else:
+            return 1, 'insufficient credentials to establish openstack v2 session: %s' % C, None
+
+    elif version == 3:
+        if C['auth_url'] and C['region'] and C['project_domain_name'] and C['project_name'] and C['user_domain_name'] and C['username'] and C['password']:
+            try:
+                KC = v3c.Client(
+                    auth_url=C['auth_url'],
+                    project_domain_id=C['project_domain_id'],
+                    project_domain_name=C['project_domain_name'],
+                    project_name=C['project_name'],
+                    user_domain_name=C['user_domain_name'],
+                    username=C['username'],
+                    password=C['password']
+                    )
+
+                auth = v3.Password(
+                    auth_url=C['auth_url'],
+                    project_domain_id=C['project_domain_id'],
+                    project_domain_name=C['project_domain_name'],
+                    project_name=C['project_name'],
+                    user_domain_name=C['user_domain_name'],
+                    username=C['username'],
+                    password=C['password']
+                    )
+                session = keystone.Session(auth=auth, verify=config.categories["GSI"]["cacerts"])
+                return 0, None, session
+
+            except Exception as exc:
+                C.pop("password")
+                return 1, 'failed to esablish openstack v3 session, credentials: %s, error: %s' % (C, exc), None
+
+        else:
+            return 1, 'insufficient credentials to establish openstack v3 session: %s' % C, None
+
+    else:
+        return 1, 'Bad openstack URL: %s, unsupported version: %s' % (target_cloud['authurl'], version), None
 

@@ -3,72 +3,89 @@
 ** and other).
 */
 create or replace view view_job_status_by_target_alias as
-
 select
-
-cjs.group_name,
-cjs.target_alias,
-sum(Jobs) as Jobs,
-sum(Idle) as Idle,
-sum(Running) as Running,
-sum(Completed) as Completed,
-sum(Held) as Held,
-sum(Other) as Other,
-js.foreign_jobs as 'foreign',
-ifnull(js.condor_status,-1) as htcondor_status,
-ifnull(js.agent_status,-1) as agent_status,
-js.htcondor_fqdn,
-case when htcondor_gsi_dn is null then
-    null
-else
-    (cg.htcondor_gsi_eol-unix_timestamp()) div 86400
-end as condor_days_left,
-case when cw.worker_dn is null then
-    null
-else
-    (cw.worker_eol-unix_timestamp()) div 86400
-end as worker_days_left
-
+    cj.*,
+    ifnull(csc.counter,0) as 'foreign',
+    cg.htcondor_fqdn,
+    case when last_updated is null or last_updated + cc1.config_value < unix_timestamp() then
+        'down'
+    else
+        case when last_error is not null and last_error + cc2.config_value > unix_timestamp() then
+            'warn'
+        else
+            'up'
+        end
+    end as state,
+    case when last_updated is null or last_updated + cc1.config_value < unix_timestamp() then
+        '0'
+    else
+        case when last_error is not null and last_error + cc2.config_value > unix_timestamp() then
+            '1'
+        else
+            '2'
+        end
+    end as plotable_state,
+    ifnull(error_message,'') as error_message,
+    case when htcondor_gsi_dn is null then
+        null
+    else
+        (cg.htcondor_gsi_eol-unix_timestamp()) div 86400
+    end as condor_days_left,
+    case when cw.worker_dn is null then
+        null
+    else
+        (cw.worker_eol-unix_timestamp()) div 86400
+    end as worker_days_left
 from (
-    /* cgs - condor_job_status */
     select
-
-    group_name,
-    null as target_alias,
-    0 as Jobs,
-    0 as Idle,
-    0 as Running,
-    0 as Completed,
-    0 as Held,
-    0 as Other
-
-    from csv2_groups
-
-    /*
-    ** Retrieve job statistics for each group.
-    */
-    union all select
-
-    group_name,
-    target_alias,
-    1 as Jobs,
-    case when job_status=1 then 1 else 0 end as Idle,
-    case when job_status=2 then 1 else 0 end as Running,
-    case when job_status=4 then 1 else 0 end as Completed,
-    case when job_status=5 then 1 else 0 end as Held,
-    case when job_status=0 or job_status=3 or job_status=6 then 1 else 0 end as Other
-
-    from condor_jobs
-    ) as cjs
+        cj.group_name,
+        cj.target_alias,
+        sum(Jobs) as Jobs,
+        sum(Idle) as Idle,
+        sum(Running) as Running,
+        sum(Completed) as Completed,
+        sum(Held) as Held,
+        sum(Other) as Other
+    from (
+        select
+            group_name,
+            null as target_alias,
+            0 as Jobs,
+            0 as Idle,
+            0 as Running,
+            0 as Completed,
+            0 as Held,
+            0 as Other
+        from csv2_groups
+        union all select
+            group_name,
+            target_alias,
+            1 as Jobs,
+            case when job_status=1 then 1 else 0 end as Idle,
+            case when job_status=2 then 1 else 0 end as Running,
+            case when job_status=4 then 1 else 0 end as Completed,
+            case when job_status=5 then 1 else 0 end as Held,
+            case when job_status=0 or job_status=3 or job_status=6 then 1 else 0 end as Other
+        from condor_jobs
+    ) as cj
+    group by
+        group_name,
+        target_alias
+) as cj
 left outer join csv2_groups as cg on
-    cjs.group_name=cg.group_name
-left outer join csv2_job_schedulers as js on
-    cg.htcondor_fqdn=js.htcondor_fqdn
+    cj.group_name=cg.group_name
+left outer join csv2_service_catalog as csc on
+    cg.htcondor_host_id=csc.host_id and
+    provider='condor_poller_na.py'
 left outer join condor_worker_gsi as cw on
-    cg.htcondor_fqdn=cw.htcondor_fqdn
-
-group by
+    cg.htcondor_host_id=cw.htcondor_host_id
+join csv2_configuration as cc1 on
+    cc1.category='web_frontend' and
+    cc1.config_key='service_alive_interval'
+join csv2_configuration as cc2 on
+    cc2.category='web_frontend' and
+    cc2.config_key='service_error_interval'
+order by
     group_name,
     target_alias
-
 ;

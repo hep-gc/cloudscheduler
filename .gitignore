@@ -3,9 +3,13 @@ attribute_mapper.yaml
 csv2_web.yaml
 .idea
 docs/build/
+etc/cloudscheduler/condor_poller.yaml
+git_reposave/
 lib/schema.py
-repository/csv2_htc_agent.conf
-repository/install_remote_csv2_htc_agent.sh
+lib/schema_na.py
+python3/
+repository/condor_poller.tar.gz
+repository/index.html
 web_frontend/cloudscheduler/csv2/static/ace-builds/
 web_frontend/cloudscheduler/csv2/static/plotly.js/
 web_frontend/cloudscheduler/cloudscheduler_web/settings.py

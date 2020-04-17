@@ -1,0 +1,29 @@
+#!/usr/bin/env python3
+"""
+The following scripts, this one included, are used together to debug the signal delivery system:
+
+    o test_signal_delivery
+    o test_signal_receive
+    o test_signal_send
+
+They are useful because they do not try to catch exceptions and therefore will show any errors
+messages. To use, on three different terminals:
+
+    1. start test_signal_delivery (never stops).
+    2. start test_signal_receive (also never stops, but loops doing some work then sleeping
+       for 5 seconds).
+    3. Use test_signal_send when test_signal_receive is sleeping. When test_signal_receive
+       wakes up, it should print "Interrup" before continuing its' work. It ignores interrupts
+       while working.
+
+
+To cleanup, kill -9 test_signal_delivery and test_signal_receive.       
+"""
+
+from cloudscheduler.lib.db_config import Config
+from cloudscheduler.lib.signal_functions import *
+
+config = Config('/etc/cloudscheduler/cloudscheduler.yaml', [], signals=True)
+
+event_signal_send(config, 'signal_tests')
+

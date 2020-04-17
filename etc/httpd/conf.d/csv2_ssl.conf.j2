@@ -10,7 +10,7 @@ WSGIPythonPath /opt/cloudscheduler/web_frontend/cloudscheduler:/usr/lib64/python
 # mod_dbd configuration
 LoadModule dbd_module modules/mod_dbd.so
 DBDriver mysql
-DBDParams host={{ db_hostname }},dbname=csv2,user=csv2,pass={{ mariadb_cloudscheduler }}
+DBDParams host=localhost,dbname=csv2,user=csv2,pass={{ database_user_passwords.csv2 }}
 DBDMin 4
 DBDKeep 8
 DBDMax 20

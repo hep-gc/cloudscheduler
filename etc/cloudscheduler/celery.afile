@@ -1,0 +1,37 @@
+# Name of nodes to start
+# here we have a single node
+#CELERYD_NODES="w1"
+#Having only 1 transfer node ensures there is no collisions if the same cloud is defined twice and both experience a transfer of the same image
+CELERYD_NODES="w1 w3 w4"
+# or we could have four nodes:
+#CELERYD_NODES="w1 w2 w3 w4"
+
+# We only want each worker to claim 1 job at a time, especially the worker dedicated to img collection
+CELERYD_PREFETCH_MULTIPLIER=1
+
+# Absolute path to "manage.py"
+#CELERY_BIN="python3 /opt/cloudscheduler/web_frontend/cloudscheduler/manage.py"
+CELERY_BIN=$(which celery)
+
+# Where to chdir at start. This could be the root of a virtualenv.
+CELERYD_CHDIR="/opt/cloudscheduler/web_frontend/cloudscheduler/glintwebui"
+
+# App instance to use
+# comment out this line if you don't use an app
+#CELERY_APP="celery_app"
+# or fully qualified:
+#CELERY_APP="glintv2.celery_app:app"
+
+
+# How to call manage.py
+CELERYD_MULTI="celery multi"
+
+# Extra command-line arguments to the worker
+# 4 node
+#CELERYD_OPTS="-Q:w1,w2 tx_requests -Q:w3,w4 pull_requests --app=glintwebui.celery_app:app --concurrency=1 -Ofair"
+# 3 Node
+CELERYD_OPTS="-Q:w1 tx_requests -Q:w3,w4 pull_requests --app=glintwebui.celery_app:app --concurrency=1 -Ofair"
+
+# %N will be replaced with the first part of the nodename.
+CELERYD_LOG_FILE="/var/log/celery/%n%I.log"
+CELERYD_PID_FILE="/var/run/celery/%n.pid"

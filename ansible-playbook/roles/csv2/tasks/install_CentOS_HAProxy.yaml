@@ -1,0 +1,15 @@
+---
+# file: install_CentOS_HAProxy.yaml
+
+- name: install the python3 mod_wsgi repository
+  yum:
+    name:
+      - centos-release-scl-rh
+    state: latest
+
+- name: install the python3 mod_wsgi module (rpm places it in /opt)
+  yum:
+    name:
+      - rh-haproxy18
+    state: latest
+

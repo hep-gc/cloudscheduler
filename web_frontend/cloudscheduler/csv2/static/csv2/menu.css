@@ -7,13 +7,13 @@
   line-height: 1;
   z-index: 0;
   width: 200px;
-  position: fixed;
 }
 
 .menu  div {
   display: block;
   overflow: auto;
 }
+
 
 .menu  div:not(:target) a.menu-link {
   background-color: whitesmoke; 

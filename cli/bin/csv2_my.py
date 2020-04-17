@@ -24,7 +24,7 @@ def settings(gvar):
 
     mandatory = []
     required = []
-    optional = ['-gn', '-H', '-h', '-s', '-sfv', '-sgs', '-sjta', '-sri', '-ssd', '-ssf', '-upw', '-v', '-xA']
+    optional = ['-gn', '-H', '-h', '-s', '-sfv', '-sgs', '-sjta', '-sri', '-ssd', '-ssf', '-upw', '-v', '-x509', '-xA']
 
     if gvar['retrieve_options']:
         return mandatory + required + optional

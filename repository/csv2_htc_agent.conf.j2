@@ -1,9 +1,0 @@
-htc_agent:
-    condor_hostcert: /etc/grid-security/hostcert.pem
-    condor_worker_cert: /etc/grid-security/condor/worker/condorworkercert.pem
-    condor_worker_key: /etc/grid-security/condor/worker/condorworkerkey.pem
-    csv2_host: {{ i_service_connection[0].ipv4fqdn }}
-    csv2_htc_queue_prefix: csv2_htc
-    csv2_port: 5672
-    log_file: /var/log/cloudscheduler/csv2_htc_agent.log
-    log_level: 20

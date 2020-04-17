@@ -1,0 +1,29 @@
+database:
+    db_user: "csv2"
+    db_password: "{{ database_user_passwords['csv2'] }}"
+    db_host: "localhost"
+    db_port: "{{ database_local_port }}"
+    db_name: "csv2"
+    db_table: "csv2_configuration"
+
+signals:
+    protocol: "amqp" 
+    host: "localhost"
+    port: "{{ amqp_local_port }}"
+    user: "csv2" 
+    password: "{{ amqp_user_passwords['csv2'] }}"
+    registry: "/var/local/cloudscheduler/signals"
+    events:
+        - "insert_csv2_clouds_amazon"
+        - "insert_csv2_clouds_openstack"
+        - "signal_tests" 
+        - "update_csv2_clouds_amazon"
+        - "update_csv2_clouds_openstack"
+        - "update_ec2_images"
+        - "update_ec2_instance_types"
+    queue: "signals"
+
+public_ports:
+    amqp: "{{ amqp_public_port }}"
+    database: "{{ database_public_port }}"
+

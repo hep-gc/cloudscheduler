@@ -4,7 +4,7 @@
 - name: create csv2 user
   mysql_user:
     name: csv2
-    password: "{{ mariadb_cloudscheduler }}"
+    password: "{{ database_user_passwords['csv2'] }}"
     priv: '*.*:ALL,GRANT'
     state: present
     login_user: root
@@ -15,4 +15,4 @@
     name: csv2
     state: present
     login_user: csv2
-    login_password: "{{ mariadb_cloudscheduler }}"
+    login_password: "{{ database_user_passwords['csv2'] }}"

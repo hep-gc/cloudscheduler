@@ -1,99 +1,101 @@
 apel_accounting:
     Synopsis:
-        For each VM instantiated by CSV2 and contextualized for APEL accounting,
-        this table is used to accumulate accounting data during the life of the VM.  
-        An accounting record for each VM is added by a database trigger when the
-        VM is instantiated.
-        Subsequently the VM periodically reports information such as cpu usage and
-        network traffic via the csv2_vm_data poller interface which updates the
-        reporting VM's accounting record with the latest information.
-
+        For each VM instantiated by CSV2 and contextualized for APEL accounting, this table
+        is used to accumulate accounting data during the life of the VM. An accounting record
+        for each VM is added by a database trigger when the VM is instantiated. Subsequently
+        the VM periodically reports information such as cpu usage and network traffic via
+        the csv2_vm_data poller interface which updates the reporting VM's accounting record
+        with the latest information.
+        
     Keys:
 
         group_name:
             Format: String(32)
             Synopsis:
                 The CSV2 name of the group owning the VM.
-
+                
         cloud_name:
             Format: String(32)
             Synopsis:
-                The short name of the cloud running the VM. This name is assigned by the members (users) of the when they added the cloud.
-
-        hostname:
+                The short name of the cloud running the VM. This name is assigned by the members (users)
+                of the when they added the cloud.
+                
+        vmid:
             Format: String(128)
             Synopsis:
-                The short hostname of the VM.  This is generally created automatically by CSV2.
-
+                The VM ID assigned to the VM by the cloud.
+                
     Columns:
 
         cloud_type:
             Format: String(32)
             Synopsis:
                 The type of cloud the VM is running on.
-
+                
         region:
             Format: String(32)
             Synopsis:
                 The cloud's region (refer to the cloud providers documentation).
-
+                
         flavor_id:
             Format: String(128)
             Synopsis:
-                The flavor ID (instance type) employed by the VM. The flavor determines the resources (CPU, RAM, etc.) available to the VM.
-
+                The flavor ID (instance type) employed by the VM. The flavor determines the resources
+                (CPU, RAM, etc.) available to the VM.
+                
         image_id:
             Format: String(128)
             Synopsis:
                 The ID of the (kernel) image being used by the VM.
-
+                
         benchmark_type:
             Format: String(32)
             Synopsis:
                 A string indicating the type of benchmark being used by the VM.
-
+                
         benchmark:
             Format: Integer
             Synopsis:
                 The benchmark score achieved by the VM.
-
-        vmid:
-            Format: String(128)
-            Synopsis:
-                The VM ID assigned to the VM by the cloud.
-
+                
         start_time:
             Format: Integer
             Synopsis:
                 The instantiation time of the VM in epoch seconds.
-
+                
         end_time:
             Format: Integer
             Synopsis:
                 The termination time of the VM in epoch seconds.
-
+                
         last_update:
             Format: Integer
             Synopsis:
                 The time of the last periodic update from the VM in epoch seconds.
-
+                
         cpu_time:
             Format: Integer
             Synopsis:
                 The total amount of the processor time used by the VM.
-
+                
         network_type:
             Format: String(32)
             Synopsis:
-                A string indicating the type of network being used by the VM (refer to the cloud provider documentation).
-
+                A string indicating the type of network being used by the VM (refer to the cloud provider
+                documentation).
+                
         rx:
             Format: Integer
             Synopsis:
                 The number of megabytes of network traffic received by the VM.
-
+                
         tx:
             Format: Integer
             Synopsis:
                 The number of megabytes of network traffic sent by the VM.
-
+                
+        hostname:
+            Format: String(128)
+            Synopsis:
+                The short hostname of the VM.  This is generally created automatically by CSV2.
+                

@@ -17,7 +17,7 @@ def main(gvar, user_secret):
         '/group/add/'
 , form_data={
             'group_name': 'vm-test-group',
-            'condor_central_manager': 'vm-test-group-one.ca',
+            'htcondor_fqdn': 'vm-test-group-one.ca',
             'username': ut_id(gvar, '')[:-1]
         }
     )

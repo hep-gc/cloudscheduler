@@ -8,7 +8,7 @@ create or replace view view_condor_jobs_group_defaults_applied as
 select
   global_job_id,
   cj.group_name,
-  target_clouds,
+  target_alias,
   job_status,
   case when ifnull(request_cpus,-1)<0 then ifnull(job_cpus,0) else request_cpus end as request_cpus,
   case when ifnull(request_disk,-1)<0 then ifnull(job_disk,0) else request_disk / (1024 * 1024) end as request_disk,

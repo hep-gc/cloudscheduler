@@ -1,0 +1,12 @@
+[Unit]
+Description=SSl Termination for CSV2/AMQP.
+After=network.target
+
+[Service]
+Type=forking
+User=root
+ExecStart=/usr/local/sbin/haproxy_wrapper -f /usr/local/etc/haproxy.conf -p /var/run/haproxy.pid
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

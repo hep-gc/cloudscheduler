@@ -1,0 +1,31 @@
+#!/bin/bash
+
+R=0
+M=$(
+{% if htcondor_cert is defined and htcondor_key is defined and htcondor_worker_cert is defined and htcondor_worker_key is defined %}
+    {% for user in certificate_users %}
+/bin/cp -f /usr/local/etc/certificates/{{ user.host }}/cert.pem {{ user.globus }}/{{ user.pfx }}cert.pem 2>&1 &&
+        {% if loop.last %}
+/bin/cp -f /usr/local/etc/certificates/{{ user.host }}/privkey.pem {{ user.globus }}/{{ user.pfx }}key.pem 2>&1
+        {% else %}
+/bin/cp -f /usr/local/etc/certificates/{{ user.host }}/privkey.pem {{ user.globus }}/{{ user.pfx }}key.pem 2>&1 &&
+        {% endif %}
+    {% endfor %}
+{% else %}
+    {% for user in certificate_users %}
+/bin/cp -f /etc/letsencrypt/live/{{ user.host }}/cert.pem {{ user.globus }}/{{ user.pfx }}cert.pem 2>&1 &&
+        {% if loop.last %}
+/bin/cp -f /etc/letsencrypt/live/{{ user.host }}/privkey.pem {{ user.globus }}/{{ user.pfx }}key.pem 2>&1
+        {% else %}
+/bin/cp -f /etc/letsencrypt/live/{{ user.host }}/privkey.pem {{ user.globus }}/{{ user.pfx }}key.pem 2>&1 &&
+        {% endif %}
+    {% endfor %}
+{% endif %}
+) || R=1
+
+# echo $R
+if [ $R -eq 1 ]; then
+    /usr/bin/echo -e "copy x509 certificates failed for one or more users:\n$M" | \
+    /usr/bin/mail -s "user key/cert problem on $(hostname)" "{{ admin_email }}"
+fi
+

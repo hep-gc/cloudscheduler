@@ -1,0 +1,105 @@
+#!/usr/bin/python3
+from cloudscheduler.lib.db_config import Config
+from cloudscheduler.lib.ProcessMonitor import ProcessMonitor, check_pid, terminate
+from cloudscheduler.lib.signal_functions import *
+import multiprocessing
+import signal
+import sys
+import time
+
+def signal_test_delivery():
+    multiprocessing.current_process().name = "delivery"
+
+    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', ['ProcessMonitor', 'signal_monitor'])
+    PID_FILE = config.categories["ProcessMonitor"]["pid_path"] + os.path.basename(sys.argv[0])
+
+    while True:
+        try:
+            deliver_event_signals('/etc/cloudscheduler/cloudscheduler.yaml')
+        except:
+            if not os.path.exists(PID_FILE):
+                logging.info("Stop set, exiting...")
+                break
+
+def signal_test_receive():
+    multiprocessing.current_process().name = "receive"
+
+    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', ['ProcessMonitor', 'signal_monitor'])
+    PID_FILE = config.categories["ProcessMonitor"]["pid_path"] + os.path.basename(sys.argv[0])
+    event_receiver_registration(config, 'signal_tests')
+
+    while True:
+        try:
+            time.sleep(config.categories['signal_monitor']['long_interval'])
+        except KeyboardInterrupt:
+            config.update_service_catalog()
+        except:
+            break
+
+        if not os.path.exists(PID_FILE):
+            logging.info("Stop set, exiting...")
+            break
+
+    event_receiver_deregistration(config, 'signal_tests')
+
+def signal_test_send():
+    multiprocessing.current_process().name = "send"
+
+    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', ['ProcessMonitor', 'signal_monitor'])
+    PID_FILE = config.categories["ProcessMonitor"]["pid_path"] + os.path.basename(sys.argv[0])
+
+    while True:
+        config.refresh()
+        event_signal_send(config, 'signal_tests')
+
+        try:
+            time.sleep(config.categories['signal_monitor']['short_interval'])
+        except:
+            break
+
+        if not os.path.exists(PID_FILE):
+            logging.info("Stop set, exiting...")
+            break
+
+if __name__ == '__main__':
+
+    process_ids = {
+        'signal_test_delivery': signal_test_delivery,
+        'signal_test_receive': signal_test_receive,
+        'signal_test_send': signal_test_send,
+    }
+
+    procMon = ProcessMonitor(
+        config_params=[os.path.basename(sys.argv[0]), 'ProcessMonitor', 'signal_monitor'],
+        pool_size=15,
+        process_ids=process_ids
+        )
+
+    config = procMon.get_config()
+    log = procMon.get_logging()
+    version = config.get_version()
+
+    PID_FILE = config.categories["ProcessMonitor"]["pid_path"] + os.path.basename(sys.argv[0])
+    with open(PID_FILE, "w") as fd:
+        fd.write(str(os.getpid()))
+
+    log.info("****************************"
+             " starting CSv2 Signal Monitor - Running %s "
+             "*********************************", version)
+
+    # Wait for keyboard input to exit
+    try:
+        # start processes
+        procMon.start_all()
+        signal.signal(signal.SIGTERM, terminate)
+        while True:
+            stop = check_pid(PID_FILE)
+            procMon.check_processes(stop=stop)
+            time.sleep(config.categories['ProcessMonitor']['sleep_interval_main_long'])
+
+    except (SystemExit, KeyboardInterrupt):
+        log.error("Caught KeyboardInterrupt, shutting down threads and exiting...")
+
+    except Exception as ex:
+        log.exception("Process Died: %s", ex)
+
