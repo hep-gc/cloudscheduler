@@ -1,0 +1,59 @@
+.so ../man/_header.so
+\fBcloudscheduler group metadata-load\fR \- locally save group metadata files that are on cloudscheduler version 2 (csv2) servers
+.\" --------------------------------------------------------------------
+.SH SYNOPSIS
+.\" --------------------------------------------------------------------
+.SY cloudscheduler
+.B group
+.B metadata-save
+.BI \-f " file"
+.BI \-mn " name"
+.RI "[" "options" " ...]"
+.YS
+.\" --------------------------------------------------------------------
+.SH DESCRIPTION
+.\" --------------------------------------------------------------------
+.so ../man/descriptions/_group_metadata_save.so
+.\" --------------------------------------------------------------------
+.SH OPTIONS
+.\" --------------------------------------------------------------------
+.\" --------------------------------------------------------------------
+.SS Mandatory
+.\" --------------------------------------------------------------------
+.so ../man/_mandatory_parameters.so
+.so ../man/parameters/_file_path_save.so
+.so ../man/parameters/_metadata_name.so
+.\" --------------------------------------------------------------------
+.SS Optional
+.\" --------------------------------------------------------------------
+.so ../man/_options.so
+.so ../man/parameters/_force.so
+.\" --------------------------------------------------------------------
+.SS Global
+.\" --------------------------------------------------------------------
+.so ../man/_global_options.so
+.\" --------------------------------------------------------------------
+.SH EXAMPLES
+.\" --------------------------------------------------------------------
+.TP
+1.
+Saving the group metadata "example.yaml":
+.EX
+$ cloudscheduler group metadata-save -f /<path>/example.yaml -mn example.yaml
+.EE
+.\" --------------------------------------------------------------------
+.SH SEE ALSO
+.\" --------------------------------------------------------------------
+.BR csv2 (1)
+.BR csv2_group (1)
+.BR csv2_group_add (1)
+.BR csv2_group_defaults (1)
+.BR csv2_group_delete (1)
+.BR csv2_group_list (1)
+.BR csv2_group_metadata-delete (1)
+.BR csv2_group_metadata-edit (1)
+.BR csv2_group_metadata-list (1)
+.BR csv2_group_metadata-load (1)
+.BR csv2_group_metadata-update (1)
+.BR csv2_group_update (1)
+

@@ -1,59 +1,40 @@
-from unit_test_common import execute_csv2_request, initialize_csv2_request, ut_id
+from unit_test_common import execute_csv2_request, initialize_csv2_request, ut_id, sanity_requests
 from sys import argv
 
 # lno: UV - error code identifier.
 
-def main(gvar, user_secret):
+def main(gvar):
     if not gvar:
         gvar = {}
         if len(argv) > 1:
-            initialize_csv2_request(gvar, argv[0], selections=argv[1])
+            initialize_csv2_request(gvar, selections=argv[1])
         else:
-            initialize_csv2_request(gvar, argv[0])
+            initialize_csv2_request(gvar)
     
-    execute_csv2_request(
-        gvar, 2, None, 'HTTP response code 401, unauthorized.',
-        '/user/list/',
-        server_user='invalid-unit-test', server_pw=user_secret
-    )
+    # 01 - 05
+    sanity_requests(gvar, '/user/list/', ut_id(gvar, 'utg1'), ut_id(gvar, 'utu4'), ut_id(gvar, 'utg2'), ut_id(gvar, 'utu2'))
 
+    # 06 Attempt as an unprivileged user.
     execute_csv2_request(
         gvar, 2, None, 'HTTP response code 403, forbidden.',
-        '/user/list/',
-        server_user=ut_id(gvar, 'utu1'), server_pw=user_secret
+        '/user/list/', group=ut_id(gvar, 'utg1'),
+        server_user=ut_id(gvar, 'utu3')
     )
 
-    execute_csv2_request(
-        gvar, 1, 'UV', 'user "{}" is not a member of any group.'.format(ut_id(gvar, 'utu2')),
-        '/user/list/',
-        server_user=ut_id(gvar, 'utu2'), server_pw=user_secret
-    )
-
-    execute_csv2_request(
-        gvar, 2, None, 'HTTP response code 403, forbidden.',
-        '/user/list/',
-        server_user=ut_id(gvar, 'utu3'), server_pw=user_secret
-    )
-
-    execute_csv2_request(
-        gvar, 1, 'UV', 'cannot switch to invalid group "invalid-unit-test".',
-        '/user/list/?invalid-unit-test'
-    )
-
-    execute_csv2_request(
-        gvar, 1, 'UV', 'cannot switch to invalid group "{}".'.format(ut_id(gvar, 'utg2')),
-        '/user/list/?{}'.format(ut_id(gvar, 'utg2'))
-    )
-
+    # 07 Give a bad parameter.
     execute_csv2_request(
         gvar, 1, 'UV', 'request contained a bad parameter "invalid-unit-test".',
-        '/user/list/' #I am assuing a group does not need to be specified for this request
-, form_data={'invalid-unit-test': 'invalid-unit-test'}
+        '/user/list/', group=ut_id(gvar, 'utg1'), form_data={'invalid-unit-test': 'invalid-unit-test'},
+        server_user=ut_id(gvar, 'utu4')
     )
 
+    # 08
     execute_csv2_request(
         gvar, 0, None, None,
-        '/user/list/' #I am assuing a group does not need to be specified for this request
+        '/user/list/', group=ut_id(gvar, 'utg1'),
+        expected_list='user_list', list_filter={'username': ut_id(gvar, 'utu3')},
+        values={'user_groups': ut_id(gvar, 'utg1')},
+        server_user=ut_id(gvar, 'utu4')
     )
 
 if __name__ == "__main__":

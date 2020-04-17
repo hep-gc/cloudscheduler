@@ -8,16 +8,16 @@ from sys import argv
 
 import user_requests_cleanup
 
-def main(gvar, user_secret):
+def main(gvar):
     if not gvar:
         gvar = {}
         if len(argv) > 1:
-            initialize_csv2_request(gvar, argv[0], selections=argv[1])
+            initialize_csv2_request(gvar, selections=argv[1])
         else:
-            initialize_csv2_request(gvar, argv[0])
+            initialize_csv2_request(gvar)
     
-    if not user_secret:
-        user_secret = generate_secret()
+    if not gvar['user_secret']:
+        gvar['user_secret'] = generate_secret()
 
     user_requests_cleanup.main(gvar)
 
@@ -26,9 +26,9 @@ def main(gvar, user_secret):
         gvar, 0, None, 'user "{}" successfully added.'.format(ut_id(gvar, 'utu1')),
         '/user/add/', form_data={
             'username': ut_id(gvar, 'utu1'),
-            'password1': user_secret,
-            'password2': user_secret,
-            'cert_cn': ut_id(gvar, 'user test user one')
+            'password1': gvar['user_secret'],
+            'password2': gvar['user_secret'],
+            'cert_cn': ut_id(gvar, 'user test user 1')
         }
     )
 
@@ -37,9 +37,9 @@ def main(gvar, user_secret):
         gvar, 0, None, 'user "{}" successfully added.'.format(ut_id(gvar, 'utu2')),
         '/user/add/', form_data={
             'username': ut_id(gvar, 'utu2'),
-            'password1': user_secret,
-            'password2': user_secret,
-            'cert_cn': ut_id(gvar, 'user test user two'),
+            'password1': gvar['user_secret'],
+            'password2': gvar['user_secret'],
+            'cert_cn': ut_id(gvar, 'user test user 2'),
             'is_superuser': 1
         }
     )
@@ -49,7 +49,7 @@ def main(gvar, user_secret):
         gvar, 0, None, 'group "{}" successfully added.'.format(ut_id(gvar, 'utg1')),
         '/group/add/', form_data={
             'group_name': ut_id(gvar, 'utg1'),
-            'htcondor_fqdn': 'user-unit-test-one.ca'
+            'htcondor_fqdn': gvar['fqdn']
         }
     )
 
@@ -58,7 +58,7 @@ def main(gvar, user_secret):
         gvar, 0, None, 'group "{}" successfully added.'.format(ut_id(gvar, 'utg2')),
         '/group/add/', form_data={
             'group_name': ut_id(gvar, 'utg2'),
-            'htcondor_fqdn': 'user-unit-test-two.ca'
+            'htcondor_fqdn': gvar['fqdn']
         }
     )
 
@@ -67,8 +67,8 @@ def main(gvar, user_secret):
         gvar, 0, None, 'user "{}" successfully added.'.format(ut_id(gvar, 'utu3')),
         '/user/add/', form_data={
             'username': ut_id(gvar, 'utu3'),
-            'password1': user_secret,
-            'password2': user_secret,
+            'password1': gvar['user_secret'],
+            'password2': gvar['user_secret'],
             'cert_cn': ut_id(gvar, 'user test user three'),
             'group_name': ut_id(gvar, 'utg1')
         }
@@ -79,7 +79,7 @@ def main(gvar, user_secret):
         gvar, 0, None, 'user "{}" successfully added.'.format(ut_id(gvar, 'utu4')),
         '/user/add/', form_data={
             'username': ut_id(gvar, 'utu4'),
-            'password': user_secret,
+            'password': gvar['user_secret'],
             'cert_cn': '%s test user four' % ut_id(gvar, 'user'),
             'group_name': ut_id(gvar, 'utg1'),
             'is_superuser': 1
@@ -91,7 +91,7 @@ def main(gvar, user_secret):
         gvar, 0, None, 'user "{}" successfully added.'.format(ut_id(gvar, 'utu5')),
         '/user/add/', form_data={
             'username': ut_id(gvar, 'utu5'),
-            'password': user_secret
+            'password': gvar['user_secret']
         }
     )
 
@@ -100,10 +100,9 @@ def main(gvar, user_secret):
         gvar, 0, None, 'user "{}" successfully added.'.format(ut_id(gvar, 'utu6')),
         '/user/add/', form_data={
             'username': ut_id(gvar, 'utu6'),
-            'password': user_secret
+            'password': gvar['user_secret']
         }
     )
 
 if __name__ == "__main__":
     main(None)
-

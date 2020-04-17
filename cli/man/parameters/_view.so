@@ -4,7 +4,7 @@ Specifies a comma-seperated list of table column names which are to be displayed
 All other columns will be ignored.
 For a command that produces multiple result tables, the column name list for each table is separated by a slash (\fB/\fR). 
 Using this parameter defines a "view" for this and all subsequent invocations of this command; the same column selections will be displayed until the "view" is redefined by the \fB--view\fR option.
-To remove a view, specify a null string, ie. "--with ''", in which case, all defined columns will be displayed.
-To see which tables and columns that can be displayed, use the \fB\-\-view-columns\fR option.
+To remove a view, specify a null string, i.e. "--view ''", which will cause all defined columns to be displayed.
+To see the tables and columns that can be displayed, use the \fB\-\-view-columns\fR option.
 
 Default: None.

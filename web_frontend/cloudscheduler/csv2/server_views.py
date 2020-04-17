@@ -23,6 +23,8 @@ from sqlalchemy.sql import select
 
 from cloudscheduler.lib.web_profiler import silk_profile as silkp
 
+import os
+
 # lno: SV - error code identifier.
 MODID = 'SV'
 
@@ -53,6 +55,7 @@ def configuration(request):
                             key_values[key] = request.POST[key]
 
                         key_values.pop('csrfmiddlewaretoken', None)
+                        key_values.pop('group', None)
                         category = key_values.pop('category', None)
 
                     if rc == 0:
@@ -95,6 +98,24 @@ def configuration(request):
                                     else:
                                         raise Exception('unsupported config_type in csv2_configurations - category="%s", config_key="%s", config_type="%s".' % (category, key, config_keys[key]))
 
+                                    if key == 'log_file':
+                                        path = key_values[key]
+                                        if path.startswith('/') and not path.endswith('/'):
+                                            # Inversion of 0o774. Controls the permissions of non-leaf directories that os.makedirs() may create.
+                                            os.umask(0o003)
+                                            try:
+                                                os.makedirs(os.path.dirname(path), mode=0o774, exist_ok=True)
+                                                os.umask(0)
+                                                os.close(os.open(path, os.O_CREAT, mode=0o777))
+                                            except (OSError, TypeError) as err:
+                                                message = '{} server config update failed - category="{}", error creating log file at "{}": {}'.format(lno(MODID), category, path, err)
+                                                break
+                                        # Invalid path.
+                                        else:
+                                            message = '{} server config update failed - value specified ("{}") for category="{}", config_key="log_file" must be a valid, absolute file path (not a directory).'.format(lno(MODID), path, category)
+                                            break
+
+                                # key not in config_keys
                                 else:
                                     message = '%s server config update failed - category="%s", invalid key "%s" specified.' % (lno(MODID), category, key)
                                     break

@@ -2,15 +2,15 @@ from unit_test_common import execute_csv2_request, initialize_csv2_request, ut_i
 from sys import argv
 import group_requests_cleanup
 
-def main(gvar, user_secret):
+def main(gvar):
     if not gvar:
         gvar = {}
         if len(argv) > 1:
-            initialize_csv2_request(gvar, argv[0], selections=argv[1])
+            initialize_csv2_request(gvar, selections=argv[1])
         else:
-            initialize_csv2_request(gvar, argv[0])
-    if not user_secret:
-        user_secret = generate_secret()
+            initialize_csv2_request(gvar)
+    if not gvar['user_secret']:
+        gvar['user_secret'] = generate_secret()
 
     group_requests_cleanup.main(gvar)
 
@@ -19,8 +19,8 @@ def main(gvar, user_secret):
         gvar, 0, None, 'user "{}" successfully added.'.format(ut_id(gvar, 'gtu1')),
             '/user/add/', form_data={
                 'username': ut_id(gvar, 'gtu1'),
-                'password1': user_secret,
-                'password2': user_secret,
+                'password1': gvar['user_secret'],
+                'password2': gvar['user_secret'],
                 'cert_cn': '{} test user one'.format(ut_id(gvar, 'group'))
             }
         )
@@ -30,8 +30,8 @@ def main(gvar, user_secret):
         gvar, 0, None, 'user "{}" successfully added.'.format(ut_id(gvar, 'gtu2')),
             '/user/add/', form_data={
                 'username': ut_id(gvar, 'gtu2'),
-                'password1': user_secret,
-                'password2': user_secret,
+                'password1': gvar['user_secret'],
+                'password2': gvar['user_secret'],
                 'cert_cn': '{} test user two'.format(ut_id(gvar, 'group')),
                 'is_superuser': 1
             }
@@ -42,16 +42,16 @@ def main(gvar, user_secret):
         gvar, 0, None, 'group "{}" successfully added.'.format(ut_id(gvar, 'gtg4')),
         '/group/add/', form_data={
             'group_name': ut_id(gvar, 'gtg4'),
-            'htcondor_fqdn': 'unit-test-group-four.ca'
+            'htcondor_fqdn': gvar['fqdn']
         }
     )
 
-    # 04 group to be changed in group_yaml_*
+    # 04 group to be changed in group_metadata_*
     execute_csv2_request(
         gvar, 0, None, 'group "{}" successfully added.'.format(ut_id(gvar, 'gtg5')),
         '/group/add/', form_data={
             'group_name': ut_id(gvar, 'gtg5'),
-            'htcondor_fqdn': 'unit-test-group-five.ca',
+            'htcondor_fqdn': gvar['fqdn']
         }
     )
 
@@ -60,7 +60,7 @@ def main(gvar, user_secret):
         gvar, 0, None, 'group "{}" successfully added.'.format(ut_id(gvar, 'gtg6')),
         '/group/add/', form_data={
             'group_name': ut_id(gvar, 'gtg6'),
-            'htcondor_fqdn': 'unit-test-group-six.ca',
+            'htcondor_fqdn': gvar['fqdn']
         }
     )
 
@@ -69,7 +69,7 @@ def main(gvar, user_secret):
         gvar, 0, None, 'group "{}" successfully added.'.format(ut_id(gvar, 'gtg7')),
         '/group/add/', form_data={
             'group_name': ut_id(gvar, 'gtg7'),
-            'htcondor_fqdn': 'unit-test-group-seven.ca',
+            'htcondor_fqdn': gvar['fqdn']
         }
     )
 
@@ -78,21 +78,21 @@ def main(gvar, user_secret):
         gvar, 0, None, 'user "{}" successfully added.'.format(ut_id(gvar, 'gtu3')),
         '/user/add/', form_data={
             'username': ut_id(gvar, 'gtu3'),
-            'password1': user_secret,
-            'password2': user_secret,
+            'password1': gvar['user_secret'],
+            'password2': gvar['user_secret'],
             'cert_cn': '{} test user three'.format(ut_id(gvar, 'group')),
             'group_name.1': ut_id(gvar, 'gtg4'),
             'group_name.2': ut_id(gvar, 'gtg5')
         }
     )
 
-    # 08 privileged user in group gtg5,6
+    # 08 privileged user in group gtg4 and gtg5
     execute_csv2_request(
         gvar, 0, None, 'user "{}" successfully added.'.format(ut_id(gvar, 'gtu5')),
         '/user/add/', form_data={
             'username': ut_id(gvar, 'gtu5'),
-            'password1': user_secret,
-            'password2': user_secret,
+            'password1': gvar['user_secret'],
+            'password2': gvar['user_secret'],
             'is_superuser': 1,
             'cert_cn': '{} test user five'.format(ut_id(gvar, 'group')),
             'group_name.1': ut_id(gvar, 'gtg4'),
@@ -100,24 +100,24 @@ def main(gvar, user_secret):
         }
     )
 
-    # 09
+    # 09 add metadata for metadata-list to find
     execute_csv2_request(
         gvar, 0, None, 'group metadata file "{}::{}" successfully added.'.format(ut_id(gvar, 'gtg5'), ut_id(gvar, 'gty4')),
         '/group/metadata-add/', group=ut_id(gvar, 'gtg5'), form_data={
             'metadata_name': ut_id(gvar, 'gty4'),
             'metadata': '- example: yaml'
         },
-        server_user=ut_id(gvar, 'gtu3'), server_pw=user_secret
+        server_user=ut_id(gvar, 'gtu3')
     )
 
-    # 10
+    # 10 metadata to be updated in group_metadata_update
     execute_csv2_request(
         gvar, 0, None, 'group metadata file "{}::{}" successfully added.'.format(ut_id(gvar, 'gtg5'), ut_id(gvar, 'gty5')),
         '/group/metadata-add/', group=ut_id(gvar, 'gtg5'), form_data={
             'metadata_name': ut_id(gvar, 'gty5'),
             'metadata': '- example: yaml'
         },
-        server_user=ut_id(gvar, 'gtu3'), server_pw=user_secret
+        server_user=ut_id(gvar, 'gtu3')
     )
 
     # 11
@@ -127,17 +127,17 @@ def main(gvar, user_secret):
             'metadata_name': ut_id(gvar, 'gty5.yaml'),
             'metadata': '- example: yaml'
         },
-        server_user=ut_id(gvar, 'gtu3'), server_pw=user_secret
+        server_user=ut_id(gvar, 'gtu3')
     )
 
-    # 12 metadata to be deleted in a cloud exception
+    # 12 metadata to be deleted in group_metadata_delete
     execute_csv2_request(
         gvar, 0, None, 'group metadata file "{}::{}" successfully added.'.format(ut_id(gvar, 'gtg5'), ut_id(gvar, 'gty6')),
         '/group/metadata-add/', group=ut_id(gvar, 'gtg5'), form_data={
             'metadata_name': ut_id(gvar, 'gty6'),
             'metadata': '- example: yaml'
         },
-        server_user=ut_id(gvar, 'gtu3'), server_pw=user_secret
+        server_user=ut_id(gvar, 'gtu3')
     )
 
     # 13 unprivileged user to be added to groups
@@ -145,8 +145,8 @@ def main(gvar, user_secret):
         gvar, 0, None, 'user "{}" successfully added.'.format(ut_id(gvar, 'gtu4')),
         '/user/add/', form_data={
             'username': ut_id(gvar, 'gtu4'),
-            'password1': user_secret,
-            'password2': user_secret,
+            'password1': gvar['user_secret'],
+            'password2': gvar['user_secret'],
             'cert_cn': '{} test user four'.format(ut_id(gvar, 'group'))
         }
     )
@@ -156,15 +156,11 @@ def main(gvar, user_secret):
         gvar, 0, None, 'cloud "{}::{}" successfully added.'.format(ut_id(gvar, 'gtg5'), ut_id(gvar, 'gtc1')),
         '/cloud/add/', group=ut_id(gvar, 'gtg5'), form_data={
             'cloud_name': ut_id(gvar, 'gtc1'),
-            'authurl': 'group-test-cloud-one.ca',
-            'project': 'group-test-cloud-one',
-            'username': ut_id(gvar, 'gtu3'),
-            'password': user_secret,
-            'region': ut_id(gvar, 'gtc1-r'),
-            'cloud_type': 'local',
-            'metadata_name': ut_id(gvar, 'gty6')
+            'cloud_type': 'openstack',
+            'metadata_name': ut_id(gvar, 'gty4'),
+            **gvar['cloud_credentials']
         },
-        server_user=ut_id(gvar, 'gtu3'), server_pw=user_secret
+        server_user=ut_id(gvar, 'gtu3')
     )
 
 if __name__ == "__main__":

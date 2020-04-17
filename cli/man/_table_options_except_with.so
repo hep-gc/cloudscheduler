@@ -1,0 +1,10 @@
+.\" For actions that have only default tables (and no optional ones) and therefore reject the `--with` option.
+.P
+These options change the format of the displayed table(s):
+.so ../man/parameters/_csv.so
+.so ../man/parameters/_csep.so
+.so ../man/parameters/_no_view.so
+.so ../man/parameters/_only_keys.so
+.so ../man/parameters/_rotate.so
+.so ../man/parameters/_view.so
+.so ../man/parameters/_view_columns.so

@@ -39,14 +39,14 @@ def images(request, message=None, response_code=0):
         'auto_active_group': True,
         # Named argument formats (anything else is a string).
         'format': {
-            'cloud_name':                                                   'lowerdash',
+            'cloud_name':                                                   'lower',
 
             'architectures':                                                ('view_ec2_images', 'arch', True, True),
-            'like':                                                         'lowernull',
-            'not_like':                                                     'lowernull',
+            'like':                                                         'lower',
+            'not_like':                                                     'lower',
             'operating_systems':                                            ('view_ec2_images', 'opsys', True, True),
-            'owner_aliases':                                                'lowernull',
-            'owner_ids':                                                    'lowernull',
+            'owner_aliases':                                                'lower',
+            'owner_ids':                                                    'lower',
 
             'csrfmiddlewaretoken':                                          'ignore',
             'group':                                                        'ignore',
@@ -54,6 +54,12 @@ def images(request, message=None, response_code=0):
         'mandatory': [
             'cloud_name',
             ],
+        'allow_empty': [
+            'like',
+            'not_like',
+            'owner_aliases',
+            'owner_ids'
+            ]
         }
 
     # open the database.
@@ -156,7 +162,7 @@ def instance_types(request, message=None, response_code=0):
         'auto_active_group': True,
         # Named argument formats (anything else is a string).
         'format': {
-            'cloud_name':                                                   'lowerdash',
+            'cloud_name':                                                   'lower',
 
             'cores':                                                        ('view_ec2_instance_types', 'cores', True, True),
             'families':                                                     ('view_ec2_instance_types', 'instance_family', True, True),

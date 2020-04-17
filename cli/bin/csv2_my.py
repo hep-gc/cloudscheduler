@@ -1,4 +1,4 @@
-from csv2_common import check_keys, requests, show_active_user_groups, show_table, verify_yaml_file
+from csv2_common import check_keys, requests, show_active_user_groups, show_table, verify_yaml_file, yaml_full_load
 from subprocess import Popen, PIPE
 
 import filecmp
@@ -24,7 +24,8 @@ def settings(gvar):
 
     mandatory = []
     required = []
-    optional = ['-gn', '-H', '-h', '-s', '-sfv', '-sgs', '-sjta', '-sri', '-ssd', '-ssf', '-upw', '-v', '-x509', '-xA']
+    optional = ['-CSEP', '-CSV', '-gn', '-H', '-h', '-NV', '-ok', '-r', '-s', '-sfv', '-sgs', '-sjta', '-sri', '-ssd', '-ssf', '-upw', '-V', '-VC', '-v','-x509', '-xA']
+
 
     if gvar['retrieve_options']:
         return mandatory + required + optional

@@ -1,163 +1,113 @@
-from unit_test_common import execute_csv2_command, initialize_csv2_request, ut_id # pylint: disable=E0401
+from unit_test_common import execute_csv2_command, initialize_csv2_request, ut_id, sanity_commands, table_commands
 from sys import argv
 
 # lno: SV - error code identifier.
 
-def main(gvar, user_secret):
+SERVER_CONFIG_COLUMNS = ['Category', 'Config Key', 'Type', 'Value']
+
+def main(gvar):
     if not gvar:
         gvar = {}
         if len(argv) > 1:
-            initialize_csv2_request(gvar, argv[0], selections=argv[1])
+            initialize_csv2_request(gvar, selections=argv[1])
         else:
-            initialize_csv2_request(gvar, argv[0])
+            initialize_csv2_request(gvar)
 
-    # set profile
+    # These tests change certain configuration keys, then blindly assume what the keys' original values were and attempt to change them back.
+    # These assumed original values should be checked before running if you want the values on the server to be preserved.
+
+    # 01 - 13
+    sanity_commands(gvar, 'server')
+
+    # 14 - 27
+    sanity_commands(gvar, 'server', 'config')
+
+    # 28
     execute_csv2_command(
         gvar, 1, None, 'You are not authorized to access object "server";',
-        ['cloudscheduler', 'server', 'config', '-s', 'unit-test-un']
+        ['server', 'config', '-su', ut_id(gvar, 'clu3')]
     )
 
-    # set profile
+    # 29
     execute_csv2_command(
-        gvar, 0, None, None,
-        ['cloudscheduler', 'server', 'config', '-s', 'unit-test']
+        gvar, 0, None, 'Server: unit-test, Active User: {}, Active Group: {}'.format(ut_id(gvar, 'clu4'), ut_id(gvar, 'clg1')),
+        ['server', 'config', '-g', ut_id(gvar, 'clg1')],
+        expected_list='Server Configuration', expected_columns=set(SERVER_CONFIG_COLUMNS)
     )
 
+    # 30 Filter by category.
     execute_csv2_command(
-        gvar, 0, None, 'Server: unit-test, Active User: {}'.format(ut_id(gvar, '')[:-1]),
-        ['cloudscheduler', 'server', 'config']
+        gvar, 0, None, 'Server: unit-test, Active User: {}, Active Group: {}'.format(ut_id(gvar, 'clu4'), ut_id(gvar, 'clg1')),
+        ['server', 'config', '-cc', 'web_frontend'],
+        expected_list='Server Configuration', expected_columns=set(SERVER_CONFIG_COLUMNS)
     )
 
-    execute_csv2_command(
-        gvar, 1, None, 'The following command line arguments were unrecognized: [\'-xx\', \'yy\']',
-        ['cloudscheduler', 'server', 'config', '-xx', 'yy']
-    )
-
-    execute_csv2_command(
-        gvar, 1, None, 'The following command line arguments were invalid: group-name',
-        ['cloudscheduler', 'server', 'config', '-gn', 'invalid-unit-test']
-    )
-
-    execute_csv2_command(
-        gvar, 1, None, 'Error: the specified server "invalid-unit-test" does not exist in your defaults.',
-        ['cloudscheduler', 'server', 'config', '-s', 'invalid-unit-test']
-    )
-
-    execute_csv2_command(
-        gvar, 0, None, None,
-        ['cloudscheduler', 'server', 'config', '-s', 'unit-test']
-    )
-
-    execute_csv2_command(
-        gvar, 0, None, 'Help requested for "cloudscheduler server config".',
-        ['cloudscheduler', 'server', 'config', '-h']
-    )
-
-    execute_csv2_command(
-        gvar, 0, None, 'General Commands Manual',
-        ['cloudscheduler', 'server', 'config', '-H']
-    )
-
-    execute_csv2_command(
-        gvar, 0, None, 'Expose API requested',
-        ['cloudscheduler', 'server', 'config', '-xA']
-    )
-
-    execute_csv2_command(
-        gvar, 1, None, 'cannot switch to invalid group "invalid-unit-test".',
-        ['cloudscheduler', 'server', 'config', '-g', 'invalid-unit-test']
-    )
-
-    execute_csv2_command(
-        gvar, 0, None, 'Server: unit-test, Active User: {}, Active Group: {}'.format(ut_id(gvar, '')[:-1], ut_id(gvar, 'clg1')),
-        ['cloudscheduler', 'server', 'config', '-g', ut_id(gvar, 'clg1')]
-    )
-
-    execute_csv2_command(
-        gvar, 1, 'SV', 'server config update value specified for "category" must be one of the following options:',
-        ['cloudscheduler', 'server', 'config', '-cc', 'invalid-unit-test']
-    )
-
-    execute_csv2_command(
-        gvar, 1, 'SV', 'server config must specify at least one field to update.',
-        ['cloudscheduler', 'server', 'config', '-cc', 'web_frontend']
-    )
-
-    execute_csv2_command(
-        gvar, 1, 'SV', 'server config update failed - the request did not match any rows',
-        ['cloudscheduler', 'server', 'config', '-cc', 'web_frontend', '-c', 'invalid-unit-test']
-    )
-
-    execute_csv2_command(
-        gvar, 1, 'SV', 'server config update value specified for "log_level" must be an integer value.',
-        ['cloudscheduler', 'server', 'config', '-cc', 'csjobs.py', '-ll', 'invalid-unit-test']
-    )
-
-    execute_csv2_command(
-        gvar, 1, 'SV', r'server config update value specified for "enable_glint" must be one of the following options: [\'False\', \'True\'].',
-        ['cloudscheduler', 'server', 'config', '-cc', 'web_frontend', '-eg', 'invalid-unit-test']
-    )
-
-    execute_csv2_command(
-        gvar, 0, None, 'server config successfully updated',
-        ['cloudscheduler', 'server', 'config', '-cc', 'web_frontend', '-lf', '/var/log/cloudscheduler/csv2_web_update.log', '-eg', 'True']
-    )
-
-    execute_csv2_command(
-        gvar, 0, None, 'server config successfully updated',
-        ['cloudscheduler', 'server', 'config', '-cc', 'csjobs.py', '-ll', '10']
-    )
-
-    execute_csv2_command(
-        gvar, 0, None, 'server config successfully updated',
-        ['cloudscheduler', 'server', 'config', '-cc', 'web_frontend', '-lf', '/var/log/cloudscheduler/csv2_web.log', '-eg', 'False']
-    )
-
-    execute_csv2_command(
-        gvar, 0, None, 'server config successfully updated',
-        ['cloudscheduler', 'server', 'config', '-cc', 'csjobs.py', '-ll', '20']
-    )
-
-    execute_csv2_command(
-        gvar, 0, None, None,
-        ['cloudscheduler', 'server', 'config', '-ok'],
-        list='Server Configuration', columns=['Category', 'Config', 'Key']
-    )
-
+    # 31
     execute_csv2_command(
         gvar, 0, None, 'server config, 1. Server Configuration: keys=category,config_key, columns=config_type,config_value',
-        ['cloudscheduler', 'server', 'config', '-VC']
+        ['server', 'config', '-VC']
     )
 
+    # 32 - 38
+    table_headers = {'Server Configuration': ['Category', 'Config Key', 'Type', 'Value']}
+
+    table_commands(gvar, 'server', 'config', ut_id(gvar, 'clg1'), ut_id(gvar, 'clu4'), table_headers)
+
+    # 39
     execute_csv2_command(
-        gvar, 0, None, None,
-        ['cloudscheduler', 'server', 'config', '-NV'],
-        list='Server Configuration', columns=['Category', 'Config', 'Key', 'Config', 'Type', 'Config', 'Value']
+        gvar, 1, None, 'The following command line arguments were invalid: group-name',
+        ['server', 'config', '-gn', 'invalid-unit-test']
     )
 
+    # 40
     execute_csv2_command(
-        gvar, 0, None, None,
-        ['cloudscheduler', 'server', 'config', '-V', 'config_value'],
-        list='Server Configuration', columns=['Category', 'Config', 'Key', 'Config', 'Value']
+        gvar, 1, 'SV', 'server config update failed - invalid category "invalid-unit-test" specified.',
+        ['server', 'config', '-cc', 'invalid-unit-test']
     )
 
+    # 41
     execute_csv2_command(
-        gvar, 0, None, None,
-        ['cloudscheduler', 'server', 'config'],
-        list='Server Configuration', columns=['Category', 'Config', 'Key', 'Config', 'Value']
+        gvar, 1, 'SV', 'server config update failed - category="web_frontend", invalid key "invalid-unit-test" specified.',
+        ['server', 'config', '-cc', 'web_frontend', '-ckv', 'invalid-unit-test=invalid-unit-test']
     )
 
+    # 42
     execute_csv2_command(
-        gvar, 0, None, None,
-        ['cloudscheduler', 'server', 'config', '-r'],
-        list='Server Configuration', columns=['Key', 'Value']
+        gvar, 1, 'SV', 'server config update failed - value specified ("invalid-unit-test") for category="csjobs.py", config_key="log_level" must be an integer.',
+        ['server', 'config', '-cc', 'csjobs.py', '-ckv', 'log_level=invalid-unit-test']
     )
 
+    # 43
     execute_csv2_command(
-        gvar, 0, None, None,
-        ['cloudscheduler', 'server', 'config', '-V', ''],
-        list='Server Configuration', columns=['Category', 'Config', 'Key', 'Config', 'Type', 'Config', 'Value']
+        gvar, 1, 'SV', 'server config update failed - value specified ("invalid-unit-test") for category="web_frontend", config_key="enable_glint" must be a boolean value.',
+        ['server', 'config', '-cc', 'web_frontend', '-ckv', 'enable_glint=invalid-unit-test']
+    )
+
+    # Attempt to change real server settings.
+    # 44
+    execute_csv2_command(
+        gvar, 0, None, 'server config update successfully updated the following keys: log_file, enable_glint',
+        ['server', 'config', '-cc', 'web_frontend', '-ckv', 'log_file=/var/log/cloudscheduler/csv2_web_update.log,enable_glint=False']
+    )
+
+    # 45
+    execute_csv2_command(
+        gvar, 0, None, 'server config update successfully updated the following keys: log_level',
+        ['server', 'config', '-cc', 'csjobs.py', '-ckv', 'log_level=10']
+    )
+
+    # Change settings back to what we presume they were.
+    # 46
+    execute_csv2_command(
+        gvar, 0, None, 'server config update successfully updated the following keys: log_file, enable_glint',
+        ['server', 'config', '-cc', 'web_frontend', '-ckv', 'log_file=/var/log/cloudscheduler/csv2_web.log,enable_glint=True']
+    )
+
+    # 47
+    execute_csv2_command(
+        gvar, 0, None, 'server config update successfully updated the following keys: log_level',
+        ['server', 'config', '-cc', 'csjobs.py', '-ckv', 'log_level=20']
     )
 
 if __name__ == "__main__":
-    main(None, None)
+    main(None)

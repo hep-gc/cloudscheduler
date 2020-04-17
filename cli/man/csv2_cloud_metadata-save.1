@@ -1,0 +1,61 @@
+.so ../man/_header.so
+\fBcloudscheduler cloud metadata-save\fR \- locally save cloud metadata files that are on cloudscheduler version 2 (csv2) servers
+.\" --------------------------------------------------------------------
+.SH SYNOPSIS
+.\" --------------------------------------------------------------------
+.SY cloudscheduler
+.B cloud
+.B metadata-save
+.BI "\-cn " "cloud"
+.BI "\-f " "file"
+.BI "\-mn " "name"
+.RI "[" "options" " ...]"
+.YS
+.\" --------------------------------------------------------------------
+.SH DESCRIPTION
+.\" --------------------------------------------------------------------
+.so ../man/descriptions/_cloud_metadata_save.so
+.\" --------------------------------------------------------------------
+.SH OPTIONS
+.\" --------------------------------------------------------------------
+.\" --------------------------------------------------------------------
+.SS Mandatory
+.\" --------------------------------------------------------------------
+.so ../man/_mandatory_parameters.so
+.so ../man/parameters/_cloud_name.so
+.so ../man/parameters/_file_path_save.so
+.so ../man/parameters/_metadata_name.so
+.\" --------------------------------------------------------------------
+.SS Optional
+.\" --------------------------------------------------------------------
+.so ../man/_options.so
+.so ../man/parameters/_force.so
+.\" --------------------------------------------------------------------
+.SS Global
+.\" --------------------------------------------------------------------
+.so ../man/_global_options.so
+.\" --------------------------------------------------------------------
+.SH EXAMPLES
+.\" --------------------------------------------------------------------
+.TP
+1.
+Saving the cloud metadata file "example.yaml":
+.EX
+$ cloudscheduler cloud metadata-save -cn example -f /<path>/myfile.yaml -mn example.yaml
+.EE
+.\" --------------------------------------------------------------------
+.SH SEE ALSO
+.\" --------------------------------------------------------------------
+.BR csv2 (1)
+.BR csv2_cloud (1)
+.BR csv2_cloud_add (1)
+.BR csv2_cloud_delete (1)
+.BR csv2_cloud_list (1)
+.BR csv2_cloud_metadata-collation (1)
+.BR csv2_cloud_metadata-delete (1)
+.BR csv2_cloud_metadata-edit (1)
+.BR csv2_cloud_metadata-list (1)
+.BR csv2_cloud_metadata-load (1)
+.BR csv2_cloud_metadata-update (1)
+.BR csv2_cloud_status (1)
+.BR csv2_cloud_update (1)
