@@ -44,6 +44,36 @@ def build_inventory_for_condor(inventory, db_session, group_resources_class):
     for cloud in cloud_list:
         set_inventory_group_and_cloud(inventory, cloud.group_name, "-",)
 
+
+def cleanup_inventory(inventory, base_class_key, poll_time=None):
+    logging.debug("Starting Inventory Cleanup")
+    items_to_clean = []
+    for group_name in inventory:
+        for cloud_name in inventory[group_name]:
+            for item in inventory[group_name][cloud_name]:
+                if base_class_key == '-':
+                    if inventory[group_name][cloud_name]['-']['poll_time'] < poll_time:
+                        items_to_clean.append((group_name, cloud_name))
+                        #
+                        #logging.debug("Cleaning up %s - %s" % (group_name, cloud_name))
+                        #inventory[group_name].pop(cloud_name, None)
+                else:
+                    if inventory[group_name][cloud_name][item.__dict__[base_class_key]]['poll_time'] < poll_time:
+                        items_to_clean.append((group_name, cloud_name, item.__dict__[base_class_key]))
+                        #
+                        #logging.debug("Cleaning up %s - %s - %s" % (group_name, cloud_name, item.__dict__[base_class_key]))
+                        #inventory[group_name][cloud_name].pop(item.__dict__[base_class_key], None)
+
+    for item in items_to_clean:
+        if base_class_key == '-':
+            logging.debug("Cleaning up %s - %s" % (item[0], item[1]))
+            inventory[item[0]].pop(item[1], None)
+        else:
+            logging.debug("Cleaning up %s - %s - %s" % (item[0], item[1], item[2]))
+            inventory[item[0]][item[1]].pop(item[2], None)
+
+
+
 def delete_obsolete_database_items(type, inventory, db_session, base_class, base_class_key, poll_time=None, failure_dict=None, cloud_type=None):
     inventory_deletions = []
     logging.debug("Delete Cycle - checking database for consistency")
