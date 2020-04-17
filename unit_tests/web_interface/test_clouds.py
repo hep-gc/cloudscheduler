@@ -153,12 +153,12 @@ class TestClouds(unittest.TestCase):
     def test_metadata_add(self):
         mandatory_parameters = {'metadata_name': self.metadata_to_add}
         invalid_metadata_name_values = {
-            '': 'metadata add value specified for "metadata_name" must not be the empty string.',
-            'Invalid-Unit-Test': 'metadata add value specified for "metadata_name" must be all lowercase letters, digits, dashes, underscores, periods, and colons, and cannot contain more than one consecutive dash or start or end with a dash.',
-            'invalid-unit--test': 'metadata add value specified for "metadata_name" must be all lowercase letters, digits, dashes, underscores, periods, and colons, and cannot contain more than one consecutive dash or start or end with a dash.',
-            '-invalid-unit-test': 'metadata add value specified for "metadata_name" must be all lowercase letters, digits, dashes, underscores, periods, and colons, and cannot contain more than one consecutive dash or start or end with a dash.',
-            'invalid-unit-test!': 'metadata add value specified for "metadata_name" must be all lowercase letters, digits, dashes, underscores, periods, and colons, and cannot contain more than one consecutive dash or start or end with a dash.',
-            'metadata-name-that-is-too-long-for-the-database': 'Data too long for column \'metadata_name\' at row 1',
+            '': 'cloud metadata-add value specified for "metadata_name" must not be the empty string.',
+            'Invalid-Unit-Test': 'cloud metadata-add value specified for "metadata_name" must be all lowercase letters, digits, dashes, underscores, periods, and colons, and cannot contain more than one consecutive dash or start or end with a dash.',
+            'invalid-unit--test': 'cloud metadata-add value specified for "metadata_name" must be all lowercase letters, digits, dashes, underscores, periods, and colons, and cannot contain more than one consecutive dash or start or end with a dash.',
+            '-invalid-unit-test': 'cloud metadata-add value specified for "metadata_name" must be all lowercase letters, digits, dashes, underscores, periods, and colons, and cannot contain more than one consecutive dash or start or end with a dash.',
+            'invalid-unit-test!': 'cloud metadata-add value specified for "metadata_name" must be all lowercase letters, digits, dashes, underscores, periods, and colons, and cannot contain more than one consecutive dash or start or end with a dash.',
+            'metadata-name-that-is-too-long-for-the-database_______________________': 'Data too long for column \'metadata_name\' at row 1',
             self.metadata_to_list: 'Duplicate entry \'{}-{}\' for key \'PRIMARY\''.format(self.active_group, self.metadata_to_list)
         }
         valid_combination = {
@@ -169,11 +169,14 @@ class TestClouds(unittest.TestCase):
         self.select_metadata()
         form_xpath = '//form[@name="metadata-form"]'
         try:
+            iframe = wc.assert_one(self.driver, self.fail, (By.XPATH, './/iframe[@id="editor-{}-add"]'.format(self.cloud_to_update)))
             # A modified version of submit_invalid_combinations, because we need to switch out of and back into the iframe after every invalid submission.
-            for value, message in invalid_priority_values.items():
+            for value, message in invalid_metadata_name_values.items():
                 # Mandatory parameters are listed first so that they are overwriten as necessary.
-                wc.submit_form(self.driver, self.fail, form_xpath, {**mandatory_parameters, name: value}, max_wait=self.gvar['max_wait'], expected_response=message)
+                wc.submit_form(self.driver, self.fail, form_xpath, {**mandatory_parameters, 'metadata_name': value}, max_wait=self.gvar['max_wait'], expected_response=message)
                 self.driver.switch_to.default_content()
+                self.driver.switch_to.frame(iframe)
+                self.assertIn(message, wc.assert_one(self.driver, self.fail, (By.ID, 'message')).text)
                 self.select_metadata()
             # Submit a name that ends with '.yaml' but content that is invalid as YAML.
             invalid_yaml_parameters = {**mandatory_parameters, 'metadata_name': '{}.yaml'.format(self.metadata_to_add), 'metadata': 'foo: bar: this is invalid yaml'}
@@ -181,7 +184,7 @@ class TestClouds(unittest.TestCase):
             self.driver.switch_to.default_content()
             self.select_metadata()
             # Submit valid parameters.
-            wc.submit_form(self.driver, self.fail, form_xpath, {**mandatory_parameters, valid_combination}, self.gvar['max_wait'])
+            wc.submit_form(self.driver, self.fail, form_xpath, {**mandatory_parameters, **valid_combination}, self.gvar['max_wait'])
             self.driver.switch_to.default_content()
             # We cannot assert an expected_response through submit_form() because the driver is set to the iframe that that point (and the message appears outside it).
             footer = wc.assert_one(self.driver, self.fail, (By.ID, 'message'))
@@ -254,11 +257,16 @@ class TestClouds(unittest.TestCase):
         Leave the driver looking inside the iframe so that the form can be manipulated, but the caller must switch the driver back to default_content.
         '''
         metadata_tab = self.select_cloud_tab(self.cloud_to_update, 1)
-        # Look within metadata_tab for elements of class 'tab2' (i.e. sub-tabs) which have within them labels with text equal to metadata_name.
-        metadata_listing = wc.assert_one(metadata_tab, self.fail, (By.XPATH, './/*[contains(@class, "tab2")][label/text()="{}"]'.format(metadata_name if metadata_name else '+')), missing_message='\'{}\' is missing from the list of metadata for {}'.format(metadata_name if metadata_name else '+', self.cloud_to_update))
-        # We already know this label exists, but we need to find it so we can click on it.
-        wc.assert_one(metadata_tab, self.fail, (By.XPATH, './/label[text()="{}"]'.format(metadata_name if metadata_name else '+'))).click()
-        iframe = wc.assert_one(metadata_listing, self.fail, (By.XPATH, './/iframe[@id="editor-{}-{}"]'.format(self.cloud_to_update, metadata_name if metadata_name else 'add')))
+        if metadata_name:
+            # Look within metadata_tab for elements of class 'tab2' (i.e. sub-tabs) which have within them labels with text equal to metadata_name.
+            metadata_listing = wc.assert_one(metadata_tab, self.fail, (By.XPATH, './/*[contains(@class, "tab2")][label/text()="{}"]'.format(metadata_name)), missing_message='\'{}\' is missing from the list of metadata for {}.'.format(metadata_name, self.cloud_to_update))
+            # We already know this label exists, but we need to find it so we can click on it.
+            metadata_tab.find_element(By.XPATH, './/label[text()="{}"]'.format(metadata_name)).click()
+            iframe = wc.assert_one(metadata_listing, self.fail, (By.XPATH, './/iframe[@id="editor-{}-{}"]'.format(self.cloud_to_update, metadata_name)))
+        else:
+            metadata_listing = wc.assert_one(metadata_tab, self.fail, (By.XPATH, './/*[contains(@class, "tab2")][label/text()="+"]'), missing_message='The button to add metadata is missing from the list of metadata for {}.'.format(self.cloud_to_update))
+            metadata_tab.find_element(By.XPATH, './/label[text()="+"]').click()
+            iframe = wc.assert_one(metadata_listing, self.fail, (By.XPATH, './/iframe[@id="editor-{}-add"]'.format(self.cloud_to_update)))
         self.driver.switch_to.frame(iframe)
         try:
             return wc.assert_one(self.driver, self.fail, (By.TAG_NAME, 'form'), {'name': 'metadata-form'})

@@ -911,7 +911,7 @@ def condor_setup(gvar):
     if gvar['user_settings']['server-address'].startswith('http'):
         return re.match(r'https?://(.*)', gvar['user_settings']['server-address'])[1]
     else:
-        condor_error(gvar, 'the server address in {} is \'{}\', which does not start with \'http\''.format(YAML_PATH, gvar['user_settings']['server-address']))
+        condor_error(gvar, 'the server address in {} is \'{}\', which does not start with \'http\''.format(os.path.expanduser('~/.csv2/unit-test/settings.yaml'), gvar['user_settings']['server-address']))
         return
 
 def condor_error(gvar, err):

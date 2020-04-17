@@ -25,12 +25,13 @@ def assert_one(parent, error_reporter, identifier, attributes=None, missing_mess
             if all(elem.get_attribute(att_name) == att_value for att_name, att_value in attributes.items()):
                 matching_elems.append(elem)
 
-    if len(matching_elems) == 0:
-        error_reporter(missing_message if missing_message else default_message.format(identifier, attributes, 0))
-    elif len(matching_elems) == 1:
-        return matching_elems[0]
-    else:
-        error_reporter(multiple_message if multiple_message else default_message.format(identifier, attributes, len(matching_elems)))
+        if len(matching_elems) == 1:
+            return matching_elems[0]
+        elif len(matching_elems) == 0:
+            error_reporter(missing_message if missing_message else default_message.format(identifier, attributes, 0))
+        # len(matching_elems) > 1
+        else:
+            error_reporter(multiple_message if multiple_message else default_message.format(identifier, attributes, len(matching_elems)))
 
 def submit_valid_combinations(driver, error_reporter, form_xpath, valid_combinations, mandatory_parameters=None, max_wait=DEFAULT_MAX_WAIT, expected_response=None, click_before_filling=None, retains_values=False):
     '''
