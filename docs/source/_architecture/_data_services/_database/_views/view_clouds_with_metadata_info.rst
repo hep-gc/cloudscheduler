@@ -62,6 +62,9 @@ Columns:
       specified, only spot market requests will be made on this cloud. Otherwise,
       unconditional on-demand requests are made.
 
+* **vm_boot_volume** (String(64)):
+
+
 * **vm_flavor** (String(64)):
 
       Is a default flavor name for this cloud. If omitted, the default

@@ -78,6 +78,9 @@ def create_RSTs(gvar, type):
         if not gvar['schema'][type][table]:
             continue
 
+        if type == 'tables' and table not in gvar['key_list'][type] and table not in gvar['column_list'][type]:
+            continue
+
         rst_path = '%s/docs/source/_architecture/_data_services/_database/_%s/%s.rst' % (gvar['base_dir'], type, table)
         with open(gvar['tempfile'].name, 'w') as fd:
             fd.write(gvar['do_not_edit'] % '%s/%s.yaml' % (type, table))
@@ -124,7 +127,7 @@ def create_RSTs(gvar, type):
                 if len_columns == len(gvar['column_list'][type][table]):
                     column_list = gvar['column_list'][type][table]
                 else:
-                    column_list = sorted(gvar['schema'][type][table]['Keys'])
+                    column_list = sorted(gvar['schema'][type][table]['Columns'])
 
                 for column in column_list:
                     if gvar['schema_states']['%s/%s/Columns/%s' % (type, table, column)] == 1:
@@ -308,7 +311,6 @@ def main(args):
                     if len(_w) > 0 and _w[0] in gvar['schema'][type][table]['Keys']:
                         gvar['schema'][type][table]['Columns'][_w[0]] = gvar['schema'][type][table]['Keys'][_w[0]]
                         del gvar['schema'][type][table]['Keys'][_w[0]]
-
 
                 if len(_w) > 2:
                     if _w[0] in gvar['schema'][type][table][coltype]:

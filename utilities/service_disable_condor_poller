@@ -1,0 +1,46 @@
+#!/bin/bash 
+###
+### This utility must be run as root. It performs the following:
+###
+### 1. Ensure csv2-condor-poller is not already disabled.
+### 2. Checks to see if we are running as root.
+### 3. Stops, disables, and uninstalls csv2-condor-poller initd/systemd service.
+###
+
+###
+### 1. Ensure csv2-condor-poller is not already installed.
+###
+    which systemctl 1>/dev/null 2>&1
+    systemctl=$?
+    if [ $systemctl -eq 1 ]; then
+        chkconfig csv2-condor-poller
+    else
+        systemctl enable csv2-condor-poller >/dev/null 2>&1
+    fi
+
+    if [ $? -ne 0 ]; then
+        echo 'Service csv2-condor-poller already disabled or not installed so far.'
+        exit 0
+    fi
+
+###
+### 2. Checks to see if we are running as root.
+###
+    if [ "$EUID" != '0' ]; then
+        echo 'ERROR: This process needs to run as root.'
+        exit 1
+    fi  
+
+###
+### 3. Stops, disables, and uninstalls csv2-condor-poller initd/systemd service.
+###
+    if [ $systemctl -eq 1 ]; then
+        service csv2-condor-poller stop
+        chkconfig --del csv2-condor-poller
+        rm -f  /etc/init.d/csv2-condor-poller
+    else
+        systemctl stop csv2-condor-poller
+        systemctl disable csv2-condor-poller
+        rm -f  /etc/systemd/system/csv2-condor-poller.service
+    fi
+

@@ -108,19 +108,11 @@
                                 <td><input type="text" name="htcondor_fqdn" value="{{group.htcondor_fqdn}}" /></td></tr>
 
 
-                                {% if gsi_state %}
-                                    <tr class="highlight3"><td><label for="htcondor_gsi_dn">HTCondor GSI DN</label></td>
-                                    <td><input type="text" name="htcondor_gsi_dn" value="{{group.htcondor_gsi_dn}}" /></td></tr>
-                                {% endif %}
-
-
-
                                 <tr class="highlight3"><td><label for="htcondor_container_hostname">HTCondor container hostname</label></td>
                                 <td><input type="text" name="htcondor_container_hostname" value="{{group.htcondor_container_hostname}}" /></td></tr>
 
                                 <tr class="highlight3"><td><label for="htcondor_other_submitters">HTCondor other submitters</label></td>
                                 <td><input type="text" name="htcondor_other_submitters" value="{{group.htcondor_other_submitters}}" /></td></tr>
-
 
 
                                 <tr class="highlight3"><td><label for="job_cpus">Job CPUs</label></td>
@@ -144,7 +136,7 @@
                                 <option value=""></option>
                                 {% for key in keypairs_list %}
                                     {% if key.key_name == group.vm_keyname %}
-                                        <option value="{{ key.key_name }}" selected>{{ keyname.name }}</option>
+                                        <option value="{{ key.key_name }}" selected>{{ key.key_name }}</option>
                                     {% else %}
                                         <option value="{{ key.key_name }}">{{ key.key_name }}</option>
                                     {% endif %}

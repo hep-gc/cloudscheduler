@@ -180,7 +180,11 @@ def get_grid_proxy(gvar):
 
     if os.path.exists('%s/.globus/usercert.pem' % gvar['home_dir']) and \
         os.path.exists('%s/.globus/userkey.pem' % gvar['home_dir']):
-        x509 = input('Would you like to authenticate with your x509 certificate (%s/.globus/{usercert.pem,userkey.pem})? (y|n): ' % gvar['home_dir'])
+        if 'user_settings' in gvar and 'use-x509-authentication' in gvar['user_settings'] and gvar['user_settings']['use-x509-authentication']:
+            x509 = 'yes'
+        else:
+            x509 = input('Would you like to authenticate with your x509 certificate (%s/.globus/{usercert.pem,userkey.pem})? (y|n): ' % gvar['home_dir'])
+
         if x509.lower() == 'yes'[:len(x509)]:
             for ix in range(3):
                 if sys_cmd(['grid-proxy-init'], return_stdout_not_rc=False) == 0:

@@ -106,9 +106,9 @@ csv2_clouds:
         ec2_owner_id:
             Format: String(32)
             Synopsis:
-                 For Amazon EC2 clouds, this is EC2 owner ID automatically retrieved from the cloud and
-                 saved in the CSV2 cloud settings.
-                 It is used to identify owned versus shared resouces on that EC2 cloud.
+                For Amazon EC2 clouds, this is EC2 owner ID automatically retrieved from the cloud
+                and saved in the CSV2 cloud settings. It is used to identify owned versus shared
+                resouces on that EC2 cloud.
                 
         server_meta_ctl:
             Format: Integer
@@ -142,7 +142,7 @@ csv2_clouds:
                 that may be used on the cloud. Once this amount of RAM is in use by VM instances,
                 CSV2 will not start any more VMs on this cloud. This parameter allows the user to
                 limit their RAM usage on the cloud, to less than the cloud defined RAM quota. The
-                default is -1, indicating no limit or use up to the quota. 
+                default is -1, indicating no limit or use up to the quota.
                 
         server_groups_ctl:
             Format: Integer
@@ -252,20 +252,30 @@ csv2_clouds:
         error_time:
             Format: Integer
             Synopsis:
-                System maintained timestamp indicating the time of the last polling error received from the cloud.
-
+                System maintained timestamp indicating the time of the last polling error received
+                from the cloud.
+                
         obsolete_keyname:
             Format: String(20)
             Synopsis:
                 Not used.
-
+                
         communication_up:
             Format: Boolean
             Synopsis:
-                The CSV2 cloud pollers (csv2-openstack, csve-ec2, etc.) periodically polls clouds for information. If polling attempts are successful, this boolean will be set to 1. Otherwise, it is set to zero.
-
+                The CSV2 cloud pollers (csv2-openstack, csve-ec2, etc.) periodically polls clouds
+                for information. If polling attempts are successful, this boolean will be set to
+                1. Otherwise, it is set to zero.
+                
         communication_rt:
             Format: Integer
             Synopsis:
-                The CSV2 cloud pollers (csv2-openstack, csve-ec2, etc.) periodically issue trivial requests to determine what should be a consistent request time. The reult of these timing tests are recoreded in milli-seconds. Fluctuations in the results could be the consequence of either network contention or contention on the target cloud.
+                The CSV2 cloud pollers (csv2-openstack, csve-ec2, etc.) periodically issue trivial
+                requests to determine what should be a consistent request time. The reult of these
+                timing tests are recoreded in milli-seconds. Fluctuations in the results could be
+                the consequence of either network contention or contention on the target cloud.
+                
+        vm_boot_volume:
+            Format: String(64)
+            Synopsis:
 

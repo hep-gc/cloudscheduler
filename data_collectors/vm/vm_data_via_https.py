@@ -4,24 +4,39 @@ import time
 import logging
 import re
 import os
+import signal
 import sys
 
 from cloudscheduler.lib.db_config import Config
 from cloudscheduler.lib.log_tools import get_frame_info
-from cloudscheduler.lib.ProcessMonitor import ProcessMonitor
+from cloudscheduler.lib.ProcessMonitor import ProcessMonitor, check_pid, terminate
+from cloudscheduler.lib.poller_functions import wait_cycle, start_cycle
 
 def apel_accounting_cleanup():
     multiprocessing.current_process().name = "APEL Accounting Cleanup"
 
     my_config_category = os.path.basename(sys.argv[0])
-    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', my_config_category, pool_size=4, refreshable=True)
+    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', [my_config_category, "ProcessMonitor"], pool_size=4, signals=True)
+    PID_FILE = config.categories["ProcessMonitor"]["pid_path"] + os.path.basename(sys.argv[0])
 
     config.db_open()
+
+
+    cycle_start_time = 0
+    new_poll_time = 0
+    poll_time_history = [0,0,0,0]
 
     try:
         while True:
             logging.debug("Beginning APEL Accounting Cleanup cycle")
             config.refresh()
+
+            if not os.path.exists(PID_FILE):
+                logging.debug("Stop set, exiting...")
+                break
+
+            signal.signal(signal.SIGINT, signal.SIG_IGN)
+            new_poll_time, cycle_start_time = start_cycle(new_poll_time, cycle_start_time)
 
             obsolete_apel_accounting_rows = time.time() - (86400 * config.categories[my_config_category]['apel_accounting_keep_alive_days'])
 
@@ -35,7 +50,11 @@ def apel_accounting_cleanup():
 
             config.db_session.rollback()
             logging.debug("Completed APEL Accounting Cleanup cycle")
-            time.sleep(config.categories[my_config_category]['sleep_interval_apel_cleanup'])
+            if not os.path.exists(PID_FILE):
+                logging.info("Stop set, exiting...")
+                break
+            signal.signal(signal.SIGINT, config.signals['SIGINT'])
+            wait_cycle(cycle_start_time, poll_time_history, config.categories[my_config_category]['sleep_interval_apel_cleanup'], config)
 
     except Exception as exc:
         logging.exception("VM data poller, while loop exception, process terminating...")
@@ -47,7 +66,9 @@ def vm_data_poller():
     multiprocessing.current_process().name = "VM data poller"
 
     my_config_category = os.path.basename(sys.argv[0])
-    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', my_config_category, pool_size=4, refreshable=True)
+    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', [my_config_category, "ProcessMonitor"], pool_size=4, signals=True)
+    PID_FILE = config.categories["ProcessMonitor"]["pid_path"] + os.path.basename(sys.argv[0])
+
     VMS = config.db_map.classes.csv2_vms
 
     if os.path.isfile(config.categories[my_config_category]['vm_data_poller_checkpoint']):
@@ -58,10 +79,21 @@ def vm_data_poller():
 
     config.db_open()
 
+    cycle_start_time = 0
+    new_poll_time = 0
+    poll_time_history = [0,0,0,0]
+
     try:
         while True:
             logging.debug("Beginning VM data poller cycle")
             config.refresh()
+
+            if not os.path.exists(PID_FILE):
+                logging.debug("Stop set, exiting...")
+                break
+
+            signal.signal(signal.SIGINT, signal.SIG_IGN)
+            new_poll_time, cycle_start_time = start_cycle(new_poll_time, cycle_start_time)
 
             ssl_access_log_size = os.stat(config.categories[my_config_category]['ssl_access_log']).st_size
             if checkpoint > ssl_access_log_size:
@@ -128,7 +160,12 @@ def vm_data_poller():
                 fd.write(str(checkpoint))
 
             logging.debug("Completed VM data poller cycle")
-            time.sleep(config.categories[my_config_category]['sleep_interval_vm_data'])
+
+            if not os.path.exists(PID_FILE):
+                logging.info("Stop set, exiting...")
+                break
+            signal.signal(signal.SIGINT, config.signals['SIGINT'])
+            wait_cycle(cycle_start_time, poll_time_history, config.categories[my_config_category]['sleep_interval_vm_data'], config)
 
     except Exception as exc:
         logging.exception("VM data poller, while loop exception, process terminating...")
@@ -144,10 +181,14 @@ if __name__ == '__main__':
     }
 
     my_config_category = os.path.basename(sys.argv[0])
-    procMon = ProcessMonitor(config_params=[my_config_category, "general", 'ProcessMonitor'], pool_size=4, orange_count_row='csv2_jobs_error_count', process_ids=process_ids)
+    procMon = ProcessMonitor(config_params=[my_config_category, "general", 'ProcessMonitor'], pool_size=4, process_ids=process_ids)
     config = procMon.get_config()
     logging = procMon.get_logging()
     version = config.get_version()
+
+    PID_FILE = config.categories["ProcessMonitor"]["pid_path"] + os.path.basename(sys.argv[0])
+    with open(PID_FILE, "w") as fd:
+        fd.write(str(os.getpid()))
 
     logging.info("**************************** starting VM data monitor - Running %s *********************************" % version)
 
@@ -155,8 +196,12 @@ if __name__ == '__main__':
     try:
         #start processes
         procMon.start_all()
+        signal.signal(signal.SIGTERM, terminate)
         while True:
-            procMon.check_processes()
+            config.refresh()
+            config.update_service_catalog()
+            stop = check_pid(PID_FILE)
+            procMon.check_processes(stop=stop)
             time.sleep(config.categories['ProcessMonitor']['sleep_interval_main_long'])
             
     except (SystemExit, KeyboardInterrupt):

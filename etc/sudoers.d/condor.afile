@@ -1,0 +1,1 @@
+condor ALL=(ALL) NOPASSWD: /bin/systemctl, /bin/firewall-cmd

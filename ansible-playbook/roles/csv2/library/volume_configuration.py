@@ -668,43 +668,43 @@ def _mkfs (SYS, request, changed_state):
             _execute(SYS, ['mkfs', '-F', '-t', FStype, '-L', label, device])
           changed = True
 
-        # If necessary, create /etc/fstab and dftab entries for the request.
-        if not mount in SYS['fstab']:
-          if FStype == 'swap':
-            mp = 'none'; dump = '0'; fsck = '0'
-          else:
-            SYS['fstab_fsck'] += 1
-            mp = Mountpoint; dump = '1'; fsck = SYS['fstab_fsck']
+    # If necessary, create /etc/fstab and dftab entries for the request.
+    if not mount in SYS['fstab']:
+      if FStype == 'swap':
+        mp = 'none'; dump = '0'; fsck = '0'
+      else:
+        SYS['fstab_fsck'] += 1
+        mp = Mountpoint; dump = '1'; fsck = SYS['fstab_fsck']
 
-          sequence = len(SYS['fstab']) + 1
-          fd = open('/etc/fstab', 'a')
-          fd.write("%s %s %s defaults %s %s\n" % (mount, mp, FStype, dump, fsck))
-          fd.close()
-          SYS['fstab'][mount] = [ Mountpoint, FStype, '-' ]
-          SYS['fxtab'][Mountpoint] = mount
+      sequence = len(SYS['fstab']) + 1
+      fd = open('/etc/fstab', 'a')
+      fd.write("%s %s %s defaults %s %s\n" % (mount, mp, FStype, dump, fsck))
+      fd.close()
+      SYS['fstab'][mount] = [ Mountpoint, FStype, '-' ]
+      SYS['fxtab'][Mountpoint] = mount
 
-          dv_type, dv_path = _device_type_and_path(SYS, device)
-          SYS['dftab'][mp] = [ dv_type, dv_path ]
+      dv_type, dv_path = _device_type_and_path(SYS, device)
+      SYS['dftab'][mp] = [ dv_type, dv_path ]
 
-          changed = True
+      changed = True
 
-        # If necessary, create a mountpoint for the request.
-        if FStype != 'swap':
-          if not os.path.exists(Mountpoint):
-            _execute(SYS, ['mkdir', '-p', Mountpoint])
-            changed = True
+    # If necessary, create a mountpoint for the request.
+    if FStype != 'swap':
+      if not os.path.exists(Mountpoint):
+        _execute(SYS, ['mkdir', '-p', Mountpoint])
+        changed = True
 
-          if not os.path.isdir(Mountpoint):
-            ansible_module.fail_json(msg='volume_configuration(_mkfs,%s): Mount point "%s" is not a directory.' % (_get_linenumber(), Mountpoint))
+      if not os.path.isdir(Mountpoint):
+        ansible_module.fail_json(msg='volume_configuration(_mkfs,%s): Mount point "%s" is not a directory.' % (_get_linenumber(), Mountpoint))
 
-        # If necessary, mount the device.
-        if SYS['fstab'][mount][2] == '-':
-          if FStype == 'swap':
-            _execute(SYS, ['swapon', '-a'])
-          else:
-            _execute(SYS, ['mount', '-a'])
-          SYS['fstab'][mount][2] = device
-          changed = True
+    # If necessary, mount the device.
+    if SYS['fstab'][mount][2] == '-':
+      if FStype == 'swap':
+        _execute(SYS, ['swapon', '-a'])
+      else:
+        _execute(SYS, ['mount', '-a'])
+      SYS['fstab'][mount][2] = device
+      changed = True
 
   return changed
 

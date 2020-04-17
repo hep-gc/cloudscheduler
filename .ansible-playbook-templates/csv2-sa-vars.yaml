@@ -1,174 +1,19 @@
-# Destination for any email generated bu the system (letsencrypt).
-admin_email: mfens98@uvic.ca
+Overriding the following defaults varables (see csv2-default-vars.yaml):
+web_debug: True
 
-# Change this to the IP of your deployment host.
-ansible_deployment_host_ip: '206.12.154.6'
-
-# Change this to the path of an existing deployment host directory where letsencrypt SSL certificates are to be saved. This directory must be read/writable by the deployment user.
-letsencrypt_archive: '/usr/local/archive/letsencrypt'
-
-# CSV2 versions to use.
-cs_git_branch: stable-2.6
-db_upgrade_file: none
-schema_model: stable-2.6.1
-favicon_colour: red
-
-container: True
-local_web: True
-
-# Set  schema_backup tar file to install on host machine
-backup_path: '/tmp/test/csv2-cont-backups.tar.gz'
-
-db_on_localhost: true
-rabbit_on_localhost: true
-reconfigure_network: false
-
-# If you decide to install phpMyAdmin, you will also need an SSL certificate for the domain/virtual host (see i_virtualhosts, below).
-install_phpMyAdmin: false
-
-# If you decide to install phpMyAdmin, you will also need an SSL certificate for the domain/virtual host (see i_virtualhosts, below).
-letsencrypt_test: false
-
-# By default, GSI authentication for HTCondor daemons is disabled. To enable GSI, you must:
-# 
-#    o Obtain/create a grid-mapfile.
-#    o Obtain a grid certficate for the HTCondor server.
+# If GSI authentication for HTCondor, the CSV2 playbooks will use the 
+# letsencrypt certificates obtained for the virtual hosts. To override
+# this behavior and use another CA, you must:
+#
+#    o Obtain a grid certficate for the HTCondor server. 
 #    o Obtain a grid certficate to be used by all HTCondor workers (VMs).
-#    o Specify the required GSI information (seven items) in this "vars" file, eg:
+#    o Specify the following GSI information (modify as appropriate):
 #
-#      grid_mapfile: /root/grid-security/latest/csv2-sa/grid-mapfile
-#
-#      htcondor_gsi_dn: /C=CA/O=Grid/CN=csv2-sa.example.ca
-#      htcondor_cert: /root/grid-security/latest/csv2-sa/hostcert.pem
-#      htcondor_key: /root/grid-security/latest/csv2-sa/hostkey.pem
-#
-#      htcondor_worker_gsi_dn: /C=CA/O=Grid/CN=condorworker/condor.example.ca
-#      htcondor_worker_cert: /root/grid-security/latest/condorworker/hostcert.pem
-#      htcondor_worker_key: /root/grid-security/latest/condorworker/hostkey.pem
-# 
+# htcondor_gsi_dn: /C=CA/O=Grid/CN=csv2-sa.example.ca
+# htcondor_cert: /root/grid-security/latest/csv2-sa/hostcert.pem
+# htcondor_key: /root/grid-security/latest/csv2-sa/hostkey.pem
 
-# Defines (three) entries to be added to /etc/hosts.
-i_etc_hosts:
-#-
-#    # a private IP (v4)
-#    fqdn: 'csv2-sa'
-#    ip: '10.200.200.239'
--
-    # a public IP (v4)
-    fqdn: 'csv2-sa.heprc.uvic.ca'
-    ip: '206.12.154.239'
-#-
-#    # a public IP (v6)
-#    fqdn: 'csv2-sa.heprc6.uvic.ca'
-#    ip: '2607:f8f0:c10:70f3:2::239'
-
-# Define obsolete users to remove.
-i_deleted_users: []
-
-# Define groups.
-i_groups:
--
-    group: 'csv2_users'
-    gid: '1234567'
-
-# Define users.
-i_users:
--
-    userid: 'example'
-    uid: '1234567'
-
-# Users authenticate with ssh keys.
-i_user_keys:
--
-    userid: 'example'
-    key: 'ssh-rsa AAAAB3NxaC1yc2EAAAABIwAAAgEA0qtnTxW99ygnBFpf+pnEfeQKR1cAC0Zs9Ent6AxFYa2RyyI524tMXUJzjV/Mk/QVniODdp1LYtl42WKcx3qRJ/oOud4Iqk71ko5VoJmHpiczrQanKMwg6GOxRQ17bLVpNDjJEsrq1rG3YUBtUCW910wm7eqAuXALGjRmtYtqscOi30vbOMyZLmfLyBDqK6bQ1Dz103B+g7eZTfZX3vk1VXBXmlcRJZU9/VCN6SvZhqNyga32BpGURXmf/OgTs/964GLLQhP8yuJe09gZg52E7ap+hvdsx9EnSqGNDdcT3XwM5+nwYzr86glnOUm+u9ridCkS+20QDiWkDueIZRsZqhTiYC5gmz4NwBveiuEDT3zRfsSFdZ8Ea+VB7abWQvZXshJbezCaLr6qhLgvWimmMCg9CN/tWf9gDTcIadOyPJvWNYnwBkcZvo++AXzX2WKpN65L144gxhjMO7ehIrTeLnbyt9Nossd1Bav4DnIlVtbYGRpsNVAbytUxwR4m+0q4v1ChphD33wkA7wuiFQhcej2hq8/zqMPAdG9H+rnwQRr5MD2791JIEfFBwyTY7k9Vrt16W4MVVhQtBJkcEF0M2Ziq++ZLWq3USDdTWAZDBsIzgaiX33bvx/x7OTYp6V7CF/+jCFRW3E4VpcQjKdsqZW3TrHuI0k+B46NkJAZVSe8= example@uvic.ca'
-
-# Some users are privileged.
-i_sudoers:
--
-    userid: 'example'
-
-# Defines block devices, filesystems, and mountpoints.
-i_volumes:
--
-    fqdn: 'csv2-sa.heprc.uvic.ca'
-    raid: 'jbod'
-    disks: '0'
-    volumegroup: 'vg_root'
-    logicalvolume: '-'
-    gbs: '50'
-    fstype: 'ext4'
-    mountpoint: '/'
-#
-#   fqdn: 'csv2-sa.heprc.uvic.ca'
-#   raid: 'jbod'
-#   disks: '1'
-#   volumegroup: 'vg_data'
-#   logicalvolume: '-'
-#   gbs: '50'
-#   fstype: 'ext4'
-#   mountpoint: '/storage'
-
-i_firewall: []
-
-# Public network.
-i_external_connection:
--
-    nic: 'eth1'
-    ipv4: '206.12.154.239'
-    ipv4fqdn: 'csv2-sa.heprc.uvic.ca'
-#    ipv6: '2607:f8f0:c10:70f3:2::239'
-#    ipv6fqdn: 'csv2-sa.heprc6.uvic.ca'
-
-# Private network.
-i_internal_connection:
--
-    nic: 'eth0'
-    ipv4: '127.0.0.1'
-    ipv4fqdn: 'csv2-sa'
-#    ipv6: '-'
-#    ipv6fqdn: '-'
-
-# Define network connections.
-i_connections:
-#-
-#    nic: 'eth0'
-#    mac: '52:54:00:3e:55:d9'
-#    ext: 'n'
-#    mtu: '1500'
-#    ipv4: '10.200.200.239'
-#    ipv4mask: '255.255.254.0'
-#    ipv4gw: '10.200.200.1'
-#    ipv6: '-'
-#    ipv6gw: '-'
-#    ipv6len: '-'
-#    bridge: '-'
--
-    nic: 'eth1'
-    mac: '52:54:00:3e:55:da'
-    ext: 'y'
-    mtu: '9000'
-    ipv4: '206.12.154.239'
-    ipv4mask: '255.255.255.0'
-    ipv4gw: '206.12.154.254'
-#    ipv6: '2607:f8f0:c10:70f3:2::239'
-#    ipv6gw: '2607:f8f0:c10:70f3:2::1'
-    ipv6len: '64'
-    bridge: '-'
-
-# Identify the primary service web page.
-i_service_connection:
--
-    nic: 'eth1'
-    ipv4: '206.12.154.239'
-    ipv4fqdn: 'csv2-sa.heprc.uvic.ca'
-#    ipv6: '2607:f8f0:c10:70f3:2::239'
-#    ipv6fqdn: 'csv2-sa.heprc6.uvic.ca'
-
-# Define domains for which letsencrypt certificates are required.
-i_virtualhosts:
--
-    virtualhost: 'csv2-sa.heprc.uvic.ca'
-#-
-#    virtualhost: 'csv2-sa-myadmin.heprc.uvic.ca'
+# htcondor_worker_gsi_dn: /C=CA/O=Grid/CN=condorworker/condor.example.ca
+# htcondor_worker_cert: /root/grid-security/latest/condorworker/hostcert.pem
+# htcondor_worker_key: /root/grid-security/latest/condorworker/hostkey.pem
 

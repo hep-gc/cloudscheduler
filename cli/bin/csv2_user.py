@@ -32,7 +32,7 @@ def add(gvar):
 
     mandatory = ['-un', '-upw']
     required = []
-    optional = ['-g', '-gn', '-H', '-h', '-SU', '-s', '-ucn', '-v', '-v', '-xA']
+    optional = ['-g', '-gn', '-H', '-h', '-SU', '-s', '-ucn', '-v', '-v', '-x509', '-xA']
 
     if gvar['retrieve_options']:
         return mandatory + required + optional
@@ -62,7 +62,7 @@ def delete(gvar):
 
     mandatory = ['-un']
     required = []
-    optional = ['-g', '-H', '-h', '-s', '-v', '-v', '-xA', '-Y']
+    optional = ['-g', '-H', '-h', '-s', '-v', '-v', '-x509', '-xA', '-Y']
 
     if gvar['retrieve_options']:
         return mandatory + required + optional
@@ -109,7 +109,7 @@ def list(gvar):
 
     mandatory = []
     required = []
-    optional = ['-CSEP', '-CSV', '-g', '-H', '-h', '-NV', '-ok', '-r', '-s', '-un', '-V', '-VC', '-v', '-xA']
+    optional = ['-CSEP', '-CSV', '-g', '-H', '-h', '-NV', '-ok', '-r', '-s', '-un', '-V', '-VC', '-v', '-x509', '-xA']
 
     if gvar['retrieve_options']:
         return mandatory + required + optional
@@ -151,7 +151,7 @@ def update(gvar):
 
     mandatory = ['-un']
     required = []
-    optional = ['-g', '-gn', '-go', '-H', '-h', '-SU', '-s', '-ucn', '-upw', '-v', '-xA']
+    optional = ['-g', '-gn', '-go', '-H', '-h', '-SU', '-s', '-ucn', '-upw', '-v', '-x509', '-xA']
 
     if gvar['retrieve_options']:
         return mandatory + required + optional

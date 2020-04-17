@@ -1,6 +1,6 @@
 view_clouds:
     Synopsis:
-        "This view consolidates cloud information from the following sources:
+        'This view consolidates cloud information from the following sources:
         
         * csv2_clouds
         
@@ -9,10 +9,10 @@ view_clouds:
         * cloud_limits
         
         * view_vms
-
-        producing one row per group\/cloud and forming the base for other views and information
-        displays in the User Interface (UI)."
-
+        
+        producing one row per group/cloud and forming the base for other views and information
+        displays in the User Interface (UI).'
+        
     Keys:
 
     Columns:
@@ -21,346 +21,451 @@ view_clouds:
             Format: String(32)
             Synopsis:
                 Is the name of the group owning this cloud.
-               
-
+                
         cloud_name:
             Format: String(32)
             Synopsis:
                 Is the unique name (within the group) of this cloud.
-
+                
         enabled:
             Format: Boolean
             Synopsis:
                 This flag indicates whether the cloud is enabled(1) or disabled(0).
-
+                
         cloud_priority:
             Format: Integer
             Synopsis:
                 Is the user defined priority for this cloud. Lower numbers indicate a higher priority.
-
+                
         spot_price:
             Format: Float
             Synopsis:
-                Is a decimal number expressing the bid price in dollars and cents for resources on this cloud
-                being sold on the spot market.
-                If specified, only spot market requests will be made on this cloud.
-                Otherwise, unconditional on-demand requests are made.
-
+                Is a decimal number expressing the bid price in dollars and cents for resources on
+                this cloud being sold on the spot market. If specified, only spot market requests
+                will be made on this cloud. Otherwise, unconditional on-demand requests are made.
+                
         vm_flavor:
             Format: String(64)
             Synopsis:
-                Is a default flavor name for this cloud.
-                If omitted, the default flavor name will be taken from the group settings.
-
+                Is a default flavor name for this cloud. If omitted, the default flavor name will
+                be taken from the group settings.
+                
         vm_image:
             Format: String(64)
             Synopsis:
-                Is a default (kernel) image name for this cloud.
-                If omitted, the default image name will be taken from the group settings.
-
+                Is a default (kernel) image name for this cloud. If omitted, the default image name
+                will be taken from the group settings.
+                
         vm_keep_alive:
             Format: Integer
             Synopsis:
-                Is a default time in seconds to retain idle VMs once they have completed one or more jobs.
-                If omitted, the default VM keep alive time  will be taken from the group settings.
-
+                Is a default time in seconds to retain idle VMs once they have completed one or more
+                jobs. If omitted, the default VM keep alive time  will be taken from the group settings.
+                
         vm_keyname:
             Format: String(64)
             Synopsis:
-                Is a default ssh keypair name for this cloud.
-                If omitted, the default keypair  name will be taken from the group settings.
-
+                Is a default ssh keypair name for this cloud. If omitted, the default keypair  name
+                will be taken from the group settings.
+                
         vm_network:
             Format: String(64)
             Synopsis:
-                Is a default network name for this cloud.
-                If omitted, the default network name will be taken from the group settings.
-
+                Is a default network name for this cloud. If omitted, the default network name will
+                be taken from the group settings.
+                
         vm_security_groups:
             Format: String(128)
             Synopsis:
-                Is a default list of security groups for this cloud.
-                If omitted, the default list of security groups will be taken from the group settings.
-
+                Is a default list of security groups for this cloud. If omitted, the default list
+                of security groups will be taken from the group settings.
+                
         cascading_vm_flavor:
             Format: String(64)
             Synopsis:
-                "'cascading' fields are a consolidation of and determined by the group and cloud settings 
-                and are the effective default for the cloud. The cloud setting overrides the group setting
-                which overrides no setting (or a NULL value).
-
-                This field displays the effective default flavor for the cloud."
-
+                '''cascading'' fields are a consolidation of and determined by the group and cloud
+                settings and are the effective default for the cloud. The cloud setting overrides
+                the group setting which overrides no setting (or a NULL value).
+                
+                This field displays the effective default flavor for the cloud.'
+                
         cascading_vm_image:
             Format: String(64)
             Synopsis:
-                REF=(views/view_clouds/Columns/cascading_vm_flavor/0)
-
-                This field displays the effective default (kernal) image name for the cloud.
-
+                '''cascading'' fields are a consolidation of and determined by the group and cloud
+                settings and are the effective default for the cloud. The cloud setting overrides
+                the group setting which overrides no setting (or a NULL value).
+                
+                This field displays the effective default (kernal) image name for the cloud.'
+                
         cascading_vm_keep_alive:
             Format: Integer
             Synopsis:
-                REF=(views/view_clouds/Columns/cascading_vm_flavor/0)
-
-                This field displays the effective default VM keep alive time for the cloud.
-
+                '''cascading'' fields are a consolidation of and determined by the group and cloud
+                settings and are the effective default for the cloud. The cloud setting overrides
+                the group setting which overrides no setting (or a NULL value).
+                
+                This field displays the effective default VM keep alive time for the cloud.'
+                
         cascading_vm_keyname:
             Format: String(64)
             Synopsis:
-                REF=(views/view_clouds/Columns/cascading_vm_flavor/0)
-
-                This field displays the effective default ssh keypair name for the cloud.
-
+                '''cascading'' fields are a consolidation of and determined by the group and cloud
+                settings and are the effective default for the cloud. The cloud setting overrides
+                the group setting which overrides no setting (or a NULL value).
+                
+                This field displays the effective default ssh keypair name for the cloud.'
+                
         cascading_vm_network:
             Format: String(64)
             Synopsis:
-                REF=(views/view_clouds/Columns/cascading_vm_flavor/0)
-
-                This field displays the effective default network name for the cloud.
-
+                '''cascading'' fields are a consolidation of and determined by the group and cloud
+                settings and are the effective default for the cloud. The cloud setting overrides
+                the group setting which overrides no setting (or a NULL value).
+                
+                This field displays the effective default network name for the cloud.'
+                
         cascading_vm_security_groups:
             Format: String(128)
             Synopsis:
-                REF=(views/view_clouds/Columns/cascading_vm_flavor/0)
-
-                This field displays the effective default list of security groups for the cloud.
-
+                '''cascading'' fields are a consolidation of and determined by the group and cloud
+                settings and are the effective default for the cloud. The cloud setting overrides
+                the group setting which overrides no setting (or a NULL value).
+                
+                This field displays the effective default list of security groups for the cloud.'
+                
         authurl:
             Format: String(128)
             Synopsis:
-                REF=(tables/csv2_clouds/Columns/authurl)
-
+                User specified URL of the cloud's authorization web interface. The cloud may provide
+                other service endpoints, but this is the primary interface to the cloud.
+                
         project_domain_name:
             Format: String(20)
             Synopsis:
-                REF=(tables/csv2_clouds/Columns/project_domain_name)
-
+                User specified project domain name. The default value is "default".
+                
         project_domain_id:
             Format: String(64)
             Synopsis:
-                REF=(tables/csv2_clouds/Columns/project_domain_id)
-
+                User specified project domain ID to be used during authentication. This value is not
+                normally used and should only be supplied if required by the cloud.
+                
         project:
             Format: String(128)
             Synopsis:
-                REF=(tables/csv2_clouds/Columns/project)
-
+                User specified project code to be used during authentication. A "project domain" may
+                also be requied (see below). Some clouds specifically require a "project domain
+                ID" which is different from the project; a dedicated column is provided for the
+                "project domain ID" (see below).
+                
         user_domain_name:
             Format: String(20)
             Synopsis:
-                REF=(tables/csv2_clouds/Columns/user_domain_name)
-
+                User specified user domain name. The default value is "default".
+                
         user_domain_id:
             Format: String(64)
             Synopsis:
-                REF=(tables/csv2_clouds/Columns/user_domain_id)
-
+                User specified user domain ID to be used during authentication. This value is not
+                normally used and should only be supplied if required by the cloud.
+                
         username:
             Format: String(20)
             Synopsis:
-                REF=(tables/csv2_clouds/Columns/username)
-
+                User specified ID to be used during authentication. A "user domain" may also be required
+                (see below). Some clouds specifically require a "user domain ID" which is different
+                from the username; a dedicated column is provided for the "user domain ID" (see
+                below).
+                
         password:
             Format: String
             Synopsis:
-                REF=(tables/csv2_clouds/Columns/password)
-
+                User specified secret key to be used during authentication.
+                
         cacertificate:
             Format: String
             Synopsis:
-                REF=(tables/csv2_clouds/Columns/cacertificate)
-
+                An optional, user supplied certificate authority (CA) certificate bundle used to authenticate
+                the cloud's SSL certificate. By default, the system CA bundle is used. However,
+                if the cloud is using certificates not supported by the system CA bundle, this parameter
+                is required and should point to a CA bundle file, readable by the cloudscheduler
+                user and supporting the cloud's certificate.
+                
         region:
             Format: String(20)
             Synopsis:
-                REF=(tables/csv2_clouds/Columns/region)
-
+                User specified region to be used during authentication. Many clouds are hosted in
+                multiple geographical locations or regions. Even when a cloud is hosted in a single
+                location it will have a region specification.
+                
         cloud_type:
             Format: String(64)
             Synopsis:
-                REF=(tables/csv2_clouds/Columns/cloud_type)
-
+                User specified cloud type specifies the API that will be used when communicating with
+                the cloud. Currently, "openstack" and "amazon" cloud types are supported.
+                
         ec2_owner_id:
             Format: String(32)
             Synopsis:
-                REF=(tables/csv2_clouds/Columns/ec2_owner_id)
-
+                For Amazon EC2 clouds, this is EC2 owner ID automatically retrieved from the cloud
+                and saved in the CSV2 cloud settings. It is used to identify owned versus shared
+                resouces on that EC2 cloud.
+                
         cores_ctl:
             Format: Integer
             Synopsis:
-                REF=(tables/csv2_clouds/Columns/cores_ctl)
-
+                User specified integer control indicating the maximum number of cores (cpus) that
+                may be used on the cloud. Once this number of cores is in use by VM instances, CSV2
+                will not start any more VMs on this cloud. This parameter allows the user to limit
+                their cores usage on the cloud, to less than the cloud defined cores quota. The
+                default is -1, indicating no limit or use up to the quota. For a discussion of "controls"
+                versus "quotas", see "cores_softmax" below.
+                
         cores_softmax:
             Format: Integer
             Synopsis:
-                REF=(tables/csv2_clouds/Columns/cores_softmax)
-
+                'User specified integer allowing the user to reduce the effective cores quota.
+                
+                Cloud quotas, unlike CSV2 controls (eg. cores_ctl, ram_ctl, etc.) cannot be exceeded.
+                Attempts to ask for resources beyond a quota result in API errors. Resources can
+                be used on a cloud by agents other than CSV2, for example, manually started VMs.
+                CSV2 denotes all VMs started by itself for the current group as "native" VMs. Whereas,
+                all other VMs are deemed "foreign" VMs (even those for another CSV2 group). When
+                determining which limit to use, CSV2 uses the least of the "control" or the "sofmax"
+                minus "foreign" or the "quota" minus "foreign". This process avoids API errors and
+                ensures quotas are never exceeded.'
+                
         cores_max:
             Format: Integer
             Synopsis:
-                REF=(tables/cloud_limits/0)
-
-                REF=(tables/cloud_limits/Columns/cores_max)
-
+                'For each cloud defined within a group, CSV2 process will attempt to retrieve configuration
+                data to inform scheduling decisions and users. These configuration items are set
+                by the cloud administrators and not by CSV2. In order to change these values, you
+                will need to confer with the target cloud support.
+                
+                Total number of cores available for the registered cloud tenant/project.'
+                
         cores_used:
             Format: Integer
             Synopsis:
-                REF=(views/view_cloud_status/Columns/cores_native)
-
+                Is the total number of cores being used by all the VMs for this group/cloud.
+                
         cores_foreign:
             Format: Integer
             Synopsis:
-                REF=(views/view_cloud_status/Columns/cores_foreign)
-
+                Is the total number of cores running on this cloud but which do not belong to this
+                group. Foreign cores can limit the number VMs a group can start.
+                
         cores_native:
             Format: Integer
             Synopsis:
-                REF=(views/view_cloud_status/Columns/cores_native)
-
+                Is the total number of cores being used by all the VMs for this group/cloud.
+                
         ram_ctl:
             Format: Integer
             Synopsis:
-                REF=(tables/csv2_clouds/Columns/ram_ctl)
-
+                User specified integer control indicating the maximum amount of RAM, in kilobytes,
+                that may be used on the cloud. Once this amount of RAM is in use by VM instances,
+                CSV2 will not start any more VMs on this cloud. This parameter allows the user to
+                limit their RAM usage on the cloud, to less than the cloud defined RAM quota. The
+                default is -1, indicating no limit or use up to the quota.
+                
         ram_max:
             Format: Integer
             Synopsis:
-                REF=(tables/cloud_limits/0)
-
-                REF=(tables/cloud_limits/Columns/ram_max)
-
+                'For each cloud defined within a group, CSV2 process will attempt to retrieve configuration
+                data to inform scheduling decisions and users. These configuration items are set
+                by the cloud administrators and not by CSV2. In order to change these values, you
+                will need to confer with the target cloud support.
+                
+                Total amount of ram available for the registered cloud tenant/project.'
+                
         ram_used:
             Format: Integer
             Synopsis:
-                REF=(views/view_cloud_status/Columns/ram_native)
-
+                Is the total size in kilobytes of RAM being used by all the VMs for this group/cloud.
+                
         ram_foreign:
             Format: Integer
             Synopsis:
-                REF=(views/view_cloud_status/Columns/ram_foreign)
-
+                Is the total size in kilobytes of RAM running on this cloud but which do not belong
+                to this group. Foreign RAM can limit the number VMs a group can start.
+                
         ram_native:
             Format: Integer
             Synopsis:
-                REF=(views/view_cloud_status/Columns/ram_native)
-
+                Is the total size in kilobytes of RAM being used by all the VMs for this group/cloud.
+                
         instances_max:
             Format: Integer
             Synopsis:
-                REF=(tables/cloud_limits/0)
-
-                REF=(tables/cloud_limits/Columns/instances_max)
-
+                'For each cloud defined within a group, CSV2 process will attempt to retrieve configuration
+                data to inform scheduling decisions and users. These configuration items are set
+                by the cloud administrators and not by CSV2. In order to change these values, you
+                will need to confer with the target cloud support.
+                
+                Max number of active instances as defined by the cloud.'
+                
         instances_used:
             Format: Integer
             Synopsis:
-                REF=(tables/cloud_limits/0)
-
-                REF=(tables/cloud_limits/Columns/instances_used)
-
+                'For each cloud defined within a group, CSV2 process will attempt to retrieve configuration
+                data to inform scheduling decisions and users. These configuration items are set
+                by the cloud administrators and not by CSV2. In order to change these values, you
+                will need to confer with the target cloud support.
+                
+                Total number of active instances in use by the registered tenant/project.'
+                
         floating_ips_max:
             Format: Integer
             Synopsis:
-                REF=(tables/cloud_limits/0)
-
-                REF=(tables/cloud_limits/Columns/floating_ips_max)
-
+                'For each cloud defined within a group, CSV2 process will attempt to retrieve configuration
+                data to inform scheduling decisions and users. These configuration items are set
+                by the cloud administrators and not by CSV2. In order to change these values, you
+                will need to confer with the target cloud support.
+                
+                Max number of available floating IPs as defined by the cloud'
+                
         floating_ips_used:
             Format: Integer
             Synopsis:
-                REF=(tables/cloud_limits/0)
-
-                REF=(tables/cloud_limits/Columns/floating_ips_used)
-
+                'For each cloud defined within a group, CSV2 process will attempt to retrieve configuration
+                data to inform scheduling decisions and users. These configuration items are set
+                by the cloud administrators and not by CSV2. In order to change these values, you
+                will need to confer with the target cloud support.
+                
+                Total number of floating IPs in use by the registered tenant/project.'
+                
         security_groups_max:
             Format: Integer
             Synopsis:
-                REF=(tables/cloud_limits/0)
-
-                REF=(tables/cloud_limits/Columns/security_groups_max)
-
+                'For each cloud defined within a group, CSV2 process will attempt to retrieve configuration
+                data to inform scheduling decisions and users. These configuration items are set
+                by the cloud administrators and not by CSV2. In order to change these values, you
+                will need to confer with the target cloud support.
+                
+                Max number of security groups available for the registered cloud tenant/project.'
+                
         security_groups_used:
             Format: Integer
             Synopsis:
-                REF=(tables/cloud_limits/0)
-
-                REF=(tables/cloud_limits/Columns/security_groups_used)
-
+                'For each cloud defined within a group, CSV2 process will attempt to retrieve configuration
+                data to inform scheduling decisions and users. These configuration items are set
+                by the cloud administrators and not by CSV2. In order to change these values, you
+                will need to confer with the target cloud support.
+                
+                Total number of security groups in use by the registered tenant/project.'
+                
         server_groups_max:
             Format: Integer
             Synopsis:
-                REF=(tables/cloud_limits/0)
-
-                REF=(tables/cloud_limits/Columns/server_groups_max)
-
+                'For each cloud defined within a group, CSV2 process will attempt to retrieve configuration
+                data to inform scheduling decisions and users. These configuration items are set
+                by the cloud administrators and not by CSV2. In order to change these values, you
+                will need to confer with the target cloud support.
+                
+                Max number of server groups available for the registered cloud tenant/project.'
+                
         server_groups_used:
             Format: Integer
             Synopsis:
-                REF=(tables/cloud_limits/0)
-
-                REF=(tables/cloud_limits/Columns/server_groups_used)
-
+                'For each cloud defined within a group, CSV2 process will attempt to retrieve configuration
+                data to inform scheduling decisions and users. These configuration items are set
+                by the cloud administrators and not by CSV2. In order to change these values, you
+                will need to confer with the target cloud support.
+                
+                Total number of server groups in use for the registered tenant/project.'
+                
         image_meta_max:
             Format: Integer
             Synopsis:
-                REF=(tables/cloud_limits/0)
-
-                REF=(tables/cloud_limits/Columns/image_meta_max)
-
+                'For each cloud defined within a group, CSV2 process will attempt to retrieve configuration
+                data to inform scheduling decisions and users. These configuration items are set
+                by the cloud administrators and not by CSV2. In order to change these values, you
+                will need to confer with the target cloud support.
+                
+                Max number of metadata entries that can be associated with a machine image as defined
+                by the cloud.'
+                
         keypairs_max:
             Format: Integer
             Synopsis:
-                REF=(tables/cloud_limits/0)
-
-                REF=(tables/cloud_limits/Columns/keypairs_max)
-
+                'For each cloud defined within a group, CSV2 process will attempt to retrieve configuration
+                data to inform scheduling decisions and users. These configuration items are set
+                by the cloud administrators and not by CSV2. In order to change these values, you
+                will need to confer with the target cloud support.
+                
+                Max number of keypairs allowed to be stored under the registered cloud tenant/project.'
+                
         personality_max:
             Format: Integer
             Synopsis:
-                REF=(tables/cloud_limits/0)
-
-                REF=(tables/cloud_limits/Columns/personality_max)
-
+                'For each cloud defined within a group, CSV2 process will attempt to retrieve configuration
+                data to inform scheduling decisions and users. These configuration items are set
+                by the cloud administrators and not by CSV2. In order to change these values, you
+                will need to confer with the target cloud support.
+                
+                Man number of personality files that can be injected into a server as defined by
+                the cloud.'
+                
         personality_size_max:
             Format: Integer
             Synopsis:
-                REF=(tables/cloud_limits/0)
-
-                REF=(tables/cloud_limits/Columns/personality_size_max)
-
+                'For each cloud defined within a group, CSV2 process will attempt to retrieve configuration
+                data to inform scheduling decisions and users. These configuration items are set
+                by the cloud administrators and not by CSV2. In order to change these values, you
+                will need to confer with the target cloud support.
+                
+                Max size of server personality files in bytes.'
+                
         security_group_rules_max:
             Format: Integer
             Synopsis:
-                REF=(tables/cloud_limits/0)
-
-                REF=(tables/cloud_limits/Columns/security_group_rules_max)
-
+                'For each cloud defined within a group, CSV2 process will attempt to retrieve configuration
+                data to inform scheduling decisions and users. These configuration items are set
+                by the cloud administrators and not by CSV2. In order to change these values, you
+                will need to confer with the target cloud support.
+                
+                Max number of security group rules allowed for a security group as defined by the
+                cloud.'
+                
         server_group_members_max:
             Format: Integer
             Synopsis:
-                REF=(tables/cloud_limits/0)
-
-                REF=(tables/cloud_limits/Columns/server_group_members_max)
-
+                'For each cloud defined within a group, CSV2 process will attempt to retrieve configuration
+                data to inform scheduling decisions and users. These configuration items are set
+                by the cloud administrators and not by CSV2. In order to change these values, you
+                will need to confer with the target cloud support.
+                
+                Max number of servers per server group as defined by the cloud.'
+                
         server_meta_max:
             Format: Integer
             Synopsis:
-                REF=(tables/cloud_limits/0)
-
-                REF=(tables/cloud_limits/Columns/server_meta_max)
-
+                'For each cloud defined within a group, CSV2 process will attempt to retrieve configuration
+                data to inform scheduling decisions and users. These configuration items are set
+                by the cloud administrators and not by CSV2. In order to change these values, you
+                will need to confer with the target cloud support.
+                
+                Max number of metadata entries that can be associated with a server as defined by
+                the cloud.'
+                
         cores_idle:
             Format: Integer
             Synopsis:
                 Is the number of unused cores on the group/cloud and is calculated as the least of
-                **cores_ctl** minus **cores_native** or
-                **cores_max** minus **cores_native** minus **cores_foreign**.
-
+                **cores_ctl** minus **cores_native** or **cores_max** minus **cores_native** minus
+                **cores_foreign**.
+                
         ram_idle:
             Format: Integer
             Synopsis:
-                Is the size in kilobytes of unused RAM on the group/cloud and is calculated as the least of
-                **ram_ctl** minus **ram_native** or
-                **ram_max** minus **ram_native** minus **ram_foreign**.
+                Is the size in kilobytes of unused RAM on the group/cloud and is calculated as the
+                least of **ram_ctl** minus **ram_native** or **ram_max** minus **ram_native** minus
+                **ram_foreign**.
+                
+        vm_boot_volume:
+            Format: String(64)
+            Synopsis:
 

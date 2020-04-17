@@ -44,6 +44,7 @@ def main(gvar):
             'password2': gvar['user_secret'],
             'cert_cn': '{} test user one'.format(ut_id(gvar, 'database')),
             'group_name.1': ut_id(gvar, 'dtg1')
+
         }
     )
 

@@ -1,0 +1,2 @@
+# run once a week
+0 0 * * Mon root /usr/local/sbin/copy_letsencrypt_to_users.sh

@@ -15,7 +15,7 @@ from . import glint_utils
 logger = get_task_logger(__name__)
 
 db_category_list = ["general", "glintPoller.py"]
-config = Config('/etc/cloudscheduler/cloudscheduler.yaml', db_category_list, pool_size=4, refreshable=True)
+config = Config('/etc/cloudscheduler/cloudscheduler.yaml', db_category_list, pool_size=4)
 
 # Indicate Celery to use the default Django settings module
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'cloudscheduler_web.settings')
@@ -37,7 +37,7 @@ app.config_from_object('django.conf:settings')
 @app.task(bind=True)
 def pull_request(self, tx_id):
     db_category_list = ["glintv2", "general", "glintPoller.py"]
-    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', db_category_list, pool_size=3, refreshable=True)
+    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', db_category_list, pool_size=3)
     PULL_REQ = config.db_map.classes.csv2_image_pull_requests
     IMG_CACHE = config.db_map.classes.csv2_image_cache
     CLOUD = config.db_map.classes.csv2_clouds
@@ -99,7 +99,7 @@ def pull_request(self, tx_id):
 @app.task(bind=True)
 def tx_request(self, tx_id):
     db_category_list = ["glintv2", "general", "glintPoller.py"]
-    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', db_category_list, pool_size=3, refreshable=True)
+    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', db_category_list, pool_size=3)
     IMG_TX = config.db_map.classes.csv2_image_transactions
     IMG_CACHE = config.db_map.classes.csv2_image_cache
     CLOUD = config.db_map.classes.csv2_clouds

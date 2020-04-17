@@ -1,0 +1,43 @@
+database:
+    db_user: "condor_poller"
+    db_password: "{{ database_user_passwords['condor_poller'] }}"
+    db_host: "{{ ansible_fqdn }}"
+    db_port: "{{ database_public_port }}"
+    db_name: "csv2"
+    db_table: "csv2_configuration"
+
+signals:
+    protocol: "amqp" 
+    host: "{{ ansible_fqdn }}"
+    port: "{{ amqp_public_port }}"
+    user: "condor_poller" 
+    password: "{{ amqp_user_passwords['condor_poller'] }}"
+    registry: "/var/local/cloudscheduler/signals"
+    events:
+        - "insert_csv2_clouds_amazon"
+        - "insert_csv2_clouds_openstack"
+        - "signal_tests" 
+        - "update_csv2_clouds_amazon"
+        - "update_csv2_clouds_openstack"
+        - "update_ec2_images"
+        - "update_ec2_instance_types"
+    queue: "signals"
+
+# The remote condor_poller uses the command "condor_config_val GSI_DAEMON_CERT" to determine
+# whether HTCondor GSI is enable. If it is enabled (indicated by "condor_config_val" returning
+# the path of the certificate), the poller will need to be able to read:
+# 
+# - The certificate file, and 
+# - The condor worker certificate and key files.
+# 
+# Having obtained the location of the server certificate, the file should be readable by
+# the "condor" user. The default location of the worker certificate files is specified below.
+# If you would like to place them in a different location update the variables below to point
+# to the preferred location and make sure that they are both readable by the cndor user. At
+# any time, but specifically if you modify this configuration, you may restart the condor
+# poller service (named "csv2-condor-poller") with either the "systemctl" or "service" commands.
+condor_poller:
+    condor_worker_cert: /var/lib/condor/.globus/condor_worker_cert.pem
+    condor_worker_key: /var/lib/condor/.globus/condor_worker_key.pem
+    log_file: /var/log/cloudscheduler/condor_poller.log
+    log_level: 20

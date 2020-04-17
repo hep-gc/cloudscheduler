@@ -67,6 +67,18 @@ Columns:
 
       Is the type of cloud.
 
+* **htcondor_fqdn** (String(128)):
+
+
+* **htcondor_container_hostname** (String(128)):
+
+
+* **htcondor_other_submitters** (String(128)):
+
+
+* **vm_boot_volume** (String(64)):
+
+
 * **spot_price** (Float):
 
       Is the maximum price to bid for resoces on the spot market.
@@ -178,6 +190,15 @@ Columns:
       Is the maximum number of VMs that may be started on this
       resource.
 
+* **cores_ctl** (Integer):
+
+
+* **cores_softmax** (Integer):
+
+
+* **cores_limit** (Integer):
+
+
 * **cores_max** (Integer):
 
       Is the maximum number cores that can currently be used on this
@@ -199,11 +220,17 @@ Columns:
       Is the size in gigabytes of disk already in use on this
       cloud by this group.
 
-* **ram_max** (Float):
+* **ram_ctl** (Integer):
+
+
+* **ram_max** (Integer):
 
       Is the maximum size in megabytes of RAM that can currently be
       used on this cloud and is calculated as the least of RAM
       control (slider) or the RAM quota minus foreign RAM.
+
+* **ram_limit** (Float):
+
 
 * **ram_used** (Integer):
 

@@ -211,6 +211,9 @@ Columns:
       bid for commercial resources. Currently, this parameter only applies to Amazon EC2
       clouds.
 
+* **vm_boot_volume** (String(64)):
+
+
 * **vm_flavor** (String(64)):
 
       An optional, user defined default flavor to be used when starting VMs
