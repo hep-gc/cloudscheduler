@@ -6,7 +6,8 @@
   - AMQP used for signalling:
     - Introduction of csv2-signal-agent service.
 
-  - All AMQP requests to be authenticated with user name and password. The guest account is locked. 
+  - All AMQP requests to be authenticated with user name and password. The guest account is locked.
+
 
   - TLS termination through HAProxy for all remote AMQP requests.
 
@@ -32,6 +33,7 @@
   - Cloud control via dedicated subprocesses for each cloud:
     - The scheduler (csmain) starts one subprocess for each group/cloud to manage VM termination.
     - The condor poller starts one subprocess for each group/cloud to manage condor machine retirement.  
+
  
   - OpenStack credentials now verified prior to adding or updating any cloud.
   
@@ -49,5 +51,4 @@
     - Ignore invalid default_group user setting (picks first valid group). 
     - Remove group related data from tables (aliases, default groups, etc) when a group is deleted.
     - Cleanup local inventories to remove obsolete items at the end of each polling cycle.
-
 

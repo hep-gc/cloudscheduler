@@ -1,0 +1,4 @@
+.TP
+\fB\-sgs \fIoption\fR, \fB\-\-flag-global-status \fIoption\fR
+Specify if the global view is used by the \fBcloudscheduler cloud status\fR action and on the status page.
+\fIoption\fR can be any of yes, no, true, false, 1, or 0.

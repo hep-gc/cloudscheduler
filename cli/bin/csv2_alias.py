@@ -22,7 +22,6 @@ def add(gvar):
     mandatory = ['-an', '-cn']
     required = []
     optional = ['-g', '-H', '-h', '-s', '-v', '-x509', '-xA']
-    optional = []
 
     if gvar['retrieve_options']:
         return mandatory + required + optional

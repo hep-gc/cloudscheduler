@@ -1,0 +1,92 @@
+.so ../man/_header.so
+\fBcloudscheduler my settings\fR \- change or display the settings of the current user on cloudscheduler version 2 (csv2) servers
+.\" --------------------------------------------------------------------
+.SH SYNOPSIS
+.\" --------------------------------------------------------------------
+.SY cloudscheduler
+.B my
+.B settings
+.RI "[" "options" " ...]"
+.YS
+.\" --------------------------------------------------------------------
+.SH DESCRIPTION
+.\" --------------------------------------------------------------------
+.so ../man/descriptions/_my_settings.so
+.\" --------------------------------------------------------------------
+.SH OPTIONS
+.\" --------------------------------------------------------------------
+.SS Optional
+.\" --------------------------------------------------------------------
+.so ../man/_options.so
+.so ../man/parameters/_default_group.so
+.so ../man/parameters/_user_password.so
+.so ../man/parameters/_flag_show_foreign_global_vms.so
+.so ../man/parameters/_flag_jobs_by_target_alias.so
+.so ../man/parameters/_status_refresh_interval.so
+.so ../man/parameters/_flag_show_slot_detail.so
+.so ../man/parameters/_flag_show_slot_flavors.so
+.\" --------------------------------------------------------------------
+.SS Table
+.\" --------------------------------------------------------------------
+.so ../man/_table_options.so
+.\" --------------------------------------------------------------------
+.SS Global
+.\" --------------------------------------------------------------------
+.so ../man/_global_options.so
+.\" --------------------------------------------------------------------
+.SH EXAMPLES
+.\" --------------------------------------------------------------------
+.TP
+1.
+List the current user's settings (excluding their password):
+.EX
+$ cloudscheduler my settings
+Server: default, Active User: example-user, Active Group: example-group, User's Groups: ['example-group']
+
+Settings: (1/2)
++---------------+------------------+---------------+-------------+---------------+----------------------+
++               |                  |               |                       Status                       +
++   Username    | Cert Common Name | Default Group | Foreign VMs   Global Switch   Jobs by Target Alias +
++---------------+------------------+---------------+-------------+---------------+----------------------+
+| example-user  | example-cert     | None          | 0           | 0             | 0                    |
++---------------+------------------+---------------+-------------+---------------+----------------------+
+
+Settings: (2/2)
++---------------+------------------+-------------+--------------+
++               |                    Status                     +
++   Username    | Refresh Interval   Slot Detail   Slot Flavors +
++---------------+------------------+-------------+--------------+
+| example-user  | 30               | 1           | 1            |
++---------------+------------------+-------------+--------------+
+Rows: 1
+.EE
+.TP
+2.
+Change the current user's default group:
+.EX
+$ cloudscheduler my settings -gn new-group
+user "example-user" successfully updated.
+Server: default, Active User: example-user, Active Group: example-group, User's Groups: ['example-group', 'new-group']
+
+Settings: (1/2)
++---------------+------------------+---------------+-------------+---------------+----------------------+
++               |                  |               |                       Status                       +
++   Username    | Cert Common Name | Default Group | Foreign VMs   Global Switch   Jobs by Target Alias +
++---------------+------------------+---------------+-------------+---------------+----------------------+
+| example-user  | example-cert     | new-group     | 0           | 0             | 0                    |
++---------------+------------------+---------------+-------------+---------------+----------------------+
+
+Settings: (2/2)
++---------------+------------------+-------------+--------------+
++               |                    Status                     +
++   Username    | Refresh Interval   Slot Detail   Slot Flavors +
++---------------+------------------+-------------+--------------+
+| example-user  | 30               | 1           | 1            |
++---------------+------------------+-------------+--------------+
+Rows: 1
+.EE
+.\" --------------------------------------------------------------------
+.SH SEE ALSO
+.\" --------------------------------------------------------------------
+.BR csv2 (1)
+.BR csv2_my (1)

@@ -1,0 +1,4 @@
+.TP
+\fB\-ssd \fIoption\fR, \fB\-\-show-slot-detail \fIoption\fR
+Specify if slot detail is shown by the \fBcloudscheduler cloud status\fR action and on the status page.
+\fIoption\fR can be any of yes, no, true, false, 1, or 0.

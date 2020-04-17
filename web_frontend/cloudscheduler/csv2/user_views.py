@@ -48,6 +48,7 @@ USER_GROUP_KEYS = {
         },
     'not_empty': [
         'username',
+        'group_name'
         ],
     }
 

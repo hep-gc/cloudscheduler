@@ -1,0 +1,2 @@
+The \fBmy\fR object changes the settings of the current user on csv2 servers.
+A user can change or display their default group and controls over what the \fBcloudscheduler cloud \fIstatus\fB\fR action and the web interface show, and can change their password.
