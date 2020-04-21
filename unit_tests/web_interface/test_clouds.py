@@ -159,24 +159,23 @@ class TestClouds(unittest.TestCase):
             '-invalid-unit-test': 'cloud metadata-add value specified for "metadata_name" must be all lowercase letters, digits, dashes, underscores, periods, and colons, and cannot contain more than one consecutive dash or start or end with a dash.',
             'invalid-unit-test!': 'cloud metadata-add value specified for "metadata_name" must be all lowercase letters, digits, dashes, underscores, periods, and colons, and cannot contain more than one consecutive dash or start or end with a dash.',
             'metadata-name-that-is-too-long-for-the-database_______________________': 'Data too long for column \'metadata_name\' at row 1',
-            self.metadata_to_list: 'Duplicate entry \'{}-{}\' for key \'PRIMARY\''.format(self.active_group, self.metadata_to_list)
+            self.metadata_to_list: 'Duplicate entry \'{}-{}-{}\' for key \'PRIMARY\''.format(self.active_group, self.cloud_to_update, self.metadata_to_list)
         }
         valid_combination = {
             'enabled': True,
             'priority': 3,
             'metadata': 'valid metadata content'
         }
-        self.select_metadata()
         form_xpath = '//form[@name="metadata-form"]'
+        iframe = wc.assert_one(self.driver, self.fail, (By.XPATH, './/iframe[@id="editor-{}-add"]'.format(self.cloud_to_update)))
+        self.select_metadata()
         try:
-            iframe = wc.assert_one(self.driver, self.fail, (By.XPATH, './/iframe[@id="editor-{}-add"]'.format(self.cloud_to_update)))
             # A modified version of submit_invalid_combinations, because we need to switch out of and back into the iframe after every invalid submission.
             for value, message in invalid_metadata_name_values.items():
                 # Mandatory parameters are listed first so that they are overwriten as necessary.
                 wc.submit_form(self.driver, self.fail, form_xpath, {**mandatory_parameters, 'metadata_name': value}, max_wait=self.gvar['max_wait'], expected_response=message)
-                self.driver.switch_to.default_content()
-                self.driver.switch_to.frame(iframe)
                 self.assertIn(message, wc.assert_one(self.driver, self.fail, (By.ID, 'message')).text)
+                self.driver.switch_to.default_content()
                 self.select_metadata()
             # Submit a name that ends with '.yaml' but content that is invalid as YAML.
             invalid_yaml_parameters = {**mandatory_parameters, 'metadata_name': '{}.yaml'.format(self.metadata_to_add), 'metadata': 'foo: bar: this is invalid yaml'}
