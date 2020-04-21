@@ -1827,7 +1827,7 @@ def update(request):
             return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud update must specify at least one field to update.' % lno(MODID))
 
         config.db_close()
-        return list(request, active_user=active_user, response_code=0, message='cloud "%s::%s" successfully updated.' % (fields['group_name'], fields['cloud_name']))
+        return cloud_list(request, active_user=active_user, response_code=0, message='cloud "%s::%s" successfully updated.' % (fields['group_name'], fields['cloud_name']))
                     
     ### Bad request.
     else:

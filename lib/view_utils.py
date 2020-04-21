@@ -1563,7 +1563,7 @@ def verify_cloud_credentials(config, cloud):
         return rc, msg, None
 
     else:
-       return 1, 'unsuppoerted cloud_type', None
+       return 1, 'unsupported cloud_type', None
 
 #-------------------------------------------------------------------------------
 
