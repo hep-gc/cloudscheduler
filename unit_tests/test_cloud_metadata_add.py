@@ -35,7 +35,7 @@ def main(gvar):
         }, 'mandatory': True},
         # 16 Omit metadata_name.
         # 17 Give two metadata_names.
-        'metadata_name': {'valid': ut_id(gvar, 'cty1'), 'test_cases': {
+        'metadata_name': {'valid': ut_id(gvar, 'cty4'), 'test_cases': {
             # 18
             '': 'cloud metadata-add value specified for "metadata_name" must not be the empty string.',
             # 19
@@ -92,11 +92,11 @@ def main(gvar):
 
     # 29 Add metadata properly.
     execute_csv2_request(
-        gvar, 0, None, 'cloud metadata file "{}::{}::{}" successfully added.'.format(ut_id(gvar, 'ctg1'), ut_id(gvar, 'ctc2'), ut_id(gvar, 'cty1')),
+        gvar, 0, None, 'cloud metadata file "{}::{}::{}" successfully added.'.format(ut_id(gvar, 'ctg1'), ut_id(gvar, 'ctc2'), ut_id(gvar, 'cty4')),
         '/cloud/metadata-add/', group=(ut_id(gvar, 'ctg1')),
         form_data={
             'cloud_name': ut_id(gvar, 'ctc2'),
-            'metadata_name': ut_id(gvar, 'cty1'),
+            'metadata_name': ut_id(gvar, 'cty4'),
             'metadata': 'unit-test: unit-test'
         },
         server_user=ut_id(gvar, 'ctu1')
@@ -104,11 +104,11 @@ def main(gvar):
 
     # 30 Attempt to add the metadata added in 2 again.
     execute_csv2_request(
-        gvar, 1, 'CV', 'Duplicate entry \'{}-{}-{}\' for key \'PRIMARY\''.format(ut_id(gvar, 'ctg1'), ut_id(gvar, 'ctc2'), ut_id(gvar, 'cty1')),
+        gvar, 1, 'CV', 'Duplicate entry \'{}-{}-{}\' for key \'PRIMARY\''.format(ut_id(gvar, 'ctg1'), ut_id(gvar, 'ctc2'), ut_id(gvar, 'cty4')),
         '/cloud/metadata-add/', group=(ut_id(gvar, 'ctg1')),
         form_data={
             'cloud_name': ut_id(gvar, 'ctc2'),
-            'metadata_name': ut_id(gvar, 'cty1'),
+            'metadata_name': ut_id(gvar, 'cty4'),
             'metadata': 'unit-test: unit-test'
         },
         server_user=ut_id(gvar, 'ctu1')
@@ -116,11 +116,11 @@ def main(gvar):
 
     # 31 Add YAML metadata properly.
     execute_csv2_request(
-        gvar, 0, None, 'cloud metadata file "{}::{}::{}" successfully added.'.format(ut_id(gvar, 'ctg1'), ut_id(gvar, 'ctc2'), ut_id(gvar, 'cty1.yaml')),
+        gvar, 0, None, 'cloud metadata file "{}::{}::{}" successfully added.'.format(ut_id(gvar, 'ctg1'), ut_id(gvar, 'ctc2'), ut_id(gvar, 'cty4.yaml')),
         '/cloud/metadata-add/', group=(ut_id(gvar, 'ctg1')),
         form_data={
             'cloud_name': ut_id(gvar, 'ctc2'),
-            'metadata_name': ut_id(gvar, 'cty1.yaml'),
+            'metadata_name': ut_id(gvar, 'cty4.yaml'),
             'metadata': '- example: yes'
         },
         server_user=ut_id(gvar, 'ctu1')

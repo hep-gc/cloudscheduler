@@ -46,7 +46,7 @@ def main(gvar):
         'region': {'valid': gvar['cloud_credentials']['region'], 'test_cases': {'': 'parameter "region" contains an empty string which is specifically disallowed.'}},
         # 24 Give two cloud_types.
         # 25
-        'cloud_type': {'valid': 'local', 'test_cases': {'invalid-unit-test': 'value specified for "cloud_type" must be one of the following options: [\'amazon\', \'azure\', \'google\', \'local\', \'opennebula\', \'openstack\'].'}},
+        'cloud_type': {'valid': 'local', 'test_cases': {'invalid-unit-test': 'cloud update value specified for "cloud_type" must be one of the following options: [\'amazon\', \'local\', \'openstack\'].'}},
         # 26 Give two enableds.
         # 27
         'enabled': {'valid': 0, 'test_cases': {'invalid-unit-test': 'boolean value specified for "enabled" must be one of the following: true, false, yes, no, 1, or 0.'}},
@@ -106,15 +106,9 @@ def main(gvar):
         values={
             'authurl': gvar['cloud_credentials']['authurl'],
             'cacertificate': None,
-            'cascading_vm_flavor': None,
-            'cascading_vm_image': None,
-            'cascading_vm_keep_alive': 0,
-            'cascading_vm_keyname': None,
-            'cascading_vm_network': None,
-            'cascading_vm_security_groups': None,
-            'cloud_priority': 0,
+            'cloud_priority': 41,
             'cloud_type': 'openstack',
-            'cores_ctl': -1,
+            'cores_ctl': 3,
             'cores_foreign': '0',
             'cores_native': '0',
             'cores_softmax': -1,
@@ -125,20 +119,15 @@ def main(gvar):
             'project': gvar['cloud_credentials']['project'],
             'project_domain_id': '',
             'project_domain_name': 'Default',
-            'ram_ctl': -1,
+            'ram_ctl': 1,
             'ram_foreign': '0',
             'ram_native': '0',
             'region': gvar['cloud_credentials']['region'],
-            'spot_price': -1.0,
+            'spot_price': 5.9,
             'user_domain_id': '',
             'user_domain_name': 'Default',
             'username': gvar['cloud_credentials']['username'],
-            'vm_flavor': '',
-            'vm_image': '',
-            'vm_keep_alive': 0,
-            'vm_keyname': None,
-            'vm_network': '',
-            'vm_security_groups': None
+            'vm_keep_alive': 26
             },
         server_user=ut_id(gvar, 'ctu1')
     )
@@ -148,14 +137,14 @@ def main(gvar):
         gvar, 0, None, 'cloud "{}::{}" successfully updated.'.format(ut_id(gvar, 'ctg1'), ut_id(gvar, 'ctc3')),
         '/cloud/update/', group=ut_id(gvar, 'ctg1'), form_data={
             'cloud_name': ut_id(gvar, 'ctc3'),
-            'ram_ctl': 5,
-            'cores_ctl': 5,
+            'cores_ctl': 1,
+            'ram_ctl': 6,
             'vm_flavor': '',
             'vm_image': '',
-            'vm_keep_alive': 10,
+            'vm_keep_alive': 18,
             'vm_keyname': '',
             'vm_network': '',
-            'spot_price': 1,
+            'spot_price': 0,
             'metadata_name': ut_id(gvar, 'cty1'),
             'metadata_option': 'add'
             },
@@ -167,14 +156,14 @@ def main(gvar):
         gvar, 0, None, None,
         '/cloud/list/', group=ut_id(gvar, 'ctg1'), expected_list='cloud_list', list_filter={'group_name': ut_id(gvar, 'ctg1'), 'cloud_name': ut_id(gvar, 'ctc3')},
         values={
-            'ram_ctl': 5,
-            'cores_ctl': 5,
-            'vm_keep_alive': 10,
+            'cores_ctl': 1,
+            'ram_ctl': 6,
             'vm_flavor': '',
             'vm_image': '',
+            'vm_keep_alive': 18,
             'vm_keyname': '',
             'vm_network': '',
-            'spot_price': 1,
+            'spot_price': 0.0,
             'group_exclusions': ut_id(gvar, 'cty1')
             },
         server_user=ut_id(gvar, 'ctu1')

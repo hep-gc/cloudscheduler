@@ -39,7 +39,7 @@ def main(gvar):
             'username': ut_id(gvar, 'ctu1'),
             'password1': gvar['user_secret'],
             'password2': gvar['user_secret'],
-            'cert_cn': '{} test user three'.format(ut_id(gvar, 'cloud')),
+            'cert_cn': '{} test user 1'.format(ut_id(gvar, 'cloud')),
             'group_name.1': ut_id(gvar, 'ctg1')
         }
     )
@@ -51,7 +51,7 @@ def main(gvar):
             'username': ut_id(gvar, 'ctu2'),
             'password1': gvar['user_secret'],
             'password2': gvar['user_secret'],
-            'cert_cn': '{} test user one'.format(ut_id(gvar, 'cloud'))
+            'cert_cn': '{} test user 2'.format(ut_id(gvar, 'cloud'))
         }
     )
     
@@ -73,7 +73,7 @@ def main(gvar):
         '/cloud/add/', group=ut_id(gvar, 'ctg1'), form_data={
             'cloud_name': ut_id(gvar, 'ctc2'),
             'cloud_type': 'openstack',
-            'priority': 0,
+            'priority': 3,
             'enabled': 1,
             **gvar['cloud_credentials']
         },
@@ -87,6 +87,11 @@ def main(gvar):
             'cloud_name': ut_id(gvar, 'ctc3'),
             'cloud_type': 'openstack',
             'enabled': 1,
+            'cores_ctl': 3,
+            'ram_ctl': 1,
+            'priority': 41,
+            'spot_price': 5.9,
+            'vm_keep_alive': 26,
             **gvar['cloud_credentials']
         },
         server_user=ut_id(gvar, 'ctu1')
