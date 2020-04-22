@@ -119,8 +119,8 @@ class TestClouds(unittest.TestCase):
         self.select_cloud_tab(self.cloud_to_update, 0)
         # Look for forms with name equal to cloud_to_update within elements with id equal to cloud_to_update which are themselves in elements of class 'menu'.
         form_xpath = '//*[@class="menu"]//*[@id="{0}"]//form[@name="{0}"]'.format(self.cloud_to_update)
-        wc.submit_invalid_combinations(self.driver, self.fail, form_xpath, self.cloud_update_invalid_combinations, max_wait=self.max_wait)
-        wc.submit_valid_combinations(self.driver, self.fail, form_xpath, self.cloud_update_valid_combinations, max_wait=self.max_wait, expected_response='successfully updated', retains_values=True)
+        wc.submit_invalid_combinations(self.driver, self.fail, form_xpath, self.cloud_update_invalid_combinations, self.max_wait)
+        wc.submit_valid_combinations(self.driver, self.fail, form_xpath, self.cloud_update_valid_combinations, self.max_wait, expected_response='successfully updated', retains_values=True)
         self.assert_cloud_types(form_xpath)
 
     @unittest.skip
@@ -167,25 +167,32 @@ class TestClouds(unittest.TestCase):
             'metadata': 'valid metadata content'
         }
         form_xpath = '//form[@name="metadata-form"]'
-        iframe = wc.assert_one(self.driver, self.fail, (By.XPATH, './/iframe[@id="editor-{}-add"]'.format(self.cloud_to_update)))
-        self.select_metadata()
+        iframe_xpath = './/iframe[@id="editor-{}-add"]'.format(self.cloud_to_update)
+        def _submit_metadata_add_form(data, expected_response):
+            form = self.select_metadata()
+            wc.submit_form(self.driver, self.fail, form_xpath, data, self.max_wait)
+            # Jumping out of the iframe and back in before checking the response is necessary to avoid Selenium complaining that the driver is 'dead'.
+            wait.WebDriverWait(self.driver, self.max_wait).until(ec.staleness_of(form))
+            self.driver.switch_to.default_content()
+            self.driver.get('{}/cloud/list/'.format(self.gvar['address']))
+            self.select_metadata()
+            wait.WebDriverWait(self.driver, self.max_wait).until(ec.frame_to_be_available_and_switch_to_it((By.XPATH, iframe_xpath)))
+            self.assertIn(expected_response, wc.assert_one(self.driver, self.fail, (By.ID, 'message')).text)
+            self.driver.switch_to.default_content()
+            
         try:
             # A modified version of submit_invalid_combinations, because we need to switch out of and back into the iframe after every invalid submission.
-            for value, message in invalid_metadata_name_values.items():
+            for value, expected_response in invalid_metadata_name_values.items():
                 # Mandatory parameters are listed first so that they are overwriten as necessary.
-                wc.submit_form(self.driver, self.fail, form_xpath, {**mandatory_parameters, 'metadata_name': value}, max_wait=self.gvar['max_wait'], expected_response=message)
-                self.assertIn(message, wc.assert_one(self.driver, self.fail, (By.ID, 'message')).text)
-                self.driver.switch_to.default_content()
-                self.select_metadata()
+                _submit_metadata_add_form({**mandatory_parameters, 'metadata_name': value}, expected_response)
             # Submit a name that ends with '.yaml' but content that is invalid as YAML.
             invalid_yaml_parameters = {**mandatory_parameters, 'metadata_name': '{}.yaml'.format(self.metadata_to_add), 'metadata': 'foo: bar: this is invalid yaml'}
-            wc.submit_form(self.driver, self.fail, form_xpath, invalid_yaml_parameters, self.gvar['max_wait'], expected_response='cloud metadata-add yaml value specified for "metadata (metadata_name)" is invalid - scanner error')
-            self.driver.switch_to.default_content()
+            _submit_metadata_add_form(invalid_yaml_parameters, 'cloud metadata-add yaml value specified for "metadata (metadata_name)" is invalid - scanner error')
             self.select_metadata()
             # Submit valid parameters.
-            wc.submit_form(self.driver, self.fail, form_xpath, {**mandatory_parameters, **valid_combination}, self.gvar['max_wait'])
+            wc.submit_form(self.driver, self.fail, form_xpath, {**mandatory_parameters, **valid_combination}, self.max_wait)
             self.driver.switch_to.default_content()
-            # We cannot assert an expected_response through submit_form() because the driver is set to the iframe that that point (and the message appears outside it).
+            # We cannot assert an expected_response through submit_form() because the driver is set to the iframe at that point (and the message appears outside it).
             footer = wc.assert_one(self.driver, self.fail, (By.ID, 'message'))
             self.assertIn('cloud metadata file "grobertson-wig1::grobertson-wic3::foo.yaml" successfully added.', footer.text)
             form = self.select_metadata()
@@ -204,7 +211,7 @@ class TestClouds(unittest.TestCase):
             self.assertTrue(ec.invisibility_of_element(delete_dialog))
             delete_button.click()
             wc.assert_one(delete_dialog, self.fail, (By.NAME, '{}-{}-delete'.format(self.cloud_to_update, self.metadata_to_delete))).submit()
-            wait.WebDriverWait(self.driver, self.gvar['max_wait']).until(ec.staleness_of(delete_button))
+            wait.WebDriverWait(self.driver, self.max_wait).until(ec.staleness_of(delete_button))
         finally:
             self.driver.switch_to.default_content()
 
@@ -223,10 +230,10 @@ class TestClouds(unittest.TestCase):
         form_xpath = '//form[@name="metadata-form"]'
         self.select_metadata('{}.yaml'.format(self.metadata_to_update))
         try:
-            wc.submit_form(self.driver, self.fail, form_xpath, {'metadata': 'foo: bar: this is invalid yaml'}, self.gvar['max_wait'], expected_response='TODO')
+            wc.submit_form(self.driver, self.fail, form_xpath, {'metadata': 'foo: bar: this is invalid yaml'}, self.max_wait, expected_response='TODO')
             self.driver.switch_to.default_content()
             self.select_metadata(self.metadata_to_update)
-            wc.submit_form(self.driver, self.fail, form_xpath, valid_combination, self.gvar['max_wait'], expected_message='cloud metadata file "{}::{}::{}" successfully updated.'.format(self.active_group, self.cloud_to_update, self.metadata_to_update), retains_values=True)
+            wc.submit_form(self.driver, self.fail, form_xpath, valid_combination, self.max_wait, expected_message='cloud metadata file "{}::{}::{}" successfully updated.'.format(self.active_group, self.cloud_to_update, self.metadata_to_update), retains_values=True)
             self.driver.switch_to.default_content()
             form = self.select_metadata(self.metadata_to_update)
             self.assert_metadata_mime_types(form)
@@ -268,8 +275,8 @@ class TestClouds(unittest.TestCase):
             iframe = wc.assert_one(metadata_listing, self.fail, (By.XPATH, './/iframe[@id="editor-{}-add"]'.format(self.cloud_to_update)))
         self.driver.switch_to.frame(iframe)
         try:
-            return wc.assert_one(self.driver, self.fail, (By.TAG_NAME, 'form'), {'name': 'metadata-form'})
-        except AssertionError:
+            return wait.WebDriverWait(self.driver, self.max_wait).until(ec.presence_of_element_located((By.XPATH, '//form[@name="metadata-form"]')))
+        except TimeoutException:
             self.driver.switch_to.default_content()
             raise
 

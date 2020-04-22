@@ -15,10 +15,12 @@ def assert_one(parent, error_reporter, identifier, attributes=None, missing_mess
     if not attributes:
         attributes = {}
     default_message = 'Expected 1 element with identifier {} and attributes {}, but found {}'
-    matching_elems = set()
 
     candidates = parent.find_elements(*identifier)
-    if candidates:
+    if not candidates and attributes:
+        error_reporter('Did not find any elements matching the identifier {} (before considering any attributes).'.format(identifier))
+    else:
+        matching_elems = set()
         for elem in candidates:
             for name, value in attributes.items():
                 # Some attribute names, most of which are constants from selenium.webdriver.common.by.By, are handled in special ways.
@@ -51,9 +53,6 @@ def assert_one(parent, error_reporter, identifier, attributes=None, missing_mess
         else:
             error_reporter(multiple_message if multiple_message else default_message.format(identifier, attributes, len(matching_elems)))
 
-    # not candidates
-    else:
-        error_reporter('Did not find any elements matching the identifier {} (before considering any attributes).'.format(identifier))
 
 def submit_valid_combinations(driver, error_reporter, form_xpath, valid_combinations, mandatory_parameters=None, max_wait=DEFAULT_MAX_WAIT, expected_response=None, click_before_filling=None, retains_values=False):
     '''
@@ -149,28 +148,26 @@ def submit_form(driver, error_reporter, form_xpath, data, max_wait=DEFAULT_MAX_W
             error_reporter('Input for \'{}\' is missing.'.format(parameter))
 
     form.submit()
+    WebDriverWait(driver, max_wait).until(ec.staleness_of(form))
 
-    if expected_response or retains_values:
-        WebDriverWait(driver, max_wait).until(ec.staleness_of(form))
+    if expected_response:
+        actual_response = assert_one(driver, error_reporter, (By.ID, 'message')).text
+        if expected_response not in actual_response:
+            error_reporter('Expected a response containing \'{}\', but received \'{}\'.'.format(expected_response, actual_response))
 
-        if expected_response:
-            actual_response = assert_one(driver, error_reporter, (By.ID, 'message')).text
-            if expected_response not in actual_response:
-                error_reporter('Expected a response containing \'{}\', but received \'{}\'.'.format(expected_response, actual_response))
-
-        if retains_values:
-            new_data = get_data_from_form(driver, error_reporter, form_xpath)
-            # Iterating over the old values allows us to ignore values that were in the form but never specified in data.
-            for parameter, old_value in data.items():
-                # Allow values in parameters to be given as ints or floats but come back from the server as strs.
-                try:
-                    new_data[parameter] = float(new_data[parameter])
-                except KeyError:
-                    error_reporter('Expected the parameter \'{}\' to be retained, but the entry for it was missing.'.format(parameter))
-                except ValueError:
-                    pass
-                if new_data[parameter] != old_value:
-                    error_reporter('Expected {} to be retained for the parameter \'{}\', but found {}.'.format(old_value, parameter, new_data[parameter]))
+    if retains_values:
+        new_data = get_data_from_form(driver, error_reporter, form_xpath)
+        # Iterating over the old values allows us to ignore values that were in the form but never specified in data.
+        for parameter, old_value in data.items():
+            # Allow values in parameters to be given as ints or floats but come back from the server as strs.
+            try:
+                new_data[parameter] = float(new_data[parameter])
+            except KeyError:
+                error_reporter('Expected the parameter \'{}\' to be retained, but the entry for it was missing.'.format(parameter))
+            except ValueError:
+                pass
+            if new_data[parameter] != old_value:
+                error_reporter('Expected {} to be retained for the parameter \'{}\', but found {}.'.format(old_value, parameter, new_data[parameter]))
 
 def get_data_from_form(driver, error_reporter, form_xpath):
     '''
