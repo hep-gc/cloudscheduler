@@ -1,12 +1,12 @@
 from selenium import webdriver
 from selenium.common.exceptions import NoSuchElementException, StaleElementReferenceException, TimeoutException
 from selenium.webdriver.common.by import By
-from selenium.webdriver.support import expected_conditions as ec, wait
+from selenium.webdriver.support import expected_conditions as ec
 import unittest
 import web_common as wc
 
 EXPECTED_CLOUD_TABS = ['Settings', 'Metadata', 'Exclusions']
-EXPECTED_CLOUD_TYPES = {'amazon', 'azure', 'google', 'local', 'opennebula', 'openstack'}
+EXPECTED_CLOUD_TYPES = {'amazon', 'local', 'openstack'}
 EXPECTED_AMAZON_REGIONS = {'ap-east-1', 'ap-northeast-1', 'ap-northeast-2', 'ap-northeast-3', 'ap-south-1', 'ap-southeast-1', 'ap-southeast-2', 'ca-central-1', 'cn-north-1', 'cn-northwest-1', 'eu-central-1', 'eu-north-1', 'eu-west-1', 'eu-west-2', 'eu-west-3', 'sa-east-1', 'us-east-1', 'us-east-2', 'us-gov-east-1', 'us-gov-west-1', 'us-west-1', 'us-west-2'}
 # When Amazon is the cloud type and the 'Image filter' link is clicked, a popup is expected with a form containing these (input_label, input_name) pairs.
 EXPECTED_IMAGE_FILTER_INPUTS = {('Operating Systems', 'operating_systems'), ('Architectures', 'architectures'), ('Owner Alias', 'owner_aliases'), ('Like', 'like'), ('Not Like', 'not_like'), ('Owner IDs', 'owner_ids')}
@@ -29,9 +29,10 @@ class TestClouds(unittest.TestCase):
         cls.metadata_to_list = '{}-wicm1'.format(cls.gvar['user'])
         cls.metadata_to_delete = '{}-wicm2'.format(cls.gvar['user'])
         cls.metadata_to_update = '{}-wicm3'.format(cls.gvar['user'])
-        cls.metadata_to_add = '{}-wicm4'.format(cls.gvar['user'])
+        cls.metadata_to_update_yaml = '{}-wicm4.yaml'.format(cls.gvar['user'])
+        cls.metadata_to_add = '{}-wicm5'.format(cls.gvar['user'])
         # It is important that cloud_type comes before cloud_credentials, because it can change these fields.
-        cls.cloud_add_mandatory_parameters = {'cloud_name': cls.cloud_to_add, 'cloud_type': 'openstack', **cls.gvar['cloud_credentials']}
+        cls.cloud_add_mandatory_parameters = {'cloud_name': cls.cloud_to_add, 'cloud_type': 'openstack', **cls.gvar['cloud_credentials'], 'project_domain_name': 'Default', 'user_domain_name': 'Default'}
         cls.cloud_add_invalid_combinations = {
             'cloud_name': {
                 '': 'cloud add value specified for "cloud_name" must not be the empty string.',
@@ -76,11 +77,18 @@ class TestClouds(unittest.TestCase):
             # ram_ctl and cores_ctl are <input>s with type='number', meaning the browser prevents the submission of the form unless they are integers.
             # AFAIK it is impossible to test the details of the browser's response (using Selenium), because it shows a message that is not part of the DOM.
         }
+        cls.cloud_update_valid_combinations = [{
+            'priority': 3,
+            'vm_keep_alive': 14,
+            'spot_price': 1.5,
+            'cores_softmax': 26,
+            'cores_ctl': 5,
+            'ram_ctl': 3
+        }]
 
     def test_nav(self):
         wc.assert_nav(self.driver, self.fail, self.gvar['address'])
     
-    @unittest.skip
     def test_cloud_add(self):
         # Look for links with visible text '+' within elements with id 'add-cloud' which are themselves in elements of class 'menu'.
         link_xpath = '//*[@class="menu"]//*[@id="add-cloud"]//a[text()="+"]'
@@ -93,7 +101,6 @@ class TestClouds(unittest.TestCase):
         wc.assert_one(self.driver, self.fail, (By.XPATH, '//*[@class="menu"]//*[@id="{}"]'.format(self.cloud_to_add)), missing_message='{} was missing from the list of clouds after it was created.'.format(self.cloud_to_add))
         self.assert_cloud_types(form_xpath)
     
-    @unittest.skip
     def test_cloud_delete(self):
         cloud_listing = self.select_cloud_tab(self.cloud_to_delete)
         delete_link = wc.assert_one(cloud_listing, self.fail, (By.LINK_TEXT, '−'), missing_message='The link to delete {} is missing.'.format(self.cloud_to_delete))
@@ -110,20 +117,19 @@ class TestClouds(unittest.TestCase):
         delete_link.click()
         # Confirm deletion.
         wc.assert_one(delete_dialog, self.fail, (By.TAG_NAME, 'form'), {'name': self.cloud_to_delete}, missing_message='The form to confirm deletion is missing from the delete confirmation dialog for {}.'.format(self.cloud_to_delete)).submit()
+        self.gvar['driver_wait'].until(ec.staleness_of(delete_dialog))
         menu = wc.assert_one(self.driver, self.fail, (By.CLASS_NAME, 'menu'))
         # Assert that the cloud has been removed from the cloud list.
         self.assertRaises(NoSuchElementException, menu.find_element, By.ID, self.cloud_to_delete)
 
-    @unittest.skip
     def test_cloud_update(self):
         self.select_cloud_tab(self.cloud_to_update, 0)
         # Look for forms with name equal to cloud_to_update within elements with id equal to cloud_to_update which are themselves in elements of class 'menu'.
         form_xpath = '//*[@class="menu"]//*[@id="{0}"]//form[@name="{0}"]'.format(self.cloud_to_update)
-        wc.submit_invalid_combinations(self.driver, self.fail, form_xpath, self.cloud_update_invalid_combinations, self.max_wait)
-        wc.submit_valid_combinations(self.driver, self.fail, form_xpath, self.cloud_update_valid_combinations, self.max_wait, expected_response='successfully updated', retains_values=True)
+        wc.submit_invalid_combinations(self.driver, self.fail, form_xpath, self.cloud_update_invalid_combinations, max_wait=self.max_wait)
+        wc.submit_valid_combinations(self.driver, self.fail, form_xpath, self.cloud_update_valid_combinations, max_wait=self.max_wait, expected_response='successfully updated', retains_values=True)
         self.assert_cloud_types(form_xpath)
 
-    @unittest.skip
     def test_amazon_filters(self):
         self.assert_amazon_popup('Image filter', EXPECTED_IMAGE_FILTER_INPUTS)
         self.assert_amazon_popup('Flavor filter', EXPECTED_FLAVOR_FILTER_INPUTS)
@@ -150,6 +156,7 @@ class TestClouds(unittest.TestCase):
         finally:
             self.driver.switch_to.default_content()
 
+    @unittest.skip
     def test_metadata_add(self):
         mandatory_parameters = {'metadata_name': self.metadata_to_add}
         invalid_metadata_name_values = {
@@ -172,11 +179,11 @@ class TestClouds(unittest.TestCase):
             form = self.select_metadata()
             wc.submit_form(self.driver, self.fail, form_xpath, data, self.max_wait)
             # Jumping out of the iframe and back in before checking the response is necessary to avoid Selenium complaining that the driver is 'dead'.
-            wait.WebDriverWait(self.driver, self.max_wait).until(ec.staleness_of(form))
+            self.gvar['driver_wait'].until(ec.staleness_of(form))
             self.driver.switch_to.default_content()
             self.driver.get('{}/cloud/list/'.format(self.gvar['address']))
             self.select_metadata()
-            wait.WebDriverWait(self.driver, self.max_wait).until(ec.frame_to_be_available_and_switch_to_it((By.XPATH, iframe_xpath)))
+            self.gvar['driver_wait'].until(ec.frame_to_be_available_and_switch_to_it((By.XPATH, iframe_xpath)))
             self.assertIn(expected_response, wc.assert_one(self.driver, self.fail, (By.ID, 'message')).text)
             self.driver.switch_to.default_content()
             
@@ -211,24 +218,16 @@ class TestClouds(unittest.TestCase):
             self.assertTrue(ec.invisibility_of_element(delete_dialog))
             delete_button.click()
             wc.assert_one(delete_dialog, self.fail, (By.NAME, '{}-{}-delete'.format(self.cloud_to_update, self.metadata_to_delete))).submit()
-            wait.WebDriverWait(self.driver, self.max_wait).until(ec.staleness_of(delete_button))
+            self.gvar['driver_wait'].until(ec.staleness_of(delete_button))
         finally:
             self.driver.switch_to.default_content()
 
-    @unittest.skip
     def test_metadata_update(self):
         valid_combination = {
-            'enabled': True,
-            'user_domain_name': 'unit-test.ca',
-            'project_domain_name': 'unit-test.ca',
-            'vm_keep_alive': 3,
-            'spot_price': 1.4,
-            'cores_softmax': 15,
-            'cores_ctl': 9,
-            'ram_ctl': 2
+            # TODO
         }
         form_xpath = '//form[@name="metadata-form"]'
-        self.select_metadata('{}.yaml'.format(self.metadata_to_update))
+        self.select_metadata(self.metadata_to_update_yaml)
         try:
             wc.submit_form(self.driver, self.fail, form_xpath, {'metadata': 'foo: bar: this is invalid yaml'}, self.max_wait, expected_response='TODO')
             self.driver.switch_to.default_content()
@@ -275,7 +274,7 @@ class TestClouds(unittest.TestCase):
             iframe = wc.assert_one(metadata_listing, self.fail, (By.XPATH, './/iframe[@id="editor-{}-add"]'.format(self.cloud_to_update)))
         self.driver.switch_to.frame(iframe)
         try:
-            return wait.WebDriverWait(self.driver, self.max_wait).until(ec.presence_of_element_located((By.XPATH, '//form[@name="metadata-form"]')))
+            return self.gvar['driver_wait'].until(ec.presence_of_element_located((By.XPATH, '//form[@name="metadata-form"]')))
         except TimeoutException:
             self.driver.switch_to.default_content()
             raise
@@ -328,7 +327,7 @@ class TestClouds(unittest.TestCase):
             # The link text below is a multiplication sign (U+00D7), not the letter 'x'.
             wc.assert_one(popup, self.fail, (By.LINK_TEXT, '×')).click()
             # Wait for the page to start reloading.
-            wait.WebDriverWait(self.driver, self.max_wait).until(ec.staleness_of(settings_tab))
+            self.gvar['driver_wait'].until(ec.staleness_of(settings_tab))
 
     def assert_metadata_mime_types(self, form):
         mime_type_select = wc.assert_one(form, self.fail, (By.TAG_NAME, 'select'), {'name': 'mime_type'})

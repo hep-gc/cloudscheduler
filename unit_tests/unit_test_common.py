@@ -474,7 +474,7 @@ def table_commands(gvar, obj, action, group, server_user, table_headers):
     `table_headers` is a dictionary in which each key is the name of a table to test (in the form that the CLI prints, e.g. 'Aliases'), and its value is a complete list of all of the table's expected keys and columns (as strs) (in the form that the CLI prints, e.g. 'Group'). These must be in the order that they are listed when `--view-columns` is specified (keys being before columns). When super-headers appear over a group of columns in the CLI output (e.g. 'Project' in the output of `cloud list`), these should be included in this list and may be in any position after the keys, except at the end. Optional tables which are listed last by `--view-columns` can be omitted from testing by omitting them from `table_headers` (but other tables must be included). Any specifications of non-existent tables will be ignored.
     If table_headers specifies more than one table, the total number of tests executed can be calculated as: 7 * (number of default tables specified) + 10 * (number of optional tables specified). Otherwise, it can be calculated as 7 * (number of tables specified).
     The options tested are `--comma-separated-values` (`-CSV`), `--comma-separated-values-separator` (`-CSEP`), `--no-view` (`-NV`), `--only-keys` (`-ok`), `--rotate` (`-r`), `--view` (`-V`), and `--with` (`-w`).
-    'headers' is used to refer to keys and columns collectively. When running tests that use this function, the test runner should not have `with` specified in their defaults.
+    'headers' is used to refer to keys and columns collectively. When running tests that use this function, the person running the tests should not have `with` specified in their defaults.
     '''
 
     import subprocess
@@ -890,7 +890,7 @@ def _requests_insert_controls(gvar, request, group, form_data, query_data, serve
 #-------------------------------------------------------------------------------
 
 def ut_id(gvar, IDs):
-    '''Format the test runner's username with IDs (str) to create a unique ID for a test object.'''
+    '''Format the username of the person running the tests with IDs (str) to create a unique ID for a test object.'''
     ids = IDs.split(',')
     return '%s-%s' % (gvar['user_settings']['server-user'], (',%s-' % gvar['user_settings']['server-user']).join(ids))
  
@@ -901,8 +901,7 @@ def condor_setup(gvar):
     import subprocess
 
     # Check that condor is installed so that we can submit a job to view using /job/list/
-    requirements = {'condor_submit', 'condor_rm'}
-    for requirement in requirements:
+    for requirement in {'condor_submit', 'condor_rm'}:
         if subprocess.run(['which', requirement], stdout=subprocess.DEVNULL).returncode != 0:
             condor_error(gvar, '{} is not installed'.format(requirement))
             return

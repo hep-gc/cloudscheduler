@@ -308,7 +308,7 @@ def setup(address_extension, privileged=False):
             # Cloud metadata to be updated.
             ['cloud', 'metadata-load', *server_credentials, '-mn', '{}-wicm3'.format(gvar['user']), '-cn', '{}-wic3'.format(gvar['user']), '-f', gvar['metadata_path']],
             # Cloud YAML metadata to be updated.
-            ['cloud', 'metadata-load', *server_credentials, '-mn', '{}-wicm4'.format(gvar['user']), '-cn', '{}-wic3'.format(gvar['user']), '-f', gvar['metadata_yaml_path']],
+            ['cloud', 'metadata-load', *server_credentials, '-mn', '{}-wicm4.yaml'.format(gvar['user']), '-cn', '{}-wic3'.format(gvar['user']), '-f', gvar['metadata_yaml_path']],
             # Group metadata that should always exist.
             ['metadata', 'load', *server_credentials, '-mn', '{}-wigm1'.format(gvar['user']), '-f', gvar['metadata_path']],
             # Group metadata to be deleted.
@@ -377,6 +377,7 @@ def switch_user(gvar, address_extension, profile_index):
     '''
     from selenium import webdriver
     from selenium.common.exceptions import WebDriverException
+    from selenium.webdriver.support.wait import WebDriverWait
     import os.path
 
     old_driver = gvar.get('driver')
@@ -387,6 +388,7 @@ def switch_user(gvar, address_extension, profile_index):
     gvar['driver'] = webdriver.Firefox(webdriver.FirefoxProfile(gvar['firefox_profiles'][profile_index]), service_log_path=os.path.expanduser('~/cloudscheduler/unit_tests/geckodriver.log'))
     try:
         gvar['driver'].implicitly_wait(gvar['max_wait'])
+        gvar['driver_wait'] = WebDriverWait(gvar['driver'], gvar['max_wait'])
         # The internet says that driver.get() should automatically wait for the page to be loaded, but it does not seem to.
         gvar['driver'].get(gvar['address'] + address_extension)
         # The Firefox profile will automatically fill in the server credentials, so we just accept the prompt.
