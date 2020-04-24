@@ -7,7 +7,7 @@ import web_common as wc
 
 EXPECTED_CLOUD_TABS = ['Settings', 'Metadata', 'Exclusions']
 EXPECTED_CLOUD_TYPES = {'amazon', 'local', 'openstack'}
-EXPECTED_AMAZON_REGIONS = {'ap-east-1', 'ap-northeast-1', 'ap-northeast-2', 'ap-northeast-3', 'ap-south-1', 'ap-southeast-1', 'ap-southeast-2', 'ca-central-1', 'cn-north-1', 'cn-northwest-1', 'eu-central-1', 'eu-north-1', 'eu-west-1', 'eu-west-2', 'eu-west-3', 'sa-east-1', 'us-east-1', 'us-east-2', 'us-gov-east-1', 'us-gov-west-1', 'us-west-1', 'us-west-2'}
+EXPECTED_AMAZON_REGIONS = {'ap-east-1', 'ap-northeast-1', 'ap-northeast-2', 'ap-northeast-3', 'ap-south-1', 'ap-southeast-1', 'ap-southeast-2', 'ca-central-1', 'cn-north-1', 'cn-northwest-1', 'eu-central-1', 'eu-north-1', 'eu-west-1', 'eu-west-2', 'eu-west-3', 'me-south-1', 'sa-east-1', 'us-east-1', 'us-east-2', 'us-gov-east-1', 'us-gov-west-1', 'us-west-1', 'us-west-2'}
 # When Amazon is the cloud type and the 'Image filter' link is clicked, a popup is expected with a form containing these (input_label, input_name) pairs.
 EXPECTED_IMAGE_FILTER_INPUTS = {('Operating Systems', 'operating_systems'), ('Architectures', 'architectures'), ('Owner Alias', 'owner_aliases'), ('Like', 'like'), ('Not Like', 'not_like'), ('Owner IDs', 'owner_ids')}
 EXPECTED_FLAVOR_FILTER_INPUTS = {('Processor Families', 'families'), ('Operating Systems', 'operating_systems'), ('Processors', 'processors'), ('Manufacturers', 'processor_manufacturers'), ('Cores', 'cores'), ('Min RAM (GB)', 'memory_min_gigabytes_per_core'), ('Max RAM (GB)', 'memory_max_gigabytes_per_core')}
@@ -156,7 +156,6 @@ class TestClouds(unittest.TestCase):
         finally:
             self.driver.switch_to.default_content()
 
-    @unittest.skip
     def test_metadata_add(self):
         mandatory_parameters = {'metadata_name': self.metadata_to_add}
         invalid_metadata_name_values = {
@@ -179,11 +178,10 @@ class TestClouds(unittest.TestCase):
             form = self.select_metadata()
             wc.submit_form(self.driver, self.fail, form_xpath, data, self.max_wait)
             # Jumping out of the iframe and back in before checking the response is necessary to avoid Selenium complaining that the driver is 'dead'.
-            self.gvar['driver_wait'].until(ec.staleness_of(form))
             self.driver.switch_to.default_content()
             self.driver.get('{}/cloud/list/'.format(self.gvar['address']))
-            self.select_metadata()
-            self.gvar['driver_wait'].until(ec.frame_to_be_available_and_switch_to_it((By.XPATH, iframe_xpath)))
+            iframe = self.driver.find_element(By.XPATH, iframe_xpath)
+            self.gvar['driver_wait'].until(ec.frame_to_be_available_and_switch_to_it(iframe))
             self.assertIn(expected_response, wc.assert_one(self.driver, self.fail, (By.ID, 'message')).text)
             self.driver.switch_to.default_content()
             
@@ -224,15 +222,17 @@ class TestClouds(unittest.TestCase):
 
     def test_metadata_update(self):
         valid_combination = {
-            # TODO
+            'priority': 3,
+            'mime_type': 'ucernvm-config',
+            'metadata': 'updated metadata content'
         }
         form_xpath = '//form[@name="metadata-form"]'
         self.select_metadata(self.metadata_to_update_yaml)
         try:
-            wc.submit_form(self.driver, self.fail, form_xpath, {'metadata': 'foo: bar: this is invalid yaml'}, self.max_wait, expected_response='TODO')
+            wc.submit_form(self.driver, self.fail, form_xpath, {'metadata': 'foo: bar: this is invalid yaml'}, self.max_wait, expected_response='cloud metadata-update yaml value specified for "metadata (metadata_name)" is invalid - scanner error')
             self.driver.switch_to.default_content()
             self.select_metadata(self.metadata_to_update)
-            wc.submit_form(self.driver, self.fail, form_xpath, valid_combination, self.max_wait, expected_message='cloud metadata file "{}::{}::{}" successfully updated.'.format(self.active_group, self.cloud_to_update, self.metadata_to_update), retains_values=True)
+            wc.submit_form(self.driver, self.fail, form_xpath, valid_combination, self.max_wait, expected_response='cloud metadata file "{}::{}::{}" successfully updated.'.format(self.active_group, self.cloud_to_update, self.metadata_to_update), retains_values=True)
             self.driver.switch_to.default_content()
             form = self.select_metadata(self.metadata_to_update)
             self.assert_metadata_mime_types(form)

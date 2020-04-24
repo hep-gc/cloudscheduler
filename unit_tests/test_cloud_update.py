@@ -247,5 +247,13 @@ def main(gvar):
         server_user=ut_id(gvar, 'ctu1')
     )
 
+    # See cloud_requests_setup for an explanation of this.
+    execute_csv2_request(
+        gvar, 0, None, None,
+        '/server/config/', group=ut_id(gvar, 'ctg1'),
+        form_data={'category': 'openstackPoller.py', 'config_key': 'sleep_interval_limit', 'value': 300},
+        server_user=ut_id(gvar, 'ctu1')
+    )
+
 if __name__ == "__main__":
     main(None)

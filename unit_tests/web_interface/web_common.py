@@ -106,7 +106,9 @@ def submit_form(driver, error_reporter, form_xpath, data, max_wait=DEFAULT_MAX_W
     Forms are allowed to be dynamic; i.e. fields are allowed to completely change in response to previous fields being filled out.
     '''
     from selenium.common.exceptions import ElementNotInteractableException
+    from selenium.webdriver.common.action_chains import ActionChains
     from selenium.webdriver.common.by import By
+    from selenium.webdriver.common.keys import Keys
     from selenium.webdriver.support import expected_conditions as ec
     from selenium.webdriver.support.wait import WebDriverWait
     import re
@@ -140,7 +142,10 @@ def submit_form(driver, error_reporter, form_xpath, data, max_wait=DEFAULT_MAX_W
                     try:
                         entry.send_keys(value)
                     except ElementNotInteractableException:
-                        assert_one(form, error_reporter, (By.TAG_NAME, 'textarea'), {By.CLASS_NAME: 'ace_text-input'})
+                        # Assume it is an ace_editor, which are tricky.
+                        ace_input = assert_one(form, error_reporter, (By.CLASS_NAME, 'ace_editor'))
+                        # Clear any old value and enter the new value.
+                        ActionChains(driver).click(ace_input).key_down(Keys.CONTROL).send_keys('a').key_up(Keys.CONTROL).send_keys(Keys.DELETE + value).perform()
                 else:
                     error_reporter('Unrecognized tag name <{}> for parameter \'{}\'.'.format(entry_tag_name, parameter))
         # No entries were found.
@@ -205,10 +210,18 @@ def get_data_from_form(driver, error_reporter, form_xpath):
         select_name = select.get_attribute('name')
         if select_name:
             try:
-                data[select_name] = next(filter(lambda option: option.is_selected(), select.find_elements(By.TAG_NAME, 'option'))).text
+                data[select_name] = next(option for option in select.find_elements(By.TAG_NAME, 'option') if option.is_selected()).text
             except StopIteration:
                 # WebDriver defaults to the first option if the HTML does not specify which is selected (at least for Firefox), so this should only occur if there are no options.
                 continue
+
+    for textarea in form.find_elements(By.TAG_NAME, 'textarea'):
+        textarea_name = textarea.get_attribute('name')
+        if textarea.is_displayed():
+            data[textarea_name] = textarea.text
+        else:
+            # Assume it is an ace_editor, which are tricky.
+            data[textarea_name] = assert_one(form, error_reporter, (By.CLASS_NAME, 'ace_text-layer')).text
 
     return data
 

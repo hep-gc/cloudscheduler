@@ -1,5 +1,6 @@
 from unit_test_common import execute_csv2_request, initialize_csv2_request, ut_id, generate_secret
 from sys import argv
+from time import sleep
 import cloud_requests_cleanup
 
 def main(gvar):
@@ -77,6 +78,33 @@ def main(gvar):
             'enabled': 1,
             **gvar['cloud_credentials']
         },
+        server_user=ut_id(gvar, 'ctu1')
+    )
+
+    # Below we create a cloud with specific cores_ctl and ram_ctl, and cloud_update modifies these values.
+    # Cloudscheduler will not allow them to be greater than the core and ram limits.
+    # The Openstack poller gets these limits by connecting to the authurl of the cloud.
+    # But the poller's sleep interval is often large enough that the core_ctl and ram_ctl tests will run before it has fetched the limits.
+    # To prevent this we set the sleep interval to a very small value, run the tests, and set it to a more reasonable value at the end.
+
+    # Verify interval assumption. If the value is changed here it should be changed at the end of cloud_update as well.
+    execute_csv2_request(
+        gvar, 0, None, None,
+        '/server/config/', group=ut_id(gvar, 'ctg1'),
+        expected_list='config_list', list_filter={'category': 'openstackPoller.py', 'config_key': 'sleep_interval_limit'},
+        values={'config_type': 'int', 'config_value': 300},
+        server_user=ut_id(gvar, 'ctu1')
+    )
+
+    # Set interval to a small value.
+    short_interval = 30
+    we_wait = round(short_interval * 1.3)
+    sleep(we_wait)
+    print('Waiting {} seconds for the Openstack poller to fetch the core and ram limits...'.format(we_wait))
+    execute_csv2_request(
+        gvar, 0, None, None,
+        '/server/config/', group=ut_id(gvar, 'ctg1'),
+        form_data={'category': 'openstackPoller.py', 'config_key': 'sleep_interval_limit', 'value': 30},
         server_user=ut_id(gvar, 'ctu1')
     )
 
