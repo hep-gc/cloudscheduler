@@ -76,7 +76,7 @@ def main(gvar):
         gvar, 0, None, None,
         '/server/config/', group=ut_id(gvar, 'stg1'),
         expected_list='config_list', list_filter={'category': 'web_frontend', 'config_key': 'log_file'},
-        values={'config_type': 'str', 'config_value': '/var/log/cloudscheduler/csv2_web.log'},
+        values={'config_type': 'str', 'config_value': '/var/log/cloudscheduler/web.log'},
         server_user=ut_id(gvar, 'stu1')
     )
 

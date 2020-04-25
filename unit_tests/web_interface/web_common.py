@@ -249,144 +249,19 @@ def assert_nav(driver, error_reporter, address, privileged=False):
     if nav_links != expected_nav_links:
         error_reporter('Expected the top nav to contain the links {}, but found the links {}.'.format(expected_nav_links, nav_links))
 
-def setup(address_extension, privileged=False):
+def load_web_settings(address_extension, privileged=False):
     '''Load global settings and create test objects.'''
     import subprocess
     from cloudscheduler.unit_tests.unit_test_common import load_settings
 
     gvar = load_settings(web=True)
-    gvar['metadata_path'] = '../notyamlfile.txt'
-    gvar['metadata_yaml_path'] = '../ut.yaml'
-
-    if gvar['setup_required']:
-        cleanup(gvar)
-
-        server_credentials = ['-su', '{}-wiu1'.format(gvar['user']), '-spw', gvar['user_secret']]
-        # To avoid repeating all of this a few times. Only missing mandatory parameter is --cloud-name.
-        cloud_template = ['cloud', 'add',
-            *server_credentials,
-            '-ca', gvar['cloud_credentials']['authurl'],
-            '-cU', gvar['cloud_credentials']['username'],
-            '-cpw', gvar['cloud_credentials']['password'],
-            '-cP', gvar['cloud_credentials']['project'],
-            '-cr', gvar['cloud_credentials']['region'],
-            '-ct', 'openstack'
-        ]
-
-        setup_commands = [
-            # The active group most of the time.
-            ['group', 'add', '-gn', '{}-wig1'.format(gvar['user']), '-htcf', gvar['fqdn']],
-            # Group with no users.
-            ['group', 'add', '-gn', '{}-wig2'.format(gvar['user']), '-htcf', gvar['fqdn']],
-            # Group to be deleted.
-            ['group', 'add', '-gn', '{}-wig3'.format(gvar['user']), '-htcf', gvar['fqdn']],
-            # Group to be updated.
-            ['group', 'add', '-gn', '{}-wig4'.format(gvar['user']), '-htcf', gvar['fqdn'],
-                '--htcondor-container-hostname', 'unit-test.ca',
-                '--htcondor-users', '{}-wiu1'.format(gvar['user']),
-                '--job-cores', '3',
-                '--job-disk', '1',
-                '--job-ram', '4',
-                '--job-swap', '1'],
-            # User used to perform most actions not requiring privileges.
-            ['user', 'add', '-un', '{}-wiu1'.format(gvar['user']), '-upw', gvar['user_secret'],
-                '--group-name', '{}-wig1'.format(gvar['user'])],
-            # User used to perform most actions requiring privileges.
-            ['user', 'add', '-un', '{}-wiu2'.format(gvar['user']), '-upw', gvar['user_secret'],
-                '--group-name', '{}-wig1'.format(gvar['user']),
-                '--super-user', 'True'],
-            # User who is not in any groups.
-            ['user', 'add', '-un', '{}-wiu3'.format(gvar['user']), '-upw', gvar['user_secret']],
-            # User to be deleted.
-            ['user', 'add', '-un', '{}-wiu4'.format(gvar['user']), '-upw', gvar['user_secret'],
-                '--group-name', '{}-wig1'.format(gvar['user'])],
-            # User to be updated.
-            ['user', 'add', '-un', '{}-wiu5'.format(gvar['user']), '-upw', gvar['user_secret'],
-                '--group-name', '{}-wig1'.format(gvar['user']),
-                '--user-common-name', '{} user 5'.format(gvar['user'])],
-            # Cloud that should always exist to create aliases for.
-            cloud_template + ['-cn', '{}-wic1'.format(gvar['user'])],
-            # Cloud to be deleted.
-            cloud_template + ['-cn', '{}-wic2'.format(gvar['user'])],
-            # Cloud to be updated.
-            cloud_template + ['-cn', '{}-wic3'.format(gvar['user'])],
-            # Alias that should always exist.
-            ['alias', 'add', *server_credentials, '-an', '{}-wia1'.format(gvar['user']), '-cn', '{}-wic1'.format(gvar['user'])],
-            # Alias to be updated and deleted.
-            ['alias', 'add', *server_credentials, '-an', '{}-wia2'.format(gvar['user']), '-cn', '{}-wic1'.format(gvar['user'])],
-            # Cloud metadata that should always exist.
-            ['cloud', 'metadata-load', *server_credentials, '-mn', '{}-wicm1'.format(gvar['user']), '-cn', '{}-wic3'.format(gvar['user']), '-f', gvar['metadata_path']],
-            # Cloud metadata to be deleted.
-            ['cloud', 'metadata-load', *server_credentials, '-mn', '{}-wicm2'.format(gvar['user']), '-cn', '{}-wic3'.format(gvar['user']), '-f', gvar['metadata_path']],
-            # Cloud metadata to be updated.
-            ['cloud', 'metadata-load', *server_credentials, '-mn', '{}-wicm3'.format(gvar['user']), '-cn', '{}-wic3'.format(gvar['user']), '-f', gvar['metadata_path']],
-            # Cloud YAML metadata to be updated.
-            ['cloud', 'metadata-load', *server_credentials, '-mn', '{}-wicm4.yaml'.format(gvar['user']), '-cn', '{}-wic3'.format(gvar['user']), '-f', gvar['metadata_yaml_path']],
-            # Group metadata that should always exist.
-            ['metadata', 'load', *server_credentials, '-mn', '{}-wigm1'.format(gvar['user']), '-f', gvar['metadata_path']],
-            # Group metadata to be deleted.
-            ['metadata', 'load', *server_credentials, '-mn', '{}-wigm2'.format(gvar['user']), '-f', gvar['metadata_path']],
-            # Group metadata to be updated.
-            ['metadata', 'load', *server_credentials, '-mn', '{}-wigm3'.format(gvar['user']), '-f', gvar['metadata_path']]
-        ]
-
-        print('Creating test objects. Run `util.py -c` later to remove them.')
-        for command in setup_commands:
-            try:
-                process = subprocess.run(['cloudscheduler', *command, '-s', 'unit-test'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True)
-                print('.', end='', flush=True)
-            except subprocess.CalledProcessError as err:
-                raise Exception('Error setting up tests.\ncmd={}\nstderr={}\nstdout={}'.format(format_command(err.cmd), err.stderr.decode(), err.stdout.decode()))
-        print()
-        set_setup_required(False)
-
     switch_user(gvar, address_extension, 1 if privileged else 0)
-
     return gvar
-
-def cleanup(gvar):
-    '''Delete all the test objects created by setup().'''
-    import subprocess
-
-    cleanup_commands = [['group', 'delete', '-gn', '{}-wig{}'.format(gvar['user'], i), '-Y'] for i in range(1, 5)]
-    cleanup_commands.extend([['user', 'delete', '-un', '{}-wiu{}'.format(gvar['user'], j), '-Y'] for j in range(1, 6)])
-
-    set_setup_required(True)
-
-    print('Removing test objects.')
-    for command in cleanup_commands:
-        process = subprocess.run(['cloudscheduler', *command, '-s', 'unit-test'], stdout=subprocess.PIPE, stderr=subprocess.DEVNULL)
-        print('.', end='', flush=True)
-        # We want to know if the server returns an unexpected HTTP status code, but not if it failed just because the object did not exist.
-        if process.returncode > 1:
-            raise Exception('Error cleaning up tests.\ncmd={}\nstderr={}\nstdout={}'.format(format_command(command), process.stderr.decode(), process.stdout.decode()))
-    print()
-
-def set_setup_required(set_to=True):
-    import os.path
-    import yaml
-    from cloudscheduler.unit_tests.unit_test_common import load_settings
-
-    credentials_path = os.path.expanduser('~/cloudscheduler/unit_tests/credentials.yaml')
-    try:
-        with open(credentials_path) as credentials_file:
-            settings = yaml.safe_load(credentials_file)
-    except FileNotFoundError:
-        load_settings(web=True)
-        with open(credentials_path) as credentials_file:
-            settings = yaml.safe_load(credentials_file)
-    except yaml.YAMLError as err:
-        print('YAML encountered an error while parsing {}: {}'.format(credentials_path, err))
-    
-    settings['web']['setup_required'] = set_to
-
-    with open(credentials_path, 'w') as credentials_file:
-        credentials_file.write(yaml.safe_dump(settings))
 
 def switch_user(gvar, address_extension, profile_index):
     '''
     Switch to a different Firefox profile, and therefore a different user.
-    profile_index (int): The zero-indexed index of the profile in gvar['firefox_profiles'] to switch to.
+    profile_index (int): The index (starting from 0) of the profile in gvar['firefox_profiles'] to switch to.
     '''
     from selenium import webdriver
     from selenium.common.exceptions import WebDriverException

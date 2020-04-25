@@ -2,10 +2,6 @@ from unit_test_common import execute_csv2_command, initialize_csv2_request, ut_i
 from sys import argv
 
 # lno: GV - error code identifier.
-# Filepath of a file containing valid YAML metadata.
-METADATA_FILEPATH = 'ut.yaml'
-# Filepath of a file containing text that cannot be parsed as YAML.
-INVALID_YAML_FILEPATH = 'notyamlfile.txt'
 
 def main(gvar):
     if not gvar:
@@ -35,12 +31,12 @@ def main(gvar):
             'metadata-name-that-is-too-long-for-the-database_________________________': 'Data too long for column \'metadata_name\' at row 1'
         }, 'mandatory': True},
         # 22 Omit `--file-path`.
-        '--file-path': {'valid': METADATA_FILEPATH, 'test_cases': {
+        '--file-path': {'valid': gvar['metadata_yaml_path'], 'test_cases': {
             # 23
             '': 'The specified metadata file "" does not exist.',
             # 24
             'invalid-unit-test': 'The specified metadata file "invalid-unit-test" does not exist.',
-            INVALID_YAML_FILEPATH: 'value specified for "metadata (metadata_name)" is invalid - scanner error'
+            gvar['metadata_path']: 'value specified for "metadata (metadata_name)" is invalid - scanner error'
         }, 'mandatory': True},
         # 25
         '--metadata-enabled': {'valid': 0, 'test_cases': {'invalid-unit-test': 'boolean value specified for "enabled" must be one of the following: true, false, yes, no, 1, or 0.'}},
@@ -61,13 +57,13 @@ def main(gvar):
     # 29
     execute_csv2_command(
         gvar, 0, None, 'file "{}::{}" successfully added.'.format(ut_id(gvar, 'clg1'), ut_id(gvar, 'clm10')),
-        ['metadata', 'load', '-f', INVALID_YAML_FILEPATH, '-mn', ut_id(gvar, 'clm10'), '-su', ut_id(gvar, 'clu3')]
+        ['metadata', 'load', '-f', gvar['metadata_path'], '-mn', ut_id(gvar, 'clm10'), '-su', ut_id(gvar, 'clu3')]
     )
 
     # 30
     execute_csv2_command(
         gvar, 0, None, 'file "{}::{}" successfully added.'.format(ut_id(gvar, 'clg1'), ut_id(gvar, 'clm10.yaml')),
-        ['metadata', 'load', '-f', METADATA_FILEPATH, '-mn', ut_id(gvar, 'clm10.yaml'), '-su', ut_id(gvar, 'clu3')]
+        ['metadata', 'load', '-f', gvar['metadata_yaml_path'], '-mn', ut_id(gvar, 'clm10.yaml'), '-su', ut_id(gvar, 'clu3')]
     )
 
 if __name__ == "__main__":

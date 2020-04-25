@@ -89,24 +89,22 @@ def main(gvar):
 
     # Verify interval assumption. If the value is changed here it should be changed at the end of cloud_update as well.
     execute_csv2_request(
-        gvar, 0, None, None,
-        '/server/config/', group=ut_id(gvar, 'ctg1'),
+        gvar, 0, None, None, '/server/config/',
         expected_list='config_list', list_filter={'category': 'openstackPoller.py', 'config_key': 'sleep_interval_limit'},
-        values={'config_type': 'int', 'config_value': 300},
-        server_user=ut_id(gvar, 'ctu1')
+        values={'config_type': 'int', 'config_value': '300'}
     )
 
     # Set interval to a small value.
+    execute_csv2_request(
+        gvar, 0, None, None, '/server/config/',
+        form_data={'category': 'openstackPoller.py', 'sleep_interval_limit': '30'}
+    )
+
     short_interval = 30
     we_wait = round(short_interval * 1.3)
-    sleep(we_wait)
     print('Waiting {} seconds for the Openstack poller to fetch the core and ram limits...'.format(we_wait))
-    execute_csv2_request(
-        gvar, 0, None, None,
-        '/server/config/', group=ut_id(gvar, 'ctg1'),
-        form_data={'category': 'openstackPoller.py', 'config_key': 'sleep_interval_limit', 'value': 30},
-        server_user=ut_id(gvar, 'ctu1')
-    )
+    sleep(we_wait)
+    print('Completing setup...')
 
     # 11 cloud to be changed in test_cloud_update, test_cloud_metadata_add, test_cloud_metadata_delete
     execute_csv2_request(
@@ -128,7 +126,7 @@ def main(gvar):
     # 12 metadata to be deleted in test_cloud_metadata_delete
     execute_csv2_request(
         gvar, 0, None, 'cloud metadata file "{}::{}::{}" successfully added.'.format(ut_id(gvar, 'ctg1'), ut_id(gvar, 'ctc3'), ut_id(gvar, 'cty2')),
-        '/cloud/metadata-add/', form_data={
+        '/cloud/metadata-add/', group=ut_id(gvar, 'ctg1'), form_data={
             'cloud_name': ut_id(gvar, 'ctc3'),
             'metadata_name': ut_id(gvar, 'cty2'),
             'metadata': '- example: yes'
@@ -139,7 +137,7 @@ def main(gvar):
     # 13 metadata to be updated in test_cloud_metadata_update
     execute_csv2_request(
         gvar, 0, None, 'cloud metadata file "{}::{}::{}" successfully added.'.format(ut_id(gvar, 'ctg1'), ut_id(gvar, 'ctc3'), ut_id(gvar, 'cty3')),
-        '/cloud/metadata-add/', form_data={
+        '/cloud/metadata-add/', group=ut_id(gvar, 'ctg1'), form_data={
             'cloud_name': ut_id(gvar, 'ctc3'),
             'metadata_name': ut_id(gvar, 'cty3'),
             'metadata': '- example: yes'
@@ -150,7 +148,7 @@ def main(gvar):
     # 14 metadata to be updated in test_cloud_metadata_update
     execute_csv2_request(
         gvar, 0, None, 'cloud metadata file "{}::{}::{}" successfully added.'.format(ut_id(gvar, 'ctg1'), ut_id(gvar, 'ctc3'), ut_id(gvar, 'cty3.yaml')),
-        '/cloud/metadata-add/', form_data={
+        '/cloud/metadata-add/', group=ut_id(gvar, 'ctg1'), form_data={
             'cloud_name': ut_id(gvar, 'ctc3'),
             'metadata_name': ut_id(gvar, 'cty3.yaml'),
             'metadata': '- example: yes'
@@ -161,7 +159,7 @@ def main(gvar):
     # 15 metadata to be fetched in test_cloud_metadata_fetch and test_cloud_metadata_list
     execute_csv2_request(
         gvar, 0, None, 'cloud metadata file "{}::{}::{}" successfully added.'.format(ut_id(gvar, 'ctg1'), ut_id(gvar, 'ctc2'), ut_id(gvar, 'cty1')),
-        '/cloud/metadata-add/', form_data={
+        '/cloud/metadata-add/', group=ut_id(gvar, 'ctg1'), form_data={
             'cloud_name': ut_id(gvar, 'ctc2'),
             'metadata_name': ut_id(gvar, 'cty1'),
             'metadata': '- example: yes'

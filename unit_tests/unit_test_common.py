@@ -692,6 +692,9 @@ def load_settings(web=False):
         gvar.update(gvar['web'])
         del gvar['web']
 
+    gvar['metadata_path'] = '../notyamlfile.txt'
+    gvar['metadata_yaml_path'] = '../ut.yaml'
+
     return gvar
 
 def _prompt_for_web_credentials(credentials, server_user):
