@@ -41,11 +41,7 @@ def main(gvar):
             'slot_core_count': '0',
             'slot_idle_core_count': '0',
             'cores_ctl': -1,
-            'cores_foreign': '0',
-            'cores_native_foreign': '0',
-            'ram_ctl': -1,
-            'ram_foreign': 0,
-            'ram_native_foreign': 0,
+            'ram_ctl': -1
         },
         server_user=ut_id(gvar, 'ctu1')
     )

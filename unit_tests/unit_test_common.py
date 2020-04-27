@@ -691,9 +691,12 @@ def load_settings(web=False):
         # Move everything in gvar['web'] up to the top level.
         gvar.update(gvar['web'])
         del gvar['web']
+        gvar['metadata_path'] = '../notyamlfile.txt'
+        gvar['metadata_yaml_path'] = '../ut.yaml'
+    else:
+        gvar['metadata_path'] = 'notyamlfile.txt'
+        gvar['metadata_yaml_path'] = 'ut.yaml'
 
-    gvar['metadata_path'] = '../notyamlfile.txt'
-    gvar['metadata_yaml_path'] = '../ut.yaml'
 
     return gvar
 

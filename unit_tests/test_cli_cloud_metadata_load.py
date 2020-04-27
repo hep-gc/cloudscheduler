@@ -75,7 +75,7 @@ def main(gvar):
     # 34 Properly add YAML metadata.
     execute_csv2_command(
         gvar, 0, None, 'file "{}::{}::{}" successfully added.'.format(ut_id(gvar, 'clg1'), ut_id(gvar, 'clc2'), ut_id(gvar, 'clm10.yaml')),
-        ['cloud', 'metadata-load', '-cn', ut_id(gvar, 'clc2'), '-f', gvar['metadata_path'], '-mn', ut_id(gvar, 'clm10.yaml'), '-su', ut_id(gvar, 'clu3')]
+        ['cloud', 'metadata-load', '-cn', ut_id(gvar, 'clc2'), '-f', gvar['metadata_yaml_path'], '-mn', ut_id(gvar, 'clm10.yaml'), '-su', ut_id(gvar, 'clu3')]
     )
 
 if __name__ == "__main__":
