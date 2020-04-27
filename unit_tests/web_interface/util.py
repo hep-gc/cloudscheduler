@@ -1,18 +1,19 @@
+import subprocess
 from sys import argv
 from cloudscheduler.unit_tests.unit_test_common import load_settings
 
 def main():
     gvar = load_settings(web=True)
     for parameter in argv[1:]:
-        if parameter == '--setup' or '-s':
+        if parameter == '--setup' or parameter == '-s':
             setup(gvar)
-        elif parameter == '--cleanup' or '-c':
+        elif parameter == '--cleanup' or parameter == '-c':
             cleanup(gvar)
-        elif parameter == '--both' or '-b':
+        elif parameter == '--both' or parameter == '-b':
             cleanup(gvar)
             setup(gvar)
 
-def setup():
+def setup(gvar):
     '''Create test objects.'''
 
     server_credentials = ['-su', '{}-wiu1'.format(gvar['user']), '-spw', gvar['user_secret']]
@@ -95,7 +96,6 @@ def setup():
 
 def cleanup(gvar):
     '''Delete all the test objects created by setup().'''
-    import subprocess
 
     # Deleting groups deletes all the aliases, clouds, etc. in the groups.
     cleanup_commands = [['group', 'delete', '-gn', '{}-wig{}'.format(gvar['user'], i), '-Y'] for i in range(1, 5)]
@@ -109,6 +109,12 @@ def cleanup(gvar):
         if process.returncode > 1:
             raise Exception('Error cleaning up tests.\ncmd={}\nstderr={}\nstdout={}'.format(format_command(command), process.stderr.decode(), process.stdout.decode()))
     print()
+
+def format_command(command):
+    '''Format a list of parameters so that when the formatted string is printed it can be copy-pasted to re-run the command.'''
+    import re
+
+    return ' '.join((word if re.fullmatch(r'[\w\-\.]+', word) else '\'{}\''.format(word) for word in command))
 
 if __name__ == '__main__':
     main()

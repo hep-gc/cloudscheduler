@@ -13,15 +13,15 @@ EXPECTED_SYSTEM_LABELS = ['status', 'main', 'database', 'rabbitmq', 'openstack',
 class TestStatus(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.gvar = wc.setup('/cloud/status/')
-        cls.driver_wait = cls.gvar['driver_wait']
+        cls.gvar = wc.load_web_settings('/cloud/status/')
+        cls.driver = cls.gvar['driver']
 
     def test_nav(self):
-        wc.assert_nav(self.driver_wait, self.fail, self.gvar['address'])
+        wc.assert_nav(self.driver, self.fail, self.gvar['address'])
 
     def test_status_tables(self):
         try:
-            status_tables = self.driver_wait.until(ec.presence_of_all_elements_located((By.CLASS_NAME, 'status-table')))
+            status_tables = self.gvar['driver_wait'].until(ec.presence_of_all_elements_located((By.CLASS_NAME, 'status-table')))
         except TimeoutException:
             self.fail('Expected to find two elements with class \'status-table\', but did not find any.')
         self.assertEqual(len(status_tables), 2)
@@ -30,7 +30,7 @@ class TestStatus(unittest.TestCase):
         self.assert_table_has_headers(vm_table, EXPECTED_VM_HEADERS)
 
     def test_system_table(self):
-        system_table = wc.assert_one(self.driver_wait, self.fail, (By.ID, 'system-services'))
+        system_table = wc.assert_one(self.driver, self.fail, (By.ID, 'system-services'))
         self.assert_table_has_headers(system_table, EXPECTED_SYSTEM_HEADERS)
         try:
             system_rows = wait.WebDriverWait(system_table, self.gvar['max_wait']).until(ec.presence_of_all_elements_located((By.TAG_NAME, 'tr')))
@@ -45,7 +45,7 @@ class TestStatus(unittest.TestCase):
             wc.assert_one(cell_wait, self.fail, (By.TAG_NAME, 'meter'))
 
     def test_stop_refresh_button(self):
-        system_div = wc.assert_one(self.driver_wait, self.fail, (By.CLASS_NAME, 'system-div'))
+        system_div = wc.assert_one(self.driver, self.fail, (By.CLASS_NAME, 'system-div'))
         system_div_wait = wait.WebDriverWait(system_div, self.gvar['max_wait'])
         # Search for an element that has an id of 'CDTimer' and has text in it. (Text is required because the element is empty when first loaded.)
         countdown = wc.assert_one(system_div_wait, self.fail, (By.XPATH, './/*[(@id="CDTimer") and text()]'))

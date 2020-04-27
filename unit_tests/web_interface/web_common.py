@@ -285,12 +285,6 @@ def switch_user(gvar, address_extension, profile_index):
         gvar['driver'].quit()
         raise
 
-def format_command(command):
-    '''Format a list of parameters so that when the formatted string is printed it can be copy-pasted to re-run the command.'''
-    import re
-
-    return ' '.join((word if re.fullmatch(r'[\w\-\.]+', word) else '\'{}\''.format(word) for word in command))
-
 def get_open_tag(element):
    '''Return the opening tag of an element (including all of the attributes defined in it).'''
    import re

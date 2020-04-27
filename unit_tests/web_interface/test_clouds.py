@@ -18,7 +18,7 @@ EXPECTED_METADATA_MIME_TYPE_OPTIONS = ['cloud-config', 'ucernvm-config']
 class TestClouds(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.gvar = wc.setup('/cloud/list/')
+        cls.gvar = wc.load_web_settings('/cloud/list/')
         cls.driver = cls.gvar['driver']
         cls.max_wait = cls.gvar['max_wait']
         cls.active_group = '{}-wig1'.format(cls.gvar['user'])
@@ -174,17 +174,17 @@ class TestClouds(unittest.TestCase):
         }
         form_xpath = '//form[@name="metadata-form"]'
         iframe_xpath = './/iframe[@id="editor-{}-add"]'.format(self.cloud_to_update)
+    
         def _submit_metadata_add_form(data, expected_response):
             form = self.select_metadata()
             wc.submit_form(self.driver, self.fail, form_xpath, data, self.max_wait)
-            # Jumping out of the iframe and back in before checking the response is necessary to avoid Selenium complaining that the driver is 'dead'.
+            # Jumping out of the iframe and back in is necessary to prevent WebDriver from saying that the driver is 'dead'.
             self.driver.switch_to.default_content()
-            self.driver.get('{}/cloud/list/'.format(self.gvar['address']))
             iframe = self.driver.find_element(By.XPATH, iframe_xpath)
             self.gvar['driver_wait'].until(ec.frame_to_be_available_and_switch_to_it(iframe))
             self.assertIn(expected_response, wc.assert_one(self.driver, self.fail, (By.ID, 'message')).text)
             self.driver.switch_to.default_content()
-            
+
         try:
             # A modified version of submit_invalid_combinations, because we need to switch out of and back into the iframe after every invalid submission.
             for value, expected_response in invalid_metadata_name_values.items():
@@ -197,9 +197,15 @@ class TestClouds(unittest.TestCase):
             # Submit valid parameters.
             wc.submit_form(self.driver, self.fail, form_xpath, {**mandatory_parameters, **valid_combination}, self.max_wait)
             self.driver.switch_to.default_content()
+            try:
+                # A successful submission causes default_content to reload.
+                self.gvar['driver_wait'].until(ec.staleness_of(wc.assert_one(self.driver, self.fail, (By.CLASS_NAME, 'menu'))))
+            except TimeoutException:
+                # The reload does not occur if the server response is an error. But this error will have disappeared by this point, so we can't report it.
+                self.fail('Received an error when attempting to create {} with parameters {}. (This may be because it already exists.)'.format(self.metadata_to_add, {**mandatory_parameters, **valid_combinations}))
             # We cannot assert an expected_response through submit_form() because the driver is set to the iframe at that point (and the message appears outside it).
             footer = wc.assert_one(self.driver, self.fail, (By.ID, 'message'))
-            self.assertIn('cloud metadata file "grobertson-wig1::grobertson-wic3::foo.yaml" successfully added.', footer.text)
+            self.assertIn('cloud metadata file "{}::{}::{}" successfully added.'.format(self.active_group, self.cloud_to_update, self.metadata_to_add), footer.text)
             form = self.select_metadata()
             self.assert_metadata_mime_types(form)
         finally:
