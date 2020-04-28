@@ -95,6 +95,7 @@ CLOUD_KEYS = {
         'region',
         ],
     'array_fields': [
+        'flavor_name',
         'group_name',
         'metadata_name',
         ]
