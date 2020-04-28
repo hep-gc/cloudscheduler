@@ -3,7 +3,7 @@ from sys import argv
 
 # lno: VV - error code identifier.
 
-VM_LIST_COLUMNS = ['Group', 'Cloud', 'Hostname', 'VMID', 'IPs', 'Floating IPs', 'Authorization URL', 'Project', 'Status', 'Flavor ID', 'Task', 'Power Status', 'Start Time', 'HTCondor', 'STARTD Errors', 'STARTD Time', 'Primary Slots', 'Dynamic Slots', 'Slots Timestamp', 'Retire', 'Terminate', 'Last Updated', 'Flavor', 'Condor Slots', 'Foreign', 'cores', 'Disk (GBs)', 'Ram (MBs)', 'Swap (GBs)', 'Poller Status', 'State Age', 'Manual_Control']
+VM_LIST_COLUMNS = ['Group', 'Cloud', 'Hostname', 'VMID', 'IPs', 'Floating IPs', 'Authorization URL', 'Project', 'Status', 'Flavor ID', 'Task', 'Power Status', 'Start Time', 'HTCondor', 'STARTD Errors', 'STARTD Time', 'Primary Slots', 'Dynamic Slots', 'Slots Timestamp', 'Retire', 'Terminate', 'Last Updated', 'Flavor', 'Condor Slots', 'Foreign', 'Cores', 'Disk (GBs)', 'Ram (MBs)', 'Swap (GBs)', 'Poller Status', 'State Age', 'Manual Control']
 
 def main(gvar):
     if not gvar:

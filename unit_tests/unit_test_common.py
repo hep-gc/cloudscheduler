@@ -432,8 +432,8 @@ def parameters_commands(gvar, obj, action, group, server_user, parameters, requi
     '''
     Execute commands with missing parameters and bad parameters.
     The structure of `parameters` is similar to parameters_requests's `parameters`, with two exceptions:
-        Parameter names should be given in the form they are given to the CLI, e.g. '-an' or '--alias-name' (not 'alias_name').
-        'array_field' is ignored, because the CLI does not send multiple values for a parameter unless the server expects this.
+        0. Parameter names should be given in the form they are given to the CLI, e.g. '-an' or '--alias-name' (not 'alias_name').
+        1. 'array_field' is ignored, because the CLI does not send multiple values for a parameter unless the server expects this.
     requires_confirmation (bool) indicates whether the command asks for confirmation from the user before acting. If True, `--yes` will be passed with all commands except for one, which will check that a confirmation message is printed.
     The number of tests executed can be calculated as the sum of the number of mandatory parameters and the total number of test cases, plus one if `requires_confirmation`.
     There is no way to specify parameters that do not take values (like `--rotate` for tables), so these must be tested separately.
