@@ -1,4 +1,4 @@
-from unit_test_common import execute_csv2_request, initialize_csv2_request, ut_id, generate_secret, condor_setup, condor_error, _requests
+from unit_test_common import execute_csv2_request, initialize_csv2_request, ut_id, condor_setup, condor_error, _requests
 from sys import argv
 import subprocess
 from time import sleep
@@ -52,32 +52,31 @@ def main(gvar):
     )
 
     job_path = 'db_job.sh'
-    # If condor_setup encounters an error, it reports it and returns None.
-    server_address = condor_setup(gvar)
-    if server_address:
-        # Change group in job to be submitted
-        try:
-            with open(job_path) as job_file:
-                job_lines = job_file.readlines()
-        except FileNotFoundError:
-            condor_error(gvar, 'job file {} not found'.format(job_path))
-            return
-        for i, line in enumerate(job_lines):
-            if line.startswith('Requirements'):
-                job_lines[i] = 'Requirements = group_name =?= "{}" && TARGET.Arch == "x86_64"\n'.format(ut_id(gvar, 'dtg1'))
-                break
-        with open(job_path, 'w') as job_file:
-            job_file.writelines(job_lines)
-        # Submit a job for /job/list/ to the unit-test server using condor
-        if subprocess.run(['condor_submit', job_path, '-name', server_address, '-pool', server_address], stdout=subprocess.DEVNULL).returncode != 0:
-            condor_error(gvar, 'condor_submit failed')
-            return
-        # We need to wait a while for the job to be added to the database
-        config_list = _requests(gvar, '/server/config', group=ut_id(gvar, 'dtg1'))['config_list']
-        sleep_interval = next(int(row['config_value']) for row in config_list if row['category'] == 'condor_poller.py' and row['config_key'] == 'sleep_interval_job')
-        we_wait = round(sleep_interval * 1.8)
-        print('Waiting {} seconds for the submitted job to be added to the database.'.format(we_wait))
-        sleep(we_wait)
+    # If condor_setup encounters an error, it reports it.
+    condor_setup(gvar)
+    # Change group in job to be submitted
+    try:
+        with open(job_path) as job_file:
+            job_lines = job_file.readlines()
+    except FileNotFoundError:
+        condor_error(gvar, 'job file {} not found'.format(job_path))
+        return
+    for i, line in enumerate(job_lines):
+        if line.startswith('Requirements'):
+            job_lines[i] = 'Requirements = group_name =?= "{}" && TARGET.Arch == "x86_64"\n'.format(ut_id(gvar, 'dtg1'))
+            break
+    with open(job_path, 'w') as job_file:
+        job_file.writelines(job_lines)
+    # Submit a job for /job/list/ to the unit-test server using condor
+    if subprocess.run(['condor_submit', job_path, '-name', gvar['fqdn'], '-pool', gvar['fqdn']], stdout=subprocess.DEVNULL).returncode != 0:
+        condor_error(gvar, 'condor_submit failed')
+        return
+    # We need to wait a while for the job to be added to the database
+    config_list = _requests(gvar, '/server/config', group=ut_id(gvar, 'dtg1'))['config_list']
+    sleep_interval = next(int(row['config_value']) for row in config_list if row['category'] == 'condor_poller.py' and row['config_key'] == 'sleep_interval_job')
+    we_wait = round(sleep_interval * 1.8)
+    print('Waiting {} seconds for the submitted job to be added to the database.'.format(we_wait))
+    sleep(we_wait)
     
 if __name__ == "__main__":
     main(initialize_csv2_request(selections=argv[1] if len(argv) > 1 else ''))

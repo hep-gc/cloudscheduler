@@ -3,7 +3,7 @@
 Unit tests.
 """
 
-from unit_test_common import execute_csv2_request, initialize_csv2_request, ut_id, generate_secret
+from unit_test_common import execute_csv2_request, initialize_csv2_request, ut_id
 from sys import argv
 
 import user_requests_cleanup

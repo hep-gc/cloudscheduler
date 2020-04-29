@@ -912,13 +912,6 @@ def condor_setup(gvar):
     for requirement in {'condor_submit', 'condor_rm'}:
         if subprocess.run(['which', requirement], stdout=subprocess.DEVNULL).returncode != 0:
             condor_error(gvar, '{} is not installed'.format(requirement))
-            return
-
-    if gvar['user_settings']['server-address'].startswith('http'):
-        return re.match(r'https?://(.*)', gvar['user_settings']['server-address'])[1]
-    else:
-        condor_error(gvar, 'the server address in {} is \'{}\', which does not start with \'http\''.format(os.path.expanduser('~/.csv2/unit-test/settings.yaml'), gvar['user_settings']['server-address']))
-        return
 
 def condor_error(gvar, err):
     '''Used only by database tests.'''

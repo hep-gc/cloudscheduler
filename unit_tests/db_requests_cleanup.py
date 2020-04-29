@@ -4,12 +4,10 @@ import subprocess
 
 def main(gvar):
     
-    server_address = condor_setup(gvar)
-    if not server_address:
-        return
+    condor_setup(gvar)
     # Remove all jobs submitted by the test runner.
     # The return code is not checked because condor gives an error if there are no jobs to remove (and cleanup should not fail if run twice in a row).
-    subprocess.run(['condor_rm', gvar['user_settings']['server-user'], '-name', server_address, '-pool', server_address], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    subprocess.run(['condor_rm', gvar['user_settings']['server-user'], '-name', gvar['fqdn'], '-pool', gvar['fqdn']], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
     # 01
     execute_csv2_request(
