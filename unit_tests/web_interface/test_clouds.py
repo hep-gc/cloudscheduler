@@ -127,6 +127,17 @@ class TestClouds(unittest.TestCase):
         self.select_cloud_tab(self.cloud_to_update, 0)
         # Look for forms with name equal to cloud_to_update within elements with id equal to cloud_to_update which are themselves in elements of class 'menu'.
         form_xpath = '//*[@class="menu"]//*[@id="{0}"]//form[@name="{0}"]'.format(self.cloud_to_update)
+        # Verify that security groups appear.
+        form = wc.assert_one(self.driver, self.fail, (By.XPATH, form_xpath))
+        security_group_select = wc.assert_one(form, self.fail, (By.TAG_NAME, 'select'), {'id': 'rightValues-{}'.format(self.cloud_to_update)})
+        self.assertTrue(security_group_select.find_elements(By.TAG_NAME, 'option'))
+        # Verify that core and ram limits appear.
+        # Find a <td> that has an <input name='cores_ctl'> inside it.
+        cores_cell = wc.assert_one(form, self.fail, (By.XPATH, './/td[input/@name="cores_ctl"]'))
+        self.assertRegex(cores_cell.text, r'/ \d+')
+        ram_cell = wc.assert_one(form, self.fail, (By.XPATH, './/td[input/@name="ram_ctl"]'))
+        self.assertRegex(ram_cell.text, r'/ \d+ [KMG]B')
+        # Submit parameter combinations.
         wc.submit_invalid_combinations(self.driver, self.fail, form_xpath, self.cloud_update_invalid_combinations, max_wait=self.max_wait)
         wc.submit_valid_combinations(self.driver, self.fail, form_xpath, self.cloud_update_valid_combinations, max_wait=self.max_wait, expected_response='successfully updated', retains_values=True)
         self.assert_cloud_types(form_xpath)
@@ -136,7 +147,7 @@ class TestClouds(unittest.TestCase):
         self.assert_amazon_popup('Image filter', EXPECTED_IMAGE_FILTER_INPUTS)
         self.assert_amazon_popup('Flavor filter', EXPECTED_FLAVOR_FILTER_INPUTS)
 
-    def test_exclusions_metadata(self):
+    def test_metadata_exclusions(self):
         '''Test cloud_to_update -> Exclusions -> Default metadata.'''
         exclusions_tab = self.select_cloud_tab(self.cloud_to_update, 2)
         # Look within elements of class 'tab' for an element of class 'tab2' that has within it a label with the text 'Default metadata'.
@@ -146,7 +157,7 @@ class TestClouds(unittest.TestCase):
         # metadata_name.1 == default.yaml.j2; metadata_name.2 == metadata_to_list
         wc.submit_form(self.driver, self.fail, form_xpath, {'metadata_name.1': False, 'metadata_name.2': True}, expected_response='cloud "{}::{}" successfully updated.'.format(self.active_group, self.cloud_to_update), retains_values=True)
 
-    def test_exclusions_flavors(self):
+    def test_flavor_exclusions(self):
         '''Test cloud_to_update -> Exclusions -> Default flavors.'''
         exclusions_tab = self.select_cloud_tab(self.cloud_to_update, 2)
         # Look within elements of class 'tab' for an element of class 'tab2' that has within it a label with the text 'Default flavors'.

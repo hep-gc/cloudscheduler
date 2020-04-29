@@ -174,7 +174,7 @@ def submit_form(driver, error_reporter, form_xpath, data, max_wait=DEFAULT_MAX_W
             if new_data[parameter] != old_value:
                 error_reporter('Expected {} to be retained for the parameter \'{}\', but found {}.'.format(old_value, parameter, new_data[parameter]))
 
-def get_data_from_form(driver, error_reporter, form_xpath):
+def get_data_from_form(driver, error_reporter, form_xpath, max_wait=DEFAULT_MAX_WAIT):
     '''
     Retrieve the data currently in an HTML form.
     driver (selenium.webdriver.support.wait.WebDriverWait): A WebDriverWait for the driver that contains the form to retrieve data from.
@@ -185,6 +185,8 @@ def get_data_from_form(driver, error_reporter, form_xpath):
 
     form = assert_one(driver, error_reporter, (By.XPATH, form_xpath))
     data = {}
+    # Many forms only have one type of entry, and Selenium implicitly waits for each type of entry, so we temporarily decrease the wait time.
+    driver.implicitly_wait(0.1)
     for input_ in form.find_elements(By.TAG_NAME, 'input'):
         input_type = input_.get_attribute('type')
         input_name = input_.get_attribute('name')
@@ -222,6 +224,7 @@ def get_data_from_form(driver, error_reporter, form_xpath):
         else:
             # Assume it is an ace_editor, which are tricky.
             data[textarea_name] = assert_one(form, error_reporter, (By.CLASS_NAME, 'ace_text-layer')).text
+    driver.implicitly_wait(max_wait)
 
     return data
 
