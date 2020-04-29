@@ -6,12 +6,6 @@ from sys import argv
 VM_LIST_COLUMNS = ['Group', 'Cloud', 'Hostname', 'VMID', 'IPs', 'Floating IPs', 'Authorization URL', 'Project', 'Status', 'Flavor ID', 'Task', 'Power Status', 'Start Time', 'HTCondor', 'STARTD Errors', 'STARTD Time', 'Primary Slots', 'Dynamic Slots', 'Slots Timestamp', 'Retire', 'Terminate', 'Last Updated', 'Flavor', 'Condor Slots', 'Foreign', 'Cores', 'Disk (GBs)', 'Ram (MBs)', 'Swap (GBs)', 'Poller Status', 'State Age', 'Manual Control']
 
 def main(gvar):
-    if not gvar:
-        gvar = {}
-        if len(argv) > 1:
-            initialize_csv2_request(gvar, selections=argv[1])
-        else:
-            initialize_csv2_request(gvar)
 
     # 01 - 13
     sanity_commands(gvar, 'vm')
@@ -79,4 +73,4 @@ def main(gvar):
     # Because of the way that Cloudscheduler works, VMs are not manually added, so this would be difficult to implement and has been left unimplemented for now.
 
 if __name__ == "__main__":
-    main(None)
+    main(initialize_csv2_request(selections=argv[1] if len(argv) > 1 else ''))

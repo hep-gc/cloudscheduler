@@ -6,12 +6,6 @@ from sys import argv
 SERVER_CONFIG_COLUMNS = ['Category', 'Config Key', 'Type', 'Value']
 
 def main(gvar):
-    if not gvar:
-        gvar = {}
-        if len(argv) > 1:
-            initialize_csv2_request(gvar, selections=argv[1])
-        else:
-            initialize_csv2_request(gvar)
 
     # These tests change certain configuration keys, then blindly assume what the keys' original values were and attempt to change them back.
     # These assumed original values should be checked before running if you want the values on the server to be preserved.
@@ -110,4 +104,4 @@ def main(gvar):
     )
 
 if __name__ == "__main__":
-    main(None)
+    main(initialize_csv2_request(selections=argv[1] if len(argv) > 1 else ''))

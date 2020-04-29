@@ -6,12 +6,6 @@ from sys import argv
 JOB_LIST_COLUMNS = ['Group', 'Job ID', 'Cluster ID', 'Process ID', 'User', 'User Data', 'Requirements', 'Target Alias', 'Cloud', 'Instance Type', 'Requested', 'CPUs', 'RAM {MBs}', 'Disk {GBs}', 'Swap (GBs)', 'Jobs per Core', 'Image', 'Network', 'Job', 'Priority', 'Status Code', 'Job Status Flags', 'Idle', 'Running', 'Completed', 'Held', 'Other', 'Keep Alive (seconds)', 'Max Spot Price', 'State Change Date', 'Queued Date', 'Held Job Reason']
 
 def main(gvar):
-    if not gvar:
-        gvar = {}
-        if len(argv) > 1:
-            initialize_csv2_request(gvar, selections=argv[1])
-        else:
-            initialize_csv2_request(gvar)
 
     # 01 - 13
     sanity_commands(gvar, 'job')
@@ -43,4 +37,4 @@ def main(gvar):
     )
 
 if __name__ == "__main__":
-    main(None)
+    main(initialize_csv2_request(selections=argv[1] if len(argv) > 1 else ''))

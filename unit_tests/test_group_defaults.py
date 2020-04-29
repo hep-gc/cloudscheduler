@@ -4,12 +4,6 @@ from sys import argv
 # lno: GV - error code identifier.
 
 def main(gvar):
-    if not gvar:
-        gvar = {}
-        if len(argv) > 1:
-            initialize_csv2_request(gvar, selections=argv[1])
-        else:
-            initialize_csv2_request(gvar)
 
     # 01 - 05
     sanity_requests(gvar, '/group/defaults/', ut_id(gvar, 'gtg4'), ut_id(gvar, 'gtu3'), ut_id(gvar, 'gtg7'), ut_id(gvar, 'gtu1'))
@@ -88,4 +82,4 @@ def main(gvar):
     )
 
 if __name__ == "__main__":
-    main(None)
+    main(initialize_csv2_request(selections=argv[1] if len(argv) > 1 else ''))

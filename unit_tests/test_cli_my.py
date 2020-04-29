@@ -6,12 +6,6 @@ from sys import argv
 MY_SETTINGS_COLUMNS = ['Username', 'Cert Common Name', 'Default Group', 'Status', 'Foreign VMs', 'Global Switch', 'Jobs by Target Alias', 'Refresh Interval', 'Slot Detail', 'Slot Flavors']
 
 def main(gvar):
-    if not gvar:
-        gvar = {}
-        if len(argv) > 1:
-            initialize_csv2_request(gvar, selections=argv[1])
-        else:
-            initialize_csv2_request(gvar)
 
     # 01 - 13
     sanity_commands(gvar, 'my')
@@ -113,4 +107,4 @@ def main(gvar):
     )
 
 if __name__ == '__main__':
-    main(None)
+    main(initialize_csv2_request(selections=argv[1] if len(argv) > 1 else ''))

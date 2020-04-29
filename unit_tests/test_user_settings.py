@@ -4,12 +4,6 @@ from sys import argv
 # lno: UV - error code identifier.
 
 def main(gvar):
-    if not gvar:
-        gvar = {}
-        if len(argv) > 1:
-            initialize_csv2_request(gvar, selections=argv[1])
-        else:
-            initialize_csv2_request(gvar)
     
     new_secret = generate_secret()
     
@@ -220,4 +214,4 @@ def main(gvar):
     )
 
 if __name__ == "__main__":
-    main(None)
+    main(initialize_csv2_request(selections=argv[1] if len(argv) > 1 else ''))

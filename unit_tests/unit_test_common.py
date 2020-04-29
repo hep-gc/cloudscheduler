@@ -6,7 +6,7 @@ def _caller():
         return os.path.basename(inspect.stack()[-4][1]).split('.')[0]
     return os.path.basename(inspect.stack()[-3][1]).split('.')[0]
 
-def _execute_selections(gvar, request, expected_text, expected_values):
+def _execute_selections(gvar):
     '''Tell execute_csv2_* whether or not it should run a particular test based on the user's selections.'''
     from unit_test_common import _caller
     
@@ -16,7 +16,6 @@ def _execute_selections(gvar, request, expected_text, expected_values):
         return True
     else:
         gvar['ut_skipped'] += 1
-        # print('%04d (%04d) %s Skipping: \'%s\', %s, %s' % (gvar['ut_count'][0], gvar['ut_count'][1], _caller(), request, repr(expected_text), expected_values))
         return False
    
 def execute_csv2_command(gvar, expected_rc, expected_modid, expected_text, cmd, expected_list=None, expected_columns=None, timeout=None):
@@ -31,7 +30,7 @@ def execute_csv2_command(gvar, expected_rc, expected_modid, expected_text, cmd, 
     from unit_test_common import _caller, _execute_selections
     import re
 
-    if _execute_selections(gvar, cmd, expected_text, None):
+    if _execute_selections(gvar):
 
         # Allow int and float values to be specified. (subprocess raises an exception if given ints or floats.)
         cmd = [str(c) for c in cmd]
@@ -141,7 +140,7 @@ def execute_csv2_request(gvar, expected_rc, expected_modid, expected_text, reque
     if server_user and server_pw == None and server_user != gvar['user_settings']['server-user']:
         server_pw = gvar['user_secret']
 
-    if _execute_selections(gvar, 'req=%s, group=%s, form=%s, query=%s' % (request, group, form_data, query_data), expected_text, values):
+    if _execute_selections(gvar):
         if server_user and server_pw:
             gvar['csrf'] = None
             gvar['cookies'] = None
@@ -613,9 +612,10 @@ def html_message(text):
         return False, re.sub(r'</?[a-z]{2}>', '', m.group(1).strip())
     return False, 'no message found'
 
-def initialize_csv2_request(gvar, selections=None, hidden=False):
+def initialize_csv2_request(selections='', hidden=False):
     '''Setup gvar before running unit tests.'''
 
+    gvar = {}
     gvar['active_server_user_group'] = {}
     gvar['command_args'] = {}
     gvar['cookies'] = None
@@ -627,8 +627,8 @@ def initialize_csv2_request(gvar, selections=None, hidden=False):
 
     if selections:
         gvar['selections'] = []
-        tmp_selections = selections.split(',')
-        for sel in tmp_selections:
+        selection_list = selections.split(',')
+        for sel in selection_list:
             bounds = sel.split('-')
             if len(bounds) == 2:
                 for i in range(int(bounds[0]), int(bounds[1]) + 1):
@@ -640,8 +640,10 @@ def initialize_csv2_request(gvar, selections=None, hidden=False):
 
     gvar.update(load_settings())
 
+    return gvar
+
 def load_settings(web=False):
-    '''web indicates whether web-interface-specific settings should be loaded.'''
+    '''`web` indicates whether web-interface-specific settings should be loaded.'''
     from getpass import getpass
     import os
     import re

@@ -7,12 +7,6 @@ from sys import argv
 CLOUD_JOB_COLUMNS = {'Group', 'Jobs', 'Idle', 'Running', 'Completed', 'Other', 'Foreign', 'Status', 'HTCondor', 'Agent', 'HTCondor FQDN', 'Days Left on Certificates', 'Condor', 'Worker', 'Group', 'Cloud', 'Defaults', 'Enabled', 'Flavor', 'Image', 'Keep Alive', 'Communications', 'Up', 'Request Time', 'VMs', 'Quota', 'Total', 'Starting', 'Unregistered', 'idle', 'Running', 'Retiring', 'Manual', 'Error', 'Other', 'Cores', 'Quota', 'Limit', 'Setting', 'Idle', 'Used', 'RAM', 'Quota', 'Limit', 'Setting', 'Idle', 'Used', 'Condor Slots', 'Busy', 'Busy Cores', 'Idle Cores', 'Foreign', 'VMs', 'Cores', 'RAM'}
 
 def main(gvar):
-    if not gvar:
-        gvar = {}
-        if len(argv) > 1:
-            initialize_csv2_request(gvar, selections=argv[1])
-        else:
-            initialize_csv2_request(gvar)
 
     # 01 - 14
     sanity_commands(gvar, 'cloud', 'status')
@@ -57,4 +51,4 @@ def main(gvar):
     )
 
 if __name__ == "__main__":
-    main(None)
+    main(initialize_csv2_request(selections=argv[1] if len(argv) > 1 else ''))
