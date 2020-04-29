@@ -70,7 +70,7 @@ def main(gvar):
     )
 
     # We check that values are as expected here so that the setup will fail and we won't change anything if there are settings that we won't be able to revert to their original values.
-    # If you change the values below, you should also change them at the end of server_config.
+    # If you change the values below, you should also change them at the end of test_server_config.
     # 11 Confirm log_file.
     execute_csv2_request(
         gvar, 0, None, None,

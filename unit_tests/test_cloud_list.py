@@ -25,7 +25,7 @@ def main(gvar):
             'project': gvar['cloud_credentials']['project'],
             'region': gvar['cloud_credentials']['region'],
             'cloud_type': 'openstack',
-            'cloud_priority': 0,
+            'cloud_priority': 3,
             'cacertificate': None,
             'user_domain_name': 'Default',
             'project_domain_name': 'Default',

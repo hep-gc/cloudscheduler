@@ -3,11 +3,6 @@ from sys import argv
 
 # lno: CV - error code identifier.
 
-# Filepath of a file containing valid YAML metadata.
-METADATA_FILEPATH = 'ut.yaml'
-# Filepath of a file containing text that cannot be parsed as YAML.
-INVALID_YAML_FILEPATH = 'notyamlfile.txt'
-
 def main(gvar):
     if not gvar:
         gvar = {}
@@ -43,7 +38,7 @@ def main(gvar):
             'metadata-name-that-is-too-long-for-the-database_______________________': 'Data too long for column \'metadata_name\''
         }, 'mandatory': True},
         # 25 Omit --file-path.
-        '--file-path': {'valid': METADATA_FILEPATH, 'test_cases': {
+        '--file-path': {'valid': gvar['metadata_yaml_path'], 'test_cases': {
             # 26
             '': 'The specified metadata file "" does not exist.',
             # 27
@@ -68,19 +63,19 @@ def main(gvar):
     # 32 Attempt to give text not parsable as YAML as YAML metadata.
     execute_csv2_command(
         gvar, 1, 'CV', 'value specified for "metadata (metadata_name)" is invalid - scanner error',
-        ['cloud', 'metadata-load', '-cn', ut_id(gvar, 'clc2'), '-f', INVALID_YAML_FILEPATH, '-mn', 'invalid-unit-test.yaml', '-su', ut_id(gvar, 'clu3')]
+        ['cloud', 'metadata-load', '-cn', ut_id(gvar, 'clc2'), '-f', gvar['metadata_path'], '-mn', 'invalid-unit-test.yaml', '-su', ut_id(gvar, 'clu3')]
     )
 
     # 33 Properly add non-YAML metadata.
     execute_csv2_command(
         gvar, 0, None, 'file "{}::{}::{}" successfully added.'.format(ut_id(gvar, 'clg1'), ut_id(gvar, 'clc2'), ut_id(gvar, 'clm10')),
-        ['cloud', 'metadata-load', '-cn', ut_id(gvar, 'clc2'), '-f', INVALID_YAML_FILEPATH, '-mn', ut_id(gvar, 'clm10'), '-su', ut_id(gvar, 'clu3')]
+        ['cloud', 'metadata-load', '-cn', ut_id(gvar, 'clc2'), '-f', gvar['metadata_path'], '-mn', ut_id(gvar, 'clm10'), '-su', ut_id(gvar, 'clu3')]
     )
 
     # 34 Properly add YAML metadata.
     execute_csv2_command(
         gvar, 0, None, 'file "{}::{}::{}" successfully added.'.format(ut_id(gvar, 'clg1'), ut_id(gvar, 'clc2'), ut_id(gvar, 'clm10.yaml')),
-        ['cloud', 'metadata-load', '-cn', ut_id(gvar, 'clc2'), '-f', 'ut.yaml', '-mn', ut_id(gvar, 'clm10.yaml'), '-su', ut_id(gvar, 'clu3')]
+        ['cloud', 'metadata-load', '-cn', ut_id(gvar, 'clc2'), '-f', gvar['metadata_yaml_path'], '-mn', ut_id(gvar, 'clm10.yaml'), '-su', ut_id(gvar, 'clu3')]
     )
 
 if __name__ == "__main__":

@@ -1,0 +1,12 @@
+[Unit]
+Description=Polls the status tables of cloudscheduler and writes to influxdb
+After=network.target
+
+[Service]
+Type=simple
+User=cloudscheduler
+ExecStart=/usr/bin/python3 /opt/cloudscheduler/data_collectors/general/timeseriesPoller.py
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

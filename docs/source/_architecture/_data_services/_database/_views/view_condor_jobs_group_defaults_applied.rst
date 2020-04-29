@@ -46,13 +46,8 @@ Columns:
 
       The CSV2 name of the group that owns the job.
 
-* **target_clouds** (String):
+* **target_alias** (String(32)):
 
-      Is the group assigned short name of the cloud that the job
-      is to be run on. This job specification was used for development
-      and testing purposes and has been deprecated. If you would like specific
-      jobs to run on a subset of the clouds that you have
-      defined within you group, you should use the "target_alias" job specification.
 
 * **job_status** (Integer):
 
@@ -147,7 +142,7 @@ Columns:
       This field is used by CSV2 to cause a job to be
       held and will contain a string indicating CSV2's reason for the action.
 
-* **held_reason** (String(128)):
+* **held_reason** (String(512)):
 
       if a job has been held by CSV2, this field will maintain
       the the reason CSV2 took that action.

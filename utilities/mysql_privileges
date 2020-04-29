@@ -1,0 +1,357 @@
+#!/usr/bin/env python3
+from cloudscheduler.lib.db_config_na import Config
+from subprocess import Popen, PIPE
+import sys
+import os
+import yaml
+
+SYNOPSIS = 'Synopsis: mysql_privileges [ <db_user>,<db_pw ] <blank_seperated_python_module_list>'
+
+functions = [
+    {'name': 'mysql_privileges_map_table_to_variables', 'tix': 'DEF', 'alchemy': False},
+    {'name': 'signal_functions', 'tix': 'SIG', 'alchemy': False},
+    {'name': 'inventory_obsolete_database_item_delete(', 'tix': 5, 'mode': 'delete', 'alchemy': False},
+    {'name': '.db_delete(', 'tix': 0, 'mode': 'delete', 'alchemy': False},
+    {'name': '.db_execute(', 'tix': 'SQL', 'alchemy': False},
+    {'name': '.db_insert(', 'tix': 0, 'mode': 'merge', 'alchemy': False},
+    {'name': '.db_merge(', 'tix': 0, 'mode': 'merge', 'alchemy': False},
+    {'name': '.db_query(', 'tix': 0, 'mode': 'query', 'alchemy': False},
+    {'name': '.db_update(', 'tix': 0, 'mode': 'merge', 'alchemy': False},
+    {'name': 'db_map', 'tix': 'MAP', 'alchemy': True},
+    {'name': 'delete_obsolete_database_items(', 'tix': 3, 'mode': 'delete', 'alchemy': True},
+    {'name': '.db_connection.delete(', 'tix': 0, 'mode': 'delete', 'alchemy': True},
+    {'name': '.db_connection.execute(', 'tix': 'SQL', 'alchemy': True},
+    {'name': '.db_connection.merge(', 'tix': 0, 'mode': 'merge', 'alchemy': True},
+    {'name': '.db_connection.query(', 'tix': 0, 'mode': 'query', 'alchemy': True},
+    {'name': '.db_session.delete(', 'tix': 0, 'mode': 'delete', 'alchemy': True},
+    {'name': '.db_session.execute(', 'tix': 'SQL', 'alchemy': True},
+    {'name': '.db_session.merge(', 'tix': 0, 'mode': 'merge', 'alchemy': True},
+    {'name': '.db_session.query(', 'tix': 0, 'mode': 'query', 'alchemy': True}
+    ]
+
+def strip_quotes(value):
+    return value.replace('"', '').replace("'", "").strip()
+
+def resolve_refs(handles):
+    resolved = {}
+    for line in lines:
+        for handle in handles:
+            if line.find('%s' % handle) > -1:
+                words = line.split()
+                if words[0] == 'for':
+                    new_handle = words[1]
+                else:
+                    new_handle = words[0]
+ 
+                if new_handle not in handles and new_handle not in resolved:
+                    resolved[new_handle] = handles[handle]
+
+    return resolved
+
+if len(sys.argv) < 2:
+    print(SYNOPSIS)
+    exit(0)
+
+words = sys.argv[1].split(',', 1)
+if len(words) < 2:
+    aix = 1
+else:
+    aix = 2
+    db_user = words[0]
+    db_pw = words[1]
+
+cmd_path = os.path.realpath(sys.argv[0]).split('/')
+cmd_path_ix = cmd_path.index('cloudscheduler')
+config_path = '%s/etc/mysql_privileges.yaml' % '/'.join(cmd_path[:cmd_path_ix+1])
+
+with open(config_path) as fd:
+    db_privileges = yaml.full_load(fd.read())
+
+config = Config('/etc/cloudscheduler/cloudscheduler.yaml', [], db_config_only=True)
+
+p1 = Popen(
+    [
+        'mysql',
+        '-u%s' % config.db_config['db_user'],
+        '-p%s' % config.db_config['db_password'],
+        '-h%s' % config.db_config['db_host'],
+        '-e',
+        'show tables;',
+        config.db_config['db_name']
+        ],
+    stdout=PIPE,
+    stderr=PIPE
+    )
+p2 = Popen(
+    [
+        'awk',
+        '!/^+/'
+        ],
+    stdin=p1.stdout,
+    stdout=PIPE,
+    stderr=PIPE
+    )
+stdout, stderr = p2.communicate()
+if p2.returncode != 0:
+    print('Failed to retrieve table list.')
+    exit(1)
+
+table_view_list = stdout[:-1].decode('ascii').split("\n")
+
+valid_tables = []
+for ix in range(1, len(table_view_list)):
+    words = table_view_list[ix].split()
+    if len(words) > 0 and words[0][:5] != 'view_':
+        valid_tables.append(words[0])
+
+valid_views = {}
+for ix in range(1, len(table_view_list)):
+    words = table_view_list[ix].split()
+    if len(words) > 0 and words[0][:5] == 'view_':
+        p1 = Popen(
+            [
+                '/opt/cloudscheduler/utilities/csview',
+                'map',
+                words[0]
+                ],
+            stdout=PIPE,
+            stderr=PIPE
+            )
+        p2 = Popen(
+            [
+                'awk',
+                '/\|/ && !/\* / && !/view_/'
+                ],
+            stdin=p1.stdout,
+            stdout=PIPE,
+            stderr=PIPE
+            )
+        stdout, stderr = p2.communicate()
+        if p2.returncode != 0:
+            print('Failed to retrieve table list.')
+            exit(1)
+
+        valid_views[words[0]] = []
+        for row in stdout[:-1].decode('ascii').split("\n"):
+            valid_views[words[0]].append(row.replace('|', '').strip())
+
+allowed = {}
+for table in db_privileges['block']:
+    if table not in allowed:
+        allowed[table] = []
+
+    p1 = Popen(
+        [
+            'mysql',
+            '-u%s' % config.db_config['db_user'],
+            '-p%s' % config.db_config['db_password'],
+            '-h%s' % config.db_config['db_host'],
+            '-e',
+            'show columns from %s;' % table,
+            config.db_config['db_name']
+            ],
+        stdout=PIPE,
+        stderr=PIPE
+        )
+    p2 = Popen(
+        [
+            'awk',
+            '!/^+/'
+            ],
+        stdin=p1.stdout,
+        stdout=PIPE,
+        stderr=PIPE
+        )
+    stdout, stderr = p2.communicate()
+    if p2.returncode != 0:
+        print('Failed to retrieve table columns.')
+        exit(1)
+
+    columns = stdout.decode('ascii').split("\n")
+    for ix in range(1, len(columns)):
+        words = columns[ix].split()
+        if len(words) > 0 and words[0] not in db_privileges['block'][table]:
+            allowed[table].append(words[0])
+
+
+tables = {}
+tables['csv2_configuration'] = {'query': True, 'merge': False, 'delete': False, 'privileges': []}
+tables['csv2_service_catalog'] = {'query': True, 'merge': False, 'delete': False, 'privileges': []}
+for ix in range(aix, len(sys.argv)):
+    realpath = os.path.realpath(sys.argv[ix])
+    if os.path.isfile(realpath):
+        try:
+            with open(realpath) as fd:
+               lines = fd.read().split('\n')
+        except:
+            continue
+
+        db_calls = []
+        handles = {}
+        lineno = 0
+        for line in lines:
+            lineno += 1
+            for function in functions:
+                words1 = line.split(function['name'])
+                if len(words1) > 1:
+                    if function['tix'] == 'SQL':
+                        words2 = words1[1][1:].split()
+                        if len(words2) > 2 and words2[0] ==  'delete':
+                            db_calls.append([strip_quotes(words2[2]), 'delete', function['alchemy'], realpath, lineno])
+
+                        if len(words2) > 2 and words2[0] ==  'insert':
+                            db_calls.append([strip_quotes(words2[2]), 'merge', function['alchemy'], realpath, lineno])
+
+                        if len(words2) > 1 and words2[0] ==  'update':
+                            db_calls.append([strip_quotes(words2[1]), 'merge', function['alchemy'], realpath, lineno])
+
+                        if len(words2) > 0 and words2[0] ==  'select':
+                            stix = words2.index('from')
+                            db_calls.append([strip_quotes(words2[stix+1].translate({ord(c): None for c in ';\'")'})), 'query', function['alchemy'], realpath, lineno])
+
+                    elif function['tix'] == 'DEF':
+                        words2 = words1[1].split()
+                        table = words2[0]
+                        for hix in range(1, len(words2)):
+                            handles[words2[hix]] = table
+
+                    elif function['tix'] == 'MAP':
+                        handle = line.split()
+                        table = line.split('.')
+                        handles[handle[0]] = table[-1]
+                        handles[table[-1]] = table[-1]
+
+                    elif function['tix'] == 'SIG':
+                        tables['csv2_signal_log'] = {'query': True, 'merge': True, 'delete': False, 'privileges': []}
+
+                    elif function['tix'] >= 0:
+                        words2 = words1[1].split(',')
+                        words3 = words2[function['tix']].split(')')
+                        db_calls.append([strip_quotes(words3[0]), function['mode'], function['alchemy'], realpath, lineno])
+
+                        if function['mode'] == 'query' and function['alchemy']:
+                            words2 = words1[1].replace(')', ',').split(',')
+                            handle = words2[0]
+
+                            words3 = line.split('=')
+                            words4 = words3[0].split()
+                            if len(words3) > 2 and len(words4[0]) > 0 and words4[0] != handle and handle in handles:
+                                handles[words4[0]] = handles[handle]
+
+        if len(handles) > 0:
+            print('SQLAlchemy object to table mappings:', file=sys.stderr)
+            for handle in sorted(handles):
+                print('    %s -> %s' % (handle, handles[handle]), file=sys.stderr)
+
+            print('', file=sys.stderr)
+
+        invalid_db_calls = 0
+        if len(db_calls) > 0:
+            print('Valid database call summary:', file=sys.stderr)
+            for db_call in db_calls:
+                if db_call[0] in handles:
+                    table = handles[db_call[0]]
+                else:
+                    table = db_call[0]
+
+                if (db_call[1] == 'query' and table in valid_tables + list(valid_views)) or table in valid_tables:
+                    if table not in tables:
+                        tables[table] = {'query': False, 'merge': False, 'delete': False, 'privileges': []}
+
+                    if db_call[1] == 'delete':
+                        tables[table]['delete'] = True
+
+                    if db_call[1] == 'merge':
+                        tables[table]['merge'] = True
+                      
+                    if db_call[1] == 'query':
+                        tables[table]['query'] = True
+                      
+                    if db_call[2]:
+                        print('    %-6s (SQLAlchemy) %s %s(%s)' % (db_call[1], table, db_call[3], db_call[4]), file=sys.stderr)
+                    else:
+                        print('    %-6s %s %s(%s)' % (db_call[1], table, db_call[3], db_call[4]), file=sys.stderr)
+
+                elif table in valid_views and db_call[1] == 'query':
+                    for backing_table in valid_views[table]:
+                        if backing_table not in tables:
+                            tables[backing_table] = {'query': True, 'merge': False, 'delete': False, 'privileges': []}
+                        else:
+                            tables[backing_table]['query'] = True
+
+                    if db_call[2]:
+                        print('    %-6s (SQLAlchemy) %s' % (db_call[1], table), file=sys.stderr)
+                    else:
+                        print('    %-6s %s' % (db_call[1], table), file=sys.stderr)
+
+                else:
+                    invalid_db_calls += 1
+
+            print('', file=sys.stderr)
+
+            if invalid_db_calls > 0:
+                print('Invalid database call summary (not in valid table and views list):', file=sys.stderr)
+                for db_call in db_calls:
+                    if db_call[0] in handles:
+                        table = handles[db_call[0]]
+                    else:
+                        table = db_call[0]
+
+
+                    if not ((db_call[1] == 'query' and table in valid_tables + list(valid_views)) or table in valid_tables):
+                        if db_call[2]:
+                            print('    %-6s (SQLAlchemy) %s %s(%s)' % (db_call[1], table, db_call[3], db_call[4]), file=sys.stderr)
+                        else:
+                            print('    %-6s %s %s(%s)' % (db_call[1], table, db_call[3], db_call[4]), file=sys.stderr)
+
+                print('', file=sys.stderr)
+                     
+if aix < 2:
+    db_user = 'NO_USER_SPECIFIED'
+    db_pw = 'NO_PASSWORD_SPECIFIED'
+
+privileges = []
+privileges.append('create user if not exists "%s"@"%%" identified by "%s"' % (db_user, db_pw))
+
+print('Privileges summary:', file=sys.stderr)
+for table in sorted(tables):
+    table_privileges = [[], []]
+    if tables[table]['delete']:
+        table_privileges[0].append('DELETE')
+        table_privileges[1].append('DELETE')
+
+    if tables[table]['merge']:
+        table_privileges[0].append('INSERT')
+        if table in allowed:
+            table_privileges[1].append('INSERT(%s)' % ','.join(allowed[table]))
+        else:
+            table_privileges[1].append('INSERT')
+
+    if tables[table]['merge']:
+        table_privileges[0].append('UPDATE')
+        if table in allowed:
+            table_privileges[1].append('UPDATE(%s)' % ','.join(allowed[table]))
+        else:
+            table_privileges[1].append('UPDATE')
+
+    if tables[table]['query']:
+        table_privileges[0].append('SELECT')
+        if table in allowed:
+            table_privileges[1].append('SELECT(%s)' % ','.join(allowed[table]))
+        else:
+            table_privileges[1].append('SELECT')
+
+    if len(table_privileges[1]) > 0:
+        privileges.append('grant %s on %s to "%s"@"%%";' % (', '.join(sorted(table_privileges[1])), table, db_user))
+
+    if table in db_privileges['block']:
+        print("    %-32s %s, *** EXCEPT ***: %s" % (','.join(sorted(table_privileges[0])), table, ', '.join(db_privileges['block'][table])), file=sys.stderr)
+    else:
+        print("    %-32s %s" % (','.join(sorted(table_privileges[0])), table), file=sys.stderr)
+
+print('', file=sys.stderr)
+
+if aix > 1:
+    for privilege in privileges:
+        print(privilege)
+

@@ -15,22 +15,44 @@ def assert_one(parent, error_reporter, identifier, attributes=None, missing_mess
     if not attributes:
         attributes = {}
     default_message = 'Expected 1 element with identifier {} and attributes {}, but found {}'
-    matching_elems = []
 
     candidates = parent.find_elements(*identifier)
-    if not candidates:
+    if not candidates and attributes:
         error_reporter('Did not find any elements matching the identifier {} (before considering any attributes).'.format(identifier))
     else:
+        matching_elems = set()
         for elem in candidates:
-            if all(elem.get_attribute(att_name) == att_value for att_name, att_value in attributes.items()):
-                matching_elems.append(elem)
+            for name, value in attributes.items():
+                # Some attribute names, most of which are constants from selenium.webdriver.common.by.By, are handled in special ways.
+                if name == 'link text':
+                    if elem.get_attribute('href') != value:
+                        break
+                elif name == 'partial link text':
+                    if value not in elem.get_attribute('href'):
+                        break
+                elif name == 'tag name':
+                    if elem.tag_name != value:
+                        break
+                elif name == 'class name':
+                    if elem.get_attribute('class') != value:
+                        break
+                elif name == 'text':
+                    if elem.text != value:
+                        break
+                elif elem.get_attribute(name) != value:
+                    break
+            # If the loop didn't break.
+            else:
+                matching_elems.add(elem)
 
-    if len(matching_elems) == 0:
-        error_reporter(missing_message if missing_message else default_message.format(identifier, attributes, 0))
-    elif len(matching_elems) == 1:
-        return matching_elems[0]
-    else:
-        error_reporter(multiple_message if multiple_message else default_message.format(identifier, attributes, len(matching_elems)))
+        if len(matching_elems) == 1:
+            return matching_elems.pop()
+        elif not matching_elems:
+            error_reporter(missing_message if missing_message else default_message.format(identifier, attributes, 0))
+        # len(matching_elems) > 1
+        else:
+            error_reporter(multiple_message if multiple_message else default_message.format(identifier, attributes, len(matching_elems)))
+
 
 def submit_valid_combinations(driver, error_reporter, form_xpath, valid_combinations, mandatory_parameters=None, max_wait=DEFAULT_MAX_WAIT, expected_response=None, click_before_filling=None, retains_values=False):
     '''
@@ -83,7 +105,10 @@ def submit_form(driver, error_reporter, form_xpath, data, max_wait=DEFAULT_MAX_W
     retains_values (bool): May be given as True to indicate that submitting the form will generate a response containing a form with the same name which contains all of the values just submitted. After submitting and waiting for the old form to become stale, wait for the new form to appear. Assert that all of the data given match the values in the new form (except for <input>s with type='password', which are ignored).
     Forms are allowed to be dynamic; i.e. fields are allowed to completely change in response to previous fields being filled out.
     '''
+    from selenium.common.exceptions import ElementNotInteractableException
+    from selenium.webdriver.common.action_chains import ActionChains
     from selenium.webdriver.common.by import By
+    from selenium.webdriver.common.keys import Keys
     from selenium.webdriver.support import expected_conditions as ec
     from selenium.webdriver.support.wait import WebDriverWait
     import re
@@ -113,6 +138,14 @@ def submit_form(driver, error_reporter, form_xpath, data, max_wait=DEFAULT_MAX_W
                         error_reporter('Unrecognized <input> type \'{}\' for parameter \'{}\'.'.format(input_type, parameter))
                 elif entry_tag_name == 'select':
                     assert_one(driver, error_reporter, (By.XPATH, '{}//select[@name="{}"]//option[text()="{}"]'.format(form_xpath, parameter, value)), missing_message='Option \'{}\' not found for parameter \'{}\'.'.format(value, parameter)).click()
+                elif entry_tag_name == 'textarea':
+                    try:
+                        entry.send_keys(value)
+                    except ElementNotInteractableException:
+                        # Assume it is an ace_editor, which are tricky.
+                        ace_input = assert_one(form, error_reporter, (By.CLASS_NAME, 'ace_editor'))
+                        # Clear any old value and enter the new value.
+                        ActionChains(driver).click(ace_input).key_down(Keys.CONTROL).send_keys('a').key_up(Keys.CONTROL).send_keys(Keys.DELETE + value).perform()
                 else:
                     error_reporter('Unrecognized tag name <{}> for parameter \'{}\'.'.format(entry_tag_name, parameter))
         # No entries were found.
@@ -120,28 +153,26 @@ def submit_form(driver, error_reporter, form_xpath, data, max_wait=DEFAULT_MAX_W
             error_reporter('Input for \'{}\' is missing.'.format(parameter))
 
     form.submit()
+    WebDriverWait(driver, max_wait).until(ec.staleness_of(form))
 
-    if expected_response or retains_values:
-        WebDriverWait(driver, max_wait).until(ec.staleness_of(form))
+    if expected_response:
+        actual_response = assert_one(driver, error_reporter, (By.ID, 'message')).text
+        if expected_response not in actual_response:
+            error_reporter('Expected a response containing \'{}\', but received \'{}\'.'.format(expected_response, actual_response))
 
-        if expected_response:
-            actual_response = assert_one(driver, error_reporter, (By.ID, 'message')).text
-            if expected_response not in actual_response:
-                error_reporter('Expected a response containing \'{}\', but received \'{}\'.'.format(expected_response, actual_response))
-
-        if retains_values:
-            new_data = get_data_from_form(driver, error_reporter, form_xpath)
-            # Iterating over the old values allows us to ignore values that were in the form but never specified in data.
-            for parameter, old_value in data.items():
-                # Allow values in parameters to be given as ints or floats but come back from the server as strs.
-                try:
-                    new_data[parameter] = float(new_data[parameter])
-                except KeyError:
-                    error_reporter('Expected the parameter \'{}\' to be retained, but the entry for it was missing.'.format(parameter))
-                except ValueError:
-                    pass
-                if new_data[parameter] != old_value:
-                    error_reporter('Expected {} to be retained for the parameter \'{}\', but found {}.'.format(old_value, parameter, new_data[parameter]))
+    if retains_values:
+        new_data = get_data_from_form(driver, error_reporter, form_xpath)
+        # Iterating over the old values allows us to ignore values that were in the form but never specified in data.
+        for parameter, old_value in data.items():
+            # Allow values in parameters to be given as ints or floats but come back from the server as strs.
+            try:
+                new_data[parameter] = float(new_data[parameter])
+            except KeyError:
+                error_reporter('Expected the parameter \'{}\' to be retained, but the entry for it was missing.'.format(parameter))
+            except ValueError:
+                pass
+            if new_data[parameter] != old_value:
+                error_reporter('Expected {} to be retained for the parameter \'{}\', but found {}.'.format(old_value, parameter, new_data[parameter]))
 
 def get_data_from_form(driver, error_reporter, form_xpath):
     '''
@@ -179,10 +210,18 @@ def get_data_from_form(driver, error_reporter, form_xpath):
         select_name = select.get_attribute('name')
         if select_name:
             try:
-                data[select_name] = next(filter(lambda option: option.is_selected(), select.find_elements(By.TAG_NAME, 'option'))).text
+                data[select_name] = next(option for option in select.find_elements(By.TAG_NAME, 'option') if option.is_selected()).text
             except StopIteration:
                 # WebDriver defaults to the first option if the HTML does not specify which is selected (at least for Firefox), so this should only occur if there are no options.
                 continue
+
+    for textarea in form.find_elements(By.TAG_NAME, 'textarea'):
+        textarea_name = textarea.get_attribute('name')
+        if textarea.is_displayed():
+            data[textarea_name] = textarea.text
+        else:
+            # Assume it is an ace_editor, which are tricky.
+            data[textarea_name] = assert_one(form, error_reporter, (By.CLASS_NAME, 'ace_text-layer')).text
 
     return data
 
@@ -210,147 +249,23 @@ def assert_nav(driver, error_reporter, address, privileged=False):
     if nav_links != expected_nav_links:
         error_reporter('Expected the top nav to contain the links {}, but found the links {}.'.format(expected_nav_links, nav_links))
 
-def setup(address_extension, privileged=False):
+def load_web_settings(address_extension, privileged=False):
     '''Load global settings and create test objects.'''
     import subprocess
     from cloudscheduler.unit_tests.unit_test_common import load_settings
 
     gvar = load_settings(web=True)
-    gvar['metadata_path'] = '../notyamlfile.txt'
-    gvar['metadata_yaml_path'] = '../ut.yaml'
-
-    if gvar['setup_required']:
-        cleanup(gvar)
-
-        server_credentials = ['-su', '{}-wiu1'.format(gvar['user']), '-spw', gvar['user_secret']]
-        # To avoid repeating all of this a few times. Only missing mandatory parameter is --cloud-name.
-        cloud_template = ['cloud', 'add',
-            *server_credentials,
-            '-ca', gvar['cloud_credentials']['authurl'],
-            '-cU', gvar['cloud_credentials']['username'],
-            '-cpw', gvar['cloud_credentials']['password'],
-            '-cP', gvar['cloud_credentials']['project'],
-            '-cr', gvar['cloud_credentials']['region'],
-            '-ct', 'openstack'
-        ]
-
-        setup_commands = [
-            # The active group most of the time.
-            ['group', 'add', '-gn', '{}-wig1'.format(gvar['user']), '-htcf', gvar['fqdn']],
-            # Group with no users.
-            ['group', 'add', '-gn', '{}-wig2'.format(gvar['user']), '-htcf', gvar['fqdn']],
-            # Group to be deleted.
-            ['group', 'add', '-gn', '{}-wig3'.format(gvar['user']), '-htcf', gvar['fqdn']],
-            # Group to be updated.
-            ['group', 'add', '-gn', '{}-wig4'.format(gvar['user']), '-htcf', gvar['fqdn'],
-                '--htcondor-container-hostname', 'unit-test.ca',
-                '--htcondor-users', '{}-wiu1'.format(gvar['user']),
-                '--job-cores', '3',
-                '--job-disk', '1',
-                '--job-ram', '4',
-                '--job-swap', '1'],
-            # User used to perform most actions not requiring privileges.
-            ['user', 'add', '-un', '{}-wiu1'.format(gvar['user']), '-upw', gvar['user_secret'],
-                '--group-name', '{}-wig1'.format(gvar['user'])],
-            # User used to perform most actions requiring privileges.
-            ['user', 'add', '-un', '{}-wiu2'.format(gvar['user']), '-upw', gvar['user_secret'],
-                '--group-name', '{}-wig1'.format(gvar['user']),
-                '--super-user', 'True'],
-            # User who is not in any groups.
-            ['user', 'add', '-un', '{}-wiu3'.format(gvar['user']), '-upw', gvar['user_secret']],
-            # User to be deleted.
-            ['user', 'add', '-un', '{}-wiu4'.format(gvar['user']), '-upw', gvar['user_secret'],
-                '--group-name', '{}-wig1'.format(gvar['user'])],
-            # User to be updated.
-            ['user', 'add', '-un', '{}-wiu5'.format(gvar['user']), '-upw', gvar['user_secret'],
-                '--group-name', '{}-wig1'.format(gvar['user']),
-                '--user-common-name', '{} user 5'.format(gvar['user'])],
-            # Cloud that should always exist to create aliases for.
-            cloud_template + ['-cn', '{}-wic1'.format(gvar['user'])],
-            # Cloud to be deleted.
-            cloud_template + ['-cn', '{}-wic2'.format(gvar['user'])],
-            # Cloud to be updated.
-            cloud_template + ['-cn', '{}-wic3'.format(gvar['user'])],
-            # Alias that should always exist.
-            ['alias', 'add', *server_credentials, '-an', '{}-wia1'.format(gvar['user']), '-cn', '{}-wic1'.format(gvar['user'])],
-            # Alias to be updated and deleted.
-            ['alias', 'add', *server_credentials, '-an', '{}-wia2'.format(gvar['user']), '-cn', '{}-wic1'.format(gvar['user'])],
-            # Cloud metadata that should always exist.
-            ['cloud', 'metadata-load', *server_credentials, '-mn', '{}-wicm1'.format(gvar['user']), '-cn', '{}-wic3'.format(gvar['user']), '-f', gvar['metadata_path']],
-            # Cloud metadata to be deleted.
-            ['cloud', 'metadata-load', *server_credentials, '-mn', '{}-wicm2'.format(gvar['user']), '-cn', '{}-wic3'.format(gvar['user']), '-f', gvar['metadata_path']],
-            # Cloud metadata to be updated.
-            ['cloud', 'metadata-load', *server_credentials, '-mn', '{}-wicm3'.format(gvar['user']), '-cn', '{}-wic3'.format(gvar['user']), '-f', gvar['metadata_path']],
-            # Cloud YAML metadata to be updated.
-            ['cloud', 'metadata-load', *server_credentials, '-mn', '{}-wicm3'.format(gvar['user']), '-cn', '{}-wic3'.format(gvar['user']), '-f', gvar['metadata_yaml_path']],
-            # Group metadata that should always exist.
-            ['metadata', 'load', *server_credentials, '-mn', '{}-wigm1'.format(gvar['user']), '-f', gvar['metadata_path']],
-            # Group metadata to be deleted.
-            ['metadata', 'load', *server_credentials, '-mn', '{}-wigm2'.format(gvar['user']), '-f', gvar['metadata_path']],
-            # Group metadata to be updated.
-            ['metadata', 'load', *server_credentials, '-mn', '{}-wigm3'.format(gvar['user']), '-f', gvar['metadata_path']]
-        ]
-
-        print('Creating test objects. Run `util.py -c` later to remove them.')
-        for command in setup_commands:
-            try:
-                process = subprocess.run(['cloudscheduler', *command, '-s', 'unit-test'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True)
-                print('.', end='', flush=True)
-            except subprocess.CalledProcessError as err:
-                raise Exception('Error setting up tests.\ncmd={}\nstderr={}\nstdout={}'.format(format_command(err.cmd), err.stderr, err.stdout))
-        print()
-        set_setup_required(False)
-
     switch_user(gvar, address_extension, 1 if privileged else 0)
-
     return gvar
-
-def cleanup(gvar):
-    '''Delete all the test objects created by setup().'''
-    import subprocess
-
-    cleanup_commands = [['group', 'delete', '-gn', '{}-wig{}'.format(gvar['user'], i), '-Y'] for i in range(1, 5)]
-    cleanup_commands.extend([['user', 'delete', '-un', '{}-wiu{}'.format(gvar['user'], j), '-Y'] for j in range(1, 6)])
-
-    set_setup_required(True)
-
-    print('Removing test objects.')
-    for command in cleanup_commands:
-        process = subprocess.run(['cloudscheduler', *command, '-s', 'unit-test'], stdout=subprocess.PIPE, stderr=subprocess.DEVNULL)
-        print('.', end='', flush=True)
-        # We want to know if the server returns an unexpected HTTP status code, but not if it failed just because the object did not exist.
-        if process.returncode > 1:
-            raise Exception('Error cleaning up tests.\ncmd={}\nstderr={}\nstdout={}'.format(format_command(command), process.stderr, process.stdout))
-    print()
-
-def set_setup_required(set_to=True):
-    import os.path
-    import yaml
-    from cloudscheduler.unit_tests.unit_test_common import load_settings
-
-    credentials_path = os.path.expanduser('~/cloudscheduler/unit_tests/credentials.yaml')
-    try:
-        with open(credentials_path) as credentials_file:
-            settings = yaml.safe_load(credentials_file)
-    except FileNotFoundError:
-        load_settings(web=True)
-        with open(credentials_path) as credentials_file:
-            settings = yaml.safe_load(credentials_file)
-    except yaml.YAMLError as err:
-        print('YAML encountered an error while parsing {}: {}'.format(credentials_path, err))
-    
-    settings['web']['setup_required'] = set_to
-
-    with open(credentials_path, 'w') as credentials_file:
-        credentials_file.write(yaml.safe_dump(settings))
 
 def switch_user(gvar, address_extension, profile_index):
     '''
     Switch to a different Firefox profile, and therefore a different user.
-    profile_index (int): The zero-indexed index of the profile in gvar['firefox_profiles'] to switch to.
+    profile_index (int): The index (starting from 0) of the profile in gvar['firefox_profiles'] to switch to.
     '''
     from selenium import webdriver
     from selenium.common.exceptions import WebDriverException
+    from selenium.webdriver.support.wait import WebDriverWait
     import os.path
 
     old_driver = gvar.get('driver')
@@ -360,20 +275,15 @@ def switch_user(gvar, address_extension, profile_index):
     # ~/cloudscheduler/unit_tests must exist because we have already loaded settings from the credentials file there.
     gvar['driver'] = webdriver.Firefox(webdriver.FirefoxProfile(gvar['firefox_profiles'][profile_index]), service_log_path=os.path.expanduser('~/cloudscheduler/unit_tests/geckodriver.log'))
     try:
-        # The internet says that driver.get() should automatically wait for the page to be loaded, but it does not seem to.
         gvar['driver'].implicitly_wait(gvar['max_wait'])
+        gvar['driver_wait'] = WebDriverWait(gvar['driver'], gvar['max_wait'])
+        # The internet says that driver.get() should automatically wait for the page to be loaded, but it does not seem to.
         gvar['driver'].get(gvar['address'] + address_extension)
         # The Firefox profile will automatically fill in the server credentials, so we just accept the prompt.
         gvar['driver'].switch_to.alert.accept()
     except WebDriverException:
         gvar['driver'].quit()
         raise
-
-def format_command(command):
-    '''Format a list of parameters so that when the formatted string is printed it can be copy-pasted to re-run the command.'''
-    import re
-
-    return ' '.join((word if re.fullmatch(r'[\w\-\.]+', word) else '\'{}\''.format(word) for word in command))
 
 def get_open_tag(element):
    '''Return the opening tag of an element (including all of the attributes defined in it).'''

@@ -1,7 +1,0 @@
-.TP
-\fB\-htcu\fI comma-separated-list-of-users\fR, \fB\-\-htcondor-other-submitters \fIcomma-separated-list-of-users\fR
-Specifies a list of users in addition to group members that are allowed to submit jobs to your HTCondor job queue.
-When scanning job queues, cloudscheduler version 2 (csv2) will only select jobs whose requiments specify
-a csv2 group and whose owners are associated with corresponding csv2 groups. All other jobs will be ignored.
-This option allows the addition of users who have submit but no other csv2 privileges.
-

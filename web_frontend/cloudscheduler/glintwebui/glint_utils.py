@@ -14,7 +14,7 @@ import glanceclient
 
 
 from cloudscheduler.lib.db_config import Config
-config = Config('/etc/cloudscheduler/cloudscheduler.yaml', ['general', 'openstackPoller.py', 'web_frontend'], pool_size=2, max_overflow=10, refreshable=True)
+config = Config('/etc/cloudscheduler/cloudscheduler.yaml', ['general', 'openstackPoller.py', 'web_frontend'], pool_size=2, max_overflow=10)
 ALPHABET = string.ascii_letters + string.digits + string.punctuation
 
 def get_nova_client(session, region=None):

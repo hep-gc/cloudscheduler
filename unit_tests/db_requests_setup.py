@@ -44,6 +44,7 @@ def main(gvar):
             'password2': gvar['user_secret'],
             'cert_cn': '{} test user one'.format(ut_id(gvar, 'database')),
             'group_name.1': ut_id(gvar, 'dtg1')
+
         }
     )
 
@@ -81,7 +82,7 @@ def main(gvar):
             return
         # We need to wait a while for the job to be added to the database
         config_list = _requests(gvar, '/server/config', group=ut_id(gvar, 'dtg1'))['config_list']
-        sleep_interval = next(int(d['config_value']) for d in config_list if d['category'] == 'csjobs.py' and d['config_key'] == 'sleep_interval_job')
+        sleep_interval = next(int(row['config_value']) for row in config_list if row['category'] == 'condor_poller.py' and row['config_key'] == 'sleep_interval_job')
         we_wait = round(sleep_interval * 1.8)
         print('Waiting {} seconds for the submitted job to be added to the database.'.format(we_wait))
         sleep(we_wait)

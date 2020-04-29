@@ -1,14 +1,17 @@
 from cloudscheduler.lib.db_config import Config
-from cloudscheduler.lib.ProcessMonitor import ProcessMonitor
+from cloudscheduler.lib.ProcessMonitor import ProcessMonitor, terminate, check_pid
 from cloudscheduler.lib.poller_functions import \
     start_cycle, \
     wait_cycle
 from cloudscheduler.lib.rpc_client import RPC
 
 import multiprocessing
+from subprocess import Popen, PIPE
 import time
 import logging
 import os
+import re
+import signal
 import socket
 import sys
 
@@ -17,7 +20,8 @@ import sqlalchemy.exc
 def condor_gsi_poller():
     multiprocessing.current_process().name = "Condor GSI Poller"
 
-    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', [os.path.basename(sys.argv[0]), 'AMQP'], refreshable=True, pool_size=6)
+    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', [os.path.basename(sys.argv[0]), 'AMQP', 'ProcessMonitor'], refreshable=True, pool_size=6, signals=True)
+    PID_FILE = config.categories["ProcessMonitor"]["pid_path"] + os.path.basename(sys.argv[0])
 
     cycle_start_time = 0
     new_poll_time = 0
@@ -30,6 +34,10 @@ def condor_gsi_poller():
             new_poll_time, cycle_start_time = start_cycle(new_poll_time, cycle_start_time)
 
             config.refresh()
+            if not os.path.exists(PID_FILE):
+                logging.debug("Stop set, exiting...")
+                break
+            signal.signal(signal.SIGINT, signal.SIG_IGN)
 
             condor_dict = get_condor_dict(config, logging)
 
@@ -61,7 +69,11 @@ def condor_gsi_poller():
 
             config.db_session.rollback()
 
-            wait_cycle(cycle_start_time, poll_time_history, config.categories['condor_gsi.py']['sleep_interval_condor_gsi'])
+            if not os.path.exists(PID_FILE):
+                logging.info("Stop set, exiting...")
+                break
+
+            wait_cycle(cycle_start_time, poll_time_history, config.categories['condor_gsi.py']['sleep_interval_condor_gsi'], config)
 
     except Exception as exc:
         logging.exception("Condor GSI while loop exception, process terminating...")
@@ -100,7 +112,8 @@ def if_null(val, col=None):
 def worker_gsi_poller():
     multiprocessing.current_process().name = "Worker GSI Poller"
 
-    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', [os.path.basename(sys.argv[0]), 'AMQP'], refreshable=True, pool_size=6)
+    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', [os.path.basename(sys.argv[0]), 'AMQP', 'ProcessMonitor'], refreshable=True, pool_size=6, signals=True)
+    PID_FILE = config.categories["ProcessMonitor"]["pid_path"] + os.path.basename(sys.argv[0])
 
     cycle_start_time = 0
     new_poll_time = 0
@@ -111,6 +124,11 @@ def worker_gsi_poller():
             new_poll_time, cycle_start_time = start_cycle(new_poll_time, cycle_start_time)
 
             config.refresh()
+            if not os.path.exists(PID_FILE):
+                logging.debug("Stop set, exiting...")
+                break
+
+            signal.signal(signal.SIGINT, signal.SIG_IGN)
 
             config.db_open()
 
@@ -171,8 +189,12 @@ def worker_gsi_poller():
                     logging.warning('Condor host: "%s", request timed out.' % condor)
 
             config.db_close()
+            signal.signal(signal.SIGINT, config.signals['SIGINT'])
+            if not os.path.exists(PID_FILE):
+                logging.info("Stop set, exiting...")
+                break
 
-            wait_cycle(cycle_start_time, poll_time_history, config.categories['condor_gsi.py']['sleep_interval_worker_gsi'])
+            wait_cycle(cycle_start_time, poll_time_history, config.categories['condor_gsi.py']['sleep_interval_worker_gsi'], config)
 
     except Exception as exc:
         logging.exception("Worker GSI while loop exception, process terminating...")
@@ -188,10 +210,14 @@ if __name__ == '__main__':
 
     db_category_list = [os.path.basename(sys.argv[0]), "general", "signal_manager", "ProcessMonitor"]
 
-    procMon = ProcessMonitor(config_params=db_category_list, pool_size=4, orange_count_row='csv2_condor_gsi_error_count', process_ids=process_ids)
+    procMon = ProcessMonitor(config_params=db_category_list, pool_size=4, process_ids=process_ids)
     config = procMon.get_config()
     logging = procMon.get_logging()
     version = config.get_version()
+
+    PID_FILE = config.categories["ProcessMonitor"]["pid_path"] + os.path.basename(sys.argv[0])
+    with open(PID_FILE, "w") as fd:
+        fd.write(str(os.getpid()))
 
     logging.info("**************************** starting condor_gsi - Running %s *********************************" % version)
 
@@ -199,8 +225,11 @@ if __name__ == '__main__':
     try:
         #start processes
         procMon.start_all()
+        signal.signal(signal.SIGTERM, terminate)
         while True:
-            procMon.check_processes()
+            config.refresh()
+            stop = check_pid(PID_FILE)
+            procMon.check_processes(stop=stop)
             time.sleep(config.categories['ProcessMonitor']['sleep_interval_main_long'])
 
     except (SystemExit, KeyboardInterrupt):

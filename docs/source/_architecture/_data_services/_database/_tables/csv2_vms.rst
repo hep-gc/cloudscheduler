@@ -37,6 +37,9 @@ Keys:
 Columns:
 ^^^^^^^^
 
+* **target_alias** (String(32)):
+
+
 * **region** (String(32)):
 
       Is the region within the cloud where the VM is running.

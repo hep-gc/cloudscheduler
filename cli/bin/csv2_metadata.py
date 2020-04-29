@@ -454,7 +454,7 @@ def backup(gvar):
 
     mandatory = []
     required = ['-br']
-    optional = ['-bk', '-v', '-xA']
+    optional = ['-bk', '-v', '-x509', '-xA']
     servers = {}
 
     if gvar['retrieve_options']:
@@ -550,7 +550,7 @@ def restore(gvar):
 
     mandatory = []
     required = ['-br']
-    optional = ['-bk', '-v', '-xA']
+    optional = ['-bk', '-v', '-x509', '-xA']
     servers = {}
 
     if gvar['retrieve_options']:

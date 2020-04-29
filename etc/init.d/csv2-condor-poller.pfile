@@ -1,0 +1,50 @@
+#!/bin/bash
+#
+# chkconfig: 345 70 30
+# description: deamon for condor remote procedures
+# processname: csv2-condor-poller
+
+# Source function library.
+. /etc/init.d/functions
+
+exec="/opt/cloudscheduler/python3/bin/python3 /opt/cloudscheduler/data_collectors/condor/condor_poller_na.py"
+config="/opt/cloudscheduler/etc/cloudscheduler/condor_poller.yaml"
+pidfile="/var/local/cloudscheduler/run/condor_poller_na.py"
+
+start() {
+    echo "Starting csv2-condor-poller"
+    daemon --user condor --pidfile $pidfile "$exec $config & "
+    return $?
+}
+
+stop() {
+    echo "Stopping csv2 condor RPC client"
+    pid=$(cat $pidfile)
+    kill $pid
+    return $?
+}
+
+case "$1" in
+    start)
+    start
+    ;;
+    stop)
+    stop
+    ;;
+    status)
+    echo status
+    ;;
+    restart)
+    stop
+    start
+    ;;
+    reload)
+    echo relaod
+    ;;
+    *)
+    echo "Usage: csv2-condor-poller {start|stop|status|reload|restart}"
+    exit 1
+    ;;
+esac
+exit $?
+

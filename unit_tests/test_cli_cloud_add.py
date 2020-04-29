@@ -40,7 +40,7 @@ def main(gvar):
         }, 'mandatory': True},
         # 38 Omit type.
         # 39
-        '--cloud-type': {'valid': 'local', 'test_cases': {'invalid-unit-test': 'cloud add value specified for "cloud_type" must be one of the following options: [\'amazon\', \'azure\', \'google\', \'local\', \'opennebula\', \'openstack\'].'}, 'mandatory': True},
+        '--cloud-type': {'valid': 'openstack', 'test_cases': {'invalid-unit-test': 'cloud add value specified for "cloud_type" must be one of the following options: [\'amazon\', \'local\', \'openstack\'].'}, 'mandatory': True},
         # 40 Omit address.
         # 41
         '--cloud-address': {'valid': gvar['cloud_credentials']['authurl'], 'test_cases': {'': 'cloud add parameter "authurl" contains an empty string which is specifically disallowed.'}, 'mandatory': True},
@@ -102,7 +102,7 @@ def main(gvar):
             '-cpw', gvar['cloud_credentials']['password'],
             '-cr', gvar['cloud_credentials']['region'],
             '-cP', gvar['cloud_credentials']['project'],
-            '-ct', 'local',
+            '-ct', 'openstack',
             '-ce', 'yes',
             '-vi', '',
             '-vf', '',
@@ -125,7 +125,7 @@ def main(gvar):
             '-cpw', gvar['cloud_credentials']['password'],
             '-cr', gvar['cloud_credentials']['region'],
             '-cP', gvar['cloud_credentials']['project'],
-            '-ct', 'local',
+            '-ct', 'openstack',
             '-gme', ut_id(gvar, 'clm2,clm2.yaml'),
             '-su', ut_id(gvar, 'clu3')
         ]

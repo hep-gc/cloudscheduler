@@ -47,8 +47,6 @@ def main(gvar):
             # 37
             ut_id(gvar, 'clg2'): 'Duplicate entry \'{}\' for key \'PRIMARY\''.format(ut_id(gvar, 'clg2'))
         }, 'mandatory': True},
-        # 38
-        '--htcondor-fqdn': {'valid': gvar['cloud_credentials']['authurl'], 'test_cases': {'': 'group add parameter "htcondor_fqdn" contains an empty string which is specifically disallowed.'}},
         '--username': {'valid': ut_id(gvar, 'clu3'), 'test_cases': {
             # 39
             'invalid-unit-test': 'specified user "invalid-unit-test" does not exist.',

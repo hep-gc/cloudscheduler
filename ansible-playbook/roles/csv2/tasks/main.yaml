@@ -5,8 +5,17 @@
     public_mariadb: true
 
 - include_vars: "{{ addenda }}"
+- include_vars: "csv2-default-vars.yaml"
 - include_vars: "{{ inventory_instance }}-vars.yaml"
 - include_vars: "{{ inventory_instance }}-secrets.yaml"
+
+- set_fact:
+    favicon_colour: "{{ item.value }}"
+  loop: "{{ lookup('dict', favicon_colours) }}"
+  when:
+  - "{{ item.key  ==  ansible_fqdn }}"
+
+- debug: msg="{{ favicon_colour }}"
 
 - set_fact:
     ansible_ssh_port: "{{ ansible_ssh_port }}"
@@ -47,7 +56,9 @@
   - install_phpMyAdmin is defined
   - install_phpMyAdmin == True
 - import_tasks: install_EGI_trust_anchors.yaml
-- import_tasks: install_configure_EL7_HTCondor.yaml
+- import_tasks: install_fetch_crl.yaml
+- import_tasks: install_EL7_HTCondor.yaml
 - import_tasks: install_configure_csv2.yaml
+- import_tasks: create_remote_condor_poller_installation_tarball.yaml
 - import_tasks: install_configure_filebeat.yaml
 - import_tasks: install_influxdb.yaml

@@ -77,13 +77,13 @@ def main(gvar):
         ['cloud', 'metadata-edit', '--cloud-name', ut_id(gvar, 'clc2'), '--metadata-name', ut_id(gvar, 'clm2'), '-su', ut_id(gvar, 'clu3')]
     )
 
+    # The edit scripts in the following tests will break easily as they rely on some system variables.
     # 29
     execute_csv2_command(
         gvar, 1, None, 'Invalid yaml file "scanner error": mapping values are not allowed here',
         ['cloud', 'metadata-edit', '--cloud-name', ut_id(gvar, 'clc2'), '--metadata-name', ut_id(gvar, 'clm2.yaml'), '--text-editor', '{}/editscript8'.format(EDIT_SCRIPT_DIR), '-su', ut_id(gvar, 'clu3')]
     )
 
-    # The edit scripts in the following tests will break easily as they rely on some system variables.
     # 30
     execute_csv2_command(
         gvar, 0, None, 'completed, no changes.',
@@ -92,13 +92,13 @@ def main(gvar):
 
     # 31 Known to fail if run twice without setup / cleanup in between.
     execute_csv2_command(
-        gvar, 0, None, 'successfully  updated.',
+        gvar, 0, None, 'successfully updated.',
         ['cloud', 'metadata-edit', '--cloud-name', ut_id(gvar, 'clc2'), '--metadata-name', ut_id(gvar, 'clm2'), '--text-editor', '{}/editscript6'.format(EDIT_SCRIPT_DIR), '-su', ut_id(gvar, 'clu3')]
     )
 
     # 32 Known to fail if run twice without setup / cleanup in between.
     execute_csv2_command(
-        gvar, 0, None, 'successfully  updated.',
+        gvar, 0, None, 'successfully updated.',
         ['cloud', 'metadata-edit', '--cloud-name', ut_id(gvar, 'clc2'), '--metadata-name', ut_id(gvar, 'clm2.yaml'), '--text-editor', '{}/editscript7'.format(EDIT_SCRIPT_DIR), '-su', ut_id(gvar, 'clu3')]
     )
 

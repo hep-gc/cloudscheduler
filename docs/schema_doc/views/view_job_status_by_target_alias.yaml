@@ -1,0 +1,63 @@
+view_job_status_by_target_alias:
+    Synopsis:
+
+    Keys:
+
+    Columns:
+
+        group_name:
+            Format: String(32)
+            Synopsis:
+
+        target_alias:
+            Format: String(32)
+            Synopsis:
+
+        Jobs:
+            Format: Integer
+            Synopsis:
+
+        Idle:
+            Format: Integer
+            Synopsis:
+
+        Running:
+            Format: Integer
+            Synopsis:
+
+        Completed:
+            Format: Integer
+            Synopsis:
+
+        Held:
+            Format: Integer
+            Synopsis:
+
+        Other:
+            Format: Integer
+            Synopsis:
+
+        foreign:
+            Format: Integer
+            Synopsis:
+
+        htcondor_status:
+            Format: Integer
+            Synopsis:
+
+        agent_status:
+            Format: Integer
+            Synopsis:
+
+        htcondor_fqdn:
+            Format: String(128)
+            Synopsis:
+
+        condor_days_left:
+            Format: Integer
+            Synopsis:
+
+        worker_days_left:
+            Format: Integer
+            Synopsis:
+

@@ -33,10 +33,9 @@ Keys:
 
       String containing the fingerprint of the keypair.
 
-* **key_name** (String(32)):
+* **key_name** (String(64)):
 
       Name of the keypair as defined by the cloud.
-
 
 
 Columns:

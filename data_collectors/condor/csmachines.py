@@ -1,6 +1,7 @@
 import multiprocessing
 import time
 import logging
+import signal
 import socket
 import os
 import sys
@@ -8,7 +9,7 @@ import yaml
 
 from cloudscheduler.lib.attribute_mapper import map_attributes
 from cloudscheduler.lib.db_config import Config
-from cloudscheduler.lib.ProcessMonitor import ProcessMonitor
+from cloudscheduler.lib.ProcessMonitor import ProcessMonitor, check_pid, terminate
 from cloudscheduler.lib.schema import view_condor_host
 from cloudscheduler.lib.log_tools import get_frame_info
 from cloudscheduler.lib.htc_config import configure_htc
@@ -137,7 +138,8 @@ def machine_poller():
                            "Start", "RemoteOwner", "SlotType", "TotalSlots", "group_name", \
                            "cloud_name", "cs_host_id", "condor_host", "flavor", "TotalDisk"]
 
-    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', [os.path.basename(sys.argv[0]), "SQL"], pool_size=3, refreshable=True)
+    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', [os.path.basename(sys.argv[0]), "SQL", "ProcessMonitor"], pool_size=3, refreshable=True, signals=True)
+    PID_FILE = config.categories["ProcessMonitor"]["pid_path"] + os.path.basename(sys.argv[0])
 
 
     RESOURCE = config.db_map.classes.condor_machines
@@ -163,6 +165,11 @@ def machine_poller():
             new_poll_time, cycle_start_time = start_cycle(new_poll_time, cycle_start_time)
 
             config.refresh()
+            if not os.path.exists(PID_FILE):
+                logging.debug("Stop set, exiting...")
+                break
+            signal.signal(signal.SIGINT, signal.SIG_IGN)
+
             db_session = config.db_session
             groups = db_session.query(GROUPS)
             condor_hosts_set = set() # use a set here so we dont re-query same host if multiple groups have same host
@@ -363,7 +370,11 @@ def machine_poller():
                 delete_cycle = True
                 cycle_count = 0
             
-            wait_cycle(cycle_start_time, poll_time_history, config.categories["csmachines.py"]["sleep_interval_machine"])
+            if not os.path.exists(PID_FILE):
+                logging.info("Stop set, exiting...")
+                break
+            signal.signal(signal.SIGINT, config.signals['SIGINT'])
+            wait_cycle(cycle_start_time, poll_time_history, config.categories["csmachines.py"]["sleep_interval_machine"], config)
 
     except Exception as exc:
         logging.exception("Machine poller while loop exception, process terminating...")
@@ -375,13 +386,18 @@ def command_poller():
     multiprocessing.current_process().name = "Command Poller"
 
     # database setup
-    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', [os.path.basename(sys.argv[0]), "AMQP"], pool_size=3, refreshable=True)
+    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', [os.path.basename(sys.argv[0]), "AMQP", "ProcessMonitor"], pool_size=3, refreshable=True, signals=True)
+    PID_FILE = config.categories["ProcessMonitor"]["pid_path"] + os.path.basename(sys.argv[0])
 
     Resource = config.db_map.classes.condor_machines
     GROUPS = config.db_map.classes.csv2_groups
     VM = config.db_map.classes.csv2_vms
     CLOUD = config.db_map.classes.csv2_clouds
     JOB_SCHED = config.db_map.classes.csv2_job_schedulers
+
+    cycle_start_time = 0
+    new_poll_time = 0
+    poll_time_history = [0,0,0,0]
 
 
     cycle_count = 0
@@ -392,6 +408,14 @@ def command_poller():
         while True:
             logging.debug("Beginning command consumer cycle")
             config.refresh()
+
+            if not os.path.exists(PID_FILE):
+                logging.debug("Stop set, exiting...")
+                break
+
+            signal.signal(signal.SIGINT, signal.SIG_IGN)
+            new_poll_time, cycle_start_time = start_cycle(new_poll_time, cycle_start_time)
+
             db_session = config.db_session
             groups = db_session.query(GROUPS)
             condor_hosts_set = set() # use a set here so we dont re-query same host if multiple groups have same host
@@ -891,6 +915,12 @@ def command_poller():
 
             if 'db_session'in locals():
                 del db_session
+            
+            signal.signal(signal.SIGINT, config.signals['SIGINT'])
+            if not os.path.exists(PID_FILE):
+                logging.info("Stop set, exiting...")
+                break
+            wait_cycle(cycle_start_time, poll_time_history, config.categories["csmachines.py"]["sleep_interval_command"], config)
             time.sleep(config.categories["csmachines.py"]["sleep_interval_command"])
 
     except Exception as exc:
@@ -904,16 +934,24 @@ def service_registrar():
     multiprocessing.current_process().name = "Service Registrar"
 
     # database setup
-    db_category_list = [os.path.basename(sys.argv[0]), "general"]
-    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', db_category_list, pool_size=3, refreshable=True)
+    db_category_list = [os.path.basename(sys.argv[0]), "general", "ProcessMonitor"]
+    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', db_category_list, pool_size=3, refreshable=True, signals=True)
+    PID_FILE = config.categories["ProcessMonitor"]["pid_path"] + os.path.basename(sys.argv[0])
     SERVICE_CATALOG = config.db_map.classes.csv2_service_catalog
 
     service_fqdn = socket.gethostname()
     service_name = "csv2-machines"
 
+    cycle_start_time = 0
+    new_poll_time = 0
+    poll_time_history = [0,0,0,0]
+
     config.db_open()
     while True:
         config.refresh()
+        if not os.path.exists(PID_FILE):
+            logging.info("Stop set, exiting...")
+            break
 
         service_dict = {
             "service":             service_name,
@@ -930,7 +968,7 @@ def service_registrar():
             logging.exception("Failed to merge service catalog entry, aborting...")
             logging.error(exc)
             return -1
-        time.sleep(config.categories["general"]["sleep_interval_registrar"])
+        wait_cycle(cycle_start_time, poll_time_history, config.categories["general"]["sleep_interval_registrar"], config)
 
     return -1
 
@@ -947,10 +985,14 @@ if __name__ == '__main__':
 
     db_category_list = [os.path.basename(sys.argv[0]), "ProcessMonitor", "general", "signal_manager"]
 
-    procMon = ProcessMonitor(config_params=db_category_list, pool_size=333, orange_count_row='csv2_machines_error_count', process_ids=process_ids)
+    procMon = ProcessMonitor(config_params=db_category_list, pool_size=333, process_ids=process_ids)
     config = procMon.get_config()
     logging = procMon.get_logging()
     version = config.get_version()
+
+    PID_FILE = config.categories["ProcessMonitor"]["pid_path"] + os.path.basename(sys.argv[0])
+    with open(PID_FILE, "w") as fd:
+        fd.write(str(os.getpid()))
 
     logging.info("**************************** starting cscollector - Running %s *********************************" % version)
 
@@ -958,9 +1000,11 @@ if __name__ == '__main__':
     try:
         #start processes
         procMon.start_all()
+        signal.signal(signal.SIGTERM, terminate)
         while True:
             config.refresh()
-            procMon.check_processes()
+            stop = check_pid(PID_FILE)
+            procMon.check_processes(stop=stop)
             time.sleep(config.categories["ProcessMonitor"]["sleep_interval_main_long"])
 
     except (SystemExit, KeyboardInterrupt):

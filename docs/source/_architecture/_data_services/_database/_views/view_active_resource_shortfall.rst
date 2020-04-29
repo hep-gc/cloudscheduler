@@ -50,14 +50,8 @@ Columns:
 * **target_alias** (String(32)):
 
       Is an optional alias indicating the clouds that resources are required from.
-      If this column and the **target_clouds** column are empty, the resources are
-      required from any cloud defined within the group.
-
-* **target_clouds** (String):
-
-      Is an optional name of the cloud that resources are required from.
-      If this column and the **target_alias** column are empty, the resources are
-      required from any cloud defined within the group.
+      If this column is empty, the resources are required from any cloud
+      defined within the group.
 
 * **request_cores** (Integer):
 

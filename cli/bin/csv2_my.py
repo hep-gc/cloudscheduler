@@ -24,7 +24,8 @@ def settings(gvar):
 
     mandatory = []
     required = []
-    optional = ['-CSEP', '-CSV', '-gn', '-H', '-h', '-NV', '-ok', '-r', '-s', '-sfv', '-sgs', '-sjta', '-sri', '-ssd', '-ssf', '-upw', '-V', '-VC', '-v', '-xA']
+    optional = ['-CSEP', '-CSV', '-gn', '-H', '-h', '-NV', '-ok', '-r', '-s', '-sfv', '-sgs', '-sjta', '-sri', '-ssd', '-ssf', '-upw', '-V', '-VC', '-v','-x509', '-xA']
+
 
     if gvar['retrieve_options']:
         return mandatory + required + optional

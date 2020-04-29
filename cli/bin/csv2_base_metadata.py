@@ -18,7 +18,7 @@ def base_metadata_save(gvar, context=None):
     else:
         mandatory = ['-mn', '-f']
     required = []
-    optional = ['-F', '-g', '-H', '-h', '-s', '-v', '-xA']
+    optional = ['-F', '-g', '-H', '-h', '-s', '-v', '-x509', '-xA']
 
     if gvar['retrieve_options']:
         return mandatory + required + optional

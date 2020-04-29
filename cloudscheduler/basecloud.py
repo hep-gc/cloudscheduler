@@ -4,6 +4,7 @@ Defines the basic interface cloudscheduler expects to use across all types of cl
 and contains methods common to all clouds.
 """
 
+from cloudscheduler.lib.db_config import Config
 import gzip
 import uuid
 import logging
@@ -25,14 +26,14 @@ class BaseCloud(ABC):
     Abstract BaseCloud class, meant to be inherited by any specific cloud class for use
     by cloudscheduler.
     """
-    def __init__(self, group, name, extrayaml=None, metadata=None):
+    def __init__(self, config, group, name, extrayaml=None, metadata=None):
         self.log = logging.getLogger(__name__)
+        self.config = Config(config.path, list(config.categories.keys()))
         self.name = name
         self.group = group
         self.enabled = True
         self.extrayaml = extrayaml
         self.metadata = metadata  # list of tuples with (name, select statement, mime type)
-        self.config = Config('/etc/cloudscheduler/cloudscheduler.yaml', [])
         self.log.debug('New Cloud created: %s', self.name)
 
     def __repr__(self):

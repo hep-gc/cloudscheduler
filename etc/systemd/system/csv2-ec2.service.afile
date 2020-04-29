@@ -1,0 +1,12 @@
+[Unit]
+Description= Retrieves a list of amazon clouds from the configured database and queries them for metadata which is relayed back to the database
+After=network.target
+
+[Service]
+Type=simple
+User=cloudscheduler
+ExecStart=/usr/bin/python3 /opt/cloudscheduler/data_collectors/ec2/ec2cloudPoller.py
+Restart=on-abort
+
+[Install]
+WantedBy=multi-user.target

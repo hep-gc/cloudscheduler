@@ -57,7 +57,7 @@ def list(gvar):
 
     mandatory = []
     required = []
-    optional = ['-cn', '-CSEP', '-CSV', '-g', '-H', '-h', '-NV', '-ok', '-r', '-s', '-V', '-VC', '-vc', '-vd', '-vF', '-vf', '-vh', '-vr', '-vS', '-vs', '-v', '-xA']
+    optional = ['-cn', '-CSEP', '-CSV', '-g', '-H', '-h', '-NV', '-ok', '-r', '-s', '-V', '-VC', '-vc', '-vd', '-vF', '-vf', '-vh', '-vr', '-vS', '-vs', '-v', '-x509', '-xA']
 
     if gvar['retrieve_options']:
         return mandatory + required + optional
@@ -105,13 +105,13 @@ def list(gvar):
             'flavor_name/Flavor',
             'condor_slots/Condor Slots',
             'foreign_vm/Foreign',
-            'cores/cores',
+            'cores/Cores',
             'disk/Disk (GBs)',
             'ram/Ram (MBs)',
             'swap/Swap (GBs)',
             'poller_status/Poller Status',
             'age/State Age',
-            'manual_control/Manual_Control',
+            'manual_control/Manual Control',
         ],
         title="VMs",
         )
@@ -123,7 +123,7 @@ def update(gvar):
 
     mandatory = ['-vh', '-vo']
     required = []
-    optional = ['-cn', '-g', '-H', '-h', '-s', '-vS', '-v', '-xA']
+    optional = ['-cn', '-g', '-H', '-h', '-s', '-vS', '-v', '-x509', '-xA']
 
     if gvar['retrieve_options']:
         return mandatory + required + optional

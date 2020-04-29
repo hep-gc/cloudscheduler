@@ -1,0 +1,39 @@
+view_total_used_resources:
+    Synopsis:
+
+    Keys:
+
+    Columns:
+
+        authurl:
+            Format: String(128)
+            Synopsis:
+
+        region:
+            Format: String(32)
+            Synopsis:
+
+        project:
+            Format: String(128)
+            Synopsis:
+
+        VMs:
+            Format: Integer
+            Synopsis:
+
+        cores:
+            Format: Integer
+            Synopsis:
+
+        disk:
+            Format: Integer
+            Synopsis:
+
+        ram:
+            Format: Integer
+            Synopsis:
+
+        swap:
+            Format: Integer
+            Synopsis:
+

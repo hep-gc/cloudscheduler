@@ -41,13 +41,13 @@ def main(gvar):
     # 20 Give `--group-name` as the empty string.
     execute_csv2_command(
         gvar, 1, None, 'value specified for "group_name" must not be the empty string.',
-        ['group', 'update', '-gn', '', '--htcondor-fqdn', 'invalid-unit-test']
+        ['group', 'update', '-gn', '', '--htcondor-fqdn', gvar['fqdn']]
     )
 
     # 21 Give a `--group-name` with the wrong format.
     execute_csv2_command(
         gvar, 1, None, 'value specified for "group_name" must be all lowercase letters, digits, dashes, underscores, periods, and colons, and cannot contain more than one consecutive dash or start or end with a dash.',
-        ['group', 'update', '-gn', 'invalid-unit-test!', '--htcondor-fqdn', 'invalid-unit-test']
+        ['group', 'update', '-gn', 'invalid-unit-test!', '--htcondor-fqdn', gvar['fqdn']]
     )
 
     # 22 Fail to specify any fields to update.
@@ -65,7 +65,7 @@ def main(gvar):
     # 24 Attempt to update a group that does not exist.
     execute_csv2_command(
         gvar, 1, 'GV', 'the request did not match any rows.',
-        ['group', 'update', '-gn', 'invalid-unit-test', '--htcondor-fqdn', 'invalid-unit-test']
+        ['group', 'update', '-gn', 'invalid-unit-test', '--htcondor-fqdn', gvar['fqdn']]
     )
 
     # 25 Specify the same `--username` twice.
@@ -77,12 +77,12 @@ def main(gvar):
     # 26 Update clg3's `--htcondor-fqdn`.
     execute_csv2_command(
         gvar, 0, None, 'group "{}" successfully updated.'.format(ut_id(gvar, 'clg3')),
-        ['group', 'update', '-gn', ut_id(gvar, 'clg3'), '-htcf', 'unit-test-group-update.ca']
+        ['group', 'update', '-gn', ut_id(gvar, 'clg3'), '-htcf', 'example.com']
     )
 
-    # 27 Ensure taht clg3's `--htcondor-fqdn` was updated.
+    # 27 Ensure that clg3's `--htcondor-fqdn` was updated.
     execute_csv2_command(
-        gvar, 0, None, 'unit-test-group-update.ca',
+        gvar, 0, None, 'example.com',
         ['group', 'list', '-gn', ut_id(gvar, 'clg3')],
         expected_list='Groups'
     )

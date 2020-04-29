@@ -1,0 +1,12 @@
+[Unit]
+Description=Update the database with iinformation sent by VMs via curl requests.
+After=network.target
+
+[Service]
+Type=simple
+User=root
+ExecStart=/usr/bin/python3 /opt/cloudscheduler/data_collectors/vm/vm_data_via_https.py
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

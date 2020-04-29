@@ -1,0 +1,9 @@
+/var/log/cloudscheduler/startd_errors.logging {
+  weekly
+  su cloudscheduler cloudscheduler
+  notifempty
+  missingok
+  compress
+  copytruncate
+  create 0644 cloudscheduler cloudscheduler
+}

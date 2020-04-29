@@ -6,7 +6,7 @@ from django.views.decorators.csrf import requires_csrf_token
 from django.http import HttpResponse
 from django.core.exceptions import PermissionDenied
 
-from cloudscheduler.lib.htc_config import configure_htc, query_htc_gsi
+from cloudscheduler.lib.fw_config import configure_fw 
 from cloudscheduler.lib.view_utils import \
     lno,  \
     manage_group_users, \
@@ -40,6 +40,7 @@ GROUP_KEYS = {
         'group_name':                                 'lower',
         'csrfmiddlewaretoken':                        'ignore',
         'group':                                      'ignore',
+        'htcondor_fqdn':                              'fqdn,htcondor_host_id',
         'job_cpus':                                   'integer',
         'job_disk':                                   'integer',
         'job_ram':                                    'integer',
@@ -78,6 +79,7 @@ UNPRIVILEGED_GROUP_KEYS = {
     'format': {
         'csrfmiddlewaretoken':                        'ignore',
         'group':                                      'ignore',
+        'htcondor_fqdn':                              'fqdn,htcondor_host_id',
         'job_cpus':                                   'integer',
         'job_disk':                                   'integer',
         'job_ram':                                    'integer',
@@ -245,9 +247,9 @@ def add(request):
             return group_list(request, active_user=active_user, response_code=1, message='%s group add "%s" failed - %s.' % (lno(MODID), fields['group_name'], msg))
 
 
-        # Commit the updates, configure condor (gsi_daemon_name, firewall), and return.
+        # Commit the updates, configure firewall and return.
         config.db_session.commit()
-        configure_htc(config)
+        configure_fw(config)
         config.db_close()
         return group_list(request, active_user=active_user, response_code=0, message='group "%s" successfully added.' % (fields['group_name']))
 
@@ -278,7 +280,6 @@ def defaults(request, active_user=None, response_code=0, message=None):
                 config.db_close()
                 return render(request, 'csv2/group_defaults.html', {'response_code': 1, 'message': '%s default update/list %s' % (lno(MODID), msg), 'active_user': active_user.username, 'active_group': active_user.active_group, 'user_groups': active_user.user_groups})
 
-
             if rc == 0 and ('vm_flavor' in fields) and (fields['vm_flavor']):
                 rc, msg = validate_by_filtered_table_entries(config, fields['vm_flavor'], 'vm_flavor', 'cloud_flavors', 'name', [['group_name', fields['group_name']]])
             
@@ -299,9 +300,9 @@ def defaults(request, active_user=None, response_code=0, message=None):
                 table = tables['csv2_groups']
                 rc, msg = config.db_session_execute(table.update().where(table.c.group_name==active_user.active_group).values(table_fields(fields, table, columns, 'update')))
                 if rc == 0:
-                    # Commit the updates, configure condor (gsi_daemon_name, firewall), and return.
+                    # Commit the updates, configure firewall and return.
                     config.db_session.commit()
-                    configure_htc(config)
+                    configure_fw(config)
                     message = 'group defaults "%s" successfully updated.' % (active_user.active_group)
                 else:
                     message = '%s group defaults update "%s" failed - %s.' % (lno(MODID), active_user.active_group, msg)
@@ -371,9 +372,6 @@ def defaults(request, active_user=None, response_code=0, message=None):
             prune=['password']    
             )
 
-    # Check to see if GSI is installed and active:
-    gsi_state = query_htc_gsi()
-
     # Render the page.
     context = {
             'active_user': active_user.username,
@@ -388,7 +386,6 @@ def defaults(request, active_user=None, response_code=0, message=None):
             'security_groups_list': security_groups_list,
             'response_code': rc,
             'message': message,
-            'gsi_state': gsi_state,
             'is_superuser': active_user.is_superuser,
             'version': config.get_version()
         }
@@ -505,6 +502,10 @@ def delete(request):
             config.db_close()
             return group_list(request, active_user=active_user, response_code=1, message='%s group users delete "%s" failed - %s.' % (lno(MODID), fields['group_name'], msg))
 
+
+        # Delete the csv2 cloud aliases.
+        rc = config.db_connection.execute('delete from csv2_cloud_aliases where group_name="%s";' % fields['group_name'])
+
         # Delete the csv2_vms.
         table = tables['csv2_vms']
         rc, msg = config.db_session_execute(
@@ -580,9 +581,9 @@ def delete(request):
             table.delete(table.c.group_name==fields['group_name'])
             )
         if rc == 0:
-            # Commit the deletions, configure condor (gsi_daemon_name, firewall), and return.
+            # Commit the deletions, configure firewall and return.
             config.db_session.commit()
-            configure_htc(config)
+            configure_fw(config)
             config.db_close()
             return group_list(request, active_user=active_user, response_code=0, message='group "%s" successfully deleted.' % (fields['group_name']))
         else:
@@ -1086,6 +1087,7 @@ def update(request):
         # Update the group.
         table = tables['csv2_groups']
         group_updates = table_fields(fields, table, columns, 'update')
+        print("???????????????????????????????????", group_updates)
         if len(group_updates) > 0:
             rc, msg = config.db_session_execute(table.update().where(table.c.group_name==fields['group_name']).values(group_updates), allow_no_rows=False)
             if rc != 0:
@@ -1112,9 +1114,9 @@ def update(request):
                 rc, msg = manage_group_users(config, tables, fields['group_name'], None)
 
         if rc == 0:
-            # Commit the updates, configure condor (gsi_daemon_name, firewall), and return.
+            # Commit the updates, configure firewall and return.
             config.db_session.commit()
-            configure_htc(config)
+            configure_fw(config)
             config.db_close()
             return group_list(request, active_user=active_user, response_code=0, message='group "%s" successfully updated.' % (fields['group_name']))
         else:

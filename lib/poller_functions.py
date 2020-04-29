@@ -19,7 +19,7 @@ def start_cycle(new_poll_time, start_time):
 
 # This function helps maintain a moving average of cycle time and if the cycle times are
 # exceeding the configured sleep time it lengthens the sleep to the average cycle time
-def wait_cycle(start_time, poll_time_history, config_sleep_time):
+def wait_cycle(start_time, poll_time_history, config_sleep_time, config):
     cycle_length = time.time() - start_time
     poll_time_history.append(cycle_length)
     if len(poll_time_history) > 5:
@@ -30,6 +30,13 @@ def wait_cycle(start_time, poll_time_history, config_sleep_time):
         avg_cycle_length = avg_cycle_length + poll_time
     avg_cycle_length = avg_cycle_length/len(poll_time_history)
 
+    config.refresh()
+    if config.categories["ProcessMonitor"]["pause"]:
+        while(config.categories["ProcessMonitor"]["pause"]):
+            logging.debug("Pause flag set sleeping...")
+            time.sleep(10)
+            config.refresh()
+
     if avg_cycle_length > config_sleep_time:
         logging.debug("Completed cycle - cycle length: %s, sleeping for %s" % (cycle_length, avg_cycle_length))
         time.sleep(avg_cycle_length)
@@ -37,6 +44,41 @@ def wait_cycle(start_time, poll_time_history, config_sleep_time):
         logging.debug("Completed cycle - cycle length: %s, sleeping for %s" % (cycle_length, config_sleep_time))
         time.sleep(config_sleep_time)
     return
+
+# cleans up any groups or clouds that don't exist anymore
+# accepts the inventory dictionary and a list of group, cloud pairings
+# removes any grp-clds from inventory not present in the list
+def cleanup_inventory(inventory, group_cloud_list):
+    logging.debug("Starting Inventory Cleanup")
+    
+    group_list = []
+    group_cloud_set = set()
+    #Make group and group_cloud list
+    for item in group_cloud_list:
+        group_list.append(item.group_name)
+        group_cloud_set.add((item.group_name, item.cloud_name))
+
+    # Remove deleted groups
+    grps_to_pop = []
+    for group_name in inventory:
+        if group_name not in group_list:
+            grps_to_pop.append(group_name)
+
+    for group in grps_to_pop:
+        logging.info("Cleaning up removed group: %s" % group)
+        inventory.pop(group)
+
+    # Remove deleted clouds
+    grp_clds_to_pop = []
+    for group_name in inventory:
+        for cloud_name in inventory[group_name]:
+            if (group_name, cloud_name) not in group_cloud_set:
+                grp_clds_to_pop.append((group_name, cloud_name))
+
+    for grp, cld in grp_clds_to_pop:
+        logging.info("Cleaning up removed group-cloud: %s - %s" % (grp, cld))
+        inventory[grp].pop(cld)
+
 
 
 def build_inventory_for_condor(inventory, db_session, group_resources_class):
@@ -74,7 +116,7 @@ def cleanup_inventory(inventory, base_class_key, poll_time=None):
 
 
 
-def delete_obsolete_database_items(type, inventory, db_session, base_class, base_class_key, poll_time=None, failure_dict=None, cloud_type=None):
+def delete_obsolete_database_items(type, inventory, db_session, base_class, base_class_key, poll_time=None, failure_dict=None, cloud_type=None, condor_host=None):
     inventory_deletions = []
     logging.debug("Delete Cycle - checking database for consistency")
     for group_name in inventory:
@@ -94,7 +136,13 @@ def delete_obsolete_database_items(type, inventory, db_session, base_class, base
                         base_class.last_updated < poll_time,
                         base_class.cloud_type == cloud_type
                         )
-
+                elif condor_host is not None:
+                    obsolete_items = db_session.query(base_class).filter(
+                        base_class.group_name == group_name,
+                        base_class.cloud_name == cloud_name,
+                        base_class.htcondor_host_id == condor_host,
+                        base_class.last_updated < poll_time
+                        )
                 else:
                     obsolete_items = db_session.query(base_class).filter(
                         base_class.group_name == group_name,
@@ -107,6 +155,11 @@ def delete_obsolete_database_items(type, inventory, db_session, base_class, base
                         base_class.group_name == group_name,
                         base_class.cloud_type == cloud_type
                         )
+                elif condor_host is not None:
+                    obsolete_items = db_session.query(base_class).filter(
+                        base_class.group_name == group_name,
+                        base_class.htcondor_host_id == condor_host
+                        )
                 else:
                     obsolete_items = db_session.query(base_class).filter(
                         base_class.group_name == group_name
@@ -117,6 +170,12 @@ def delete_obsolete_database_items(type, inventory, db_session, base_class, base
                         base_class.group_name == group_name,
                         base_class.cloud_name == cloud_name,
                         base_class.cloud_type == cloud_type
+                        )
+                elif condor_host is not None:
+                    obsolete_items = db_session.query(base_class).filter(
+                        base_class.group_name == group_name,
+                        base_class.cloud_name == cloud_name,
+                        base_class.htcondor_host_id == condor_host
                         )
                 else:
                     obsolete_items = db_session.query(base_class).filter(
@@ -181,12 +240,14 @@ def foreign(vm):
     else:
         return True
 
-def get_inventory_item_hash_from_database(db_engine, base_class, base_class_key, debug_hash=False, cloud_type=None):
+def get_inventory_item_hash_from_database(db_engine, base_class, base_class_key, debug_hash=False, cloud_type=None, condor_host=None):
     inventory = {}
     try:
         db_session = Session(db_engine)
         if cloud_type is not None:
             rows =db_session.query(base_class).filter(base_class.cloud_type == cloud_type)
+        elif condor_host is not None:
+            rows = db_session.query(base_class).filter(base_class.htcondor_host_id == condor_host)
         else:
             rows = db_session.query(base_class)
         for row in rows:

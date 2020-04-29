@@ -432,8 +432,8 @@ def parameters_commands(gvar, obj, action, group, server_user, parameters, requi
     '''
     Execute commands with missing parameters and bad parameters.
     The structure of `parameters` is similar to parameters_requests's `parameters`, with two exceptions:
-        Parameter names should be given in the form they are given to the CLI, e.g. '-an' or '--alias-name' (not 'alias_name').
-        'array_field' is ignored, because the CLI does not send multiple values for a parameter unless the server expects this.
+        0. Parameter names should be given in the form they are given to the CLI, e.g. '-an' or '--alias-name' (not 'alias_name').
+        1. 'array_field' is ignored, because the CLI does not send multiple values for a parameter unless the server expects this.
     requires_confirmation (bool) indicates whether the command asks for confirmation from the user before acting. If True, `--yes` will be passed with all commands except for one, which will check that a confirmation message is printed.
     The number of tests executed can be calculated as the sum of the number of mandatory parameters and the total number of test cases, plus one if `requires_confirmation`.
     There is no way to specify parameters that do not take values (like `--rotate` for tables), so these must be tested separately.
@@ -474,7 +474,7 @@ def table_commands(gvar, obj, action, group, server_user, table_headers):
     `table_headers` is a dictionary in which each key is the name of a table to test (in the form that the CLI prints, e.g. 'Aliases'), and its value is a complete list of all of the table's expected keys and columns (as strs) (in the form that the CLI prints, e.g. 'Group'). These must be in the order that they are listed when `--view-columns` is specified (keys being before columns). When super-headers appear over a group of columns in the CLI output (e.g. 'Project' in the output of `cloud list`), these should be included in this list and may be in any position after the keys, except at the end. Optional tables which are listed last by `--view-columns` can be omitted from testing by omitting them from `table_headers` (but other tables must be included). Any specifications of non-existent tables will be ignored.
     If table_headers specifies more than one table, the total number of tests executed can be calculated as: 7 * (number of default tables specified) + 10 * (number of optional tables specified). Otherwise, it can be calculated as 7 * (number of tables specified).
     The options tested are `--comma-separated-values` (`-CSV`), `--comma-separated-values-separator` (`-CSEP`), `--no-view` (`-NV`), `--only-keys` (`-ok`), `--rotate` (`-r`), `--view` (`-V`), and `--with` (`-w`).
-    'headers' is used to refer to keys and columns collectively. When running tests that use this function, the test runner should not have `with` specified in their defaults.
+    'headers' is used to refer to keys and columns collectively. When running tests that use this function, the person running the tests should not have `with` specified in their defaults.
     '''
 
     import subprocess
@@ -620,7 +620,6 @@ def initialize_csv2_request(gvar, selections=None, hidden=False):
     gvar['command_args'] = {}
     gvar['cookies'] = None
     gvar['csrf'] = None
-    # Used as the htcondor_fqdn of test groups.
     gvar['ut_count'] = [0, 0]
     gvar['ut_failed'] = 0
     gvar['ut_skipped'] = 0
@@ -692,6 +691,12 @@ def load_settings(web=False):
         # Move everything in gvar['web'] up to the top level.
         gvar.update(gvar['web'])
         del gvar['web']
+        gvar['metadata_path'] = '../notyamlfile.txt'
+        gvar['metadata_yaml_path'] = '../ut.yaml'
+    else:
+        gvar['metadata_path'] = 'notyamlfile.txt'
+        gvar['metadata_yaml_path'] = 'ut.yaml'
+
 
     return gvar
 
@@ -891,7 +896,7 @@ def _requests_insert_controls(gvar, request, group, form_data, query_data, serve
 #-------------------------------------------------------------------------------
 
 def ut_id(gvar, IDs):
-    '''Format the test runner's username with IDs (str) to create a unique ID for a test object.'''
+    '''Format the username of the person running the tests with IDs (str) to create a unique ID for a test object.'''
     ids = IDs.split(',')
     return '%s-%s' % (gvar['user_settings']['server-user'], (',%s-' % gvar['user_settings']['server-user']).join(ids))
  
@@ -902,8 +907,7 @@ def condor_setup(gvar):
     import subprocess
 
     # Check that condor is installed so that we can submit a job to view using /job/list/
-    requirements = {'condor_submit', 'condor_rm'}
-    for requirement in requirements:
+    for requirement in {'condor_submit', 'condor_rm'}:
         if subprocess.run(['which', requirement], stdout=subprocess.DEVNULL).returncode != 0:
             condor_error(gvar, '{} is not installed'.format(requirement))
             return
@@ -911,7 +915,7 @@ def condor_setup(gvar):
     if gvar['user_settings']['server-address'].startswith('http'):
         return re.match(r'https?://(.*)', gvar['user_settings']['server-address'])[1]
     else:
-        condor_error(gvar, 'the server address in {} is \'{}\', which does not start with \'http\''.format(YAML_PATH, gvar['user_settings']['server-address']))
+        condor_error(gvar, 'the server address in {} is \'{}\', which does not start with \'http\''.format(os.path.expanduser('~/.csv2/unit-test/settings.yaml'), gvar['user_settings']['server-address']))
         return
 
 def condor_error(gvar, err):

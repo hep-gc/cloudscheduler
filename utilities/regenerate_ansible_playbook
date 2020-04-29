@@ -32,6 +32,7 @@ syscmd(gvar, ['.bin/ansible_util', '-S', '%s/cloudscheduler/ansible-playbook' % 
 os.remove('%s/cloudscheduler/ansible-playbook/inventory' % gvar['root_dir'])
 shutil.rmtree('%s/cloudscheduler/ansible-playbook/inventory_host_variables' % gvar['root_dir'])
 os.remove('%s/cloudscheduler/ansible-playbook/staticvms.yaml' % gvar['root_dir'])
+os.remove('%s/cloudscheduler/ansible-playbook/roles/csv2/vars/csv2-default-vars.yaml' % gvar['root_dir'])
 os.remove('%s/cloudscheduler/ansible-playbook/roles/csv2/vars/csv2-sa-vars.yaml' % gvar['root_dir'])
 os.remove('%s/cloudscheduler/ansible-playbook/roles/csv2/vars/csv2-sa-secrets.yaml' % gvar['root_dir'])
 
@@ -39,9 +40,11 @@ shutil.copyfile('%s/cloudscheduler/.ansible-playbook-templates/addenda' % gvar['
 shutil.copyfile('%s/cloudscheduler/.ansible-playbook-templates/README.md' % gvar['root_dir'], '%s/cloudscheduler/ansible-playbook/README.md' % gvar['root_dir'])
 shutil.copyfile('%s/cloudscheduler/.ansible-playbook-templates/inventory' % gvar['root_dir'], '%s/cloudscheduler/ansible-playbook/inventory' % gvar['root_dir'])
 shutil.copyfile('%s/cloudscheduler/.ansible-playbook-templates/csv2-sa.yaml' % gvar['root_dir'], '%s/cloudscheduler/ansible-playbook/csv2-sa.yaml' % gvar['root_dir'])
+shutil.copyfile('%s/cloudscheduler/.ansible-playbook-templates/csv2-default-vars.yaml' % gvar['root_dir'], '%s/cloudscheduler/ansible-playbook/csv2-default-vars.yaml' % gvar['root_dir'])
 shutil.copyfile('%s/cloudscheduler/.ansible-playbook-templates/csv2-sa-vars.yaml' % gvar['root_dir'], '%s/cloudscheduler/ansible-playbook/csv2-sa-vars.yaml' % gvar['root_dir'])
 shutil.copyfile('%s/cloudscheduler/.ansible-playbook-templates/csv2-sa-secrets.yaml' % gvar['root_dir'], '%s/cloudscheduler/ansible-playbook/csv2-sa-secrets.yaml' % gvar['root_dir'])
 shutil.copyfile('%s/cloudscheduler/.ansible-playbook-templates/csv2-container-build.yaml' % gvar['root_dir'], '%s/cloudscheduler/ansible-playbook/csv2-container-build.yaml' % gvar['root_dir'])
 
+os.symlink('../../../csv2-default-vars.yaml', '%s/cloudscheduler/ansible-playbook/roles/csv2/vars/csv2-default-vars.yaml' % gvar['root_dir'])
 os.symlink('../../../csv2-sa-vars.yaml', '%s/cloudscheduler/ansible-playbook/roles/csv2/vars/csv2-sa-vars.yaml' % gvar['root_dir'])
 os.symlink('../../../csv2-sa-secrets.yaml', '%s/cloudscheduler/ansible-playbook/roles/csv2/vars/csv2-sa-secrets.yaml' % gvar['root_dir'])

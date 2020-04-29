@@ -29,7 +29,7 @@ def images(gvar):
 
     mandatory = ['-cn']
     required = []
-    optional = ['-CSEP', '-CSV', '-g', '-H', '-h', '-ia', '-il', '-inl', '-ioa', '-ioi', '-ios', '-NV', '-ok', '-r', '-s', '-V', '-VC', '-v', '-v', '-xA', '-w']
+    optional = ['-CSEP', '-CSV', '-g', '-H', '-h', '-ia', '-il', '-inl', '-ioa', '-ioi', '-ios', '-NV', '-ok', '-r', '-s', '-V', '-VC', '-v', '-v', '-x509', '-xA', '-w']
 
     if gvar['retrieve_options']:
         return mandatory + required + optional
@@ -144,7 +144,7 @@ def instance_types(gvar):
 
     mandatory = ['-cn']
     required = []
-    optional = ['-CSEP', '-CSV', '-g', '-H', '-h', '-itc', '-itf', '-itmn', '-itmx', '-itos', '-itp', '-itpm', '-NV', '-ok', '-r', '-s', '-V', '-VC', '-v', '-v', '-xA', '-w']
+    optional = ['-CSEP', '-CSV', '-g', '-H', '-h', '-itc', '-itf', '-itmn', '-itmx', '-itos', '-itp', '-itpm', '-NV', '-ok', '-r', '-s', '-V', '-VC', '-v', '-v', '-x509', '-xA', '-w']
 
     if gvar['retrieve_options']:
         return mandatory + required + optional
