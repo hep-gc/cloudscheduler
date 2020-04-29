@@ -87,6 +87,7 @@ class TestClouds(unittest.TestCase):
         }]
 
     def test_nav(self):
+        '''Test the top navigation.'''
         wc.assert_nav(self.driver, self.fail, self.gvar['address'])
     
     def test_cloud_add(self):
@@ -131,21 +132,39 @@ class TestClouds(unittest.TestCase):
         self.assert_cloud_types(form_xpath)
 
     def test_amazon_filters(self):
+        '''Test cloud_to_list -> Settings -> <Image filter and Flavor filter>. (Only visible if cloud_type == 'amazon'.)'''
         self.assert_amazon_popup('Image filter', EXPECTED_IMAGE_FILTER_INPUTS)
         self.assert_amazon_popup('Flavor filter', EXPECTED_FLAVOR_FILTER_INPUTS)
-    
-    def test_exclusions_tab(self):
-        exclusions_tab = self.select_cloud_tab(self.cloud_to_list, 2)
+
+    def test_exclusions_metadata(self):
+        '''Test cloud_to_update -> Exclusions -> Default metadata.'''
+        exclusions_tab = self.select_cloud_tab(self.cloud_to_update, 2)
         # Look within elements of class 'tab' for an element of class 'tab2' that has within it a label with the text 'Default metadata'.
-        default_metadata = wc.assert_one(exclusions_tab, self.fail, (By.XPATH, './/*[contains(@class, "tab2")][label/text()="Default metadata"]'), missing_message='The \'Default metadata\' sub-tab (under \'Exclusions\') for {} is missing.'.format(self.cloud_to_list))
+        default_metadata = wc.assert_one(exclusions_tab, self.fail, (By.XPATH, './/*[contains(@class, "tab2")][label/text()="Default metadata"]'))
         default_metadata.click()
-        wc.assert_one(exclusions_tab, self.fail, (By.TAG_NAME, 'form'), {'name': '{}-metadata-exclusions'.format(self.cloud_to_list)}, missing_message='The form to update metadata exclusions for {} is missing'.format(self.cloud_to_list))
+        form_xpath = '//*[contains(@class, "menu")]//*[@id="{0}"]//*[contains(@class, "tab2")]//form[@name="{0}-metadata-exclusions"]'.format(self.cloud_to_update)
+        # metadata_name.1 == default.yaml.j2; metadata_name.2 == metadata_to_list
+        wc.submit_form(self.driver, self.fail, form_xpath, {'metadata_name.1': False, 'metadata_name.2': True}, expected_response='cloud "{}::{}" successfully updated.'.format(self.active_group, self.cloud_to_update), retains_values=True)
+
+    def test_exclusions_flavors(self):
+        '''Test cloud_to_update -> Exclusions -> Default flavors.'''
+        exclusions_tab = self.select_cloud_tab(self.cloud_to_update, 2)
         # Look within elements of class 'tab' for an element of class 'tab2' that has within it a label with the text 'Default flavors'.
-        default_flavors = wc.assert_one(exclusions_tab, self.fail, (By.XPATH, './/*[contains(@class, "tab2")][label/text()="Default flavors"]'), missing_message='The \'Default flavors\' sub-tab (under \'Exclusions\') for {} is missing.'.format(self.cloud_to_list))
+        default_flavors = wc.assert_one(exclusions_tab, self.fail, (By.XPATH, './/*[contains(@class, "tab2")][label/text()="Default flavors"]'))
         default_flavors.click()
-        wc.assert_one(exclusions_tab, self.fail, (By.TAG_NAME, 'form'), {'name': '{}-flavor-exclusions'.format(self.cloud_to_list)}, missing_message='The form to update flavor exclusions for {} is missing.'.format(self.cloud_to_list))
+        form_xpath = '//*[contains(@class, "menu")]//*[@id="{0}"]//*[contains(@class, "tab2")]//form[@name="{0}-flavor-exclusions"]'.format(self.cloud_to_update)
+        form = wc.assert_one(self.driver, self.fail, (By.XPATH, form_xpath))
+        # Only every second input of the first ten checkboxes.
+        inputs = [input_ for input_ in form.find_elements(By.TAG_NAME, 'input')[:10:2] if input_.is_displayed()]
+        self.assertTrue(inputs)
+        for input_ in inputs:
+            self.assertEqual(input_.get_attribute('type'), 'checkbox', 'Expected {} to be of type \'checkbox\'.'.format(wc.get_open_tag(input_)))
+        to_select = {checkbox.get_attribute('name'): True for checkbox in inputs}
+        # Every second input of the first ten inputs.
+        wc.submit_form(self.driver, self.fail, form_xpath, to_select, expected_response='cloud "{}::{}" successfully updated.'.format(self.active_group, self.cloud_to_update), retains_values=True)
 
     def test_metadata_fetch(self):
+        '''Test cloud_to_update -> Metadata -> metadata_to_list.'''
         with open(self.gvar['metadata_path']) as metadata_file:
             expected_metadata_content = metadata_file.read()
         form = self.select_metadata(self.metadata_to_list)
@@ -212,6 +231,7 @@ class TestClouds(unittest.TestCase):
             self.driver.switch_to.default_content()
 
     def test_metadata_delete(self):
+        '''Test cloud_to_update -> Metadata -> metadata_to_delete -> Delete.'''
         form = self.select_metadata(self.metadata_to_delete)
         try:
             delete_button = wc.assert_one(form, self.fail, (By.TAG_NAME, 'a'), {'href': '{}/cloud/metadata-fetch/?{}&cloud_name={}&metadata_name={}#delete-metadata'.format(self.gvar['address'], self.active_group, self.cloud_to_update, self.metadata_to_delete)}, missing_message='The button to delete {} is missing.'.format(self.metadata_to_delete))
@@ -227,6 +247,7 @@ class TestClouds(unittest.TestCase):
             self.driver.switch_to.default_content()
 
     def test_metadata_update(self):
+        '''Test cloud_to_update -> Settings -> Update Cloud.'''
         valid_combination = {
             'priority': 3,
             'mime_type': 'ucernvm-config',
@@ -246,7 +267,7 @@ class TestClouds(unittest.TestCase):
             self.driver.switch_to.default_content()
 
     def select_cloud_tab(self, cloud_name, tab_index=None):
-        '''Select the tab at the given tab_index under the given cloud and return the tab element.'''
+        '''Select the tab (e.g. Settings) at the given tab_index (starting from 0) under the given cloud and return the tab element.'''
         cloud_listing = wc.assert_one(self.driver, self.fail, (By.XPATH, '//*[@class="menu"]//*[@id="{}"]'.format(cloud_name)), missing_message='{} is missing from the list of clouds, or the whole list is missing.'.format(cloud_name))
         wc.assert_one(cloud_listing, self.fail, (By.LINK_TEXT, cloud_name), missing_message='The link to select {} is missing.'.format(cloud_name)).click()
         if tab_index == None:
@@ -286,7 +307,7 @@ class TestClouds(unittest.TestCase):
             raise
 
     def assert_cloud_types(self, form_xpath):
-        '''Assert that the <select> with name='cloud_type' in form has the right <option>s and changes other <input>s appropriately.'''
+        '''Assert that the form with xpath `form_xpath` has a <select name='cloud_type'> with the expected <option>s, and that changing the cloud_type changes other <input>s appropriately.'''
         form = wc.assert_one(self.driver, self.fail, (By.XPATH, form_xpath))
         cloud_type_select = wc.assert_one(form, self.fail, (By.TAG_NAME, 'select'), {'name': 'cloud_type'})
         cloud_type_options = cloud_type_select.find_elements(By.TAG_NAME, 'option')
