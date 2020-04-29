@@ -34,7 +34,7 @@ CREATE TABLE `csv2_cloud_types` (
 
 LOCK TABLES `csv2_cloud_types` WRITE;
 /*!40000 ALTER TABLE `csv2_cloud_types` DISABLE KEYS */;
-INSERT INTO `csv2_cloud_types` VALUES ('amazon'),('azure'),('google'),('local'),('opennebula'),('openstack');
+INSERT INTO `csv2_cloud_types` VALUES ('amazon'),('local'),('openstack');
 /*!40000 ALTER TABLE `csv2_cloud_types` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
@@ -47,4 +47,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2020-02-07 12:03:26
+-- Dump completed on 2020-04-20 15:55:12

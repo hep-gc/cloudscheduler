@@ -436,16 +436,6 @@ def delete(request):
             config.db_close()
             return group_list(request, active_user=active_user, response_code=1, message='%s group delete %s' % (lno(MODID), msg))
 
-        # Delete the csv2_cloud_aliases.
-        table = tables['csv2_cloud_aliases']
-        rc, msg = config.db_session_execute(
-            table.delete(table.c.group_name==fields['group_name']),
-            allow_no_rows=True
-            )
-        if rc != 0:
-            config.db_close()
-            return group_list(request, active_user=active_user, response_code=1, message='%s group resources delete "%s" failed - %s.' % (lno(MODID), fields['group_name'], msg))
-
         # Delete any group metadata files for the group.
         s = select([view_groups_with_metadata_names]).where((view_groups_with_metadata_names.c.group_name == fields['group_name']))
         _group_list = qt(config.db_connection.execute(s))
@@ -503,8 +493,15 @@ def delete(request):
             return group_list(request, active_user=active_user, response_code=1, message='%s group users delete "%s" failed - %s.' % (lno(MODID), fields['group_name'], msg))
 
 
-        # Delete the csv2 cloud aliases.
-        rc = config.db_connection.execute('delete from csv2_cloud_aliases where group_name="%s";' % fields['group_name'])
+        # Delete the csv2_cloud_aliases.
+        table = tables['csv2_cloud_aliases']
+        rc, msg = config.db_session_execute(
+            table.delete(table.c.group_name==fields['group_name']),
+            allow_no_rows=True
+            )
+        if rc != 0:
+            config.db_close()
+            return group_list(request, active_user=active_user, response_code=1, message='%s group resources delete "%s" failed - %s.' % (lno(MODID), fields['group_name'], msg))
 
         # Delete the csv2_vms.
         table = tables['csv2_vms']

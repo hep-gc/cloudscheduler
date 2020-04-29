@@ -150,7 +150,7 @@ EOF
 ###
     stat /opt/cloudscheduler/python3 >/dev/null 2>&1
     if [ $? -ne 0 ]; then
-        if [ $python3 -lt 30005000 ]; then
+        if [ $python3 -lt 3005000 ]; then
             python3 -m venv /opt/cloudscheduler/python3
             source /opt/cloudscheduler/python3/bin/activate
             python3 -m pip install pip --upgrade

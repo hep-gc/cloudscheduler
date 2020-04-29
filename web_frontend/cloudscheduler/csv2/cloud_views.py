@@ -95,6 +95,7 @@ CLOUD_KEYS = {
         'region',
         ],
     'array_fields': [
+        'flavor_name',
         'group_name',
         'metadata_name',
         ]
@@ -522,7 +523,7 @@ def add(request):
                 fields['cores_softmax'] = config.categories['web_frontend']['default_softmax']
 
         # Verify cloud credentials.
-        rc, msg, owner_id = verify_cloud_credentials(config, {**fields, **{'group_name': active_user.active_group}})
+        rc, msg, owner_id = verify_cloud_credentials(config, {**fields, 'group_name': active_user.active_group})
         if rc == 0:
             if owner_id:
                 fields['ec2_owner_id'] = owner_id
@@ -1197,7 +1198,7 @@ def metadata_update(request):
 
             config.db_close(commit=True)
 
-            message='cloud metadata file "%s::%s::%s" successfully  updated.' % (fields['group_name'], fields['cloud_name'], fields['metadata_name'])
+            message='cloud metadata file "%s::%s::%s" successfully updated.' % (fields['group_name'], fields['cloud_name'], fields['metadata_name'])
 
             return metadata_fetch(request, response_code=0, message=message, metadata_name=fields['metadata_name'], cloud_name=fields['cloud_name'])
         else:
@@ -1665,13 +1666,11 @@ def update(request):
             # remove the password field.
             del request.POST['password']
 
-        # check if there was multiple securit groups posted
-        #
+        # check if there were multiple security groups posted
         if len(request.POST.getlist("vm_security_groups")) > 1:
             # if there is a list more than 1 security group was selected
             # so we must cast the list as a string to match the format that comes from CLI
             request.POST["vm_security_groups"] = ",".join([str(x) for x in request.POST.getlist("vm_security_groups")])
-
 
         # Validate input fields.
         rc, msg, fields, tables, columns = validate_fields(config, request, [CLOUD_KEYS], ['csv2_clouds', 'csv2_cloud_flavor_exclusions,n', 'csv2_group_metadata,n', 'csv2_group_metadata_exclusions,n'], active_user)
@@ -1723,7 +1722,7 @@ def update(request):
                 return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud update, "%s" failed - %s.' % (lno(MODID), fields['cloud_name'], msg))
 
         # Verify cloud credentials.
-        rc, msg, owner_id = verify_cloud_credentials(config, {**fields, **{'group_name': active_user.active_group}})
+        rc, msg, owner_id = verify_cloud_credentials(config, {**fields, 'group_name': active_user.active_group})
         if rc == 0:
             if owner_id:
                 fields['ec2_owner_id'] = owner_id
@@ -1827,7 +1826,7 @@ def update(request):
             return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud update must specify at least one field to update.' % lno(MODID))
 
         config.db_close()
-        return list(request, active_user=active_user, response_code=0, message='cloud "%s::%s" successfully updated.' % (fields['group_name'], fields['cloud_name']))
+        return cloud_list(request, active_user=active_user, response_code=0, message='cloud "%s::%s" successfully updated.' % (fields['group_name'], fields['cloud_name']))
                     
     ### Bad request.
     else:

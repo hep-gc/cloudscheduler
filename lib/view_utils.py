@@ -1543,10 +1543,13 @@ def verify_cloud_credentials(config, cloud):
     elif 'cloud_type' in cloud:
         cloud_type = cloud['cloud_type']
 
+    # Must be a /cloud/update/ (not /cloud/add/) request.
     elif 'group_name' in cloud and 'cloud_name' in cloud:
         rc, msg, target_cloud = get_target_cloud(config, cloud['group_name'], cloud['cloud_name'])
         if rc == 0:
             cloud_type = target_cloud['cloud_type']
+        else:
+            return rc, msg, None
 
     if cloud_type == 'amazon':
         rc, msg, session = get_amazon_session(config, cloud, target_cloud=target_cloud)
@@ -1563,7 +1566,7 @@ def verify_cloud_credentials(config, cloud):
         return rc, msg, None
 
     else:
-       return 1, 'unsuppoerted cloud_type', None
+       return 1, 'unsupported cloud_type', None
 
 #-------------------------------------------------------------------------------
 
