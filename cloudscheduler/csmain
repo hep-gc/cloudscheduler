@@ -831,7 +831,7 @@ def main():
                                     if boot_flavor.get("worker_cert")[-1] == '\n':
                                         cloud_worker_cert = boot_flavor.get("worker_cert")[:-1].replace('\n', '\n        ')
                                     else:
-                                        cloud_worker_cert = boot_flavor.get("worker_cert").replace('\n', '\n        ')
+                                        cloud_worker_cert = boot_flavor.get("worker_cert").decode().replace('\n', '\n        ')
                                 else:
                                     cloud_worker_cert = None
 

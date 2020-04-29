@@ -400,7 +400,7 @@ def flavor_poller():
             config.db_open()
             db_session = config.db_session
             # Cleanup inventory, this function will clean up inventory entries for deleted clouds
-            group_clouds = config.db_connection.execute('select distinct group_name, cloud_name from csv2_clouds where cloud_type="openstack"')
+            group_clouds = config.db_connection.execute('select distinct group_name, cloud_name from csv2_clouds where cloud_type="amazon"')
             cleanup_inventory(inventory, group_clouds)
 
 
@@ -876,7 +876,7 @@ def keypair_poller():
                 config.refresh()
                 db_session = config.db_session
                 # Cleanup inventory, this function will clean up inventory entries for deleted clouds
-                group_clouds = config.db_connection.execute('select distinct group_name, cloud_name from csv2_clouds where cloud_type="openstack"')
+                group_clouds = config.db_connection.execute('select distinct group_name, cloud_name from csv2_clouds where cloud_type="amazon"')
                 cleanup_inventory(inventory, group_clouds)
 
 
@@ -1056,7 +1056,7 @@ def limit_poller():
                 config.refresh()
                 db_session = config.db_session
                 # Cleanup inventory, this function will clean up inventory entries for deleted clouds
-                group_clouds = config.db_connection.execute('select distinct group_name, cloud_name from csv2_clouds where cloud_type="openstack"')
+                group_clouds = config.db_connection.execute('select distinct group_name, cloud_name from csv2_clouds where cloud_type="amazon"')
                 cleanup_inventory(inventory, group_clouds)
 
 
@@ -1284,7 +1284,7 @@ def network_poller():
                 db_session = config.db_session
 
                 # Cleanup inventory, this function will clean up inventory entries for deleted clouds
-                group_clouds = config.db_connection.execute('select distinct group_name, cloud_name from csv2_clouds where cloud_type="openstack"')
+                group_clouds = config.db_connection.execute('select distinct group_name, cloud_name from csv2_clouds where cloud_type="amazon"')
                 cleanup_inventory(inventory, group_clouds)
 
                 abort_cycle = False
@@ -1476,7 +1476,7 @@ def security_group_poller():
                 db_session = config.db_session
 
                 # Cleanup inventory, this function will clean up inventory entries for deleted clouds
-                group_clouds = config.db_connection.execute('select distinct group_name, cloud_name from csv2_clouds where cloud_type="openstack"')
+                group_clouds = config.db_connection.execute('select distinct group_name, cloud_name from csv2_clouds where cloud_type="amazon"')
                 cleanup_inventory(inventory, group_clouds)
 
                 abort_cycle = False
@@ -1679,7 +1679,7 @@ def vm_poller():
             db_session = config.db_session
 
             # Cleanup inventory, this function will clean up inventory entries for deleted clouds
-            group_clouds = config.db_connection.execute('select distinct group_name, cloud_name from csv2_clouds where cloud_type="openstack"')
+            group_clouds = config.db_connection.execute('select distinct group_name, cloud_name from csv2_clouds where cloud_type="amazon"')
             cleanup_inventory(inventory, group_clouds)
 
             # For each amazon region, retrieve and process VMs.
