@@ -21,16 +21,16 @@ class TestClouds(unittest.TestCase):
         cls.gvar = wc.load_web_settings('/cloud/list/')
         cls.driver = cls.gvar['driver']
         cls.max_wait = cls.gvar['max_wait']
-        cls.active_group = '{}-wig1'.format(cls.gvar['user'])
-        cls.cloud_to_list = '{}-wic1'.format(cls.gvar['user'])
-        cls.cloud_to_delete = '{}-wic2'.format(cls.gvar['user'])
-        cls.cloud_to_update = '{}-wic3'.format(cls.gvar['user'])
-        cls.cloud_to_add = '{}-wic4'.format(cls.gvar['user'])
-        cls.metadata_to_list = '{}-wicm1'.format(cls.gvar['user'])
-        cls.metadata_to_delete = '{}-wicm2'.format(cls.gvar['user'])
-        cls.metadata_to_update = '{}-wicm3'.format(cls.gvar['user'])
-        cls.metadata_to_update_yaml = '{}-wicm4.yaml'.format(cls.gvar['user'])
-        cls.metadata_to_add = '{}-wicm5'.format(cls.gvar['user'])
+        cls.active_group = cls.gvar['user'] + '-wig1'
+        cls.cloud_to_list = cls.gvar['user'] + '-wic1'
+        cls.cloud_to_delete = cls.gvar['user'] + '-wic2'
+        cls.cloud_to_update = cls.gvar['user'] + '-wic3'
+        cls.cloud_to_add = cls.gvar['user'] + '-wic4'
+        cls.metadata_to_list = cls.gvar['user'] + '-wicm1'
+        cls.metadata_to_delete = cls.gvar['user'] + '-wicm2'
+        cls.metadata_to_update = cls.gvar['user'] + '-wicm3'
+        cls.metadata_to_update_yaml = cls.gvar['user'] + '-wicm4.yaml'
+        cls.metadata_to_add = cls.gvar['user'] + '-wicm5'
         # It is important that cloud_type comes before cloud_credentials, because it can change these fields.
         cls.cloud_add_mandatory_parameters = {'cloud_name': cls.cloud_to_add, 'cloud_type': 'openstack', **cls.gvar['cloud_credentials'], 'project_domain_name': 'Default', 'user_domain_name': 'Default'}
         cls.cloud_add_invalid_combinations = {
@@ -92,14 +92,14 @@ class TestClouds(unittest.TestCase):
     
     def test_cloud_add(self):
         # Look for links with visible text '+' within elements with id 'add-cloud' which are themselves in elements of class 'menu'.
-        link_xpath = '//*[@class="menu"]//*[@id="add-cloud"]//a[text()="+"]'
+        link_xpath = '//*[contains(@class, "menu")]//*[@id="add-cloud"]//a[text()="+"]'
         # Look for forms with name 'cloud' within elements with id 'add-cloud' which are themselves in elements of class 'menu'.
-        form_xpath = '//*[@class="menu"]//*[@id="add-cloud"]//form[@name="add_cloud"]'
+        form_xpath = '//*[contains(@class, "menu")]//*[@id="add-cloud"]//form[@name="add_cloud"]'
         wc.submit_invalid_combinations(self.driver, self.fail, form_xpath, self.cloud_add_invalid_combinations, self.cloud_add_mandatory_parameters, self.max_wait, click_before_filling=link_xpath)
         wc.submit_valid_combinations(self.driver, self.fail, form_xpath, self.cloud_add_valid_combinations, self.cloud_add_mandatory_parameters, self.max_wait, expected_response='successfully added', click_before_filling=link_xpath)
         wc.assert_one(self.driver, self.fail, (By.XPATH, link_xpath)).click()
         # Assert that the new cloud appears in the list of clouds.
-        wc.assert_one(self.driver, self.fail, (By.XPATH, '//*[@class="menu"]//*[@id="{}"]'.format(self.cloud_to_add)), missing_message='{} was missing from the list of clouds after it was created.'.format(self.cloud_to_add))
+        wc.assert_one(self.driver, self.fail, (By.XPATH, '//*[contains(@class, "menu")]//*[@id="{}"]'.format(self.cloud_to_add)), missing_message='{} was missing from the list of clouds after it was created.'.format(self.cloud_to_add))
         self.assert_cloud_types(form_xpath)
     
     def test_cloud_delete(self):
@@ -126,7 +126,7 @@ class TestClouds(unittest.TestCase):
     def test_cloud_update(self):
         self.select_cloud_tab(self.cloud_to_update, 0)
         # Look for forms with name equal to cloud_to_update within elements with id equal to cloud_to_update which are themselves in elements of class 'menu'.
-        form_xpath = '//*[@class="menu"]//*[@id="{0}"]//form[@name="{0}"]'.format(self.cloud_to_update)
+        form_xpath = '//*[contains(@class, "menu")]//*[@id="{0}"]//form[@name="{0}"]'.format(self.cloud_to_update)
         # Verify that security groups appear.
         form = wc.assert_one(self.driver, self.fail, (By.XPATH, form_xpath))
         security_group_select = wc.assert_one(form, self.fail, (By.TAG_NAME, 'select'), {'id': 'rightValues-{}'.format(self.cloud_to_update)})
@@ -279,7 +279,7 @@ class TestClouds(unittest.TestCase):
 
     def select_cloud_tab(self, cloud_name, tab_index=None):
         '''Select the tab (e.g. Settings) at the given tab_index (starting from 0) under the given cloud and return the tab element.'''
-        cloud_listing = wc.assert_one(self.driver, self.fail, (By.XPATH, '//*[@class="menu"]//*[@id="{}"]'.format(cloud_name)), missing_message='{} is missing from the list of clouds, or the whole list is missing.'.format(cloud_name))
+        cloud_listing = wc.assert_one(self.driver, self.fail, (By.XPATH, '//*[contains(@class, "menu")]//*[@id="{}"]'.format(cloud_name)), missing_message='{} is missing from the list of clouds (or the whole list is missing).'.format(cloud_name))
         wc.assert_one(cloud_listing, self.fail, (By.LINK_TEXT, cloud_name), missing_message='The link to select {} is missing.'.format(cloud_name)).click()
         if tab_index == None:
             return cloud_listing
@@ -306,6 +306,7 @@ class TestClouds(unittest.TestCase):
             # We already know this label exists, but we need to find it so we can click on it.
             metadata_tab.find_element(By.XPATH, './/label[text()="{}"]'.format(metadata_name)).click()
             iframe = wc.assert_one(metadata_listing, self.fail, (By.XPATH, './/iframe[@id="editor-{}-{}"]'.format(self.cloud_to_update, metadata_name)))
+        # Click the label to add metadata.
         else:
             metadata_listing = wc.assert_one(metadata_tab, self.fail, (By.XPATH, './/*[contains(@class, "tab2")][label/text()="+"]'), missing_message='The button to add metadata is missing from the list of metadata for {}.'.format(self.cloud_to_update))
             metadata_tab.find_element(By.XPATH, './/label[text()="+"]').click()

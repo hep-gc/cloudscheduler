@@ -4,14 +4,13 @@ from cloudscheduler.unit_tests.unit_test_common import load_settings
 
 def main():
     gvar = load_settings(web=True)
-    for parameter in argv[1:]:
-        if parameter == '--setup' or parameter == '-s':
-            setup(gvar)
-        elif parameter == '--cleanup' or parameter == '-c':
-            cleanup(gvar)
-        elif parameter == '--both' or parameter == '-b':
-            cleanup(gvar)
-            setup(gvar)
+    if argv[1] == '--setup' or parameter == '-s':
+        setup(gvar)
+    elif argv[1] == '--cleanup' or parameter == '-c':
+        cleanup(gvar)
+    else:
+        cleanup(gvar)
+        setup(gvar)
 
 def setup(gvar):
     '''Create test objects.'''
