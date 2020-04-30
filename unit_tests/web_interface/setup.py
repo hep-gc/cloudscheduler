@@ -4,10 +4,13 @@ from cloudscheduler.unit_tests.unit_test_common import load_settings
 
 def main():
     gvar = load_settings(web=True)
-    if argv[1] == '--setup' or parameter == '-s':
-        setup(gvar)
-    elif argv[1] == '--cleanup' or parameter == '-c':
-        cleanup(gvar)
+    if len(argv) > 1:
+        if argv[1] == '--setup' or parameter == '-s':
+            setup(gvar)
+        elif argv[1] == '--cleanup' or parameter == '-c':
+            cleanup(gvar)
+        else:
+            raise SystemExit('Unrecognized flag \'{}\'.'.format(argv[1]))
     else:
         cleanup(gvar)
         setup(gvar)
@@ -29,59 +32,61 @@ def setup(gvar):
 
     setup_commands = [
         # The active group most of the time.
-        ['group', 'add', '-gn', '{}-wig1'.format(gvar['user']), '-htcf', gvar['fqdn']],
+        ['group', 'add', '-gn', gvar['user'] + '-wig1', '-htcf', gvar['fqdn']],
         # Group with no users.
-        ['group', 'add', '-gn', '{}-wig2'.format(gvar['user']), '-htcf', gvar['fqdn']],
+        ['group', 'add', '-gn', gvar['user'] + '-wig2', '-htcf', gvar['fqdn']],
         # Group to be deleted.
-        ['group', 'add', '-gn', '{}-wig3'.format(gvar['user']), '-htcf', gvar['fqdn']],
+        ['group', 'add', '-gn', gvar['user'] + '-wig3', '-htcf', gvar['fqdn']],
         # Group to be updated.
-        ['group', 'add', '-gn', '{}-wig4'.format(gvar['user']), '-htcf', gvar['fqdn'],
+        ['group', 'add', '-gn', gvar['user'] + '-wig4', '-htcf', gvar['fqdn'],
             '--htcondor-container-hostname', 'unit-test.ca',
-            '--htcondor-users', '{}-wiu1'.format(gvar['user']),
+            '--htcondor-users', gvar['user'] + '-wiu1',
             '--job-cores', '3',
             '--job-disk', '1',
             '--job-ram', '4',
             '--job-swap', '1'],
         # User used to perform most actions not requiring privileges.
-        ['user', 'add', '-un', '{}-wiu1'.format(gvar['user']), '-upw', gvar['user_secret'],
-            '--group-name', '{}-wig1'.format(gvar['user'])],
+        ['user', 'add', '-un', gvar['user'] + '-wiu1', '-upw', gvar['user_secret'],
+            '--group-name', gvar['user'] + '-wig1'],
         # User used to perform most actions requiring privileges.
-        ['user', 'add', '-un', '{}-wiu2'.format(gvar['user']), '-upw', gvar['user_secret'],
-            '--group-name', '{}-wig1'.format(gvar['user']),
+        ['user', 'add', '-un', gvar['user'] + '-wiu2', '-upw', gvar['user_secret'],
+            '--group-name', gvar['user'] + '-wig1',
             '--super-user', 'True'],
         # User who is not in any groups.
-        ['user', 'add', '-un', '{}-wiu3'.format(gvar['user']), '-upw', gvar['user_secret']],
+        ['user', 'add', '-un', gvar['user'] + '-wiu3', '-upw', gvar['user_secret']],
         # User to be deleted.
-        ['user', 'add', '-un', '{}-wiu4'.format(gvar['user']), '-upw', gvar['user_secret'],
-            '--group-name', '{}-wig1'.format(gvar['user'])],
+        ['user', 'add', '-un', gvar['user'] + '-wiu4', '-upw', gvar['user_secret'],
+            '--group-name', gvar['user'] + '-wig1'],
         # User to be updated.
-        ['user', 'add', '-un', '{}-wiu5'.format(gvar['user']), '-upw', gvar['user_secret'],
-            '--group-name', '{}-wig1'.format(gvar['user']),
-            '--user-common-name', '{} user 5'.format(gvar['user'])],
+        ['user', 'add', '-un', gvar['user'] + '-wiu5', '-upw', gvar['user_secret'],
+            '--group-name', gvar['user'] + '-wig1',
+            '--user-common-name', gvar['user'] + ' user 5'],
         # Cloud that should always exist to create aliases for.
-        cloud_template + ['-cn', '{}-wic1'.format(gvar['user'])],
+        cloud_template + ['-cn', gvar['user'] + '-wic1'],
         # Cloud to be deleted.
-        cloud_template + ['-cn', '{}-wic2'.format(gvar['user'])],
+        cloud_template + ['-cn', gvar['user'] + '-wic2'],
         # Cloud to be updated.
-        cloud_template + ['-cn', '{}-wic3'.format(gvar['user'])],
+        cloud_template + ['-cn', gvar['user'] + '-wic3'],
         # Alias that should always exist.
-        ['alias', 'add', *server_credentials, '-an', '{}-wia1'.format(gvar['user']), '-cn', '{}-wic1'.format(gvar['user'])],
-        # Alias to be updated and deleted.
-        ['alias', 'add', *server_credentials, '-an', '{}-wia2'.format(gvar['user']), '-cn', '{}-wic1'.format(gvar['user'])],
+        ['alias', 'add', *server_credentials, '-an', gvar['user'] + '-wia1', '-cn', gvar['user'] + '-wic1'],
+        # Alias to be deleted.
+        ['alias', 'add', *server_credentials, '-an', gvar['user'] + '-wia2', '-cn', gvar['user'] + '-wic1'],
+        # Alias to be updated.
+        ['alias', 'add', *server_credentials, '-an', gvar['user'] + '-wia3', '-cn', gvar['user'] + '-wic1'],
         # Cloud metadata that should always exist.
-        ['cloud', 'metadata-load', *server_credentials, '-mn', '{}-wicm1'.format(gvar['user']), '-cn', '{}-wic3'.format(gvar['user']), '-f', gvar['metadata_path']],
+        ['cloud', 'metadata-load', *server_credentials, '-mn', gvar['user'] + '-wicm1', '-cn', gvar['user'] + '-wic3', '-f', gvar['metadata_path']],
         # Cloud metadata to be deleted.
-        ['cloud', 'metadata-load', *server_credentials, '-mn', '{}-wicm2'.format(gvar['user']), '-cn', '{}-wic3'.format(gvar['user']), '-f', gvar['metadata_path']],
+        ['cloud', 'metadata-load', *server_credentials, '-mn', gvar['user'] + '-wicm2', '-cn', gvar['user'] + '-wic3', '-f', gvar['metadata_path']],
         # Cloud metadata to be updated.
-        ['cloud', 'metadata-load', *server_credentials, '-mn', '{}-wicm3'.format(gvar['user']), '-cn', '{}-wic3'.format(gvar['user']), '-f', gvar['metadata_path']],
+        ['cloud', 'metadata-load', *server_credentials, '-mn', gvar['user'] + '-wicm3', '-cn', gvar['user'] + '-wic3', '-f', gvar['metadata_path']],
         # Cloud YAML metadata to be updated.
-        ['cloud', 'metadata-load', *server_credentials, '-mn', '{}-wicm4.yaml'.format(gvar['user']), '-cn', '{}-wic3'.format(gvar['user']), '-f', gvar['metadata_yaml_path']],
+        ['cloud', 'metadata-load', *server_credentials, '-mn', gvar['user'] + '-wicm4.yaml', '-cn', gvar['user'] + '-wic3', '-f', gvar['metadata_yaml_path']],
         # Group metadata that should always exist.
-        ['metadata', 'load', *server_credentials, '-mn', '{}-wigm1'.format(gvar['user']), '-f', gvar['metadata_path']],
+        ['metadata', 'load', *server_credentials, '-mn', gvar['user'] + '-wigm1', '-f', gvar['metadata_path']],
         # Group metadata to be deleted.
-        ['metadata', 'load', *server_credentials, '-mn', '{}-wigm2'.format(gvar['user']), '-f', gvar['metadata_path']],
+        ['metadata', 'load', *server_credentials, '-mn', gvar['user'] + '-wigm2', '-f', gvar['metadata_path']],
         # Group metadata to be updated.
-        ['metadata', 'load', *server_credentials, '-mn', '{}-wigm3'.format(gvar['user']), '-f', gvar['metadata_path']]
+        ['metadata', 'load', *server_credentials, '-mn', gvar['user'] + '-wigm3', '-f', gvar['metadata_path']]
     ]
 
     print('Creating test objects. Run `util.py -c` later to remove them.')

@@ -3,10 +3,10 @@ DEFAULT_MAX_WAIT = 30
 def assert_one(parent, error_reporter, identifier, attributes=None, missing_message=None, multiple_message=None):
     '''
     Assert that a parent element contains precisely one child element matching the given identifier and attribute(s), and return this child.
-    parent_wait (selenium.webdriver.wait.WebDriverWait): A WebDriverWait for the driver or element expected to contain the child.
-    error_reporter (callable, usually unittest.TestCase.fail): Will be called with an error message (str) as its first and only argument if any expectation fails.
+    parent (selenium.webdriver.firefox.webdriver.WebDriver, selenium.webdriver.firefox.webelement.WebElement, or similar for a different browser): The driver or element expected to contain the child.
+    error_reporter (callable, usually unittest.TestCase.fail): Will be called with an error message (str) as its first and only argument if any assertion fails.
     identifier (2-tuple): Specifies the identifier key (str), e.g. 'tag name', and the identifier value (str), e.g. 'form', that the child must have. The identifier key is usually retrieved from selenium.webdriver.common.by.By (which provides a definitive set of possible keys).
-    attributes (dict or None): Maps the names of attributes, e.g. 'type', to the values that the child is expected to have for these attributes, e.g. 'checkbox'.
+    attributes (dict or None): Maps the names of attributes, e.g. 'type', to the values that the child is expected to have for these attributes, e.g. 'checkbox'. All identifiers except selenium.common.by.By.XPATH can also be given as attributes.
     missing_message (str or None): May be given to specify a custom error message to use when zero matching elements are found.
     multiple_message (str or None): May be given to specify a custom error message to use when multiple matching elements are found.
     '''
@@ -56,11 +56,15 @@ def assert_one(parent, error_reporter, identifier, attributes=None, missing_mess
 
 def submit_valid_combinations(driver, error_reporter, form_xpath, valid_combinations, mandatory_parameters=None, max_wait=DEFAULT_MAX_WAIT, expected_response=None, click_before_filling=None, retains_values=False):
     '''
-    Submit a form multiple times with parameter combinations that are expected to succeed.
-    driver (selenium.webdriver.support.wait.WebDriverWait): A WebDriverWait for the driver that contains the form to submit.
+    Submit a form multiple times with parameter combinations that are expected to fail.
+    driver (selenium.webdriver.firefox.webdriver.WebDriver, or similar for a different browser): The driver that contains the form to submit.
     error_reporter (callable, usually unittest.TestCase.fail): Will be called with an error message (str) as its first and only argument if an error occurs. Therefore, this function will *not* continue with any remaining submissions if and only if `error_reporter` raises an exception.
     form_xpath (str): An absolute XPath that uniquely identifies the form element to fill out. This allows it to be re-found after each submission.
+    valid_combinations (dict): A dictionary in which each key is a parameter name (str) and each value is itself a dictionary. These sub-dictionaries map valid values for the parameter to the response that each value is expected to produce when it is submitted in an otherwise valid request.
+    mandatory_parameters (dict): Maps the names of mandatory parameters to the values that they should have. These are submitted in all requests unless `valid_combinations` has a value for the same parameter, in which case `valid_combinations` takes precedence.
+    max_wait (float): The maximum number of seconds to wait for the response to appear after submitting a form.
     clicked_before_filling (str or None): An absolute XPath that uniquely identifies an element. May be given to indicate that an element should be clicked before each time that the form is filled out and submitted. This is usually used to cause the form to become visible again.
+    retains_values (bool): If True, assert that submitting the form causes the same form to appear with the same values in it.
     '''
     from selenium.webdriver.common.by import By
 
@@ -76,10 +80,12 @@ def submit_valid_combinations(driver, error_reporter, form_xpath, valid_combinat
 def submit_invalid_combinations(driver, error_reporter, form_xpath, invalid_combinations, mandatory_parameters=None, max_wait=DEFAULT_MAX_WAIT, click_before_filling=None):
     '''
     Submit a form multiple times with parameter combinations that are expected to fail.
-    driver, error_reporter, form_xpath: See `submit_valid_combinations`.
-    parameters (dict): A dictionary which maps parameter names to tuples, each of length 1 or 2 and containing:
-        A dictionary of test cases which maps bad values for the parameter to the error messages that they are expected to produce.
-        Optional: A valid value for the parameter. If and only if this is provided, it will be specified in each form submission for other parameters. This is useful when a form requires certain fields, but comes back blank when it is submitted.
+    driver (selenium.webdriver.firefox.webdriver.WebDriver, or similar for a different browser): The driver that contains the form to submit.
+    error_reporter (callable, usually unittest.TestCase.fail): Will be called with an error message (str) as its first and only argument if an error occurs. Therefore, this function will *not* continue with any remaining submissions if and only if `error_reporter` raises an exception.
+    form_xpath (str): An absolute XPath that uniquely identifies the form element to fill out. This allows it to be re-found after each submission.
+    invalid_combinations (dict): A dictionary in which each key is a parameter name (str) and each value is itself a dictionary. These sub-dictionaries map invalid values for the parameter to the response that each value is expected to produce when it is submitted in an otherwise valid request.
+    mandatory_parameters (dict): Maps the names of mandatory parameters to the values that they should have. These are submitted in all requests unless `invalid_combinations` has a value for the same parameter, in which case `invalid_combinations` takes precedence.
+    max_wait (float): The maximum number of seconds to wait for the response to appear after submitting a form.
     clicked_before_filling (str or None): An absolute XPath that uniquely identifies an element. May be given to indicate that an element should be clicked before each time that the form is filled out and submitted. This is usually used to cause the form to become visible again.
     '''
     from selenium.webdriver.common.by import By
@@ -97,12 +103,13 @@ def submit_invalid_combinations(driver, error_reporter, form_xpath, invalid_comb
 def submit_form(driver, error_reporter, form_xpath, data, max_wait=DEFAULT_MAX_WAIT, expected_response=None, retains_values=False):
     '''
     Fill an HTML form with the specified data and submit it.
-    driver (selenium.webdriver.support.waitWebDriverWait): A WebDriverWait for the driver that contains the form to submit. (This must be a driver, not an element, if retains_values, because all elements become stale when the form is submitted.)
-    error_reporter (callable, usually unittest.TestCase.fail): Will be called with an error message (str) as its first and only argument if an error occurs. Therefore, this function will *not* continue with any remaining fields after an error if and only if `error_reporter` raises an exception.
-    form_xpath (str): An absolute XPath that uniquely identifies the form element to fill out. (This allows the form to be re-found after it is submitted.)
-    data (dict): Maps the `name` attributes of <input> and <select> elements in the form to the values that they should have. These values should be bools for checkboxes and radio buttons, objects that can be cast to strs for text entries, and the visible text of an option (not its `value` attribute) as a str for <select> tags. Any <input>s which are not mapped will not be silently ignored.
-    expected_response (str or None): May be given to assert indicate that submitting the form will generate a response containing an element with id='message', and assert that `expected_response` is in its content.
-    retains_values (bool): May be given as True to indicate that submitting the form will generate a response containing a form with the same name which contains all of the values just submitted. After submitting and waiting for the old form to become stale, wait for the new form to appear. Assert that all of the data given match the values in the new form (except for <input>s with type='password', which are ignored).
+    driver (selenium.webdriver.firefox.webdriver.WebDriver, or similar for a different browser): The driver that contains the form to submit.
+    error_reporter (callable, usually unittest.TestCase.fail): Will be called with an error message (str) as its first and only argument if an error occurs.
+    form_xpath (str): An absolute XPath that uniquely identifies the form element to fill out.
+    data (dict): Maps the `name` attributes of <input>, <select>, and <textarea> elements in the form to the values that they should have. These values should be bools for checkboxes and radio buttons, objects that can be cast to strs for text entries, and the visible text of an option (not its `value` attribute) as a str for <select> tags. Any <input>s which are not mapped will be silently ignored.
+    max_wait (float): The maximum number of seconds to wait for the response and / or form to appear after submitting a form.
+    expected_response (str or None): If True, assert that submitting the form will generate a response containing an element with id='message', and assert that `expected_response` is in (but not necessarily equal to) its content.
+    retains_values (bool): May be given as True to indicate that submitting the form will generate a response containing a form with the same name which contains all of the values just submitted. After submitting and waiting for the old form to become stale, wait for the new form to appear. Assert that all of the data given match the values in the new form (except for <input type='password'>s, which are ignored).
     Forms are allowed to be dynamic; i.e. fields are allowed to completely change in response to previous fields being filled out.
     '''
     from selenium.common.exceptions import ElementNotInteractableException
@@ -177,8 +184,8 @@ def submit_form(driver, error_reporter, form_xpath, data, max_wait=DEFAULT_MAX_W
 def get_data_from_form(driver, error_reporter, form_xpath, max_wait=DEFAULT_MAX_WAIT):
     '''
     Retrieve the data currently in an HTML form.
-    driver (selenium.webdriver.support.wait.WebDriverWait): A WebDriverWait for the driver that contains the form to retrieve data from.
-    error_reporter (callable, usually unittest.TestCase.fail): Will be called with an error message (str) as its first and only argument if an error occurs. Therefore, this function will *not* continue with any remaining fields if and only if `error_reporter` raises an exception.
+    driver (selenium.webdriver.firefox.webdriver.WebDriver, or similar for a different browser): The driver that contains the form to get data from.
+    error_reporter (callable, usually unittest.TestCase.fail): Will be called with an error message (str) as its first and only argument if an error occurs.
     form_xpath (str): An absolute XPath that uniquely identifies the form to retrieve data from.
     '''
     from selenium.webdriver.common.by import By
@@ -230,6 +237,8 @@ def get_data_from_form(driver, error_reporter, form_xpath, max_wait=DEFAULT_MAX_
 
 def assert_nav(driver, error_reporter, address, privileged=False):
     '''Factor out testing the top navigation.
+    driver (selenium.webdriver.firefox.webdriver.WebDriver, or similar for a different browser): The driver that contains the <nav>.
+    error_reporter (callable, usually unittest.TestCase.fail): Will be called with an error message (str) as its first and only argument if an error occurs.
     address (str): The web address that the driver is currently visiting. This is required to assert that links lead to the right places.
     privileged (bool): Indicates whether the test user who is viewing Cloudscheduler has privileges (and can therefore access more pages).
     '''
