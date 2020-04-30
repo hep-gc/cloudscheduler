@@ -38,13 +38,24 @@ CLOUD_ALIAS_KEYS = {
         'cloud_option':        ['add', 'delete'],
         'csrfmiddlewaretoken': 'ignore',
         'group':               'ignore',
-        },
+    },
     'mandatory': [
-        'cloud_name',
         'alias_name',
     ],
     'array_fields': [
-        'cloud_name'
+        'cloud_name',
+    ]
+}
+
+MANDATORY_CLOUD_NAME = {
+    'mandatory': [
+        'cloud_name',
+    ]
+}
+
+ALLOW_EMPTY_CLOUD_NAME = {
+    'allow_empty': [
+        'cloud_name',
     ]
 }
 
@@ -53,8 +64,8 @@ LIST_KEYS = {
     'format': {
         'csrfmiddlewaretoken': 'ignore',
         'group':               'ignore',
-        },
     }
+}
 
 #-------------------------------------------------------------------------------
 
@@ -82,9 +93,9 @@ def manage_cloud_aliases(config, tables, group_name, alias_name, clouds, option=
     db_clouds = []
     
     s = select([table]).where((table.c.group_name==group_name) & (table.c.alias_name==alias_name))
-    _alias_list = qt(config.db_connection.execute(s))
+    alias_list_ = qt(config.db_connection.execute(s))
 
-    for row in _alias_list:
+    for row in alias_list_:
         db_clouds.append(row['cloud_name'])
 
     if new_alias:
@@ -145,7 +156,7 @@ def add(request):
 
     if request.method == 'POST':
         # Validate input fields.
-        rc, msg, fields, tables, columns = validate_fields(config, request, [CLOUD_ALIAS_KEYS], ['csv2_cloud_aliases', 'csv2_clouds,n'], active_user)
+        rc, msg, fields, tables, columns = validate_fields(config, request, [CLOUD_ALIAS_KEYS, MANDATORY_CLOUD_NAME], ['csv2_cloud_aliases', 'csv2_clouds,n'], active_user)
         if rc != 0:
             config.db_close()
             return alias_list(request, active_user=active_user, response_code=1, message='%s cloud alias add, %s' % (lno(MODID), msg))
@@ -201,7 +212,7 @@ def alias_list(request, active_user=None, response_code=0, message=None):
 
     # Retrieve the cloud alias view.
     s = select([view_cloud_aliases]).where(view_cloud_aliases.c.group_name == active_user.active_group)
-    _alias_list = qt(config.db_connection.execute(s))
+    alias_list_ = qt(config.db_connection.execute(s))
 
     # Retrieve the cloud alias table.
     s = select([csv2_cloud_aliases]).where(csv2_cloud_aliases.c.group_name == active_user.active_group)
@@ -216,7 +227,7 @@ def alias_list(request, active_user=None, response_code=0, message=None):
             'active_user': active_user.username,
             'active_group': active_user.active_group,
             'user_groups': active_user.user_groups,
-            'alias_list': _alias_list,
+            'alias_list': alias_list_,
             'cloud_alias_list': cloud_alias_list,
             'cloud_list': cloud_list,
             'response_code': response_code,
@@ -246,14 +257,23 @@ def update(request):
         return alias_list(request, active_user=active_user, response_code=1, message='%s %s' % (lno(MODID), msg))
 
     if request.method == 'POST':
+        keys = [CLOUD_ALIAS_KEYS]
+        if request.META['HTTP_ACCEPT'] == 'application/json':
+            keys.append(MANDATORY_CLOUD_NAME)
+        elif not any(parameter.startswith('cloud_name') for parameter in request.POST):
+            # Create a copy so that it is mutable.
+            request.POST = request.POST.copy()
+            request.POST['cloud_name'] = ''
+            keys.append(ALLOW_EMPTY_CLOUD_NAME)
         # Validate input fields.
-        rc, msg, fields, tables, columns = validate_fields(config, request, [CLOUD_ALIAS_KEYS], ['csv2_cloud_aliases', 'csv2_clouds,n'], active_user)
+        rc, msg, fields, tables, columns = validate_fields(config, request, keys, ['csv2_cloud_aliases', 'csv2_clouds,n'], active_user)
+
         if rc != 0:
             config.db_close()
             return alias_list(request, active_user=active_user, response_code=1, message='%s cloud alias update, %s' % (lno(MODID), msg))
 
         # Verify specified clouds exist.
-        if 'cloud_name' in fields and fields['cloud_name']:
+        if fields.get('cloud_name'):
             rc, msg = validate_by_filtered_table_entries(config, fields['cloud_name'], 'cloud_name', 'csv2_clouds', 'cloud_name', [['group_name', active_user.active_group]], allow_value_list=True)
             if rc != 0:
                 config.db_close()
@@ -261,16 +281,10 @@ def update(request):
 
         # Update the cloud alias.
         if request.META['HTTP_ACCEPT'] == 'application/json':
-            if 'cloud_option' in fields and fields['cloud_option'] == 'delete':
-                rc, msg = manage_cloud_aliases(config, tables, active_user.active_group, fields['alias_name'], fields['cloud_name'], option='delete', new_alias=False)
-            else:
-                rc, msg = manage_cloud_aliases(config, tables, active_user.active_group, fields['alias_name'], fields['cloud_name'], option='add', new_alias=False)
-
+            # option defaults to 'add'.
+            rc, msg = manage_cloud_aliases(config, tables, active_user.active_group, fields['alias_name'], fields['cloud_name'], option=fields.get('cloud_option', 'add'), new_alias=False)
         else:
-            if 'cloud_name' in fields:
-                rc, msg = manage_cloud_aliases(config, tables, active_user.active_group, fields['alias_name'], fields['cloud_name'], new_alias=False)
-            else:
-                rc, msg = manage_cloud_aliases(config, tables, active_user.active_group, fields['alias_name'], None, new_alias=False)
+            rc, msg = manage_cloud_aliases(config, tables, active_user.active_group, fields['alias_name'], fields['cloud_name'], new_alias=False)
 
         if rc == 0:
             config.db_close(commit=True)
