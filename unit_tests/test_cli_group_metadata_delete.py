@@ -13,9 +13,9 @@ def main(gvar):
         # 16 Omit `--metadata-name`.
         '--metadata-name': {'valid': ut_id(gvar, 'clm1'), 'test_cases': {
             # 17
-            '': '"cloudscheduler group metadata-delete" cannot delete "grobertson-clg1::", file doesn\'t exist.',
+            '': '"cloudscheduler group metadata-delete" cannot delete "{}::", file doesn\'t exist.'.format(ut_id(gvar, 'clg1')),
             # 18
-            'invalid-unit-test': '"cloudscheduler group metadata-delete" cannot delete "grobertson-clg1::invalid-unit-test", file doesn\'t exist.'
+            'invalid-unit-test': '"cloudscheduler group metadata-delete" cannot delete "{}::invalid-unit-test", file doesn\'t exist.'.format(ut_id(gvar, 'clg1'))
         }, 'mandatory': True}
     }
 

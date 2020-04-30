@@ -903,12 +903,9 @@ def ut_id(gvar, IDs):
     return '%s-%s' % (gvar['user_settings']['server-user'], (',%s-' % gvar['user_settings']['server-user']).join(ids))
  
 def condor_setup(gvar):
-    '''Check that condor is installed and find and return the address of the unit-test server.
-    Used only by database tests.'''
-    import re
+    '''Check that condor is installed. Used only by database tests.'''
     import subprocess
 
-    # Check that condor is installed so that we can submit a job to view using /job/list/
     for requirement in {'condor_submit', 'condor_rm'}:
         if subprocess.run(['which', requirement], stdout=subprocess.DEVNULL).returncode != 0:
             condor_error(gvar, '{} is not installed'.format(requirement))
