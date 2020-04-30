@@ -95,7 +95,7 @@ def if_null(val, col=None):
 
 def condor_off(condor_classad):
     try:
-        logging.info("Sending condor_off to %s" % condor_classad)
+        logging.debug("Sending condor_off to %s" % condor_classad)
         master_result = htcondor.send_command(condor_classad, htcondor.DaemonCommands.DaemonsOffPeaceful)
         if master_result is None:
             # None is good in this case it means it was a success
@@ -1042,7 +1042,7 @@ def machine_poller():
                     if unmapped:
                         logging.error("attribute mapper found unmapped variables:")
                         logging.error(unmapped)
-                    logging.info("Adding/updating machine %s", r_dict["name"])
+                    logging.debug("Adding/updating machine %s", r_dict["name"])
                     r_dict["htcondor_host_id"] = config.local_host_id
 
                     # Check if this item has changed relative to the local cache, skip it if it's unchanged
