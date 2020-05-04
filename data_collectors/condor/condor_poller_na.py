@@ -647,8 +647,8 @@ def job_poller():
                     job_dict["htcondor_host_id"] = config.local_host_id
                     logging.debug(job_dict)
                     if unmapped:
-                        logging.error("attribute mapper found unmapped variables:")
-                        logging.error(unmapped)
+                        logging.debug("attribute mapper found unmapped variables:")
+                        logging.debug(unmapped)
 
                     # Check if this item has changed relative to the local cache, skip it if it's unchanged
                     # old inventory function
@@ -1040,8 +1040,8 @@ def machine_poller():
                     r_dict = trim_keys(r_dict, resource_attributes)
                     r_dict, unmapped = map_attributes(src="condor", dest="csv2", attr_dict=r_dict, config=config)
                     if unmapped:
-                        logging.error("attribute mapper found unmapped variables:")
-                        logging.error(unmapped)
+                        logging.debug("attribute mapper found unmapped variables:")
+                        logging.debug(unmapped)
                     logging.debug("Adding/updating machine %s", r_dict["name"])
                     r_dict["htcondor_host_id"] = config.local_host_id
 

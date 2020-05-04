@@ -601,7 +601,6 @@ def image_poller():
                 logging.info("Doing deletes, omitting failures: %s" % new_f_dict)
                 delete_obsolete_database_items('Image', inventory, db_session, IMAGE, 'id', new_poll_time, failure_dict=new_f_dict, cloud_type="openstack")
 
-                config.db_session.rollback()
 
                 if not os.path.exists(PID_FILE):
                     logging.info("Stop set, exiting...")

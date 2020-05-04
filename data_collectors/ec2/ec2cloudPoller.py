@@ -602,8 +602,8 @@ def image_poller():
 
                             img_dict, unmapped = map_attributes(src="ec2_images", dest="csv2", attr_dict=img_dict)
                             if unmapped:
-                                logging.error("Unmapped attributes found during mapping, discarding:")
-                                logging.error(unmapped)
+                                logging.debug("Unmapped attributes found during mapping, discarding:")
+                                logging.debug(unmapped)
 
                             #if test_and_set_inventory_item_hash(inventory, cloud.group_name, cloud.cloud_name, image['ImageId'], img_dict,
                             #                                    new_poll_time, debug_hash=(config.log_level < 20)):
@@ -760,8 +760,8 @@ def image_poller():
 
                             img_dict, unmapped = map_attributes(src="ec2_images", dest="csv2", attr_dict=img_dict)
                             if unmapped:
-                                logging.error("Unmapped attributes found during mapping, discarding:")
-                                logging.error(unmapped)
+                                logging.debug("Unmapped attributes found during mapping, discarding:")
+                                logging.debug(unmapped)
 
                             #if test_and_set_inventory_item_hash(inventory, group_n, cloud_n, image['ImageId'], img_dict,
                             #                                    new_poll_time, debug_hash=(config.log_level < 20)):
@@ -1182,8 +1182,8 @@ def limit_poller():
                         limits_dict['cores_used'] = 0
 
                         if unmapped:
-                            logging.error("Unmapped attributes found during mapping, discarding:")
-                            logging.error(unmapped)
+                            logging.debug("Unmapped attributes found during mapping, discarding:")
+                            logging.debug(unmapped)
 
                         if test_and_set_inventory_item_hash(inventory, group_n, cloud_n, '-', limits_dict,
                                                             new_poll_time, debug_hash=(config.categories["ec2cloudPoller.py"]["log_level"] < 20)):
@@ -1562,8 +1562,8 @@ def security_group_poller():
 
                             flav_dict, unmapped = map_attributes(src="os_sec_grps", dest="csv2", attr_dict=sec_grp_dict)
                             if unmapped:
-                                logging.error("Unmapped attributes found during mapping, discarding:")
-                                logging.error(unmapped)
+                                logging.debug("Unmapped attributes found during mapping, discarding:")
+                                logging.debug(unmapped)
 
                             if test_and_set_inventory_item_hash(inventory, group_n, cloud_n, sec_grp["GroupId"],
                                                                 sec_grp_dict, new_poll_time,
@@ -1899,8 +1899,8 @@ def vm_poller():
 
                         vm_dict, unmapped = map_attributes(src="ec2_vms", dest="csv2", attr_dict=vm_dict)
                         if unmapped:
-                            logging.error("unmapped attributes found during mapping, discarding:")
-                            logging.error(unmapped)
+                            logging.debug("unmapped attributes found during mapping, discarding:")
+                            logging.debug(unmapped)
 
                         if test_and_set_inventory_item_hash(inventory, vm_group_name, vm_cloud_name, vm_dict['vmid'], vm_dict, new_poll_time, debug_hash=(config.categories["ec2cloudPoller.py"]["log_level"]<20)):
                             continue
