@@ -491,6 +491,11 @@ def add(request):
         if 'cloud_type' in fields:
             if fields['cloud_type'] == 'amazon':
                 fields['cores_softmax'] = config.categories['web_frontend']['default_softmax']
+            elif 'authurl' in fields and fields['cloud_type'] == 'openstack':
+                #check if url has a trailing slash
+                if not fields['authurl'].endswith('/'):
+                    #no slash, add one
+                     fields['authurl'] =  fields['authurl'] + '/'
 
         # Verify cloud credentials.
         rc, msg, owner_id = verify_cloud_credentials(config, {**fields, **{'group_name': active_user.active_group}})
@@ -1696,6 +1701,13 @@ def update(request):
             if rc != 0:
                 config.db_close()
                 return list(request, active_user=active_user, response_code=1, message='%s cloud update, "%s" failed - %s.' % (lno(MODID), fields['cloud_name'], msg))
+        if 'cloud_type' in fields:
+            if 'authurl' in fields and fields['cloud_type'] == 'openstack':
+                #check if url has a trailing slash
+                if not fields['authurl'].endswith('/'):
+                    #no slash, add one
+                    fields['authurl'] =  fields['authurl'] + '/'
+
 
         # Validity check the specified metadata exclusions.
         if 'metadata_name' in fields:
@@ -1778,12 +1790,13 @@ def update(request):
 
         # For EC2 clouds, add default filters.
         if 'cloud_type' in fields:
-            rc, msg = ec2_filters(config, fields['group_name'], fields['cloud_name'], fields['cloud_type'])
-            if rc == 0:
-                updates += 1
-            else:
-                config.db_close()
-                return list(request, active_user=active_user, response_code=1, message='%s cloud update "%s::%s" failed - %s.' % (lno(MODID), fields['group_name'], fields['cloud_name'], msg))
+            if fields['cloud_type'] == "amazon":
+                rc, msg = ec2_filters(config, fields['group_name'], fields['cloud_name'], fields['cloud_type'])
+                if rc == 0:
+                    updates += 1
+                else:
+                    config.db_close()
+                    return list(request, active_user=active_user, response_code=1, message='%s cloud update "%s::%s" failed - %s.' % (lno(MODID), fields['group_name'], fields['cloud_name'], msg))
 
         config.db_session.commit()
         if updates > 0:
