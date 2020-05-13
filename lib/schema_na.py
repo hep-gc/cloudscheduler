@@ -193,6 +193,7 @@ schema = {
             "min_disk": {"type": "int"},
             "min_ram": {"type": "int"},
             "checksum": {"type": "str", "len": "64", "nulls": "YES"},
+            "created_at": {"type": "str", "nulls": "NO"},
             "last_updated": {"type": "int"}
             }
         },
@@ -309,7 +310,7 @@ schema = {
             "hold_reason_code": {"type": "int"},
             "hold_reason_subcode": {"type": "int"},
             "last_remote_host": {"type": "str", "len": "64", "nulls": "YES"},
-            "held_reason": {"type": "str", "len": "256", "nulls": "YES"},
+            "held_reason": {"type": "str", "len": "128", "nulls": "YES"},
             "hold_job_reason": {"type": "str", "len": "64", "nulls": "YES"}
             }
         },
@@ -473,7 +474,8 @@ schema = {
             "vm_network": {"type": "str", "len": "64", "nulls": "NO"},
             "vm_security_groups": {"type": "str", "len": "128", "nulls": "YES"},
             "error_count": {"type": "int"},
-            "error_time": {"type": "int"}
+            "error_time": {"type": "int"},
+            "machine_subprocess_pid": {"type": "int"}
             }
         },
     "csv2_configuration": {
@@ -949,6 +951,86 @@ schema = {
             "endpoint": {"type": "str", "len": "128", "nulls": "NO"}
             }
         },
+    "silk_profile": {
+        "keys": [
+            "id"
+            ],
+        "columns": {
+            "id": {"type": "int"},
+            "name": {"type": "str", "len": "300", "nulls": "NO"},
+            "start_time": {"type": "str", "nulls": "NO"},
+            "end_time": {"type": "str", "nulls": "YES"},
+            "time_taken": {"type": "float"},
+            "file_path": {"type": "str", "len": "300", "nulls": "NO"},
+            "line_num": {"type": "int"},
+            "end_line_num": {"type": "int"},
+            "func_name": {"type": "str", "len": "300", "nulls": "NO"},
+            "exception_raised": {"type": "int"},
+            "dynamic": {"type": "int"},
+            "request_id": {"type": "str", "len": "36", "nulls": "YES"}
+            }
+        },
+    "silk_profile_queries": {
+        "keys": [
+            "id"
+            ],
+        "columns": {
+            "id": {"type": "int"},
+            "profile_id": {"type": "int"},
+            "sqlquery_id": {"type": "int"}
+            }
+        },
+    "silk_request": {
+        "keys": [
+            "id"
+            ],
+        "columns": {
+            "id": {"type": "str", "len": "36", "nulls": "NO"},
+            "path": {"type": "str", "len": "190", "nulls": "NO"},
+            "query_params": {"type": "str", "nulls": "NO"},
+            "raw_body": {"type": "str", "nulls": "NO"},
+            "body": {"type": "str", "nulls": "NO"},
+            "method": {"type": "str", "len": "10", "nulls": "NO"},
+            "start_time": {"type": "str", "nulls": "NO"},
+            "view_name": {"type": "str", "len": "190", "nulls": "YES"},
+            "end_time": {"type": "str", "nulls": "YES"},
+            "time_taken": {"type": "float"},
+            "encoded_headers": {"type": "str", "nulls": "NO"},
+            "meta_time": {"type": "float"},
+            "meta_num_queries": {"type": "int"},
+            "meta_time_spent_queries": {"type": "float"},
+            "pyprofile": {"type": "str", "nulls": "NO"},
+            "num_sql_queries": {"type": "int"},
+            "prof_file": {"type": "str", "len": "300", "nulls": "NO"}
+            }
+        },
+    "silk_response": {
+        "keys": [
+            "id"
+            ],
+        "columns": {
+            "id": {"type": "str", "len": "36", "nulls": "NO"},
+            "status_code": {"type": "int"},
+            "raw_body": {"type": "str", "nulls": "NO"},
+            "body": {"type": "str", "nulls": "NO"},
+            "encoded_headers": {"type": "str", "nulls": "NO"},
+            "request_id": {"type": "str", "len": "36", "nulls": "NO"}
+            }
+        },
+    "silk_sqlquery": {
+        "keys": [
+            "id"
+            ],
+        "columns": {
+            "id": {"type": "int"},
+            "query": {"type": "str", "nulls": "NO"},
+            "start_time": {"type": "str", "nulls": "YES"},
+            "end_time": {"type": "str", "nulls": "YES"},
+            "time_taken": {"type": "float"},
+            "traceback": {"type": "str", "nulls": "NO"},
+            "request_id": {"type": "str", "len": "36", "nulls": "YES"}
+            }
+        },
     "view_active_resource_shortfall": {
         "keys": [
             ],
@@ -1397,7 +1479,7 @@ schema = {
             "entered_current_status": {"type": "int"},
             "q_date": {"type": "int"},
             "hold_job_reason": {"type": "str", "len": "64", "nulls": "YES"},
-            "held_reason": {"type": "str", "len": "256", "nulls": "YES"},
+            "held_reason": {"type": "str", "len": "128", "nulls": "YES"},
             "js_idle": {"type": "int"},
             "js_running": {"type": "int"},
             "js_completed": {"type": "int"},

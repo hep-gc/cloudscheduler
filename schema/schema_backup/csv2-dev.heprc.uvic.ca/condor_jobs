@@ -24,6 +24,7 @@ DROP TABLE IF EXISTS `condor_jobs`;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `condor_jobs` (
   `global_job_id` varchar(128) NOT NULL,
+  `htcondor_host_id` bigint(20) NOT NULL DEFAULT 0,
   `group_name` varchar(32) DEFAULT NULL,
   `target_clouds` text DEFAULT NULL,
   `target_alias` varchar(32) DEFAULT NULL,
@@ -65,4 +66,4 @@ CREATE TABLE `condor_jobs` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2020-01-10 10:18:19
+-- Dump completed on 2020-05-13 11:27:44

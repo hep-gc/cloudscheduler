@@ -526,6 +526,9 @@ def image_poller():
                               group_n = groups[0]
                               cloud_n = groups[1]
 
+                              created_datetime = datetime.datetime.strptime(image.created_at, "%Y-%m-%dT%H:%M:%SZ")
+                              created_datetime.strftime("%Y-%m-%d %H:%M:%S")
+
                               img_dict = {
                                   'group_name': group_n,
                                   'cloud_name': cloud_n,
@@ -539,6 +542,7 @@ def image_poller():
                                   'visibility': image.visibility,
                                   'min_disk': image.min_disk,
                                   'name': image.name,
+                                  'created_at': created_datetime,
                                   'last_updated': new_poll_time
                                   }
 

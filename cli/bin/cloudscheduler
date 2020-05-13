@@ -158,6 +158,15 @@ def main(args):
                     'update':                             csv2_vm.update,
                     }
                 ]
+            #'image': [
+            #    False, # super_user?
+            #    {
+            #        'transfer':                           csv2_images.transfer,
+            #        'upload':                             csv2_images.upload,
+            #        'delete':                             csv2_images.delete,
+            #        }
+            #   ]
+
             },
         'command_keys': (
             # short_name, long_name, key_value(T)/boolean(F)
@@ -279,6 +288,14 @@ def main(args):
             ('-x509', '--use-x509-authentication', False),
             ('-xA',   '--expose-API', False),
             ('-Y',    '--yes', False),
+            ('-in',   '--image-name', True),
+            ('-ic',   '--image-checksum', True),
+            ('-tc',   '--target-cloud', True),
+            ('-tg',   '--target-group', True),
+            ('-if',   '--image-file', True),
+            ('-iu',   '--image-url', True),
+            ('-cl',   '--cloud-list', True),
+            ('-iu',   '--image-format', True),
             ),
         'command_dir': os.path.dirname(os.path.realpath(args[0])),
         'command_name': os.path.basename(args[0]),
