@@ -26,6 +26,7 @@ import csv2_job
 import csv2_server
 import csv2_user
 import csv2_vm
+import csv2_images
 
 from subprocess import Popen, PIPE
 
@@ -157,15 +158,16 @@ def main(args):
                     'list':                               csv2_vm.list,
                     'update':                             csv2_vm.update,
                     }
-                ]
-            #'image': [
-            #    False, # super_user?
-            #    {
-            #        'transfer':                           csv2_images.transfer,
-            #        'upload':                             csv2_images.upload,
-            #        'delete':                             csv2_images.delete,
-            #        }
-            #   ]
+                ],
+            'image': [
+                False, # super_user?
+                {
+                    'transfer':                           csv2_images.transfer,
+                    'upload':                             csv2_images.upload,
+                    'delete':                             csv2_images.delete,
+                    'list':                               csv2_images.list,
+                    }
+               ]
 
             },
         'command_keys': (
@@ -292,11 +294,12 @@ def main(args):
             ('-ic',   '--image-checksum', True),
             ('-tc',   '--target-cloud', True),
             ('-tg',   '--target-group', True),
-            ('-if',   '--image-file', True),
-            ('-iu',   '--image-url', True),
+            ('-ip',   '--image-path', True),
             ('-cl',   '--cloud-list', True),
             ('-iu',   '--image-format', True),
-            ),
+            ('-id',   '--image-date', True),
+            ('-ii',   '--image-index', True)
+        ),
         'command_dir': os.path.dirname(os.path.realpath(args[0])),
         'command_name': os.path.basename(args[0]),
         'cookies': dict(),

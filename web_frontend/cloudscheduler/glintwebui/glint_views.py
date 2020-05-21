@@ -17,7 +17,9 @@ from .glint_utils import get_openstack_session, get_glance_client, delete_image,
 from cloudscheduler.lib.view_utils import \
     render, \
     lno, \
-    set_user_groups
+    qt, \
+    set_user_groups, \
+    validate_fields
 from cloudscheduler.lib.attribute_mapper import map_attributes
 from cloudscheduler.lib.web_profiler import silk_profile as silkp
 
@@ -25,6 +27,28 @@ from .celery_app import pull_request, tx_request
 
 logger = logging.getLogger('glintv2')
 MODID = "IV"
+
+LIST_KEYS = {
+    # Named argument formats (anything else is a string).
+    'format': {
+        'csrfmiddlewaretoken':                        'ignore',
+        'group':                                      'ignore',
+        'cloud':                                      'ignore',
+        },      
+    }
+
+TRANSFER_KEYS = {
+    # Named argument formats (anything else is a string).
+    'format': {
+        'csrfmiddlewaretoken':                        'ignore',
+        'group':                                      'ignore',
+        'cloud_name':                                 'ignore',
+        'image_name':                                 'ignore',
+        'image_index':                                'ignore',
+        'image_date':                                 'ignore',
+        'image_checksum':                             'ignore',
+        },      
+    }
 
 # This dictionary is set up for the initial processing so we dont accidentally overwrite images with the same name
 # after this dict has been generated it is again parsed into a dictionary of lists to make it easier to render in a django template
@@ -67,6 +91,18 @@ MODID = "IV"
 #         
 # Support Functions
 #
+
+def _trim_image_list(image_list, group, cloud=None):
+    new_image_list = []
+    for image in image_list:
+        if image["group_name"] == group:
+            if cloud is not None:
+                if image["cloud_name"] == cloud:
+                    new_image_list.append(image)
+            else:
+                new_image_list.append(image)
+    return new_image_list
+
 def _build_image_dict(image_list, transaction_list):
     image_dict = {}
     for image in image_list:
@@ -183,6 +219,7 @@ def _check_image(config, target_group, target_cloud, image_name, image_checksum)
 
 @silkp(name="Image List")
 @requires_csrf_token
+# This functions supports the webui producing the image matrix
 def list(request, args=None, response_code=0, message=None):
     config.db_open()
     IMAGES = config.db_map.classes.cloud_images
@@ -243,77 +280,184 @@ def transfer(request, args=None, response_code=0, message=None):
 
     config.db_open()
     db_session = config.db_session
-    logger.info("GOT TRANSFER POST")
+    # Retrieve the active user, associated group list and optionally set the active group.
     rc, msg, active_user = set_user_groups(config, request, super_user=False)
     if rc != 0:
         config.db_close()
         return HttpResponse(json.dumps({'response_code': 1,  'message': '%s %s' % (lno(MODID), msg)}))
+
+    print(request.method)
 
     if request.method == 'POST':
         IMAGES = config.db_map.classes.cloud_images
         IMAGE_TX = config.db_map.classes.csv2_image_transactions
 
 
-        # Should have the following data in POST:
-        #    (image_name + '---' + image_checksum, target_cloud, group)
-        post_data = json.loads(request.body)
-        image_name = ""
-        image_checksum = None
-        image_key = post_data.get("image_key")
-        target_cloud = post_data.get("cloud_name")
-        target_group = post_data.get("group_name")
-        key_list = image_key.split("---")
-        if len(key_list) != 2:
-            if image_checksum is None:
-                # we don't have the image checksum so we need to try and figure out what it is via the database
-                # if it is an ambiguous image name we can't fufill the request otherwise we can fill in the
-                # checksum and continue as normal
-                image_candidates = db_session.query(IMAGES).filter(IMAGES.group_name == target_group, IMAGES.name == image_key)
-                if len(image_candidates) > 1:
-                    #ambiguous image name, need a checksum
-                    return HttpResponse(json.dumps({'response_code': 1, 'message': '%s %s' % (lno(MODID), "Ambigous image name, please remove duplicate names or provide a checksum")}))
-                else:
-                    image_checksum = image_candidates[0].checksum
-            # Once we get here we have the checksum so assign the image_name and continue as normal
-            image_name = image_key
+        # If it's a json payload its coming from javascript on the webfrontend else its a cli request
+        post_data = None
+        try:
+            post_data = json.loads(request.body)
+            image_name = ""
+            image_checksum = None
+        except:
+            # not a json payload, didnt come from webfrontend
+            image_name = ""
+            image_checksum = None
+
+        if post_data and "image_key" in post_data:
+            # this is a request from the web, the CLI doesn't build the composite key
+            # Should have the following data in POST:
+            #    (image_name + '---' + image_checksum, target_cloud, group)
+            # 
+            image_key = post_data.get("image_key")
+            target_cloud = post_data.get("cloud_name")
+            target_group = post_data.get("group_name")
+            key_list = image_key.split("---")
+            if len(key_list) != 2:
+                if image_checksum is None:
+                    # we don't have the image checksum so we need to try and figure out what it is via the database
+                    # if it is an ambiguous image name we can't fufill the request otherwise we can fill in the
+                    # checksum and continue as normal
+                    image_candidates = db_session.query(IMAGES).filter(IMAGES.group_name == target_group, IMAGES.name == image_key)
+                    if len(image_candidates) > 1:
+                        #ambiguous image name, need a checksum
+                        return HttpResponse(json.dumps({'response_code': 1, 'message': '%s %s' % (lno(MODID), "Ambigous image name, please remove duplicate names or provide a checksum")}))
+                    else:
+                        image_checksum = image_candidates[0].checksum
+                # Once we get here we have the checksum so assign the image_name and continue as normal
+                image_name = image_key
+            else:
+                # key is normal
+                image_name = key_list[0]
+                image_checksum = key_list[1]
+
+
+            # Double check that the request doesn't exist and that the image is really missing from that cloud
+            # if so then check if the image is in the cache, if not queue pull request and finally queue a transfer request
+            if not _check_image(config, target_group, target_cloud, image_name, image_checksum):
+                # Image or request already exists, return  with message
+                return HttpResponse(json.dumps({'response_code': 1,  'message': '%s %s'  % (lno(MODID), 'Image request exists or image already on cloud')}))
+
+            # if we get here everything is golden and we can queue up tha transfer request, but first lets check if the image
+            # is in the cache or we should queue up a pull request, check cache returns True if it is found/queued or false
+            # if it was unable to find the image
+            cache_result = check_cache(config, image_name, image_checksum, target_group, active_user)
+            if cache_result is False:
+                return HttpResponse(json.dumps({'response_code': 1, 'message': '%s %s' % (lno(MODID), "Could not find a source image...")}))
+            target_image = get_image(config, image_name, image_checksum, target_group)
+            tx_id = generate_tx_id()
+            tx_req = {
+                "tx_id":             tx_id,
+                "status":            "pending",
+                "target_group_name": target_group,
+                "target_cloud_name": target_cloud,
+                "image_name":        image_name,
+                "image_id":          target_image.id,
+                "checksum":          target_image.checksum,
+                "requester":         active_user.username,
+            }
+            new_tx_req = IMAGE_TX(**tx_req)
+            db_session.merge(new_tx_req)
+            db_session.commit()
+            config.db_close()
+            #tx_request.delay(tx_id = tx_id)
+            logger.info("Transfer queued")
+            tx_request.apply_async((tx_id,), queue='tx_requests')
+            return HttpResponse(json.dumps({'response_code': 0, 'message': 'Transfer queued..'}))
+
         else:
-            # key is normal
-            image_name = key_list[0]
-            image_checksum = key_list[1]
+            # command line request
+            #  options:
+            #    image_date
+            #    image_index
+            #    image_name
+            #    image_checksum
+            #    target_cloud
+            #    group
+
+            # Validate input fields.
+            rc, msg, fields, tables, columns = validate_fields(config, request, [TRANSFER_KEYS], [], active_user)
+            if rc !=0:
+                # Invalid fields, return message
+                return HttpResponse(json.dumps({'response_code': rc, 'message': msg}))
 
 
-        # Double check that the request doesn't exist and that the image is really missing from that cloud
-        # if so then check if the image is in the cache, if not queue pull request and finally queue a transfer request
-        if not _check_image(config, target_group, target_cloud, image_name, image_checksum):
-            # Image or request already exists, return  with message
-            return HttpResponse(json.dumps({'response_code': 1,  'message': '%s %s'  % (lno(MODID), 'Image request exists or image already on cloud')}))
+            group_name = active_user.active_group
+            target_cloud = fields.get("cloud_name")
+            image_name = fields.get("image_name")
+            image_checksum = fields.get("image_checksum")
+            image_date = fields.get("image_date")
+            image_index = fields.get("image_index")
+            if image_index is not None:
+                image_index = int(image_index)
 
-        # if we get here everything is golden and we can queue up tha transfer request, but first lets check if the image
-        # is in the cache or we should queue up a pull request, check cache returns True if it is found/queued or false
-        # if it was unable to find the image
-        cache_result = check_cache(config, image_name, image_checksum, target_group, active_user)
-        if cache_result is False:
-            return HttpResponse(json.dumps({'response_code': 1, 'message': '%s %s' % (lno(MODID), "Could not find a source image...")}))
-        target_image = get_image(config, image_name, image_checksum, target_group)
-        tx_id = generate_tx_id()
-        tx_req = {
-            "tx_id":             tx_id,
-            "status":            "pending",
-            "target_group_name": target_group,
-            "target_cloud_name": target_cloud,
-            "image_name":        image_name,
-            "image_id":          target_image.id,
-            "checksum":          target_image.checksum,
-            "requester":         active_user.username,
-        }
-        new_tx_req = IMAGE_TX(**tx_req)
-        db_session.merge(new_tx_req)
-        db_session.commit()
-        config.db_close()
-        #tx_request.delay(tx_id = tx_id)
-        logger.info("Transfer queued")
-        tx_request.apply_async((tx_id,), queue='tx_requests')
-        return HttpResponse(json.dumps({'response_code': 0, 'message': 'Transfer queued..'}))
+            if image_name is None and image_index is None:
+                return HttpResponse(json.dumps({'response_code': 1, 'message': '%s %s' % (lno(MODID), "No image name or index, please supply at least one to identify target image")}))
+
+            target_image=None
+
+            if image_index is not None:
+                #get target image by index
+                sql = "select rank() over (partition by rank order by group_name,cloud_name,name,created_at,checksum) as rank,group_name,cloud_name,name,created_at,checksum,id from (select 1 as rank,i.* from (select * from cloud_images) as i) as i where cloud_type='openstack';"
+                image_list = qt(config.db_connection.execute(sql))
+                target_image = image_list[image_index]
+                if image_name is not None:
+                    if target_image["name"] != image_name:
+                        return HttpResponse(json.dumps({'response_code': 1, 'message': '%s %s' % (lno(MODID), "Image name (%s) from index (%s) does not match supplied image name (%s) please check your request and try again." % (target_image["name"], image_index, image_name))}))
+            else:
+                # we have at least an image name, lets build the where clause
+                where = "name='%s'" % image_name
+                if image_checksum is not None:
+                    where = where + " and checksum='%s'" % image_checksum 
+                if image_date is not None:
+                    where = where + " and created_at like '%s'" % image_date
+
+                sql = "select * from csv2_images where %s" % where
+                image_list = qt(config.db_connection.execute(sql))
+                if len(image_list) > 1:
+                    return HttpResponse(json.dumps({'response_code': 1, 'message': '%s %s' % (lno(MODID), "Unable to uniquely identify target image with given parameters, %s images matched." % len(image_list))}))
+                elif len(image_list) == 0:
+                    return HttpResponse(json.dumps({'response_code': 1, 'message': '%s %s' % (lno(MODID), "No images matched sepcified parameters, please check your request and try again.")}))
+                else:
+                    target_image = image_list[0]
+
+            # we have target image, create the transaction request
+            # First check the cache for the image and create a pull request if it's abscent
+            check_cache(config, target_image["name"], target_image["checksum"], active_user.active_group, active_user, target_image)
+            tx_id = generate_tx_id()
+            try:
+
+                tx_req = {
+                    "tx_id":             tx_id,
+                    "status":            "pending",
+                    "target_group_name": active_user.active_group,
+                    "target_cloud_name": target_cloud,
+                    "image_name":        target_image["name"],
+                    "image_id":          target_image["id"],
+                    "checksum":          target_image["checksum"],
+                    "requester":         active_user.username,
+                }
+                new_tx_req = IMAGE_TX(**tx_req)
+                db_session.merge(new_tx_req)
+                db_session.commit()
+                config.db_close()
+                tx_request.apply_async((tx_id,), queue='tx_requests')
+                context = {
+                    'response_code': 0,
+                    'message': "Transfer queued.."
+                }
+                return HttpResponse(json.dumps(context))
+            except Exception as exc:
+                logging.error(exc)
+                message = "Failed to queue transfer: %s" % exc
+                context = {
+                    'response_code': 1,
+                    'message': message
+                }
+                return HttpResponse(json.dumps(context))
+
+                    
+
 
     else:
         #Not a post request, render image page again or do nothing
@@ -672,7 +816,7 @@ def upload(request, group_name=None):
         os_session = get_openstack_session(target_cloud)
         glance = get_glance_client(os_session, target_cloud.region)
 
-        image = upload_image(glance, None, image_file.name, file_path, disk_format=request.POST.get('disk_format'))
+        image = upload_image(glance, None, image_name, file_path, disk_format=request.POST.get('disk_format'))
         # add it to the csv2_images table
         if image.size == "":
             size = 0
@@ -1013,4 +1157,52 @@ def clear(request, args=None, response_code=0, message=None):
         #not a post
         return None
 
+
+@silkp(name="CLI Image List")
+@requires_csrf_token
+def image_list(request):
+
+    # open the database.
+    config.db_open() 
+
+    # Retrieve the active user, associated group list and optionally set the active group.
+    rc, msg, active_user = set_user_groups(config, request, super_user=False)
+    if rc != 0:
+        config.db_close()
+        # return error http response
+        return HttpResponse(json.dumps({'response_code': rc, 'message': msg}))
+
+    # Validate input fields.
+    rc, msg, fields, tables, columns = validate_fields(config, request, [LIST_KEYS], [], active_user)
+    if rc !=0:
+        # Invalid fields, return message
+        return HttpResponse(json.dumps({'response_code': rc, 'message': msg}))
+
+    # Retrieve image info information.
+    # from requests get group, cloud (optional)
+    group = active_user.active_group
+    if "cloud" in fields:
+        cloud = fields["cloud"]
+    else:
+        cloud= None
+    
+    sql = "select rank() over (partition by rank order by group_name,cloud_name,name,created_at,checksum) as rank,group_name,cloud_name,name,created_at,checksum from (select 1 as rank,i.* from (select * from cloud_images) as i) as i where cloud_type='openstack';"
+
+    image_list = qt(config.db_connection.execute(sql))
+    image_list = _trim_image_list(image_list, group, cloud)
+
+    config.db_close()
+    
+    # Render the page.
+    context = {
+            'active_user': active_user.username,
+            'active_group': active_user.active_group,
+            'user_groups': active_user.user_groups,
+            'image_list': image_list,
+            'response_code': 0,
+            'message': None,
+            'version': config.get_version()
+        }       
+
+    return HttpResponse(json.dumps(context))
 

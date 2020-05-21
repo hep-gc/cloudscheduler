@@ -167,7 +167,7 @@ def get_checksum(glance, image_id):
 #
 # Check image cache and queue up a pull request if target image is not present
 #
-def check_cache(config, image_name, image_checksum, group_name, user):
+def check_cache(config, image_name, image_checksum, group_name, user, target_image=None):
     IMAGE_CACHE = config.db_map.classes.csv2_image_cache
     db_session = config.db_session
     if isinstance(user, str):
@@ -187,25 +187,39 @@ def check_cache(config, image_name, image_checksum, group_name, user):
         from .celery_app import pull_request
         logging.info("No image n cache, getting target image for pull request")
         # nothing in the cache lets queue up a pull request
-        target_image = get_image(config, image_name, image_checksum, group_name)
-        if target_image is False:
-            # unable to find target image
-            logging.info("Unable to find target image")
-            return False #maybe raise an error here
+        if target_image is None:
+            target_image = get_image(config, image_name, image_checksum, group_name)
+            if target_image is False:
+                # unable to find target image
+                logging.info("Unable to find target image")
+                return False #maybe raise an error here
+            tx_id =  generate_tx_id()
+            preq = {
+                "tx_id": tx_id,
+                "target_group_name": target_image.group_name,
+                "target_cloud_name": target_image.cloud_name,
+                "image_name": image_name,
+                "image_id": target_image.id,
+                "checksum": target_image.checksum,
+                "status": "pending",
+                "requester": username,
+            }
+        else:
+            tx_id =  generate_tx_id()
+            preq = {
+                "tx_id": tx_id,
+                "target_group_name": target_image["group_name"],
+                "target_cloud_name": target_image["cloud_name"],
+                "image_name": image_name,
+                "image_id": target_image["id"],
+                "checksum": target_image["checksum"],
+                "status": "pending",
+                "requester": username,
+            }
 
         PULL_REQ = config.db_map.classes.csv2_image_pull_requests
         # check if a pull request already exists for this image? or just let the workers sort it out?
-        tx_id =  generate_tx_id()
-        preq = {
-            "tx_id": tx_id,
-            "target_group_name": target_image.group_name,
-            "target_cloud_name": target_image.cloud_name,
-            "image_name": image_name,
-            "image_id": target_image.id,
-            "checksum": target_image.checksum,
-            "status": "pending",
-            "requester": username,
-        }
+        
         new_preq = PULL_REQ(**preq)
         db_session.merge(new_preq)
         db_session.commit()

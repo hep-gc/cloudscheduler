@@ -11,6 +11,7 @@ urlpatterns = [
     url(r'^download_image/(?P<group_name>.+)/(?P<image_key>.+)/$',\
         glint_views.download, name='download'),
     url(r'^upload_image/(?P<group_name>.+)/$', glint_views.upload, name='upload'),
+    url(r'^image_list/$', glint_views.image_list, name='list_images'),
     url(r'^upload_image/$', glint_views.upload, name='upload')    
 #    url(r'^$', image_views.project_details, name='project_details'),
 #    url(r'^project_details/(?P<group_name>.+)/$', image_views.project_details, name='project_details'),
