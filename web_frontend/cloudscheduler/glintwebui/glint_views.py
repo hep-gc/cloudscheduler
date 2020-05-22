@@ -402,7 +402,7 @@ def transfer(request, args=None, response_code=0, message=None):
                 image_list = qt(config.db_connection.execute(sql))
                 target_image = image_list[image_index]
                 if image_name is not None:
-                    if target_image["name"] != image_name:
+                    if str(target_image["name"]) != str(image_name):
                         return HttpResponse(json.dumps({'response_code': 1, 'message': '%s %s' % (lno(MODID), "Image name (%s) from index (%s) does not match supplied image name (%s) please check your request and try again." % (target_image["name"], image_index, image_name))}))
             else:
                 # we have at least an image name, lets build the where clause
@@ -412,7 +412,7 @@ def transfer(request, args=None, response_code=0, message=None):
                 if image_date is not None:
                     where = where + " and created_at like '%s'" % image_date
 
-                sql = "select * from csv2_images where %s" % where
+                sql = "select * from cloud_images where %s" % where
                 image_list = qt(config.db_connection.execute(sql))
                 if len(image_list) > 1:
                     return HttpResponse(json.dumps({'response_code': 1, 'message': '%s %s' % (lno(MODID), "Unable to uniquely identify target image with given parameters, %s images matched." % len(image_list))}))
@@ -444,7 +444,7 @@ def transfer(request, args=None, response_code=0, message=None):
                 tx_request.apply_async((tx_id,), queue='tx_requests')
                 context = {
                     'response_code': 0,
-                    'message': "Transfer queued.."
+                    'message': "Transfer queued for image %s to cloud %s" % (target_image["name"], target_cloud)
                 }
                 return HttpResponse(json.dumps(context))
             except Exception as exc:
@@ -482,53 +482,147 @@ def delete(request, args=None, response_code=0, message=None):
     #Delete can be done right now without queing up a transaction since it is a fast call to openstack
     #may want to use a timeout for openstack in case it's busy. How long would the user want to wait?
     if request.method == 'POST':
-        # Should have the following data in POST:
-        #    (image_name + '---' + image_checksum, target_cloud, group)
-        post_data = json.loads(request.body)
-        image_checksum = None
-        image_name = ""
-        image_key = post_data.get("image_key")
-        target_cloud = post_data.get("cloud_name")
-        target_group = post_data.get("group_name")
-        key_list = image_key.split("---")
-        if len(key_list) != 2:
-            if image_checksum is None:
-                # we don't have the image checksum so we need to try and figure out what it is via the database
-                # if it is an ambiguous image name we can't fufill the request otherwise we can fill in the
-                # checksum and continue as normal
-                image_candidates = db_session.query(IMAGES).filter(IMAGES.group_name == target_group, IMAGES.name == image_key)
-                if len(image_candidates) > 1:
-                    #ambiguous image name, need a checksum
-                    return HttpResponse(json.dumps({'response_code': 1, 'message': '%s %s' % (lno(MODID), "Ambigous image name, please remove duplicate names or provide a checksum")}))
+
+        # If it's a json payload its coming from javascript on the webfrontend else its a cli request
+        post_data = None
+        try:
+            post_data = json.loads(request.body)
+            image_name = ""
+            image_checksum = None
+        except:
+            # not a json payload, didnt come from webfrontend
+            image_name = ""
+            image_checksum = None
+
+        if post_data and "image_key" in post_data:
+            # Should have the following data in POST:
+            #    (image_name + '---' + image_checksum, target_cloud, group)
+            image_key = post_data.get("image_key")
+            target_cloud = post_data.get("cloud_name")
+            target_group = post_data.get("group_name")
+            key_list = image_key.split("---")
+            if len(key_list) != 2:
+                if image_checksum is None:
+                    # we don't have the image checksum so we need to try and figure out what it is via the database
+                    # if it is an ambiguous image name we can't fufill the request otherwise we can fill in the
+                    # checksum and continue as normal
+                    image_candidates = db_session.query(IMAGES).filter(IMAGES.group_name == target_group, IMAGES.name == image_key)
+                    if len(image_candidates) > 1:
+                        #ambiguous image name, need a checksum
+                        return HttpResponse(json.dumps({'response_code': 1, 'message': '%s %s' % (lno(MODID), "Ambigous image name, please remove duplicate names or provide a checksum")}))
+                    else:
+                        image_checksum = image_candidates[0].checksum
+                # Once we get here we have the checksum so assign the image_name and continue as normal
+                image_name = image_key
+            else:
+                # key is normal
+                image_name = key_list[0]
+                image_checksum = key_list[1]
+
+
+            logger.error("GETTING IMAGE: %s::%s::%s::%s" % (image_name, image_checksum, target_group, target_cloud))
+            target_image = get_image(config, image_name, image_checksum, target_group, target_cloud)
+            cloud =  db_session.query(CLOUDS).get((target_group, target_cloud))
+            os_session = get_openstack_session(cloud)
+            glance = get_glance_client(os_session, cloud.region)
+            result = delete_image(glance, target_image.id)
+
+            if result[0] == 0:
+                #Remove image row
+                db_session.delete(target_image)
+                db_session.commit()
+                config.db_close()
+                #return render(request, 'glintwebui/images.html', {'response_code': 0, 'message': '%s %s' % (lno(MODID), "Delete successful")})
+                return HttpResponse(json.dumps({'response_code':0 , 'message': '%s %s' % (lno(MODID), "Delete successful")}))
+            else:
+                #return render(request, 'glintwebui/images.html', {'response_code': 1, 'message': '%s %s: %s' % (lno(MODID), "Delete failed", result[1])})
+                return HttpResponse(json.dumps({'response_code': 1, 'message': '%s %s: %s' % (lno(MODID), "Delete failed...", result[1])}))
+        else:
+            # command line request
+            #  options:
+            #    image_date
+            #    image_index
+            #    image_name
+            #    image_checksum
+            #    target_cloud
+            #    group
+
+            # Validate input fields.
+            rc, msg, fields, tables, columns = validate_fields(config, request, [TRANSFER_KEYS], [], active_user)
+            if rc !=0:
+                # Invalid fields, return message
+                return HttpResponse(json.dumps({'response_code': rc, 'message': msg}))
+
+
+            group_name = active_user.active_group
+            cloud_name = fields.get("cloud_name")
+            image_name = fields.get("image_name")
+            image_checksum = fields.get("image_checksum")
+            image_date = fields.get("image_date")
+            image_index = fields.get("image_index")
+            if image_index is not None:
+                image_index = int(image_index)
+
+            if image_name is None and image_index is None:
+                return HttpResponse(json.dumps({'response_code': 1, 'message': '%s %s' % (lno(MODID), "No image name or index, please supply at least one to identify target image")}))
+
+            target_image=None
+
+            if image_index is not None:
+                #get target image by index
+                sql = "select rank() over (partition by rank order by group_name,cloud_name,name,created_at,checksum) as rank,group_name,cloud_name,name,created_at,checksum,id from (select 1 as rank,i.* from (select * from cloud_images) as i) as i where cloud_type='openstack';"
+                image_list = qt(config.db_connection.execute(sql))
+                target_image = image_list[image_index]
+                if image_name is not None:
+                    if str(target_image["name"]) != str(image_name):
+                        return HttpResponse(json.dumps({'response_code': 1, 'message': '%s %s' % (lno(MODID), "Image name (%s) from index (%s) does not match supplied image name (%s) please check your request and try again." % (target_image["name"], image_index, image_name))}))
+                if cloud_name is not None:
+                    if str(target_image["cloud_name"]) != str(cloud_name):
+                        return HttpResponse(json.dumps({'response_code': 1, 'message': '%s %s' % (lno(MODID), "cloud name (%s) from index (%s) does not match supplied cloud name (%s) please check your request and try again." % (target_image["cloud_name"], image_index, cloud_name))}))
+            else:
+                # we have at least an image name, lets build the where clause
+                where = "name='%s'" % image_name
+                if image_checksum is not None:
+                    where = where + " and checksum='%s'" % image_checksum 
+                if image_date is not None:
+                    where = where + " and created_at like '%s'" % image_date
+                if cloud_name is not None:
+                    where = where + " and cloud_name='%s'" % cloud_name
+
+                sql = "select * from cloud_images where %s" % where
+                image_list = qt(config.db_connection.execute(sql))
+                if len(image_list) > 1:
+                    return HttpResponse(json.dumps({'response_code': 1, 'message': '%s %s' % (lno(MODID), "Unable to uniquely identify target image with given parameters, %s images matched." % len(image_list))}))
+                elif len(image_list) == 0:
+                    return HttpResponse(json.dumps({'response_code': 1, 'message': '%s %s' % (lno(MODID), "No images matched sepcified parameters, please check your request and try again.")}))
                 else:
-                    image_checksum = image_candidates[0].checksum
-            # Once we get here we have the checksum so assign the image_name and continue as normal
-            image_name = image_key
-        else:
-            # key is normal
-            image_name = key_list[0]
-            image_checksum = key_list[1]
+                    target_image = image_list[0]
 
+            # we have target image, lets delete it
+            cloud =  db_session.query(CLOUDS).get((target_image["group_name"], target_image["cloud_name"]))
+            os_session = get_openstack_session(cloud)
+            glance = get_glance_client(os_session, cloud.region)
+            result = delete_image(glance, target_image["id"])
 
-        logger.error("GETTING IMAGE: %s::%s::%s::%s" % (image_name, image_checksum, target_group, target_cloud))
-        target_image = get_image(config, image_name, image_checksum, target_group, target_cloud)
-        cloud =  db_session.query(CLOUDS).get((target_group, target_cloud))
-
-
-        os_session = get_openstack_session(cloud)
-        glance = get_glance_client(os_session, cloud.region)
-        result = delete_image(glance, target_image.id)
-
-        if result[0] == 0:
-            #Remove image row
-            db_session.delete(target_image)
-            db_session.commit()
-            config.db_close()
-            #return render(request, 'glintwebui/images.html', {'response_code': 0, 'message': '%s %s' % (lno(MODID), "Delete successful")})
-            return HttpResponse(json.dumps({'response_code':0 , 'message': '%s %s' % (lno(MODID), "Delete successful")}))
-        else:
-            #return render(request, 'glintwebui/images.html', {'response_code': 1, 'message': '%s %s: %s' % (lno(MODID), "Delete failed", result[1])})
-            return HttpResponse(json.dumps({'response_code': 1, 'message': '%s %s: %s' % (lno(MODID), "Delete failed...", result[1])}))
+            if result[0] == 0:
+                # Successful delete, now delete it from csv2 database - build delete statement
+                sql ="delete from cloud_images where group_name='%s' and cloud_name='%s' and id='%s';" % (target_image["group_name"], target_image["cloud_name"], target_image["id"])
+                try:
+                    config.db_connection.execute(sql)
+                except Exction as exc:
+                    context = {
+                        "response_code": 1,
+                        "message": "Failed to execute delete for image %s: %s" % (target_image["name"], exc)
+                    }
+                    return HttpResponse(json.dumps(context))
+     
+                context = {
+                    "response_code": 0,
+                    "message": "Image %s deleted successfully" % target_image["name"]
+                }
+                return HttpResponse(json.dumps(context))
+            else:
+                return HttpResponse(json.dumps({'response_code': 1, 'message': '%s %s: %s' % (lno(MODID), "Delete failed...", result[1])}))
 
     else:
         #Not a post request, render image page again
@@ -632,7 +726,7 @@ def upload(request, group_name=None):
 
         image = upload_image(glance, None, image_file.name, file_path, disk_format=request.POST.get('disk_format'))
         logger.info("Upload result: %s" % image)
-        # add it to the csv2_images table
+        # add it to the cloud_images table
         if image.size == "":
             size = 0
         else:
@@ -817,7 +911,7 @@ def upload(request, group_name=None):
         glance = get_glance_client(os_session, target_cloud.region)
 
         image = upload_image(glance, None, image_name, file_path, disk_format=request.POST.get('disk_format'))
-        # add it to the csv2_images table
+        # add it to the cloud_images table
         if image.size == "":
             size = 0
         else:

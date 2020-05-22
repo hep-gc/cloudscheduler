@@ -14,6 +14,7 @@ KEY_MAP = {
     '-id':  'image_date',
     '-ii':  'image_index',
     '-g':   'group_name',
+    '-cn':  'cloud_name', 
     }
 
 COMMAS_TO_NL = str.maketrans(',','\n')
@@ -109,7 +110,7 @@ def delete(gvar):
 
     mandatory = []
     required = []
-    optional = ['-v', '-x509', '-xA']
+    optional = ['-cn', '-ic', '-in', '-ii', '-g', '-s', '-v', '-x509', '-xA']
 
     if gvar['retrieve_options']:
         return mandatory + required + optional
