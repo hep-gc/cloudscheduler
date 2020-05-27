@@ -1,5 +1,14 @@
 # Cloud Scheduler version 2 Change Log
 
+
+- stable-2.7.1:
+  - CLI Support for Image management
+    - List
+    - Delete
+    - Transfer
+    - Upload
+  - Key management?
+
 - stable-2.7.0:
   - Introduction of this change log.
 
