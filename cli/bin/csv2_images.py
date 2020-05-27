@@ -1,4 +1,4 @@
-from csv2_common import check_keys, requests, show_active_user_groups, show_table, verify_yaml_file
+from csv2_common import check_keys, requests, show_active_user_groups, show_table, verify_yaml_file, prepare_file
 from subprocess import Popen, PIPE
 
 import filecmp
@@ -29,9 +29,9 @@ def upload(gvar):
 
     disk_formats = ['ami', 'aki', 'ari', 'docker', 'iso', 'ova', 'qcow2', 'raw', 'vdi', 'vhd', 'vmdk']
 
-    mandatory = []
+    mandatory = ['cl', '-ip', '-df']
     required = []
-    optional = ['-g', '-s', '-v', '-x509', '-xA']
+    optional = ['-g', '-H', '-s', '-v', '-x509', '-xA']
 
     """
     Will need to audit the disk format
@@ -50,13 +50,15 @@ def upload(gvar):
 
     #Upload Image, will likely need to change this request since we are uploading a file
 
-    # NEED TO ISOLATE GROUP NAME FOR URL
-    # group_name=??
+    url_command = '/images/upload'
     response = requests(
-        gvar,
-        '/images/upload_image/%s' % group_name,
-        form_data
-        )
+        gvar,   
+        url_command,
+        {       
+            **form_data,
+            **prepare_file(gvar['user_settings']['image_path']),
+            }       
+        )    
     
     if response['message']:
         print(response['message'])
@@ -70,7 +72,7 @@ def transfer(gvar):
 
     mandatory = ['-tc']
     required = []
-    optional = ['-ic', '-in', '-ii', '-g', '-s', '-v', '-x509', '-xA']
+    optional = ['-ic', '-in', '-ii', '-g', '-H', '-s', '-v', '-x509', '-xA']
 
     if gvar['retrieve_options']:
         return mandatory + required + optional
@@ -110,7 +112,7 @@ def delete(gvar):
 
     mandatory = []
     required = []
-    optional = ['-cn', '-ic', '-in', '-ii', '-g', '-s', '-v', '-x509', '-xA']
+    optional = ['-cn', '-ic', '-in', '-ii', '-g', '-H', '-s', '-v', '-x509', '-xA']
 
     if gvar['retrieve_options']:
         return mandatory + required + optional
@@ -141,7 +143,7 @@ def list(gvar):
 
     mandatory = []
     required = []
-    optional = ['-g', '-s', '-cn', '-v', '-x509', '-xA']
+    optional = ['-g', '-H', '-s', '-cn', '-v', '-x509', '-xA']
 
     if gvar['retrieve_options']:
         return mandatory + required + optional

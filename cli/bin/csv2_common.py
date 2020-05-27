@@ -1079,6 +1079,19 @@ def update_pid_defaults(gvar, server=None, server_address=None, user=None, group
         fd.close()
 
 #-------------------------------------------------------------------------------
+def prepare_file(file_path):
+    #check if its a file or a url
+    if file_path.starts_with("file://"):
+        # it's a file
+        fd = open(file_path)
+        file_string = fd.read()
+        fd.close()
+        return { 'myfile': file_string }
+    else:
+        #it's a url or something else we'lll let the server handle
+        return { 'myfileurl': file_path }
+
+#-------------------------------------------------------------------------------
 
 def verify_yaml_file(file_path):
     # Read the entire file.

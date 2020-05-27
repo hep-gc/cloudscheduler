@@ -1,0 +1,56 @@
+.so ../man/_header.so
+\fBcloudscheduler image transfer\fR \- transfers an image between openstack clouds registered with cloudscheduler version 2 (csv2)
+.\" --------------------------------------------------------------------
+.SH SYNOPSIS
+.\" --------------------------------------------------------------------
+.SY cloudscheduler
+.B image
+.B transfer
+.RI "[" "options" " ...]"
+.YS
+.\" --------------------------------------------------------------------
+.SH DESCRIPTION
+.\" --------------------------------------------------------------------
+.so ../man/descriptions/_image_transfer.so
+.\" --------------------------------------------------------------------
+.SH OPTIONS
+.\" --------------------------------------------------------------------
+.so ../man/parameters/_image_name.so
+.so ../man/parameters/_image_index.so
+.so ../man/parameters/_image_checksum.so
+.so ../man/parameters/_image_date.so
+.\" --------------------------------------------------------------------
+.SS Optional
+.\" --------------------------------------------------------------------
+.so ../man/_options.so
+.so ../man/parameters/_group_name.so
+.so ../man/parameters/_cloud_name.so
+.\" --------------------------------------------------------------------
+.SS Global
+.\" --------------------------------------------------------------------
+.so ../man/_global_options.so
+.\" --------------------------------------------------------------------
+.SH EXAMPLES
+.\" --------------------------------------------------------------------
+.TP
+1.
+Transfer image to target cloud using just index:
+.EX
+$ cloudscheduler image transfer -ii 19 -tc ex_cldB
+Transfer queued for image CentOS 6.5 to cloud ex_cldB
+.EE
+.TP
+2.
+Transfer image to target cloud using image name and date:
+.EX
+$ cloudscheduler image transfer -in "CentOS 6.5" -d "2020-01-06" -tc ex_cldB
+Transfer queued for image CentOS 6.5 to cloud ex_cldB
+.EE
+.\" --------------------------------------------------------------------
+.SH SEE ALSO
+.\" --------------------------------------------------------------------
+.BR csv2 (1)
+.BR csv2_image_list (1)
+.BR csv2_image_transfer (1)
+.BR csv2_image_delete (1)
+.BR csv2_image_upload (1)

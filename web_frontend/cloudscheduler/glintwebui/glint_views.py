@@ -389,7 +389,7 @@ def transfer(request, args=None, response_code=0, message=None):
             image_date = fields.get("image_date")
             image_index = fields.get("image_index")
             if image_index is not None:
-                image_index = int(image_index)
+                image_index = int(image_index)-1
 
             if image_name is None and image_index is None:
                 return HttpResponse(json.dumps({'response_code': 1, 'message': '%s %s' % (lno(MODID), "No image name or index, please supply at least one to identify target image")}))
@@ -561,7 +561,7 @@ def delete(request, args=None, response_code=0, message=None):
             image_date = fields.get("image_date")
             image_index = fields.get("image_index")
             if image_index is not None:
-                image_index = int(image_index)
+                image_index = int(image_index)-1
 
             if image_name is None and image_index is None:
                 return HttpResponse(json.dumps({'response_code': 1, 'message': '%s %s' % (lno(MODID), "No image name or index, please supply at least one to identify target image")}))

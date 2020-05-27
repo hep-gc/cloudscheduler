@@ -1,0 +1,2 @@
+The \fBcloudscheduler image transfer\fR action transfers an openstack image between csv2 openstack clouds.
+Any user may transfer the images, provided they are in the group that that the source image is from.

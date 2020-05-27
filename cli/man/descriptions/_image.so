@@ -1,0 +1,3 @@
+The \fBimage\fR object lists, transfers, deletes, and uploads images within the current group.
+The image objects are related directly to a cloud definition and may be manipluated by users.
+The image object and actions are available to all users, provided they are in the group the images definitions belong to.
