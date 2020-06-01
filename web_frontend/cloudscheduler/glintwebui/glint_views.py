@@ -3,6 +3,7 @@ import logging
 import os
 import json
 import urllib3
+import datetime
 
 from django.conf import settings
 config = settings.CSV2_CONFIG
@@ -655,12 +656,15 @@ def upload(request, group_name=None):
 
         if group_name is None:
             # need to figure out where to get group name
-            logger.error("No group name, using user's default")
-            group_name = active_user.default_group
+            group_name = active_user.active_group
 
         #process image upload
         image_file = request.FILES['myfile']
         file_path = config.categories["glintPoller.py"]["image_cache_dir"] + image_file.name # This file will have to be renamed with the checksum after uploading to a cloud
+        print(file_path)
+        print(image_file.__dict__)
+        print(image_file.name)
+        print(image_file._name)
 
         #before we save it locally let us check if it is already in the repos
         cloud_name_list = request.POST.getlist('clouds')
@@ -671,6 +675,7 @@ def upload(request, group_name=None):
             for image in image_list:
                 if image.cloud_name in cloud_name_list:
                     bad_clouds.append(image.cloud_name)
+        print(bad_clouds)
         if len(bad_clouds) > 0:
             for cloud in bad_clouds:
                 cloud_name_list.remove(cloud)
@@ -717,6 +722,8 @@ def upload(request, group_name=None):
         # Now we have a source file we need to upload it to one of the clouds to get a checksum so we can queue up transfer requests
         # get a cloud of of the list, first one is fine
         target_cloud_name = cloud_name_list[0]
+        print(cloud_name_list)
+        print(target_cloud_name)
         # get the cloud row for this cloud
         target_cloud = config.db_session.query(CLOUDS).get((group_name, target_cloud_name))
         os_session = get_openstack_session(target_cloud)
@@ -731,6 +738,8 @@ def upload(request, group_name=None):
             size = 0
         else:
             size = image.size
+        created_datetime = datetime.datetime.now()
+        created_time = created_datetime.strftime("%Y-%m-%d %H:%M:%S")
         new_image_dict = {
             'group_name': target_cloud.group_name,
             'cloud_name': target_cloud.cloud_name,
@@ -744,6 +753,7 @@ def upload(request, group_name=None):
             'visibility': image.visibility,
             'min_disk': image.min_disk,
             'name': image.name,
+            'created_at': created_time,
             'last_updated': time.time()
         }
         img_dict, unmapped = map_attributes(src="os_images", dest="csv2", attr_dict=new_image_dict)
@@ -785,7 +795,7 @@ def upload(request, group_name=None):
                 'active_group': active_user.active_group,
                 'user_groups': active_user.user_groups,
                 'response_code': rc,
-                'message': "Upload Successful, returning to images...",
+                'message': "Upload Successful: image %s uploaded to %s-%s" % (image.name, group_name, cloud_name),
                 'is_superuser': active_user.is_superuser,
                 'version': config.get_version()
             }

@@ -298,7 +298,8 @@ def main(args):
             ('-cl',   '--cloud-list', True),
             ('-iu',   '--image-format', True),
             ('-id',   '--image-date', True),
-            ('-ii',   '--image-index', True)
+            ('-ii',   '--image-index', True),
+            ('-df',   '--disk-format', True)
         ),
         'command_dir': os.path.dirname(os.path.realpath(args[0])),
         'command_name': os.path.basename(args[0]),

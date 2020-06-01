@@ -8,13 +8,13 @@ KEY_MAP = {
     '-in':  'image_name',
     '-ic':  'image_checksum',
     '-tc':  'cloud_name', #target cloud
-    '-cl':  'cloud_list',
+    '-cl':  'clouds',
     '-df':  'disk_format',
-    '-ip':  'image_path',
-    '-id':  'image_date',
-    '-ii':  'image_index',
-    '-g':   'group_name',
-    '-cn':  'cloud_name', 
+    '-ip':  'image-path',
+    '-id':  'image-date',
+    '-ii':  'image-index',
+    '-g':   'group-name',
+    '-cn':  'cloud-name', 
     }
 
 COMMAS_TO_NL = str.maketrans(',','\n')
@@ -27,9 +27,10 @@ def upload(gvar):
     Requires: Image file OR Image url, cloud_list, disk_format
     """
 
-    disk_formats = ['ami', 'aki', 'ari', 'docker', 'iso', 'ova', 'qcow2', 'raw', 'vdi', 'vhd', 'vmdk']
+    # disk formats will be checked on server side, remember to add these to the manpage
+    #disk_formats = ['ami', 'aki', 'ari', 'docker', 'iso', 'ova', 'qcow2', 'raw', 'vdi', 'vhd', 'vmdk']
 
-    mandatory = ['cl', '-ip', '-df']
+    mandatory = ['-cl', '-ip', '-df']
     required = []
     optional = ['-g', '-H', '-s', '-v', '-x509', '-xA']
 
@@ -50,15 +51,19 @@ def upload(gvar):
 
     #Upload Image, will likely need to change this request since we are uploading a file
 
-    url_command = '/images/upload'
-    response = requests(
-        gvar,   
-        url_command,
-        {       
-            **form_data,
-            **prepare_file(gvar['user_settings']['image_path']),
-            }       
-        )    
+    url_command = '/images/upload_image/'
+    prepare_dict = prepare_file(gvar['user_settings']['image-path'])
+    if prepare_dict.get("streaming_upload"):
+        prepare_dict.pop("streaming_upload")
+        response = requests(
+            gvar,   
+            url_command,
+            {       
+                **form_data,
+                **prepare_dict
+            },       
+            streaming_upload=True
+            )    
     
     if response['message']:
         print(response['message'])
