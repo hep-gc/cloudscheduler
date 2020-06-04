@@ -46,6 +46,7 @@ TRANSFER_KEYS = {
         'cloud_name':                                 'ignore',
         'image_name':                                 'ignore',
         'image_index':                                'ignore',
+        'image-index':                                'ignore',
         'image_date':                                 'ignore',
         'image_checksum':                             'ignore',
         },      
@@ -106,6 +107,7 @@ def _trim_image_list(image_list, group, cloud=None):
 
 def _build_image_dict(image_list, transaction_list):
     image_dict = {}
+    image_dates = {}
     for image in image_list:
         if image.name is None or image.checksum is None:
             # We don't like images without a name, lets ignore it
@@ -115,6 +117,7 @@ def _build_image_dict(image_list, transaction_list):
             new_dict = {
                 "name": image.name,
                 "checksum": image.checksum,
+                "created_at": image.created_at,
                 image.cloud_name: {
                     "status": "present",
                     "visibility": image.visibility,
@@ -123,6 +126,7 @@ def _build_image_dict(image_list, transaction_list):
                 }
             }
             image_dict[image.name + "---" + image.checksum] = new_dict
+            image_dates[image.name + "---" + image.checksum] = image.created_at
         else:
             #image already exits, just need to add the cloud name dict for this entry
             image_dict[image.name + "---" + image.checksum][image.cloud_name] = {
@@ -149,11 +153,12 @@ def _build_image_dict(image_list, transaction_list):
                     "id": tx.image_id,
                     "message": tx.message
                 }
+                image_dates[tx.image_name + "---" + tx.checksum] = "-"
             else:
                 # the image exists already, probably the result of multiple queue'd transfers
                 # we can probably ignore this case but may want to keep whatever status/message from the tx table
                 continue
-    return image_dict
+    return image_dict, image_dates
 
 
 # The image matrix will be a dinctionary with each value being a list of tuples where the order of the tuples is the order of clouds:
@@ -248,7 +253,7 @@ def list(request, args=None, response_code=0, message=None):
 
 
     pending_tx = db_session.query(IMAGE_TX).filter(IMAGE_TX.target_group_name == group)
-    image_dict = _build_image_dict(images, pending_tx)
+    image_dict, image_dates = _build_image_dict(images, pending_tx)
     matrix = _build_image_matrix(image_dict, clouds)
     
     #build context and render matrix
@@ -258,6 +263,7 @@ def list(request, args=None, response_code=0, message=None):
     context = {
         #function specific data
         'image_dict': matrix,
+        'image_dates': image_dates,
         'cloud_list': clouds,
         'default_image': default_image,
 
@@ -560,7 +566,7 @@ def delete(request, args=None, response_code=0, message=None):
             image_name = fields.get("image_name")
             image_checksum = fields.get("image_checksum")
             image_date = fields.get("image_date")
-            image_index = fields.get("image_index")
+            image_index = fields.get("image-index")
             if image_index is not None:
                 image_index = int(image_index)-1
 
@@ -848,7 +854,7 @@ def upload(request, group_name=None):
         if group_name is None:
 
             logger.error("No group name, using user's default")
-            group_name = active_user.default_group
+            group_name = active_user.active_group
 
 
         #download the image
@@ -926,6 +932,8 @@ def upload(request, group_name=None):
             size = 0
         else:
             size = image.size
+        created_datetime = datetime.datetime.now()
+        created_time = created_datetime.strftime("%Y-%m-%d %H:%M:%S")
         new_image_dict = {
             'group_name': target_cloud.group_name,
             'cloud_name': target_cloud.cloud_name,
@@ -939,6 +947,7 @@ def upload(request, group_name=None):
             'visibility': image.visibility,
             'min_disk': image.min_disk,
             'name': image.name,
+            'created_at': created_time,
             'last_updated': time.time()
         }
         img_dict, unmapped = map_attributes(src="os_images", dest="csv2", attr_dict=new_image_dict)
@@ -1000,7 +1009,7 @@ def upload(request, group_name=None):
                 'active_group': active_user.active_group,
                 'user_groups': active_user.user_groups,
                 'response_code': rc,
-                'message': "Uploads queued successfully, returning to images...",
+                'message': "Upload Successful: image %s uploaded to %s-%s" % (image.name, group_name, cloud_name),
                 'is_superuser': active_user.is_superuser,
                 'version': config.get_version()
             }

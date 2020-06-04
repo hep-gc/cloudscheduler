@@ -81,7 +81,7 @@
     {% csrf_token %}
     <table id="image_matrix">
         <!-- First make headers -->
-        <tr class="header"> <th> IMAGES </th>
+        <tr class="header"> <th> IMAGES </th> <th>Created Date</th>
             {% for cloud in cloud_list %}
                 <th> {{ cloud.cloud_name }} </th>
             {% endfor %}
@@ -95,6 +95,7 @@
                         <img title="Default Image" src="/static/glintwebui/img/gold_star.png" style="width:20px;height:20px; float:right; padding-left:5px;" />
                     {% endif %}
                 </td>
+                <td>{{image_dates|get_item:image_key}}</td>
                 <!-- img tuples have the following format: (status, message, visibility) where status' are missing, present, pending delete, pending transfer, error-->
                 {% for img_tuple in image_list %}
                     {% if img_tuple.0 == "missing" %}
