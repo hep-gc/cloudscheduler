@@ -1,0 +1,4 @@
+.TP
+\fB\-cl \fIlist\fR, \fB\-\-cloud-list \fIlist\fR
+The list of one or more clouds to upload the image to.
+A single value may be specified alone or multiple using a comma seperated string.

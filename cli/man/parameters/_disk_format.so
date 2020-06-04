@@ -1,0 +1,4 @@
+.TP
+\fB\-df \fIformat\fR, \fB\-\-disk-format \fIformat\fR
+The disk format of the image being uploaded.
+Openstack supports the following formats: ami, aki, ari, docker, iso, ova, qcow2, raw, vdi, vhd, vmdk

@@ -64,6 +64,15 @@ def upload(gvar):
             },       
             streaming_upload=True
             )    
+    else:
+        response = requests(
+            gvar,   
+            url_command,
+            {       
+                **form_data,
+                **prepare_dict
+            })
+        
     
     if response['message']:
         print(response['message'])

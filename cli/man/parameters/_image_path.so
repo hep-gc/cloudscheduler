@@ -1,0 +1,3 @@
+.TP
+\fB\-ip \fIpath\fR, \fB\-\-image-path \fIpath\fR
+The file path or url of the deisred image to upload. Files must begin with the format: file://

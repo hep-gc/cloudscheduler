@@ -1,0 +1,3 @@
+.TP/
+\fB\-ii \fIindex\fR, \fB\-\-image-index \fIindex\fR
+The index of an openstack image as defined by the image list command.

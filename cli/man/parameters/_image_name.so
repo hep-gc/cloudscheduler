@@ -1,0 +1,3 @@
+.TP
+\fB\-in \fIname\fR, \fB\-\-image-name \fIname\fR
+The name of an openstack image defined in one of the clouds.
