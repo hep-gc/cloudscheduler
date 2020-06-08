@@ -393,7 +393,7 @@ class Config:
         if not self.db_cursor:
             raise Exception('the database is not open')
 
-        rows = self.db_query(table, where=self.__db_get_where_clause__(table, column_dict, None), allow_no_rows=True)
+        rows = self.db_query(table, where=self.__db_get_where_clause__(table, column_dict, None))
 
         if len(rows) > 0:
             self.db_update(table, column_dict)
@@ -415,7 +415,7 @@ class Config:
 
 #-------------------------------------------------------------------------------
 
-    def db_query(self, table, select=[], distinct=False, where=None, order_by=None, limit=None, allow_no_rows=False):
+    def db_query(self, table, select=[], distinct=False, where=None, order_by=None, limit=None):
         """
         Execute a DB query and return the response. Also, trap and return errors.
         """
@@ -467,10 +467,7 @@ class Config:
                     if isinstance(row[col], bytes) or isinstance(row[col], bytearray):
                         rows[-1][col] = row[col].decode('utf-8')
 
-            if len(rows) < 1 and not allow_no_rows:
-                raise Exception('failed db_query request: %s, error: the request did not match any rows and "allow_no_rows" was set to "False"' % request)
-            else:
-                return self.__db_logging_return__(0, 'successful db_query request: %s' % request, rows=rows)
+            return self.__db_logging_return__(0, 'successful db_query request: %s' % request, rows=rows)
 
         except Exception as ex:
             raise Exception('failed db_query request: %s, error: %s' % (request, ex))
