@@ -41,6 +41,9 @@ def upload(gvar):
     if gvar['retrieve_options']:
         return mandatory + required + optional
 
+    #Process cloud list:
+    gvar['user_settings']['cloud-list'] = gvar['user_settings']['cloud-list'].replace(" ", "").split(",")
+
     # Check for missing arguments or help required.
     form_data = check_keys(
         gvar,

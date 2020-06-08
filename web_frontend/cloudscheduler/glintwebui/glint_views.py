@@ -875,6 +875,7 @@ def upload(request, group_name=None):
 
         #before we save it locally let us check if it is already in the repos
         cloud_name_list = request.POST.getlist('clouds')
+        print(cloud_name_list)
         image_list = config.db_session.query(IMAGES).filter(IMAGES.name == image_name, IMAGES.group_name == group_name)
         bad_clouds = []
         if image_list.count() > 0:
@@ -1009,7 +1010,7 @@ def upload(request, group_name=None):
                 'active_group': active_user.active_group,
                 'user_groups': active_user.user_groups,
                 'response_code': rc,
-                'message': "Upload Successful: image %s uploaded to %s-%s" % (image.name, group_name, cloud_name),
+                'message': "Upload Successful: image %s uploaded to %s-%s" % (image.name, group_name, cloud_list),
                 'is_superuser': active_user.is_superuser,
                 'version': config.get_version()
             }
