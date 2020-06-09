@@ -130,18 +130,25 @@ def _long_help(gvar, man_id, man_page):
             help_page = None
 
         if help_page:
-            p = Popen(['man', '-l', help_page], cwd=man_dir, stderr=PIPE)
-            p.communicate()
-            if p.returncode == 0:
+            if gvar['platform'][:6].lower() == 'macos-':
+                p1 = Popen(['groff', '-T', 'ascii', '-man', help_page], cwd=man_dir, stdout=PIPE, stderr=PIPE)
+                p2 = Popen(['less'], cwd=man_dir, stdin=p1.stdout, stderr=PIPE)
+                p2.communicate()
                 return
 
-            tmp_dir = tempfile.mkdtemp()
-            p = Popen(['cp', '-rp', man_dir, tmp_dir])
-            p.communicate()
+            else:
+                p = Popen(['man', '-l', help_page], cwd=man_dir, stderr=PIPE)
+                p.communicate()
+                if p.returncode == 0:
+                    return
 
-            p = Popen(['man', '-l', help_page], cwd='%s/man' % tmp_dir, stderr=PIPE)
-            p.communicate()
-            
-            shutil.rmtree(tmp_dir)
-            return
+                tmp_dir = tempfile.mkdtemp()
+                p = Popen(['cp', '-rp', man_dir, tmp_dir])
+                p.communicate()
+
+                p = Popen(['man', '-l', help_page], cwd='%s/man' % tmp_dir, stderr=PIPE)
+                p.communicate()
+                
+                shutil.rmtree(tmp_dir)
+                return
 

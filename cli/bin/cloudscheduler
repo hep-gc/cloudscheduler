@@ -4,9 +4,10 @@ This is the command line interface to cloudscheduler version 2.
 """
 
 from pathlib import Path
-from csv2_common import command_hash, requests, requests_no_credentials_error, update_pid_defaults, yaml_full_load
+from csv2_common import command_hash, decode, requests, requests_no_credentials_error, update_pid_defaults, yaml_full_load
 
 import os
+import platform
 import sys
 
 import yaml
@@ -308,6 +309,7 @@ def main(args):
         'function_args': None,
         'home_dir': str(Path.home()),
         'object': None,
+        'platform': decode(platform.platform(terse=1)),
         'retrieve_options': False,
         'tables_shown': 0,
         'uid': os.getuid(),
@@ -323,10 +325,15 @@ def main(args):
         csv2_helpers.generate_bash_completion_script(gvar)
 
     # Check for interactive parent process and set the pid_file path.
-    if os.readlink('/proc/%s/fd/0' % os.getppid()).split(':')[0] == 'pipe':
-        gvar['pid_file'] = '-'
-    else:
+    if sys.stdout.isatty():
         gvar['pid_file'] = '/tmp/.csv2_%s' % os.getppid()
+    else:
+        gvar['pid_file'] = '-'
+
+#   if os.readlink('/proc/%s/fd/0' % os.getppid()).split(':')[0] == 'pipe':
+#       gvar['pid_file'] = '-'
+#   else:
+#       gvar['pid_file'] = '/tmp/.csv2_%s' % os.getppid()
 
 #   # Check for authentication by grid proxy certificate.
 #   if os.path.isfile('/tmp/x509up_u%s' % gvar['uid']):

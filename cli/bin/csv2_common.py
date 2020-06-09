@@ -116,12 +116,18 @@ def command_hash(gvar):
         gvar['command_dir']
         ], stdout=PIPE, stderr=PIPE)
 
-    p2 = Popen([
-        'md5sum'
-        ], stdin=p1.stdout, stdout=PIPE, stderr=PIPE)
+    if gvar['platform'][:6].lower() == 'macos-':
+        p2 = Popen([
+            'md5'
+            ], stdin=p1.stdout, stdout=PIPE, stderr=PIPE)
+
+    else:
+        p2 = Popen([
+            'md5sum'
+            ], stdin=p1.stdout, stdout=PIPE, stderr=PIPE)
 
     md5sum, stderr = p2.communicate()
-    return decode(md5sum)[:-4]
+    return decode(md5sum).replace('-','').strip()
 
 #-------------------------------------------------------------------------------
 
