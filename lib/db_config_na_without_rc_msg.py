@@ -410,6 +410,15 @@ class Config:
         Open and return a database connection.
         """
 
+        if not self.db_connection.is_connected():
+            attempts = 5
+            delay = 2
+
+            self.db_connection.reconnect(attempts=attempts, delay=delay)
+
+            if not self.db_connection.is_connected():
+                raise Exception('Database connection was severed but failed to reconnect, attempts: %s, delay: %s.' % (attempts, delay)) 
+
         if not self.db_cursor:
             self.db_cursor = self.db_connection.cursor(buffered=True, dictionary=True)
 
