@@ -2,12 +2,13 @@
 
 
 - stable-2.7.1:
-  - CLI Support for Image management
+  - CLI Support & manpages for Image management
     - List
     - Delete
     - Transfer
     - Upload
-  - Key management?
+  - Defaults replication modified to only transfer to/from clouds that have an active network and are enabled.
+  - Added new optional parameter "volume_type" to boot volume yaml
 
 - stable-2.7.0:
   - Introduction of this change log.
