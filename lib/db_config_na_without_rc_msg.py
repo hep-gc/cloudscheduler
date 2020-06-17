@@ -2,7 +2,7 @@
 DB utilities and configuration.
 """
 
-import cloudscheduler.lib.schema_na as schema_na
+import cloudscheduler.lib.schema as schema
 
 import logging
 import os
@@ -21,7 +21,9 @@ import mysql.connector
 class Config:
     def __init__(self, db_yaml, categories, db_config_dict=False, db_config_only=False, pool_size=5, max_overflow=0, signals=False):
         """
-        Read the DB configuration file and the specified categories configuration from the database.
+        Create (and return) a configuration object populated with the specified
+        configuration categories from the database. The configuration object 
+        provides access and methods to manipulate the database.
         """
 
         # show we are initializing.
@@ -73,7 +75,7 @@ class Config:
             self.initialized = True
             return
 
-        self.db_schema = schema_na.schema
+        self.db_schema = schema.schema
 
         #
         # Use the integer value of the public IPv4 address to create a unique instance IDs for the
@@ -148,8 +150,8 @@ class Config:
             o A valid where_clause string (used as is), or
             o The value '*' (ie. all rows; no where clause), or
             o None, in which case a where clause using the keys of
-              the current table and column_dict will be returned.
-
+              the current table with values from <column_dict>
+              will be returned.
         """
 
         def ___get_where_bits_from_dict___(table, column_dict, keys):
@@ -200,8 +202,8 @@ class Config:
 
     def __db_logging_return__(self, rc, msg, rows=[]):
         """
-        Depending on the rc parameter (0=debug, otherwise warning) log the
-        message together with the caller ID.
+        Depending on <rc> (0=debug, otherwise warning), log the
+        message together with the caller ID. 
         """
 
         def __get_values_from_stack__(stack_entry):
@@ -271,7 +273,8 @@ class Config:
 
     def db_close(self, commit=False):
         """
-        Commit/rollback and close a session.
+        Commit/rollback(default) any outstanding transactions and close 
+        the database session.
         """
 
         if self.db_connection:
@@ -293,7 +296,7 @@ class Config:
 
     def db_commit(self):
         """
-        Commit updates.
+        Commit any outstanding transactions.
         """
 
         if not self.db_cursor:
@@ -306,9 +309,29 @@ class Config:
 
     def db_delete(self, table, column_dict, where=None):
         """
-        Execute a DB delete. If successful, set rc=0 to indicate that
-        self.db_cursor has the response. Otherwise, return rc=1 and the
-        error message.
+        Delete one or more rows from a table. By default, the rows to be
+        deleted are identified by the columns and values provided in
+        <column_dict>.
+
+        Example:
+
+            <column_dict> = {
+                'a': 11,
+                'b': 'arbutus',
+                'c': 'chemicals',
+                'd': 'openstack'
+                }
+
+            on a table that contains only columns 'a', 'b', and 'd'
+            would generate a where clause of:
+
+            where a=11 and b='arbutus' and d='openstack'
+
+            (logging.debug messages would be issued for ignored column 'c'.)
+
+        Alternatively, <where> can be used to identify the rows to 
+        be deleted. For information on providing <where>, see the
+        description of the "__db_get_where_clause__" function.
         """
 
         if not self.db_cursor:
@@ -333,9 +356,11 @@ class Config:
 
     def db_execute(self, request):
         """
-        Execute a DB request. If successful, iset rc=0 to indicate that
-        self.db_cursor has the response. Otherwise, return rc=1 and the
-        error message.
+        Execute an SQL statement on the open database. The user can issue
+        any valid SQL statement but is responsible for interpreting the 
+        database response held in self.db_cursor.
+
+        In all cases, an exception occurs if the excution fails
         """
 
         if not self.db_cursor:
@@ -351,9 +376,12 @@ class Config:
 
     def db_insert(self, table, column_dict):
         """
-        Execute a DB insert. If successful, set rc=0 to indicate that
-        self.db_cursor has the response. Otherwise, return rc=1 and the
-        error message.
+        Insert a row defined by <column_dict> into <table>.
+        
+        If <column_dict> contains a column not defined in <table>, a
+        logging.debug is issued and the column is ignored.
+
+        In all cases, an exception occurs if the insertion fails
         """
 
         if not self.db_cursor:
@@ -386,20 +414,81 @@ class Config:
 
     def db_merge(self, table, column_dict):
         """
-        A DB merge request attempts to insert or update the row contained in
-        the column_dict.
+        DB merge inserts or updates the row contained within <column_dict> 
+        into <table>. In all cases but one, <column_dict> must contain all
+        <table> key columns. The only exception to the key column rule are
+        for tables with a single, auto_increment key column. In which case,
+        the key column within <column_dict> may be one of the following:
+
+        o Absent, db_merge will insert the row.
+
+        o Key column < 0, db_merge will insert the row and update
+          <column_dict> with the new key.
+
+        o Key column >= 0, db_merge will update the row, if it exists, or
+          insert the row, if it does not exist.
+
+        In all cases, an exception occurs if the merge fails
+
+        Example:
+
+          To create two rows in a table that point to each other:
+
+          from <project>.lib.db_config import Config
+          config = Config.db_open(<db_config.yaml>, [])
+          config.db_open()
+
+          row_a = {
+              'id': -1
+              .
+              .
+              }
+
+          row_b = {
+              'id': -1
+              .
+              .
+              }
+
+          config.db_merge('atable', row_a)
+          row_b['related_row'] = row_a['id']
+          config.db_merge('atable', row_b)
+          row_a['related_row'] = row_b['id']
+          config.db_merge('atable', row_a)
+          config.db_close(commit=True)
+
         """
 
         if not self.db_cursor:
             raise Exception('the database is not open')
 
-        rows = self.db_query(table, where=self.__db_get_where_clause__(table, column_dict, None))
+        if len(self.db_schema[table]['keys']) == 1 and \
+            self.db_schema[table]['columns'][self.db_schema[table]['keys'][0]]['type'] == 'int' and \
+            self.db_schema[table]['columns'][self.db_schema[table]['keys'][0]]['extra'] == 'auto_increment' and \
+            (self.db_schema[table]['keys'][0] not in column_dict or \
+            (self.db_schema[table]['keys'][0] in column_dict and \
+            column_dict[self.db_schema[table]['keys'][0]] < 0)):
 
-        if len(rows) > 0:
-            self.db_update(table, column_dict)
+            if self.db_schema[table]['keys'][0] in column_dict:
+                del column_dict[self.db_schema[table]['keys'][0]]
+                auto_key = True
+            else:
+                auto_key = False
+
+            self.db_insert(table, column_dict)
+
+            if auto_key:
+                rows = self.db_query('select last_insert_id() as id;')
+                column_dict[self.db_schema[table]['keys'][0]] = rows[0]['id']
 
         else:
-            self.db_insert(table, column_dict)
+            rows = self.db_query(table, where=self.__db_get_where_clause__(table, column_dict, None))
+
+            if len(rows) > 0:
+                self.db_update(table, column_dict)
+
+            else:
+                self.db_insert(table, column_dict)
 
         return self.__db_logging_return__(0, 'successful db_merge request')
 
@@ -407,7 +496,7 @@ class Config:
 
     def db_open(self):
         """
-        Open and return a database connection.
+        Open the database.
         """
 
         if not self.db_connection.is_connected():
@@ -417,7 +506,7 @@ class Config:
             self.db_connection.reconnect(attempts=attempts, delay=delay)
 
             if not self.db_connection.is_connected():
-                raise Exception('Database connection was severed but failed to reconnect, attempts: %s, delay: %s.' % (attempts, delay)) 
+                raise Exception('Database connection was severed but failed to reconnect, attempts: %s, delay: %s.' % (attempts, delay))
 
         if not self.db_cursor:
             self.db_cursor = self.db_connection.cursor(buffered=True, dictionary=True)
@@ -426,7 +515,42 @@ class Config:
 
     def db_query(self, table, select=[], distinct=False, where=None, order_by=None, limit=None):
         """
-        Execute a DB query and return the response. Also, trap and return errors.
+        Execute a DB query on the specified <table> and return the table
+        rows as a list if dictionaries.  By default, all columns and all
+        rows are returned.
+
+        The <table> is used to specify the table to be queried.
+
+        The <select> is used to specify which coluns are to be returned.
+        The specification can either be a python list of column names 
+        or a python3 string of comma separated column names.
+
+        The <distinct> is used to specify whether the "distinct" clause 
+        should be inserted into the SQL statement. Specifying <distinct>
+        as True will return only unique rows. Otherwise, all rows,
+        including duplicates, are returned.
+
+        The <where> is used to specify which rows are to be returned.
+        For information on providing <where>, see the description of the
+        "__db_get_where_clause__" function.
+
+        The <order_by> is used to specify the order in which rows are
+        to be listed. The specification can either be a python list of
+        column names or a python3 string which is used verbatim in an
+        SQL order by clause. By default, columns are sorted in 
+        ascending alpha-numeric order. If you want descending order,
+        you will need to use the appropriate python string specification.
+
+        The <limit> is used to specify the maximum number of rows that
+        are to be returned. The value specified must be an integer. If
+        no <limit> is specified, all selected rows are returned.
+
+        Alternatively, if <table> is used to specify either a SELECT or
+        SHOW SQL statement, then all other parameters are ignored and
+        the statement is used verbatim, resulting in a list of dictionaries
+        being returned like a table query.
+
+        In all cases, an exception occurs if the query fails
         """
 
         if not self.db_cursor:
@@ -439,7 +563,7 @@ class Config:
                 elif isinstance(select, str):
                     selected = select.split(',')
                 else:
-                    raise Exception('failed db_query request, select parameter must either be a list of columns or a string containing a comma separated list of columns')
+                    raise Exception('failed db_query request, <select> must either be a list of columns or a string containing a comma separated list of columns')
             else:
                 selected = list(self.db_schema[table]['columns'].keys())
 
@@ -453,19 +577,24 @@ class Config:
             if len(where_clause) > 0:
                sql_bits.append('where %s' % where_clause)
             
-            if order_by:
-               sql_bits.append('order by %s' % order_by)
+            if len(order_by) > 0:
+                if isinstance(order_by, list):
+                    sql_bits.append('order by %s' % ','.join(order_by))
+                elif isinstance(order_by, str):
+                    sql_bits.append('order by %s' % order_by)
+                else:
+                    raise Exception('failed db_query request, <order_by> must either be a list of columns or a string containing a comma separated list of columns')
 
             if limit:
                sql_bits.append('limit %s' % limit)
 
             request = '%s;' % ' '.join(sql_bits)
 
-        elif table[:7].lower() == 'select ':
+        elif table[:7].lower() == 'select ' or table[:5].lower() == 'show ':
             request = table
 
         else:
-            raise Exception('the specified table (%s) is not defined' % table)
+            return self.__db_logging_return__(1, 'the specified table (%s) is not defined' % table, [])
 
         try:
             self.db_cursor.execute(request)
@@ -485,7 +614,7 @@ class Config:
 
     def db_rollback(self):
         """
-        Rollback updates.
+        Rollback any outstanding transactions.
         """
 
         if not self.db_cursor:
@@ -498,9 +627,20 @@ class Config:
 
     def db_update(self, table, column_dict, where=None):
         """
-        Execute a DB update. If successful, set rc=0 to indicate that
-        self.db_cursor has the response. Otherwise, return rc=1 and the
-        error message.
+        Update the <table> row defined by <column_dict> and identified either
+        by the optional <where> or by the columns and values of <column_dict>.
+
+        By default, the row to be updated is identified by the columns and
+        values within <column_dict> (see the example within the db_delete
+        function description).  If <column_dict> contains a column not
+        defined in <table>, a logging.debug is issued and the column is
+        ignored.
+
+        Alternatively, <where> can be used to identify the rows to 
+        be updated. For information on providing <where>, see the
+        description of the "__db_get_where_clause__" function.
+
+        In all cases, an exception occurs if the insertion fails
         """
 
         if not self.db_cursor:
@@ -536,8 +676,10 @@ class Config:
 #-------------------------------------------------------------------------------
 
     def get_config_by_category(self, categories):
-
-        # Retrieve the configuration for the specified category.
+        """
+        Retrieve, from the database,  the configuration for the specified
+        categories, populating the current config object.
+        """
         if isinstance(categories, str):
             category_list = [ categories ]
         else:
@@ -571,6 +713,9 @@ class Config:
 #-------------------------------------------------------------------------------
 
     def get_host_id_by_fqdn(self, fqdn):
+        """
+        Return the IPv4 address for the host identified by <fqdn>.
+        """
         return int(ipaddress.IPv4Address(socket.gethostbyname(fqdn)))
 
 
