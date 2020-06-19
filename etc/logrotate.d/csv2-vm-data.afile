@@ -1,6 +1,6 @@
 /var/log/cloudscheduler/vm_data.logging {
   weekly
-  su cloudscheduler cloudscheduler
+  su root root
   notifempty
   missingok
   compress
