@@ -293,7 +293,6 @@ def transfer(request, args=None, response_code=0, message=None):
         config.db_close()
         return HttpResponse(json.dumps({'response_code': 1,  'message': '%s %s' % (lno(MODID), msg)}))
 
-    print(request.method)
 
     if request.method == 'POST':
         IMAGES = config.db_map.classes.cloud_images
@@ -667,13 +666,13 @@ def upload(request, group_name=None):
         #process image upload
         image_file = request.FILES['myfile']
         file_path = config.categories["glintPoller.py"]["image_cache_dir"] + image_file.name # This file will have to be renamed with the checksum after uploading to a cloud
-        print(file_path)
-        print(image_file.__dict__)
-        print(image_file.name)
-        print(image_file._name)
 
         #before we save it locally let us check if it is already in the repos
         cloud_name_list = request.POST.getlist('clouds')
+        if len(cloud_name_list)==1 and "," in cloud_name_list[0]:
+            # could be a cli command packaged as a string,
+            cloud_name_list = cloud_name_list[0].replace(" ", "").split(",") 
+
         image_list = config.db_session.query(IMAGES).filter(IMAGES.name == image_file.name, IMAGES.group_name == group_name)
         bad_clouds = []
         if image_list.count() > 0:
@@ -681,7 +680,6 @@ def upload(request, group_name=None):
             for image in image_list:
                 if image.cloud_name in cloud_name_list:
                     bad_clouds.append(image.cloud_name)
-        print(bad_clouds)
         if len(bad_clouds) > 0:
             for cloud in bad_clouds:
                 cloud_name_list.remove(cloud)
@@ -728,8 +726,6 @@ def upload(request, group_name=None):
         # Now we have a source file we need to upload it to one of the clouds to get a checksum so we can queue up transfer requests
         # get a cloud of of the list, first one is fine
         target_cloud_name = cloud_name_list[0]
-        print(cloud_name_list)
-        print(target_cloud_name)
         # get the cloud row for this cloud
         target_cloud = config.db_session.query(CLOUDS).get((group_name, target_cloud_name))
         os_session = get_openstack_session(target_cloud)
@@ -801,7 +797,7 @@ def upload(request, group_name=None):
                 'active_group': active_user.active_group,
                 'user_groups': active_user.user_groups,
                 'response_code': rc,
-                'message': "Upload Successful: image %s uploaded to %s-%s" % (image.name, group_name, cloud_name),
+                'message': "Upload Successful: image %s uploaded to %s-%s" % (image.name, group_name, target_cloud_name),
                 'is_superuser': active_user.is_superuser,
                 'version': config.get_version()
             }
@@ -875,7 +871,6 @@ def upload(request, group_name=None):
 
         #before we save it locally let us check if it is already in the repos
         cloud_name_list = request.POST.getlist('clouds')
-        print(cloud_name_list)
         image_list = config.db_session.query(IMAGES).filter(IMAGES.name == image_name, IMAGES.group_name == group_name)
         bad_clouds = []
         if image_list.count() > 0:

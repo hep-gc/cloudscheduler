@@ -512,7 +512,7 @@ def _streaming_request(gvar, request, form_data={}, query_data={}):
 
         try:
             with open(gvar['user_settings']['image-path'][6:], 'rb') as f:
-                form = encoder.MultipartEncoder({
+                form = encoder.MultipartEncoder(fields={
                     **_form_data,
                     "myfile": (gvar['user_settings']['image-path'][6:], f, "application/octet-stream"),
                     })
@@ -543,9 +543,9 @@ def _streaming_request(gvar, request, form_data={}, query_data={}):
 
         try:
             with open(gvar['user_settings']['image-path'][6:], 'rb') as f:
-                form = encoder.MultipartEncoder({
-                    **_form_data,
+                form = encoder.MultipartEncoder(fields={
                     "myfile": (gvar['user_settings']['image-path'][6:], f, "application/octet-stream"),
+                    **_form_data
                     })
                 _r = _function(
                     _request,
