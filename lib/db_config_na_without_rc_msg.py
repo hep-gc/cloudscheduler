@@ -513,7 +513,7 @@ class Config:
 
 #-------------------------------------------------------------------------------
 
-    def db_query(self, table, select=[], distinct=False, where=None, order_by=None, limit=None):
+    def db_query(self, table, select=[], distinct=False, where=None, order_by=[], limit=None):
         """
         Execute a DB query on the specified <table> and return the table
         rows as a list if dictionaries.  By default, all columns and all
