@@ -32,7 +32,7 @@ def upload(gvar):
 
     mandatory = ['-cl', '-ip', '-df']
     required = []
-    optional = ['-g', '-H', '-s', '-v', '-x509', '-xA']
+    optional = ['-g', '-H', '-h', '-s', '-v', '-x509', '-xA']
 
     """
     Will need to audit the disk format
@@ -91,7 +91,7 @@ def transfer(gvar):
 
     mandatory = ['-tc']
     required = []
-    optional = ['-ic', '-in', '-ii', '-g', '-H', '-s', '-v', '-x509', '-xA']
+    optional = ['-ic', '-in', '-ii', '-g', '-H', '-h', '-s', '-v', '-x509', '-xA']
 
     if gvar['retrieve_options']:
         return mandatory + required + optional
@@ -131,7 +131,7 @@ def delete(gvar):
 
     mandatory = []
     required = []
-    optional = ['-cn', '-ic', '-in', '-ii', '-g', '-H', '-s', '-v', '-x509', '-xA']
+    optional = ['-cn', '-ic', '-in', '-ii', '-g', '-H,' '-h', '-s', '-v', '-x509', '-xA']
 
     if gvar['retrieve_options']:
         return mandatory + required + optional
@@ -162,7 +162,7 @@ def list(gvar):
 
     mandatory = []
     required = []
-    optional = ['-g', '-H', '-s', '-cn', '-v', '-x509', '-xA']
+    optional = ['-g', '-H', '-h', '-s', '-cn', '-v', '-x509', '-xA']
 
     if gvar['retrieve_options']:
         return mandatory + required + optional
