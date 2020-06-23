@@ -190,7 +190,7 @@ def list(gvar):
         gvar,   
         image_list,
         [
-            'rank,Image Number',
+            'rank/Image Index',
             'group_name/Group,k',
             'cloud_name/Cloud,k',
             'name/Name/Image Info',

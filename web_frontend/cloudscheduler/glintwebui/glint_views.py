@@ -49,6 +49,8 @@ TRANSFER_KEYS = {
         'group':                                      'ignore',
         'group-name':                                 'ignore',
         'group_name':                                 'ignore',
+        'cloud':                                      'ignore',
+        'cloud-name':                                 'ignore',
         'cloud_name':                                 'ignore',
         'image_name':                                 'ignore',
         'image_index':                                'ignore',
@@ -567,7 +569,7 @@ def delete(request, args=None, response_code=0, message=None):
 
 
             group_name = active_user.active_group
-            cloud_name = fields.get("cloud_name")
+            cloud_name = fields.get("cloud-name")
             image_name = fields.get("image_name")
             image_checksum = fields.get("image_checksum")
             image_date = fields.get("image_date")
