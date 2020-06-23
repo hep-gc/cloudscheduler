@@ -34,7 +34,11 @@ LIST_KEYS = {
     'format': {
         'csrfmiddlewaretoken':                        'ignore',
         'group':                                      'ignore',
+        'group-name':                                 'ignore',
+        'group_name':                                 'ignore',
         'cloud':                                      'ignore',
+        'cloud-name':                                 'ignore',
+        'cloud_name':                                 'ignore',
         },      
     }
 
@@ -43,6 +47,8 @@ TRANSFER_KEYS = {
     'format': {
         'csrfmiddlewaretoken':                        'ignore',
         'group':                                      'ignore',
+        'group-name':                                 'ignore',
+        'group_name':                                 'ignore',
         'cloud_name':                                 'ignore',
         'image_name':                                 'ignore',
         'image_index':                                'ignore',
@@ -1273,6 +1279,7 @@ def image_list(request):
 
     # open the database.
     config.db_open() 
+    print(request.__dict__)
 
     # Retrieve the active user, associated group list and optionally set the active group.
     rc, msg, active_user = set_user_groups(config, request, super_user=False)
@@ -1290,8 +1297,10 @@ def image_list(request):
     # Retrieve image info information.
     # from requests get group, cloud (optional)
     group = active_user.active_group
-    if "cloud" in fields:
-        cloud = fields["cloud"]
+    if "cloud-name" in fields:
+        cloud = fields["cloud-name"]
+    elif "cloud_name" in fields:
+        cloud = fields["cloud_name"]
     else:
         cloud= None
     

@@ -168,20 +168,14 @@ def list(gvar):
         return mandatory + required + optional
 
     # Check for missing arguments or help required.
-    check_keys(
+    form_data = check_keys(
         gvar,   
         mandatory,
         required,
-        optional)
+        optional,
+        key_map=KEY_MAP)
 
-    # Retrieve data (possibly after changing the group). 
-    if "cloud_name" in gvar:
-        qd= {
-            "cloud_name": gvar["cloud-name"]
-        }
-        response = requests(gvar, '/images/image_list/', query_data=gvar)
-    else:
-        response = requests(gvar, '/images/image_list/')
+    response = requests(gvar, '/images/image_list/', form_data)
 
     if response['message']:
         print(response['message'])
