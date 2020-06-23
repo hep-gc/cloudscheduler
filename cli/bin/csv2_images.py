@@ -131,7 +131,7 @@ def delete(gvar):
 
     mandatory = []
     required = []
-    optional = ['-cn', '-ic', '-in', '-ii', '-g', '-H,' '-h', '-s', '-v', '-x509', '-xA']
+    optional = ['-cn', '-ic', '-in', '-ii', '-g', '-H', '-h', '-s', '-v', '-x509', '-xA']
 
     if gvar['retrieve_options']:
         return mandatory + required + optional
