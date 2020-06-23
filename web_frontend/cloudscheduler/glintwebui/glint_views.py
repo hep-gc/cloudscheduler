@@ -1279,7 +1279,6 @@ def image_list(request):
 
     # open the database.
     config.db_open() 
-    print(request.__dict__)
 
     # Retrieve the active user, associated group list and optionally set the active group.
     rc, msg, active_user = set_user_groups(config, request, super_user=False)
