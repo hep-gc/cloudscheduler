@@ -234,6 +234,7 @@ class OpenStackCloud(basecloud.BaseCloud):
             self.config.update_service_catalog(provider='csmain', error='Error booting VM for group: %s, cloud: %s - %s' % (self.group, self.name, ex), logger=self.log)
             instance = None
             instances = None
+            raise
 
         if instance:
             self.log.debug("Try to fetch with filter of hostname used")
