@@ -672,7 +672,7 @@ def job_poller():
                     logging.debug("Holding: %s" % held_job_ids)
                     try:
                         logging.debug("Executing job action hold on %s" % condor_host)
-                        logging.critical("<< SKIPPING HOLDS, AUTHENTICATION NOT SET UP FOR REMOTE HOLDS >>")
+                        logging.debug("<< SKIPPING HOLDS, AUTHENTICATION NOT SET UP FOR REMOTE HOLDS >>")
                         #hold_result = condor_session.act(htcondor.JobAction.Hold, held_job_ids)
                         #logging.debug("Hold result: %s" % hold_result)
                         #condor_session.edit(held_job_ids, "HoldReason", '"Invalid user or group name for htondor host %s, held by job poller"' % condor_host)
