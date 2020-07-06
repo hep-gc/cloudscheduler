@@ -503,6 +503,7 @@ def job_poller():
                                     fail_count = failure_dict[group["group_name"]]
                     logging.error("Failed to locate condor daemon, skipping: %s" % condor_host)
                     logging.debug(exc)
+                    delete_cycle = False
 
                     if fail_count > 3 and fail_count < 1500:
                         logging.critical("%s failed polls on host: %s, Configuration error or condor issues" % (fail_count, condor_host))
@@ -547,6 +548,7 @@ def job_poller():
                                     fail_count = failure_dict[group["group_name"]]
                     logging.error("Failed to get jobs from condor scheddd object, aborting poll on host: %s" % condor_host)
                     logging.error(exc)
+                    delete_cycle = False
                     if fail_count > 3:
                         logging.critical("%s failed polls on host: %s, Configuration error or condor issues" % (fail_count, condor_host))
                     continue
@@ -677,8 +679,8 @@ def job_poller():
                         #logging.debug("Hold result: %s" % hold_result)
                         #condor_session.edit(held_job_ids, "HoldReason", '"Invalid user or group name for htondor host %s, held by job poller"' % condor_host)
                     except Exception as exc:
-                        logging.error("Failure holding jobs: %s" % exc)
-                        logging.error("Aborting cycle...")
+                        logging.debug("Failure holding jobs: %s" % exc)
+                        logging.debug("Aborting cycle...")
                         abort_cycle = True
                         break
 
@@ -687,23 +689,23 @@ def job_poller():
 
                         
                 if foreign_jobs > 0:
-                    logging.info("Ignored total of: %s jobs on %s. Summary:" % (foreign_jobs, condor_host))
+                    logging.debug("Ignored total of: %s jobs on %s. Summary:" % (foreign_jobs, condor_host))
                     if "nogrp" in job_errors:
-                        logging.info("    %s jobs ignored for missing group name" % job_errors["nogrp"])
+                        logging.debug("    %s jobs ignored for missing group name" % job_errors["nogrp"])
                         for item in job_errors["nogrpinfo"]:
-                            logging.info("        %s" % item)
+                            logging.debug("        %s" % item)
                     if "noreq" in job_errors:
-                        logging.info("    %s jobs ignored for missing requirements string" % job_errors["noreq"])
+                        logging.debug("    %s jobs ignored for missing requirements string" % job_errors["noreq"])
                         for item in job_errors["noreqinfo"]:
-                            logging.info("        %s" % item)
+                            logging.debug("        %s" % item)
                     if "invalidgrp" in job_errors:
-                        logging.info("    %s jobs ignored & held for submitting to invalid group for host" % job_errors["invalidgrp"])
+                        logging.debug("    %s jobs ignored & held for submitting to invalid group for host" % job_errors["invalidgrp"])
                         for item in job_errors["invalidgrpinfo"]:
-                            logging.info("        %s" % item)
+                            logging.debug("        %s" % item)
                     if "invalidusr" in job_errors:
-                        logging.info("    %s ignored & held for submitting to a group without permission" % job_errors["invalidusr"])
+                        logging.debug("    %s ignored & held for submitting to a group without permission" % job_errors["invalidusr"])
                         for item in job_errors["invalidusrinfo"]:
-                            logging.info("        %s" % item)
+                            logging.debug("        %s" % item)
 
                 # Poll successful, update failure_dict accordingly
                 for group in groups:
@@ -804,6 +806,7 @@ def job_command_poller():
                 except Exception as exc:
                     logging.warning("Failed to locate condor daemon, skipping: %s" % condor_host)
                     logging.debug(exc)
+                    delete_cycle = False
                     continue
 
                 #Query database for any entries that have a command flag
@@ -941,6 +944,7 @@ def machine_poller():
                 except Exception as exc:
                     logging.exception("Failed to locate condor daemon, skipping: %s" % condor_host)
                     logging.error(exc)
+                    delete_cycle = False
                     continue
 
 
@@ -973,6 +977,7 @@ def machine_poller():
 
                     logging.error("Failed to get machines from condor collector object, aborting poll on host %s" % condor_host)
                     logging.error(exc)
+                    delete_cycle = False
                     if fail_count > 3:
                         logging.critical("More than 3 consecutive failed polls on host: %s, Configuration error or condor issues" % condor_host)
                     continue
