@@ -1231,6 +1231,7 @@ def validate_fields(config, request, fields, tables, active_user):
                         options = Formats[field]
 
                     good_value = True
+                    print("Good value: F:%s, O:%s" % (Formats[field][1], options))
 
                     if isinstance(Formats[field], tuple) and len(Formats[field]) > 2 and Formats[field][2]:
                         if len(Formats[field]) > 3 and Formats[field][3] and value == '':
@@ -1375,19 +1376,19 @@ def validate_fields(config, request, fields, tables, active_user):
                         return 1, 'value specified for "%s" must be an integer value.' % field, None, None, None
 
                 elif Formats[field] == 'lowerdash':
-                    if re.fullmatch("([a-z0-9.:]-?)*[a-z0-9.:]", request.POST[field]):
+                    if re.fullmatch("([a-z0-9.,:]-?)*[a-z0-9.,:]", request.POST[field]):
                         value = request.POST[field]
                     else:
                         return 1, 'value specified for "%s" must be all lower case, numeric digits, and dashes but cannot start or end with dashes.' % field, None, None, None
 
                 elif Formats[field] == 'lowercase':
-                    if re.fullmatch("([a-z0-9_.:]-?)*[a-z0-9_.:]", request.POST[field]) or request.POST[field] == '':
+                    if re.fullmatch("([a-z0-9_.,:]-?)*[a-z0-9_.,:]", request.POST[field]) or request.POST[field] == '':
                         value = request.POST[field]
                     else:
                         return 1, 'value specified for "%s" must be all lower case.' % field, None, None, None
 
                 elif Formats[field] == 'lowernull':
-                    if re.fullmatch("([a-z0-9_.:]-?)*[a-z0-9_.:]", request.POST[field]):
+                    if re.fullmatch("([a-z0-9_.,:]-?)*[a-z0-9_.,:]", request.POST[field]):
                         value = request.POST[field]
                     elif request.POST[field] == '':
                         value = None
