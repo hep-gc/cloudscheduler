@@ -352,7 +352,11 @@ def ec2_filterer():
                 logging.info("Stop set, exiting...")
                 break
             signal.signal(signal.SIGINT, config.signals['SIGINT'])
-            wait_cycle(cycle_start_time, poll_time_history, config.categories["ec2cloudPoller.py"]["sleep_interval_filterer"], config)
+            try:
+                wait_cycle(cycle_start_time, poll_time_history, config.categories["ec2cloudPoller.py"]["sleep_interval_filterer"], config)
+            except KeyboardInterrupt:
+                continue
+                #got signaled
 
 
 
