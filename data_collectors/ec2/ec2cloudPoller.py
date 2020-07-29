@@ -389,8 +389,11 @@ def flavor_poller():
     event_receiver_registration(config, "update_csv2_clouds_amazon")
 
 
+    config.db_open()
+    db_session = config.db_session
     while True:
         inventory = get_inventory_item_hash_from_database(config.db_engine, FLAVOR, 'name', debug_hash=(config.categories["ec2cloudPoller.py"]["log_level"]<20), cloud_type='amazon')
+
         try:
             #poll flavors
             logging.debug("Beginning flavor poller cycle")
@@ -401,8 +404,6 @@ def flavor_poller():
             signal.signal(signal.SIGINT, signal.SIG_IGN)
 
             new_poll_time, cycle_start_time = start_cycle(new_poll_time, cycle_start_time)
-            config.db_open()
-            db_session = config.db_session
             # Cleanup inventory, this function will clean up inventory entries for deleted clouds
             group_clouds = config.db_connection.execute('select distinct group_name, cloud_name from csv2_clouds where cloud_type="amazon"')
             cleanup_inventory(inventory, group_clouds)
@@ -411,8 +412,6 @@ def flavor_poller():
             # First check that our ec2 instance types table is up to date:
             check_instance_types(config)
 
-            config.db_close()
-            del db_session
             if not os.path.exists(PID_FILE):
                 logging.info("Stop set, exiting...")
                 break
@@ -423,7 +422,6 @@ def flavor_poller():
         except Exception as exc:
             logging.error("Unhandled exception during regular flavor polling:")
             logging.exception(exc)
-            config.db_close()
 
 
     return -1
@@ -1882,7 +1880,7 @@ def vm_poller():
                             ip_addrs.append(vm.get('PublicIpAddress'))
                         if 'PrivateIpAddress' in vm:
                             ip_addrs.append(vm.get('PrivateIpAddress'))
-                        logging.info("VM STATE: %s" % vm['State']['Name'])
+                        logging.debug("VM STATE: %s" % vm['State']['Name'])
                         vm_dict = {
                             'group_name': vm_group_name,
                             'cloud_name': vm_cloud_name,
