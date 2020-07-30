@@ -1,0 +1,83 @@
+-- MySQL dump 10.17  Distrib 10.3.23-MariaDB, for Linux (x86_64)
+--
+-- Host: localhost    Database: csv2
+-- ------------------------------------------------------
+-- Server version	10.3.23-MariaDB
+
+/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
+/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
+/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
+/*!40101 SET NAMES utf8mb4 */;
+/*!40103 SET @OLD_TIME_ZONE=@@TIME_ZONE */;
+/*!40103 SET TIME_ZONE='+00:00' */;
+/*!40014 SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0 */;
+/*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
+/*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
+/*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
+
+--
+-- Table structure for table `csv2_clouds`
+--
+
+DROP TABLE IF EXISTS `csv2_clouds`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `csv2_clouds` (
+  `group_name` varchar(32) NOT NULL,
+  `cloud_name` varchar(32) NOT NULL,
+  `enabled` tinyint(1) NOT NULL DEFAULT 1,
+  `priority` int(11) NOT NULL DEFAULT 0,
+  `authurl` varchar(128) NOT NULL,
+  `project` varchar(128) NOT NULL,
+  `username` varchar(20) NOT NULL,
+  `password` text NOT NULL,
+  `obsolete_keyname` varchar(20) DEFAULT NULL,
+  `cacertificate` text DEFAULT NULL,
+  `region` varchar(32) NOT NULL,
+  `user_domain_name` varchar(20) NOT NULL DEFAULT 'Default',
+  `user_domain_id` varchar(64) DEFAULT NULL,
+  `project_domain_name` varchar(20) NOT NULL DEFAULT 'Default',
+  `project_domain_id` varchar(64) DEFAULT NULL,
+  `cloud_type` varchar(64) NOT NULL,
+  `ec2_owner_id` varchar(32) DEFAULT NULL,
+  `communication_up` tinyint(1) NOT NULL DEFAULT 0,
+  `communication_rt` int(11) NOT NULL DEFAULT 0,
+  `server_meta_ctl` int(11) DEFAULT NULL,
+  `instances_ctl` int(11) DEFAULT NULL,
+  `personality_ctl` int(11) DEFAULT NULL,
+  `image_meta_ctl` int(11) DEFAULT NULL,
+  `personality_size_ctl` int(11) DEFAULT NULL,
+  `ram_ctl` int(11) NOT NULL DEFAULT -1,
+  `server_groups_ctl` int(11) DEFAULT NULL,
+  `security_group_rules_ctl` int(11) DEFAULT NULL,
+  `keypairs_ctl` int(11) DEFAULT NULL,
+  `security_groups_ctl` int(11) DEFAULT NULL,
+  `server_group_members_ctl` int(11) DEFAULT NULL,
+  `floating_ips_ctl` int(11) DEFAULT NULL,
+  `cores_ctl` int(11) NOT NULL DEFAULT -1,
+  `cores_softmax` int(11) NOT NULL DEFAULT -1,
+  `spot_price` float NOT NULL DEFAULT -1,
+  `vm_boot_volume` varchar(64) DEFAULT NULL,
+  `vm_flavor` varchar(64) NOT NULL DEFAULT '',
+  `vm_image` varchar(64) NOT NULL DEFAULT '',
+  `vm_keep_alive` int(11) NOT NULL DEFAULT -1,
+  `vm_keyname` varchar(64) DEFAULT NULL,
+  `vm_network` varchar(64) NOT NULL DEFAULT '',
+  `vm_security_groups` varchar(128) DEFAULT '',
+  `error_count` int(11) DEFAULT NULL,
+  `error_time` int(11) DEFAULT NULL,
+  `machine_subprocess_pid` int(11) NOT NULL DEFAULT -1,
+  PRIMARY KEY (`group_name`,`cloud_name`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+/*!40101 SET character_set_client = @saved_cs_client */;
+/*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
+
+/*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
+/*!40014 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS */;
+/*!40014 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS */;
+/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
+/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
+/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
+/*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
+
+-- Dump completed on 2020-07-30  8:18:20
