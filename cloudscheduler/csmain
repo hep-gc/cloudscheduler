@@ -48,6 +48,10 @@ from novaclient import client as novaclient
 
 
 
+### DB PERMISSIONS STUFF
+#    .db_query('view_available_resources')
+
+
 # Supporting functions
 def _get_nova_client(session, region=None):
     nova = novaclient.Client("2", session=session, region_name=region, timeout=10)
@@ -490,7 +494,7 @@ def process_group_cloud_terminates(pair, config):
             except Exception as exc:
                 logging.error("Failed to get condor classads or issue invalidate:")
                 logging.error(exc)
-                break
+                continue
 
         elif cloud.cloud_type == "amazon":
             if terminate_off:
@@ -831,7 +835,10 @@ def main():
                                     if boot_flavor.get("worker_cert")[-1] == '\n':
                                         cloud_worker_cert = boot_flavor.get("worker_cert")[:-1].replace('\n', '\n        ')
                                     else:
-                                        cloud_worker_cert = boot_flavor.get("worker_cert").decode().replace('\n', '\n        ')
+                                        try:
+                                            cloud_worker_cert = boot_flavor.get("worker_cert").decode().replace('\n', '\n        ')
+                                        except AttributeError:
+                                            cloud_worker_cert = boot_flavor.get("worker_cert").replace('\n', '\n        ')
                                 else:
                                     cloud_worker_cert = None
 
@@ -839,7 +846,10 @@ def main():
                                     if boot_flavor.get("worker_key")[-1] == '\n':
                                         cloud_worker_key = boot_flavor.get("worker_key")[:-1].replace('\n', '\n        ')
                                     else:
-                                        cloud_worker_key = boot_flavor.get("worker_key").replace('\n', '\n        ')
+                                        try:
+                                            cloud_worker_key = boot_flavor.get("worker_key").decode().replace('\n', '\n        ')
+                                        except AttributeError:
+                                            cloud_worker_key = boot_flavor.get("worker_key").replace('\n', '\n        ')
                                 else:
                                     cloud_worker_key = None
 
@@ -1007,7 +1017,7 @@ if __name__ == '__main__':
     process_ids = {
         'scheduler': main,
         'idle_vms': check_view_idle_vms,
-        'vm_termination': vm_termination,
+    #    'vm_termination': vm_termination,
         'vm_termination': [vm_termination, 'select distinct group_name,cloud_name from csv2_clouds;'],
     }
 

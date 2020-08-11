@@ -116,12 +116,18 @@ def command_hash(gvar):
         gvar['command_dir']
         ], stdout=PIPE, stderr=PIPE)
 
-    p2 = Popen([
-        'md5sum'
-        ], stdin=p1.stdout, stdout=PIPE, stderr=PIPE)
+    if gvar['platform'][:6].lower() == 'macos-':
+        p2 = Popen([
+            'md5'
+            ], stdin=p1.stdout, stdout=PIPE, stderr=PIPE)
+
+    else:
+        p2 = Popen([
+            'md5sum'
+            ], stdin=p1.stdout, stdout=PIPE, stderr=PIPE)
 
     md5sum, stderr = p2.communicate()
-    return decode(md5sum)[:-4]
+    return decode(md5sum).replace('-','').strip()
 
 #-------------------------------------------------------------------------------
 
@@ -319,7 +325,7 @@ def qc_filter_get(columns, values, aliases=None, and_or='and'):
 
 #-------------------------------------------------------------------------------
               
-def requests(gvar, request, form_data={}, query_data={}):
+def requests(gvar, request, form_data={}, query_data={}, streaming_upload=False):
     """
     Make RESTful requests via the _requests function and return the response. This function will
     obtain a CSRF (for POST requests) prior to making the atual request.
@@ -330,7 +336,10 @@ def requests(gvar, request, form_data={}, query_data={}):
         response = _requests(gvar, '/settings/prepare/')
     
     # Perform the callers request.
-    return _requests(gvar, request, form_data=form_data, query_data=query_data)
+    if streaming_upload:
+        return _streaming_request(gvar, request, form_data=form_data, query_data=query_data)
+    else:
+        return _requests(gvar, request, form_data=form_data, query_data=query_data)
 
 #-------------------------------------------------------------------------------
               
@@ -387,6 +396,166 @@ def _requests(gvar, request, form_data={}, query_data={}):
                 data=_form_data,
                 cookies=gvar['cookies'] 
                 )
+
+        except py_requests.exceptions.SSLError as exc:
+            print(exc)
+            exit(1)
+
+    else:
+        requests_no_credentials_error(gvar)
+
+    try:
+        response = _r.json()
+    except:
+        if _r.status_code:
+            response = {'response_code': 2, 'message': 'server "%s", HTTP response code %s, %s.' % (gvar['pid_defaults']['server'], _r.status_code, py_requests.status_codes._codes[_r.status_code][0])}
+        else:
+            response = {'response_code': 2, 'message': 'server "%s", internal server error.' % gvar['pid_defaults']['server']}
+
+    if 'Set-Cookie' in _r.headers:
+        new_csrf = _r.headers['Set-Cookie'].translate(EXTRACT_CSRF).split()[1]
+        if new_csrf[1]:
+            gvar['cookies'] = _r.cookies
+            gvar['csrf'] = _r.headers['Set-Cookie'].translate(EXTRACT_CSRF).split()[1]
+
+    if 'active_group' in response:
+        gvar['active_group'] = response['active_group']
+
+    if 'active_user' in response and 'active_group' in response:
+        if x509:
+            update_pid_defaults(gvar, server_address=gvar['user_settings']['server-address'], user=x509, group=response['active_group'])
+        else:
+            update_pid_defaults(gvar, server_address=gvar['user_settings']['server-address'], user=response['active_user'], group=response['active_group'])
+
+    if 'super_user' in response:
+        gvar['super_user'] = response['super_user']
+
+    if gvar['user_settings']['expose-API']:
+        print("Expose API requested:\n" \
+            "  py_requests.%s(\n" \
+            "    %s\n" \
+            "    headers={'Accept': 'application/json', 'Referer': '%s'}\n" \
+            "    auth=(%s)\n" \
+            "    data=%s\n" \
+            "    cookies='%s'\n" \
+            "    )\n\n" \
+            "  Response: {" % (
+                _function.__name__,
+                _request,
+                gvar['user_settings']['server-address'],
+                authentication_method,
+                _form_data,
+                gvar['cookies']
+                )
+            )
+
+        for key in response:
+            if key == 'fields':
+                print("    %s: {" % key)
+                for subkey in response(key):
+                    print("        %s: %s" % (subkey, response[key][subkey]))
+                print("        }")
+            else:
+                print("    %s: %s" % (key, response[key]))
+        print("    }\n")
+
+    if response['response_code'] != 0:
+        print('Error: %s' % response['message'])
+        exit(1)
+
+    if 'user_groups' in response:
+        gvar['user_groups'] = response['user_groups']
+
+    return response
+
+#-------------------------------------------------------------------------------
+               
+def _streaming_request(gvar, request, form_data={}, query_data={}):
+    """
+    Make RESTful request and return response.
+    """
+    
+    from getpass import getpass
+    import requests as py_requests
+    import os
+    from requests_toolbelt.multipart import encoder
+
+    """
+    session = requests.Session()
+    with open('my_file.csv', 'rb') as f:
+        form = encoder.MultipartEncoder({
+            "documents": ("my_file.csv", f, "application/octet-stream"),
+        })
+        headers = {"Prefer": "respond-async", "Content-Type": form.content_type}
+        resp = session.post(url, headers=headers, data=form)
+      session.close()
+    """
+
+
+    EXTRACT_CSRF = str.maketrans('=;', '  ')
+
+    if 'server-address' not in gvar['user_settings']:
+        requests_no_credentials_error(gvar)
+
+    if 'server-user' in gvar['user_settings']:
+        x509 = None
+    else:
+        x509 = get_grid_proxy(gvar)
+
+    if x509:
+        authentication_method = 'x509 proxy'
+
+        _function, _request, _form_data = _requests_insert_controls(gvar, request, form_data, query_data, gvar['user_settings']['server-address'], x509)
+
+        try:
+            with open(gvar['user_settings']['image-path'][6:], 'rb') as f:
+                form = encoder.MultipartEncoder(fields={
+                    **_form_data,
+                    "myfile": (gvar['user_settings']['image-path'][6:], f, "application/octet-stream"),
+                    })
+                _r = _function(
+                    _request,
+                    headers={
+                        'Accept': 'application/json', 
+                        'Referer': gvar['user_settings']['server-address'],
+                        'Prefer': "respond-async",
+                        'Content-Type': form.content_type
+                        },
+                    cert=(x509),
+                    data=form,
+                    cookies=gvar['cookies']
+                    )
+
+        except py_requests.exceptions.SSLError as exc:
+            print(exc)
+            exit(1)
+
+    elif 'server-user' in gvar['user_settings']:
+        if 'server-password' not in gvar['user_settings'] or gvar['user_settings']['server-password'] == '?':
+            gvar['user_settings']['server-password'] = getpass('Enter your %s password for server "%s": ' % (gvar['command_name'], gvar['pid_defaults']['server']))
+
+        authentication_method = '%s, <password>' % gvar['user_settings']['server-user']
+
+        _function, _request, _form_data = _requests_insert_controls(gvar, request, form_data, query_data, gvar['user_settings']['server-address'], gvar['user_settings']['server-user'])
+
+        try:
+            with open(gvar['user_settings']['image-path'][6:], 'rb') as f:
+                form = encoder.MultipartEncoder(fields={
+                    "myfile": (gvar['user_settings']['image-path'][6:], f, "application/octet-stream"),
+                    **_form_data
+                    })
+                _r = _function(
+                    _request,
+                    headers={
+                        'Accept': 'application/json',
+                        'Referer': gvar['user_settings']['server-address'],
+                        'Prefer': "respond-async",
+                        'Content-Type': form.content_type
+                        },
+                    auth=(gvar['user_settings']['server-user'], gvar['user_settings']['server-password']),
+                    data=form,
+                    cookies=gvar['cookies'] 
+                    )
 
         except py_requests.exceptions.SSLError as exc:
             print(exc)
@@ -1074,6 +1243,17 @@ def update_pid_defaults(gvar, server=None, server_address=None, user=None, group
         fd = open(gvar['pid_file'], 'w')
         fd.write(yaml.dump(gvar['pid_defaults']))
         fd.close()
+
+#-------------------------------------------------------------------------------
+def prepare_file(file_path):
+    #check if its a file or a url
+
+    # This might not work if the files are very large, perhaps make use of the mmap library
+    if file_path.startswith("file://"):
+        return { "streaming_upload": True }
+    else:
+        #it's a url or something else we'lll let the server handle
+        return { 'myfileurl': file_path }
 
 #-------------------------------------------------------------------------------
 

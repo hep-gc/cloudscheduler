@@ -95,7 +95,7 @@ def if_null(val, col=None):
 
 def condor_off(condor_classad):
     try:
-        logging.info("Sending condor_off to %s" % condor_classad)
+        logging.debug("Sending condor_off to %s" % condor_classad)
         master_result = htcondor.send_command(condor_classad, htcondor.DaemonCommands.DaemonsOffPeaceful)
         if master_result is None:
             # None is good in this case it means it was a success
@@ -503,6 +503,7 @@ def job_poller():
                                     fail_count = failure_dict[group["group_name"]]
                     logging.error("Failed to locate condor daemon, skipping: %s" % condor_host)
                     logging.debug(exc)
+                    delete_cycle = False
 
                     if fail_count > 3 and fail_count < 1500:
                         logging.critical("%s failed polls on host: %s, Configuration error or condor issues" % (fail_count, condor_host))
@@ -547,6 +548,7 @@ def job_poller():
                                     fail_count = failure_dict[group["group_name"]]
                     logging.error("Failed to get jobs from condor scheddd object, aborting poll on host: %s" % condor_host)
                     logging.error(exc)
+                    delete_cycle = False
                     if fail_count > 3:
                         logging.critical("%s failed polls on host: %s, Configuration error or condor issues" % (fail_count, condor_host))
                     continue
@@ -647,8 +649,8 @@ def job_poller():
                     job_dict["htcondor_host_id"] = config.local_host_id
                     logging.debug(job_dict)
                     if unmapped:
-                        logging.error("attribute mapper found unmapped variables:")
-                        logging.error(unmapped)
+                        logging.debug("attribute mapper found unmapped variables:")
+                        logging.debug(unmapped)
 
                     # Check if this item has changed relative to the local cache, skip it if it's unchanged
                     # old inventory function
@@ -672,13 +674,13 @@ def job_poller():
                     logging.debug("Holding: %s" % held_job_ids)
                     try:
                         logging.debug("Executing job action hold on %s" % condor_host)
-                        logging.critical("<< SKIPPING HOLDS, AUTHENTICATION NOT SET UP FOR REMOTE HOLDS >>")
+                        logging.debug("<< SKIPPING HOLDS, AUTHENTICATION NOT SET UP FOR REMOTE HOLDS >>")
                         #hold_result = condor_session.act(htcondor.JobAction.Hold, held_job_ids)
                         #logging.debug("Hold result: %s" % hold_result)
                         #condor_session.edit(held_job_ids, "HoldReason", '"Invalid user or group name for htondor host %s, held by job poller"' % condor_host)
                     except Exception as exc:
-                        logging.error("Failure holding jobs: %s" % exc)
-                        logging.error("Aborting cycle...")
+                        logging.debug("Failure holding jobs: %s" % exc)
+                        logging.debug("Aborting cycle...")
                         abort_cycle = True
                         break
 
@@ -687,23 +689,23 @@ def job_poller():
 
                         
                 if foreign_jobs > 0:
-                    logging.info("Ignored total of: %s jobs on %s. Summary:" % (foreign_jobs, condor_host))
+                    logging.debug("Ignored total of: %s jobs on %s. Summary:" % (foreign_jobs, condor_host))
                     if "nogrp" in job_errors:
-                        logging.info("    %s jobs ignored for missing group name" % job_errors["nogrp"])
+                        logging.debug("    %s jobs ignored for missing group name" % job_errors["nogrp"])
                         for item in job_errors["nogrpinfo"]:
-                            logging.info("        %s" % item)
+                            logging.debug("        %s" % item)
                     if "noreq" in job_errors:
-                        logging.info("    %s jobs ignored for missing requirements string" % job_errors["noreq"])
+                        logging.debug("    %s jobs ignored for missing requirements string" % job_errors["noreq"])
                         for item in job_errors["noreqinfo"]:
-                            logging.info("        %s" % item)
+                            logging.debug("        %s" % item)
                     if "invalidgrp" in job_errors:
-                        logging.info("    %s jobs ignored & held for submitting to invalid group for host" % job_errors["invalidgrp"])
+                        logging.debug("    %s jobs ignored & held for submitting to invalid group for host" % job_errors["invalidgrp"])
                         for item in job_errors["invalidgrpinfo"]:
-                            logging.info("        %s" % item)
+                            logging.debug("        %s" % item)
                     if "invalidusr" in job_errors:
-                        logging.info("    %s ignored & held for submitting to a group without permission" % job_errors["invalidusr"])
+                        logging.debug("    %s ignored & held for submitting to a group without permission" % job_errors["invalidusr"])
                         for item in job_errors["invalidusrinfo"]:
-                            logging.info("        %s" % item)
+                            logging.debug("        %s" % item)
 
                 # Poll successful, update failure_dict accordingly
                 for group in groups:
@@ -804,6 +806,7 @@ def job_command_poller():
                 except Exception as exc:
                     logging.warning("Failed to locate condor daemon, skipping: %s" % condor_host)
                     logging.debug(exc)
+                    delete_cycle = False
                     continue
 
                 #Query database for any entries that have a command flag
@@ -941,6 +944,7 @@ def machine_poller():
                 except Exception as exc:
                     logging.exception("Failed to locate condor daemon, skipping: %s" % condor_host)
                     logging.error(exc)
+                    delete_cycle = False
                     continue
 
 
@@ -973,6 +977,7 @@ def machine_poller():
 
                     logging.error("Failed to get machines from condor collector object, aborting poll on host %s" % condor_host)
                     logging.error(exc)
+                    delete_cycle = False
                     if fail_count > 3:
                         logging.critical("More than 3 consecutive failed polls on host: %s, Configuration error or condor issues" % condor_host)
                     continue
@@ -1040,9 +1045,9 @@ def machine_poller():
                     r_dict = trim_keys(r_dict, resource_attributes)
                     r_dict, unmapped = map_attributes(src="condor", dest="csv2", attr_dict=r_dict, config=config)
                     if unmapped:
-                        logging.error("attribute mapper found unmapped variables:")
-                        logging.error(unmapped)
-                    logging.info("Adding/updating machine %s", r_dict["name"])
+                        logging.debug("attribute mapper found unmapped variables:")
+                        logging.debug(unmapped)
+                    logging.debug("Adding/updating machine %s", r_dict["name"])
                     r_dict["htcondor_host_id"] = config.local_host_id
 
                     # Check if this item has changed relative to the local cache, skip it if it's unchanged

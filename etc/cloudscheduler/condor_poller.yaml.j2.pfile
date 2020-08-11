@@ -37,7 +37,7 @@ signals:
 # any time, but specifically if you modify this configuration, you may restart the condor
 # poller service (named "csv2-condor-poller") with either the "systemctl" or "service" commands.
 condor_poller:
-    condor_worker_cert: /var/lib/condor/.globus/condor_worker_cert.pem
-    condor_worker_key: /var/lib/condor/.globus/condor_worker_key.pem
+    condor_worker_cert: /usr/local/etc/certificates/{{ ansible_hostname }}-worker.{{ ansible_domain }}/cert.pem
+    condor_worker_key: /usr/local/etc/certificates/{{ ansible_hostname }}-worker.{{ ansible_domain }}/privkey.pem
     log_file: /var/log/cloudscheduler/condor_poller.log
     log_level: 20

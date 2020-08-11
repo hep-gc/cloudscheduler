@@ -1,30 +1,4 @@
 schema = {
-    "apel_accounting": {
-        "keys": [
-            "group_name",
-            "cloud_name",
-            "vmid"
-            ],
-        "columns": {
-            "group_name": {"type": "str", "len": "32", "nulls": "NO"},
-            "cloud_name": {"type": "str", "len": "32", "nulls": "NO"},
-            "vmid": {"type": "str", "len": "128", "nulls": "NO"},
-            "hostname": {"type": "str", "len": "128", "nulls": "NO"},
-            "cloud_type": {"type": "str", "len": "32", "nulls": "YES"},
-            "region": {"type": "str", "len": "32", "nulls": "YES"},
-            "flavor_id": {"type": "str", "len": "128", "nulls": "YES"},
-            "image_id": {"type": "str", "len": "128", "nulls": "YES"},
-            "benchmark_type": {"type": "str", "len": "32", "nulls": "YES"},
-            "benchmark": {"type": "int"},
-            "start_time": {"type": "int"},
-            "end_time": {"type": "int"},
-            "last_update": {"type": "int"},
-            "cpu_time": {"type": "int"},
-            "network_type": {"type": "str", "len": "32", "nulls": "YES"},
-            "rx": {"type": "int"},
-            "tx": {"type": "int"}
-            }
-        },
     "archived_condor_jobs": {
         "keys": [
             "global_job_id"
@@ -193,6 +167,7 @@ schema = {
             "min_disk": {"type": "int"},
             "min_ram": {"type": "int"},
             "checksum": {"type": "str", "len": "64", "nulls": "YES"},
+            "created_at": {"type": "str", "len": "32", "nulls": "YES"},
             "last_updated": {"type": "int"}
             }
         },
@@ -309,7 +284,7 @@ schema = {
             "hold_reason_code": {"type": "int"},
             "hold_reason_subcode": {"type": "int"},
             "last_remote_host": {"type": "str", "len": "64", "nulls": "YES"},
-            "held_reason": {"type": "str", "len": "256", "nulls": "YES"},
+            "held_reason": {"type": "str", "len": "128", "nulls": "YES"},
             "hold_job_reason": {"type": "str", "len": "64", "nulls": "YES"}
             }
         },
@@ -473,7 +448,8 @@ schema = {
             "vm_network": {"type": "str", "len": "64", "nulls": "NO"},
             "vm_security_groups": {"type": "str", "len": "128", "nulls": "YES"},
             "error_count": {"type": "int"},
-            "error_time": {"type": "int"}
+            "error_time": {"type": "int"},
+            "machine_subprocess_pid": {"type": "int"}
             }
         },
     "csv2_configuration": {
@@ -586,17 +562,6 @@ schema = {
             "requester": {"type": "str", "len": "64", "nulls": "NO"}
             }
         },
-    "csv2_job_schedulers": {
-        "keys": [
-            "htcondor_fqdn"
-            ],
-        "columns": {
-            "htcondor_fqdn": {"type": "str", "len": "128", "nulls": "NO"},
-            "condor_status": {"type": "int"},
-            "agent_status": {"type": "int"},
-            "foreign_jobs": {"type": "int"}
-            }
-        },
     "csv2_mime_types": {
         "keys": [
             "mime_type"
@@ -646,75 +611,6 @@ schema = {
             "action": {"type": "str", "len": "64", "nulls": "NO"},
             "signame": {"type": "str", "len": "16", "nulls": "NO"},
             "caller": {"type": "str", "len": "256", "nulls": "NO"}
-            }
-        },
-    "csv2_system_status": {
-        "keys": [
-            "id"
-            ],
-        "columns": {
-            "id": {"type": "int"},
-            "csv2_main_status": {"type": "int"},
-            "csv2_main_msg": {"type": "str", "len": "512", "nulls": "YES"},
-            "mariadb_status": {"type": "int"},
-            "mariadb_msg": {"type": "str", "len": "512", "nulls": "YES"},
-            "csv2_openstack_error_count": {"type": "int"},
-            "csv2_openstack_status": {"type": "int"},
-            "csv2_openstack_msg": {"type": "str", "len": "512", "nulls": "YES"},
-            "csv2_jobs_error_count": {"type": "int"},
-            "csv2_jobs_status": {"type": "int"},
-            "csv2_jobs_msg": {"type": "str", "len": "512", "nulls": "YES"},
-            "csv2_machines_error_count": {"type": "int"},
-            "csv2_machines_status": {"type": "int"},
-            "csv2_machines_msg": {"type": "str", "len": "512", "nulls": "YES"},
-            "csv2_condor_gsi_error_count": {"type": "int"},
-            "csv2_condor_gsi_status": {"type": "int"},
-            "csv2_condor_gsi_msg": {"type": "str", "len": "512", "nulls": "YES"},
-            "csv2_status_error_count": {"type": "int"},
-            "csv2_status_status": {"type": "int"},
-            "csv2_status_msg": {"type": "str", "len": "512", "nulls": "YES"},
-            "csv2_timeseries_error_count": {"type": "int"},
-            "csv2_timeseries_status": {"type": "int"},
-            "csv2_timeseries_msg": {"type": "str", "len": "512", "nulls": "YES"},
-            "csv2_ec2_error_count": {"type": "int"},
-            "csv2_ec2_status": {"type": "int"},
-            "csv2_ec2_msg": {"type": "str", "len": "512", "nulls": "YES"},
-            "csv2_htc_agent_error_count": {"type": "int"},
-            "csv2_htc_agent_status": {"type": "int"},
-            "csv2_htc_agent_msg": {"type": "str", "len": "512", "nulls": "YES"},
-            "csv2_glint_error_count": {"type": "int"},
-            "csv2_glint_status": {"type": "int"},
-            "csv2_glint_msg": {"type": "str", "len": "512", "nulls": "YES"},
-            "csv2_watch_error_count": {"type": "int"},
-            "csv2_watch_status": {"type": "int"},
-            "csv2_watch_msg": {"type": "str", "len": "512", "nulls": "YES"},
-            "csv2_vm_data_error_count": {"type": "int"},
-            "csv2_vm_data_status": {"type": "int"},
-            "csv2_vm_data_msg": {"type": "str", "len": "512", "nulls": "YES"},
-            "condor_status": {"type": "int"},
-            "condor_msg": {"type": "str", "len": "512", "nulls": "YES"},
-            "rabbitmq_server_status": {"type": "int"},
-            "rabbitmq_server_msg": {"type": "str", "len": "512", "nulls": "YES"},
-            "load": {"type": "float"},
-            "ram": {"type": "float"},
-            "ram_size": {"type": "float"},
-            "ram_used": {"type": "float"},
-            "swap": {"type": "float"},
-            "swap_size": {"type": "float"},
-            "swap_used": {"type": "float"},
-            "disk": {"type": "float"},
-            "disk_size": {"type": "float"},
-            "disk_used": {"type": "float"},
-            "last_updated": {"type": "int"}
-            }
-        },
-    "csv2_timestamps": {
-        "keys": [
-            "entity"
-            ],
-        "columns": {
-            "entity": {"type": "str", "len": "64", "nulls": "NO"},
-            "last_updated": {"type": "int"}
             }
         },
     "csv2_user": {
@@ -947,6 +843,24 @@ schema = {
             "region": {"type": "str", "len": "64", "nulls": "NO"},
             "location": {"type": "str", "len": "64", "nulls": "NO"},
             "endpoint": {"type": "str", "len": "128", "nulls": "NO"}
+            }
+        },
+    "kill_retire_priority_list": {
+        "keys": [
+            ],
+        "columns": {
+            "group_name": {"type": "str", "len": "32", "nulls": "NO"},
+            "cloud_name": {"type": "str", "len": "32", "nulls": "NO"},
+            "vmid": {"type": "str", "len": "128", "nulls": "NO"},
+            "flavor_id": {"type": "str", "len": "128", "nulls": "YES"},
+            "machine": {"type": "str", "len": "256", "nulls": "YES"},
+            "killed": {"type": "int"},
+            "retired": {"type": "int"},
+            "priority": {"type": "int"},
+            "flavor_cores": {"type": "int"},
+            "flavor_ram": {"type": "int"},
+            "cores": {"type": "int"},
+            "ram": {"type": "int"}
             }
         },
     "view_active_resource_shortfall": {
@@ -1397,7 +1311,7 @@ schema = {
             "entered_current_status": {"type": "int"},
             "q_date": {"type": "int"},
             "hold_job_reason": {"type": "str", "len": "64", "nulls": "YES"},
-            "held_reason": {"type": "str", "len": "256", "nulls": "YES"},
+            "held_reason": {"type": "str", "len": "128", "nulls": "YES"},
             "js_idle": {"type": "int"},
             "js_running": {"type": "int"},
             "js_completed": {"type": "int"},

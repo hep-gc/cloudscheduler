@@ -219,25 +219,37 @@ def save_keypairs(request, group_name=None, message=None):
                         key_name = split_key[1]
                         # get existing keypair: need name, public_key, key_type and ?user?
                         logger.info("getting source keypair database object...")
-                        src_keypair = session.query(Keypairs).filter(Keypairs.fingerprint == fingerprint, Keypairs.key_name == key_name).first()
-                        # get group resources corresponding to that keypair
-                        logger.info("getting source cloud...")
-                        src_cloud = session.query(Group_Resources).filter(Group_Resources.group_name == src_keypair.group_name, Group_Resources.cloud_name == src_keypair.cloud_name).first()
-                        # download key from that group resources
-                        logger.info("getting source keypair openstack object...")
-                        os_keypair = get_keypair(keypair_key, src_cloud)
-                        # upload key to current "cloud"
-                        logger.info("transferring keypair...")
-                        result = transfer_keypair(os_keypair, cloud)
-                        logger.info(result)
-                        keypair_dict = {
-                            "group_name": group_name,
-                            "cloud_name": cloud.cloud_name,
-                            "fingerprint": fingerprint,
-                            "key_name": key_name
-                        }
-                        new_keypair = Keypairs(**keypair_dict)
-                        session.merge(new_keypair)
+                        # get list of keypairs to try and try each one
+                        src_keypairs = session.query(Keypairs).filter(Keypairs.fingerprint == fingerprint, Keypairs.key_name == key_name)
+                        transfer_success = False
+                        for src_keypair in src_keypairs:
+                            try:
+                                # get group resources corresponding to that keypair
+                                logger.info("getting source cloud...")
+                                src_cloud = session.query(Group_Resources).filter(Group_Resources.group_name == src_keypair.group_name, Group_Resources.cloud_name == src_keypair.cloud_name).first()
+                                # download key from that group resources
+                                logger.info("getting source keypair openstack object...")
+                                os_keypair = get_keypair(keypair_key, src_cloud)
+                                # upload key to current "cloud"
+                                logger.info("transferring keypair...")
+                                result = transfer_keypair(os_keypair, cloud)
+                                logger.info(result)
+                                keypair_dict = {
+                                    "group_name": group_name,
+                                    "cloud_name": cloud.cloud_name,
+                                    "fingerprint": fingerprint,
+                                    "key_name": key_name
+                                }
+                                new_keypair = Keypairs(**keypair_dict)
+                                session.merge(new_keypair)
+                                # Transfer successful, break
+                                transfer_success = True
+                                break
+                            except:
+                                logger.error("Failed to get src keypair from %s:%s, trying next src key" % (src_keypair.group_name, src_keypair.cloud_name))
+                                continue
+                        if not transfer_success:
+                            logger.error("Failed to transfer %s" %  keypair_key)
                 try:
                     session.commit()
                 except Exception as exc:
@@ -273,7 +285,7 @@ def save_keypairs(request, group_name=None, message=None):
             logger.error("Error setting up database objects or during general execution of save_keypairs")
 
         db_config.db_close()
-        return redirect("manage_keys")
+        return redirect("/keypairs/?%s" % group_name)
 
 
     # not a post, do nothing

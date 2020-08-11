@@ -64,7 +64,7 @@ CLOUD_KEYS = {
         'ram_ctl':                              'integer',
         'spot_price':                           'float',
 #       'vm_boot_volume':                       {"GBs": "integer", "options": {"per_core": "boolean"}},
-        'vm_boot_volume':                       {"min_pick": 1, "pick": {"GBs": "integer", "GBs_per_core": "integer"}},
+        'vm_boot_volume':                       {"min_pick": 1, "pick": {"GBs": "integer", "GBs_per_core": "integer", "volume_type": "string"}},
         'vm_keep_alive':                        'integer',
 
         'cores_slider':                         'ignore',
@@ -521,6 +521,11 @@ def add(request):
         if 'cloud_type' in fields:
             if fields['cloud_type'] == 'amazon':
                 fields['cores_softmax'] = config.categories['web_frontend']['default_softmax']
+            elif 'authurl' in fields and fields['cloud_type'] == 'openstack':
+                #check if url has a trailing slash
+                if not fields['authurl'].endswith('/'):
+                    #no slash, add one
+                     fields['authurl'] =  fields['authurl'] + '/'
 
         # Verify cloud credentials.
         rc, msg, owner_id = verify_cloud_credentials(config, {**fields, 'group_name': active_user.active_group})
@@ -1712,7 +1717,13 @@ def update(request):
             rc, msg = validate_by_filtered_table_entries(config, fields['vm_security_groups'], 'vm_security_groups', 'cloud_security_groups', 'name', [['group_name', fields['group_name']], ['cloud_name', fields['cloud_name']]], allow_value_list=True)
             if rc != 0:
                 config.db_close()
-                return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud update, "%s" failed - %s.' % (lno(MODID), fields['cloud_name'], msg))
+                return list(request, active_user=active_user, response_code=1, message='%s cloud update, "%s" failed - %s.' % (lno(MODID), fields['cloud_name'], msg))
+        if 'cloud_type' in fields:
+            if 'authurl' in fields and fields['cloud_type'] == 'openstack':
+                #check if url has a trailing slash
+                if not fields['authurl'].endswith('/'):
+                    #no slash, add one
+                    fields['authurl'] =  fields['authurl'] + '/'
 
         # Validity check the specified metadata exclusions.
         if 'metadata_name' in fields:
@@ -1797,12 +1808,13 @@ def update(request):
 
         # For EC2 clouds, add default filters.
         if 'cloud_type' in fields:
-            rc, msg = ec2_filters(config, fields['group_name'], fields['cloud_name'], fields['cloud_type'])
-            if rc == 0:
-                updates += 1
-            else:
-                config.db_close()
-                return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud update "%s::%s" failed - %s.' % (lno(MODID), fields['group_name'], fields['cloud_name'], msg))
+            if fields['cloud_type'] == "amazon":
+                rc, msg = ec2_filters(config, fields['group_name'], fields['cloud_name'], fields['cloud_type'])
+                if rc == 0:
+                    updates += 1
+                else:
+                    config.db_close()
+                    return list(request, active_user=active_user, response_code=1, message='%s cloud update "%s::%s" failed - %s.' % (lno(MODID), fields['group_name'], fields['cloud_name'], msg))
 
         config.db_session.commit()
         if updates > 0:

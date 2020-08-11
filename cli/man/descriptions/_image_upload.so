@@ -1,0 +1,2 @@
+The \fBcloudscheduler image upload\fR action uploads a cloud image to one or more openstack clouds registered with csv2.
+Any user may upload images, provided they are in the group that contains the clouds they are upload the images to.

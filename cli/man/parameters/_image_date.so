@@ -1,0 +1,5 @@
+.TP
+\fB\-id \fIdate\fR, \fB\-\-image-date \fIdate\fR
+The creation date of an openstack image defined in one of the clouds.
+The format must follow: "YYYY-MM-DD HH:MM:SS" but you may ommit the more granular measurements.
+Other valid formats: "YYYY-MM-DD HH", "YYYY-MM-DD", etc

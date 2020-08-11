@@ -51,6 +51,27 @@
     name: cloudscheduler
 # register: cloudscheduler_user
 
+- name: change the group ownership of the phpmyadmin directories
+  file:
+    dest: "{{ item }}"
+    state: directory
+    group: cloudscheduler
+  with_items:
+  - /etc/phpMyAdmin
+  - /var/lib/php
+  when:
+  - (install_phpMyAdmin is defined) and (install_phpMyAdmin == True)
+
+- name: change the group ownership of the phpmyadmin configuration file
+  file:
+    dest: "{{ item }}"
+    state: file
+    group: cloudscheduler
+  with_items:
+  - /etc/phpMyAdmin/config.inc.php
+  when:
+  - (install_phpMyAdmin is defined) and (install_phpMyAdmin == True)
+
 ### install software ###########################################################################################################################################
 
 - import_tasks: install_python3_mod_wsgi.yaml

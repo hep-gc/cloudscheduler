@@ -201,6 +201,7 @@ class OpenStackCloud(basecloud.BaseCloud):
                         size = base_size + (size_per_core * self.flavor_cores)
                     else:
                         size = base_size
+                    volume_type = vol_info.get("volume_type")
                     self.log.debug("Size: %s Base: %s GBpC: %s Core count: %s Def Flavor: %s flavorl: %s" % (size, base_size, size_per_core, self.flavor_cores, self.default_flavor, flavorl))
                     bdm = None
                     self.log.debug("creating boot volume")
@@ -208,7 +209,8 @@ class OpenStackCloud(basecloud.BaseCloud):
                     bv_name = "vol-" + hostname
                     cv = cinder.volumes.create(name=bv_name,
                                                size=size,
-                                               imageRef=imageobj.id)
+                                               imageRef=imageobj.id,
+                                               volume_type=volume_type)
                     while (cv.status != 'available'):
                         time.sleep(1)
                         cv = cinder.volumes.get(cv.id)
@@ -232,6 +234,7 @@ class OpenStackCloud(basecloud.BaseCloud):
             self.config.update_service_catalog(provider='csmain', error='Error booting VM for group: %s, cloud: %s - %s' % (self.group, self.name, ex), logger=self.log)
             instance = None
             instances = None
+            raise
 
         if instance:
             self.log.debug("Try to fetch with filter of hostname used")

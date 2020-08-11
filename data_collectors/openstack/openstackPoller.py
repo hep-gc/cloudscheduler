@@ -456,7 +456,7 @@ def image_poller():
                 for cloud in unique_cloud_dict:
                     cloud_obj = unique_cloud_dict[cloud]['cloud_obj']
                     cloud_name = unique_cloud_dict[cloud]['cloud_obj'].authurl
-                    logging.debug("Processing Images from cloud - %s" % cloud_name)
+                    logging.info("Processing Images from cloud - %s" % cloud_name)
                     session = _get_openstack_session(unique_cloud_dict[cloud]['cloud_obj'])
                     if session is False:
                         logging.debug("Failed to establish session with %s, skipping this cloud..." % cloud_name)
@@ -516,51 +516,56 @@ def image_poller():
                             db_session.rollback()
 
                     try:
-                      for image in image_list:
-                          if image.size == "":
-                              size = 0
-                          else:
-                              size = image.size
+                        #logging.error(image_list)
+                        for image in image_list:
+                            if image.size == "":
+                                size = 0
+                            else:
+                                size = image.size
 
-                          for groups in unique_cloud_dict[cloud]['groups']:
-                              group_n = groups[0]
-                              cloud_n = groups[1]
+                            for groups in unique_cloud_dict[cloud]['groups']:
+                                group_n = groups[0]
+                                cloud_n = groups[1]
 
-                              img_dict = {
-                                  'group_name': group_n,
-                                  'cloud_name': cloud_n,
-                                  'container_format': image.container_format,
-                                  'checksum': image.checksum,
-                                  'cloud_type': "openstack",
-                                  'disk_format': image.disk_format,
-                                  'min_ram': image.min_ram,
-                                  'id': image.id,
-                                  'size': size,
-                                  'visibility': image.visibility,
-                                  'min_disk': image.min_disk,
-                                  'name': image.name,
-                                  'last_updated': new_poll_time
-                                  }
+                                created_datetime = datetime.datetime.strptime(image.created_at, "%Y-%m-%dT%H:%M:%SZ")
+                                created_datetime.strftime("%Y-%m-%d %H:%M:%S")
 
-                              img_dict, unmapped = map_attributes(src="os_images", dest="csv2", attr_dict=img_dict)
-                              if unmapped:
-                                  logging.error("Unmapped attributes found during mapping, discarding:")
-                                  logging.error(unmapped)
+                                img_dict = {
+                                    'group_name': group_n,
+                                    'cloud_name': cloud_n,
+                                    'container_format': image.container_format,
+                                    'checksum': image.checksum,
+                                    'cloud_type': "openstack",
+                                    'disk_format': image.disk_format,
+                                    'min_ram': image.min_ram,
+                                    'id': image.id,
+                                    'size': size,
+                                    'visibility': image.visibility,
+                                    'min_disk': image.min_disk,
+                                    'name': image.name,
+                                    'created_at': created_datetime,
+                                    'last_updated': new_poll_time
+                                    }
 
-                              if test_and_set_inventory_item_hash(inventory, group_n, cloud_n, image.id, img_dict, new_poll_time, debug_hash=(config.categories["openstackPoller.py"]["log_level"]<20)):
-                                  continue
+                                img_dict, unmapped = map_attributes(src="os_images", dest="csv2", attr_dict=img_dict)
+                                if unmapped:
+                                    logging.error("Unmapped attributes found during mapping, discarding:")
+                                    logging.error(unmapped)
 
-                              new_image = IMAGE(**img_dict)
-                              try:
-                                  db_session.merge(new_image)
-                                  uncommitted_updates += 1
-                              except Exception as exc:
-                                  logging.exception("Failed to merge image entry for %s::%s::%s:" % (group_n, cloud_n, image.name))
-                                  logging.error(exc)
-                                  abort_cycle = True
-                                  break
+                                if test_and_set_inventory_item_hash(inventory, group_n, cloud_n, image.id, img_dict, new_poll_time, debug_hash=(config.categories["openstackPoller.py"]["log_level"]<20)):
+                                    continue
+
+                                new_image = IMAGE(**img_dict)
+                                try:
+                                    db_session.merge(new_image)
+                                    uncommitted_updates += 1
+                                except Exception as exc:
+                                    logging.exception("Failed to merge image entry for %s::%s::%s:" % (group_n, cloud_n, image.name))
+                                    logging.error(exc)
+                                    abort_cycle = True
+                                    break
                     except Exception as exc:
-                        logging.error("Error proccessing image_list for cloud %s" % cloud_n)
+                        logging.error("Error proccessing image_list for cloud %s" % unique_cloud_dict[cloud]['cloud_obj'].authurl)
                         logging.error(exc)
                         logging.error("Skipping cloud...")
                         continue
@@ -601,7 +606,6 @@ def image_poller():
                 logging.info("Doing deletes, omitting failures: %s" % new_f_dict)
                 delete_obsolete_database_items('Image', inventory, db_session, IMAGE, 'id', new_poll_time, failure_dict=new_f_dict, cloud_type="openstack")
 
-                config.db_session.rollback()
 
                 if not os.path.exists(PID_FILE):
                     logging.info("Stop set, exiting...")
@@ -1749,14 +1753,24 @@ def defaults_replication():
             db_session = config.db_session
             group_list = db_session.query(GROUPS)
             for group in group_list:
-                src_keypair = None
+                logging.debug("Checking defaults for %s" % group.group_name)
                 src_image = None
-                default_image_name = group.vm_image
-                default_key_name = group.vm_keyname
-                cloud_list = db_session.query(CLOUDS).filter(CLOUDS.group_name == group.group_name, CLOUDS.cloud_type == "openstack")
+                grp_default_image_name = group.vm_image
+                enabled_clouds = []
+                cloud_list = db_session.query(CLOUDS).filter(CLOUDS.group_name == group.group_name, CLOUDS.cloud_type == "openstack", CLOUDS.enabled == 1, CLOUDS.communication_up == 1)
+                for cld in cloud_list:
+                    enabled_clouds.append(cld.cloud_name)
+                cloud_list = db_session.query(CLOUDS).filter(CLOUDS.group_name == group.group_name, CLOUDS.cloud_type == "openstack", CLOUDS.enabled == 1, CLOUDS.communication_up == 1)
                 for cloud in cloud_list:
+                    logging.debug("Checking defaults for group-cloud: %s-%s" % (group.group_name, cloud.cloud_name))
                     # if there is a default image for the group, check for default image in the cloud
-                    if default_image_name is not None:
+                    logging.debug("Group image: %s", grp_default_image_name)
+                    logging.debug("Cloud image: %s", cloud.vm_image)
+                    if cloud.vm_image is None or cloud.vm_image == "":
+                        default_image_name = grp_default_image_name
+                    else:
+                        default_image_name = cloud.vm_image
+                    if default_image_name is not None and not default_image_name == "":
                         images = db_session.query(IMAGES).filter(IMAGES.group_name == group.group_name, IMAGES.cloud_name == cloud.cloud_name, IMAGES.name == default_image_name)
                         if images.count() == 0:
                             # gasp, image isn't there, lets queue up a transfer.
@@ -1769,8 +1783,15 @@ def defaults_replication():
                                    continue
                                elif img_count > 1:
                                    logging.warning("More than one candidate image with name %s" % default_image_name)
-                                   src_image = image_candidates[0]
-                                   logging.warning("selecting candidate with checksum: %s" % src_image.checksum)
+                                   src_image = None
+                                   for image in image_candidates:
+                                       if image.cloud_name in enabled_clouds:
+                                           src_image = image
+                                           break
+                                   if src_image is None:
+                                       #no sources from enabled clouds
+                                       logging.warning("Default image source only present on disabled clouds, manual transfer required.")
+                                       continue
                                else:
                                    # no ambiguity about default image, simply select it
                                    src_image = image_candidates[0]
@@ -1809,6 +1830,15 @@ def defaults_replication():
                             
                     else:
                         logging.info("No default image for group %s, skipping image transfers for cloud %s" % (group.group_name, cloud.cloud_name))
+
+
+            # seperate image and keypair loops so if one fails the other can have success
+            group_list = db_session.query(GROUPS)
+            for group in group_list:
+                src_keypair = None
+                default_key_name = group.vm_keyname
+                cloud_list = db_session.query(CLOUDS).filter(CLOUDS.group_name == group.group_name, CLOUDS.cloud_type == "openstack", CLOUDS.enabled == 1, CLOUDS.communication_up == 1)
+                for cloud in cloud_list:
 
                     # now lets check keys- if there is a default key, check the keys for the cloud
                     if default_key_name is not None:
@@ -1849,7 +1879,7 @@ def defaults_replication():
 
         except Exception as exc:
             logging.error("Exception during general operation:")
-            logging.error(exc)
+            logging.exception(exc)
 
         if not os.path.exists(PID_FILE):
             logging.info("Stop set, exiting...")

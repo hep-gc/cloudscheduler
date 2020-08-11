@@ -1,0 +1,2 @@
+The \fBcloudscheduler image delete\fR action deletes an openstack image from a csv2 openstack cloud.
+Any user may delete an image, provided they are in the group that that the target image is from.

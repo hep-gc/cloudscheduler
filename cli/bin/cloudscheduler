@@ -4,9 +4,10 @@ This is the command line interface to cloudscheduler version 2.
 """
 
 from pathlib import Path
-from csv2_common import command_hash, requests, requests_no_credentials_error, update_pid_defaults, yaml_full_load
+from csv2_common import command_hash, decode, requests, requests_no_credentials_error, update_pid_defaults, yaml_full_load
 
 import os
+import platform
 import sys
 
 import yaml
@@ -26,6 +27,7 @@ import csv2_job
 import csv2_server
 import csv2_user
 import csv2_vm
+import csv2_images
 
 from subprocess import Popen, PIPE
 
@@ -157,7 +159,17 @@ def main(args):
                     'list':                               csv2_vm.list,
                     'update':                             csv2_vm.update,
                     }
-                ]
+                ],
+            'image': [
+                False, # super_user?
+                {
+                    'transfer':                           csv2_images.transfer,
+                    'upload':                             csv2_images.upload,
+                    'delete':                             csv2_images.delete,
+                    'list':                               csv2_images.list,
+                    }
+               ]
+
             },
         'command_keys': (
             # short_name, long_name, key_value(T)/boolean(F)
@@ -279,7 +291,17 @@ def main(args):
             ('-x509', '--use-x509-authentication', False),
             ('-xA',   '--expose-API', False),
             ('-Y',    '--yes', False),
-            ),
+            ('-in',   '--image-name', True),
+            ('-ic',   '--image-checksum', True),
+            ('-tc',   '--target-cloud', True),
+            ('-tg',   '--target-group', True),
+            ('-ip',   '--image-path', True),
+            ('-cl',   '--cloud-list', True),
+            ('-iu',   '--image-format', True),
+            ('-id',   '--image-date', True),
+            ('-ii',   '--image-index', True),
+            ('-df',   '--disk-format', True)
+        ),
         'command_dir': os.path.dirname(os.path.realpath(args[0])),
         'command_name': os.path.basename(args[0]),
         'cookies': dict(),
@@ -287,6 +309,7 @@ def main(args):
         'function_args': None,
         'home_dir': str(Path.home()),
         'object': None,
+        'platform': decode(platform.platform(terse=1)),
         'retrieve_options': False,
         'tables_shown': 0,
         'uid': os.getuid(),
@@ -302,10 +325,15 @@ def main(args):
         csv2_helpers.generate_bash_completion_script(gvar)
 
     # Check for interactive parent process and set the pid_file path.
-    if os.readlink('/proc/%s/fd/0' % os.getppid()).split(':')[0] == 'pipe':
-        gvar['pid_file'] = '-'
-    else:
+    if sys.stdout.isatty():
         gvar['pid_file'] = '/tmp/.csv2_%s' % os.getppid()
+    else:
+        gvar['pid_file'] = '-'
+
+#   if os.readlink('/proc/%s/fd/0' % os.getppid()).split(':')[0] == 'pipe':
+#       gvar['pid_file'] = '-'
+#   else:
+#       gvar['pid_file'] = '/tmp/.csv2_%s' % os.getppid()
 
 #   # Check for authentication by grid proxy certificate.
 #   if os.path.isfile('/tmp/x509up_u%s' % gvar['uid']):

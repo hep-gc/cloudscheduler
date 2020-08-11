@@ -45,7 +45,7 @@ VM_KEYS = {
         'cloud_name':                                                   'ignore',
         'csrfmiddlewaretoken':                                          'ignore',
         'group':                                                        'ignore',
-        'vm_hosts':                                                     'ignore',
+        'vm_hosts':                                                     'lowerdash',
         },
     'not_empty': [
         'vm_hosts',

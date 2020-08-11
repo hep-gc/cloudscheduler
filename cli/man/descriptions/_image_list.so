@@ -1,0 +1,2 @@
+The \fBcloudscheduler image list\fR action displays openstack images from csv2 servers.
+Any user may list the image definitions, provided they are in the group that they are listing the images for.

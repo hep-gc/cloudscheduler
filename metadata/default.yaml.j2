@@ -53,7 +53,7 @@ write_files:
         ALLOW_READ = *
         HOSTALLOW_READ = *
 
-        # CCB_ADDRESS = $(CONDOR_HOST_IP)
+        CCB_ADDRESS = $(CONDOR_HOST_IP)
 
         TRUST_UID_DOMAIN = False
         ## If you require jobs to run as a user set TRUST_UID_DOMAIN to True and uncomment the following
@@ -121,7 +121,7 @@ write_files:
         #!/bin/bash
         msg_post () 
         {
-          while true; do
+          for i in $(seq 5); do
             curl https://{{cs_condor_host}}/$(hostname -s)${1} && break
             sleep 30
           done
@@ -165,11 +165,6 @@ write_files:
           if [ 'True' == "{{cs_condorworker_optional_gsi_messages}}" ]; then
             msg_post "/GSInone"
           fi
-        fi
-
-        if [ -x /usr/local/sbin/apel_accounting.sh ]; then
-            apel_accounting=$(/usr/local/sbin/apel_accounting.sh | tr -d '\n')
-            msg_post "/$apel_accounting"
         fi
     owner: root:root
     permissions: 0700
@@ -235,3 +230,4 @@ users:
 
 runcmd:
  - [ service, condor, start ]
+

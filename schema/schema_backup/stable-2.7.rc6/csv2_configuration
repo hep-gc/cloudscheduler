@@ -1,0 +1,75 @@
+-- MySQL dump 10.17  Distrib 10.3.21-MariaDB, for Linux (x86_64)
+--
+-- Host: localhost    Database: csv2
+-- ------------------------------------------------------
+-- Server version	10.3.21-MariaDB
+
+/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
+/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
+/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
+/*!40101 SET NAMES utf8mb4 */;
+/*!40103 SET @OLD_TIME_ZONE=@@TIME_ZONE */;
+/*!40103 SET TIME_ZONE='+00:00' */;
+/*!40014 SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0 */;
+/*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
+/*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
+/*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
+
+--
+-- Table structure for table `csv2_configuration`
+--
+
+DROP TABLE IF EXISTS `csv2_configuration`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `csv2_configuration` (
+  `category` varchar(32) NOT NULL,
+  `config_key` varchar(32) NOT NULL,
+  `config_type` varchar(16) NOT NULL DEFAULT 'int',
+  `config_value` varchar(128) DEFAULT NULL,
+  PRIMARY KEY (`category`,`config_key`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `csv2_configuration`
+--
+
+LOCK TABLES `csv2_configuration` WRITE;
+/*!40000 ALTER TABLE `csv2_configuration` DISABLE KEYS */;
+INSERT INTO `csv2_configuration` VALUES ('condor_poller.py','batch_commit_size','int','50'),('condor_poller.py','cacerts','str','/etc/ssl/certs/ca-bundle.crt'),('condor_poller.py','delete_cycle_interval','int','1'),('condor_poller.py','log_file','str','/var/log/cloudscheduler/condor-poller.log'),('condor_poller.py','log_level','int','20'),('condor_poller.py','retire_interval','int','1200'),('condor_poller.py','retire_off','bool','False'),('condor_poller.py','sleep_interval_command','int','10'),('condor_poller.py','sleep_interval_condor_gsi','int','3600'),('condor_poller.py','sleep_interval_job','int','15'),('condor_poller.py','sleep_interval_machine','int','15'),('condor_poller.py','sleep_interval_worker_gsi','int','3600'),('csmachines.py','amqp_host','str','csv2-dev2.heprc.uvic.ca'),('csmachines.py','amqp_port','str','5672'),('csmachines.py','amqp_queue_prefix','str','csv2_htc'),('csmachines.py','batch_commit_size','int','50'),('csmachines.py','cacerts','str','/etc/ssl/certs/ca-bundle.crt'),('csmachines.py','orange_threshold','int','3'),('csmachines.py','sleep_interval_cleanup','int','120'),('csmachines.py','sleep_interval_main_long','int','10'),('csmachines.py','sleep_interval_main_short','int','1'),('csmain','condorworker_optional_gsi_msgs','bool','False'),('csmain','idle_VMs_throttle','int','10'),('csmain','log_file','str','/var/log/cloudscheduler/main.log'),('csmain','log_level','int','20'),('csmain','max_start_vm_cloud','int','5'),('csmain','new_VMs_throttle','int','5'),('csmain','sleep_interval_main_long','int','10'),('csmain','sleep_interval_main_short','int','5'),('csmain','terminate_off','bool','False'),('csmain','unregistered_machine_time_limit','int','7200'),('csstatus.py','log_file','str','/var/log/cloudscheduler/csstatus.log'),('csstatus.py','log_level','int','20'),('csstatus.py','orange_threshold','int','3'),('csstatus.py','sleep_interval_main_long','int','10'),('csstatus.py','sleep_interval_main_short','int','1'),('csstatus.py','sleep_interval_status','int','60'),('csv2-ec2-instance-types','log_file','str','/var/log/cloudscheduler/ec2_retrieve_flavor_files.log'),('csv2-ec2-instance-types','log_level','int','20'),('csv2-ec2-instance-types','region_flavor_file_location','str','/var/local/cloudscheduler/ec2/regions'),('ec2cloudPoller.py','batch_commit_size','int','50'),('ec2cloudPoller.py','ec2_regions_and_endpoints_table','str','Amazon Elastic Compute Cloud (Amazon EC2)'),('ec2cloudPoller.py','ec2_regions_and_endpoints_url','str','https://docs.aws.amazon.com/general/latest/gr/rande.partial.html'),('ec2cloudPoller.py','log_file','str','/var/log/cloudscheduler/ec2.log'),('ec2cloudPoller.py','log_level','int','30'),('ec2cloudPoller.py','no_limit_default','int','999999999'),('ec2cloudPoller.py','orange_threshold','int','3'),('ec2cloudPoller.py','region_flavor_file_location','str','/var/local/cloudscheduler/ec2/regions'),('ec2cloudPoller.py','sleep_interval_filterer','int','300'),('ec2cloudPoller.py','sleep_interval_flavor','int','300'),('ec2cloudPoller.py','sleep_interval_image','int','300'),('ec2cloudPoller.py','sleep_interval_keypair','int','300'),('ec2cloudPoller.py','sleep_interval_limit','int','300'),('ec2cloudPoller.py','sleep_interval_main_long','int','10'),('ec2cloudPoller.py','sleep_interval_main_short','int','1'),('ec2cloudPoller.py','sleep_interval_network','int','300'),('ec2cloudPoller.py','sleep_interval_sec_grp','int','300'),('ec2cloudPoller.py','sleep_interval_status','int','3600'),('ec2cloudPoller.py','sleep_interval_vm','int','90'),('ec2FlavorPoller.py','log_file','str','/var/log/cloudscheduler/ec2FlavorPoller.log'),('ec2FlavorPoller.py','log_level','int','20'),('ec2FlavorPoller.py','sleep_interval_main_long','int','10'),('ec2FlavorPoller.py','sleep_interval_status','int','2628000'),('ec2_image_filter','architectures','str','64bit'),('ec2_image_filter','location_like','str',NULL),('ec2_image_filter','location_not_like','str',NULL),('ec2_image_filter','operating_systems','str','linux'),('ec2_image_filter','owner_aliases','str','self,shared'),('ec2_image_filter','owner_ids','str',NULL),('ec2_instance_type_filter','cores','str','1,2,4,8'),('ec2_instance_type_filter','families','str','Compute optimized,General purpose'),('ec2_instance_type_filter','memory_max_gigabytes_per_core','decimal','3.0'),('ec2_instance_type_filter','memory_min_gigabytes_per_core','decimal','1.5'),('ec2_instance_type_filter','operating_systems','str','Linux,RHEL,SUSE,NA'),('ec2_instance_type_filter','processors','str',NULL),('ec2_instance_type_filter','processor_manufacturers','str','Intel,AMD'),('general','signal_log_retention_days','int','30'),('general','sleep_interval_registrar','int','120'),('glintPoller.py','cache_expire_time','int','604800'),('glintPoller.py','celery_backend','str','rpc://'),('glintPoller.py','celery_url','str','amqp://guest:guest@localhost:5672//'),('glintPoller.py','cert_auth_bundle_path','str','/etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem'),('glintPoller.py','image_cache_dir','str','/var/local/cloudscheduler/image_cache/'),('glintPoller.py','log_file','str','/var/log/cloudscheduler/glint.log'),('glintPoller.py','log_level','int','20'),('glintPoller.py','orange_threshold','int','3'),('glintPoller.py','redis_db','int','0'),('glintPoller.py','redis_host','str','localhost'),('glintPoller.py','redis_port','int','6379'),('glintPoller.py','sleep_interval_defaults','int','3600'),('glintPoller.py','sleep_interval_main_long','int','10'),('glintPoller.py','sleep_interval_main_short','int','1'),('glintPoller.py','sleep_inverval_image_collection','int','120'),('glintPoller.py','static_files_root','str','/var/www/glintv2/static/'),('GSI','cacerts','str','/etc/ssl/certs/ca-bundle.crt'),('GSI','cert_days_left_bad','int','7'),('GSI','cert_days_left_good','int','28'),('openstackPoller.py','batch_commit_size','int','50'),('openstackPoller.py','cacerts','str','/etc/ssl/certs/CABundle.crt'),('openstackPoller.py','log_file','str','/var/log/cloudscheduler/openstack.log'),('openstackPoller.py','log_level','int','20'),('openstackPoller.py','no_limit_default','int','999999999'),('openstackPoller.py','orange_threshold','int','3'),('openstackPoller.py','sleep_interval_command','int','60'),('openstackPoller.py','sleep_interval_flavor','int','300'),('openstackPoller.py','sleep_interval_image','int','90'),('openstackPoller.py','sleep_interval_keypair','int','300'),('openstackPoller.py','sleep_interval_limit','int','30'),('openstackPoller.py','sleep_interval_main_long','int','10'),('openstackPoller.py','sleep_interval_main_short','int','1'),('openstackPoller.py','sleep_interval_network','int','300'),('openstackPoller.py','sleep_interval_security_group','int','300'),('openstackPoller.py','sleep_interval_vm','int','60'),('ProcessMonitor','orange_threshold','int','3'),('ProcessMonitor','pause','bool','1'),('ProcessMonitor','pid_path','str','/var/local/cloudscheduler/run/'),('ProcessMonitor','sleep_interval_main_long','int','10'),('ProcessMonitor','sleep_interval_main_short','int','1'),('publisher.py','csv2_url','str','https://csv2-dev.heprc.uvic.ca'),('publisher.py','log_file','str','/var/log/cloudscheduler/publisher.loggging'),('publisher.py','log_level','int','20'),('publisher.py','password','str','generate_public_pages'),('publisher.py','public_directory','str','/var/local/cloudscheduler/www/public'),('publisher.py','user','str','cloudscheduler'),('signal_monitor','log_file','str','/var/log/cloudscheduler/signal_monitor.logging'),('signal_monitor','log_level','int','20'),('signal_monitor','log_signal_tests','bool','False'),('signal_monitor','long_interval','int','600'),('signal_monitor','short_interval','int','30'),('SQL','csv2_host_id','int','3456932576'),('SQL','UTC_delta_hours','int','-8'),('SQL','vm_come_alive','int','7200'),('SQL','vm_error_delay','int','300'),('SQL','vm_job_alive','int','1800'),('timeseriesPoller.py','log_file','str','/var/log/cloudscheduler/timeseries.log'),('timeseriesPoller.py','log_level','int','20'),('timeseriesPoller.py','orange_threshold','int','3'),('timeseriesPoller.py','sleep_interval_main_long','int','10'),('timeseriesPoller.py','sleep_interval_main_short','int','1'),('timeseriesPoller.py','sleep_interval_status','int','30'),('vm_data_via_https.py','apel_accounting_keep_alive_days','int','200'),('vm_data_via_https.py','log_file','str','/var/log/cloudscheduler/vm_data.logging'),('vm_data_via_https.py','log_level','int','20'),('vm_data_via_https.py','sleep_interval_apel_cleanup','int','3600'),('vm_data_via_https.py','sleep_interval_vm_data','int','60'),('vm_data_via_https.py','ssl_access_log','str','/var/log/httpd/ssl_access_log'),('vm_data_via_https.py','vm_data_poller_checkpoint','str','/var/local/cloudscheduler/run/vm_data_poller_checkpoint'),('watch_csv2','config_file','str','/opt/cloudscheduler/etc/watch_csv2.conf'),('watch_csv2','log_file','str','/var/log/cloudscheduler/watch_csv2.logging'),('watch_csv2','log_file_retain','int','14'),('watch_csv2','sleep_time','int','10'),('web_frontend','cache_expire_time','int','604800'),('web_frontend','celery_backend','str','rpc://'),('web_frontend','celery_url','str','amqp://guest:guest@localhost:5672//'),('web_frontend','cert_auth_bundle_path','str','/etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem'),('web_frontend','default_softmax','int','100'),('web_frontend','enable_glint','bool','True'),('web_frontend','enable_profiling','bool','False'),('web_frontend','image_collection_interval','int','30'),('web_frontend','log_file','str','/var/log/cloudscheduler/csv2_web.log'),('web_frontend','redis_db','str','0'),('web_frontend','redis_host','str','localhost'),('web_frontend','redis_port','str','6379'),('web_frontend','service_alive_interval','int','60'),('web_frontend','service_error_interval','int','120'),('web_frontend','static_files_root','str','/var/www/glintv2/static/');
+/*!40000 ALTER TABLE `csv2_configuration` ENABLE KEYS */;
+UNLOCK TABLES;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8 */ ;
+/*!50003 SET character_set_results = utf8 */ ;
+/*!50003 SET collation_connection  = utf8_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES,ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50017 DEFINER=`csv2`@`localhost`*/ /*!50003 trigger trigger_csv2_configuration_update
+after update on csv2_configuration
+for each row
+begin
+    if NEW.config_value != OLD.config_value then
+        update csv2_service_catalog set last_updated=unix_timestamp() where provider='csv2_configuration' and host_id=0;
+    end if;
+end */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
+
+/*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
+/*!40014 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS */;
+/*!40014 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS */;
+/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
+/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
+/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
+/*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
+
+-- Dump completed on 2020-06-29  8:24:06

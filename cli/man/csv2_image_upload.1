@@ -1,0 +1,56 @@
+.so ../man/_header.so
+\fBcloudscheduler image upload\fR \- upload an openstack image to one or more clouds registered to cloudscheduler version 2 (csv2)
+.\" --------------------------------------------------------------------
+.SH SYNOPSIS
+.\" --------------------------------------------------------------------
+.SY cloudscheduler
+.B image
+.B upload
+.RI "[" "options" " ...]"
+.YS
+.\" --------------------------------------------------------------------
+.SH DESCRIPTION
+.\" --------------------------------------------------------------------
+.so ../man/descriptions/_image_upload.so
+.\" --------------------------------------------------------------------
+.SH OPTIONS
+.\" --------------------------------------------------------------------
+.\" --------------------------------------------------------------------
+.SS Mandatory
+.\" --------------------------------------------------------------------
+.so ../man/_mandatory_parameters.so
+.so ../man/parameters/_image_path.so
+.so ../man/parameters/_disk_format.so
+.so ../man/parameters/_cloud_list.so
+.\" --------------------------------------------------------------------
+.SS Optional
+.\" --------------------------------------------------------------------
+.so ../man/_options.so
+.so ../man/parameters/_group_name.so
+.\" --------------------------------------------------------------------
+.SS Global
+.\" --------------------------------------------------------------------
+.so ../man/_global_options.so
+.\" --------------------------------------------------------------------
+.SH EXAMPLES
+.\" --------------------------------------------------------------------
+.TP
+1.
+Upload from a file to a single cloud
+.EX
+$ cloudscheduler image upload -ip "file://tmp/cernvm4-micro-2020.04-1.hdd" -cl example-cloudA -df raw  -g example_group
+.EE
+.TP
+2.
+Upload from URL to multiple clouds
+.EX
+$ cloudscheduler image upload -ip "http://cernvm.cern.ch/releases/production/cernvm4-micro-2020.04-1.hdd" -cl "example-cloudA, example-cloudB" -df raw -g example_group
+.EE
+.\" --------------------------------------------------------------------
+.SH SEE ALSO
+.\" --------------------------------------------------------------------
+.BR csv2 (1)
+.BR csv2_image_list (1)
+.BR csv2_image_transfer (1)
+.BR csv2_image_delete (1)
+.BR csv2_image_upload (1)

@@ -352,7 +352,11 @@ def ec2_filterer():
                 logging.info("Stop set, exiting...")
                 break
             signal.signal(signal.SIGINT, config.signals['SIGINT'])
-            wait_cycle(cycle_start_time, poll_time_history, config.categories["ec2cloudPoller.py"]["sleep_interval_filterer"], config)
+            try:
+                wait_cycle(cycle_start_time, poll_time_history, config.categories["ec2cloudPoller.py"]["sleep_interval_filterer"], config)
+            except KeyboardInterrupt:
+                continue
+                #got signaled
 
 
 
@@ -385,8 +389,11 @@ def flavor_poller():
     event_receiver_registration(config, "update_csv2_clouds_amazon")
 
 
+    config.db_open()
+    db_session = config.db_session
     while True:
         inventory = get_inventory_item_hash_from_database(config.db_engine, FLAVOR, 'name', debug_hash=(config.categories["ec2cloudPoller.py"]["log_level"]<20), cloud_type='amazon')
+
         try:
             #poll flavors
             logging.debug("Beginning flavor poller cycle")
@@ -397,8 +404,6 @@ def flavor_poller():
             signal.signal(signal.SIGINT, signal.SIG_IGN)
 
             new_poll_time, cycle_start_time = start_cycle(new_poll_time, cycle_start_time)
-            config.db_open()
-            db_session = config.db_session
             # Cleanup inventory, this function will clean up inventory entries for deleted clouds
             group_clouds = config.db_connection.execute('select distinct group_name, cloud_name from csv2_clouds where cloud_type="amazon"')
             cleanup_inventory(inventory, group_clouds)
@@ -407,8 +412,6 @@ def flavor_poller():
             # First check that our ec2 instance types table is up to date:
             check_instance_types(config)
 
-            config.db_close()
-            del db_session
             if not os.path.exists(PID_FILE):
                 logging.info("Stop set, exiting...")
                 break
@@ -419,7 +422,6 @@ def flavor_poller():
         except Exception as exc:
             logging.error("Unhandled exception during regular flavor polling:")
             logging.exception(exc)
-            config.db_close()
 
 
     return -1
@@ -602,8 +604,8 @@ def image_poller():
 
                             img_dict, unmapped = map_attributes(src="ec2_images", dest="csv2", attr_dict=img_dict)
                             if unmapped:
-                                logging.error("Unmapped attributes found during mapping, discarding:")
-                                logging.error(unmapped)
+                                logging.debug("Unmapped attributes found during mapping, discarding:")
+                                logging.debug(unmapped)
 
                             #if test_and_set_inventory_item_hash(inventory, cloud.group_name, cloud.cloud_name, image['ImageId'], img_dict,
                             #                                    new_poll_time, debug_hash=(config.log_level < 20)):
@@ -760,8 +762,8 @@ def image_poller():
 
                             img_dict, unmapped = map_attributes(src="ec2_images", dest="csv2", attr_dict=img_dict)
                             if unmapped:
-                                logging.error("Unmapped attributes found during mapping, discarding:")
-                                logging.error(unmapped)
+                                logging.debug("Unmapped attributes found during mapping, discarding:")
+                                logging.debug(unmapped)
 
                             #if test_and_set_inventory_item_hash(inventory, group_n, cloud_n, image['ImageId'], img_dict,
                             #                                    new_poll_time, debug_hash=(config.log_level < 20)):
@@ -1182,8 +1184,8 @@ def limit_poller():
                         limits_dict['cores_used'] = 0
 
                         if unmapped:
-                            logging.error("Unmapped attributes found during mapping, discarding:")
-                            logging.error(unmapped)
+                            logging.debug("Unmapped attributes found during mapping, discarding:")
+                            logging.debug(unmapped)
 
                         if test_and_set_inventory_item_hash(inventory, group_n, cloud_n, '-', limits_dict,
                                                             new_poll_time, debug_hash=(config.categories["ec2cloudPoller.py"]["log_level"] < 20)):
@@ -1562,8 +1564,8 @@ def security_group_poller():
 
                             flav_dict, unmapped = map_attributes(src="os_sec_grps", dest="csv2", attr_dict=sec_grp_dict)
                             if unmapped:
-                                logging.error("Unmapped attributes found during mapping, discarding:")
-                                logging.error(unmapped)
+                                logging.debug("Unmapped attributes found during mapping, discarding:")
+                                logging.debug(unmapped)
 
                             if test_and_set_inventory_item_hash(inventory, group_n, cloud_n, sec_grp["GroupId"],
                                                                 sec_grp_dict, new_poll_time,
@@ -1878,7 +1880,7 @@ def vm_poller():
                             ip_addrs.append(vm.get('PublicIpAddress'))
                         if 'PrivateIpAddress' in vm:
                             ip_addrs.append(vm.get('PrivateIpAddress'))
-                        logging.info("VM STATE: %s" % vm['State']['Name'])
+                        logging.debug("VM STATE: %s" % vm['State']['Name'])
                         vm_dict = {
                             'group_name': vm_group_name,
                             'cloud_name': vm_cloud_name,
@@ -1899,8 +1901,8 @@ def vm_poller():
 
                         vm_dict, unmapped = map_attributes(src="ec2_vms", dest="csv2", attr_dict=vm_dict)
                         if unmapped:
-                            logging.error("unmapped attributes found during mapping, discarding:")
-                            logging.error(unmapped)
+                            logging.debug("unmapped attributes found during mapping, discarding:")
+                            logging.debug(unmapped)
 
                         if test_and_set_inventory_item_hash(inventory, vm_group_name, vm_cloud_name, vm_dict['vmid'], vm_dict, new_poll_time, debug_hash=(config.categories["ec2cloudPoller.py"]["log_level"]<20)):
                             continue

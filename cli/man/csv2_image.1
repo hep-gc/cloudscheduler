@@ -1,0 +1,41 @@
+.so ../man/_header.so
+\fBcloudscheduler image\fR \- manage openstack images on cloudscheduler version 2 (csv2) servers
+.\" --------------------------------------------------------------------
+.SH SYNOPSIS
+.\" --------------------------------------------------------------------
+.SY csv2
+.B image
+.I action
+.I mandatory_parameters
+.RI "[" "options " "...]"
+.YS
+.\" --------------------------------------------------------------------
+.SH DESCRIPTION
+.\" --------------------------------------------------------------------
+.so ../man/descriptions/_image.so
+.\" --------------------------------------------------------------------
+.SH ACTIONS
+.\" --------------------------------------------------------------------
+For information on the parameters associated with each \fBimage\fR action, refer
+to the documentation for that action (\fBcloudscheduler image \fIaction\fB -H\fR).
+The following actions are available for the \fBimage\fR object:
+.TP
+.B list
+.so ../man/descriptions/_image_list.so
+.TP
+.B transfer
+.so ../man/descriptions/_image_transfer.so
+.TP
+.B delete
+.so ../man/descriptions/_image_delete.so
+.TP
+.B upload
+.so ../man/descriptions/_image_upload.so
+.\" --------------------------------------------------------------------
+.SH SEE ALSO
+.\" --------------------------------------------------------------------
+.BR csv2 (1)
+.BR csv2_image_list (1)
+.BR csv2_image_transfer (1)
+.BR csv2_image_delete (1)
+.BR csv2_image_upload (1)

@@ -89,7 +89,7 @@
         {% for image_key, image_list in image_dict.items %}
             <tr class="image_row">
                 <!-- need to make a split template macro to achieve this, may want to only return first token for rendering simplicity -->
-                <td><b> {{ image_key|first_split:'---' }}</b>
+                <td title="{{image_dates|get_item:image_key}}"><b> {{ image_key|first_split:'---' }}</b>
                     <img title="Download Image" src="/static/glintwebui/img/green_download_icon.png" onclick="downloadImage('{{image_key}}');" style="width:20px;height:20px; float:right; padding-left:5px; cursor: pointer;"/>
                     {% if image_key|first_split:'---' == default_image %}
                         <img title="Default Image" src="/static/glintwebui/img/gold_star.png" style="width:20px;height:20px; float:right; padding-left:5px;" />
