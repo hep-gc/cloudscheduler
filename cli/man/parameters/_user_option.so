@@ -1,7 +1,7 @@
 .TP
 \fB\-uo \fR[\fBadd \fR| \fBdelete\fR], \fB\-\-user-option \fR[\fBadd \fR| \fBdelete\fR]
 Use with \fB\-un\fR to \fBadd\fR or \fBdelete\fR users from the group.
-If this command is not specified the default behavoir is \fBadd\fR.
+If this option is not specified, the default behavoir is \fBadd\fR.
 If \fBadd\fR is specified then the users will be added to the group.
 If \fBdelete\fR is specified then the users will be removed from the group.
 

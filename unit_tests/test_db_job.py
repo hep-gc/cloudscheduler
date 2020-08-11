@@ -1,25 +1,29 @@
-from unit_test_common import execute_csv2_request, execute_csv2_command, initialize_csv2_request, ut_id
+from unit_test_common import execute_csv2_request, initialize_csv2_request, ut_id, sanity_requests
 from sys import argv
 
 # lno: JV - error code identifier.
 
-def main(gvar, user_secret):
+def main(gvar):
     if not gvar:
         gvar = {}
         if len(argv) > 1:
-            initialize_csv2_request(gvar, argv[0], selections=argv[1])
+            initialize_csv2_request(gvar, selections=argv[1])
         else:
-            initialize_csv2_request(gvar, argv[0])
+            initialize_csv2_request(gvar)
+    
+    # 01 - 05
+    sanity_requests(gvar, '/job/list/', ut_id(gvar, 'dtg1'), ut_id(gvar, 'dtu1'), ut_id(gvar, 'dtg2'), ut_id(gvar, 'dtu2'))
 
+    # Assert that the job submitted in the setup appears in the list.
     execute_csv2_request(
         gvar, 0, None, None,
-        '/job/list/?vm-test-group', list='job_list', filter={'group_name': 'vm-test-group', 'global_job_id': 'csv2-dev2.heprc.uvic.ca#1.0#1'},
-        values={'hold_job_reason': None, 'request_ram': 2000, 'js_idle': 0, 'held_reason': 'vm-testing', 'instance_type': 'vm-test-instance', 'request_disk': '14.3051', 'js_held': 1, 'request_cpus': 1, 'keep_alive': '0', 'js_completed': 0, 'js_running': 0, 'js_other': 0, 'job_status': 5, 'user': 'jodiew@csv2-dev2.heprc.uvic.ca', 'requirements': 'group_name is "vm-test-group"', 'cloud_name': None, 'proc_id': 0, 'target_alias': None, 'job_priority': 10, 'cluster_id': 1}
-    )
-
-    execute_csv2_command(
-        gvar, 0, None, 'Rows: 1',
-        ['cloudscheduler', 'job', 'list', '-g', 'vm-test-group', '-s', 'unit-test']
+        '/job/list/', group=ut_id(gvar, 'dtg1'), expected_list='job_list', list_filter={'group_name': ut_id(gvar, 'dtg1')},
+        values={
+            'request_cpus': 1,
+            'request_ram': 1,
+            'request_disk': '0.0010',
+            'job_priority': 10
+        }, server_user=ut_id(gvar, 'dtu1')
     )
 
 if __name__ == "__main__":

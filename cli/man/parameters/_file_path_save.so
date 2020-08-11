@@ -1,0 +1,4 @@
+.TP
+\fB\-f \fIfile\fR, \fB\-\-file-path \fIfile\fR
+The local location to save the metadata file at.
+The value of \fIfile\fR should be an absolute path. Specifying an existing path will cause an error unless \fB\-\-force\fR (\fB-F\fR) is used.

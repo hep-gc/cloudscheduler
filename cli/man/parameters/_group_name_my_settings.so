@@ -1,0 +1,3 @@
+.TP
+\fB\-gn \fIname\fR, \fB\-\-group-name \fIname\fR
+The name of the user's default group.

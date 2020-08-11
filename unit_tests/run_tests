@@ -6,9 +6,9 @@ Unit tests.
 from os import listdir, path
 from re import sub
 from sys import argv
-from unit_test_common import initialize_csv2_request, generate_secret
+from unit_test_common import initialize_csv2_request
 
-TEST_OBJECTS = ['user', 'group', 'cloud', 'job', 'vm', 'cli', 'server']
+TEST_OBJECTS = ['alias', 'cli', 'cloud', 'db', 'group', 'job', 'server', 'user', 'vm']
 
 def get_test_list(ut_path):
     test_names = []
@@ -61,12 +61,11 @@ def main():
                 else:
                     obj = arg
                     selection = None
-                if obj in TEST_OBJECTS + ['db']:
-                    user_options['run_all'] = False
+                if obj in TEST_OBJECTS:
                     filtered_tests = [test for test in test_names if test[1].startswith(obj)]
                     for test in filtered_tests:
                         option = (test, {})
-                        initialize_csv2_request(option[1], argv[0], selections=selection)
+                        initialize_csv2_request(option[1], selections=selection)
                         user_options['tests'].append(option)
                     if obj not in user_options['objects']:
                         user_options['objects'].append(obj)
@@ -77,9 +76,9 @@ def main():
                         exit()
                     else:
                         option = (test_names[test_found[0]], {})
-                        initialize_csv2_request(option[1], argv[0], selections=selection)
+                        initialize_csv2_request(option[1], selections=selection)
                         user_options['tests'].append(option)
-                        for o in TEST_OBJECTS + ['db']:
+                        for o in TEST_OBJECTS:
                             if obj.startswith(o) and o not in user_options['objects']:
                                 user_options['objects'].append(o)
 
@@ -89,21 +88,19 @@ def main():
         user_options['objects'] = TEST_OBJECTS
 
     hidden_gvar = {}
-    initialize_csv2_request(hidden_gvar, argv[0], hidden=user_options['hidden'])
+    initialize_csv2_request(hidden_gvar, hidden=user_options['hidden'])
 
     gvar = {}
-    if 'run_all_selection' in user_options.keys():
-        initialize_csv2_request(gvar, argv[0], selections=user_options['run_all_selection'])
+    if 'run_all_selection' in user_options:
+        initialize_csv2_request(gvar, selections=user_options['run_all_selection'])
     else:
-        initialize_csv2_request(gvar, argv[0])
-
-    user_secret = generate_secret()
+        initialize_csv2_request(gvar)
 
     for obj in user_options['objects']:
         if user_options['setup']:
             exec('import {}_requests_setup'.format(obj), globals(), locals())
             print('Setting up {} tests...'.format(obj))
-            exec('{}_requests_setup.main(hidden_gvar, user_secret)'.format(obj), globals(), locals())
+            exec('{}_requests_setup.main(hidden_gvar)'.format(obj), globals(), locals())
         if hidden_gvar['ut_failed'] == 0:
             for ((f, n), s) in user_options['tests']:
                 if s is None:
@@ -111,12 +108,12 @@ def main():
                         exec('import {}'.format(f), globals(), locals())
                         gvar['ut_count'][1] = 0
                         print('\n*** Testing {} ***\n'.format(n))
-                        exec('{}.main(gvar, user_secret)'.format(f), globals(), locals())
+                        exec('{}.main(gvar)'.format(f), globals(), locals())
                 else:
                     if n.startswith(obj):
                         exec('import {}'.format(f), globals(), locals())
                         print('\n*** Testing {} ***\n'.format(n))
-                        exec('{}.main(s, user_secret)'.format(f), globals(), locals())
+                        exec('{}.main(s)'.format(f), globals(), locals())
         if user_options['cleanup']:
             exec('import {}_requests_cleanup'.format(obj))
             print('Cleaning up {} tests...'.format(obj))
@@ -135,5 +132,5 @@ def main():
         total_failed += s['ut_failed']
     exit(total_failed)
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()

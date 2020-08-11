@@ -973,11 +973,11 @@ def set_user_groups(config, request, super_user=True):
 
     if len(new_active_user.args) > 0:
         new_active_user.active_group = new_active_user.args[0]
-    elif new_active_user.default_group and new_active_user.default_group != '-':
+    elif new_active_user.default_group and new_active_user.default_group in new_active_user.user_groups:
         new_active_user.active_group = new_active_user.default_group
     else:
         new_active_user.active_group = new_active_user.user_groups[0]
-
+    
     if new_active_user.active_group not in new_active_user.user_groups:
 #       return 1,'cannot switch to invalid group "%s".' % new_active_user.active_group, new_active_user, new_active_user.user_groups
         return 1,'cannot switch to invalid group "%s".' % new_active_user.active_group, new_active_user
@@ -1118,10 +1118,9 @@ def validate_fields(config, request, fields, tables, active_user):
     float                  - A floating point value.
     ignore                 - Ignore missing mandatory fields or fields for undefined columns.
     integer                - An integer value.
-    lowercase              - Make sure the input value is all lowercase (or error).
-    lowerdash              - Make sure the input value is all lowercase, nummerics, and dashes but 
-    lowernull              - Make sure the input value is all lowercasei or empty string (null).
-                             can't start or end with a dash (or error).
+    lower                  - Ensure that the input value consists only of lowercase letters, digits,
+                             dashes, underscores, periods, and colons; does not contain '--'; and
+                             does not start or end with a dash (or error).
     metadata               - Identifies a pair of fields (eg. "xxx' and xxx_name) that contain ar
                              metadata string and a metadata filename. If the filename conforms to
                              pre-defined patterns (eg. ends with ".yaml"), the string will be 
@@ -1130,7 +1129,9 @@ def validate_fields(config, request, fields, tables, active_user):
     password1              - A password value to be verified against password2, checked and hashed.
     password2              - A password value to be verified against password1, checked and hashed.
     reject                 - Reject an otherwise valid field.
-    uppercase              - Make sure the input value is all uppercase (or error).
+    upper                  - Ensure that the input value consists only of uppercase letters, digits,
+                             dashes, underscores, periods, and colons; does not contain '--'; and
+                             does not start or end with a dash (or error).
 
     POSTed fields in the form "name.1", "name.2", etc. will be treated as array fields, 
     returning the variable "name" as a list of strings. 
@@ -1177,7 +1178,9 @@ def validate_fields(config, request, fields, tables, active_user):
     # Process fields parameter:
     Formats = {}
     Mandatory = []
+    AllowEmpty = []
     NotEmpty = []
+    ArrayFields = []
     Options = {
         'accept_primary_keys_only': False,
         'auto_active_group': False,
@@ -1195,11 +1198,21 @@ def validate_fields(config, request, fields, tables, active_user):
                     Mandatory += option_set[option]
                 else:
                     Mandatory.append(option_set[option])
+            elif option == 'allow_empty':
+                if isinstance(option_set[option], list):
+                    AllowEmpty += option_set[option]
+                else:
+                    AllowEmpty.append(option_set[option])
             elif option == 'not_empty':
                 if isinstance(option_set[option], list):
                     NotEmpty += option_set[option]
                 else:
                     NotEmpty.append(option_set[option])
+            elif option == 'array_fields':
+                if isinstance(option_set[option], list):
+                    ArrayFields += option_set[option]
+                else:
+                    ArrayFields.append(option_set[option])
             else:
                 Options[option] = option_set[option]
 
@@ -1446,19 +1459,26 @@ def validate_fields(config, request, fields, tables, active_user):
                 elif Formats[field] == 'reject':
                     return 1, 'request contained a rejected/bad parameter "%s".' % field, None, None, None
 
-                elif Formats[field] == 'uppercase':
-                    value = request.POST[field].upper()
-                    if request.POST[field] != value:
-                        return 1, 'value specified for "%s" must be all upper case.' % field, None, None, None
+                elif Formats[field] == 'upper':
+                    if field == '' and field not in AllowEmpty:
+                        return 1, 'value specified for "%s" must not be the empty string.' % field, None, None, None
+                        # Match the empty string or <a valid non-dash optionally followed by a dash> any number of times, followed by a valid non-dash.
+                    elif re.fullmatch('(([A-Z0-9_.:]-?)*[A-Z0-9_.:])?', request.POST[field]):
+                        value = request.POST[field]
+                    else:
+                        return 1, 'value specified for "%s" must be all uppercase letters, digits, dashes, underscores, periods, and colons, and cannot contain a more than one consecutive dash or start or end with a dash.' % field, None, None, None
 
             if field_alias in all_columns:
                 Fields[field_alias] = value
             else: 
                 array_field = field.split('.')
-                if len(array_field) > 1 and (array_field[0] in all_columns or array_field[0] in Formats):
+                if len(array_field) > 1 and array_field[0] in ArrayFields:
                     if array_field[0] not in Fields:
-                        Fields[array_field[0]] = []
-                    Fields[array_field[0]].append(value)
+                        Fields[array_field[0]] = [value]
+                    elif isinstance(Fields[array_field[0]], list):
+                        Fields[array_field[0]].append(value)
+                    else:
+                        return 1, 'request contained parameter "%s" and parameter "%s".' % (field, array_field[0]), None, None, None
                 else:
                     if field in Formats:
                         Fields[field] = value
@@ -1486,11 +1506,15 @@ def validate_fields(config, request, fields, tables, active_user):
         for field in primary_key_columns + Mandatory:
             if field not in Fields and (field not in Formats or  Formats[field] != 'ignore'):
                 return 1, 'request did not contain mandatory parameter "%s".' % field, None, None, None
+#           if field in Fields and Fields[field] == '':
+#               return 1, 'mandatory parameter "%s" contains an empty string which is specifically disallowed.' % field, None, None, None
 
-        if NotEmpty:
-            for field in Fields:
-                if field in NotEmpty and Fields[field] == '':
+        for field in NotEmpty:
+            if field in request.POST:
+                if Fields[field] == '':
                     return 1, 'parameter "%s" contains an empty string which is specifically disallowed.' % field, None, None, None
+            #else:
+            #    return 1, 'request did not contain mandatory (but not empty) parameter "%s".' % field, None, None, None
 
     return 0, None, Fields, Tables, Columns
 
@@ -1533,10 +1557,13 @@ def verify_cloud_credentials(config, cloud):
     elif 'cloud_type' in cloud:
         cloud_type = cloud['cloud_type']
 
+    # Must be a /cloud/update/ (not /cloud/add/) request.
     elif 'group_name' in cloud and 'cloud_name' in cloud:
         rc, msg, target_cloud = get_target_cloud(config, cloud['group_name'], cloud['cloud_name'])
         if rc == 0:
             cloud_type = target_cloud['cloud_type']
+        else:
+            return rc, msg, None
 
     if cloud_type == 'amazon':
         rc, msg, session = get_amazon_session(config, cloud, target_cloud=target_cloud)
@@ -1553,7 +1580,7 @@ def verify_cloud_credentials(config, cloud):
         return rc, msg, None
 
     else:
-       return 1, 'unsuppoerted cloud_type', None
+       return 1, 'unsupported cloud_type', None
 
 #-------------------------------------------------------------------------------
 

@@ -1,512 +1,277 @@
-from unit_test_common import execute_csv2_request, initialize_csv2_request, ut_id
+from unit_test_common import execute_csv2_request, initialize_csv2_request, ut_id, sanity_requests, parameters_requests
 from sys import argv
 
 # lno: UV - error code identifier.
 
-def main(gvar, user_secret):
+def main(gvar):
     if not gvar:
         gvar = {}
         if len(argv) > 1:
-            initialize_csv2_request(gvar, argv[0], selections=argv[1])
+            initialize_csv2_request(gvar, selections=argv[1])
         else:
-            initialize_csv2_request(gvar, argv[0])
+            initialize_csv2_request(gvar)
     
-    # 01
-    execute_csv2_request(
-        gvar, 2, None, 'HTTP response code 401, unauthorized.',
-        '/user/update/', #I assume that this request does not reqire a group specification (same for all requests below)
-        server_user='invalid-unit-test', server_pw=user_secret
-    )
+    # 01 - 05
+    sanity_requests(gvar, '/user/update/', ut_id(gvar, 'utg1'), ut_id(gvar, 'utu4'), ut_id(gvar, 'utg2'), ut_id(gvar, 'utu2'))
 
-    # 02
-    execute_csv2_request(
-        gvar, 2, None, 'HTTP response code 403, forbidden.',
-        '/user/update/',
-        server_user=ut_id(gvar, 'utu1'), server_pw=user_secret
-    )
+    parameters = {
+        # 06 Send a GET request.
+        # 07 Give an invalid parameter.
+        # 08 Omit username.
+        # 09 Give two usernames.
+        'username': {'valid': ut_id(gvar, 'utu6'), 'test_cases': {
+            # 10
+            '': 'user update, value specified for "username" must not be the empty string.',
+            # 11
+            'invalid-unit-Test': 'user update, value specified for "username" must be all lowercase letters, digits, dashes, underscores, periods, and colons, and cannot contain more than one consecutive dash or start or end with a dash.',
+            # 12
+            'invalid-unit-test-': 'user update, value specified for "username" must be all lowercase letters, digits, dashes, underscores, periods, and colons, and cannot contain more than one consecutive dash or start or end with a dash.',
+            # 13
+            'invalid-unit-test!': 'user update, value specified for "username" must be all lowercase letters, digits, dashes, underscores, periods, and colons, and cannot contain more than one consecutive dash or start or end with a dash.',
+            # 14 Do not specify any fields to update.
+            ut_id(gvar, 'utu6'): 'must specify at least one field to update.'
+        }, 'mandatory': True},
+        # 15 Give password.1 and password.2 (not to be confused with password1 and password2).
+        'password': {'valid': gvar['user_secret'], 'test_cases': {
+            # 16
+            'inv': 'value specified for a password is less than 6 characters.',
+            # 17
+            'invalid': 'value specified for a password is less then 16 characters, and does not contain a mixture of upper, lower, and numerics.'
+        }},
+        # 18 Give both group_name and group_name.1.
+        'group_name': {'valid': ut_id(gvar, 'utg1'), 'test_cases': {
+            # 19
+            '': 'user update, parameter "group_name" contains an empty string which is specifically disallowed.',
+            # 20
+            'invalid-unit-test': 'specified group "invalid-unit-test" does not exist.'
+        }, 'array_field': True},
+        # 21 Give two group_options.
+        'group_option': {'valid': 'add', 'test_cases': {
+            # 22
+            'invalid-unit-test': 'value specified for "group_option" must be one of the following options: [\'add\', \'delete\'].',
+            # 23 group_option by itself should not count as a field to update.
+            'add': 'must specify at least one field to update.'
+        }},
+        # 24 Give two cert_cns.
+        'cert_cn': {'valid': 'invalid-unit-test', 'test_cases': {
+            # 25
+            ut_id(gvar, 'utu3'): 'common name "{0}" conflicts with registered user "{0}".'.format(ut_id(gvar, 'utu3')),
+            # 26
+            ut_id(gvar, 'user test user three'): 'common name "{}" conflicts with registered user "{}".'.format(ut_id(gvar, 'user test user three'), ut_id(gvar, 'utu3'))
+        }},
+        # 27 Give two is_superusers.
+        # 28
+        'is_superuser': {'valid': 0, 'test_cases': {'invalid-unit-test': 'boolean value specified for "is_superuser" must be one of the following: true, false, yes, no, 1, or 0.'}}
+    }
 
-    # 03
-    execute_csv2_request(
-        gvar, 1, 'UV', 'user "{}" is not a member of any group.'.format(ut_id(gvar, 'utu2')),
-        '/user/update/',
-        server_user=ut_id(gvar, 'utu2'), server_pw=user_secret
-    )
+    parameters_requests(gvar, '/user/update/', ut_id(gvar, 'utg1'), ut_id(gvar, 'utu4'), parameters)
 
-    # 04
-    execute_csv2_request(
-        gvar, 1, 'UV', 'invalid method "GET" specified.',
-        '/user/update/'
-    )
-
-    # 05
-    execute_csv2_request(
-        gvar, 1, 'UV', 'cannot switch to invalid group "invalid-unit-test".',
-        '/user/update/', group='invalid-unit-test'
-    )
-
-    # 06
-    execute_csv2_request(
-        gvar, 1, 'UV', 'cannot switch to invalid group "{}".'.format(ut_id(gvar, 'utg2')),
-        '/user/update/', group=ut_id(gvar, 'utg2')
-    )
-
-    # 07
-    execute_csv2_request(
-        gvar, 1, 'UV', 'request contained a bad parameter "invalid-unit-test".',
-        '/user/update/'
-, form_data={'invalid-unit-test': 'invalid-unit-test'}
-    )
-
-    # 08
-    execute_csv2_request(
-        gvar, 1, 'UV', 'value specified for "username" must be all lower case.',
-        '/user/update/'
-, form_data={'username': 'Invalid-unit-test'}
-    )
-
-    # 09
-    execute_csv2_request(
-        gvar, 1, 'UV', 'must specify at least one field to update.',
-        '/user/update/'
-, form_data={'username': 'invalid-unit-test'}
-    )
-
-    # 10
+    # 29 Attempt to update a non-existent user.
     execute_csv2_request(
         gvar, 1, 'UV', 'the request did not match any rows.',
-        '/user/update/'
-, form_data={
+        '/user/update/', group=ut_id(gvar, 'utg1'), form_data={
             'username': 'invalid-unit-test',
-            'password': 'invalid-unit-test'
-        }
+            # We must specify a field to update.
+            'cert_cn': 'invalid-unit-test'
+        },
+        server_user=ut_id(gvar, 'utu4')
     )
 
-    # 11
-    execute_csv2_request(
-        gvar, 1, 'UV', 'must specify at least one field to update.',
-        '/user/update/'
-, form_data={'username': ut_id(gvar, 'utu6')}
-    )
-
-    # 12
-    execute_csv2_request(
-        gvar, 1, 'UV', 'boolean value specified for "is_superuser" must be one of the following: true, false, yes, no, 1, or 0.',
-        '/user/update/'
-, form_data={'is_superuser': 'invalid-unit-test'}
-    )
-
-    # 13
-    execute_csv2_request(
-        gvar, 1, 'UV', 'value specified for a password is less than 6 characters.',
-        '/user/update/'
-, form_data={'password': 'test'}
-    )
-
-    # 14
-    execute_csv2_request(
-        gvar, 1, 'UV', 'value specified for a password is less then 16 characters, and does not contain a mixture of upper, lower, and numerics.',
-        '/user/update/'
-, form_data={'password': 'invalid'}
-    )
-
-    # 15
+    # 30 Give a single password that is too short.
     execute_csv2_request(
         gvar, 1, 'UV', 'password update received a password but no verify password; both are required.',
-        '/user/update/'
-, form_data={'password1': 'test'}
+        '/user/update/', group=ut_id(gvar, 'utg1'), form_data={'password1': 'test'},
+        server_user=ut_id(gvar, 'utu4')
     )
 
-    # 16
+    # 31 Give a single password that is too weak.
     execute_csv2_request(
         gvar, 1, 'UV', 'password update received a verify password but no password; both are required.',
-        '/user/update/'
-, form_data={'password2': 'test'}
+        '/user/update/', group=ut_id(gvar, 'utg1'), form_data={'password2': 'test'},
+        server_user=ut_id(gvar, 'utu4')
     )
 
-    # 17
+    # 32 Give a password with confirmation that is too short.
     execute_csv2_request(
         gvar, 1, 'UV', 'value specified for a password is less than 6 characters.',
-        '/user/update/'
-, form_data={
+        '/user/update/', group=ut_id(gvar, 'utg1'), form_data={
             'password1': 'test',
             'password2': 'test'
-        }
+        },
+        server_user=ut_id(gvar, 'utu4')
     )
 
-    # 18
+    # 33 Give a password with confirmation that is too weak.
     execute_csv2_request(
         gvar, 1, 'UV', 'value specified for a password is less then 16 characters, and does not contain a mixture of upper, lower, and numerics.',
-        '/user/update/'
-, form_data={
+        '/user/update/', group=ut_id(gvar, 'utg1'), form_data={
             'password1': 'invalid',
             'password2': 'invalid'
-        }
+        },
+        server_user=ut_id(gvar, 'utu4')
     )
 
-    # 19
+    # 34 Give differing passwords.
     execute_csv2_request(
         gvar, 1, 'UV', 'values specified for passwords do not match.',
-        '/user/update/'
-, form_data={
+        '/user/update/', group=ut_id(gvar, 'utg1'), form_data={
             'password1': 'Abc123',
             'password2': '321cbA'
-        }
+        },
+        server_user=ut_id(gvar, 'utu4')
     )
 
-    # 20
+    # 35 Attempt to change a static value.
     execute_csv2_request(
         gvar, 1, 'UV', 'request contained a rejected/bad parameter "join_date".',
-        '/user/update/'
-, form_data={
+        '/user/update/', group=ut_id(gvar, 'utg1'), form_data={
             'username': ut_id(gvar, 'utu6'),
             'join_date': 'invalid-unit-test'
-        }
-    )
-
-    # 21
-    execute_csv2_request(
-        gvar, 1, 'UV', 'request contained a rejected/bad parameter "active_group".',
-        '/user/update/'
-, form_data={
-            'username': ut_id(gvar, 'utu6'),
-            'active_group': 'invalid-unit-test'
-        }
-    )
-
-    # 22
-    execute_csv2_request(
-        gvar, 1, 'UV', 'specified group "invalid-unit-test" does not exist.',
-        '/user/update/'
-, form_data={
-            'username': 'invalid-unit-test',
-            'group_name': 'invalid-unit-test'
-        }
-    )
-
-    # 23
-    execute_csv2_request(
-        gvar, 1, 'UV', 'request contained a bad parameter "htcondor_fqdn".',
-        '/user/update/'
-, form_data={
-            'username': 'invalid-unit-test',
-            'htcondor_fqdn': 'invalid-unit-test'
-        }
-    )
-
-    # 24
-    execute_csv2_request(
-        gvar, 1, 'UV', 'user update, "{}" failed - group "{}" was specified twice.'.format(ut_id(gvar, 'utu6'), ut_id(gvar, 'utg1')),
-        '/user/update/'
-, form_data={
-            'username': ut_id(gvar, 'utu6'),
-            'group_name.1': ut_id(gvar, 'utg1'),
-            'group_name.2': ut_id(gvar, 'utg1')
-        }
-    )
-
-    # 25
-    execute_csv2_request(
-        gvar, 1, 'UV', 'common name "{0}" conflicts with registered user "{0}".'.format(ut_id(gvar, 'utu3')),
-        '/user/update/'
-, form_data={
-            'username': ut_id(gvar, 'utu6'),
-            'cert_cn': ut_id(gvar, 'utu3')
-        }
-    )
-
-    # 26
-    execute_csv2_request(
-        gvar, 1, 'UV', 'common name "{}" conflicts with registered user "{}".'.format(ut_id(gvar, 'user test user three'), ut_id(gvar, 'utu3')),
-        '/user/update/'
-, form_data={
-            'username': ut_id(gvar, 'utu6'),
-            'cert_cn': ut_id(gvar, 'user test user three')
-        }
-    )
-
-    # 27
-    execute_csv2_request(
-        gvar, 1, 'UV', 'value specified for "group_option" must be one of the following options: [\'add\', \'delete\'].',
-        '/user/update/'
-, form_data={
-            'username': ut_id(gvar, 'utu6'),
-            'group_option': 'invalid-unit-test'
-        }
-    )
-
-    # 28
-    execute_csv2_request(
-        gvar, 1, 'UV', 'must specify at least one field to update.',
-        '/user/update/'
-, form_data={
-            'username': ut_id(gvar, 'utu6'),
-            'group_option': 'add'
-        }
-    )
-
-    # 29
-    execute_csv2_request(
-        gvar, 1, 'UV', 'must specify at least one field to update.',
-        '/user/update/'
-, form_data={
-            'username': ut_id(gvar, 'utu6'),
-            'group_option': 'delete'
-        }
-    )
-
-    # 30
-    execute_csv2_request(
-        gvar, 1, 'UV', 'specified group "invalid-unit-test" does not exist.',
-        '/user/update/'
-, form_data={
-            'username': ut_id(gvar, 'utu6'),
-            'group_option': 'add',
-            'group_name': 'invalid-unit-test'
-        }
-    )
-
-    # 31
-    execute_csv2_request(
-        gvar, 1, 'UV', 'specified group "invalid-unit-test" does not exist.',
-        '/user/update/'
-, form_data={
-            'username': ut_id(gvar, 'utu6'),
-            'group_option': 'delete',
-            'group_name': 'invalid-unit-test'
-        }
-    )
-
-    # 32
-    execute_csv2_request(
-        gvar, 1, 'UV', 'specified group "invalid-unit-test" does not exist.',
-        '/user/update/'
-, form_data={
-            'username': ut_id(gvar, 'utu6'),
-            'group_name.1': ut_id(gvar, 'utg1'),
-            'group_name.2': 'invalid-unit-test'
-        }
-    )
-
-    # 33
-    execute_csv2_request(
-        gvar, 1, 'UV', 'specified group "invalid-unit-test" does not exist.',
-        '/user/update/'
-, form_data={
-            'username': ut_id(gvar, 'utu6'),
-            'group_name.1': ut_id(gvar, 'utg1'),
-            'group_name.2': 'invalid-unit-test',
-            'group_option': 'add'
-        }
-    )
-
-    # 34
-    execute_csv2_request(
-        gvar, 1, 'UV', 'specified group "invalid-unit-test" does not exist.',
-        '/user/update/'
-, form_data={
-            'username': ut_id(gvar, 'utu6'),
-            'group_name.1': ut_id(gvar, 'utg1'),
-            'group_name.2': 'invalid-unit-test',
-            'group_option': 'delete'
-        }
-    )
-
-    # 35
-    execute_csv2_request(
-        gvar, 0, None, 'user "{}" successfully updated.'.format(ut_id(gvar, 'utu6')),
-        '/user/update/'
-, form_data={
-            'username': ut_id(gvar, 'utu6'),
-            'cert_cn': ut_id(gvar, 'user-test-user-six')
-        }
+        },
+        server_user=ut_id(gvar, 'utu4')
     )
 
     # 36
     execute_csv2_request(
-        gvar, 0, None, 'user "{}" successfully updated.'.format(ut_id(gvar, 'utu6')),
-        '/user/update/'
-, form_data={
+        gvar, 1, 'UV', 'request contained a rejected/bad parameter "active_group".',
+        '/user/update/', group=ut_id(gvar, 'utg1'), form_data={
             'username': ut_id(gvar, 'utu6'),
-            'cert_cn': ut_id(gvar, 'user-test-user-six')
-        }
+            'active_group': 'invalid-unit-test'
+        },
+        server_user=ut_id(gvar, 'utu4')
     )
 
     # 37
     execute_csv2_request(
-        gvar, 0, None, None,
-        '/user/list/',
-        list='user_list', filter={'username': ut_id(gvar, 'utu6')},
-        values={'username': ut_id(gvar, 'utu6'), 'user_groups': None, 'cert_cn': ut_id(gvar, 'user-test-user-six')}
+        gvar, 1, 'UV', 'request contained a bad parameter "htcondor_fqdn".',
+        '/user/update/', group=ut_id(gvar, 'utg1'), form_data={
+            'username': 'invalid-unit-test',
+            'htcondor_fqdn': 'invalid-unit-test'
+        },
+        server_user=ut_id(gvar, 'utu4')
     )
 
     # 38
     execute_csv2_request(
-        gvar, 0, None, 'user "{}" successfully updated.'.format(ut_id(gvar, 'utu6')),
-        '/user/update/'
-, form_data={
-            'username': ut_id(gvar, 'utu6'),
-            'group_name': ut_id(gvar, 'utg1')
-        }
-    )
-
-    # 39
-    execute_csv2_request(
-        gvar, 0, None, None,
-        '/user/list/',
-        list='user_list', filter={'username': ut_id(gvar, 'utu6')},
-        values={'username': ut_id(gvar, 'utu6'), 'user_groups': ut_id(gvar, 'utg1')}
-    )
-
-    # 40
-    execute_csv2_request(
-        gvar, 0, None, 'user "{}" successfully updated.'.format(ut_id(gvar, 'utu6')),
-        '/user/update/'
-, form_data={
+        gvar, 1, 'UV', 'user update, "{}" failed - group "{}" was specified twice.'.format(ut_id(gvar, 'utu6'), ut_id(gvar, 'utg1')),
+        '/user/update/', group=ut_id(gvar, 'utg1'), form_data={
             'username': ut_id(gvar, 'utu6'),
             'group_name.1': ut_id(gvar, 'utg1'),
-            'group_name.2': ut_id(gvar, 'utg2')
-        }
+            'group_name.2': ut_id(gvar, 'utg1')
+        },
+        server_user=ut_id(gvar, 'utu4')
+    )
+
+    # 39 Attempt to add to a non-existent group.
+    execute_csv2_request(
+        gvar, 1, 'UV', 'specified group "invalid-unit-test" does not exist.',
+        '/user/update/', group=ut_id(gvar, 'utg1'), form_data={
+            'username': ut_id(gvar, 'utu6'),
+            'group_option': 'delete',
+            'group_name': 'invalid-unit-test'
+        },
+        server_user=ut_id(gvar, 'utu4')
+    )
+
+    # 40 Implicitly add the user to one group.
+    execute_csv2_request(
+        gvar, 0, None, 'user "{}" successfully updated.'.format(ut_id(gvar, 'utu6')),
+        '/user/update/', group=ut_id(gvar, 'utg1'), form_data={
+            'username': ut_id(gvar, 'utu6'),
+            'cert_cn': ut_id(gvar, 'user-test-user-six'),
+            'group_name': ut_id(gvar, 'utg1')
+        },
+        server_user=ut_id(gvar, 'utu4')
     )
 
     # 41
     execute_csv2_request(
         gvar, 0, None, None,
-        '/user/list/',
-        list='user_list', filter={'username': ut_id(gvar, 'utu6')},
-        values={'username': ut_id(gvar, 'utu6'), 'user_groups': ut_id(gvar, 'utg1,utg2')}
+        '/user/list/', group=ut_id(gvar, 'utg1'),
+        expected_list='user_list', list_filter={'username': ut_id(gvar, 'utu6')},
+        values={'user_groups': ut_id(gvar, 'utg1'), 'cert_cn': ut_id(gvar, 'user-test-user-six')},
+        server_user=ut_id(gvar, 'utu4')
     )
 
-    # 42
+    # 42 Implicitly add the user to two groups.
     execute_csv2_request(
         gvar, 0, None, 'user "{}" successfully updated.'.format(ut_id(gvar, 'utu6')),
-        '/user/update/'
-, form_data={
-            'username': ut_id(gvar, 'utu6'),
-            'group_name.1': ut_id(gvar, 'utg1'),
-            'group_option': 'delete'
-        }
-    )
-
-    # 43
-    execute_csv2_request(
-        gvar, 0, None, None,
-        '/user/list/',
-        list='user_list', filter={'username': ut_id(gvar, 'utu6')},
-        values={'username': ut_id(gvar, 'utu6'), 'user_groups': ut_id(gvar, 'utg2')}
-    )
-
-    # 44
-    execute_csv2_request(
-        gvar, 0, None, 'user "{}" successfully updated.'.format(ut_id(gvar, 'utu6')),
-        '/user/update/'
-, form_data={
-            'username': ut_id(gvar, 'utu6'),
-            'group_name.1': ut_id(gvar, 'utg1'),
-            'group_option': 'add'
-        }
-    )
-
-    # 45
-    execute_csv2_request(
-        gvar, 0, None, None,
-        '/user/list/',
-        list='user_list', filter={'username': ut_id(gvar, 'utu6')},
-        values={'username': ut_id(gvar, 'utu6'), 'user_groups': ut_id(gvar, 'utg1,utg2')}
-    )
-
-    # 46
-    execute_csv2_request(
-        gvar, 0, None, 'user "{}" successfully updated.'.format(ut_id(gvar, 'utu6')),
-        '/user/update/'
-, form_data={
-            'username': ut_id(gvar, 'utu6'),
-            'group_name.1': ut_id(gvar, 'utg1'),
-            'group_name.2': ut_id(gvar, 'utg2'),
-            'group_option': 'delete'
-        }
-    )
-
-    # 47
-    execute_csv2_request(
-        gvar, 0, None, None,
-        '/user/list/',
-        list='user_list', filter={'username': ut_id(gvar, 'utu6')},
-        values={'username': ut_id(gvar, 'utu6'), 'user_groups': None}
-    )
-
-    # 48
-    execute_csv2_request(
-        gvar, 0, None, 'user "{}" successfully updated.'.format(ut_id(gvar, 'utu6')),
-        '/user/update/'
-, form_data={
-            'username': ut_id(gvar, 'utu6'),
-            'group_name.1': ut_id(gvar, 'utg1'),
-            'group_name.2': ut_id(gvar, 'utg2'),
-            'group_option': 'add'
-        }
-    )
-
-    # 49
-    execute_csv2_request(
-        gvar, 0, None, None,
-        '/user/list/',
-        list='user_list', filter={'username': ut_id(gvar, 'utu6')},
-        values={'username': ut_id(gvar, 'utu6'), 'user_groups': ut_id(gvar, 'utg1,utg2')}
-    )
-
-    # 50
-    execute_csv2_request(
-        gvar, 0, None, 'user "{}" successfully updated.'.format(ut_id(gvar, 'utu6')),
-        '/user/update/'
-, form_data={
-            'username': ut_id(gvar, 'utu6'),
-            'group_name.1': ut_id(gvar, 'utg1')
-        }, html=True
-    )
-
-    # 51
-    execute_csv2_request(
-        gvar, 0, None, None,
-        '/user/list/',
-        list='user_list', filter={'username': ut_id(gvar, 'utu6')},
-        values={'username': ut_id(gvar, 'utu6'), 'user_groups': ut_id(gvar, 'utg1')}
-    )
-
-    # 52
-    execute_csv2_request(
-        gvar, 0, None, 'user "{}" successfully updated.'.format(ut_id(gvar, 'utu6')),
-        '/user/update/'
-, form_data={
+        '/user/update/', group=ut_id(gvar, 'utg1'), form_data={
             'username': ut_id(gvar, 'utu6'),
             'group_name.1': ut_id(gvar, 'utg1'),
             'group_name.2': ut_id(gvar, 'utg2')
-        }, html=True
+        },
+        server_user=ut_id(gvar, 'utu4')
     )
 
-    # 53
+    # 43 Ensure that utu6 was added to utg1 and utg2.
     execute_csv2_request(
         gvar, 0, None, None,
-        '/user/list/',
-        list='user_list', filter={'username': ut_id(gvar, 'utu6')},
-        values={'username': ut_id(gvar, 'utu6'), 'user_groups': ut_id(gvar, 'utg1,utg2')}
+        '/user/list/', group=ut_id(gvar, 'utg1'),
+        expected_list='user_list', list_filter={'username': ut_id(gvar, 'utu6')},
+        values={'username': ut_id(gvar, 'utu6'), 'user_groups': ut_id(gvar, 'utg1,utg2')},
+        server_user=ut_id(gvar, 'utu4')
     )
 
-    # 54
+    # 44 Explicitly remove the user from a group.
     execute_csv2_request(
         gvar, 0, None, 'user "{}" successfully updated.'.format(ut_id(gvar, 'utu6')),
-        '/user/update/'
-, form_data={
+        '/user/update/', group=ut_id(gvar, 'utg1'), form_data={
             'username': ut_id(gvar, 'utu6'),
-            'group_name': ''
-        }, html=True
+            'group_name': ut_id(gvar, 'utg2'),
+            'group_option': 'delete'
+        },
+        server_user=ut_id(gvar, 'utu4')
     )
 
-    # 55
+    # 45 Ensure that utu6 was removed from utg2.
     execute_csv2_request(
         gvar, 0, None, None,
-        '/user/list/',
-        list='user_list', filter={'username': ut_id(gvar, 'utu6')},
-        values={'username': ut_id(gvar, 'utu6'), 'user_groups': None}
+        '/user/list/', group=ut_id(gvar, 'utg1'),
+        expected_list='user_list', list_filter={'username': ut_id(gvar, 'utu6')},
+        values={'username': ut_id(gvar, 'utu6'), 'user_groups': ut_id(gvar, 'utg1')},
+        server_user=ut_id(gvar, 'utu4')
+    )
+
+    # 46 Explicitly add the user to one group.
+    execute_csv2_request(
+        gvar, 0, None, 'user "{}" successfully updated.'.format(ut_id(gvar, 'utu6')),
+        '/user/update/', group=ut_id(gvar, 'utg1'), form_data={
+            'username': ut_id(gvar, 'utu6'),
+            'group_name': ut_id(gvar, 'utg2'),
+            'group_option': 'add'
+        },
+        server_user=ut_id(gvar, 'utu4')
+    )
+
+    # 47 Ensure that utu6 was added to utg2.
+    execute_csv2_request(
+        gvar, 0, None, None,
+        '/user/list/', group=ut_id(gvar, 'utg1'),
+        expected_list='user_list', list_filter={'username': ut_id(gvar, 'utu6')},
+        values={'username': ut_id(gvar, 'utu6'), 'user_groups': ut_id(gvar, 'utg1,utg2')},
+        server_user=ut_id(gvar, 'utu4')
+    )
+
+    # 48 Explicitly remove the user from two groups, and revert to original state (so that setup / cleanup is not necessary between runs).
+    execute_csv2_request(
+        gvar, 0, None, 'user "{}" successfully updated.'.format(ut_id(gvar, 'utu6')),
+        '/user/update/', group=ut_id(gvar, 'utg1'), form_data={
+            'username': ut_id(gvar, 'utu6'),
+            'group_name.1': ut_id(gvar, 'utg1'),
+            'group_name.2': ut_id(gvar, 'utg2'),
+            'group_option': 'delete'
+        },
+        server_user=ut_id(gvar, 'utu4')
+    )
+
+    # 49 Ensure that utu6 was removed from utg1 and utg2.
+    execute_csv2_request(
+        gvar, 0, None, None,
+        '/user/list/', group=ut_id(gvar, 'utg1'),
+        expected_list='user_list', list_filter={'username': ut_id(gvar, 'utu6')},
+        values={'username': ut_id(gvar, 'utu6'), 'user_groups': None},
+        server_user=ut_id(gvar, 'utu4')
     )
 
 if __name__ == "__main__":

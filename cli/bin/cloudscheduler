@@ -452,17 +452,14 @@ def main(args):
         print("Cloudscheduler CLI, %s\n" % gvar['client_version'])
 
     # Set non-super_user and no user_groups.
-    if gvar['object'] == 'defaults' or gvar['object'] == 'helpers' or gvar['object'] == 'metadata':
+    if gvar['object'] in ['defaults', 'helpers', 'metadata']:
         gvar['super_user'] = False
         gvar['user_groups'] = []
-    else:
-        response = requests(gvar, '/settings/prepare/')
 
+    if gvar['object'] != 'defaults' and gvar['object'] != 'helpers':
+        response = requests(gvar, '/settings/prepare/')
         if gvar['user_settings']['version']:
             print("Cloudscheduler server: %s, %s\n" % (gvar['pid_defaults']['server'], response['version']))
-
-#   print(">>>>>", gvar['active_group'], gvar['super_user'])
-#   gvar['super_user'] = False
 
     # Call object handler.
     if gvar['object'] in gvar['actions']:

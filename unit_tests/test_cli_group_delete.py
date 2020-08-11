@@ -1,89 +1,48 @@
-from unit_test_common import execute_csv2_command, initialize_csv2_request, ut_id
+from unit_test_common import execute_csv2_command, initialize_csv2_request, ut_id, sanity_commands, parameters_commands
 from sys import argv
 
 # lno: GV - error code identifier.
 
-def main(gvar, user_secret):
+def main(gvar):
     if not gvar:
         gvar = {}
         if len(argv) > 1:
-            initialize_csv2_request(gvar, argv[0], selections=argv[1])
+            initialize_csv2_request(gvar, selections=argv[1])
         else:
-            initialize_csv2_request(gvar, argv[0])
+            initialize_csv2_request(gvar)
 
+    # 01 - 14
+    sanity_commands(gvar, 'group', 'delete')
+
+    # 15
     execute_csv2_command(
-        gvar, 1, None, 'the following mandatory parameters must be specfied on the command line',
-        ['cloudscheduler', 'group', 'delete', '-s', 'unit-test']
+        gvar, 1, None, 'You are not authorized to access object "group";',
+        ['group', 'delete', '-gn', ut_id(gvar, 'clg4'), '-Y', '-su', ut_id(gvar, 'clu3')]
     )
 
-    execute_csv2_command(
-        gvar, 1, None, 'The following command line arguments were unrecognized',
-        ['cloudscheduler', 'group', 'delete', '-xx', 'yy']
-    )
+    parameters = {
+        # 16 Omit `--group-name`.
+        '--group-name': {'valid': ut_id(gvar, 'clg4'), 'test_cases': {
+            # 17
+            '': 'cannot delete "", group doesn\'t exist.',
+            # 18
+            'invalid-unit-test': 'cannot delete "invalid-unit-test", group doesn\'t exist.'
+        }, 'mandatory': True}
+    }
 
+    # `group delete` rejects the `--group` option (not to be confused with `--group-name`), even though it is global.
+    parameters_commands(gvar, 'group', 'delete', '', ut_id(gvar, 'clu4'), parameters, requires_confirmation=True)
+
+    # 19
     execute_csv2_command(
         gvar, 1, None, 'The following command line arguments were invalid: job-cores',
-        ['cloudscheduler', 'group', 'delete', '-jc', 'invalid-unit-test']
+        ['group', 'delete', '-jc', 'invalid-unit-test', '-Y', '-su', ut_id(gvar, 'clu4')]
     )
 
-    execute_csv2_command(
-        gvar, 1, None, 'Error: the specified server "invalid-unit-test" does not exist in your defaults.',
-        ['cloudscheduler', 'group', 'delete', '-s', 'invalid-unit-test']
-    )
-
-    execute_csv2_command(
-        gvar, 1, None, 'You are not authorized to access object "group";',
-        ['cloudscheduler', 'group', 'delete', '-s', 'unit-test-un']
-    )
-
-    execute_csv2_command(
-        gvar, 1, None, 'the following mandatory parameters must be specfied on the command line',
-        ['cloudscheduler', 'group', 'delete', '-s', 'unit-test']
-    )
-
-    execute_csv2_command(
-        gvar, 0, None, 'Help requested for "cloudscheduler group delete".',
-        ['cloudscheduler', 'group', 'delete', '-h']
-    )
-
-    execute_csv2_command(
-        gvar, 0, None, 'General Commands Manual',
-        ['cloudscheduler', 'group', 'delete', '-H']
-    )
-
-    execute_csv2_command(
-        gvar, 1, None, 'Expose API requested',
-        ['cloudscheduler', 'group', 'delete', '-xA']
-    )
-
-    execute_csv2_command(
-        gvar, 1, None, 'cannot switch to invalid group "invalid-unit-test".',
-        ['cloudscheduler', 'group', 'delete', '-g', 'invalid-unit-test']
-    )
-
-    execute_csv2_command(
-        gvar, 1, None, r'cannot delete "", group doesn\'t exist.',
-        ['cloudscheduler', 'group', 'delete', '-gn', '']
-    )
-
-    execute_csv2_command(
-        gvar, 1, None, r'cannot delete "invalid-unit-test", group doesn\'t exist.',
-        ['cloudscheduler', 'group', 'delete', '-gn', 'invalid-unit-test']
-    )
-
-    execute_csv2_command(
-        gvar, 1, None, 'You are not authorized to access object "group";',
-        ['cloudscheduler', 'group', 'delete', '-gn', ut_id(gvar, 'clg3'), '-Y', '-s', 'unit-test-un']
-    )
-
-    execute_csv2_command(
-        gvar, 0, None, 'group "{}" successfully deleted.'.format(ut_id(gvar, 'clg3')),
-        ['cloudscheduler', 'group', 'delete', '-gn', ut_id(gvar, 'clg3'), '-Y', '-s', 'unit-test']
-    )
-
+    # 20
     execute_csv2_command(
         gvar, 0, None, 'group "{}" successfully deleted.'.format(ut_id(gvar, 'clg4')),
-        ['cloudscheduler', 'group', 'delete', '-gn', ut_id(gvar, 'clg4'), '-Y']
+        ['group', 'delete', '-gn', ut_id(gvar, 'clg4'), '-Y', '-su', ut_id(gvar, 'clu4')]
     )
 
 if __name__ == "__main__":

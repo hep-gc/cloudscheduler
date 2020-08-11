@@ -6,7 +6,7 @@
 .SY cloudscheduler
 .B group
 .B add
-.BI \-gm " manager"
+.BI \-htcf " htcondor-central-manager-fqdn"
 .BI \-gn " name"
 .RI "[" "options" " ...]"
 .YS
@@ -21,13 +21,25 @@
 .SS Mandatory
 .\" --------------------------------------------------------------------
 .so ../man/_mandatory_parameters.so
-.so ../man/parameters/_group_manager.so
+.so ../man/parameters/_htcondor_fqdn.so
 .so ../man/parameters/_group_name.so
 .\" --------------------------------------------------------------------
 .SS Optional
 .\" --------------------------------------------------------------------
 .so ../man/_options.so
+.so ../man/parameters/_htcondor_container_hostname.so
+.so ../man/parameters/_htcondor_other_submitters.so
+.so ../man/parameters/_job_cores.so
+.so ../man/parameters/_job_disk.so
+.so ../man/parameters/_job_ram.so
+.so ../man/parameters/_job_swap.so
 .so ../man/parameters/_username_group_add.so
+.so ../man/parameters/_vm_flavor.so
+.so ../man/parameters/_vm_image.so
+.so ../man/parameters/_vm_keep_alive.so
+.so ../man/parameters/_vm_keyname.so
+.so ../man/parameters/_vm_network.so
+.so ../man/parameters/_vm_security_groups.so
 .\" --------------------------------------------------------------------
 .SS Global
 .\" --------------------------------------------------------------------
@@ -39,7 +51,7 @@
 1.
 Adding the group "example":
 .EX
-$ cloudscheduler group add -gm example.com -gn example
+$ cloudscheduler group add -htcf example.com -gn example
 group "example" successfully added.
 .EE
 .\" --------------------------------------------------------------------
@@ -54,5 +66,6 @@ group "example" successfully added.
 .BR csv2_group_metadata-edit (1)
 .BR csv2_group_metadata-list (1)
 .BR csv2_group_metadata-load (1)
+.BR csv2_group_metadata-save (1)
 .BR csv2_group_metadata-update (1)
 .BR csv2_group_update (1)

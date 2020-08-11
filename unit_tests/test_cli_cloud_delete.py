@@ -1,79 +1,41 @@
-from unit_test_common import execute_csv2_command, initialize_csv2_request, ut_id
+from unit_test_common import execute_csv2_command, initialize_csv2_request, ut_id, sanity_commands
 from sys import argv
 
 # lno: CV - error code identifier.
 
-def main(gvar, user_secret):
+def main(gvar):
     if not gvar:
         gvar = {}
         if len(argv) > 1:
-            initialize_csv2_request(gvar, argv[0], selections=argv[1])
+            initialize_csv2_request(gvar, selections=argv[1])
         else:
-            initialize_csv2_request(gvar, argv[0])
+            initialize_csv2_request(gvar)
 
-    execute_csv2_command(
-        gvar, 1, None, 'the following mandatory parameters must be specfied on the command line',
-        ['cloudscheduler', 'cloud', 'delete', '-s', 'unit-test-un']
-    )
+    # 01 - 14
+    sanity_commands(gvar, 'cloud', 'delete')
 
-    execute_csv2_command(
-        gvar, 1, None, 'The following command line arguments were unrecognized: [\'-xx\', \'yy\']',
-        ['cloudscheduler', 'cloud', 'delete', '-xx', 'yy']
-    )
-
+    # 15
     execute_csv2_command(
         gvar, 1, None, 'The following command line arguments were invalid: metadata-mime-type',
-        ['cloudscheduler', 'cloud', 'delete', '-mmt', 'invalid-unit-test']
+        ['cloud', 'delete', '-mmt', 'invalid-unit-test', '-g', ut_id(gvar, 'clg1'), '-su', ut_id(gvar, 'clu3')]
     )
 
+    # 16
     execute_csv2_command(
-        gvar, 1, None, 'Error: the specified server "invalid-unit-test" does not exist in your defaults.',
-        ['cloudscheduler', 'cloud', 'delete', '-s', 'invalid-unit-test']
+        gvar, 1, None, 'cannot delete "invalid-unit-test", cloud doesn\'t exist in group "{}".'.format(ut_id(gvar, 'clg1')),
+        ['cloud', 'delete', '-cn', 'invalid-unit-test', '-su', ut_id(gvar, 'clu3')]
     )
 
+    # 17
     execute_csv2_command(
-        gvar, 1, None, 'the following mandatory parameters must be specfied on the command line',
-        ['cloudscheduler', 'cloud', 'delete', '-s', 'unit-test-un']
+        gvar, -1, None, 'Are you sure you want to delete cloud "{}::{}"?'.format(ut_id(gvar, 'clg1'), ut_id(gvar, 'clc1')),
+        ['cloud', 'delete', '-cn', ut_id(gvar, 'clc1'), '-su', ut_id(gvar, 'clu3')], timeout=8
     )
 
-    execute_csv2_command(
-        gvar, 0, None, 'Help requested for "cloudscheduler cloud delete".',
-        ['cloudscheduler', 'cloud', 'delete', '-h']
-    )
-
-    execute_csv2_command(
-        gvar, 0, None, 'General Commands Manual',
-        ['cloudscheduler', 'cloud', 'delete', '-H']
-    )
-
-    execute_csv2_command(
-        gvar, 1, None, 'Expose API requested',
-        ['cloudscheduler', 'cloud', 'delete', '-xA']
-    )
-
-    execute_csv2_command(
-        gvar, 1, None, 'cannot switch to invalid group "invalid-unit-test".',
-        ['cloudscheduler', 'cloud', 'delete', '-g', 'invalid-unit-test']
-    )
-
-    execute_csv2_command(
-        gvar, 1, None, 'the following mandatory parameters must be specfied on the command line',
-        ['cloudscheduler', 'cloud', 'delete', '-g', ut_id(gvar, 'clg1')]
-    )
-
-    execute_csv2_command(
-        gvar, 1, None, 'cannot delete "invalid-unit-test", cloud doesn\\\'t exist in group "{}".'.format(ut_id(gvar, 'clg1')),
-        ['cloudscheduler', 'cloud', 'delete', '-cn', 'invalid-unit-test']
-    )
-
+    # 18
     execute_csv2_command(
         gvar, 0, None, 'cloud "{}::{}" successfully deleted.'.format(ut_id(gvar, 'clg1'), ut_id(gvar, 'clc1')),
-        ['cloudscheduler', 'cloud', 'delete', '-cn', ut_id(gvar, 'clc1'), '-Y']
-    )
-
-    execute_csv2_command(
-        gvar, 0, None, 'cloud "{}::{}" successfully deleted.'.format(ut_id(gvar, 'clg1'), ut_id(gvar, 'clc3')),
-        ['cloudscheduler', 'cloud', 'delete', '-cn', ut_id(gvar, 'clc3'), '-Y', '-s', 'unit-test', '-g', ut_id(gvar, 'clg1')]
+        ['cloud', 'delete', '-cn', ut_id(gvar, 'clc1'), '-Y', '-su', ut_id(gvar, 'clu3')]
     )
 
 if __name__ == "__main__":

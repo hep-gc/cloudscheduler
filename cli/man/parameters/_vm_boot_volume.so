@@ -1,5 +1,5 @@
 .TP
-\fB\-vbv \fI<JSON_dictionary string>\fR, \fB\-\-vm-boot_volume \fI<JSON_dictionary string>\fR
+\fB\-vbv \fI<JSON_dictionary string>\fR, \fB\-\-vm-boot-volume \fI<JSON_dictionary string>\fR
 Specifices whether a boot volume is to be created for VMs instantiated on this cloud or not.
 If a boot volume is to be created, then the <JSON_dictionary string> should contain at least one, but may contain more than one,
 of the following key/value pairs:

@@ -1,3 +1,0 @@
-#!/bin/bash
-echo "foo: bar: this is not yaml" > $HOME/.csv2/unit-test-un/files/$USER-clg1/metadata/$USER-clm2.yaml
-exit

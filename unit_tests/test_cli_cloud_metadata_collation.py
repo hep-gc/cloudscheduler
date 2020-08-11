@@ -1,116 +1,53 @@
-from unit_test_common import execute_csv2_command, initialize_csv2_request, ut_id
+from unit_test_common import execute_csv2_command, initialize_csv2_request, ut_id, sanity_commands
 from sys import argv
 
 # lno: CV - error code identifier.
 
-def main(gvar, user_secret):
+def main(gvar):
     if not gvar:
         gvar = {}
         if len(argv) > 1:
-            initialize_csv2_request(gvar, argv[0], selections=argv[1])
+            initialize_csv2_request(gvar, selections=argv[1])
         else:
-            initialize_csv2_request(gvar, argv[0])
+            initialize_csv2_request(gvar)
 
-    execute_csv2_command(
-        gvar, 1, None, 'The following command line arguments were unrecognized: [\'-xx\', \'yy\']',
-        ['cloudscheduler', 'cloud', 'metadata-collation', '-xx', 'yy', '-s', 'unit-test-un']
-    )
+    # 01 - 14
+    sanity_commands(gvar, 'cloud', 'metadata-collation')
 
+    # 15
     execute_csv2_command(
         gvar, 1, None, 'The following command line arguments were invalid: metadata-mime-type',
-        ['cloudscheduler', 'cloud', 'metadata-collation', '-mmt', 'invalid-unit-test']
+        ['cloud', 'metadata-collation', '-mmt', 'invalid-unit-test', '-g', ut_id(gvar, 'clg1'), '-su', ut_id(gvar, 'clu3')]
     )
 
+    # 16
     execute_csv2_command(
-        gvar, 1, None, 'Error: the specified server "invalid-unit-test" does not exist in your defaults.',
-        ['cloudscheduler', 'cloud', 'metadata-collation', '-s', 'invalid-unit-test']
+        gvar, 0, None, 'Server: unit-test, Active User: {}, Active Group: {}'.format(ut_id(gvar, 'clu3'), ut_id(gvar, 'clg1')),
+        ['cloud', 'metadata-collation', '-NV', '-su', ut_id(gvar, 'clu3')],
+        expected_list='Clouds/Metadata Collation', expected_columns={'Group', 'Cloud', 'Metadata Filename', 'Priority', 'Type'}
     )
 
-    execute_csv2_command(
-        gvar, 0, None, None,
-        ['cloudscheduler', 'cloud', 'metadata-collation', '-s', 'unit-test-un']
-    )
-
-    execute_csv2_command(
-        gvar, 0, None, 'Help requested for "cloudscheduler cloud metadata-collation".',
-        ['cloudscheduler', 'cloud', 'metadata-collation', '-h']
-    )
-
-    execute_csv2_command(
-        gvar, 0, None, 'General Commands Manual',
-        ['cloudscheduler', 'cloud', 'metadata-collation', '-H']
-    )
-
-    execute_csv2_command(
-        gvar, 0, None, 'Expose API requested',
-        ['cloudscheduler', 'cloud', 'metadata-collation', '-xA']
-    )
-
-    execute_csv2_command(
-        gvar, 1, None, 'cannot switch to invalid group "invalid-unit-test".',
-        ['cloudscheduler', 'cloud', 'metadata-collation', '-g', 'invalid-unit-test']
-    )
-
-    execute_csv2_command(
-        gvar, 0, None, 'Server: unit-test-un, Active User: {}, Active Group: {}'.format(ut_id(gvar, 'test'), ut_id(gvar, 'clg1')),
-        ['cloudscheduler', 'cloud', 'metadata-collation', '-g', ut_id(gvar, 'clg1')]
-    )
-
-    execute_csv2_command(
-        gvar, 0, None, 'Server: unit-test, Active User: {}, Active Group: {}'.format(ut_id(gvar, '')[:-1], ut_id(gvar, 'clg1')),
-        ['cloudscheduler', 'cloud', 'metadata-collation', '-s', 'unit-test', '-g', ut_id(gvar, 'clg1')]
-    )
-
-    execute_csv2_command(
-        gvar, 0, None, 'Server: unit-test-un, Active User: {}, Active Group: {}'.format(ut_id(gvar, 'test'), ut_id(gvar, 'clg1')),
-        ['cloudscheduler', 'cloud', 'metadata-collation', '-s', 'unit-test-un']
-    )
-
+    # 17 Specify a cloud that does not exist.
     execute_csv2_command(
         gvar, 0, None, 'Rows: 0',
-        ['cloudscheduler', 'cloud', 'metadata-collation', '-cn', 'invalid-unit-test']
+        ['cloud', 'metadata-collation', '--cloud-name', 'invalid-unit-test', '-su', ut_id(gvar, 'clu3')],
+        expected_list='Clouds/Metadata Collation'
     )
 
+    # 18
     execute_csv2_command(
-        gvar, 0, None, None,
-        ['cloudscheduler', 'cloud', 'metadata-collation', '-ok'],
-        list='Clouds/Metadata Collation', columns=['Group', 'Cloud', 'Metadata', 'Filename']
+        gvar, 0, None, ut_id(gvar, 'clm2'),
+        ['cloud', 'metadata-collation', '--cloud-name', ut_id(gvar, 'clc2'), '-su', ut_id(gvar, 'clu3')],
+        expected_list='Clouds/Metadata Collation'
     )
 
+    # 19
     execute_csv2_command(
         gvar, 0, None, 'cloud metadata-collation, 1. Clouds/Metadata Collation: keys=group_name,cloud_name,metadata_name, columns=priority,type',
-        ['cloudscheduler', 'cloud', 'metadata-collation', '-VC']
+        ['cloud', 'metadata-collation', '--view-columns', '-su', ut_id(gvar, 'clu3')]
     )
 
-    execute_csv2_command(
-        gvar, 0, None, None,
-        ['cloudscheduler', 'cloud', 'metadata-collation', '-NV'],
-        list='Clouds/Metadata Collation', columns=['Group', 'Cloud', 'Metadata', 'Filename', 'Priority', 'Type']
-    )
-    
-    execute_csv2_command(
-        gvar, 0, None, None,
-        ['cloudscheduler', 'cloud', 'metadata-collation', '-V', 'type'],
-        list='Clouds/Metadata Collation', columns=['Group', 'Cloud', 'Metadata', 'Filename', 'Type']
-    )
-
-    execute_csv2_command(
-        gvar, 0, None, None,
-        ['cloudscheduler', 'cloud', 'metadata-collation'],
-        list='Clouds/Metadata Collation', columns=['Group', 'Cloud', 'Metadata', 'Filename', 'Type']
-    )
-
-    execute_csv2_command(
-        gvar, 0, None, None,
-        ['cloudscheduler', 'cloud', 'metadata-collation', '-V', ''],
-        list='Clouds/Metadata Collation', columns=['Group', 'Cloud', 'Metadata', 'Filename', 'Priority', 'Type']
-    )
-
-    execute_csv2_command(
-        gvar, 0, None, None,
-        ['cloudscheduler', 'cloud', 'metadata-collation', '-r'],
-        list='Clouds/Metadata Collation', columns=['Key', 'Value']
-    )
+    # Other common table options are tested in cli_alias_list.
 
 if __name__ == "__main__":
     main(None)

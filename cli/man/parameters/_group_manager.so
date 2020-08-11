@@ -1,3 +1,0 @@
-.TP
-\fB\-gm \fImanager\fR, \fB\-\-group-manager \fImanager\fR
-The hostname of the machine where the Condor Collector is running.

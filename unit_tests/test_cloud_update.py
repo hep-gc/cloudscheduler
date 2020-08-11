@@ -1,320 +1,174 @@
-from unit_test_common import execute_csv2_request, initialize_csv2_request, ut_id
+from unit_test_common import execute_csv2_request, initialize_csv2_request, ut_id, sanity_requests, parameters_requests
 from sys import argv
 
 # lno: CV - error code identifier.
 
-def main(gvar, user_secret):
+def main(gvar):
     if not gvar:
         gvar = {}
         if len(argv) > 1:
-            initialize_csv2_request(gvar, argv[0], selections=argv[1])
+            initialize_csv2_request(gvar, selections=argv[1])
         else:
-            initialize_csv2_request(gvar, argv[0])
-    
-    # 01
-    execute_csv2_request(
-        gvar, 2, None, 'HTTP response code 401, unauthorized.',
-        '/cloud/update/?"{}"'.format(ut_id(gvar, 'ctg1')),
-        server_user='invalid-unit-test', server_pw=user_secret
-    )
+            initialize_csv2_request(gvar)
 
-    # 02
-    execute_csv2_request(
-        gvar, 1, None, 'user "{}" is not a member of any group.'.format(ut_id(gvar, 'ctu1')),
-        '/cloud/update/?"{}"'.format(ut_id(gvar, 'ctg1')),
-        server_user=ut_id(gvar, 'ctu1'), server_pw=user_secret
-    )
+    # 01 - 05
+    sanity_requests(gvar, '/cloud/update/', ut_id(gvar, 'ctg1'), ut_id(gvar, 'ctu1'), ut_id(gvar, 'ctg2'), ut_id(gvar, 'ctu2'))
 
-    # 03
-    execute_csv2_request(
-        gvar, 1, None, 'user "{}" is not a member of any group.'.format(ut_id(gvar, 'ctu2')),
-        '/cloud/update/?"{}"'.format(ut_id(gvar, 'ctg1')),
-        server_user=ut_id(gvar, 'ctu2'), server_pw=user_secret
-    )
+    parameters = {
+        # 06 Send a GET request.
+        # 07 Give an invalid parameter.
+        # 08 Omit cloud_name.
+        # 09 Give two cloud_names.
+        'cloud_name': {'valid': ut_id(gvar, 'ctc3'), 'test_cases': {
+            # 10
+            '': 'cloud update value specified for "cloud_name" must not be the empty string.',
+            # 11
+            'Invalid-unit-test': 'cloud update value specified for "cloud_name" must be all lowercase letters, digits, dashes, underscores, periods, and colons, and cannot contain more than one consecutive dash or start or end with a dash.',
+            # 12
+            'invalid-unit-test-': 'cloud update value specified for "cloud_name" must be all lowercase letters, digits, dashes, underscores, periods, and colons, and cannot contain more than one consecutive dash or start or end with a dash.',
+            # 13
+            'invalid-unit-test!': 'cloud update value specified for "cloud_name" must be all lowercase letters, digits, dashes, underscores, periods, and colons, and cannot contain more than one consecutive dash or start or end with a dash.',
+        }, 'mandatory': True},
+        # 14 Give two authurls.
+        # 15
+        'authurl': {'valid': gvar['cloud_credentials']['authurl'], 'test_cases': {'': 'parameter "authurl" contains an empty string which is specifically disallowed.'}},
+        # 16 Give two usernames.
+        # 17
+        'username': {'valid': gvar['cloud_credentials']['username'], 'test_cases': {'': 'parameter "username" contains an empty string which is specifically disallowed.'}},
+        # 18 Give two passwords.
+        # 19
+        'password': {'valid': gvar['cloud_credentials']['password'], 'test_cases': {'': 'parameter "password" contains an empty string which is specifically disallowed.'}},
+        # 20 Give two projects.
+        # 21
+        'project': {'valid': gvar['cloud_credentials']['project'], 'test_cases': {'': 'parameter "project" contains an empty string which is specifically disallowed.'}},
+        # 22 Give two regions.
+        # 23
+        'region': {'valid': gvar['cloud_credentials']['region'], 'test_cases': {'': 'parameter "region" contains an empty string which is specifically disallowed.'}},
+        # 24 Give two cloud_types.
+        # 25
+        'cloud_type': {'valid': 'local', 'test_cases': {'invalid-unit-test': 'value specified for "cloud_type" must be one of the following options: [\'amazon\', \'azure\', \'google\', \'local\', \'opennebula\', \'openstack\'].'}},
+        # 26 Give two enableds.
+        # 27
+        'enabled': {'valid': 0, 'test_cases': {'invalid-unit-test': 'boolean value specified for "enabled" must be one of the following: true, false, yes, no, 1, or 0.'}},
+        # 28 Give two vm_keep_alives.
+        # 29
+        'vm_keep_alive': {'valid': 0, 'test_cases': {'invalid-unit-test': 'value specified for "vm_keep_alive" must be an integer value.'}},
+        # 30 Give two spot_prices.
+        # 31
+        'spot_price': {'valid': 0.0, 'test_cases': {'invalid-unit-test': 'cloud update value specified for "spot_price" must be a floating point value.'}},
+        # 32 Give both metadata_name and metadata_name.1.
+        # 33
+        'metadata_name': {'valid': ut_id(gvar, 'cty2'), 'test_cases': {'invalid-unit-test': 'cloud update, "{}" failed - specified metadata_name "invalid-unit-test" does not exist.'.format(ut_id(gvar, 'ctc3'))}, 'array_field': True},
+        # 34 Give two metdata_options.
+        # 35
+        'metadata_option': {'valid': 'add', 'test_cases': {'invalid-unit-test': 'value specified for "metadata_option" must be one of the following options: [\'add\', \'delete\'].'}},
+        # 36 Give two vm_images.
+        # 37
+        'vm_image': {'valid': '', 'test_cases': {'invalid-unit-test': 'cloud update, "{0}" failed - specified item does not exist: vm_image=invalid-unit-test, group_name={1}, cloud_name={0}.'.format(ut_id(gvar, 'ctc3'), ut_id(gvar, 'ctg1'))}},
+        # 38 Give two vm_flavors.
+        # 39
+        'vm_flavor': {'valid': '', 'test_cases': {'invalid-unit-test': 'cloud update, "{0}" failed - specified item does not exist: vm_flavor=invalid-unit-test, group_name={1}, cloud_name={0}.'.format(ut_id(gvar, 'ctc3'), ut_id(gvar, 'ctg1'))}},
+        # 40 Give two vm_networks.
+        # 41
+        'vm_network': {'valid': '', 'test_cases': {'invalid-unit-test': 'cloud update, "{0}" failed - specified item does not exist: vm_network=invalid-unit-test, group_name={1}, cloud_name={0}.'.format(ut_id(gvar, 'ctc3'), ut_id(gvar, 'ctg1'))}},
+        # 42 Give two vm_keynames.
+        # 43
+        'vm_keyname': {'valid': '', 'test_cases': {'invalid-unit-test': 'cloud update, "{0}" failed - specified item does not exist: vm_keyname=invalid-unit-test, group_name={1}, cloud_name={0}.'.format(ut_id(gvar, 'ctc3'), ut_id(gvar, 'ctg1'))}}
+    }
 
-    # 04
-    execute_csv2_request(
-        gvar, 1, 'CV', 'invalid method "GET" specified.',
-        '/cloud/update/?{}'.format(ut_id(gvar, 'ctg1')),
-        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
-    )
+    parameters_requests(gvar, '/cloud/update/', ut_id(gvar, 'ctg1'), ut_id(gvar, 'ctu1'), parameters)
 
-    # 05
-    execute_csv2_request(
-        gvar, 1, 'CV', 'cloud update request did not contain mandatory parameter "cloud_name".',
-        '/cloud/update/', group=(ut_id(gvar, 'ctg1')),
-        form_data={'cloud_type': 'local'},
-        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
-    )
-
-    # 06
-    execute_csv2_request(
-        gvar, 1, 'CV', 'cloud update request contained a bad parameter "invalid-unit-test".',
-        '/cloud/update/', group=(ut_id(gvar, 'ctg1')),
-        form_data={'cloud_name': 'invalid-unit-test', 'invalid-unit-test': 'invalid-unit-test'},
-        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
-    )
-
-    # 07
-    execute_csv2_request(
-        gvar, 1, 'CV', 'cannot switch to invalid group "invalid-unit-test".',
-        '/cloud/update/', group='invalid-unit-test', form_data={'cloud_name': 'invalid-unit-test'},
-        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
-    )
-
-    # 08
-    execute_csv2_request(
-        gvar, 1, 'CV', 'cannot switch to invalid group "{}".'.format(ut_id(gvar, 'ctg2')),
-        '/cloud/update/', group=ut_id(gvar, 'ctg2'), form_data={'cloud_name': 'invalid-unit-test'},
-        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
-    )
-
-    # 09
-    execute_csv2_request(
-        gvar, 1, 'CV', 'value specified for "cloud_name" must be all lower case, numeric digits, and dashes but cannot start or end with dashes.',
-        '/cloud/update/', group=ut_id(gvar, 'ctg1'), form_data={'cloud_name': 'Invalid-Unit-Test'},
-        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
-    )
-
-    # 10
-    execute_csv2_request(
-        gvar, 1, 'CV', 'value specified for "cloud_name" must be all lower case, numeric digits, and dashes but cannot start or end with dashes.',
-        '/cloud/update/', group=ut_id(gvar, 'ctg1'), form_data={'cloud_name': 'invalid-unit-test-'},
-        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
-    )
-
-    # 11
-    execute_csv2_request(
-        gvar, 1, 'CV', 'value specified for "cloud_name" must be all lower case, numeric digits, and dashes but cannot start or end with dashes.',
-        '/cloud/update/', group=ut_id(gvar, 'ctg1'), form_data={'cloud_name': 'invalid-unit-test!'},
-        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
-    )
-
-    # 12
-    execute_csv2_request(
-        gvar, 1, 'CV', 'value specified for "cloud_name" must be all lower case, numeric digits, and dashes but cannot start or end with dashes.',
-        '/cloud/update/', group=ut_id(gvar, 'ctg1'), form_data={'cloud_name': 'invalid-unit-test!'},
-        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
-    )
-
-    # 13
-    execute_csv2_request(
-        gvar, 1, 'CV', 'value specified for "cloud_type" must be one of the following options: [\'amazon\', \'azure\', \'google\', \'local\', \'opennebula\', \'openstack\'].',
-        '/cloud/update/', group=ut_id(gvar, 'ctg1'), form_data={'cloud_name': ut_id(gvar, 'ctc3'), 'cloud_type': 'invalid-unit-test'},
-        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
-    )
-
-    # 14
-    execute_csv2_request(
-        gvar, 1, 'CV', 'boolean value specified for "enabled" must be one of the following: true, false, yes, no, 1, or 0.',
-        '/cloud/update/', group=ut_id(gvar, 'ctg1'), form_data={'cloud_name': ut_id(gvar, 'ctc3'), 'enabled': 'invalid-unit-test'},
-        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
-    )
-
-    # 15
-    execute_csv2_request(
-        gvar, 1, 'CV', 'value specified for "vm_keep_alive" must be an integer value.',
-        '/cloud/update/', group=ut_id(gvar, 'ctg1'), form_data={'cloud_name': ut_id(gvar, 'ctc3'), 'vm_keep_alive': 'invalid-unit-test'},
-        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
-    )
-
-    # 16
-    execute_csv2_request(
-        gvar, 1, 'CV', 'cloud update value specified for "spot_price" must be a floating point value.',
-        '/cloud/update/', group=ut_id(gvar, 'ctg1'), form_data={'cloud_name': ut_id(gvar, 'ctc3'), 'spot_price': 'invalid-unit-test'},
-        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
-    )
-
-    # 17
-    execute_csv2_request(
-        gvar, 1, 'CV', 'cloud update, "{}" failed - specified metadata_name "invalid-unit-test" does not exist.'.format(ut_id(gvar, 'ctc3')),
-        '/cloud/update/', group=ut_id(gvar, 'ctg1'), form_data={'cloud_name': ut_id(gvar, 'ctc3'), 'metadata_name': 'invalid-unit-test'},
-        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
-    )
-
-    # 18
-    execute_csv2_request(
-        gvar, 1, 'CV', 'value specified for "metadata_option" must be one of the following options: [\'add\', \'delete\'].',
-        '/cloud/update/', group=ut_id(gvar, 'ctg1'), form_data={'cloud_name': ut_id(gvar, 'ctc3'), 'metadata_option': 'invalid-unit-test'},
-        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
-    )
-
-    # 19
+    # 44 Ensure that metadata_option by itself does not qualify as a field to update.
     execute_csv2_request(
         gvar, 1, 'CV', 'cloud update must specify at least one field to update',
         '/cloud/update/', group=ut_id(gvar, 'ctg1'), form_data={'cloud_name': ut_id(gvar, 'ctc3'), 'metadata_option': 'add'},
-        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
+        server_user=ut_id(gvar, 'ctu1')
     )
 
-    # 20
-    execute_csv2_request(
-        gvar, 1, 'CV', 'cloud update must specify at least one field to update',
-        '/cloud/update/', group=ut_id(gvar, 'ctg1'), form_data={'cloud_name': ut_id(gvar, 'ctc3'), 'metadata_option': 'delete'},
-        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
-    )
-
-    # 21
+    # 45 Attempt to implicitly add metadata that does not exist.
     execute_csv2_request(
         gvar, 1, 'CV', 'cloud update, "{}" failed - specified metadata_name "invalid-unit-test" does not exist.'.format(ut_id(gvar, 'ctc3')),
-        '/cloud/update/', group=ut_id(gvar, 'ctg1'), form_data={'cloud_name': ut_id(gvar, 'ctc3'), 'metadata_name': 'invalid-unit-test', 'metadata_option': 'add'},
-        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
+        '/cloud/update/', group=ut_id(gvar, 'ctg1'), form_data={'cloud_name': ut_id(gvar, 'ctc3'), 'metadata_name': 'invalid-unit-test'},
+        server_user=ut_id(gvar, 'ctu1')
     )
 
-    # 22
+    # 46 Attempt to delete non-existent metadata.
     execute_csv2_request(
         gvar, 1, 'CV', 'cloud update, "{}" failed - specified metadata_name "invalid-unit-test" does not exist.'.format(ut_id(gvar, 'ctc3')),
         '/cloud/update/', group=ut_id(gvar, 'ctg1'), form_data={'cloud_name': ut_id(gvar, 'ctc3'), 'metadata_name': 'invalid-unit-test', 'metadata_option': 'delete'},
-        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
+        server_user=ut_id(gvar, 'ctu1')
     )
 
-    # 23
-    execute_csv2_request(
-        gvar, 1, 'CV', 'parameter "authurl" contains an empty string which is specifically disallowed.',
-        '/cloud/update/', group=ut_id(gvar, 'ctg1'), form_data={'cloud_name': ut_id(gvar, 'ctc3'), 'authurl': ''},
-        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
-    )
-
-    # 24
-    execute_csv2_request(
-        gvar, 1, 'CV', 'parameter "project" contains an empty string which is specifically disallowed.',
-        '/cloud/update/', group=ut_id(gvar, 'ctg1'), form_data={'cloud_name': ut_id(gvar, 'ctc3'), 'project': ''},
-        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
-    )
-
-    # 25
-    execute_csv2_request(
-        gvar, 1, 'CV', 'parameter "username" contains an empty string which is specifically disallowed.',
-        '/cloud/update/', group=ut_id(gvar, 'ctg1'), form_data={'cloud_name': ut_id(gvar, 'ctc3'), 'username': ''},
-        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
-    )
-
-    # 26
-    execute_csv2_request(
-        gvar, 1, 'CV', 'parameter "password" contains an empty string which is specifically disallowed.',
-        '/cloud/update/', group=ut_id(gvar, 'ctg1'), form_data={'cloud_name': ut_id(gvar, 'ctc3'), 'password': ''},
-        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
-    )
-
-    # 27
-    execute_csv2_request(
-        gvar, 1, 'CV', 'parameter "region" contains an empty string which is specifically disallowed.',
-        '/cloud/update/', group=ut_id(gvar, 'ctg1'), form_data={'cloud_name': ut_id(gvar, 'ctc3'), 'region': ''},
-        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
-    )
-
-    # 28
+    # 47 Ensures that values are as expected before executing requests that are expected to succeed. Known to fail if run twice without setup / cleanup in between.
     execute_csv2_request(
         gvar, 0, None, None,
-        '/cloud/list/?{}'.format(ut_id(gvar, 'ctg1')), list='cloud_list', filter={'cloud_name': ut_id(gvar, 'ctc3')},
+        '/cloud/list/', group=ut_id(gvar, 'ctg1'), expected_list='cloud_list', list_filter={'group_name': ut_id(gvar, 'ctg1'), 'cloud_name': ut_id(gvar, 'ctc3')},
         values={
-            'group_name': ut_id(gvar, 'ctg1'),
-            'cloud_name': ut_id(gvar, 'ctc3'),
-            'enabled': 1,
-            'cloud_priority': 0,
-            'spot_price': -1.0,
-            'vm_flavor': '',
-            'vm_image': '',
-            'vm_keep_alive': 0,
-            'vm_keyname': None,
-            'vm_network': '',
-            'vm_security_groups': None,
+            'authurl': gvar['cloud_credentials']['authurl'],
+            'cacertificate': None,
             'cascading_vm_flavor': None,
             'cascading_vm_image': None,
             'cascading_vm_keep_alive': 0,
             'cascading_vm_keyname': None,
             'cascading_vm_network': None,
             'cascading_vm_security_groups': None,
-            'authurl': 'unit-test-cloud-three.ca',
-            'project_domain_name': "'Default'",
-            'project_domain_id': '',
-            'project': 'unit-test-cloud-three',
-            'user_domain_name': 'Default',
-            'user_domain_id': '',
-            'username': ut_id(gvar, 'ctu3'),
-            'keyname': None,
-            'cacertificate': None,
-            'region': ut_id(gvar, 'ctc3-r'),
-            'cloud_type': 'local',
+            'cloud_priority': 0,
+            'cloud_type': 'openstack',
             'cores_ctl': -1,
-            'cores_softmax': -1,
-            'cores_max': 0,
-            'cores_used': 0,
             'cores_foreign': '0',
             'cores_native': '0',
+            'cores_softmax': -1,
+            'enabled': 1,
+            'flavor_exclusions': None,
+            'group_exclusions': None,
+            # We would check metadata_names here, but their order is unpredictable as far as I know.
+            'project': gvar['cloud_credentials']['project'],
+            'project_domain_id': '',
+            'project_domain_name': 'Default',
             'ram_ctl': -1,
-            'ram_max': 0,
-            'ram_used': 0,
             'ram_foreign': '0',
             'ram_native': '0',
-            'instances_max': 0,
-            'instances_used': 0,
-            'floating_ips_max': 0,
-            'floating_ips_used': 0,
-            'security_groups_max': 0,
-            'security_groups_used': 0,
-            'server_groups_max': 0,
-            'server_groups_used': 0,
-            'image_meta_max': 0,
-            'keypairs_max': 0,
-            'personality_max': 0,
-            'personality_size_max': 0,
-            'security_group_rules_max': 0,
-            'server_group_members_max': 0,
-            'server_meta_max': 0,
-            'cores_idle': '0',
-            'ram_idle': '0',
-            'flavor_exclusions': None,
-            'flavor_names': None,
-            'group_exclusions': None,
-            'metadata_names': '%s,%s,%s' % (ut_id(gvar, 'cty2'), ut_id(gvar, 'cty3'), ut_id(gvar, 'cty3.yaml')),
+            'region': gvar['cloud_credentials']['region'],
+            'spot_price': -1.0,
+            'user_domain_id': '',
+            'user_domain_name': 'Default',
+            'username': gvar['cloud_credentials']['username'],
+            'vm_flavor': '',
+            'vm_image': '',
+            'vm_keep_alive': 0,
+            'vm_keyname': None,
+            'vm_network': '',
+            'vm_security_groups': None
             },
-        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
+        server_user=ut_id(gvar, 'ctu1')
     )
 
-    # 29
+    # 48 Update several values and explicitly add one metadata.
     execute_csv2_request(
         gvar, 0, None, 'cloud "{}::{}" successfully updated.'.format(ut_id(gvar, 'ctg1'), ut_id(gvar, 'ctc3')),
         '/cloud/update/', group=ut_id(gvar, 'ctg1'), form_data={
             'cloud_name': ut_id(gvar, 'ctc3'),
-            'authurl': 'updated-value',
-            'project': 'updated-value',
-            'username': 'updated-value',
-            'password': 'updated-value',
-            'cacertificate': 'updated-value',
-            'region': 'updated-value',
-            'user_domain_name': 'updated-value',
-            'project_domain_name': 'updated-value',
-            'cloud_type': 'local',
             'ram_ctl': 5,
             'cores_ctl': 5,
-            'enabled': 0,
             'vm_flavor': '',
             'vm_image': '',
             'vm_keep_alive': 10,
             'vm_keyname': '',
             'vm_network': '',
             'spot_price': 1,
-            'metadata_name': ut_id(gvar, 'cty1')
+            'metadata_name': ut_id(gvar, 'cty1'),
+            'metadata_option': 'add'
             },
-        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
+        server_user=ut_id(gvar, 'ctu1')
     )
 
-    # 30
+    # 49 Ensure that 48 updated correctly. Known to fail if one's cloud_credentials (in ~/cloudscheduler/unit_tests/credentials.yaml) are invalid.
     execute_csv2_request(
         gvar, 0, None, None,
-        '/cloud/list/?{}'.format(ut_id(gvar, 'ctg1')), list='cloud_list', filter={'cloud_name': ut_id(gvar, 'ctc3')},
+        '/cloud/list/', group=ut_id(gvar, 'ctg1'), expected_list='cloud_list', list_filter={'group_name': ut_id(gvar, 'ctg1'), 'cloud_name': ut_id(gvar, 'ctc3')},
         values={
-            'cloud_name': ut_id(gvar, 'ctc3'),
-            'group_name': ut_id(gvar, 'ctg1'),
-            'authurl': 'updated-value',
-            'project': 'updated-value',
-            'username': 'updated-value',
-            'cacertificate': 'updated-value',
-            'region': 'updated-value',
-            'user_domain_name': 'updated-value',
-            'project_domain_name': 'updated-value',
-            'cloud_type': 'local',
-            'enabled': 0,
+            'ram_ctl': 5,
+            'cores_ctl': 5,
             'vm_keep_alive': 10,
             'vm_flavor': '',
             'vm_image': '',
@@ -322,167 +176,86 @@ def main(gvar, user_secret):
             'vm_network': '',
             'spot_price': 1,
             'group_exclusions': ut_id(gvar, 'cty1')
-        },
-        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
+            },
+        server_user=ut_id(gvar, 'ctu1')
     )
 
-    # 31
+    # 50 Implicitly add one metadata.
+    execute_csv2_request(
+        gvar, 0, None, 'cloud "{}::{}" successfully updated.'.format(ut_id(gvar, 'ctg1'), ut_id(gvar, 'ctc3')),
+        '/cloud/update/', group=ut_id(gvar, 'ctg1'), form_data={
+            'cloud_name': ut_id(gvar, 'ctc3'),
+            'metadata_name': ut_id(gvar, 'cty2')
+            },
+        server_user=ut_id(gvar, 'ctu1')
+    )
+
+    # 51 Ensure that 50 added metadata.
+    execute_csv2_request(
+        gvar, 0, None, None,
+        '/cloud/list/', group=ut_id(gvar, 'ctg1'), expected_list='cloud_list', list_filter={'group_name': ut_id(gvar, 'ctg1'), 'cloud_name': ut_id(gvar, 'ctc3')},
+        values={'group_exclusions': ut_id(gvar, 'cty1,cty2')},
+        server_user=ut_id(gvar, 'ctu1')
+    )
+
+    # 52 Delete one metadata.
+    execute_csv2_request(
+        gvar, 0, None, 'cloud "{}::{}" successfully updated.'.format(ut_id(gvar, 'ctg1'), ut_id(gvar, 'ctc3')),
+        '/cloud/update/', group=ut_id(gvar, 'ctg1'), form_data={
+            'cloud_name': ut_id(gvar, 'ctc3'),
+            'metadata_name': ut_id(gvar, 'cty2'),
+            'metadata_option': 'delete'
+            },
+        server_user=ut_id(gvar, 'ctu1')
+    )
+
+    # 53 Ensure that 52 deleted metadata.
+    execute_csv2_request(
+        gvar, 0, None, None,
+        '/cloud/list/', group=ut_id(gvar, 'ctg1'), expected_list='cloud_list', list_filter={'group_name': ut_id(gvar, 'ctg1'), 'cloud_name': ut_id(gvar, 'ctc3')},
+        values={'group_exclusions': ut_id(gvar, 'cty1')},
+        server_user=ut_id(gvar, 'ctu1')
+    )
+    
+    # 54 Explicitly add a metadata.
     execute_csv2_request(
         gvar, 0, None, 'cloud "{}::{}" successfully updated.'.format(ut_id(gvar, 'ctg1'), ut_id(gvar, 'ctc3')),
         '/cloud/update/', group=ut_id(gvar, 'ctg1'), form_data={
             'cloud_name': ut_id(gvar, 'ctc3'),
             'metadata_name': ut_id(gvar, 'cty1'),
-            'metadata_option': 'delete'
-            },
-        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
-    )
-
-    # 32
-    execute_csv2_request(
-        gvar, 0, None, None,
-        '/cloud/list/?{}'.format(ut_id(gvar, 'ctg1')), list='cloud_list', filter={'cloud_name': ut_id(gvar, 'ctc3')},
-        values={
-            'cloud_name': ut_id(gvar, 'ctc3'),
-            'group_name': ut_id(gvar, 'ctg1'),
-            'group_exclusions': None
-            },
-        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
-    )
-    
-    # 33
-    execute_csv2_request(
-        gvar, 0, None, 'cloud "{}::{}" successfully updated.'.format(ut_id(gvar, 'ctg1'), ut_id(gvar, 'ctc3')),
-        '/cloud/update/', group=ut_id(gvar, 'ctg1'), form_data={
-            'cloud_name': ut_id(gvar, 'ctc3'),
-            'metadata_name.1': ut_id(gvar, 'cty1'),
-            'metadata_name.2': ut_id(gvar, 'cty2'),
-            'metadata_name.3': ut_id(gvar, 'cty3')
-            },
-        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
-    )
-
-    # 34
-    execute_csv2_request(
-        gvar, 0, None, None,
-        '/cloud/list/?{}'.format(ut_id(gvar, 'ctg1')), list='cloud_list', filter={'cloud_name': ut_id(gvar, 'ctc3')},
-        values={
-            'cloud_name': ut_id(gvar, 'ctc3'),
-            'group_name': ut_id(gvar, 'ctg1'),
-            'group_exclusions': ut_id(gvar, 'cty1,cty2,cty3')
-        },
-        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
-    )
-
-    # 35
-    execute_csv2_request(
-        gvar, 0, None, 'cloud "{}::{}" successfully updated.'.format(ut_id(gvar, 'ctg1'), ut_id(gvar, 'ctc3')),
-        '/cloud/update/', group=ut_id(gvar, 'ctg1'), form_data={
-            'cloud_name': ut_id(gvar, 'ctc3'),
-            'metadata_name.1': ut_id(gvar, 'cty1'),
-            'metadata_name.2': ut_id(gvar, 'cty2'),
-            'metadata_name.3': ut_id(gvar, 'cty3'),
-            'metadata_option': 'delete'
-            },
-        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
-    )
-
-    # 36
-    execute_csv2_request(
-        gvar, 0, None, None,
-        '/cloud/list/?{}'.format(ut_id(gvar, 'ctg1')), list='cloud_list', filter={'cloud_name': ut_id(gvar, 'ctc3')},
-        values={
-            'cloud_name': ut_id(gvar, 'ctc3'),
-            'group_name': ut_id(gvar, 'ctg1'),
-            'group_exclusions': None
-        },
-        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
-    )
-
-    # 37
-    execute_csv2_request(
-        gvar, 0, None, 'cloud "{}::{}" successfully updated.'.format(ut_id(gvar, 'ctg1'), ut_id(gvar, 'ctc3')),
-        '/cloud/update/', group=ut_id(gvar, 'ctg1'), form_data={
-            'cloud_name': ut_id(gvar, 'ctc3'),
-            'metadata_name': ut_id(gvar, 'cty3'),
             'metadata_option': 'add'
             },
-        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
+        server_user=ut_id(gvar, 'ctu1')
     )
 
-    # 38
+    # 55 Ensure that 54 added metadata.
     execute_csv2_request(
         gvar, 0, None, None,
-        '/cloud/list/?{}'.format(ut_id(gvar, 'ctg1')), list='cloud_list', filter={'cloud_name': ut_id(gvar, 'ctc3')},
+        '/cloud/list/', group=ut_id(gvar, 'ctg1'), expected_list='cloud_list', list_filter={'cloud_name': ut_id(gvar, 'ctc3')},
         values={
             'cloud_name': ut_id(gvar, 'ctc3'),
             'group_name': ut_id(gvar, 'ctg1'),
-            'group_exclusions': ut_id(gvar, 'cty3')
-        },
-        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
+            'group_exclusions': ut_id(gvar, 'cty1')
+            },
+        server_user=ut_id(gvar, 'ctu1')
     )
 
-    # 39
+    # 56 Implicitly add metadata.
     execute_csv2_request(
         gvar, 0, None, 'cloud "{}::{}" successfully updated.'.format(ut_id(gvar, 'ctg1'), ut_id(gvar, 'ctc3')),
         '/cloud/update/', group=ut_id(gvar, 'ctg1'), form_data={
             'cloud_name': ut_id(gvar, 'ctc3'),
-            'metadata_name.1': ut_id(gvar, 'cty2'),
-            'metadata_name.2': ut_id(gvar, 'cty1'),
-            'metadata_option': 'add'
+            'metadata_name': ut_id(gvar, 'cty2'),
             },
-        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
+        server_user=ut_id(gvar, 'ctu1')
     )
 
-    # 40
+    # 57 Ensure that 58 added metadata.
     execute_csv2_request(
         gvar, 0, None, None,
-        '/cloud/list/?{}'.format(ut_id(gvar, 'ctg1')), list='cloud_list', filter={'cloud_name': ut_id(gvar, 'ctc3')},
-        values={
-            'cloud_name': ut_id(gvar, 'ctc3'),
-            'group_name': ut_id(gvar, 'ctg1'),
-            'group_exclusions': ut_id(gvar, 'cty1,cty2,cty3')
-            },
-        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
-    )
-
-    # 41
-    execute_csv2_request(
-        gvar, 1, 'CV', 'cloud update, "{0}" failed - specified item does not exist: vm_image=invalid-unit-test, group_name={1}, cloud_name={0}.'.format(ut_id(gvar, 'ctc3'), ut_id(gvar, 'ctg1')),
-        '/cloud/update/', group=ut_id(gvar, 'ctg1'), form_data={
-            'cloud_name': ut_id(gvar, 'ctc3'),
-            'vm_image': 'invalid-unit-test',
-            },
-        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
-    )
-
-    # 42
-    execute_csv2_request(
-        gvar, 1, 'CV', 'cloud update, "{0}" failed - specified item does not exist: vm_flavor=invalid-unit-test, group_name={1}, cloud_name={0}.'.format(ut_id(gvar, 'ctc3'), ut_id(gvar, 'ctg1')),
-        '/cloud/update/', group=ut_id(gvar, 'ctg1'), form_data={
-            'cloud_name': ut_id(gvar, 'ctc3'),
-            'vm_flavor': 'invalid-unit-test',
-            },
-        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
-    )
-
-    # 43
-    execute_csv2_request(
-        gvar, 1, 'CV', 'cloud update, "{0}" failed - specified item does not exist: vm_network=invalid-unit-test, group_name={1}, cloud_name={0}.'.format(ut_id(gvar, 'ctc3'), ut_id(gvar, 'ctg1')),
-        '/cloud/update/', group=ut_id(gvar, 'ctg1'), form_data={
-            'cloud_name': ut_id(gvar, 'ctc3'),
-            'vm_network': 'invalid-unit-test',
-            },
-        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
-    )
-
-    # 44
-    execute_csv2_request(
-        gvar, 1, 'CV', 'cloud update, "{0}" failed - specified item does not exist: vm_keyname=invalid-unit-test, group_name={1}, cloud_name={0}.'.format(ut_id(gvar, 'ctc3'), ut_id(gvar, 'ctg1')),
-        '/cloud/update/', group=ut_id(gvar, 'ctg1'), form_data={
-            'cloud_name': ut_id(gvar, 'ctc3'),
-            'vm_keyname': 'invalid-unit-test',
-            },
-        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
+        '/cloud/list/', group=ut_id(gvar, 'ctg1'), expected_list='cloud_list', list_filter={'group_name': ut_id(gvar, 'ctg1'), 'cloud_name': ut_id(gvar, 'ctc3')},
+        values={'group_exclusions': ut_id(gvar, 'cty1,cty2')},
+        server_user=ut_id(gvar, 'ctu1')
     )
 
 if __name__ == "__main__":

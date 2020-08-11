@@ -1,0 +1,4 @@
+#!/bin/bash
+# Edit scripts are used only by test_cli_cloud_metadata_edit.py and test_cli_group_metadata_edit.py.
+echo "Hello, World!"
+exit

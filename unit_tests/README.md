@@ -2,9 +2,9 @@
 
 ## To Use
 
-Create a `unit-test` and `unit-test-un` servers in defaults(using the `cloudscheduler defaults set` cli command).
-The `unit-test` server should have the `server-address` and the `server-user` and `server-password` of a privleged user.
-The `unit-test-un` just needs the `server-address` of the server to test.
+Create a `unit-test` server alias in defaults (using the `cloudscheduler defaults set` cli command).
+The `unit-test` server should have the `server-address`, `server-user`, and `server-password` of a privleged user.
+Server credentials used to create test clouds (username, password, region, and project) and a randomly generated password used to create test users are saved in `~/cloudscheduler/unit-tests/credentials.yaml`. If you attempt to run the tests without this file, you will be prompted for the server credentials (which will then be saved in the file).
 
 To run tests:
 
@@ -22,25 +22,8 @@ To run tests:
 # run tests from multiple groups
 ./run_tests user_list user_add[1-5,10] user_delete
 # skip setup, cleanup, and all tests
-./run_tests [999] -ss -sc
+./run_tests [9999] -ss -sc
 ```
-
-## Running the Database Interaction Tests
-
-These tests are set to only run when specified:
-
-```
-./run_tests db
-```
-
-For a successful test run, the following must be done first:
-
-1. Stop all csv2 services. `systemctl stop 'csv2*'`
-1. Restart the mariadb service. `systemctl restart mariadb`
-1. Load the test vm data into the database. `mysql -ucsv2 -p csv2 < /opt/cloudscheduler/unit_tests/csv2_test_data.sql`
-1. Restart the web server. `systemctl restart httpd`
-1. Run the tests. `./run_tests db`
-
 ## To Develop
 
 Add test files with a name of the form: `test_<object>[<priority>]_<endpoint>[_<detail>].py`.

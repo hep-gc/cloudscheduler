@@ -1,57 +1,31 @@
-from unit_test_common import execute_csv2_request, initialize_csv2_request, ut_id
+from unit_test_common import execute_csv2_request, initialize_csv2_request, ut_id, sanity_requests
 from sys import argv
 
 # lno: JV - error code identifier.
 
-def main(gvar, user_secret):
+def main(gvar):
     if not gvar:
         gvar = {}
         if len(argv) > 1:
-            initialize_csv2_request(gvar, argv[0], selections=argv[1])
+            initialize_csv2_request(gvar, selections=argv[1])
         else:
-            initialize_csv2_request(gvar, argv[0])
+            initialize_csv2_request(gvar)
 
+    # 01 - 05
+    sanity_requests(gvar, '/job/list/', ut_id(gvar, 'jtg1'), ut_id(gvar, 'jtu1'), ut_id(gvar, 'jtg2'), ut_id(gvar, 'jtu2'))
+
+    # 06
     execute_csv2_request(
-        gvar, 2, None, 'HTTP response code 401, unauthorized.',
-        '/job/list/?"{}"'.format(ut_id(gvar,'jtg1')),
-        server_user='invalid-unit-test', server_pw='invalid-unit-test'
+        gvar, 1, None, 'job list, request contained a bad parameter "invalid_unit_test".',
+        '/job/list/', group=ut_id(gvar, 'jtg1'), form_data={'invalid_unit_test': 'invalid-unit-test'},
+        server_user=ut_id(gvar, 'jtu1')
     )
 
-    execute_csv2_request(
-        gvar, 1, None, 'user "{}" is not a member of any group.'.format(ut_id(gvar, 'jtu1')),
-        '/job/list/?"{}"'.format(ut_id(gvar,'jtg1')),
-        server_user=ut_id(gvar, 'jtu1'), server_pw=user_secret
-    )
-
-    execute_csv2_request(
-        gvar, 1, None, 'user "{}" is not a member of any group.'.format(ut_id(gvar, 'jtu2')),
-        '/job/list/?"{}"'.format(ut_id(gvar,'jtg1')),
-        server_user=ut_id(gvar, 'jtu2'), server_pw=user_secret
-    )
-
-    execute_csv2_request(
-        gvar, 1, 'JV', 'request contained a bad parameter "invalid-unit-test".',
-        '/job/list/?"{}"'.format(ut_id(gvar,'jtg1'))
-, form_data={'invalid-unit-test': 'invalid-unit-test'},
-        server_user=ut_id(gvar, 'jtu3'), server_pw=user_secret
-    )
-
-    execute_csv2_request(
-        gvar, 1, None, 'cannot switch to invalid group "invalid-unit-test".',
-        '/job/list/?invalid-unit-test',
-        server_user=ut_id(gvar, 'jtu3'), server_pw=user_secret
-    )
-
-    execute_csv2_request(
-        gvar, 1, None, 'cannot switch to invalid group "{}".'.format(ut_id(gvar, 'jtg2')),
-        '/job/list/?{}'.format(ut_id(gvar,'jtg2')),
-        server_user=ut_id(gvar, 'jtu3'), server_pw=user_secret
-    )
-
+    # 07
     execute_csv2_request(
         gvar, 0, None, None,
-        '/job/list/?"{}"'.format(ut_id(gvar,'jtg1')),
-        server_user=ut_id(gvar, 'jtu3'), server_pw=user_secret
+        '/job/list/', group=ut_id(gvar, 'jtg1'),
+        server_user=ut_id(gvar, 'jtu1')
     )
 
 if __name__ == "__main__":
