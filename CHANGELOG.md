@@ -19,7 +19,7 @@
     - Capture and manage decode error in csmain when retrieving yaml files from the database
     - Fix bug in vm termination that would cause all operations to be skipped after a single failure
     - Condense logging in several pollers.
-    - Fix bug in ec2_filterer that caused a crash when recieving cloud update signlas.
+    - Fix bug in ec2_filterer that caused a crash when receiving cloud update signlas.
     - Fix bug in condor poller that caused job and machine entries to be purged from the database on a failed polling cycle.
     - Fix bug in keypair transfer that would cause the system to chose a source keypair from an offline cloud causing the process to fail.
     - Fix bug in image and key webui that would cause the redirect after a submission to change the users active group.
