@@ -21,16 +21,12 @@ from glintwebui.glint_utils import get_keypair, transfer_keypair, generate_tx_id
 from glintwebui.celery_app import tx_request
 
 from cloudscheduler.lib.poller_functions_na import \
-    delete_obsolete_database_items, \
-    foreign, \
-    get_inventory_item_hash_from_database, \
-    test_and_set_inventory_item_hash, \
+    inventory_cleanup, \
+    inventory_obsolete_database_items_delete, \
+    inventory_get_item_hash_from_db_query_rows, \
+    inventory_test_and_set_item_hash, \
     start_cycle, \
-    wait_cycle, \
-    cleanup_inventory
-#   get_last_poll_time_from_database, \
-#   set_inventory_group_and_cloud, \
-#   set_inventory_item, \
+    wait_cycle
 
 from cloudscheduler.lib.signal_functions import event_receiver_registration
 
@@ -212,6 +208,7 @@ def flavor_poller():
     #CLOUD = config.db_map.classes.csv2_clouds
     FLAVOR = "cloud_flavors"
     CLOUD = "csv2_clouds"
+    ikey_names = ["group_name", "cloud_name", "id"]
 
     cycle_start_time = 0
     new_poll_time = 0
@@ -222,9 +219,10 @@ def flavor_poller():
     event_receiver_registration(config, "update_csv2_clouds_openstack")
 
     try:
-        inventory = get_inventory_item_hash_from_database(config.db_engine, FLAVOR, 'name', debug_hash=(config.categories["openstackPoller.py"]["log_level"]<20), cloud_type="openstack")
-        
         config.db_open()
+        where_clause = "cloud_type='openstack'"
+        rc, msg, rows = config.db_query(FLAVOR, where=where_clause)
+        inventory = inventory_get_item_hash_from_db_query_rows(ikey_names, rows)
         while True:
             try:
                 logging.debug("Beginning flavor poller cycle")
@@ -338,7 +336,7 @@ def flavor_poller():
                                 logging.error("Unmapped attributes found during mapping, discarding:")
                                 logging.error(unmapped)
 
-                            if test_and_set_inventory_item_hash(inventory, group_n, cloud_n, flavor.name, flav_dict, new_poll_time, debug_hash=(config.categories["openstackPoller.py"]["log_level"]<20)):
+                            if inventory_test_and_set_item_hash(ikey_names, flav_dict, inventory, new_poll_time, debug_hash=(config.categories["openstackPoller.py"]["log_level"] < 20)):
                                 continue
 
                             try:
@@ -377,20 +375,24 @@ def flavor_poller():
                     if key in failure_dict:
                         new_f_dict[cloud["group_name"]+cloud["cloud_name"]] = 1
 
-                # Scan the OpenStack flavors in the database, removing each one that was` not iupdated in the inventory.
-                delete_obsolete_database_items('Flavor', inventory, db_session, FLAVOR, 'name', poll_time=new_poll_time, failure_dict=new_f_dict, cloud_type="openstack")
+                # since the new inventory function doesn't accept a failfure dict we need to screen the rows ourself
+                where_clause="cloud_type='openstack'"
+                rc, msg, unfiltered_rows = config.db_query(FLAVOR, where=where_clause)
+                rows = []
+                for row in unfiltered_rows:
+                    if row['group_name'] + row['cloud_name'] in failure_dict.keys():
+                        continue
+                    else:
+                        rows.append(row)
+                inventory_obsolete_database_items_delete(ikey_names, rows, inventory, new_poll_time, config, FLAVOR)
 
-                config.db_session.rollback()
 
                 if not os.path.exists(PID_FILE):
                     logging.info("Stop set, exiting...")
                     break
+
                 # Cleanup inventory, this function will clean up inventory entries for deleted clouds
-                rc, msg = config.db_execute('select distinct group_name, cloud_name from csv2_clouds where cloud_type="openstack"')
-                group_clouds = []
-                for row in config.db_cursor:
-                    group_clouds.append(row)
-                cleanup_inventory(inventory, group_clouds)
+                inventory_cleanup(ikey_names, rows, inventory)
 
 
                 signal.signal(signal.SIGINT, config.signals['SIGINT'])
@@ -421,6 +423,8 @@ def image_poller():
     IMAGE = "cloud_images"
     CLOUD = "csv2_clouds"
 
+    ikey_names = ["group_name", "cloud_name", "id"]
+
     cycle_start_time = 0
     new_poll_time = 0
     poll_time_history = [0,0,0,0]
@@ -430,8 +434,9 @@ def image_poller():
     event_receiver_registration(config, "update_csv2_clouds_openstack")
 
     try:
-        inventory = get_inventory_item_hash_from_database(config.db_engine, IMAGE, 'id', debug_hash=(config.categories["openstackPoller.py"]["log_level"]<20), cloud_type="openstack")
-        config.db_open()
+        where_clause = "cloud_type='openstack'"
+        rc, msg, rows = config.db_query(IMAGE, where=where_clause)
+        inventory = inventory_get_item_hash_from_db_query_rows(ikey_names, rows)
         while True:
             try:
                 logging.debug("Beginning image poller cycle")
@@ -558,7 +563,7 @@ def image_poller():
                                     logging.error("Unmapped attributes found during mapping, discarding:")
                                     logging.error(unmapped)
 
-                                if test_and_set_inventory_item_hash(inventory, group_n, cloud_n, image.id, img_dict, new_poll_time, debug_hash=(config.categories["openstackPoller.py"]["log_level"]<20)):
+                                if inventory_test_and_set_item_hash(ikey_names, img_dict, inventory, new_poll_time, debug_hash=(config.categories["openstackPoller.py"]["log_level"] < 20)):
                                     continue
 
                                 try:
@@ -611,18 +616,23 @@ def image_poller():
 
                 # Scan the OpenStack images in the database, removing each one that is not in the inventory.
                 logging.info("Doing deletes, omitting failures: %s" % new_f_dict)
-                delete_obsolete_database_items('Image', inventory, db_session, IMAGE, 'id', new_poll_time, failure_dict=new_f_dict, cloud_type="openstack")
+                # since the new inventory function doesn't accept a failfure dict we need to screen the rows ourself
+                where_clause="cloud_type='openstack'"
+                rc, msg, unfiltered_rows = config.db_query(IMAGE, where=where_clause)
+                rows = []
+                for row in unfiltered_rows:
+                    if row['group_name'] + row['cloud_name'] in failure_dict.keys():
+                        continue
+                    else:
+                        rows.append(row)
+                inventory_obsolete_database_items_delete(ikey_names, rows, inventory, new_poll_time, config, IMAGE)
 
 
                 if not os.path.exists(PID_FILE):
                     logging.info("Stop set, exiting...")
                     break
                 # Cleanup inventory, this function will clean up inventory entries for deleted clouds
-                rc, msg = config.db_execute('select distinct group_name, cloud_name from csv2_clouds where cloud_type="openstack"')
-                group_clouds = []
-                for row in config.db_cursor:
-                    group_clouds.append(row)
-                cleanup_inventory(inventory, group_clouds)
+                inventory_cleanup(ikey_names, rows, inventory)
 
 
                 signal.signal(signal.SIGINT, config.signals['SIGINT'])
@@ -654,6 +664,7 @@ def keypair_poller():
     #CLOUD = config.db_map.classes.csv2_clouds
     KEYPAIR = "cloud_keypairs"
     CLOUD = "csv2_clouds"
+    ikey_names = ["group_name", "cloud_name", "fingerprint", "keyname"]
 
     cycle_start_time = 0
     new_poll_time = 0
@@ -664,8 +675,10 @@ def keypair_poller():
     event_receiver_registration(config, "update_csv2_clouds_openstack")
 
     try:
-        inventory = get_inventory_item_hash_from_database(config.db_engine, KEYPAIR, 'key_name', debug_hash=(config.categories["openstackPoller.py"]["log_level"]<20), cloud_type="openstack")
         config.db_open()
+        where_clause = "cloud_type='openstack'"
+        rc, msg, rows = config.db_query(KEYPAIR, where=where_clause)
+        inventory = inventory_get_item_hash_from_db_query_rows(ikey_names, rows)
         while True:
             try:    
                 logging.debug("Beginning keypair poller cycle")
@@ -755,7 +768,7 @@ def keypair_poller():
                             }
                             
 
-                            if test_and_set_inventory_item_hash(inventory, group_n, cloud_n, key.name, key_dict, new_poll_time, debug_hash=(config.categories["openstackPoller.py"]["log_level"]<20)):
+                            if inventory_test_and_set_item_hash(ikey_names, key_dict, inventory, new_poll_time, debug_hash=(config.categories["openstackPoller.py"]["log_level"] < 20)):
                                 continue
 
                             try:
@@ -795,8 +808,16 @@ def keypair_poller():
                         new_f_dict[cloud["group_name"]+cloud["cloud_name"]] = 1
 
 
-                # Scan the OpenStack keypairs in the database, removing each one that was not updated in the inventory.
-                delete_obsolete_database_items('Keypair', inventory, db_session, KEYPAIR, 'key_name', poll_time=new_poll_time, failure_dict=new_f_dict, cloud_type="openstack")
+                # since the new inventory function doesn't accept a failfure dict we need to screen the rows ourself
+                where_clause="cloud_type='openstack'"
+                rc, msg, unfiltered_rows = config.db_query(KEYPAIR, where=where_clause)
+                rows = []
+                for row in unfiltered_rows:
+                    if row['group_name'] + row['cloud_name'] in failure_dict.keys():
+                        continue
+                    else:
+                        rows.append(row)
+                inventory_obsolete_database_items_delete(ikey_names, rows, inventory, new_poll_time, config, KEYPAIR)
 
                 config.db_session.rollback()
 
@@ -804,11 +825,7 @@ def keypair_poller():
                     logging.info("Stop set, exiting...")
                     break
                 # Cleanup inventory, this function will clean up inventory entries for deleted clouds
-                rc, msg = config.db_execute('select distinct group_name, cloud_name from csv2_clouds where cloud_type="openstack"')
-                group_clouds = []
-                for row in config.db_cursor:
-                    group_clouds.append(row)
-                cleanup_inventory(inventory, group_clouds)
+                inventory_cleanup(ikey_names, rows, inventory)
 
 
                 signal.signal(signal.SIGINT, config.signals['SIGINT'])
@@ -838,6 +855,7 @@ def limit_poller():
     #CLOUD = config.db_map.classes.csv2_clouds
     LIMIT = "cloud_limits"
     CLOUD = "csv2_clouds"
+    ikey_names = ["group_name", "cloud_name"]
 
     cycle_start_time = 0
     new_poll_time = 0
@@ -848,8 +866,10 @@ def limit_poller():
     event_receiver_registration(config, "update_csv2_clouds_openstack")
 
     try:
-        inventory = get_inventory_item_hash_from_database(config.db_engine, LIMIT, '-', debug_hash=(config.categories["openstackPoller.py"]["log_level"]<20), cloud_type="openstack")
         config.db_open()
+        where_clause = "cloud_type='openstack'"
+        rc, msg, rows = config.db_query(LIMIT, where=where_clause)
+        inventory = inventory_get_item_hash_from_db_query_rows(ikey_names, rows)
         while True:
             try:
                 logging.debug("Beginning limit poller cycle")
@@ -943,7 +963,7 @@ def limit_poller():
                             logging.error("Unmapped attributes found during mapping, discarding:")
                             logging.error(unmapped)
 
-                        if test_and_set_inventory_item_hash(inventory, group_n, cloud_n, '-', limits_dict, new_poll_time, debug_hash=(config.categories["openstackPoller.py"]["log_level"]<20)):
+                        if inventory_test_and_set_item_hash(ikey_names, limits_dict, inventory, new_poll_time, debug_hash=(config.categories["openstackPoller.py"]["log_level"] < 20)):
                             continue
 
                         for limit in limits_dict:
@@ -983,16 +1003,19 @@ def limit_poller():
                     if key in failure_dict:
                         new_f_dict[cloud["group_name"]+cloud["cloud_name"]] = 1
 
-
-                # Scan the OpenStack flavors in the database, removing each one that was` not iupdated in the inventory.
-                delete_obsolete_database_items('Limit', inventory, db_session, LIMIT, '-', poll_time=new_poll_time, failure_dict=new_f_dict, cloud_type="openstack")
+                # since the new inventory function doesn't accept a failfure dict we need to screen the rows ourself
+                where_clause="cloud_type='openstack'"
+                rc, msg, unfiltered_rows = config.db_query(LIMIT, where=where_clause)
+                rows = []
+                for row in unfiltered_rows:
+                    if row['group_name'] + row['cloud_name'] in failure_dict.keys():
+                        continue
+                    else:
+                        rows.append(row)
+                inventory_obsolete_database_items_delete(ikey_names, rows, inventory, new_poll_time, config, LIMIT)
 
                 # Cleanup inventory, this function will clean up inventory entries for deleted clouds
-                rc, msg = config.db_execute('select distinct group_name, cloud_name from csv2_clouds where cloud_type="openstack"')
-                group_clouds = []
-                for row in config.db_cursor:
-                    group_clouds.append(row)
-                cleanup_inventory(inventory, group_clouds)
+                inventory_cleanup(ikey_names, rows, inventory)
 
                 if not os.path.exists(PID_FILE):
                     logging.info("Stop set, exiting...")
@@ -1022,6 +1045,7 @@ def network_poller():
     PID_FILE = config.categories["ProcessMonitor"]["pid_path"] + os.path.basename(sys.argv[0])
     NETWORK = "cloud_networks"
     CLOUD = "csv2_clouds"
+    ikey_names = ["group_name", "cloud_name", "id"]
 
     cycle_start_time = 0
     new_poll_time = 0
@@ -1032,8 +1056,10 @@ def network_poller():
     event_receiver_registration(config, "update_csv2_clouds_openstack")
 
     try:
-        inventory = get_inventory_item_hash_from_database(config.db_engine, NETWORK, 'name', debug_hash=(config.categories["openstackPoller.py"]["log_level"]<20), cloud_type="openstack")
         config.db_open()
+        where_clause = "cloud_type='openstack'"
+        rc, msg, rows = config.db_query(NETWORK, where=where_clause)
+        inventory = inventory_get_item_hash_from_db_query_rows(ikey_names, rows)
         while True:
             try:
                 logging.debug("Beginning network poller cycle")
@@ -1132,7 +1158,7 @@ def network_poller():
                                 logging.error("Unmapped attributes found during mapping, discarding:")
                                 logging.error(unmapped)
 
-                            if test_and_set_inventory_item_hash(inventory, group_n, cloud_n, network['name'], network_dict, new_poll_time, debug_hash=(config.categories["openstackPoller.py"]["log_level"]<20)):
+                            if inventory_test_and_set_item_hash(ikey_names, network_dict, inventory, new_poll_time, debug_hash=(config.categories["openstackPoller.py"]["log_level"] < 20)):
                                 continue
 
                             try:
@@ -1171,9 +1197,16 @@ def network_poller():
                     if key in failure_dict:
                         new_f_dict[cloud.group_name+cloud.cloud_name] = 1
 
-
-                # Scan the OpenStack networks in the database, removing each one that was not updated in the inventory.
-                delete_obsolete_database_items('Network', inventory, db_session, NETWORK, 'name', poll_time=new_poll_time, failure_dict=new_f_dict, cloud_type="openstack")
+                # since the new inventory function doesn't accept a failfure dict we need to screen the rows ourself
+                where_clause="cloud_type='openstack'"
+                rc, msg, unfiltered_rows = config.db_query(NETWORK, where=where_clause)
+                rows = []
+                for row in unfiltered_rows:
+                    if row['group_name'] + row['cloud_name'] in failure_dict.keys():
+                        continue
+                    else:
+                        rows.append(row)
+                inventory_obsolete_database_items_delete(ikey_names, rows, inventory, new_poll_time, config, NETWORK)
 
 
                 if not os.path.exists(PID_FILE):
@@ -1181,11 +1214,7 @@ def network_poller():
                     break
 
                 # Cleanup inventory, this function will clean up inventory entries for deleted clouds
-                rc, msg = config.db_execute('select distinct group_name, cloud_name from csv2_clouds where cloud_type="openstack"')
-                group_clouds = []
-                for row in config.db_cursor:
-                    group_clouds.append(row)
-                cleanup_inventory(inventory, group_clouds)
+                inventory_cleanup(ikey_names, rows, inventory)
 
                 signal.signal(signal.SIGINT, config.signals['SIGINT'])
 
@@ -1214,6 +1243,7 @@ def security_group_poller():
 
     SECURITY_GROUP = "cloud_security_groups"
     CLOUD = "csv2_clouds"
+    ikey_names = ["group_name", "cloud_name", "id"]
 
     cycle_start_time = 0
     new_poll_time = 0
@@ -1225,8 +1255,10 @@ def security_group_poller():
     event_receiver_registration(config, "update_csv2_clouds_openstack")
 
     try:
-        inventory = get_inventory_item_hash_from_database(config.db_engine, SECURITY_GROUP, 'id', debug_hash=(config.categories["openstackPoller.py"]["log_level"]<20), cloud_type="openstack")
         config.db_open()
+        where_clause = "cloud_type='openstack'"
+        rc, msg, rows = config.db_query(SECURITY_GROUP, where=where_clause)
+        inventory = inventory_get_item_hash_from_db_query_rows(ikey_names, rows)
         while True:
             try:
                 logging.debug("Beginning security group poller cycle")
@@ -1325,7 +1357,7 @@ def security_group_poller():
                                 logging.error("Unmapped attributes found during mapping, discarding:")
                                 logging.error(unmapped)
 
-                            if test_and_set_inventory_item_hash(inventory, group_n, cloud_n, sec_grp["id"], sec_grp_dict, new_poll_time, debug_hash=(config.categories["openstackPoller.py"]["log_level"]<20)):
+                            if inventory_test_and_set_item_hash(ikey_names, sec_grp_dict, inventory, new_poll_time, debug_hash=(config.categories["openstackPoller.py"]["log_level"] < 20)):
                                 continue
 
                             try:
@@ -1363,19 +1395,23 @@ def security_group_poller():
                     if key in failure_dict:
                         new_f_dict[cloud["group_name"]+cloud["cloud_name"]] = 1
 
-                # Scan the OpenStack sec_grps in the database, removing each one that was not iupdated in the inventory.
-                delete_obsolete_database_items('sec_grp', inventory, db_session, SECURITY_GROUP, 'id', poll_time=new_poll_time, failure_dict=failure_dict, cloud_type="openstack")
+                # since the new inventory function doesn't accept a failfure dict we need to screen the rows ourself
+                where_clause="cloud_type='openstack'"
+                rc, msg, unfiltered_rows = config.db_query(SECURITY_GROUP, where=where_clause)
+                rows = []
+                for row in unfiltered_rows:
+                    if row['group_name'] + row['cloud_name'] in failure_dict.keys():
+                        continue
+                    else:
+                        rows.append(row)
+                inventory_obsolete_database_items_delete(ikey_names, rows, inventory, new_poll_time, config, SECURITY_GROUP)
 
 
                 if not os.path.exists(PID_FILE):
                     logging.info("Stop set, exiting...")
                     break
                 # Cleanup inventory, this function will clean up inventory entries for deleted clouds
-                rc, msg = config.db_execute('select distinct group_name, cloud_name from csv2_clouds where cloud_type="openstack"')
-                group_clouds = []
-                for row in config.db_cursor:
-                    group_clouds.append(row)
-                cleanup_inventory(inventory, group_clouds)
+                inventory_cleanup(ikey_names, rows, inventory)
 
 
                 signal.signal(signal.SIGINT, config.signals['SIGINT'])
@@ -1408,6 +1444,7 @@ def vm_poller():
     FVM = "csv2_vms_foreign"
     GROUP = "csv2_groups"
     CLOUD = "csv2_clouds"
+    ikey_names = ["group_name", "cloud_name", "vmid"]
 
     cycle_start_time = 0
     new_poll_time = 0
@@ -1418,8 +1455,10 @@ def vm_poller():
     event_receiver_registration(config, "update_csv2_clouds_openstack")
     
     try:
-        inventory = get_inventory_item_hash_from_database(config.db_engine, VM, 'hostname', debug_hash=(config.categories["openstackPoller.py"]["log_level"]<20), cloud_type="openstack")
         config.db_open()
+        where_clause = "cloud_type='openstack'"
+        rc, msg, rows = config.db_query(VM, where=where_clause)
+        inventory = inventory_get_item_hash_from_db_query_rows(ikey_names, rows)
         while True:
             # This cycle should be reasonably fast such that the scheduler will always have the most
             # up to date data during a given execution cycle.
@@ -1622,7 +1661,7 @@ def vm_poller():
                         logging.error("unmapped attributes found during mapping, discarding:")
                         logging.error(unmapped)
 
-                    if test_and_set_inventory_item_hash(inventory, vm_group_name, vm_cloud_name, vm.name, vm_dict, new_poll_time, debug_hash=(config.categories["openstackPoller.py"]["log_level"]<20)):
+                    if inventory_test_and_set_item_hash(ikey_names, vm_dict, inventory, new_poll_time, debug_hash=(config.categories["openstackPoller.py"]["log_level"] < 20)):
                         continue
 
                     try:
@@ -1710,7 +1749,16 @@ def vm_poller():
                     config.db_merge(CLOUD, cloud)
                     config.db_commit()
 
-            delete_obsolete_database_items('VM', inventory, db_session, VM, 'hostname', new_poll_time, failure_dict=new_f_dict, cloud_type="openstack")
+            # since the new inventory function doesn't accept a failfure dict we need to screen the rows ourself
+            where_clause="cloud_type='openstack'"
+            rc, msg, unfiltered_rows = config.db_query(VM, where=where_clause)
+            rows = []
+            for row in unfiltered_rows:
+                if row['group_name'] + row['cloud_name'] in failure_dict.keys():
+                    continue
+                else:
+                    rows.append(row)
+            inventory_obsolete_database_items_delete(ikey_names, rows, inventory, new_poll_time, config, VM)
 
 
             # Check on the core limits to see if any clouds need to be scaled down.
@@ -1728,11 +1776,7 @@ def vm_poller():
                 break
 
             # Cleanup inventory, this function will clean up inventory entries for deleted clouds
-            rc, msg = config.db_execute('select distinct group_name, cloud_name from csv2_clouds where cloud_type="openstack"')
-            group_clouds = []
-            for row in config.db_cursor:
-                group_clouds.append(row)
-            cleanup_inventory(inventory, group_clouds)
+            inventory_cleanup(ikey_names, rows, inventory)
 
             signal.signal(signal.SIGINT, config.signals['SIGINT'])
 

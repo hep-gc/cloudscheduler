@@ -19,15 +19,12 @@ from cloudscheduler.lib.view_utils import qt, verify_cloud_credentials
 from cloudscheduler.lib.html_tables_to_dictionary import get_html_tables
 
 from cloudscheduler.lib.poller_functions_na import \
-    delete_obsolete_database_items, \
-    get_inventory_item_hash_from_database, \
-    test_and_set_inventory_item_hash, \
+    inventory_cleanup, \
+    inventory_obsolete_database_items_delete, \
+    inventory_get_item_hash_from_db_query_rows, \
+    inventory_test_and_set_item_hash, \
     start_cycle, \
-    wait_cycle, \
-    cleanup_inventory
-#   get_last_poll_time_from_database, \
-#   set_inventory_group_and_cloud, \
-#   set_inventory_item, \
+    wait_cycle
 
 from cloudscheduler.lib.signal_functions import event_receiver_registration
 
@@ -380,6 +377,7 @@ def flavor_poller():
     CLOUD = "csv2_clouds"
     FILTERS = "ec2_instance_type_filters"
     CONFIG = "csv2_configuration"
+    ikey_names = ["group_name", "cloud_name", "id"]
 
     cycle_start_time = 0
     new_poll_time = 0
@@ -392,7 +390,9 @@ def flavor_poller():
 
     config.db_open()
     while True:
-        inventory = get_inventory_item_hash_from_database(config.db_engine, FLAVOR, 'name', debug_hash=(config.categories["ec2cloudPoller.py"]["log_level"]<20), cloud_type='amazon')
+        where_clause = "cloud_type='amazon'"
+        rc, msg, rows = config.db_query(FLAVOR, where=where_clause)
+        inventory = inventory_get_item_hash_from_db_query_rows(ikey_names, rows)
 
         try:
             #poll flavors
@@ -405,11 +405,7 @@ def flavor_poller():
 
             new_poll_time, cycle_start_time = start_cycle(new_poll_time, cycle_start_time)
             # Cleanup inventory, this function will clean up inventory entries for deleted clouds
-            rc, msg  = config.db_execute('select distinct group_name, cloud_name from csv2_clouds where cloud_type="amazon"')
-            group_clouds = []
-                for row in config.db_cursor:
-                    group_clouds.append(row)
-            cleanup_inventory(inventory, group_clouds)
+            inventory_cleanup(ikey_names, rows, inventory)
 
 
             # First check that our ec2 instance types table is up to date:
@@ -441,6 +437,7 @@ def image_poller():
     CLOUD = "csv2_clouds"
     EC2_IMAGE_FILTER = "ec2_image_filters"
 
+
     cycle_start_time = 0
     new_poll_time = 0
     poll_time_history = [0, 0, 0, 0]
@@ -450,8 +447,7 @@ def image_poller():
     event_receiver_registration(config, "update_csv2_clouds_amazon")
 
     try:
-        #inventory = get_inventory_item_hash_from_database(config.db_engine, EC2_IMAGE, 'id',
-        #                                                  debug_hash=(config.log_level < 20), cloud_type='amazon')
+
         while True:
             try:
                 logging.debug("Beginning image poller cycle")
@@ -846,6 +842,7 @@ def keypair_poller():
 
     KEYPAIR = "cloud_keypairs"
     CLOUD = "csv2_clouds"
+    ikey_names = ["group_name", "cloud_name", "fingerprint", "key_name"]
 
     cycle_start_time = 0
     new_poll_time = 0
@@ -856,8 +853,10 @@ def keypair_poller():
     event_receiver_registration(config, "update_csv2_clouds_amazon")
 
     try:
-        inventory = get_inventory_item_hash_from_database(config.db_engine, KEYPAIR, 'key_name',
-                                                          debug_hash=(config.categories["ec2cloudPoller.py"]["log_level"] < 20), cloud_type='amazon')
+
+        where_clause = "cloud_type='amazon'"
+        rc, msg, rows = config.db_query(KEYPAIR, where=where_clause)
+        inventory = inventory_get_item_hash_from_db_query_rows(ikey_names, rows)
         while True:
             try:
                 logging.debug("Beginning keypair poller cycle")
@@ -871,11 +870,7 @@ def keypair_poller():
                 config.db_open()
                 config.refresh()
                 # Cleanup inventory, this function will clean up inventory entries for deleted clouds
-                rc, msg  = config.db_execute('select distinct group_name, cloud_name from csv2_clouds where cloud_type="amazon"')
-                group_clouds = []
-                for row in config.db_cursor:
-                    group_clouds.append(row)
-                cleanup_inventory(inventory, group_clouds)
+                inventory_cleanup(ikey_names, rows, inventory)
 
 
                 abort_cycle = False
@@ -957,8 +952,7 @@ def keypair_poller():
                                 "cloud_type": 'amazon',
                             }
 
-                            if test_and_set_inventory_item_hash(inventory, group_n, cloud_n, key['KeyName'], key_dict,
-                                                                new_poll_time, debug_hash=(config.categories["ec2cloudPoller.py"]["log_level"] < 20)):
+                            if inventory_test_and_set_item_hash(ikey_names, key_dict, inventory, new_poll_time, debug_hash=(config.categories["ec2cloudPoller.py"]["log_level"] < 20)):
                                 continue
                             try:
                                 config.db_merge(KEYPAIR, key_dict)
@@ -989,9 +983,17 @@ def keypair_poller():
                     time.sleep(config.categories["ec2cloudPoller.py"]["sleep_interval_keypair"])
                     continue
 
-                # Scan the EC2 keypairs in the database, removing each one that was not updated in the inventory.
-                delete_obsolete_database_items('Keypair', inventory, db_session, KEYPAIR, 'key_name',
-                                               poll_time=new_poll_time, failure_dict=failure_dict)
+
+                # since the new inventory function doesn't accept a failfure dict we need to screen the rows ourself
+                where_clause="cloud_type='amazon'"
+                rc, msg, unfiltered_rows = config.db_query(KEYPAIR, where=where_clause)
+                rows = []
+                for row in unfiltered_rows:
+                    if row['group_name'] + row['cloud_name'] in failure_dict.keys():
+                        continue
+                    else:
+                        rows.append(row)
+                inventory_obsolete_database_items_delete(ikey_names, rows, inventory, new_poll_time, config, KEYPAIR)
 
                 config.db_close()
 
@@ -1025,6 +1027,7 @@ def limit_poller():
 
     LIMIT = "cloud_limits"
     CLOUD = "csv2_clouds"
+    ikey_names = ["group_name", "cloud_name"]
 
     cycle_start_time = 0
     new_poll_time = 0
@@ -1035,8 +1038,10 @@ def limit_poller():
     event_receiver_registration(config, "update_csv2_clouds_amazon")
 
     try:
-        inventory = get_inventory_item_hash_from_database(config.db_engine, LIMIT, '-',
-                                                          debug_hash=(config.categories["ec2cloudPoller.py"]["log_level"] < 20), cloud_type='amazon')
+        where_clause = "cloud_type='amazon'"
+        rc, msg, rows = config.db_query(LIMIT, where=where_clause)
+        inventory = inventory_get_item_hash_from_db_query_rows(ikey_names, rows)
+
         while True:
             try:
                 logging.debug("Beginning limit poller cycle")
@@ -1049,12 +1054,8 @@ def limit_poller():
                 new_poll_time, cycle_start_time = start_cycle(new_poll_time, cycle_start_time)
                 config.db_open()
                 config.refresh()
-                # Cleanup inventory, this function will clean up inventory entries for deleted clouds
-                rc, msg  = config.db_execute('select distinct group_name, cloud_name from csv2_clouds where cloud_type="amazon"')
-                group_clouds = []
-                for row in config.db_cursor:
-                    group_clouds.append(row)
-                cleanup_inventory(inventory, group_clouds)
+
+                inventory_cleanup(ikey_names, rows, inventory)
 
 
                 abort_cycle = False
@@ -1186,8 +1187,7 @@ def limit_poller():
                             logging.debug("Unmapped attributes found during mapping, discarding:")
                             logging.debug(unmapped)
 
-                        if test_and_set_inventory_item_hash(inventory, group_n, cloud_n, '-', limits_dict,
-                                                            new_poll_time, debug_hash=(config.categories["ec2cloudPoller.py"]["log_level"] < 20)):
+                        if inventory_test_and_set_item_hash(ikey_names, limits_dict, inventory, new_poll_time, debug_hash=(config.categories["ec2cloudPoller.py"]["log_level"] < 20)):
                             continue
 
                         for limit in limits_dict:
@@ -1220,9 +1220,16 @@ def limit_poller():
                             abort_cycle = True
                             break
 
-                # Scan the OpenStack flavors in the database, removing each one that was` not iupdated in the inventory.
-                delete_obsolete_database_items('Limit', inventory, db_session, LIMIT, '-', poll_time=new_poll_time,
-                                               failure_dict=failure_dict)
+
+                where_clause="cloud_type='amazon'"
+                rc, msg, unfiltered_rows = config.db_query(LIMIT, where=where_clause)
+                rows = []
+                for row in unfiltered_rows:
+                    if row['group_name'] + row['cloud_name'] in failure_dict.keys():
+                        continue
+                    else:
+                        rows.append(row)
+                inventory_obsolete_database_items_delete(ikey_names, rows, inventory, new_poll_time, config, LIMIT)
 
                 config.db_close()
 
@@ -1256,6 +1263,7 @@ def network_poller():
 
     NETWORK = "cloud_networks"
     CLOUD = "csv2_clouds"
+    ikey_names = ["group_name", "cloud_name", "id"]
 
     cycle_start_time = 0
     new_poll_time = 0
@@ -1266,8 +1274,9 @@ def network_poller():
     event_receiver_registration(config, "update_csv2_clouds_amazon")
 
     try:
-        inventory = get_inventory_item_hash_from_database(config.db_engine, NETWORK, 'name',
-                                                          debug_hash=(config.categories["ec2cloudPoller.py"]["log_level"] < 20), cloud_type='amazon')
+        where_clause = "cloud_type='amazon'"
+        rc, msg, rows = config.db_query(NETWORK, where=where_clause)
+        inventory = inventory_get_item_hash_from_db_query_rows(ikey_names, rows)
         while True:
             try:
                 logging.debug("Beginning network poller cycle")
@@ -1281,11 +1290,7 @@ def network_poller():
                 config.refresh()
 
                 # Cleanup inventory, this function will clean up inventory entries for deleted clouds
-                rc, msg  = config.db_execute('select distinct group_name, cloud_name from csv2_clouds where cloud_type="amazon"')
-                group_clouds = []
-                for row in config.db_cursor:
-                    group_clouds.append(row)
-                cleanup_inventory(inventory, group_clouds)
+                inventory_cleanup(ikey_names, rows, inventory)
 
                 abort_cycle = False
                 where_clause = "cloud_type='amazon'"
@@ -1376,9 +1381,8 @@ def network_poller():
                             #    logging.error("Unmapped attributes found during mapping, discarding:")
                             #    logging.error(unmapped)
 
-                            if test_and_set_inventory_item_hash(inventory, group_n, cloud_n, network['Description'],
-                                                                network_dict, new_poll_time,
-                                                                debug_hash=(config.categories["ec2cloudPoller.py"]["log_level"] < 20)):
+                            if inventory_test_and_set_item_hash(ikey_names, network_dict, inventory, new_poll_time, debug_hash=(config.categories["ec2cloudPoller.py"]["log_level"] < 20)):
+
                                 continue
 
                             try:
@@ -1410,9 +1414,19 @@ def network_poller():
                     time.sleep(config.categories["ec2cloudPoller.py"]["sleep_interval_network"])
                     continue
 
-                # Scan the OpenStack networks in the database, removing each one that was not updated in the inventory.
-                delete_obsolete_database_items('Network', inventory, db_session, NETWORK, 'name',
-                                               poll_time=new_poll_time, failure_dict=failure_dict)
+
+                # since the new inventory function doesn't accept a failfure dict we need to screen the rows ourself
+                where_clause="cloud_type='amazon'"
+                rc, msg, unfiltered_rows = config.db_query(NETWORK, where=where_clause)
+                rows = []
+                for row in unfiltered_rows:
+                    if row['group_name'] + row['cloud_name'] in failure_dict.keys():
+                        continue
+                    else:
+                        rows.append(row)
+                inventory_obsolete_database_items_delete(ikey_names, rows, inventory, new_poll_time, config, NETWORK)
+
+
 
                 config.db_close()
 
@@ -1446,6 +1460,7 @@ def security_group_poller():
 
     SECURITY_GROUP = "cloud_security_groups"
     CLOUD = "csv2_clouds"
+    ikey_names = ["group_name", "cloud_name", "id"]
 
     cycle_start_time = 0
     new_poll_time = 0
@@ -1457,8 +1472,9 @@ def security_group_poller():
     event_receiver_registration(config, "update_csv2_clouds_amazon")
 
     try:
-        inventory = get_inventory_item_hash_from_database(config.db_engine, SECURITY_GROUP, 'id',
-                                                          debug_hash=(config.categories["ec2cloudPoller.py"]["log_level"] < 20), cloud_type='amazon')
+        where_clause = "cloud_type='amazon'"
+        rc, msg, rows = config.db_query(SECURITY_GROUP, where=where_clause)
+        inventory = inventory_get_item_hash_from_db_query_rows(ikey_names, rows)
         while True:
             try:
                 logging.debug("Beginning security group poller cycle")
@@ -1473,11 +1489,7 @@ def security_group_poller():
                 config.refresh()
 
                 # Cleanup inventory, this function will clean up inventory entries for deleted clouds
-                rc, msg  = config.db_execute('select distinct group_name, cloud_name from csv2_clouds where cloud_type="amazon"')
-                group_clouds = []
-                for row in config.db_cursor:
-                    group_clouds.append(row)
-                cleanup_inventory(inventory, group_clouds)
+                inventory_cleanup(ikey_names, rows, inventory)
 
                 abort_cycle = False
                 where_clause = "cloud_type='amazon'"
@@ -1566,9 +1578,7 @@ def security_group_poller():
                                 logging.debug("Unmapped attributes found during mapping, discarding:")
                                 logging.debug(unmapped)
 
-                            if test_and_set_inventory_item_hash(inventory, group_n, cloud_n, sec_grp["GroupId"],
-                                                                sec_grp_dict, new_poll_time,
-                                                                debug_hash=(config.categories["ec2cloudPoller.py"]["log_level"] < 20)):
+                            if inventory_test_and_set_item_hash(ikey_names, sec_grp_dict_dict, inventory, new_poll_time, debug_hash=(config.categories["ec2cloudPoller.py"]["log_level"] < 20)):
                                 continue
 
                             try:
@@ -1601,9 +1611,16 @@ def security_group_poller():
                     time.sleep(config.categories["ec2cloudPoller.py"]["sleep_interval_sec_grp"])
                     continue
 
-                # Scan the OpenStack sec_grps in the database, removing each one that was not iupdated in the inventory.
-                delete_obsolete_database_items('sec_grp', inventory, db_session, SECURITY_GROUP, 'id',
-                                               poll_time=new_poll_time, failure_dict=failure_dict)
+                # since the new inventory function doesn't accept a failfure dict we need to screen the rows ourself
+                where_clause="cloud_type='amazon'"
+                rc, msg, unfiltered_rows = config.db_query(SECURITY_GROUPS, where=where_clause)
+                rows = []
+                for row in unfiltered_rows:
+                    if row['group_name'] + row['cloud_name'] in failure_dict.keys():
+                        continue
+                    else:
+                        rows.append(row)
+                inventory_obsolete_database_items_delete(ikey_names, rows, inventory, new_poll_time, config, SECURITY_GROUP)
 
                 config.db_close()
 
@@ -1641,6 +1658,7 @@ def vm_poller():
     GROUP = "csv2_groups"
     CLOUD = "csv2_clouds"
     EC2_STATUS = "ec2_instance_status_codes"
+    ikey_names = ["group_name", "cloud_name", "vmid"]
 
     cycle_start_time = 0
     new_poll_time = 0
@@ -1655,10 +1673,11 @@ def vm_poller():
     rc, msg, ec2_status = config.db_query(EC2_STATUS)
     for row in ec2_status:
         ec2_status_dict[row["ec2_state"] = row["csv2_state"]
-    config.db_close()
-    
+
     try:
-        inventory = get_inventory_item_hash_from_database(config.db_engine, VM, 'vmid', debug_hash=(config.categories["ec2cloudPoller.py"]["log_level"]<20), cloud_type="amazon")
+        where_clause = "cloud_type='amazon'"
+        rc, msg, rows = config.db_query(VM, where=where_clause)
+        inventory = inventory_get_item_hash_from_db_query_rows(ikey_names, rows)
         while True:
             # This cycle should be reasonably fast such that the scheduler will always have the most
             # up to date data during a given execution cycle.
@@ -1669,17 +1688,11 @@ def vm_poller():
 
             signal.signal(signal.SIGINT, signal.SIG_IGN)
 
-
             new_poll_time, cycle_start_time = start_cycle(new_poll_time, cycle_start_time)
-            config.db_open()
             config.refresh()
 
             # Cleanup inventory, this function will clean up inventory entries for deleted clouds
-            rc, msg  = config.db_execute('select distinct group_name, cloud_name from csv2_clouds where cloud_type="amazon"')
-            group_clouds = []
-            for row in config.db_cursor:
-                group_clouds.append(row)
-            cleanup_inventory(inventory, group_clouds)
+            inventory_cleanup(ikey_names, rows, inventory)
 
             # For each amazon region, retrieve and process VMs.
             abort_cycle = False
@@ -1905,7 +1918,7 @@ def vm_poller():
                             logging.debug("unmapped attributes found during mapping, discarding:")
                             logging.debug(unmapped)
 
-                        if test_and_set_inventory_item_hash(inventory, vm_group_name, vm_cloud_name, vm_dict['vmid'], vm_dict, new_poll_time, debug_hash=(config.categories["ec2cloudPoller.py"]["log_level"]<20)):
+                        if inventory_test_and_set_item_hash(ikey_names, vm_dict, inventory, new_poll_time, debug_hash=(config.categories["ec2cloudPoller.py"]["log_level"] < 20)):
                             continue
 
 
@@ -1989,7 +2002,17 @@ def vm_poller():
                 if cloud["cloud_name"] + cloud["authurl"] in failure_dict:
                     new_f_dict[cloud["group_name"]+cloud["cloud_name"]] = 1
             logging.debug("Calling delete function")
-            delete_obsolete_database_items('VM', inventory, db_session, VM, 'vmid', new_poll_time, failure_dict=new_f_dict, cloud_type="amazon")
+
+            # since the new inventory function doesn't accept a failfure dict we need to screen the rows ourself
+            where_clause="cloud_type='amazon'"
+            rc, msg, unfiltered_rows = config.db_query(VM, where=where_clause)
+            rows = []
+            for row in unfiltered_rows:
+                if row['group_name'] + row['cloud_name'] in new_f_dict.keys():
+                    continue
+                else:
+                    rows.append(row)
+            inventory_obsolete_database_items_delete(ikey_names, rows, inventory, new_poll_time, config, VM)
 
             # Check on the core limits to see if any clouds need to be scaled down.
             where_clause = "cloud_type='amazon'"
