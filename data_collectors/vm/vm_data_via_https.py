@@ -9,7 +9,7 @@ import sys
 
 from cloudscheduler.lib.db_config_na import Config
 from cloudscheduler.lib.log_tools import get_frame_info
-from cloudscheduler.lib.ProcessMonitor import ProcessMonitor, check_pid, terminate
+from cloudscheduler.lib.ProcessMonitor_na import ProcessMonitor, check_pid, terminate
 from cloudscheduler.lib.poller_functions import wait_cycle, start_cycle
 
 def apel_accounting_cleanup():
