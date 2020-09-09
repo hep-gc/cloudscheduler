@@ -137,6 +137,7 @@ def timeseries_data_transfer():
                         new_point = "{0},cloud={1} value={2}i {3}".format(column_list[column], cloud, int(data), ts)
                     else:
                         new_point = "{0},cloud={1},group={2} value={3}i {4}".format(column_list[column], cloud, group, int(data), ts)
+
                     data_points.append(new_point)
                     column += 1
 
