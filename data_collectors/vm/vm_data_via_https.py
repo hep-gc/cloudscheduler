@@ -7,9 +7,9 @@ import os
 import signal
 import sys
 
-from cloudscheduler.lib.db_config import Config
+from cloudscheduler.lib.db_config_na import Config
 from cloudscheduler.lib.log_tools import get_frame_info
-from cloudscheduler.lib.ProcessMonitor import ProcessMonitor, check_pid, terminate
+from cloudscheduler.lib.ProcessMonitor_na import ProcessMonitor, check_pid, terminate
 from cloudscheduler.lib.poller_functions import wait_cycle, start_cycle
 
 def apel_accounting_cleanup():
@@ -41,14 +41,14 @@ def apel_accounting_cleanup():
             obsolete_apel_accounting_rows = time.time() - (86400 * config.categories[my_config_category]['apel_accounting_keep_alive_days'])
 
             try:
-                result = config.db_session.execute('delete from apel_accounting where (last_update>0 and last_update<%s) or (last_update<1 and start_time<%s);' % (obsolete_apel_accounting_rows, obsolete_apel_accounting_rows))
-                config.db_session.commit()
+                rc, msg = config.db_execute('delete from apel_accounting where (last_update>0 and last_update<%s) or (last_update<1 and start_time<%s);' % (obsolete_apel_accounting_rows, obsolete_apel_accounting_rows))
+
+                config.db_commit()
                 logging.info('APEL accounting, %s rows deleted.' % result.rowcount)
 
             except Exception as ex:
                 logging.error('Delete of obsolete APEL accounting rows failed: %s' % ex)
 
-            config.db_session.rollback()
             logging.debug("Completed APEL Accounting Cleanup cycle")
             if not os.path.exists(PID_FILE):
                 logging.info("Stop set, exiting...")
@@ -60,7 +60,6 @@ def apel_accounting_cleanup():
         logging.exception("VM data poller, while loop exception, process terminating...")
         logging.error(exc)
         del condor_session
-        db_session.close()
 
 def vm_data_poller():
     multiprocessing.current_process().name = "VM data poller"
@@ -69,7 +68,7 @@ def vm_data_poller():
     config = Config('/etc/cloudscheduler/cloudscheduler.yaml', [my_config_category, "ProcessMonitor"], pool_size=4, signals=True)
     PID_FILE = config.categories["ProcessMonitor"]["pid_path"] + os.path.basename(sys.argv[0])
 
-    VMS = config.db_map.classes.csv2_vms
+    VMS = "csv2_vms"
 
     if os.path.isfile(config.categories[my_config_category]['vm_data_poller_checkpoint']):
         with open(config.categories[my_config_category]['vm_data_poller_checkpoint']) as fd:
@@ -136,25 +135,24 @@ def vm_data_poller():
             if len(vms_in_error) > 0:
                 for hostname in sorted(vms_in_error):
                       if vms_in_error[hostname]['type'] == 'CERT':
-                          config.db_session.execute('update csv2_vms set htcondor_startd_errors="%s",htcondor_startd_time=unix_timestamp(),retire=retire+1,updater="%s" where hostname="%s"' % (vms_in_error[hostname]['errors'], str(get_frame_info() + ":r+"), hostname))
+                          config.db_execute('update csv2_vms set htcondor_startd_errors="%s",htcondor_startd_time=unix_timestamp(),retire=retire+1,updater="%s" where hostname="%s"' % (vms_in_error[hostname]['errors'], str(get_frame_info() + ":r+"), hostname))
                           updates += 1
                       elif vms_in_error[hostname]['type'] == 'STARTD':
-                          config.db_session.execute('update csv2_vms set htcondor_startd_errors="%s",htcondor_startd_time=unix_timestamp() where hostname="%s"' % (vms_in_error[hostname]['errors'], hostname))
+                          config.db_execute('update csv2_vms set htcondor_startd_errors="%s",htcondor_startd_time=unix_timestamp() where hostname="%s"' % (vms_in_error[hostname]['errors'], hostname))
                           updates += 1
 
             for apel_update in apel_updates:
                 try:
-                    config.db_session.execute(apel_update)
+                    config.db_execute(apel_update)
                     updates += 1
                 except Exception as ex:
                     logging.error('%s failed - %s' % (apel_update, ex))
                 
             if updates > 0:
-                config.db_session.commit()
+                config.db_commit()
 
             logging.info('%s updates commited.' % updates)
 
-            config.db_session.rollback()
             checkpoint += ssl_access_log_size
             with open(config.categories[my_config_category]['vm_data_poller_checkpoint'], 'w') as fd:
                 fd.write(str(checkpoint))
@@ -171,7 +169,6 @@ def vm_data_poller():
         logging.exception("VM data poller, while loop exception, process terminating...")
         logging.error(exc)
         del condor_session
-        db_session.close()
 
 if __name__ == '__main__':
 
