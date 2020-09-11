@@ -117,10 +117,10 @@ class OpenStackCloud(basecloud.BaseCloud):
             glance = self._get_creds_glance()
             if job.get("image") and self.name in image_dict:
                 imageobj = self._find_image(glance, image_dict[self.name])
-            elif self.default_image:
-                imageobj = self._find_image(glance, self.default_image)
             elif image:
                 imageobj = self._find_image(glance, image)
+            elif self.default_image:
+                imageobj = self._find_image(glance, self.default_image)
             else:
                 imageobj = self._find_image(glance, csconfig.config.default_image)
         except Exceptions as ex:

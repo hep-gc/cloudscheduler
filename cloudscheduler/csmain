@@ -872,7 +872,7 @@ def main():
                                 # Let's try to boot
                                 try:
                                     if idle_job.get("image"):
-                                        use_image = None
+                                        use_image = idle_job.get("image")
                                     elif boot_flavor.get("default_image"):
                                         use_image = boot_flavor.get("default_image")
                                     else:
