@@ -120,27 +120,34 @@ def timeseries_data_transfer():
             
             # Parse cloud status data into line protocol for influxdb
             for line in cloud_status:
-                column = 2
-                group = line[0]
+                group = line["group_name"]
                 if group not in groups and group != '' or None:
                     groups.append(group)
-                cloud = line[1]
-                for data in line[2:]:
-                    if data == -1 or data is None:
-                        column += 1
+                cloud = line["cloud_name"]
+                for key in line:
+                    if key == "cloud_name" or key == "group_name":
+                        continue
+                    if line[key] == -1 or line[key] is None:
                         continue
                     if group == '' or None:
-                        new_point = "{0},cloud={1} value={2}i {3}".format(column_list[column], cloud, int(data), ts)
+                        new_point = "{0},cloud={1} value={2}i {3}".format(key, cloud, int(data), ts)
                     else:
-                        new_point = "{0},cloud={1},group={2} value={3}i {4}".format(column_list[column], cloud, group, int(data), ts)
+                        new_point = "{0},cloud={1},group={2} value={3}i {4}".format(key, cloud, group, int(line[key]), ts)
 
                     data_points.append(new_point)
-                    column += 1
 
             # Parse job status data into line protocol for influxdb
             for line in job_status:
-                group = line.group_name
-               
+                group = line["group_name"]
+
+                for key in line:
+                    #this is a dirty way to do it but we dont want to plot the following fields, everything else should get a trace
+                    if key == "group_name" or key == "htcondor_fqdn" or key == "state" or key == "condor_days_left" or key == "worker_days_left" or key == "error_message":
+                        continue
+                    new_point = "{0},group={1} value={2}i {3}".format(key, group, _cast_int(line[key]), ts)
+                    data_points.append(new_point)
+
+               '''
                 new_point = "{0},group={1} value={2}i {3}".format(job_column_list[0], group, _cast_int(line.Jobs), ts)
                 data_points.append(new_point)
                 new_point = "{0},group={1} value={2}i {3}".format(job_column_list[1], group, _cast_int(line.Idle), ts)
@@ -157,7 +164,7 @@ def timeseries_data_transfer():
                 data_points.append(new_point)
                 new_point = "{0},group={1} value={2}i {3}".format(job_column_list[7], group, _cast_int(line.plotable_state), ts)
                 data_points.append(new_point)
-
+                '''
 
             # Collect group totals
             for group in groups:
