@@ -115,7 +115,7 @@ def timeseries_data_transfer():
                         data_points.append(new_point)
             '''
             for status in statuses:
-                new_point = "{0} value={1} {2}".format(status.alias, status.plotable_state, ts)
+                new_point = "{0} value={1} {2}".format(status["alias"], status["plotable_state"], ts)
                 data_points.append(new_point)
             
             # Parse cloud status data into line protocol for influxdb
