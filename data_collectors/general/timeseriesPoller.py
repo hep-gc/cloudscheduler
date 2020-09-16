@@ -10,11 +10,6 @@ import signal
 from cloudscheduler.lib.view_utils import qt
 from cloudscheduler.lib.db_config_na import Config
 from cloudscheduler.lib.ProcessMonitor_na import ProcessMonitor, terminate, check_pid
-from cloudscheduler.lib.schema import view_cloud_status
-from cloudscheduler.lib.schema import view_job_status
-from cloudscheduler.lib.schema import view_cloud_status_slot_detail
-from cloudscheduler.lib.schema import view_condor_jobs_group_defaults_applied
-from cloudscheduler.lib.schema import view_service_status
 
 from cloudscheduler.lib.poller_functions_na import start_cycle, wait_cycle
 
@@ -54,14 +49,14 @@ def timeseries_data_transfer():
             config.db_open()
             config.refresh()
             
-            rc, msg, statuses = config.db_query(view_service_status)
+            rc, msg, statuses = config.db_query(v"iew_service_status")
 
             # Query mariadb for cloud status and job status view
-            rc, msg, cloud_status = config.db_query(view_cloud_status)
+            rc, msg, cloud_status = config.db_query("view_cloud_status")
             # This column list used to be generated via a sqlalchemy object, we may need to make a more specific database query to do the trick here
             # but for now we'll just take they keys of the resultant dictionary as the column names
             column_list = list(cloud_status[0].keys())
-            rc, msg, job_status = config.db_query(view_job_status)
+            rc, msg, job_status = config.db_query("view_job_status")
             
             job_column_list = [
                 'jobs',
@@ -170,7 +165,7 @@ def timeseries_data_transfer():
             for group in groups:
                 # Get cloud status per group
                 where_clause = "group_name='%s'" % group
-                rc, msg, cloud_status_list = config.db_query(view_cloud_status, where=where_clause)
+                rc, msg, cloud_status_list = config.db_query("view_cloud_status", where=where_clause)
                 # Calculate the totals for all rows
                 cloud_status_list_totals = qt(cloud_status_list, keys={
                     'primary': ['group_name'],
@@ -215,7 +210,7 @@ def timeseries_data_transfer():
              
             # Get slot type counts details
             try:
-                rc, msg, slot_list = config.db_query(view_cloud_status_slot_detail)
+                rc, msg, slot_list = config.db_query("view_cloud_status_slot_detail")
                 if slot_list:
                     slot_cores_list = qt(slot_list, keys={
                         'primary': ['group_name', 'cloud_name', 'slot_type'],
@@ -231,7 +226,7 @@ def timeseries_data_transfer():
                 logging.error(exc)
             
             # Get job core details for job status
-            rc, msg, job_details_list = config.db_query(view_condor_jobs_group_defaults_applied)
+            rc, msg, job_details_list = config.db_query("view_condor_jobs_group_defaults_applied")
             if job_details_list:
                 job_details_list_totals = qt(job_details_list, keys={
                     'primary': ['group_name', 'request_cpus'],
