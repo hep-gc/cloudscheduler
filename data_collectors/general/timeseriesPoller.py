@@ -139,7 +139,9 @@ def timeseries_data_transfer():
                     #this is a dirty way to do it but we dont want to plot the following fields, everything else should get a trace
                     if key == "group_name" or key == "htcondor_fqdn" or key == "state" or key == "condor_days_left" or key == "worker_days_left" or key == "error_message":
                         continue
-                    new_point = "{0},group={1} value={2}i {3}".format("jobs_"+key, group, _cast_int(line[key]), ts)
+                    trace_name = "jobs_" + key
+                    trace_name = trace_name.lower()
+                    new_point = "{0},group={1} value={2}i {3}".format(trace_name, group, _cast_int(line[key]), ts)
                     data_points.append(new_point)
 
             # Collect group totals
