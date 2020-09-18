@@ -49,7 +49,7 @@ def timeseries_data_transfer():
             config.db_open()
             config.refresh()
             
-            rc, msg, statuses = config.db_query(v"iew_service_status")
+            rc, msg, statuses = config.db_query("view_service_status")
 
             # Query mariadb for cloud status and job status view
             rc, msg, cloud_status = config.db_query("view_cloud_status")
@@ -139,27 +139,8 @@ def timeseries_data_transfer():
                     #this is a dirty way to do it but we dont want to plot the following fields, everything else should get a trace
                     if key == "group_name" or key == "htcondor_fqdn" or key == "state" or key == "condor_days_left" or key == "worker_days_left" or key == "error_message":
                         continue
-                    new_point = "{0},group={1} value={2}i {3}".format(key, group, _cast_int(line[key]), ts)
+                    new_point = "{0},group={1} value={2}i {3}".format("jobs_"+key, group, _cast_int(line[key]), ts)
                     data_points.append(new_point)
-
-               '''
-                new_point = "{0},group={1} value={2}i {3}".format(job_column_list[0], group, _cast_int(line.Jobs), ts)
-                data_points.append(new_point)
-                new_point = "{0},group={1} value={2}i {3}".format(job_column_list[1], group, _cast_int(line.Idle), ts)
-                data_points.append(new_point)
-                new_point = "{0},group={1} value={2}i {3}".format(job_column_list[2], group, _cast_int(line.Running), ts)
-                data_points.append(new_point)
-                new_point = "{0},group={1} value={2}i {3}".format(job_column_list[3], group, _cast_int(line.Completed), ts)
-                data_points.append(new_point)
-                new_point = "{0},group={1} value={2}i {3}".format(job_column_list[4], group, _cast_int(line.Held), ts)
-                data_points.append(new_point)
-                new_point = "{0},group={1} value={2}i {3}".format(job_column_list[5], group, _cast_int(line.Other), ts)
-                data_points.append(new_point)
-                new_point = "{0},group={1} value={2}i {3}".format(job_column_list[6], group, _cast_int(line.foreign), ts)
-                data_points.append(new_point)
-                new_point = "{0},group={1} value={2}i {3}".format(job_column_list[7], group, _cast_int(line.plotable_state), ts)
-                data_points.append(new_point)
-                '''
 
             # Collect group totals
             for group in groups:
