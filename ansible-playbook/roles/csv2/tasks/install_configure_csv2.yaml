@@ -59,6 +59,7 @@
   with_items:
   - /etc/phpMyAdmin
   - /var/lib/php
+  - /var/lib/php/session
   when:
   - (install_phpMyAdmin is defined) and (install_phpMyAdmin == True)
 
@@ -95,8 +96,8 @@
     name: ["bcrypt==3.1.4", "boto3>=1.9.130", "sqlalchemy", "pika", "python-keystoneclient",
            "python-novaclient", "python-neutronclient", "python-cinderclient", "python-dateutil",
            "pyyaml", "jinja2", "libvirt-python", "py-dateutil", "urllib3", "django-mathfilters",
-           "htcondor", "PyMySQL", "psutil", "celery", "python-glanceclient", "django==2.0.5",
-           "mysqlclient", "django-debug-toolbar"]
+           "htcondor", "PyMySQL", "psutil", "celery=4.4.6", "python-glanceclient", "django==2.0.5",
+           "mysqlclient", "mysql-connector", "django-debug-toolbar"]
     executable: pip3
 
 - name: save any changes in the git repository that we are about to pull down
@@ -192,7 +193,6 @@
     dest: /tmp/cloudscheduler/
   with_items:
   - '/opt/cloudscheduler/etc/cloudscheduler/cloudscheduler.yaml.j2'
-  - '/opt/cloudscheduler/etc/cloudscheduler/condor_poller.yaml.j2'
   - '/opt/cloudscheduler/usr/local/etc/haproxy.conf.j2'
   - '/opt/cloudscheduler/etc/httpd/conf.d/csv2_ssl.conf.j2'
   - '/opt/cloudscheduler/web_frontend/cloudscheduler/cloudscheduler_web/settings.py.j2'
@@ -350,6 +350,9 @@
  
 - name: Get public IP address
   ipify_facts:
+  when: 
+  - container is defined
+  - container == True
 
 - name: update cloudscheduler to remove ssl verification for private-web container target
   lineinfile:
@@ -497,7 +500,7 @@
       - ec2Poller.log
       - main.log
       - openstackpoller.log
-      - condor_poller.log
+#     - condor_poller.log
       - timeseriesPoller.log
       - watch_csv2.logging
 
@@ -538,6 +541,7 @@
     mode: 0644
   with_items:
     - cloudscheduler
+    - condor
 
 - name: ensure csv2 services are stopped
   systemd:
@@ -560,41 +564,42 @@
       name: mariadb
       state: restarted
 
-##### If a user has been partially deleted ('delete from user ....') this task will fail ERROR 1396. To manually clean up:
-#####   DROP USER '<failing_user>'@'<failing_host>';
-#####   FLUSH PRIVELGES;
-- name: define csv2 database users with full privileges
-  mysql_user:
-      name: "{{ item[0] }}"
-      host: "{{ item[1] }}"
-      password: "{{ database_user_passwords[item[0]] }}"
-      priv: "{{ item[2] }}"
-      state: present
-      login_user: root
-      login_password: '{{ mariadb_root }}'
-  when: not (item[2] | search("SELECT") or item[2] | search("select"))
-  with_nested:
-  - "{{ database_users }}"
-
 - name: install csv2 database schema
   command: "/opt/cloudscheduler/utilities/db_upgrade {{ schema_model }} -i {{ db_upgrade_file }} -r live"
   register: db_upgrade
 
-##### If a user has been partially deleted ('delete from user ....') this task will fail ERROR 1396. To manually clean up:
-#####   DROP USER '<failing_user>'@'<failing_host>';
-#####   FLUSH PRIVELGES;
-- name: define csv2 database users with limited privileges
-  mysql_user:
-      name: "{{ item[0] }}"
-      host: "{{ item[1] }}"
-      password: "{{ database_user_passwords[item[0]] }}"
-      priv: "{{ item[2] }}"
-      state: present
-      login_user: root
-      login_password: '{{ mariadb_root }}'
-  when: (item[2] | search("SELECT") or item[2] | search("select"))
-  with_nested:
-  - "{{ database_users }}"
+- name: retrieve privileges for remote users
+  command: "/opt/cloudscheduler/utilities/mysql_privileges {{ item.0 }},{{ item.1 }} {{ item.2 }}"
+  register: "mysql_privileges"
+  with_list: "{{ remote_database_users }}"
+
+- set_fact:
+    stderr_lines: []
+  when: mysql_privileges is defined
+
+- set_fact:
+    stderr_lines: "{{ stderr_lines + item.stderr_lines }}"
+  with_items: "{{ mysql_privileges.results }}"
+  when: mysql_privileges is defined
+
+- debug:
+    msg: "{{ item }}"
+  with_nested: "{{ stderr_lines }}"
+  when: mysql_privileges is defined
+
+- set_fact:
+    stdout_lines: []
+  when: mysql_privileges is defined
+
+- set_fact:
+    stdout_lines: "{{ stdout_lines + item.stdout_lines }}"
+  with_items: "{{ mysql_privileges.results }}"
+  when: mysql_privileges is defined
+
+- name: define csv2 database remote users and priveleges
+  command: "mysql -u root -p'{{ database_user_passwords['root'] }}' -e '{{ item }}' csv2"
+  with_items: "{{ stdout_lines }}"
+  when: mysql_privileges is defined
 
 - name: generate schema
   command: /opt/cloudscheduler/utilities/generate_schema.py
@@ -635,23 +640,23 @@
     password: "{{ csv2_default_password }}"
 
 - name: create csv2_default user for csv2
-  command: mysql -u root --password="{{ mariadb_root }}" -D csv2 -e 'INSERT INTO csv2_user (username, password, is_superuser, join_date) VALUES ("csv2_default", "{{ blowfish.hash }}", 1, "2018-04-01")'
+  command: mysql -u root --password="{{ database_user_passwords['root'] }}" -D csv2 -e 'INSERT INTO csv2_user (username, password, is_superuser, join_date) VALUES ("csv2_default", "{{ blowfish.hash }}", 1, "2018-04-01")'
   ignore_errors: yes
 
 - name: create csv2-group for the default csv2 user
-  command: mysql -u root --password="{{ mariadb_root }}" -D csv2 -e 'INSERT INTO csv2_groups (group_name, htcondor_fqdn) VALUES ("csv2-group", "{{ condor_manager }}")'
+  command: mysql -u root --password="{{ database_user_passwords['root'] }}" -D csv2 -e 'INSERT INTO csv2_groups (group_name, htcondor_fqdn) VALUES ("csv2-group", "{{ condor_manager }}")'
   ignore_errors: yes
 
 - name: add default csv2 user to csv2-group
-  command: mysql -u root --password="{{ mariadb_root }}" -D csv2 -e 'INSERT INTO csv2_user_groups (username, group_name) VALUES ("csv2_default", "csv2-group")'
+  command: mysql -u root --password="{{ database_user_passwords['root'] }}" -D csv2 -e 'INSERT INTO csv2_user_groups (username, group_name) VALUES ("csv2_default", "csv2-group")'
   ignore_errors: yes
 
 - name: create a defaults entry for csv2-group
-  command: mysql -u root --password="{{ mariadb_root }}" -D csv2 -e 'INSERT INTO csv2_groups (group_name, job_cpus, job_ram, job_disk, job_scratch, job_swap, vm_keep_alive) VALUES ("csv2-group", "1", "1000", "5", "0", "0", "0")'
+  command: mysql -u root --password="{{ database_user_passwords['root'] }}" -D csv2 -e 'INSERT INTO csv2_groups (group_name, job_cpus, job_ram, job_disk, job_scratch, job_swap, vm_keep_alive) VALUES ("csv2-group", "1", "1000", "5", "0", "0", "0")'
   ignore_errors: yes
 
 - name: add metadata files for csv2-group
-  command: mysql -u root --password="{{ mariadb_root }}" -D csv2 -e 'INSERT INTO csv2_group_metadata (group_name, metadata_name, enabled, priority, metadata, mime_type) VALUES ("csv2-group", "{{ item }}", "1", "0", LOAD_FILE("/opt/cloudscheduler/metadata/{{ item }}"), "cloud-config")'
+  command: mysql -u root --password="{{ database_user_passwords['root'] }}" -D csv2 -e 'INSERT INTO csv2_group_metadata (group_name, metadata_name, enabled, priority, metadata, mime_type) VALUES ("csv2-group", "{{ item }}", "1", "0", LOAD_FILE("/opt/cloudscheduler/metadata/{{ item }}"), "cloud-config")'
   ignore_errors: yes
   with_items:
   - csv2htc.yaml.j2
