@@ -30,9 +30,9 @@ gvar['root_dir'] = '/'.join(gvar['bread_crumbs'][:gvar['bread_crumbs_ix']])
 syscmd(gvar, ['.bin/ansible_util', '-S', '%s/cloudscheduler/ansible-playbook' % gvar['root_dir'], 'csv2-sa'], cwd='%s/Inventory/heprc' % gvar['root_dir'])
 
 os.remove('%s/cloudscheduler/ansible-playbook/inventory' % gvar['root_dir'])
+os.remove('%s/cloudscheduler/ansible-playbook/roles/csv2/vars/csv2-default-vars.yaml' % gvar['root_dir'])
 shutil.rmtree('%s/cloudscheduler/ansible-playbook/inventory_host_variables' % gvar['root_dir'])
 os.remove('%s/cloudscheduler/ansible-playbook/staticvms.yaml' % gvar['root_dir'])
-os.remove('%s/cloudscheduler/ansible-playbook/roles/csv2/vars/csv2-default-vars.yaml' % gvar['root_dir'])
 os.remove('%s/cloudscheduler/ansible-playbook/roles/csv2/vars/csv2-sa-vars.yaml' % gvar['root_dir'])
 os.remove('%s/cloudscheduler/ansible-playbook/roles/csv2/vars/csv2-sa-secrets.yaml' % gvar['root_dir'])
 
