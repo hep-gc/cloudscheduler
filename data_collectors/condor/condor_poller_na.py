@@ -562,6 +562,8 @@ def job_poller():
                         ca1=classad.ClassAd(job_dict)
                         et2 = ca1.flatten(job_dict).eval()
                         job_dict['Requirements'] = str(et2['Requirements'])
+                        if "RequestMemory" in job_dict:
+                            job_dict['RequestMemory'] = et2['RequestMemory'].eval()
                         # Parse group_name out of requirements
                         try:
                             #pattern = '(group_name is ")(.*?)(")'
