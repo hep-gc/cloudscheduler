@@ -1,0 +1,19 @@
+global
+  daemon
+  maxconn 2048
+  tune.ssl.default-dh-param 1024
+
+defaults
+  mode tcp
+  timeout connect 5000ms
+  timeout client 50000ms
+  timeout server 50000ms
+
+frontend amqp_public
+  option clitcpka
+  bind {{ ansible_eth0.ipv4.address }}:{{ amqp_public_port }} ssl crt /etc/letsencrypt/live/{{ inventory_hostname }}/web_crt_key.pem
+  default_backend amqp_internal
+
+backend amqp_internal
+  server localhost localhost:{{ amqp_local_port }} check
+

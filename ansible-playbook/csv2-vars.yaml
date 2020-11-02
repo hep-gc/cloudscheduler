@@ -1,0 +1,23 @@
+Overriding the following defaults varables (see csv2-default-vars.yaml):
+web_debug: True
+
+# If GSI authentication for HTCondor, the CSV2 playbooks will use the 
+# letsencrypt certificates obtained for the virtual hosts. To override
+# this behavior and use another CA, you must:
+#
+#    o Obtain a grid certficate for the HTCondor server. 
+#    o Obtain a grid certficate to be used by all HTCondor workers (VMs).
+#    o Specify the following GSI information (modify as appropriate):
+#
+# htcondor_gsi_dn: /C=CA/O=Grid/CN={{inventory_hostname}}
+# htcondor_cert: /root/grid-security/latest/{{inventory_hostname_short }}/hostcert.pem
+# htcondor_key: /root/grid-security/latest/{{inventory_hostname_short}}/hostkey.pem
+
+# htcondor_worker_gsi_dn: /C=CA/O=Grid/CN=condorworker/condor.example.ca
+# htcondor_worker_cert: /root/grid-security/latest/condorworker/hostcert.pem
+# htcondor_worker_key: /root/grid-security/latest/condorworker/hostkey.pem
+
+
+
+#favicon color for display in the browser tab
+favicon_colour: black
