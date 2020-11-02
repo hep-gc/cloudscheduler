@@ -1,5 +1,5 @@
 # Destination for any email generated bu the system (letsencrypt).
-admin_email: root@localhost
+admin_email: "root@{{ inventory_hostname }}"
 
 # CSV2 versions to use.
 cs_git_branch: stable-2.7
@@ -10,19 +10,6 @@ install_phpMyAdmin_apache_group: cloudscheduler
 
 # For production systems, this should be set to False.
 web_debug: False
-
-# When you change the name of the server, you must add its' FQDN to the
-# following list:
-favicon_colours:
-    not_used_blue:                 blue    
-    not_used_cyan:                 cyan    
-    not_used_magenta:              magenta
-    not_used_purple:               purple  
-    not_used_yellow:               yellow  
-    not_used_green:                green   
-    csv2-sa.heprc.uvic.ca:         black
-    not_used_lime:                 lime    
-    not_used_red:                  red     
 
 # The following AMQP ports are required:
 amqp_public_port: 15671
@@ -40,7 +27,10 @@ database_local_port: 3306
 # The following DB users are required:
 database_users:
     - [csv2, 'localhost', 'csv2.*:ALL']
-    - [csv2, '{{ i_external_connection.0.ipv4fqdn }}', 'csv2.*:ALL']
+    - [csv2, '{{ inventory_hostname }}', 'csv2.*:ALL']
+    - [condor_poller, '%', 'csv2.*:SELECT/csv2.condor_jobs:INSERT,UPDATE,DELETE/csv2.condor_machines:INSERT,UPDATE,DELETE/csv2.condor_worker_gsi:INSERT,UPDATE,DELETE/csv2.csv2_groups:INSERT,UPDATE/csv2.csv2_signal_log:INSERT,UPDATE/csv2.csv2_vms:INSERT,UPDATE,DELETE']
+
+remote_database_users:
     - [condor_poller, '%', 'csv2.*:SELECT/csv2.condor_jobs:INSERT,UPDATE,DELETE/csv2.condor_machines:INSERT,UPDATE,DELETE/csv2.condor_worker_gsi:INSERT,UPDATE,DELETE/csv2.csv2_groups:INSERT,UPDATE/csv2.csv2_signal_log:INSERT,UPDATE/csv2.csv2_vms:INSERT,UPDATE,DELETE']
 
 # The following user definitions are required (by default, they will use letsencrypt certificates):
@@ -57,7 +47,7 @@ htcondor_low_port: 40000
 htcondor_high_port: 50000
 
 # Set HTCondor to use GSI authentication.
-htcondorGSI: True
+htcondorGSI: False
 
 # The following systems and users added to the defaults defined in the ansible template.
 grid_mapfile:
@@ -68,7 +58,7 @@ grid_mapfile:
 #       - '"test user" testing'
 
 # Change this to the IP of your deployment host.
-ansible_deployment_host_ip: '206.12.154.6'
+#ansible_deployment_host_ip: '206.12.154.6'
 
 # Change this to the path of an existing deployment host directory where letsencrypt SSL certificates are to be saved. This directory must be read/writable by the deployment user.
 letsencrypt_archive: '/usr/local/archive/letsencrypt'
@@ -97,12 +87,12 @@ i_etc_hosts:
 #    ip: '10.200.200.239'
 -
     # a public IP (v4)
-    fqdn: 'csv2-sa.heprc.uvic.ca'
-    ip: '206.12.154.239'
+    fqdn: "{{ inventory_hostname }} "
+    ip: "{{ ansible_eth0.ipv4.address }}"
 #-
 #    # a public IP (v6)
-#    fqdn: 'csv2-sa.heprc6.uvic.ca'
-#    ip: '2607:f8f0:c10:70f3:2::239'
+#    fqdn: "{{inventory_hostname}}"
+#    ip: "{{ ansible_eth0.ipv6.address }}"
 
 # Define obsolete users to remove.
 i_deleted_users: []
@@ -130,46 +120,25 @@ i_sudoers:
 -
     userid: 'example'
 
-# Defines block devices, filesystems, and mountpoints.
-i_volumes:
--
-    fqdn: 'csv2-sa.heprc.uvic.ca'
-    raid: 'jbod'
-    disks: '0'
-    volumegroup: 'vg_root'
-    logicalvolume: '-'
-    gbs: '50'
-    fstype: 'ext4'
-    mountpoint: '/'
-#
-#   fqdn: 'csv2-sa.heprc.uvic.ca'
-#   raid: 'jbod'
-#   disks: '1'
-#   volumegroup: 'vg_data'
-#   logicalvolume: '-'
-#   gbs: '50'
-#   fstype: 'ext4'
-#   mountpoint: '/storage'
-
 i_firewall: []
 
 # Public network.
 i_external_connection:
 -
-    nic: 'eth1'
-    ipv4: '206.12.154.239'
-    ipv4fqdn: 'csv2-sa.heprc.uvic.ca'
-#    ipv6: '2607:f8f0:c10:70f3:2::239'
-#    ipv6fqdn: 'csv2-sa.heprc6.uvic.ca'
+    nic: 'eth0'
+    ipv4: "{{ ansible_eth0.ipv4.address }}"
+    ipv4fqdn: "{{ inventory_hostname }}"
+#    ipv6: "{{ ansible_eth0.ipv6.address}}"
+#    ipv6fqdn: "{{inventory_hostname}}"
 
 # Private network.
 i_internal_connection:
 -
-    nic: 'eth0'
+    nic: 'lo'
     ipv4: '127.0.0.1'
-    ipv4fqdn: 'csv2-sa'
-#    ipv6: '-'
-#    ipv6fqdn: '-'
+    ipv4fqdn: "{{ inventory_hostname_short }}"
+    ipv6: '-'
+    ipv6fqdn: '-'
 
 # Define network connections.
 i_connections:
@@ -185,32 +154,29 @@ i_connections:
 #    ipv6gw: '-'
 #    ipv6len: '-'
 #    bridge: '-'
--
-    nic: 'eth1'
-    mac: '52:54:00:3e:55:da'
-    ext: 'y'
-    mtu: '9000'
-    ipv4: '206.12.154.239'
-    ipv4mask: '255.255.255.0'
-    ipv4gw: '206.12.154.254'
-#    ipv6: '2607:f8f0:c10:70f3:2::239'
+#-
+#    nic: 'eth1'
+#    mac: '52:54:00:3e:55:da'
+#    ext: 'y'
+#    mtu: '9000'
+#    ipv4: '206.12.154.239'
+#    ipv4mask: '255.255.255.0'
+#    ipv4gw: '206.12.154.254'
+##    ipv6: '2607:f8f0:c10:70f3:2::239'
 #    ipv6gw: '2607:f8f0:c10:70f3:2::1'
-    ipv6len: '64'
-    bridge: '-'
+#    ipv6len: '64'
+#    bridge: '-'
 
 # Identify the primary service web page.
-i_service_connection:
--
-    nic: 'eth1'
-    ipv4: '206.12.154.239'
-    ipv4fqdn: 'csv2-sa.heprc.uvic.ca'
+###i_service_connection:
+###-
+###    nic: 'eth1'
+###    ipv4: '206.12.154.239'
+###    ipv4fqdn: 'csv2-sa.heprc.uvic.ca'
 #    ipv6: '2607:f8f0:c10:70f3:2::239'
 #    ipv6fqdn: 'csv2-sa.heprc6.uvic.ca'
 
 # Define domains for which letsencrypt certificates are required.
 i_virtualhosts:
 -
-    virtualhost: 'csv2-sa.heprc.uvic.ca'
-#-
-#    virtualhost: 'csv2-sa-myadmin.heprc.uvic.ca'
-
+    virtualhost: '{{ inventory_hostname }}'

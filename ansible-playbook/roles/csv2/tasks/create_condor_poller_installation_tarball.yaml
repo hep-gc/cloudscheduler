@@ -56,7 +56,7 @@
 
 - name: generate condor_poller configuration file
   template:
-    src: "/tmp/cloudscheduler/{{ ansible_facts.fqdn }}/opt/cloudscheduler/etc/cloudscheduler/condor_poller.yaml.j2.pfile"
+    src: "/tmp/cloudscheduler/{{ inventory_hostname }}/opt/cloudscheduler/etc/cloudscheduler/condor_poller.yaml.j2.pfile"
     dest: /tmp/gentgz/cloudscheduler/etc/cloudscheduler/condor_poller.yaml
     owner: condor
     group: condor
@@ -64,7 +64,7 @@
 
 - name: generate repository index.html
   template:
-    src: "/tmp/cloudscheduler/{{ ansible_facts.fqdn }}/opt/cloudscheduler/repository/index.html.j2.pfile"
+    src: "/tmp/cloudscheduler/{{ inventory_hostname }}/opt/cloudscheduler/repository/index.html.j2.pfile"
     dest: /opt/cloudscheduler/repository/index.html
     owner: root
     group: root

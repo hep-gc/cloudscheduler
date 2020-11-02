@@ -2,27 +2,17 @@
 # cloudscheduler (v2) server maim.yaml
 
 - set_fact:
-    public_mariadb: true
+    public_mariadb: false
 
-- include_vars: "{{ addenda }}"
-- include_vars: "{{ inventory_instance }}-secrets.yaml"
+- include_vars: "csv2-secrets.yaml"
 - include_vars: "csv2-default-vars.yaml"
-- include_vars: "{{ inventory_instance }}-vars.yaml"
-
-- set_fact:
-    favicon_colour: "{{ item.value }}"
-  loop: "{{ lookup('dict', favicon_colours) }}"
-  when:
-  - "{{ item.key  ==  ansible_fqdn }}"
-
-- debug: msg="{{ favicon_colour }}"
+- include_vars: "csv2-vars.yaml"
 
 - set_fact:
     ansible_ssh_port: "{{ ansible_ssh_port }}"
 
 - import_tasks: configure_etc_hosts.yaml
-- import_tasks: configure_sshd.yaml
-  when: ansible_ssh_port != 22
+- import_tasks: disable_selinux.yaml
 - import_tasks: configure_root_mail_forwarding.yaml
 - import_tasks: create_installation_directories.yaml
 - import_tasks: configure_other_required_repositories.yaml
@@ -36,19 +26,7 @@
   when: 
   - local_web is defined
   - local_web == True
-- import_tasks: configure_network.yaml
-  when:
-  - container is undefined or container != true
-  - reconfigure_network is undefined or reconfigure_network != false
 - import_tasks: install_configure_ntpd.yaml
-- import_tasks: set_root_user_defaults.yaml
-- import_tasks: configure_volumes.yaml
-  when: (container is undefined) or (container == False)
-- import_tasks: configure_users.yaml
-  when: (container is undefined) or (container == False)
-- import_tasks: configure_sudoers.yaml
-  when: (container is undefined) or (container == False)
-- import_tasks: configure_swap_file.yaml
 - import_tasks: install_configure_MariaDB.yaml
 - import_tasks: create_mysqldb_csv2.yaml
 - include: install_configure_httpd.yaml
@@ -62,5 +40,4 @@
 - import_tasks: install_configure_csv2.yaml
 - import_tasks: create_condor_poller_installation_tarball.yaml
 - import_tasks: install_and_start_condor_poller.yaml
-- import_tasks: install_configure_filebeat.yaml
 - import_tasks: install_influxdb.yaml

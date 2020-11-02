@@ -1,7 +1,7 @@
 - set_fact:
     csv2_host: '{{ i_virtualhosts.0.virtualhost }}'
-    ssl_cert_file: "/etc/letsencrypt/live/{{ i_external_connection.0.ipv4fqdn }}/fullchain.pem"
-    ssl_key_file: "/etc/letsencrypt/live/{{ i_external_connection.0.ipv4fqdn }}/privkey.pem"
+    ssl_cert_file: "/etc/letsencrypt/live/{{ inventory_hostname }}/fullchain.pem"
+    ssl_key_file: "/etc/letsencrypt/live/{{ inventory_hostname }}/privkey.pem"
   when: (local_web is undefined) or (local_web == False)
 
 - set_fact:
@@ -23,7 +23,7 @@
   - container == True
 
 - set_fact:
-    db_hostname: "{{ i_external_connection.0.ipv4fqdn }}"
+    db_hostname: "{{ inventory_hostname }}"
   when:
   - (db_on_localhost is undefined) or (db_on_localhost != true)
 
@@ -37,12 +37,12 @@
   - db_on_localhost == true
 
 - set_fact:
-    htcondor_gsi_dn: "/CN=csv2-sa.heprc.uvic.ca"
+    htcondor_gsi_dn: "/CN="
   when:
   - htcondor_gsi_dn is undefined
 
 - set_fact:
-    htcondor_worker_gsi_dn: "/CN=csv2-sa-worker.heprc.uvic.ca"
+    htcondor_worker_gsi_dn: "/CN="
   when:
   - htcondor_worker_gsi_dn is undefined
 
@@ -96,7 +96,7 @@
     name: ["bcrypt==3.1.4", "boto3>=1.9.130", "sqlalchemy", "pika", "python-keystoneclient",
            "python-novaclient", "python-neutronclient", "python-cinderclient", "python-dateutil",
            "pyyaml", "jinja2", "libvirt-python", "py-dateutil", "urllib3", "django-mathfilters",
-           "htcondor", "PyMySQL", "psutil", "celery=4.4.6", "python-glanceclient", "django==2.0.5",
+           "htcondor", "PyMySQL", "psutil", "celery==4.4.6", "python-glanceclient", "django==2.0.5",
            "mysqlclient", "mysql-connector", "django-debug-toolbar"]
     executable: pip3
 
@@ -187,15 +187,6 @@
   - /var/local/cloudscheduler/etc/condor/config.d/htcondor_distinguished_names
   - /var/lib/condor/.globus
 
-- name: fetch cloudscheduler templates
-  fetch:
-    src: "{{ item }}"
-    dest: /tmp/cloudscheduler/
-  with_items:
-  - '/opt/cloudscheduler/etc/cloudscheduler/cloudscheduler.yaml.j2'
-  - '/opt/cloudscheduler/usr/local/etc/haproxy.conf.j2'
-  - '/opt/cloudscheduler/etc/httpd/conf.d/csv2_ssl.conf.j2'
-  - '/opt/cloudscheduler/web_frontend/cloudscheduler/cloudscheduler_web/settings.py.j2'
 
 ### configure amqp #############################################################################################################################################
 
@@ -269,14 +260,14 @@
 
 - name: set django setttings
   template:
-    src: "/tmp/cloudscheduler/{{ ansible_facts.fqdn }}/opt/cloudscheduler/web_frontend/cloudscheduler/cloudscheduler_web/settings.py.j2"
+    src: "settings.py.j2"
     dest: /opt/cloudscheduler/web_frontend/cloudscheduler/cloudscheduler_web/settings.py
   notify:
     restart httpd
 
 - name: set cloudscheduler apache config
   template:
-    src: "/tmp/cloudscheduler/{{ ansible_facts.fqdn }}/opt/cloudscheduler/etc/httpd/conf.d/csv2_ssl.conf.j2"
+    src: "csv2_ssl.conf.j2"
     dest: /etc/httpd/conf.d/csv2_ssl.conf
   notify:
     restart httpd
@@ -307,7 +298,7 @@
 
 - name: configure HAProxy
   template:
-    src: "/tmp/cloudscheduler/{{ ansible_facts.fqdn }}/opt/cloudscheduler/usr/local/etc/haproxy.conf.j2"
+    src: "haproxy.conf.j2"
     dest: /usr/local/etc/haproxy.conf
     owner: root
     group: root
@@ -454,7 +445,7 @@
 
 - name: install cloudscheduler.yaml config file
   template:
-    src: "/tmp/cloudscheduler/{{ ansible_facts.fqdn }}/opt/cloudscheduler/etc/cloudscheduler/cloudscheduler.yaml.j2"
+    src: "cloudscheduler.yaml.j2"
     dest: /etc/cloudscheduler/cloudscheduler.yaml
     owner: root
     group: cloudscheduler
@@ -500,7 +491,7 @@
       - ec2Poller.log
       - main.log
       - openstackpoller.log
-#     - condor_poller.log
+      - condor_poller.log
       - timeseriesPoller.log
       - watch_csv2.logging
 
@@ -610,10 +601,10 @@
   when: (container is undefined) or (container == False)
 
 - set_fact: 
-    condor_manager: '{{ inventory_instance }}.heprc.uvic.ca'
+    condor_manager: '{{ inventory_hostname }}'
 
 - set_fact:
-    csv2_web_address: "https://{{ inventory_instance }}.heprc.uvic.ca"
+    csv2_web_address: "https://{{ inventory_hostname }}"
   when: (local_web is undefined) or (local_web == False)
 
 - set_fact:

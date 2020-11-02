@@ -1,6 +1,11 @@
 ---
 # InfluxDb 
 
+- name: Remove python-requests from yum install
+  yum:
+    name: python-requests
+    state: absent
+
 - name: Install InfluxDB python package.
   pip:
     name: influxdb
@@ -25,6 +30,12 @@
 - name: Wait for InfluxDB to be ready
   wait_for:
     port: 8086
+
+- name: install cloud-init (removed with python-requests)
+  yum:
+    name: cloud-init
+    state: present
+
 
 - name: Create database
   influxdb_database:

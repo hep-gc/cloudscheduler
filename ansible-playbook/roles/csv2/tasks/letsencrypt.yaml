@@ -31,7 +31,7 @@
   register: initial_letsencrypt_status
 
 - stat:
-    path: "{{ letsencrypt_archive }}/{{ i_service_connection.0.ipv4fqdn }}.tar.gz"
+    path: "{{ letsencrypt_archive }}/{{ inventory_hostname }}.tar.gz"
   register: archive_status
   delegate_to: 127.0.0.1
 
@@ -88,7 +88,7 @@
 
 - name: install the current SSL tar file
   unarchive:
-    src: "{{ letsencrypt_archive }}/{{ i_service_connection.0.ipv4fqdn }}.tar.gz"
+    src: "{{ letsencrypt_archive }}/{{ inventory_hostname }}.tar.gz"
     dest: /etc
   when: 
   - initial_letsencrypt_status.stat.exists == False
@@ -136,8 +136,9 @@
 
 - meta: flush_handlers
 
-- name: archive SSL certificates
-  fetch:
-    src: /var/log/letsencrypt/{{ i_service_connection.0.ipv4fqdn }}.tar.gz
-    dest: "{{ letsencrypt_archive }}/{{ i_service_connection.0.ipv4fqdn }}.tar.gz"
-    flat: yes
+
+#- name: archive SSL certificates
+#  fetch:
+#    src: /var/log/letsencrypt/{{ inventory_hostname }}.tar.gz
+#    dest: "{{ letsencrypt_archive }}/{{ inventory_hostname }}.tar.gz"
+#    flat: yes

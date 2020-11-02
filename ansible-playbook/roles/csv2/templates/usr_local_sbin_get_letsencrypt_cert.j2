@@ -37,9 +37,9 @@
     firewall-cmd --add-service https >> $logfile.partial_log
   fi
 
-  if [ -e /etc/letsencrypt/{{ i_service_connection.0.ipv4fqdn }}.tar.gz ] && [ ! -e /etc/letsencrypt/live ]; then
+  if [ -e /etc/letsencrypt/{{ inventory_hostname }}.tar.gz ] && [ ! -e /etc/letsencrypt/live ]; then
     echo "Install old SSL certificates" >> $logfile.partial_log
-    tar -C /etc/letsencrypt -xzf /etc/letsencrypt/{{ i_service_connection.0.ipv4fqdn }}.tar.gz
+    tar -C /etc/letsencrypt -xzf /etc/letsencrypt/{{ inventory_hostname }}.tar.gz
   fi
 
   rc=0
@@ -81,7 +81,7 @@
   fi
 
   echo "Creating SSL certificate backup" >> $logfile.partial_log
-  tar -C /etc -czf /var/log/letsencrypt/{{ i_service_connection.0.ipv4fqdn }}.tar.gz letsencrypt
+  tar -C /etc -czf /var/log/letsencrypt/{{ inventory_hostname }}.tar.gz letsencrypt
 
   if [ $rc == 0 ]; then
     mv $logfile.partial_log $logfile.log
