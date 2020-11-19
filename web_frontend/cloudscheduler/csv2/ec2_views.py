@@ -7,7 +7,7 @@ from cloudscheduler.lib.select_ec2 import \
     select_ec2_images, \
     select_ec2_instance_types
 
-from cloudscheduler.lib.view_utils import \
+from cloudscheduler.lib.view_utils_na import \
     lno, \
     qt, \
     qt_filter_get, \

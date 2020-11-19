@@ -7,7 +7,7 @@ from django.http import HttpResponse
 from django.core.exceptions import PermissionDenied
 
 from cloudscheduler.lib.fw_config import configure_fw 
-from cloudscheduler.lib.view_utils import \
+from cloudscheduler.lib.view_utils_na import \
     lno,  \
     manage_group_users, \
     manage_user_group_verification, \

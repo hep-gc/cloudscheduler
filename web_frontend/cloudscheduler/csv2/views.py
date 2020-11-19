@@ -3,7 +3,7 @@ from django.http import HttpResponse
 from django.core.exceptions import PermissionDenied
 config = settings.CSV2_CONFIG
 
-from cloudscheduler.lib.view_utils import set_user_groups
+from cloudscheduler.lib.view_utils_na import set_user_groups
 
 import bcrypt
 

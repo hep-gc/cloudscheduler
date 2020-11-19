@@ -7,7 +7,7 @@ from django.http import HttpResponse
 from django.core.exceptions import PermissionDenied
 
 
-from cloudscheduler.lib.view_utils import \
+from cloudscheduler.lib.view_utils_na import \
     lno, \
     qt, \
     qt_filter_get, \
