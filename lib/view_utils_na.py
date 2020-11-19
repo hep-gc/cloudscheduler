@@ -1197,7 +1197,7 @@ def validate_fields(config, request, fields, tables, active_user):
 
         #loop thru other columns:
         for column_name in Tables[table[0]]['columns']
-        	if column_name not in all_columns:
+            if column_name not in all_columns:
                 all_columns.append(column_name)
             Columns[table[0]][1].append(column_name)
 
