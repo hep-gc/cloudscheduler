@@ -292,7 +292,7 @@ def manage_user_groups(config, tables, user, groups, option=None):
 
         # Add the missing groups.
         for group in add_groups:
-        	user_grp_dict = {
+            user_grp_dict = {
                 "username": user,
                 "group_name": group
             }
@@ -306,7 +306,7 @@ def manage_user_groups(config, tables, user, groups, option=None):
         
         # Remove the extraneous groups.
         for group in remove_groups:
-        	user_grp_dict = {
+            user_grp_dict = {
                 "username": user,
                 "group_name": group
             }
@@ -1064,11 +1064,11 @@ def validate_by_filtered_table_entries(config, value, field, table_name, column_
         if len(filter) != 2:
             return 1, 'incorrect filter format'
         if len(where_string)==0:
-	        where_string = "%s='%s'" % (filter[0], filter[1])
-	    else:
-	    	where_string = where_string + " and %s='%s'" % (filter[0], filter[1])
+            where_string = "%s='%s'" % (filter[0], filter[1])
+        else:
+            where_string = where_string + " and %s='%s'" % (filter[0], filter[1])
         if where is False:
-        	where = True
+            where = True
 
     rc, msg, rows = config.db_query(table, where=where_clause)
     for row in rows:
