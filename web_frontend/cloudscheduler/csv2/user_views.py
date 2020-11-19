@@ -16,10 +16,7 @@ from cloudscheduler.lib.view_utils import \
 from collections import defaultdict
 import bcrypt
 
-from sqlalchemy import exists
-from sqlalchemy.sql import select
 from cloudscheduler.lib.schema import *
-import sqlalchemy.exc
 import datetime
 
 from cloudscheduler.lib.web_profiler import silk_profile as silkp
@@ -97,8 +94,7 @@ def _verify_username_cert_cn(fields, check_username=False):
 
     config.db_open()
 
-    s = select([csv2_user])
-    csv2_user_list = qt(config.db_connection.execute(s))
+    rc, msg, csv2_user_list = (onfig.db_query("csv2_user")
 
     for registered_user in csv2_user_list:
         if check_username:
@@ -151,8 +147,8 @@ def add(request):
         fields['join_date'] = datetime.datetime.today().strftime('%Y-%m-%d')
         
         # Add the user.
-        table = tables['csv2_user']
-        rc, msg = config.db_session_execute(table.insert().values(table_fields(fields, table, columns, 'insert')))
+        table = 'csv2_user'
+        rc, msg = config.db_insert(table, table_fields(fields, table, columns, 'insert'))
         if rc != 0:
             config.db_close()
             return user_list(request, active_user=active_user, response_code=1, message='%s user add, "%s" failed - %s.' % (lno(MODID), fields['username'], msg))
@@ -198,15 +194,16 @@ def delete(request):
             return user_list(request, active_user=active_user, response_code=1, message='%s user delete, %s' % (lno(MODID), msg))
 
         # Delete any user_groups for the user.
-        table = tables['csv2_user_groups']
-        rc, msg = config.db_session_execute(table.delete(table.c.username==fields['username']), allow_no_rows=True)
+        table = 'csv2_user_groups'
+        where_clause = "username='%s" % fields['username']
+        rc, msg = config.db_delete(table, where=where_clause)
         if rc != 0:
             config.db_close()
             return user_list(request, active_user=active_user, response_code=1, message='%s user group-delete "%s" failed - %s.' % (lno(MODID), fields['username'], msg))
 
         # Delete the user.
-        table = tables['csv2_user']
-        rc, msg = config.db_session_execute(table.delete(table.c.username==fields['username']))
+        table = 'csv2_user'
+        rc, msg = config.db_delete(table, where=where_clause)
         if rc == 0:
             config.db_close(commit=True)
             return user_list(request, active_user=active_user, response_code=0, message='user "%s" successfully deleted.' % (fields['username']))
@@ -249,13 +246,13 @@ def user_list(request, active_user=None, response_code=0, message=None):
         return render(request, 'csv2/users.html', {'response_code': 1, 'message': '%s user list, %s' % (lno(MODID), msg)})
 
     # Retrieve the user list but loose the passwords.
-    s = select([view_user_groups])
-    _user_list = qt(config.db_connection.execute(s), prune=['password'])
+    rc, msg, user_list_raw = config.db_query("view_user_groups")
+    _user_list = qt(user_list_raw, prune=['password'])
 
     # Retrieve user/groups list (dictionary containing list for each user).
-    s = select([csv2_user_groups])
+    rc, msg, groups_per_user_raw = config.db_query("csv2_user_groups")
     ignore1, ignore2, groups_per_user = qt(
-        config.db_connection.execute(s),
+        groups_per_user_raw,
         keys = {
             'primary': [
                 'username',
@@ -268,9 +265,9 @@ def user_list(request, active_user=None, response_code=0, message=None):
         )
 
     # Retrieve  available groups list (dictionary containing list for each user).
-    s = select([view_user_groups_available])
+    rc, msg, available_groups_per_user_raw = config.db_query("view_user_groups_available")
     ignore1, ignore2, available_groups_per_user = qt(
-        config.db_connection.execute(s),
+        available_groups_per_user_raw,
         keys = {
             'primary': [
                 'username',
@@ -283,8 +280,7 @@ def user_list(request, active_user=None, response_code=0, message=None):
             }
         )
 
-    s = select([csv2_groups])
-    group_list = qt(config.db_connection.execute(s))
+    rc, msg, group_list = config.db_query("csv2_groups")
 
     # Position the page.
 #   obj_act_id = request.path.split('/')
@@ -349,10 +345,11 @@ def settings(request, active_user=None, response_code=0, message=None):
 
                 if rc == 0:
                     # Update the user.
-                    table = tables['csv2_user']
-                    rc, msg = config.db_session_execute(table.update().where(table.c.username==active_user.username).values(table_fields(fields, table, columns, 'update')))
+                    table = 'csv2_user'
+                    where_clause =  "username='%s'" % active_user.username
+                    rc, msg = config.db_update(table, table_fields(fields, table, columns, 'update'), where=where_clause)
                     if rc == 0:
-                        config.db_session.commit()
+                        config.db_commit()
                         request.session.delete()
                         update_session_auth_hash(request, active_user)
                         msg = 'user "%s" successfully updated.' % (fields['username']).username
@@ -364,8 +361,9 @@ def settings(request, active_user=None, response_code=0, message=None):
         msg ='%s %s' % (lno(MODID), msg)
 
     # Retrieve user settings.
-    s = select([csv2_user]).where(csv2_user.c.username == active_user.username)
-    _user_list = qt(config.db_connection.execute(s), prune='password')
+    where_clause =  "username='%s'" % active_user.username
+    rc, msg, _user_list_raw = config.db_query("csv2_user", where=where_clause)
+    _user_list = qt(_user_list_raw, prune='password')
 
     # Close the database.
     config.db_close()
@@ -421,10 +419,11 @@ def update(request):
                 return user_list(request, active_user=active_user, response_code=1, message='%s user update, "%s" failed - %s.' % (lno(MODID), fields['username'], msg))
 
         # Update the user.
-        table = tables['csv2_user']
+        table = 'csv2_user'
         user_updates = table_fields(fields, table, columns, 'update')
         if len(user_updates) > 0:
-            rc, msg = config.db_session_execute(table.update().where(table.c.username==fields['username']).values(user_updates), allow_no_rows=False)
+            where_clause = "username='%s" % fields['username']
+            rc, msg = config.db_update(table, user_updates, where=where_clause)
             if rc != 0:
                 config.db_close()
                 return user_list(request, active_user=active_user, response_code=1, message='%s user update, "%s" failed - %s.' % (lno(MODID), fields['username'], msg))

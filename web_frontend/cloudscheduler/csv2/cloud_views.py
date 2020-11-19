@@ -24,14 +24,10 @@ from cloudscheduler.lib.view_utils import \
 
 import bcrypt
 
-from sqlalchemy import exists
-from sqlalchemy.sql import select
-from sqlalchemy import Table, MetaData
 from cloudscheduler.lib.schema import *
 from cloudscheduler.lib.log_tools import get_frame_info
 from cloudscheduler.lib.signal_functions import event_signal_send
 
-import sqlalchemy.exc
 #import subprocess
 import os
 import psutil
@@ -161,13 +157,14 @@ METADATA_LIST_KEYS = {
 
 
 def retire_cloud_vms(config, group_name, cloud_name):
-    VM = config.db_map.classes.csv2_vms
-    vm_list = config.db_session.query(VM).filter(VM.cloud_name == cloud_name, VM.group_name == group_name)
+    VM = "csv2_vms"
+    where_clause = "cloud_name='%s' and group_name='%s'" % (cloud_name, group_name)
+    rc, msg, vm_list = config.db_session.query(VM, where=where_clause)
     for vm in vm_list:
-        vm.retire = 1
-        vm.updater= get_frame_info() + ":r1"
-        config.db_session.merge(vm)
-    config.db_session.commit()
+        vm["retire"] = 1
+        vm["updater"]= get_frame_info() + ":r1"
+        config.db_merge(VM, vm)
+    config.db_commit()
 
 
 #-------------------------------------------------------------------------------
@@ -180,13 +177,14 @@ def ec2_filters(config, group_name, cloud_name, cloud_type=None):
     """
 
     # Verify EC2 filters exists for the specified cloud.
-    ec2_image_filters = qt(config.db_connection.execute('select * from ec2_image_filters where group_name="%s" and cloud_name="%s"' % (group_name, cloud_name)))
+    where_clause = "group_name='%s' and cloud_name='%s'" % (group_name, cloud_name)
+    rc, msg, ec2_image_filters = config.db_query("ec2_image_filters", where=where_clause)
     if len(ec2_image_filters) > 0:
         ec2_image_filter = True
     else:
         ec2_image_filter = False
 
-    ec2_instance_type_filters = qt(config.db_connection.execute('select * from ec2_instance_type_filters where group_name="%s" and cloud_name="%s"' % (group_name, cloud_name)))
+    ec2_instance_type_filters = config.db_connection.execute('ec2_instance_type_filter', where_clause)
     if len(ec2_instance_type_filters) > 0:
         ec2_instance_type_filter = True
     else:
@@ -197,8 +195,8 @@ def ec2_filters(config, group_name, cloud_name, cloud_type=None):
         if not ec2_image_filter:
             defaults = config.get_config_by_category('ec2_image_filter')
 
-            table = Table('ec2_image_filters', MetaData(bind=config.db_engine), autoload=True)
-            rc, msg = config.db_session_execute(table.insert().values({
+            table = 'ec2_image_filters'
+            filter_dict = {
                 'group_name': group_name,
                 'cloud_name': cloud_name,
                 'architectures': defaults['ec2_image_filter']['architectures'],
@@ -207,7 +205,8 @@ def ec2_filters(config, group_name, cloud_name, cloud_type=None):
                 'operating_systems': defaults['ec2_image_filter']['operating_systems'],
                 'owner_aliases': defaults['ec2_image_filter']['owner_aliases'],
                 'owner_ids': defaults['ec2_image_filter']['owner_ids']
-                }))
+            }
+            rc, msg = config.db_insert(table, filter_dict)
             if rc != 0:
                 return 1, 'failed to add EC2 image filter - %s' % msg
 
@@ -216,8 +215,8 @@ def ec2_filters(config, group_name, cloud_name, cloud_type=None):
         if not ec2_instance_type_filter:
             defaults = config.get_config_by_category('ec2_instance_type_filter')
 
-            table = Table('ec2_instance_type_filters', MetaData(bind=config.db_engine), autoload=True)
-            rc, msg = config.db_session_execute(table.insert().values({
+            table = 'ec2_instance_type_filters'
+            filter_dict = {
                 'group_name': group_name,
                 'cloud_name': cloud_name,
                 'cores': defaults['ec2_instance_type_filter']['cores'],
@@ -227,7 +226,8 @@ def ec2_filters(config, group_name, cloud_name, cloud_type=None):
                 'operating_systems': defaults['ec2_instance_type_filter']['operating_systems'],
                 'processors': defaults['ec2_instance_type_filter']['processors'],
                 'processor_manufacturers': defaults['ec2_instance_type_filter']['processor_manufacturers']
-                }))
+            }
+            rc, msg = config.db_insert(table, filter_dict)
             if rc != 0:
                 return 1, 'failed to add EC2 instance_type filter - %s' % msg
 
@@ -236,14 +236,16 @@ def ec2_filters(config, group_name, cloud_name, cloud_type=None):
     # Ensure EC2 filters do not exist for non-amazon clouds.
     else:
         if ec2_image_filter:
-            table = Table('ec2_image_filters', MetaData(bind=config.db_engine), autoload=True)
-            rc, msg = config.db_session_execute(table.delete((table.c.group_name==group_name) & (table.c.cloud_name==cloud_name)))
+            table = 'ec2_image_filters'
+            where_clause = "group_name='%s' and cloud_name='%s'" % (group_name, cloud_name)
+            rc, msg = config.db_delete(table, where=where_clause)
             if rc != 0:
                 return 1, 'failed to delete EC2 image filter - %s' % msg
 
         if ec2_instance_type_filter:
-            table = Table('ec2_instance_type_filters', MetaData(bind=config.db_engine), autoload=True)
-            rc, msg = config.db_session_execute(table.delete((table.c.group_name==group_name) & (table.c.cloud_name==cloud_name)))
+            table = 'ec2_instance_type_filters'
+            where_clause = "group_name='%s' and cloud_name='%s'" % (group_name, cloud_name)
+            rc, msg = config.db_delete(table, where=where_clause)
             if rc != 0:
                 return 1, 'failed to delete EC2 instance type filter - %s' % msg
 
@@ -259,7 +261,7 @@ def manage_cloud_flavor_exclusions(tables, active_group, cloud_name, flavor_name
     exclusions have all been pre-verified.
     """
 
-    table = tables['csv2_cloud_flavor_exclusions']
+    table = 'csv2_cloud_flavor_exclusions'
 
     # if there is only one flavor_name, make it a list anyway
     if flavor_names:
@@ -273,8 +275,8 @@ def manage_cloud_flavor_exclusions(tables, active_group, cloud_name, flavor_name
     # Retrieve the list of flavor exclusions the cloud already has.
     exclusions=[]
     
-    s = select([table]).where((table.c.group_name==active_group) & (table.c.cloud_name==cloud_name))
-    exclusion_list = qt(config.db_connection.execute(s))
+    where_clause = "group_name='%s' and cloud_name='%s" % (active_group, cloud_name)
+    rc, msg, exclusion_list = config.db_query(table, where=where_clause)
 
     for row in exclusion_list:
         exclusions.append(row['flavor_name'])
@@ -285,7 +287,12 @@ def manage_cloud_flavor_exclusions(tables, active_group, cloud_name, flavor_name
 
         # Add the missing exclusions.
         for flavor_name in add_exclusions:
-            rc, msg = config.db_session_execute(table.insert().values(group_name=active_group, cloud_name=cloud_name, flavor_name=flavor_name))
+            flav_dict = {
+                "group_name": active_group,
+                "cloud_name": cloud_name,
+                "flavor_name": flavor_name
+            }
+            rc, msg = config.db_insert(table, flav_dict)
             if rc != 0:
                 return 1, msg
 
@@ -295,7 +302,12 @@ def manage_cloud_flavor_exclusions(tables, active_group, cloud_name, flavor_name
         
         # Remove the extraneous exclusions.
         for flavor_name in remove_exclusions:
-            rc, msg = config.db_session_execute(table.delete((table.c.group_name==active_group) & (table.c.cloud_name==cloud_name) & (table.c.flavor_name==flavor_name)))
+             flav_dict = {
+                "group_name": active_group,
+                "cloud_name": cloud_name,
+                "flavor_name": flavor_name
+            }
+            rc, msg = config.db_delete(table, flav_dict)
             if rc != 0:
                 return 1, msg
 
@@ -305,7 +317,12 @@ def manage_cloud_flavor_exclusions(tables, active_group, cloud_name, flavor_name
         
         # Remove the extraneous exclusions.
         for flavor_name in remove_exclusions:
-            rc, msg = config.db_session_execute(table.delete((table.c.group_name==active_group) & (table.c.cloud_name==cloud_name) & (table.c.flavor_name==flavor_name)))
+            flav_dict = {
+                "group_name": active_group,
+                "cloud_name": cloud_name,
+                "flavor_name": flavor_name
+            }
+            rc, msg = config.db_delete(table, flav_dict)
             if rc != 0:
                 return 1, msg
 
@@ -321,7 +338,7 @@ def manage_group_metadata_exclusions(tables, active_group, cloud_name, metadata_
     exclusions have all been pre-verified.
     """
 
-    table = tables['csv2_group_metadata_exclusions']
+    table ='csv2_group_metadata_exclusions'
 
     # if there is only one metadata_name, make it a list anyway
     if metadata_names:
@@ -335,8 +352,9 @@ def manage_group_metadata_exclusions(tables, active_group, cloud_name, metadata_
     # Retrieve the list of metadata exclusions the cloud already has.
     exclusions=[]
     
-    s = select([table]).where((table.c.group_name==active_group) & (table.c.cloud_name==cloud_name))
-    exclusion_list = qt(config.db_connection.execute(s))
+
+    where_clause = "group_name='%s' and cloud_name='%s'" % (active_group, cloud_name)
+    rc, msg, exclusion_list = config.db_query(table, where=where_clause)
 
     for row in exclusion_list:
         exclusions.append(row['metadata_name'])
@@ -347,7 +365,12 @@ def manage_group_metadata_exclusions(tables, active_group, cloud_name, metadata_
 
         # Add the missing exclusions.
         for metadata_name in add_exclusions:
-            rc, msg = config.db_session_execute(table.insert().values(group_name=active_group, cloud_name=cloud_name, metadata_name=metadata_name))
+            meta_dict = {
+                "group_name": active_group,
+                "cloud_name": cloud_name,
+                "metadata_name": metadata_name
+            }
+            rc, msg = config.db_insert(table, meta_dict)
             if rc != 0:
                 return 1, msg
 
@@ -357,7 +380,12 @@ def manage_group_metadata_exclusions(tables, active_group, cloud_name, metadata_
         
         # Remove the extraneous exclusions.
         for metadata_name in remove_exclusions:
-            rc, msg = config.db_session_execute(table.delete((table.c.group_name==active_group) & (table.c.cloud_name==cloud_name) & (table.c.metadata_name==metadata_name)))
+            meta_dict = {
+                "group_name": active_group,
+                "cloud_name": cloud_name,
+                "metadata_name": metadata_name
+            }
+            rc, msg = config.db_delete(table, meta_dict)
             if rc != 0:
                 return 1, msg
 
@@ -367,7 +395,12 @@ def manage_group_metadata_exclusions(tables, active_group, cloud_name, metadata_
         
         # Remove the extraneous exclusions.
         for metadata_name in remove_exclusions:
-            rc, msg = config.db_session_execute(table.delete((table.c.group_name==active_group) & (table.c.cloud_name==cloud_name) & (table.c.metadata_name==metadata_name)))
+            meta_dict = {
+                "group_name": active_group,
+                "cloud_name": cloud_name,
+                "metadata_name": metadata_name
+            }
+            rc, msg = config.db_delete(table, meta_dict)
             if rc != 0:
                 return 1, msg
 
@@ -389,9 +422,9 @@ def manage_group_metadata_verification(tables, active_group, cloud_names, metada
             cloud_name_list = cloud_names
 
         # Get the list of valid clouds.
-        table = tables['csv2_clouds']
-        s = select([table]).where(table.c.group_name==active_group)
-        _cloud_list = qt(config.db_connection.execute(s))
+        table = 'csv2_clouds'
+        where_clause="group_name='%s'" % active_group
+        rc, msg, _cloud_list = config.db_query(table, where=where_clause)
 
         valid_clouds = {}
         for row in _cloud_list:
@@ -414,9 +447,9 @@ def manage_group_metadata_verification(tables, active_group, cloud_names, metada
             metadata_name_list = metadata_names
 
         # Get the list of valid metadata names.
-        table = tables['csv2_group_metadata']
-        s = select([table]).where(table.c.group_name==active_group)
-        metadata_list = qt(config.db_connection.execute(s))
+        table = 'csv2_group_metadata'
+        where_clause="group_name='%s'" % active_group
+        rc, msg, metadata_list = config.db_query(table, where_clause)
 
         valid_metadata = {}
         for row in metadata_list:
@@ -537,8 +570,9 @@ def add(request):
             return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud add "%s::%s" failed - %s.' % (lno(MODID), fields['group_name'], fields['cloud_name'], msg))
 
         # Add the cloud.
-        table = tables['csv2_clouds']
-        rc, msg = config.db_session_execute(table.insert().values(table_fields(fields, table, columns, 'insert')))
+        table = 'csv2_clouds'
+        cloud_dict = table_fields(fields, table, columns, 'insert')
+        rc, msg = config.db_insert(table, cloud_dict)
         if rc != 0:
             config.db_close()
             return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud add "%s::%s" failed - %s.' % (lno(MODID), fields['group_name'], fields['cloud_name'], msg))
@@ -610,34 +644,34 @@ def delete(request):
             return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud delete "%s::%s" failed - %s.' % (lno(MODID), fields['group_name'], fields['cloud_name'], msg))
 
         # Delete the cloud from any aliases it is a part of.
-        table = tables['csv2_cloud_aliases']
-        rc, msg = config.db_session_execute(
-            table.delete((table.c.group_name==fields['group_name']) & (table.c.cloud_name==fields['cloud_name'])),
-            allow_no_rows=True)
+        table ='csv2_cloud_aliases'
+        alias_dict = {
+            "group_name": fields['group_name'],
+            "cloud_name": fields['cloud_name']
+        }
+        rc, msg = config.db_delete(table, alias_dict)
         if rc != 0:
             config.db_close()
             return cloud_list(request, active_user=active_user, response_code=1, message='%s delete cloud "%s::%s" from aliases failed - %s.' % (lno(MODID), fields['group_name'], fields['cloud_name'], msg))
 
         # Delete any metadata files for the cloud.
-        table = tables['csv2_cloud_metadata']
-        rc, msg = config.db_session_execute(table.delete((table.c.group_name==fields['group_name']) & (table.c.cloud_name==fields['cloud_name'])), allow_no_rows=True)
+        table = 'csv2_cloud_metadata'
+        rc, msg = config.db_delete(table, alias_dict)
         if rc != 0:
             config.db_close()
             return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud metadata-delete "%s::%s.*" failed - %s.' % (lno(MODID), fields['group_name'], fields['cloud_name'], msg))
 
         # Delete any metadata exclusions files for the cloud.
-        table = tables['csv2_group_metadata_exclusions']
-        rc, msg = config.db_session_execute(table.delete((table.c.group_name==fields['group_name']) & (table.c.cloud_name==fields['cloud_name'])), allow_no_rows=True)
+        table = 'csv2_group_metadata_exclusions'
+        rc, msg = config.db_delete(table, alias_dict)
         if rc != 0:
             config.db_close()
             return cloud_list(request, active_user=active_user, response_code=1, message='%s delete group metadata exclusion for cloud "%s::%s" failed - %s.' % (lno(MODID), fields['group_name'], fields['cloud_name'], msg))
 
         # Delete the cloud.
-        table = tables['csv2_clouds']
-        rc, msg = config.db_session_execute(
-            table.delete((table.c.group_name==fields['group_name']) & (table.c.cloud_name==fields['cloud_name']))
-            )
-        if rc == 0:
+        table = 'csv2_clouds'
+         rc, msg = config.db_delete(table, alias_dict)
+         if rc == 0:
             config.db_close(commit=True)
             return cloud_list(request, active_user=active_user, response_code=0, message='cloud "%s::%s" successfully deleted.' % (fields['group_name'], fields['cloud_name']))
         else:
@@ -676,18 +710,22 @@ def cloud_list(request, active_user=None, response_code=0, message=None):
         config.db_close()
         return render(request, 'csv2/clouds.html', {'response_code': 1, 'message': '%s cloud list, %s' % (lno(MODID), msg)})
 
-    s = select([csv2_cloud_types])
-    type_list = qt(config.db_connection.execute(s))
+    table="csv2_cloud_types"
+    rc, msg, type_list = config.db_query(table)
 
     # Retrieve cloud information.
     if request.META['HTTP_ACCEPT'] == 'application/json':
-        s = select([view_clouds_with_metadata_names]).where(view_clouds_with_metadata_names.c.group_name == active_user.active_group)
-        _cloud_list = qt(config.db_connection.execute(s), prune=['password'])
+        table = "view_clouds_with_metadata_names"
+        where_clause = "group_name='%s'" % active_user.active_group
+        rc, msg, _src_cloud_list = config.db_query(table, where=where_clause)
+        _cloud_list = qt(_src_cloud_list, prune=['password'])
         metadata_dict = {}
     else:
-        s = select([view_clouds_with_metadata_info]).where(view_clouds_with_metadata_info.c.group_name == active_user.active_group)
+        table = "view_clouds_with_metadata_info"
+        where_clause = "group_name='%s'" % active_user.active_group
+        rc, msg, _src_cloud_list = config.db_query(table, where=where_clause)
         _cloud_list, metadata_dict = qt(
-            config.db_connection.execute(s),
+            _src_cloud_list,
             keys = {
                 'primary': [
                     'group_name',
@@ -703,41 +741,33 @@ def cloud_list(request, active_user=None, response_code=0, message=None):
             prune=['password']    
             )
 
+    where_clause = "group_name='%s'" % active_user.active_group
     # Get all the images in group:
-    s = select([cloud_images]).where(cloud_images.c.group_name==active_user.active_group)
-    image_list = qt(config.db_connection.execute(s))
+    rc, msg, image_list = config.db_query("cloud_images", where=where_clause)
 
     # Get all the flavors in group:
-    s = select([cloud_flavors]).where(cloud_flavors.c.group_name==active_user.active_group)
-    flavor_list = qt(config.db_connection.execute(s))
+    rc, msg, flavor_list = config.db_query("cloud_flavors", where=where_clause)
 
     # Retrieve the list of flavor exclusions:
-    s = select([csv2_cloud_flavor_exclusions]).where(csv2_cloud_flavor_exclusions.c.group_name==active_user.active_group)
-    flavor_exclusion_list = qt(config.db_connection.execute(s))
+    rc, msg, flavor_exclusion_list = config.db_query("csv2_cloud_flavor_exclusions", where=where_clause)
 
     # Get all the keynames in group:
-    s = select([cloud_keypairs]).where(cloud_keypairs.c.group_name==active_user.active_group)
-    keypairs_list = qt(config.db_connection.execute(s))
+    rc, msg, keypairs_list = config.db_query("cloud_keypairs", where=where_clause)
 
     # Get all the networks in group:
-    s = select([cloud_networks]).where(cloud_networks.c.group_name==active_user.active_group)
-    network_list = qt(config.db_connection.execute(s))
+    rc, msg, network_list = config.db_query("cloud_networks", where=where_clause)
 
     # Get all the security groups in group:
-    s = select([cloud_security_groups]).where(cloud_security_groups.c.group_name==active_user.active_group)
-    security_groups_list = qt(config.db_connection.execute(s))
+    rc, msg, security_groups_list = config.db_query("cloud_security_groups", where=where_clause)
 
     # Get the group default metadata list:
-    s = select([view_groups_with_metadata_info]).where(view_groups_with_metadata_info.c.group_name==active_user.active_group)
-    group_metadata_dict = qt(config.db_connection.execute(s))
+    rc, msg, group_metadata_dict = config.db_query("view_groups_with_metadata_info", where=where_clause)
 
     # Retrieve the list of metadata exclusions:
-    s = select([csv2_group_metadata_exclusions]).where(csv2_group_metadata_exclusions.c.group_name==active_user.active_group)
-    group_metadata_exclusion_list = qt(config.db_connection.execute(s))
+    rc, msg, group_metadata_exclusion_list = config.db_query("csv2_group_metadata_exclusions", where=where_clause)
 
     # Retrieve the list ec2 regions:
-    s = select([ec2_regions])
-    ec2_regions_list = qt(config.db_connection.execute(s))
+    rc, msg, ec2_regions_list = config.db_query("ec2_regions")
 
 
     # Position the page.
@@ -800,9 +830,9 @@ def metadata_add(request):
             return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud metadata-add %s' % (lno(MODID), msg))
 
         # Check cloud already exists.
-        table = tables['csv2_clouds']
-        s = select([csv2_clouds]).where(csv2_clouds.c.group_name == active_user.active_group)
-        _cloud_list = config.db_connection.execute(s)
+        table = 'csv2_clouds'
+        where_clause = "group_name='%s'" % active_user.active_group
+        rc, msg, _cloud_list = config.db_query(table, where=where_clause)
         found = False
         for cloud in _cloud_list:
             if active_user.active_group == cloud['group_name'] and fields['cloud_name'] == cloud['cloud_name']:
@@ -813,9 +843,9 @@ def metadata_add(request):
             return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud metadata-add failed, cloud name  "%s" does not exist.' % (lno(MODID), fields['cloud_name']))
 
         # Add the cloud metadata file.
-        table = tables['csv2_cloud_metadata']
-        payload = table.insert().values(table_fields(fields, table, columns, 'insert'))
-        rc, msg = config.db_session_execute(payload)
+        table ='csv2_cloud_metadata'
+        meta_dict = table_fields(fields, table, columns, 'insert')
+        rc, msg = config.db_insert(table, meta_dict)
         if rc == 0:
             config.db_close(commit=True)
 
@@ -859,8 +889,9 @@ def metadata_collation(request):
         return render(request, 'csv2/clouds_metadata_list.html', {'response_code': 1, 'message': '%s cloud metadata-list, %s' % (lno(MODID), msg)})
 
     # Retrieve cloud/metadata information.
-    s = select([view_metadata_collation]).where(view_metadata_collation.c.group_name == active_user.active_group)
-    cloud_metadata_list = qt(config.db_connection.execute(s))
+    table = 'view_metadata_collation'
+    where_clause = "group_name='%s'" % active_user.active_group
+    rc, msg, cloud_metadata_list = config.db_query(table, where=where_clause)
 
     config.db_close()
 
@@ -906,14 +937,13 @@ def metadata_delete(request):
             return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud metadata-delete %s' % (lno(MODID), msg))
 
         # Delete the cloud metadata file.
-        table = tables['csv2_cloud_metadata']
-        rc, msg = config.db_session_execute(
-            table.delete( \
-                (table.c.group_name==fields['group_name']) & \
-                (table.c.cloud_name==fields['cloud_name']) & \
-                (table.c.metadata_name==fields['metadata_name']) \
-                )
-            )
+        table = 'csv2_cloud_metadata'
+        meta_dict = {
+            "group_name": fields['group_name'],
+            "cloud_name": fields['cloud_name'],
+            "metadata_name": fields['metadata_name'] 
+        }
+        rc, msg = config.db_delete(table, meta_dict)
         if rc == 0:
             config.db_close(commit=True)
 
@@ -973,8 +1003,8 @@ def metadata_fetch(request, response_code=0, message=None, metadata_name=None, c
         return cloud_list(request, active_user=active_user, response_code=1, message='%s %s' % (lno(MODID), msg))
 
     # Get mime type list:
-    s = select([csv2_mime_types])
-    mime_types_list = qt(config.db_connection.execute(s))
+    table = "csv2_mime_types"
+    rc, msg, mime_types_list = config.db_query(table)
 
     # Check mandatory parameters.
     # If we are NOT returning from an update, we are fetching from webpage.
@@ -987,18 +1017,19 @@ def metadata_fetch(request, response_code=0, message=None, metadata_name=None, c
         metadata_name = active_user.kwargs['metadata_name']
 
     # Retrieve metadata file.
-    METADATA = config.db_map.classes.csv2_cloud_metadata
-    METADATAobj = config.db_session.query(METADATA).filter((METADATA.group_name == active_user.active_group) & (METADATA.cloud_name==cloud_name) & (METADATA.metadata_name==metadata_name))
+    METADATA = "csv2_cloud_metadata"
+    where_clause = "group_name='%s' and cloud_name='%s' and metadata_name='%s'" % (active_user.active_group, cloud_name, metadata_name)
+    rc, msg, METADATAobj = config.db_query(METADATA, where=where_clause)
     if METADATAobj:
         for row in METADATAobj:
             context = {
-                'group_name': row.group_name,
-                'cloud_name': row.cloud_name,
-                'metadata': row.metadata,
-                'metadata_enabled': row.enabled,
-                'metadata_priority': row.priority,
-                'metadata_mime_type': row.mime_type,
-                'metadata_name': row.metadata_name,
+                'group_name': row["group_name"],
+                'cloud_name': row["cloud_name"],
+                'metadata': row["metadata"],
+                'metadata_enabled': row["enabled"],
+                'metadata_priority': row["priority"],
+                'metadata_mime_type': row["mime_type"],
+                'metadata_name': row["metadata_name"],
                 'mime_types_list': mime_types_list,
                 'response_code': response_code,
                 'message': message,
@@ -1033,18 +1064,16 @@ def metadata_list(request):
         return render(request, 'csv2/clouds_metadata_list.html', {'response_code': 1, 'message': '%s cloud metadata-list, %s' % (lno(MODID), msg)})
 
     # Retrieve cloud/metadata information.
-    s = select([csv2_cloud_metadata]).where(csv2_cloud_metadata.c.group_name == active_user.active_group)
-    cloud_metadata_list = qt(config.db_connection.execute(s))
+    where_clause = "group_name='%s'" % active_user.active_group
+    rc, msg, cloud_metadata_list = config.db_query("csv2_cloud_metadata", where=where_clause)
     
 
 
     # Retrieve group/metadata information.
-    s = select([view_groups_with_metadata_names]).where(view_groups_with_metadata_names.c.group_name == active_user.active_group)
-    group_metadata_names = qt(config.db_connection.execute(s))
+    rc, msg group_metadata_names =  config.db_query("view_groups_with_metadata_names", where=where_clause)
 
     # Retrieve cloud/metadata information.
-    s = select([view_clouds_with_metadata_names]).where(view_clouds_with_metadata_names.c.group_name == active_user.active_group)
-    cloud_metadata_names = qt(config.db_connection.execute(s))
+    rc, msg, cloud_metadata_names = config.db_query("view_clouds_with_metadata_names", where=where_clause)
 
     config.db_close()
 
@@ -1079,8 +1108,7 @@ def metadata_new(request):
         return cloud_list(request, active_user=active_user, response_code=1, message='%s %s' % (lno(MODID), msg))
 
     # Get mime type list:
-    s = select([csv2_mime_types])
-    mime_types_list = qt(config.db_connection.execute(s))
+    rc, msg, mime_types_list = config.db_query("csv2_mime_types")
 
     # Retrieve metadata file.
     if 'cloud_name' in active_user.kwargs:
@@ -1130,8 +1158,8 @@ def metadata_query(request):
         return fields_error
 
     # Retrieve cloud/metadata information.
-    s = select([csv2_cloud_metadata]).where((csv2_cloud_metadata.c.group_name == active_user.active_group) & (csv2_cloud_metadata.c.cloud_name == fields['cloud_name']) & (csv2_cloud_metadata.c.metadata_name == fields['metadata_name']))
-    cloud_metadata_list = qt(config.db_connection.execute(s))
+    where_clause = "group_name='%s' and cloud_name='%s' and metadata_name='%s'" % (active_user.active_group, fields['cloud_name'], fields['metadata_name'])
+    rc, msg, cloud_metadata_list = config.db_query("csv2_cloud_metadata", where=where_clause)
     
     config.db_close()
 
@@ -1176,25 +1204,18 @@ def metadata_update(request):
             config.db_close()
             return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud metadata-update %s' % (lno(MODID), msg))
         
-        table = tables['csv2_cloud_metadata']
+        table = 'csv2_cloud_metadata'
         fields_to_update = table_fields(fields, table, columns, 'update')
         if not fields_to_update:
             return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud-metadata-update must specify at least one field to update.' % lno(MODID))
 
         # Update the cloud metadata file.
-        rc, msg = config.db_session_execute(table.update().where( \
-            (table.c.group_name==fields['group_name']) & \
-            (table.c.cloud_name==fields['cloud_name']) & \
-            (table.c.metadata_name==fields['metadata_name']) \
-            ).values(fields_to_update))
+        where_clause = "group_name='%s' and cloud_name='%s' and metadata_name='%s'" % (fields['group_name'], fields['cloud_name'], fields['metadata_name'])
+        rc, msg = config.db_update(table, fields_to_update, where=where_clause)
         if rc == 0:
             if not 'metadata' in fields.keys():
-                s = table.select(
-                    (table.c.group_name==fields['group_name']) & \
-                    (table.c.cloud_name==fields['cloud_name']) & \
-                    (table.c.metadata_name==fields['metadata_name'])
-                    )
-                metadata_list = qt(config.db_connection.execute(s))
+                where_clause = "group_name='%s' and cloud_name='%s' and metadata_name='%s'" % (active_user.active_group, fields['cloud_name'], fields['metadata_name'])
+                rc, msg, metadata_list = config.db_query(table, where=where_clause)
                 if len(metadata_list) != 1:
                     return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud metadata-update could not retrieve metadata' % (lno(MODID), request.method))
                 metadata = metadata_list[0]
@@ -1235,21 +1256,20 @@ def status(request, group_name=None):
         config.db_close()
         return render(request, 'csv2/clouds.html', {'response_code': 1, 'message': '%s %s' % (lno(MODID), msg), 'active_user': active_user.username, 'active_group': active_user.active_group, 'user_groups': active_user.user_groups})
 
-    GROUP_ALIASES = {'group_name': {"mygroups" :active_user.user_groups }}
+    GROUP_ALIASES = {'group_name': {"mygroups": active_user.user_groups }}
     # get cloud status per group
     if active_user.flag_global_status:
-        s = select([view_cloud_status])
-        cloud_status_list = qt(config.db_connection.execute(s), filter=qt_filter_get(['group_name'], ["mygroups"], aliases=GROUP_ALIASES, and_or='or'))
+        rc, msg, _cloud_status_list = config.db_query("view_cloud_status")
+        cloud_status_list = qt(_cloud_status_list, filter=qt_filter_get(['group_name'], ["mygroups"], aliases=GROUP_ALIASES, and_or='or'))
 
-        s = select([view_condor_jobs_group_defaults_applied])
-        job_cores_list = qt(config.db_connection.execute(s), filter=qt_filter_get(['group_name'], ["mygroups"], aliases=GROUP_ALIASES, and_or='or'))
+        rc, msg, _job_cores_list = config.db_query("view_condor_jobs_group_defaults_applied")
+        job_cores_list = qt(_job_cores_list, filter=qt_filter_get(['group_name'], ["mygroups"], aliases=GROUP_ALIASES, and_or='or'))
 
     else:
-        s = select([view_cloud_status]).where(view_cloud_status.c.group_name == active_user.active_group)
-        cloud_status_list = qt(config.db_connection.execute(s))
+        where_clause = "group_name='%s'" % active_user.active_group
+        rc, msg, cloud_status_list = qconfig.db_query("view_cloud_status", where=where_clause)
 
-        s = select([view_condor_jobs_group_defaults_applied]).where(view_condor_jobs_group_defaults_applied.c.group_name == active_user.active_group)
-        job_cores_list = qt(config.db_connection.execute(s))
+        rc, msg, job_cores_list = config.db_query("view_condor_jobs_group_defaults_applied", where=where_clause)
     
     if len(cloud_status_list) < 1:
         cloud_total_list = []
@@ -1388,43 +1408,38 @@ def status(request, group_name=None):
     # Get slot type counts
     if active_user.flag_global_status:
 
-        s = select([view_cloud_status_flavor_slot_detail])
-        flavor_slot_detail = qt(config.db_connection.execute(s), filter=qt_filter_get(['group_name'], ["mygroups"], aliases=GROUP_ALIASES, and_or='or'))
+        rc, msg, _flavor_slot_detail = config.db_query("view_cloud_status_flavor_slot_detail")
+        flavor_slot_detail = qt(_flavor_slot_detail, filter=qt_filter_get(['group_name'], ["mygroups"], aliases=GROUP_ALIASES, and_or='or'))
 
-        s = select([view_cloud_status_flavor_slot_detail_summary])
-        flavor_slot_detail_summary = qt(config.db_connection.execute(s), filter=qt_filter_get(['group_name'], ["mygroups"], aliases=GROUP_ALIASES, and_or='or'))
+        rc, msg, _flavor_slot_detail_summary = config.db_query("view_cloud_status_flavor_slot_detail_summary")
+        flavor_slot_detail_summary = qt(_flavor_slot_detail_summary, filter=qt_filter_get(['group_name'], ["mygroups"], aliases=GROUP_ALIASES, and_or='or'))
 
-        s = select([view_cloud_status_flavor_slot_summary])
-        flavor_slot_summary = qt(config.db_connection.execute(s), filter=qt_filter_get(['group_name'], ["mygroups"], aliases=GROUP_ALIASES, and_or='or'))
+        rc, msg, _flavor_slot_summary = config.db_query("view_cloud_status_flavor_slot_summary")
+        flavor_slot_summary = qt(_flavor_slot_summary, filter=qt_filter_get(['group_name'], ["mygroups"], aliases=GROUP_ALIASES, and_or='or'))
 
-        s = select([view_cloud_status_slot_detail])
-        slot_detail = qt(config.db_connection.execute(s), filter=qt_filter_get(['group_name'], ["mygroups"], aliases=GROUP_ALIASES, and_or='or'))
+        rc, msg, _slot_detail = config.db_query("view_cloud_status_slot_detail")
+        slot_detail = qt(_slot_detail, filter=qt_filter_get(['group_name'], ["mygroups"], aliases=GROUP_ALIASES, and_or='or'))
 
-        s = select([view_cloud_status_slot_detail_summary])
-        slot_detail_summary = qt(config.db_connection.execute(s), filter=qt_filter_get(['group_name'], ["mygroups"], aliases=GROUP_ALIASES, and_or='or'))
+        rc, msg, _slot_detail_summary = config.db_query("view_cloud_status_slot_detail_summary")
+        slot_detail_summary = qt(_slot_detail_summary, filter=qt_filter_get(['group_name'], ["mygroups"], aliases=GROUP_ALIASES, and_or='or'))
 
-        s = select([view_cloud_status_slot_summary])
-        slot_summary = qt(config.db_connection.execute(s), filter=qt_filter_get(['group_name'], ["mygroups"], aliases=GROUP_ALIASES, and_or='or'))
+        rc, msg, _slot_summary = config.db_query("view_cloud_status_slot_summary")
+        slot_summary = qt(_slot_summary, filter=qt_filter_get(['group_name'], ["mygroups"], aliases=GROUP_ALIASES, and_or='or'))
 
     else:
 
-        s = select([view_cloud_status_flavor_slot_detail]).where(view_cloud_status_flavor_slot_detail.c.group_name == active_user.active_group)
-        flavor_slot_detail = qt(config.db_connection.execute(s))
+        where_clause = "group_name='%s'" % active_user.active_group
+        rc, msg, flavor_slot_detail = config.db_query("view_cloud_status_flavor_slot_detail", where=where_clause)
 
-        s = select([view_cloud_status_flavor_slot_detail_summary]).where(view_cloud_status_flavor_slot_detail_summary.c.group_name == active_user.active_group)
-        flavor_slot_detail_summary = qt(config.db_connection.execute(s))
+        rc, msg, flavor_slot_detail_summary = config.db_query("view_cloud_status_flavor_slot_detail_summary", where=where_clause)
         
-        s = select([view_cloud_status_flavor_slot_summary]).where(view_cloud_status_flavor_slot_summary.c.group_name == active_user.active_group)
-        flavor_slot_summary = qt(config.db_connection.execute(s))
+        rc, msg, flavor_slot_summary = config.db_query("view_cloud_status_flavor_slot_summary", where=where_clause)
         
-        s = select([view_cloud_status_slot_detail]).where(view_cloud_status_slot_detail.c.group_name == active_user.active_group)
-        slot_detail = qt(config.db_connection.execute(s))
+        rc, msg, slot_detail = config.db_query("view_cloud_status_slot_detail", where=where_clause)
+
+        rc, msg, slot_detail_summary = config.db_query("view_cloud_status_slot_detail_summary", where=where_clause)
         
-        s = select([view_cloud_status_slot_detail_summary]).where(view_cloud_status_slot_detail_summary.c.group_name == active_user.active_group)
-        slot_detail_summary = qt(config.db_connection.execute(s))
-        
-        s = select([view_cloud_status_slot_summary]).where(view_cloud_status_slot_summary.c.group_name == active_user.active_group)
-        slot_summary = qt(config.db_connection.execute(s))
+        rc, msg, slot_summary = config.db_query("view_cloud_status_slot_summary", where=where_clause)
 
 
     '''
@@ -1511,21 +1526,23 @@ def status(request, group_name=None):
     # get job status per group
     if active_user.flag_global_status:
         if active_user.flag_jobs_by_target_alias:
-            s = select([view_job_status_by_target_alias])
+            table = "view_job_status_by_target_alias"
         else:
-            s = select([view_job_status])
-        job_status_list = qt(config.db_connection.execute(s), filter=qt_filter_get(['group_name'], ["mygroups"], aliases=GROUP_ALIASES, and_or='or'))
+            table = "view_job_status"
+        rc, msg, _job_status_list = config.db_query(table)
+        job_status_list = qt(_job_status_list, filter=qt_filter_get(['group_name'], ["mygroups"], aliases=GROUP_ALIASES, and_or='or'))
     else:    
         if active_user.flag_jobs_by_target_alias:
-            s = select([view_job_status_by_target_alias]).where(view_job_status.c.group_name == active_user.active_group)
+            table = "view_job_status_by_target_alias"
         else:
-            s = select([view_job_status]).where(view_job_status.c.group_name == active_user.active_group)
-        job_status_list = qt(config.db_connection.execute(s))
+            table = "view_job_status"
+        where_clause = "group_name='%s" % active_user.active_group
+        rc, msg, job_status_list = config.db_query(table, where=where_clause)
 
     # Get GSI configuration variables.
     gsi_config = config.get_config_by_category('GSI')
 
-    service_status = qt(config.db_connection.execute('select * from view_service_status;'))
+    rc, msg, service_status = config.db_query("view_service_status")
 
     # Determine the system load, RAM and disk usage
     system_list = {}
@@ -1742,12 +1759,13 @@ def update(request):
             return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud update "%s::%s" failed - %s.' % (lno(MODID), fields['group_name'], fields['cloud_name'], msg))
 
         # update the cloud.
-        table = tables['csv2_clouds']
+        table = 'csv2_clouds'
         cloud_updates = table_fields(fields, table, columns, 'update')
         
         updates = len(cloud_updates)
         if updates > 0:
-            rc, msg = config.db_session_execute(table.update().where((table.c.group_name==fields['group_name']) & (table.c.cloud_name==fields['cloud_name'])).values(cloud_updates))
+            where_clause = "group_name='%s' and cloud_name='%s'"
+            rc, msg = config.db_update(table, cloud_updates, where=where_clause)
             if rc != 0:
                 config.db_close()
                 return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud update "%s::%s" failed - %s.' % (lno(MODID), fields['group_name'], fields['cloud_name'], msg))
@@ -1816,7 +1834,7 @@ def update(request):
                     config.db_close()
                     return list(request, active_user=active_user, response_code=1, message='%s cloud update "%s::%s" failed - %s.' % (lno(MODID), fields['group_name'], fields['cloud_name'], msg))
 
-        config.db_session.commit()
+        config.db_commit()
         if updates > 0:
             if 'cloud_type' in fields:
                 cloud_type = fields['cloud_type']

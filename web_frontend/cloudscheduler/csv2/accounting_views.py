@@ -13,7 +13,6 @@ from cloudscheduler.lib.view_utils import \
     qt_filter_get, \
     render, \
     set_user_groups, \
-    table_fields, \
     validate_fields
 from collections import defaultdict
 import bcrypt
