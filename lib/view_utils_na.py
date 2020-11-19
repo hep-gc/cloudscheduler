@@ -208,7 +208,7 @@ def manage_group_users(config, tables, group, users, option=None):
     db_users=[]
 
     where_clause = "group_name='%s'" % group
-    user_groups_list = config.db_query(table, where=where_clause)
+    rc, msg, user_groups_list = config.db_query(table, where=where_clause)
 
     for row in user_groups_list:
         db_users.append(row['username'])
@@ -281,7 +281,7 @@ def manage_user_groups(config, tables, user, groups, option=None):
     db_groups=[]
     
     where_clause="username='%s'" % user
-    user_groups_list = config.db_query(table, where=where_clause)
+    rc, msg, user_groups_list = config.db_query(table, where=where_clause)
 
     for row in user_groups_list:
         db_groups.append(row['group_name'])
@@ -346,7 +346,7 @@ def manage_user_group_verification(config, tables, users, groups):
 
         # Get the list of valid users.
         table = 'csv2_user'
-        db_user_list = config.db_query(table)
+        rc, msg, db_user_list = config.db_query(table)
 
         valid_users = {}
         for row in db_user_list:
@@ -371,7 +371,7 @@ def manage_user_group_verification(config, tables, users, groups):
 
         # Get the list of valid groups.
         table = 'csv2_groups'
-        db_group_list = config.db_query(table)
+        rc, msg, db_group_list = config.db_query(table)
 
         valid_groups = {}
         for row in db_group_list:
@@ -933,7 +933,7 @@ def set_user_groups(config, request, super_user=True):
             table = "view_user_groups"
 
             where_clause = "username='%s' or cert_cn='%s'" % (remote_user, remote_user)
-            csv2_user = config.db_query(table, where=where_clause)
+            rc, msg, csv2_user = config.db_query(table, where=where_clause)
 
             user = None
             for user in csv2_user:
@@ -1196,7 +1196,7 @@ def validate_fields(config, request, fields, tables, active_user):
             primary_key_columns.append(column_name)
 
         #loop thru other columns:
-        for column_name in Tables[table[0]]['columns']
+        for column_name in Tables[table[0]]['columns']:
             if column_name not in all_columns:
                 all_columns.append(column_name)
             Columns[table[0]][1].append(column_name)
@@ -1264,7 +1264,8 @@ def validate_fields(config, request, fields, tables, active_user):
                         options = []
                         # not clear what this select is supposed to be hitting
                         # if cloudscheduler.lib.schema.__dict__[Formats[field][0]] resolves to a table name in schema_na.py it should be fine
-                        for row in config.db_query([cloudscheduler.lib.schema.__dict__[Formats[field][0]]], distinct=True):
+                        rc, msg, rows = config.db_query([cloudscheduler.lib.schema.__dict__[Formats[field][0]]], distinct=True)
+                        for row in rows:
                            if Formats[field][1] in row and (not row[Formats[field][1]] in options):
                               options.append(row[Formats[field][1]])
                     else:
@@ -1619,7 +1620,7 @@ def get_target_cloud(config, group_name, cloud_name):
         auto_close = False
     table = "csv2_clouds"
     where_clause = "group_name='%s' and cloud_name='%s'" % (group_name, cloud_name)
-    cloud_list = config.db_query(table, where=where_clause)
+    rc, msg, cloud_list = config.db_query(table, where=where_clause)
 
     if auto_close:
         config.db_close()

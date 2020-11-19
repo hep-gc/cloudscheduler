@@ -94,7 +94,7 @@ def _verify_username_cert_cn(fields, check_username=False):
 
     config.db_open()
 
-    rc, msg, csv2_user_list = (onfig.db_query("csv2_user")
+    rc, msg, csv2_user_list = config.db_query("csv2_user")
 
     for registered_user in csv2_user_list:
         if check_username:
@@ -347,7 +347,7 @@ def settings(request, active_user=None, response_code=0, message=None):
                     # Update the user.
                     table = 'csv2_user'
                     where_clause =  "username='%s'" % active_user.username
-                    rc, msg = config.db_update(table, table_fields(fields, table, columns, 'update'), where=where_clause)
+                    rc, qmsg = config.db_update(table, table_fields(fields, table, columns, 'update'), where=where_clause)
                     if rc == 0:
                         config.db_commit()
                         request.session.delete()
@@ -362,7 +362,7 @@ def settings(request, active_user=None, response_code=0, message=None):
 
     # Retrieve user settings.
     where_clause =  "username='%s'" % active_user.username
-    rc, msg, _user_list_raw = config.db_query("csv2_user", where=where_clause)
+    rc, qmsg, _user_list_raw = config.db_query("csv2_user", where=where_clause)
     _user_list = qt(_user_list_raw, prune='password')
 
     # Close the database.

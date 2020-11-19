@@ -151,8 +151,7 @@ def configuration(request):
     else:
         response_code = 0
 
-    s ="csv2_configuration"
-    rc, msg, config_list = config.db_query(table)
+    rc, msg, config_list = config.db_query("csv2_configuration")
     config_categories = list({v['category']:v for v in config_list})
 
     # Render the page.

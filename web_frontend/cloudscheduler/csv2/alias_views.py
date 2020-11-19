@@ -80,7 +80,7 @@ def manage_cloud_aliases(config, tables, group_name, alias_name, clouds, option=
     # Retrieve the list of clouds the cloud alias already has.
     db_clouds = []
 
-    where_clause = "group_name='%s' and alias='%s'" % (group_name, alias name)
+    where_clause = "group_name='%s' and alias='%s'" % (group_name, alias_name)
     _alist_list = config.db_query(table, where=where_clause)
 
     for row in _alias_list:
@@ -224,10 +224,10 @@ def alias_list(request, active_user=None, response_code=0, message=None):
     rc, msg, _alias_list = config.db_query('view_cloud_aliases', where=where_clause)
 
     # Retrieve the cloud alias table.
-    rc, msg, cloud_alias_list = config.db_quert("csv2_cloud_aliases", where=where_clause)
+    rc, msg, cloud_alias_list = config.db_query("csv2_cloud_aliases", where=where_clause)
 
     # Retrieve the cloud table.
-    rc, msg cloud_list = config.db_query("csv2_clouds", where=where_clause)
+    rc, msg, cloud_list = config.db_query("csv2_clouds", where=where_clause)
 
     # Render the page.
     context = {

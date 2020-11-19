@@ -302,7 +302,7 @@ def manage_cloud_flavor_exclusions(tables, active_group, cloud_name, flavor_name
         
         # Remove the extraneous exclusions.
         for flavor_name in remove_exclusions:
-             flav_dict = {
+            flav_dict = {
                 "group_name": active_group,
                 "cloud_name": cloud_name,
                 "flavor_name": flavor_name
@@ -670,8 +670,8 @@ def delete(request):
 
         # Delete the cloud.
         table = 'csv2_clouds'
-         rc, msg = config.db_delete(table, alias_dict)
-         if rc == 0:
+        rc, msg = config.db_delete(table, alias_dict)
+        if rc == 0:
             config.db_close(commit=True)
             return cloud_list(request, active_user=active_user, response_code=0, message='cloud "%s::%s" successfully deleted.' % (fields['group_name'], fields['cloud_name']))
         else:
@@ -1070,7 +1070,7 @@ def metadata_list(request):
 
 
     # Retrieve group/metadata information.
-    rc, msg group_metadata_names =  config.db_query("view_groups_with_metadata_names", where=where_clause)
+    rc, msg, group_metadata_names =  config.db_query("view_groups_with_metadata_names", where=where_clause)
 
     # Retrieve cloud/metadata information.
     rc, msg, cloud_metadata_names = config.db_query("view_clouds_with_metadata_names", where=where_clause)

@@ -455,14 +455,14 @@ def delete(request):
         # Delete the csv2_clouds.
         table = 'csv2_clouds'
         where_clause = "group_name='%s'" % fields['group_name']
-        rc, msg config.db_delete(table, where=where_clause)
+        rc, msg = config.db_delete(table, where=where_clause)
         if rc != 0:
             config.db_close()
             return group_list(request, active_user=active_user, response_code=1, message='%s group resources delete "%s" failed - %s.' % (lno(MODID), fields['group_name'], msg))
 
         # Delete the csv2_cloud_metadata.
         table = 'csv2_cloud_metadata'
-        rc, msg config.db_delete(table, where=where_clause)
+        rc, msg = config.db_delete(table, where=where_clause)
 
         if rc != 0:
             config.db_close()
@@ -470,14 +470,14 @@ def delete(request):
 
         # Delete the csv2_group_metadata_exclusions.
         table = 'csv2_group_metadata_exclusions'
-        rc, msg config.db_delete(table, where=where_clause)
+        rc, msg = config.db_delete(table, where=where_clause)
         if rc != 0:
             config.db_close()
             return group_list(request, active_user=active_user, response_code=1, message='%s delete group metadata exclusions for group "%s" failed - %s.' % (lno(MODID), fields['group_name'], msg))
 
         # Delete the csv2_user_groups.
         table = 'csv2_user_groups'
-        rc, msg config.db_delete(table, where=where_clause)
+        rc, msg = config.db_delete(table, where=where_clause)
         if rc != 0:
             config.db_close()
             return group_list(request, active_user=active_user, response_code=1, message='%s group users delete "%s" failed - %s.' % (lno(MODID), fields['group_name'], msg))
@@ -485,62 +485,62 @@ def delete(request):
 
         # Delete the csv2_cloud_aliases.
         table = 'csv2_cloud_aliases'
-        rc, msg config.db_delete(table, where=where_clause)
+        rc, msg = config.db_delete(table, where=where_clause)
         if rc != 0:
             config.db_close()
             return group_list(request, active_user=active_user, response_code=1, message='%s group resources delete "%s" failed - %s.' % (lno(MODID), fields['group_name'], msg))
 
         # Delete the csv2_vms.
         table = 'csv2_vms'
-        rc, msg config.db_delete(table, where=where_clause)
+        rc, msg = config.db_delete(table, where=where_clause)
         if rc != 0:
             config.db_close()
             return group_list(request, active_user=active_user, response_code=1, message='%s group VMs defaults delete "%s" failed - %s.' % (lno(MODID), fields['group_name'], msg))
 
         # Delete the cloud_keypairs.
         table = 'cloud_keypairs'
-        rc, msg config.db_delete(table, where=where_clause)
+        rc, msg = config.db_delete(table, where=where_clause)
         if rc != 0:
             config.db_close()
             return group_list(request, active_user=active_user, response_code=1, message='%s group keynames delete "%s" failed - %s.' % (lno(MODID), fields['group_name'], msg))
 
         # Delete the cloud_networks.
         table = 'cloud_networks'
-        rc, msg config.db_delete(table, where=where_clause)
+        rc, msg = config.db_delete(table, where=where_clause)
         if rc != 0:
             config.db_close()
             return group_list(request, active_user=active_user, response_code=1, message='%s group networks delete "%s" failed - %s.' % (lno(MODID), fields['group_name'], msg))
 
         # Delete the cloud_security_groups.
         table = 'cloud_security_groups'
-        rc, msg config.db_delete(table, where=where_clause)
+        rc, msg = config.db_delete(table, where=where_clause)
         if rc != 0:
             config.db_close()
             return group_list(request, active_user=active_user, response_code=1, message='%s group  security groups delete "%s" failed - %s.' % (lno(MODID), fields['group_name'], msg))
 
         # Delete the cloud_limits.
         table = 'cloud_limits'
-        rc, msg config.db_delete(table, where=where_clause)
+        rc, msg = config.db_delete(table, where=where_clause)
         if rc != 0:
             config.db_close()
             return group_list(request, active_user=active_user, response_code=1, message='%s group limits delete "%s" failed - %s.' % (lno(MODID), fields['group_name'], msg))
 
         # Delete the cloud_images.
         table = 'cloud_images'
-        rc, msg config.db_delete(table, where=where_clause)
+        rc, msg = config.db_delete(table, where=where_clause)
         if rc != 0:
             config.db_close()
             return group_list(request, active_user=active_user, response_code=1, message='%s group images delete "%s" failed - %s.' % (lno(MODID), fields['group_name'], msg))
 
         # Delete the cloud_flavors.
         table = 'cloud_flavors'
-        rc, msg config.db_delete(table, where=where_clause)
+        rc, msg = config.db_delete(table, where=where_clause)
         if rc != 0:
             return group_list(request, active_user=active_user, response_code=1, message='%s group flavors delete "%s" failed - %s.' % (lno(MODID), fields['group_name'], msg))
 
         # Delete the group.
         table = 'csv2_groups'
-        rc, msg config.db_delete(table, where=where_clause)
+        rc, msg = config.db_delete(table, where=where_clause)
         if rc == 0:
             # Commit the deletions, configure firewall and return.
             config.db_commit()
@@ -595,7 +595,7 @@ def group_list(request, active_user=None, response_code=0, message=None):
                     'group_name',
                     ],
                 'secondary': [
-                    'metadata_name',
+                    'metadata_names',
                     'metadata_enabled',
                     'metadata_priority',
                     'metadata_mime_type',
@@ -779,12 +779,12 @@ def metadata_fetch(request, response_code=0, message=None, metadata_name=None):
         if METADATAobj:
             for row in METADATAobj:
                 context = {
-                    'group_name': row.group_name,
-                    'metadata': row.metadata,
-                    'metadata_enabled': row.enabled,
-                    'metadata_priority': row.priority,
-                    'metadata_mime_type': row.mime_type,
-                    'metadata_name': row.metadata_name,
+                    'group_name': row["group_name"],
+                    'metadata': row["metadata"],
+                    'metadata_enabled': row["enabled"],
+                    'metadata_priority': row["priority"],
+                    'metadata_mime_type': row["mime_type"],
+                    'metadata_name': row["metadata_name"],
                     'mime_types_list': mime_types_list,
                     'response_code': response_code,
                     'message': message,
