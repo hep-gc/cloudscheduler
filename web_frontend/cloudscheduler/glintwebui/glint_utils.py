@@ -13,7 +13,7 @@ import glanceclient
 
 
 
-from cloudscheduler.lib.db_config import Config
+from cloudscheduler.lib.db_config_na import Config
 config = Config('/etc/cloudscheduler/cloudscheduler.yaml', ['general', 'openstackPoller.py', 'web_frontend'], pool_size=2, max_overflow=10)
 ALPHABET = string.ascii_letters + string.digits + string.punctuation
 
@@ -168,17 +168,18 @@ def get_checksum(glance, image_id):
 # Check image cache and queue up a pull request if target image is not present
 #
 def check_cache(config, image_name, image_checksum, group_name, user, target_image=None):
-    IMAGE_CACHE = config.db_map.classes.csv2_image_cache
-    db_session = config.db_session
+    IMAGE_CACHE = "csv2_image_cache"
     if isinstance(user, str):
         username = user
     else:
         username = user.username
 
     if image_checksum is not None:
-        image = db_session.query(IMAGE_CACHE).filter(IMAGE_CACHE.image_name == image_name, IMAGE_CACHE.checksum == image_checksum)
+        where_clause = "image_name='%s' and checksum='%s'" % (image_name, image_checksum)
+        rc, qmsg, image = config.db_query(IMAGE_CACHE, where=where_clause)
     else:
-        image = db_session.query(IMAGE_CACHE).filter(IMAGE_CACHE.image_name == image_name)
+        where_clause = "image_name='%s' and checksum='%s'" % (image_name, image_checksum)
+        rc, qmsg, image = config.db_query(IMAGE_CACHE, where=where_clause)
 
     if image.count() > 0:
         # we found something in the cache we can skip queueing a pull request
@@ -196,11 +197,11 @@ def check_cache(config, image_name, image_checksum, group_name, user, target_ima
             tx_id =  generate_tx_id()
             preq = {
                 "tx_id": tx_id,
-                "target_group_name": target_image.group_name,
-                "target_cloud_name": target_image.cloud_name,
+                "target_group_name": target_image["group_name"],
+                "target_cloud_name": target_image["cloud_name"],
                 "image_name": image_name,
-                "image_id": target_image.id,
-                "checksum": target_image.checksum,
+                "image_id": target_image["id"],
+                "checksum": target_image["checksum"],
                 "status": "pending",
                 "requester": username,
             }
@@ -217,12 +218,10 @@ def check_cache(config, image_name, image_checksum, group_name, user, target_ima
                 "requester": username,
             }
 
-        PULL_REQ = config.db_map.classes.csv2_image_pull_requests
+        PULL_REQ = "csv2_image_pull_requests"
         # check if a pull request already exists for this image? or just let the workers sort it out?
-        
-        new_preq = PULL_REQ(**preq)
-        db_session.merge(new_preq)
-        db_session.commit()
+        config.db_merge(PULL_REQ, preq)
+        config.db_commit()
         #pull_request.delay(tx_id = tx_id)
         pull_request.apply_async((tx_id,), queue='pull_requests')
 
@@ -233,15 +232,16 @@ def check_cache(config, image_name, image_checksum, group_name, user, target_ima
 #
 #
 def get_image(config, image_name, image_checksum, group_name, cloud_name=None):
-    IMAGES = config.db_map.classes.cloud_images
-    db_session = config.db_session
+    IMAGES = "cloud_images"
     if cloud_name is None:
         #getting a source image
         logging.info("Looking for image %s, checksum: %s in group %s" % (image_name, image_checksum, group_name))
         if image_checksum is not None:
-            image_candidates = db_session.query(IMAGES).filter(IMAGES.group_name == group_name, IMAGES.name == image_name, IMAGES.checksum == image_checksum)
+            where_clause = "group_name='%s' and image_name='%s' and checksum='%s'" % (group_name, image_name, image_checksum)
+            rc, qmsg, image_candidates = config.db_query(IMAGES, where=where_clause)
         else:
-            image_candidates = db_session.query(IMAGES).filter(IMAGES.group_name == group_name, IMAGES.name == image_name)
+            where_clause = "group_name='%s' and image_name='%s'" % (group_name, image_name)
+            rc, qmsg, image_candidates = config.db_query(IMAGES, where=where_clause)
         if image_candidates.count() > 0:
             return image_candidates[0]
         else:
@@ -250,7 +250,8 @@ def get_image(config, image_name, image_checksum, group_name, cloud_name=None):
     else:
         #getting a specific image
         logging.debug("Retrieving image %s" % image_name)
-        image_candidates = db_session.query(IMAGES).filter(IMAGES.group_name == group_name, IMAGES.cloud_name == cloud_name, IMAGES.name == image_name, IMAGES.checksum == image_checksum)
+        where_clause = "group_name='%s' and cloud_name='%s' and name='%s' and checksum='%s'" % (group_name, cloud_name, image_name, image_checksum)
+        image_candidates = config.db_query(IMAGES, where=where_clause)
         if image_candidates.count() > 0:
             return image_candidates[0]
         else:
@@ -314,10 +315,10 @@ def create_new_keypair(key_name, cloud):
 
 def getUser(request, db_config):
     user = request.META.get('REMOTE_USER')
-    Glint_User = db_config.db_map.classes.csv2_user
-    auth_user_list = db_config.db_session.query(Glint_User)
+    Glint_User = "csv2_user"
+    rc, qmsg, auth_user_list = db_config.db_query(Glint_User)
     for auth_user in auth_user_list:
-        if user == auth_user.cert_cn or user == auth_user.username:
+        if user == auth_user["cert_cn"] or user == auth_user["username"]:
             return auth_user
 
 def verifyUser(request, db_config):
