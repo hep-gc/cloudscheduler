@@ -117,51 +117,51 @@ def _build_image_dict(image_list, transaction_list):
     image_dict = {}
     image_dates = {}
     for image in image_list:
-        if image.name is None or image.checksum is None:
+        if image["name"] is None or image["checksum"] is None:
             # We don't like images without a name, lets ignore it
             continue
-        if image.name + "---" + image.checksum not in image_dict.keys():
+        if image["name"] + "---" + image["checksum"] not in image_dict.keys():
             #first time seeing this image, make a new entry
             new_dict = {
-                "name": image.name,
-                "checksum": image.checksum,
-                "created_at": image.created_at,
-                image.cloud_name: {
+                "name": image["name"],
+                "checksum": image["checksum"],
+                "created_at": image["created_at"],
+                image["cloud_name']: {
                     "status": "present",
-                    "visibility": image.visibility,
-                    "id": image.id,
+                    "visibility": image["visibility"],
+                    "id": image["id"],
                     "message": ""
                 }
             }
-            image_dict[image.name + "---" + image.checksum] = new_dict
-            image_dates[image.name + "---" + image.checksum] = image.created_at
+            image_dict[image["name"] + "---" + image["checksum"]] = new_dict
+            image_dates[image["name"] + "---" + image["checksum"]] = image["created_at"]
         else:
             #image already exits, just need to add the cloud name dict for this entry
-            image_dict[image.name + "---" + image.checksum][image.cloud_name] = {
+            image_dict[image["name"] + "---" + image["checksum"]][image["cloud_name"]] = {
                 "status": "present",
-                "visibility": image.visibility,
-                "id": image.id,
+                "visibility": image["visibility"],
+                "id": image["id"],
                 "message": ""
             }
 
     # now that we have a complete picture of the images in the database we need to add the transaction data for pending image transfers
     for tx in transaction_list:
-        if tx.image_name + "---" + tx.checksum not in image_dict.keys():
+        if tx["image_name"] + "---" + tx["checksum"] not in image_dict.keys():
             # this shouldnt be possible since the image must exist to be transfered
             # only way you could end up here is if multiple deletes were queued on the same image or the image was deleted while this transaction was queued
             # ignore fore now
             continue
         else:
             # update relevent cloud dict
-            if tx.target_cloud_name not in image_dict[tx.image_name + "---" + tx.checksum].keys():
+            if tx["target_cloud_name"] not in image_dict[tx["image_name"] + "---" + tx.checksum].keys():
                 # make a new dict for it, probably a transfer request, or an upload
-                image_dict[tx.image_name + "---" + tx.checksum][tx.target_cloud_name] = {
-                    "status": tx.status,
+                image_dict[tx["image_name"] + "---" + tx["checksum"]][tx["target_cloud_name"]] = {
+                    "status": tx["status'],
                     "visibility": "pending",
-                    "id": tx.image_id,
-                    "message": tx.message
+                    "id": tx["image_id"],
+                    "message": tx["message"]
                 }
-                image_dates[tx.image_name + "---" + tx.checksum] = "-"
+                image_dates[tx["image_name"] + "---" + tx["checksum"]] = "-"
             else:
                 # the image exists already, probably the result of multiple queue'd transfers
                 # we can probably ignore this case but may want to keep whatever status/message from the tx table
@@ -177,12 +177,12 @@ def _build_image_matrix(image_dict, cloud_list):
     for image_key in image_dict:
         row_list = []
         for cloud in cloud_list:
-            if cloud.cloud_name in image_dict[image_key].keys():
+            if cloud["cloud_name"] in image_dict[image_key].keys():
                 #image is here
-                row_list.append((image_dict[image_key][cloud.cloud_name]["status"],image_dict[image_key][cloud.cloud_name]["message"],image_dict[image_key][cloud.cloud_name]["visibility"], cloud.cloud_name))
+                row_list.append((image_dict[image_key][cloud["cloud_name"]]["status"],image_dict[image_key][cloud["cloud_name"]]["message"],image_dict[image_key][cloud["cloud_name"]]["visibility"], cloud["cloud_name"]))
             else:
                 #image is not here
-                row_list.append(("missing","","",cloud.cloud_name))
+                row_list.append(("missing","","",cloud["cloud_name"]))
         image_matrix[image_key] = row_list
 
 
@@ -196,16 +196,16 @@ def _build_image_matrix(image_dict, cloud_list):
 #    the image exists at target location
 def _check_image(config, target_group, target_cloud, image_name, image_checksum):
     logger.debug("Checking for image: %s on target cloud: %s" % (image_name, target_cloud))
-    db_session = config.db_session
-    IMAGES = config.db_map.classes.cloud_images
-    IMAGE_TX = config.db_map.classes.csv2_image_transactions
+    IMAGES = "cloud_images"
+    IMAGE_TX = "csv2_image_transactions"
 
     images = None
     #Check target cloud for image
     if image_checksum is not None:
-        images = db_session.query(IMAGES).filter(IMAGES.cloud_name == target_cloud, IMAGES.group_name == target_group, IMAGES.name == image_name, IMAGES.checksum == image_checksum)
+        where_clause = "cloud_name='%s' and group_name='%s' and name='%s' and checksum='%s'" % (target_cloud, target_group, image_name, image_checksum)
     else:
-        images = db_session.query(IMAGES).filter(IMAGES.cloud_name == target_cloud, IMAGES.group_name == target_group, IMAGES.name == image_name)
+        where_clause = "cloud_name='%s' and group_name='%s' and name='%s'" % (target_cloud, target_group, image_name)
+    rc, msg, images = config.db_query(IMAGES, where=where_clause)
     if images.count() != 0:
         return False # found the image so we don't need to transfer it
 
