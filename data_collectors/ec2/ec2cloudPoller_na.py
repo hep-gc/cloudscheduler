@@ -415,7 +415,11 @@ def flavor_poller():
                 logging.info("Stop set, exiting...")
                 break
             signal.signal(signal.SIGINT, config.signals['SIGINT'])
-            wait_cycle(cycle_start_time, poll_time_history, config.categories["ec2cloudPoller.py"]["sleep_interval_flavor"], config)
+            try:
+                wait_cycle(cycle_start_time, poll_time_history, config.categories["ec2cloudPoller.py"]["sleep_interval_flavor"], config)
+            except KeyboardInterrupt:
+                continue
+                #got signaled
 
 
         except Exception as exc:
@@ -2029,7 +2033,11 @@ def vm_poller():
                 break
             signal.signal(signal.SIGINT, config.signals['SIGINT'])
 
-            wait_cycle(cycle_start_time, poll_time_history, config.categories["ec2cloudPoller.py"]["sleep_interval_vm"], config)
+            try:
+                wait_cycle(cycle_start_time, poll_time_history, config.categories["ec2cloudPoller.py"]["sleep_interval_vm"], config)
+            except KeyboardInterrupt:
+                continue
+                #got signaled
 
     except Exception as exc:
         logging.exception("VM poller cycle while loop exception, process terminating...")
