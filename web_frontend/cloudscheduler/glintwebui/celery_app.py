@@ -171,8 +171,8 @@ def tx_request(self, tx_id):
     created_datetime = datetime.datetime.strptime(uploaded_image.created_at, "%Y-%m-%dT%H:%M:%SZ")
     created_datetime.strftime("%Y-%m-%d %H:%M:%S")
     img_dict = {
-        'group_name': tx_row.target_group_name,
-        'cloud_name': tx_row.target_cloud_name,
+        'group_name': tx_row["target_group_name"],
+        'cloud_name': tx_row["target_cloud_name"],
         'id': uploaded_image.id,
         'cloud_type': "openstack",
         'container_format': uploaded_image.container_format,
