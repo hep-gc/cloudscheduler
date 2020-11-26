@@ -15,7 +15,7 @@ from django.core.exceptions import PermissionDenied
 
 from .glint_utils import get_openstack_session, get_glance_client, delete_image, check_cache, generate_tx_id, get_image, download_image, upload_image
 
-from cloudscheduler.lib.view_utils import \
+from cloudscheduler.lib.view_utils_na import \
     render, \
     lno, \
     qt, \
@@ -206,7 +206,7 @@ def _check_image(config, target_group, target_cloud, image_name, image_checksum)
     else:
         where_clause = "cloud_name='%s' and group_name='%s' and name='%s'" % (target_cloud, target_group, image_name)
     rc, msg, images = config.db_query(IMAGES, where=where_clause)
-    if images.count() != 0:
+    if len(images) != 0:
         return False # found the image so we don't need to transfer it
 
 
@@ -216,7 +216,7 @@ def _check_image(config, target_group, target_cloud, image_name, image_checksum)
         where_clause = "target_cloud_name='%s' and target_group_name='%s' and image_name='%s' and checksum='%s'" % (target_cloud, target_group, image_name, image_checksum)
     else:
         where_clause = "target_cloud_name='%s' and target_group_name='%s' and image_name='%s'" % (target_cloud, target_group, image_name)
-    rc, qmsg, images = db_config.db_query(IMAGE_TX, where=where_clause)
+    rc, qmsg, images = config.db_query(IMAGE_TX, where=where_clause)
     if len(images) != 0:
         # there is a row, lets check the status and there might be multiple rows if no checksum was provided
         for image_trans in images:
@@ -243,7 +243,7 @@ def list(request, args=None, response_code=0, message=None):
     GROUPS = "csv2_groups"
 
     # Retrieve the active user, associated group list and optionally set the active group.
-    rc, msg, active_user = set_user_groups(config, request, super_user=False)
+    rc, qmsg, active_user = set_user_groups(config, request, super_user=False)
     if rc != 0:
         config.db_close()
         return render(request, 'glintwebui/images.html', {'response_code': 1, 'message': '%s %s' % (lno(MODID), msg)})
@@ -253,14 +253,15 @@ def list(request, args=None, response_code=0, message=None):
     where_clause = "group_name='%s' and cloud_type='%s'" % (group, "openstack")
     rc, qmsg, images = config.db_query(IMAGES, where=where_clause)
     rc, qmsg, clouds = config.db_query(CLOUDS, where=where_clause)
-    rc, qmsg, defaults_list = config.db_query(GROUPS, where="group_name='"+ group +"'")
+    where_clause = "group_name='%s'" % group
+    rc, qmsg, defaults_list = config.db_query(GROUPS, where=where_clause)
     defaults = defaults_list[0]
     if defaults["vm_image"] is None or defaults["vm_image"]=="":
         default_image = None
     else:   
         default_image = defaults["vm_image"]
 
-    where_clause = "group_name='%s'" % group
+    where_clause = "target_group_name='%s'" % group
     rc, qmsg, pending_tx = config.db_query(IMAGE_TX, where=where_clause)
     image_dict, image_dates = _build_image_dict(images, pending_tx)
     matrix = _build_image_matrix(image_dict, clouds)
@@ -716,7 +717,7 @@ def upload(request, group_name=None):
             context = {
                 'group_name': group_name,
                 'cloud_list': cloud_list,
-                'max_repos': cloud_list.count(),
+                'max_repos': len(cloud_list),
                 'redirect': "false",
 
                 #view agnostic data
@@ -814,7 +815,7 @@ def upload(request, group_name=None):
             context = {
                 'group_name': group_name,
                 'cloud_list': cloud_list,
-                'max_repos': cloud_list.count(),
+                'max_repos': len(cloud_list),
                 'redirect': "true",
 
                 #view agnostic data
@@ -1266,7 +1267,7 @@ def clear(request, args=None, response_code=0, message=None):
                     #ambiguous image name, need a checksum
                     return HttpResponse(json.dumps({'response_code': 1, 'message': '%s %s' % (lno(MODID), "Ambigous image name, please remove duplicate names or provide a checksum")}))
                 else:
-                    image_checksum = image_candidates[0].["hecksum"]
+                    image_checksum = image_candidates[0]["checksum"]
             # Once we get here we have the checksum so assign the image_name and continue as normal
             image_name = image_key
         else:
@@ -1289,7 +1290,7 @@ def clear(request, args=None, response_code=0, message=None):
             return HttpResponse(json.dumps({'response_code': 0, 'message': 'Transaction removed'}))
         else:
             #if we get here it means we have multiple identical transactions queue'd up so lets report how many we found and remove them 
-            logger.warning("Multiple identical transactions found (%s), there is probably a database issue or a problem with defaults replication" % image_tx.count())
+            logger.warning("Multiple identical transactions found (%s), there is probably a database issue or a problem with defaults replication" % len(image_tx))
             tx = image_tx[0]
             config.db_delete(IMG_TX, tx)
             config.db_commit()

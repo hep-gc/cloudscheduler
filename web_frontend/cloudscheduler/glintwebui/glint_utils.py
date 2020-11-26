@@ -16,6 +16,8 @@ import glanceclient
 from cloudscheduler.lib.db_config_na import Config
 config = Config('/etc/cloudscheduler/cloudscheduler.yaml', ['general', 'openstackPoller.py', 'web_frontend'], pool_size=2, max_overflow=10)
 ALPHABET = string.ascii_letters + string.digits + string.punctuation
+ALPHABET = ALPHABET.replace("'", "")
+ALPHABET = ALPHABET.replace('"', "")
 
 def get_nova_client(session, region=None):
     nova = novaclient.Client("2", session=session, region_name=region, timeout=10)
@@ -26,36 +28,36 @@ def get_glance_client(session, region=None):
     return glance
 
 def get_openstack_session(cloud):
-    authsplit = cloud.authurl.split('/')
+    authsplit = cloud["authurl"].split('/')
     try:
         version = int(float(authsplit[-1][1:])) if len(authsplit[-1]) > 0 else int(float(authsplit[-2][1:]))
     except ValueError:
-        logging.debug("Bad OpenStack URL, could not determine version, skipping %s", cloud.authurl)
+        logging.debug("Bad OpenStack URL, could not determine version, skipping %s", cloud["authurl"])
         return False
     if version == 2:
         session = _get_openstack_session_v1_v2(
-            auth_url=cloud.authurl,
-            username=cloud.username,
-            password=cloud.password,
-            project=cloud.project)
+            auth_url=cloud["authurl"],
+            username=cloud["username"],
+            password=cloud["password"],
+            project=cloud["project"])
     else:
         session = _get_openstack_session_v1_v2(
-            auth_url=cloud.authurl,
-            username=cloud.username,
-            password=cloud.password,
-            project=cloud.project,
-            user_domain=cloud.user_domain_name,
-            project_domain_name=cloud.project_domain_name,
-            project_domain_id=cloud.project_domain_id,)
+            auth_url=cloud["authurl"],
+            username=cloud["username"],
+            password=cloud["password"],
+            project=cloud["project"],
+            user_domain=cloud["user_domain_name"],
+            project_domain_name=cloud["project_domain_name"],
+            project_domain_id=cloud["project_domain_id"],)
     if session is False:
-        logging.error("Failed to setup session, skipping %s", cloud.cloud_name)
+        logging.error("Failed to setup session, skipping %s", cloud["cloud_name"])
         if version == 2:
             logging.error("Connection parameters: \n authurl: %s \n username: %s \n project: %s",
-                          (cloud.authurl, cloud.username, cloud.project))
+                          (cloud["authurl"], cloud["username"], cloud["project"]))
         else:
             logging.error(
                 "Connection parameters: \n authurl: %s \n username: %s \n project: %s \n user_domain: %s \n project_domain: %s",
-                (cloud.authurl, cloud.username, cloud.project, cloud.user_domain, cloud.project_domain_name))
+                (cloud["authurl"], cloud["username"], cloud["project"], cloud["user_domain"], cloud["project_domain_name"]))
     return session
 
 def _get_openstack_session_v1_v2(auth_url, username, password, project, user_domain="Default", project_domain_name="Default",
@@ -167,7 +169,7 @@ def get_checksum(glance, image_id):
 #
 # Check image cache and queue up a pull request if target image is not present
 #
-def check_cache(config, image_name, image_checksum, group_name, user, target_image=None):
+def check_cache(config, image_name, image_checksum, group_name, user, target_image=None, return_image=False):
     IMAGE_CACHE = "csv2_image_cache"
     if isinstance(user, str):
         username = user
@@ -181,8 +183,10 @@ def check_cache(config, image_name, image_checksum, group_name, user, target_ima
         where_clause = "image_name='%s' and checksum='%s'" % (image_name, image_checksum)
         rc, qmsg, image = config.db_query(IMAGE_CACHE, where=where_clause)
 
-    if image.count() > 0:
+    if len(image) > 0:
         # we found something in the cache we can skip queueing a pull request
+        if return_image:
+            return image[0]
         return True
     else:
         from .celery_app import pull_request
@@ -193,6 +197,8 @@ def check_cache(config, image_name, image_checksum, group_name, user, target_ima
             if target_image is False:
                 # unable to find target image
                 logging.info("Unable to find target image")
+                if return_image:
+                    return None
                 return False #maybe raise an error here
             tx_id =  generate_tx_id()
             preq = {
@@ -225,6 +231,8 @@ def check_cache(config, image_name, image_checksum, group_name, user, target_ima
         #pull_request.delay(tx_id = tx_id)
         pull_request.apply_async((tx_id,), queue='pull_requests')
 
+        if return_image:
+            return None
         return True
 
 
@@ -237,12 +245,12 @@ def get_image(config, image_name, image_checksum, group_name, cloud_name=None):
         #getting a source image
         logging.info("Looking for image %s, checksum: %s in group %s" % (image_name, image_checksum, group_name))
         if image_checksum is not None:
-            where_clause = "group_name='%s' and image_name='%s' and checksum='%s'" % (group_name, image_name, image_checksum)
+            where_clause = "group_name='%s' and name='%s' and checksum='%s'" % (group_name, image_name, image_checksum)
             rc, qmsg, image_candidates = config.db_query(IMAGES, where=where_clause)
         else:
-            where_clause = "group_name='%s' and image_name='%s'" % (group_name, image_name)
+            where_clause = "group_name='%s' and name='%s'" % (group_name, image_name)
             rc, qmsg, image_candidates = config.db_query(IMAGES, where=where_clause)
-        if image_candidates.count() > 0:
+        if len(image_candidates) > 0:
             return image_candidates[0]
         else:
             #No image that fits specs
@@ -251,15 +259,15 @@ def get_image(config, image_name, image_checksum, group_name, cloud_name=None):
         #getting a specific image
         logging.debug("Retrieving image %s" % image_name)
         where_clause = "group_name='%s' and cloud_name='%s' and name='%s' and checksum='%s'" % (group_name, cloud_name, image_name, image_checksum)
-        image_candidates = config.db_query(IMAGES, where=where_clause)
-        if image_candidates.count() > 0:
+        rc, msg, image_candidates = config.db_query(IMAGES, where=where_clause)
+        if len(image_candidates) > 0:
             return image_candidates[0]
         else:
             #No image that fits specs
             return False
 
 
-# at a length of 16 with a 94 symbol alphabet we have a N/16^94 chance of a collision, pretty darn unlikely
+# at a length of 16 with a 92 symbol alphabet we have a N/16^92 chance of a collision, pretty darn unlikely
 def generate_tx_id(length=16):
     return ''.join(random.choice(ALPHABET) for i in range(length)) 
 

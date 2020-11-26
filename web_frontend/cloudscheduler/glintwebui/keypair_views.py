@@ -12,7 +12,7 @@ from .keypair_utils import get_keypair, delete_keypair, transfer_keypair, \
                          create_keypair, create_new_keypair, getUser, verifyUser
 
 from cloudscheduler.lib.web_profiler import silk_profile as silkp
-from cloudscheduler.lib.view_utils import set_user_groups
+from cloudscheduler.lib.view_utils_na import set_user_groups
 
 logger = logging.getLogger('glintv2')
 
@@ -38,7 +38,7 @@ def manage_keys(request, group_name=None, message=None):
     for cloud in grp_resources:
         num_clouds=num_clouds+1
         for key in key_dict:
-            key_dict[key][cloud["cloud_name"] = False
+            key_dict[key][cloud["cloud_name"]] = False
         where_clause = "cloud_name='%s' and group_name='%s'" % (cloud["cloud_name"], cloud["group_name"])
         rc, qmsg, cloud_keys = db_config.db_query(Keypairs, where=where_clause)
         for key in cloud_keys:
@@ -46,12 +46,12 @@ def manage_keys(request, group_name=None, message=None):
             # the keys will have a unique fingerprint and that is what is used as an identifier
             if (key["fingerprint"] + ";" + key["key_name"]) in key_dict:
                 dict_key = key["fingerprint"] + ";" + key["key_name"]
-                key_dict[dict_key][key["cloud_name"] = True
+                key_dict[dict_key][key["cloud_name"]] = True
             else:
                 dict_key = key["fingerprint"] + ";" + key["key_name"]
                 key_dict[dict_key] = {}
                 key_dict[dict_key]["name"] = key["key_name"]
-                key_dict[dict_key][key["cloud_name"] = True
+                key_dict[dict_key][key["cloud_name"]] = True
 
     context = {
         "group_resources": grp_resources,
