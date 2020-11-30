@@ -668,7 +668,7 @@ def upload(request, group_name=None):
     CLOUDS = "csv2_clouds"
     CACHE_IMAGES = "csv2_image_cache"
 
-    rc, msg, active_user = set_user_groups(config, request, super_user=False)
+    rc, qmsg, active_user = set_user_groups(config, request, super_user=False)
     if rc != 0:
         config.db_close()
         #return render(request, 'glintwebui/images.html', {'response_code': 1, 'message': '%s %s' % (lno(MODID), msg)})
@@ -947,7 +947,7 @@ def upload(request, group_name=None):
         target_cloud_name = cloud_name_list[0]
         # get the cloud row for this cloud
         where_clause = "group_name='%s' and cloud_name='%s'" % (group_name, target_cloud_name)
-        rc, qmsg, target_cloud_list = config.db_query(CLOUDS, whre=where_clause)
+        rc, qmsg, target_cloud_list = config.db_query(CLOUDS, where=where_clause)
         target_cloud = target_cloud_list[0]
         os_session = get_openstack_session(target_cloud)
         glance = get_glance_client(os_session, target_cloud["region"])

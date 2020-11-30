@@ -205,7 +205,7 @@ def save_keypairs(request, group_name=None, message=None):
 
                 #cross reference check list against what is in database:
                 where_clause = "group_name='%s' and cloud_name='%s'" % (group_name, cloud["cloud_name"])
-                rc, qmsg, cloud_keys = session.query(Keypairs, where=where_clause)
+                rc, qmsg, cloud_keys = db_config.db_query(Keypairs, where=where_clause)
                 cloud_fingerprints = []
 
                 for keypair in cloud_keys:
@@ -250,8 +250,9 @@ def save_keypairs(request, group_name=None, message=None):
                                 # Transfer successful, break
                                 transfer_success = True
                                 break
-                            except:
+                            except Exception as exc:
                                 logger.error("Failed to get src keypair from %s:%s, trying next src key" % (src_keypair["group_name"], src_keypair["cloud_name"]))
+                                logger.exception(exc)
                                 continue
                         if not transfer_success:
                             logger.error("Failed to transfer %s" %  keypair_key)
@@ -270,7 +271,7 @@ def save_keypairs(request, group_name=None, message=None):
 
                 #cross reference check list against what is in database:
                 where_clause = "group_name='%s' and cloud_name='%s'" % (group_name, cloud["cloud_name"])
-                rc, qmsg, cloud_keys = session.query(Keypairs, where=where_clause)
+                rc, qmsg, cloud_keys = db_config.db_query(Keypairs, where=where_clause)
                 for keypair in cloud_keys:
                     if (keypair["fingerprint"] + ";" + keypair["key_name"]) not in check_list:
                         # key has been deleted from this cloud:

@@ -6,7 +6,7 @@ from django.views.decorators.csrf import requires_csrf_token
 from django.http import HttpResponse
 from django.core.exceptions import PermissionDenied
 
-from cloudscheduler.lib.schema import csv2_configuration
+#from cloudscheduler.lib.schema_na import * 
 from cloudscheduler.lib.view_utils_na import \
     cskv,  \
     lno,  \

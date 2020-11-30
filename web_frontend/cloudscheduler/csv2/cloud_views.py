@@ -24,7 +24,7 @@ from cloudscheduler.lib.view_utils_na import \
 
 import bcrypt
 
-from cloudscheduler.lib.schema import *
+from cloudscheduler.lib.schema_na import *
 from cloudscheduler.lib.log_tools import get_frame_info
 from cloudscheduler.lib.signal_functions import event_signal_send
 
@@ -503,7 +503,7 @@ def add(request):
     if request.method == 'POST':
 
         # Validate input fields.
-        rc, msg, fields, tables, columns = validate_fields(config, request, [CLOUD_KEYS, CLOUD_ADD_KEYS], ['csv2_clouds', 'csv2_cloud_flavor_exclusions,n', 'csv2_group_metadata,n', 'csv2_group_metadata_exclusions,n'], active_user)
+        rc, msg, fields, tables, columns = validate_fields(config, request, [CLOUD_KEYS, CLOUD_ADD_KEYS], ['csv2_clouds', 'csv2_cloud_flavor_exclusions', 'csv2_group_metadata', 'csv2_group_metadata_exclusions'], active_user)
         if rc != 0: 
             config.db_close()
             return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud add %s' % (lno(MODID), msg))
@@ -632,7 +632,7 @@ def delete(request):
 
     if request.method == 'POST':
         # Validate input fields.
-        rc, msg, fields, tables, columns = validate_fields(config, request, [CLOUD_KEYS, IGNORE_METADATA_NAME], ['csv2_clouds', 'csv2_cloud_aliases,n', 'csv2_cloud_metadata', 'csv2_group_metadata_exclusions'], active_user)
+        rc, msg, fields, tables, columns = validate_fields(config, request, [CLOUD_KEYS, IGNORE_METADATA_NAME], ['csv2_clouds', 'csv2_cloud_aliases', 'csv2_cloud_metadata', 'csv2_group_metadata_exclusions'], active_user)
         if rc != 0:
             config.db_close()
             return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud delete %s' % (lno(MODID), msg))
@@ -824,7 +824,7 @@ def metadata_add(request):
 
     if request.method == 'POST':
         # Validate input fields.
-        rc, msg, fields, tables, columns = validate_fields(config, request, [METADATA_KEYS], ['csv2_cloud_metadata', 'csv2_clouds,n'], active_user)
+        rc, msg, fields, tables, columns = validate_fields(config, request, [METADATA_KEYS], ['csv2_cloud_metadata', 'csv2_clouds'], active_user)
         if rc != 0:
             config.db_close()
             return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud metadata-add %s' % (lno(MODID), msg))
@@ -1695,7 +1695,7 @@ def update(request):
             request.POST["vm_security_groups"] = ",".join([str(x) for x in request.POST.getlist("vm_security_groups")])
 
         # Validate input fields.
-        rc, msg, fields, tables, columns = validate_fields(config, request, [CLOUD_KEYS], ['csv2_clouds', 'csv2_cloud_flavor_exclusions,n', 'csv2_group_metadata,n', 'csv2_group_metadata_exclusions,n'], active_user)
+        rc, msg, fields, tables, columns = validate_fields(config, request, [CLOUD_KEYS], ['csv2_clouds', 'csv2_cloud_flavor_exclusions', 'csv2_group_metadata', 'csv2_group_metadata_exclusions'], active_user)
         if rc != 0:
             config.db_close()
             return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud update %s' % (lno(MODID), msg))

@@ -16,7 +16,7 @@ from cloudscheduler.lib.view_utils_na import \
     table_fields, \
     validate_fields
 
-from cloudscheduler.lib.schema import *
+from cloudscheduler.lib.schema_na import *
 
 from cloudscheduler.lib.signal_functions import event_signal_send
 

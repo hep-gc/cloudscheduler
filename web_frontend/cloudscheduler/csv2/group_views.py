@@ -20,7 +20,7 @@ from cloudscheduler.lib.view_utils_na import \
 from collections import defaultdict
 import bcrypt
 
-from cloudscheduler.lib.schema import *
+from cloudscheduler.lib.schema_na import *
 import re
 
 from cloudscheduler.lib.web_profiler import silk_profile as silkp

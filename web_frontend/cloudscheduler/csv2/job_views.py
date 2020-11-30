@@ -16,7 +16,7 @@ from cloudscheduler.lib.view_utils_na import \
     validate_fields
 import bcrypt
 
-from cloudscheduler.lib.schema import *
+from cloudscheduler.lib.schema_na import *
 import sqlalchemy.exc
 
 from cloudscheduler.lib.web_profiler import silk_profile as silkp
