@@ -258,7 +258,7 @@ class Config:
                 if allow_nulls and self.db_schema[table]['columns'][column]['nulls'] == 'YES':
                     result = 'null'
                 else:
-                    result = ''
+                    result = "''"
             else:
                 result = '"%s"' % str(value).replace('"', '\\"')
         else:
@@ -329,7 +329,7 @@ class Config:
 
 #-------------------------------------------------------------------------------
 
-    def db_execute(self, request):
+    def db_execute(self, request, multi=False):
         """
         Execute a DB request. If successful, iset rc=0 to indicate that
         self.db_cursor has the response. Otherwise, return rc=1 and the
@@ -340,7 +340,10 @@ class Config:
             return self.__db_logging_return__(1, 'the database is not open')
 
         try:
-            self.db_cursor.execute(request)
+            if multi:
+                self.db_cursor.execute(request, multi=True)
+            else:
+                self.db_cursor.execute(request)
             return self.__db_logging_return__(0, request)
         except Exception as ex:
             return self.__db_logging_return__(1, '%s >>> %s' % (request, ex))
@@ -428,7 +431,7 @@ class Config:
         if len(select) > 0:
             selected = list(select)
         else:
-            selected = list(self.db_schema[table]['columns'].keys())
+            selected = self.db_schema[table]['columns'].keys()
 
         if distinct:
             sql_bits = ['select distinct %s from %s' % (self.__db_column_list_csv__(selected), table)] 

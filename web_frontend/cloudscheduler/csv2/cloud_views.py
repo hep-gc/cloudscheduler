@@ -254,7 +254,7 @@ def ec2_filters(config, group_name, cloud_name, cloud_type=None):
 #-------------------------------------------------------------------------------
 
 @silkp(name="Cloud Manage Metadata Exclusions")
-def manage_cloud_flavor_exclusions(tables, active_group, cloud_name, flavor_names, option=None):
+def manage_cloud_flavor_exclusions(config, tables, active_group, cloud_name, flavor_names, option=None):
     """
     Ensure all the specified flavor exclusions (flavor_names) and only the specified
     flavor exclusions are defined for the specified cloud. The specified cloud and
@@ -331,7 +331,7 @@ def manage_cloud_flavor_exclusions(tables, active_group, cloud_name, flavor_name
 #-------------------------------------------------------------------------------
 
 @silkp(name="Cloud Manage Metadata Exclusions")
-def manage_group_metadata_exclusions(tables, active_group, cloud_name, metadata_names, option=None):
+def manage_group_metadata_exclusions(config, tables, active_group, cloud_name, metadata_names, option=None):
     """
     Ensure all the specified metadata exclusions (metadata_names) and only the specified
     metadata exclusions are defined for the specified cloud. The specified cloud and
@@ -352,7 +352,6 @@ def manage_group_metadata_exclusions(tables, active_group, cloud_name, metadata_
     # Retrieve the list of metadata exclusions the cloud already has.
     exclusions=[]
     
-
     where_clause = "group_name='%s' and cloud_name='%s'" % (active_group, cloud_name)
     rc, msg, exclusion_list = config.db_query(table, where=where_clause)
 
@@ -409,7 +408,7 @@ def manage_group_metadata_exclusions(tables, active_group, cloud_name, metadata_
 #-------------------------------------------------------------------------------
 
 @silkp(name="Cloud Manage Group Metadata Verification")
-def manage_group_metadata_verification(tables, active_group, cloud_names, metadata_names):
+def manage_group_metadata_verification(config, tables, active_group, cloud_names, metadata_names):
     """
     Make sure the specified cloud, and metadata names exist.
     """
@@ -546,7 +545,7 @@ def add(request):
 
         # Validity check the specified metadata exclusions.
         if 'metadata_name' in fields:
-            rc, msg = manage_group_metadata_verification(tables, fields['group_name'], None, fields['metadata_name']) 
+            rc, msg = manage_group_metadata_verification(config, tables, fields['group_name'], None, fields['metadata_name']) 
             if rc != 0:
                 config.db_close()
                 return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud add, "%s" failed - %s.' % (lno(MODID), fields['cloud_name'], msg))
@@ -579,14 +578,14 @@ def add(request):
 
         # Add the cloud's flavor exclusions.
         if 'flavor_name' in fields:
-            rc, msg = manage_cloud_flavor_exclusions(tables, fields['group_name'], fields['cloud_name'], fields['flavor_name'])
+            rc, msg = manage_cloud_flavor_exclusions(config, tables, fields['group_name'], fields['cloud_name'], fields['flavor_name'])
             if rc != 0:
                 config.db_close()
                 return cloud_list(request, active_user=active_user, response_code=1, message='%s add flavor exclusions for cloud "%s::%s" failed - %s.' % (lno(MODID), fields['group_name'], fields['cloud_name'], msg))
 
         # Add the cloud's group metadata exclusions.
         if 'metadata_name' in fields:
-            rc, msg = manage_group_metadata_exclusions(tables, fields['group_name'], fields['cloud_name'], fields['metadata_name'])
+            rc, msg = manage_group_metadata_exclusions(config, tables, fields['group_name'], fields['cloud_name'], fields['metadata_name'])
             if rc != 0:
                 config.db_close()
                 return cloud_list(request, active_user=active_user, response_code=1, message='%s add group metadata exclusion for cloud "%s::%s" failed - %s.' % (lno(MODID), fields['group_name'], fields['cloud_name'], msg))
@@ -1267,7 +1266,7 @@ def status(request, group_name=None):
 
     else:
         where_clause = "group_name='%s'" % active_user.active_group
-        rc, msg, cloud_status_list = qconfig.db_query("view_cloud_status", where=where_clause)
+        rc, msg, cloud_status_list = config.db_query("view_cloud_status", where=where_clause)
 
         rc, msg, job_cores_list = config.db_query("view_condor_jobs_group_defaults_applied", where=where_clause)
     
@@ -1744,7 +1743,7 @@ def update(request):
 
         # Validity check the specified metadata exclusions.
         if 'metadata_name' in fields:
-            rc, msg = manage_group_metadata_verification(tables, fields['group_name'], fields['cloud_name'], fields['metadata_name']) 
+            rc, msg = manage_group_metadata_verification(config, tables, fields['group_name'], fields['cloud_name'], fields['metadata_name']) 
             if rc != 0:
                 config.db_close()
                 return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud update, "%s" failed - %s.' % (lno(MODID), fields['cloud_name'], msg))
@@ -1763,8 +1762,10 @@ def update(request):
         cloud_updates = table_fields(fields, table, columns, 'update')
         
         updates = len(cloud_updates)
-        if updates > 0:
-            where_clause = "group_name='%s' and cloud_name='%s'"
+        # updates will always contain group and cloud name so im going to upate the below it statement to >2 instead of >0.
+        # If the CLI has a different functionality it may cause failure
+        if updates > 2:
+            where_clause = "group_name='%s' and cloud_name='%s'" % (fields['group_name'], fields['cloud_name'])
             rc, msg = config.db_update(table, cloud_updates, where=where_clause)
             if rc != 0:
                 config.db_close()
@@ -1789,16 +1790,16 @@ def update(request):
             if 'flavor_name' in fields:
                 updates += 1
                 if 'flavor_option' in fields and fields['flavor_option'] == 'delete':
-                    rc, msg = manage_cloud_flavor_exclusions(tables, fields['group_name'], fields['cloud_name'], fields['flavor_name'], option='delete')
+                    rc, msg = manage_cloud_flavor_exclusions(config, tables, fields['group_name'], fields['cloud_name'], fields['flavor_name'], option='delete')
                 else:
-                    rc, msg = manage_cloud_flavor_exclusions(tables, fields['group_name'], fields['cloud_name'], fields['flavor_name'], option='add')
+                    rc, msg = manage_cloud_flavor_exclusions(config, tables, fields['group_name'], fields['cloud_name'], fields['flavor_name'], option='add')
 
         else:
             updates += 1
             if 'flavor_name' in fields:
-                rc, msg = manage_cloud_flavor_exclusions(tables, fields['group_name'], fields['cloud_name'], fields['flavor_name'])
+                rc, msg = manage_cloud_flavor_exclusions(config, tables, fields['group_name'], fields['cloud_name'], fields['flavor_name'])
             else:
-                rc, msg = manage_cloud_flavor_exclusions(tables, fields['group_name'], fields['cloud_name'], None)
+                rc, msg = manage_cloud_flavor_exclusions(config, tables, fields['group_name'], fields['cloud_name'], None)
 
         if rc != 0:
             config.db_close()
@@ -1809,16 +1810,16 @@ def update(request):
             if 'metadata_name' in fields:
                 updates += 1
                 if 'metadata_option' in fields and fields['metadata_option'] == 'delete':
-                    rc, msg = manage_group_metadata_exclusions(tables, fields['group_name'], fields['cloud_name'], fields['metadata_name'], option='delete')
+                    rc, msg = manage_group_metadata_exclusions(config, tables, fields['group_name'], fields['cloud_name'], fields['metadata_name'], option='delete')
                 else:
-                    rc, msg = manage_group_metadata_exclusions(tables, fields['group_name'], fields['cloud_name'], fields['metadata_name'], option='add')
+                    rc, msg = manage_group_metadata_exclusions(config, tables, fields['group_name'], fields['cloud_name'], fields['metadata_name'], option='add')
 
         else:
             updates += 1
             if 'metadata_name' in fields:
-                rc, msg = manage_group_metadata_exclusions(tables, fields['group_name'], fields['cloud_name'], fields['metadata_name'])
+                rc, msg = manage_group_metadata_exclusions(config, tables, fields['group_name'], fields['cloud_name'], fields['metadata_name'])
             else:
-                rc, msg = manage_group_metadata_exclusions(tables, fields['group_name'], fields['cloud_name'], None)
+                rc, msg = manage_group_metadata_exclusions(config, tables, fields['group_name'], fields['cloud_name'], None)
 
         if rc != 0:
             config.db_close()

@@ -4,7 +4,7 @@ import time
 import boto3
 
 
-import cloudscheduler.lib.schema_na as schema
+from cloudscheduler.lib.schema_na import *
 
 from keystoneclient.auth.identity import v2, v3
 from keystoneauth1 import session as keystone
@@ -95,7 +95,6 @@ def diff_lists(list1,list2, option=None):
 #-------------------------------------------------------------------------------
 
 def kill_retire(config, group_name, cloud_name, option, count, updater_str):
-    from cloudscheduler.lib.schema import view_vm_kill_retire_priority_age, view_vm_kill_retire_priority_idle
 
 #   print(">>>>>>>>>>>>>>>>>>>>>", group_name, cloud_name, option, count, updater_str)
 
@@ -117,12 +116,9 @@ def kill_retire(config, group_name, cloud_name, option, count, updater_str):
         else:
             ram_max = 999999999999
 
-        s = 'set @cores=0; set @ram=0; create or replace temporary table kill_retire_priority_list as select * from (select *,(@cores:=@cores+flavor_cores) as cores,(@ram:=@ram+flavor_ram) as ram from view_vm_kill_retire_priority_idle where group_name="%s" and cloud_name="%s" and killed<1 and retired<1 order by priority asc) as kpl where cores>%s or ram>%s;' % (group_name, cloud_name, core_max, ram_max)
-#       s = 'set @cores=0; set @ram=0; create or replace table kill_retire_priority_list as select * from (select *,(@cores:=@cores+flavor_cores) as cores,(@ram:=@ram+flavor_ram) as ram from view_vm_kill_retire_priority_idle where group_name="%s" and cloud_name="%s" and killed<1 and retired<1 order by priority asc) as kpl where cores>%s or ram>%s;' % (group_name, cloud_name, core_max, ram_max)
-        config.db_execute(s)
-#       config.db_connection.execute('update csv2_vms as cv left outer join (select * from kill_retire_priority_list) as kpl on cv.vmid=kpl.vmid set terminate=1, updater="%s" where kpl.machine is null;' % updater_str)
-#       config.db_connection.execute('update csv2_vms as cv left outer join (select * from kill_retire_priority_list) as kpl on cv.vmid=kpl.vmid set retire=1, updater="%s" where kpl.machine is not null;' % updater_str)
-        config.db_execute('update csv2_vms as cv left outer join (select * from kill_retire_priority_list) as kpl on cv.vmid=kpl.vmid set retire=1, updater="%s:r1" where kpl.vmid is not null;' % updater_str)
+        s = 'set @cores=0; set @ram=0; create or replace temporary table kill_retire_priority_list as select * from (select *,(@cores:=@cores+flavor_cores) as cores,(@ram:=@ram+flavor_ram) as ram from view_vm_kill_retire_priority_idle where group_name="%s" and cloud_name="%s" and killed<1 and retired<1 order by priority asc) as kpl where cores>%s or ram>%s' % (group_name, cloud_name, core_max, ram_max)
+        config.db_execute(s, multi=True)
+        config.db_execute('update csv2_vms as cv left outer join (select * from kill_retire_priority_list) as kpl on cv.vmid=kpl.vmid set retire=1, updater="%s:r1" where kpl.vmid is not null' % updater_str)
     
     # Process "kill N".
     elif option == 'kill':
@@ -130,12 +126,12 @@ def kill_retire(config, group_name, cloud_name, option, count, updater_str):
            print("Updater string empty, assigning default value.")
            updater_str = "kill_retire"
         if cloud_name == '-':
-            s = 'create or replace temporary table kill_retire_priority_list as select * from view_vm_kill_retire_priority_idle where group_name="%s" and killed<1 order by priority desc limit %s;' % (group_name, count)
+            s = 'create or replace temporary table kill_retire_priority_list as select * from view_vm_kill_retire_priority_idle where group_name="%s" and killed<1 order by priority desc limit %s' % (group_name, count)
         else:
-            s = 'create or replace temporary table kill_retire_priority_list as select * from view_vm_kill_retire_priority_idle where group_name="%s" and cloud_name="%s" and killed<1 order by priority desc limit %s;' % (group_name, cloud_name, count)
+            s = 'create or replace temporary table kill_retire_priority_list as select * from view_vm_kill_retire_priority_idle where group_name="%s" and cloud_name="%s" and killed<1 order by priority desc limit %s' % (group_name, cloud_name, count)
 
         config.db_execute(s)
-        config.db_execute('update csv2_vms as cv left outer join (select * from kill_retire_priority_list) as kpl on cv.vmid=kpl.vmid set terminate=2, updater="%s:t2" where kpl.vmid is not null;' % updater_str)
+        config.db_execute('update csv2_vms as cv left outer join (select * from kill_retire_priority_list) as kpl on cv.vmid=kpl.vmid set terminate=2, updater="%s:t2" where kpl.vmid is not null' % updater_str)
 
     # Process "retire N".
     elif option == 'retire':
@@ -143,12 +139,12 @@ def kill_retire(config, group_name, cloud_name, option, count, updater_str):
            print("Updater string empty, assigning default value.")
            updater_str = "kill_retire"
         if cloud_name == '-':
-            s = 'create or replace temporary table kill_retire_priority_list as select * from view_vm_kill_retire_priority_age where group_name="%s" and machine is not null and killed<1 and retired<1 order by priority desc limit %s;' % (group_name, count)
+            s = 'create or replace temporary table kill_retire_priority_list as select * from view_vm_kill_retire_priority_age where group_name="%s" and machine is not null and killed<1 and retired<1 order by priority desc limit %s' % (group_name, count)
         else:
-            s = 'create or replace temporary table kill_retire_priority_list as select * from view_vm_kill_retire_priority_age where group_name="%s" and cloud_name="%s" and machine is not null and killed<1 and retired<1 order by priority desc limit %s;' % (group_name, cloud_name, count)
+            s = 'create or replace temporary table kill_retire_priority_list as select * from view_vm_kill_retire_priority_age where group_name="%s" and cloud_name="%s" and machine is not null and killed<1 and retired<1 order by priority desc limit %s' % (group_name, cloud_name, count)
 
         config.db_execute(s)
-        config.db_execute('update csv2_vms as cv left outer join (select * from kill_retire_priority_list) as kpl on cv.vmid=kpl.vmid set retire=1, updater="%s:r1" where kpl.vmid is not null;' % updater_str)
+        config.db_execute('update csv2_vms as cv left outer join (select * from kill_retire_priority_list) as kpl on cv.vmid=kpl.vmid set retire=1, updater="%s:r1" where kpl.vmid is not null' % updater_str)
 
     # Process "retain N".
     elif option == 'retain':
@@ -156,21 +152,24 @@ def kill_retire(config, group_name, cloud_name, option, count, updater_str):
            print("Updater string empty, assigning default value.")
            updater_str = "kill_retire"
         if cloud_name == '-':
-            s = 'create or replace temporary table kill_retire_priority_list as select * from view_vm_kill_retire_priority_age where group_name="%s" and killed<1 and retired<1 order by priority asc limit %s, 999999999999;' % (group_name, count)
+            s = 'create or replace temporary table kill_retire_priority_list as select * from view_vm_kill_retire_priority_age where group_name="%s" and killed<1 and retired<1 order by priority asc limit %s, 999999999999' % (group_name, count)
         else:
-            s = 'create or replace temporary table kill_retire_priority_list as select * from view_vm_kill_retire_priority_age where group_name="%s" and cloud_name="%s" and killed<1 and retired<1 order by priority asc limit %s, 999999999999;' % (group_name, cloud_name, count)
+            s = 'create or replace temporary table kill_retire_priority_list as select * from view_vm_kill_retire_priority_age where group_name="%s" and cloud_name="%s" and killed<1 and retired<1 order by priority asc limit %s, 999999999999' % (group_name, cloud_name, count)
 
         config.db_execute(s)
-#       config.db_connection.execute('update csv2_vms as cv left outer join (select * from kill_retire_priority_list) as kpl on cv.vmid=kpl.vmid set terminate=1, updater="%s:t1" where kpl.machine is null;' % updater_str)
-#       config.db_connection.execute('update csv2_vms as cv left outer join (select * from kill_retire_priority_list) as kpl on cv.vmid=kpl.vmid set retire=1, updater="%s:r1" where kpl.machine is not null;' % updater_str)
-        config.db_execute('update csv2_vms as cv left outer join (select * from kill_retire_priority_list) as kpl on cv.vmid=kpl.vmid set retire=1, updater="%s:r=1" where kpl.vmid is not null;' % updater_str)
+        config.db_execute('update csv2_vms as cv left outer join (select * from kill_retire_priority_list) as kpl on cv.vmid=kpl.vmid set retire=1, updater="%s:r=1" where kpl.vmid is not null' % updater_str)
     
     
-    rc, msg = config.db_execute.execute('select count(*) as count from kill_retire_priority_list;')
+    rc, msg = config.db_execute('select count(*) as count from kill_retire_priority_list')
     retired_list = []
     for row in config.db_cursor:
+        print("Kill retire row: %s" % row)
         retired_list.append(row)
-    return retired_list[0]['count']
+
+    if len(retired_list) > 0:
+        return retired_list[0]['count']
+    else:
+        return 0
 
 #-------------------------------------------------------------------------------
 
@@ -1012,7 +1011,7 @@ def table_fields(Fields, Table, Columns, selection):
 
     Arguments:
 
-    Table    - Is a table object as returned by validate_fields.
+    Table    - Is a table string as returned by validate_fields.
 
     Columns  - Are the primary and secondary column lists for tables
                as returned by validate_fields.
@@ -1024,12 +1023,12 @@ def table_fields(Fields, Table, Columns, selection):
     output_fields = {}
 
     if selection == 'insert':
-        for field in Columns[Table.name][0]:
+        for field in Columns[Table][0]:
             if field in Fields:
                 output_fields[field] = Fields[field]
 
     if selection == 'insert' or selection == 'update':
-        for field in Columns[Table.name][1]:
+        for field in Columns[Table][1]:
             if field in Fields:
                 output_fields[field] = Fields[field]
 
@@ -1052,12 +1051,11 @@ def validate_by_filtered_table_entries(config, value, field, table_name, column_
                   [[col1, val1], [col2, val2], ...]
     """
 
-    import cloudscheduler.lib.schema_na as schema
+    #import cloudscheduler.lib.schema_na as schema
 
-    table = cloudscheduler.lib.schema.__dict__[table_name]
+    table = table_name
 
     options = []
-    s = "select * from %s" % table
     where = False
     where_string = ""
     for filter in filter_list:
@@ -1070,7 +1068,7 @@ def validate_by_filtered_table_entries(config, value, field, table_name, column_
         if where is False:
             where = True
 
-    rc, msg, rows = config.db_query(table, where=where_clause)
+    rc, msg, rows = config.db_query(table, where=where_string)
     for row in rows:
         if column_name in row and (not row[column_name] in options):
             options.append(row[column_name])
@@ -1165,7 +1163,7 @@ def validate_fields(config, request, fields, tables, active_user):
     """
 
     from .view_utils import _validate_fields_pw_check
-    import cloudscheduler.lib.schema_na as schema
+    #import cloudscheduler.lib.schema_na as schema
     import ipaddress
     import json
     import re
@@ -1264,7 +1262,9 @@ def validate_fields(config, request, fields, tables, active_user):
                         options = []
                         # not clear what this select is supposed to be hitting
                         # if cloudscheduler.lib.schema.__dict__[Formats[field][0]] resolves to a table name in schema_na.py it should be fine
-                        rc, msg, rows = config.db_query([cloudscheduler.lib.schema.__dict__[Formats[field][0]]], distinct=True)
+
+                        table_name = Formats[field][0]
+                        rc, msg, rows = config.db_query(table_name, distinct=True)
                         for row in rows:
                            if Formats[field][1] in row and (not row[Formats[field][1]] in options):
                               options.append(row[Formats[field][1]])
@@ -1272,7 +1272,7 @@ def validate_fields(config, request, fields, tables, active_user):
                         options = Formats[field]
 
                     good_value = True
-                    print("Good value: F:%s, O:%s" % (Formats[field][1], options))
+                    #print("Good value: F:%s, O:%s" % (Formats[field][1], options))
 
                     if isinstance(Formats[field], tuple) and len(Formats[field]) > 2 and Formats[field][2]:
                         if len(Formats[field]) > 3 and Formats[field][3] and value == '':
@@ -1579,10 +1579,7 @@ def verify_cloud_credentials(config, cloud):
     cloud_type = None
     target_cloud = None
 
-    if isinstance(cloud, config.db_map.classes.csv2_clouds):
-        cloud_type = cloud.cloud_type
-
-    elif 'cloud_type' in cloud:
+    if 'cloud_type' in cloud:
         cloud_type = cloud['cloud_type']
 
     # Must be a /cloud/update/ (not /cloud/add/) request.
@@ -1613,17 +1610,9 @@ def verify_cloud_credentials(config, cloud):
 #-------------------------------------------------------------------------------
 
 def get_target_cloud(config, group_name, cloud_name):
-    if not config.db_session:
-        auto_close = True
-        config.db_open()
-    else:
-        auto_close = False
     table = "csv2_clouds"
     where_clause = "group_name='%s' and cloud_name='%s'" % (group_name, cloud_name)
     rc, msg, cloud_list = config.db_query(table, where=where_clause)
-
-    if auto_close:
-        config.db_close()
 
     if len(cloud_list) == 1:
         return 0, None, cloud_list[0]
@@ -1694,7 +1683,7 @@ def get_openstack_session(config, cloud, target_cloud=None):
     if 'authurl' in cloud:
         C['auth_url'] = cloud['authurl']
 
-    print(">>>>>>>>>>>>>>>>>>>>>>>>>> CLOUD", cloud, "TARGET", target_cloud, "AUTHURL", C['auth_url'])
+    #print(">>>>>>>>>>>>>>>>>>>>>>>>>> CLOUD", cloud, "TARGET", target_cloud, "AUTHURL", C['auth_url'])
     if C['auth_url']:
         rc, msg, version = __get_openstack_api_version__(C['auth_url'])
         if rc != 0:
