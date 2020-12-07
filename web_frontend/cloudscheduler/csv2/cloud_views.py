@@ -839,6 +839,7 @@ def metadata_add(request):
                 break
 
         if not found:
+            config.db_close()
             return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud metadata-add failed, cloud name  "%s" does not exist.' % (lno(MODID), fields['cloud_name']))
 
         # Add the cloud metadata file.
@@ -855,6 +856,7 @@ def metadata_add(request):
                 'response_code': 0,
                 'message': message,
             }
+            config.db_close()
             return render(request, 'csv2/reload_parent.html', context)
 
         else:
@@ -864,6 +866,7 @@ def metadata_add(request):
     ### Bad request.
     else:
       # return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud metadata-add request did not contain mandatory parameters "cloud_name" and "metadata_name".' % lno(MODID))
+        config.db_close()
         return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud metadata_add, invalid method "%s" specified.' % (lno(MODID), request.method))
 
 #-------------------------------------------------------------------------------
@@ -906,6 +909,7 @@ def metadata_collation(request):
             'version': config.get_version()
         }
 
+    config.db_close()
     return render(request, 'csv2/cloud_metadata_list.html', context)
 
 #-------------------------------------------------------------------------------
@@ -973,6 +977,7 @@ def metadata_delete(request):
                 'response_code': 0,
                 'message': message,
             }
+            config.db_close()
             return render(request, 'csv2/reload_parent.html', context)
 
 
@@ -984,6 +989,7 @@ def metadata_delete(request):
     ### Bad request.
     else:
       # return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud metadata-delete request did not contain mandatory parameters "cloud_name" and "metadata_name".' % lno(MODID))
+        config.db_close()
         return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud metadata_delete, invalid method "%s" specified.' % (lno(MODID), request.method))
 
 #-------------------------------------------------------------------------------
@@ -1011,6 +1017,7 @@ def metadata_fetch(request, response_code=0, message=None, metadata_name=None, c
     if cloud_name == None and metadata_name == None:
         fields_error = validate_url_fields('%s cloud metadata_fetch' % lno(MODID), request, 'csv2/meta_editor.html', active_user.kwargs, ['cloud_name', 'metadata_name'])
         if fields_error:
+            config.db_close()
             return fields_error
         cloud_name = active_user.kwargs['cloud_name']
         metadata_name = active_user.kwargs['metadata_name']
@@ -1154,6 +1161,7 @@ def metadata_query(request):
     fields = active_user.kwargs
     fields_error = validate_url_fields('%s cloud metadata_query' % lno(MODID), request, 'csv2/clouds_metadata_list.html', fields, ['cloud_name', 'metadata_name'])
     if fields_error:
+        config.db_close()
         return fields_error
 
     # Retrieve cloud/metadata information.
@@ -1206,6 +1214,7 @@ def metadata_update(request):
         table = 'csv2_cloud_metadata'
         fields_to_update = table_fields(fields, table, columns, 'update')
         if not fields_to_update:
+            config.db_close()
             return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud-metadata-update must specify at least one field to update.' % lno(MODID))
 
         # Update the cloud metadata file.
@@ -1216,6 +1225,7 @@ def metadata_update(request):
                 where_clause = "group_name='%s' and cloud_name='%s' and metadata_name='%s'" % (active_user.active_group, fields['cloud_name'], fields['metadata_name'])
                 rc, msg, metadata_list = config.db_query(table, where=where_clause)
                 if len(metadata_list) != 1:
+                    config.db_close()
                     return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud metadata-update could not retrieve metadata' % (lno(MODID), request.method))
                 metadata = metadata_list[0]
             else:
@@ -1233,6 +1243,7 @@ def metadata_update(request):
     ### Bad request.
     else:
       # return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud metadata-update request did not contain mandatory parameters "cloud_name" and "metadata_name".' % lno(MODID))
+        config.db_close()
         return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud metadata_update, invalid method "%s" specified.' % (lno(MODID), request.method))
 
 #-------------------------------------------------------------------------------
@@ -1861,4 +1872,5 @@ def update(request):
                     
     ### Bad request.
     else:
+        config.db_close()
         return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud update, invalid method "%s" specified.' % (lno(MODID), request.method))

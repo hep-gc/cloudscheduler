@@ -402,7 +402,7 @@ class Config:
 
         rc, msg = self.db_update(table, column_dict)
         if rc == 0 and self.db_cursor.rowcount < 1:
-            rc, msg, rows = self.db_query(table, where=column_dict)
+            rc, msg, rows = self.db_query(table, column_dict)
             if rc == 0 and self.db_cursor.rowcount < 1:
                 rc, msg = self.db_insert(table, column_dict)
 
@@ -494,7 +494,7 @@ class Config:
 
             if column not in self.db_schema[table]['keys']:
                 value = self.__db_column_value__(table, column, column_dict[column], allow_nulls=True)
-                if value != None:
+                if value != None and value != "None":
                     updates.append('`%s`=%s' % (column, value))
 
         rc, msg, where_clause = self.__db_get_where_clause__(table, column_dict, where)
@@ -588,7 +588,7 @@ class Config:
             cloud_list[0]['error_count'] = 0
         cloud_list[0]['error_count'] = cloud_list[0]['error_count'] + 1
         cloud_list[0]['error_time'] = time.time()
-        self.db_merge(cloud_list[0])
+        self.db_merge("csv2_clouds", cloud_list[0])
         self.db_commit()
         return 1
 
@@ -615,7 +615,7 @@ class Config:
     def reset_cloud_error(self, group_name, cloud_name):
         rc, msg, cloud_list = self.db_query('csv2_clouds', select=['group_name', 'cloud_name', 'error_count'], where='group_name="%s" and cloud_name="%s"' % (group_name, cloud_name))
         cloud_list[0]['error_count'] = 0
-        self.db_merge(cloud_list[0])
+        self.db_merge("csv2_clouds", cloud_list[0])
         self.db_commit()
         return 1
 

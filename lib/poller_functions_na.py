@@ -101,7 +101,7 @@ def inventory_cleanup(ikey_names, rows, inventory):
 
     group_clouds = {}
     for row in rows:
-        group_cloud = '%s::%s' % (row['goup_name'], row['cloud_name'])
+        group_cloud = '%s::%s' % (row['group_name'], row['cloud_name'])
         group_clouds[group_cloud] = 1
 
     for ikey in inventory:
