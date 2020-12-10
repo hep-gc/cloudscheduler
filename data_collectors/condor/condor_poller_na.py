@@ -563,7 +563,13 @@ def job_poller():
                         et2 = ca1.flatten(job_dict).eval()
                         job_dict['Requirements'] = str(et2['Requirements'])
                         if "RequestMemory" in job_dict:
-                            job_dict['RequestMemory'] = et2['RequestMemory'].eval()
+                            try:
+                                job_dict['RequestMemory'] = et2['RequestMemory'].eval()
+                            except:
+                                #need to tighten this exception but basically if the memory isnt an expression this isn't going to work
+                                #it might be better to instead check the data type in the dictionary then base execution off that than to depends on error handling
+                                pass
+
                         # Parse group_name out of requirements
                         try:
                             #pattern = '(group_name is ")(.*?)(")'

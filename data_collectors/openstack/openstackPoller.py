@@ -973,6 +973,8 @@ def limit_poller():
                         limits_dict["cloud_type"] = "openstack"
 
                         try:
+                            logging.info("Updating grp:cld - %s:%s" % (group_n, cloud_n))
+                            logging.info(limits_dict)
                             config.db_merge(LIMIT, limits_dict)
                             uncommitted_updates += 1
                         except Exception as exc:
@@ -1856,7 +1858,7 @@ def defaults_replication():
                                    logging.warning("More than one candidate image with name %s" % default_image_name)
                                    src_image = None
                                    for image in image_candidates:
-                                       if image.cloud_name in enabled_clouds:
+                                       if image["cloud_name"] in enabled_clouds:
                                            src_image = image
                                            break
                                    if src_image is None:

@@ -159,7 +159,7 @@ METADATA_LIST_KEYS = {
 def retire_cloud_vms(config, group_name, cloud_name):
     VM = "csv2_vms"
     where_clause = "cloud_name='%s' and group_name='%s'" % (cloud_name, group_name)
-    rc, msg, vm_list = config.db_session.query(VM, where=where_clause)
+    rc, msg, vm_list = config.db_query(VM, where=where_clause)
     for vm in vm_list:
         vm["retire"] = 1
         vm["updater"]= get_frame_info() + ":r1"
@@ -184,7 +184,7 @@ def ec2_filters(config, group_name, cloud_name, cloud_type=None):
     else:
         ec2_image_filter = False
 
-    ec2_instance_type_filters = config.db_connection.execute('ec2_instance_type_filter', where_clause)
+    rc, qmsg, ec2_instance_type_filters = config.db_query('ec2_instance_type_filters', where=where_clause)
     if len(ec2_instance_type_filters) > 0:
         ec2_instance_type_filter = True
     else:
@@ -213,7 +213,7 @@ def ec2_filters(config, group_name, cloud_name, cloud_type=None):
             event_signal_send(config, "update_ec2_images")
 
         if not ec2_instance_type_filter:
-            defaults = config.get_config_by_category('ec2_instance_type_filter')
+            defaults = config.get_config_by_category('ec2_instance_type_filters')
 
             table = 'ec2_instance_type_filters'
             filter_dict = {
@@ -631,7 +631,7 @@ def delete(request):
 
     if request.method == 'POST':
         # Validate input fields.
-        rc, msg, fields, tables, columns = validate_fields(config, request, [CLOUD_KEYS, IGNORE_METADATA_NAME], ['csv2_clouds', 'csv2_cloud_aliases', 'csv2_cloud_metadata', 'csv2_group_metadata_exclusions'], active_user)
+        rc, msg, fields, tables, columns = validate_fields(config, request, [CLOUD_KEYS, IGNORE_METADATA_NAME], ['csv2_clouds', 'csv2_cloud_metadata', 'csv2_group_metadata_exclusions'], active_user)
         if rc != 0:
             config.db_close()
             return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud delete %s' % (lno(MODID), msg))
@@ -648,28 +648,29 @@ def delete(request):
             "group_name": fields['group_name'],
             "cloud_name": fields['cloud_name']
         }
-        rc, msg = config.db_delete(table, alias_dict)
+        where_clause = "group_name='%s' and cloud_name='%s'" % (fields['group_name'], fields['cloud_name'])
+        rc, msg = config.db_delete(table, alias_dict, where=where_clause)
         if rc != 0:
             config.db_close()
             return cloud_list(request, active_user=active_user, response_code=1, message='%s delete cloud "%s::%s" from aliases failed - %s.' % (lno(MODID), fields['group_name'], fields['cloud_name'], msg))
 
         # Delete any metadata files for the cloud.
         table = 'csv2_cloud_metadata'
-        rc, msg = config.db_delete(table, alias_dict)
+        rc, msg = config.db_delete(table, alias_dict, where=where_clause)
         if rc != 0:
             config.db_close()
             return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud metadata-delete "%s::%s.*" failed - %s.' % (lno(MODID), fields['group_name'], fields['cloud_name'], msg))
 
         # Delete any metadata exclusions files for the cloud.
         table = 'csv2_group_metadata_exclusions'
-        rc, msg = config.db_delete(table, alias_dict)
+        rc, msg = config.db_delete(table, alias_dict, where=where_clause)
         if rc != 0:
             config.db_close()
             return cloud_list(request, active_user=active_user, response_code=1, message='%s delete group metadata exclusion for cloud "%s::%s" failed - %s.' % (lno(MODID), fields['group_name'], fields['cloud_name'], msg))
 
         # Delete the cloud.
         table = 'csv2_clouds'
-        rc, msg = config.db_delete(table, alias_dict)
+        rc, msg = config.db_delete(table, alias_dict, where=where_clause)
         if rc == 0:
             config.db_close(commit=True)
             return cloud_list(request, active_user=active_user, response_code=0, message='cloud "%s::%s" successfully deleted.' % (fields['group_name'], fields['cloud_name']))

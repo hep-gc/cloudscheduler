@@ -422,7 +422,7 @@ def update(request):
         table = 'csv2_user'
         user_updates = table_fields(fields, table, columns, 'update')
         if len(user_updates) > 0:
-            where_clause = "username='%s" % fields['username']
+            where_clause = "username='%s'" % fields['username']
             rc, msg = config.db_update(table, user_updates, where=where_clause)
             if rc != 0:
                 config.db_close()
