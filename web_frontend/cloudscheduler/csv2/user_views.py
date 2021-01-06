@@ -12,7 +12,8 @@ from cloudscheduler.lib.view_utils_na import \
     render, \
     set_user_groups, \
     table_fields, \
-    validate_fields
+    validate_fields, \
+    check_convert_bytestrings
 from collections import defaultdict
 import bcrypt
 
@@ -195,7 +196,7 @@ def delete(request):
 
         # Delete any user_groups for the user.
         table = 'csv2_user_groups'
-        where_clause = "username='%s" % fields['username']
+        where_clause = "username='%s'" % fields['username']
         rc, msg = config.db_delete(table, where=where_clause)
         if rc != 0:
             config.db_close()
@@ -347,7 +348,9 @@ def settings(request, active_user=None, response_code=0, message=None):
                     # Update the user.
                     table = 'csv2_user'
                     where_clause =  "username='%s'" % active_user.username
-                    rc, qmsg = config.db_update(table, table_fields(fields, table, columns, 'update'), where=where_clause)
+                    user_updates = table_fields(fields, table, columns, 'update')
+                    user_updates = check_convert_bytestrings(user_updates)
+                    rc, qmsg = config.db_update(table, user_updates, where=where_clause)
                     if rc == 0:
                         config.db_commit()
                         request.session.delete()
@@ -421,6 +424,7 @@ def update(request):
         # Update the user.
         table = 'csv2_user'
         user_updates = table_fields(fields, table, columns, 'update')
+        user_updates = check_convert_bytestrings(user_updates)
         if len(user_updates) > 0:
             where_clause = "username='%s'" % fields['username']
             rc, msg = config.db_update(table, user_updates, where=where_clause)

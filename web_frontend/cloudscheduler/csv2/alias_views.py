@@ -81,7 +81,7 @@ def manage_cloud_aliases(config, tables, group_name, alias_name, clouds, option=
     db_clouds = []
 
     where_clause = "group_name='%s' and alias='%s'" % (group_name, alias_name)
-    _alist_list = config.db_query(table, where=where_clause)
+    rc, qmsg, _alias_list = config.db_query(table, where=where_clause)
 
     for row in _alias_list:
         db_clouds.append(row['cloud_name'])

@@ -68,7 +68,7 @@ def _log_signal_(config, event, action, pid=os.getpid(), signame='-', depth=2):
     if event == 'signal_tests' and 'signal_monitor' in config.categories and config.categories['signal_monitor']['log_signal_tests'] == False:
         return
 
-    if not config.db_cursor:
+    if not hasattr(config, "db_cursor"):
         auto_close = True
         config.db_open()
     else:

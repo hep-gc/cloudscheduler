@@ -1818,3 +1818,21 @@ def get_openstack_session(config, cloud, target_cloud=None):
     else:
         return 1, 'Bad openstack URL: %s, unsupported version: %s' % (target_cloud['authurl'], version), None
 
+#-------------------------------------------------------------------------------
+
+# This function accepts a string or a dictionary and converts any bytestrings to regular strings.
+def check_convert_bytestrings(values):
+    if isinstance(values, dict):
+        # we have a dictionary, go thru converting byte strings
+        for key in values.keys():
+            if isinstance(values[key], bytes):
+                values[key] = values[key].decode("utf-8")
+        return values
+
+    else:
+        # it's just a single value, decode it if its a bytestring & return
+        if isinstance(value, bytes):
+            return values.decode("utf-8")
+        else:
+            return values
+

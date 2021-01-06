@@ -161,8 +161,10 @@ class Config:
                         value = self.__db_column_value__(table, key, column_dict[key])
                         if value != None:
                             where_bits.append('`%s`=%s' % (key, value))
+                        # there will sometimes be dictionaries that have a null value, so here we make the assumption that null values are for string columns only
                         else:
-                            return 1, 'invalid "where" specification, "%s=None"' % key, None
+                            #return 1, 'invalid "where" specification, "%s=None"' % key, None
+                            where_bits.append('`%s`=""' % key)
                     else:
                         return 1, 'invalid "where" specification, key column "%s" is not within the column dictionary "%s"' % (key, column_dict), None
                 else:
@@ -300,7 +302,7 @@ class Config:
 
 #-------------------------------------------------------------------------------
 
-    def db_delete(self, table, column_dict, where=None):
+    def db_delete(self, table, column_dict=None, where=None):
         """
         Execute a DB delete. If successful, set rc=0 to indicate that
         self.db_cursor has the response. Otherwise, return rc=1 and the
@@ -309,10 +311,12 @@ class Config:
 
         if not self.db_cursor:
             return self.__db_logging_return__(1, 'the database is not open')
-            
-        rc, msg, where_clause = self.__db_get_where_clause__(table, column_dict, where)
-        if rc != 0:
-            return self.__db_logging_return__(rc, msg)
+        if column_dict is not None:    
+            rc, msg, where_clause = self.__db_get_where_clause__(table, column_dict, where)
+            if rc != 0:
+                return self.__db_logging_return__(rc, msg)
+        else:
+            where_clause = where
         
         sql_bits = ['delete from %s' % table]
 
@@ -400,10 +404,15 @@ class Config:
         if not self.db_cursor:
             return self.__db_logging_return__(1, 'the database is not open')
 
+        
+        logging.info("attemping update")
         rc, msg = self.db_update(table, column_dict)
         if rc == 0 and self.db_cursor.rowcount < 1:
-            rc, msg, rows = self.db_query(table, column_dict)
-            if rc == 0 and self.db_cursor.rowcount < 1:
+            logging.info("checking update via query")
+            rc, msg, rows = self.db_query(table, where=column_dict, allow_no_rows=True)
+            logging.info("RC: %s, msg: %s, rows: %s" % (rc, msg, rows))
+            if rc == 0 and len(rows)< 1:
+                logging.info("No query result, doing insert")
                 rc, msg = self.db_insert(table, column_dict)
 
         return self.__db_logging_return__(rc, msg)
