@@ -28,4 +28,6 @@ Unittest is bundled with Python3 - no install is necessary.
 
 ### Selenium
 
-Do `pip install selenium` to get the Python Selenium bindings. Also do `pip install requests` and `pip install tox` to get the Selenium dependencies. Install [JDK](https://jdk.java.net/15/) from their website, following the instructions there (this install used JDK 15). Clone the [Selenium repo](https://github.com/SeleniumHQ/selenium), the [geckodriver repo](https://github.com/mozilla/geckodriver) and the [Bazelisk repo](https://github.com/bazelbuild/bazelisk).
+Do `pip install selenium` to get the Python Selenium bindings. Also do `pip install requests` and `pip install tox` to get the Selenium dependencies. Install [JDK](https://jdk.java.net/15/) from their website, following the instructions there (this install used JDK 15). Clone the [Selenium repo](https://github.com/SeleniumHQ/selenium) and the [geckodriver repo](https://github.com/mozilla/geckodriver).
+
+[Bazelisk](https://github.com/bazelbuild/bazelisk) (a Selenium dependency) can be cloned from the repository and compiled with go, if your machine has go, or downloaded via `npm` using the command `npm install -g @bazel/bazelisk`.
