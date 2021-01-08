@@ -1,0 +1,11 @@
+1610132125840	geckodriver	INFO	Listening on 127.0.0.1:56878
+1610132278786	geckodriver	INFO	Listening on 127.0.0.1:60813
+1610132278793	mozrunner::runner	INFO	Running command: "/bin/firefox" "--marionette" "-foreground" "-no-remote" "-profile" "/tmp/rust_mozprofileMsqWzs"
+Failed to open connection to "session" message bus: Unable to autolaunch a dbus-daemon without a $DISPLAY for X11
+Running without a11y support!
+Error: no DISPLAY environment variable specified
+1610132321727	geckodriver	INFO	Listening on 127.0.0.1:43779
+1610132321733	mozrunner::runner	INFO	Running command: "/bin/firefox" "--marionette" "-foreground" "-no-remote" "-profile" "/tmp/rust_mozprofilef8ODaQ"
+Failed to open connection to "session" message bus: Unable to autolaunch a dbus-daemon without a $DISPLAY for X11
+Running without a11y support!
+Error: no DISPLAY environment variable specified
