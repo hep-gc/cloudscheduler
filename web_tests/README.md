@@ -31,3 +31,7 @@ Unittest is bundled with Python3 - no install is necessary.
 Do `pip install selenium` to get the Python Selenium bindings. Also do `pip install requests` and `pip install tox` to get the Selenium dependencies. Install [JDK](https://jdk.java.net/15/) from their website, following the instructions there (this install used JDK 15). Clone the [Selenium repo](https://github.com/SeleniumHQ/selenium) and the [geckodriver repo](https://github.com/mozilla/geckodriver).
 
 [Bazelisk](https://github.com/bazelbuild/bazelisk) (a Selenium dependency) can be cloned from the repository and compiled with go, if your machine has go, or downloaded via `npm` using the command `npm install -g @bazel/bazelisk`.
+
+Running `bazel build grid`, as suggested in the Selenium build instructions may cause EACCES errors regarding renaming - these can be fixed by manually renaming the files (there are about eight of them). I may attempt to find a way to automate this, as all of the renames involve a file called BUILD (possibly with an extension) being renamed to _BUILD (with the same extension, if applicable).
+
+You can get geckodriver as a download from the [geckodriver github](https://github.com/mozilla/geckodriver/releases/tag/v0.28.0). You will need to have Firefox installed.
