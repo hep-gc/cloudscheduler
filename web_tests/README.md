@@ -41,3 +41,9 @@ If you are on a virtual machine using an x11 connection, you might get this erro
 WebDriverException: Message: Process unexpectedly closed with status 1
 ```
 To fix this, run `export DISPLAY=:1` with the `Xvfb :1 -screen 0 1024x768x24` command running in another window.
+
+## Framework Notes
+
+### Selenium and Unittest
+
+Setup was finicky, but that could be partly due to VM (and was pretty much entirely selenium - unittest was easy). Tests seem to be pretty flaky - how much of that is the VM and how much is Selenium is unknown at the moment.
