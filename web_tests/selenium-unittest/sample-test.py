@@ -13,6 +13,7 @@ class SampleTest(unittest.TestCase):
 
     def test_find_element(self):
         self.driver.get("https://google.com")
+        self.assertTrue(self.driver.find_element_by_name("q"))
 
     def tearDown(self):
         self.driver.quit()

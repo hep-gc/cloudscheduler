@@ -35,3 +35,9 @@ Do `pip install selenium` to get the Python Selenium bindings. Also do `pip inst
 Running `bazel build grid`, as suggested in the Selenium build instructions may cause EACCES errors regarding renaming - these can be fixed by manually renaming the files (there are about eight of them). I may attempt to find a way to automate this, as all of the renames involve a file called BUILD (possibly with an extension) being renamed to _BUILD (with the same extension, if applicable).
 
 You can get geckodriver as a download from the [geckodriver github](https://github.com/mozilla/geckodriver/releases/tag/v0.28.0). You will need to have Firefox installed.
+
+If you are on a virtual machine using an x11 connection, you might get this error:
+```
+WebDriverException: Message: Process unexpectedly closed with status 1
+```
+To fix this, run `export DISPLAY=:1` with the `Xvfb :1 -screen 0 1024x768x24` command running in another window.
