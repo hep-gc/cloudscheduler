@@ -11,8 +11,8 @@ class SampleTest(unittest.TestCase):
     def test_first(self):
         self.assertTrue(True)
 
-    def find_element(self):
-        pass
+    def test_find_element(self):
+        self.driver.get("https://google.com")
 
     def tearDown(self):
         self.driver.quit()
