@@ -1,4 +1,5 @@
 *.pyc
+*.swp
 attribute_mapper.yaml
 csv2_web.yaml
 .idea
