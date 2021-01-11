@@ -42,8 +42,26 @@ WebDriverException: Message: Process unexpectedly closed with status 1
 ```
 To fix this, run `export DISPLAY=:1` with the `Xvfb :1 -screen 0 1024x768x24` command running in another window.
 
+Alternately, the screen can be created by prepending `xvfb-run` to the command that needs the screen.
+
+### Behave
+
+To get behave, run `pip install behave` and put `from behave import *` at the beginning of your spec files.
+
 ## Framework Notes
 
 ### Selenium and Unittest
 
 Setup was finicky, but that could be partly due to VM (and was pretty much entirely selenium - unittest was easy). Tests seem to be pretty flaky - how much of that is the VM and how much is Selenium is unknown at the moment.
+
+Tests should be run with the `-v` flag to know what's going on.
+
+Executes the tests in a little over twenty-eight seconds.
+
+### Selenium and Behave
+
+Setup of behave was easy, but selenium setup was finicky, as mentioned above. Again, the tests seem to be flaky, but that could be the fault of the VM.
+
+Behave is easier to read than unittest, both in code and in tests, but requires more files and a more specific setup structure. 
+
+Executes the sample tests in a little over thirteen seconds.
