@@ -14,12 +14,12 @@ Feature: Sample tests
     Scenario: We interact with the search bar
         Given we have our browser set up
         And we are on Google
-        When we try to type in the search bar
+        When we type in the search bar
         Then we should be successful
 
     Scenario: We make a search
         Given we have our browser set up
         And we are on Google
         When we type in the search bar
-        And search
+        And we search
         Then we should be successful
