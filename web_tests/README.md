@@ -65,3 +65,11 @@ Setup of behave was easy, but selenium setup was finicky, as mentioned above. Ag
 Behave is easier to read than unittest, both in code and in tests, but requires more files and a more specific setup structure. 
 
 Executes the sample tests in a little over thirteen seconds.
+
+### Testcafe
+
+Setup was super easy. Flakiness continues, so I believe it is the fault of the VM. 
+
+Difficult to read - also written in JavaScript, does not have a python option.
+
+Executes the sample tests in roughly thirteen seconds. 
