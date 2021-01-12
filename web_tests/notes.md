@@ -26,6 +26,8 @@ This section is a list of notes on how I did the various installs, and will hope
 
 Unittest is bundled with Python3 - no install is necessary.
 
+You will need to include the line `import unittest` at the beginning of your spec files.
+
 ### Selenium
 
 Do `pip install selenium` to get the Python Selenium bindings. Also do `pip install requests` and `pip install tox` to get the Selenium dependencies. Install [JDK](https://jdk.java.net/15/) from their website, following the instructions there (this install used JDK 15). Clone the [Selenium repo](https://github.com/SeleniumHQ/selenium) and the [geckodriver repo](https://github.com/mozilla/geckodriver).
@@ -36,17 +38,23 @@ Running `bazel build grid`, as suggested in the Selenium build instructions may 
 
 You can get geckodriver as a download from the [geckodriver github](https://github.com/mozilla/geckodriver/releases/tag/v0.28.0). You will need to have Firefox installed.
 
+You can get chromium and chromedriver via `yum`. Chrome will not work on a CentOS machine, but will (obviously) work on other machines.
+
 If you are on a virtual machine using an x11 connection, you might get this error:
 ```
 WebDriverException: Message: Process unexpectedly closed with status 1
 ```
 To fix this, run `export DISPLAY=:1` with the `Xvfb :1 -screen 0 1024x768x24` command running in another window.
 
-Alternately, the screen can be created by prepending `xvfb-run` to the command that needs the screen.
+Alternately, the screen can be created by prepending `xvfb-run` to the command that needs the screen. This will still generate the error. There's no way to escape it, you just have to rerun the tests if it appears.
+
+You will need to include the line `from selenium import webdriver` at the beginning of your spec files, and possibly import other Selenium modules as necessary.
 
 ### Behave
 
-To get behave, run `pip install behave` and put `from behave import *` at the beginning of your spec files.
+To get behave, run `pip install behave` and put `from behave import *` at the beginning of your (python) spec files.
+
+You'll also need to set up your directory with a `features` directory and a `features/steps` directory. The `features` directory needs at least one `*.feature` file and the `steps` directory needs at least one `*.py` file, although they don't have to have the same name.
 
 ## Framework Notes
 
@@ -71,6 +79,8 @@ Setup of behave was easy, but selenium setup was finicky, as mentioned above. Ag
 Behave is easier to read than unittest, both in code and in tests, but requires more files and a more specific setup structure. 
 
 Executes the sample tests in a little over eighteen seconds.
+
+//TODO: ensure WebDriver is shut down properly
 
 ### Testcafe
 
