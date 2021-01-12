@@ -1,5 +1,9 @@
 from behave import *
 from selenium import webdriver
+from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions
 
 @given('we have done the setup correctly')
 def step_impl(context):
@@ -42,3 +46,11 @@ def step_impl(context):
 @when('we search')
 def step_impl(context):
     context.search_bar.submit()
+
+@given('we are on DuckDuckGo')
+def step_impl(context):
+    context.driver.get("https://duckduckgo.com")
+
+@when('we search with the search button')
+def step_impl(context):
+    context.driver.find_element_by_id("search_button_homepage").click()

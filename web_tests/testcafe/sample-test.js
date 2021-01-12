@@ -24,3 +24,17 @@ test('Searching', async t => {
         .typeText(search_bar, 'cloudscheduler')
         .pressKey('enter')
 });
+
+//test('Searching via search button', async t => {
+//    await t
+//        .typeText(search_bar, 'cloudscheduler')
+//        .click(Selector('input').withAttribute('name', 'btnK'))
+//});
+
+test
+    .page `https://duckduckgo.com`
+    ('Accessing a different website', async t => {
+    await t
+         .typeText(search_bar, 'cloudscheduler')
+         .click('#search_button_homepage')
+});

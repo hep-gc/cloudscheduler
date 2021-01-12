@@ -23,3 +23,10 @@ Feature: Sample tests
         When we type in the search bar
         And we search
         Then we should be successful
+
+    Scenario: We make a search on DuckDuckGo
+        Given we have our browser set up
+        And we are on DuckDuckGo
+        When we type in the search bar
+        And we search with the search button
+        Then we should be successful
