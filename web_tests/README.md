@@ -33,6 +33,20 @@ WebDriverException: Message: Process unexpectedly closed with status 1
 ```
 This error is believed to be due to random failures in the x11 forwarding and was inconsistent. Rerunning the tests would usually get rid of it.
 
+### Other Notes
+
+There were five tests included in each of the test frameworks:
+
+- a "canary" test - one that was obviously true and would only fail on a configuration error
+
+- a "find object" test - one that went to Google and found the search bar
+
+- a "type" test - one that went to Google and typed into the search bar
+
+- a "search" test - one that went to Google, typed into the search bar, and searched using either the enter key or a submit method
+
+- a "button search" test - one that went to DuckDuckGo (reasons in Selenium Universal Notes: Downsides), typed into the search bar, and searched using the search button
+
 ## Selenium Universal Notes
 
 [Selenium WebDriver](https://github.com/SeleniumHQ/selenium) is a widely-used WebDriver protocol.
@@ -65,7 +79,7 @@ Selenium also appears to have an odd bug where it occasionally cannot detect ele
 
 [Unittest](https://docs.python.org/3.6/library/unittest.html#module-unittest) is a pre-installed Python testing framework. This implementation of it uses Selenium (above) to drive the browser.
 
-The test file for Selenium and Unittest can be found [here](/selenium-unittest/sample-test.py).
+The test file for Selenium and Unittest can be found [here](/web_tests/selenium-unittest/sample-test.py).
 
 ### Benefits
 
@@ -75,7 +89,7 @@ This implementation also inherits all the benefits of Selenium.
 
 ### Downsides
 
-The unittest framework was the slowest of the three, running the 
+The unittest framework was the slowest of the three, running the tests in roughly thirty-one seconds.
 
 This implementation also inherits all the downsides of Selenium.
 
@@ -83,7 +97,7 @@ This implementation also inherits all the downsides of Selenium.
 
 [Behave](https://github.com/behave/behave) is an external gherkin language (similar to Cucumber) for Python tests. This implementation of it uses Selenium (above) to drive the browser.
 
-The test files for Selenium and Behave can be found [here](/selenium-behave/features/sample-test.feature) (for the feature/gherkin file) and [here](/selenium-behave/features/steps/sample-test.py) (for the Python implementation of the gherkin steps).
+The test files for Selenium and Behave can be found [here](/web_tests/selenium-behave/features/sample-test.feature) (for the feature/gherkin file) and [here](/web_tests/selenium-behave/features/steps/sample-test.py) (for the Python implementation of the gherkin steps).
 
 ### Benefits
 
@@ -92,6 +106,8 @@ Aside from the Selenium install, the Behave install is fairly minimal - you only
 Behave creates incredibly readable tests - the feature files are written in nearly plain English, and the step files are broken down into short functions that, by necessity, have a plain English description of what they do attached to them. 
 
 Behave's design encourages, at least from my experience, the compartmentalization of tests and the sectioning off of commonly used steps to be reused. This is because it by design, splits tests into a string of small functions that often can be reused, especially in the setup steps.
+
+The Behave tests ran fairly quickly, at roughly eighteen seconds.
 
 This implementation also inherits all the benefits of Selenium.
 
@@ -103,11 +119,13 @@ This implementation also inherits all the downsides of Selenium.
 
 [TestCafe](https://github.com/DevExpress/testcafe) is a newer browser driver. Tests are also written in TestCafe, in JavaScript.
 
-The test file for TestCafe can be found [here](/testcafe/sample-test.js).
+The test file for TestCafe can be found [here](/web_tests/testcafe/sample-test.js).
 
 ### Benefits
 
 The TestCafe install is very simple. You only need to run `npm install -g testcafe`.
+
+The TestCafe tests were the fastest of all, running in roughly sixteen seconds.
 
 ### Downsides
 
