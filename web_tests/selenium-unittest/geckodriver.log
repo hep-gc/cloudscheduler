@@ -885,3 +885,721 @@ Running without a11y support!
 
 ###!!! [Child][RunMessage] Error: Channel closing: too late to send/recv, messages will be lost
 
+1610389586925	geckodriver	INFO	Listening on 127.0.0.1:34476
+1610389586931	mozrunner::runner	INFO	Running command: "/bin/firefox" "--marionette" "-foreground" "-no-remote" "-profile" "/tmp/rust_mozprofilegfHn82"
+Failed to open connection to "session" message bus: /usr/bin/dbus-launch terminated abnormally without any error message
+Running without a11y support!
+1610389589517	Marionette	INFO	Listening on port 32862
+1610389589616	Marionette	WARN	TLS certificate errors will be ignored for this session
+1610389589645	Marionette	INFO	Stopped listening on port 32862
+1610389591252	geckodriver	INFO	Listening on 127.0.0.1:37763
+1610389591258	mozrunner::runner	INFO	Running command: "/bin/firefox" "--marionette" "-foreground" "-no-remote" "-profile" "/tmp/rust_mozprofileHB8TLY"
+Failed to open connection to "session" message bus: /usr/bin/dbus-launch terminated abnormally without any error message
+Running without a11y support!
+1610389600444	geckodriver	INFO	Listening on 127.0.0.1:44965
+1610389600449	mozrunner::runner	INFO	Running command: "/bin/firefox" "--marionette" "-foreground" "-no-remote" "-profile" "/tmp/rust_mozprofilecrkTj3"
+Failed to open connection to "session" message bus: /usr/bin/dbus-launch terminated abnormally without any error message
+Running without a11y support!
+1610389603237	Marionette	INFO	Listening on port 39612
+1610389603278	Marionette	WARN	TLS certificate errors will be ignored for this session
+1610389603327	Marionette	INFO	Stopped listening on port 39612
+1610389605903	geckodriver	INFO	Listening on 127.0.0.1:33488
+1610389605911	mozrunner::runner	INFO	Running command: "/bin/firefox" "--marionette" "-foreground" "-no-remote" "-profile" "/tmp/rust_mozprofileHb6N3c"
+Failed to open connection to "session" message bus: /usr/bin/dbus-launch terminated abnormally without any error message
+Running without a11y support!
+1610389608379	Marionette	INFO	Listening on port 41501
+1610389608475	Marionette	WARN	TLS certificate errors will be ignored for this session
+1610389610540	Marionette	INFO	Stopped listening on port 41501
+JavaScript error: resource://gre/modules/UrlClassifierListManager.jsm, line 691: TypeError: this.tablesData[table] is undefined
+1610389617132	geckodriver	INFO	Listening on 127.0.0.1:43209
+1610389617136	mozrunner::runner	INFO	Running command: "/bin/firefox" "--marionette" "-foreground" "-no-remote" "-profile" "/tmp/rust_mozprofiledxQPZT"
+Failed to open connection to "session" message bus: /usr/bin/dbus-launch terminated abnormally without any error message
+Running without a11y support!
+1610389619670	Marionette	INFO	Listening on port 33447
+1610389619677	Marionette	WARN	TLS certificate errors will be ignored for this session
+1610389621874	Marionette	INFO	Stopped listening on port 33447
+
+###!!! [Parent][MessageChannel] Error: (msgtype=0xB000E,name=PBackgroundIDBDatabase::Msg_CloseAfterInvalidationComplete) Channel error: cannot send/recv
+
+1610389623379	geckodriver	INFO	Listening on 127.0.0.1:32879
+1610389623383	mozrunner::runner	INFO	Running command: "/bin/firefox" "--marionette" "-foreground" "-no-remote" "-profile" "/tmp/rust_mozprofileAI3lUK"
+Failed to open connection to "session" message bus: /usr/bin/dbus-launch terminated abnormally without any error message
+Running without a11y support!
+1610389625900	Marionette	INFO	Listening on port 42919
+1610389625924	Marionette	WARN	TLS certificate errors will be ignored for this session
+1610389627890	Marionette	INFO	Stopped listening on port 42919
+
+###!!! [Child][RunMessage] Error: Channel closing: too late to send/recv, messages will be lost
+
+1610391642111	geckodriver	INFO	Listening on 127.0.0.1:45931
+1610391642117	mozrunner::runner	INFO	Running command: "/bin/firefox" "--marionette" "-foreground" "-no-remote" "-profile" "/tmp/rust_mozprofilelxIyNA"
+Failed to open connection to "session" message bus: /usr/bin/dbus-launch terminated abnormally without any error message
+Running without a11y support!
+1610391644719	Marionette	INFO	Listening on port 36523
+1610391644807	Marionette	WARN	TLS certificate errors will be ignored for this session
+1610391644862	Marionette	INFO	Stopped listening on port 36523
+1610391648439	geckodriver	INFO	Listening on 127.0.0.1:44620
+1610391648444	mozrunner::runner	INFO	Running command: "/bin/firefox" "--marionette" "-foreground" "-no-remote" "-profile" "/tmp/rust_mozprofileUkacHX"
+Failed to open connection to "session" message bus: /usr/bin/dbus-launch terminated abnormally without any error message
+Running without a11y support!
+1610391650833	Marionette	INFO	Listening on port 38025
+1610391650894	Marionette	WARN	TLS certificate errors will be ignored for this session
+1610391652980	Marionette	INFO	Stopped listening on port 38025
+
+###!!! [Child][RunMessage] Error: Channel closing: too late to send/recv, messages will be lost
+
+
+###!!! [Child][RunMessage] Error: Channel closing: too late to send/recv, messages will be lost
+
+Gdk-Message: 19:00:55.814: /usr/lib64/firefox/firefox: Fatal IO error 11 (Resource temporarily unavailable) on X server :99.
+
+1610391661851	geckodriver	INFO	Listening on 127.0.0.1:50729
+1610391661856	mozrunner::runner	INFO	Running command: "/bin/firefox" "--marionette" "-foreground" "-no-remote" "-profile" "/tmp/rust_mozprofilepVdhqV"
+Failed to open connection to "session" message bus: /usr/bin/dbus-launch terminated abnormally without any error message
+Running without a11y support!
+1610391664185	Marionette	INFO	Listening on port 33812
+1610391664219	Marionette	WARN	TLS certificate errors will be ignored for this session
+1610391664280	Marionette	INFO	Stopped listening on port 33812
+console.error: services.settings: 
+  main/fxmonitor-breaches Signature failed  TypeError: NetworkError when attempting to fetch resource.
+console.error: services.settings: 
+  main/cfr-fxa Signature failed  TypeError: NetworkError when attempting to fetch resource.
+1610391666677	geckodriver	INFO	Listening on 127.0.0.1:46477
+1610391666681	mozrunner::runner	INFO	Running command: "/bin/firefox" "--marionette" "-foreground" "-no-remote" "-profile" "/tmp/rust_mozprofilesQ6Mqh"
+Failed to open connection to "session" message bus: /usr/bin/dbus-launch terminated abnormally without any error message
+Running without a11y support!
+1610391669057	Marionette	INFO	Listening on port 36642
+1610391669119	Marionette	WARN	TLS certificate errors will be ignored for this session
+1610391671206	Marionette	INFO	Stopped listening on port 36642
+1610391674845	geckodriver	INFO	Listening on 127.0.0.1:49200
+1610391674850	mozrunner::runner	INFO	Running command: "/bin/firefox" "--marionette" "-foreground" "-no-remote" "-profile" "/tmp/rust_mozprofileLaZTDt"
+Failed to open connection to "session" message bus: /usr/bin/dbus-launch terminated abnormally without any error message
+Running without a11y support!
+1610391677209	Marionette	INFO	Listening on port 35186
+1610391677286	Marionette	WARN	TLS certificate errors will be ignored for this session
+1610391679383	Marionette	INFO	Stopped listening on port 35186
+1610391682905	geckodriver	INFO	Listening on 127.0.0.1:40511
+1610391682909	mozrunner::runner	INFO	Running command: "/bin/firefox" "--marionette" "-foreground" "-no-remote" "-profile" "/tmp/rust_mozprofileYVfIlK"
+Failed to open connection to "session" message bus: /usr/bin/dbus-launch terminated abnormally without any error message
+Running without a11y support!
+1610391685407	Marionette	INFO	Listening on port 33649
+1610391685454	Marionette	WARN	TLS certificate errors will be ignored for this session
+1610391687412	Marionette	INFO	Stopped listening on port 33649
+JavaScript error: resource://gre/modules/UrlClassifierListManager.jsm, line 691: TypeError: this.tablesData[table] is undefined
+1610401976399	geckodriver	INFO	Listening on 127.0.0.1:36364
+1610401976406	mozrunner::runner	INFO	Running command: "/bin/firefox" "--marionette" "-foreground" "-no-remote" "-profile" "/tmp/rust_mozprofileQDDl85"
+Failed to open connection to "session" message bus: /usr/bin/dbus-launch terminated abnormally without any error message
+Running without a11y support!
+1610401978895	Marionette	INFO	Listening on port 42294
+1610401978937	Marionette	WARN	TLS certificate errors will be ignored for this session
+1610401978998	Marionette	INFO	Stopped listening on port 42294
+console.error: services.settings: 
+  main/cfr-fxa Signature failed  TypeError: NetworkError when attempting to fetch resource.
+console.error: services.settings: 
+  main/fxmonitor-breaches Signature failed  TypeError: NetworkError when attempting to fetch resource.
+1610401981422	geckodriver	INFO	Listening on 127.0.0.1:53921
+1610401981426	mozrunner::runner	INFO	Running command: "/bin/firefox" "--marionette" "-foreground" "-no-remote" "-profile" "/tmp/rust_mozprofilesUAJWG"
+Failed to open connection to "session" message bus: /usr/bin/dbus-launch terminated abnormally without any error message
+Running without a11y support!
+1610401983806	Marionette	INFO	Listening on port 35058
+1610401983868	Marionette	WARN	TLS certificate errors will be ignored for this session
+Exiting due to channel error.
+Exiting due to channel error.
+Sandbox: Unexpected EOF, op 0 flags 02000000 path /etc/localtime
+Gdk-Message: 21:53:05.627: /usr/lib64/firefox/firefox: Fatal IO error 11 (Resource temporarily unavailable) on X server :99.
+
+1610401991990	geckodriver	INFO	Listening on 127.0.0.1:47629
+1610401991996	mozrunner::runner	INFO	Running command: "/bin/firefox" "--marionette" "-foreground" "-no-remote" "-profile" "/tmp/rust_mozprofileOqCjNC"
+Failed to open connection to "session" message bus: /usr/bin/dbus-launch terminated abnormally without any error message
+Running without a11y support!
+1610401994050	Marionette	INFO	Listening on port 41972
+1610401994161	Marionette	WARN	TLS certificate errors will be ignored for this session
+1610401994206	Marionette	INFO	Stopped listening on port 41972
+console.error: services.settings: 
+  main/fxmonitor-breaches Signature failed  TypeError: NetworkError when attempting to fetch resource.
+console.error: services.settings: 
+  main/cfr-fxa Signature failed  TypeError: NetworkError when attempting to fetch resource.
+1610401996614	geckodriver	INFO	Listening on 127.0.0.1:59729
+1610401996618	mozrunner::runner	INFO	Running command: "/bin/firefox" "--marionette" "-foreground" "-no-remote" "-profile" "/tmp/rust_mozprofile8FAyCj"
+Failed to open connection to "session" message bus: /usr/bin/dbus-launch terminated abnormally without any error message
+Running without a11y support!
+1610401998860	Marionette	INFO	Listening on port 40220
+1610401998962	Marionette	WARN	TLS certificate errors will be ignored for this session
+1610402000897	Marionette	INFO	Stopped listening on port 40220
+JavaScript error: resource://gre/modules/UrlClassifierListManager.jsm, line 691: TypeError: this.tablesData[table] is undefined
+
+###!!! [Child][RunMessage] Error: Channel closing: too late to send/recv, messages will be lost
+
+
+###!!! [Child][RunMessage] Error: Channel closing: too late to send/recv, messages will be lost
+
+1610402005571	geckodriver	INFO	Listening on 127.0.0.1:55128
+1610402005575	mozrunner::runner	INFO	Running command: "/bin/firefox" "--marionette" "-foreground" "-no-remote" "-profile" "/tmp/rust_mozprofileE210oJ"
+Failed to open connection to "session" message bus: /usr/bin/dbus-launch terminated abnormally without any error message
+Running without a11y support!
+1610402008059	Marionette	INFO	Listening on port 42926
+1610402008140	Marionette	WARN	TLS certificate errors will be ignored for this session
+1610402010180	Marionette	INFO	Stopped listening on port 42926
+1610402012702	geckodriver	INFO	Listening on 127.0.0.1:42369
+1610402012706	mozrunner::runner	INFO	Running command: "/bin/firefox" "--marionette" "-foreground" "-no-remote" "-profile" "/tmp/rust_mozprofileAjTzse"
+Failed to open connection to "session" message bus: /usr/bin/dbus-launch terminated abnormally without any error message
+Running without a11y support!
+1610402015200	Marionette	INFO	Listening on port 43675
+1610402015259	Marionette	WARN	TLS certificate errors will be ignored for this session
+1610402017260	Marionette	INFO	Stopped listening on port 43675
+1610402019773	geckodriver	INFO	Listening on 127.0.0.1:53303
+1610402019779	mozrunner::runner	INFO	Running command: "/bin/firefox" "--marionette" "-foreground" "-no-remote" "-profile" "/tmp/rust_mozprofile3IZsQc"
+Failed to open connection to "session" message bus: /usr/bin/dbus-launch terminated abnormally without any error message
+Running without a11y support!
+1610402022033	Marionette	INFO	Listening on port 46317
+1610402022101	Marionette	WARN	TLS certificate errors will be ignored for this session
+1610402024187	Marionette	INFO	Stopped listening on port 46317
+1610402063963	geckodriver	INFO	Listening on 127.0.0.1:39652
+1610402063969	mozrunner::runner	INFO	Running command: "/bin/firefox" "--marionette" "-foreground" "-no-remote" "-profile" "/tmp/rust_mozprofileBFsiIC"
+Failed to open connection to "session" message bus: /usr/bin/dbus-launch terminated abnormally without any error message
+Running without a11y support!
+1610402066745	Marionette	INFO	Listening on port 43783
+1610402066806	Marionette	WARN	TLS certificate errors will be ignored for this session
+1610402066866	Marionette	INFO	Stopped listening on port 43783
+1610402075395	geckodriver	INFO	Listening on 127.0.0.1:36257
+1610402075398	mozrunner::runner	INFO	Running command: "/bin/firefox" "--marionette" "-foreground" "-no-remote" "-profile" "/tmp/rust_mozprofilebeTXso"
+Failed to open connection to "session" message bus: /usr/bin/dbus-launch terminated abnormally without any error message
+Running without a11y support!
+1610402077878	Marionette	INFO	Listening on port 41821
+1610402077934	Marionette	WARN	TLS certificate errors will be ignored for this session
+1610402079944	Marionette	INFO	Stopped listening on port 41821
+JavaScript error: resource://gre/modules/UrlClassifierListManager.jsm, line 691: TypeError: this.tablesData[table] is undefined
+
+###!!! [Child][RunMessage] Error: Channel closing: too late to send/recv, messages will be lost
+
+1610402082474	geckodriver	INFO	Listening on 127.0.0.1:45372
+1610402082479	mozrunner::runner	INFO	Running command: "/bin/firefox" "--marionette" "-foreground" "-no-remote" "-profile" "/tmp/rust_mozprofileCj4be3"
+Failed to open connection to "session" message bus: /usr/bin/dbus-launch terminated abnormally without any error message
+Running without a11y support!
+1610402085291	Marionette	INFO	Listening on port 41675
+1610402085334	Marionette	WARN	TLS certificate errors will be ignored for this session
+1610402087555	Marionette	INFO	Stopped listening on port 41675
+1610402090133	geckodriver	INFO	Listening on 127.0.0.1:52591
+1610402090141	mozrunner::runner	INFO	Running command: "/bin/firefox" "--marionette" "-foreground" "-no-remote" "-profile" "/tmp/rust_mozprofileglWYfr"
+Failed to open connection to "session" message bus: /usr/bin/dbus-launch terminated abnormally without any error message
+Running without a11y support!
+1610402092692	Marionette	INFO	Listening on port 34159
+1610402092786	Marionette	WARN	TLS certificate errors will be ignored for this session
+1610402095260	Marionette	INFO	Stopped listening on port 34159
+
+###!!! [Parent][MessageChannel] Error: (msgtype=0xB000D,name=PBackgroundIDBDatabase::Msg_Invalidate) Channel error: cannot send/recv
+
+1610402097862	geckodriver	INFO	Listening on 127.0.0.1:48781
+1610402097867	mozrunner::runner	INFO	Running command: "/bin/firefox" "--marionette" "-foreground" "-no-remote" "-profile" "/tmp/rust_mozprofileollks0"
+Failed to open connection to "session" message bus: /usr/bin/dbus-launch terminated abnormally without any error message
+Running without a11y support!
+Error: cannot open display: :99
+1610402106322	geckodriver	INFO	Listening on 127.0.0.1:39762
+1610402106328	mozrunner::runner	INFO	Running command: "/bin/firefox" "--marionette" "-foreground" "-no-remote" "-profile" "/tmp/rust_mozprofileXtUbGt"
+Failed to open connection to "session" message bus: /usr/bin/dbus-launch terminated abnormally without any error message
+Running without a11y support!
+1610402108794	Marionette	INFO	Listening on port 45643
+1610402108867	Marionette	WARN	TLS certificate errors will be ignored for this session
+1610402108894	Marionette	INFO	Stopped listening on port 45643
+console.error: services.settings: 
+  main/cfr-fxa Signature failed  TypeError: NetworkError when attempting to fetch resource.
+console.error: services.settings: 
+  main/fxmonitor-breaches Signature failed  TypeError: NetworkError when attempting to fetch resource.
+1610402111274	geckodriver	INFO	Listening on 127.0.0.1:40824
+1610402111281	mozrunner::runner	INFO	Running command: "/bin/firefox" "--marionette" "-foreground" "-no-remote" "-profile" "/tmp/rust_mozprofilesfpaq2"
+Failed to open connection to "session" message bus: /usr/bin/dbus-launch terminated abnormally without any error message
+Running without a11y support!
+1610402113798	Marionette	INFO	Listening on port 33807
+1610402113838	Marionette	WARN	TLS certificate errors will be ignored for this session
+1610402115872	Marionette	INFO	Stopped listening on port 33807
+1610402118500	geckodriver	INFO	Listening on 127.0.0.1:43465
+1610402118505	mozrunner::runner	INFO	Running command: "/bin/firefox" "--marionette" "-foreground" "-no-remote" "-profile" "/tmp/rust_mozprofiley4S8IN"
+Failed to open connection to "session" message bus: /usr/bin/dbus-launch terminated abnormally without any error message
+Running without a11y support!
+1610402120958	Marionette	INFO	Listening on port 36818
+1610402121060	Marionette	WARN	TLS certificate errors will be ignored for this session
+1610402123201	Marionette	INFO	Stopped listening on port 36818
+1610402125740	geckodriver	INFO	Listening on 127.0.0.1:60246
+1610402125743	mozrunner::runner	INFO	Running command: "/bin/firefox" "--marionette" "-foreground" "-no-remote" "-profile" "/tmp/rust_mozprofilejok9vt"
+Failed to open connection to "session" message bus: /usr/bin/dbus-launch terminated abnormally without any error message
+Running without a11y support!
+1610402128020	Marionette	INFO	Listening on port 34565
+1610402128083	Marionette	WARN	TLS certificate errors will be ignored for this session
+1610402130078	Marionette	INFO	Stopped listening on port 34565
+JavaScript error: resource://gre/modules/UrlClassifierListManager.jsm, line 691: TypeError: this.tablesData[table] is undefined
+1610402134592	geckodriver	INFO	Listening on 127.0.0.1:36212
+1610402134596	mozrunner::runner	INFO	Running command: "/bin/firefox" "--marionette" "-foreground" "-no-remote" "-profile" "/tmp/rust_mozprofileFmI6d7"
+Failed to open connection to "session" message bus: /usr/bin/dbus-launch terminated abnormally without any error message
+Running without a11y support!
+Error: cannot open display: :99
+1610402691724	geckodriver	INFO	Listening on 127.0.0.1:38898
+1610402691731	mozrunner::runner	INFO	Running command: "/bin/firefox" "--marionette" "-foreground" "-no-remote" "-profile" "/tmp/rust_mozprofilemxAcJm"
+Failed to open connection to "session" message bus: /usr/bin/dbus-launch terminated abnormally without any error message
+Running without a11y support!
+1610402694105	Marionette	INFO	Listening on port 45433
+1610402694163	Marionette	WARN	TLS certificate errors will be ignored for this session
+1610402694212	Marionette	INFO	Stopped listening on port 45433
+
+###!!! [Parent][RunMessage] Error: Channel closing: too late to send/recv, messages will be lost
+
+1610402697730	geckodriver	INFO	Listening on 127.0.0.1:39241
+1610402697737	mozrunner::runner	INFO	Running command: "/bin/firefox" "--marionette" "-foreground" "-no-remote" "-profile" "/tmp/rust_mozprofileAcJUFh"
+Failed to open connection to "session" message bus: /usr/bin/dbus-launch terminated abnormally without any error message
+Running without a11y support!
+1610402700076	Marionette	INFO	Listening on port 41980
+1610402700099	Marionette	WARN	TLS certificate errors will be ignored for this session
+1610402701818	Marionette	INFO	Stopped listening on port 41980
+1610402704458	geckodriver	INFO	Listening on 127.0.0.1:58727
+1610402704465	mozrunner::runner	INFO	Running command: "/bin/firefox" "--marionette" "-foreground" "-no-remote" "-profile" "/tmp/rust_mozprofileClWK4d"
+Failed to open connection to "session" message bus: /usr/bin/dbus-launch terminated abnormally without any error message
+Running without a11y support!
+1610402707038	Marionette	INFO	Listening on port 36955
+1610402707116	Marionette	WARN	TLS certificate errors will be ignored for this session
+1610402709032	Marionette	INFO	Stopped listening on port 36955
+1610402711673	geckodriver	INFO	Listening on 127.0.0.1:39659
+1610402711678	mozrunner::runner	INFO	Running command: "/bin/firefox" "--marionette" "-foreground" "-no-remote" "-profile" "/tmp/rust_mozprofile8xvD24"
+Failed to open connection to "session" message bus: /usr/bin/dbus-launch terminated abnormally without any error message
+Running without a11y support!
+1610402713981	Marionette	INFO	Listening on port 34667
+1610402714012	Marionette	WARN	TLS certificate errors will be ignored for this session
+1610402715882	Marionette	INFO	Stopped listening on port 34667
+1610402718411	geckodriver	INFO	Listening on 127.0.0.1:43554
+1610402718415	mozrunner::runner	INFO	Running command: "/bin/firefox" "--marionette" "-foreground" "-no-remote" "-profile" "/tmp/rust_mozprofileRIlQ3J"
+Failed to open connection to "session" message bus: /usr/bin/dbus-launch terminated abnormally without any error message
+Running without a11y support!
+1610402721016	Marionette	INFO	Listening on port 39845
+1610402721062	Marionette	WARN	TLS certificate errors will be ignored for this session
+1610402722988	Marionette	INFO	Stopped listening on port 39845
+
+###!!! [Parent][MessageChannel] Error: (msgtype=0xB000E,name=PBackgroundIDBDatabase::Msg_CloseAfterInvalidationComplete) Channel error: cannot send/recv
+
+
+###!!! [Child][RunMessage] Error: Channel closing: too late to send/recv, messages will be lost
+
+
+###!!! [Child][RunMessage] Error: Channel closing: too late to send/recv, messages will be lost
+
+
+###!!! [Child][RunMessage] Error: Channel closing: too late to send/recv, messages will be lost
+
+1610402778576	geckodriver	INFO	Listening on 127.0.0.1:60386
+1610402778582	mozrunner::runner	INFO	Running command: "/bin/firefox" "--marionette" "-foreground" "-no-remote" "-profile" "/tmp/rust_mozprofileUX2Vip"
+Failed to open connection to "session" message bus: /usr/bin/dbus-launch terminated abnormally without any error message
+Running without a11y support!
+1610402780941	Marionette	INFO	Listening on port 44598
+1610402781025	Marionette	WARN	TLS certificate errors will be ignored for this session
+1610402781055	Marionette	INFO	Stopped listening on port 44598
+console.error: services.settings: 
+  main/fxmonitor-breaches Signature failed  TypeError: NetworkError when attempting to fetch resource.
+console.error: services.settings: 
+  main/cfr-fxa Signature failed  TypeError: NetworkError when attempting to fetch resource.
+1610402783497	geckodriver	INFO	Listening on 127.0.0.1:36251
+1610402783500	mozrunner::runner	INFO	Running command: "/bin/firefox" "--marionette" "-foreground" "-no-remote" "-profile" "/tmp/rust_mozprofilecgVfhI"
+Failed to open connection to "session" message bus: /usr/bin/dbus-launch terminated abnormally without any error message
+Running without a11y support!
+1610402785991	Marionette	INFO	Listening on port 33828
+1610402786031	Marionette	WARN	TLS certificate errors will be ignored for this session
+1610402788092	Marionette	INFO	Stopped listening on port 33828
+
+###!!! [Child][RunMessage] Error: Channel closing: too late to send/recv, messages will be lost
+
+
+###!!! [Child][RunMessage] Error: Channel closing: too late to send/recv, messages will be lost
+
+1610402789779	geckodriver	INFO	Listening on 127.0.0.1:44260
+1610402789784	mozrunner::runner	INFO	Running command: "/bin/firefox" "--marionette" "-foreground" "-no-remote" "-profile" "/tmp/rust_mozprofiledEtKEm"
+Failed to open connection to "session" message bus: /usr/bin/dbus-launch terminated abnormally without any error message
+Running without a11y support!
+1610402792270	Marionette	INFO	Listening on port 43827
+1610402792327	Marionette	WARN	TLS certificate errors will be ignored for this session
+1610402794432	Marionette	INFO	Stopped listening on port 43827
+1610402796078	geckodriver	INFO	Listening on 127.0.0.1:37298
+1610402796082	mozrunner::runner	INFO	Running command: "/bin/firefox" "--marionette" "-foreground" "-no-remote" "-profile" "/tmp/rust_mozprofileTxi95W"
+Failed to open connection to "session" message bus: /usr/bin/dbus-launch terminated abnormally without any error message
+Running without a11y support!
+1610402798493	Marionette	INFO	Listening on port 42338
+1610402798555	Marionette	WARN	TLS certificate errors will be ignored for this session
+1610402800593	Marionette	INFO	Stopped listening on port 42338
+JavaScript error: resource://gre/modules/UrlClassifierListManager.jsm, line 691: TypeError: this.tablesData[table] is undefined
+1610402803209	geckodriver	INFO	Listening on 127.0.0.1:55910
+1610402803214	mozrunner::runner	INFO	Running command: "/bin/firefox" "--marionette" "-foreground" "-no-remote" "-profile" "/tmp/rust_mozprofileMJekCh"
+Failed to open connection to "session" message bus: /usr/bin/dbus-launch terminated abnormally without any error message
+Running without a11y support!
+1610402805548	Marionette	INFO	Listening on port 36317
+1610402805588	Marionette	WARN	TLS certificate errors will be ignored for this session
+1610402807626	Marionette	INFO	Stopped listening on port 36317
+JavaScript error: resource://gre/modules/UrlClassifierListManager.jsm, line 691: TypeError: this.tablesData[table] is undefined
+
+###!!! [Child][RunMessage] Error: Channel closing: too late to send/recv, messages will be lost
+
+1610403758851	geckodriver	INFO	Listening on 127.0.0.1:36094
+1610403758857	mozrunner::runner	INFO	Running command: "/bin/firefox" "--marionette" "-foreground" "-no-remote" "-profile" "/tmp/rust_mozprofile6xL4Op"
+Failed to open connection to "session" message bus: /usr/bin/dbus-launch terminated abnormally without any error message
+Running without a11y support!
+1610403761404	Marionette	INFO	Listening on port 39225
+1610403761408	Marionette	WARN	TLS certificate errors will be ignored for this session
+1610403761461	Marionette	INFO	Stopped listening on port 39225
+1610403769087	geckodriver	INFO	Listening on 127.0.0.1:42703
+1610403769094	mozrunner::runner	INFO	Running command: "/bin/firefox" "--marionette" "-foreground" "-no-remote" "-profile" "/tmp/rust_mozprofileFiuZHl"
+Failed to open connection to "session" message bus: /usr/bin/dbus-launch terminated abnormally without any error message
+Running without a11y support!
+1610403771609	Marionette	INFO	Listening on port 46222
+1610403771638	Marionette	WARN	TLS certificate errors will be ignored for this session
+1610403773677	Marionette	INFO	Stopped listening on port 46222
+
+###!!! [Child][RunMessage] Error: Channel closing: too late to send/recv, messages will be lost
+
+
+###!!! [Child][RunMessage] Error: Channel closing: too late to send/recv, messages will be lost
+
+1610403777228	geckodriver	INFO	Listening on 127.0.0.1:43192
+1610403777233	mozrunner::runner	INFO	Running command: "/bin/firefox" "--marionette" "-foreground" "-no-remote" "-profile" "/tmp/rust_mozprofilefVFh6A"
+Failed to open connection to "session" message bus: /usr/bin/dbus-launch terminated abnormally without any error message
+Running without a11y support!
+Error: cannot open display: :99
+1610403777344	geckodriver	INFO	Listening on 127.0.0.1:48679
+1610403777351	mozrunner::runner	INFO	Running command: "/bin/firefox" "--marionette" "-foreground" "-no-remote" "-profile" "/tmp/rust_mozprofileEuYmRZ"
+Failed to open connection to "session" message bus: /usr/bin/dbus-launch terminated abnormally without any error message
+Running without a11y support!
+1610403779518	Marionette	INFO	Listening on port 39260
+1610403779625	Marionette	WARN	TLS certificate errors will be ignored for this session
+1610403781908	Marionette	INFO	Stopped listening on port 39260
+
+###!!! [Parent][MessageChannel] Error: (msgtype=0x5A0006,name=PHttpBackgroundChannel::Msg___delete__) Channel error: cannot send/recv
+
+
+###!!! [Parent][MessageChannel] Error: (msgtype=0x5A0006,name=PHttpBackgroundChannel::Msg___delete__) Channel error: cannot send/recv
+
+
+###!!! [Parent][MessageChannel] Error: (msgtype=0x5A0006,name=PHttpBackgroundChannel::Msg___delete__) Channel error: cannot send/recv
+
+
+###!!! [Parent][MessageChannel] Error: (msgtype=0x5A0006,name=PHttpBackgroundChannel::Msg___delete__) Channel error: cannot send/recv
+
+
+###!!! [Parent][MessageChannel] Error: (msgtype=0x5A0006,name=PHttpBackgroundChannel::Msg___delete__) Channel error: cannot send/recv
+
+
+###!!! [Parent][MessageChannel] Error: (msgtype=0x5A0006,name=PHttpBackgroundChannel::Msg___delete__) Channel error: cannot send/recv
+
+1610403786556	geckodriver	INFO	Listening on 127.0.0.1:53671
+1610403786562	mozrunner::runner	INFO	Running command: "/bin/firefox" "--marionette" "-foreground" "-no-remote" "-profile" "/tmp/rust_mozprofileMorIC8"
+Failed to open connection to "session" message bus: /usr/bin/dbus-launch terminated abnormally without any error message
+Running without a11y support!
+Error: cannot open display: :99
+1610403793656	geckodriver	INFO	Listening on 127.0.0.1:41449
+1610403793662	mozrunner::runner	INFO	Running command: "/bin/firefox" "--marionette" "-foreground" "-no-remote" "-profile" "/tmp/rust_mozprofile5MdWur"
+Failed to open connection to "session" message bus: /usr/bin/dbus-launch terminated abnormally without any error message
+Running without a11y support!
+1610403796182	Marionette	INFO	Listening on port 33767
+1610403796199	Marionette	WARN	TLS certificate errors will be ignored for this session
+1610403796248	Marionette	INFO	Stopped listening on port 33767
+
+###!!! [Parent][MessageChannel] Error: (msgtype=0xB000E,name=PBackgroundIDBDatabase::Msg_CloseAfterInvalidationComplete) Channel error: cannot send/recv
+
+console.error: services.settings: 
+  main/cfr-fxa Signature failed  TypeError: NetworkError when attempting to fetch resource.
+console.error: services.settings: 
+  main/fxmonitor-breaches Signature failed  TypeError: NetworkError when attempting to fetch resource.
+1610403800795	geckodriver	INFO	Listening on 127.0.0.1:60540
+1610403800802	mozrunner::runner	INFO	Running command: "/bin/firefox" "--marionette" "-foreground" "-no-remote" "-profile" "/tmp/rust_mozprofilebCrKil"
+Failed to open connection to "session" message bus: /usr/bin/dbus-launch terminated abnormally without any error message
+Running without a11y support!
+1610403803168	Marionette	INFO	Listening on port 41671
+1610403803244	Marionette	WARN	TLS certificate errors will be ignored for this session
+1610403805336	Marionette	INFO	Stopped listening on port 41671
+
+###!!! [Child][RunMessage] Error: Channel closing: too late to send/recv, messages will be lost
+
+
+###!!! [Child][RunMessage] Error: Channel closing: too late to send/recv, messages will be lost
+
+1610403812927	geckodriver	INFO	Listening on 127.0.0.1:33940
+1610403812931	mozrunner::runner	INFO	Running command: "/bin/firefox" "--marionette" "-foreground" "-no-remote" "-profile" "/tmp/rust_mozprofilex3H6Ax"
+Failed to open connection to "session" message bus: /usr/bin/dbus-launch terminated abnormally without any error message
+Running without a11y support!
+1610403815096	Marionette	INFO	Listening on port 41306
+1610403815185	Marionette	WARN	TLS certificate errors will be ignored for this session
+1610403817330	Marionette	INFO	Stopped listening on port 41306
+1610403819983	geckodriver	INFO	Listening on 127.0.0.1:44461
+1610403819988	mozrunner::runner	INFO	Running command: "/bin/firefox" "--marionette" "-foreground" "-no-remote" "-profile" "/tmp/rust_mozprofilelW1sey"
+Failed to open connection to "session" message bus: /usr/bin/dbus-launch terminated abnormally without any error message
+Running without a11y support!
+1610403822261	Marionette	INFO	Listening on port 34703
+1610403822339	Marionette	WARN	TLS certificate errors will be ignored for this session
+1610403824514	Marionette	INFO	Stopped listening on port 34703
+JavaScript error: resource://gre/modules/UrlClassifierListManager.jsm, line 691: TypeError: this.tablesData[table] is undefined
+
+###!!! [Child][RunMessage] Error: Channel closing: too late to send/recv, messages will be lost
+
+1610403826026	geckodriver	INFO	Listening on 127.0.0.1:43804
+1610403826030	mozrunner::runner	INFO	Running command: "/bin/firefox" "--marionette" "-foreground" "-no-remote" "-profile" "/tmp/rust_mozprofilesdSE5w"
+Failed to open connection to "session" message bus: /usr/bin/dbus-launch terminated abnormally without any error message
+Running without a11y support!
+1610403828727	Marionette	INFO	Listening on port 36081
+1610403828772	Marionette	WARN	TLS certificate errors will be ignored for this session
+1610403830891	Marionette	INFO	Stopped listening on port 36081
+
+###!!! [Parent][RunMessage] Error: Channel error: cannot send/recv
+
+1610403865291	geckodriver	INFO	Listening on 127.0.0.1:46740
+1610403865296	mozrunner::runner	INFO	Running command: "/bin/firefox" "--marionette" "-foreground" "-no-remote" "-profile" "/tmp/rust_mozprofile0vZKx3"
+Failed to open connection to "session" message bus: /usr/bin/dbus-launch terminated abnormally without any error message
+Running without a11y support!
+1610403867821	Marionette	INFO	Listening on port 45301
+1610403867844	Marionette	WARN	TLS certificate errors will be ignored for this session
+1610403867899	Marionette	INFO	Stopped listening on port 45301
+console.error: services.settings: 
+  main/cfr-fxa Signature failed  TypeError: NetworkError when attempting to fetch resource.
+console.error: services.settings: 
+  main/fxmonitor-breaches Signature failed  TypeError: NetworkError when attempting to fetch resource.
+1610403869446	geckodriver	INFO	Listening on 127.0.0.1:53362
+1610403869451	mozrunner::runner	INFO	Running command: "/bin/firefox" "--marionette" "-foreground" "-no-remote" "-profile" "/tmp/rust_mozprofileJ1YCC3"
+Failed to open connection to "session" message bus: /usr/bin/dbus-launch terminated abnormally without any error message
+Running without a11y support!
+1610403871812	Marionette	INFO	Listening on port 36136
+1610403871881	Marionette	WARN	TLS certificate errors will be ignored for this session
+1610403873782	Marionette	INFO	Stopped listening on port 36136
+JavaScript error: resource://gre/modules/UrlClassifierListManager.jsm, line 691: TypeError: this.tablesData[table] is undefined
+
+###!!! [Child][RunMessage] Error: Channel closing: too late to send/recv, messages will be lost
+
+1610403879420	geckodriver	INFO	Listening on 127.0.0.1:48120
+1610403879424	mozrunner::runner	INFO	Running command: "/bin/firefox" "--marionette" "-foreground" "-no-remote" "-profile" "/tmp/rust_mozprofileg2POBI"
+Failed to open connection to "session" message bus: /usr/bin/dbus-launch terminated abnormally without any error message
+Running without a11y support!
+1610403881910	Marionette	INFO	Listening on port 42736
+1610403881971	Marionette	WARN	TLS certificate errors will be ignored for this session
+1610403884155	Marionette	INFO	Stopped listening on port 42736
+
+###!!! [Child][RunMessage] Error: Channel closing: too late to send/recv, messages will be lost
+
+1610403892707	geckodriver	INFO	Listening on 127.0.0.1:59132
+1610403892712	mozrunner::runner	INFO	Running command: "/bin/firefox" "--marionette" "-foreground" "-no-remote" "-profile" "/tmp/rust_mozprofile4WQhhm"
+Failed to open connection to "session" message bus: /usr/bin/dbus-launch terminated abnormally without any error message
+Running without a11y support!
+1610403894897	Marionette	INFO	Listening on port 40473
+1610403894966	Marionette	WARN	TLS certificate errors will be ignored for this session
+1610403896974	Marionette	INFO	Stopped listening on port 40473
+JavaScript error: resource://gre/modules/UrlClassifierListManager.jsm, line 691: TypeError: this.tablesData[table] is undefined
+
+###!!! [Child][RunMessage] Error: Channel closing: too late to send/recv, messages will be lost
+
+
+###!!! [Child][RunMessage] Error: Channel closing: too late to send/recv, messages will be lost
+
+
+###!!! [Child][RunMessage] Error: Channel closing: too late to send/recv, messages will be lost
+
+1610403903597	geckodriver	INFO	Listening on 127.0.0.1:38305
+1610403903601	mozrunner::runner	INFO	Running command: "/bin/firefox" "--marionette" "-foreground" "-no-remote" "-profile" "/tmp/rust_mozprofileUYIAo5"
+Failed to open connection to "session" message bus: /usr/bin/dbus-launch terminated abnormally without any error message
+Running without a11y support!
+1610403905666	Marionette	INFO	Listening on port 46079
+1610403905730	Marionette	WARN	TLS certificate errors will be ignored for this session
+1610403907614	Marionette	INFO	Stopped listening on port 46079
+1610404007999	geckodriver	INFO	Listening on 127.0.0.1:56424
+1610404008004	mozrunner::runner	INFO	Running command: "/bin/firefox" "--marionette" "-foreground" "-no-remote" "-profile" "/tmp/rust_mozprofileXG547N"
+Failed to open connection to "session" message bus: /usr/bin/dbus-launch terminated abnormally without any error message
+Running without a11y support!
+1610404010427	Marionette	INFO	Listening on port 33599
+1610404010480	Marionette	WARN	TLS certificate errors will be ignored for this session
+1610404010532	Marionette	INFO	Stopped listening on port 33599
+console.error: services.settings: 
+  main/cfr-fxa Signature failed  TypeError: NetworkError when attempting to fetch resource.
+console.error: services.settings: 
+  main/fxmonitor-breaches Signature failed  TypeError: NetworkError when attempting to fetch resource.
+1610404012926	geckodriver	INFO	Listening on 127.0.0.1:54650
+1610404012931	mozrunner::runner	INFO	Running command: "/bin/firefox" "--marionette" "-foreground" "-no-remote" "-profile" "/tmp/rust_mozprofilemuP5o8"
+Failed to open connection to "session" message bus: /usr/bin/dbus-launch terminated abnormally without any error message
+Running without a11y support!
+1610404015034	Marionette	INFO	Listening on port 46641
+1610404015098	Marionette	WARN	TLS certificate errors will be ignored for this session
+1610404017913	Marionette	INFO	Stopped listening on port 46641
+JavaScript error: resource://gre/modules/UrlClassifierListManager.jsm, line 691: TypeError: this.tablesData[table] is undefined
+
+###!!! [Child][RunMessage] Error: Channel closing: too late to send/recv, messages will be lost
+
+
+###!!! [Child][RunMessage] Error: Channel closing: too late to send/recv, messages will be lost
+
+
+###!!! [Child][RunMessage] Error: Channel closing: too late to send/recv, messages will be lost
+
+
+###!!! [Parent][MessageChannel] Error: (msgtype=0xB000E,name=PBackgroundIDBDatabase::Msg_CloseAfterInvalidationComplete) Channel error: cannot send/recv
+
+
+###!!! [Parent][RunMessage] Error: Channel closing: too late to send/recv, messages will be lost
+
+1610404020522	geckodriver	INFO	Listening on 127.0.0.1:38323
+1610404020526	mozrunner::runner	INFO	Running command: "/bin/firefox" "--marionette" "-foreground" "-no-remote" "-profile" "/tmp/rust_mozprofileZt1aQ9"
+Failed to open connection to "session" message bus: /usr/bin/dbus-launch terminated abnormally without any error message
+Running without a11y support!
+Error: cannot open display: :99
+1610404020636	geckodriver	INFO	Listening on 127.0.0.1:47983
+1610404020643	mozrunner::runner	INFO	Running command: "/bin/firefox" "--marionette" "-foreground" "-no-remote" "-profile" "/tmp/rust_mozprofileJtn8U5"
+Failed to open connection to "session" message bus: /usr/bin/dbus-launch terminated abnormally without any error message
+Running without a11y support!
+1610404023013	Marionette	INFO	Listening on port 35156
+1610404023070	Marionette	WARN	TLS certificate errors will be ignored for this session
+1610404025250	Marionette	INFO	Stopped listening on port 35156
+
+###!!! [Child][RunMessage] Error: Channel closing: too late to send/recv, messages will be lost
+
+1610404029781	geckodriver	INFO	Listening on 127.0.0.1:45328
+1610404029786	mozrunner::runner	INFO	Running command: "/bin/firefox" "--marionette" "-foreground" "-no-remote" "-profile" "/tmp/rust_mozprofiledzNeT7"
+Failed to open connection to "session" message bus: /usr/bin/dbus-launch terminated abnormally without any error message
+Running without a11y support!
+1610404032195	Marionette	INFO	Listening on port 37943
+1610404032227	Marionette	WARN	TLS certificate errors will be ignored for this session
+1610404034440	Marionette	INFO	Stopped listening on port 37943
+
+###!!! [Child][RunMessage] Error: Channel closing: too late to send/recv, messages will be lost
+
+1610404090671	geckodriver	INFO	Listening on 127.0.0.1:42815
+1610404090678	mozrunner::runner	INFO	Running command: "/bin/firefox" "--marionette" "-foreground" "-no-remote" "-profile" "/tmp/rust_mozprofilehaY2Xq"
+Failed to open connection to "session" message bus: /usr/bin/dbus-launch terminated abnormally without any error message
+Running without a11y support!
+1610404093398	Marionette	INFO	Listening on port 38792
+1610404093420	Marionette	WARN	TLS certificate errors will be ignored for this session
+1610404093468	Marionette	INFO	Stopped listening on port 38792
+console.error: services.settings: 
+  main/cfr-fxa Signature failed  TypeError: NetworkError when attempting to fetch resource.
+console.error: services.settings: 
+  main/fxmonitor-breaches Signature failed  TypeError: NetworkError when attempting to fetch resource.
+1610404096874	geckodriver	INFO	Listening on 127.0.0.1:53541
+1610404096881	mozrunner::runner	INFO	Running command: "/bin/firefox" "--marionette" "-foreground" "-no-remote" "-profile" "/tmp/rust_mozprofileT8X1jm"
+Failed to open connection to "session" message bus: /usr/bin/dbus-launch terminated abnormally without any error message
+Running without a11y support!
+1610404099255	Marionette	INFO	Listening on port 37618
+1610404099331	Marionette	WARN	TLS certificate errors will be ignored for this session
+1610404101369	Marionette	INFO	Stopped listening on port 37618
+
+###!!! [Child][RunMessage] Error: Channel closing: too late to send/recv, messages will be lost
+
+1610404102896	geckodriver	INFO	Listening on 127.0.0.1:53085
+1610404102900	mozrunner::runner	INFO	Running command: "/bin/firefox" "--marionette" "-foreground" "-no-remote" "-profile" "/tmp/rust_mozprofileofVM7G"
+Failed to open connection to "session" message bus: /usr/bin/dbus-launch terminated abnormally without any error message
+Running without a11y support!
+1610404105023	Marionette	INFO	Listening on port 37302
+1610404105031	Marionette	WARN	TLS certificate errors will be ignored for this session
+1610404107196	Marionette	INFO	Stopped listening on port 37302
+1610404109730	geckodriver	INFO	Listening on 127.0.0.1:36443
+1610404109735	mozrunner::runner	INFO	Running command: "/bin/firefox" "--marionette" "-foreground" "-no-remote" "-profile" "/tmp/rust_mozprofiletNBzZ1"
+Failed to open connection to "session" message bus: /usr/bin/dbus-launch terminated abnormally without any error message
+Running without a11y support!
+1610404111964	Marionette	INFO	Listening on port 37125
+1610404112089	Marionette	WARN	TLS certificate errors will be ignored for this session
+1610404114361	Marionette	INFO	Stopped listening on port 37125
+JavaScript error: resource://gre/modules/UrlClassifierListManager.jsm, line 691: TypeError: this.tablesData[table] is undefined
+
+###!!! [Child][RunMessage] Error: Channel closing: too late to send/recv, messages will be lost
+
+
+###!!! [Child][RunMessage] Error: Channel closing: too late to send/recv, messages will be lost
+
+1610404116944	geckodriver	INFO	Listening on 127.0.0.1:45887
+1610404116950	mozrunner::runner	INFO	Running command: "/bin/firefox" "--marionette" "-foreground" "-no-remote" "-profile" "/tmp/rust_mozprofilejWjAsc"
+Failed to open connection to "session" message bus: /usr/bin/dbus-launch terminated abnormally without any error message
+Running without a11y support!
+1610404119397	Marionette	INFO	Listening on port 38797
+1610404119407	Marionette	WARN	TLS certificate errors will be ignored for this session
+1610404121571	Marionette	INFO	Stopped listening on port 38797
+
+###!!! [Child][RunMessage] Error: Channel closing: too late to send/recv, messages will be lost
+
+1610407964026	geckodriver	INFO	Listening on 127.0.0.1:60424
+1610407964033	mozrunner::runner	INFO	Running command: "/bin/firefox" "--marionette" "-foreground" "-no-remote" "-profile" "/tmp/rust_mozprofileWBOYP5"
+Failed to open connection to "session" message bus: /usr/bin/dbus-launch terminated abnormally without any error message
+Running without a11y support!
+1610407966335	Marionette	INFO	Listening on port 39693
+1610407966383	Marionette	WARN	TLS certificate errors will be ignored for this session
+1610407968485	Marionette	INFO	Stopped listening on port 39693
+JavaScript error: resource://gre/modules/UrlClassifierListManager.jsm, line 691: TypeError: this.tablesData[table] is undefined
+1610407971046	geckodriver	INFO	Listening on 127.0.0.1:39184
+1610407971051	mozrunner::runner	INFO	Running command: "/bin/firefox" "--marionette" "-foreground" "-no-remote" "-profile" "/tmp/rust_mozprofilewVcy9q"
+Failed to open connection to "session" message bus: /usr/bin/dbus-launch terminated abnormally without any error message
+Running without a11y support!
+1610407973238	Marionette	INFO	Listening on port 40528
+1610407973289	Marionette	WARN	TLS certificate errors will be ignored for this session
+1610407973343	Marionette	INFO	Stopped listening on port 40528
+console.error: services.settings: 
+  main/cfr-fxa Signature failed  TypeError: NetworkError when attempting to fetch resource.
+console.error: services.settings: 
+  main/fxmonitor-breaches Signature failed  TypeError: NetworkError when attempting to fetch resource.
+Gdk-Message: 23:32:55.496: /usr/lib64/firefox/firefox: Fatal IO error 11 (Resource temporarily unavailable) on X server :99.
+
+1610407982025	geckodriver	INFO	Listening on 127.0.0.1:39123
+1610407982032	mozrunner::runner	INFO	Running command: "/bin/firefox" "--marionette" "-foreground" "-no-remote" "-profile" "/tmp/rust_mozprofileKu9FRP"
+Failed to open connection to "session" message bus: /usr/bin/dbus-launch terminated abnormally without any error message
+Running without a11y support!
+1610407984254	Marionette	INFO	Listening on port 43201
+1610407984278	Marionette	WARN	TLS certificate errors will be ignored for this session
+1610407986420	Marionette	INFO	Stopped listening on port 43201
+1610407989971	geckodriver	INFO	Listening on 127.0.0.1:45801
+1610407989975	mozrunner::runner	INFO	Running command: "/bin/firefox" "--marionette" "-foreground" "-no-remote" "-profile" "/tmp/rust_mozprofile5nP9lU"
+Failed to open connection to "session" message bus: /usr/bin/dbus-launch terminated abnormally without any error message
+Running without a11y support!
+1610407992345	Marionette	INFO	Listening on port 35353
+1610407992418	Marionette	WARN	TLS certificate errors will be ignored for this session
+1610407992470	Marionette	INFO	Stopped listening on port 35353
+console.error: services.settings: 
+  main/fxmonitor-breaches Signature failed  TypeError: NetworkError when attempting to fetch resource.
+console.error: services.settings: 
+  main/cfr-fxa Signature failed  TypeError: NetworkError when attempting to fetch resource.
+1610407995880	geckodriver	INFO	Listening on 127.0.0.1:37918
+1610407995884	mozrunner::runner	INFO	Running command: "/bin/firefox" "--marionette" "-foreground" "-no-remote" "-profile" "/tmp/rust_mozprofile7lwhNf"
+Failed to open connection to "session" message bus: /usr/bin/dbus-launch terminated abnormally without any error message
+Running without a11y support!
+1610407998010	Marionette	INFO	Listening on port 34698
+1610407998034	Marionette	WARN	TLS certificate errors will be ignored for this session
+1610408000080	Marionette	INFO	Stopped listening on port 34698
+
+###!!! [Child][RunMessage] Error: Channel closing: too late to send/recv, messages will be lost
+
+
+###!!! [Child][RunMessage] Error: Channel closing: too late to send/recv, messages will be lost
+
+1610408001713	geckodriver	INFO	Listening on 127.0.0.1:42315
+1610408001716	mozrunner::runner	INFO	Running command: "/bin/firefox" "--marionette" "-foreground" "-no-remote" "-profile" "/tmp/rust_mozprofile69nuO9"
+Failed to open connection to "session" message bus: /usr/bin/dbus-launch terminated abnormally without any error message
+Running without a11y support!
+1610408004142	Marionette	INFO	Listening on port 43010
+1610408004156	Marionette	WARN	TLS certificate errors will be ignored for this session
+1610408006282	Marionette	INFO	Stopped listening on port 43010
+1610408009833	geckodriver	INFO	Listening on 127.0.0.1:37585
+1610408009838	mozrunner::runner	INFO	Running command: "/bin/firefox" "--marionette" "-foreground" "-no-remote" "-profile" "/tmp/rust_mozprofile41iVzw"
+Failed to open connection to "session" message bus: /usr/bin/dbus-launch terminated abnormally without any error message
+Running without a11y support!
+1610408012321	Marionette	INFO	Listening on port 33128
+1610408012381	Marionette	WARN	TLS certificate errors will be ignored for this session
+1610408014586	Marionette	INFO	Stopped listening on port 33128
+
+###!!! [Child][RunMessage] Error: Channel closing: too late to send/recv, messages will be lost
+
+
+###!!! [Child][RunMessage] Error: Channel closing: too late to send/recv, messages will be lost
+
+
+###!!! [Child][RunMessage] Error: Channel closing: too late to send/recv, messages will be lost
+
+
+###!!! [Child][RunMessage] Error: Channel closing: too late to send/recv, messages will be lost
+
+1610408019236	geckodriver	INFO	Listening on 127.0.0.1:49985
+1610408019241	mozrunner::runner	INFO	Running command: "/bin/firefox" "--marionette" "-foreground" "-no-remote" "-profile" "/tmp/rust_mozprofile5Ukp5t"
+Failed to open connection to "session" message bus: /usr/bin/dbus-launch terminated abnormally without any error message
+Running without a11y support!
+1610408021650	Marionette	INFO	Listening on port 41863
+1610408021705	Marionette	WARN	TLS certificate errors will be ignored for this session
+1610408023757	Marionette	INFO	Stopped listening on port 41863
+
+###!!! [Child][RunMessage] Error: Channel closing: too late to send/recv, messages will be lost
+
+
+###!!! [Child][RunMessage] Error: Channel closing: too late to send/recv, messages will be lost
+
+
+###!!! [Child][RunMessage] Error: Channel closing: too late to send/recv, messages will be lost
+
