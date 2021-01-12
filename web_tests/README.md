@@ -50,13 +50,19 @@ To get behave, run `pip install behave` and put `from behave import *` at the be
 
 ## Framework Notes
 
+### General Selenium Notes
+
+Setup is pretty finicky.
+
+Has an odd difficulty with pressing the "Google Search" button on Google - does not have this difficulty on DuckDuckGo.
+
 ### Selenium and Unittest
 
 Setup was finicky, but that could be partly due to VM (and was pretty much entirely selenium - unittest was easy). Tests seem to be pretty flaky - how much of that is the VM and how much is Selenium is unknown at the moment.
 
 Tests should be run with the `-v` flag to know what's going on.
 
-Executes the tests in a little over twenty-eight seconds.
+Executes the tests in a little under thirty-one seconds.
 
 ### Selenium and Behave
 
@@ -64,7 +70,7 @@ Setup of behave was easy, but selenium setup was finicky, as mentioned above. Ag
 
 Behave is easier to read than unittest, both in code and in tests, but requires more files and a more specific setup structure. 
 
-Executes the sample tests in a little over thirteen seconds.
+Executes the sample tests in a little over eighteen seconds.
 
 ### Testcafe
 
@@ -72,4 +78,4 @@ Setup was super easy. Flakiness continues, so I believe it is the fault of the V
 
 Difficult to read - also written in JavaScript, does not have a python option.
 
-Executes the sample tests in roughly thirteen seconds. 
+Executes the sample tests in roughly sixteen seconds. 
