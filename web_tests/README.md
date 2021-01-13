@@ -12,9 +12,27 @@ Anything relevant to all the tests will be documented here. This includes featur
 
 Due to these tests being simplistic, in order to be able to try multiple frameworks easily, there are a lot of features that have not been sufficently tested. These include:
 
+- switching tabs/windows
+
+- multiple browsers (this was tested briefly, but is not currently in the test suite)
+
+- complex click gestures (right-click, double-click, etc)
+
+- condensing tests (many tests that use the same basic formula - these tests were essentially written independently)
+
+- stubbing and mocking
+
+- skipping tests
+
+- complex selectors (select by text, etc)
+
+- page models
+
+- logins
+
 ### Universal Errors
 
-All three of the frameworks tested, on a CentOS virtual machine using x11 forwarding via `xvfb`, would periodically get the following error:
+All three of the frameworks tested, on a CentOS virtual machine using x11 forwarding via `xvfb`, would periodically get an error similar to the following (this one being from the Selenium-Unittest tests):
 ```
 Traceback (most recent call last):
   File "sample-test.py", line 14, in setUp
@@ -46,6 +64,8 @@ There were five tests included in each of the test frameworks:
 - a "search" test - one that went to Google, typed into the search bar, and searched using either the enter key or a submit method
 
 - a "button search" test - one that went to DuckDuckGo (reasons in Selenium Universal Notes: Downsides), typed into the search bar, and searched using the search button
+
+All three of the frameworks tested, according to their documentation, have browser support for Chrome/Chromium/Edge, Firefox, Internet Explorer, Safari, and Opera
 
 ## Selenium Universal Notes
 
@@ -79,11 +99,13 @@ Selenium also appears to have an odd bug where it occasionally cannot detect ele
 
 [Unittest](https://docs.python.org/3.6/library/unittest.html#module-unittest) is a pre-installed Python testing framework. This implementation of it uses Selenium (above) to drive the browser.
 
-The test file for Selenium and Unittest can be found [here](/web_tests/selenium-unittest/sample-test.py).
+The test file for Selenium and Unittest can be found [here](/web_tests/selenium-unittest/sample-test.py). The associated run command is `python sample-test.py`, run in the `selenium-unittest` directory.
 
 ### Benefits
 
 Aside from the Selenium install, the Unittest install is essentially nonexistent - it comes bundled with Python3.
+
+Unittest tests are, like the majority of the codebase, written in Python.
 
 This implementation also inherits all the benefits of Selenium.
 
@@ -95,15 +117,15 @@ This implementation also inherits all the downsides of Selenium.
 
 ## Selenium-Behave Notes
 
-[Behave](https://github.com/behave/behave) is an external gherkin language (similar to Cucumber) for Python tests. This implementation of it uses Selenium (above) to drive the browser.
+[Behave](https://github.com/behave/behave) is an external Gherkin language (similar to Cucumber) for Python tests. This implementation of it uses Selenium (above) to drive the browser.
 
-The test files for Selenium and Behave can be found [here](/web_tests/selenium-behave/features/sample-test.feature) (for the feature/gherkin file) and [here](/web_tests/selenium-behave/features/steps/sample-test.py) (for the Python implementation of the gherkin steps).
+The test files for Selenium and Behave can be found [here](/web_tests/selenium-behave/features/sample-test.feature) (for the feature/Gherkin file), [here](/web_tests/selenium-behave/features/steps/sample-test.py) (for the Python implementation of the Gherkin steps), and [here](/web_tests/selenium-behave/features/environment.py) (for the setup/teardown hooks). The associated run command is `behave`, run in the `selenium-behave` directory.
 
 ### Benefits
 
 Aside from the Selenium install, the Behave install is fairly minimal - you only need to run `pip install behave`.
 
-Behave creates incredibly readable tests - the feature files are written in nearly plain English, and the step files are broken down into short functions that, by necessity, have a plain English description of what they do attached to them. 
+Behave creates incredibly readable tests - the feature files are written in nearly plain English, and the step files are broken down into short functions that, by necessity, have a plain English description of what they do attached to them. The step files are also, like the majority of the codebase, written in Python. Behave was my personal favourite of the three frameworks to write tests in.
 
 Behave's design encourages, at least from my experience, the compartmentalization of tests and the sectioning off of commonly used steps to be reused. This is because it by design, splits tests into a string of small functions that often can be reused, especially in the setup steps.
 
@@ -119,7 +141,7 @@ This implementation also inherits all the downsides of Selenium.
 
 [TestCafe](https://github.com/DevExpress/testcafe) is a newer browser driver. Tests are also written in TestCafe, in JavaScript.
 
-The test file for TestCafe can be found [here](/web_tests/testcafe/sample-test.js).
+The test file for TestCafe can be found [here](/web_tests/testcafe/sample-test.js). The associated run command is `testcafe firefox sample-test.js`, run from the `testcafe` directory.
 
 ### Benefits
 
@@ -129,4 +151,4 @@ The TestCafe tests were the fastest of all, running in roughly sixteen seconds.
 
 ### Downsides
 
-TestCafe is written and extended exclusively in JavaScript, and all TestCafe tests must be written in JavaScript.
+TestCafe is written and extended exclusively in JavaScript, and all TestCafe tests must be written in JavaScript, making the tests somewhat more difficult to write and read.

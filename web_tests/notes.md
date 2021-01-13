@@ -80,8 +80,6 @@ Behave is easier to read than unittest, both in code and in tests, but requires 
 
 Executes the sample tests in a little over eighteen seconds.
 
-//TODO: ensure WebDriver is shut down properly
-
 ### Testcafe
 
 Setup was super easy. Flakiness continues, so I believe it is the fault of the VM. 
