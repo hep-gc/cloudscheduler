@@ -3,4 +3,5 @@ from selenium import webdriver
 
 @fixture
 def after_scenario(context, scenario):
-    context.driver.quit()
+    if hasattr(context, 'driver'):
+        context.driver.quit()
