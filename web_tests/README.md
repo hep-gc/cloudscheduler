@@ -93,7 +93,7 @@ Selenium is, comparatively, a large and complex install. The steps to get Seleni
 
 - run `bazelisk bazel build` in the selenium repository and deal with any rename requests as necessary (this install had roughly a dozen)
 
-Selenium also appears to have an odd bug where it occasionally cannot detect elements that should be visible. As I currently cannot run tests unless they're headless, I cannot test whether this is actually a bug or poor writing in tests, but the TestCafe framework (below) didn't have the same difficulty. This bug showed up with the "Google Search" button on Google, both on Firefox and Chromium, but did not show up with the search button on DuckDuckGo.
+Selenium also appears to have an odd bug where it occasionally cannot detect elements that should be visible. As I currently cannot view tests as they are running, I cannot test whether this is actually a bug or poor writing in tests, but the TestCafe framework (below) didn't have the same difficulty. This bug showed up with the "Google Search" button on Google, both on Firefox and Chromium, but did not show up with the search button on DuckDuckGo.
 
 ## Selenium-Unittest Notes
 
