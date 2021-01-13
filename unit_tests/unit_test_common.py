@@ -666,6 +666,7 @@ def load_settings(web=False):
                 yaml.safe_dump(credentials, credentials_file)
     except FileNotFoundError:
         print('No unit test credentials file found at {}. Prompting for credentials.'.format(credentials_path))
+        credentials = {}
         credentials['user_secret'] = generate_secret()
         credentials['cloud_credentials'] = {}
         credentials['cloud_credentials']['authurl'] = input('Cloud authurl (cloud address to give test clouds): ')
