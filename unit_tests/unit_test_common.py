@@ -484,7 +484,7 @@ def table_commands(gvar, obj, action, group, server_user, table_headers):
     default_headers = []
     default_keys = []
 
-    process = subprocess.run(['cloudscheduler', obj, action, '--view-columns', '-g', group, '-su', server_user, '-spw', gvar['user_secret']], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    process = subprocess.run(['cloudscheduler', obj, action, '--view-columns', '-g', group, '-su', server_user, '-spw', gvar['user_secret'], '-s', 'unit-test'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     stdout = process.stdout.decode()
     # Omit the last char, which should be '\n'.
     stdout_lines = stdout[:-1].split('\n')
