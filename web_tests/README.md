@@ -4,6 +4,8 @@ This folder is for the web tests for cloudscheduler v2.
 
 This document is an overview of the different testing frameworks currently under consideration for the web tests.
 
+Note: this document is in the process of being rewritten. For progress on the new analysis document, look [here](/web_tests/additional_notes.md).
+
 ## General Setup Notes
 
 Anything relevant to all the tests will be documented here. This includes features that were not tested that may be relevant and universal errors that are believed to be a result of running the tests on a virtual machine.
