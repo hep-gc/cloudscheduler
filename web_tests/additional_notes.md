@@ -29,12 +29,14 @@ Chromedriver is the Chrome, Chromium, and Canary driver. It can be installed via
 ### Writing Tests
 
 At minimum, a test in this framework will require the following modules included at the top of each file: 
-```
+```python
 import unittest
 from selenium import webdriver
 ```
 
-A test fixture is written as a class extending `unittest.TestCase`. Each test is a method that starts with `test_`. Tests are written as Python functions. Each one should contain a call to an `assert` method.
+A test fixture is written as a class extending `unittest.TestCase`. Each test is a method that starts with `test_`. Tests are written as Python functions, and each one should contain a call to an `assert` method.
+
+Unittest also has built-in `setUp` and `tearDown` functions for both test methods and test classes.
 
 ### Maintainability
 
@@ -70,7 +72,9 @@ Selenium requires a few different steps for installation. The Python bindings fo
 
 Behave can be installed via pip, with the command `pip install behave`.
 
-Behave tests have a particular directory setup requirement. All tests are written as feature files, a type of near-English gherkin file with the extension `.feature`, and must be in a directory called `features`. This directory also contains any configurations, in a file called `environment.py`. All of the code implementations of the steps in the feature files must be in a directory called `steps` within the `features` directory. These files must have the `.py` extension. 
+Behave tests have a particular directory setup requirement. All tests are written as feature files, a type of near-English gherkin file with the extension `.feature`, and must be in a directory called `features`. All of the code implementations of the steps in the feature files must be in a directory called `steps` within the `features` directory. These files must have the `.py` extension. 
+
+Behave configurations, including setup and takedown methods, must be in a file called `environment.py`, in the `features` directory.
 
 #### Geckodriver
 
@@ -97,7 +101,7 @@ from selenium import webdriver
 ```
 
 Each step is a Python method prefaced with the keyword and then the plaintext string like so:
-```
+```python
 @given('<initial conditions>')
 def step_impl:
     pass
@@ -142,7 +146,7 @@ A test written in this framework is required to be part of a fixture and to be a
 ### Writing Tests
 
 A test written in Testcafe will require the following lines at the beginning:
-```
+```javascript
 import { Selector } from 'testcafe';
 
 fixture `<fixture name>`
