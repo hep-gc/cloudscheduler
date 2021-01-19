@@ -6,8 +6,8 @@ from django.views.decorators.csrf import requires_csrf_token
 from django.http import HttpResponse
 from django.core.exceptions import PermissionDenied
 
-from cloudscheduler.lib.fw_config import configure_fw 
-from cloudscheduler.lib.view_utils import \
+from cloudscheduler.lib.fw_config_na import configure_fw 
+from cloudscheduler.lib.view_utils_na import \
     lno,  \
     manage_group_users, \
     manage_user_group_verification, \
@@ -20,10 +20,7 @@ from cloudscheduler.lib.view_utils import \
 from collections import defaultdict
 import bcrypt
 
-from sqlalchemy import exists
-from sqlalchemy.sql import select
-from cloudscheduler.lib.schema import *
-import sqlalchemy.exc
+from cloudscheduler.lib.schema_na import *
 import re
 
 from cloudscheduler.lib.web_profiler import silk_profile as silkp
@@ -221,8 +218,8 @@ def add(request):
                 return group_list(request, active_user=active_user, response_code=1, message='%s group add, "%s" failed - %s.' % (lno(MODID), fields['group_name'], msg))
 
         # Add the group.
-        table = tables['csv2_groups']
-        rc, msg = config.db_session_execute(table.insert().values(table_fields(fields, table, columns, 'insert')))
+        table = 'csv2_groups'
+        rc, msg = config.db_insert(table, table_fields(fields, table, columns, 'insert'))
         if rc != 0:
             config.db_close()
             return group_list(request, active_user=active_user, response_code=1, message='%s group add "%s" failed - %s.' % (lno(MODID), fields['group_name'], msg))
@@ -240,15 +237,23 @@ def add(request):
         filename = 'default.yaml.j2'
         filedata = open(filepath+filename, "r").read()
 
-        table = tables['csv2_group_metadata']
-        rc, msg = config.db_session_execute(table.insert().values(group_name=fields['group_name'], metadata_name=filename, enabled=1 ,priority=0, metadata=filedata, mime_type="cloud-config"))
+        table = 'csv2_group_metadata'
+        meta_dict = {
+            "group_name": fields['group_name'],
+            "metadata_name": filename, 
+            "enabled": 1,
+            "priority": 0,
+            "metadata": filedata,
+            "mime_type": "cloud-config"
+        }
+        rc, msg = config.db_insert(table, meta_dict)
         if rc != 0:
             config.db_close()
             return group_list(request, active_user=active_user, response_code=1, message='%s group add "%s" failed - %s.' % (lno(MODID), fields['group_name'], msg))
 
 
         # Commit the updates, configure firewall and return.
-        config.db_session.commit()
+        config.db_commit()
         configure_fw(config)
         config.db_close()
         return group_list(request, active_user=active_user, response_code=0, message='group "%s" successfully added.' % (fields['group_name']))
@@ -297,11 +302,12 @@ def defaults(request, active_user=None, response_code=0, message=None):
             
             if rc == 0:
                 # Update the group defaults.
-                table = tables['csv2_groups']
-                rc, msg = config.db_session_execute(table.update().where(table.c.group_name==active_user.active_group).values(table_fields(fields, table, columns, 'update')))
+                table = 'csv2_groups'
+                where_clause = "group_name='%s'" % active_user.active_group
+                rc, msg = config.db_update(table, table_fields(fields, table, columns, 'update'), where=where_clause)
                 if rc == 0:
                     # Commit the updates, configure firewall and return.
-                    config.db_session.commit()
+                    config.db_commit()
                     configure_fw(config)
                     message = 'group defaults "%s" successfully updated.' % (active_user.active_group)
                 else:
@@ -323,8 +329,8 @@ def defaults(request, active_user=None, response_code=0, message=None):
 
     # If User/Groups successfully set, retrieve group information.
     if user_groups_set:
-        s = select([csv2_groups]).where(csv2_groups.c.group_name==active_user.active_group)
-        defaults_list = qt(config.db_connection.execute(s))
+        where_clause = "group_name='%s'" % active_user.active_group
+        rc, msg, defaults_list = config.db_query("csv2_groups", where=where_clause)
 
         # Replace None values with "".
         for defaults in defaults_list:
@@ -335,29 +341,24 @@ def defaults(request, active_user=None, response_code=0, message=None):
 #       # And additional information for the web page.
 #       if request.META['HTTP_ACCEPT'] != 'application/json':
         # Get all the images in group:
-        s = select([cloud_images]).where(cloud_images.c.group_name==active_user.active_group)
-        image_list = qt(config.db_connection.execute(s))
+        rc, msg, image_list = config.db_query("cloud_images", where=where_clause)
 
         # Get all the flavors in group:
-        s = select([cloud_flavors]).where(cloud_flavors.c.group_name==active_user.active_group)
-        flavor_list = qt(config.db_connection.execute(s))
+        rc, msg, flavor_list = config.db_query("cloud_flavors", where=where_clause)
 
         # Get all keynames in group:
-        s = select([cloud_keypairs]).where(cloud_keypairs.c.group_name==active_user.active_group)
-        keypairs_list = qt(config.db_connection.execute(s))
+        rc, msg, keypairs_list = config.db_query("cloud_keypairs", where=where_clause)
 
         # Get all networks in group:
-        s = select([cloud_networks]).where(cloud_networks.c.group_name==active_user.active_group)
-        network_list = qt(config.db_connection.execute(s))
+        rc, msg, network_list = config.db_query("cloud_networks", where=where_clause)
 
         # Get all security_groups in group:
-        s = select([cloud_security_groups]).where(cloud_security_groups.c.group_name==active_user.active_group)
-        security_groups_list = qt(config.db_connection.execute(s))
+        rc, msg, security_groups_list = config.db_query("cloud_security_groups", where=where_clause)
 
         # Get the group default metadata list:
-        s = select([view_groups_with_metadata_info]).where(csv2_groups.c.group_name==active_user.active_group)
+        rc, msg, _group_list = config.db_query("view_groups_with_metadata_info", where=where_clause)
         _group_list, metadata_dict = qt(
-            config.db_connection.execute(s),
+            _group_list,
             keys = {
                 'primary': [
                     'group_name',
@@ -437,149 +438,112 @@ def delete(request):
             return group_list(request, active_user=active_user, response_code=1, message='%s group delete %s' % (lno(MODID), msg))
 
         # Delete any group metadata files for the group.
-        s = select([view_groups_with_metadata_names]).where((view_groups_with_metadata_names.c.group_name == fields['group_name']))
-        _group_list = qt(config.db_connection.execute(s))
+        where_clause = "group_name='%s'" % fields['group_name']
+        rc, msg, _group_list = config.db_query("view_groups_with_metadata_names", where=where_clause)
         for row in _group_list:
             if row['group_name'] == fields['group_name'] and row['metadata_names']:
                 metadata_names = row['metadata_names'].split(',')
-                table = tables['csv2_group_metadata']
+                table = 'csv2_group_metadata'
                 for metadata_name in metadata_names:
                     # Delete the group metadata files.
-                    rc, msg = config.db_session_execute(
-                        table.delete((table.c.group_name==fields['group_name']) & (table.c.metadata_name==metadata_name))
-                        )
+                    where_clause = "group_name='%s' and metadata_name='%s'" % (fields['group_name'], metadata_name)
+                    rc, msg = config.db_delete(table, where=where_clause)
                     if rc != 0:
                         config.db_close()
                         return group_list(request, active_user=active_user, response_code=1, message='%s group metadata file delete "%s::%s" failed - %s.' % (lno(MODID), fields['group_name'], metadata_name, msg))
 
         # Delete the csv2_clouds.
-        table = tables['csv2_clouds']
-        rc, msg = config.db_session_execute(
-            table.delete(table.c.group_name==fields['group_name']),
-            allow_no_rows=True
-            )
+        table = 'csv2_clouds'
+        where_clause = "group_name='%s'" % fields['group_name']
+        rc, msg = config.db_delete(table, where=where_clause)
         if rc != 0:
             config.db_close()
             return group_list(request, active_user=active_user, response_code=1, message='%s group resources delete "%s" failed - %s.' % (lno(MODID), fields['group_name'], msg))
 
         # Delete the csv2_cloud_metadata.
-        table = tables['csv2_cloud_metadata']
-        rc, msg = config.db_session_execute(
-            table.delete(table.c.group_name==fields['group_name']),
-            allow_no_rows=True
-            )
+        table = 'csv2_cloud_metadata'
+        rc, msg = config.db_delete(table, where=where_clause)
+
         if rc != 0:
             config.db_close()
             return group_list(request, active_user=active_user, response_code=1, message='%s group resource metadata delete "%s" failed - %s.' % (lno(MODID), fields['group_name'], msg))
 
         # Delete the csv2_group_metadata_exclusions.
-        table = tables['csv2_group_metadata_exclusions']
-        rc, msg = config.db_session_execute(
-            table.delete(table.c.group_name==fields['group_name']),
-            allow_no_rows=True
-            )
+        table = 'csv2_group_metadata_exclusions'
+        rc, msg = config.db_delete(table, where=where_clause)
         if rc != 0:
             config.db_close()
             return group_list(request, active_user=active_user, response_code=1, message='%s delete group metadata exclusions for group "%s" failed - %s.' % (lno(MODID), fields['group_name'], msg))
 
         # Delete the csv2_user_groups.
-        table = tables['csv2_user_groups']
-        rc, msg = config.db_session_execute(
-            table.delete(table.c.group_name==fields['group_name']),
-            allow_no_rows=True
-            )
+        table = 'csv2_user_groups'
+        rc, msg = config.db_delete(table, where=where_clause)
         if rc != 0:
             config.db_close()
             return group_list(request, active_user=active_user, response_code=1, message='%s group users delete "%s" failed - %s.' % (lno(MODID), fields['group_name'], msg))
 
 
         # Delete the csv2_cloud_aliases.
-        table = tables['csv2_cloud_aliases']
-        rc, msg = config.db_session_execute(
-            table.delete(table.c.group_name==fields['group_name']),
-            allow_no_rows=True
-            )
+        table = 'csv2_cloud_aliases'
+        rc, msg = config.db_delete(table, where=where_clause)
         if rc != 0:
             config.db_close()
             return group_list(request, active_user=active_user, response_code=1, message='%s group resources delete "%s" failed - %s.' % (lno(MODID), fields['group_name'], msg))
 
         # Delete the csv2_vms.
-        table = tables['csv2_vms']
-        rc, msg = config.db_session_execute(
-            table.delete(table.c.group_name==fields['group_name']),
-            allow_no_rows=True
-            )
+        table = 'csv2_vms'
+        rc, msg = config.db_delete(table, where=where_clause)
         if rc != 0:
             config.db_close()
             return group_list(request, active_user=active_user, response_code=1, message='%s group VMs defaults delete "%s" failed - %s.' % (lno(MODID), fields['group_name'], msg))
 
         # Delete the cloud_keypairs.
-        table = tables['cloud_keypairs']
-        rc, msg = config.db_session_execute(
-            table.delete(table.c.group_name==fields['group_name']),
-            allow_no_rows=True
-            )
+        table = 'cloud_keypairs'
+        rc, msg = config.db_delete(table, where=where_clause)
         if rc != 0:
             config.db_close()
             return group_list(request, active_user=active_user, response_code=1, message='%s group keynames delete "%s" failed - %s.' % (lno(MODID), fields['group_name'], msg))
 
         # Delete the cloud_networks.
-        table = tables['cloud_networks']
-        rc, msg = config.db_session_execute(
-            table.delete(table.c.group_name==fields['group_name']),
-            allow_no_rows=True
-            )
+        table = 'cloud_networks'
+        rc, msg = config.db_delete(table, where=where_clause)
         if rc != 0:
             config.db_close()
             return group_list(request, active_user=active_user, response_code=1, message='%s group networks delete "%s" failed - %s.' % (lno(MODID), fields['group_name'], msg))
 
         # Delete the cloud_security_groups.
-        table = tables['cloud_security_groups']
-        rc, msg = config.db_session_execute(
-            table.delete(table.c.group_name==fields['group_name']),
-            allow_no_rows=True
-            )
+        table = 'cloud_security_groups'
+        rc, msg = config.db_delete(table, where=where_clause)
         if rc != 0:
             config.db_close()
             return group_list(request, active_user=active_user, response_code=1, message='%s group  security groups delete "%s" failed - %s.' % (lno(MODID), fields['group_name'], msg))
 
         # Delete the cloud_limits.
-        table = tables['cloud_limits']
-        rc, msg = config.db_session_execute(
-            table.delete(table.c.group_name==fields['group_name']),
-            allow_no_rows=True
-            )
+        table = 'cloud_limits'
+        rc, msg = config.db_delete(table, where=where_clause)
         if rc != 0:
             config.db_close()
             return group_list(request, active_user=active_user, response_code=1, message='%s group limits delete "%s" failed - %s.' % (lno(MODID), fields['group_name'], msg))
 
         # Delete the cloud_images.
-        table = tables['cloud_images']
-        rc, msg = config.db_session_execute(
-            table.delete(table.c.group_name==fields['group_name']),
-            allow_no_rows=True
-            )
+        table = 'cloud_images'
+        rc, msg = config.db_delete(table, where=where_clause)
         if rc != 0:
             config.db_close()
             return group_list(request, active_user=active_user, response_code=1, message='%s group images delete "%s" failed - %s.' % (lno(MODID), fields['group_name'], msg))
 
         # Delete the cloud_flavors.
-        table = tables['cloud_flavors']
-        rc, msg = config.db_session_execute(
-            table.delete(table.c.group_name==fields['group_name']),
-            allow_no_rows=True
-            )
+        table = 'cloud_flavors'
+        rc, msg = config.db_delete(table, where=where_clause)
         if rc != 0:
             return group_list(request, active_user=active_user, response_code=1, message='%s group flavors delete "%s" failed - %s.' % (lno(MODID), fields['group_name'], msg))
 
         # Delete the group.
-        table = tables['csv2_groups']
-        rc, msg = config.db_session_execute(
-            table.delete(table.c.group_name==fields['group_name'])
-            )
+        table = 'csv2_groups'
+        rc, msg = config.db_delete(table, where=where_clause)
         if rc == 0:
             # Commit the deletions, configure firewall and return.
-            config.db_session.commit()
+            config.db_commit()
             configure_fw(config)
             config.db_close()
             return group_list(request, active_user=active_user, response_code=0, message='group "%s" successfully deleted.' % (fields['group_name']))
@@ -620,19 +584,18 @@ def group_list(request, active_user=None, response_code=0, message=None):
 
     # Retrieve group information.
     if request.META['HTTP_ACCEPT'] == 'application/json':
-        s = select([view_groups_with_metadata_names]).order_by('group_name')
-        _group_list = qt(config.db_connection.execute(s))
+        rc, msg, _group_list = config.db_query("view_groups_with_metadata_names", order_by="group_name")
         metadata_dict = {}
     else:
-        s = select([view_groups_with_metadata_info]).order_by('group_name')
+        rc, msg, _group_list_raw = config.db_query("view_groups_with_metadata_names", order_by="group_name")
         _group_list, metadata_dict = qt(
-            config.db_connection.execute(s),
+            _group_list_raw,
             keys = {
                 'primary': [
                     'group_name',
                     ],
                 'secondary': [
-                    'metadata_name',
+                    'metadata_names',
                     'metadata_enabled',
                     'metadata_priority',
                     'metadata_mime_type',
@@ -642,14 +605,13 @@ def group_list(request, active_user=None, response_code=0, message=None):
             )
 
     # Retrieve user/groups list (dictionary containing list for each user).
-    s = select([view_user_groups])
+    rc, msg, groups_per_user_raw = config.db_query("view_user_groups")
     groups_per_user = qt(
-        config.db_connection.execute(s),
+        groups_per_user_raw,
             prune=['password']    
             )
 
-    s = select([csv2_groups])
-    group_defaults = qt(config.db_connection.execute(s))
+    rc, msg, group_defaults = config.db_query("csv2_groups")
     
 
     # Position the page.
@@ -713,8 +675,8 @@ def metadata_add(request):
 
 
         # Add the group metadata file.
-        table = tables['csv2_group_metadata']
-        rc, msg = config.db_session_execute(table.insert().values(table_fields(fields, table, columns, 'insert')))
+        table = 'csv2_group_metadata'
+        rc, msg = config.db_insert(table, table_fields(fields, table, columns, 'insert'))
         if rc == 0:
             config.db_close(commit=True)
             return render(request, 'csv2/reload_parent.html', {'group_name': fields['group_name'], 'response_code': 0, 'message': 'group metadata file "%s::%s" successfully added.' % (active_user.active_group, fields['metadata_name'])})
@@ -756,11 +718,9 @@ def metadata_delete(request):
             return render(request, 'csv2/blank_msg.html', {'response_code': 1, 'message': '%s group metadata-delete %s' % (lno(MODID), msg)})
 
         # Delete the csv2_group_metadata_exclusions.
-        table = tables['csv2_group_metadata_exclusions']
-        rc, msg = config.db_session_execute(
-            table.delete((table.c.group_name==fields['group_name']) & (table.c.metadata_name==fields['metadata_name'])),
-            allow_no_rows=True
-            )
+        table = 'csv2_group_metadata_exclusions'
+        where_clause = "group_name='%s' and metadata_name='%s'" % (fields['group_name'], fields['metadata_name'])
+        rc, msg = config.db_delete(table, where=where_clause)
         if rc != 0:
             config.db_close()
             return render(request, 'csv2/blank_msg.html', {'response_code': 1, 'message': '%s delete group metadata exclusion for group=%s, metadata=%s failed - %s.' % (lno(MODID), fields['group_name'], fields['metadata_name'], msg)})
@@ -768,13 +728,9 @@ def metadata_delete(request):
 
 
         # Delete the group metadata file.
-        table = tables['csv2_group_metadata']
-        rc, msg = config.db_session_execute(
-            table.delete( \
-                (table.c.group_name==active_user.active_group) & \
-                (table.c.metadata_name==fields['metadata_name']) \
-                )
-            )
+        table = 'csv2_group_metadata'
+        where_clause = "group_name='%s' and metadata_name='%s'" % (active_user.active_group, fields['metadata_name'])
+        rc, msg = config.db_delete(table, where=where_clause)
         if rc == 0:
             config.db_close(commit=True)
             return render(request, 'csv2/reload_parent.html', {'group_name': fields['group_name'], 'response_code': 0, 'message': 'group metadata file "%s::%s" successfully deleted.' % (active_user.active_group, fields['metadata_name'])})
@@ -806,8 +762,7 @@ def metadata_fetch(request, response_code=0, message=None, metadata_name=None):
         return render(request, 'csv2/blank_msg.html', {'response_code': 1, 'message': '%s %s' % (lno(MODID), msg)})
 
     # Get mime type list:
-    s = select([csv2_mime_types])
-    mime_types_list = qt(config.db_connection.execute(s))
+    rc, msg, mime_types_list = config.db_query("csv2_mime_types")
 
     # If we are NOT returning from an update, we are fetching from webpage
     if metadata_name == None:
@@ -818,17 +773,18 @@ def metadata_fetch(request, response_code=0, message=None, metadata_name=None):
 
     # Retrieve metadata file.
     if metadata_name:
-        METADATA = config.db_map.classes.csv2_group_metadata
-        METADATAobj = config.db_session.query(METADATA).filter((METADATA.group_name == active_user.active_group) & (METADATA.metadata_name == metadata_name))
+        METADATA = "csv2_group_metadata"
+        where_clause = "group_name='%s' and metadata_name='%s'" % (active_user.active_group, metadata_name)
+        rc, msg, METADATAobj = config.db_query(METADATA, where=where_clause)
         if METADATAobj:
             for row in METADATAobj:
                 context = {
-                    'group_name': row.group_name,
-                    'metadata': row.metadata,
-                    'metadata_enabled': row.enabled,
-                    'metadata_priority': row.priority,
-                    'metadata_mime_type': row.mime_type,
-                    'metadata_name': row.metadata_name,
+                    'group_name': row["group_name"],
+                    'metadata': row["metadata"],
+                    'metadata_enabled': row["enabled"],
+                    'metadata_priority': row["priority"],
+                    'metadata_mime_type': row["mime_type"],
+                    'metadata_name': row["metadata_name"],
                     'mime_types_list': mime_types_list,
                     'response_code': response_code,
                     'message': message,
@@ -867,8 +823,8 @@ def metadata_list(request):
         return render(request, 'csv2/blank_msg.html', {'response_code': 1, 'message': '%s group metadata-list, %s' % (lno(MODID), msg)})
 
     # Retrieve cloud/metadata information.
-    s = select([csv2_group_metadata]).where(csv2_group_metadata.c.group_name == active_user.active_group)
-    group_metadata_list = qt(config.db_connection.execute(s))
+    where_clause = "group_name='%s'" % (active_user.active_group)
+    rc, msg, group_metadata_list = config.db_query("csv2_group_metadata", where=where_clause)
 
     # Render the page.
     context = {
@@ -902,8 +858,7 @@ def metadata_new(request):
         return render(request, 'csv2/blank_msg.html', {'response_code': 1, 'message': '%s %s' % (lno(MODID), msg)})
 
     # Get mime type list:
-    s = select([csv2_mime_types])
-    mime_types_list = qt(config.db_connection.execute(s))
+    rc, msg, mime_types_list = config.db_query("csv2_mime_types")
 
 
     context = {
@@ -945,8 +900,8 @@ def metadata_query(request):
         return field_error
 
     # Retrieve cloud/metadata information.
-    s = select([csv2_group_metadata]).where((csv2_group_metadata.c.group_name == active_user.active_group) & (csv2_group_metadata.c.metadata_name == fields['metadata_name']))
-    group_metadata_list = qt(config.db_connection.execute(s))
+    where_clause = "group_name='%s' and metadata_name='%s'" % (active_user.active_group, fields['metadata_name'])
+    rc, msg, group_metadata_list = config.db_query("csv2_group_metadata", where=where_clause)
 
     config.db_close()
 
@@ -993,16 +948,14 @@ def metadata_update(request):
             return render(request, 'csv2/blank_msg.html', {'response_code': 1, 'message': '%s group metadata-update %s' % (lno(MODID), msg)})
 
         # Update the group metadata file.
-        table = tables['csv2_group_metadata']
+        table = 'csv2_group_metadata'
         updates = table_fields(fields, table, columns, 'update')
         if len(updates) < 1:
             config.db_close()
             return render(request, 'csv2/blank_msg.html', {'response_code': 1, 'message': '%s group metadata-update "%s::%s" specified no fields to update and was ignored.' % (lno(MODID), active_user.active_group, fields['metadata_name'])})
 
-        rc, msg = config.db_session_execute(table.update().where( \
-            (table.c.group_name==active_user.active_group) & \
-            (table.c.metadata_name==fields['metadata_name']) \
-            ).values(updates))
+        where_clause = "group_name='%s' and metadata_name='%s'" % (active_user.active_group, fields['metadata_name'])
+        rc, msg = config.db_update(table, updates, where=where_clause)
         if rc == 0:
             config.db_close(commit=True)
         
@@ -1082,13 +1035,15 @@ def update(request):
                 return group_list(request, active_user=active_user, response_code=1, message='%s group update, "%s" failed - %s.' % (lno(MODID), fields['group_name'], msg))
 
         # Update the group.
-        table = tables['csv2_groups']
+        table = 'csv2_groups'
         group_updates = table_fields(fields, table, columns, 'update')
-        print("???????????????????????????????????", group_updates)
+
         if len(group_updates) > 0:
-            rc, msg = config.db_session_execute(table.update().where(table.c.group_name==fields['group_name']).values(group_updates), allow_no_rows=False)
+            where_clause = 'group_name="%s"' % fields['group_name']
+            rc, msg = config.db_update(table, group_updates, where=where_clause)
             if rc != 0:
                 config.db_close()
+                0/0
                 return group_list(request, active_user=active_user, response_code=1, message='%s group update, "%s" failed - %s.' % (lno(MODID), fields['group_name'], msg))
         else:
             if 'username' not in fields and request.META['HTTP_ACCEPT'] == 'application/json':

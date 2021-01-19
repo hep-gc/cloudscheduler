@@ -7,7 +7,7 @@ from cloudscheduler.lib.select_ec2 import \
     select_ec2_images, \
     select_ec2_instance_types
 
-from cloudscheduler.lib.view_utils import \
+from cloudscheduler.lib.view_utils_na import \
     lno, \
     qt, \
     qt_filter_get, \
@@ -16,7 +16,7 @@ from cloudscheduler.lib.view_utils import \
     table_fields, \
     validate_fields
 
-from cloudscheduler.lib.schema import *
+from cloudscheduler.lib.schema_na import *
 
 from cloudscheduler.lib.signal_functions import event_signal_send
 
@@ -79,13 +79,14 @@ def images(request, message=None, response_code=0):
             return render(request, 'csv2/ec2_images.html', {'response_code': 1, 'message': '%s ec2 images, %s' % (lno(MODID), msg)})
 
         # Update the user.
-        table = tables['ec2_image_filters']
-        rc, msg = config.db_session_execute(table.update().where((table.c.group_name==active_user.active_group) & (table.c.cloud_name==fields['cloud_name'])).values(table_fields(fields, table, columns, 'update')))
+        table = 'ec2_image_filters'
+        where_clause = "group_name='%s' and cloud_name='%s'" % (active_user.active_group, fields['cloud_name'])
+        rc, msg = config.db_update(table, table_fields(fields, table, columns, 'update'), where=where_clause)
         if rc != 0:
             config.db_close()
             return render(request, 'csv2/ec2_images.html', {'response_code': 1, 'message': '%s ec2 images, %s' % (lno(MODID), msg)})
 
-        config.db_session.commit()
+        config.db_commit()
 
         event_signal_send(config, "update_ec2_images")
 
@@ -95,13 +96,25 @@ def images(request, message=None, response_code=0):
         active_user.kwargs['cloud_name'] = fields['cloud_name']
 
     # Retrieve EC2 image filters.
-    ec2_image_filters = qt(config.db_connection.execute('select * from ec2_image_filters where group_name="%s" and cloud_name="%s"' % (active_user.active_group, active_user.kwargs['cloud_name'])))
+    where_clause = "group_name='%s' and cloud_name='%s'" % (active_user.active_group, active_user.kwargs['cloud_name'])
+    rc, msg, ec2_image_filters = cofnig.db_query("ec2_image_filters", where=where_clause)
     ec2_image_filters_json = json.dumps( ec2_image_filters );
 
     # Retrieve EC2 image filter options.
-    architectures = qt(config.db_connection.execute('select distinct arch as architecture from view_ec2_images order by architecture'))
-    operating_systems = qt(config.db_connection.execute('select distinct opsys as operating_system from view_ec2_images order by operating_system'))
-    owner_aliases = qt(config.db_connection.execute('select distinct alias from ec2_image_well_known_owner_aliases order by alias'))
+    rc, msg = config.db_execute('select distinct arch as architecture from view_ec2_images order by architecture')
+    architectures = []
+    for row in config.db_cursor:
+        architectures.append(row)
+
+    rc, msg = config.db_execute('select distinct opsys as operating_system from view_ec2_images order by operating_system')
+    operating_systems = []
+    for row in config.db_cursor:
+        operating_systems.append(row)
+
+    rc, msg = config.db_execute('select distinct alias from ec2_image_well_known_owner_aliases order by alias')
+    owner_aliases = []
+    for row in config.db_cursor:
+        owner_aliases.append(row)
 
 
     arch_list = []
@@ -126,7 +139,10 @@ def images(request, message=None, response_code=0):
         config.db_close()
         return render(request, 'csv2/ec2_images.html', {'response_code': 1, 'message': '%s ec2 images, %s' % (lno(MODID), msg)})
 
-    ec2_images = qt(config.db_connection.execute(sql_select))
+    rc, msg = config.db_execute(sql_select)
+    ec2_images = []
+    for row in config.db_cursor:
+        ec2_images.append(row)
 
     config.db_close()
 
@@ -203,7 +219,7 @@ def instance_types(request, message=None, response_code=0):
             config.db_close()
             return render(request, 'csv2/ec2_instance_types.html', {'response_code': 1, 'message': '%s ec2 instance-types, %s' % (lno(MODID), msg)})
 
-        config.db_session.commit()
+        config.db_commit()
 
         event_signal_send(config, "update_ec2_instance_types")
 
@@ -214,15 +230,31 @@ def instance_types(request, message=None, response_code=0):
         active_user.kwargs['cloud_name'] = fields['cloud_name']
 
     # Retrieve EC2 instance type filters.
-    ec2_instance_type_filters = qt(config.db_connection.execute('select * from ec2_instance_type_filters where group_name="%s" and cloud_name="%s"' % (active_user.active_group, active_user.kwargs['cloud_name'])))
+    where_clause = 'group_name="%s" and cloud_name="%s"' % (active_user.active_group, active_user.kwargs['cloud_name'])
+    rc, msg, ec2_instance_type_filters = config.db_query("ec2_instance_type_filters", where=where_clause)
     ec2_instance_type_filters_json = json.dumps( ec2_instance_type_filters, cls=DjangoJSONEncoder );
 
     # Retrieve EC2 instance type filter options.
-    families = qt(config.db_connection.execute('select distinct instance_family from view_ec2_instance_types order by instance_family'))
-    operating_systems = qt(config.db_connection.execute('select distinct operating_system from view_ec2_instance_types order by operating_system'))
-    processors = qt(config.db_connection.execute('select distinct processor from view_ec2_instance_types order by processor'))
-    manufacturers = qt(config.db_connection.execute('select distinct processor_manufacturer from view_ec2_instance_types order by processor_manufacturer'))
-    cores = qt(config.db_connection.execute('select distinct cores from view_ec2_instance_types order by cores'))
+    rc, msg = config.db_execute('select distinct instance_family from view_ec2_instance_types order by instance_family')
+    families = []
+    for row in config.db_cursor:
+        families.append(row)
+    rc, msg = config.db_execute('select distinct operating_system from view_ec2_instance_types order by operating_system')
+    operating_systems = []
+    for row in config.db_cursor:
+        families.append(row)
+    rc, msg = config.db_execute('select distinct processor from view_ec2_instance_types order by processor')
+    processors = []
+    for row in config.db_cursor:
+        families.append(row)
+    rc, msg = config.db_execute('select distinct processor_manufacturer from view_ec2_instance_types order by processor_manufacturer')
+    manufacturers = []
+    for row in config.db_cursor:
+        families.append(row)
+    rc, msg = config.db_execute('select distinct cores from view_ec2_instance_types order by cores')
+    cores = []
+    for row in config.db_cursor:
+        families.append(row)
 
 
     families_list = []
@@ -258,7 +290,10 @@ def instance_types(request, message=None, response_code=0):
         config.db_close()
         return render(request, 'csv2/ec2_instance_types.html', {'response_code': 1, 'message': '%s ec2 instance-types, %s' % (lno(MODID), msg)})
 
-    ec2_instance_types = qt(config.db_connection.execute(sql_select))
+    rc, msg = config.db_execute(sql_select)
+    ec2_instance_types = []
+    for row in config.db_cursor:
+        ec2_instance_types.append(row)
 
     config.db_close()
 

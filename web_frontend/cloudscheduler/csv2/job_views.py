@@ -7,19 +7,16 @@ from django.http import HttpResponse
 from django.core.exceptions import PermissionDenied
 
 
-from cloudscheduler.lib.view_utils import \
+from cloudscheduler.lib.view_utils_na import \
     lno, \
     qt, \
     render, \
     set_user_groups, \
     table_fields, \
     validate_fields
-from collections import defaultdict
 import bcrypt
 
-from sqlalchemy import exists
-from sqlalchemy.sql import select
-from cloudscheduler.lib.schema import *
+from cloudscheduler.lib.schema_na import *
 import sqlalchemy.exc
 
 from cloudscheduler.lib.web_profiler import silk_profile as silkp
@@ -90,8 +87,9 @@ def job_list(request):
         return render(request, 'csv2/jobs.html', {'response_code': 1, 'message': '%s job list, %s' % (lno(MODID), msg)})
 
     # Retrieve VM information.
-    s = select([view_condor_jobs_group_defaults_applied]).where(view_condor_jobs_group_defaults_applied.c.group_name == active_user.active_group)
-    _job_list = qt(config.db_connection.execute(s), convert={'entered_current_status': 'datetime', 'q_date': 'datetime'})
+    where_clause = "group_name='%s'" % active_user.active_group
+    rc, msg, job_list_raw = config.db_query("view_condor_jobs_group_defaults_applied", where=where_clause)
+    _job_list = qt(job_list_raw, convert={'entered_current_status': 'datetime', 'q_date': 'datetime'})
 
     config.db_close()
     

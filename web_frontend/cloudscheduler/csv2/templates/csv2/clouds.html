@@ -282,7 +282,9 @@
                                                     <select id="rightValues-{{cloud.cloud_name}}" size="5" multiple>
                                                     {% for group in security_groups_list %}
                                                         {% if cloud.cloud_name == group.cloud_name %}
-                                                            {% if group.name not in cloud.vm_security_groups|split %}
+                                                            {% if vm_security_groups is None %}
+                                                                <option>{{group.name}}</option>
+                                                            {% elif group.name not in cloud.vm_security_groups|split %}
                                                                 <option>{{group.name}}</option>
                                                             {% endif %}
                                                         {% endif %}

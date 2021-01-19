@@ -161,8 +161,10 @@ class Config:
                         value = self.__db_column_value__(table, key, column_dict[key])
                         if value != None:
                             where_bits.append('`%s`=%s' % (key, value))
+                        # there will sometimes be dictionaries that have a null value, so here we make the assumption that null values are for string columns only
                         else:
-                            return 1, 'invalid "where" specification, "%s=None"' % key, None
+                            #return 1, 'invalid "where" specification, "%s=None"' % key, None
+                            where_bits.append('`%s`=""' % key)
                     else:
                         return 1, 'invalid "where" specification, key column "%s" is not within the column dictionary "%s"' % (key, column_dict), None
                 else:
@@ -258,7 +260,7 @@ class Config:
                 if allow_nulls and self.db_schema[table]['columns'][column]['nulls'] == 'YES':
                     result = 'null'
                 else:
-                    result = ''
+                    result = "''"
             else:
                 result = '"%s"' % str(value).replace('"', '\\"')
         else:
@@ -300,7 +302,7 @@ class Config:
 
 #-------------------------------------------------------------------------------
 
-    def db_delete(self, table, column_dict, where=None):
+    def db_delete(self, table, column_dict=None, where=None):
         """
         Execute a DB delete. If successful, set rc=0 to indicate that
         self.db_cursor has the response. Otherwise, return rc=1 and the
@@ -309,10 +311,12 @@ class Config:
 
         if not self.db_cursor:
             return self.__db_logging_return__(1, 'the database is not open')
-            
-        rc, msg, where_clause = self.__db_get_where_clause__(table, column_dict, where)
-        if rc != 0:
-            return self.__db_logging_return__(rc, msg)
+        if column_dict is not None:    
+            rc, msg, where_clause = self.__db_get_where_clause__(table, column_dict, where)
+            if rc != 0:
+                return self.__db_logging_return__(rc, msg)
+        else:
+            where_clause = where
         
         sql_bits = ['delete from %s' % table]
 
@@ -329,7 +333,7 @@ class Config:
 
 #-------------------------------------------------------------------------------
 
-    def db_execute(self, request):
+    def db_execute(self, request, multi=False):
         """
         Execute a DB request. If successful, iset rc=0 to indicate that
         self.db_cursor has the response. Otherwise, return rc=1 and the
@@ -340,7 +344,10 @@ class Config:
             return self.__db_logging_return__(1, 'the database is not open')
 
         try:
-            self.db_cursor.execute(request)
+            if multi:
+                self.db_cursor.execute(request, multi=True)
+            else:
+                self.db_cursor.execute(request)
             return self.__db_logging_return__(0, request)
         except Exception as ex:
             return self.__db_logging_return__(1, '%s >>> %s' % (request, ex))
@@ -397,10 +404,15 @@ class Config:
         if not self.db_cursor:
             return self.__db_logging_return__(1, 'the database is not open')
 
+        
+        logging.info("attemping update")
         rc, msg = self.db_update(table, column_dict)
         if rc == 0 and self.db_cursor.rowcount < 1:
-            rc, msg, rows = self.db_query(table, where=column_dict)
-            if rc == 0 and self.db_cursor.rowcount < 1:
+            logging.info("checking update via query")
+            rc, msg, rows = self.db_query(table, where=column_dict, allow_no_rows=True)
+            logging.info("RC: %s, msg: %s, rows: %s" % (rc, msg, rows))
+            if rc == 0 and len(rows)< 1:
+                logging.info("No query result, doing insert")
                 rc, msg = self.db_insert(table, column_dict)
 
         return self.__db_logging_return__(rc, msg)
@@ -428,7 +440,7 @@ class Config:
         if len(select) > 0:
             selected = list(select)
         else:
-            selected = list(self.db_schema[table]['columns'].keys())
+            selected = self.db_schema[table]['columns'].keys()
 
         if distinct:
             sql_bits = ['select distinct %s from %s' % (self.__db_column_list_csv__(selected), table)] 
@@ -491,7 +503,7 @@ class Config:
 
             if column not in self.db_schema[table]['keys']:
                 value = self.__db_column_value__(table, column, column_dict[column], allow_nulls=True)
-                if value != None:
+                if value != None and value != "None":
                     updates.append('`%s`=%s' % (column, value))
 
         rc, msg, where_clause = self.__db_get_where_clause__(table, column_dict, where)
@@ -585,7 +597,7 @@ class Config:
             cloud_list[0]['error_count'] = 0
         cloud_list[0]['error_count'] = cloud_list[0]['error_count'] + 1
         cloud_list[0]['error_time'] = time.time()
-        self.db_merge(cloud_list[0])
+        self.db_merge("csv2_clouds", cloud_list[0])
         self.db_commit()
         return 1
 
@@ -612,7 +624,7 @@ class Config:
     def reset_cloud_error(self, group_name, cloud_name):
         rc, msg, cloud_list = self.db_query('csv2_clouds', select=['group_name', 'cloud_name', 'error_count'], where='group_name="%s" and cloud_name="%s"' % (group_name, cloud_name))
         cloud_list[0]['error_count'] = 0
-        self.db_merge(cloud_list[0])
+        self.db_merge("csv2_clouds", cloud_list[0])
         self.db_commit()
         return 1
 

@@ -101,15 +101,18 @@ def inventory_cleanup(ikey_names, rows, inventory):
 
     group_clouds = {}
     for row in rows:
-        group_cloud = '%s::%s' % (row['goup_name'], row['cloud_name'])
+        group_cloud = '%s::%s' % (row['group_name'], row['cloud_name'])
         group_clouds[group_cloud] = 1
 
+    keys_to_delete = []
     for ikey in inventory:
         ikey_list = json.loads(ikey)
         group_cloud = '%s::%s' % (ikey_list[gix], ikey_list[cix])
         if group_cloud not in group_clouds:
-            del inventory[ikey]
-            logging.debug('inventory_cleanup: delete item "%s" from inventory, no matching group_name/cloud_name.' % json.loads(ikey))
+            keys_to_delete.append(ikey)
+    for ikey in keys_to_delete:
+        del inventory[ikey]
+        logging.debug('inventory_cleanup: delete item "%s" from inventory, no matching group_name/cloud_name.' % json.loads(ikey))
 
 
 def inventory_get_item_hash_from_db_query_rows(ikey_names, rows):

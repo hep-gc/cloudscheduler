@@ -487,9 +487,9 @@ def image_poller():
                         rc, msg, filter_rows = config.db_query(EC2_IMAGE_FILTER, where=where_clause)
                         filter_row = filter_rows[0]
                         if filter_row["owner_aliases"] is not None:
-                            unique_cloud_dict[cloud["authurl"] + cloud["project"] + cloud["region"]]['filter_aliases'] += filter_row["owner_aliases"].split(',')
+                            unique_cloud_dict[cloud["authurl"] + cloud["project"] + cloud["region"]]['filter_aliases'] += filter_row.["owner_aliases"].split(',')
                         if filter_row.owner_ids is not None:
-                            unique_cloud_dict[cloud["authurl"] + cloud["project"] + cloud["region"]]['filter_owner_ids'] += filter_row["owner_ids"].split(',')
+                            unique_cloud_dict[cloud["authurl"] + cloud["project"] + cloud["region"]]['filter_owner_ids'] += filter_row.["owner_ids"].split(',')
                     except:
                         logging.info("No filter row for cloud %s::%s" % (cloud["group_name"], cloud["cloud_name"]))
                         continue
@@ -1617,7 +1617,7 @@ def security_group_poller():
 
                 # since the new inventory function doesn't accept a failfure dict we need to screen the rows ourself
                 where_clause="cloud_type='amazon'"
-                rc, msg, unfiltered_rows = config.db_query(SECURITY_GROUP, where=where_clause)
+                rc, msg, unfiltered_rows = config.db_query(SECURITY_GROUPS, where=where_clause)
                 rows = []
                 for row in unfiltered_rows:
                     if row['group_name'] + row['cloud_name'] in failure_dict.keys():
@@ -1676,7 +1676,7 @@ def vm_poller():
     config.db_open()
     rc, msg, ec2_status = config.db_query(EC2_STATUS)
     for row in ec2_status:
-        ec2_status_dict[row["ec2_state"]] = row["csv2_state"]
+        ec2_status_dict[row["ec2_state"] = row["csv2_state"]
 
     try:
         where_clause = "cloud_type='amazon'"
@@ -2022,7 +2022,7 @@ def vm_poller():
             where_clause = "cloud_type='amazon'"
             rc, msg, over_quota_clouds = config.db_query(view_vm_kill_retire_over_quota, where=where_clause)
             for cloud in over_quota_clouds:
-                kill_retire(config, cloud["group_name"], cloud["cloud_name"], "control", cloud["cores"], cloud["ram"], get_frame_info())
+                kill_retire(config, cloud["group_name"], cloud["cloud_name"], "control", [cloud["cores"], cloud["ram"], get_frame_info())
 
 
             logging.debug("Completed VM poller cycle")

@@ -51,9 +51,8 @@ def map_attributes(src, dest, attr_dict, config):
         if key not in rowid_dict[src]:
             unmapped_keys.append((key, value))
         else:
-            mapped_dict[attr_list_dict[dest][rowid_dict[src][key]]] = value
+            mapped_dict[attr_list_dict[dest][rowid_dict[src][key]]] = str(value)
 
-    
     return mapped_dict, unmapped_keys
 
 def build_mapping_dictionaries(config):

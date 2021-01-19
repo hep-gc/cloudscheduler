@@ -1,233 +1,54 @@
-#cloud-config
-merge_type: 'list(append)+dict(recurse_array)+str()'
-#### DO NOT EDIT - CHANGES WILL BE OVER_WRITTEN ####
+#cloud-config                                                                                                                                                       
+merge_type: 'list(append)+dict(recurse_array)+str()'                                                                                                                
+#### DO NOT EDIT - CHANGES WILL BE OVER_WRITTEN ####                                                                                                                
 
-write_files:
--   content: |
-        {{cs_cloud_type}}
-    owner: root:root
+write_files:                                                                                                                                                        
+-   content: |                                                                                                                                                      
+        {{cs_cloud_type}}                                                                                                                                           
+    owner: root:root                                                                                                                                                
     permissions: 0644
     path: /var/lib/cloud_type
 -   content: |
-        {{cs_cloud_name}}
+        {{cs_condor_host}}
     owner: root:root
     permissions: 0644
-    path: /var/lib/cloud_name
--   content: |
+    path: /etc/condor/central_manager
+-   content: |                                                                                                                                                      
+        {{cs_cloud_name}}                                                                                                                                           
+    owner: root:root                                                                                                                                                
+    permissions: 0644                                                                                                                                               
+    path: /var/lib/cloud_name                                                                                                                                       
+-   content: |                                                                                                                                                      
         # Local config for Cloud Scheduler
 
-        ## Set this to the group_name using this VM
+        ## Set this to the group_name using this VM                                                                                                                 
         cs_host_id = "{{cs_host_id}}"
-        group_name = "{{cs_group_name}}"
+        group_name = "{{cs_group_name}}"                                                                                                                            
         cloud_name = "{{cs_cloud_name}}"
         flavor = "{{cs_flavor}}"
-        target_alias = "{{cs_cloud_alias}}"
+        target_alias = "{{cs_cloud_alias}}"                                                                                                                         
 
-        ## Hostname of the central manager.
+        ## Hostname of the central manager.                                                                                                                         
         # Prefer value contextualized by Cloud Scheduler and then use central_manager
-        CS_HOST={{cs_host}}
-        CS_HOST_IP={{cs_host_ip}}
-        CONDOR_HOST={{cs_condor_host}}
-        CONDOR_HOST_IP={{cs_condor_host_ip}}
-
-        SEC_DAEMON_AUTHENTICATION =
-        SEC_DAEMON_AUTHENTICATION_METHODS =
-        SEC_CLIENT_AUTHENTICATION_METHODS =
-        SEC_PASSWORD_FILE =
-
-        ## Execute spool directory. - Verify that these directory's exist - or change to desired location
-        # EXECUTE=/var/condor/execute # EXECUTE=$HOME/execute below
-        # LOCK=/var/condor/lock # LOCK=$(LOG) in condor_config
-        LOG=/var/log/condor
-        RUN=/var/run/condor
-        SPOOL=/var/lib/condor/spool
-
-        ## Point to the java executable.
-        # JAVA = /usr/lib/jvm/jre-1.6.0-openjdk.x86_64/bin/java
-
-        ###### You should not need to make changes below here ########
+        CS_HOST={{cs_host}}                                                                                                                                         
+        CS_HOST_IP={{cs_host_ip}}                                                                                                                                   
+        CONDOR_HOST={{cs_condor_host}}                                                                                                                              
+        CONDOR_HOST_IP={{cs_condor_host_ip}}                                                                                                                        
+        STARTD_ATTRS = COLLECTOR_HOST_STRING cs_host_id group_name cloud_name flavor target_alias  
+        ###### You should not need to make changes below here ########                                                                                              
         HOSTALLOW_WRITE = $(IP_ADDRESS), $(FULL_HOSTNAME), $(CONDOR_HOST_IP), $(CS_HOST_IP)
-        ALLOW_WRITE = $(IP_ADDRESS), $(FULL_HOSTNAME), $(CONDOR_HOST_IP), $(CS_HOST_IP)
+        ALLOW_WRITE = $(IP_ADDRESS), $(FULL_HOSTNAME), $(CONDOR_HOST_IP), $(CS_HOST_IP)                                                                             
         HOSTALLOW_ADMINISTRATOR = $(CONDOR_HOST_IP), $(CS_HOST_IP)
-        ALLOW_ADMINISTRATOR = $(CONDOR_HOST_IP), $(CS_HOST_IP)
-        ALLOW_READ = *
+        ALLOW_ADMINISTRATOR = $(CONDOR_HOST_IP), $(CS_HOST_IP)                                                                                                      
+        ALLOW_READ = *                                                                                                                                              
         HOSTALLOW_READ = *
 
-        CCB_ADDRESS = $(CONDOR_HOST_IP)
-
-        TRUST_UID_DOMAIN = False
-        ## If you require jobs to run as a user set TRUST_UID_DOMAIN to True and uncomment the following
-        #SCHEDD_HOST=$(CONDOR_HOST_IP)
-        #UID_DOMAIN=$(CONDOR_HOST_IP)
-        #FILESYSTEM_DOMAIN=$(CONDOR_HOST_IP)
-
         START = (Owner == "{{cs_user}}")
+    owner: root:root                                                                                                                                                
+    permissions: '0644'                                                                                                                                             
+    path: /etc/condor/condor_config.local                                                                                                                           
 
-        DAEMON_LIST = MASTER, STARTD
+runcmd:                                                                                                                                                             
+ - [ service, condor, restart ]              
 
-        MaxJobRetirementTime = 3600 * 24 * 2
-        SHUTDOWN_GRACEFUL_TIMEOUT = 3600 * 25 * 2
-
-        # please leave following lines, for security as well as proper parsing by cloudscheduler
-        NUM_SLOTS = 1
-        NUM_SLOTS_TYPE_1 = 1
-        SLOT_TYPE_1 = cpus=100%
-        SLOT_TYPE_1_PARTITIONABLE = True
-        SLOT1_1_USER = slot01
-        SLOT1_2_USER = slot02
-        SLOT1_3_USER = slot03
-        SLOT1_4_USER = slot04
-        SLOT1_5_USER = slot05
-        SLOT1_6_USER = slot06
-        SLOT1_7_USER = slot07
-        SLOT1_8_USER = slot08
-        SLOT1_9_USER = slot09
-        SLOT1_10_USER = slot10
-        SLOT1_11_USER = slot11
-        SLOT1_12_USER = slot12
-        SLOT1_13_USER = slot13
-        SLOT1_14_USER = slot14
-        SLOT1_15_USER = slot15
-        SLOT1_16_USER = slot16
-        DEDICATED_EXECUTE_ACCOUNT_REGEXP = slot[0-9]+
-        STARTER_ALLOW_RUNAS_OWNER = False
-        EXECUTE = /var/lib/condor/execute
-
-        GSI_DAEMON_DIRECTORY = /etc/grid-security
-        GSI_DAEMON_CERT = /etc/grid-security/hostcert.pem
-        GSI_DAEMON_KEY = /etc/grid-security/hostkey.pem
-
-        SUSPEND = False
-        CONTINUE = True
-        PREEMPT = False
-        KILL = False
-        USER_JOB_WRAPPER = /usr/libexec/condor/jobwrapper.sh
-        STARTD_RECOMPUTE_DISK_FREE = true
-
-        STARTD_ATTRS = COLLECTOR_HOST_STRING cs_host_id group_name cloud_name flavor target_alias
-
-        HIGHPORT = 50000
-        LOWPORT = 40000
-    owner: root:root
-    permissions: '0644'
-    path: /etc/condor/condor_config.local
--   content: |
-        #!/bin/bash -l
-        exec "$@"
-    owner: root:root
-    permissions: '0755'
-    path: /usr/libexec/condor/jobwrapper.sh
--   content: |
-        #!/bin/bash
-        msg_post () 
-        {
-          for i in $(seq 5); do
-            curl https://{{cs_condor_host}}/$(hostname -s)${1} && break
-            sleep 30
-          done
-        }   
-            
-        log_tail () 
-        {
-          touch $checkpoint_dir$1
-          checkpoint=$(cat $checkpoint_dir$1)
-          log_file_size=$(wc -l <$log_file_dir$1|tee $checkpoint_dir$1)
-          [ "$checkpoint" != "" ] && [ $checkpoint -gt $log_file_size ] && checkpoint=0
-          tail -n +$((checkpoint+1)) $log_file_dir$1
-        }   
-            
-        which condor_config_val &>/dev/null||(msg_post "/STARTD/HTCondor_is_not_installed" && exit)
-
-        log_file_dir=/var/log/condor/
-        checkpoint_dir=/tmp/csv2htc.K.
-        log_file_tail="$(log_tail MasterLog)$(log_tail StartLog)"
-         
-        error_msgs=$(echo "${log_file_tail}"|awk '/Error/{split($0,W,"Error");print W[2]}/ERROR/{split($0,W,"ERROR");print W[2]}'|tr ":" " "|awk 'NF>2{print "/"$1"_"$2"_"$3"_"$4"_"$5"&"}'|sort -u|tr -d '\n')
-        if [ "$error_msgs" != "" ]; then msg_post "/STARTD${error_msgs}"; fi
-
-        cert_file=$(condor_config_val gsi_daemon_cert 2>/dev/null)
-        if [ $? -eq 0 ]; then 
-          openssl x509 -in $cert_file -checkend -1 >/dev/null 2>&1
-          if [ $? -eq 0 ]; then 
-            openssl x509 -in $cert_file -checkend $(( 86400 * {{cs_condorworker_cert_days_to_end_of_life}} )) >/dev/null 2>&1
-            if [ $? -ne 0 ]; then 
-                msg_post "/CERT/expiring soon"
-            else
-              if [ 'True' == "{{cs_condorworker_optional_gsi_messages}}" ]; then
-                msg_post "/GSIok"
-              fi
-            fi
-          else
-            which systemctl && systemctl stop condor || service stop condor
-            msg_post "/CERT/EXPIRED"
-          fi
-        else
-          if [ 'True' == "{{cs_condorworker_optional_gsi_messages}}" ]; then
-            msg_post "/GSInone"
-          fi
-        fi
-    owner: root:root
-    permissions: 0700
-    path: /usr/local/sbin/csv2_vm_data
--   content: |
-        */5 * * * * root /usr/local/sbin/csv2_vm_data
-    owner: root:root
-    permissions: 0600
-    path: /etc/cron.d/csv2_vm_data
-
-groups:
-  - condor: [slot01,slot02,slot03,slot04,slot05,slot06,slot07,slot08,slot09,slot10,slot11,slot12,slot13,slot14,slot15,slot16]
-
-users:
-  - name: slot01
-    groups: condor
-    shell: /sbin/nologin
-  - name: slot02
-    groups: condor
-    shell: /sbin/nologin
-  - name: slot03
-    groups: condor
-    shell: /sbin/nologin
-  - name: slot04
-    groups: condor
-    shell: /sbin/nologin
-  - name: slot05
-    groups: condor
-    shell: /sbin/nologin
-  - name: slot06
-    groups: condor
-    shell: /sbin/nologin
-  - name: slot07
-    groups: condor
-    shell: /sbin/nologin
-  - name: slot08
-    groups: condor
-    shell: /sbin/nologin
-  - name: slot09
-    groups: condor
-    shell: /sbin/nologin
-  - name: slot10
-    groups: condor
-    shell: /sbin/nologin
-  - name: slot11
-    groups: condor
-    shell: /sbin/nologin
-  - name: slot12
-    groups: condor
-    shell: /sbin/nologin
-  - name: slot13
-    groups: condor
-    shell: /sbin/nologin
-  - name: slot14
-    groups: condor
-    shell: /sbin/nologin
-  - name: slot15
-    groups: condor
-    shell: /sbin/nologin
-  - name: slot16
-    groups: condor
-    shell: /sbin/nologin
-
-runcmd:
- - [ service, condor, start ]
 
