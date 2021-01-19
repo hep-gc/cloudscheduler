@@ -123,7 +123,7 @@ Scenario: <description>
 ```
 
 The files in the `steps` directory should start with the following:
-```
+```python
 from behave import *
 from selenium import webdriver
 ```
