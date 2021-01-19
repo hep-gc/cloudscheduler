@@ -32,8 +32,8 @@ CLOUD_ALIAS_KEYS = {
     # Named argument formats (anything else is a string).
     'auto_active_group': True,
     'format': {
-        'alias_name':          'lower',
-        'cloud_name':          'lower',
+        'alias_name':          'lowerdash',
+        'cloud_name':          'lowerdash',
         'cloud_option':        ['add', 'delete'],
         'csrfmiddlewaretoken': 'ignore',
         'group':               'ignore',
@@ -43,6 +43,9 @@ CLOUD_ALIAS_KEYS = {
         'alias_name',
     ],
     'array_fields': [
+        'cloud_name'
+    ],
+    'not_empty': [
         'cloud_name'
     ]
 }
@@ -80,12 +83,13 @@ def manage_cloud_aliases(config, tables, group_name, alias_name, clouds, option=
     # Retrieve the list of clouds the cloud alias already has.
     db_clouds = []
 
-    where_clause = "group_name='%s' and alias='%s'" % (group_name, alias_name)
+    where_clause = "group_name='%s' and alias_name='%s'" % (group_name, alias_name)
     rc, qmsg, _alias_list = config.db_query(table, where=where_clause)
 
     for row in _alias_list:
         db_clouds.append(row['cloud_name'])
 
+    print(db_clouds)
     if new_alias:
        if len(db_clouds) > 0:
           return 1, 'specified alias already exists.'

@@ -477,7 +477,7 @@ def image_poller():
                                 failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"]] = 1
                             else:
                                 failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"]] = failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"]] + 1
-                            if failure_dict[cloud_obj.["authurl"] + cloud_obj.["project"] + cloud_obj["region"]] > 3: #should be configurable
+                            if failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"]] > 3: #should be configurable
                                 logging.error("Failure threshhold limit reached for %s, manual action required, reporting cloud error" % grp_nm+cld_nm)
                                 config.incr_cloud_error(grp_nm, cld_nm)
                         continue
@@ -601,7 +601,7 @@ def image_poller():
                 config.db_commit()
                 # Expand failure dict for deletion schema (key needs to be grp+cloud)
                 where_clause = "cloud_type='openstack'"
-                rc, msg, cloud_list = db_session.query(CLOUD, where=where_clause)
+                rc, msg, cloud_list = config.db_query(CLOUD, where=where_clause)
                 new_f_dict = {}
                 logging.debug("Proccessing failure, failure_dict: %s" % failure_dict)
                 for cloud in cloud_list:
@@ -692,7 +692,7 @@ def keypair_poller():
 
                 abort_cycle = False
                 where_clause = "cloud_type='openstack'"
-                rc, msg, cloud_list = db_session.query(CLOUD, where=where_clause)
+                rc, msg, cloud_list = config.db_query(CLOUD, where=where_clause)
                 # build unique cloud list to only query a given cloud once per cycle
                 unique_cloud_dict = {}
                 for cloud in cloud_list:
@@ -800,7 +800,7 @@ def keypair_poller():
                 
                 # Expand failure dict for deletion schema (key needs to be grp+cloud)
                 where_clause = "cloud_type='openstack'"
-                rc, msg, cloud_list = db_session.query(CLOUD, where=where_clause)
+                rc, msg, cloud_list = config.db_query(CLOUD, where=where_clause)
                 new_f_dict = {}
                 for cloud in cloud_list:
                     key = cloud["authurl"] + cloud["project"] + cloud["region"]
@@ -819,7 +819,7 @@ def keypair_poller():
                         rows.append(row)
                 inventory_obsolete_database_items_delete(ikey_names, rows, inventory, new_poll_time, config, KEYPAIR)
 
-                config.db_session.rollback()
+                config.db_rollback()
 
                 if not os.path.exists(PID_FILE):
                     logging.info("Stop set, exiting...")
@@ -883,7 +883,7 @@ def limit_poller():
 
                 abort_cycle = False
                 where_clause = "cloud_type='openstack'"
-                rc, msg, cloud_list = db_session.query(CLOUD, where=where_clause)
+                rc, msg, cloud_list = config.db_query(CLOUD, where=where_clause)
                 uncommitted_updates = 0
 
                 # build unique cloud list to only query a given cloud once per cycle
@@ -996,7 +996,7 @@ def limit_poller():
                             break
                 # Expand failure dict for deletion schema (key needs to be grp+cloud)
                 where_clause = "cloud_type='openstack'"
-                rc, msg, cloud_list = db_session.query(CLOUD, where=where_clause)
+                rc, msg, cloud_list = config.db_query(CLOUD, where=where_clause)
                 new_f_dict = {}
                 for cloud in cloud_list:
                     key = cloud["authurl"] + cloud["project"] + cloud["region"]
@@ -1074,7 +1074,7 @@ def network_poller():
 
                 abort_cycle = False
                 where_clause = "cloud_type='openstack'"
-                rc, msg, cloud_list = db_session.query(CLOUD, where=where_clause)
+                rc, msg, cloud_list = config.db_query(CLOUD, where=where_clause)
 
                 # build unique cloud list to only query a given cloud once per cycle
                 unique_cloud_dict = {}
@@ -1185,12 +1185,12 @@ def network_poller():
                             break
 
                 if abort_cycle:
-                    config.db_session.rollback()
+                    config.db_rollback()
                     time.sleep(config.categories["openstackPoller.py"]["sleep_interval_network"])
                     continue
                 # Expand failure dict for deletion schema (key needs to be grp+cloud)
                 where_clause = "cloud_type='openstack'"
-                rc, msg, cloud_list = db_session.query(CLOUD, where=where_clause)
+                rc, msg, cloud_list = config.db_query(CLOUD, where=where_clause)
                 new_f_dict = {}
                 for cloud in cloud_list:
                     key = cloud["authurl"] + cloud["project"] + cloud["region"]
@@ -1272,7 +1272,7 @@ def security_group_poller():
 
                 abort_cycle = False
                 where_clause = "cloud_type='openstack'"
-                rc, msg, cloud_list = db_session.query(CLOUD, where=where_clause)
+                rc, msg, cloud_list = config.db_query(CLOUD, where=where_clause)
 
                 # build unique cloud list to only query a given cloud once per cycle
                 unique_cloud_dict = {}
@@ -1388,7 +1388,7 @@ def security_group_poller():
                     continue
                 # Expand failure dict for deletion schema (key needs to be grp+cloud)
                 where_clause = "cloud_type='openstack'"
-                cloud_list = db_session.query(CLOUD, where=where_clause)
+                cloud_list = config.db_query(CLOUD, where=where_clause)
                 new_f_dict = {}
                 for cloud in cloud_list:
                     key = cloud["authurl"] + cloud["project"] + cloud["region"]
@@ -1477,7 +1477,7 @@ def vm_poller():
             rc, msg, group_list = config.db_query(GROUP)
 
             where_clause = "cloud_type='openstack'"
-            cloud_list = db_session.query(CLOUD, where=where_clause)
+            cloud_list = config.db_query(CLOUD, where=where_clause)
 
             # build unique cloud list to only query a given cloud once per cycle
             unique_cloud_dict = {}
@@ -1499,7 +1499,7 @@ def vm_poller():
                 cloud_obj = unique_cloud_dict[cloud]['cloud_obj']
 
                 where_clause = "authurl='%s' and region='%s' and project='%s'" % (cloud_obj["authurl"], cloud_obj["region"], cloud_obj["project"])
-                rc, msg, foreign_vm_list = db_session.query(FVM, where=where_clause)
+                rc, msg, foreign_vm_list = config.db_query(FVM, where=where_clause)
 
                 #set foreign vm counts to zero as we will recalculate them as we go, any rows left at zero should be deleted
                 # dict[cloud+flavor]
@@ -1729,7 +1729,7 @@ def vm_poller():
 
 
             if abort_cycle:
-                config.db_session.rollback()
+                config.db_rollback()
                 time.sleep(config.categories["openstackPoller.py"]["sleep_interval_vm"])
                 continue
 
@@ -1826,7 +1826,7 @@ def defaults_replication():
                 grp_default_image_name = group["vm_image"]
                 enabled_clouds = []
                 where_clause = "group_name='%s' and cloud_type='openstack' and enabled=1 and communications_up=1" % group["group_name"]
-                rc, msg, cloud_list = db_session.query(CLOUDS, where=where_clause)
+                rc, msg, cloud_list = config.db_query(CLOUDS, where=where_clause)
                 for cld in cloud_list:
                     enabled_clouds.append(cld["cloud_name"])
                 for cloud in cloud_list:
@@ -1840,12 +1840,12 @@ def defaults_replication():
                         default_image_name = cloud["vm_image"]
                     if default_image_name is not None and not default_image_name == "":
                         where_clause = "group_name='%s' and cloud_name='%s' and name='%s'" % (group["group_name"], cloud["cloud_name"], default_image_name)
-                        rc, msg, images = db_session.query(IMAGES, where=where_clause)
+                        rc, msg, images = config.db_query(IMAGES, where=where_clause)
                         if len(images) == 0:
                             # gasp, image isn't there, lets queue up a transfer.
                             if src_image is None:
                                where_clause = "group_name='%s' and name='%s'" % (group["group_name"], default_image_name)
-                               image_candidates = db_session.query(IMAGES, where=where_clause)
+                               image_candidates = config.db_query(IMAGES, where=where_clause)
                                img_count = len(image_candidates)
                                if img_count == 0:
                                    #default image not defined
@@ -1876,7 +1876,7 @@ def defaults_replication():
 
                             #on second thought lets check to see we don't already have one queue'd up so we don't bombard the request queue
                             where_clause = "target_group_name='%s' and target_cloud_name='%s' and image_name='%s' and (status='pending' or status='error')" % (group["group_name"], cloud["cloud_name"], default_image_name)
-                            pending_xfers = db_session.query(IMAGE_TX, where=where_clause)
+                            pending_xfers = config.db_query(IMAGE_TX, where=where_clause)
                             if pending_xfers.count() > 0:
                                 logging.info("Default image (%s) transfer already queued for cloud: %s... skipping" % (default_image_name, cloud["cloud_name"]))
                                 continue
@@ -1975,7 +1975,7 @@ if __name__ == '__main__':
         'vm':                    vm_poller,
         'security_group_poller': security_group_poller
     }
-    db_categories = [os.path.basename(sys.argv[0]), "general", "signal_manager", "ProcessMonitor"]
+    db_categories = [os.path.basename(sys.argv[0]), "openstackPoller.py "general", "signal_manager", "ProcessMonitor"]
 
     procMon = ProcessMonitor(config_params=db_categories, pool_size=3, process_ids=process_ids)
     config = procMon.get_config()

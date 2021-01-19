@@ -34,7 +34,7 @@ GROUP_KEYS = {
     'auto_active_group': False,
     # Named argument formats (anything else is a string).
     'format': {
-        'group_name':                                 'lower',
+        'group_name':                                 'lowerdash',
         'csrfmiddlewaretoken':                        'ignore',
         'group':                                      'ignore',
         'htcondor_fqdn':                              'fqdn,htcondor_host_id',
@@ -93,7 +93,7 @@ METADATA_KEYS = {
         'enabled':                                    'dboolean',
         'priority':                                   'integer',
         'metadata':                                   'metadata',
-        'metadata_name':                              'lower',
+        'metadata_name':                              'lowerdash',
         'mime_type':                                  ('csv2_mime_types', 'mime_type'),
 
         'csrfmiddlewaretoken':                        'ignore',
@@ -796,7 +796,7 @@ def metadata_fetch(request, response_code=0, message=None, metadata_name=None):
                 return render(request, 'csv2/meta_editor.html', context)
         
         config.db_close()
-        return render(request, 'csv2/blank_msg.html', {'response_code': 1, 'message': 'group metadata_fetch, file "%s::%s" does not exist.' % (active_user.active_group, active_user.kwargs['metadata_name'])})
+        return render(request, 'csv2/blank_msg.html', {'response_code': 1, 'message': 'group metadata_fetch, file "%s::%s" does not exist.' % (active_user.active_group, metadata_name)})
 
     config.db_close()
     return render(request, 'csv2/blank_msg.html', {'response_code': 1, 'message': 'group metadata_fetch, metadata file name omitted.'})
@@ -950,11 +950,11 @@ def metadata_update(request):
         # Update the group metadata file.
         table = 'csv2_group_metadata'
         updates = table_fields(fields, table, columns, 'update')
-        if len(updates) < 1:
+        if len(updates) < 3: #updates always have to have the keys so (name & group) so unless there is 3 fields there is no update to do.
             config.db_close()
             return render(request, 'csv2/blank_msg.html', {'response_code': 1, 'message': '%s group metadata-update "%s::%s" specified no fields to update and was ignored.' % (lno(MODID), active_user.active_group, fields['metadata_name'])})
 
-        where_clause = "group_name='%s' and metadata_name='%s'" % (active_user.active_group, fields['metadata_name'])
+        where_clause = 'group_name="%s" and metadata_name="%s"' % (active_user.active_group, fields['metadata_name'])
         rc, msg = config.db_update(table, updates, where=where_clause)
         if rc == 0:
             config.db_close(commit=True)
@@ -1038,8 +1038,9 @@ def update(request):
         table = 'csv2_groups'
         group_updates = table_fields(fields, table, columns, 'update')
 
-        if len(group_updates) > 0:
-            where_clause = "group_name='%s'" % fields['group_name']
+        # group_updates should always have the group name so it should have > 1 updates for there to actually be a change
+        if len(group_updates) > 1:
+            where_clause = 'group_name="%s"' % fields['group_name']
             rc, msg = config.db_update(table, group_updates, where=where_clause)
             if rc != 0:
                 config.db_close()
@@ -1066,7 +1067,7 @@ def update(request):
 
         if rc == 0:
             # Commit the updates, configure firewall and return.
-            config.db_session.commit()
+            config.db_commit()
             configure_fw(config)
             config.db_close()
             return group_list(request, active_user=active_user, response_code=0, message='group "%s" successfully updated.' % (fields['group_name']))

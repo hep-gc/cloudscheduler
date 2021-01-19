@@ -47,7 +47,7 @@ CLOUD_KEYS = {
     'auto_active_group': True,
     # Named argument formats (anything else is a string).
     'format': {
-        'cloud_name':                           'lower',
+        'cloud_name':                           'lowerdash',
         'cloud_type':                           ('csv2_cloud_types', 'cloud_type'),
         'enabled':                              'dboolean',
         'priority':                             'integer',
@@ -112,11 +112,11 @@ METADATA_KEYS = {
     'auto_active_group': True,
     # Named argument formats (anything else is a string).
     'format': {
-        'cloud_name':                           'lower',
+        'cloud_name':                           'lowerdash',
         'enabled':                              'dboolean',
         'priority':                             'integer',
         'metadata':                             'metadata',
-        'metadata_name':                        'lower',
+        'metadata_name':                        'lowerdash',
         'mime_type':                            ('csv2_mime_types', 'mime_type'),
 
         'csrfmiddlewaretoken':                  'ignore',
@@ -127,6 +127,7 @@ METADATA_KEYS = {
         'metadata_name',
         ],
     'not_empty': [
+        'cloud_name',
         'metadata_name',
         ]
     }
@@ -275,7 +276,7 @@ def manage_cloud_flavor_exclusions(config, tables, active_group, cloud_name, fla
     # Retrieve the list of flavor exclusions the cloud already has.
     exclusions=[]
     
-    where_clause = "group_name='%s' and cloud_name='%s" % (active_group, cloud_name)
+    where_clause = "group_name='%s' and cloud_name='%s'" % (active_group, cloud_name)
     rc, msg, exclusion_list = config.db_query(table, where=where_clause)
 
     for row in exclusion_list:
@@ -448,7 +449,7 @@ def manage_group_metadata_verification(config, tables, active_group, cloud_names
         # Get the list of valid metadata names.
         table = 'csv2_group_metadata'
         where_clause="group_name='%s'" % active_group
-        rc, msg, metadata_list = config.db_query(table, where_clause)
+        rc, msg, metadata_list = config.db_query(table, where=where_clause)
 
         valid_metadata = {}
         for row in metadata_list:
@@ -457,6 +458,10 @@ def manage_group_metadata_verification(config, tables, active_group, cloud_names
         # Check the list of specified metadata names.
         for metadata_name in metadata_name_list:
             if metadata_name not in valid_metadata:
+                print("~~~~~~~~~~")
+                print(metadata_name)
+                print(metadata_list)
+                print(valid_metadata)
                 return 1, 'specified metadata_name "%s" does not exist' % metadata_name
             elif valid_metadata[metadata_name]:
                 return 1, 'metadata name "%s" was specified twice' % metadata_name
@@ -1547,7 +1552,7 @@ def status(request, group_name=None):
             table = "view_job_status_by_target_alias"
         else:
             table = "view_job_status"
-        where_clause = "group_name='%s" % active_user.active_group
+        where_clause = "group_name='%s'" % active_user.active_group
         rc, msg, job_status_list = config.db_query(table, where=where_clause)
 
     # Get GSI configuration variables.
@@ -1848,7 +1853,8 @@ def update(request):
                     return list(request, active_user=active_user, response_code=1, message='%s cloud update "%s::%s" failed - %s.' % (lno(MODID), fields['group_name'], fields['cloud_name'], msg))
 
         config.db_commit()
-        if updates > 0:
+        # updates must always contain at least the keys so if there isnt more than 2 there is nothing to actually update
+        if updates > 2:
             if 'cloud_type' in fields:
                 cloud_type = fields['cloud_type']
             else:

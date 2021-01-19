@@ -1272,7 +1272,7 @@ def validate_fields(config, request, fields, tables, active_user):
                         options = Formats[field]
 
                     good_value = True
-                    #print("Good value: F:%s, O:%s" % (Formats[field][1], options))
+                    print("Good value: F:%s, O:%s" % (Formats[field][1], options))
 
                     if isinstance(Formats[field], tuple) and len(Formats[field]) > 2 and Formats[field][2]:
                         if len(Formats[field]) > 3 and Formats[field][3] and value == '':
@@ -1392,7 +1392,7 @@ def validate_fields(config, request, fields, tables, active_user):
                             current_hostname = socket.gethostbyname(value)
                             if len(words) > 1:
                                 Fields[words[1]] = int(ipaddress.IPv4Address(current_hostname))
-                        except:
+                        except Exception as exc:
                             return 1, 'The value specified for %s (%s) is not a valid FQDN.' % (field, value), None, None, None
 
                 elif Formats[field] == 'dboolean':
@@ -1417,7 +1417,9 @@ def validate_fields(config, request, fields, tables, active_user):
                         return 1, 'value specified for "%s" must be an integer value.' % field, None, None, None
 
                 elif Formats[field] == 'lowerdash':
-                    if re.fullmatch("^(?!-)[a-z0-9.:,-]*(?<!-)$", request.POST[field]):
+                    if value == '' and field not in AllowEmpty:
+                        return 1, 'value specified for "%s" must not be the empty string.' % field, None, None, None
+                    if re.fullmatch("^(?!-)(?!.*--)[a-z0-9.:,-]*(?<!-)$", request.POST[field]):
                         value = request.POST[field]
                     else:
                         return 1, 'value specified for "%s" must be all lower case, numeric digits, and dashes but cannot start or end with dashes.' % field, None, None, None
@@ -1539,7 +1541,7 @@ def validate_fields(config, request, fields, tables, active_user):
 
         for field in NotEmpty:
             if field in request.POST:
-                if Fields[field] == '':
+                if Fields[field] == '' or Fields[field] is None:
                     return 1, 'parameter "%s" contains an empty string which is specifically disallowed.' % field, None, None, None
             #else:
             #    return 1, 'request did not contain mandatory (but not empty) parameter "%s".' % field, None, None, None
