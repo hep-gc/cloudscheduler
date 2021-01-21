@@ -5,11 +5,12 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
 class TestWebGroup(unittest.TestCase):
-    "A class to test group operations via the web interface."""
+    """A class to test group operations via the web interface."""
 
     @classmethod
     def setUpClass(cls):
-        cls.driver = webdriver.Firefox(webdriver.FirefoxProfile("/root/.mozilla/firefox/51zyh7r1.elisabethklassen-test"))
+        #cls.driver = webdriver.Firefox(webdriver.FirefoxProfile("/root/.mozilla/firefox/51zyh7r1.elisabethklassen-test"))
+        cls.driver = webdriver.Firefox(webdriver.FirefoxProfile("/root/.mozilla/firefox/qc3upchf.eklassen-wiu1/"))
         cls.driver.get("https://csv2-dev.heprc.uvic.ca")
         cls.alert = cls.driver.switch_to.alert
         cls.alert.accept()
