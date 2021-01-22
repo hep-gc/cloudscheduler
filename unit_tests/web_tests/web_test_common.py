@@ -8,3 +8,17 @@ def click_nav_button(driver, text):
         EC.element_to_be_clickable((By.LINK_TEXT, text)))
     nav_button = driver.find_element_by_link_text(text)
     nav_button.click()
+
+def fill_blank(driver, id, text):
+    WebDriverWait(driver, 20).until(
+        EC.element_to_be_clickable((By.ID, id)))
+    form = driver.find_element_by_id(id)
+    form.clear()
+    form.send_keys(text)
+
+def click_by_value(driver, text):
+    xpath = "//form[input/@value='" + text + "']"
+    WebDriverWait(driver, 20).until(
+        EC.element_to_be_clickable((By.XPATH, xpath)))
+    box = driver.find_element_by_xpath(xpath)
+    box.click()
