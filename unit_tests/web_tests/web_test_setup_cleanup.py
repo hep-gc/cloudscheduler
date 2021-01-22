@@ -7,6 +7,8 @@ import subprocess
 # unittest framework
 
 def setup():
+    print('Unittest setup:')
+
     #TODO: set this up to not error if objects do not exist
     cleanup()
 
@@ -30,11 +32,13 @@ def setup():
     for i in range(0, 3):
         subprocess.run(['cloudscheduler', 'user', 'add', '-un', users[i], '-upw', gvar['user_secret'], *flags[i]])
 
+    return gvar
+
 def cleanup():
     gvar = load_settings(web=True)
     
     delete_by_type(gvar, ['user', '-wiu', '-un'], 3)
-    delete_by_type(gvar, ['group', '-wig', '-gn'], 4)
+    delete_by_type(gvar, ['group', '-wig', '-gn'], 6)
 
 def delete_by_type(gvar, type_info, number):
     # type_info is a list of strings
