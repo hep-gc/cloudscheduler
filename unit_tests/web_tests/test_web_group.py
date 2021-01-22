@@ -16,9 +16,9 @@ class TestWebGroup(unittest.TestCase):
         cls.alert.accept()
 
     def test_web_group_0001(self):
-        WebDriverWait(TestWebGroup.driver, 20).until(EC.element_to_be_clickable((By.LINK_TEXT, "Status")))
-        self.status_button = TestWebGroup.driver.find_element_by_link_text('Status')
-        self.status_button.click()
+        WebDriverWait(TestWebGroup.driver, 20).until(EC.element_to_be_clickable((By.LINK_TEXT, "Groups")))
+        self.groups_button = TestWebGroup.driver.find_element_by_link_text('Groups')
+        self.groups_button.click()
 
     @classmethod
     def tearDownClass(cls):
