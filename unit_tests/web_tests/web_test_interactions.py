@@ -18,7 +18,11 @@ def fill_blank(driver, id, text):
 
 def click_by_value(driver, text):
     xpath = "//form[input/@value='" + text + "']"
-    WebDriverWait(driver, 20).until(
-        EC.element_to_be_clickable((By.XPATH, xpath)))
+    #WebDriverWait(driver, 20).until(
+    #    EC.element_to_be_clickable((By.XPATH, xpath)))
     box = driver.find_element_by_xpath(xpath)
     box.click()
+
+def javascript_click(driver, element):
+    # wrapper function for clicking the item via JavaScript
+    driver.execute_script("arguments[0].click();", element)
