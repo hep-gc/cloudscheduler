@@ -11,13 +11,23 @@ class TestWebGroup(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.gvar = wtsc.setup()
-        print(cls.gvar['firefox_profiles'][1])
-        cls.driver = webdriver.Firefox(webdriver.FirefoxProfile(cls.gvar['firefox_profiles'][1]))
-        cls.driver.get("https://csv2-dev.heprc.uvic.ca")
-        cls.alert = cls.driver.switch_to.alert
-        cls.alert.accept()
-        print("Group Tests:")
+        # Try/except block here ensures that cleanups will occur even on
+        # setup error. If we update to python 3.8 or later, the unittest
+        # addClassCleanup() and doClassCleanups() methods are a better way
+        # of handling this
+        try:
+            cls.gvar = wtsc.setup()
+            cls.driver = webdriver.Firefox(webdriver.FirefoxProfile(cls.gvar['firefox_profiles'][1]))
+            cls.driver.get("https://csv2-dev.heprc.uvic.ca")
+            cls.alert = cls.driver.switch_to.alert
+            cls.alert.accept()
+            print("Group Tests:")
+        except:
+            if hasattr(cls, 'driver') and cls.driver is not None:
+                cls.driver.quit()
+                print("Quitting driver")
+            wtsc.cleanup()
+            raise
 
     def test_web_group_find(self):
         wti.click_nav_button(TestWebGroup.driver, 'Groups')
@@ -25,7 +35,7 @@ class TestWebGroup(unittest.TestCase):
     def test_web_group_add_checkbox(self):
         wti.click_nav_button(TestWebGroup.driver, 'Groups')
         wti.click_nav_button(TestWebGroup.driver, '+')
-        wti.fill_blank(TestWebGroup.driver, "new_group", TestWebGroup.gvar['user'] + 'wig5')
+        wti.fill_blank(TestWebGroup.driver, "new_group", TestWebGroup.gvar['user'] + '-wig5')
         wti.click_by_value(TestWebGroup.driver, TestWebGroup.gvar['user'] + '-wiu2')
         TestWebGroup.driver.find_element_by_id("new_group").submit()
         wti.click_by_value(TestWebGroup.driver, "Add Group")
@@ -46,6 +56,7 @@ class TestWebGroup(unittest.TestCase):
     def tearDownClass(cls):
         cls.driver.quit()
         print("Unittest Teardown:")
+        wtsc.cleanup()
 
 if __name__ == "__main__":
     unittest.main()

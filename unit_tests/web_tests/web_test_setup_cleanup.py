@@ -9,10 +9,11 @@ import subprocess
 def setup():
     print('Unittest setup:')
 
-    #TODO: set this up to not error if objects do not exist
     cleanup()
 
     gvar = load_settings(web=True)
+
+    #detailed descriptions of the test data is in the web_tests README
 
     #add groups
     groups = []
@@ -37,19 +38,38 @@ def setup():
 def cleanup():
     gvar = load_settings(web=True)
     
-    delete_by_type(gvar, ['user', '-wiu', '-un'], 3)
-    delete_by_type(gvar, ['group', '-wig', '-gn'], 6)
+    delete_by_type(gvar, ['user', '-wiu', '-un', 'username'], 3)
+    delete_by_type(gvar, ['group', '-wig', '-gn', 'group_name'], 6)
 
 def delete_by_type(gvar, type_info, number):
     # type_info is a list of strings
     # The first string is the name of the object to be deleted (ex 'user')
     # The second string is the suffix used to generate the names of the test objects (ex '-wiu')
     # The third string is the flag used to indicate this identifier (ex '-un')
+    # The fourth string is the column name for the list command (ex 'username')
 
     objects = []
+    object_log = None
+    object_list = []
+
+    try:
+        object_log = open('objects.txt', mode = 'x')
+    except FileExistsError:
+        object_log = open('objects.txt', mode = 'w') 
     
+    subprocess.run(['cloudscheduler', type_info[0], 'list', '-CSV', type_info[3]], stdout=object_log)
+    
+    object_log.close()
+    object_log = open('objects.txt', mode = 'r')
+
+    for line in object_log:
+        object_list.append(line.strip())
+
     for i in range(1, number+1):
         objects.append(gvar['user'] + type_info[1] + str(i))
     
     for object in objects:
-        subprocess.run(['cloudscheduler', type_info[0], 'delete', type_info[2], object, '-Y'])
+        if object in object_list:
+            subprocess.run(['cloudscheduler', type_info[0], 'delete', type_info[2], object, '-Y'])
+
+    object_log.close()
