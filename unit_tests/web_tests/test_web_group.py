@@ -52,6 +52,7 @@ class TestWebGroup(unittest.TestCase):
             EC.presence_of_element_located((By.LINK_TEXT, TestWebGroup.gvar['user'] + '-wig6'))))
 
 
+    # TODO: clean up as part of tearDown
     @classmethod
     def tearDownClass(cls):
         cls.driver.quit()
