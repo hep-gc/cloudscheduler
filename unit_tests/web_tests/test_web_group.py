@@ -11,23 +11,8 @@ class TestWebGroup(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        # Try/except block here ensures that cleanups will occur even on
-        # setup error. If we update to python 3.8 or later, the unittest
-        # addClassCleanup() and doClassCleanups() methods are a better way
-        # of handling this
-        try:
-            cls.gvar = wtsc.setup()
-            cls.driver = webdriver.Firefox(webdriver.FirefoxProfile(cls.gvar['firefox_profiles'][1]))
-            cls.driver.get("https://csv2-dev.heprc.uvic.ca")
-            cls.alert = cls.driver.switch_to.alert
-            cls.alert.accept()
-            print("Group Tests:")
-        except:
-            if hasattr(cls, 'driver') and cls.driver is not None:
-                cls.driver.quit()
-                print("Quitting driver")
-            wtsc.cleanup()
-            raise
+        wtsc.setup(cls)
+        print("Group Tests:")
 
     def test_web_group_find(self):
         wti.click_nav_button(TestWebGroup.driver, 'Groups')
@@ -52,12 +37,10 @@ class TestWebGroup(unittest.TestCase):
             EC.presence_of_element_located((By.LINK_TEXT, TestWebGroup.gvar['user'] + '-wig6'))))
 
 
-    # TODO: clean up as part of tearDown
     @classmethod
     def tearDownClass(cls):
-        cls.driver.quit()
         print("Unittest Teardown:")
-        wtsc.cleanup()
+        wtsc.cleanup(cls)
 
 if __name__ == "__main__":
     unittest.main()

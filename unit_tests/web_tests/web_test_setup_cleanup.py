@@ -6,10 +6,25 @@ import subprocess
 # between test runners and to allow tests to be run individually with the
 # unittest framework
 
-def setup():
+def setup(cls):
+    # Try/except block here ensures that cleanups will occur even on setup
+    # error. If we update to python 3.8 or later, the unittest
+    # addClassCleanup() is a better way of handling this.
+    try:
+        cls.gvar = setup_objects()
+        cls.driver = webdriver.Firefox(webdriver.FirefoxProfile(cls.gvar['firefox_profiles'][1]))
+        cls.driver.get("https://csv2-dev.heprc.uvic.ca")
+        cls.alert = cls.driver.switch_to.alert
+        cls.alert.accept()
+    except:
+        print("Error in test setup")
+        cleanup(cls)
+        raise
+
+def setup_objects():
     print('Unittest setup:')
 
-    cleanup()
+    cleanup_objects()
 
     gvar = load_settings(web=True)
 
@@ -35,7 +50,12 @@ def setup():
 
     return gvar
 
-def cleanup():
+def cleanup(cls):
+    if hasattr(cls, 'driver') and cls.driver is not None:
+        cls.driver.quit()
+    cleanup_objects()
+
+def cleanup_objects():
     gvar = load_settings(web=True)
     
     delete_by_type(gvar, ['user', '-wiu', '-un', 'username'], 3)
