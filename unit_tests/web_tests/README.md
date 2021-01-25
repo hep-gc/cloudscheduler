@@ -4,14 +4,16 @@ This document contains details of how to set up, write, and run the web tests.
 
 ## Setup
 
-Each user you plan to use in the tests must have a Firefox profile. Currently, the only way to do this is by manually creating a new Firefox profile at `about:profiles`, switching to that profile, logging into cloudscheduler manually with that user's credentials, and then saving them, although ideally, there will soon be a script to do this as part of the setup. These profiles should be added to the `settings.yaml` file like so:
+Each user you plan to use in the tests must have a Firefox profile, in order to deal with a Selenium issue around username/password popups. In order to make these, go into the python interpreter and run the `setup()` function from `web_test_setup_cleanup`. Then, create a new Firefox profile at `about:profiles`, switch to that profile, log into cloudscheduler manually with that user's credentials, and save them. These profiles should be added to the `settings.yaml` file like so:
 
 ```yaml
 firefox_profiles:
 - root/.mozilla/firefox/<profile_name>
 ```
 
-The credentials added should be `{user}-wiu1`, `{user}-wiu2`, and `{user}-wiu3`, and all of them should have the password `user_secret`.
+Currently, the credentials added should be `{user}-wiu1`, `{user}-wiu2`, and `{user}-wiu3`, and all of them should have the password `user_secret`.
+
+Ideally, there will be a script to do this eventually, but as Firefox currently does not seem to recognize passwords input into the `about:logins` page, this isn't currently feasible.
 
 ## Adding Tests
 
@@ -25,16 +27,50 @@ New tests should be named starting with `test_web_` (although this is not a brea
 
 New tests should additionally follow all rules for Unittest test classes, as they are run using the Unittest framework.
 
-New test classes should include the `web_tests_setup_cleanup` module and call the `setup()` function as part of the setup. `setup()` currently automatically deletes all old test setups when run. The `cleanup()` function also exists - currently, its only purpose is to be run from the Python interpreter to manually clean the test objects from the database, although it is likely going to become a part of the `tearDown()` function.
+New test classes should include the `web_test_setup_cleanup` module and call the `setup()` function as part of the setup. `setup()` currently automatically deletes all old test setups when run (via calling the `cleanup()` function). The `cleanup()` is also called as part of the teardown. Neither function will attempt to delete any object it cannot find.
 
-Common functions are stored in files starting with `web_tests_`. These files can be included as needed in any `test_web` files (and probably should be for a majority of them). New files containing common functions should continue this convention (although this is, again, not a breaking requirement).
+Common functions are stored in files starting with `web_test_`. These files can be included as needed in any `test_web` files (and probably should be for a majority of them). New files containing common functions should continue this convention (although this is, again, not a breaking requirement).
 
 ## Writing Tests
 
-The `cls.gvar` variable, which should be assigned the return value of `web_tests_setup_cleanup.setup()`, contains server and user information read from various `.yaml` configuration files. This includes the locations of the firefox profiles and the user credentials for the sample users.
+The `cls.gvar` variable, which is assigned in `web_test_setup_cleanup.setup()`, contains server and user information read from various `.yaml` configuration files. This includes the locations of the firefox profiles and the user credentials for the sample users.
 
 ## Running Tests
 
 The web tests do run with the `run_tests` script in the `unit_tests` folder. However, because failure and error numbers are not surfaced by `unittest`, the script does not add the numbers for the web tests to its error tallies.
 
 Web tests can be run using `./run_tests web` in the `unit_tests` folder, or using `python3 -m unittest` in the `web_tests` folder. For compatibility with the other unit tests, the first approach is recommended, as other unit tests can then be run simultaneously. One can also run a particular class directly using `python3 <filename>.py` or `python3 -m unittest <filename>.ClassName`. Individual tests can be run with `python3 -m unittest <filename>.ClassName.test_name`.
+
+## Debugging Tests
+
+Occasionally, Geckodriver has an issue where it is unable to click on an element that should be clickable and will give an exception liek so:
+
+```
+selenium.common.exceptions.ElementNotInteractableException: Message: Element <element> could not be scrolled into view
+```
+
+The `web_test_interactions.javascript_click()`, which is a wrapper for executing a click directly in JavaScript, should be used in place of `.click()` in these cases. Please note that this method is not interchangable with `.click()` - it is called differently, and the code should be modified accordingly.
+
+To create the test fixtures to manually inspect the tests, the `.setup_objects()` and `.cleanup_objects()` functions from the `web_test_setup_cleanup` module should be used. The `setup()` and `cleanup()` functions do the driver setup as well.
+
+## Test Profiles
+
+The tests have a set of automatically-created objects, created in the `web_test_setup_cleanup.setup()` function. If adding to these, it is important to rename any tests that used that suffix (typically `add` tests).
+
+### Users
+
+`{user}-wiu1` is a standard user. They are in the `{user}-wig1` group.
+
+`{user}-wiu2` is a super user. They are in the `{user}-wig2` group.
+
+`{user}-wiu3` is a standard user. They are not in any groups.
+
+### Groups
+
+`{user}-wig1` contains the `{user}-wiu1` user.
+
+`{user}-wig2` contains the `{user}-wiu2` user.
+
+`{user}-wig3` contains no users.
+
+`{user}-wig4` contains no users. It is a group for delete tests.
