@@ -3,7 +3,7 @@ from keystoneauth1 import session
 from keystoneauth1 import exceptions
 from novaclient import client as novaclient
 
-from cloudscheduler.lib.db_config_na import Config
+from cloudscheduler.lib.db_config import Config
 config = Config('/etc/cloudscheduler/cloudscheduler.yaml', 'web_frontend', pool_size=2, max_overflow=10)
 
 

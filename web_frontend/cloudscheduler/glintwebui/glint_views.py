@@ -15,7 +15,7 @@ from django.core.exceptions import PermissionDenied
 
 from .glint_utils import get_openstack_session, get_glance_client, delete_image, check_cache, generate_tx_id, get_image, download_image, upload_image
 
-from cloudscheduler.lib.view_utils_na import \
+from cloudscheduler.lib.view_utils import \
     render, \
     lno, \
     qt, \
