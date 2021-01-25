@@ -22,7 +22,7 @@ def setup(cls):
         raise
 
 def setup_objects():
-    print('Unittest setup:')
+    print('\nUnittest setup:')
 
     cleanup_objects()
 
@@ -51,6 +51,7 @@ def setup_objects():
     return gvar
 
 def cleanup(cls):
+    print("\nUnittest Teardown:")
     if hasattr(cls, 'driver') and cls.driver is not None:
         cls.driver.quit()
     cleanup_objects()

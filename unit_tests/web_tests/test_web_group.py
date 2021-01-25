@@ -12,7 +12,7 @@ class TestWebGroup(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         wtsc.setup(cls)
-        print("Group Tests:")
+        print("\nGroup Tests:")
 
     def test_web_group_find(self):
         wti.click_nav_button(TestWebGroup.driver, 'Groups')
@@ -36,6 +36,24 @@ class TestWebGroup(unittest.TestCase):
         self.assertTrue(WebDriverWait(TestWebGroup.driver, 20).until(
             EC.presence_of_element_located((By.LINK_TEXT, TestWebGroup.gvar['user'] + '-wig6'))))
 
+    def test_web_group_delete(self):
+        group_name = TestWebGroup.gvar['user'] + '-wig4'
+        wti.click_nav_button(TestWebGroup.driver, 'Groups')
+        wti.click_nav_button(TestWebGroup.driver, group_name)
+        wti.click_nav_button(TestWebGroup.driver, '-')
+        TestWebGroup.find_element_by_name(group_name).submit()
+
+    def test_web_group_user_add_search_bar(self):
+        group_name = TestWebGroup.gvar['user'] + '-wig1'
+        wti.click_nav_button(TestWebGroup.driver, 'Groups')
+        wti.click_nav_button(TestWebGroup.driver, group_name)
+        wti.fill_blank(TestWebGroup.driver, 'search-users-' + group_name, TestWebGroup.gvar['user'] + '-wig2')
+
+    def test_web_group_user_add_checkbox(self):
+        self.skipTest("TODO: implement")
+
+    def test_web_group_user_remove(self):
+        self.skipTest("TODO: implement")
 
     @classmethod
     def tearDownClass(cls):
