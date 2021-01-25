@@ -9,16 +9,16 @@ import datetime
 from dateutil import tz
 import copy
 
-from cloudscheduler.lib.attribute_mapper_na import map_attributes
-from cloudscheduler.lib.db_config_na import Config
-from cloudscheduler.lib.ProcessMonitor_na import ProcessMonitor, terminate, check_pid
+from cloudscheduler.lib.attribute_mapper import map_attributes
+from cloudscheduler.lib.db_config import Config
+from cloudscheduler.lib.ProcessMonitor import ProcessMonitor, terminate, check_pid
 from cloudscheduler.lib.schema import view_vm_kill_retire_over_quota
 from cloudscheduler.lib.view_utils import kill_retire
 from cloudscheduler.lib.log_tools import get_frame_info
 from cloudscheduler.lib.view_utils import qt, verify_cloud_credentials 
 from cloudscheduler.lib.html_tables_to_dictionary import get_html_tables
 
-from cloudscheduler.lib.poller_functions_na import \
+from cloudscheduler.lib.poller_functions import \
     inventory_cleanup, \
     inventory_obsolete_database_items_delete, \
     inventory_get_item_hash_from_db_query_rows, \

@@ -1,9 +1,10 @@
 from django.core.exceptions import PermissionDenied
 
 import time
-from sqlalchemy.orm.session import make_transient
-
 import boto3
+
+
+from cloudscheduler.lib.schema_na import *
 
 from keystoneclient.auth.identity import v2, v3
 from keystoneauth1 import session as keystone
@@ -94,7 +95,6 @@ def diff_lists(list1,list2, option=None):
 #-------------------------------------------------------------------------------
 
 def kill_retire(config, group_name, cloud_name, option, count, updater_str):
-    from cloudscheduler.lib.schema import view_vm_kill_retire_priority_age, view_vm_kill_retire_priority_idle
 
 #   print(">>>>>>>>>>>>>>>>>>>>>", group_name, cloud_name, option, count, updater_str)
 
@@ -116,12 +116,9 @@ def kill_retire(config, group_name, cloud_name, option, count, updater_str):
         else:
             ram_max = 999999999999
 
-        s = 'set @cores=0; set @ram=0; create or replace temporary table kill_retire_priority_list as select * from (select *,(@cores:=@cores+flavor_cores) as cores,(@ram:=@ram+flavor_ram) as ram from view_vm_kill_retire_priority_idle where group_name="%s" and cloud_name="%s" and killed<1 and retired<1 order by priority asc) as kpl where cores>%s or ram>%s;' % (group_name, cloud_name, core_max, ram_max)
-#       s = 'set @cores=0; set @ram=0; create or replace table kill_retire_priority_list as select * from (select *,(@cores:=@cores+flavor_cores) as cores,(@ram:=@ram+flavor_ram) as ram from view_vm_kill_retire_priority_idle where group_name="%s" and cloud_name="%s" and killed<1 and retired<1 order by priority asc) as kpl where cores>%s or ram>%s;' % (group_name, cloud_name, core_max, ram_max)
-        config.db_connection.execute(s)
-#       config.db_connection.execute('update csv2_vms as cv left outer join (select * from kill_retire_priority_list) as kpl on cv.vmid=kpl.vmid set terminate=1, updater="%s" where kpl.machine is null;' % updater_str)
-#       config.db_connection.execute('update csv2_vms as cv left outer join (select * from kill_retire_priority_list) as kpl on cv.vmid=kpl.vmid set retire=1, updater="%s" where kpl.machine is not null;' % updater_str)
-        config.db_connection.execute('update csv2_vms as cv left outer join (select * from kill_retire_priority_list) as kpl on cv.vmid=kpl.vmid set retire=1, updater="%s:r1" where kpl.vmid is not null;' % updater_str)
+        s = 'set @cores=0; set @ram=0; create or replace temporary table kill_retire_priority_list as select * from (select *,(@cores:=@cores+flavor_cores) as cores,(@ram:=@ram+flavor_ram) as ram from view_vm_kill_retire_priority_idle where group_name="%s" and cloud_name="%s" and killed<1 and retired<1 order by priority asc) as kpl where cores>%s or ram>%s' % (group_name, cloud_name, core_max, ram_max)
+        config.db_execute(s, multi=True)
+        config.db_execute('update csv2_vms as cv left outer join (select * from kill_retire_priority_list) as kpl on cv.vmid=kpl.vmid set retire=1, updater="%s:r1" where kpl.vmid is not null' % updater_str)
     
     # Process "kill N".
     elif option == 'kill':
@@ -129,12 +126,12 @@ def kill_retire(config, group_name, cloud_name, option, count, updater_str):
            print("Updater string empty, assigning default value.")
            updater_str = "kill_retire"
         if cloud_name == '-':
-            s = 'create or replace temporary table kill_retire_priority_list as select * from view_vm_kill_retire_priority_idle where group_name="%s" and killed<1 order by priority desc limit %s;' % (group_name, count)
+            s = 'create or replace temporary table kill_retire_priority_list as select * from view_vm_kill_retire_priority_idle where group_name="%s" and killed<1 order by priority desc limit %s' % (group_name, count)
         else:
-            s = 'create or replace temporary table kill_retire_priority_list as select * from view_vm_kill_retire_priority_idle where group_name="%s" and cloud_name="%s" and killed<1 order by priority desc limit %s;' % (group_name, cloud_name, count)
+            s = 'create or replace temporary table kill_retire_priority_list as select * from view_vm_kill_retire_priority_idle where group_name="%s" and cloud_name="%s" and killed<1 order by priority desc limit %s' % (group_name, cloud_name, count)
 
-        config.db_connection.execute(s)
-        config.db_connection.execute('update csv2_vms as cv left outer join (select * from kill_retire_priority_list) as kpl on cv.vmid=kpl.vmid set terminate=2, updater="%s:t2" where kpl.vmid is not null;' % updater_str)
+        config.db_execute(s)
+        config.db_execute('update csv2_vms as cv left outer join (select * from kill_retire_priority_list) as kpl on cv.vmid=kpl.vmid set terminate=2, updater="%s:t2" where kpl.vmid is not null' % updater_str)
 
     # Process "retire N".
     elif option == 'retire':
@@ -142,12 +139,12 @@ def kill_retire(config, group_name, cloud_name, option, count, updater_str):
            print("Updater string empty, assigning default value.")
            updater_str = "kill_retire"
         if cloud_name == '-':
-            s = 'create or replace temporary table kill_retire_priority_list as select * from view_vm_kill_retire_priority_age where group_name="%s" and machine is not null and killed<1 and retired<1 order by priority desc limit %s;' % (group_name, count)
+            s = 'create or replace temporary table kill_retire_priority_list as select * from view_vm_kill_retire_priority_age where group_name="%s" and machine is not null and killed<1 and retired<1 order by priority desc limit %s' % (group_name, count)
         else:
-            s = 'create or replace temporary table kill_retire_priority_list as select * from view_vm_kill_retire_priority_age where group_name="%s" and cloud_name="%s" and machine is not null and killed<1 and retired<1 order by priority desc limit %s;' % (group_name, cloud_name, count)
+            s = 'create or replace temporary table kill_retire_priority_list as select * from view_vm_kill_retire_priority_age where group_name="%s" and cloud_name="%s" and machine is not null and killed<1 and retired<1 order by priority desc limit %s' % (group_name, cloud_name, count)
 
-        config.db_connection.execute(s)
-        config.db_connection.execute('update csv2_vms as cv left outer join (select * from kill_retire_priority_list) as kpl on cv.vmid=kpl.vmid set retire=1, updater="%s:r1" where kpl.vmid is not null;' % updater_str)
+        config.db_execute(s)
+        config.db_execute('update csv2_vms as cv left outer join (select * from kill_retire_priority_list) as kpl on cv.vmid=kpl.vmid set retire=1, updater="%s:r1" where kpl.vmid is not null' % updater_str)
 
     # Process "retain N".
     elif option == 'retain':
@@ -155,17 +152,24 @@ def kill_retire(config, group_name, cloud_name, option, count, updater_str):
            print("Updater string empty, assigning default value.")
            updater_str = "kill_retire"
         if cloud_name == '-':
-            s = 'create or replace temporary table kill_retire_priority_list as select * from view_vm_kill_retire_priority_age where group_name="%s" and killed<1 and retired<1 order by priority asc limit %s, 999999999999;' % (group_name, count)
+            s = 'create or replace temporary table kill_retire_priority_list as select * from view_vm_kill_retire_priority_age where group_name="%s" and killed<1 and retired<1 order by priority asc limit %s, 999999999999' % (group_name, count)
         else:
-            s = 'create or replace temporary table kill_retire_priority_list as select * from view_vm_kill_retire_priority_age where group_name="%s" and cloud_name="%s" and killed<1 and retired<1 order by priority asc limit %s, 999999999999;' % (group_name, cloud_name, count)
+            s = 'create or replace temporary table kill_retire_priority_list as select * from view_vm_kill_retire_priority_age where group_name="%s" and cloud_name="%s" and killed<1 and retired<1 order by priority asc limit %s, 999999999999' % (group_name, cloud_name, count)
 
-        config.db_connection.execute(s)
-#       config.db_connection.execute('update csv2_vms as cv left outer join (select * from kill_retire_priority_list) as kpl on cv.vmid=kpl.vmid set terminate=1, updater="%s:t1" where kpl.machine is null;' % updater_str)
-#       config.db_connection.execute('update csv2_vms as cv left outer join (select * from kill_retire_priority_list) as kpl on cv.vmid=kpl.vmid set retire=1, updater="%s:r1" where kpl.machine is not null;' % updater_str)
-        config.db_connection.execute('update csv2_vms as cv left outer join (select * from kill_retire_priority_list) as kpl on cv.vmid=kpl.vmid set retire=1, updater="%s:r=1" where kpl.vmid is not null;' % updater_str)
+        config.db_execute(s)
+        config.db_execute('update csv2_vms as cv left outer join (select * from kill_retire_priority_list) as kpl on cv.vmid=kpl.vmid set retire=1, updater="%s:r=1" where kpl.vmid is not null' % updater_str)
     
-    retired_list = qt(config.db_connection.execute('select count(*) as count from kill_retire_priority_list;'))
-    return retired_list[0]['count']
+    
+    rc, msg = config.db_execute('select count(*) as count from kill_retire_priority_list')
+    retired_list = []
+    for row in config.db_cursor:
+        print("Kill retire row: %s" % row)
+        retired_list.append(row)
+
+    if len(retired_list) > 0:
+        return retired_list[0]['count']
+    else:
+        return 0
 
 #-------------------------------------------------------------------------------
 
@@ -188,9 +192,7 @@ def manage_group_users(config, tables, group, users, option=None):
     have all been pre-verified.
     """
 
-    from sqlalchemy.sql import select
-
-    table = tables['csv2_user_groups']
+    table = 'csv2_user_groups'
 
     # if there is only one user, make it a list anyway
     if users:
@@ -204,8 +206,8 @@ def manage_group_users(config, tables, group, users, option=None):
     # Retrieve the list of users already in the group.
     db_users=[]
 
-    s = select([table]).where(table.c.group_name==group)
-    user_groups_list = qt(config.db_connection.execute(s))
+    where_clause = "group_name='%s'" % group
+    rc, msg, user_groups_list = config.db_query(table, where=where_clause)
 
     for row in user_groups_list:
         db_users.append(row['username'])
@@ -216,7 +218,11 @@ def manage_group_users(config, tables, group, users, option=None):
 
         # Add the missing users.
         for user in add_users:
-            rc, msg = config.db_session_execute(table.insert().values(username=user, group_name=group))
+            user_dict = {
+                "username": user,
+                "group_name": group
+            }
+            rc, msg = config.db_insert(table, user_dict)
             if rc != 0:
                 return 1, msg
 
@@ -226,7 +232,11 @@ def manage_group_users(config, tables, group, users, option=None):
         
         # Remove the extraneous users.
         for user in remove_users:
-            rc, msg = config.db_session_execute(table.delete((table.c.username==user) & (table.c.group_name==group)))
+            user_dict = {
+                "username": user,
+                "group_name": group
+            }
+            rc, msg = config.db_delete(table, user_dict)
             if rc != 0:
                 return 1, msg
 
@@ -236,7 +246,11 @@ def manage_group_users(config, tables, group, users, option=None):
         
         # Remove the extraneous users.
         for user in remove_users:
-            rc, msg = config.db_session_execute(table.delete((table.c.username==user) & (table.c.group_name==group)))
+            user_dict = {
+                "username": user,
+                "group_name": group
+            }
+            rc, msg = config.db_delete(table, user_dict)
             if rc != 0:
                 return 1, msg
 
@@ -251,9 +265,7 @@ def manage_user_groups(config, tables, user, groups, option=None):
     have all been pre-verified.
     """
 
-    from sqlalchemy.sql import select
-
-    table = tables['csv2_user_groups']
+    table = 'csv2_user_groups'
 
     # if there is only one group, make it a list anyway
     if groups:
@@ -267,8 +279,8 @@ def manage_user_groups(config, tables, user, groups, option=None):
     # Retrieve the list of groups the user already has.
     db_groups=[]
     
-    s = select([table]).where(table.c.username==user)
-    user_groups_list = qt(config.db_connection.execute(s))
+    where_clause="username='%s'" % user
+    rc, msg, user_groups_list = config.db_query(table, where=where_clause)
 
     for row in user_groups_list:
         db_groups.append(row['group_name'])
@@ -279,7 +291,11 @@ def manage_user_groups(config, tables, user, groups, option=None):
 
         # Add the missing groups.
         for group in add_groups:
-            rc, msg = config.db_session_execute(table.insert().values(username=user, group_name=group))
+            user_grp_dict = {
+                "username": user,
+                "group_name": group
+            }
+            rc, msg = config.db_insert(table, user_grp_dict)
             if rc != 0:
                 return 1, msg
 
@@ -289,7 +305,11 @@ def manage_user_groups(config, tables, user, groups, option=None):
         
         # Remove the extraneous groups.
         for group in remove_groups:
-            rc, msg = config.db_session_execute(table.delete((table.c.username==user) & (table.c.group_name==group)))
+            user_grp_dict = {
+                "username": user,
+                "group_name": group
+            }
+            rc, msg = config.db_delete(table, user_grp_dict)
             if rc != 0:
                 return 1, msg
 
@@ -299,7 +319,11 @@ def manage_user_groups(config, tables, user, groups, option=None):
         
         # Remove the extraneous groups.
         for group in remove_groups:
-            rc, msg = config.db_session_execute(table.delete((table.c.username==user) & (table.c.group_name==group)))
+            user_grp_dict = {
+                "username": user,
+                "group_name": group
+            }
+            rc, msg = config.db_delete(table, user_grp_dict)
             if rc != 0:
                 return 1, msg
 
@@ -312,8 +336,6 @@ def manage_user_group_verification(config, tables, users, groups):
     Make sure the specified users and groups exist.
     """
 
-    from sqlalchemy.sql import select
-
     if users:
         # if there is only one user, make it a list anyway
         if isinstance(users, str):
@@ -322,9 +344,8 @@ def manage_user_group_verification(config, tables, users, groups):
             user_list = users
 
         # Get the list of valid users.
-        table = tables['csv2_user']
-        s = select([table])
-        db_user_list = qt(config.db_connection.execute(s))
+        table = 'csv2_user'
+        rc, msg, db_user_list = config.db_query(table)
 
         valid_users = {}
         for row in db_user_list:
@@ -348,9 +369,8 @@ def manage_user_group_verification(config, tables, users, groups):
             group_list = groups
 
         # Get the list of valid groups.
-        table = tables['csv2_groups']
-        s = select([table])
-        db_group_list = qt(config.db_connection.execute(s))
+        table = 'csv2_groups'
+        rc, msg, db_group_list = config.db_query(table)
 
         valid_groups = {}
         for row in db_group_list:
@@ -586,9 +606,9 @@ def qt(query, keys=None, prune=[], filter=None, convert=None):
 
         # Prune and convert columns.
         cols = {}
-        for col in dict(row):
+        for col in row:
             if col not in prune:
-                if convert and col in convert and dict(row)[col] != None:
+                if convert and col in convert and row[col] != None:
                     if convert[col] == 'datetime':
                         cols[col] = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(dict(row)[col]))
                 else:
@@ -851,8 +871,6 @@ def render(request, template, context):
 
     from django.shortcuts import render as django_render
     from django.http import HttpResponse
-    from sqlalchemy.orm.query import Query
-    from sqlalchemy.engine.result import ResultProxy
     import datetime
     import decimal
     import json
@@ -907,14 +925,14 @@ def service_msg(service_name):
 # if super user is false then skip the check for super user
 #-------------------------------------------------------------------------------
 def set_user_groups(config, request, super_user=True):
-    from cloudscheduler.lib.schema import view_user_groups
-    from sqlalchemy.sql import select
 
     class active_user:
         def __init__(self, config, request):
             remote_user = request.META.get('REMOTE_USER')
-            table = view_user_groups
-            csv2_user = config.db_connection.execute(select([table]).where((table.c.username==remote_user) | (table.c.cert_cn==remote_user)))
+            table = "view_user_groups"
+
+            where_clause = "username='%s' or cert_cn='%s'" % (remote_user, remote_user)
+            rc, msg, csv2_user = config.db_query(table, where=where_clause)
 
             user = None
             for user in csv2_user:
@@ -993,7 +1011,7 @@ def table_fields(Fields, Table, Columns, selection):
 
     Arguments:
 
-    Table    - Is a table object as returned by validate_fields.
+    Table    - Is a table string as returned by validate_fields.
 
     Columns  - Are the primary and secondary column lists for tables
                as returned by validate_fields.
@@ -1005,12 +1023,12 @@ def table_fields(Fields, Table, Columns, selection):
     output_fields = {}
 
     if selection == 'insert':
-        for field in Columns[Table.name][0]:
+        for field in Columns[Table][0]:
             if field in Fields:
                 output_fields[field] = Fields[field]
 
     if selection == 'insert' or selection == 'update':
-        for field in Columns[Table.name][1]:
+        for field in Columns[Table][1]:
             if field in Fields:
                 output_fields[field] = Fields[field]
 
@@ -1033,19 +1051,25 @@ def validate_by_filtered_table_entries(config, value, field, table_name, column_
                   [[col1, val1], [col2, val2], ...]
     """
 
-    from sqlalchemy.sql import select
-    import cloudscheduler.lib.schema
+    #import cloudscheduler.lib.schema_na as schema
 
-    table = cloudscheduler.lib.schema.__dict__[table_name]
+    table = table_name
 
     options = []
-    s = select([table])
+    where = False
+    where_string = ""
     for filter in filter_list:
         if len(filter) != 2:
             return 1, 'incorrect filter format'
-        c1 = table.c[filter[0]]
-        s = s.where(c1 == filter[1])
-    for row in config.db_connection.execute(s):
+        if len(where_string)==0:
+            where_string = "%s='%s'" % (filter[0], filter[1])
+        else:
+            where_string = where_string + " and %s='%s'" % (filter[0], filter[1])
+        if where is False:
+            where = True
+
+    rc, msg, rows = config.db_query(table, where=where_string)
+    for row in rows:
         if column_name in row and (not row[column_name] in options):
             options.append(row[column_name])
 
@@ -1139,9 +1163,7 @@ def validate_fields(config, request, fields, tables, active_user):
     """
 
     from .view_utils import _validate_fields_pw_check
-    from sqlalchemy import Table, MetaData
-    from sqlalchemy.sql import select
-    import cloudscheduler.lib.schema
+    #import cloudscheduler.lib.schema_na as schema
     import ipaddress
     import json
     import re
@@ -1156,24 +1178,26 @@ def validate_fields(config, request, fields, tables, active_user):
         table = table_option.split(',')
         
         try:
-            Tables[table[0]] = Table(table[0], MetaData(bind=config.db_engine), autoload=True)
+            Tables[table[0]] = schema[table[0]]
         except:
-            raise Exception('view_utils.validate_fields: "tables" parameter contains an invalid table name "%s".' % table[0])
+            raise Exception('view_utils.validate_fields: "tables" parameter contains an invalid table name "%s" not defined in schema.py.' % table[0])
             
+        # Not sure what this is for -Colson oct 7 2020
         if len(table) > 1 and table[1] == 'n':
             continue
 
         Columns[table[0]] = [[], []]
-        for column in Tables[table[0]].c:
-            if column.name not in all_columns:
-                all_columns.append(column.name)
+        #loop thru keys
+        for column_name in Tables[table[0]]['keys']:
+            if column_name not in all_columns:
+                all_columns.append(column_name)
+            primary_key_columns.append(column_name)
 
-            if column.primary_key:
-                Columns[table[0]][0].append(column.name)
-                if column.name not in primary_key_columns:
-                    primary_key_columns.append(column.name)
-            else:
-                Columns[table[0]][1].append(column.name)
+        #loop thru other columns:
+        for column_name in Tables[table[0]]['columns']:
+            if column_name not in all_columns:
+                all_columns.append(column_name)
+            Columns[table[0]][1].append(column_name)
 
     # Process fields parameter:
     Formats = {}
@@ -1236,8 +1260,12 @@ def validate_fields(config, request, fields, tables, active_user):
                 if isinstance(Formats[field], (list, tuple)):
                     if isinstance(Formats[field], tuple):
                         options = []
-                        s = select([cloudscheduler.lib.schema.__dict__[Formats[field][0]]]).distinct()
-                        for row in config.db_connection.execute(s):
+                        # not clear what this select is supposed to be hitting
+                        # if cloudscheduler.lib.schema.__dict__[Formats[field][0]] resolves to a table name in schema_na.py it should be fine
+
+                        table_name = Formats[field][0]
+                        rc, msg, rows = config.db_query(table_name, distinct=True)
+                        for row in rows:
                            if Formats[field][1] in row and (not row[Formats[field][1]] in options):
                               options.append(row[Formats[field][1]])
                     else:
@@ -1364,7 +1392,7 @@ def validate_fields(config, request, fields, tables, active_user):
                             current_hostname = socket.gethostbyname(value)
                             if len(words) > 1:
                                 Fields[words[1]] = int(ipaddress.IPv4Address(current_hostname))
-                        except:
+                        except Exception as exc:
                             return 1, 'The value specified for %s (%s) is not a valid FQDN.' % (field, value), None, None, None
 
                 elif Formats[field] == 'dboolean':
@@ -1389,10 +1417,12 @@ def validate_fields(config, request, fields, tables, active_user):
                         return 1, 'value specified for "%s" must be an integer value.' % field, None, None, None
 
                 elif Formats[field] == 'lowerdash':
-                    if re.fullmatch("^(?!-)[a-z0-9.:,-]*(?<!-)$", request.POST[field]):
+                    if value == '' and field not in AllowEmpty:
+                        return 1, 'value specified for "%s" must not be the empty string.' % field, None, None, None
+                    if re.fullmatch("^(?!-)(?!.*--)[a-z0-9.:,-]*(?<!-)$", request.POST[field]):
                         value = request.POST[field]
                     else:
-                        return 1, 'value specified for "%s" must be all lower case, numeric digits, and dashes but cannot start or end with dashes.' % field, None, None, None
+                        return 1, 'value specified for "%s" must be all lowercase letters, digits, dashes, underscores, periods, and colons, and cannot contain more than one consecutive dash or start or end with a dash.' % field, None, None, None
 
                 elif Formats[field] == 'lowercase':
                     if re.fullmatch("([a-z0-9_.,:]-?)*[a-z0-9_.,:]", request.POST[field]) or request.POST[field] == '':
@@ -1511,7 +1541,7 @@ def validate_fields(config, request, fields, tables, active_user):
 
         for field in NotEmpty:
             if field in request.POST:
-                if Fields[field] == '':
+                if Fields[field] == '' or Fields[field] is None:
                     return 1, 'parameter "%s" contains an empty string which is specifically disallowed.' % field, None, None, None
             #else:
             #    return 1, 'request did not contain mandatory (but not empty) parameter "%s".' % field, None, None, None
@@ -1551,10 +1581,7 @@ def verify_cloud_credentials(config, cloud):
     cloud_type = None
     target_cloud = None
 
-    if isinstance(cloud, config.db_map.classes.csv2_clouds):
-        cloud_type = cloud.cloud_type
-
-    elif 'cloud_type' in cloud:
+    if 'cloud_type' in cloud:
         cloud_type = cloud['cloud_type']
 
     # Must be a /cloud/update/ (not /cloud/add/) request.
@@ -1585,16 +1612,9 @@ def verify_cloud_credentials(config, cloud):
 #-------------------------------------------------------------------------------
 
 def get_target_cloud(config, group_name, cloud_name):
-    if not config.db_session:
-        auto_close = True
-        config.db_open()
-    else:
-        auto_close = False
-
-    cloud_list = list(config.db_connection.execute('select * from csv2_clouds where group_name="%s" and cloud_name="%s";' % (group_name, cloud_name)))
-
-    if auto_close:
-        config.db_close()
+    table = "csv2_clouds"
+    where_clause = "group_name='%s' and cloud_name='%s'" % (group_name, cloud_name)
+    rc, msg, cloud_list = config.db_query(table, where=where_clause)
 
     if len(cloud_list) == 1:
         return 0, None, cloud_list[0]
@@ -1604,37 +1624,31 @@ def get_target_cloud(config, group_name, cloud_name):
 #-------------------------------------------------------------------------------
 
 def get_amazon_session(config, cloud, target_cloud=None):
-    if isinstance(cloud, config.db_map.classes.csv2_clouds):
-        C = {
-            'region': cloud.region,
-            'aws_access_key_id': cloud.username,
-            'aws_secret_access_key': cloud.password
-            }
 
-    else:
-        C = {'region': None}
-        if not target_cloud and 'group_name' in cloud and 'cloud_name' in cloud:
-            rc, msg, target_cloud = get_target_cloud(config, cloud['group_name'], cloud['cloud_name'])
+    C = {'region': None}
+    if not target_cloud and 'group_name' in cloud and 'cloud_name' in cloud:
+        rc, msg, target_cloud = get_target_cloud(config, cloud['group_name'], cloud['cloud_name'])
 
-        if target_cloud:
-                C = {
-                    'region': target_cloud['region'],
-                    'aws_access_key_id': target_cloud['username'],
-                    'aws_secret_access_key': target_cloud['password']
-                    }
+    if target_cloud:
+            C = {
+                'region': target_cloud['region'],
+                'aws_access_key_id': target_cloud['username'],
+                'aws_secret_access_key': target_cloud['password']
+                }
 
-        if not C['region']:
-            C['aws_access_key_id'] = None
-            C['aws_secret_access_key'] = None
+    if not C['region']:
+        C['aws_access_key_id'] = None
+        C['aws_secret_access_key'] = None
 
-        if 'region' in cloud:
-            C['region'] = cloud['region']
+    if 'region' in cloud:
+        C['region'] = cloud['region']
 
-        if 'username' in cloud:
-            C['aws_access_key_id'] = cloud['username']
+    if 'username' in cloud:
+        C['aws_access_key_id'] = cloud['username']
 
-        if 'password' in cloud:
-            C['aws_secret_access_key'] = cloud['password']
+    if 'password' in cloud:
+        C['aws_secret_access_key'] = cloud['password']
+
 
     if C['region'] and C['aws_access_key_id'] and C['aws_secret_access_key']:
         try:
@@ -1661,116 +1675,89 @@ def get_openstack_session(config, cloud, target_cloud=None):
         except:
             return 1, 'Bad openstack URL: %s, could not determine version' % authurl, None
 
-    if isinstance(cloud, config.db_map.classes.csv2_clouds):
-        rc, msg, version = __get_openstack_api_version__(cloud.authurl)
+    C = {'auth_url': None}
+    if not target_cloud and 'group_name' in cloud and 'cloud_name' in cloud:
+        rc, msg, target_cloud = get_target_cloud(config, cloud['group_name'], cloud['cloud_name'])
+
+    if target_cloud:
+        C['auth_url'] = target_cloud['authurl']
+
+    if 'authurl' in cloud:
+        C['auth_url'] = cloud['authurl']
+
+    #print(">>>>>>>>>>>>>>>>>>>>>>>>>> CLOUD", cloud, "TARGET", target_cloud, "AUTHURL", C['auth_url'])
+    if C['auth_url']:
+        rc, msg, version = __get_openstack_api_version__(C['auth_url'])
         if rc != 0:
             return rc, msg, None # could not determine version
 
         if version == 2:
-            C = {
-                'auth_url': cloud.authurl,
-                'region': cloud.region,
-                'tenant_name': cloud.project,
-                'username': cloud.username,
-                'password': cloud.password
-                }
+            if target_cloud:
+                C['region'] = target_cloud['region']
+                C['tenant_name'] = target_cloud['project']
+                C['username'] = target_cloud['username']
+                C['password'] = target_cloud['password']
+
+            else:
+                C['region'] = None
+                C['tenant_name'] = None
+                C['username'] = None
+                C['password'] = None
+
+            if 'region' in cloud:
+                C['region'] = cloud['region']
+
+            if 'project' in cloud:
+                C['tenant_name'] = cloud['project']
+
+            if 'username' in cloud:
+                C['username'] = cloud['username']
+
+            if 'password' in cloud:
+                C['password'] = cloud['password']
 
         elif version == 3:
-            C = {
-                'auth_url': cloud.authurl,
-                'region': cloud.region,
-                'project_domain_id': cloud.project_domain_id,
-                'project_domain_name': cloud.project_domain_name,
-                'project_name': cloud.project,
-                'user_domain_name': cloud.user_domain_name,
-                'username': cloud.username,
-                'password': cloud.password
-                }
+            if target_cloud:
+                C['region'] = target_cloud['region']
+                C['project_domain_id'] = target_cloud['project_domain_id']
+                C['project_domain_name'] = target_cloud['project_domain_name']
+                C['project_name'] = target_cloud['project']
+                C['user_domain_name'] = target_cloud['user_domain_name']
+                C['username'] = target_cloud['username']
+                C['password'] = target_cloud['password']
+
+            else:
+                C['region'] = None
+                C['project_domain_id'] = None
+                C['project_domain_name'] = 'Default'
+                C['project_name'] = None
+                C['user_domain_name'] = 'Default'
+                C['username'] = None
+                C['password'] = None
+
+            if 'region' in cloud:
+                C['region'] = cloud['region']
+
+            if 'project_domain_id' in cloud:
+                C['project_domain_id'] = cloud['project_domain_id']
+
+            if 'project_domain_name' in cloud:
+                C['project_domain_name'] = cloud['project_domain_name']
+
+            if 'project' in cloud:
+                C['project_name'] = cloud['project']
+
+            if 'user_domain_name' in cloud:
+                C['user_domain_name'] = cloud['user_domain_name']
+
+            if 'username' in cloud:
+                C['username'] = cloud['username']
+
+            if 'password' in cloud:
+                C['password'] = cloud['password']
 
     else:
-        C = {'auth_url': None}
-        if not target_cloud and 'group_name' in cloud and 'cloud_name' in cloud:
-            rc, msg, target_cloud = get_target_cloud(config, cloud['group_name'], cloud['cloud_name'])
-
-        if target_cloud:
-            C['auth_url'] = target_cloud['authurl']
-
-        if 'authurl' in cloud:
-            C['auth_url'] = cloud['authurl']
-
-        print(">>>>>>>>>>>>>>>>>>>>>>>>>> CLOUD", cloud, "TARGET", target_cloud, "AUTHURL", C['auth_url'])
-        if C['auth_url']:
-            rc, msg, version = __get_openstack_api_version__(C['auth_url'])
-            if rc != 0:
-                return rc, msg, None # could not determine version
-
-            if version == 2:
-                if target_cloud:
-                    C['region'] = target_cloud['region']
-                    C['tenant_name'] = target_cloud['project']
-                    C['username'] = target_cloud['username']
-                    C['password'] = target_cloud['password']
-
-                else:
-                    C['region'] = None
-                    C['tenant_name'] = None
-                    C['username'] = None
-                    C['password'] = None
-
-                if 'region' in cloud:
-                    C['region'] = cloud['region']
-
-                if 'project' in cloud:
-                    C['tenant_name'] = cloud['project']
-
-                if 'username' in cloud:
-                    C['username'] = cloud['username']
-
-                if 'password' in cloud:
-                    C['password'] = cloud['password']
-
-            elif version == 3:
-                if target_cloud:
-                    C['region'] = target_cloud['region']
-                    C['project_domain_id'] = target_cloud['project_domain_id']
-                    C['project_domain_name'] = target_cloud['project_domain_name']
-                    C['project_name'] = target_cloud['project']
-                    C['user_domain_name'] = target_cloud['user_domain_name']
-                    C['username'] = target_cloud['username']
-                    C['password'] = target_cloud['password']
-
-                else:
-                    C['region'] = None
-                    C['project_domain_id'] = None
-                    C['project_domain_name'] = 'Default'
-                    C['project_name'] = None
-                    C['user_domain_name'] = 'Default'
-                    C['username'] = None
-                    C['password'] = None
-
-                if 'region' in cloud:
-                    C['region'] = cloud['region']
-
-                if 'project_domain_id' in cloud:
-                    C['project_domain_id'] = cloud['project_domain_id']
-
-                if 'project_domain_name' in cloud:
-                    C['project_domain_name'] = cloud['project_domain_name']
-
-                if 'project' in cloud:
-                    C['project_name'] = cloud['project']
-
-                if 'user_domain_name' in cloud:
-                    C['user_domain_name'] = cloud['user_domain_name']
-
-                if 'username' in cloud:
-                    C['username'] = cloud['username']
-
-                if 'password' in cloud:
-                    C['password'] = cloud['password']
-
-        else:
-            return 1, 'Missing openstack URL', None
+        return 1, 'Missing openstack URL', None
             
     if version == 2:
         if C['auth_url'] and C['region'] and C['tenant_name'] and C['username'] and C['password']:
@@ -1832,4 +1819,22 @@ def get_openstack_session(config, cloud, target_cloud=None):
 
     else:
         return 1, 'Bad openstack URL: %s, unsupported version: %s' % (target_cloud['authurl'], version), None
+
+#-------------------------------------------------------------------------------
+
+# This function accepts a string or a dictionary and converts any bytestrings to regular strings.
+def check_convert_bytestrings(values):
+    if isinstance(values, dict):
+        # we have a dictionary, go thru converting byte strings
+        for key in values.keys():
+            if isinstance(values[key], bytes):
+                values[key] = values[key].decode("utf-8")
+        return values
+
+    else:
+        # it's just a single value, decode it if its a bytestring & return
+        if isinstance(value, bytes):
+            return values.decode("utf-8")
+        else:
+            return values
 

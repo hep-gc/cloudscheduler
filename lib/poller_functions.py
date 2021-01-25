@@ -1,13 +1,11 @@
 from dateutil import tz, parser
 import hashlib
 import logging
-import time
+import json
 import os
+import time
 
-from cloudscheduler.lib.attribute_mapper import map_attributes
-
-from sqlalchemy.orm import Session
-from sqlalchemy.sql import func
+from cloudscheduler.lib.attribute_mapper_na import map_attributes
 
 ## Poller functions.
 
@@ -45,164 +43,6 @@ def wait_cycle(start_time, poll_time_history, config_sleep_time, config):
         time.sleep(config_sleep_time)
     return
 
-# cleans up any groups or clouds that don't exist anymore
-# accepts the inventory dictionary and a list of group, cloud pairings
-# removes any grp-clds from inventory not present in the list
-def cleanup_inventory(inventory, group_cloud_list):
-    logging.debug("Starting Inventory Cleanup")
-    
-    group_list = []
-    group_cloud_set = set()
-    #Make group and group_cloud list
-    for item in group_cloud_list:
-        group_list.append(item.group_name)
-        group_cloud_set.add((item.group_name, item.cloud_name))
-
-    # Remove deleted groups
-    grps_to_pop = []
-    for group_name in inventory:
-        if group_name not in group_list:
-            grps_to_pop.append(group_name)
-
-    for group in grps_to_pop:
-        logging.info("Cleaning up removed group: %s" % group)
-        inventory.pop(group)
-
-    # Remove deleted clouds
-    grp_clds_to_pop = []
-    for group_name in inventory:
-        for cloud_name in inventory[group_name]:
-            if (group_name, cloud_name) not in group_cloud_set:
-                grp_clds_to_pop.append((group_name, cloud_name))
-
-    for grp, cld in grp_clds_to_pop:
-        logging.info("Cleaning up removed group-cloud: %s - %s" % (grp, cld))
-        inventory[grp].pop(cld)
-
-
-
-def build_inventory_for_condor(inventory, db_session, group_resources_class):
-    cloud_list = db_session.query(group_resources_class)
-    for cloud in cloud_list:
-        set_inventory_group_and_cloud(inventory, cloud.group_name, "-",)
-
-def delete_obsolete_database_items(type, inventory, db_session, base_class, base_class_key, poll_time=None, failure_dict=None, cloud_type=None, condor_host=None):
-    inventory_deletions = []
-    logging.debug("Delete Cycle - checking database for consistency")
-    for group_name in inventory:
-        for cloud_name in inventory[group_name]:
-            if failure_dict is not None:
-                if cloud_name is not None and group_name+cloud_name in failure_dict: 
-                    logging.info("Skipping deletes on %s::%s due to cloud polling failures" %  (group_name, cloud_name))
-                    continue
-                if group_name in failure_dict:
-                    logging.info("Skipping deletes on %s due to condor polling failures" %  group_name)
-                    continue
-            if type == 'VM':
-                if cloud_type is not None:
-                    obsolete_items = db_session.query(base_class).filter(
-                        base_class.group_name == group_name,
-                        base_class.cloud_name == cloud_name,
-                        base_class.last_updated < poll_time,
-                        base_class.cloud_type == cloud_type
-                        )
-                elif condor_host is not None:
-                    obsolete_items = db_session.query(base_class).filter(
-                        base_class.group_name == group_name,
-                        base_class.cloud_name == cloud_name,
-                        base_class.htcondor_host_id == condor_host,
-                        base_class.last_updated < poll_time
-                        )
-                else:
-                    obsolete_items = db_session.query(base_class).filter(
-                        base_class.group_name == group_name,
-                        base_class.cloud_name == cloud_name,
-                        base_class.last_updated < poll_time
-                        )
-            elif cloud_name == '-':
-                if cloud_type is not None:
-                    obsolete_items = db_session.query(base_class).filter(
-                        base_class.group_name == group_name,
-                        base_class.cloud_type == cloud_type
-                        )
-                elif condor_host is not None:
-                    obsolete_items = db_session.query(base_class).filter(
-                        base_class.group_name == group_name,
-                        base_class.htcondor_host_id == condor_host
-                        )
-                else:
-                    obsolete_items = db_session.query(base_class).filter(
-                        base_class.group_name == group_name
-                        )
-            else:
-                if cloud_type is not None:
-                    obsolete_items = db_session.query(base_class).filter(
-                        base_class.group_name == group_name,
-                        base_class.cloud_name == cloud_name,
-                        base_class.cloud_type == cloud_type
-                        )
-                elif condor_host is not None:
-                    obsolete_items = db_session.query(base_class).filter(
-                        base_class.group_name == group_name,
-                        base_class.cloud_name == cloud_name,
-                        base_class.htcondor_host_id == condor_host
-                        )
-                else:
-                    obsolete_items = db_session.query(base_class).filter(
-                        base_class.group_name == group_name,
-                        base_class.cloud_name == cloud_name
-                        )
-
-            uncommitted_updates = 0
-            for item in obsolete_items:
-                if type == 'VM' and cloud_type == "amazon":
-                    if item.vmid[0:3].lower() == "sir" and (item.instance_id is None or item.instance_id == "") and item.terminate < 2:
-                        #don't delete it since its a spot request that never got a vm
-                        continue
-                if base_class_key == '-' and poll_time:
-                    if inventory[group_name][cloud_name]['-']['poll_time'] >= poll_time:
-                        continue
-                    else:
-                        inventory_deletions.append([group_name, cloud_name, '-'])
-                else:
-                    if poll_time:
-                        if item.__dict__[base_class_key] in inventory[group_name][cloud_name] and inventory[group_name][cloud_name][item.__dict__[base_class_key]]['poll_time'] >= poll_time:
-                            continue
-                        else:
-                            inventory_deletions.append([group_name, cloud_name, item.__dict__[base_class_key]])
-                    else:
-                        if item.__dict__[base_class_key] in inventory[group_name][cloud_name]:
-                            continue
-
-                if base_class_key == '-':
-                    logging.info("Cleaning up %s: from group:cloud - %s::%s" % (type, item.group_name, item.cloud_name))
-                else:
-                    logging.info("Cleaning up %s: %s from group:cloud - %s::%s" % (type, item.__dict__[base_class_key], item.group_name, cloud_name))
-
-                try:
-                    db_session.delete(item)
-                    uncommitted_updates += 1
-                except Exception as exc:
-                    logging.exception("Failed to delete %s." % type)
-                    logging.error(exc)
-
-            if uncommitted_updates > 0:
-                try:        
-                    db_session.commit()
-                    logging.info("%s deletions committed: %d" % (type, uncommitted_updates))
-                except Exception as exc:
-                    logging.exception("Failed to commit %s deletions (%d) for %s::%s." % (type, uncommitted_updates, group_name, cloud_name))
-                    logging.error(exc)
-
-    for item in inventory_deletions:
-        try:
-            del inventory[item[0]][item[1]][item[2]]
-        except KeyError as exc:
-            logging.error("Error attempting to delete obsolete enteries from inventory:")
-            logging.error(exc)
-            logging.error("Item: %s" % item)
-            logging.error(inventory[item[0]][item[1]])
-
 def foreign(vm):
     native_id = '%s--%s--' % (vm.group_name, vm.cloud_name)
     if vm.hostname[:len(native_id)] == native_id:
@@ -210,126 +50,11 @@ def foreign(vm):
     else:
         return True
 
-def get_inventory_item_hash_from_database(db_engine, base_class, base_class_key, debug_hash=False, cloud_type=None, condor_host=None):
-    inventory = {}
-    try:
-        db_session = Session(db_engine)
-        if cloud_type is not None:
-            rows =db_session.query(base_class).filter(base_class.cloud_type == cloud_type)
-        elif condor_host is not None:
-            rows = db_session.query(base_class).filter(base_class.htcondor_host_id == condor_host)
-        else:
-            rows = db_session.query(base_class)
-        for row in rows:
-            try:
-                group_name = row.group_name
-                cloud_name = row.cloud_name
-            except AttributeError:
-                # machines and jobs have no cloud name attribute
-                group_name = row.group_name
-                cloud_name = "-"
-
-            if base_class_key == '-':
-                hash_name = '-'
-            else:
-                hash_name = row.__dict__[base_class_key]
-
-            if group_name not in inventory:
-                inventory[group_name] = {}
-
-            if cloud_name not in inventory[group_name]:
-                inventory[group_name][cloud_name] = {}
-
-            if hash_name not in inventory[group_name][cloud_name]:
-                inventory[group_name][cloud_name][hash_name] = {'poll_time': 0}
-
-            hash_list = []
-            hash_object = hashlib.new('md5')
-            for item in sorted(row.__dict__):
-                if item == '_sa_instance_state' or item == 'group_name' or item == 'cloud_name' or item == 'last_updated':
-                    continue
-               
-                hash_list.append('%s=%s' % (item, str(row.__dict__[item])))
-                hash_object.update(hash_list[-1].encode('utf-8'))
-
-
-            if debug_hash:
-                inventory[group_name][cloud_name][hash_name]['hash'] = '%s,%s' % (hash_object.hexdigest(), ','.join(hash_list))
-            else:
-                inventory[group_name][cloud_name][hash_name]['hash'] = hash_object.hexdigest()
-
-        logging.info("Retrieved inventory from the database.")
-    except Exception as exc:
-        logging.error("Unable to initialize inventory from the database, setting empty dictionary.")
-
-    return inventory
-
-def get_last_poll_time_from_database(db_engine, base_class_and_key):
-    try:
-        db_session = Session(db_engine)
-        db_query = db_session.query(func.max(base_class_and_key).label("timestamp"))
-        db_response = db_query.one()
-        last_poll_time = db_response.timestamp
-        del db_session
-    except Exception as exc:
-        logging.error("Failed to retrieve last poll time (%s, %s, %s), skipping this cloud..." % (db_engine, base_class, base_class_key))
-        logging.error(exc)
-        last_poll_time = 0
-
-    logging.info("Setting last_poll_time: %s" % last_poll_time)
-    return last_poll_time
-
-def set_inventory_group_and_cloud(inventory, group_name, cloud_name):
-    if group_name not in inventory:
-        inventory[group_name] = {}
-
-    if cloud_name not in inventory[group_name]:
-        inventory[group_name][cloud_name] = {}
-
-    return
-
-def set_inventory_item(inventory, group_name, cloud_name, item, update_time):
-    inventory[group_name][cloud_name][item] = True
-    return int(parser.parse(update_time).astimezone(tz.tzlocal()).strftime('%s'))
-
-def set_orange_count(logging, config, column, previous_count, current_count):
-    if current_count < 1:
-       orange_count = 0
-    else:
-       orange_count = current_count
-
-    if orange_count != previous_count and (orange_count < 1 or orange_count >= config.categories["ProcessMonitor"]["orange_threshold"]):
-        if not config.db_session:
-            auto_close = True
-            config.db_open()
-        else:
-            auto_close = False
-
-        rc, msg = config.db_session_execute('update csv2_system_status set %s=%d;' % (column, orange_count))
-        if rc == 0:
-            config.db_session.commit()
-        else:
-            logging.error('Failed to update csv2_system_status, %s=%s' % (column, orange_count))
-
-        if auto_close:
-            config.db_close()
-
-    return orange_count, orange_count
-
-def test_and_set_inventory_item_hash(inventory, group_name, cloud_name, item, item_dict, poll_time, debug_hash=False):
-    from cloudscheduler.lib.poller_functions import set_inventory_group_and_cloud
-
-    set_inventory_group_and_cloud(inventory, group_name, cloud_name)
-
-    if item not in inventory[group_name][cloud_name]:
-        inventory[group_name][cloud_name][item] = {'hash': None}
-
-    inventory[group_name][cloud_name][item]['poll_time'] = poll_time
-
+def __inventory_get_hash__(ikey_names, item_dict, debug_hash=False): 
     hash_list = []
     hash_object = hashlib.new('md5')
     for hash_item in sorted(item_dict):
-        if hash_item == 'group_name' or hash_item == 'cloud_name' or hash_item == 'last_updated':
+        if hash_item in ikey_names:
             continue
        
         if isinstance(item_dict[hash_item], bool):
@@ -345,11 +70,83 @@ def test_and_set_inventory_item_hash(inventory, group_name, cloud_name, item, it
         else:
             new_hash = hash_object.hexdigest()
 
-    if new_hash == inventory[group_name][cloud_name][item]['hash']:
+    return new_hash
+
+def __inventory_set_key__(ikey_names, item_dict, inventory): 
+    ikey_list = []
+    for column in ikey_names:
+        if column not in item_dict:
+            raise Exception('Invalid ikey name "%s" in ikey name list.' % column)
+
+        ikey_list.append(item_dict[column])
+
+    ikey = json.dumps(ikey_list)
+
+    if ikey not in inventory:
+        inventory[ikey] = {'hash': None, 'poll_time': 0}
+
+    return ikey
+
+def inventory_cleanup(ikey_names, rows, inventory):
+    """
+    Cleans up any inventory items whose group/cloud have been deleted. An
+    exception will be raised if iley_names does not contain the columns
+    "group_name" and "cloud_name".
+    """
+
+    logging.debug("Starting Inventory Cleanup")
+    
+    gix = ikey_names.index("group_name")
+    cix = ikey_names.index("cloud_name")
+
+    group_clouds = {}
+    for row in rows:
+        group_cloud = '%s::%s' % (row['group_name'], row['cloud_name'])
+        group_clouds[group_cloud] = 1
+
+    keys_to_delete = []
+    for ikey in inventory:
+        ikey_list = json.loads(ikey)
+        group_cloud = '%s::%s' % (ikey_list[gix], ikey_list[cix])
+        if group_cloud not in group_clouds:
+            keys_to_delete.append(ikey)
+    for ikey in keys_to_delete:
+        del inventory[ikey]
+        logging.debug('inventory_cleanup: delete item "%s" from inventory, no matching group_name/cloud_name.' % json.loads(ikey))
+
+
+def inventory_get_item_hash_from_db_query_rows(ikey_names, rows):
+    inventory = {}
+    for row in rows:
+        ikey = __inventory_set_key__(ikey_names, row, inventory)
+        inventory[ikey]['hash'] =  __inventory_get_hash__(ikey_names, row)
+
+    return inventory
+
+def inventory_obsolete_database_items_delete(ikey_names, rows, inventory, poll_time, config, table):
+    for row in rows:
+        ikey = __inventory_set_key__(ikey_names, row, inventory)
+
+        if poll_time != None and inventory[ikey]['poll_time'] < poll_time:
+            rc, msg = config.db_delete(table, row)
+            if rc == 0:
+                config.db_commit()
+                del inventory[ikey]
+            else:
+                logging.warning('inventory_delete_obsolete_database_items: failed to delete item "%s" from table "%s" - %s' % (json.loads(ikey), table, msg))
+
+def inventory_test_and_set_item_hash(ikey_names, item_dict, inventory, poll_time, debug_hash=False):
+    ikey = __inventory_set_key__(inventory=inventory, ikey_names=ikey_names, item_dict=item_dict)
+    inventory[ikey]['poll_time'] = poll_time
+
+    new_hash = __inventory_get_hash__(ikey_names, item_dict)
+
+    if new_hash == inventory[ikey]['hash']:
         return True
 
-    logging.debug("inventory_item_hash(old): %s" % inventory[group_name][cloud_name][item]['hash'])
+    logging.debug("inventory_item_hash(old): %s" % inventory[ikey]['hash'])
     logging.debug("inventory_item_hash(new): %s" % new_hash)
 
-    inventory[group_name][cloud_name][item]['hash'] = new_hash
+    inventory[ikey]['hash'] = new_hash
     return False
+

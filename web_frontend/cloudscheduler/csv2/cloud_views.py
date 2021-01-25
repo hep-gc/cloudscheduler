@@ -458,10 +458,6 @@ def manage_group_metadata_verification(config, tables, active_group, cloud_names
         # Check the list of specified metadata names.
         for metadata_name in metadata_name_list:
             if metadata_name not in valid_metadata:
-                print("~~~~~~~~~~")
-                print(metadata_name)
-                print(metadata_list)
-                print(valid_metadata)
                 return 1, 'specified metadata_name "%s" does not exist' % metadata_name
             elif valid_metadata[metadata_name]:
                 return 1, 'metadata name "%s" was specified twice' % metadata_name
@@ -1230,9 +1226,9 @@ def metadata_update(request):
             if not 'metadata' in fields.keys():
                 where_clause = "group_name='%s' and cloud_name='%s' and metadata_name='%s'" % (active_user.active_group, fields['cloud_name'], fields['metadata_name'])
                 rc, msg, metadata_list = config.db_query(table, where=where_clause)
-                if len(metadata_list) != 1:
+                if rc==0 and len(metadata_list) != 1:
                     config.db_close()
-                    return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud metadata-update could not retrieve metadata' % (lno(MODID), request.method))
+                    return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud metadata-update could not retrieve metadata' % lno(MODID))
                 metadata = metadata_list[0]
             else:
                 metadata = fields['metadata']

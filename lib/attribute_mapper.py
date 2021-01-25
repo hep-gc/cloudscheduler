@@ -1,8 +1,4 @@
-from cloudscheduler.lib.db_config import *
-
-from sqlalchemy import create_engine
-from sqlalchemy.orm import Session
-from sqlalchemy.ext.automap import automap_base
+from cloudscheduler.lib.db_config_na import Config
 
 rowid_dict = {}
 attr_list_dict = {}
@@ -31,7 +27,7 @@ def map_attribute_names(src, dest, attribute_names):
         attribute_name_list = [str(attribute_names)]
 
     if len(rowid_dict) == 0 or len(attr_list_dict) == 0:
-        build_mapping_dictionaries()
+        build_mapping_dictionaries(config)
 
     mapped_dict = {}
     unmapped_list = []
@@ -43,11 +39,11 @@ def map_attribute_names(src, dest, attribute_names):
     
     return mapped_dict, unmapped_list
 
-def map_attributes(src, dest, attr_dict):
+def map_attributes(src, dest, attr_dict, config):
     global rowid_dict
     global attr_list_dict
     if len(rowid_dict) == 0 or len(attr_list_dict) == 0:
-        build_mapping_dictionaries()
+        build_mapping_dictionaries(config)
 
     unmapped_keys = []
     mapped_dict = {}
@@ -55,26 +51,20 @@ def map_attributes(src, dest, attr_dict):
         if key not in rowid_dict[src]:
             unmapped_keys.append((key, value))
         else:
-            mapped_dict[attr_list_dict[dest][rowid_dict[src][key]]] = value
+            mapped_dict[attr_list_dict[dest][rowid_dict[src][key]]] = str(value)
 
-    
     return mapped_dict, unmapped_keys
 
-def build_mapping_dictionaries():
+def build_mapping_dictionaries(config):
     global rowid_dict
     global attr_list_dict
 
-    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', 'db_only', db_config_dict=True)
+    config.db_open()
 
-    Base = automap_base()
-    engine = create_engine("mysql+pymysql://" + config.db_config['db_user'] + ":" + config.db_config['db_password'] + \
-        "@" + config.db_config['db_host'] + ":" + str(config.db_config['db_port']) + "/" + config.db_config['db_name'])
-    Base.prepare(engine, reflect=True)
-    Mappings = Base.classes.csv2_attribute_mapping
-    session = Session(engine)
+    Mappings = "csv2_attribute_mapping"
 
-    mapping_rows = session.query(Mappings)
-    mapping_names = Mappings.__table__.columns.keys()
+    rc, msg, mapping_rows = config.db_query(Mappings)
+    mapping_names = mapping_rows[0].keys()
 
     # Generate rowid dict
     for language in mapping_names:
@@ -84,32 +74,32 @@ def build_mapping_dictionaries():
             # These ifs will need to be updated every time a new translation language is added
             # since there is no way to use the contents of a variable as a variable name reliably
             # (possible with exec())
-            row_dict[row.__dict__[language]] = row_id
+            row_dict[row[language]] = row_id
             '''
             if language == "csv2":
-                row_dict[row.csv2] = row_id
+                row_dict[row["csv2"]] = row_id
             elif language == "os_limits":
-                row_dict[row.os_limits] = row_id
+                row_dict[row["os_limits"]] = row_id
             elif language == "os_flavors":
-                row_dict[row.os_flavors] = row_id
+                row_dict[row["os_flavors"]] = row_id
             elif language == "os_images":
-                row_dict[row.os_images] = row_id
+                row_dict[row["os_images"]] = row_id
             elif language == "os_networks":
-                row_dict[row.os_networks] = row_id
+                row_dict[row["os_networks"]] = row_id
             elif language == "os_vms":
-                row_dict[row.os_vms] = row_id
+                row_dict[row["os_vms"]] = row_id
             elif language == "os_sec_grps":
-                row_dict[row.os_sec_grps] = row_id
+                row_dict[row["os_sec_grps"]] = row_id
             elif language == "condor":
-                row_dict[row.condor] = row_id
+                row_dict[row["condor"]] = row_id
             elif language == "ec2_flavors":
-                row_dict[row.ec2_flavors] = row_id
+                row_dict[row["ec2_flavors"]] = row_id
             elif language == "ec2_limits":
-                row_dict[row.ec2_limits] = row_id
+                row_dict[row["ec2_limits"]] = row_id
             elif language == "ec2_networks":
-                row_dict[row.ec2_limits] = row_id
+                row_dict[row["ec2_limits"]] = row_id
             elif language == "ec2_regions":
-                row_dict[row.ec2_regions] = row_id
+                row_dict[row["ec2_regions"]] = row_id
             else:
                 print("Found column not implemented in code, breaking")
                 break
@@ -118,40 +108,40 @@ def build_mapping_dictionaries():
         rowid_dict[language] = row_dict
 
 
-    # Generate attribute list dict
+    # Generate attribute list dict  (mapping_names are the columns)
     for language in mapping_names:
         attr_list = []
         for row in mapping_rows:
             # These ifs will need to be updated every time a new translation language is added
             # since there is no way to use the contents of a variable as a variable name reliably
             # (possible with exec())
-            if row.__dict__[language] is not None:
-                attr_list.append(row.__dict__[language])
+            if row[language] is not None:
+                attr_list.append(row[language])
             '''
             if language == "csv2":
-                attr_list.append(row.csv2)
+                attr_list.append(row["csv2"])
             elif language == "os_limits":
-                attr_list.append(row.os_limits)
+                attr_list.append(row["os_limits"])
             elif language == "os_flavors":
-                attr_list.append(row.os_flavors)
+                attr_list.append(row["os_flavors"])
             elif language == "os_images":
-                attr_list.append(row.os_images)
+                attr_list.append(row["os_images"])
             elif language == "os_networks":
-                attr_list.append(row.os_networks)
+                attr_list.append(row["os_networks"])
             elif language == "os_vms":
-                attr_list.append(row.os_vms)
+                attr_list.append(row["os_vms"])
             elif language == "os_sec_grps":
-                attr_list.append(row.os_sec_grps)
+                attr_list.append(row["os_sec_grps"])
             elif language == "condor":
-                attr_list.append(row.condor)
+                attr_list.append(row["condor"])
             elif language == "ec2_flavors":
-                attr_list.append(row.ec2_flavors)
+                attr_list.append(row["ec2_flavors"])
             elif language == "ec2_limits":
-                attr_list.append(row.ec2_limits)
+                attr_list.append(row["ec2_limits"])
             elif language == "ec2_networks":
-                attr_list.append(row.ec2_networks)
+                attr_list.append(row["ec2_networks"])
             elif language == "ec2_regions":
-                attr_list.append(row.ec2_regions)
+                attr_list.append(row["ec2_regions"])
             else:
                 print("Found column not implemented in code, breaking")
                 break

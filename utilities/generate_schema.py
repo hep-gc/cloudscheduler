@@ -37,12 +37,17 @@ def main(args):
     gvar['csv2_config'] = yaml.full_load(fd.read())
     fd.close()
     
+    # Schema_na_path has been updated to point to the same file as the original schema
+    # half of this code can probably be removed since it's overwriting the same file
+    # we need to check if there is any required computing done in the first loop that is reused in the second
+    # or if we can just remove the first (sqlalchemy) version
+
     gvar['cmd_path'] = os.path.abspath(args[0])
     gvar['cmd_path_stat'] = os.stat(gvar['cmd_path'])
     gvar['path_info'] = gvar['cmd_path'].split('/')
     gvar['ix'] = gvar['path_info'].index('cloudscheduler')
     gvar['schema_path'] = '%s/lib/schema.py' % '/'.join(gvar['path_info'][:gvar['ix']+1])
-    gvar['schema_na_path'] = '%s/lib/schema_na.py' % '/'.join(gvar['path_info'][:gvar['ix']+1])
+    gvar['schema_na_path'] = '%s/lib/schema.py' % '/'.join(gvar['path_info'][:gvar['ix']+1])
     gvar['fd'] = open(gvar['schema_path'], 'w')
     gvar['schema_na'] = {}
 

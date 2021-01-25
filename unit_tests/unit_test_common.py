@@ -484,7 +484,7 @@ def table_commands(gvar, obj, action, group, server_user, table_headers):
     default_headers = []
     default_keys = []
 
-    process = subprocess.run(['cloudscheduler', obj, action, '--view-columns', '-g', group, '-su', server_user, '-spw', gvar['user_secret']], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    process = subprocess.run(['cloudscheduler', obj, action, '--view-columns', '-g', group, '-su', server_user, '-spw', gvar['user_secret'], '-s', 'unit-test'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     stdout = process.stdout.decode()
     # Omit the last char, which should be '\n'.
     stdout_lines = stdout[:-1].split('\n')
@@ -666,6 +666,7 @@ def load_settings(web=False):
                 yaml.safe_dump(credentials, credentials_file)
     except FileNotFoundError:
         print('No unit test credentials file found at {}. Prompting for credentials.'.format(credentials_path))
+        credentials = {}
         credentials['user_secret'] = generate_secret()
         credentials['cloud_credentials'] = {}
         credentials['cloud_credentials']['authurl'] = input('Cloud authurl (cloud address to give test clouds): ')
