@@ -15,12 +15,15 @@ class TestWebGroup(unittest.TestCase):
         wtsc.setup(cls)
         print("\nGroup Tests:")
 
-    def test_web_group_find(self):
+    def setUp(self):
+        wti.get_homepage(TestWebGroup.driver)
         wti.click_nav_button(TestWebGroup.driver, 'Groups')
+
+    def test_web_group_find(self):
+        pass
 
     def test_web_group_add_checkbox(self):
         group_name = TestWebGroup.gvar['user'] + '-wig5'
-        wti.click_nav_button(TestWebGroup.driver, 'Groups')
         wti.click_nav_button(TestWebGroup.driver, '+')
         wti.fill_blank(TestWebGroup.driver, "new_group", group_name)
         # deals with Selenium bug (believed to be due to invisible <div> covering element
@@ -31,7 +34,6 @@ class TestWebGroup(unittest.TestCase):
 
     def test_web_group_add_search_bar(self):
         group_name = TestWebGroup.gvar['user'] + '-wig6'
-        wti.click_nav_button(TestWebGroup.driver, 'Groups')
         wti.click_nav_button(TestWebGroup.driver, '+')
         wti.fill_blank(TestWebGroup.driver, "new_group", group_name)
         wti.fill_blank(TestWebGroup.driver, "search-users-", TestWebGroup.gvar['user'] + '-wiu2')
@@ -40,16 +42,15 @@ class TestWebGroup(unittest.TestCase):
             EC.presence_of_element_located((By.LINK_TEXT, group_name))))
 
     def test_web_group_delete(self):
+        # TODO: FIX. Currently fails silently
         group_name = TestWebGroup.gvar['user'] + '-wig4'
-        wti.click_nav_button(TestWebGroup.driver, 'Groups')
-        #wti.click_nav_button(TestWebGroup.driver, group_name)
-        wti.click_menu_button(TestWebGroup.driver, 'testing')
-        #wti.click_nav_button(TestWebGroup.driver, '-')
-        #TestWebGroup.find_element_by_name(group_name).submit()
+        # Selenium cannot click on these side buttons because the padding on theother buttons obscures them
+        wtjsi.javascript_click_menu_button(TestWebGroup.driver, group_name)
+        wti.click_nav_button(TestWebGroup.driver, '−')
+        TestWebGroup.driver.find_element_by_name(group_name).submit()
 
     def test_web_group_user_add_search_bar(self):
         group_name = TestWebGroup.gvar['user'] + '-wig1'
-        wti.click_nav_button(TestWebGroup.driver, 'Groups')
         wti.click_nav_button(TestWebGroup.driver, group_name)
         wti.fill_blank(TestWebGroup.driver, 'search-users-' + group_name, TestWebGroup.gvar['user'] + '-wig2')
 

@@ -22,3 +22,9 @@ def javascript_click_by_value(driver, text):
         EC.presence_of_element_located((By.XPATH, xpath)))
     box = driver.find_element_by_xpath(xpath)
     javascript_click(driver, box)
+
+def javascript_click_menu_button(driver, id):
+    WebDriverWait(driver, 20).until(
+        EC.presence_of_element_located((By.ID, id)))
+    button = driver.find_element_by_id(id)
+    javascript_click(driver, button)
