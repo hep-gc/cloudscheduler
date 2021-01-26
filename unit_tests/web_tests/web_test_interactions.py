@@ -2,6 +2,7 @@ from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.common.keys import Keys
 
 def get_homepage(driver):
     driver.get("https://csv2-dev.heprc.uvic.ca")
@@ -18,6 +19,7 @@ def fill_blank(driver, id, text):
     form = driver.find_element_by_id(id)
     form.clear()
     form.send_keys(text)
+    form.send_keys(Keys.ENTER)
 
 def click_menu_button(driver, id):
     WebDriverWait(driver, 20).until(
