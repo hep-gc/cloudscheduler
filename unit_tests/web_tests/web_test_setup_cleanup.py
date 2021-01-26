@@ -1,10 +1,13 @@
 from selenium import webdriver
 from cloudscheduler.unit_tests.unit_test_common import load_settings
 import subprocess
+import signal
 
 # setups and cleanups are done here to prevent issues of passing variables
 # between test runners and to allow tests to be run individually with the
 # unittest framework
+
+#signal.signal(signal.SIGINT, cleanup_objects())
 
 def setup(cls):
     # Try/except block here ensures that cleanups will occur even on setup
@@ -94,3 +97,5 @@ def delete_by_type(gvar, type_info, number):
             subprocess.run(['cloudscheduler', type_info[0], 'delete', type_info[2], object, '-Y'])
 
     object_log.close()
+
+signal.signal(signal.SIGINT, cleanup_objects)
