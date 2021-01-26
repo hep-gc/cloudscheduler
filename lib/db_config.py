@@ -2,7 +2,7 @@
 DB utilities and configuration.
 """
 
-import cloudscheduler.lib.schema_na as schema_na
+import cloudscheduler.lib.schema as schema_na
 
 import logging
 import os

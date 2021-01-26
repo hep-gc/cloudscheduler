@@ -6,8 +6,8 @@ from django.views.decorators.csrf import requires_csrf_token
 from django.http import HttpResponse
 from django.core.exceptions import PermissionDenied
 
-from cloudscheduler.lib.fw_config_na import configure_fw 
-from cloudscheduler.lib.view_utils_na import \
+from cloudscheduler.lib.fw_config import configure_fw 
+from cloudscheduler.lib.view_utils import \
     lno,  \
     manage_group_users, \
     manage_user_group_verification, \
@@ -20,7 +20,7 @@ from cloudscheduler.lib.view_utils_na import \
 from collections import defaultdict
 import bcrypt
 
-from cloudscheduler.lib.schema_na import *
+from cloudscheduler.lib.schema import *
 import re
 
 from cloudscheduler.lib.web_profiler import silk_profile as silkp

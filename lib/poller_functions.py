@@ -5,7 +5,7 @@ import json
 import os
 import time
 
-from cloudscheduler.lib.attribute_mapper_na import map_attributes
+from cloudscheduler.lib.attribute_mapper import map_attributes
 
 ## Poller functions.
 

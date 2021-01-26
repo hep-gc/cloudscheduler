@@ -1,4 +1,4 @@
-from cloudscheduler.lib.db_config_na import Config
+from cloudscheduler.lib.db_config import Config
 
 rowid_dict = {}
 attr_list_dict = {}

@@ -4,7 +4,7 @@ config = settings.CSV2_CONFIG
 from django.core.exceptions import PermissionDenied
 from django.contrib.auth import update_session_auth_hash
 
-from cloudscheduler.lib.view_utils_na import \
+from cloudscheduler.lib.view_utils import \
     lno, \
     manage_user_groups, \
     manage_user_group_verification, \
@@ -17,7 +17,7 @@ from cloudscheduler.lib.view_utils_na import \
 from collections import defaultdict
 import bcrypt
 
-from cloudscheduler.lib.schema_na import *
+from cloudscheduler.lib.schema import *
 import datetime
 
 from cloudscheduler.lib.web_profiler import silk_profile as silkp

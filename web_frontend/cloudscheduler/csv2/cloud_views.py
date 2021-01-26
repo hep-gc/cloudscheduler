@@ -7,7 +7,7 @@ from django.http import HttpResponse
 from django.http.response import JsonResponse
 from django.core.exceptions import PermissionDenied
 
-from cloudscheduler.lib.view_utils_na import \
+from cloudscheduler.lib.view_utils import \
     diff_lists, \
     kill_retire, \
     lno, \
@@ -24,7 +24,7 @@ from cloudscheduler.lib.view_utils_na import \
 
 import bcrypt
 
-from cloudscheduler.lib.schema_na import *
+from cloudscheduler.lib.schema import *
 from cloudscheduler.lib.log_tools import get_frame_info
 from cloudscheduler.lib.signal_functions import event_signal_send
 

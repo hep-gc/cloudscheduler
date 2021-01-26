@@ -7,7 +7,7 @@ from django.http import HttpResponse
 from django.core.exceptions import PermissionDenied
 
 
-from cloudscheduler.lib.view_utils_na import \
+from cloudscheduler.lib.view_utils import \
     kill_retire, \
     lno, \
     qt, \
@@ -20,7 +20,7 @@ from collections import defaultdict
 import bcrypt
 import time
 
-from cloudscheduler.lib.schema_na import *
+from cloudscheduler.lib.schema import *
 from cloudscheduler.lib.log_tools import get_frame_info
 
 from cloudscheduler.lib.web_profiler import silk_profile as silkp

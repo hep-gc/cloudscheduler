@@ -4,7 +4,7 @@ import time
 import boto3
 
 
-from cloudscheduler.lib.schema_na import *
+from cloudscheduler.lib.schema import *
 
 from keystoneclient.auth.identity import v2, v3
 from keystoneauth1 import session as keystone

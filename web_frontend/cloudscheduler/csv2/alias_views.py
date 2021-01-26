@@ -4,7 +4,7 @@ config = settings.CSV2_CONFIG
 from django.core.exceptions import PermissionDenied
 from django.contrib.auth import update_session_auth_hash
 
-from cloudscheduler.lib.view_utils_na import \
+from cloudscheduler.lib.view_utils import \
     diff_lists, \
     lno, \
     qt, \

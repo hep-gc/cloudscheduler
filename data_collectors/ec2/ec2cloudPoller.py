@@ -12,7 +12,6 @@ import copy
 from cloudscheduler.lib.attribute_mapper import map_attributes
 from cloudscheduler.lib.db_config import Config
 from cloudscheduler.lib.ProcessMonitor import ProcessMonitor, terminate, check_pid
-from cloudscheduler.lib.schema import view_vm_kill_retire_over_quota
 from cloudscheduler.lib.view_utils import kill_retire
 from cloudscheduler.lib.log_tools import get_frame_info
 from cloudscheduler.lib.view_utils import qt, verify_cloud_credentials 
@@ -218,10 +217,12 @@ def ec2_filterer():
     poll_time_history = [0,0,0,0]
 
 
+    config.db_open()
     event_receiver_registration(config, "insert_csv2_clouds_amazon")
     event_receiver_registration(config, "insert_csv2_clouds_amazon")
     event_receiver_registration(config, "update_ec2_instance_types")
     event_receiver_registration(config, "update_ec2_images")
+    config.db_close()
 
 
     while True:
@@ -343,13 +344,13 @@ def ec2_filterer():
                 logging.info("Comitting %s image and flavor deletes" % deletions)
                 config.db_commit()
 
-            #need to add signaling
-            config.db_close()
 
             if not os.path.exists(PID_FILE):
                 logging.info("Stop set, exiting...")
                 break
             signal.signal(signal.SIGINT, config.signals['SIGINT'])
+            #need to add signaling
+            config.db_close()
             try:
                 wait_cycle(cycle_start_time, poll_time_history, config.categories["ec2cloudPoller.py"]["sleep_interval_filterer"], config)
             except KeyboardInterrupt:
@@ -384,12 +385,14 @@ def flavor_poller():
     poll_time_history = [0,0,0,0]
     failure_dict = {}
 
+    config.db_open()
     event_receiver_registration(config, "insert_csv2_clouds_amazon")
     event_receiver_registration(config, "update_csv2_clouds_amazon")
+    config.db_close()
 
 
-    config.db_open()
     while True:
+        config.db_open()
         where_clause = "cloud_type='amazon'"
         rc, msg, rows = config.db_query(FLAVOR, where=where_clause)
         inventory = inventory_get_item_hash_from_db_query_rows(ikey_names, rows)
@@ -415,6 +418,7 @@ def flavor_poller():
                 logging.info("Stop set, exiting...")
                 break
             signal.signal(signal.SIGINT, config.signals['SIGINT'])
+            config.db_close()
             try:
                 wait_cycle(cycle_start_time, poll_time_history, config.categories["ec2cloudPoller.py"]["sleep_interval_flavor"], config)
             except KeyboardInterrupt:
@@ -447,8 +451,10 @@ def image_poller():
     poll_time_history = [0, 0, 0, 0]
     failure_dict = {}
 
+    config.db_open()
     event_receiver_registration(config, "insert_csv2_clouds_amazon")
     event_receiver_registration(config, "update_csv2_clouds_amazon")
+    config.db_close()
 
     try:
 
@@ -853,6 +859,7 @@ def keypair_poller():
     poll_time_history = [0, 0, 0, 0]
     failure_dict = {}
 
+    config.db_open()
     event_receiver_registration(config, "insert_csv2_clouds_amazon")
     event_receiver_registration(config, "update_csv2_clouds_amazon")
 
@@ -861,6 +868,7 @@ def keypair_poller():
         where_clause = "cloud_type='amazon'"
         rc, msg, rows = config.db_query(KEYPAIR, where=where_clause)
         inventory = inventory_get_item_hash_from_db_query_rows(ikey_names, rows)
+        config.db_close()
         while True:
             try:
                 logging.debug("Beginning keypair poller cycle")
@@ -1037,7 +1045,8 @@ def limit_poller():
     new_poll_time = 0
     poll_time_history = [0, 0, 0, 0]
     failure_dict = {}
-
+    
+    config.db_open()
     event_receiver_registration(config, "insert_csv2_clouds_amazon")
     event_receiver_registration(config, "update_csv2_clouds_amazon")
 
@@ -1045,9 +1054,12 @@ def limit_poller():
         where_clause = "cloud_type='amazon'"
         rc, msg, rows = config.db_query(LIMIT, where=where_clause)
         inventory = inventory_get_item_hash_from_db_query_rows(ikey_names, rows)
+        config.db_close()
 
         while True:
             try:
+                config.db_open()
+                config.refresh()
                 logging.debug("Beginning limit poller cycle")
                 if not os.path.exists(PID_FILE):
                     logging.debug("Stop set, exiting...")
@@ -1056,8 +1068,6 @@ def limit_poller():
                 signal.signal(signal.SIGINT, signal.SIG_IGN)
 
                 new_poll_time, cycle_start_time = start_cycle(new_poll_time, cycle_start_time)
-                config.db_open()
-                config.refresh()
 
                 inventory_cleanup(ikey_names, rows, inventory)
 
@@ -1274,6 +1284,7 @@ def network_poller():
     poll_time_history = [0, 0, 0, 0]
     failure_dict = {}
 
+    config.db_open()
     event_receiver_registration(config, "insert_csv2_clouds_amazon")
     event_receiver_registration(config, "update_csv2_clouds_amazon")
 
@@ -1281,24 +1292,25 @@ def network_poller():
         where_clause = "cloud_type='amazon'"
         rc, msg, rows = config.db_query(NETWORK, where=where_clause)
         inventory = inventory_get_item_hash_from_db_query_rows(ikey_names, rows)
+        config.db_close()
         while True:
             try:
                 logging.debug("Beginning network poller cycle")
+                config.db_open()
+                config.refresh()
                 if not os.path.exists(PID_FILE):
                     logging.debug("Stop set, exiting...")
                     break
 
                 signal.signal(signal.SIGINT, signal.SIG_IGN)
                 new_poll_time, cycle_start_time = start_cycle(new_poll_time, cycle_start_time)
-                config.db_open()
-                config.refresh()
 
                 # Cleanup inventory, this function will clean up inventory entries for deleted clouds
                 inventory_cleanup(ikey_names, rows, inventory)
 
                 abort_cycle = False
                 where_clause = "cloud_type='amazon'"
-                rc. msg, cloud_list = config.db_query(CLOUD, where=where_clause)
+                rc, msg, cloud_list = config.db_query(CLOUD, where=where_clause)
 
                 # build unique cloud list to only query a given cloud once per cycle
                 unique_cloud_dict = {}
@@ -1472,6 +1484,7 @@ def security_group_poller():
     failure_dict = {}
     my_pid = os.getpid()
 
+    config.db_open()
     event_receiver_registration(config, "insert_csv2_clouds_amazon")
     event_receiver_registration(config, "update_csv2_clouds_amazon")
 
@@ -1479,9 +1492,12 @@ def security_group_poller():
         where_clause = "cloud_type='amazon'"
         rc, msg, rows = config.db_query(SECURITY_GROUP, where=where_clause)
         inventory = inventory_get_item_hash_from_db_query_rows(ikey_names, rows)
+        config.db_close()
         while True:
             try:
                 logging.debug("Beginning security group poller cycle")
+                config.db_open()
+                config.refresh()
                 if not os.path.exists(PID_FILE):
                     logging.debug("Stop set, exiting...")
                     break
@@ -1489,8 +1505,6 @@ def security_group_poller():
                 signal.signal(signal.SIGINT, signal.SIG_IGN)
 
                 new_poll_time, cycle_start_time = start_cycle(new_poll_time, cycle_start_time)
-                config.db_open()
-                config.refresh()
 
                 # Cleanup inventory, this function will clean up inventory entries for deleted clouds
                 inventory_cleanup(ikey_names, rows, inventory)
@@ -1626,13 +1640,13 @@ def security_group_poller():
                         rows.append(row)
                 inventory_obsolete_database_items_delete(ikey_names, rows, inventory, new_poll_time, config, SECURITY_GROUP)
 
-                config.db_close()
 
                 if not os.path.exists(PID_FILE):
                     logging.info("Stop set, exiting...")
                     break
                 signal.signal(signal.SIGINT, config.signals['SIGINT'])
 
+                config.db_close()
                 try:
                     wait_cycle(cycle_start_time, poll_time_history, config.categories["ec2cloudPoller.py"]["sleep_interval_sec_grp"], config)
 
@@ -1670,10 +1684,10 @@ def vm_poller():
     failure_dict = {}
     ec2_status_dict = {}
 
+    config.db_open()
     event_receiver_registration(config, "insert_csv2_clouds_amazon")
     event_receiver_registration(config, "update_csv2_clouds_amazon")
 
-    config.db_open()
     rc, msg, ec2_status = config.db_query(EC2_STATUS)
     for row in ec2_status:
         ec2_status_dict[row["ec2_state"]] = row["csv2_state"]
@@ -1682,7 +1696,9 @@ def vm_poller():
         where_clause = "cloud_type='amazon'"
         rc, msg, rows = config.db_query(VM, where=where_clause)
         inventory = inventory_get_item_hash_from_db_query_rows(ikey_names, rows)
+        config.db_close()
         while True:
+            config.db_open()
             # This cycle should be reasonably fast such that the scheduler will always have the most
             # up to date data during a given execution cycle.
             logging.debug("Beginning VM poller cycle")
@@ -2020,7 +2036,7 @@ def vm_poller():
 
             # Check on the core limits to see if any clouds need to be scaled down.
             where_clause = "cloud_type='amazon'"
-            rc, msg, over_quota_clouds = config.db_query(view_vm_kill_retire_over_quota, where=where_clause)
+            rc, msg, over_quota_clouds = config.db_query("view_vm_kill_retire_over_quota", where=where_clause)
             for cloud in over_quota_clouds:
                 kill_retire(config, cloud["group_name"], cloud["cloud_name"], "control", cloud["cores"], cloud["ram"], get_frame_info())
 

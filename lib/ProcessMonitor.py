@@ -8,7 +8,7 @@ import psutil
 import os
 import sys
 
-from cloudscheduler.lib.db_config_na import Config
+from cloudscheduler.lib.db_config import Config
 
 class ProcessMonitor:
     config = None
