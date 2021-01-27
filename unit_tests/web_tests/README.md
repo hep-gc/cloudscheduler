@@ -4,7 +4,7 @@ This document contains details of how to set up, write, and run the web tests.
 
 ## Setup
 
-Each user you plan to use in the tests must have a Firefox profile, in order to deal with a Selenium issue around username/password popups. In order to make these, go into the python interpreter and run the `setup()` function from `web_test_setup_cleanup`. Then, create a new Firefox profile at `about:profiles`, switch to that profile, log into cloudscheduler manually with that user's credentials, and save them. These profiles should be added to the `settings.yaml` file like so:
+Each user you plan to use in the tests must have a Firefox profile, in order to deal with a Selenium issue around username/password popups. In order to make these, go into the python interpreter and run the `setup_objects()` function from `web_test_setup_cleanup`. Then, create a new Firefox profile at `about:profiles`, switch to that profile, log into cloudscheduler manually with that user's credentials, and save them. These profiles should be added to the `settings.yaml` file like so:
 
 ```yaml
 firefox_profiles:
@@ -27,7 +27,7 @@ New tests should be named starting with `test_web_` (although this is not a brea
 
 New tests should additionally follow all rules for Unittest test classes, as they are run using the Unittest framework.
 
-New test classes should include the `web_test_setup_cleanup` module and call the `setup()` function as part of the setup. `setup()` currently automatically deletes all old test setups when run (via calling the `cleanup()` function). The `cleanup()` is also called as part of the teardown. Neither function will attempt to delete any object it cannot find.
+New test classes should include the `web_test_setup_cleanup` module and call the `setup()` function as part of the setup. `setup()` currently automatically deletes all old test setups when run (via calling the `cleanup()` function). The `cleanup()` is also called as part of the teardown, on error in the setup, or on a `KeyboardInterrupt` at any time during the tests. Neither function will attempt to delete any object it cannot find. This module also contains the handler to deal with cleanup on a keyboard interrupt.
 
 Common functions are stored in files starting with `web_test_`. These files can be included as needed in any `test_web` files (and probably should be for a majority of them). New files containing common functions should continue this convention (although this is, again, not a breaking requirement).
 
@@ -35,7 +35,9 @@ Common functions are stored in files starting with `web_test_`. These files can 
 
 The `cls.gvar` variable, which is assigned in `web_test_setup_cleanup.setup()`, contains server and user information read from various `.yaml` configuration files. This includes the locations of the firefox profiles and the user credentials for the sample users.
 
-The `web_test_javascript_interactions` module contains a set of functions that operate similarly to the `web_test_interactions` functions, except for the fact that they use the JavaScript `execute_script` to do the click action. These should not be used without a justifiable reason (ie a Selenium glitch) that the other ones cannot be used. 
+The `web_test_javascript_interactions` module contains a set of functions that operate similarly to the `web_test_interactions` functions, except for the fact that they use the JavaScript `execute_script` to do the click action. These should not be used without a justifiable reason (ie a Selenium glitch) that the other ones cannot be used. Including this module in any more classes than strictly necessary is discouraged. 
+
+The `web_test_assertions` module contains a set of (currently untested) functions that should be callable within a `TestCase` class and raise the proper errors on failure. These functions access the cloudscheduler database via the `list` command and can test if objects were properly created. However, they are extremely slow compared to assertions using Selenium selectors, and so should be used with care.
 
 ## Running Tests
 
