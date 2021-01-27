@@ -28,6 +28,8 @@ class TestWebGroup(unittest.TestCase):
         user_name = TestWebGroup.gvar['user'] + '-wiu2'
         wti.click_nav_button(TestWebGroup.driver, '+')
         wti.fill_blank(TestWebGroup.driver, "new_group", group_name)
+        # JavaScript click is used here because of a Selenium bug with finding
+        # these checkboxes.
         wtjsi.javascript_click_by_value(TestWebGroup.driver, user_name)
         TestWebGroup.driver.find_element_by_id("new_group").submit()
         self.assertTrue(WebDriverWait(TestWebGroup.driver, 20).until(
@@ -45,24 +47,31 @@ class TestWebGroup(unittest.TestCase):
             EC.presence_of_element_located((By.LINK_TEXT, group_name))))
         wta.assertHasAttribute('user', user_name, 'user_groups', group_name)
 
-    @unittest.skip("TODO: Work out Selenium padding bug")
     def test_web_group_delete(self):
         group_name = TestWebGroup.gvar['user'] + '-wig4'
-        wti.click_nav_button(TestWebGroup.driver, group_name)
-        wti.click_nav_button(TestWebGroup.driver, '-')
-        TestWebGroup.find_element_by_name(group_name).submit()
+        # JavaScript click is used here because of an issue where Selenium
+        # cannot click on an item through the padding of another item.
+        wtjsi.javascript_click_nav_button(TestWebGroup.driver, group_name)
+        wti.click_nav_button(TestWebGroup.driver, '−')
+        TestWebGroup.driver.find_element_by_name(group_name).submit()
 
-    @unittest.skip("TODO: Work out Selenium padding bug")
     def test_web_group_user_add_search_bar(self):
         group_name = TestWebGroup.gvar['user'] + '-wig1'
-        wti.click_nav_button(TestWebGroup.driver, group_name)
-        wti.fill_blank(TestWebGroup.driver, 'search-users-' + group_name, TestWebGroup.gvar['user'] + '-wig2')
+        wtjsi.javascript_click_nav_button(TestWebGroup.driver, group_name)
+        wti.fill_blank(TestWebGroup.driver, 'search-users-' + group_name, TestWebGroup.gvar['user'] + '-wiu2')
+        TestWebGroup.driver.find_element_by_name(group_name).submit()
 
     def test_web_group_user_add_checkbox(self):
-        self.skipTest("TODO: implement")
+        group_name = TestWebGroup.gvar['user'] + '-wig2'
+        wtjsi.javascript_click_nav_button(TestWebGroup.driver, group_name)
+        wtjsi.javascript_click_by_value(TestWebGroup.driver, TestWebGroup.gvar['user'] + '-wiu1')
+        TestWebGroup.driver.find_element_by_name(group_name).submit()
 
     def test_web_group_user_remove(self):
-        self.skipTest("TODO: implement")
+        group_name = TestWebGroup.gvar['user'] + '-wig1'
+        wtjsi.javascript_click_nav_button(TestWebGroup.driver, group_name)
+        wtjsi.javascript_click_by_value(TestWebGroup.driver, TestWebGroup.gvar['user'] + '-wiu1')
+        TestWebGroup.driver.find_element_by_name(group_name).submit()
 
     @classmethod
     def tearDownClass(cls):
