@@ -496,7 +496,7 @@ class Config:
             return self.__db_logging_return__(1, 'the database is not open')
             
         updates = []
-        for column in sorted(column_dict):
+        for column in column_dict:
             if column not in self.db_schema[table]['columns']:
                 self.__db_logging_return__(0, 'column "%s" not defined in table "%s", column dropped from update' % (column, table))
                 continue

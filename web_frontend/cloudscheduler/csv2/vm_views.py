@@ -43,6 +43,9 @@ VM_KEYS = {
         'group':                                                        'ignore',
         'vm_hosts':                                                     'lowerdash',
         },
+    'array_fields': [
+        'vm_hosts',
+        ],
     'not_empty': [
         'vm_hosts',
         ],
@@ -222,8 +225,7 @@ def update(request):
 
 
         # Retrieve VM information.
-        if fields['vm_hosts'].isnumeric():
-#       if isinstance(fields['vm_hosts'], int):
+        if isinstance(fields['vm_hosts'], int):
             count = kill_retire(config, active_user.active_group, fields.get('cloud_name', default='-'), fields['vm_option'], fields['vm_hosts'], get_frame_info())
 #           count = kill_retire(config, active_user.active_group, fields['cloud_name'], 'control', [50,1000000], get_frame_info())
         else:
@@ -235,7 +237,7 @@ def update(request):
             else:
                 fields['hostname'] = fields['vm_hosts']
                 where_clause = "group_name='%s'" % active_user.active_group
-                vm_list_raw = config.db_query("view_vms", where=where_clause)
+                rc, msg, vm_list_raw = config.db_query("view_vms", where=where_clause)
                 _vm_list = qt(vm_list_raw, filter=qt_filter_get(['cloud_name', 'hostname', 'poller_status'], fields, aliases=ALIASES))
 
             for vm in _vm_list:
@@ -257,7 +259,7 @@ def update(request):
                     rc, msg = config.db_update(table, vm_dict, where=where_clause)
 
                 if rc == 0:
-                    count += msg
+                    count += 1
                 else:
                     config.db_close()
                     return render(request, 'csv2/vms.html', {'response_code': 1, 'message': '%s vm update (%s) failed - %s' % (lno(MODID), fields['vm_option'], msg), 'active_user': active_user.username, 'active_group': active_user.active_group, 'user_groups': active_user.user_groups})

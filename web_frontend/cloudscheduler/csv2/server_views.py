@@ -126,11 +126,12 @@ def configuration(request):
                                 for key in key_values:
                                     if key_values[key] != config_keys[key]['value']:
                                         keys.append(key)
-                                        key_dict = {table.c.config_value:key_values[key]}
-                                        where_clause="category='%s'" % category
-                                        rc, msg = config.db_update(table, key_dict, where=where_clause)
+                                        where_clause="category='%s' and config_key='%s'" % (category, key)
+                                        updates = {
+                                            "config_value": key_values[key]
+                                        }
+                                        rc, msg = config.db_update(table, updates, where=where_clause)
                                         if rc != 0:
-                                            config.db_session.rollback()
                                             message = '{} server config update failed - {}'.format(lno(MODID), msg)
                                             break
 
