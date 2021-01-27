@@ -1,6 +1,11 @@
 import unittest
 import subprocess
 
+# Note: These methods use the cloudscheduler list command, and therefore are
+# much slower than Selenium assertions. These should not be used if a Selenium
+# method can check the same thing, and should ideally be used at most once per
+# test
+
 def assertAdded(type, name):
     list_by_type(type)
     object_file = open('assert_objects.txt', 'r')
