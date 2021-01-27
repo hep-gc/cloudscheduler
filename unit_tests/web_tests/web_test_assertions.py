@@ -3,9 +3,9 @@ import subprocess
 
 def assertAdded(type, name):
     list_by_type(type)
-    object_file = open('assert_objects.txt, 'r')
+    object_file = open('assert_objects.txt', 'r')
     for line in object_file:
-        if line==name:
+        if line.strip()==name:
              object_file.close()
              return
     object_file.close()
@@ -15,43 +15,56 @@ def assertDeleted(type, name):
     list_by_type(type)
     object_file = open('assert_objects.txt', 'r')
     for line in object_file:
-        if line==name:
+        if line.strip()==name:
              object_file.close()
              raise AssertionError
     object_file.close()
 
-def assertHasAttribute(type, name, attribute_name):
-    list_by_name(type, name)
+def assertHasAttribute(type, name, attribute, attribute_name):
+    list_attribute_by_name(type, name, attribute)
     object_file = open('assert_objects.txt', 'r')
     record = ""
     for line in object_file:
         record += line
     record = record.split(',')
+    record[-1] = record[-1].strip()
     if attribute_name not in record:
         object_file.close()
         raise AssertionError
     object_file.close()
 
 def list_by_name(type, name):
+    # This function is unused. It currently is not working because the empty 
+    # '-CSV' flag doesn't work properly with subprocess.run
     object_file = None
     try:
         object_file = open('assert_objects.txt', 'x')
-    except FileExistsException:
+    except FileExistsError:
         object_file = open('assert_objects.txt', 'w')
     object_names = names()
     object = object_names[type]
     subprocess.run(['cloudscheduler', object['name'], 'list', object['flag'], name, '-CSV', '""'], stdout=object_file)
     object_file.close()
 
-def list_by_type(object):
+def list_attribute_by_name(type, name, attribute):
     object_file = None
     try:
         object_file = open('assert_objects.txt', 'x')
-    except FileExistsException:
+    except FileExistsError:
         object_file = open('assert_objects.txt', 'w')
     object_names = names()
     object = object_names[type]
-    subprocess.run(['cloudscheduler', object['name'], 'list', '-CSV', object['column_name'], stdout=object_file)
+    subprocess.run(['cloudscheduler', object['name'], 'list', object['flag'], name, '-CSV', object['column_name'] + ',' + attribute], stdout=object_file)
+
+def list_by_type(type):
+    object_file = None
+    try:
+        object_file = open('assert_objects.txt', 'x')
+    except FileExistsError:
+        object_file = open('assert_objects.txt', 'w')
+    object_names = names()
+    object = object_names[type]
+    subprocess.run(['cloudscheduler', object['name'], 'list', '-CSV', object['column_name']], stdout=object_file)
     object_file.close()
 
 def names():
