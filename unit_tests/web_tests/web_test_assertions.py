@@ -21,6 +21,9 @@ def assertDeleted(type, name):
     object_file.close()
 
 def assertHasAttribute(type, name, attribute, attribute_name):
+    # This method should only be used on objects that are known to be created -
+    # ie the test should not be creating them. If the test is creating the
+    # object, use assertAddedWithAttribute
     list_attribute_by_name(type, name, attribute)
     object_file = open('assert_objects.txt', 'r')
     record = ""
@@ -31,6 +34,54 @@ def assertHasAttribute(type, name, attribute, attribute_name):
     if attribute_name not in record:
         object_file.close()
         raise AssertionError
+    object_file.close()
+
+def assertAddedWithAttribute(type, name, attribute, attribute_name):
+    list_attribute_by_name(type, name, attribute)
+    object_file = open('assert_objects.txt, 'r')
+    record = ""
+    for line in object_file:
+        record += line
+    if record.strip() == "":
+        object_file.close()
+        raise AssertionError
+    record = record.split(',')
+    record[-1] = record[-1].strip()
+    if attribute_name not in record:
+        object_file.close()
+        raise AssertionError()
+    object_file.close()
+
+def assertHasNotAttribute(type, name, attribute, attribute_name):
+    # This method should only be used on objects that are known to be created -
+    # ie the test should not be creating them. If the test is creating the
+    # object, use assertAddedWithoutAttribute
+    list_attribute_by_name(type, name, attribute)
+    object_file = open('assert_objects.txt', 'r')
+    record = ""
+    for line in object_file:
+        record += line
+    record = record.split(',')
+    record[-1] = record[-1].strip()
+    if attribute_name in record:
+        object_file.close()
+        raise AssertionError
+    object_file.close()
+
+def assertAddedWithoutAttribute(type, name, attribute, attribute_name):
+    list_attribute_by_name(type, name, attribute)
+    object_file = open('assert_objects.txt, 'r')
+    record = ""
+    for line in object_file:
+        record += line
+    if record.strip() == "":
+        object_file.close()
+        raise AssertionError
+    record = record.split(',')
+    record[-1] = record[-1].strip()
+    if attribute_name in record:
+        object_file.close()
+        raise AssertionError()
     object_file.close()
 
 def list_by_name(type, name):
