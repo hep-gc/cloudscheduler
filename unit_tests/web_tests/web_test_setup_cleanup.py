@@ -7,8 +7,6 @@ import signal
 # between test runners and to allow tests to be run individually with the
 # unittest framework
 
-#signal.signal(signal.SIGINT, cleanup_objects())
-
 def setup(cls):
     # Try/except block here ensures that cleanups will occur even on setup
     # error. If we update to python 3.8 or later, the unittest
@@ -75,16 +73,17 @@ def delete_by_type(gvar, type_info, number):
     objects = []
     object_log = None
     object_list = []
+    logfile = 'objects.txt'
 
     try:
-        object_log = open('objects.txt', mode = 'x')
+        object_log = open(logfile, mode = 'x')
     except FileExistsError:
-        object_log = open('objects.txt', mode = 'w') 
+        object_log = open(logfile, mode = 'w') 
     
     subprocess.run(['cloudscheduler', type_info[0], 'list', '-CSV', type_info[3]], stdout=object_log)
     
     object_log.close()
-    object_log = open('objects.txt', mode = 'r')
+    object_log = open(logfile, mode = 'r')
 
     for line in object_log:
         object_list.append(line.strip())
