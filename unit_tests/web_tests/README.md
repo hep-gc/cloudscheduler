@@ -37,7 +37,7 @@ The `cls.gvar` variable, which is assigned in `web_test_setup_cleanup.setup()`, 
 
 The `web_test_javascript_interactions` module contains a set of functions that operate similarly to the `web_test_interactions` functions, except for the fact that they use the JavaScript `execute_script` to do the click action. These should not be used without a justifiable reason (ie a Selenium glitch) that the other ones cannot be used. Including this module in any more classes than strictly necessary is discouraged. 
 
-The `web_test_assertions` module contains a set of (currently untested) functions that should be callable within a `TestCase` class and raise the proper errors on failure. These functions access the cloudscheduler database via the `list` command and can test if objects were properly created. However, they are extremely slow compared to assertions using Selenium selectors, and so should be used with care.
+The `web_test_assertions` module contains a set of functions that should be callable within a `TestCase` class and raise the proper errors on failure. These functions access the cloudscheduler database via the `list` command and can test if objects were properly created. However, they are extremely slow compared to assertions using Selenium selectors - if the test can be asserted with another assertion method, that is probably better, and they should ideally only be used one-per-test.
 
 ## Running Tests
 
@@ -53,13 +53,13 @@ Occasionally, Geckodriver has an issue where it is unable to click on an element
 selenium.common.exceptions.ElementNotInteractableException: Message: Element <element> could not be scrolled into view
 ```
 
-The `web_test_interactions.javascript_click()`, which is a wrapper for executing a click directly in JavaScript, should be used in place of `.click()` in these cases. Please note that this method is not interchangable with `.click()` - it is called differently, and the code should be modified accordingly.
+The functions in `web_test_javascript_interactions` should be used in this scenario - this is one of the use cases they were created for.
 
 To create the test fixtures to manually inspect the tests, the `.setup_objects()` and `.cleanup_objects()` functions from the `web_test_setup_cleanup` module should be used. The `setup()` and `cleanup()` functions do the driver setup as well.
 
 ## Test Profiles
 
-The tests have a set of automatically-created objects, created in the `web_test_setup_cleanup.setup()` function. If adding to these, it is important to rename any tests that used that suffix (typically `add` tests).
+The tests have a set of automatically-created objects, created in the `web_test_setup_cleanup.setup()` function. If adding to these, it is important to rename any tests that used the suffix being added (typically `add` tests).
 
 ### Users
 
@@ -77,4 +77,4 @@ The tests have a set of automatically-created objects, created in the `web_test_
 
 `{user}-wig3` contains no users.
 
-`{user}-wig4` contains no users. It is a group for delete tests.
+`{user}-wig4` contains no users. It is a group to be removed in deletion tests.
