@@ -17,7 +17,9 @@ Ideally, there will be a script to do this eventually, but as Firefox currently 
 
 ## Adding Tests
 
-New tests should be named starting with `test_web_` (although this is not a breaking requirement). All test files must be put in the `web_tests` directory, and each test class must have the following added to `create_test_suite.py`:
+New tests should be named starting with `test_web_`. The test files should be named `test_web_<page>.py`, with the class being named `TestWeb<Page>`. Individual tests should be named `test_web_<page>_<objects>_<add>_<details>`. Note that individual tests having names that start with `test` is currently the only breaking requirement.
+
+All test files must be put in the `web_tests` directory, and each test class must have the following added to `create_test_suite.py`:
 
 ```python
     from .<filename> import <ClassName>
