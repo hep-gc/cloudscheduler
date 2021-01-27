@@ -23,6 +23,15 @@ class TestWebGroup(unittest.TestCase):
     def test_web_group_find(self):
         pass
 
+    def test_web_group_add_without_user(self):
+        group_name = TestWebGroup.gvar['user'] + '-wig5'
+        wti.click_nav_button(TestWebGroup.driver, '+')
+        wti.fill_blank(TestWebGroup.driver, 'new_group', group_name)
+        TestWebGroup.driver.find_element_by_id('new_group').submit()
+        self.assertTrue(WebDriverWait(TestWebGroup.driver, 20).until(
+            EC.presence_of_element_located((By.LINK_TEXT, group_name))))
+        wta.assertAdded('group', group_name)
+
     def test_web_group_add_checkbox(self):
         group_name = TestWebGroup.gvar['user'] + '-wig5'
         user_name = TestWebGroup.gvar['user'] + '-wiu2'
@@ -54,24 +63,35 @@ class TestWebGroup(unittest.TestCase):
         wtjsi.javascript_click_nav_button(TestWebGroup.driver, group_name)
         wti.click_nav_button(TestWebGroup.driver, '−')
         TestWebGroup.driver.find_element_by_name(group_name).submit()
+        with self.assertRaises(TimeoutError):
+            WebDriverWait(TestWebGroup.driver, 10).until(
+                EC.presence_of_element_located((By.LINK_TEXT, group_name)))
+        wta.assertDeleted('group', group_name)
 
     def test_web_group_user_add_search_bar(self):
         group_name = TestWebGroup.gvar['user'] + '-wig1'
+        user_name = TestWebGroup.gvar['user'] + '-wiu2'
         wtjsi.javascript_click_nav_button(TestWebGroup.driver, group_name)
-        wti.fill_blank(TestWebGroup.driver, 'search-users-' + group_name, TestWebGroup.gvar['user'] + '-wiu2')
+        wti.fill_blank(TestWebGroup.driver, 'search-users-' + group_name, user_name)
         TestWebGroup.driver.find_element_by_name(group_name).submit()
+        wta.assertHasAttribute('user', user_name, 'user_groups', group_name)
 
     def test_web_group_user_add_checkbox(self):
         group_name = TestWebGroup.gvar['user'] + '-wig2'
+        user_name = TestWebGroup.gvar['user'] + '-wiu1'
         wtjsi.javascript_click_nav_button(TestWebGroup.driver, group_name)
-        wtjsi.javascript_click_by_value(TestWebGroup.driver, TestWebGroup.gvar['user'] + '-wiu1')
+        wtjsi.javascript_click_by_value(TestWebGroup.driver, user_name)
         TestWebGroup.driver.find_element_by_name(group_name).submit()
+        wta.assertHasAttribute('user', user_name, 'user_groups', group_name)
 
     def test_web_group_user_remove(self):
         group_name = TestWebGroup.gvar['user'] + '-wig1'
+        user_name = TestWebGroup.gvar['user'] + '-wiu1'
         wtjsi.javascript_click_nav_button(TestWebGroup.driver, group_name)
-        wtjsi.javascript_click_by_value(TestWebGroup.driver, TestWebGroup.gvar['user'] + '-wiu1')
+        wtjsi.javascript_click_by_value(TestWebGroup.driver, user_name)
         TestWebGroup.driver.find_element_by_name(group_name).submit()
+        wta.assertHasNotAttribute('user', user_name, 'user_groups', group_name)
+        
 
     @classmethod
     def tearDownClass(cls):
