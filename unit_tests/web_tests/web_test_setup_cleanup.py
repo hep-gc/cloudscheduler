@@ -61,7 +61,7 @@ def cleanup_objects():
     gvar = load_settings(web=True)
     
     delete_by_type(gvar, ['user', '-wiu', '-un', 'username'], 3)
-    delete_by_type(gvar, ['group', '-wig', '-gn', 'group_name'], 6)
+    delete_by_type(gvar, ['group', '-wig', '-gn', 'group_name'], 7)
 
 def delete_by_type(gvar, type_info, number):
     # type_info is a list of strings
@@ -97,4 +97,5 @@ def delete_by_type(gvar, type_info, number):
 
     object_log.close()
 
+# TODO: Edit to deal with arguments passed to cleanup_objects()
 signal.signal(signal.SIGINT, cleanup_objects)

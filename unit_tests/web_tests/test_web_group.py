@@ -24,7 +24,7 @@ class TestWebGroup(unittest.TestCase):
         pass
 
     def test_web_group_add_without_user(self):
-        group_name = TestWebGroup.gvar['user'] + '-wig5'
+        group_name = TestWebGroup.gvar['user'] + '-wig7'
         wti.click_nav_button(TestWebGroup.driver, '+')
         wti.fill_blank(TestWebGroup.driver, 'new_group', group_name)
         TestWebGroup.driver.find_element_by_id('new_group').submit()
@@ -37,9 +37,7 @@ class TestWebGroup(unittest.TestCase):
         user_name = TestWebGroup.gvar['user'] + '-wiu2'
         wti.click_nav_button(TestWebGroup.driver, '+')
         wti.fill_blank(TestWebGroup.driver, "new_group", group_name)
-        # JavaScript click is used here because of a Selenium bug with finding
-        # these checkboxes.
-        wtjsi.javascript_click_by_value(TestWebGroup.driver, user_name)
+        wti.click_by_value(TestWebGroup.driver, 'add_group', user_name)
         TestWebGroup.driver.find_element_by_id("new_group").submit()
         self.assertTrue(WebDriverWait(TestWebGroup.driver, 20).until(
             EC.presence_of_element_located((By.LINK_TEXT, group_name))))
@@ -63,6 +61,7 @@ class TestWebGroup(unittest.TestCase):
         wtjsi.javascript_click_nav_button(TestWebGroup.driver, group_name)
         wti.click_nav_button(TestWebGroup.driver, '−')
         TestWebGroup.driver.find_element_by_name(group_name).submit()
+        WebDriverWait(TestWebGroup.driver, 5)
         with self.assertRaises(TimeoutError):
             WebDriverWait(TestWebGroup.driver, 10).until(
                 EC.presence_of_element_located((By.LINK_TEXT, group_name)))
@@ -80,7 +79,7 @@ class TestWebGroup(unittest.TestCase):
         group_name = TestWebGroup.gvar['user'] + '-wig2'
         user_name = TestWebGroup.gvar['user'] + '-wiu1'
         wtjsi.javascript_click_nav_button(TestWebGroup.driver, group_name)
-        wtjsi.javascript_click_by_value(TestWebGroup.driver, user_name)
+        wti.click_by_value(TestWebGroup.driver, group_name, user_name)
         TestWebGroup.driver.find_element_by_name(group_name).submit()
         wta.assertHasAttribute('user', user_name, 'user_groups', group_name)
 
