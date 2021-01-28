@@ -27,12 +27,8 @@ def click_menu_button(driver, id):
     button = driver.find_element_by_id(id)
     button.click()
 
-def click_by_value(driver, name, text):
-    #xpath = "//div[@id='" + name + "']/div/form/table/tbody/tr/td/input[@value='" + text + "']"
-    #xpath = "//form[@name='" + name + "']/table/tbody/tr/td/input[@value='" + text + "']"
-    xpath = "//form[@name='" + name + "']/table/tbody/tr/td/input[@value='" + text + "']"
-
+def click_by_xpath(driver, xpath):
     WebDriverWait(driver, 20).until(
         EC.presence_of_element_located((By.XPATH, xpath)))
-    box = driver.find_element_by_xpath(xpath)
-    box.click()
+    element = driver.find_element_by_xpath(xpath)
+    element.click()

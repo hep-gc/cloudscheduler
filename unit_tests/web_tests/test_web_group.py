@@ -3,10 +3,12 @@ from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+from selenium.common.exceptions import TimeoutException
 import web_tests.web_test_interactions as wti
 import web_tests.web_test_setup_cleanup as wtsc
 import web_tests.web_test_javascript_interactions as wtjsi
 import web_tests.web_test_assertions as wta
+import web_tests.web_test_xpath_selectors as wtxs
 
 class TestWebGroup(unittest.TestCase):
     """A class to test group operations via the web interface."""
@@ -37,7 +39,7 @@ class TestWebGroup(unittest.TestCase):
         user_name = TestWebGroup.gvar['user'] + '-wiu2'
         wti.click_nav_button(TestWebGroup.driver, '+')
         wti.fill_blank(TestWebGroup.driver, "new_group", group_name)
-        wti.click_by_value(TestWebGroup.driver, 'add_group', user_name)
+        wti.click_by_xpath(TestWebGroup.driver, wtxs.user_checkbox('add_group', user_name))
         TestWebGroup.driver.find_element_by_id("new_group").submit()
         self.assertTrue(WebDriverWait(TestWebGroup.driver, 20).until(
             EC.presence_of_element_located((By.LINK_TEXT, group_name))))
@@ -60,9 +62,9 @@ class TestWebGroup(unittest.TestCase):
         # cannot click on an item through the padding of another item.
         wtjsi.javascript_click_nav_button(TestWebGroup.driver, group_name)
         wti.click_nav_button(TestWebGroup.driver, '−')
-        TestWebGroup.driver.find_element_by_name(group_name).submit()
+        wti.click_by_xpath(TestWebGroup.driver, wtxs.delete_button(group_name))
         WebDriverWait(TestWebGroup.driver, 5)
-        with self.assertRaises(TimeoutError):
+        with self.assertRaises(TimeoutException):
             WebDriverWait(TestWebGroup.driver, 10).until(
                 EC.presence_of_element_located((By.LINK_TEXT, group_name)))
         wta.assertDeleted('group', group_name)
@@ -79,7 +81,7 @@ class TestWebGroup(unittest.TestCase):
         group_name = TestWebGroup.gvar['user'] + '-wig2'
         user_name = TestWebGroup.gvar['user'] + '-wiu1'
         wtjsi.javascript_click_nav_button(TestWebGroup.driver, group_name)
-        wti.click_by_value(TestWebGroup.driver, group_name, user_name)
+        wti.click_by_xpath(TestWebGroup.driver, wtxs.user_checkbox(group_name, user_name))
         TestWebGroup.driver.find_element_by_name(group_name).submit()
         wta.assertHasAttribute('user', user_name, 'user_groups', group_name)
 
@@ -87,7 +89,7 @@ class TestWebGroup(unittest.TestCase):
         group_name = TestWebGroup.gvar['user'] + '-wig1'
         user_name = TestWebGroup.gvar['user'] + '-wiu1'
         wtjsi.javascript_click_nav_button(TestWebGroup.driver, group_name)
-        wtjsi.javascript_click_by_value(TestWebGroup.driver, user_name)
+        wti.click_by_xpath(TestWebGroup.driver, wtxs.user_checkbox(group_name, user_name))
         TestWebGroup.driver.find_element_by_name(group_name).submit()
         wta.assertHasNotAttribute('user', user_name, 'user_groups', group_name)
         
