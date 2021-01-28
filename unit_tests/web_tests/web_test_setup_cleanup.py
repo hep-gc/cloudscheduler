@@ -97,5 +97,7 @@ def delete_by_type(gvar, type_info, number):
 
     object_log.close()
 
-# TODO: Edit to deal with arguments passed to cleanup_objects()
-signal.signal(signal.SIGINT, cleanup_objects)
+def keyboard_interrupt_handler(signal, frame):
+    cleanup_objects()
+
+signal.signal(signal.SIGINT, keyboard_interrupt_handler)
