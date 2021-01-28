@@ -30,7 +30,7 @@ def click_menu_button(driver, id):
 def click_by_value(driver, name, text):
     #xpath = "//div[@id='" + name + "']/div/form/table/tbody/tr/td/input[@value='" + text + "']"
     #xpath = "//form[@name='" + name + "']/table/tbody/tr/td/input[@value='" + text + "']"
-    xpath = "//form[@name='" + name + "']"#/table/tbody/tr/td/input[@value='" + text + "']"
+    xpath = "//form[@name='" + name + "']/table/tbody/tr/td/input[@value='" + text + "']"
 
     WebDriverWait(driver, 20).until(
         EC.presence_of_element_located((By.XPATH, xpath)))
