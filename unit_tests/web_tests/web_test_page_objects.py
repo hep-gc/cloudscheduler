@@ -1,4 +1,7 @@
 from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
 import web_tests.web_test_interactions as wti
 import web_tests.web_test_javascript_interactions as wtjsi
 import web_tests.web_test_xpath_selectors as wtxs
@@ -73,6 +76,17 @@ class GroupsPage(Page):
         xpath = wtxs.delete_button(self.active_group)
         wti.click_by_xpath(self.driver, xpath)
         self.active_group = None
+
+    def side_button_exists(self, name):
+        WebDriverWait(self.driver, 10).until(
+            EC.presence_of_element_located((By.LINK_TEXT, name)))
+        return True
+
+    def box_checked(self, name):
+        xpath = wtxs.user_checkbox(self.active_group, name)
+        WebDriverWait(self.driver, 10).until(
+            EC.element_located_to_be_selected((By.XPATH, xpath)))
+        return True
 
 class ConfigPage(Page):
     pass

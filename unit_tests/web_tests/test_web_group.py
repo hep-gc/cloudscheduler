@@ -1,8 +1,5 @@
 import unittest
 from selenium import webdriver
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import TimeoutException
 import web_tests.web_test_interactions as wti
 import web_tests.web_test_setup_cleanup as wtsc
@@ -30,8 +27,7 @@ class TestWebGroup(unittest.TestCase):
         self.page.click_add_button()
         self.page.type_group_name(group_name)
         self.page.click_add_group()
-        self.assertTrue(WebDriverWait(self.driver, 20).until(
-            EC.presence_of_element_located((By.LINK_TEXT, group_name))))
+        self.assertTrue(self.page.side_button_exists(group_name))
         wta.assertAdded('group', group_name)
 
     def test_web_group_add_checkbox(self):
@@ -41,8 +37,7 @@ class TestWebGroup(unittest.TestCase):
         self.page.type_group_name(group_name)
         self.page.click_user_checkbox(user_name)
         self.page.click_add_group()
-        self.assertTrue(WebDriverWait(self.driver, 20).until(
-            EC.presence_of_element_located((By.LINK_TEXT, group_name))))
+        self.assertTrue(self.page.side_button_exists(group_name))
         wta.assertHasAttribute('user', user_name, 'user_groups', group_name)
 
     @unittest.skip("Not working in production")
@@ -53,8 +48,7 @@ class TestWebGroup(unittest.TestCase):
         self.page.type_group_name(group_name)
         self.page.type_in_search_bar(user_name)
         self.page.click_add_group()
-        self.assertTrue(WebDriverWait(self.driver, 20).until(
-            EC.presence_of_element_located((By.LINK_TEXT, group_name))))
+        self.assertTrue(self.page.side_button_exists(group_name))
         wta.assertHasAttribute('user', user_name, 'user_groups', group_name)
 
     def test_web_group_delete(self):
@@ -62,10 +56,8 @@ class TestWebGroup(unittest.TestCase):
         self.page.click_side_button(group_name)
         self.page.click_delete_button()
         self.page.click_delete_modal()
-        WebDriverWait(self.driver, 5)
         with self.assertRaises(TimeoutException):
-            WebDriverWait(self.driver, 10).until(
-                EC.presence_of_element_located((By.LINK_TEXT, group_name)))
+            self.page.side_button_exists(group_name)
         wta.assertDeleted('group', group_name)
 
     @unittest.skip("Not working in production")
@@ -75,6 +67,7 @@ class TestWebGroup(unittest.TestCase):
         self.page.click_side_button(group_name)
         self.page.type_in_search_bar(user_name)
         self.page.click_update_group()
+        self.assertTrue(self.page.box_checked(user_name))
         wta.assertHasAttribute('user', user_name, 'user_groups', group_name)
 
     def test_web_group_user_add_checkbox(self):
@@ -83,6 +76,7 @@ class TestWebGroup(unittest.TestCase):
         self.page.click_side_button(group_name)
         self.page.click_user_checkbox(user_name)
         self.page.click_update_group()
+        self.assertTrue(self.page.box_checked(user_name))
         wta.assertHasAttribute('user', user_name, 'user_groups', group_name)
 
     def test_web_group_user_remove(self):
@@ -91,8 +85,9 @@ class TestWebGroup(unittest.TestCase):
         self.page.click_side_button(group_name)
         self.page.click_user_checkbox(user_name)
         self.page.click_update_group()
-        wta.assertHasNotAttribute('user', user_name, 'user_groups', group_name)
-        
+        with self.assertRaises(TimeoutException):
+            self.page.box_checked(user_name)
+        wta.assertHasNotAttribute('user', user_name, 'user_groups', group_name) 
 
     @classmethod
     def tearDownClass(cls):
