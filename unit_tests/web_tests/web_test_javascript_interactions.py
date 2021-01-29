@@ -16,14 +16,14 @@ def javascript_click(driver, element):
     # wrapper function for clicking the item via JavaScript
     driver.execute_script("arguments[0].click();", element)
 
-def javascript_click_by_value(driver, text):
+def javascript_click_by_xpath(driver, text):
     xpath = "//input[@value='" + text + "']"
     WebDriverWait(driver, 20).until(
         EC.presence_of_element_located((By.XPATH, xpath)))
     box = driver.find_element_by_xpath(xpath)
     javascript_click(driver, box)
 
-def javascript_click_nav_button(driver, text):
+def javascript_click_by_link_text(driver, text):
     WebDriverWait(driver, 20).until(
         EC.presence_of_element_located((By.LINK_TEXT, text)))
     button = driver.find_element_by_link_text(text)

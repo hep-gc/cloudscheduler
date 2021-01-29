@@ -7,7 +7,7 @@ from selenium.webdriver.common.keys import Keys
 def get_homepage(driver):
     driver.get("https://csv2-dev.heprc.uvic.ca")
 
-def click_nav_button(driver, text):
+def click_by_link_text(driver, text):
     WebDriverWait(driver, 20).until(
         EC.element_to_be_clickable((By.LINK_TEXT, text)))
     nav_button = driver.find_element_by_link_text(text)
@@ -21,7 +21,7 @@ def fill_blank(driver, id, text):
     form.send_keys(text)
     #form.send_keys(Keys.ENTER)
 
-def click_menu_button(driver, id):
+def click_by_id(driver, id):
     WebDriverWait(driver, 20).until(
         EC.element_to_be_clickable((By.ID, id)))
     button = driver.find_element_by_id(id)
