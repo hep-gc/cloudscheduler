@@ -8,7 +8,7 @@ class TestWebGroup(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        wtsc.setup(cls)
+        wtsc.setup(cls, 2)
         cls.page = pages.GroupsPage(cls.driver)
         print("\nGroup Tests:")
         

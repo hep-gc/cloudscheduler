@@ -16,8 +16,7 @@ def javascript_click(driver, element):
     # wrapper function for clicking the item via JavaScript
     driver.execute_script("arguments[0].click();", element)
 
-def javascript_click_by_xpath(driver, text):
-    xpath = "//input[@value='" + text + "']"
+def javascript_click_by_xpath(driver, xpath):
     WebDriverWait(driver, 20).until(
         EC.presence_of_element_located((By.XPATH, xpath)))
     box = driver.find_element_by_xpath(xpath)
