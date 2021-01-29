@@ -31,17 +31,23 @@ New tests should additionally follow all rules for Unittest test classes, as the
 
 New test classes should include the `web_test_setup_cleanup` module and call the `setup()` function as part of the `setUpClass()` function, passing it the test class it is being called as a part of. `setup()` currently automatically deletes all old test setups when run (via calling the `cleanup()` function). The `cleanup()` function should be called during the `tearDownClass()` function, again passing it the test class it is being called in. `cleanup()` is also called on error in the setup or on a `KeyboardInterrupt` at any time during the tests (using a handler contained in this module). Neither function will attempt to delete any object it cannot find. 
 
-Common functions are stored in files starting with `web_test_`. These files can be included as needed in any `test_web` files (and probably should be for a majority of them). New files containing common functions should continue this convention (although this is, again, not a breaking requirement).
+New tests should include the `web_test_setup_cleanup`, `web_test_assertions`, and `web_test_page_objects` modules. The other `web_test_*` modules are used in these three modules, and should only be accessed via these three modules. 
 
 ## Writing Tests
 
 The `cls.gvar` variable, which is assigned in `web_test_setup_cleanup.setup()`, contains server and user information read from various `.yaml` configuration files. This includes the locations of the firefox profiles and the user credentials for the sample users.
 
-The `web_test_javascript_interactions` module contains a set of functions that operate similarly to the `web_test_interactions` functions, except for the fact that they use the JavaScript `execute_script` to do the click action. These should not be used without a justifiable reason (ie a Selenium glitch) that the other ones cannot be used. Including this module in any more classes than strictly necessary is discouraged. 
+The `web_test_assertions` module contains a set of functions that should be callable within a `TestCase` class and raise the proper errors on failure. These functions access the cloudscheduler database via the `list` command and can test if objects were properly created in the database. However, they are extremely slow compared to assertions using Selenium selectors, and therefore should be used only once per test.
 
-The `web_test_assertions` module contains a set of functions that should be callable within a `TestCase` class and raise the proper errors on failure. These functions access the cloudscheduler database via the `list` command and can test if objects were properly created in the database. However, they are extremely slow compared to assertions using Selenium selectors - if the test can be asserted with another assertion method, that is probably better, and they should ideally only be used one-per-test.
+## Page Objects
 
-The `web_test_xpath_selectors` module contains the XPath formatters for several common buttons and should be used along with the `web_test_interactions.click_by_xpath()` function. This module may eventually be replaced by a group of page objects - this possibility needs to be investigated.
+The test files should access the page via the use of page objects. Each page on the csv2 website has one page class, stored in the `web_test_page_objects` module. 
+
+A new page object should inherit from the `Page` class, which will give it access to the driver and any website-wide components (currently only the top navigation bar). Any interaction with that page should be done via methods implemented in that page class. 
+
+The `web_test_interactions`, `web_test_javascript_interactions`, and `web_test_xpath_selectors` modules define the actions that the page objects should use. `web_test_interactions` and `web_test_javascript_interactions` have very similar functions (see below). Each method wraps Selenium's wait action, the find method, and the action method into a single function. `web_test_xpath_selectors` is a set of wrappers for XPaths to be passed to the `web_test_interactions.click_by_xpath` and `web_test_javascript_interactions.javascript_click_by_xpath` methods.
+
+The `web_test_javascript_interactions` module contains a set of functions that operate similarly to the `web_test_interactions` functions, except for the fact that they use the JavaScript `execute_script` to do the click action. These should not be used without a justifiable reason (ie a Selenium glitch) that the other ones cannot be used, and this glitch should be documented in the comments above the use of the function. Including this module in any more classes than strictly necessary is discouraged. 
 
 ## Running Tests
 
