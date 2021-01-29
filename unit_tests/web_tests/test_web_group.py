@@ -45,6 +45,7 @@ class TestWebGroup(unittest.TestCase):
             EC.presence_of_element_located((By.LINK_TEXT, group_name))))
         wta.assertHasAttribute('user', user_name, 'user_groups', group_name)
 
+    @unittest.skip("Not working in production")
     def test_web_group_add_search_bar(self):
         group_name = TestWebGroup.gvar['user'] + '-wig6'
         user_name = TestWebGroup.gvar['user'] + '-wiu2'
@@ -69,6 +70,7 @@ class TestWebGroup(unittest.TestCase):
                 EC.presence_of_element_located((By.LINK_TEXT, group_name)))
         wta.assertDeleted('group', group_name)
 
+    @unittest.skip("Not working in production")
     def test_web_group_user_add_search_bar(self):
         group_name = TestWebGroup.gvar['user'] + '-wig1'
         user_name = TestWebGroup.gvar['user'] + '-wiu2'
