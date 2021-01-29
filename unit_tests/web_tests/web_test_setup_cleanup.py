@@ -3,7 +3,8 @@ from cloudscheduler.unit_tests.unit_test_common import load_settings
 import subprocess
 import signal
 
-# setups and cleanups are done here to prevent issues of passing variables
+# This module contains setup and cleanup functions for the unittest web tests.
+# Setups and cleanups are done here to prevent issues of passing variables
 # between test runners and to allow tests to be run individually with the
 # unittest framework
 
@@ -50,6 +51,9 @@ def setup_objects():
         subprocess.run(['cloudscheduler', 'user', 'add', '-un', users[i], '-upw', gvar['user_secret'], *flags[i]])
 
     return gvar
+
+def get_homepage(driver):
+    driver.get("https://csv2-dev.heprc.uvic.ca")
 
 def cleanup(cls):
     print("\nUnittest Teardown:")

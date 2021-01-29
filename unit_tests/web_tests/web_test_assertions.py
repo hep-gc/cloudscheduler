@@ -1,10 +1,9 @@
 import unittest
 import subprocess
 
-# Note: These methods use the cloudscheduler list command, and therefore are
-# much slower than Selenium assertions. These should not be used if a Selenium
-# method can check the same thing, and should ideally be used at most once per
-# test
+# This module contains a set of assertions on the cloudscheduler database, for
+# use in the web tests. Note that these methods use the cloudscheduler list
+# command, and therefore are much slower than Selenium assertions. These should # be used only once per test.
 
 logfile = 'assert_objects.txt'
 

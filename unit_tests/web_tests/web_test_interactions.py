@@ -1,11 +1,11 @@
-from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.common.keys import Keys
 
-def get_homepage(driver):
-    driver.get("https://csv2-dev.heprc.uvic.ca")
+# This module contains a variety of interactions (mainly clicks and text fills)
+# that can be used to interact with a page. These functions wrap the wait to
+# ensure the object exists, the locating of the element, and the action on the
+# element into one function.
 
 def click_by_link_text(driver, text):
     WebDriverWait(driver, 20).until(
@@ -19,7 +19,6 @@ def fill_blank(driver, id, text):
     form = driver.find_element_by_id(id)
     form.clear()
     form.send_keys(text)
-    #form.send_keys(Keys.ENTER)
 
 def click_by_id(driver, id):
     WebDriverWait(driver, 20).until(
