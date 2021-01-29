@@ -241,7 +241,7 @@ def available_resources_query(used_resources, available_resource):
         int(max(0, ram_limit - used_resources['group_cloud'][group_cloud]['ram_used']) / available_resource['flavor_ram'])
         )
 
-    log.info("available_resources_query(%s), VMs(%s/%s), Cores(%s,%s), RAM(%s,%s) Slots(%s) available for resource: %s" % (
+    log.debug("available_resources_query(%s), VMs(%s/%s), Cores(%s,%s), RAM(%s,%s) Slots(%s) available for resource: %s" % (
         available_resource['group_name'],
         used_resources['group_cloud'][group_cloud]['VMs'],
         used_resources['provider'][provider]['VMs'],
