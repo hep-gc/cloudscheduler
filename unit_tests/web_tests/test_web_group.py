@@ -20,8 +20,13 @@ class TestWebGroup(unittest.TestCase):
         # Finds the groups page
         pass
 
-    # Test adding a group with no name
-    # This should fail
+    def test_web_group_add_without_name(self):
+        user_name = self.gvar['user'] + '-wiu1'
+        # Tries to add a group without naming it
+        self.page.click_add_button()
+        self.page.click_user_checkbox(user_name)
+        self.page.click_add_group()
+        # should fail - figure out how to test
 
     def test_web_group_add_without_user(self):
         # Adds a group with no users
