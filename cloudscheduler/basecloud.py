@@ -105,8 +105,12 @@ class BaseCloud(ABC):
             if len(source) != 3:
                 self.log.debug("Problem with view?: %s", source)
                 continue
+            rc, msg = self.config.db_execute(source[1])
+            for row in self.config.db_cursor:
+                db_yaml = row["metadata"]
+                break # we only need the first
             metadata_yamls.append([source[0],
-                                   self.config.db_connection.execute(source[1]).fetchone()[0],
+                                   db_yaml,
                                    source[2]])
         self.config.db_close()
 

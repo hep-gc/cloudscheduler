@@ -405,14 +405,13 @@ class Config:
             return self.__db_logging_return__(1, 'the database is not open')
 
         
-        logging.info("attemping update")
         rc, msg = self.db_update(table, column_dict)
         if rc == 0 and self.db_cursor.rowcount < 1:
-            logging.info("checking update via query")
+            logging.debug("checking update via query")
             rc, msg, rows = self.db_query(table, where=column_dict, allow_no_rows=True)
-            logging.info("RC: %s, msg: %s, rows: %s" % (rc, msg, rows))
+            logging.debug("RC: %s, msg: %s, rows: %s" % (rc, msg, rows))
             if rc == 0 and len(rows)< 1:
-                logging.info("No query result, doing insert")
+                logging.debug("No query result, doing insert")
                 rc, msg = self.db_insert(table, column_dict)
 
         return self.__db_logging_return__(rc, msg)

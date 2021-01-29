@@ -241,7 +241,7 @@ def available_resources_query(used_resources, available_resource):
         int(max(0, ram_limit - used_resources['group_cloud'][group_cloud]['ram_used']) / available_resource['flavor_ram'])
         )
 
-    log.debug("available_resources_query(%s), VMs(%s/%s), Cores(%s,%s), RAM(%s,%s) Slots(%s) available for resource: %s" % (
+    log.info("available_resources_query(%s), VMs(%s/%s), Cores(%s,%s), RAM(%s,%s) Slots(%s) available for resource: %s" % (
         available_resource['group_name'],
         used_resources['group_cloud'][group_cloud]['VMs'],
         used_resources['provider'][provider]['VMs'],
@@ -332,11 +332,11 @@ def check_view_idle_vms():
             if vmids:
                 log.debug("Setting retire flag on %s VMs.", len(vmids))
                 vms = "csv2_vms"
-                where_clause = "where vmid in ("
+                where_clause = "vmid in ("
                 for id in vmids:
                     where_clause += "'%s'," % id
                 #replace last , with closing bracket
-                where_clause[-1]= ")"
+                where_clause = where_clause[:-1] + ")"
                 rc, msg, update_result = config.db_query(vms, where=where_clause)
                 for row in update_result:
                     row["retire"] = 1
@@ -383,7 +383,6 @@ def process_group_cloud_terminates(pair, config):
     rc, msg, redundant_machine_list = config.db_query("view_condor_host", where=where_clause)
     logging.debug("Actionable VMS:")
     for resource in redundant_machine_list:
-        logging.debug(resource)
         if resource["dynamic_slots"] is not None:
             if resource["primary_slots"] is not None:
                 if resource["terminate"] == 1 and resource["dynamic_slots"] >= 1 and resource["primary_slots"] >=1:
@@ -459,7 +458,7 @@ def process_group_cloud_terminates(pair, config):
             # double check that a condor_session exists
             if 'condor_session' not in locals():
                 condor_session = get_condor_session()
-            if resource.machine is not None:
+            if resource["machine"] is not None:
                 logging.info("Removing classads for machine %s" % resource["machine"])
             else:
                 logging.info("Removing classads for machine %s" % resource["hostname"])
@@ -569,8 +568,8 @@ def main():
         cs_host_ip = '*** unresolved ***'
 
     while_counter = 0
-    config.db_open()
     while(True):
+        config.db_open()
         config.refresh()
         logging.basicConfig(filename=config.categories['csmain']['log_file'],
                             level=config.categories['csmain']['log_level'],
@@ -662,6 +661,7 @@ def main():
                             if available_resources_dict[job_group].get(flavor, None) is not None:
                                 #Found flavour with available resources
                                 ####### log.debug("Flavor:%s found to have available slots" % flavor)
+                                log.info("Flavor:%s found to have available slots" % flavor)
                                 boot_flavor = available_resources_dict[job_group].get(flavor, None)
                             else:
                                 ####### log.debug("No available slots for flavor: %s, trying next..." % flavor)
@@ -676,7 +676,10 @@ def main():
                                 ####### log.debug("No available resources to boot %s" % boot_flavor.get("flavor"))
 
                             try:
-                                where_clause = "group_name='%s' and target_alias='%s'" % (idle_job.get("group_name"), idle_job.get("target_alias"))
+                                if idle_job.get("target_alias") is not None: 
+                                    where_clause = "group_name='%s' and target_alias='%s'" % (idle_job.get("group_name"), idle_job.get("target_alias"))
+                                else:
+                                    where_clause = "group_name='%s' and target_alias is NULL" % idle_job.get("group_name")
                                 rc, msg, shortfall = config.db_query("view_active_resource_shortfall", where=where_clause)
                             except:
                                 shortfall = []
@@ -709,7 +712,8 @@ def main():
                                 continue
 
                             else:
-                                log.debug('view_active_resource_shortfall for group=%s, target_alias=%s, cores=%s, disk=%s, ram=%s, too few active resources, processing continues...',
+                                ##log.debug('view_active_resource_shortfall for group=%s, target_alias=%s, cores=%s, disk=%s, ram=%s, too few active resources, processing continues...',
+                                log.info('view_active_resource_shortfall for group=%s, target_alias=%s, cores=%s, disk=%s, ram=%s, too few active resources, processing continues...',
                                     idle_job.get("group_name"),
                                     idle_job.get("target_alias"),
                                     shortfall[0]["shortfall_cores"],
@@ -725,7 +729,7 @@ def main():
                                      resource = []
 
                                 if len(resource) < 1:
-                                    resource = [type('', (object,), {
+                                    resource = [{
                                         "authurl":boot_flavor.get("authurl"),
                                         "VMs": 0,
                                         "starting": 0,
@@ -735,7 +739,7 @@ def main():
                                         "retiring": 0,
                                         "manual": 0,
                                         "error": 0
-                                    })]
+                                    }]
 
                                     log.debug('No active vms for group=%s, cloud=%s, authurl=%s, assuming no contention).',
                                         boot_flavor.get("group_name"),
@@ -929,6 +933,7 @@ def main():
             config.db_close()
             time.sleep(2)
             continue
+        config.db_close()
         while_counter += 1
         time.sleep(config.categories['csmain']['sleep_interval_main_long'])
 

@@ -238,12 +238,7 @@ class OpenStackCloud(basecloud.BaseCloud):
 
         if instance:
             self.log.debug("Try to fetch with filter of hostname used")
-#           engine = self._get_db_engine()
-#           base = automap_base()
-#           base.prepare(engine, reflect=True)
-#           db_session = Session(engine)
-#           vms = base.classes.csv2_vms
-            vms = self.config.db_map.classes.csv2_vms
+            vms = "csv2_vms"
             for _ in range(0, 3):
                 try:
                     list_vms = nova.servers.list(search_opts={'name':hostname})
@@ -276,19 +271,13 @@ class OpenStackCloud(basecloud.BaseCloud):
                     'keep_alive': self.keep_alive,
                     'start_time': int(time.time()),
                 }
-                new_vm = vms(**vm_dict)
-                self.config.db_session.merge(new_vm)
+                self.config.db_merge(vms, vm_dict)
             self.config.db_close(commit=True)
         elif instances:
             self.log.debug("Parse instances using block storage")
             self.config.db_open()
             for instance, i_hostname in instances:
-#               engine = self._get_db_engine()
-#               base = automap_base()
-#               base.prepare(engine, reflect=True)
-#               db_session = Session(engine)
-#               vms = base.classes.csv2_vms
-                vms = self.config.db_map.classes.csv2_vms
+                vms = "csv2_vms"
                 for _ in range(0, 3):
                     try:
                         list_vms = nova.servers.list(search_opts={'name':i_hostname})
@@ -320,9 +309,8 @@ class OpenStackCloud(basecloud.BaseCloud):
                         'keep_alive': self.keep_alive,
                         'start_time': int(time.time()),
                     }
-                    new_vm = vms(**vm_dict)
-                    self.config.db_session.merge(new_vm)
-                self.config.db_session.commit()
+                    self.config.db_merge(vms, vm_dict)
+                self.config.db_commit()
 
             self.config.db_close()
                 
