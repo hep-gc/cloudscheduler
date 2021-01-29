@@ -13,13 +13,6 @@ def click_by_link_text(driver, text):
     nav_button = driver.find_element_by_link_text(text)
     nav_button.click()
 
-def fill_blank(driver, id, text):
-    WebDriverWait(driver, 20).until(
-        EC.element_to_be_clickable((By.ID, id)))
-    form = driver.find_element_by_id(id)
-    form.clear()
-    form.send_keys(text)
-
 def click_by_id(driver, id):
     WebDriverWait(driver, 20).until(
         EC.element_to_be_clickable((By.ID, id)))
@@ -31,3 +24,17 @@ def click_by_xpath(driver, xpath):
         EC.presence_of_element_located((By.XPATH, xpath)))
     element = driver.find_element_by_xpath(xpath)
     element.click()
+
+def fill_blank_by_id(driver, id, text):
+    WebDriverWait(driver, 20).until(
+        EC.element_to_be_clickable((By.ID, id)))
+    form = driver.find_element_by_id(id)
+    form.clear()
+    form.send_keys(text)
+
+def fill_blank_by_name(driver, name, text):
+    WebDriverWait(driver, 20).until(
+        EC.element_to_be_clickable((By.NAME, name)))
+    form = driver.find_element_by_name(name)
+    form.clear()
+    form.send_keys(text)

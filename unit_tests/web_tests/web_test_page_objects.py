@@ -45,7 +45,76 @@ class KeysPage(Page):
 
 class UsersPage(Page):
     """This is the page object class for the Users page."""
-    pass
+    def __init__(self, driver):
+        super(UsersPage, self).__init__(driver)
+        # The active_user variable stores the currently-selected user in the
+        # sidebar.
+        self.active_user = None
+
+    def click_add_button(self):
+        wti.click_by_link_text(self.driver, '+')
+        self.active_user = 'add_user'
+
+    def click_add_user(self):
+        form = self.driver.find_element_by_id('new_user')
+        text = form.get_attribute('value')
+        self.driver.find_element_by_id('new_user').submit()
+        self.active_user = text
+
+    def click_side_button(self, name):
+        # This method uses the JavaScript click to avoid a Selenium bug with
+        # clicking an element when another element's padding covers it.
+        wtjsi.javascript_click_by_link_text(self.driver, name)
+        self.active_user = name
+
+    def type_user_name(self, name):
+        wti.fill_blank_by_id(self.driver, 'new_user', name)
+
+    def type_password(self, password, alt_password=None):
+        if not alt_password:
+            alt_password = password
+        wti.fill_blank_by_name(self.driver, 'password1', password)
+        wti.fill_blank_by_name(self.driver, 'password2', alt_password)
+
+    def type_cert_cn(self, cert_cn):
+        wti.fill_blank_by_name(self.driver, 'cert_cn', cert_cn)
+
+    def click_superuser_checkbox(self):
+        xpath = wtxs.checkbox(self.active_user, '1')
+        wti.click_by_xpath(self.driver, xpath)
+
+    def click_group_checkbox(self, group):
+        xpath = wtxs.checkbox(self.active_user, group)
+        wti.click_by_xpath(self.driver, xpath)
+
+    def click_update_user(self):
+        self.driver.find_element_by_name(self.active_user).submit()
+
+    def click_delete_button(self):
+        wtjsi.javascript_click_by_link_text(self.driver, '−')
+
+    def click_delete_modal(self):
+        xpath = wtxs.delete_button(self.active_user)
+        wti.click_by_xpath(self.driver, xpath)
+        self.active_user = None
+
+    def side_button_exists(self, name):
+        try:
+            WebDriverWait(self.driver, 10).until(
+                EC.presence_of_element_located((By.LINK_TEXT, name)))
+            return True
+        except TimeoutException:
+            return False
+
+    def box_checked(self, name):
+        xpath = wtxs.checkbox(self.active_user, name)
+        try:
+            WebDriverWait(self.driver, 10).until(
+                EC.element_located_to_be_selected((By.XPATH, xpath)))
+            return True
+        except TimeoutException:
+            return False
+
 
 class GroupsPage(Page):
     """This is the page object class for the Groups page."""
@@ -73,17 +142,17 @@ class GroupsPage(Page):
         self.active_group = name
 
     def type_group_name(self, name):
-        wti.fill_blank(self.driver, 'new_group', name)
+        wti.fill_blank_by_id(self.driver, 'new_group', name)
 
     def click_user_checkbox(self, user):
-        xpath = wtxs.user_checkbox(self.active_group, user)
+        xpath = wtxs.checkbox(self.active_group, user)
         wti.click_by_xpath(self.driver, xpath)
 
     def type_in_search_bar(self, text):
         search_tag = ''
         if self.active_group and self.active_group is not 'add_group':
             search_tag = self.active_group
-        wti.fill_blank(self.driver, 'search-users-' + search_tag, text)
+        wti.fill_blank_by_id(self.driver, 'search-users-' + search_tag, text)
 
     def click_update_group(self):
         self.driver.find_element_by_name(self.active_group).submit()
@@ -105,7 +174,7 @@ class GroupsPage(Page):
             return False
 
     def box_checked(self, name):
-        xpath = wtxs.user_checkbox(self.active_group, name)
+        xpath = wtxs.checkbox(self.active_group, name)
         try:
             WebDriverWait(self.driver, 10).until(
                 EC.element_located_to_be_selected((By.XPATH, xpath)))

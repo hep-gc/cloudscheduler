@@ -20,6 +20,9 @@ class TestWebGroup(unittest.TestCase):
         # Finds the groups page
         pass
 
+    # Test adding a group with no name
+    # This should fail
+
     def test_web_group_add_without_user(self):
         # Adds a group with no users
         group_name = self.gvar['user'] + '-wig7'
