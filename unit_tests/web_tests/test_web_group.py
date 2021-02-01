@@ -26,6 +26,7 @@ class TestWebGroup(unittest.TestCase):
         self.page.click_add_button()
         self.page.click_user_checkbox(user_name)
         self.page.click_add_group()
+        self.assertTrue(self.page.error_message_displayed())
         # should fail - figure out how to test
 
     def test_web_group_add_without_user(self):

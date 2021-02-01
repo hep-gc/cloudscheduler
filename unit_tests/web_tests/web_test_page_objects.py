@@ -19,6 +19,15 @@ class Page(object):
     def click_top_nav(self, name):
         wti.click_by_link_text(self.driver, name)
 
+    def error_message_displayed(self, message=None):
+        xpath = wtxs.error_message()
+        try:
+            WebDriverWait(self.driver, 10).until(
+                EC.presence_of_element_located((By.XPATH, xpath)))
+            return True
+        except TimeoutException:
+            return False
+
 class StatusPage(Page):
     """This is the page object class for the Status page."""
     pass
