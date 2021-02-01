@@ -117,8 +117,17 @@ class UsersPage(Page):
         except TimeoutException:
             return False
 
-    def box_checked(self, name):
+    def group_box_checked(self, name):
         xpath = wtxs.checkbox(self.active_user, name)
+        try:
+            WebDriverWait(self.driver, 10).until(
+                EC.element_located_to_be_selected((By.XPATH, xpath)))
+            return True
+        except TimeoutException:
+            return False
+
+    def superuser_box_checked(self):
+        xpath = wtxs.checkbox(self.active_user, '1')
         try:
             WebDriverWait(self.driver, 10).until(
                 EC.element_located_to_be_selected((By.XPATH, xpath)))

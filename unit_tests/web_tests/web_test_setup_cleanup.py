@@ -41,13 +41,14 @@ def setup_objects():
 
     #add users
     users = []
-    for i in range(1, 4):
+    for i in range(1, 5):
         users.append(gvar['user'] + '-wiu' + str(i))
     flags = []
     flags.append(['-gn', gvar['user'] + '-wig1'])
     flags.append(['-SU', 'true','-gn', gvar['user'] + '-wig2'])
     flags.append([])
-    for i in range(0, 3):
+    flags.append(['-gn', gvar['user'] + '-wig1'])
+    for i in range(0, 4):
         subprocess.run(['cloudscheduler', 'user', 'add', '-un', users[i], '-upw', gvar['user_secret'], *flags[i]])
 
     return gvar
@@ -64,7 +65,7 @@ def cleanup(cls):
 def cleanup_objects():
     gvar = load_settings(web=True)
     
-    delete_by_type(gvar, ['user', '-wiu', '-un', 'username'], 7)
+    delete_by_type(gvar, ['user', '-wiu', '-un', 'username'], 8)
     delete_by_type(gvar, ['group', '-wig', '-gn', 'group_name'], 7)
 
 def delete_by_type(gvar, type_info, number):
