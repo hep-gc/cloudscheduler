@@ -82,8 +82,10 @@ class UsersPage(Page):
     def type_password(self, password, alt_password=None):
         if not alt_password:
             alt_password = password
-        wti.fill_blank_by_name(self.driver, 'password1', password)
-        wti.fill_blank_by_name(self.driver, 'password2', alt_password)
+        xpath1 = wtxs.form_blank(self.active_user, 'password1')
+        xpath2 = wtxs.form_blank(self.active_user, 'password2')
+        wti.fill_blank_by_xpath(self.driver, xpath1, password)
+        wti.fill_blank_by_xpath(self.driver, xpath2, alt_password)
 
     def type_cert_cn(self, cert_cn):
         wti.fill_blank_by_name(self.driver, 'cert_cn', cert_cn)

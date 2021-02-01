@@ -64,7 +64,7 @@ def cleanup(cls):
 def cleanup_objects():
     gvar = load_settings(web=True)
     
-    delete_by_type(gvar, ['user', '-wiu', '-un', 'username'], 4)
+    delete_by_type(gvar, ['user', '-wiu', '-un', 'username'], 7)
     delete_by_type(gvar, ['group', '-wig', '-gn', 'group_name'], 7)
 
 def delete_by_type(gvar, type_info, number):

@@ -38,3 +38,10 @@ def fill_blank_by_name(driver, name, text):
     form = driver.find_element_by_name(name)
     form.clear()
     form.send_keys(text)
+
+def fill_blank_by_xpath(driver, xpath, text):
+    WebDriverWait(driver, 20).until(
+        EC.element_to_be_clickable((By.XPATH, xpath)))
+    form = driver.find_element_by_xpath(xpath)
+    form.clear()
+    form.send_keys(text)
