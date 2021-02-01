@@ -20,7 +20,11 @@ class Page(object):
         wti.click_by_link_text(self.driver, name)
 
     def error_message_displayed(self, message=None):
-        xpath = wtxs.error_message()
+        xpath = ""
+        if message:
+            xpath = wtxs.specific_error_message(message)
+        else:
+            xpath = wtxs.unspecified_error_message()
         try:
             WebDriverWait(self.driver, 10).until(
                 EC.presence_of_element_located((By.XPATH, xpath)))

@@ -26,6 +26,8 @@ def assertDeleted(type, name):
              raise AssertionError
     object_file.close()
 
+assertNotAdded = assertDeleted
+
 def assertHasAttribute(type, name, attribute, attribute_name):
     # This method should only be used on objects that are known to be created -
     # ie the test should not be creating them. If the test is creating the

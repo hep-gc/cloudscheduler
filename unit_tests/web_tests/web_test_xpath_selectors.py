@@ -10,5 +10,8 @@ def form_blank(form_name, blank_name):
 def delete_button(element_name):
     return "//div[@id='delete-" + element_name + "']/div/form/input[@value='Delete "+ element_name + "']"
 
-def error_message():
+def unspecified_error_message():
     return "//div[@class='footer']/b"
+
+def specific_error_message(message):
+    return "//div[@class='footer']/b[text()='" + message + "']"
