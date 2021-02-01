@@ -38,7 +38,177 @@ class StatusPage(Page):
 
 class CloudsPage(Page):
     """This is the page object class for the Clouds page."""
-    pass
+    def __init__(self, driver):
+        super(CloudsPage, self).__init__(driver)
+        # The active_cloud variable stores the currently-selected cloud in the
+        # sidebar.
+        self.active_cloud = None
+    
+    def click_add_button(self):
+        wti.click_by_link_text(self.driver, '+')
+        self.active_cloud = 'add_cloud'
+
+    def click_add_cloud(self):
+        form = self.driver.find_element_by_id('new_cloud')
+        text = form.get_attribute('value')
+        self.driver.find_element_by_name('add_cloud').submit()
+        self.active_cloud = text
+
+    def click_side_button(self, name):
+        wti.click_by_link_text(self.driver, name)
+        self.active_cloud = name
+
+    def type_cloud_name(self, name):
+        wti.fill_blank_by_id(self.driver, 'new_cloud', name)
+
+    def click_enabled_checkbox(self):
+        xpath = ""
+        if self.active_cloud is 'add_cloud':
+            xpath = wtxs.checkbox(self.active_cloud, '1')
+        else:
+            xpath = wtxs.two_column_checkbox(self.active_cloud, '1')
+        wti.click_by_xpath(self.driver, xpath)
+
+    def type_priority(self, priority):
+        xpath = ""
+        if self.active_cloud is 'add_cloud':
+            xpath = wtxs.form_blank(self.active_cloud, 'priority')
+        else:
+            xpath = wtxs.two_column_form_blank(self.active_cloud, 'priority')
+        wti.fill_blank_by_xpath(self.driver, xpath, priority)
+
+    def select_cloud_type(self):
+        # TODO: implement
+        pass
+
+    def type_url(self, url):
+        xpath = ""
+        if self.active_cloud is 'add_cloud':
+            xpath = wtxs.form_blank(self.active_cloud, 'authurl')
+        else:
+            xpath = wtxs.two_column_form_blank(self.active_cloud, 'authurl')
+        wti.fill_blank_by_xpath(self.driver, xpath, url)
+
+    def type_region(self, region):
+        xpath = ""
+        if self.active_cloud is 'add_cloud':
+            xpath = wtxs.form_blank(self.active_cloud, 'region')
+        else:
+            xpath = wtxs.two_column_form_blank(self.active_cloud, 'region')
+        wti.fill_blank_by_xpath(self.driver, xpath, region)
+
+    def type_project(self, project):
+        xpath = ""
+        if self.active_cloud is 'add_cloud':
+            xpath = wtxs.form_blank(self.active_cloud, 'project')
+        else:
+            xpath = wtxs.two_column_form_blank(self.active_cloud, 'project')
+        wti.fill_blank_by_xpath(self.driver, xpath, project)
+
+    def type_username(self, username):
+        xpath = ""
+        if self.active_cloud is 'add_cloud':
+            xpath = wtxs.form_blank(self.active_cloud, 'username')
+        else:
+            xpath = wtxs.two_column_form_blank(self.active_cloud, 'username')
+        wti.fill_blank_by_xpath(self.driver, xpath, username)
+
+    def type_password(self, password):
+        xpath = ""
+        if self.active_group is 'add_cloud':
+            xpath = wtxs.form_blank(self.active_cloud, 'password')
+        else:
+            xpath = wtxs.two_column_form_blank(self.active_cloud, 'password')
+        wti.fill_blank_by_xpath(self.driver, xpath, password)
+
+    def type_ca_certificate(self, certificate):
+        xpath = ""
+        if self.active_group is 'add_cloud':
+            xpath = wtxs.form_blank(self.active_cloud, 'cacertificate')
+        else:
+            xpath = wtxs.two_column_form_blank(self.active_cloud, 'cacertificate')
+        wti.fill_blank_by_xpath(self.driver, xpath, certificate)
+        
+    def type_user_domain_name(self, udn):
+        xpath = ""
+        if self.active_group is 'add_cloud':
+            xpath = wtxs.form_blank(self.active_cloud, 'user_domain_name')
+        else:
+            xpath = wtxs.two_column_form_blank(self.active_cloud, 'user_domain_name')
+        wti.fill_blank_by_xpath(self.driver, xpath, udn)
+
+    def type_project_domain_name(self, pdn):
+        xpath = ""
+        if self.active_group is 'add_cloud':
+            xpath = wtxs.form_blank(self.active_cloud, 'project_domain_name')
+        else:
+            xpath = wtxs.two_column_form_blank(self.active_cloud, 'project_domain_name')
+        wti.fill_blank_by_xpath(self.driver, xpath, pdn)
+
+    def type_boot_volume(self, boot_volume):
+        xpath = two_column_form_blank(self.active_cloud, 'vm_boot_volume')
+        wti.fill_blank_by_xpath(self.driver, xpath, boot-volume)
+
+    def add_security_group(self, group):
+        # TODO: implement
+        pass
+
+    def remove_security_group(self, group):
+        # TODO: implement
+        pass
+
+    def select_vm_keyname(self, keyname):
+        # TODO: implement
+        pass
+
+    def select_vm_network(self, network):
+        # TODO: implement
+        pass
+
+    def select_vm_image(self, image):
+        # TODO: implement
+        pass
+
+    def select_vm_flavor(self, flavor):
+        # TODO: implement
+        pass
+
+    def type_vm_keep_alive(self, time):
+        xpath = wtxs.two_column_form_blank(self.active_cloud, 'vm_keep_alive')
+        wti.fill_blank_by_xpath(self.driver, xpath, time)
+
+    def type_spot_price(self, price):
+        xpath = wtxs.two_column_form_blank(self.active_cloud, 'spot_price')
+        wti.fill_blank_by_xpath(self.driver, xpath, price)
+
+    def type_cores_softmax(self, max):
+        xpath = wtxs.two_column_form_blank(self.active_cloud, 'cores_softmax')
+        wti.fill_blank_by_xpath(self.driver, xpath, max)
+
+    def slide_cores_slider(self, value):
+        # TODO: implement
+        pass
+
+    def type_cores(self, value):
+        xpath = wtxs.two_column_form_blank(self.active_cloud, 'cores_ctl')
+        wti.fill_blank_by_xpath(self.driver, xpath, value)
+
+    def increment_cores_by_arrows(self, value):
+        # TODO: implement
+        pass
+
+    def slide_ram_slider(self, value):
+        # TODO: implement
+        pass
+
+    def type_ram(self, value):
+        xpath = wtxs.two_column_form_blank(self.active_cloud, 'ram_ctl')
+        wti.fill_blank_by_xpath(self.driver, xpath, value)
+
+    def increment_ram_by_arrows(self, value):
+        # TODO: implement
+        pass
+
 
 class AliasesPage(Page):
     """This is the page object class for the Aliases page."""
