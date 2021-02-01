@@ -21,13 +21,23 @@ class TestWebGroup(unittest.TestCase):
         pass
 
     def test_web_group_add_without_name(self):
-        user_name = self.gvar['user'] + '-wiu1'
         # Tries to add a group without naming it
+        user_name = self.gvar['user'] + '-wiu1'
         self.page.click_add_button()
         self.page.click_user_checkbox(user_name)
         self.page.click_add_group()
         self.assertTrue(self.page.error_message_displayed())
-        # should fail - figure out how to test
+
+    def test_web_group_add_with_conflicting_name(self):
+        # Tries to add a group with a name that's already taken
+        group_name = self.gvar['user'] + '-wig1'
+        user_name = self.gvar['user'] + '-wiu3'
+        self.page.click_add_button()
+        self.page.type_group_name(group_name)
+        self.page.click_user_checkbox(user_name)
+        self.page.click_add_group()
+        self.assertTrue(self.page.error_message_displayed())
+        wta.assertHasNotAttribute('user', user_name, 'user_groups', group_name)
 
     def test_web_group_add_without_user(self):
         # Adds a group with no users

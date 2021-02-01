@@ -81,6 +81,18 @@ class TestWebUser(unittest.TestCase):
         self.page.click_group_checkbox(group_name)
         self.page.click_add_user()
         self.assertTrue(self.page.error_message_displayed())
+
+    def test_web_user_add_with_conflicting_username(self):
+        # Tries to add a user with a username that's already taken
+        user_name = self.gvar['user'] + '-wiu1'
+        group_name = self.gvar['user'] + '-wig3'
+        self.page.click_add_button()
+        self.page.type_password(self.gvar['user_secret'])
+        self.page.click_superuser_checkbox()
+        self.page.click_group_checkbox(group_name)
+        self.page.click_add_user()
+        self.assertTrue(self.page.error_message_displayed())
+        wta.assertHasAttribute('user', user_name, 'is_superuser', '0')
         
     def test_web_user_add_without_password(self):
         # Tries to add a user without a password
