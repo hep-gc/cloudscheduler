@@ -51,6 +51,14 @@ def setup_objects():
     for i in range(0, 4):
         subprocess.run(['cloudscheduler', 'user', 'add', '-un', users[i], '-upw', gvar['user_secret'], *flags[i]])
 
+    #add clouds
+    credentials = gvar['cloud_credentials']
+    clouds = []
+    for i in range(1, 3):
+        clouds.append(gvar['user'] + '-wic' + str(i))
+    for i in range(0, 2):
+        subprocess.run(['cloudscheduler', 'cloud', 'add', '-ca', credentials['authurl'], '-cn', clouds[i], '-cpw', credentials['password'], '-cP', credentials['project'], '-cr', credentials['region'], '-cU', credentials['username'], '-ct', 'openstack'])
+
     return gvar
 
 def get_homepage(driver):
@@ -64,7 +72,8 @@ def cleanup(cls):
 
 def cleanup_objects():
     gvar = load_settings(web=True)
-    
+   
+    delete_by_type(gvar, ['cloud', '-wic', '-cn', 'cloud_name'], 2)
     delete_by_type(gvar, ['user', '-wiu', '-un', 'username'], 8)
     delete_by_type(gvar, ['group', '-wig', '-gn', 'group_name'], 7)
 

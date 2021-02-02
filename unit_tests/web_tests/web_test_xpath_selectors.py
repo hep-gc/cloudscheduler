@@ -20,7 +20,7 @@ def two_column_form_blank(form_name, blank_name):
     return "//form[@name='" + form_name + "']/table/tbody/tr/td/table/tbody/tr/td/input[@name='" + blank_name + "']"
 
 def two_column_dropdown(form_name, dropdown_name):
-    return "//form[@name='" + form_name + "']/table/tbody/tr/td/table/tbody/tr/td/select[@name='" + dropdown_name "']"
+    return "//form[@name='" + form_name + "']/table/tbody/tr/td/table/tbody/tr/td/select[@name='" + dropdown_name + "']"
 
 def two_column_option_box(form_name, box_value):
     return "//form[@name='" + form_name + "']/table/tbody/tr/td/table/tbody/tr/td/section/div/select[@value='" + box_value + "']"

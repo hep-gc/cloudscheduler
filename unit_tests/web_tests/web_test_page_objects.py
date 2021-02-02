@@ -2,6 +2,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import TimeoutException
+from selenium.webdriver.common.keys import Keys
 import web_tests.web_test_interactions as wti
 import web_tests.web_test_javascript_interactions as wtjsi
 import web_tests.web_test_xpath_selectors as wtxs
