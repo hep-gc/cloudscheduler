@@ -77,9 +77,13 @@ class CloudsPage(Page):
             xpath = wtxs.two_column_form_blank(self.active_cloud, 'priority')
         wti.fill_blank_by_xpath(self.driver, xpath, priority)
 
-    def select_cloud_type(self):
-        # TODO: implement
-        pass
+    def select_cloud_type(self, type):
+        xpath = ""
+        if self.active_cloud is 'add_cloud':
+            xpath = wtxs.dropdown(self.active_cloud, 'cloud_type')
+        else:
+            xpath = wtxs.two_column_dropdown(self.active_cloud, 'cloud_type')
+        wti.select_option_by_xpath(self.driver, xpath, type)
 
     def type_url(self, url):
         xpath = ""
@@ -147,31 +151,31 @@ class CloudsPage(Page):
 
     def type_boot_volume(self, boot_volume):
         xpath = two_column_form_blank(self.active_cloud, 'vm_boot_volume')
-        wti.fill_blank_by_xpath(self.driver, xpath, boot-volume)
+        wti.fill_blank_by_xpath(self.driver, xpath, boot_volume)
 
     def add_security_group(self, group):
-        # TODO: implement
-        pass
+        wti.select_option_by_id(self.driver, 'rightValues-' + self.active_cloud, group)
+        wti.click_by_id(self.driver, 'btnLeft-' + self.active_cloud)
 
     def remove_security_group(self, group):
-        # TODO: implement
-        pass
+        wti.select_option_by_id(self.driver, 'leftValues-' + self.active_cloud, group)
+        wti.click_by_id(self.driver, 'btnRight-' + self.active_cloud)
 
     def select_vm_keyname(self, keyname):
-        # TODO: implement
-        pass
+        xpath = wtxs.two_column_dropdown(self.active_cloud, 'vm_keyname')
+        wti.select_option_by_xpath(self.driver, xpath, keyname)
 
     def select_vm_network(self, network):
-        # TODO: implement
-        pass
+        xpath = wtxs.two_column_dropdown(self.active_cloud, 'vm_network')
+        wti.select_option_by_xpath(self.driver, xpath, network)
 
     def select_vm_image(self, image):
-        # TODO: implement
-        pass
+        xpath = wtxs.two_column_dropdown(self.active_cloud, 'vm_image')
+        wti.select_option_by_xpath(self.driver, xpath, image)
 
     def select_vm_flavor(self, flavor):
-        # TODO: implement
-        pass
+        xpath = wtxs.two_column_dropdown(self.active_cloud, 'vm_flavor')
+        wti.select_option_by_xpath(self.driver, xpath, flavor)
 
     def type_vm_keep_alive(self, time):
         xpath = wtxs.two_column_form_blank(self.active_cloud, 'vm_keep_alive')
@@ -186,28 +190,44 @@ class CloudsPage(Page):
         wti.fill_blank_by_xpath(self.driver, xpath, max)
 
     def slide_cores_slider(self, value):
-        # TODO: implement
-        pass
+        xpath = wtxs.two_column_form_blank(self.active_cloud, 'cores_slider')
+        slider = self.driver.find_element_by_xpath(xpath)
+        width = slider.size['width']
+        value = slider.get_attribute('max') - slider.get_attribute('min')
+        offset = value/width - (value/2)
+        wti.slide_slider_by_xpath(self.driver, xpath, offset)
 
     def type_cores(self, value):
         xpath = wtxs.two_column_form_blank(self.active_cloud, 'cores_ctl')
         wti.fill_blank_by_xpath(self.driver, xpath, value)
 
     def increment_cores_by_arrows(self, value):
-        # TODO: implement
-        pass
+        xpath = wtxs.two_column_form_blank(self.active_cloud, 'cores_ctl')
+        element = self.driver.find_element_by_xpath(xpath)
+        while int(element.get_text()) < value:
+            element.send_keys(Keys.ARROW_UP)
+        while int(element.get_text()) > value:
+            element.send_keys(Keys.ARROW_DOWN)
 
     def slide_ram_slider(self, value):
-        # TODO: implement
-        pass
+        xpath = wtxs.two_column_form_blank(self.active_cloud, 'ram_slider')
+        slider = self.driver.find_element_by_xpath(xpath)
+        width = slider.size['width']
+        value = slider.get_attribute('max') - slider.get_attribute('min')
+        offset = value/width - (value/2)
+        wti.slide_slider_by_xpath(self.driver, xpath, offset)
 
     def type_ram(self, value):
         xpath = wtxs.two_column_form_blank(self.active_cloud, 'ram_ctl')
         wti.fill_blank_by_xpath(self.driver, xpath, value)
 
     def increment_ram_by_arrows(self, value):
-        # TODO: implement
-        pass
+        xpath = wtxs.two_column_form_blank(self.active_cloud, 'ram_ctl')
+        element = self.driver.find_element_by_xpath(xpath)
+        while int(element.get_text()) < value:
+            element.send_keys(Keys.ARROW_UP)
+        while int(element.get_text()) > value:
+            element.send_keys(Keys.ARROW_DOWN)
 
 
 class AliasesPage(Page):

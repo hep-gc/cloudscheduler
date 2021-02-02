@@ -1,6 +1,7 @@
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.support.ui import Select
 
 # This module contains a variety of interactions (mainly clicks and text fills)
 # that can be used to interact with a page. These functions wrap the wait to
@@ -45,3 +46,22 @@ def fill_blank_by_xpath(driver, xpath, text):
     form = driver.find_element_by_xpath(xpath)
     form.clear()
     form.send_keys(text)
+
+def select_option_by_id(driver, id, option):
+    WebDriverWait(driver, 20).until(
+        EC.element_to_be_clickable((By.ID, id)))
+    dropdown = Select(driver.find_element_by_id(id))
+    dropdown.select_by_visible_text(option)
+
+def select_option_by_xpath(driver, xpath, option):
+    WebDriverWait(driver, 20).until(
+        EC.element_to_be_clickable((By.XPATH, xpath)))
+    dropdown = Select(driver.find_element_by_xpath(xpath))
+    dropdown.select_by_visible_text(option)
+
+def slide_slider_by_xpath(driver, xpath, offset):
+    WebDriverWait(driver, 20).until(
+        EC.element_to_be_clickable((By.XPATH, xpath)))
+    slider = driver.find_element_by_xpath(xpath)
+    action = Actions(driver).move_to_element(slider, offset).click()
+    action.build().perform()
