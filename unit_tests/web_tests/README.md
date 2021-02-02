@@ -45,7 +45,7 @@ The `web_test_assertions` module contains a set of functions that should be call
 
 The test files should access the page via the use of page objects. Each page on the csv2 website has one page class, stored in the `web_test_page_objects` module. 
 
-A new page object should inherit from the `Page` class, which will give it access to the driver and any website-wide components (currently only the top navigation bar). Any interaction with that page should be done via methods implemented in that page class. 
+A new page object should inherit from the `Page` class, which will give it access to the driver and any website-wide components (such as the top navigation bar and error messages). Any interaction with that page should be done via methods implemented in that page class. 
 
 The `web_test_interactions`, `web_test_javascript_interactions`, and `web_test_xpath_selectors` modules define the actions that the page objects should use. `web_test_interactions` and `web_test_javascript_interactions` have very similar functions (see below). Each method wraps Selenium's wait action, the find method, and the action method into a single function. `web_test_xpath_selectors` is a set of wrappers for XPaths to be passed to the `web_test_interactions.click_by_xpath` and `web_test_javascript_interactions.javascript_click_by_xpath` methods.
 
@@ -75,7 +75,9 @@ Additional profiles can be added to the suite. In order to do so, the object sho
 
 `{user}-wiu2` is a super user. They are in the `{user}-wig2` group.
 
-`{user}-wiu3` is a standard user. They are not in any groups.
+`{user}-wiu3` is a standard user. They are not in any groups. They are a user to be removed in deletion tests.
+
+`{user}-wiu4` is a standard user. They are in the `{user}-wig1` group. They are a user to be edited in edit tests.
 
 ### Groups
 
