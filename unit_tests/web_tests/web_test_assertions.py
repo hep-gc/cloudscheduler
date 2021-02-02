@@ -7,8 +7,8 @@ import subprocess
 
 logfile = 'assert_objects.txt'
 
-def assertAdded(type, name):
-    list_by_type(type)
+def assertAdded(type, name, group=None):
+    list_by_type(type, group)
     object_file = open(logfile, 'r')
     for line in object_file:
         if line.strip()==name:
@@ -17,8 +17,8 @@ def assertAdded(type, name):
     object_file.close()
     raise AssertionError
 
-def assertDeleted(type, name):
-    list_by_type(type)
+def assertDeleted(type, name, group=None):
+    list_by_type(type, group)
     object_file = open(logfile, 'r')
     for line in object_file:
         if line.strip()==name:
@@ -28,11 +28,11 @@ def assertDeleted(type, name):
 
 assertNotAdded = assertDeleted
 
-def assertHasAttribute(type, name, attribute, attribute_name):
+def assertHasAttribute(type, name, attribute, attribute_name, group=None):
     # This method should only be used on objects that are known to be created -
     # ie the test should not be creating them. If the test is creating the
     # object, use assertAddedWithAttribute
-    list_attribute_by_name(type, name, attribute)
+    list_attribute_by_name(type, name, attribute, group)
     object_file = open(logfile, 'r')
     record = ""
     for line in object_file:
@@ -44,8 +44,8 @@ def assertHasAttribute(type, name, attribute, attribute_name):
         raise AssertionError
     object_file.close()
 
-def assertAddedWithAttribute(type, name, attribute, attribute_name):
-    list_attribute_by_name(type, name, attribute)
+def assertAddedWithAttribute(type, name, attribute, attribute_name, group=None):
+    list_attribute_by_name(type, name, attribute, group)
     object_file = open(logfile, 'r')
     record = ""
     for line in object_file:
@@ -60,11 +60,11 @@ def assertAddedWithAttribute(type, name, attribute, attribute_name):
         raise AssertionError()
     object_file.close()
 
-def assertHasNotAttribute(type, name, attribute, attribute_name):
+def assertHasNotAttribute(type, name, attribute, attribute_name, group=None):
     # This method should only be used on objects that are known to be created -
     # ie the test should not be creating them. If the test is creating the
     # object, use assertAddedWithoutAttribute
-    list_attribute_by_name(type, name, attribute)
+    list_attribute_by_name(type, name, attribute, group)
     object_file = open(logfile, 'r')
     record = ""
     for line in object_file:
@@ -76,8 +76,8 @@ def assertHasNotAttribute(type, name, attribute, attribute_name):
         raise AssertionError
     object_file.close()
 
-def assertAddedWithoutAttribute(type, name, attribute, attribute_name):
-    list_attribute_by_name(type, name, attribute)
+def assertAddedWithoutAttribute(type, name, attribute, attribute_name, group=None):
+    list_attribute_by_name(type, name, attribute, group)
     object_file = open(logfile, 'r')
     record = ""
     for line in object_file:
@@ -92,7 +92,7 @@ def assertAddedWithoutAttribute(type, name, attribute, attribute_name):
         raise AssertionError()
     object_file.close()
 
-def list_by_name(type, name):
+def list_by_name(type, name, group=None):
     # This function is unused. It currently is not working because the empty 
     # '-CSV' flag doesn't work properly with subprocess.run
     object_file = None
@@ -102,10 +102,13 @@ def list_by_name(type, name):
         object_file = open(logfile, 'w')
     object_names = names()
     object = object_names[type]
-    subprocess.run(['cloudscheduler', object['name'], 'list', object['flag'], name, '-CSV', '""'], stdout=object_file)
+    flags = []
+    if group:
+        flags = ['-g', group]
+    subprocess.run(['cloudscheduler', object['name'], 'list', object['flag'], name, '-CSV', '""', *flags], stdout=object_file)
     object_file.close()
 
-def list_attribute_by_name(type, name, attribute):
+def list_attribute_by_name(type, name, attribute, group=None):
     object_file = None
     try:
         object_file = open(logfile, 'x')
@@ -113,10 +116,13 @@ def list_attribute_by_name(type, name, attribute):
         object_file = open(logfile, 'w')
     object_names = names()
     object = object_names[type]
-    subprocess.run(['cloudscheduler', object['name'], 'list', object['flag'], name, '-CSV', object['column_name'] + ',' + attribute], stdout=object_file)
+    flags = []
+    if group:
+        flags = ['-g', group]
+    subprocess.run(['cloudscheduler', object['name'], 'list', object['flag'], name, '-CSV', object['column_name'] + ',' + attribute, *flags], stdout=object_file)
     object_file.close()
 
-def list_by_type(type):
+def list_by_type(type, group=None):
     object_file = None
     try:
         object_file = open(logfile, 'x')
@@ -124,7 +130,10 @@ def list_by_type(type):
         object_file = open(logfile, 'w')
     object_names = names()
     object = object_names[type]
-    subprocess.run(['cloudscheduler', object['name'], 'list', '-CSV', object['column_name']], stdout=object_file)
+    flags = []
+    if group:
+        flags = ['-g', group]
+    subprocess.run(['cloudscheduler', object['name'], 'list', '-CSV', object['column_name'], *flags], stdout=object_file)
     object_file.close()
 
 def names():

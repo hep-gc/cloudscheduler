@@ -65,7 +65,7 @@ class CloudsPage(Page):
     def click_enabled_checkbox(self):
         xpath = ""
         if self.active_cloud is 'add_cloud':
-            xpath = wtxs.checkbox(self.active_cloud, '1')
+            xpath = wtxs.cloud_checkbox(self.active_cloud, '1')
         else:
             xpath = wtxs.two_column_checkbox(self.active_cloud, '1')
         wti.click_by_xpath(self.driver, xpath)
@@ -73,7 +73,7 @@ class CloudsPage(Page):
     def type_priority(self, priority):
         xpath = ""
         if self.active_cloud is 'add_cloud':
-            xpath = wtxs.form_blank(self.active_cloud, 'priority')
+            xpath = wtxs.cloud_form_blank(self.active_cloud, 'priority')
         else:
             xpath = wtxs.two_column_form_blank(self.active_cloud, 'priority')
         wti.fill_blank_by_xpath(self.driver, xpath, priority)
@@ -81,7 +81,7 @@ class CloudsPage(Page):
     def select_cloud_type(self, type):
         xpath = ""
         if self.active_cloud is 'add_cloud':
-            xpath = wtxs.dropdown(self.active_cloud, 'cloud_type')
+            xpath = wtxs.cloud_dropdown(self.active_cloud, 'cloud_type')
         else:
             xpath = wtxs.two_column_dropdown(self.active_cloud, 'cloud_type')
         wti.select_option_by_xpath(self.driver, xpath, type)
@@ -89,7 +89,7 @@ class CloudsPage(Page):
     def type_url(self, url):
         xpath = ""
         if self.active_cloud is 'add_cloud':
-            xpath = wtxs.form_blank(self.active_cloud, 'authurl')
+            xpath = wtxs.cloud_form_blank(self.active_cloud, 'authurl')
         else:
             xpath = wtxs.two_column_form_blank(self.active_cloud, 'authurl')
         wti.fill_blank_by_xpath(self.driver, xpath, url)
@@ -97,7 +97,7 @@ class CloudsPage(Page):
     def type_region(self, region):
         xpath = ""
         if self.active_cloud is 'add_cloud':
-            xpath = wtxs.form_blank(self.active_cloud, 'region')
+            xpath = wtxs.cloud_form_blank(self.active_cloud, 'region')
         else:
             xpath = wtxs.two_column_form_blank(self.active_cloud, 'region')
         wti.fill_blank_by_xpath(self.driver, xpath, region)
@@ -105,7 +105,7 @@ class CloudsPage(Page):
     def type_project(self, project):
         xpath = ""
         if self.active_cloud is 'add_cloud':
-            xpath = wtxs.form_blank(self.active_cloud, 'project')
+            xpath = wtxs.cloud_form_blank(self.active_cloud, 'project')
         else:
             xpath = wtxs.two_column_form_blank(self.active_cloud, 'project')
         wti.fill_blank_by_xpath(self.driver, xpath, project)
@@ -113,39 +113,39 @@ class CloudsPage(Page):
     def type_username(self, username):
         xpath = ""
         if self.active_cloud is 'add_cloud':
-            xpath = wtxs.form_blank(self.active_cloud, 'username')
+            xpath = wtxs.cloud_form_blank(self.active_cloud, 'username')
         else:
             xpath = wtxs.two_column_form_blank(self.active_cloud, 'username')
         wti.fill_blank_by_xpath(self.driver, xpath, username)
 
     def type_password(self, password):
         xpath = ""
-        if self.active_group is 'add_cloud':
-            xpath = wtxs.form_blank(self.active_cloud, 'password')
+        if self.active_cloud is 'add_cloud':
+            xpath = wtxs.cloud_form_blank(self.active_cloud, 'password')
         else:
             xpath = wtxs.two_column_form_blank(self.active_cloud, 'password')
         wti.fill_blank_by_xpath(self.driver, xpath, password)
 
     def type_ca_certificate(self, certificate):
         xpath = ""
-        if self.active_group is 'add_cloud':
-            xpath = wtxs.form_blank(self.active_cloud, 'cacertificate')
+        if self.active_cloud is 'add_cloud':
+            xpath = wtxs.cloud_form_blank(self.active_cloud, 'cacertificate')
         else:
             xpath = wtxs.two_column_form_blank(self.active_cloud, 'cacertificate')
         wti.fill_blank_by_xpath(self.driver, xpath, certificate)
         
     def type_user_domain_name(self, udn):
         xpath = ""
-        if self.active_group is 'add_cloud':
-            xpath = wtxs.form_blank(self.active_cloud, 'user_domain_name')
+        if self.active_cloud is 'add_cloud':
+            xpath = wtxs.cloud_form_blank(self.active_cloud, 'user_domain_name')
         else:
             xpath = wtxs.two_column_form_blank(self.active_cloud, 'user_domain_name')
         wti.fill_blank_by_xpath(self.driver, xpath, udn)
 
     def type_project_domain_name(self, pdn):
         xpath = ""
-        if self.active_group is 'add_cloud':
-            xpath = wtxs.form_blank(self.active_cloud, 'project_domain_name')
+        if self.active_cloud is 'add_cloud':
+            xpath = wtxs.cloud_form_blank(self.active_cloud, 'project_domain_name')
         else:
             xpath = wtxs.two_column_form_blank(self.active_cloud, 'project_domain_name')
         wti.fill_blank_by_xpath(self.driver, xpath, pdn)
@@ -230,6 +230,13 @@ class CloudsPage(Page):
         while int(element.get_text()) > value:
             element.send_keys(Keys.ARROW_DOWN)
 
+    def side_button_exists(self, name):
+        try:
+            WebDriverWait(self.driver, 10).until(
+                EC.presence_of_element_located((By.LINK_TEXT, name)))
+            return True
+        except TimeoutException:
+            return False
 
 class AliasesPage(Page):
     """This is the page object class for the Aliases page."""

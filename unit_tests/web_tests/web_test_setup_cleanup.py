@@ -32,6 +32,9 @@ def setup_objects(objects=[]):
 
     #detailed descriptions of the test data is in the web_tests README
 
+    gvar['base_group'] = gvar['user'] + '-wig0'
+    subprocess.run(['cloudscheduler', 'group', 'add', '-gn', gvar['base_group'], '-un', gvar['user'], '-htcf', gvar['fqdn']], stdout=subprocess.DEVNULL)
+
     #add groups
     groups_num = 0
     if 'groups' in objects:
@@ -54,8 +57,8 @@ def setup_objects(objects=[]):
     for i in range(1, users_num + 1):
         users.append(gvar['user'] + '-wiu' + str(i))
     flags = []
-    flags.append(['-gn', gvar['user'] + '-wig1'])
-    flags.append(['-SU', 'true','-gn', gvar['user'] + '-wig2'])
+    flags.append(['-gn', gvar['base_group'] + ',' + gvar['user'] + '-wig1'])
+    flags.append(['-SU', 'true','-gn', gvar['base_group'] + ',' + gvar['user'] + '-wig2'])
     flags.append([])
     if 'users' in objects:
         flags.append(['-gn', gvar['user'] + '-wig1'])
@@ -73,7 +76,7 @@ def setup_objects(objects=[]):
     for i in range(1, clouds_num + 1):
         clouds.append(gvar['user'] + '-wic' + str(i))
     for i in range(0, clouds_num):
-        subprocess.run(['cloudscheduler', 'cloud', 'add', '-ca', credentials['authurl'], '-cn', clouds[i], '-cpw', credentials['password'], '-cP', credentials['project'], '-cr', credentials['region'], '-cU', credentials['username'], '-ct', 'openstack'])
+        subprocess.run(['cloudscheduler', 'cloud', 'add', '-ca', credentials['authurl'], '-cn', clouds[i], '-cpw', credentials['password'], '-cP', credentials['project'], '-cr', credentials['region'], '-cU', credentials['username'], '-ct', 'openstack', '-g', gvar['base_group']])
 
     return gvar
 
@@ -88,10 +91,13 @@ def cleanup(cls):
 
 def cleanup_objects():
     gvar = load_settings(web=True)
+    gvar['base_group'] = gvar['user'] + '-wig0'
+
    
-    delete_by_type(gvar, ['cloud', '-wic', '-cn', 'cloud_name'], 2)
-    delete_by_type(gvar, ['user', '-wiu', '-un', 'username'], 8)
-    delete_by_type(gvar, ['group', '-wig', '-gn', 'group_name'], 7)
+    delete_by_type(gvar, ['cloud', '-wic', '-cn', 'cloud_name', ['-g', gvar['base_group']]], 3)
+    delete_by_type(gvar, ['user', '-wiu', '-un', 'username', []], 8)
+    delete_by_type(gvar, ['group', '-wig', '-gn', 'group_name', []], 7)
+    subprocess.run(['cloudscheduler', 'group', 'delete', '-gn', gvar['base_group'], '-Y'], stdout=subprocess.DEVNULL)
 
 def delete_by_type(gvar, type_info, number):
     # type_info is a list of strings
@@ -123,7 +129,7 @@ def delete_by_type(gvar, type_info, number):
     
     for object in objects:
         if object in object_list:
-            subprocess.run(['cloudscheduler', type_info[0], 'delete', type_info[2], object, '-Y'])
+            subprocess.run(['cloudscheduler', type_info[0], 'delete', type_info[2], object, *type_info[4], '-Y'])
 
     object_log.close()
 
