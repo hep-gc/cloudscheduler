@@ -8,7 +8,7 @@ class TestWebUser(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        wtsc.setup(cls, 2)
+        wtsc.setup(cls, 2, ['users'])
         cls.page = pages.UsersPage(cls.driver)
         print("\nUser Tests:")
 

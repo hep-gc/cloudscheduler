@@ -8,7 +8,7 @@ class TestWebCloudSuperUser(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        wtsc.setup(cls, 2)
+        wtsc.setup(cls, 2, ['clouds'])
         cls.page = pages.CloudsPage(cls.driver)
         print("\nCloud Tests (Super User):")
 

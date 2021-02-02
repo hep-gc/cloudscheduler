@@ -8,12 +8,12 @@ import signal
 # between test runners and to allow tests to be run individually with the
 # unittest framework
 
-def setup(cls, profile):
+def setup(cls, profile, objects):
     # Try/except block here ensures that cleanups will occur even on setup
     # error. If we update to python 3.8 or later, the unittest
     # addClassCleanup() is a better way of handling this.
     try:
-        cls.gvar = setup_objects()
+        cls.gvar = setup_objects(objects)
         cls.driver = webdriver.Firefox(webdriver.FirefoxProfile(cls.gvar['firefox_profiles'][profile-1]))
         cls.driver.get("https://csv2-dev.heprc.uvic.ca")
         cls.alert = cls.driver.switch_to.alert
@@ -23,7 +23,7 @@ def setup(cls, profile):
         cleanup(cls)
         raise
 
-def setup_objects():
+def setup_objects(objects=[]):
     print('\nUnittest setup:')
 
     cleanup_objects()
@@ -33,30 +33,46 @@ def setup_objects():
     #detailed descriptions of the test data is in the web_tests README
 
     #add groups
+    groups_num = 0
+    if 'groups' in objects:
+        groups_num = 4
+    else:
+        groups_num = 3
     groups = []
-    for i in range(1, 5):
+    for i in range(1, groups_num + 1):
         groups.append(gvar['user'] + '-wig' + str(i))
-    for i in range(0, 4):
+    for i in range(0, groups_num):
         subprocess.run(['cloudscheduler', 'group', 'add', '-htcf', gvar['fqdn'], '-gn', groups[i]])
 
     #add users
+    users_num = 0
+    if 'users' in objects:
+        users_num = 4
+    else:
+        users_num = 3
     users = []
-    for i in range(1, 5):
+    for i in range(1, users_num + 1):
         users.append(gvar['user'] + '-wiu' + str(i))
     flags = []
     flags.append(['-gn', gvar['user'] + '-wig1'])
     flags.append(['-SU', 'true','-gn', gvar['user'] + '-wig2'])
     flags.append([])
-    flags.append(['-gn', gvar['user'] + '-wig1'])
-    for i in range(0, 4):
+    if 'users' in objects:
+        flags.append(['-gn', gvar['user'] + '-wig1'])
+    for i in range(0, users_num):
         subprocess.run(['cloudscheduler', 'user', 'add', '-un', users[i], '-upw', gvar['user_secret'], *flags[i]])
 
     #add clouds
+    clouds_num = 0
+    if 'clouds' in objects:
+        clouds_num = 2
+    else:
+        clouds_num = 0
     credentials = gvar['cloud_credentials']
     clouds = []
-    for i in range(1, 3):
+    for i in range(1, clouds_num + 1):
         clouds.append(gvar['user'] + '-wic' + str(i))
-    for i in range(0, 2):
+    for i in range(0, clouds_num):
         subprocess.run(['cloudscheduler', 'cloud', 'add', '-ca', credentials['authurl'], '-cn', clouds[i], '-cpw', credentials['password'], '-cP', credentials['project'], '-cr', credentials['region'], '-cU', credentials['username'], '-ct', 'openstack'])
 
     return gvar
