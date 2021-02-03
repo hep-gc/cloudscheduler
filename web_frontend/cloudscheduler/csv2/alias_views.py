@@ -15,10 +15,7 @@ from cloudscheduler.lib.view_utils import \
 from collections import defaultdict
 import bcrypt
 
-from sqlalchemy import exists
-from sqlalchemy.sql import select
 from cloudscheduler.lib.schema import *
-import sqlalchemy.exc
 import datetime
 
 from cloudscheduler.lib.web_profiler import silk_profile as silkp
@@ -67,7 +64,6 @@ def manage_cloud_aliases(config, tables, group_name, alias_name, clouds, option=
     have all been pre-verified.
     """
 
-    from sqlalchemy.sql import select
 
     table ='csv2_cloud_aliases'
 

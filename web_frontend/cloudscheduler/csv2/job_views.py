@@ -17,7 +17,6 @@ from cloudscheduler.lib.view_utils import \
 import bcrypt
 
 from cloudscheduler.lib.schema import *
-import sqlalchemy.exc
 
 from cloudscheduler.lib.web_profiler import silk_profile as silkp
 
