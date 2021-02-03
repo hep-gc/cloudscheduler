@@ -40,6 +40,7 @@ def assertHasAttribute(type, name, attribute, attribute_name, group=None):
     record = record.split(',')
     record[-1] = record[-1].strip()
     if attribute_name not in record:
+        print(record)
         object_file.close()
         raise AssertionError
     object_file.close()
@@ -91,6 +92,46 @@ def assertAddedWithoutAttribute(type, name, attribute, attribute_name, group=Non
         object_file.close()
         raise AssertionError()
     object_file.close()
+
+def assertHasNearAttribute(type, name, attribute, attribute_name, err, group=None):
+    # This method should only be used on objects that are known to be created -
+    # ie the test should not be creating them. If the test is creating the
+    # object, use assertAddedWithAttribute
+    # This method should only be used when attribute_name can be converted to an
+    # integer. It ensures that the integer is within a range.
+    list_attribute_by_name(type, name, attribute, group)
+    object_file = open(logfile, 'r')
+    record = ""
+    for line in object_file:
+        record += line
+    record = record.split(',')
+    record[-1] = record[-1].strip()
+    for i in range(int(attribute_name)-err, int(attribute_name)+err):
+        if str(i) in record:
+            object_file.close()
+            return
+    object_file.close()
+    raise AssertionError
+
+def assertAddedWithNearAttribute(type, name, attribute, attribute_name, err, group=None):
+    # This method should only be used when attribute_name can be converted to an
+    # integer. It ensures that the integer is within a range.
+    list_attribute_by_name(type, name, attribute, group)
+    object_file = open(logfile, 'r')
+    record = ""
+    for line in object_file:
+        record += line
+    if record.strip() == "":
+        object_file.close()
+        raise AssertionError
+    record = record.split(',')
+    record[-1] = record[-1].strip()
+    for i in range(int(attribute_name)-err, int(attribute_name)+err):
+        if str(i) in record:
+            object_file.close()
+            return
+    object_file.close()
+    raise AssertionError
 
 def list_by_name(type, name, group=None):
     # This function is unused. It currently is not working because the empty 

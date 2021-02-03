@@ -193,10 +193,12 @@ class CloudsPage(Page):
     def slide_cores_slider(self, value):
         xpath = wtxs.two_column_form_blank(self.active_cloud, 'cores_slider')
         slider = self.driver.find_element_by_xpath(xpath)
-        width = slider.size['width']
-        value = slider.get_attribute('max') - slider.get_attribute('min')
-        offset = value/width - (value/2)
-        wti.slide_slider_by_xpath(self.driver, xpath, offset)
+        wti.click_by_xpath(self.driver, xpath)
+        offset = 1
+        wti.slide_slider_by_xpath(self.driver, xpath, 2)
+        while int(slider.get_attribute('value')) < value:
+            wti.slide_slider_by_xpath(self.driver, xpath, offset)
+            offset += 1
 
     def type_cores(self, value):
         xpath = wtxs.two_column_form_blank(self.active_cloud, 'cores_ctl')
@@ -205,18 +207,23 @@ class CloudsPage(Page):
     def increment_cores_by_arrows(self, value):
         xpath = wtxs.two_column_form_blank(self.active_cloud, 'cores_ctl')
         element = self.driver.find_element_by_xpath(xpath)
-        while int(element.get_text()) < value:
-            element.send_keys(Keys.ARROW_UP)
-        while int(element.get_text()) > value:
-            element.send_keys(Keys.ARROW_DOWN)
+        start = int(element.get_attribute('value'))
+        if start < value:
+            for i in range(start, value):
+                element.send_keys(Keys.ARROW_UP)
+        else:
+            for i in range(value, start):
+                element.send_keys(Keys.ARROW_DOWN)
 
     def slide_ram_slider(self, value):
         xpath = wtxs.two_column_form_blank(self.active_cloud, 'ram_slider')
         slider = self.driver.find_element_by_xpath(xpath)
-        width = slider.size['width']
-        value = slider.get_attribute('max') - slider.get_attribute('min')
-        offset = value/width - (value/2)
-        wti.slide_slider_by_xpath(self.driver, xpath, offset)
+        wti.click_by_xpath(self.driver, xpath)
+        offset = 1
+        wti.slide_slider_by_xpath(self.driver, xpath, 20)
+        while int(slider.get_attribute('value')) < value:
+            wti.slide_slider_by_xpath(self.driver, xpath, offset)
+            offset += 1
 
     def type_ram(self, value):
         xpath = wtxs.two_column_form_blank(self.active_cloud, 'ram_ctl')
@@ -225,15 +232,38 @@ class CloudsPage(Page):
     def increment_ram_by_arrows(self, value):
         xpath = wtxs.two_column_form_blank(self.active_cloud, 'ram_ctl')
         element = self.driver.find_element_by_xpath(xpath)
-        while int(element.get_text()) < value:
-            element.send_keys(Keys.ARROW_UP)
-        while int(element.get_text()) > value:
-            element.send_keys(Keys.ARROW_DOWN)
+        start = int(element.get_attribute('value'))
+        if start < value:
+            for i in range(start, value):
+                element.send_keys(Keys.ARROW_UP)
+        else:
+            for i in range(value, start):
+                element.send_keys(Keys.ARROW_DOWN)
+
+    def click_update_cloud(self):
+        self.driver.find_element_by_name(self.active_cloud).submit()
+
+    def click_delete_button(self):
+        wti.click_by_link_text(self.driver, '−')
+
+    def click_delete_modal(self):
+        xpath = wtxs.delete_button(self.active_cloud)
+        wti.click_by_xpath(self.driver, xpath)
+        self.active_cloud = None
 
     def side_button_exists(self, name):
         try:
             WebDriverWait(self.driver, 10).until(
                 EC.presence_of_element_located((By.LINK_TEXT, name)))
+            return True
+        except TimeoutException:
+            return False
+
+    def enabled_box_checked(self):
+        xpath = wtxs.two_column_checkbox(self.active_cloud, '1')
+        try:
+            WebDriverWait(self.driver, 10).until(
+                EC.element_located_to_be_selected((By.XPATH, xpath)))
             return True
         except TimeoutException:
             return False

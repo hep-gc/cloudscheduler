@@ -2,6 +2,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import Select
+from selenium.webdriver.common.action_chains import ActionChains
 
 # This module contains a variety of interactions (mainly clicks and text fills)
 # that can be used to interact with a page. These functions wrap the wait to
@@ -63,5 +64,5 @@ def slide_slider_by_xpath(driver, xpath, offset):
     WebDriverWait(driver, 20).until(
         EC.element_to_be_clickable((By.XPATH, xpath)))
     slider = driver.find_element_by_xpath(xpath)
-    action = Actions(driver).move_to_element(slider, offset).click()
-    action.build().perform()
+    action = ActionChains(driver).move_to_element_with_offset(slider, offset, 0).click()
+    action.perform()

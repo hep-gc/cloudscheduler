@@ -220,6 +220,120 @@ class TestWebCloudSuperUser(unittest.TestCase):
         # Finds the clouds page
         pass
 
+    def test_web_cloud_update_enabled_status(self):
+        cloud_name = self.gvar['user'] + '-wic1'
+        self.page.click_side_button(cloud_name)
+        self.page.click_enabled_checkbox()
+        self.page.click_update_cloud()
+        self.assertFalse(self.page.enabled_box_checked())
+        wta.assertHasAttribute('cloud', cloud_name, 'enabled', '0', self.gvar['base_group'])
+
+    def test_web_cloud_update_priority(self):
+        cloud_name = self.gvar['user'] + '-wic1'
+        self.page.click_side_button(cloud_name)
+        self.page.type_priority('15')
+        self.page.click_update_cloud()
+        wta.assertHasAttribute('cloud', cloud_name, 'cloud_priority', '15', self.gvar['base_group'])
+
+    @unittest.skip("TODO: implement")
+    def test_web_cloud_update_boot_volume(self):
+        pass
+
+    @unittest.skip("TODO: implement")
+    def test_web_cloud_update_add_security_group(self):
+        pass
+
+    @unittest.skip("TODO: implement")
+    def test_web_cloud_update_remove_security_group(self):
+        pass
+
+    @unittest.skip("TODO: implement")
+    def test_web_cloud_update_vm_keyname(self):
+        pass
+
+    def test_web_cloud_update_vm_network(self):
+        cloud_name = self.gvar['user'] + '-wic1'
+        self.page.click_side_button(cloud_name)
+        self.page.select_vm_network('private')
+        self.page.click_update_cloud()
+        wta.assertHasAttribute('cloud', cloud_name, 'vm_network', 'private', self.gvar['base_group'])
+
+    @unittest.skip("TODO: implement")
+    def test_web_cloud_update_vm_image(self):
+        pass
+
+    @unittest.skip("TODO: implement")
+    def test_web_cloud_update_vm_flavor(self):
+        pass
+
+    def test_web_cloud_update_vm_keep_alive(self):
+        cloud_name = self.gvar['user'] + '-wic1'
+        self.page.click_side_button(cloud_name)
+        self.page.type_vm_keep_alive('300')
+        self.page.click_update_cloud()
+        wta.assertHasAttribute('cloud', cloud_name, 'vm_keep_alive', '300', self.gvar['base_group'])
+
+    @unittest.skip("Needs Amazon cloud")
+    def test_web_cloud_update_spot_price(self):
+        pass
+
+    def test_web_cloud_update_cores_softmax(self):
+        cloud_name = self.gvar['user'] + '-wic1'
+        self.page.click_side_button(cloud_name)
+        self.page.type_cores_softmax('4')
+        self.page.click_update_cloud()
+        wta.assertHasAttribute('cloud', cloud_name, 'cores_softmax', '4', self.gvar['base_group'])
+
+    def test_web_cloud_update_cores_by_blank(self):
+        cloud_name = self.gvar['user'] + '-wic1'
+        self.page.click_side_button(cloud_name)
+        self.page.type_cores('4')
+        self.page.click_update_cloud()
+        wta.assertHasAttribute('cloud', cloud_name, 'cores_ctl', '4', self.gvar['base_group'])
+
+    def test_web_cloud_update_cores_by_slider(self):
+        cloud_name = self.gvar['user'] + '-wic1'
+        self.page.click_side_button(cloud_name)
+        self.page.slide_cores_slider(8)
+        self.page.click_update_cloud()
+        wta.assertHasNearAttribute('cloud', cloud_name, 'cores_ctl', '8', 3, self.gvar['base_group'])
+
+    def test_web_cloud_update_cores_by_arrows(self):
+        cloud_name = self.gvar['user'] + '-wic1'
+        self.page.click_side_button(cloud_name)
+        self.page.increment_cores_by_arrows(16)
+        self.page.click_update_cloud()
+        wta.assertHasAttribute('cloud', cloud_name, 'cores_ctl', '16', self.gvar['base_group'])
+
+    def test_web_cloud_update_ram_by_blank(self):
+        cloud_name = self.gvar['user'] + '-wic1'
+        self.page.click_side_button(cloud_name)
+        self.page.type_ram('65536')
+        self.page.click_update_cloud()
+        wta.assertHasAttribute('cloud', cloud_name, 'ram_ctl', '65536', self.gvar['base_group'])
+
+    def test_web_cloud_update_ram_by_slider(self):
+        cloud_name = self.gvar['user'] + '-wic1'
+        self.page.click_side_button(cloud_name)
+        self.page.slide_ram_slider(131072)
+        self.page.click_update_cloud()
+        wta.assertHasNearAttribute('cloud', cloud_name, 'ram_ctl', '131072', 6000, self.gvar['base_group'])
+
+    def test_web_cloud_update_ram_by_arrows(self):
+        cloud_name = self.gvar['user'] + '-wic1'
+        self.page.click_side_button(cloud_name)
+        self.page.increment_ram_by_arrows(262144)
+        self.page.click_update_cloud()
+        wta.assertHasAttribute('cloud', cloud_name, 'ram_ctl', '262144', self.gvar['base_group'])
+
+    def test_web_cloud_delete(self):
+        cloud_name = self.gvar['user'] + '-wic2'
+        self.page.click_side_button(cloud_name)
+        self.page.click_delete_button()
+        self.page.click_delete_modal()
+        self.assertFalse(self.page.side_button_exists(cloud_name))
+        wta.assertDeleted('cloud', cloud_name, self.gvar['base_group'])
+
     @classmethod
     def tearDownClass(cls):
         wtsc.cleanup(cls)
