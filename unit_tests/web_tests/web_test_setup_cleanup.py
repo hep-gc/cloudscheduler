@@ -20,7 +20,8 @@ def setup(cls, profile, objects):
         cls.alert.accept()
     except:
         print("Error in test setup")
-        cleanup(cls)
+        if hasattr(cls, 'driver') and cls.driver:
+            cls.driver.quit()
         raise
 
 def setup_objects(objects=[]):
@@ -94,7 +95,7 @@ def cleanup_objects():
     gvar['base_group'] = gvar['user'] + '-wig0'
 
    
-    delete_by_type(gvar, ['cloud', '-wic', '-cn', 'cloud_name', ['-g', gvar['base_group']]], 3)
+    delete_by_type(gvar, ['cloud', '-wic', '-cn', 'cloud_name', ['-g', gvar['base_group']]], 5)
     delete_by_type(gvar, ['user', '-wiu', '-un', 'username', []], 8)
     delete_by_type(gvar, ['group', '-wig', '-gn', 'group_name', []], 7)
     subprocess.run(['cloudscheduler', 'group', 'delete', '-gn', gvar['base_group'], '-Y'], stdout=subprocess.DEVNULL)
@@ -135,5 +136,6 @@ def delete_by_type(gvar, type_info, number):
 
 def keyboard_interrupt_handler(signal, frame):
     cleanup_objects()
+    raise Exception
 
 signal.signal(signal.SIGINT, keyboard_interrupt_handler)
