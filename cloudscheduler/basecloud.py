@@ -17,7 +17,6 @@ except:
     import cloudscheduler.cloud_init_util
 from cloudscheduler.lib.db_config import Config
 import config as csconfig
-from sqlalchemy import create_engine
 
 
 class BaseCloud(ABC):

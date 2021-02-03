@@ -29,11 +29,6 @@ from cloudscheduler.lib.poller_functions import \
 
 from cloudscheduler.lib.signal_functions import event_receiver_registration
 
-from sqlalchemy import create_engine, or_
-from sqlalchemy.orm import Session
-from sqlalchemy.ext.automap import automap_base
-from sqlalchemy.sql import func
-
 from keystoneclient.auth.identity import v2, v3
 from keystoneauth1 import session
 from keystoneauth1 import exceptions
@@ -203,8 +198,6 @@ def flavor_poller():
     config = Config('/etc/cloudscheduler/cloudscheduler.yaml', db_category_list, pool_size=3, signals=True)
     PID_FILE = config.categories["ProcessMonitor"]["pid_path"] + os.path.basename(sys.argv[0])
 
-    #FLAVOR = config.db_map.classes.cloud_flavors
-    #CLOUD = config.db_map.classes.csv2_clouds
     FLAVOR = "cloud_flavors"
     CLOUD = "csv2_clouds"
     ikey_names = ["group_name", "cloud_name", "id"]
@@ -417,8 +410,6 @@ def image_poller():
     config = Config('/etc/cloudscheduler/cloudscheduler.yaml', db_category_list, pool_size=3, signals=True)
     PID_FILE = config.categories["ProcessMonitor"]["pid_path"] + os.path.basename(sys.argv[0])
 
-    #IMAGE = config.db_map.classes.cloud_images
-    #CLOUD = config.db_map.classes.csv2_clouds
     IMAGE = "cloud_images"
     CLOUD = "csv2_clouds"
 
@@ -660,8 +651,6 @@ def keypair_poller():
     db_category_list = [os.path.basename(sys.argv[0]), "general", "signal_manager", "ProcessMonitor"]
     config = Config('/etc/cloudscheduler/cloudscheduler.yaml', db_category_list, pool_size=3, signals=True)
     PID_FILE = config.categories["ProcessMonitor"]["pid_path"] + os.path.basename(sys.argv[0])
-    #KEYPAIR = config.db_map.classes.cloud_keypairs
-    #CLOUD = config.db_map.classes.csv2_clouds
     KEYPAIR = "cloud_keypairs"
     CLOUD = "csv2_clouds"
     ikey_names = ["group_name", "cloud_name", "fingerprint", "key_name"]
@@ -851,8 +840,6 @@ def limit_poller():
     db_category_list = [os.path.basename(sys.argv[0]), "general", "signal_manager", "ProcessMonitor"]
     config = Config('/etc/cloudscheduler/cloudscheduler.yaml', db_category_list, pool_size=3, signals=True)
     PID_FILE = config.categories["ProcessMonitor"]["pid_path"] + os.path.basename(sys.argv[0])
-    #LIMIT = config.db_map.classes.cloud_limits
-    #CLOUD = config.db_map.classes.csv2_clouds
     LIMIT = "cloud_limits"
     CLOUD = "csv2_clouds"
     ikey_names = ["group_name", "cloud_name"]
