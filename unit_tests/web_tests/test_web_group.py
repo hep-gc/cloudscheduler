@@ -81,7 +81,7 @@ class TestWebGroup(unittest.TestCase):
         wta.assertDeleted('group', group_name)
 
     @unittest.skip("Not working in production")
-    def test_web_group_user_add_search_bar(self):
+    def test_web_group_update_add_user_search_bar(self):
         # Adds a user to a group using the search bar
         group_name = self.gvar['user'] + '-wig1'
         user_name = self.gvar['user'] + '-wiu2'
@@ -91,7 +91,7 @@ class TestWebGroup(unittest.TestCase):
         self.assertTrue(self.page.box_checked(user_name))
         wta.assertHasAttribute('user', user_name, 'user_groups', group_name)
 
-    def test_web_group_user_add_checkbox(self):
+    def test_web_group_update_add_user_checkbox(self):
         # Adds a user to a group using a checkbox
         group_name = self.gvar['user'] + '-wig2'
         user_name = self.gvar['user'] + '-wiu1'
@@ -101,7 +101,7 @@ class TestWebGroup(unittest.TestCase):
         self.assertTrue(self.page.box_checked(user_name))
         wta.assertHasAttribute('user', user_name, 'user_groups', group_name)
 
-    def test_web_group_user_remove(self):
+    def test_web_group_update_remove_user(self):
         # Removes a user from a group
         group_name = self.gvar['user'] + '-wig1'
         user_name = self.gvar['user'] + '-wiu1'

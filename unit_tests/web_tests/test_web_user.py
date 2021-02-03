@@ -119,7 +119,7 @@ class TestWebUser(unittest.TestCase):
         self.assertTrue(self.page.error_message_displayed())
         wta.assertNotAdded('user', user_name)
 
-    def test_web_user_edit_change_password(self):
+    def test_web_user_update_change_password(self):
         # Changes a user's password
         user_name = self.gvar['user'] + '-wiu4'
         self.page.click_side_button(user_name)
@@ -128,7 +128,7 @@ class TestWebUser(unittest.TestCase):
         # TODO: Assertion?
         self.assertFalse(self.page.error_message_displayed())
 
-    def test_web_user_edit_mismatched_passwords(self):
+    def test_web_user_update_mismatched_passwords(self):
         # Tries to change a user's password with a non-matching "confirm password"
         user_name = self.gvar['user'] + '-wiu4'
         self.page.click_side_button(user_name)
@@ -137,11 +137,11 @@ class TestWebUser(unittest.TestCase):
         self.assertTrue(self.page.error_message_displayed())
 
     @unittest.skip("No current infrastructure to test this.")
-    def test_web_user_edit_change_cert_cn(self):
+    def test_web_user_update_change_cert_cn(self):
         # Changes a user's certificate common name
         pass
 
-    def test_web_user_edit_change_superuser_status(self):
+    def test_web_user_update_change_superuser_status(self):
         # Changes a regular user to a super user
         user_name = self.gvar['user'] + '-wiu4'
         self.page.click_side_button(user_name)
@@ -150,7 +150,7 @@ class TestWebUser(unittest.TestCase):
         self.assertTrue(self.page.superuser_box_checked())
         wta.assertHasAttribute('user', user_name, 'is_superuser', '1')
 
-    def test_web_user_edit_add_to_group(self):
+    def test_web_user_update_add_to_group(self):
         # Adds a user to a group
         user_name = self.gvar['user'] + '-wiu4'
         group_name = self.gvar['user'] + '-wig3'
@@ -160,7 +160,7 @@ class TestWebUser(unittest.TestCase):
         self.assertTrue(self.page.group_box_checked(group_name))
         wta.assertHasAttribute('user', user_name, 'user_groups', group_name)
 
-    def test_web_user_edit_remove_from_group(self):
+    def test_web_user_update_remove_from_group(self):
         # Removes a user from a group
         user_name = self.gvar['user'] + '-wiu4'
         group_name = self.gvar['user'] + '-wig1'
