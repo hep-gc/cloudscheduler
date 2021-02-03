@@ -19,7 +19,7 @@ As with the other unit tests, a server configuration and cloud credentials are r
 
 ## Adding Tests
 
-New test functions should be named starting with `test_web_`. The test files should be named `test_web_<page>.py`, with the class being named `TestWeb<Page>`. Individual tests should be named `test_web_<page>_<action>_<details>`. Note that individual tests having names that start with `test` is currently the only breaking requirement.
+New test functions should be named starting with `test_web_`. The test files should be named `test_web_<page>.py`, with the class being named `TestWeb<Page>`. Individual tests should be named `test_web_<page>_<action>_<details>`, where `<action>` is the name of the action using the `cloudscheduler` command. Note that individual tests having names that start with `test` is currently the only breaking requirement.
 
 All test files must be put in the `web_tests` directory, and each test class must have the following added to `create_test_suite.py`:
 
@@ -44,6 +44,8 @@ Each test class uses either the regular user (`{user}-wiu1`) or the super user (
 The `cls.gvar` variable, which is assigned in `web_test_setup_cleanup.setup()`, contains server and user information read from various `.yaml` configuration files. This includes the locations of the firefox profiles and the user credentials for the sample users.
 
 The `web_test_assertions` module contains a set of functions that should be callable within a `TestCase` class and raise the proper errors on failure. These functions access the cloudscheduler database via the `list` command and can test if objects were properly created in the database. However, they are extremely slow compared to assertions using Selenium selectors, and therefore should be used only once per test. In cases where the object being asserted is only available in a group context, all the assertions take a `group` argument (which should typically be `gvar['base_group']`, see "Test Profiles"), which only needs to be specified in these cases.
+
+The `web_test_assertions` module contains a pair of functions asserting that two numbers are near each other. These should only be used in situations where the test cannot reliably produce exact numbers (such as with sliding a slider, which can only produce numbers within a certain pixel sensitivity).
 
 ## Page Objects
 
