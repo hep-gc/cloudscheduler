@@ -18,12 +18,8 @@ from collections import defaultdict
 import bcrypt
 import time
 
-from sqlalchemy import exists
-from sqlalchemy.sql import select
-from sqlalchemy.sql import and_
 from cloudscheduler.lib.schema import *
 from cloudscheduler.lib.log_tools import get_frame_info
-import sqlalchemy.exc
 
 from cloudscheduler.lib.web_profiler import silk_profile as silkp
 
