@@ -151,7 +151,7 @@ class CloudsPage(Page):
         wti.fill_blank_by_xpath(self.driver, xpath, pdn)
 
     def type_boot_volume(self, boot_volume):
-        xpath = two_column_form_blank(self.active_cloud, 'vm_boot_volume')
+        xpath = wtxs.two_column_form_blank(self.active_cloud, 'vm_boot_volume')
         wti.fill_blank_by_xpath(self.driver, xpath, boot_volume)
 
     def add_security_group(self, group):

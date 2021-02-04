@@ -235,17 +235,29 @@ class TestWebCloudSuperUser(unittest.TestCase):
         self.page.click_update_cloud()
         wta.assertHasAttribute('cloud', cloud_name, 'cloud_priority', '15', self.gvar['base_group'])
 
-    @unittest.skip("TODO: implement")
     def test_web_cloud_update_boot_volume(self):
-        pass
+        cloud_name = self.gvar['user'] + '-wic1'
+        boot_volume = '{"GBs": 10, "GBs_per_core": 5}'
+        self.page.click_side_button(cloud_name)
+        self.page.type_boot_volume(boot_volume)
+        self.page.click_update_cloud()
+        wta.assertHasAttribute('cloud', cloud_name, 'vm_boot_volume', boot_volume, self.gvar['base_group'])
 
-    @unittest.skip("TODO: implement")
     def test_web_cloud_update_add_security_group(self):
-        pass
+        cloud_name = self.gvar['user'] + '-wic1'
+        security_group = 'csv2-sa'
+        self.page.click_side_button(cloud_name)
+        self.page.add_security_group(security_group)
+        self.page.click_update_cloud()
+        wta.assertHasAttribute('cloud', cloud_name, 'vm_security_groups', security_group, self.gvar['base_group'])
 
-    @unittest.skip("TODO: implement")
     def test_web_cloud_update_remove_security_group(self):
-        pass
+        cloud_name = self.gvar['user'] + '-wic1'
+        security_group = 'default'
+        self.page.click_side_button(cloud_name)
+        self.page.remove_security_group(security_group)
+        self.page.click_update_cloud()
+        wta.assertHasNotAttribute('cloud', cloud_name, 'vm_security_groups', security_group, self.gvar['base_group'])
 
     @unittest.skip("TODO: implement")
     def test_web_cloud_update_vm_keyname(self):
@@ -258,13 +270,19 @@ class TestWebCloudSuperUser(unittest.TestCase):
         self.page.click_update_cloud()
         wta.assertHasAttribute('cloud', cloud_name, 'vm_network', 'private', self.gvar['base_group'])
 
-    @unittest.skip("TODO: implement")
     def test_web_cloud_update_vm_image(self):
-        pass
+        cloud_name = self.gvar['user'] + '-wic1'
+        self.page.click_side_button(cloud_name)
+        self.page.select_vm_image('cirros-0.3.5')
+        self.page.click_update_cloud()
+        wta.assertHasAttribute('cloud', cloud_name, 'vm_image', 'cirros-0.3.5', self.gvar['base_group'])
 
-    @unittest.skip("TODO: implement")
     def test_web_cloud_update_vm_flavor(self):
-        pass
+        cloud_name = self.gvar['user'] + '-wic1'
+        self.page.click_side_button(cloud_name)
+        self.page.select_vm_flavor('s8')
+        self.page.click_update_cloud()
+        wta.assertHasAttribute('cloud', cloud_name, 'vm_flavor', 's8', self.gvar['base_group'])
 
     def test_web_cloud_update_vm_keep_alive(self):
         cloud_name = self.gvar['user'] + '-wic1'

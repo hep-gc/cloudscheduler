@@ -1,5 +1,6 @@
 from selenium import webdriver
 from cloudscheduler.unit_tests.unit_test_common import load_settings
+from time import sleep
 import subprocess
 import signal
 
@@ -76,8 +77,16 @@ def setup_objects(objects=[]):
     clouds = []
     for i in range(1, clouds_num + 1):
         clouds.append(gvar['user'] + '-wic' + str(i))
+    #flags = []
+    #flags.append([]) #['-vsg', 'default'])
+    #if clouds_num > 1:
+    #    for i in range(1, clouds_num):
+    #        flags.append([])
     for i in range(0, clouds_num):
         subprocess.run(['cloudscheduler', 'cloud', 'add', '-ca', credentials['authurl'], '-cn', clouds[i], '-cpw', credentials['password'], '-cP', credentials['project'], '-cr', credentials['region'], '-cU', credentials['username'], '-ct', 'openstack', '-g', gvar['base_group']])
+    if 'clouds' in objects:
+        sleep(60)
+        subprocess.run(['cloudscheduler', 'cloud', 'update', '-cn', clouds[0], '-vsg', 'default'])
 
     return gvar
 
@@ -136,6 +145,6 @@ def delete_by_type(gvar, type_info, number):
 
 def keyboard_interrupt_handler(signal, frame):
     cleanup_objects()
-    raise Exception
+    raise BaseException
 
 signal.signal(signal.SIGINT, keyboard_interrupt_handler)
