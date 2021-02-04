@@ -61,7 +61,7 @@ class CloudsPage(Page):
 
     def click_side_tab(self, name):
         element_name = name.lower()
-        xpath = wtxs.side_button(self.active_cloud, element_name)
+        xpath = wtxs.label_button(self.active_cloud, element_name)
         wti.click_by_xpath(self.driver, xpath)
 
     def type_cloud_name(self, name):
@@ -256,6 +256,37 @@ class CloudsPage(Page):
         wti.click_by_xpath(self.driver, xpath)
         self.active_cloud = None
 
+    def click_metadata_add(self):
+        xpath = wtxs.label_button(self.active_cloud, 'add')
+        wti.click_by_xpath(self.driver, xpath)
+
+    def type_metadata_name(self, name):
+        xpath = wtxs.form_blank('metadata_form', 'metadata_name')
+        wti.fill_blank_by_xpath(self.driver, xpath, name)
+
+    def click_metadata_enabled(self):
+        xpath = wtxs.checkbox('metadata_form', '1')
+        wti.click_by_xpath(self.driver, xpath)
+
+    def type_metadata_priority(self, priority):
+        xpath = wtxs.form_blank('metadata_form', 'priority')
+        wti.fill_blank_by_xpath(self.driver, xpath, priority)
+
+    def increment_metadata_priority_by_arrows(self, priority):
+        xpath = wtxs.form_blank('metadata_form', 'priority')
+        element = self.driver.find_element_by_xpath(xpath)
+        start = int(element.get_attribute('value'))
+        if start < value:
+            for i in range(start, value):
+                element.send_keys(Keys.ARROW_UP)
+        else:
+            for i in range(value, start):
+                element.send_keys(Keys.ARROW_DOWN)
+    
+    def select_metadata_mime_type(self, type):
+        xpath = wtxs.option_box('metadata_form', 'mime_type')
+        wti.select_option_by_xpath(self.driver, xpath, type)
+ 
     def side_button_exists(self, name):
         try:
             WebDriverWait(self.driver, 10).until(

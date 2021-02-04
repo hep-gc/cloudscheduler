@@ -37,7 +37,7 @@ def two_column_dropdown(form_name, dropdown_name):
 def two_column_option_box(form_name, box_value):
     return "//form[@name='" + form_name + "']/table/tbody/tr/td/table/tbody/tr/td/section/div/select[@value='" + box_value + "']"
 
-def side_button(element, button):
+def label_button(element, button):
     return "//label[@for='" + element + "-" + button + "']"
 
 def delete_button(element_name):

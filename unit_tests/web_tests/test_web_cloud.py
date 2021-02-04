@@ -386,6 +386,13 @@ class TestWebCloudSuperUser(unittest.TestCase):
         self.assertFalse(self.page.side_button_exists(cloud_name))
         wta.assertDeleted('cloud', cloud_name, self.gvar['base_group'])
 
+    @unittest.skip("TODO: implement")
+    def test_web_cloud_metadata_add(self):
+        # Adds metadata to a cloud
+        cloud_name = self.gvar['user'] + '-wic1'
+        self.page.click_side_button(cloud_name)
+        self.page.click_side_tab('Metadata')
+
     @classmethod
     def tearDownClass(cls):
         wtsc.cleanup(cls)
