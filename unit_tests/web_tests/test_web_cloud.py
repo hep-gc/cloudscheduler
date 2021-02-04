@@ -322,9 +322,9 @@ class TestWebCloudSuperUser(unittest.TestCase):
     def test_web_cloud_update_ram_by_arrows(self):
         cloud_name = self.gvar['user'] + '-wic1'
         self.page.click_side_button(cloud_name)
-        self.page.increment_ram_by_arrows(262144)
+        self.page.increment_ram_by_arrows(4096)
         self.page.click_update_cloud()
-        wta.assertHasAttribute('cloud', cloud_name, 'ram_ctl', '262144', self.gvar['base_group'])
+        wta.assertHasAttribute('cloud', cloud_name, 'ram_ctl', '4096', self.gvar['base_group'])
 
     def test_web_cloud_delete(self):
         cloud_name = self.gvar['user'] + '-wic2'

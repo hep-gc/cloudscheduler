@@ -60,9 +60,9 @@ def select_option_by_xpath(driver, xpath, option):
     dropdown = Select(driver.find_element_by_xpath(xpath))
     dropdown.select_by_visible_text(option)
 
-def slide_slider_by_xpath(driver, xpath, offset):
+def slide_slider_by_xpath(driver, xpath, offset, vertical_offset):
     WebDriverWait(driver, 20).until(
         EC.element_to_be_clickable((By.XPATH, xpath)))
     slider = driver.find_element_by_xpath(xpath)
-    action = ActionChains(driver).move_to_element_with_offset(slider, offset, 0).click()
+    action = ActionChains(driver).move_to_element_with_offset(slider, offset, vertical_offset).click()
     action.perform()

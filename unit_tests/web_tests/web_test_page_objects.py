@@ -195,9 +195,9 @@ class CloudsPage(Page):
         slider = self.driver.find_element_by_xpath(xpath)
         wti.click_by_xpath(self.driver, xpath)
         offset = 1
-        wti.slide_slider_by_xpath(self.driver, xpath, 2)
+        wti.slide_slider_by_xpath(self.driver, xpath, 2, 5)
         while int(slider.get_attribute('value')) < value:
-            wti.slide_slider_by_xpath(self.driver, xpath, offset)
+            wti.slide_slider_by_xpath(self.driver, xpath, offset, 5)
             offset += 1
 
     def type_cores(self, value):
@@ -220,9 +220,9 @@ class CloudsPage(Page):
         slider = self.driver.find_element_by_xpath(xpath)
         wti.click_by_xpath(self.driver, xpath)
         offset = 1
-        wti.slide_slider_by_xpath(self.driver, xpath, 20)
+        wti.slide_slider_by_xpath(self.driver, xpath, 2, 5)
         while int(slider.get_attribute('value')) < value:
-            wti.slide_slider_by_xpath(self.driver, xpath, offset)
+            wti.slide_slider_by_xpath(self.driver, xpath, offset, 5)
             offset += 1
 
     def type_ram(self, value):
