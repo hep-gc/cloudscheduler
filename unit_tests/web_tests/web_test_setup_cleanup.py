@@ -32,7 +32,7 @@ def setup_objects(objects=[]):
 
     gvar = load_settings(web=True)
 
-    #detailed descriptions of the test data is in the web_tests README
+    # detailed descriptions of the test data is in the web_tests README
 
     gvar['base_group'] = gvar['user'] + '-wig0'
     subprocess.run(['cloudscheduler', 'group', 'add', '-gn', gvar['base_group'], '-un', gvar['user'], '-htcf', gvar['fqdn']], stdout=subprocess.DEVNULL)
@@ -77,14 +77,12 @@ def setup_objects(objects=[]):
     clouds = []
     for i in range(1, clouds_num + 1):
         clouds.append(gvar['user'] + '-wic' + str(i))
-    #flags = []
-    #flags.append([]) #['-vsg', 'default'])
-    #if clouds_num > 1:
-    #    for i in range(1, clouds_num):
-    #        flags.append([])
     for i in range(0, clouds_num):
         subprocess.run(['cloudscheduler', 'cloud', 'add', '-ca', credentials['authurl'], '-cn', clouds[i], '-cpw', credentials['password'], '-cP', credentials['project'], '-cr', credentials['region'], '-cU', credentials['username'], '-ct', 'openstack', '-g', gvar['base_group']])
     if 'clouds' in objects:
+        # This updates the security group setting, which requires a connection
+        # to condor. The setup timing is unpredictable, so this loops it until
+        # the connection is established.
         while subprocess.run(['cloudscheduler', 'cloud', 'update', '-cn', clouds[0], '-vsg', 'default']).returncode != 0:
             print("Error connecting to condor. This may happen several times. Retrying...")
             sleep(15)
@@ -108,14 +106,18 @@ def cleanup_objects():
     delete_by_type(gvar, ['cloud', '-wic', '-cn', 'cloud_name', ['-g', gvar['base_group']]], 5)
     delete_by_type(gvar, ['user', '-wiu', '-un', 'username', []], 8)
     delete_by_type(gvar, ['group', '-wig', '-gn', 'group_name', []], 7)
+    
+    # This group must be deleted last - it is the containing group for clouds
+    # and cleanup will fail if it is deleted earlier.
     subprocess.run(['cloudscheduler', 'group', 'delete', '-gn', gvar['base_group'], '-Y'], stdout=subprocess.DEVNULL)
 
 def delete_by_type(gvar, type_info, number):
-    # type_info is a list of strings
+    # type_info is a list of strings (and one list of strings)
     # The first string is the name of the object to be deleted (ex 'user')
     # The second string is the suffix used to generate the names of the test objects (ex '-wiu')
     # The third string is the flag used to indicate this identifier (ex '-un')
     # The fourth string is the column name for the list command (ex 'username')
+    # The fifth item is a list of strings that provide extra necessary arguments (this will often be an empty list)
 
     objects = []
     object_log = None
@@ -145,7 +147,13 @@ def delete_by_type(gvar, type_info, number):
     object_log.close()
 
 def keyboard_interrupt_handler(signal, frame):
+    # This ensures that interrupted tests will still clean up. If cloudscheduler
+    # updates to Python 3.8, unittest's addClassCleanups is a better way to 
+    # handle this.
+    print("\nCleaning up and exiting...")
     cleanup_objects()
+    # BaseException is raised here to avoid running into the unittest error
+    # handler.
     raise BaseException
 
 signal.signal(signal.SIGINT, keyboard_interrupt_handler)

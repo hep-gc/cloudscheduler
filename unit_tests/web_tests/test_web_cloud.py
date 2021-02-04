@@ -221,18 +221,22 @@ class TestWebCloudSuperUser(unittest.TestCase):
         pass
 
     def test_web_cloud_find_settings(self):
+        # Clicks on a cloud's Settings tab
         self.page.click_side_button(self.gvar['user'] + '-wic1')
         self.page.click_side_tab('Settings')
 
     def test_web_cloud_find_metadata(self):
+        # Clicks on a cloud's Metadata tab
         self.page.click_side_button(self.gvar['user'] + '-wic1')
         self.page.click_side_tab('Metadata')
 
     def test_web_cloud_find_exclusions(self):
+        # Clicks on a cloud's Exclusions tab
         self.page.click_side_button(self.gvar['user'] + '-wic1')
         self.page.click_side_tab('Exclusions')
 
     def test_web_cloud_update_enabled_status(self):
+        # Disables an enabled cloud
         cloud_name = self.gvar['user'] + '-wic1'
         self.page.click_side_button(cloud_name)
         self.page.click_enabled_checkbox()
@@ -241,6 +245,7 @@ class TestWebCloudSuperUser(unittest.TestCase):
         wta.assertHasAttribute('cloud', cloud_name, 'enabled', '0', self.gvar['base_group'])
 
     def test_web_cloud_update_priority(self):
+        # Changes a cloud's priority
         cloud_name = self.gvar['user'] + '-wic1'
         self.page.click_side_button(cloud_name)
         self.page.type_priority('15')
@@ -248,6 +253,7 @@ class TestWebCloudSuperUser(unittest.TestCase):
         wta.assertHasAttribute('cloud', cloud_name, 'cloud_priority', '15', self.gvar['base_group'])
 
     def test_web_cloud_update_boot_volume(self):
+        # Changes a cloud's boot volume
         cloud_name = self.gvar['user'] + '-wic1'
         boot_volume = '{"GBs": 10, "GBs_per_core": 5}'
         self.page.click_side_button(cloud_name)
@@ -256,6 +262,7 @@ class TestWebCloudSuperUser(unittest.TestCase):
         wta.assertHasAttribute('cloud', cloud_name, 'vm_boot_volume', boot_volume, self.gvar['base_group'])
 
     def test_web_cloud_update_add_security_group(self):
+        # Adds a cloud to a security group
         cloud_name = self.gvar['user'] + '-wic1'
         security_group = 'csv2-sa'
         self.page.click_side_button(cloud_name)
@@ -264,6 +271,7 @@ class TestWebCloudSuperUser(unittest.TestCase):
         wta.assertHasAttribute('cloud', cloud_name, 'vm_security_groups', security_group, self.gvar['base_group'])
 
     def test_web_cloud_update_remove_security_group(self):
+        # Removes a cloud from a security group
         cloud_name = self.gvar['user'] + '-wic1'
         security_group = 'default'
         self.page.click_side_button(cloud_name)
@@ -273,9 +281,11 @@ class TestWebCloudSuperUser(unittest.TestCase):
 
     @unittest.skip("TODO: implement")
     def test_web_cloud_update_vm_keyname(self):
+        # Changes a cloud's vm keyname
         pass
 
     def test_web_cloud_update_vm_network(self):
+        # Changes a cloud's vm network
         cloud_name = self.gvar['user'] + '-wic1'
         self.page.click_side_button(cloud_name)
         self.page.select_vm_network('private')
@@ -283,6 +293,7 @@ class TestWebCloudSuperUser(unittest.TestCase):
         wta.assertHasAttribute('cloud', cloud_name, 'vm_network', 'private', self.gvar['base_group'])
 
     def test_web_cloud_update_vm_image(self):
+        # Changes a cloud's vm image
         cloud_name = self.gvar['user'] + '-wic1'
         self.page.click_side_button(cloud_name)
         self.page.select_vm_image('cirros-0.3.5')
@@ -290,6 +301,7 @@ class TestWebCloudSuperUser(unittest.TestCase):
         wta.assertHasAttribute('cloud', cloud_name, 'vm_image', 'cirros-0.3.5', self.gvar['base_group'])
 
     def test_web_cloud_update_vm_flavor(self):
+        # Changes a cloud's vm flavor
         cloud_name = self.gvar['user'] + '-wic1'
         self.page.click_side_button(cloud_name)
         self.page.select_vm_flavor('s8')
@@ -297,6 +309,7 @@ class TestWebCloudSuperUser(unittest.TestCase):
         wta.assertHasAttribute('cloud', cloud_name, 'vm_flavor', 's8', self.gvar['base_group'])
 
     def test_web_cloud_update_vm_keep_alive(self):
+        # Changes a cloud's vm keep alive time
         cloud_name = self.gvar['user'] + '-wic1'
         self.page.click_side_button(cloud_name)
         self.page.type_vm_keep_alive('300')
@@ -305,9 +318,11 @@ class TestWebCloudSuperUser(unittest.TestCase):
 
     @unittest.skip("Needs Amazon cloud")
     def test_web_cloud_update_spot_price(self):
+        # Changes a cloud's spot price
         pass
 
     def test_web_cloud_update_cores_softmax(self):
+        # Changes a cloud's core softmax
         cloud_name = self.gvar['user'] + '-wic1'
         self.page.click_side_button(cloud_name)
         self.page.type_cores_softmax('4')
@@ -315,6 +330,7 @@ class TestWebCloudSuperUser(unittest.TestCase):
         wta.assertHasAttribute('cloud', cloud_name, 'cores_softmax', '4', self.gvar['base_group'])
 
     def test_web_cloud_update_cores_by_blank(self):
+        # Changes a cloud's maximum number of cores by typing it into the blank
         cloud_name = self.gvar['user'] + '-wic1'
         self.page.click_side_button(cloud_name)
         self.page.type_cores('4')
@@ -322,6 +338,7 @@ class TestWebCloudSuperUser(unittest.TestCase):
         wta.assertHasAttribute('cloud', cloud_name, 'cores_ctl', '4', self.gvar['base_group'])
 
     def test_web_cloud_update_cores_by_slider(self):
+        # Changes a cloud's maximum number of cores by sliding the slider
         cloud_name = self.gvar['user'] + '-wic1'
         self.page.click_side_button(cloud_name)
         self.page.slide_cores_slider(8)
@@ -329,6 +346,7 @@ class TestWebCloudSuperUser(unittest.TestCase):
         wta.assertHasNearAttribute('cloud', cloud_name, 'cores_ctl', '8', 3, self.gvar['base_group'])
 
     def test_web_cloud_update_cores_by_arrows(self):
+        # Changes a cloud's maximum number of cores using the arrow keys
         cloud_name = self.gvar['user'] + '-wic1'
         self.page.click_side_button(cloud_name)
         self.page.increment_cores_by_arrows(16)
@@ -336,6 +354,7 @@ class TestWebCloudSuperUser(unittest.TestCase):
         wta.assertHasAttribute('cloud', cloud_name, 'cores_ctl', '16', self.gvar['base_group'])
 
     def test_web_cloud_update_ram_by_blank(self):
+        # Changes a cloud's maximum RAM by typing it into the blank
         cloud_name = self.gvar['user'] + '-wic1'
         self.page.click_side_button(cloud_name)
         self.page.type_ram('65536')
@@ -343,6 +362,7 @@ class TestWebCloudSuperUser(unittest.TestCase):
         wta.assertHasAttribute('cloud', cloud_name, 'ram_ctl', '65536', self.gvar['base_group'])
 
     def test_web_cloud_update_ram_by_slider(self):
+        # Changes a cloud's maximum RAM by sliding the slider
         cloud_name = self.gvar['user'] + '-wic1'
         self.page.click_side_button(cloud_name)
         self.page.slide_ram_slider(131072)
@@ -350,6 +370,7 @@ class TestWebCloudSuperUser(unittest.TestCase):
         wta.assertHasNearAttribute('cloud', cloud_name, 'ram_ctl', '131072', 6000, self.gvar['base_group'])
 
     def test_web_cloud_update_ram_by_arrows(self):
+        # Changes a cloud's maximum RAM using the arrow keys
         cloud_name = self.gvar['user'] + '-wic1'
         self.page.click_side_button(cloud_name)
         self.page.increment_ram_by_arrows(4096)
@@ -357,6 +378,7 @@ class TestWebCloudSuperUser(unittest.TestCase):
         wta.assertHasAttribute('cloud', cloud_name, 'ram_ctl', '4096', self.gvar['base_group'])
 
     def test_web_cloud_delete(self):
+        # Deletes a cloud
         cloud_name = self.gvar['user'] + '-wic2'
         self.page.click_side_button(cloud_name)
         self.page.click_delete_button()
