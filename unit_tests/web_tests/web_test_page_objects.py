@@ -59,6 +59,11 @@ class CloudsPage(Page):
         wti.click_by_link_text(self.driver, name)
         self.active_cloud = name
 
+    def click_side_tab(self, name):
+        element_name = name.lower()
+        xpath = wtxs.side_button(self.active_cloud, element_name)
+        wti.click_by_xpath(self.driver, xpath)
+
     def type_cloud_name(self, name):
         wti.fill_blank_by_id(self.driver, 'new_cloud', name)
 

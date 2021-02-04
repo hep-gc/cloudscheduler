@@ -220,6 +220,18 @@ class TestWebCloudSuperUser(unittest.TestCase):
         # Finds the clouds page
         pass
 
+    def test_web_cloud_find_settings(self):
+        self.page.click_side_button(self.gvar['user'] + '-wic1')
+        self.page.click_side_tab('Settings')
+
+    def test_web_cloud_find_metadata(self):
+        self.page.click_side_button(self.gvar['user'] + '-wic1')
+        self.page.click_side_tab('Metadata')
+
+    def test_web_cloud_find_exclusions(self):
+        self.page.click_side_button(self.gvar['user'] + '-wic1')
+        self.page.click_side_tab('Exclusions')
+
     def test_web_cloud_update_enabled_status(self):
         cloud_name = self.gvar['user'] + '-wic1'
         self.page.click_side_button(cloud_name)

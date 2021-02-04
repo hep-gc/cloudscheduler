@@ -85,8 +85,9 @@ def setup_objects(objects=[]):
     for i in range(0, clouds_num):
         subprocess.run(['cloudscheduler', 'cloud', 'add', '-ca', credentials['authurl'], '-cn', clouds[i], '-cpw', credentials['password'], '-cP', credentials['project'], '-cr', credentials['region'], '-cU', credentials['username'], '-ct', 'openstack', '-g', gvar['base_group']])
     if 'clouds' in objects:
-        sleep(60)
-        subprocess.run(['cloudscheduler', 'cloud', 'update', '-cn', clouds[0], '-vsg', 'default'])
+        while subprocess.run(['cloudscheduler', 'cloud', 'update', '-cn', clouds[0], '-vsg', 'default']).returncode != 0:
+            print("Error connecting to condor. This may happen several times. Retrying...")
+            sleep(15)
 
     return gvar
 
