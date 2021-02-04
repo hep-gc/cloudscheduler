@@ -41,10 +41,10 @@ STARTD_TYPE = htcondor.AdTypes.Startd
 #    config.db_merge(csv2_service_catalog)
 #    config.db_merge(csv2_configuration)
 #    config.db_update(csv2_clouds)
+#    config.db_update('condor_worker_gsi')
 #    .db_query('condor_worker_gsi')
 #    .db_query('csv2_attribute_mapping')
 #    .db_query('csv2_user_groups')
-
 
 
 # condor likes to return extra keys not defined in the projection
