@@ -45,6 +45,7 @@ STARTD_TYPE = htcondor.AdTypes.Startd
 #    config.db_update('condor_worker_gsi')
 #    .db_query('condor_worker_gsi')
 #    .db_query('csv2_clouds')
+#    .db_query('csv2_groups')
 #    .db_query('csv2_attribute_mapping')
 #    .db_query('csv2_user_groups')
 
