@@ -1746,7 +1746,7 @@ def update(request):
             rc, msg = validate_by_filtered_table_entries(config, fields['vm_security_groups'], 'vm_security_groups', 'cloud_security_groups', 'name', [['group_name', fields['group_name']], ['cloud_name', fields['cloud_name']]], allow_value_list=True)
             if rc != 0:
                 config.db_close()
-                return list(request, active_user=active_user, response_code=1, message='%s cloud update, "%s" failed - %s.' % (lno(MODID), fields['cloud_name'], msg))
+                return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud update, "%s" failed - %s.' % (lno(MODID), fields['cloud_name'], msg))
         if 'cloud_type' in fields:
             if 'authurl' in fields and fields['cloud_type'] == 'openstack':
                 #check if url has a trailing slash
@@ -1846,7 +1846,7 @@ def update(request):
                     updates += 1
                 else:
                     config.db_close()
-                    return list(request, active_user=active_user, response_code=1, message='%s cloud update "%s::%s" failed - %s.' % (lno(MODID), fields['group_name'], fields['cloud_name'], msg))
+                    return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud update "%s::%s" failed - %s.' % (lno(MODID), fields['group_name'], fields['cloud_name'], msg))
 
         config.db_commit()
         # updates must always contain at least the keys so if there isnt more than 2 there is nothing to actually update
