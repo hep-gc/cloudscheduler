@@ -81,10 +81,10 @@ def setup_objects(objects=[]):
         subprocess.run(['cloudscheduler', 'cloud', 'add', '-ca', credentials['authurl'], '-cn', clouds[i], '-cpw', credentials['password'], '-cP', credentials['project'], '-cr', credentials['region'], '-cU', credentials['username'], '-ct', 'openstack', '-g', gvar['base_group']])
     if 'clouds' in objects:
         # This updates the security group setting, which requires a connection
-        # to condor. The setup timing is unpredictable, so this loops it until
-        # the connection is established.
+        # to the cloud. The setup timing is unpredictable, so this loops it 
+        # until the connection is established.
         while subprocess.run(['cloudscheduler', 'cloud', 'update', '-cn', clouds[0], '-vsg', 'default']).returncode != 0:
-            print("Error connecting to condor. This may happen several times. Retrying...")
+            print("Error connecting to the cloud. This may happen several times. Retrying...")
             sleep(15)
 
     return gvar

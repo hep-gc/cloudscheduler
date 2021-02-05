@@ -1,5 +1,6 @@
 import unittest
 import subprocess
+from time import sleep
 
 # This module contains a set of assertions on the cloudscheduler database, for
 # use in the web tests. Note that these methods use the cloudscheduler list
@@ -7,7 +8,7 @@ import subprocess
 
 logfile = 'assert_objects.txt'
 
-def assertAdded(type, name, group=None):
+def assertAdded(type, name, group=None, is_retry=False):
     list_by_type(type, group)
     object_file = open(logfile, 'r')
     for line in object_file:
@@ -15,20 +16,28 @@ def assertAdded(type, name, group=None):
              object_file.close()
              return
     object_file.close()
-    raise AssertionError
+    if is_retry:
+        raise AssertionError
+    else:
+        sleep(5)
+        assertAdded(type, name, group, True)
 
-def assertDeleted(type, name, group=None):
+def assertDeleted(type, name, group=None, is_retry=False):
     list_by_type(type, group)
     object_file = open(logfile, 'r')
     for line in object_file:
         if line.strip()==name:
              object_file.close()
-             raise AssertionError
+             if is_retry:
+                 raise AssertionError
+             else:
+                 sleep(5)
+                 assertDeleted(type, name, group, True)
     object_file.close()
 
 assertNotAdded = assertDeleted
 
-def assertHasAttribute(type, name, attribute, attribute_name, group=None):
+def assertHasAttribute(type, name, attribute, attribute_name, group=None, is_retry=False):
     # This method should only be used on objects that are known to be created -
     # ie the test should not be creating them. If the test is creating the
     # object, use assertAddedWithAttribute
@@ -44,10 +53,14 @@ def assertHasAttribute(type, name, attribute, attribute_name, group=None):
     for line in attribute_name:
         if line not in record:
             object_file.close()
-            raise AssertionError
+            if is_retry:
+                raise AssertionError
+            else:
+                sleep(5)
+                assertHasAttribute(type, name, attribute, attribute_name, group, True)
     object_file.close()
 
-def assertAddedWithAttribute(type, name, attribute, attribute_name, group=None):
+def assertAddedWithAttribute(type, name, attribute, attribute_name, group=None, is_retry=False):
     list_attribute_by_name(type, name, attribute, group)
     object_file = open(logfile, 'r')
     record = ""
@@ -63,10 +76,14 @@ def assertAddedWithAttribute(type, name, attribute, attribute_name, group=None):
     for line in attribute_name:
         if line not in record:
             object_file.close()
-            raise AssertionError()
+            if is_retry:
+                raise AssertionError()
+            else:
+                sleep(5)
+                assertAddedWithAttribute(type, name, attribute, attribute_name, group, True)
     object_file.close()
 
-def assertHasNotAttribute(type, name, attribute, attribute_name, group=None):
+def assertHasNotAttribute(type, name, attribute, attribute_name, group=None, is_retry=False):
     # This method should only be used on objects that are known to be created -
     # ie the test should not be creating them. If the test is creating the
     # object, use assertAddedWithoutAttribute
@@ -82,10 +99,14 @@ def assertHasNotAttribute(type, name, attribute, attribute_name, group=None):
     for line in attribute_name:
         if attribute_name in record:
             object_file.close()
-            raise AssertionError
+            if is_retry:
+                raise AssertionError
+            else:
+                sleep(5)
+                assertHasNotAttribute(type, name, attribute, attribute_name, group, True)
     object_file.close()
 
-def assertAddedWithoutAttribute(type, name, attribute, attribute_name, group=None):
+def assertAddedWithoutAttribute(type, name, attribute, attribute_name, group=None, is_retry=False):
     list_attribute_by_name(type, name, attribute, group)
     object_file = open(logfile, 'r')
     record = ""
@@ -101,10 +122,14 @@ def assertAddedWithoutAttribute(type, name, attribute, attribute_name, group=Non
     for line in attribute_name:
         if attribute_name in record:
             object_file.close()
-            raise AssertionError()
+            if is_retry:
+                raise AssertionError()
+            else:
+                sleep(5)
+                assertAddedWithoutAttribute(type, name, attribute, attribute_name, group, True)
     object_file.close()
 
-def assertHasNearAttribute(type, name, attribute, attribute_name, err, group=None):
+def assertHasNearAttribute(type, name, attribute, attribute_name, err, group=None, is_retry=False):
     # This method should only be used on objects that are known to be created -
     # ie the test should not be creating them. If the test is creating the
     # object, use assertAddedWithAttribute
@@ -122,9 +147,13 @@ def assertHasNearAttribute(type, name, attribute, attribute_name, err, group=Non
             object_file.close()
             return
     object_file.close()
-    raise AssertionError
+    if is_retry:
+        raise AssertionError
+    else:
+        sleep(5)
+        assertHasNearAttribute(type, name, attribute, attribute_name, group, err, True)
 
-def assertAddedWithNearAttribute(type, name, attribute, attribute_name, err, group=None):
+def assertAddedWithNearAttribute(type, name, attribute, attribute_name, err, group=None, is_retry=False):
     # This method should only be used when attribute_name can be converted to an
     # integer. It ensures that the integer is within a range.
     list_attribute_by_name(type, name, attribute, group)
@@ -142,7 +171,11 @@ def assertAddedWithNearAttribute(type, name, attribute, attribute_name, err, gro
             object_file.close()
             return
     object_file.close()
-    raise AssertionError
+    if is_retry:
+        raise AssertionError
+    else:
+        sleep(5)
+        assertAddedWithNearAttribute(type, name, attribute, attribute_name, group, err, True)
 
 def list_by_name(type, name, group=None):
     # This function is unused. It currently is not working because the empty 
