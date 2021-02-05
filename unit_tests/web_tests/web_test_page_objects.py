@@ -294,11 +294,11 @@ class CloudsPage(Page):
         #element = self.driver.find_element_by_xpath(xpath)
         element = self.driver.find_element_by_name('priority')
         start = int(element.get_attribute('value'))
-        if start < value:
-            for i in range(start, value):
+        if start < priority:
+            for i in range(start, priority):
                 element.send_keys(Keys.ARROW_UP)
         else:
-            for i in range(value, start):
+            for i in range(priority, start):
                 element.send_keys(Keys.ARROW_DOWN)
     
     def select_metadata_mime_type(self, type):
