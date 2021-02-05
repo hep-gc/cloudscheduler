@@ -4,6 +4,8 @@ This document contains details of how to set up, write, and run the web tests.
 
 ## Setup
 
+The web tests require Python3, Selenium Webdriver, and Geckodriver to run. Selenium Webdriver can be installed via `pip install selenium`. Geckodriver can be downloaded from [GitHub](https://github.com/mozilla/geckodriver/releases/tag/v0.28.0).
+
 Each user used as an active user in the tests must have a Firefox profile, in order to deal with a Selenium issue around username/password popups. In order to make these, go into the python interpreter and run the `setup_objects()` function from `web_test_setup_cleanup`. Then, create a new Firefox profile at `about:profiles`, switch to that profile, log into cloudscheduler manually with that user's credentials, and save them. These profiles should be added to the `settings.yaml` file like so:
 
 ```yaml
@@ -45,7 +47,7 @@ The `cls.gvar` variable, which is assigned in `web_test_setup_cleanup.setup()`, 
 
 The `web_test_assertions` module contains a set of functions that should be callable within a `TestCase` class and raise the proper errors on failure. These functions access the cloudscheduler database via the `list` command and can test if objects were properly created in the database. However, they are extremely slow compared to assertions using Selenium selectors, and therefore should be used only once per test. In cases where the object being asserted is only available in a group context, all the assertions take a `group` argument (which should typically be `gvar['base_group']`, see "Test Profiles"), which only needs to be specified in these cases.
 
-The `web_test_assertions` module contains a pair of functions asserting that two numbers are near each other. These should only be used in situations where the test cannot reliably produce exact numbers (such as with sliding a slider, which can only produce numbers within a certain pixel sensitivity).
+The `web_test_assertions` module contains a pair of functions asserting that two numbers are near each other. These should only be used in situations where the test cannot reliably produce exact numbers (such as with sliding a slider, which can only produce numbers within a certain pixel sensitivity). These functions cannot be used to assert any value that cannot be converted to an integer by Python's `int()` function.
 
 ## Page Objects
 
@@ -63,6 +65,8 @@ The web tests do run with the `run_tests` script in the `unit_tests` folder. How
 
 Web tests can be run using `./run_tests web`, or using `python3 -m unittest -s web_tests`, both from the `unit_tests` folder. For compatibility with the other unit tests, the first approach is recommended, as other unit tests can then be run simultaneously. One can also run a particular class directly using `python3 <filename>.py` or `python3 -m unittest <filename>.ClassName`. Individual tests can be run with `python3 -m unittest <filename>.ClassName.test_name`. All tests should be run from the `unit_tests` folder to allow module imports to work properly. Note that individual test classes cannot currently be run with the `run_tests` script.
 
+If tests are being set up with clouds, the setup script may display an error with: `Error connecting to condor. This may happen several times. Retrying...`. This is expected behaviour - the cloud setup requires resources from condor, and when it can access those resources is unpredictable, so the script will try, print that message on a failure, and continue trying until the setup is successful.
+
 ## Debugging Tests
 
 To create the test fixtures to manually inspect the tests, the `.setup_objects()` and `.cleanup_objects()` functions from the `web_test_setup_cleanup` module should be used (passing any additonal arguments as specified in the "Test Profiles" section). The `setup()` and `cleanup()` functions do the driver setup as well, but require the calling class and the suffix number of the Firefox profile to use (ie 1 for `{user}-wig1`) as arguments. 
@@ -77,7 +81,7 @@ Additional profiles can be added to the suite. In order to do so, the object sho
 
 There are two categories of objects - some that are created by `setup_objects()` regardless of arguments passed, and some that are only created when the tests request them. The objects created under "Defaults", below, are created automatically when `setup_objects()` is run, regardless of arguments. To create the other set of objects, pass the names of the object groups (ie "users") to the `setup()` function as a list.
 
-There is one additional group created that is not specified below and has no output in the setup scripts. It is not to be edited in any way during the tests, and any user with a profile (with the exception of `{user}-wiu3`, which is not in groups) should be in it. The real user account (ie `{user}`) is also added to this group when it is created. The group is called `{user}-wig0`. All clouds are and should be created under this group, and it is saved as `gvar['base_group']`. It is the first item created as part of the setup, and the last item deleted, and should remain so.
+There is one additional group created that is not specified below and has no output in the setup scripts. It is not to be edited in any way during the tests, and any user with a profile (with the exception of `{user}-wiu3`, who is not in groups) should be in it. The real user account (ie `{user}`) is also added to this group when it is created, to allow this user to make the test objects within this group. The group is called `{user}-wig0`. All clouds are and should be created under this group, and it is saved as `gvar['base_group']`. It is the first item created as part of the setup, and the last item deleted, and should remain so.
 
 ### Defaults
 
