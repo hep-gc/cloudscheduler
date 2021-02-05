@@ -48,9 +48,9 @@ def assertHasAttribute(type, name, attribute, attribute_name, group=None, is_ret
         record += line
     record = record.split(',')
     record[-1] = record[-1].strip()
-    attribute_name = attribute_name.split(',')
-    attribute_name[-1] = attribute_name[-1].strip()
-    for line in attribute_name:
+    attribute_test = attribute_name.split(',')
+    attribute_test[-1] = attribute_test[-1].strip()
+    for line in attribute_test:
         if line not in record:
             object_file.close()
             if is_retry:
@@ -71,9 +71,9 @@ def assertAddedWithAttribute(type, name, attribute, attribute_name, group=None, 
         raise AssertionError
     record = record.split(',')
     record[-1] = record[-1].strip()
-    attribute_name = attribute_name.split(',')
-    attribute_name[-1] = attribute_name[-1].strip()
-    for line in attribute_name:
+    attribute_test = attribute_name.split(',')
+    attribute_test[-1] = attribute_test[-1].strip()
+    for line in attribute_test:
         if line not in record:
             object_file.close()
             if is_retry:
@@ -94,10 +94,10 @@ def assertHasNotAttribute(type, name, attribute, attribute_name, group=None, is_
         record += line
     record = record.split(',')
     record[-1] = record[-1].strip()
-    attribute_name = attribute_name.split(',')
-    attribute_name[-1] = attribute_name[-1].strip()
-    for line in attribute_name:
-        if attribute_name in record:
+    attribute_test = attribute_name.split(',')
+    attribute_test[-1] = attribute_test[-1].strip()
+    for line in attribute_test:
+        if line in record:
             object_file.close()
             if is_retry:
                 raise AssertionError
@@ -117,10 +117,10 @@ def assertAddedWithoutAttribute(type, name, attribute, attribute_name, group=Non
         raise AssertionError
     record = record.split(',')
     record[-1] = record[-1].strip()
-    attribute_name = attribute_name.split(',')
-    attribute_name[-1] = attribute_name[-1].strip()
-    for line in attribute_name:
-        if attribute_name in record:
+    attribute_test = attribute_name.split(',')
+    attribute_test[-1] = attribute_test[-1].strip()
+    for line in attribute_test:
+        if line in record:
             object_file.close()
             if is_retry:
                 raise AssertionError()
@@ -151,7 +151,7 @@ def assertHasNearAttribute(type, name, attribute, attribute_name, err, group=Non
         raise AssertionError
     else:
         sleep(5)
-        assertHasNearAttribute(type, name, attribute, attribute_name, group, err, True)
+        assertHasNearAttribute(type, name, attribute, attribute_name, err, group, True)
 
 def assertAddedWithNearAttribute(type, name, attribute, attribute_name, err, group=None, is_retry=False):
     # This method should only be used when attribute_name can be converted to an
@@ -175,7 +175,7 @@ def assertAddedWithNearAttribute(type, name, attribute, attribute_name, err, gro
         raise AssertionError
     else:
         sleep(5)
-        assertAddedWithNearAttribute(type, name, attribute, attribute_name, group, err, True)
+        assertAddedWithNearAttribute(type, name, attribute, attribute_name, err, group, True)
 
 def list_by_name(type, name, group=None):
     # This function is unused. It currently is not working because the empty 

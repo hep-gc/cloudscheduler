@@ -129,7 +129,7 @@ def delete_by_type(gvar, type_info, number):
     except FileExistsError:
         object_log = open(logfile, mode = 'w') 
     
-    subprocess.run(['cloudscheduler', type_info[0], 'list', '-CSV', type_info[3]], stdout=object_log)
+    subprocess.run(['cloudscheduler', type_info[0], 'list', '-CSV', type_info[3], *type_info[4]], stdout=object_log)
     
     object_log.close()
     object_log = open(logfile, mode = 'r')

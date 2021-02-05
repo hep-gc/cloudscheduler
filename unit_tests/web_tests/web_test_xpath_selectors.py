@@ -40,8 +40,8 @@ def two_column_option_box(form_name, box_value):
 def label_button(element, button):
     return "//label[@for='" + element + "-" + button + "']"
 
-def delete_button(element_name):
-    return "//div[@id='delete-" + element_name + "']/div/form/input[@value='Delete "+ element_name + "']"
+def delete_button(item_name, element_name):
+    return "//div[@id='delete-" + item_name + "']/div/form/input[@value='Delete "+ element_name + "']"
 
 def unspecified_error_message():
     return "//div[@class='footer']/b"

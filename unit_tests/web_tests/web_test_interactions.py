@@ -21,6 +21,12 @@ def click_by_id(driver, id):
     button = driver.find_element_by_id(id)
     button.click()
 
+def click_by_name(driver, name):
+    WebDriverWait(driver, 20).until(
+        EC.element_to_be_clickable((By.NAME, name)))
+    element = driver.find_element_by_name(name)
+    element.click()
+
 def click_by_xpath(driver, xpath):
     WebDriverWait(driver, 20).until(
         EC.presence_of_element_located((By.XPATH, xpath)))
@@ -48,10 +54,25 @@ def fill_blank_by_xpath(driver, xpath, text):
     form.clear()
     form.send_keys(text)
 
+def fill_blank_by_tag_name(driver, tag_name, text):
+    # Note: only use this method when there is definitely only one element with
+    # this tag name.
+    #WebDriverWait(driver, 20).until(
+    #    EC.element_to_be_clickable((By.TAG_NAME, tag_name)))
+    form = driver.find_element_by_tag_name(tag_name)
+    form.clear()
+    form.send_keys(text)
+
 def select_option_by_id(driver, id, option):
     WebDriverWait(driver, 20).until(
         EC.element_to_be_clickable((By.ID, id)))
     dropdown = Select(driver.find_element_by_id(id))
+    dropdown.select_by_visible_text(option)
+
+def select_option_by_name(driver, name, option):
+    WebDriverWait(driver, 20).until(
+        EC.element_to_be_clickable((By.NAME, name)))
+    dropdown = Select(driver.find_element_by_name(name))
     dropdown.select_by_visible_text(option)
 
 def select_option_by_xpath(driver, xpath, option):
