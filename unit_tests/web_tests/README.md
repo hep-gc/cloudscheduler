@@ -6,7 +6,7 @@ This document contains details of how to set up, write, and run the web tests.
 
 The web tests require Python3, Selenium Webdriver, and Geckodriver to run. Selenium Webdriver can be installed via `pip install selenium`. Geckodriver can be downloaded from [GitHub](https://github.com/mozilla/geckodriver/releases/tag/v0.28.0).
 
-Each user used as an active user in the tests must have a Firefox profile, in order to deal with a Selenium issue around username/password popups. In order to make these, go into the python interpreter and run the `setup_objects()` function from `web_test_setup_cleanup`. Then, create a new Firefox profile at `about:profiles`, switch to that profile, log into cloudscheduler manually with that user's credentials, and save them. These profiles should be added to the `settings.yaml` file like so:
+Each user used as an active user in the tests must have a Firefox profile, in order to deal with a Selenium issue around username/password popups. In order to make these, go into the python interpreter and run the `setup_objects()` function from `web_test_setup_cleanup` (no parameters need be passed). Then, create a new Firefox profile at `about:profiles`, switch to that profile, log into cloudscheduler manually with that user's credentials, and save them. These profiles should be added to the `settings.yaml` file like so:
 
 ```yaml
 firefox_profiles:
@@ -33,7 +33,7 @@ All test files must be put in the `web_tests` directory, and each test class mus
 
 New tests should additionally follow all rules for Unittest test classes, as they are run using the Unittest framework.
 
-New test classes should include the `web_test_setup_cleanup` module and call the `setup()` function as part of the `setUpClass()` function, passing it the test class it is being called as a part of. `setup()` currently automatically deletes all old test setups when run (via calling the `cleanup()` function). The `cleanup()` function should be called during the `tearDownClass()` function, again passing it the test class it is being called in. `cleanup()` is also called on error in the setup or on a `KeyboardInterrupt` at any time during the tests (using a handler contained in this module). Neither function will attempt to delete any object it cannot find. 
+New test classes should include the `web_test_setup_cleanup` module and call the `setup()` function as part of the `setUpClass()` function, passing it the test class it is being called as a part of. `setup()` currently automatically deletes all old test setups when run (via calling the `cleanup()` function). The `cleanup()` function should be called during the `tearDownClass()` function, again passing it the test class it is being called in. `cleanup()` is also called on error in the setup, and `cleanup_objects()` is called on a `KeyboardInterrupt` at any time during the tests (using a handler contained in this module). Neither function will attempt to delete any object it cannot find. 
 
 New tests should include the `web_test_setup_cleanup`, `web_test_assertions`, and `web_test_page_objects` modules. The other `web_test_*` modules are used in these three modules, and should only be accessed via these three modules. 
 
@@ -65,13 +65,22 @@ The web tests do run with the `run_tests` script in the `unit_tests` folder. How
 
 Web tests can be run using `./run_tests web`, or using `python3 -m unittest -s web_tests`, both from the `unit_tests` folder. For compatibility with the other unit tests, the first approach is recommended, as other unit tests can then be run simultaneously. One can also run a particular class directly using `python3 <filename>.py` or `python3 -m unittest <filename>.ClassName`. Individual tests can be run with `python3 -m unittest <filename>.ClassName.test_name`. All tests should be run from the `unit_tests` folder to allow module imports to work properly. Note that individual test classes cannot currently be run with the `run_tests` script.
 
-If tests are being set up with clouds, the setup script may display an error with: `Error connecting to condor. This may happen several times. Retrying...`. This is expected behaviour - the cloud setup requires resources from condor, and when it can access those resources is unpredictable, so the script will try, print that message on a failure, and continue trying until the setup is successful.
+If tests are being set up with clouds, the setup script may display an error similar to: 
+
+```
+Error: CV-01749 cloud update, "{user}-wic1" failed - specified value in list of values does not exist: vm_security_groups=default, group_name={user}-wig0, cloud_name={user}-wic1.
+Error connecting to the cloud. This may happen several times. Retrying...
+```
+
+This is expected behaviour - the cloud setup requires resources from the cloud connection, and when it can access those resources is unpredictable, so the script will try, print that message on a failure, and continue trying until the setup is successful. Depending on where the cloud poller is in its process, it may take up to a dozen retries.
 
 ## Debugging Tests
 
 To create the test fixtures to manually inspect the tests, the `.setup_objects()` and `.cleanup_objects()` functions from the `web_test_setup_cleanup` module should be used (passing any additonal arguments as specified in the "Test Profiles" section). The `setup()` and `cleanup()` functions do the driver setup as well, but require the calling class and the suffix number of the Firefox profile to use (ie 1 for `{user}-wig1`) as arguments. 
 
 Several functions log information in files called `*objects.txt`. These files can be useful for debugging. They should not be committed, and it is harmless to delete them - they will be automatically remade when needed. If possible, the use of these files will eventually be phased out.
+
+The primary known cause of flaky tests is the test not waiting long enough for the object to properly appear. Using the `sleep()` or `WebDriverWait` functions can help fix this, as can retrying the action if it fails. For example, the `setup_objects` function uses `sleep()`, the `web_test_interactions` and `web_test_page_objects` methods use `WebDriverWait`, and the `web_test_assertions` methods will retry the query an additional time (after a five-second `sleep()`) if they fail to find what they're looking for.
 
 ## Test Profiles
 
@@ -81,7 +90,7 @@ Additional profiles can be added to the suite. In order to do so, the object sho
 
 There are two categories of objects - some that are created by `setup_objects()` regardless of arguments passed, and some that are only created when the tests request them. The objects created under "Defaults", below, are created automatically when `setup_objects()` is run, regardless of arguments. To create the other set of objects, pass the names of the object groups (ie "users") to the `setup()` function as a list.
 
-There is one additional group created that is not specified below and has no output in the setup scripts. It is not to be edited in any way during the tests, and any user with a profile (with the exception of `{user}-wiu3`, who is not in groups) should be in it. The real user account (ie `{user}`) is also added to this group when it is created, to allow this user to make the test objects within this group. The group is called `{user}-wig0`. All clouds are and should be created under this group, and it is saved as `gvar['base_group']`. It is the first item created as part of the setup, and the last item deleted, and should remain so.
+There is one additional group created that is not specified below and has no output in the setup scripts. It is not to be edited in any way during the tests, and any user with a profile (with the exception of `{user}-wiu3`, who is not in groups) should be in it. The real user account (ie `{user}`) is also added to this group when it is created, to allow this user to make the test objects within this group. The group is called `{user}-wig0`. All clouds are and should be created under this group, and it is saved as `gvar['base_group']`. It is the first item created as part of the setup, and the last item deleted, and should remain so. Many functions have a `group` argument that is invoked to prevent cloud tests from failing, and this is the group that should be given.
 
 ### Defaults
 
