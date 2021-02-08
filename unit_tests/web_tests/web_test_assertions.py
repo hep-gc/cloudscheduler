@@ -41,7 +41,10 @@ def assertHasAttribute(type, name, attribute, attribute_name, group=None, is_ret
     # This method should only be used on objects that are known to be created -
     # ie the test should not be creating them. If the test is creating the
     # object, use assertAddedWithAttribute
-    list_attribute_by_name(type, name, attribute, group)
+    if metadata_name:
+        metadata_list_attribute_by_name(type, name, metadata_name, attribute, group)
+    else:
+        list_attribute_by_name(type, name, attribute, group)
     object_file = open(logfile, 'r')
     record = ""
     for line in object_file:
@@ -144,10 +147,7 @@ def assertHasNearAttribute(type, name, attribute, attribute_name, err, group=Non
     # object, use assertAddedWithAttribute
     # This method should only be used when attribute_name can be converted to an
     # integer. It ensures that the integer is within a range.
-    if metadata_name:
-        metadata_list_attribute_by_name(type, name, metadata_name, attribute, group)
-    else:
-        list_attribute_by_name(type, name, attribute, group)
+    list_attribute_by_name(type, name, attribute, group)
     object_file = open(logfile, 'r')
     record = ""
     for line in object_file:
