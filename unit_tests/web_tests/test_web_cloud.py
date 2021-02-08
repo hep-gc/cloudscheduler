@@ -412,7 +412,7 @@ class TestWebCloudSuperUser(unittest.TestCase):
         self.page.click_metadata_add()
         self.assertTrue(self.page.metadata_tab_exists(metadata_name))
         # TODO: investigate how to test for metadata attributes
-        wta.assertHasAttribute('cloud', cloud_name, 'metadata_names', metadata_name, self.gvar['base_group'])
+        wta.assertHasAttribute('cloud', cloud_name, 'enabled', '0', self.gvar['base_group'], metadata_name=metadata_name)
 
     def test_web_cloud_metadata_add_different_priority_by_typing(self):
         # Adds metadata to a cloud with a different priority by typing it in the blank
@@ -427,7 +427,7 @@ class TestWebCloudSuperUser(unittest.TestCase):
         self.page.click_metadata_add()
         self.assertTrue(self.page.metadata_tab_exists(metadata_name))
         # TODO: investigate how to test for metadata attributes
-        wta.assertHasAttribute('cloud', cloud_name, 'metadata_names', metadata_name, self.gvar['base_group'])
+        wta.assertHasAttribute('cloud', cloud_name, 'priority', '8', self.gvar['base_group'], metadata_name=metadata_name)
 
     def test_web_cloud_metadata_add_different_priority_by_arrows(self):
         # Adds metadata to a cloud with a different priority using the arrow keys
@@ -442,7 +442,7 @@ class TestWebCloudSuperUser(unittest.TestCase):
         self.page.click_metadata_add()
         self.assertTrue(self.page.metadata_tab_exists(metadata_name))
         # TODO: investigate how to test for metadata attributes
-        wta.assertHasAttribute('cloud', cloud_name, 'metadata_names', metadata_name, self.gvar['base_group'])
+        wta.assertHasAttribute('cloud', cloud_name, 'priority', '16', self.gvar['base_group'], metadata_name=metadata_name)
 
     def test_web_cloud_metadata_add_different_mime_type(self):
         # Adds metadata to a cloud with a different MIME type
@@ -457,7 +457,7 @@ class TestWebCloudSuperUser(unittest.TestCase):
         self.page.click_metadata_add()
         self.assertTrue(self.page.metadata_tab_exists(metadata_name))
         # TODO: investigate how to test for metadata attributes
-        wta.assertHasAttribute('cloud', cloud_name, 'metadata_names', metadata_name, self.gvar['base_group'])
+        wta.assertHasAttribute('cloud', cloud_name, 'mime_type', 'ucernvm-config', self.gvar['base_group'], metadata_name=metadata_name)
 
     @classmethod
     def tearDownClass(cls):

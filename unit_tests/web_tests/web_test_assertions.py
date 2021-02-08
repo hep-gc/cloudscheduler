@@ -37,7 +37,7 @@ def assertDeleted(type, name, group=None, is_retry=False):
 
 assertNotAdded = assertDeleted
 
-def assertHasAttribute(type, name, attribute, attribute_name, group=None, is_retry=False):
+def assertHasAttribute(type, name, attribute, attribute_name, group=None, is_retry=False, metadata_name=None):
     # This method should only be used on objects that are known to be created -
     # ie the test should not be creating them. If the test is creating the
     # object, use assertAddedWithAttribute
@@ -57,11 +57,14 @@ def assertHasAttribute(type, name, attribute, attribute_name, group=None, is_ret
                 raise AssertionError
             else:
                 sleep(5)
-                assertHasAttribute(type, name, attribute, attribute_name, group, True)
+                assertHasAttribute(type, name, attribute, attribute_name, group, True, metadata_name)
     object_file.close()
 
-def assertAddedWithAttribute(type, name, attribute, attribute_name, group=None, is_retry=False):
-    list_attribute_by_name(type, name, attribute, group)
+def assertAddedWithAttribute(type, name, attribute, attribute_name, group=None, is_retry=False, metadata_name=None):
+    if metadata_name:
+        metadata_list_attribute_by_name(type, name, metadata_name, attribute, group)
+    else:
+        list_attribute_by_name(type, name, attribute, group)
     object_file = open(logfile, 'r')
     record = ""
     for line in object_file:
@@ -80,14 +83,17 @@ def assertAddedWithAttribute(type, name, attribute, attribute_name, group=None, 
                 raise AssertionError()
             else:
                 sleep(5)
-                assertAddedWithAttribute(type, name, attribute, attribute_name, group, True)
+                assertAddedWithAttribute(type, name, attribute, attribute_name, group, True, metadata_name)
     object_file.close()
 
-def assertHasNotAttribute(type, name, attribute, attribute_name, group=None, is_retry=False):
+def assertHasNotAttribute(type, name, attribute, attribute_name, group=None, is_retry=False, metadata_name=None):
     # This method should only be used on objects that are known to be created -
     # ie the test should not be creating them. If the test is creating the
     # object, use assertAddedWithoutAttribute
-    list_attribute_by_name(type, name, attribute, group)
+    if metadata_name:
+        metadata_list_attribute_by_name(type, name, metadata_name, attribute, group)
+    else:
+        list_attribute_by_name(type, name, attribute, group)
     object_file = open(logfile, 'r')
     record = ""
     for line in object_file:
@@ -103,11 +109,14 @@ def assertHasNotAttribute(type, name, attribute, attribute_name, group=None, is_
                 raise AssertionError
             else:
                 sleep(5)
-                assertHasNotAttribute(type, name, attribute, attribute_name, group, True)
+                assertHasNotAttribute(type, name, attribute, attribute_name, group, True, metadata_name)
     object_file.close()
 
-def assertAddedWithoutAttribute(type, name, attribute, attribute_name, group=None, is_retry=False):
-    list_attribute_by_name(type, name, attribute, group)
+def assertAddedWithoutAttribute(type, name, attribute, attribute_name, group=None, is_retry=False, metadata_name=None):
+    if metadata_name:
+        metadata_list_attribute_by_name(type, name, metadata_name, attribute, group)
+    else:
+        list_attribute_by_name(type, name, attribute, group)
     object_file = open(logfile, 'r')
     record = ""
     for line in object_file:
@@ -126,7 +135,7 @@ def assertAddedWithoutAttribute(type, name, attribute, attribute_name, group=Non
                 raise AssertionError()
             else:
                 sleep(5)
-                assertAddedWithoutAttribute(type, name, attribute, attribute_name, group, True)
+                assertAddedWithoutAttribute(type, name, attribute, attribute_name, group, True, metadata_name)
     object_file.close()
 
 def assertHasNearAttribute(type, name, attribute, attribute_name, err, group=None, is_retry=False):
@@ -135,7 +144,10 @@ def assertHasNearAttribute(type, name, attribute, attribute_name, err, group=Non
     # object, use assertAddedWithAttribute
     # This method should only be used when attribute_name can be converted to an
     # integer. It ensures that the integer is within a range.
-    list_attribute_by_name(type, name, attribute, group)
+    if metadata_name:
+        metadata_list_attribute_by_name(type, name, metadata_name, attribute, group)
+    else:
+        list_attribute_by_name(type, name, attribute, group)
     object_file = open(logfile, 'r')
     record = ""
     for line in object_file:
@@ -219,6 +231,20 @@ def list_by_type(type, group=None):
     if group:
         flags = ['-g', group]
     subprocess.run(['cloudscheduler', object['name'], 'list', '-CSV', object['column_name'], *flags], stdout=object_file)
+    object_file.close()
+
+def metadata_list_attribute_by_name(type, name, metadata_name, attribute, group=None):
+    object_file = None
+    try:
+        object_file = open(logfile, 'x')
+    except FileExistsError:
+        object_file = open(logfile, 'w')
+    object_names = names()
+    object = object_names[type]
+    flags = []
+    if group:
+        flags = ['-g', group]
+    subprocess.run(['cloudscheduler', object['name'], 'metadata-list', object['flag'], name, '-mn', metadata_name, '-CSV', object['column_name'] + ',' + attribute, *flags], stdout=object_file)
     object_file.close()
 
 def names():
