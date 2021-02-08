@@ -7,6 +7,9 @@ def checkbox(form_name, box_name):
 def form_blank(form_name, blank_name):
     return "//form[@name='" + form_name + "']/table/tbody/tr/td/input[@name='" + blank_name + "']"
 
+def named_checkbox(form_name, box_name):
+    return "//form[@name='" + form_name + "']/table/tbody/tr/td/input[@name='" + box_name + "' and not(@type='hidden')]"
+
 def dropdown(form_name, dropdown_name):
     return "//form[@name='" + form_name + "']/table/tbody/tr/td/select[@name='" + dropdown_name + "']"
 

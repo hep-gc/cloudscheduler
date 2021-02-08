@@ -280,9 +280,9 @@ class CloudsPage(Page):
         wti.fill_blank_by_name(self.driver, 'metadata_name', name)
 
     def click_metadata_enabled(self):
-        #xpath = wtxs.checkbox('metadata_form', '1')
-        #wti.click_by_xpath(self.driver, xpath)
-        wti.click_by_name(self.driver, 'enabled')
+        xpath = wtxs.named_checkbox('metadata-form', 'enabled')
+        wti.click_by_xpath(self.driver, xpath)
+        #wti.click_by_name(self.driver, 'enabled')
 
     def type_metadata_priority(self, priority):
         #xpath = wtxs.form_blank('metadata_form', 'priority')
