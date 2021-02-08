@@ -510,7 +510,12 @@ def image_poller():
                         logging.debug("pre request time:%s   post request time:%s" % (post_req_time, pre_req_time))
                         cloud_row["communication_rt"] = int(post_req_time - pre_req_time)
                         try:
-                            config.db_merge(CLOUD, cloud_row)
+                            cld_update_dict = {
+                                group_name: cloud_row["group_name"],
+                                cloud_name: cloud_row["cloud_name"],
+                                communication_rt: cloud_row["communication_rt"],
+                            }
+                            config.db_merge(CLOUD, cld_update_dict)
                             uncommitted_updates += 1
                             config.reset_cloud_error(grp_nm, cld_nm)
                         except Exception as exc:
@@ -599,10 +604,11 @@ def image_poller():
                     key = cloud["authurl"] + cloud["project"] + cloud["region"]
                     if key in failure_dict:
                         new_f_dict[cloud["group_name"]+cloud["cloud_name"]] = 1
-                        where_cluase = "group_name='%s' and cloud_name='%s'" % (cloud["group_name"], cloud["cloud_name"])
-                        rc, msg, cloud_rows = config.db_query(CLOUD, where=where_clause)
-                        cloud_row = cloud_rows[0]
-                        config.db_merge(CLOUD, cloud_row)
+                        cld_update_dict = {
+                            "group_name": cloud["group_name"],
+                            "cloud_name": cloud["cloud_name"],
+                            "communication_up": 0
+                        }
                         config.db_commit()
 
                 # Scan the OpenStack images in the database, removing each one that is not in the inventory.
@@ -1543,11 +1549,15 @@ def vm_poller():
                 for cloud_tuple in unique_cloud_dict[cloud]['groups']:
                     grp_nm = cloud_tuple[0]
                     cld_nm = cloud_tuple[1]
-                    where_clause = "group_name='%s' and cloud_name='%s'" % (grp_nm, cld_nm)
-                    rc, msg, cloud_rows = config.db_query(CLOUD, where=where_clause)
-                    cloud_row = cloud_rows[0]
-                    cloud_row["communication_up"] = 1
-                    config.db_merge(CLOUD, cloud_row)
+                    #where_clause = "group_name='%s' and cloud_name='%s'" % (grp_nm, cld_nm)
+                    #rc, msg, cloud_rows = config.db_query(CLOUD, where=where_clause)
+                    #cloud_row = cloud_rows[0]
+                    cloud_row {
+                        "group_name": grp_nm
+                        "cloud_name": cld_nm
+                        "communication_up": 1
+                    }
+                    config.db_update(CLOUD, cloud_row)
                     config.db_commit()
                     
 
@@ -1734,8 +1744,12 @@ def vm_poller():
                 if key in failure_dict:
                     new_f_dict[cloud["group_name"]+cloud["cloud_name"]] = 1
                     # update cloud network status
-                    cloud["communication_up"] = 0
-                    config.db_merge(CLOUD, cloud)
+                    cloud_row {
+                        "group_name": cloud["group_name"]
+                        "cloud_name": cloud["cloud_name"]
+                        "communication_up": 0
+                    }
+                    config.db_update(CLOUD, cloud_row)
                     config.db_commit()
 
             # since the new inventory function doesn't accept a failfure dict we need to screen the rows ourself
