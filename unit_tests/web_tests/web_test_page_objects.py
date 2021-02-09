@@ -292,6 +292,8 @@ class CloudsPage(Page):
     def increment_metadata_priority_by_arrows(self, priority):
         #xpath = wtxs.form_blank('metadata_form', 'priority')
         #element = self.driver.find_element_by_xpath(xpath)
+        WebDriverWait(self.driver, 20).until(
+            EC.presence_of_element_located((By.NAME, 'priority')))
         element = self.driver.find_element_by_name('priority')
         start = int(element.get_attribute('value'))
         if start < priority:
@@ -325,7 +327,7 @@ class CloudsPage(Page):
         self.driver.switch_to.default_content()
 
     def click_metadata_delete_modal(self):
-        xpath = wtxs.delete_modal('metadata', self.active_metadata)
+        xpath = wtxs.delete_button('metadata', self.active_metadata)
         wti.click_by_xpath(xpath)
         self.driver.switch_to.default_content
         self.active_metadata = None

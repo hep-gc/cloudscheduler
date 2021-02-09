@@ -389,7 +389,7 @@ class TestWebCloudSuperUser(unittest.TestCase):
     def test_web_cloud_metadata_add(self):
         # Adds metadata to a cloud
         cloud_name = self.gvar['user'] + '-wic1'
-        metadata_name = self.gvar['user'] + '-wim1.yaml'
+        metadata_name = self.gvar['user'] + '-wim3.yaml'
         self.page.click_side_button(cloud_name)
         self.page.click_side_tab('Metadata')
         self.page.click_metadata_new()
@@ -402,7 +402,7 @@ class TestWebCloudSuperUser(unittest.TestCase):
     def test_web_cloud_metadata_add_not_enabled(self):
         # Adds metadata to a cloud without enabling it
         cloud_name = self.gvar['user'] + '-wic1'
-        metadata_name = self.gvar['user'] + '-wim2.yaml'
+        metadata_name = self.gvar['user'] + '-wim4.yaml'
         self.page.click_side_button(cloud_name)
         self.page.click_side_tab('Metadata')
         self.page.click_metadata_new()
@@ -411,13 +411,12 @@ class TestWebCloudSuperUser(unittest.TestCase):
         self.page.type_metadata('sample_key: sample_value')
         self.page.click_metadata_add()
         self.assertTrue(self.page.metadata_tab_exists(metadata_name))
-        # TODO: investigate how to test for metadata attributes
-        wta.assertHasAttribute('cloud', cloud_name, 'enabled', '0', self.gvar['base_group'], metadata_name=metadata_name)
+        wta.assertAddedWithAttribute('cloud', cloud_name, 'enabled', '0', self.gvar['base_group'], metadata_name=metadata_name)
 
     def test_web_cloud_metadata_add_different_priority_by_typing(self):
         # Adds metadata to a cloud with a different priority by typing it in the blank
         cloud_name = self.gvar['user'] + '-wic1'
-        metadata_name = self.gvar['user'] + '-wim3.yaml'
+        metadata_name = self.gvar['user'] + '-wim5.yaml'
         self.page.click_side_button(cloud_name)
         self.page.click_side_tab('Metadata')
         self.page.click_metadata_new()
@@ -426,13 +425,12 @@ class TestWebCloudSuperUser(unittest.TestCase):
         self.page.type_metadata('sample_key: sample_value')
         self.page.click_metadata_add()
         self.assertTrue(self.page.metadata_tab_exists(metadata_name))
-        # TODO: investigate how to test for metadata attributes
-        wta.assertHasAttribute('cloud', cloud_name, 'priority', '8', self.gvar['base_group'], metadata_name=metadata_name)
+        wta.assertAddedWithAttribute('cloud', cloud_name, 'priority', '8', self.gvar['base_group'], metadata_name=metadata_name)
 
     def test_web_cloud_metadata_add_different_priority_by_arrows(self):
         # Adds metadata to a cloud with a different priority using the arrow keys
         cloud_name = self.gvar['user'] + '-wic1'
-        metadata_name = self.gvar['user'] + '-wim4.yaml'
+        metadata_name = self.gvar['user'] + '-wim6.yaml'
         self.page.click_side_button(cloud_name)
         self.page.click_side_tab('Metadata')
         self.page.click_metadata_new()
@@ -441,13 +439,12 @@ class TestWebCloudSuperUser(unittest.TestCase):
         self.page.type_metadata('sample_key: sample_value')
         self.page.click_metadata_add()
         self.assertTrue(self.page.metadata_tab_exists(metadata_name))
-        # TODO: investigate how to test for metadata attributes
-        wta.assertHasAttribute('cloud', cloud_name, 'priority', '16', self.gvar['base_group'], metadata_name=metadata_name)
+        wta.assertAddedWithAttribute('cloud', cloud_name, 'priority', '16', self.gvar['base_group'], metadata_name=metadata_name)
 
     def test_web_cloud_metadata_add_different_mime_type(self):
         # Adds metadata to a cloud with a different MIME type
         cloud_name = self.gvar['user'] + '-wic1'
-        metadata_name = self.gvar['user'] + '-wim5.yaml'
+        metadata_name = self.gvar['user'] + '-wim7.yaml'
         self.page.click_side_button(cloud_name)
         self.page.click_side_tab('Metadata')
         self.page.click_metadata_new()
@@ -456,8 +453,64 @@ class TestWebCloudSuperUser(unittest.TestCase):
         self.page.type_metadata('sample_key: sample_value')
         self.page.click_metadata_add()
         self.assertTrue(self.page.metadata_tab_exists(metadata_name))
-        # TODO: investigate how to test for metadata attributes
+        wta.assertAddedWithAttribute('cloud', cloud_name, 'mime_type', 'ucernvm-config', self.gvar['base_group'], metadata_name=metadata_name)
+
+    def test_web_cloud_metadata_update_enabled_status(self):
+        # Changes enabled metadata to not enabled
+        cloud_name = self.gvar['user'] + '-wic1'
+        metadata_name = self.gvar['user'] + '-wim1.yaml'
+        self.page.click_side_button(cloud_name)
+        self.page.click_side_tab('Metadata')
+        self.page.click_metadata(metadata_name)
+        self.page.click_metadata_enabled()
+        self.page.click_metadata_update()
+        # TODO: implement checkbox clicked check method
+        wta.assertHasAttribute('cloud', cloud_name, 'enabled', '0', self.gvar['base_group'], metadata_name=metadata_name)
+
+    def test_web_cloud_metadata_update_priority_by_typing(self):
+        # Changes metadata priority by typing in the blank
+        cloud_name = self.gvar['user'] + '-wic1'
+        metadata_name = self.gvar['user'] + '-wim1.yaml'
+        self.page.click_side_button(cloud_name)
+        self.page.click_side_tab('Metadata')
+        self.page.click_metadata(metadata_name)
+        self.page.type_metadata_priority('8')
+        self.page.click_metadata_update()
+        wta.assertHasAttribute('cloud', cloud_name, 'priority', '8', self.gvar['base_group'], metadata_name=metadata_name)
+
+    def test_web_cloud_metadata_update_priority_by_arrow_keys(self):
+        # Changes metadata priority using the arrow keys
+        cloud_name = self.gvar['user'] + '-wic1'
+        metadata_name = self.gvar['user'] + '-wim1.yaml'
+        self.page.click_side_button(cloud_name)
+        self.page.click_side_tab('Metadata')
+        self.page.click_metadata(metadata_name)
+        self.page.increment_metadata_priority_by_arrows(16)
+        self.page.click_metadata_update()
+        wta.assertHasAttribute('cloud', cloud_name, 'priority', '16', self.gvar['base_group'], metadata_name=metadata_name)
+
+    def test_web_cloud_metadata_update_mime_type(self):
+        # Changes metadata mime type
+        cloud_name = self.gvar['user'] + '-wic1'
+        metadata_name = self.gvar['user'] + '-wim1.yaml'
+        self.page.click_side_button(cloud_name)
+        self.page.click_side_tab('Metadata')
+        self.page.click_metadata(metadata_name)
+        self.page.select_metadata_mime_type('ucernvm-config')
+        self.page.click_metadata_update()
         wta.assertHasAttribute('cloud', cloud_name, 'mime_type', 'ucernvm-config', self.gvar['base_group'], metadata_name=metadata_name)
+
+    def test_web_cloud_metadata_delete(self):
+        # Deletes metadata from a cloud
+        cloud_name = self.gvar['user'] + '-wic1'
+        metadata_name = self.gvar['user'] + '-wim2.yaml'
+        self.page.click_side_button(cloud_name)
+        self.page.click_side_tab('Metadata')
+        self.page.click_metadata(metadata_name)
+        self.page.click_metadata_delete()
+        self.page.click_metadata_delete_modal()
+        self.assertFalse(self.page.metadata_tab_exists(metadata_name))
+        wta.assertHasNotAttribute('cloud', cloud_name, 'metadata_names', metadat_name, self.gvar['base_group'])
 
     @classmethod
     def tearDownClass(cls):

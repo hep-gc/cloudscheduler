@@ -3,6 +3,7 @@ from cloudscheduler.unit_tests.unit_test_common import load_settings
 from time import sleep
 import subprocess
 import signal
+import os
 
 # This module contains setup and cleanup functions for the unittest web tests.
 # Setups and cleanups are done here to prevent issues of passing variables
@@ -80,6 +81,16 @@ def setup_objects(objects=[]):
     for i in range(0, clouds_num):
         subprocess.run(['cloudscheduler', 'cloud', 'add', '-ca', credentials['authurl'], '-cn', clouds[i], '-cpw', credentials['password'], '-cP', credentials['project'], '-cr', credentials['region'], '-cU', credentials['username'], '-ct', 'openstack', '-g', gvar['base_group']])
     if 'clouds' in objects:
+        for i in range(1, 3):
+            name = gvar['user'] + '-wim' + str(i) + '.yaml'
+            try:
+                metadata = open('web_tests/' + name, 'x')
+                metadata.write("sample_value_" + str(i) + ": sample_key_" + str(i))
+                metadata.close()
+            except FileExistsError:
+                pass
+            filename = os.path.abspath('web_tests/' + name)
+            subprocess.run(['cloudscheduler', 'cloud', 'metadata-load', '-cn', gvar['user'] + '-wic1', '-f', filename, '-mn', name])
         # This updates the security group setting, which requires a connection
         # to the cloud. The setup timing is unpredictable, so this loops it 
         # until the connection is established.
