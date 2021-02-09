@@ -45,7 +45,7 @@ Each test class uses either the regular user (`{user}-wiu1`) or the super user (
 
 The `cls.gvar` variable, which is assigned in `web_test_setup_cleanup.setup()`, contains server and user information read from various `.yaml` configuration files. This includes the locations of the firefox profiles and the user credentials for the sample users.
 
-The `web_test_assertions` module contains a set of functions that should be callable within a `TestCase` class and raise the proper errors on failure. These functions access the cloudscheduler database via the `list` command and can test if objects were properly created in the database. However, they are extremely slow compared to assertions using Selenium selectors, and therefore should be used only once per test. In cases where the object being asserted is only available in a group context, all the assertions take a `group` argument (which should typically be `gvar['base_group']`, see "Test Profiles"), which only needs to be specified in these cases.
+The `web_test_assertions` module contains a set of functions that should be callable within a `TestCase` class and raise the proper errors on failure. These functions access the cloudscheduler database via the `list` command and can test if objects were properly created in the database. However, they are extremely slow compared to assertions using Selenium selectors, and therefore should be used only once per test. In cases where the object being asserted is only available in a group context, all the assertions take a `group` argument (which should typically be `gvar['base_group']`, see "Test Profiles"), which only needs to be specified in these cases. In cases where the object being asserted is a metadata object, and one of its attributes is being asserted on, an optional argument `metadata_name` should be passed (with the `attribute` and `attribute name` referring to the attribute in the metadata table), with this providing the name (including the extension) of the metadata file.
 
 The `web_test_assertions` module contains a pair of functions asserting that two numbers are near each other. These should only be used in situations where the test cannot reliably produce exact numbers (such as with sliding a slider, which can only produce numbers within a certain pixel sensitivity). These functions cannot be used to assert any value that cannot be converted to an integer by Python's `int()` function.
 
@@ -54,6 +54,8 @@ The `web_test_assertions` module contains a pair of functions asserting that two
 The test files should access the page via the use of page objects. Each page on the csv2 website has one page class, stored in the `web_test_page_objects` module. 
 
 A new page object should inherit from the `Page` class, which will give it access to the driver and any website-wide components (such as the top navigation bar and error messages). Any interaction with that page should be done via methods implemented in that page class. 
+
+Some page value modification methods take strings, while others take integers. Ensure the correct type is passed to each method. These should eventually be standardized.
 
 The `web_test_interactions`, `web_test_javascript_interactions`, and `web_test_xpath_selectors` modules define the actions that the page objects should use. `web_test_interactions` and `web_test_javascript_interactions` have very similar functions (see below). Each method wraps Selenium's wait action, the find method, and the action method into a single function. `web_test_xpath_selectors` is a set of wrappers for XPaths to be passed to the `web_test_interactions.click_by_xpath` and `web_test_javascript_interactions.javascript_click_by_xpath` methods.
 
@@ -108,7 +110,7 @@ There is one additional group created that is not specified below and has no out
 
 ### Users
 
-`{user}-wiu4` is a standard user. They are in the `{user}-wig1` group. They are a user to be edited in edit tests.
+`{user}-wiu4` is a standard user. They are in the `{user}-wig1` group. They are a user to be edited in update tests.
 
 ### Groups
 
@@ -116,6 +118,10 @@ There is one additional group created that is not specified below and has no out
 
 ### Clouds
 
-`{user}-wig0::{user}-wic1` is a standard cloud.
+`{user}-wig0::{user}-wic1` is a standard cloud. It is a cloud to be edited in update tests.
 
-`{user}-wig0::{user}-wic2` is a standard cloud.
+`{user}-wig0::{user}-wic2` is a standard cloud. It is a cloud to be removed in deletion tests.
+
+`{user}-wig0::{user}-wic1::{user}-wim1.yaml` is a standard cloud metadata. It is to be edited in update tests.
+
+`{user}-wig0::{user}-wic1::{user}-wim2.yaml` is a standard cloud metadata. It is to be removed in deletion tests.
