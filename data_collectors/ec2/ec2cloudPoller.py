@@ -1128,8 +1128,12 @@ def limit_poller():
                             where_clause = "group_name='%s' and cloud_name='%s'" % (grp_nm, cld_nm)
                             rc, msg, cloud_rows = config.db_query(CLOUD, where=where_clause)
                             cloud_row = cloud_rows[0]
-                            cloud_row["communication_up"] = 0
-                            config.db_merge(CLOUD, cloud_row)
+                            cld_update_dict = {
+                                "group_name": cloud_row["group_name"],
+                                "cloud_name": cloud_row["cloud_name"],
+                                "communication_up": 0
+                            }
+                            config.db_update(CLOUD, cld_update_dict)
                             config.db_commit()
 
                             if grp_nm + cld_nm not in failure_dict:
@@ -1153,10 +1157,14 @@ def limit_poller():
                         rc, msg, cloud_rows = config.db_query(CLOUD, where=where_clause)
                         cloud_row = cloud_rows[0]
                         logging.debug("pre request time:%s   post request time:%s" % (post_req_time, pre_req_time))
-                        cloud_row["communication_rt"] = int(post_req_time - pre_req_time)
-                        cloud_row["communication_up"] = 1
+                        cld_update_dict = {
+                            "group_name": cloud_row["group_name"],
+                            "cloud_name": cloud_row["cloud_name"],
+                            "communication_up": 1,
+                            "communication_rt": int(post_req_time - pre_req_time)
+                        }
                         try:
-                            config.db_merge(CLOUD, cloud_row)
+                            config.db_update(CLOUD, cld_update_dict)
                             uncommitted_updates += 1
                             config.reset_cloud_error(grp_nm, cld_nm)
                         except Exception as exc:
