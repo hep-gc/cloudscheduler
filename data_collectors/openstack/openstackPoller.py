@@ -1552,9 +1552,9 @@ def vm_poller():
                     #where_clause = "group_name='%s' and cloud_name='%s'" % (grp_nm, cld_nm)
                     #rc, msg, cloud_rows = config.db_query(CLOUD, where=where_clause)
                     #cloud_row = cloud_rows[0]
-                    cloud_row {
-                        "group_name": grp_nm
-                        "cloud_name": cld_nm
+                    cloud_row = {
+                        "group_name": grp_nm,
+                        "cloud_name": cld_nm,
                         "communication_up": 1
                     }
                     config.db_update(CLOUD, cloud_row)
@@ -1744,9 +1744,9 @@ def vm_poller():
                 if key in failure_dict:
                     new_f_dict[cloud["group_name"]+cloud["cloud_name"]] = 1
                     # update cloud network status
-                    cloud_row {
-                        "group_name": cloud["group_name"]
-                        "cloud_name": cloud["cloud_name"]
+                    cloud_row = {
+                        "group_name": cloud["group_name"],
+                        "cloud_name": cloud["cloud_name"],
                         "communication_up": 0
                     }
                     config.db_update(CLOUD, cloud_row)
