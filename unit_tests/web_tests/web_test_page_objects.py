@@ -324,12 +324,12 @@ class CloudsPage(Page):
 
     def click_metadata_delete(self):
         wti.click_by_id(self.driver, 'right')
-        self.driver.switch_to.default_content()
 
     def click_metadata_delete_modal(self):
         xpath = wtxs.delete_button('metadata', self.active_metadata)
-        wti.click_by_xpath(xpath)
-        self.driver.switch_to.default_content
+        wti.click_by_xpath(self.driver, xpath)
+        #self.driver.find_element_by_name(self.active_cloud + '-' + self.active_metadata + '-delete').submit()
+        self.driver.switch_to.default_content()
         self.active_metadata = None
  
     def side_button_exists(self, name):
@@ -350,6 +350,7 @@ class CloudsPage(Page):
             return False
 
     def metadata_tab_exists(self, name):
+        sleep(2)
         xpath = wtxs.label_button(self.active_cloud, 'metadata-' + name)
         try:
             WebDriverWait(self.driver, 10).until(

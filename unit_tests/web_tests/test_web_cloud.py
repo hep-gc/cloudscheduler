@@ -510,7 +510,7 @@ class TestWebCloudSuperUser(unittest.TestCase):
         self.page.click_metadata_delete()
         self.page.click_metadata_delete_modal()
         self.assertFalse(self.page.metadata_tab_exists(metadata_name))
-        wta.assertHasNotAttribute('cloud', cloud_name, 'metadata_names', metadat_name, self.gvar['base_group'])
+        wta.assertHasNotAttribute('cloud', cloud_name, 'metadata_names', metadata_name, self.gvar['base_group'])
 
     @classmethod
     def tearDownClass(cls):
