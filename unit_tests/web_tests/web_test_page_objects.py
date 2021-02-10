@@ -74,95 +74,51 @@ class CloudsPage(Page):
         wti.fill_blank_by_id(self.driver, 'new_cloud', name)
 
     def click_enabled_checkbox(self):
-        xpath = ""
-        if self.active_cloud is 'add_cloud':
-            xpath = wtxs.cloud_checkbox(self.active_cloud, '1')
-        else:
-            xpath = wtxs.two_column_checkbox(self.active_cloud, '1')
+        xpath = wtxs.form_input_by_name_not_hidden(self.active_cloud, 'enabled')
         wti.click_by_xpath(self.driver, xpath)
 
     def type_priority(self, priority):
-        xpath = ""
-        if self.active_cloud is 'add_cloud':
-            xpath = wtxs.cloud_form_blank(self.active_cloud, 'priority')
-        else:
-            xpath = wtxs.two_column_form_blank(self.active_cloud, 'priority')
+        xpath = wtxs.form_input_by_name(self.active_cloud, 'priority')
         wti.fill_blank_by_xpath(self.driver, xpath, priority)
 
     def select_cloud_type(self, type):
-        xpath = ""
-        if self.active_cloud is 'add_cloud':
-            xpath = wtxs.cloud_dropdown(self.active_cloud, 'cloud_type')
-        else:
-            xpath = wtxs.two_column_dropdown(self.active_cloud, 'cloud_type')
+        xpath = wtxs.form_select_by_name(self.active_cloud, 'cloud_type')
         wti.select_option_by_xpath(self.driver, xpath, type)
 
     def type_url(self, url):
-        xpath = ""
-        if self.active_cloud is 'add_cloud':
-            xpath = wtxs.cloud_form_blank(self.active_cloud, 'authurl')
-        else:
-            xpath = wtxs.two_column_form_blank(self.active_cloud, 'authurl')
+        xpath = wtxs.form_input_by_name(self.active_cloud, 'authurl')
         wti.fill_blank_by_xpath(self.driver, xpath, url)
 
     def type_region(self, region):
-        xpath = ""
-        if self.active_cloud is 'add_cloud':
-            xpath = wtxs.cloud_form_blank(self.active_cloud, 'region')
-        else:
-            xpath = wtxs.two_column_form_blank(self.active_cloud, 'region')
+        xpath = wtxs.form_input_by_name(self.active_cloud, 'region')
         wti.fill_blank_by_xpath(self.driver, xpath, region)
 
     def type_project(self, project):
-        xpath = ""
-        if self.active_cloud is 'add_cloud':
-            xpath = wtxs.cloud_form_blank(self.active_cloud, 'project')
-        else:
-            xpath = wtxs.two_column_form_blank(self.active_cloud, 'project')
+        xpath = wtxs.form_input_by_name(self.active_cloud, 'project')
         wti.fill_blank_by_xpath(self.driver, xpath, project)
 
     def type_username(self, username):
-        xpath = ""
-        if self.active_cloud is 'add_cloud':
-            xpath = wtxs.cloud_form_blank(self.active_cloud, 'username')
-        else:
-            xpath = wtxs.two_column_form_blank(self.active_cloud, 'username')
+        xpath = wtxs.form_input_by_name(self.active_cloud, 'username')
         wti.fill_blank_by_xpath(self.driver, xpath, username)
 
     def type_password(self, password):
-        xpath = ""
-        if self.active_cloud is 'add_cloud':
-            xpath = wtxs.cloud_form_blank(self.active_cloud, 'password')
-        else:
-            xpath = wtxs.two_column_form_blank(self.active_cloud, 'password')
+        xpath = wtxs.form_input_by_name(self.active_cloud, 'password')
         wti.fill_blank_by_xpath(self.driver, xpath, password)
 
     def type_ca_certificate(self, certificate):
-        xpath = ""
-        if self.active_cloud is 'add_cloud':
-            xpath = wtxs.cloud_form_blank(self.active_cloud, 'cacertificate')
-        else:
-            xpath = wtxs.two_column_form_blank(self.active_cloud, 'cacertificate')
+        xpath = wtxs.form_input_by_value(self.active_cloud, 'cacertificate')
         wti.fill_blank_by_xpath(self.driver, xpath, certificate)
         
     def type_user_domain_name(self, udn):
-        xpath = ""
-        if self.active_cloud is 'add_cloud':
-            xpath = wtxs.cloud_form_blank(self.active_cloud, 'user_domain_name')
-        else:
-            xpath = wtxs.two_column_form_blank(self.active_cloud, 'user_domain_name')
+        xpath = wtxs.form_input_by_name(self.active_cloud, 'user_domain_name')
         wti.fill_blank_by_xpath(self.driver, xpath, udn)
 
     def type_project_domain_name(self, pdn):
-        xpath = ""
-        if self.active_cloud is 'add_cloud':
-            xpath = wtxs.cloud_form_blank(self.active_cloud, 'project_domain_name')
-        else:
-            xpath = wtxs.two_column_form_blank(self.active_cloud, 'project_domain_name')
+        xpath = wtxs.form_input_by_name(self.active_cloud, 'project_domain_name')
         wti.fill_blank_by_xpath(self.driver, xpath, pdn)
 
     def type_boot_volume(self, boot_volume):
-        xpath = wtxs.two_column_form_blank(self.active_cloud, 'vm_boot_volume')
+        xpath = wtxs.form_input_by_name(self.active_cloud, 'vm_boot_volume')
         wti.fill_blank_by_xpath(self.driver, xpath, boot_volume)
 
     def add_security_group(self, group):
@@ -174,35 +130,35 @@ class CloudsPage(Page):
         wti.click_by_id(self.driver, 'btnRight-' + self.active_cloud)
 
     def select_vm_keyname(self, keyname):
-        xpath = wtxs.two_column_dropdown(self.active_cloud, 'vm_keyname')
+        xpath = wtxs.form_select_by_name(self.active_cloud, 'vm_keyname')
         wti.select_option_by_xpath(self.driver, xpath, keyname)
 
     def select_vm_network(self, network):
-        xpath = wtxs.two_column_dropdown(self.active_cloud, 'vm_network')
+        xpath = wtxs.form_select_by_name(self.active_cloud, 'vm_network')
         wti.select_option_by_xpath(self.driver, xpath, network)
 
     def select_vm_image(self, image):
-        xpath = wtxs.two_column_dropdown(self.active_cloud, 'vm_image')
+        xpath = wtxs.form_select_by_name(self.active_cloud, 'vm_image')
         wti.select_option_by_xpath(self.driver, xpath, image)
 
     def select_vm_flavor(self, flavor):
-        xpath = wtxs.two_column_dropdown(self.active_cloud, 'vm_flavor')
+        xpath = wtxs.form_select_by_name(self.active_cloud, 'vm_flavor')
         wti.select_option_by_xpath(self.driver, xpath, flavor)
 
     def type_vm_keep_alive(self, time):
-        xpath = wtxs.two_column_form_blank(self.active_cloud, 'vm_keep_alive')
+        xpath = wtxs.form_input_by_name(self.active_cloud, 'vm_keep_alive')
         wti.fill_blank_by_xpath(self.driver, xpath, time)
 
     def type_spot_price(self, price):
-        xpath = wtxs.two_column_form_blank(self.active_cloud, 'spot_price')
+        xpath = wtxs.form_input_by_name(self.active_cloud, 'vm_keep_alive')
         wti.fill_blank_by_xpath(self.driver, xpath, price)
 
     def type_cores_softmax(self, max):
-        xpath = wtxs.two_column_form_blank(self.active_cloud, 'cores_softmax')
+        xpath = wtxs.form_input_by_name(self.active_cloud, 'cores_softmax')
         wti.fill_blank_by_xpath(self.driver, xpath, max)
 
     def slide_cores_slider(self, value):
-        xpath = wtxs.two_column_form_blank(self.active_cloud, 'cores_slider')
+        xpath = wtxs.form_input_by_name(self.active_cloud, 'cores_slider')
         slider = self.driver.find_element_by_xpath(xpath)
         wti.click_by_xpath(self.driver, xpath)
         offset = 1
@@ -212,11 +168,11 @@ class CloudsPage(Page):
             offset += 1
 
     def type_cores(self, value):
-        xpath = wtxs.two_column_form_blank(self.active_cloud, 'cores_ctl')
+        xpath = wtxs.form_input_by_name(self.active_cloud, 'cores_ctl')
         wti.fill_blank_by_xpath(self.driver, xpath, value)
 
     def increment_cores_by_arrows(self, value):
-        xpath = wtxs.two_column_form_blank(self.active_cloud, 'cores_ctl')
+        xpath = wtxs.form_input_by_name(self.active_cloud, 'cores_ctl')
         element = self.driver.find_element_by_xpath(xpath)
         start = int(element.get_attribute('value'))
         if start < value:
@@ -227,7 +183,7 @@ class CloudsPage(Page):
                 element.send_keys(Keys.ARROW_DOWN)
 
     def slide_ram_slider(self, value):
-        xpath = wtxs.two_column_form_blank(self.active_cloud, 'ram_slider')
+        xpath = wtxs.form_input_by_name(self.active_cloud, 'ram_slider')
         slider = self.driver.find_element_by_xpath(xpath)
         wti.click_by_xpath(self.driver, xpath)
         offset = 1
@@ -237,11 +193,11 @@ class CloudsPage(Page):
             offset += 1
 
     def type_ram(self, value):
-        xpath = wtxs.two_column_form_blank(self.active_cloud, 'ram_ctl')
+        xpath = wtxs.form_input_by_name(self.active_cloud, 'ram_ctl')
         wti.fill_blank_by_xpath(self.driver, xpath, value)
 
     def increment_ram_by_arrows(self, value):
-        xpath = wtxs.two_column_form_blank(self.active_cloud, 'ram_ctl')
+        xpath = wtxs.form_input_by_name(self.active_cloud, 'ram_ctl')
         element = self.driver.find_element_by_xpath(xpath)
         start = int(element.get_attribute('value'))
         if start < value:
@@ -275,23 +231,16 @@ class CloudsPage(Page):
         self.active_metadata = name
 
     def type_metadata_name(self, name):
-        #xpath = wtxs.form_blank('metadata_form', 'metadata_name')
-        #wti.fill_blank_by_xpath(self.driver, xpath, name)
         wti.fill_blank_by_name(self.driver, 'metadata_name', name)
 
     def click_metadata_enabled(self):
-        xpath = wtxs.named_checkbox('metadata-form', 'enabled')
+        xpath = wtxs.form_input_by_name_not_hidden('metadata-form', 'enabled')
         wti.click_by_xpath(self.driver, xpath)
-        #wti.click_by_name(self.driver, 'enabled')
 
     def type_metadata_priority(self, priority):
-        #xpath = wtxs.form_blank('metadata_form', 'priority')
-        #wti.fill_blank_by_xpath(self.driver, xpath, priority)
         wti.fill_blank_by_name(self.driver, 'priority', priority)
 
     def increment_metadata_priority_by_arrows(self, priority):
-        #xpath = wtxs.form_blank('metadata_form', 'priority')
-        #element = self.driver.find_element_by_xpath(xpath)
         WebDriverWait(self.driver, 20).until(
             EC.presence_of_element_located((By.NAME, 'priority')))
         element = self.driver.find_element_by_name('priority')
@@ -304,8 +253,6 @@ class CloudsPage(Page):
                 element.send_keys(Keys.ARROW_DOWN)
     
     def select_metadata_mime_type(self, type):
-        #xpath = wtxs.option_box('metadata_form', 'mime_type')
-        #wti.select_option_by_xpath(self.driver, xpath, type)
         wti.select_option_by_name(self.driver, 'mime_type', type)
 
     def type_metadata(self, metadata):
@@ -328,7 +275,6 @@ class CloudsPage(Page):
     def click_metadata_delete_modal(self):
         xpath = wtxs.delete_button('metadata', self.active_metadata)
         wti.click_by_xpath(self.driver, xpath)
-        #self.driver.find_element_by_name(self.active_cloud + '-' + self.active_metadata + '-delete').submit()
         self.driver.switch_to.default_content()
         self.active_metadata = None
  
@@ -341,7 +287,7 @@ class CloudsPage(Page):
             return False
 
     def enabled_box_checked(self):
-        xpath = wtxs.two_column_checkbox(self.active_cloud, '1')
+        xpath = wtxs.form_input_by_name_not_hidden(self.active_cloud, 'enabled')
         try:
             WebDriverWait(self.driver, 15).until(
                 EC.element_located_to_be_selected((By.XPATH, xpath)))
@@ -405,8 +351,8 @@ class UsersPage(Page):
     def type_password(self, password, alt_password=None):
         if not alt_password:
             alt_password = password
-        xpath1 = wtxs.form_blank(self.active_user, 'password1')
-        xpath2 = wtxs.form_blank(self.active_user, 'password2')
+        xpath1 = wtxs.form_input_by_name(self.active_user, 'password1')
+        xpath2 = wtxs.form_input_by_name(self.active_user, 'password2')
         wti.fill_blank_by_xpath(self.driver, xpath1, password)
         wti.fill_blank_by_xpath(self.driver, xpath2, alt_password)
 
@@ -414,11 +360,11 @@ class UsersPage(Page):
         wti.fill_blank_by_name(self.driver, 'cert_cn', cert_cn)
 
     def click_superuser_checkbox(self):
-        xpath = wtxs.checkbox(self.active_user, '1')
+        xpath = wtxs.form_input_by_name_not_hidden(self.active_user, 'is_superuser')
         wti.click_by_xpath(self.driver, xpath)
 
     def click_group_checkbox(self, group):
-        xpath = wtxs.checkbox(self.active_user, group)
+        xpath = wtxs.form_input_by_value(self.active_user, group)
         wti.click_by_xpath(self.driver, xpath)
 
     def click_update_user(self):
@@ -441,7 +387,7 @@ class UsersPage(Page):
             return False
 
     def group_box_checked(self, name):
-        xpath = wtxs.checkbox(self.active_user, name)
+        xpath = wtxs.form_input_by_value(self.active_user, name)
         try:
             WebDriverWait(self.driver, 10).until(
                 EC.element_located_to_be_selected((By.XPATH, xpath)))
@@ -450,7 +396,7 @@ class UsersPage(Page):
             return False
 
     def superuser_box_checked(self):
-        xpath = wtxs.checkbox(self.active_user, '1')
+        xpath = wtxs.form_input_by_name_not_hidden(self.active_user, 'is_superuser')
         try:
             WebDriverWait(self.driver, 10).until(
                 EC.element_located_to_be_selected((By.XPATH, xpath)))
@@ -488,7 +434,7 @@ class GroupsPage(Page):
         wti.fill_blank_by_id(self.driver, 'new_group', name)
 
     def click_user_checkbox(self, user):
-        xpath = wtxs.checkbox(self.active_group, user)
+        xpath = wtxs.form_input_by_value(self.active_group, user)
         wti.click_by_xpath(self.driver, xpath)
 
     def type_in_search_bar(self, text):
@@ -517,7 +463,7 @@ class GroupsPage(Page):
             return False
 
     def box_checked(self, name):
-        xpath = wtxs.checkbox(self.active_group, name)
+        xpath = wtxs.form_input_by_value(self.active_group, name)
         try:
             WebDriverWait(self.driver, 10).until(
                 EC.element_located_to_be_selected((By.XPATH, xpath)))

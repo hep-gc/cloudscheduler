@@ -1,44 +1,20 @@
 # This module contains wrapper functions for the xpath paths of various web
 # elements for the web tests.
 
-def checkbox(form_name, box_name):
-    return "//form[@name='" + form_name + "']/table/tbody/tr/td/input[@value='" + box_name + "']"
+def form_input_by_value(form, value):
+    return "//form[@name='" + form + "']//input[@value='" + value + "']"
 
-def form_blank(form_name, blank_name):
-    return "//form[@name='" + form_name + "']/table/tbody/tr/td/input[@name='" + blank_name + "']"
+def form_input_by_name(form, name):
+    return "//form[@name='" + form + "']//input[@name='" + name + "']"
 
-def named_checkbox(form_name, box_name):
-    return "//form[@name='" + form_name + "']/table/tbody/tr/td/input[@name='" + box_name + "' and not(@type='hidden')]"
+def form_input_by_name_not_hidden(form, name):
+    return "//form[@name='" + form + "']//input[@name='" + name + "' and not(@type='hidden')]"
 
-def dropdown(form_name, dropdown_name):
-    return "//form[@name='" + form_name + "']/table/tbody/tr/td/select[@name='" + dropdown_name + "']"
+def form_select_by_name(form, name):
+    return "//form[@name='" + form + "']//select[@name='" + name + "']"
 
-def option_box(form_name, box_value):
-    return "//form[@name='" + form_name + "']/table/tbody/tr/td/section/div/select[@value='" + box_value + "']"
-
-def cloud_checkbox(form_name, box_name):
-    return "//form[@name='" + form_name + "']/div/table/tbody/tr/td/input[@value='" + box_name + "']"
-
-def cloud_form_blank(form_name, blank_name):
-    return "//form[@name='" + form_name + "']/div/table/tbody/tr/td/input[@name='" + blank_name + "']"
-
-def cloud_dropdown(form_name, dropdown_name):
-    return "//form[@name='" + form_name + "']/div/table/tbody/tr/td/select[@name='" + dropdown_name + "']"
-
-def cloud_option_box(form_name, box_value):
-    return "//form[@name='" + form_name + "']/div/table/tbody/tr/td/section/div/select[@value='" + box_value + "']"
-
-def two_column_checkbox(form_name, box_name):
-    return "//form[@name='" + form_name + "']/table/tbody/tr/td/table/tbody/tr/td/input[@value='" + box_name + "']"
-
-def two_column_form_blank(form_name, blank_name):
-    return "//form[@name='" + form_name + "']/table/tbody/tr/td/table/tbody/tr/td/input[@name='" + blank_name + "']"
-
-def two_column_dropdown(form_name, dropdown_name):
-    return "//form[@name='" + form_name + "']/table/tbody/tr/td/table/tbody/tr/td/select[@name='" + dropdown_name + "']"
-
-def two_column_option_box(form_name, box_value):
-    return "//form[@name='" + form_name + "']/table/tbody/tr/td/table/tbody/tr/td/section/div/select[@value='" + box_value + "']"
+def form_select_by_value(form, value):
+    return "//form[@name='" + form + "']//select[@value='" + value + "']"
 
 def label_button(element, button):
     return "//label[@for='" + element + "-" + button + "']"
