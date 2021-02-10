@@ -524,6 +524,24 @@ class TestWebCloudSuperUser(unittest.TestCase):
         self.assertFalse(self.page.metadata_tab_exists(metadata_name))
         wta.assertHasNotAttribute('cloud', cloud_name, 'metadata_names', metadata_name, self.gvar['base_group'])
 
+    def test_web_cloud_exclusions_metadata(self):
+        cloud_name = self.gvar['user'] + '-wic1'
+        self.page.click_side_button(cloud_name)
+        self.page.click_side_tab('Exclusions')
+        self.page.click_metadata_exclusions()
+        self.page.click_metadata_exclusions_checkbox('default.yaml.j2')
+        self.page.click_update_metadata_exclusions()
+        wta.assertHasAttribute('cloud', cloud_name, 'group_exclusions', 'default.yaml.j2', self.gvar['base_group'])
+
+    def test_web_cloud_exclusions_flavor(self):
+        cloud_name = self.gvar['user'] + '-wic1'
+        self.page.click_side_button(cloud_name)
+        self.page.click_side_tab('Exclusions')
+        self.page.click_flavor_exclusions()
+        self.page.click_flavor_exclusions_checkbox('m1')
+        self.page.click_update_flavor_exclusions()
+        wta.assertHasAttribute('cloud', cloud_name, 'flavor_exclusions', 'm1', self.gvar['base_group'])
+
     @classmethod
     def tearDownClass(cls):
         wtsc.cleanup(cls)

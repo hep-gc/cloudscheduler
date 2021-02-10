@@ -277,6 +277,28 @@ class CloudsPage(Page):
         wti.click_by_xpath(self.driver, xpath)
         self.driver.switch_to.default_content()
         self.active_metadata = None
+
+    def click_metadata_exclusions(self):
+        xpath = wtxs.label_button(self.active_cloud, 'metadata-exclusions')
+        wti.click_by_xpath(self.driver, xpath)
+
+    def click_metadata_exclusions_checkbox(self, box):
+        xpath = wtxs.form_input_by_value(self.active_cloud + '-metadata-exclusions', box)
+        wti.click_by_xpath(self.driver, xpath)
+
+    def click_update_metadata_exclusions(self):
+        self.driver.find_element_by_name(self.active_cloud + '-metadata-exclusions').submit()
+
+    def click_flavor_exclusions(self):
+        xpath = wtxs.label_button(self.active_cloud, 'flavor-exclusions')
+        wti.click_by_xpath(self.driver, xpath)
+
+    def click_flavor_exclusions_checkbox(self, box):
+        xpath = wtxs.form_input_by_value(self.active_cloud + '-flavor-exclusions', box)
+        wti.click_by_xpath(self.driver, xpath)
+
+    def click_update_flavor_exclusions(self):
+        self.driver.find_element_by_name(self.active_cloud + '-flavor-exclusions').submit()
  
     def side_button_exists(self, name):
         try:
