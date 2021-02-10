@@ -117,8 +117,22 @@ def kill_retire(config, group_name, cloud_name, option, count, updater_str):
             ram_max = 999999999999
 
         s = 'set @cores=0; set @ram=0; create or replace temporary table kill_retire_priority_list as select * from (select *,(@cores:=@cores+flavor_cores) as cores,(@ram:=@ram+flavor_ram) as ram from view_vm_kill_retire_priority_idle where group_name="%s" and cloud_name="%s" and killed<1 and retired<1 order by priority asc) as kpl where cores>%s or ram>%s' % (group_name, cloud_name, core_max, ram_max)
-        config.db_execute(s, multi=True)
-        config.db_execute('update csv2_vms as cv left outer join (select * from kill_retire_priority_list) as kpl on cv.vmid=kpl.vmid set retire=1, updater="%s:r1" where kpl.vmid is not null' % updater_str)
+        rc, msg = config.db_execute(s, multi=True)
+        if rc != 0:
+            print("Error setting up temp table kill_retire_priority_list:")
+            print(msg)
+            print("Unable to retire VMs..")
+            config.db_rollback()
+            return 0
+        rc, msg = config.db_execute('update csv2_vms as cv left outer join (select * from kill_retire_priority_list) as kpl on cv.vmid=kpl.vmid set retire=1, updater="%s:r1" where kpl.vmid is not null' % updater_str)
+        if rc != 0:
+            print("Error updating VMs from kill_retire_priority_list:")
+            print(msg)
+            print("Unable to retire VMs..")
+            config.db_rollback()
+            return 0
+        else:
+            print("update executed..")
     
     # Process "kill N".
     elif option == 'kill':

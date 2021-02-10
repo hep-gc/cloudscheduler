@@ -29,11 +29,6 @@ from cloudscheduler.lib.signal_functions import event_receiver_registration
 
 from cloudscheduler.lib.select_ec2 import select_ec2_images, select_ec2_instance_types
 
-from sqlalchemy import create_engine
-from sqlalchemy.orm import Session
-from sqlalchemy.ext.automap import automap_base
-from sqlalchemy.sql import func
-
 from keystoneclient.auth.identity import v2, v3
 from keystoneauth1 import session
 from keystoneauth1 import exceptions

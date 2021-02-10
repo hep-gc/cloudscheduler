@@ -424,6 +424,7 @@ def job_poller():
         #old inventory
         #inventory = get_inventory_item_hash_from_database(config.db_engine, JOB, 'global_job_id', debug_hash=(config.categories["condor_poller.py"]["log_level"]<20), condor_host=config.local_host_id)
         while True:
+            logging.debug("Starting Cycle...")
             #
             # Setup - initialize condor and database objects and build user-group list
             #
@@ -475,6 +476,7 @@ def job_poller():
             uncommitted_updates = 0
             foreign_jobs = 0
             for condor_host in condor_hosts_set:
+                logging.debug("Polling %s" % condor_host)
                 foreign_jobs = 0
                 held_jobs = 0
                 held_job_ids = []
