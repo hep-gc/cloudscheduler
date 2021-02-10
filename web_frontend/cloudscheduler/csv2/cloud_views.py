@@ -1780,6 +1780,7 @@ def update(request):
         if updates > 2:
             where_clause = "group_name='%s' and cloud_name='%s'" % (fields['group_name'], fields['cloud_name'])
             rc, msg = config.db_update(table, cloud_updates, where=where_clause)
+            config.db_commit()
             if rc != 0:
                 config.db_close()
                 return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud update "%s::%s" failed - %s.' % (lno(MODID), fields['group_name'], fields['cloud_name'], msg))
@@ -1791,12 +1792,15 @@ def update(request):
                 retire_cloud_vms(config, fields['group_name'], fields['cloud_name'])
 
         # If either the cores_ctl or the ram_ctl have been modified, call kill_retire to scale current usage.
-        if 'cores_ctl' in fields and 'ram_ctl' in fields:
-            updates += kill_retire(config, active_user.active_group, fields['cloud_name'], 'control', [fields['cores_ctl'], fields['ram_ctl']], get_frame_info())
-        elif 'cores_ctl' in fields:
-            updates += kill_retire(config, active_user.active_group, fields['cloud_name'], 'control', [fields['cores_ctl'], -1], get_frame_info())
-        elif 'ram_ctl' in fields:
-            updates += kill_retire(config, active_user.active_group, fields['cloud_name'], 'control', [-1, fields['ram_ctl']], get_frame_info())
+        try:
+            if 'cores_ctl' in fields and 'ram_ctl' in fields:
+                updates += kill_retire(config, active_user.active_group, fields['cloud_name'], 'control', [fields['cores_ctl'], fields['ram_ctl']], get_frame_info())
+            elif 'cores_ctl' in fields:
+                updates += kill_retire(config, active_user.active_group, fields['cloud_name'], 'control', [fields['cores_ctl'], -1], get_frame_info())
+            elif 'ram_ctl' in fields:
+                updates += kill_retire(config, active_user.active_group, fields['cloud_name'], 'control', [-1, fields['ram_ctl']], get_frame_info())
+        except Exception as exc:
+            print(exc)
 
         # Update the cloud's flavor exclusions.
         if request.META['HTTP_ACCEPT'] == 'application/json':
