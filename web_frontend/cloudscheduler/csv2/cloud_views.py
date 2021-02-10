@@ -609,6 +609,7 @@ def add(request):
     ### Bad request.
     else:
       # return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud add request did not contain mandatory parameter "cloud_name".' % lno(MODID))
+        config.db_close()
         return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud add, invalid method "%s" specified.' % (lno(MODID), request.method))
 
 #-------------------------------------------------------------------------------
@@ -682,6 +683,7 @@ def delete(request):
     ### Bad request.
     else:
       # return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud delete request did not contain mandatory parameter "cloud_name".' % lno(MODID))
+        config.db_close()
         return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud delete, invalid method "%s" specified.' % (lno(MODID), request.method))
 
 #-------------------------------------------------------------------------------

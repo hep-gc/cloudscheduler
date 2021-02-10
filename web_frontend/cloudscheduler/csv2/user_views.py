@@ -136,6 +136,7 @@ def add(request):
         # Need to perform several checks (Note: password checks are now done in validate_fields).
         rc, msg = _verify_username_cert_cn(fields, check_username=True)
         if rc != 0:
+            config.db_close()
             return user_list(request, active_user=active_user, response_code=1, message='%s user add, "%s"' % (lno(MODID), msg))
 
         # Validity check the specified groups.
@@ -169,6 +170,7 @@ def add(request):
                     
     ### Bad request.
     else:
+        config.db_close()
         return user_list(request, active_user=active_user, response_code=1, message='%s user add, invalid method "%s" specified.' % (lno(MODID), request.method))
 
 #-------------------------------------------------------------------------------
@@ -217,6 +219,7 @@ def delete(request):
     ### Bad request.
     else:
       # return user_list(request, active_user=active_user, response_code=1, message='%s user delete did not contain mandatory parameter "username".' % lno(MODID))
+        config.db_close()
         return user_list(request, active_user=active_user, response_code=1, message='%s user delete add, invalid method "%s" specified.' % (lno(MODID), request.method))
 
 #-------------------------------------------------------------------------------

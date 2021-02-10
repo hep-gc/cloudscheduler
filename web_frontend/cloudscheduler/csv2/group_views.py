@@ -260,6 +260,7 @@ def add(request):
 
     ### Bad request.
     else:
+        config.db_close()
         return group_list(request, active_user=active_user, response_code=1, message='%s group add, invalid method "%s" specified.' % (lno(MODID), request.method))
 
 #-------------------------------------------------------------------------------
@@ -536,6 +537,7 @@ def delete(request):
         table = 'cloud_flavors'
         rc, msg = config.db_delete(table, where=where_clause)
         if rc != 0:
+            config.db_close()
             return group_list(request, active_user=active_user, response_code=1, message='%s group flavors delete "%s" failed - %s.' % (lno(MODID), fields['group_name'], msg))
 
         # Delete the group.
@@ -554,6 +556,7 @@ def delete(request):
     ### Bad request.
     else:
       # return group_list(request, active_user=active_user, response_code=1, message='%s group delete request did not contain mandatory parameter "group_name".' % lno(MODID))
+        config.db_close()
         return group_list(request, active_user=active_user, response_code=1, message='%s group delete, invalid method "%s" specified.' % (lno(MODID), request.method))
 
 #-------------------------------------------------------------------------------
@@ -688,6 +691,7 @@ def metadata_add(request):
 
     ### Bad request.
     else:
+        config.db_close()
         return render(request, 'csv2/blank_msg.html', {'response_code': 1, 'message': '%s group metadata_add, invalid method "%s" specified.' % (lno(MODID), request.method)})
 
 
@@ -743,6 +747,7 @@ def metadata_delete(request):
     ### Bad request.
     else:
       # return render(request, 'csv2/blank_msg.html', {'response_code': 1, 'message': '%s group metadata-delete request did not contain mandatory parameter "metadata_name".' % lno(MODID)})
+        config.db_close()
         return render(request, 'csv2/blank_msg.html', {'response_code': 1, 'message': '%s group metadata-delete, invalid method "%s" specified.' % (lno(MODID), request.method)})
 
 #-------------------------------------------------------------------------------
@@ -969,6 +974,7 @@ def metadata_update(request):
 
     ### Bad request.
     else:
+        config.db_close()
         return render(request, 'csv2/blank_msg.html', {'response_code': 1, 'message': '%s group metadata_update, invalid method "%s" specified.' % (lno(MODID), request.method)})
 
 #-------------------------------------------------------------------------------
@@ -1032,6 +1038,7 @@ def update(request):
         if 'username' in fields:
             rc, msg = manage_user_group_verification(config, tables, fields['username'], None) 
             if rc != 0:
+                config.db_close()
                 return group_list(request, active_user=active_user, response_code=1, message='%s group update, "%s" failed - %s.' % (lno(MODID), fields['group_name'], msg))
 
         # Update the group.
@@ -1044,7 +1051,6 @@ def update(request):
             rc, msg = config.db_update(table, group_updates, where=where_clause)
             if rc != 0:
                 config.db_close()
-                0/0
                 return group_list(request, active_user=active_user, response_code=1, message='%s group update, "%s" failed - %s.' % (lno(MODID), fields['group_name'], msg))
         else:
             if 'username' not in fields and request.META['HTTP_ACCEPT'] == 'application/json':

@@ -85,7 +85,6 @@ def manage_cloud_aliases(config, tables, group_name, alias_name, clouds, option=
     for row in _alias_list:
         db_clouds.append(row['cloud_name'])
 
-    print(db_clouds)
     if new_alias:
        if len(db_clouds) > 0:
           return 1, 'specified alias already exists.'
@@ -187,6 +186,7 @@ def add(request):
                     
     ### Bad request.
     else:
+        config.db_close()
         return alias_list(request, active_user=active_user, response_code=1, message='%s cloud alias add, invalid method "%s" specified.' % (lno(MODID), request.method))
 
 #-------------------------------------------------------------------------------
@@ -299,5 +299,6 @@ def update(request):
 
     ### Bad request.
     else:
+        config.db_close()
         return alias_list(request, active_user=active_user, response_code=1, message='%s cloud alias update, invalid method "%s" specified.' % (lno(MODID), request.method))
 
