@@ -3,6 +3,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import Select
 from selenium.webdriver.common.action_chains import ActionChains
+from time import sleep
 
 # This module contains a variety of interactions (mainly clicks and text fills)
 # that can be used to interact with a page. These functions wrap the wait to
@@ -57,8 +58,8 @@ def fill_blank_by_xpath(driver, xpath, text):
 def fill_blank_by_tag_name(driver, tag_name, text):
     # Note: only use this method when there is definitely only one element with
     # this tag name.
-    #WebDriverWait(driver, 20).until(
-    #    EC.element_to_be_clickable((By.TAG_NAME, tag_name)))
+    WebDriverWait(driver, 20).until(
+        EC.presence_of_element_located((By.TAG_NAME, tag_name)))
     form = driver.find_element_by_tag_name(tag_name)
     form.clear()
     form.send_keys(text)

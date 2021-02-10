@@ -501,6 +501,17 @@ class TestWebCloudSuperUser(unittest.TestCase):
         self.page.click_metadata_update()
         wta.assertHasAttribute('cloud', cloud_name, 'mime_type', 'ucernvm-config', self.gvar['base_group'], metadata_name=metadata_name)
 
+    def test_web_cloud_metadata_update_contents(self):
+        # Changes metadata text
+        cloud_name = self.gvar['user'] + '-wic1'
+        metadata_name = self.gvar['user'] + '-wim1.yaml'
+        self.page.click_side_button(cloud_name)
+        self.page.click_side_tab('Metadata')
+        self.page.click_metadata(metadata_name)
+        self.page.type_metadata('sample_key_2: sample_value_2')
+        self.page.click_metadata_update()
+        # Note: there appears to be no way to test that this has been updated
+
     def test_web_cloud_metadata_delete(self):
         # Deletes metadata from a cloud
         cloud_name = self.gvar['user'] + '-wic1'
