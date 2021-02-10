@@ -221,6 +221,7 @@ def update(request):
             table = 'csv2_vms'
             verb = 'set to system control'
         else:
+            config.db_close()
             return render(request, 'csv2/vms.html', {'response_code': 1, 'message': '%s vm update, option "%s" is invalid.' % (lno(MODID), fields['vm_option']), 'active_user': active_user.username, 'active_group': active_user.active_group, 'user_groups': active_user.user_groups})
 
 
@@ -281,5 +282,6 @@ def update(request):
 
     ### Bad request.
     else:
+        config.db_close()
         return render(request, 'csv2/vms.html', {'response_code': 1, 'message': '%s vm update, invalid method "%s" specified.' % (lno(MODID), request.method), 'active_user': active_user.username, 'active_group': active_user.active_group, 'user_groups': active_user.user_groups})
 #       return vm_list(request, selector, response_code=1, message='%s vm update, invalid method "%s" specified.' % (lno(MODID), request.method))
