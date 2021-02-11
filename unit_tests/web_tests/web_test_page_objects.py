@@ -340,15 +340,15 @@ class AliasesPage(Page):
         self.active_alias = name
 
     def click_add_button(self):
-        wti.click_by_link_test('+')
-        self.active_alias = 'add-alias'
+        wti.click_by_link_text(self.driver, '+')
+        self.active_alias = 'add_alias'
 
     def type_alias_name(self, name):
         wti.fill_blank_by_id(self.driver, 'new_alias', name)
 
     def click_cloud_checkbox(self, box):
         xpath = wtxs.form_input_by_value(self.active_alias, box)
-        wti.click_by_xpath(xpath)
+        wti.click_by_xpath(self.driver, xpath)
 
     def click_add_alias(self):
         self.driver.find_element_by_name('add_alias').submit()
