@@ -329,7 +329,40 @@ class CloudsPage(Page):
 
 class AliasesPage(Page):
     """This is the page object class for the Aliases page."""
-    pass
+    def __init__(self, driver):
+        super(AliasesPage, self).__init__(driver)
+        # The active_alias variable stores the currently-selected user in the
+        # sidebar.
+        self.active_alias = None
+   
+    def click_side_button(self, name):
+        wti.click_by_link_text(self.driver, name)
+        self.active_alias = name
+
+    def click_add_button(self):
+        wti.click_by_link_test('+')
+        self.active_alias = 'add-alias'
+
+    def type_alias_name(self, name):
+        wti.fill_blank_by_id(self.driver, 'new_alias', name)
+
+    def click_cloud_checkbox(self, box):
+        xpath = wtxs.form_input_by_value(self.active_alias, box)
+        wti.click_by_xpath(xpath)
+
+    def click_add_alias(self):
+        self.driver.find_element_by_name('add_alias').submit()
+
+    def click_update_alias(self):
+        self.driver.find_element_by_name(self.active_alias).submit()
+
+    def side_button_exists(self, name):
+        try:
+            WebDriverWait(self.driver, 10).until(
+                EC.presence_of_element_located((By.LINK_TEXT, name)))
+            return True
+        except TimeoutException:
+            return False
 
 class DefaultsPage(Page):
     """This is the page object class for the Defaults page."""

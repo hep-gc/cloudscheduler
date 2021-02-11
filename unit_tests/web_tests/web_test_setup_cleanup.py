@@ -73,7 +73,7 @@ def setup_objects(objects=[]):
     if 'clouds' in objects:
         clouds_num = 2
     else:
-        clouds_num = 0
+        clouds_num = 2
     credentials = gvar['cloud_credentials']
     clouds = []
     for i in range(1, clouds_num + 1):
@@ -98,6 +98,17 @@ def setup_objects(objects=[]):
             print("Error connecting to the cloud. This may happen several times. Retrying...")
             sleep(15)
 
+    aliases_num = 0
+    if 'aliases' in objects:
+        aliases_num = 2
+    else:
+        aliases_num = 0
+    aliases = []
+    for i in range(1, aliases_num+1):
+        aliases.append(gvar['user'] + '-wia' + str(i))
+    for i in range(0, aliases_num):
+        subprocess.run(['cloudscheduler', 'alias', 'add', '-an', aliases[i], '-cn', gvar['user'] + '-wic1', '-g', gvar['base_group']])
+
     return gvar
 
 def get_homepage(driver):
@@ -113,7 +124,37 @@ def cleanup_objects():
     gvar = load_settings(web=True)
     gvar['base_group'] = gvar['user'] + '-wig0'
 
-   
+    logfile = 'objects.txt'
+    try:
+        object_log = open(logfile, mode = 'x')
+    except FileExistsError:
+        object_log = open(logfile, mode = 'w') 
+    
+    subprocess.run(['cloudscheduler', 'alias', 'list', '-CSV', 'alias_name,clouds', '-g', gvar['base_group']], stdout=object_log)
+    
+    object_log.close()
+    object_log = open(logfile, mode = 'r')
+
+    aliases = []
+    for line in object_log:
+        object_list = line.strip()
+        object_list = object_list.split(',')
+        alias = object_list[0]
+        object_list = object_list[1:]
+        objects_to_remove = ''
+        for item in object_list:
+            objects_to_remove = objects_to_remove + ',' + item
+        objects_to_remove = objects_to_remove.strip(',')
+        aliases.append((alias, objects_to_remove))
+
+    test_objects = []
+    for i in range(0, 3):
+        test_objects.append(gvar['user'] + '-wia' + str(i))
+    for alias in aliases:
+        if alias[0] in test_objects:
+            subprocess.run(['cloudscheduler', 'alias', 'update', '-an', alias[0], '-cn', alias[1], '-co', 'delete', '-g', gvar['base_group']])
+    object_log.close()
+
     delete_by_type(gvar, ['cloud', '-wic', '-cn', 'cloud_name', ['-g', gvar['base_group']]], 5)
     delete_by_type(gvar, ['user', '-wiu', '-un', 'username', []], 8)
     delete_by_type(gvar, ['group', '-wig', '-gn', 'group_name', []], 7)
