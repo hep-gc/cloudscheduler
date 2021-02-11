@@ -100,14 +100,17 @@ def setup_objects(objects=[]):
 
     aliases_num = 0
     if 'aliases' in objects:
-        aliases_num = 2
+        aliases_num = 3
     else:
         aliases_num = 0
     aliases = []
     for i in range(1, aliases_num+1):
         aliases.append(gvar['user'] + '-wia' + str(i))
+    if 'aliases' in objects:
+        clouds = [gvar['user'] + '-wic1'] * 3
+        clouds[1] += ',' + gvar['user'] + '-wic2'
     for i in range(0, aliases_num):
-        subprocess.run(['cloudscheduler', 'alias', 'add', '-an', aliases[i], '-cn', gvar['user'] + '-wic1', '-g', gvar['base_group']])
+        subprocess.run(['cloudscheduler', 'alias', 'add', '-an', aliases[i], '-cn', clouds[i], '-g', gvar['base_group']])
 
     return gvar
 
@@ -148,7 +151,7 @@ def cleanup_objects():
         aliases.append((alias, objects_to_remove))
 
     test_objects = []
-    for i in range(0, 3):
+    for i in range(0, 5):
         test_objects.append(gvar['user'] + '-wia' + str(i))
     for alias in aliases:
         if alias[0] in test_objects:
