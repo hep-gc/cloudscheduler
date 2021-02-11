@@ -33,11 +33,14 @@ class TestWebAliasSuperUser(unittest.TestCase):
 
     def test_web_alias_add_with_conflicting_name(self):
         alias_name = self.gvar['user'] + '-wia1'
+        cloud_name = self.gvar['user'] + '-wic2'
         self.page.click_add_button()
         self.page.type_alias_name(alias_name)
-        self.page.click_cloud_checkbox(self.gvar['user'] + '-wic2')
+        self.page.click_cloud_checkbox(cloud_name)
         self.page.click_add_alias()
         self.assertTrue(self.page.error_message_displayed())
+        wta.assertHasNotAttributeNoNameFlag('alias', alias_name, 'clouds', cloud_name, self.gvar['base_group'])
+
 
     def test_web_alias_add_without_cloud(self):
         alias_name = self.gvar['user'] + '-wia5'
@@ -60,15 +63,19 @@ class TestWebAliasSuperUser(unittest.TestCase):
 
     def test_web_alias_update_cloud_add(self):
         alias_name = self.gvar['user'] + '-wia1'
+        cloud_name = self.gvar['user'] + '-wic2'
         self.page.click_side_button(alias_name)
-        self.page.click_cloud_checkbox(self.gvar['user'] + '-wic2')
+        self.page.click_cloud_checkbox(cloud_name)
         self.page.click_update_alias()
+        wta.assertHasAttributeNoNameFlag('alias', alias_name, 'clouds', cloud_name, self.gvar['base_group'])
 
     def test_web_alias_update_cloud_remove(self):
         alias_name = self.gvar['user'] + '-wia2'
+        cloud_name = self.gvar['user'] + '-wic2'
         self.page.click_side_button(alias_name)
-        self.page.click_cloud_checkbox(self.gvar['user'] + '-wic2')
+        self.page.click_cloud_checkbox(cloud_name)
         self.page.click_update_alias()
+        wta.assertHasNotAttributeNoNameFlag('alias', alias_name, 'clouds', cloud_name, self.gvar['base_group'])
 
     @classmethod
     def tearDownClass(cls):

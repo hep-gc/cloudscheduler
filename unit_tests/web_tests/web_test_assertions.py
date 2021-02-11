@@ -189,6 +189,47 @@ def assertAddedWithNearAttribute(type, name, attribute, attribute_name, err, gro
         sleep(5)
         assertAddedWithNearAttribute(type, name, attribute, attribute_name, err, group, True)
 
+def assertHasAttributeNoNameFlag(type, name, attribute, attribute_name, group=None, is_retry=False):
+    # This function is designed to be used for objects that don't have the
+    # option to list by name. It does not have an option for metadata
+    objects = names()
+    object = objects[type]
+    list_attribute(type, object['column_name'] + ',' + attribute, group)
+    object_file = open(logfile, 'r')
+    for line in object_file:
+        list = line.split(',')
+        list[-1] = list[-1].strip()
+        if list[0] == name:
+            for item in list[1:]:
+                if item == attribute_name:
+                    object_file.close()
+                    return
+    object_file.close()
+    if is_retry:
+        raise AssertionError
+    else:
+        assertHasAttributeNoNameFlag(type, name, attribute, attribute_name, group, True)
+
+def assertHasNotAttributeNoNameFlag(type, name, attribute, attribute_name, group=None, is_retry=False):
+    # This function is designed to be used for objects that don't have the
+    # option to list by name. It does not have an option for metadata
+    objects = names()
+    object = objects[type]
+    list_attribute(type, object['column_name'] + ',' + attribute, group)
+    object_file = open(logfile, 'r')
+    for line in object_file:
+        list = line.split(',')
+        list[-1] = list[-1].strip()
+        if list[0] == name:
+            for item in list[1:]:
+                if item == attribute_name:
+                    object_file.close()
+                    if is_retry:
+                        raise AssertionError
+                    else:
+                        assertHasNotAttributeNoNameFlag(type, name, attribute, attribute_name, group, True)
+    object_file.close()
+  
 def list_by_name(type, name, group=None):
     # This function is unused. It currently is not working because the empty 
     # '-CSV' flag doesn't work properly with subprocess.run
@@ -245,6 +286,18 @@ def metadata_list_attribute_by_name(type, name, metadata_name, attribute, group=
     if group:
         flags = ['-g', group]
     subprocess.run(['cloudscheduler', object['name'], 'metadata-list', object['flag'], name, '-mn', metadata_name, '-CSV', object['column_name'] + ',' + attribute, *flags], stdout=object_file)
+    object_file.close()
+
+def list_attribute(type, columns, group=None):
+    object_file = None
+    try:
+        object_file = open(logfile, 'x')
+    except FileExistsError:
+        object_file = open(logfile, 'w')
+    flags = []
+    if group:
+        flags = ['-g', group]
+    subprocess.run(['cloudscheduler', type, 'list', '-CSV', columns, *flags], stdout=object_file)
     object_file.close()
 
 def names():
