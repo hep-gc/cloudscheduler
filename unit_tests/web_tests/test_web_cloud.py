@@ -108,6 +108,118 @@ class TestWebCloudSuperUser(unittest.TestCase):
         self.assertTrue(self.page.error_message_displayed())
         wta.assertHasAttribute('cloud', cloud_name, 'enabled', '1', self.gvar['base_group'])
 
+    def test_web_cloud_add_name_with_symbols(self):
+        # Tries to add a cloud with symbols in its name
+        cloud_name = 'inv@|id-web-te$t'
+        self.page.click_add_button()
+        self.page.type_priority('0')
+        self.page.type_cloud_name(cloud_name)
+        self.page.select_cloud_type('openstack')
+        self.page.type_url(self.credentials['authurl'])
+        self.page.type_region(self.credentials['region'])
+        self.page.type_project(self.credentials['project'])
+        self.page.type_username(self.credentials['username'])
+        self.page.type_password(self.credentials['password'])
+        self.page.type_user_domain_name('Default')
+        self.page.type_project_domain_name('default')
+        self.page.click_add_cloud()
+        self.assertTrue(self.page.error_message_displayed())
+        self.assertFalse(self.page.side_button_exists(cloud_name))
+        wta.assertNotAdded('cloud', cloud_name, self.gvar['base_group'])
+
+    def test_web_cloud_add_name_with_two_dashes(self):
+        # Tries to add a cloud with two dashes in its name
+        cloud_name = 'invalid--web--test'
+        self.page.click_add_button()
+        self.page.type_cloud_name(cloud_name)
+        self.page.type_priority('0')
+        self.page.select_cloud_type('openstack')
+        self.page.type_url(self.credentials['authurl'])
+        self.page.type_region(self.credentials['region'])
+        self.page.type_project(self.credentials['project'])
+        self.page.type_username(self.credentials['username'])
+        self.page.type_password(self.credentials['password'])
+        self.page.type_user_domain_name('Default')
+        self.page.type_project_domain_name('default')
+        self.page.click_add_cloud()
+        self.assertTrue(self.page.error_message_displayed())
+        self.assertFalse(self.page.side_button_exists(cloud_name))
+        wta.assertNotAdded('cloud', cloud_name, self.gvar['base_group'])
+
+    def test_web_cloud_add_name_with_uppercase(self):
+        # Tries to add a cloud with uppercase letters in its name
+        cloud_name = 'INVALID-WEB-TEST'
+        self.page.click_add_button()
+        self.page.type_cloud_name(cloud_name)
+        self.page.type_priority('0')
+        self.page.select_cloud_type('openstack')
+        self.page.type_url(self.credentials['authurl'])
+        self.page.type_region(self.credentials['region'])
+        self.page.type_project(self.credentials['project'])
+        self.page.type_username(self.credentials['username'])
+        self.page.type_password(self.credentials['password'])
+        self.page.type_user_domain_name('Default')
+        self.page.type_project_domain_name('default')
+        self.page.click_add_cloud()
+        self.assertTrue(self.page.error_message_displayed())
+        self.assertFalse(self.page.side_button_exists(cloud_name))
+        wta.assertNotAdded('cloud', cloud_name, self.gvar['base_group'])
+
+    def test_web_cloud_add_name_with_starting_ending_dash(self):
+        # Tries to add a cloud with starting and ending dashes in its name
+        cloud_name = '-invalid-web-test-'
+        self.page.click_add_button()
+        self.page.type_priority('0')
+        self.page.type_cloud_name(cloud_name)
+        self.page.select_cloud_type('openstack')
+        self.page.type_url(self.credentials['authurl'])
+        self.page.type_region(self.credentials['region'])
+        self.page.type_project(self.credentials['project'])
+        self.page.type_username(self.credentials['username'])
+        self.page.type_password(self.credentials['password'])
+        self.page.type_user_domain_name('Default')
+        self.page.type_project_domain_name('default')
+        self.page.click_add_cloud()
+        self.assertTrue(self.page.error_message_displayed())
+        self.assertFalse(self.page.side_button_exists(cloud_name))
+        wta.assertNotAdded('cloud', cloud_name, self.gvar['base_group'])
+
+    def test_web_cloud_add_priority_float(self):
+        # Tries to add a cloud with a float value for priority
+        cloud_name = self.gvar['user'] + '-wic6'
+        self.page.click_add_button()
+        self.page.type_priority('1.5')
+        self.page.select_cloud_type('openstack')
+        self.page.type_url(self.credentials['authurl'])
+        self.page.type_region(self.credentials['region'])
+        self.page.type_project(self.credentials['project'])
+        self.page.type_username(self.credentials['username'])
+        self.page.type_password(self.credentials['password'])
+        self.page.type_user_domain_name('Default')
+        self.page.type_project_domain_name('default')
+        self.page.click_add_cloud()
+        self.assertTrue(self.page.error_message_displayed())
+        self.assertFalse(self.page.side_button_exists(cloud_name))
+        wta.assertNotAdded('cloud', cloud_name, self.gvar['base_group'])
+
+    def test_web_cloud_add_priority_string(self):
+        # Tries to add a cloud with a string value for priority
+        cloud_name = self.gvar['user'] + '-wic6'
+        self.page.click_add_button()
+        self.page.type_priority('invalid-web-test')
+        self.page.select_cloud_type('openstack')
+        self.page.type_url(self.credentials['authurl'])
+        self.page.type_region(self.credentials['region'])
+        self.page.type_project(self.credentials['project'])
+        self.page.type_username(self.credentials['username'])
+        self.page.type_password(self.credentials['password'])
+        self.page.type_user_domain_name('Default')
+        self.page.type_project_domain_name('default')
+        self.page.click_add_cloud()
+        self.assertTrue(self.page.error_message_displayed())
+        self.assertFalse(self.page.side_button_exists(cloud_name))
+        wta.assertNotAdded('cloud', cloud_name, self.gvar['base_group'])
+
     def test_web_cloud_add_without_url(self):
         # Tries to add a cloud without an authurl
         cloud_name = self.gvar['user'] + '-wic6'
@@ -252,6 +364,24 @@ class TestWebCloudSuperUser(unittest.TestCase):
         self.page.click_update_cloud()
         wta.assertHasAttribute('cloud', cloud_name, 'cloud_priority', '15', self.gvar['base_group'])
 
+    def test_web_cloud_update_priority_float(self):
+        # Tries to change a cloud's priority to a float
+        cloud_name = self.gvar['user'] + '-wic1'
+        self.page.click_side_button(cloud_name)
+        self.page.type_priority('3.5')
+        self.page.click_update_cloud()
+        self.assertTrue(self.page.error_message_displayed())
+        wta.assertHasNotAttribute('cloud', cloud_name, 'cloud_priority', '3.5', self.gvar['base_group'])
+
+    def test_web_cloud_update_priority_string(self):
+        # Tries to change a cloud's priority to a string
+        cloud_name = self.gvar['user'] + '-wic1'
+        self.page.click_side_button(cloud_name)
+        self.page.type_priority('invalid-web-test')
+        self.page.click_update_cloud()
+        self.assertTrue(self.page.error_message_displayed())
+        wta.assertHasNotAttribute('cloud', cloud_name, 'cloud_priority', '3.5', self.gvar['base_group'])
+
     def test_web_cloud_update_boot_volume(self):
         # Changes a cloud's boot volume
         cloud_name = self.gvar['user'] + '-wic1'
@@ -260,6 +390,76 @@ class TestWebCloudSuperUser(unittest.TestCase):
         self.page.type_boot_volume(boot_volume)
         self.page.click_update_cloud()
         wta.assertHasAttribute('cloud', cloud_name, 'vm_boot_volume', boot_volume, self.gvar['base_group'])
+
+    def test_web_cloud_update_boot_volume_invalid_string(self):
+        # Tries to change a cloud's boot volume to an invalid string
+        cloud_name = self.gvar['user'] + '-wic1'
+        boot_volume = 'invalid-web-test'
+        self.page.click_side_button(cloud_name)
+        self.page.type_boot_volume(boot_volume)
+        self.page.click_update_cloud()
+        self.assertTrue(self.page.error_message_displayed())
+        wta.assertHasNotAttribute('cloud', cloud_name, 'vm_boot_volume', boot_volume, self.gvar['base_group'])
+
+    def test_web_cloud_update_boot_volume_empty_keypair(self):
+        # Tries to change a cloud's boot volume to an invalid string
+        cloud_name = self.gvar['user'] + '-wic1'
+        boot_volume = '{}'
+        self.page.click_side_button(cloud_name)
+        self.page.type_boot_volume(boot_volume)
+        self.page.click_update_cloud()
+        self.assertTrue(self.page.error_message_displayed())
+        wta.assertHasNotAttribute('cloud', cloud_name, 'vm_boot_volume', boot_volume, self.gvar['base_group'])
+
+    def test_web_cloud_update_boot_volume_invalid_keypair(self):
+        # Tries to change a cloud's boot volume to one with an invalid keypair
+        cloud_name = self.gvar['user'] + '-wic1'
+        boot_volume = '{"invalid-web-test": 5}'
+        self.page.click_side_button(cloud_name)
+        self.page.type_boot_volume(boot_volume)
+        self.page.click_update_cloud()
+        self.assertTrue(self.page.error_message_displayed())
+        wta.assertHasNotAttribute('cloud', cloud_name, 'vm_boot_volume', boot_volume, self.gvar['base_group'])
+
+    def test_web_cloud_update_boot_volume_gbs_float(self):
+        # Tries to change a cloud's boot volume to one with a float value for GBs
+        cloud_name = self.gvar['user'] + '-wic1'
+        boot_volume = '{"GBs": 3.5}'
+        self.page.click_side_button(cloud_name)
+        self.page.type_boot_volume(boot_volume)
+        self.page.click_update_cloud()
+        self.assertTrue(self.page.error_message_displayed())
+        wta.assertHasNotAttribute('cloud', cloud_name, 'vm_boot_volume', boot_volume, self.gvar['base_group'])
+
+    def test_web_cloud_update_boot_volume_gbs_string(self):
+        # Tries to change a cloud's boot volume to one with a string value for GBs
+        cloud_name = self.gvar['user'] + '-wic1'
+        boot_volume = '{"GBs": "invalid-web-test"}'
+        self.page.click_side_button(cloud_name)
+        self.page.type_boot_volume(boot_volume)
+        self.page.click_update_cloud()
+        self.assertTrue(self.page.error_message_displayed())
+        wta.assertHasNotAttribute('cloud', cloud_name, 'vm_boot_volume', boot_volume, self.gvar['base_group'])
+
+    def test_web_cloud_update_boot_volume_gbs_per_core_float(self):
+        # Tries to change a cloud's boot volume to one with a float value for GBs_per_core
+        cloud_name = self.gvar['user'] + '-wic1'
+        boot_volume = '{"GBs_per_core": 3.5}'
+        self.page.click_side_button(cloud_name)
+        self.page.type_boot_volume(boot_volume)
+        self.page.click_update_cloud()
+        self.assertTrue(self.page.error_message_displayed())
+        wta.assertHasNotAttribute('cloud', cloud_name, 'vm_boot_volume', boot_volume, self.gvar['base_group'])
+
+    def test_web_cloud_update_boot_volume_gbs_per_core_string(self):
+        # Tries to change a cloud's boot volume to one with a string value for GBs_per_core
+        cloud_name = self.gvar['user'] + '-wic1'
+        boot_volume = '{"GBs_per_core": "invalid-web-test"}'
+        self.page.click_side_button(cloud_name)
+        self.page.type_boot_volume(boot_volume)
+        self.page.click_update_cloud()
+        self.assertTrue(self.page.error_message_displayed())
+        wta.assertHasNotAttribute('cloud', cloud_name, 'vm_boot_volume', boot_volume, self.gvar['base_group'])
 
     def test_web_cloud_update_add_security_group(self):
         # Adds a cloud to a security group
@@ -317,9 +517,32 @@ class TestWebCloudSuperUser(unittest.TestCase):
         self.page.click_update_cloud()
         wta.assertHasAttribute('cloud', cloud_name, 'vm_keep_alive', '300', self.gvar['base_group'])
 
+    def test_web_cloud_update_vm_keep_alive_float(self):
+        # Tries to change a cloud's vm keep alive time to a float
+        cloud_name = self.gvar['user'] + '-wic1'
+        self.page.click_side_button(cloud_name)
+        self.page.type_vm_keep_alive('3.5')
+        self.page.click_update_cloud()
+        self.assertTrue(self.page.error_message_displayed())
+        wta.assertHasNotAttribute('cloud', cloud_name, 'vm_keep_alive', '3.5', self.gvar['base_group'])
+
+    def test_web_cloud_update_vm_keep_alive_string(self):
+        # Tries to change a cloud's vm keep alive time to a string
+        cloud_name = self.gvar['user'] + '-wic1'
+        self.page.click_side_button(cloud_name)
+        self.page.type_vm_keep_alive('invalid-web-test')
+        self.page.click_update_cloud()
+        self.assertTrue(self.page.error_message_displayed())
+        wta.assertHasNotAttribute('cloud', cloud_name, 'vm_keep_alive', 'invalid-web-test', self.gvar['base_group'])
+
     @unittest.skip("Needs Amazon cloud")
     def test_web_cloud_update_spot_price(self):
         # Changes a cloud's spot price
+        pass
+
+    @unittest.skip("Needs Amazon cloud")
+    def test_web_cloud_update_spot_price_string(self):
+        # Tries to change a cloud's spot price to a string
         pass
 
     def test_web_cloud_update_cores_softmax(self):
@@ -330,6 +553,24 @@ class TestWebCloudSuperUser(unittest.TestCase):
         self.page.click_update_cloud()
         wta.assertHasAttribute('cloud', cloud_name, 'cores_softmax', '4', self.gvar['base_group'])
 
+    def test_web_cloud_update_cores_softmax_float(self):
+        # Tries to change a cloud's core softmax to a float
+        cloud_name = self.gvar['user'] + '-wic1'
+        self.page.click_side_button(cloud_name)
+        self.page.type_cores_softmax('3.5')
+        self.page.click_update_cloud()
+        self.assertTrue(self.page.error_message_displayed())
+        wta.assertHasNotAttribute('cloud', cloud_name, 'cores_softmax', '3.5', self.gvar['base_group'])
+
+    def test_web_cloud_update_cores_softmax_string(self):
+        # Tries to change a cloud's core softmax to a string
+        cloud_name = self.gvar['user'] + '-wic1'
+        self.page.click_side_button(cloud_name)
+        self.page.type_cores_softmax('invalid-web-test')
+        self.page.click_update_cloud()
+        self.assertTrue(self.page.error_message_displayed())
+        wta.assertHasNotAttribute('cloud', cloud_name, 'cores_softmax', 'invalid-web-test', self.gvar['base_group'])
+
     def test_web_cloud_update_cores_by_blank(self):
         # Changes a cloud's maximum number of cores by typing it into the blank
         cloud_name = self.gvar['user'] + '-wic1'
@@ -337,6 +578,24 @@ class TestWebCloudSuperUser(unittest.TestCase):
         self.page.type_cores('4')
         self.page.click_update_cloud()
         wta.assertHasAttribute('cloud', cloud_name, 'cores_ctl', '4', self.gvar['base_group'])
+
+    def test_web_cloud_update_cores_by_blank_float(self):
+        # Tries to change a cloud's maximum number of cores to a float by typing it into the blank
+        cloud_name = self.gvar['user'] + '-wic1'
+        self.page.click_side_button(cloud_name)
+        self.page.type_cores('3.5')
+        self.page.click_update_cloud()
+        self.assertTrue(self.page.error_message_displayed())
+        wta.assertHasNotAttribute('cloud', cloud_name, 'cores_ctl', '3.5', self.gvar['base_group'])
+
+    def test_web_cloud_update_cores_by_blank_string(self):
+        # Tries to change a cloud's maximum number of cores to a string by typing it into the blank
+        cloud_name = self.gvar['user'] + '-wic1'
+        self.page.click_side_button(cloud_name)
+        self.page.type_cores('invalid-web-test')
+        self.page.click_update_cloud()
+        self.assertTrue(self.page.error_message_displayed())
+        wta.assertHasNotAttribute('cloud', cloud_name, 'cores_ctl', 'invalid-web-test', self.gvar['base_group'])
 
     def test_web_cloud_update_cores_by_slider(self):
         # Changes a cloud's maximum number of cores by sliding the slider
@@ -361,6 +620,24 @@ class TestWebCloudSuperUser(unittest.TestCase):
         self.page.type_ram('65536')
         self.page.click_update_cloud()
         wta.assertHasAttribute('cloud', cloud_name, 'ram_ctl', '65536', self.gvar['base_group'])
+
+    def test_web_cloud_update_ram_by_blank_float(self):
+        # Tries to change a cloud's maximum RAM to a float by typing it into the blank
+        cloud_name = self.gvar['user'] + '-wic1'
+        self.page.click_side_button(cloud_name)
+        self.page.type_ram('3.5')
+        self.page.click_update_cloud()
+        self.assertTrue(self.page.error_message_displayed())
+        wta.assertHasNotAttribute('cloud', cloud_name, 'ram_ctl', '3.5', self.gvar['base_group'])
+
+    def test_web_cloud_update_ram_by_blank_string(self):
+        # Tries to change a cloud's maximum RAM to a string by typing it into the blank
+        cloud_name = self.gvar['user'] + '-wic1'
+        self.page.click_side_button(cloud_name)
+        self.page.type_ram('invalid-web-test')
+        self.page.click_update_cloud()
+        self.assertTrue(self.page.error_message_displayed())
+        wta.assertHasNotAttribute('cloud', cloud_name, 'ram_ctl', 'invalid-web-test', self.gvar['base_group'])
 
     def test_web_cloud_update_ram_by_slider(self):
         # Changes a cloud's maximum RAM by sliding the slider
@@ -400,6 +677,59 @@ class TestWebCloudSuperUser(unittest.TestCase):
         self.assertTrue(self.page.metadata_tab_exists(metadata_name))
         wta.assertHasAttribute('cloud', cloud_name, 'metadata_names', metadata_name, self.gvar['base_group'])
 
+    def test_web_cloud_metadata_add_without_name(self):
+        # Tries to add metadata to a cloud without a name
+        cloud_name = self.gvar['user'] + '-wic1'
+        self.page.click_side_button(cloud_name)
+        self.page.click_metadata_new()
+        self.page.type_metadata('sample_key: sample_value')
+        self.page.click_metadata_add()
+        self.assertTrue(self.page.error_message_displayed())
+
+    def test_web_cloud_metadata_add_name_with_symbols(self):
+        # Tries to add metadata with symbols in its name
+        cloud_name = self.gvar['user'] + '-wic1'
+        metadata_name = 'inv@|id-web-te$t.yaml'
+        self.page.click_side_button(cloud_name)
+        self.page.click_metadata_new()
+        self.page.type_metadata_name(metadata_name)
+        self.page.click_metadata_add()
+        self.assertTrue(self.page.error_message_displayed())
+        wta.assertHasNotAttribute('cloud', cloud_name, 'metadata_names', metadata_name, self.gvar['base_group'])
+
+    def test_web_cloud_metadata_add_name_with_two_dashes(self):
+        # Tries to add metadata with two dashes in its name
+        cloud_name = self.gvar['user'] + '-wic1'
+        metadata_name = 'invalid--web--test.yaml'
+        self.page.click_side_button(cloud_name)
+        self.page.click_metadata_new()
+        self.page.type_metadata_name(metadata_name)
+        self.page.click_metadata_add()
+        self.assertTrue(self.page.error_message_displayed())
+        wta.assertHasNotAttribute('cloud', cloud_name, 'metadata_names', metadata_name, self.gvar['base_group'])
+
+    def test_web_cloud_metadata_add_name_with_uppercase(self):
+        # Tries to add metadata with uppercase letters in its name
+        cloud_name = self.gvar['user'] + '-wic1'
+        metadata_name = 'INVALID-WEB-TEST.yaml'
+        self.page.click_side_button(cloud_name)
+        self.page.click_metadata_new()
+        self.page.type_metadata_name(metadata_name)
+        self.page.click_metadata_add()
+        self.assertTrue(self.page.error_message_displayed())
+        wta.assertHasNotAttribute('cloud', cloud_name, 'metadata_names', metadata_name, self.gvar['base_group'])
+
+    def test_web_cloud_metadata_add_name_with_starting_ending_dash(self):
+        # Tries to add metadata with starting and ending dashes in its name
+        cloud_name = self.gvar['user'] + '-wic1'
+        metadata_name = '-invalid-web-test-.yaml'
+        self.page.click_side_button(cloud_name)
+        self.page.click_metadata_new()
+        self.page.type_metadata_name(metadata_name)
+        self.page.click_metadata_add()
+        self.assertTrue(self.page.error_message_displayed())
+        wta.assertHasNotAttribute('cloud', cloud_name, 'metadata_names', metadata_name, self.gvar['base_group'])
+
     def test_web_cloud_metadata_add_not_enabled(self):
         # Adds metadata to a cloud without enabling it
         cloud_name = self.gvar['user'] + '-wic1'
@@ -427,6 +757,36 @@ class TestWebCloudSuperUser(unittest.TestCase):
         self.page.click_metadata_add()
         self.assertTrue(self.page.metadata_tab_exists(metadata_name))
         wta.assertAddedWithAttribute('cloud', cloud_name, 'priority', '8', self.gvar['base_group'], metadata_name=metadata_name)
+
+    def test_web_cloud_metadata_add_different_priority_by_typing_float(self):
+        # Tries to add metadata to a cloud with a float value for its priority by typing it in the blank
+        cloud_name = self.gvar['user'] + '-wic1'
+        metadata_name = self.gvar['user'] + '-wim8.yaml'
+        self.page.click_side_button(cloud_name)
+        self.page.click_side_tab('Metadata')
+        self.page.click_metadata_new()
+        self.page.type_metadata_name(metadata_name)
+        self.page.type_metadata_priority('8.5')
+        self.page.type_metadata('sample_key: sample_value')
+        self.page.click_metadata_add()
+        self.assertTrue(self.page.error_message_displayed())
+        self.assertFalse(self.page.metadata_tab_exists(metadata_name))
+        wta.assertHasNotAttribute('cloud', cloud_name, 'metadata_names', metadata_name, self.gvar['base_group'])
+
+    def test_web_cloud_metadata_add_different_priority_by_typing_string(self):
+        # Tries to metadata to a cloud with a string value priority by typing it in the blank
+        cloud_name = self.gvar['user'] + '-wic1'
+        metadata_name = self.gvar['user'] + '-wim8.yaml'
+        self.page.click_side_button(cloud_name)
+        self.page.click_side_tab('Metadata')
+        self.page.click_metadata_new()
+        self.page.type_metadata_name(metadata_name)
+        self.page.type_metadata_priority('invalid-web-test')
+        self.page.type_metadata('sample_key: sample_value')
+        self.page.click_metadata_add()
+        self.assertTrue(self.page.error_message_displayed())
+        self.assertFalse(self.page.metadata_tab_exists(metadata_name))
+        wta.assertHasNotAttribute('cloud', cloud_name, 'metadata_names', metadata_name, self.gvar['base_group'])
 
     def test_web_cloud_metadata_add_different_priority_by_arrows(self):
         # Adds metadata to a cloud with a different priority using the arrow keys
@@ -456,6 +816,20 @@ class TestWebCloudSuperUser(unittest.TestCase):
         self.assertTrue(self.page.metadata_tab_exists(metadata_name))
         wta.assertAddedWithAttribute('cloud', cloud_name, 'mime_type', 'ucernvm-config', self.gvar['base_group'], metadata_name=metadata_name)
 
+    def test_web_cloud_metadata_add_mismatched_file_type(self):
+        # Tries to add metadata to a cloud with a file that doesn't match its name
+        cloud_name = self.gvar['user'] + '-wic1'
+        metadata_name = self.gvar['user'] + '-wim8.yaml'
+        self.page.click_side_button(cloud_name)
+        self.page.click_side_tab('Metadata')
+        self.page.click_metadata_new()
+        self.page.type_metadata_name(metadata_name)
+        self.page.type_metadata('invalid-unit-test')
+        self.page.click_metadata_add()
+        self.assertTrue(self.page.error_message_displayed())
+        self.assertFalse(self.page.metadata_tab_exists(metadata_name))
+        wta.assertHasNotAttribute('cloud', cloud_name, 'metadata_names', metadata_name, self.gvar['base_group'])
+
     def test_web_cloud_metadata_update_enabled_status(self):
         # Changes enabled metadata to not enabled
         cloud_name = self.gvar['user'] + '-wic1'
@@ -478,6 +852,31 @@ class TestWebCloudSuperUser(unittest.TestCase):
         self.page.type_metadata_priority('8')
         self.page.click_metadata_update()
         wta.assertHasAttribute('cloud', cloud_name, 'priority', '8', self.gvar['base_group'], metadata_name=metadata_name)
+
+    def test_web_cloud_metadata_update_priority_by_typing_float(self):
+        # Tries to change metadata priority to a float by typing it in the blank
+        cloud_name = self.gvar['user'] + '-wic1'
+        metadata_name = self.gvar['user'] + '-wim1.yaml'
+        self.page.click_side_button(cloud_name)
+        self.page.click_side_tab('Metadata')
+        self.page.click_metadata(metadata_name)
+        self.page.type_metadata_priority('8.5')
+        self.page.click_metadata_update()
+        self.assertTrue(self.page.error_message_displayed())
+        wta.assertHasNotAttribute('cloud', cloud_name, 'priority', '8.5', self.gvar['base_group'], metadata_name=metadata_name)
+
+    def test_web_cloud_metadata_update_priority_by_typing_string(self):
+        # Tries to change metadata priority to a string by typing it in the blank
+        cloud_name = self.gvar['user'] + '-wic1'
+        metadata_name = self.gvar['user'] + '-wim1.yaml'
+        self.page.click_side_button(cloud_name)
+        self.page.click_side_tab('Metadata')
+        self.page.click_metadata(metadata_name)
+        self.page.type_metadata_priority('invalid-web-test')
+        self.page.click_metadata_update()
+        self.assertTrue(self.page.error_message_displayed())
+        self.assertFalse(self.page.metadata_tab_exists(metadata_name))
+        wta.assertHasNotAttribute('cloud', cloud_name, 'priority', 'invalid-web-test', self.gvar['base_group'], metadata_name=metadata_name)
 
     def test_web_cloud_metadata_update_priority_by_arrow_keys(self):
         # Changes metadata priority using the arrow keys
@@ -511,6 +910,19 @@ class TestWebCloudSuperUser(unittest.TestCase):
         self.page.type_metadata('sample_key_2: sample_value_2')
         self.page.click_metadata_update()
         # Note: there appears to be no way to test that this has been updated
+        self.assertFalse(self.page.error_message_displayed())
+
+    def test_web_cloud_metadata_update_contents_mismatched(self):
+        # Tries to change metadata text to something of the wrong file type
+        cloud_name = self.gvar['user'] + '-wic1'
+        metadata_name = self.gvar['user'] + '-wim1.yaml'
+        self.page.click_side_button(cloud_name)
+        self.page.click_side_tab('Metadata')
+        self.page.click_metadata(metadata_name)
+        self.page.type_metadata('invalid-web-test')
+        self.page.click_metadata_update()
+        # Note: there appears to be no way to test that this has not been updated
+        self.assertTrue(self.page.error_message_displayed())
 
     def test_web_cloud_metadata_delete(self):
         # Deletes metadata from a cloud
