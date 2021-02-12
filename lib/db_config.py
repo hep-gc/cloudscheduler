@@ -518,8 +518,6 @@ class Config:
         request = '%s;' % ' '.join(sql_bits)
 
         try:
-            print("Executing update")
-            print(request)
             self.db_cursor.execute(request)
             return self.__db_logging_return__(0, request)
         except Exception as ex:
