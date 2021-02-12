@@ -21,7 +21,7 @@ As with the other unit tests, a server configuration and cloud credentials are r
 
 ## Adding Tests
 
-New test functions should be named starting with `test_web_`. The test files should be named `test_web_<page>.py`, with the class being named `TestWeb<Page>`. Individual tests should be named `test_web_<page>_<action>_<details>`, where `<action>` is the name of the action using the `cloudscheduler` command. Note that individual tests having names that start with `test` is currently the only breaking requirement.
+New test functions should be named starting with `test_web_`. The test files should be named `test_web_<page>.py`, with the class being named `TestWeb<Page>`. Individual tests should be named `test_web_<page>_<action>_<details>`, where `<action>` is the name of the action using the `cloudscheduler` command. Note that individual tests having names that start with `test` is currently the only breaking naming requirement.
 
 All test files must be put in the `web_tests` directory, and each test class must have the following added to `create_test_suite.py`:
 
@@ -49,13 +49,15 @@ The `web_test_assertions` module contains a set of functions that should be call
 
 The `web_test_assertions` module contains a pair of functions asserting that two numbers are near each other. These should only be used in situations where the test cannot reliably produce exact numbers (such as with sliding a slider, which can only produce numbers within a certain pixel sensitivity). These functions cannot be used to assert any value that cannot be converted to an integer by Python's `int()` function.
 
+This module also contains a pair of functions to look for attributes with a certain name when there is no cloudscheduler flag for specifying an object's name (check the `web_test_assertions.names()` function to see which objects these are - they will have their `flag` attribute set to `None`). These methods should only be used for objects that do not have a name flag, and they do not take the argument specifying metadata.
+
 Test files should perform actions on the page via page objects (see below). 
 
 ## Page Objects
 
 The test files should access the page via the use of page objects. Each page on the csv2 website has one page class, stored in the `web_test_page_objects` module. 
 
-A page object is essentially a class containing functions to perform all actions performable on the page it represents. It is an interface through which the test objects know how to locate, click, type, and perform actions with the page. One page object method should perform one specific click, type, location, or similar action - ie while the same page object function may be used to click checkboxes adding a user to different groups, a different function should be used to click the superuser checkbox. Actions that are repeated a lot (such as the locator functions in `web_test_interactions`) should be refactored into a common file, rather than being made a multipurpose file in the page object. Functions should also be named appropriately, so that someone scrolling through the test code without looking at the page objects file would know, in UI terms, what the test is attempting to do.
+A page object is essentially a class containing functions to perform all actions performable on the page it represents. It is an interface through which the test objects know how to locate, click, type, and perform actions on the page. One page object method should perform one specific click, type, location, or similar action - ie, while the same page object function may be used to click checkboxes adding a user to different groups, a different function should be used to click the superuser checkbox. Actions that are repeated a lot (such as the locator functions in `web_test_interactions`) should be refactored into a common file, rather than being made a multipurpose file in the page object. Functions should also be named appropriately, so that someone scrolling through the test code without looking at the page objects file would know, in UI terms, what the test is attempting to do.
 
 A new page object should inherit from the `Page` class, which will give it access to the driver and any website-wide components (such as the top navigation bar and error messages). Any interaction with that page should be done via methods implemented in that page class. 
 
@@ -69,7 +71,7 @@ The `web_test_javascript_interactions` module contains a set of functions that o
 
 The web tests do run with the `run_tests` script in the `unit_tests` folder. However, because failure and error numbers are not surfaced by `unittest`, the script does not add the numbers for the web tests to its error tallies.
 
-Web tests can be run using `./run_tests web`, or using `python3 -m unittest -s web_tests`, both from the `unit_tests` folder. For compatibility with the other unit tests, the first approach is recommended, as other unit tests can then be run simultaneously. One can also run a particular class directly using `python3 <filename>.py` or `python3 -m unittest <filename>.ClassName`. Individual tests can be run with `python3 -m unittest <filename>.ClassName.test_name`. All tests should be run from the `unit_tests` folder to allow module imports to work properly. Note that individual test classes cannot currently be run with the `run_tests` script.
+Web tests can be run using `./run_tests web`, or using `python3 -m unittest -s web_tests`, both from the `unit_tests` folder. For compatibility with the other unit tests, the first approach is recommended, as other unit tests can then be run simultaneously. One can also run a particular file or class directly using `python3 <filename>.py` or `python3 -m unittest <filename>.<ClassName>`, respectively. Individual tests can be run with `python3 -m unittest <filename>.<ClassName>.<test_name>`. All tests should be run from the `unit_tests` folder to allow module imports to work properly. Note that individual test files, classes, and methods cannot currently be run with the `run_tests` script.
 
 If tests are being set up with clouds, the setup script may display an error similar to: 
 
@@ -82,7 +84,7 @@ This is expected behaviour - the cloud setup requires resources from the cloud c
 
 ## Debugging Tests
 
-To create the test fixtures to manually inspect the tests, the `.setup_objects()` and `.cleanup_objects()` functions from the `web_test_setup_cleanup` module should be used (passing any additonal arguments as specified in the "Test Profiles" section). The `setup()` and `cleanup()` functions do the driver setup as well, but require the calling class and the suffix number of the Firefox profile to use (ie 1 for `{user}-wig1`) as arguments. 
+To create the test fixtures to manually inspect the tests, the `.setup_objects()` and `.cleanup_objects()` functions from the `web_test_setup_cleanup` module should be used (passing any additonal arguments as specified in the "Test Profiles" section). The `setup()` and `cleanup()` functions do the driver setup as well, but, in addition, require the calling class and the suffix number of the Firefox profile to use (ie 1 for `{user}-wig1`) as arguments. 
 
 Several functions log information in files called `*objects.txt`. These files can be useful for debugging. They should not be committed, and it is harmless to delete them - they will be automatically remade when needed. If possible, the use of these files will eventually be phased out.
 
@@ -94,11 +96,11 @@ The tests have a set of automatically-created objects, created in the `web_test_
 
 Additional profiles can be added to the suite. In order to do so, the object should be added to the creation list in `web_test_setup_cleanup.setup_objects()`. Any tests that previously used an object with that suffix (likely an `add` test) should given a new suffix. The corresponding `delete_objects_by_type()` call in `web_test_setup_cleanup.cleanup_objects()` should have the count updated to ensure it deletes all objects. Additional profiles should likely not be added in the defaults (see below) - they should be added in an optional group if at all possible, to cut down on test runtime.
 
-New types of objects can also be added to the suite, in a similar manner. A new group of creation `subprocess.run` calls will need to be added in `setup_objects()`, and an accompanying call to `delete_objects_by_type()` in `cleanup_objects()`. Again, they should be added in an optional group if possible.
+New types of objects can also be added to the suite, in a similar manner. A new group of creation `subprocess.run` calls will need to be added in `setup_objects()`, and an accompanying call to `delete_objects_by_type()` in `cleanup_objects()`. If the objects cannot be deleted with the `delete_objects_by_type()` command syntax, they must either be deleted in a custom method (like aliases) or automatically deleted as part of another method (like cloud metadata). Again, they should be added in an optional group if possible.
 
 There are two categories of objects - some that are created by `setup_objects()` regardless of arguments passed, and some that are only created when the tests request them. The objects created under "Defaults", below, are created automatically when `setup_objects()` is run, regardless of arguments. To create the other set of objects, pass the names of the object groups (ie "users") to the `setup()` function as a list.
 
-There is one additional group created as part of the default setup that is not specified below and has no output in the setup scripts. It is not to be edited in any way during the tests, and any user with a profile (with the exception of `{user}-wiu3`, who is not in groups) should be in it. The real user account (ie `{user}`) is also added to this group when it is created, to allow this user to make the test objects within this group. The group is called `{user}-wig0`. All clouds are and should be created under this group, and it is saved as `gvar['base_group']`. It is the first item created as part of the setup, and the last item deleted, and should remain so. Many functions have a `group` argument that is invoked to prevent cloud tests from failing, and this is the group that should be given.
+There is one additional group created as part of the default setup that is not specified below and has no output in the setup scripts. It is not to be edited in any way during the tests, and any user with a profile (with the exception of `{user}-wiu3`, who is not in groups) should be in it. The real user account (ie `{user}`) is also added to this group when it is created, to allow this user to make the test objects within this group. The group is called `{user}-wig0`. All clouds, aliases, and any other objects requiring a group are and should be created under this group, and it is saved as `gvar['base_group']`. It is the first item created as part of the setup, and the last item deleted, and should remain so. Many functions have a `group` argument that is invoked to prevent cloud tests from failing, and this is the group that should be passed.
 
 Note that some objects (like the metadata files) do not have their own delete method. These objects are cleaned up when their containing objects are cleaned up.
 
@@ -116,6 +118,10 @@ Note that some objects (like the metadata files) do not have their own delete me
 
 `{user}-wig3` contains no users.
 
+`{user}-wig0::{user}-wic1` is a standard cloud. It is a cloud to be edited in update tests.
+
+`{user}-wig0::{user}-wic2` is a standard cloud. It is a cloud to be removed in deletion tests.
+
 ### Users
 
 `{user}-wiu4` is a standard user. They are in the `{user}-wig1` group. They are a user to be edited in update tests.
@@ -126,10 +132,14 @@ Note that some objects (like the metadata files) do not have their own delete me
 
 ### Clouds
 
-`{user}-wig0::{user}-wic1` is a standard cloud. It is a cloud to be edited in update tests.
-
-`{user}-wig0::{user}-wic2` is a standard cloud. It is a cloud to be removed in deletion tests.
-
 `{user}-wig0::{user}-wic1::{user}-wim1.yaml` is a standard cloud metadata. It is to be edited in update tests.
 
 `{user}-wig0::{user}-wic1::{user}-wim2.yaml` is a standard cloud metadata. It is to be removed in deletion tests.
+
+### Aliases
+
+`{user}-wig0.{user}-wia1` is a standard alias. It contains the `{user}-wic1` cloud. It is to be edited in update tests.
+
+`{user}-wig0.{user}-wia2` is a standard alias. It contains the `{user}-wic1` and `{user}-wic2` clouds. It is to be edited in update tests.
+
+`{user}-wig0.{user}-wia3` is a standard alias. It contains the `{user}-wic1` cloud. It is to be deleted in delete tests.
