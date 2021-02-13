@@ -263,7 +263,8 @@ class CloudsPage(Page):
         text = form.get_attribute('value')
         self.driver.find_element_by_name('metadata-form').submit()
         self.driver.switch_to.default_content()
-        self.active_metadata = text
+        if self.metadata_tab_exists(text):
+            self.active_metadata = text
 
     def click_metadata_update(self):
         wti.click_by_id(self.driver, 'left')
@@ -326,6 +327,17 @@ class CloudsPage(Page):
             return True
         except TimeoutException:
             return False
+
+    def metadata_priority_popup_exists(self):
+        self.driver.switch_to.frame('editor-' + self.active_cloud + '-' + self.active_metadata)
+        WebDriverWait(self.driver, 20).until(
+            EC.presence_of_element_located((By.NAME, 'priority')))
+        element = self.driver.find_element_by_name('priority')
+        popup = element.get_attribute('validationMessage')
+        self.driver.switch_to.default_content()
+        if popup:
+            return True
+        return False
 
 class AliasesPage(Page):
     """This is the page object class for the Aliases page."""
