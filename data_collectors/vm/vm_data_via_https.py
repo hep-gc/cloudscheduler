@@ -19,8 +19,6 @@ def apel_accounting_cleanup():
     config = Config('/etc/cloudscheduler/cloudscheduler.yaml', [my_config_category, "ProcessMonitor"], pool_size=4, signals=True)
     PID_FILE = config.categories["ProcessMonitor"]["pid_path"] + os.path.basename(sys.argv[0])
 
-    config.db_open()
-
 
     cycle_start_time = 0
     new_poll_time = 0
@@ -29,11 +27,12 @@ def apel_accounting_cleanup():
     try:
         while True:
             logging.debug("Beginning APEL Accounting Cleanup cycle")
-            config.refresh()
 
             if not os.path.exists(PID_FILE):
                 logging.debug("Stop set, exiting...")
                 break
+            config.db_open()
+            config.refresh()
 
             signal.signal(signal.SIGINT, signal.SIG_IGN)
             new_poll_time, cycle_start_time = start_cycle(new_poll_time, cycle_start_time)
@@ -54,12 +53,13 @@ def apel_accounting_cleanup():
                 logging.info("Stop set, exiting...")
                 break
             signal.signal(signal.SIGINT, config.signals['SIGINT'])
+            config.db_close()
             wait_cycle(cycle_start_time, poll_time_history, config.categories[my_config_category]['sleep_interval_apel_cleanup'], config)
 
     except Exception as exc:
         logging.exception("VM data poller, while loop exception, process terminating...")
         logging.error(exc)
-        del condor_session
+        config.db_close()
 
 def vm_data_poller():
     multiprocessing.current_process().name = "VM data poller"
@@ -168,7 +168,7 @@ def vm_data_poller():
     except Exception as exc:
         logging.exception("VM data poller, while loop exception, process terminating...")
         logging.error(exc)
-        del condor_session
+        config.db_close()
 
 if __name__ == '__main__':
 
