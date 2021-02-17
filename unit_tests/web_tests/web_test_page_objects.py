@@ -57,7 +57,6 @@ class CloudsPage(Page):
         text = form.get_attribute('value')
         xpath = wtxs.form_submit_by_value('add_cloud', 'Add Cloud')
         wti.click_by_xpath(self.driver, xpath)
-        #self.driver.find_element_by_name('add_cloud').submit()
         self.active_cloud = text
         self.active_metadata = None
 
@@ -210,7 +209,6 @@ class CloudsPage(Page):
                 element.send_keys(Keys.ARROW_DOWN)
 
     def click_update_cloud(self):
-        #self.driver.find_element_by_name(self.active_cloud).submit()
         xpath = wtxs.form_submit_by_value(self.active_cloud, 'Update Cloud')
         wti.click_by_xpath(self.driver, xpath)
 
@@ -267,7 +265,6 @@ class CloudsPage(Page):
         text = form.get_attribute('value')
         xpath = wtxs.form_input_by_value('metadata-form', 'Add')
         wti.click_by_xpath(self.driver, xpath)
-        #self.driver.find_element_by_name('metadata-form').submit()
         self.driver.switch_to.default_content()
         if self.metadata_tab_exists(text):
             self.active_metadata = text
@@ -294,7 +291,6 @@ class CloudsPage(Page):
         wti.click_by_xpath(self.driver, xpath)
 
     def click_update_metadata_exclusions(self):
-        #self.driver.find_element_by_name(self.active_cloud + '-metadata-exclusions').submit()
         xpath = wtxs.form_submit_by_value(self.active_cloud + '-metadata-exclusions', 'Update Metadata Exclusions')
         wti.click_by_xpath(self.driver, xpath)
 
@@ -307,7 +303,6 @@ class CloudsPage(Page):
         wti.click_by_xpath(self.driver, xpath)
 
     def click_update_flavor_exclusions(self):
-        #self.driver.find_element_by_name(self.active_cloud + '-flavor-exclusions').submit()
         xpath = wtxs.form_submit_by_value(self.active_cloud + '-flavor-exclusions', 'Update Flavor Exclusions')
         wti.click_by_xpath(self.driver, xpath)
  
@@ -340,10 +335,6 @@ class CloudsPage(Page):
 
     def metadata_priority_popup_exists(self):
         self.driver.switch_to.frame('editor-' + self.active_cloud + '-' + self.active_metadata)
-        #WebDriverWait(self.driver, 20).until(
-        #    EC.presence_of_element_located((By.NAME, 'priority')))
-        #element = self.driver.find_element_by_name('priority')
-        #popup = element.get_attribute('validationMessage')
         popup = wti.get_validation_message_by_name(self.driver, 'priority')
         self.driver.switch_to.default_content()
         if popup:
@@ -386,12 +377,10 @@ class AliasesPage(Page):
         wti.click_by_xpath(self.driver, xpath)
 
     def click_add_alias(self):
-        #self.driver.find_element_by_name('add_alias').submit()
         xpath = wtxs.form_submit_by_value('add_alias', 'Add')
         wti.click_by_xpath(self.driver, xpath)
 
     def click_update_alias(self):
-        #self.driver.find_element_by_name(self.active_alias).submit()
         xpath = wtxs.form_submit_by_value(self.active_alias, 'Update')
         wti.click_by_xpath(self.driver, xpath)
 
@@ -406,7 +395,163 @@ class AliasesPage(Page):
 
 class DefaultsPage(Page):
     """This is the page object class for the Defaults page."""
-    pass
+    def __init__(self, driver):
+        super(DefaultsPage, self).__init__(driver)
+        # The active_cloud variable stores the currently-selected cloud in the
+        # sidebar.
+        self.active_group = None
+        self.active_metadata = None
+    
+    def click_side_button(self, name):
+        wti.click_by_link_text(self.driver, name)
+        self.active_group = name
+        self.active_metadata = None
+
+    def click_side_tab(self, name):
+        element_name = name.lower()
+        xpath = wtxs.label_button(self.active_group, element_name)
+        wti.click_by_xpath(self.driver, xpath)
+        self.active_metadata = None
+
+    def type_htcondor_fqdn(self, fqdn):
+        xpath = wtxs.form_input_by_name(self.active_group, 'htcondor_fqdn')
+        wti.fill_blank_by_xpath(self.driver, xpath, fqdn)
+
+    def type_htcondor_container_hostname(self, hostname):
+        xpath = wtxs.form_input_by_name(self.active_group, 'htcondor_container_hostname')
+        wti.fill_blank_by_xpath(self.driver, xpath, hostname)
+
+    def type_htcondor_other_submitters(self, submitters):
+        xpath = wtxs.form_input_by_name(self.active_group, 'htcondor_other_submitters')
+        wti.fill_blank_by_xpath(self.driver, xpath, submitters)
+
+    def type_job_cpus(self, cpus):
+        xpath = wtxs.form_input_by_name(self.active_group, 'job_cpus')
+        wti.fill_blank_by_xpath(self.driver, xpath, cpus)
+
+    def type_job_ram(self, ram):
+        xpath = wtxs.form_input_by_name(self.active_group, 'job_ram')
+        wti.fill_blank_by_xpath(self.driver, xpath, ram)
+
+    def type_job_disk(self, disk):
+        xpath = wtxs.form_input_by_name(self.active_group, 'job_disk')
+        wti.fill_blank_by_xpath(self.driver, xpath, disk)
+
+    def type_job_swap(self, swap):
+        xpath = wtxs.form_input_by_name(self.active_group, 'job_swap')
+        wti.fill_blank_by_xpath(self.driver, xpath, swap) 
+
+    def select_vm_keyname(self, keyname):
+        xpath = wtxs.form_select_by_name(self.active_group, 'vm_keyname')
+        wti.select_option_by_xpath(self.driver, xpath, keyname)
+
+    def select_vm_image(self, image):
+        xpath = wtxs.form_select_by_name(self.active_group, 'vm_image')
+        wti.select_option_by_xpath(self.driver, xpath, image)
+
+    def select_vm_flavor(self, flavor):
+        xpath = wtxs.form_select_by_name(self.active_group, 'vm_flavor')
+        wti.select_option_by_xpath(self.driver, xpath, flavor)
+
+    def select_vm_network(self, network):
+        xpath = wtxs.form_select_by_name(self.active_group, 'vm_network')
+        wti.select_option_by_xpath(self.driver, xpath, network)
+
+    def type_vm_keep_alive(self, time):
+        xpath = wtxs.form_input_by_name(self.active_group, 'vm_keep_alive')
+        wti.fill_blank_by_xpath(self.driver, xpath, time)
+
+    def click_update_group(self):
+        xpath = wtxs.form_submit_by_value(self.active_group, 'Update Cloud')
+        wti.click_by_xpath(self.driver, xpath)
+
+    def click_metadata_new(self):
+        xpath = wtxs.label_button(self.active_group, 'metadata-add')
+        wti.click_by_xpath(self.driver, xpath)
+        self.driver.switch_to.frame('editor-' + self.active_group + '-add')
+        self.active_metadata = 'add'
+
+    def click_metadata(self, name):
+        xpath = wtxs.label_button(self.active_group, 'metadata-' + name)
+        wti.click_by_xpath(self.driver, xpath)
+        self.driver.switch_to.frame('editor-' + self.active_group + '-' + name)
+        self.active_metadata = name
+
+    def type_metadata_name(self, name):
+        wti.fill_blank_by_name(self.driver, 'metadata_name', name)
+
+    def click_metadata_enabled(self):
+        xpath = wtxs.form_input_by_name_not_hidden('metadata-form', 'enabled')
+        wti.click_by_xpath(self.driver, xpath)
+
+    def type_metadata_priority(self, priority):
+        wti.fill_blank_by_name(self.driver, 'priority', priority)
+
+    def increment_metadata_priority_by_arrows(self, priority):
+        WebDriverWait(self.driver, 20).until(
+            EC.presence_of_element_located((By.NAME, 'priority')))
+        element = self.driver.find_element_by_name('priority')
+        start = int(element.get_attribute('value'))
+        if start < priority:
+            for i in range(start, priority):
+                element.send_keys(Keys.ARROW_UP)
+        else:
+            for i in range(priority, start):
+                element.send_keys(Keys.ARROW_DOWN)
+    
+    def select_metadata_mime_type(self, type):
+        wti.select_option_by_name(self.driver, 'mime_type', type)
+
+    def type_metadata(self, metadata):
+        wti.fill_blank_by_tag_name(self.driver, 'textarea', metadata)
+
+    def click_metadata_add(self):
+        form = self.driver.find_element_by_name('metadata_name')
+        text = form.get_attribute('value')
+        xpath = wtxs.form_input_by_value('metadata-form', 'Add')
+        wti.click_by_xpath(self.driver, xpath)
+        self.driver.switch_to.default_content()
+        if self.metadata_tab_exists(text):
+            self.active_metadata = text
+
+    def click_metadata_update(self):
+        wti.click_by_id(self.driver, 'left')
+        self.driver.switch_to.default_content()
+
+    def click_metadata_delete(self):
+        wti.click_by_id(self.driver, 'right')
+
+    def click_metadata_delete_modal(self):
+        xpath = wtxs.delete_button('metadata', self.active_metadata)
+        wti.click_by_xpath(self.driver, xpath)
+        self.driver.switch_to.default_content()
+        self.active_metadata = None
+
+    def side_button_exists(self, name):
+        try:
+            WebDriverWait(self.driver, 10).until(
+                EC.presence_of_element_located((By.LINK_TEXT, name)))
+            return True
+        except TimeoutException:
+            return False
+
+    def metadata_tab_exists(self, name):
+        sleep(2)
+        xpath = wtxs.label_button(self.active_group, 'metadata-' + name)
+        try:
+            WebDriverWait(self.driver, 10).until(
+                EC.presence_of_element_located((By.XPATH, xpath)))
+            return True
+        except TimeoutException:
+            return False
+
+    def metadata_priority_popup_exists(self):
+        self.driver.switch_to.frame('editor-' + self.active_group + '-' + self.active_metadata)
+        popup = wti.get_validation_message_by_name(self.driver, 'priority')
+        self.driver.switch_to.default_content()
+        if popup:
+            return True
+        return False
 
 class ImagesPage(Page):
     """This is the page object class for the Images page."""
@@ -431,7 +576,6 @@ class UsersPage(Page):
     def click_add_user(self):
         form = self.driver.find_element_by_id('new_user')
         text = form.get_attribute('value')
-        #self.driver.find_element_by_id('new_user').submit()
         xpath = wtxs.form_submit_by_value('add_user', 'Add user')
         wti.click_by_xpath(self.driver, xpath)
         self.active_user = text
@@ -465,7 +609,6 @@ class UsersPage(Page):
         wti.click_by_xpath(self.driver, xpath)
 
     def click_update_user(self):
-        #self.driver.find_element_by_name(self.active_user).submit()
         xpath = wtxs.form_submit_by_value(self.active_user, 'Update user')
         wti.click_by_xpath(self.driver, xpath)
 
@@ -520,7 +663,6 @@ class GroupsPage(Page):
     def click_add_group(self):
         form = self.driver.find_element_by_id('new_group')
         text = form.get_attribute('value')
-        #self.driver.find_element_by_id('new_group').submit()
         xpath = wtxs.form_submit_by_value('add_group', 'Add Group')
         wti.click_by_xpath(self.driver, xpath)
         self.active_group = text
@@ -545,7 +687,6 @@ class GroupsPage(Page):
         wti.fill_blank_by_id(self.driver, 'search-users-' + search_tag, text)
 
     def click_update_group(self):
-        #self.driver.find_element_by_name(self.active_group).submit()
         xpath = wtxs.form_submit_by_value(self.active_group, 'Update Group')
         wti.click_by_xpath(self.driver, xpath)
 
