@@ -420,10 +420,12 @@ def job_poller():
         where_clause = "htcondor_host_id='%s'" % config.local_host_id
         rc, msg, rows = config.db_query(JOB, where=where_clause)
         inventory = inventory_get_item_hash_from_db_query_rows(ikey_names, rows)
+        config.db_close()
 
         #old inventory
         #inventory = get_inventory_item_hash_from_database(config.db_engine, JOB, 'global_job_id', debug_hash=(config.categories["condor_poller.py"]["log_level"]<20), condor_host=config.local_host_id)
         while True:
+            config.db_open()
             logging.debug("Starting Cycle...")
             #
             # Setup - initialize condor and database objects and build user-group list
@@ -767,6 +769,7 @@ def job_poller():
                 logging.info("Stop set, exiting...")
                 break
             signal.signal(signal.SIGINT, config.signals['SIGINT'])    
+            config.db_close()
             wait_cycle(cycle_start_time, poll_time_history, config.categories["condor_poller.py"]["sleep_interval_job"], config)
 
     except Exception as exc:
@@ -787,8 +790,8 @@ def job_command_poller():
     poll_time_history = [0,0,0,0]
 
     try:
-        config.db_open()
         while True:
+            config.db_open()
             logging.debug("Beginning command consumer cycle")
             config.refresh()
 
@@ -1137,6 +1140,7 @@ def machine_poller():
                 logging.info("Stop set, exiting...")
                 break
             signal.signal(signal.SIGINT, config.signals['SIGINT'])
+            config.db_close()
             wait_cycle(cycle_start_time, poll_time_history, config.categories["condor_poller.py"]["sleep_interval_machine"], config)
 
     except Exception as exc:
@@ -1171,13 +1175,14 @@ def machine_command_poller(arg_list):
 
 
     try:
-        config.db_open()
         while True:
+            config.db_open()
             logging.debug("Beginning command consumer cycle")
             config.refresh()
 
             if not os.path.exists(PID_FILE):
                 logging.debug("Stop set, exiting...")
+                config.db_close()
                 break
 
             signal.signal(signal.SIGINT, signal.SIG_IGN)
@@ -1189,7 +1194,9 @@ def machine_command_poller(arg_list):
             signal.signal(signal.SIGINT, config.signals['SIGINT'])
             if not os.path.exists(PID_FILE):
                 logging.info("Stop set, exiting...")
+                config.db_close()
                 break
+            config.db_close()
             wait_cycle(cycle_start_time, poll_time_history, config.categories["condor_poller.py"]["sleep_interval_command"], config)
 
     except Exception as exc:
@@ -1214,6 +1221,7 @@ def worker_gsi_poller():
             config.refresh()
             if not os.path.exists(PID_FILE):
                 logging.debug("Stop set, exiting...")
+                config.db_close()
                 break
 
             signal.signal(signal.SIGINT, signal.SIG_IGN)
@@ -1296,15 +1304,16 @@ def condor_gsi_poller():
     new_poll_time = 0
     poll_time_history = [0,0,0,0]
 
-    config.db_open()
 
     try:
         while True:
+            config.db_open()
             new_poll_time, cycle_start_time = start_cycle(new_poll_time, cycle_start_time)
 
             config.refresh()
             if not os.path.exists(PID_FILE):
                 logging.debug("Stop set, exiting...")
+                config.db_close()
                 break
             signal.signal(signal.SIGINT, signal.SIG_IGN)
 
@@ -1349,6 +1358,7 @@ def condor_gsi_poller():
                 logging.info("Stop set, exiting...")
                 break
 
+            config.db_close()
             wait_cycle(cycle_start_time, poll_time_history, config.categories['condor_poller.py']['sleep_interval_condor_gsi'], config)
 
     except Exception as exc:
