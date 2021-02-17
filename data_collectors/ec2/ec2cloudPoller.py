@@ -227,6 +227,7 @@ def ec2_filterer():
             new_poll_time, cycle_start_time = start_cycle(new_poll_time, cycle_start_time)
             if not os.path.exists(PID_FILE):
                 logging.debug("Stop set, exiting...")
+                config.db_close()
                 break
             signal.signal(signal.SIGINT, signal.SIG_IGN)
 
@@ -342,6 +343,7 @@ def ec2_filterer():
 
             if not os.path.exists(PID_FILE):
                 logging.info("Stop set, exiting...")
+                config.db_close()
                 break
             signal.signal(signal.SIGINT, config.signals['SIGINT'])
             #need to add signaling
@@ -391,12 +393,15 @@ def flavor_poller():
         where_clause = "cloud_type='amazon'"
         rc, msg, rows = config.db_query(FLAVOR, where=where_clause)
         inventory = inventory_get_item_hash_from_db_query_rows(ikey_names, rows)
+        config.db_close()
 
         try:
             #poll flavors
+            config.db_open()
             logging.debug("Beginning flavor poller cycle")
             if not os.path.exists(PID_FILE):
                 logging.debug("Stop set, exiting...")
+                config.db_close()
                 break
 
             signal.signal(signal.SIGINT, signal.SIG_IGN)
@@ -411,6 +416,7 @@ def flavor_poller():
 
             if not os.path.exists(PID_FILE):
                 logging.info("Stop set, exiting...")
+                config.db_close()
                 break
             signal.signal(signal.SIGINT, config.signals['SIGINT'])
             config.db_close()
@@ -820,6 +826,7 @@ def image_poller():
                     logging.info("Stop set, exiting...")
                     break
                 signal.signal(signal.SIGINT, config.signals['SIGINT'])
+                config.db_close()
                 try:
                     wait_cycle(cycle_start_time, poll_time_history, config.categories["ec2cloudPoller.py"]["sleep_interval_image"], config)
                 except KeyboardInterrupt:
@@ -828,6 +835,7 @@ def image_poller():
             except KeyboardInterrupt:
                 # sigint received, cancel the sleep and start the loop
                 logging.error("Received wake-up signal during regular execution, resetting and continuing")
+                config.db_close()
                 continue
 
 
@@ -1058,6 +1066,7 @@ def limit_poller():
                 logging.debug("Beginning limit poller cycle")
                 if not os.path.exists(PID_FILE):
                     logging.debug("Stop set, exiting...")
+                    config.db_close()
                     break
 
                 signal.signal(signal.SIGINT, signal.SIG_IGN)
@@ -1263,6 +1272,7 @@ def limit_poller():
             except KeyboardInterrupt:
                 # sigint recieved, cancel the sleep and start the loop
                 logging.error("Recieved wake-up signal during regular execution, resetting and continuing")
+                config.db_close()
                 continue
 
     except Exception as exc:
