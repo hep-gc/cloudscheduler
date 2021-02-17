@@ -16,7 +16,7 @@ def form_select_by_name(form, name):
 def form_select_by_value(form, value):
     return "//form[@name='" + form + "']//select[@value='" + value + "']"
 
-def form_input_by_value(form, value):
+def form_submit_by_value(form, value):
     return "//form[@name='" + form + "']//input[@value='" + value + "']"
 
 def label_button(element, button):

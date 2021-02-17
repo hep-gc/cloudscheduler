@@ -88,3 +88,10 @@ def slide_slider_by_xpath(driver, xpath, offset, vertical_offset):
     slider = driver.find_element_by_xpath(xpath)
     action = ActionChains(driver).move_to_element_with_offset(slider, offset, vertical_offset).click()
     action.perform()
+
+def get_validation_message_by_name(driver, name):
+    WebDriverWait(driver, 20).until(
+        EC.presence_of_element_located((By.NAME, name)))
+    element = driver.find_element_by_name(name)
+    message = element.get_attribute('validationMessage')
+    return message

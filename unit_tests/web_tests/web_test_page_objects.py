@@ -55,7 +55,9 @@ class CloudsPage(Page):
     def click_add_cloud(self):
         form = self.driver.find_element_by_id('new_cloud')
         text = form.get_attribute('value')
-        self.driver.find_element_by_name('add_cloud').submit()
+        xpath = wtxs.form_submit_by_value('add_cloud', 'Add Cloud')
+        wti.click_by_xpath(self.driver, xpath)
+        #self.driver.find_element_by_name('add_cloud').submit()
         self.active_cloud = text
         self.active_metadata = None
 
@@ -208,7 +210,9 @@ class CloudsPage(Page):
                 element.send_keys(Keys.ARROW_DOWN)
 
     def click_update_cloud(self):
-        self.driver.find_element_by_name(self.active_cloud).submit()
+        #self.driver.find_element_by_name(self.active_cloud).submit()
+        xpath = wtxs.form_submit_by_value(self.active_cloud, 'Update Cloud')
+        wti.click_by_xpath(self.driver, xpath)
 
     def click_delete_button(self):
         wti.click_by_link_text(self.driver, '−')
@@ -290,7 +294,9 @@ class CloudsPage(Page):
         wti.click_by_xpath(self.driver, xpath)
 
     def click_update_metadata_exclusions(self):
-        self.driver.find_element_by_name(self.active_cloud + '-metadata-exclusions').submit()
+        #self.driver.find_element_by_name(self.active_cloud + '-metadata-exclusions').submit()
+        xpath = wtxs.form_submit_by_value(self.active_cloud + '-metadata-exclusions', 'Update Metadata Exclusions')
+        wti.click_by_xpath(self.driver, xpath)
 
     def click_flavor_exclusions(self):
         xpath = wtxs.label_button(self.active_cloud, 'flavor-exclusions')
@@ -301,7 +307,9 @@ class CloudsPage(Page):
         wti.click_by_xpath(self.driver, xpath)
 
     def click_update_flavor_exclusions(self):
-        self.driver.find_element_by_name(self.active_cloud + '-flavor-exclusions').submit()
+        #self.driver.find_element_by_name(self.active_cloud + '-flavor-exclusions').submit()
+        xpath = wtxs.form_submit_by_value(self.active_cloud + '-flavor-exclusions', 'Update Flavor Exclusions')
+        wti.click_by_xpath(self.driver, xpath)
  
     def side_button_exists(self, name):
         try:
@@ -332,11 +340,24 @@ class CloudsPage(Page):
 
     def metadata_priority_popup_exists(self):
         self.driver.switch_to.frame('editor-' + self.active_cloud + '-' + self.active_metadata)
-        WebDriverWait(self.driver, 20).until(
-            EC.presence_of_element_located((By.NAME, 'priority')))
-        element = self.driver.find_element_by_name('priority')
-        popup = element.get_attribute('validationMessage')
+        #WebDriverWait(self.driver, 20).until(
+        #    EC.presence_of_element_located((By.NAME, 'priority')))
+        #element = self.driver.find_element_by_name('priority')
+        #popup = element.get_attribute('validationMessage')
+        popup = wti.get_validation_message_by_name(self.driver, 'priority')
         self.driver.switch_to.default_content()
+        if popup:
+            return True
+        return False
+
+    def cores_popup_exists(self):
+        popup = wti.get_validation_message_by_name(self.driver, 'cores_ctl')
+        if popup:
+            return True
+        return False
+
+    def ram_popup_exists(self):
+        popup = wti.get_validation_message_by_name(self.driver, 'ram_ctl')
         if popup:
             return True
         return False
@@ -365,10 +386,14 @@ class AliasesPage(Page):
         wti.click_by_xpath(self.driver, xpath)
 
     def click_add_alias(self):
-        self.driver.find_element_by_name('add_alias').submit()
+        #self.driver.find_element_by_name('add_alias').submit()
+        xpath = wtxs.form_submit_by_value('add_alias', 'Add')
+        wti.click_by_xpath(self.driver, xpath)
 
     def click_update_alias(self):
-        self.driver.find_element_by_name(self.active_alias).submit()
+        #self.driver.find_element_by_name(self.active_alias).submit()
+        xpath = wtxs.form_submit_by_value(self.active_alias, 'Update')
+        wti.click_by_xpath(self.driver, xpath)
 
     def side_button_exists(self, name):
         sleep(2)
@@ -406,7 +431,9 @@ class UsersPage(Page):
     def click_add_user(self):
         form = self.driver.find_element_by_id('new_user')
         text = form.get_attribute('value')
-        self.driver.find_element_by_id('new_user').submit()
+        #self.driver.find_element_by_id('new_user').submit()
+        xpath = wtxs.form_submit_by_value('add_user', 'Add user')
+        wti.click_by_xpath(self.driver, xpath)
         self.active_user = text
 
     def click_side_button(self, name):
@@ -438,7 +465,9 @@ class UsersPage(Page):
         wti.click_by_xpath(self.driver, xpath)
 
     def click_update_user(self):
-        self.driver.find_element_by_name(self.active_user).submit()
+        #self.driver.find_element_by_name(self.active_user).submit()
+        xpath = wtxs.form_submit_by_value(self.active_user, 'Update user')
+        wti.click_by_xpath(self.driver, xpath)
 
     def click_delete_button(self):
         wtjsi.javascript_click_by_link_text(self.driver, '−')
@@ -491,7 +520,9 @@ class GroupsPage(Page):
     def click_add_group(self):
         form = self.driver.find_element_by_id('new_group')
         text = form.get_attribute('value')
-        self.driver.find_element_by_id('new_group').submit()
+        #self.driver.find_element_by_id('new_group').submit()
+        xpath = wtxs.form_submit_by_value('add_group', 'Add Group')
+        wti.click_by_xpath(self.driver, xpath)
         self.active_group = text
 
     def click_side_button(self, name):
@@ -514,7 +545,9 @@ class GroupsPage(Page):
         wti.fill_blank_by_id(self.driver, 'search-users-' + search_tag, text)
 
     def click_update_group(self):
-        self.driver.find_element_by_name(self.active_group).submit()
+        #self.driver.find_element_by_name(self.active_group).submit()
+        xpath = wtxs.form_submit_by_value(self.active_group, 'Update Group')
+        wti.click_by_xpath(self.driver, xpath)
 
     def click_delete_button(self):
         wtjsi.javascript_click_by_link_text(self.driver, '−')

@@ -585,7 +585,8 @@ class TestWebCloudSuperUser(unittest.TestCase):
         self.page.click_side_button(cloud_name)
         self.page.type_cores('3.5')
         self.page.click_update_cloud()
-        self.assertTrue(self.page.error_message_displayed())
+        #self.assertTrue(self.page.error_message_displayed())
+        self.assertTrue(self.page.cores_popup_exists())
         wta.assertHasNotAttribute('cloud', cloud_name, 'cores_ctl', '3.5', self.gvar['base_group'])
 
     def test_web_cloud_update_cores_by_blank_string(self):
@@ -594,7 +595,8 @@ class TestWebCloudSuperUser(unittest.TestCase):
         self.page.click_side_button(cloud_name)
         self.page.type_cores('invalid-web-test')
         self.page.click_update_cloud()
-        self.assertTrue(self.page.error_message_displayed())
+        #self.assertTrue(self.page.error_message_displayed())
+        self.assertTrue(self.page.cores_popup_exists())
         wta.assertHasNotAttribute('cloud', cloud_name, 'cores_ctl', 'invalid-web-test', self.gvar['base_group'])
 
     def test_web_cloud_update_cores_by_slider(self):
@@ -627,7 +629,8 @@ class TestWebCloudSuperUser(unittest.TestCase):
         self.page.click_side_button(cloud_name)
         self.page.type_ram('3.5')
         self.page.click_update_cloud()
-        self.assertTrue(self.page.error_message_displayed())
+        #self.assertTrue(self.page.error_message_displayed())
+        self.assertTrue(self.page.ram_popup_exists())
         wta.assertHasNotAttribute('cloud', cloud_name, 'ram_ctl', '3.5', self.gvar['base_group'])
 
     def test_web_cloud_update_ram_by_blank_string(self):
@@ -636,7 +639,8 @@ class TestWebCloudSuperUser(unittest.TestCase):
         self.page.click_side_button(cloud_name)
         self.page.type_ram('invalid-web-test')
         self.page.click_update_cloud()
-        self.assertTrue(self.page.error_message_displayed())
+        #self.assertTrue(self.page.error_message_displayed())
+        self.assertTrue(self.page.ram_popup_exists())
         wta.assertHasNotAttribute('cloud', cloud_name, 'ram_ctl', 'invalid-web-test', self.gvar['base_group'])
 
     def test_web_cloud_update_ram_by_slider(self):
