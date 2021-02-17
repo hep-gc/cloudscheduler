@@ -261,7 +261,9 @@ class CloudsPage(Page):
     def click_metadata_add(self):
         form = self.driver.find_element_by_name('metadata_name')
         text = form.get_attribute('value')
-        self.driver.find_element_by_name('metadata-form').submit()
+        xpath = wtxs.form_input_by_value('metadata-form', 'Add')
+        wti.click_by_xpath(self.driver, xpath)
+        #self.driver.find_element_by_name('metadata-form').submit()
         self.driver.switch_to.default_content()
         if self.metadata_tab_exists(text):
             self.active_metadata = text
