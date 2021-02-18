@@ -22,6 +22,9 @@ def form_submit_by_value(form, value):
 def label_button(element, button):
     return "//label[@for='" + element + "-" + button + "']"
 
+def label_button_no_category(button):
+    return "//label[@for='" + button + "']"
+
 def delete_button(item_name, element_name):
     return "//div[@id='delete-" + item_name + "']/div/form/input[@value='Delete "+ element_name + "']"
 

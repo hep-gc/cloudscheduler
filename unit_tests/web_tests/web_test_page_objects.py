@@ -21,6 +21,9 @@ class Page(object):
     def click_top_nav(self, name):
         wti.click_by_link_text(self.driver, name)
 
+    def switch_default_group(self, group):
+        wti.select_option_by_name(self.driver, 'group', group)
+
     def error_message_displayed(self, message=None):
         xpath = ""
         if message:
@@ -399,82 +402,82 @@ class DefaultsPage(Page):
         super(DefaultsPage, self).__init__(driver)
         # The active_cloud variable stores the currently-selected cloud in the
         # sidebar.
-        self.active_group = None
+        #self.active_group = None
         self.active_metadata = None
     
     def click_side_button(self, name):
         wti.click_by_link_text(self.driver, name)
-        self.active_group = name
+        #self.active_group = name
         self.active_metadata = None
 
     def click_side_tab(self, name):
         element_name = name.lower()
-        xpath = wtxs.label_button(self.active_group, element_name)
+        xpath = wtxs.label_button('defaults', element_name)
         wti.click_by_xpath(self.driver, xpath)
         self.active_metadata = None
 
     def type_htcondor_fqdn(self, fqdn):
-        xpath = wtxs.form_input_by_name(self.active_group, 'htcondor_fqdn')
+        xpath = wtxs.form_input_by_name('defaults', 'htcondor_fqdn')
         wti.fill_blank_by_xpath(self.driver, xpath, fqdn)
 
     def type_htcondor_container_hostname(self, hostname):
-        xpath = wtxs.form_input_by_name(self.active_group, 'htcondor_container_hostname')
+        xpath = wtxs.form_input_by_name('defaults', 'htcondor_container_hostname')
         wti.fill_blank_by_xpath(self.driver, xpath, hostname)
 
     def type_htcondor_other_submitters(self, submitters):
-        xpath = wtxs.form_input_by_name(self.active_group, 'htcondor_other_submitters')
+        xpath = wtxs.form_input_by_name('defaults', 'htcondor_other_submitters')
         wti.fill_blank_by_xpath(self.driver, xpath, submitters)
 
     def type_job_cpus(self, cpus):
-        xpath = wtxs.form_input_by_name(self.active_group, 'job_cpus')
+        xpath = wtxs.form_input_by_name('defaults', 'job_cpus')
         wti.fill_blank_by_xpath(self.driver, xpath, cpus)
 
     def type_job_ram(self, ram):
-        xpath = wtxs.form_input_by_name(self.active_group, 'job_ram')
+        xpath = wtxs.form_input_by_name('defaults', 'job_ram')
         wti.fill_blank_by_xpath(self.driver, xpath, ram)
 
     def type_job_disk(self, disk):
-        xpath = wtxs.form_input_by_name(self.active_group, 'job_disk')
+        xpath = wtxs.form_input_by_name('defaults', 'job_disk')
         wti.fill_blank_by_xpath(self.driver, xpath, disk)
 
     def type_job_swap(self, swap):
-        xpath = wtxs.form_input_by_name(self.active_group, 'job_swap')
+        xpath = wtxs.form_input_by_name('defaults', 'job_swap')
         wti.fill_blank_by_xpath(self.driver, xpath, swap) 
 
     def select_vm_keyname(self, keyname):
-        xpath = wtxs.form_select_by_name(self.active_group, 'vm_keyname')
+        xpath = wtxs.form_select_by_name('defaults', 'vm_keyname')
         wti.select_option_by_xpath(self.driver, xpath, keyname)
 
     def select_vm_image(self, image):
-        xpath = wtxs.form_select_by_name(self.active_group, 'vm_image')
+        xpath = wtxs.form_select_by_name('defaults', 'vm_image')
         wti.select_option_by_xpath(self.driver, xpath, image)
 
     def select_vm_flavor(self, flavor):
-        xpath = wtxs.form_select_by_name(self.active_group, 'vm_flavor')
+        xpath = wtxs.form_select_by_name('defaults', 'vm_flavor')
         wti.select_option_by_xpath(self.driver, xpath, flavor)
 
     def select_vm_network(self, network):
-        xpath = wtxs.form_select_by_name(self.active_group, 'vm_network')
+        xpath = wtxs.form_select_by_name('defaults', 'vm_network')
         wti.select_option_by_xpath(self.driver, xpath, network)
 
     def type_vm_keep_alive(self, time):
-        xpath = wtxs.form_input_by_name(self.active_group, 'vm_keep_alive')
+        xpath = wtxs.form_input_by_name('defaults', 'vm_keep_alive')
         wti.fill_blank_by_xpath(self.driver, xpath, time)
 
     def click_update_group(self):
-        xpath = wtxs.form_submit_by_value(self.active_group, 'Update Cloud')
+        xpath = wtxs.form_submit_by_value('defaults', 'Update Cloud')
         wti.click_by_xpath(self.driver, xpath)
 
     def click_metadata_new(self):
-        xpath = wtxs.label_button(self.active_group, 'metadata-add')
+        xpath = wtxs.label_button_no_category('metadata-add')
         wti.click_by_xpath(self.driver, xpath)
-        self.driver.switch_to.frame('editor-' + self.active_group + '-add')
+        self.driver.switch_to.frame('editor-add')
         self.active_metadata = 'add'
 
     def click_metadata(self, name):
-        xpath = wtxs.label_button(self.active_group, 'metadata-' + name)
+        xpath = wtxs.label_button('defaults', 'metadata-' + name)
         wti.click_by_xpath(self.driver, xpath)
-        self.driver.switch_to.frame('editor-' + self.active_group + '-' + name)
+        self.driver.switch_to.frame('editor-' + name)
         self.active_metadata = name
 
     def type_metadata_name(self, name):
@@ -537,7 +540,7 @@ class DefaultsPage(Page):
 
     def metadata_tab_exists(self, name):
         sleep(2)
-        xpath = wtxs.label_button(self.active_group, 'metadata-' + name)
+        xpath = wtxs.label_button_no_category('metadata-' + name)
         try:
             WebDriverWait(self.driver, 10).until(
                 EC.presence_of_element_located((By.XPATH, xpath)))
@@ -546,7 +549,7 @@ class DefaultsPage(Page):
             return False
 
     def metadata_priority_popup_exists(self):
-        self.driver.switch_to.frame('editor-' + self.active_group + '-' + self.active_metadata)
+        self.driver.switch_to.frame('editor-defaults-' + self.active_metadata)
         popup = wti.get_validation_message_by_name(self.driver, 'priority')
         self.driver.switch_to.default_content()
         if popup:

@@ -112,9 +112,10 @@ def setup_objects(objects=[]):
     for i in range(0, aliases_num):
         subprocess.run(['cloudscheduler', 'alias', 'add', '-an', aliases[i], '-cn', clouds[i], '-g', gvar['base_group']])
 
+    # add defaults
     defaults_num = 0
     if 'defaults' in objects:
-        subprocess.run(['cloudscheduler', 'group', 'update', '-gn', gvar['user'] + '-wig1', '-un', gvar['user']])
+        subprocess.run(['cloudscheduler', 'group', 'update', '-gn', gvar['user'] + '-wig1', '-un',  gvar['user'] + ',' + gvar['user'] + '-wiu2'])
     if 'defaults' in objects:
         defaults_num = 2
     else:
