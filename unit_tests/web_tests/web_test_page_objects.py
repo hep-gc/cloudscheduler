@@ -402,12 +402,12 @@ class DefaultsPage(Page):
         super(DefaultsPage, self).__init__(driver)
         # The active_cloud variable stores the currently-selected cloud in the
         # sidebar.
-        #self.active_group = None
+        self.active_group = None
         self.active_metadata = None
     
     def click_side_button(self, name):
         wti.click_by_link_text(self.driver, name)
-        #self.active_group = name
+        self.active_group = name
         self.active_metadata = None
 
     def click_side_tab(self, name):
@@ -475,9 +475,9 @@ class DefaultsPage(Page):
         self.active_metadata = 'add'
 
     def click_metadata(self, name):
-        xpath = wtxs.label_button('defaults', 'metadata-' + name)
+        xpath = wtxs.label_button_no_category('metadata-' + name)
         wti.click_by_xpath(self.driver, xpath)
-        self.driver.switch_to.frame('editor-' + name)
+        self.driver.switch_to.frame('editor-' + self.active_group + '-'  + name)
         self.active_metadata = name
 
     def type_metadata_name(self, name):
@@ -549,7 +549,10 @@ class DefaultsPage(Page):
             return False
 
     def metadata_priority_popup_exists(self):
-        self.driver.switch_to.frame('editor-' + self.active_metadata)
+        if self.active_metadata == 'add':
+            self.driver.switch_to.frame('editor-' + self.active_metadata)
+        else:
+            self.driver.switch_to.frame('editor-' + self.active_group + '-' + self.active_metadata)
         popup = wti.get_validation_message_by_name(self.driver, 'priority')
         self.driver.switch_to.default_content()
         if popup:
