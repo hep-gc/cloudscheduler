@@ -112,6 +112,24 @@ def setup_objects(objects=[]):
     for i in range(0, aliases_num):
         subprocess.run(['cloudscheduler', 'alias', 'add', '-an', aliases[i], '-cn', clouds[i], '-g', gvar['base_group']])
 
+    defaults_num = 0
+    if 'defaults' in objects:
+        subprocess.run(['cloudscheduler', 'group', 'update', '-gn', gvar['user'] + '-wig1', '-un', gvar['user']])
+    if 'defaults' in objects:
+        defaults_num = 2
+    else:
+        defaults_num = 0
+    for i in range(1, defaults_num+1):
+        name = gvar['user'] + '-wim' + str(i) + '.yaml'
+        try:
+            metadata = open('web_tests/' + name, 'x')
+            metadata.write("sample_value_" + str(i) + ": sample_key_" + str(i))
+            metadata.close()
+        except FileExistsError:
+            pass
+        filename = os.path.abspath('web_tests/' + name)
+        subprocess.run(['cloudscheduler', 'metadata', 'load', '-g', gvar['user'] + '-wig1', '-f', filename, '-mn', name])
+
     return gvar
 
 def get_homepage(driver):
@@ -158,6 +176,7 @@ def cleanup_objects():
             subprocess.run(['cloudscheduler', 'alias', 'update', '-an', alias[0], '-cn', alias[1], '-co', 'delete', '-g', gvar['base_group']])
     object_log.close()
 
+    delete_by_type(gvar, ['metadata', '-wim', '-mn', 'metadata_name', ['-g', gvar['user'] + '-wig1']], 5)
     delete_by_type(gvar, ['cloud', '-wic', '-cn', 'cloud_name', ['-g', gvar['base_group']]], 5)
     delete_by_type(gvar, ['user', '-wiu', '-un', 'username', []], 8)
     delete_by_type(gvar, ['group', '-wig', '-gn', 'group_name', []], 7)
@@ -193,7 +212,10 @@ def delete_by_type(gvar, type_info, number):
         object_list.append(line.strip())
 
     for i in range(1, number+1):
-        objects.append(gvar['user'] + type_info[1] + str(i))
+        add = ''
+        if type_info[0] == 'metadata':
+            add = '.yaml'
+        objects.append(gvar['user'] + type_info[1] + str(i) + add)
     
     for object in objects:
         if object in object_list:
