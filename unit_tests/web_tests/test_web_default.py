@@ -36,7 +36,8 @@ class TestWebDefaultSuperUser(unittest.TestCase):
     @unittest.skip("Not working in production (issue 319)")
     def test_web_default_metadata_add_without_name(self):
         # Tries to add metadata to a group without a name
-        self.page.click_side_button(cloud_name)
+        self.page.click_side_button(self.group_name)
+        self.page.click_side_tab('Metadata')
         self.page.click_metadata_new()
         self.page.type_metadata('sample_key: sample_value')
         self.page.click_metadata_add()
@@ -45,9 +46,9 @@ class TestWebDefaultSuperUser(unittest.TestCase):
     @unittest.skip("Not working in production (issue 319)")
     def test_web_default_metadata_add_name_with_symbols(self):
         # Tries to add metadata with symbols in its name
-        cloud_name = self.gvar['user'] + '-wic1'
         metadata_name = 'inv@|id-web-te$t.yaml'
-        self.page.click_side_button(cloud_name)
+        self.page.click_side_button(self.group_name)
+        self.page.click_side_tab('Metadata')
         self.page.click_metadata_new()
         self.page.type_metadata_name(metadata_name)
         self.page.click_metadata_add()
@@ -57,9 +58,9 @@ class TestWebDefaultSuperUser(unittest.TestCase):
     @unittest.skip("Not working in production (issue 319)")
     def test_web_default_metadata_add_name_with_two_dashes(self):
         # Tries to add metadata with two dashes in its name
-        cloud_name = self.gvar['user'] + '-wic1'
         metadata_name = 'invalid--web--test.yaml'
-        self.page.click_side_button(cloud_name)
+        self.page.click_side_button(self.group_name)
+        self.page.click_side_tab('Metadata')
         self.page.click_metadata_new()
         self.page.type_metadata_name(metadata_name)
         self.page.click_metadata_add()
@@ -69,9 +70,9 @@ class TestWebDefaultSuperUser(unittest.TestCase):
     @unittest.skip("Not working in production (issue 319)")
     def test_web_default_metadata_add_name_with_uppercase(self):
         # Tries to add metadata with uppercase letters in its name
-        cloud_name = self.gvar['user'] + '-wic1'
         metadata_name = 'INVALID-WEB-TEST.yaml'
-        self.page.click_side_button(cloud_name)
+        self.page.click_side_button(self.group_name)
+        self.page.click_side_tab('Metadata')
         self.page.click_metadata_new()
         self.page.type_metadata_name(metadata_name)
         self.page.click_metadata_add()
@@ -81,21 +82,19 @@ class TestWebDefaultSuperUser(unittest.TestCase):
     @unittest.skip("Not working in production (issue 319)")
     def test_web_default_metadata_add_name_with_starting_ending_dash(self):
         # Tries to add metadata with starting and ending dashes in its name
-        cloud_name = self.gvar['user'] + '-wic1'
         metadata_name = '-invalid-web-test-.yaml'
-        self.page.click_side_button(cloud_name)
+        self.page.click_side_button(self.group_name)
+        self.page.click_side_tab('Metadata')
         self.page.click_metadata_new()
         self.page.type_metadata_name(metadata_name)
         self.page.click_metadata_add()
         self.assertTrue(self.page.error_message_displayed())
         wta.assertHasNotAttribute('cloud', cloud_name, 'metadata_names', metadata_name, self.gvar['base_group'])
 
-    @unittest.skip("TODO: fix")
     def test_web_default_metadata_add_not_enabled(self):
-        # Adds metadata to a cloud without enabling it
-        cloud_name = self.gvar['user'] + '-wic1'
+        # Adds metadata to a group without enabling it
         metadata_name = self.gvar['user'] + '-wim4.yaml'
-        self.page.click_side_button(cloud_name)
+        self.page.click_side_button(self.group_name)
         self.page.click_side_tab('Metadata')
         self.page.click_metadata_new()
         self.page.type_metadata_name(metadata_name)
@@ -103,14 +102,12 @@ class TestWebDefaultSuperUser(unittest.TestCase):
         self.page.type_metadata('sample_key: sample_value')
         self.page.click_metadata_add()
         self.assertTrue(self.page.metadata_tab_exists(metadata_name))
-        wta.assertAddedWithAttribute('cloud', cloud_name, 'enabled', '0', self.gvar['base_group'], metadata_name=metadata_name)
+        wta.assertAddedWithAttribute('metadata', metadata_name, 'enabled', '0', self.group_name)
 
-    @unittest.skip("TODO: fix")
-    def test_web_cloud_metadata_add_different_priority_by_typing(self):
-        # Adds metadata to a cloud with a different priority by typing it in the blank
-        cloud_name = self.gvar['user'] + '-wic1'
+    def test_web_default_metadata_add_different_priority_by_typing(self):
+        # Adds metadata to a group with a different priority by typing it in the blank
         metadata_name = self.gvar['user'] + '-wim5.yaml'
-        self.page.click_side_button(cloud_name)
+        self.page.click_side_button(self.group_name)
         self.page.click_side_tab('Metadata')
         self.page.click_metadata_new()
         self.page.type_metadata_name(metadata_name)
@@ -118,14 +115,12 @@ class TestWebDefaultSuperUser(unittest.TestCase):
         self.page.type_metadata('sample_key: sample_value')
         self.page.click_metadata_add()
         self.assertTrue(self.page.metadata_tab_exists(metadata_name))
-        wta.assertAddedWithAttribute('cloud', cloud_name, 'priority', '8', self.gvar['base_group'], metadata_name=metadata_name)
+        wta.assertAddedWithAttribute('metadata', metadata_name, 'priority', '8', self.group_name)
 
-    @unittest.skip("TODO: fix")
-    def test_web_cloud_metadata_add_different_priority_by_typing_float(self):
+    def test_web_default_metadata_add_different_priority_by_typing_float(self):
         # Tries to add metadata to a cloud with a float value for its priority by typing it in the blank
-        cloud_name = self.gvar['user'] + '-wic1'
         metadata_name = self.gvar['user'] + '-wim8.yaml'
-        self.page.click_side_button(cloud_name)
+        self.page.click_side_button(self.group_name)
         self.page.click_side_tab('Metadata')
         self.page.click_metadata_new()
         self.page.type_metadata_name(metadata_name)
@@ -134,14 +129,12 @@ class TestWebDefaultSuperUser(unittest.TestCase):
         self.page.click_metadata_add()
         self.assertTrue(self.page.metadata_priority_popup_exists())
         self.assertFalse(self.page.metadata_tab_exists(metadata_name))
-        wta.assertHasNotAttribute('cloud', cloud_name, 'metadata_names', metadata_name, self.gvar['base_group'])
+        wta.assertNotAdded('metadata', metadata_name, self.group_name)
 
-    @unittest.skip("TODO: fix")
-    def test_web_cloud_metadata_add_different_priority_by_typing_string(self):
-        # Tries to metadata to a cloud with a string value priority by typing it in the blank
-        cloud_name = self.gvar['user'] + '-wic1'
+    def test_web_default_metadata_add_different_priority_by_typing_string(self):
+        # Tries to metadata to a group with a string value priority by typing it in the blank
         metadata_name = self.gvar['user'] + '-wim8.yaml'
-        self.page.click_side_button(cloud_name)
+        self.page.click_side_button(self.group_name)
         self.page.click_side_tab('Metadata')
         self.page.click_metadata_new()
         self.page.type_metadata_name(metadata_name)
@@ -150,14 +143,12 @@ class TestWebDefaultSuperUser(unittest.TestCase):
         self.page.click_metadata_add()
         self.assertTrue(self.page.metadata_priority_popup_exists())
         self.assertFalse(self.page.metadata_tab_exists(metadata_name))
-        wta.assertHasNotAttribute('cloud', cloud_name, 'metadata_names', metadata_name, self.gvar['base_group'])
+        wta.assertNotAdded('metadata', metadata_name, self.group_name)
 
-    @unittest.skip("TODO: fix")
-    def test_web_cloud_metadata_add_different_priority_by_arrows(self):
-        # Adds metadata to a cloud with a different priority using the arrow keys
-        cloud_name = self.gvar['user'] + '-wic1'
+    def test_web_default_metadata_add_different_priority_by_arrows(self):
+        # Adds metadata to a group with a different priority using the arrow keys
         metadata_name = self.gvar['user'] + '-wim6.yaml'
-        self.page.click_side_button(cloud_name)
+        self.page.click_side_button(self.group_name)
         self.page.click_side_tab('Metadata')
         self.page.click_metadata_new()
         self.page.type_metadata_name(metadata_name)
@@ -165,14 +156,12 @@ class TestWebDefaultSuperUser(unittest.TestCase):
         self.page.type_metadata('sample_key: sample_value')
         self.page.click_metadata_add()
         self.assertTrue(self.page.metadata_tab_exists(metadata_name))
-        wta.assertAddedWithAttribute('cloud', cloud_name, 'priority', '16', self.gvar['base_group'], metadata_name=metadata_name)
+        wta.assertAddedWithAttribute('metadata', metadata_name, 'priority', '16', self.group_name)
 
-    @unittest.skip("TODO: fix")
-    def test_web_cloud_metadata_add_different_mime_type(self):
-        # Adds metadata to a cloud with a different MIME type
-        cloud_name = self.gvar['user'] + '-wic1'
+    def test_web_default_metadata_add_different_mime_type(self):
+        # Adds metadata to a group with a different MIME type
         metadata_name = self.gvar['user'] + '-wim7.yaml'
-        self.page.click_side_button(cloud_name)
+        self.page.click_side_button(self.group_name)
         self.page.click_side_tab('Metadata')
         self.page.click_metadata_new()
         self.page.type_metadata_name(metadata_name)
@@ -180,14 +169,13 @@ class TestWebDefaultSuperUser(unittest.TestCase):
         self.page.type_metadata('sample_key: sample_value')
         self.page.click_metadata_add()
         self.assertTrue(self.page.metadata_tab_exists(metadata_name))
-        wta.assertAddedWithAttribute('cloud', cloud_name, 'mime_type', 'ucernvm-config', self.gvar['base_group'], metadata_name=metadata_name)
+        wta.assertAddedWithAttribute('metadata', metadata_name, 'mime_type', 'ucernvm-config', self.group_name)
 
     @unittest.skip("Not working (supposed to work?)")
-    def test_web_cloud_metadata_add_mismatched_file_type(self):
-        # Tries to add metadata to a cloud with a file that doesn't match its name
-        cloud_name = self.gvar['user'] + '-wic1'
+    def test_web_group_metadata_add_mismatched_file_type(self):
+        # Tries to add metadata to a group with a file that doesn't match its name
         metadata_name = self.gvar['user'] + '-wim8.yaml'
-        self.page.click_side_button(cloud_name)
+        self.page.click_side_button(self.group_name)
         self.page.click_side_tab('Metadata')
         self.page.click_metadata_new()
         self.page.type_metadata_name(metadata_name)
@@ -195,7 +183,7 @@ class TestWebDefaultSuperUser(unittest.TestCase):
         self.page.click_metadata_add()
         self.assertTrue(self.page.error_message_displayed())
         self.assertFalse(self.page.metadata_tab_exists(metadata_name))
-        wta.assertHasNotAttribute('cloud', cloud_name, 'metadata_names', metadata_name, self.gvar['base_group'])
+        wta.assertNotAdded('metadata', metadata_name, self.group_name)
 
     @unittest.skip("TODO: fix")
     def test_web_cloud_metadata_update_enabled_status(self):

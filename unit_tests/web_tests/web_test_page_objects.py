@@ -465,7 +465,7 @@ class DefaultsPage(Page):
         wti.fill_blank_by_xpath(self.driver, xpath, time)
 
     def click_update_group(self):
-        xpath = wtxs.form_submit_by_value('defaults', 'Update Cloud')
+        xpath = wtxs.form_submit_by_value('defaults', 'Update Group')
         wti.click_by_xpath(self.driver, xpath)
 
     def click_metadata_new(self):
@@ -549,7 +549,7 @@ class DefaultsPage(Page):
             return False
 
     def metadata_priority_popup_exists(self):
-        self.driver.switch_to.frame('editor-defaults-' + self.active_metadata)
+        self.driver.switch_to.frame('editor-' + self.active_metadata)
         popup = wti.get_validation_message_by_name(self.driver, 'priority')
         self.driver.switch_to.default_content()
         if popup:

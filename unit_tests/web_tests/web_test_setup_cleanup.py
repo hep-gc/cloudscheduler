@@ -177,7 +177,7 @@ def cleanup_objects():
             subprocess.run(['cloudscheduler', 'alias', 'update', '-an', alias[0], '-cn', alias[1], '-co', 'delete', '-g', gvar['base_group']])
     object_log.close()
 
-    delete_by_type(gvar, ['metadata', '-wim', '-mn', 'metadata_name', ['-g', gvar['user'] + '-wig1']], 5)
+    delete_by_type(gvar, ['metadata', '-wim', '-mn', 'metadata_name', ['-g', gvar['user'] + '-wig1']], 9)
     delete_by_type(gvar, ['cloud', '-wic', '-cn', 'cloud_name', ['-g', gvar['base_group']]], 5)
     delete_by_type(gvar, ['user', '-wiu', '-un', 'username', []], 8)
     delete_by_type(gvar, ['group', '-wig', '-gn', 'group_name', []], 7)
