@@ -1,6 +1,6 @@
 import unittest
 import web_tests.web_test_setup_cleanup as wtsc
-import web_tests.web_test_assertions as wta
+import web_tests.web_test_assertions_v2 as wta
 import web_tests.web_test_page_objects as pages
 
 class TestWebDefaultSuperUser(unittest.TestCase):
@@ -30,7 +30,7 @@ class TestWebDefaultSuperUser(unittest.TestCase):
         self.page.click_side_tab('Settings')
         self.page.type_htcondor_fqdn('csv2-dev2.heprc.uvic.ca')
         self.page.click_update_group()
-        #TODO: make assertions to work with group defaults
+        wta.assertHasAttribute('group', group_name, 'htcondor_fqdn', 'csv2-dev2.heprc.uvic.ca', group=group_name, defaults=True)
 
     def test_web_default_update_htcondor_container_hostname(self):
         group_name = self.gvar['user'] + '-wig2'
@@ -39,6 +39,7 @@ class TestWebDefaultSuperUser(unittest.TestCase):
         self.page.click_side_tab('Settings')
         self.page.type_htcondor_container_hostname(self.gvar['user'] + '-host')
         self.page.click_update_group()
+        wta.assertHasAttribute('group', group_name, 'htcondor_container_hostname', self.gvar['user'] + '-host', group=group_name, defaults=True)
 
     def test_web_default_update_htcondor_other_submitters(self):
         group_name = self.gvar['user'] + '-wig2'
@@ -47,30 +48,35 @@ class TestWebDefaultSuperUser(unittest.TestCase):
         self.page.click_side_tab('Settings')
         self.page.type_htcondor_other_submitters(self.gvar['user'] + '-wiu1') #change for regular user
         self.page.click_update_group()
+        wta.assertHasAttribute('group', group_name, 'htcondor_other_submitters', self.gvar['user'] + '-wiu1', group=group_name, defaults=True)
 
     def test_web_default_update_job_cpus(self):
         self.page.click_side_button(self.group_name)
         self.page.click_side_tab('Settings')
         self.page.type_job_cpus('8')
         self.page.click_update_group()
+        wta.assertHasAttribute('group', self.group_name, 'job_cpus', '8', group=self.group_name, defaults=True)
 
     def test_web_default_update_job_ram(self):
         self.page.click_side_button(self.group_name)
         self.page.click_side_tab('Settings')
         self.page.type_job_ram('1024')
         self.page.click_update_group()
+        wta.assertHasAttribute('group', self.group_name, 'job_ram', '1024', group=self.group_name, defaults=True)
 
     def test_web_default_update_job_disk(self):
         self.page.click_side_button(self.group_name)
         self.page.click_side_tab('Settings')
         self.page.type_job_disk('4')
         self.page.click_update_group()
+        wta.assertHasAttribute('group', self.group_name, 'job_disk', '4', group=self.group_name, defaults=True)
 
     def test_web_default_update_job_swap(self):
         self.page.click_side_button(self.group_name)
         self.page.click_side_tab('Settings')
         self.page.type_job_swap('2')
         self.page.click_update_group()
+        wta.assertHasAttribute('group', self.group_name, 'job_swap', '2', group=self.group_name, defaults=True)
 
     @unittest.skip("TODO: implement")
     def test_web_default_update_vm_keyname(self):
@@ -81,24 +87,28 @@ class TestWebDefaultSuperUser(unittest.TestCase):
         self.page.click_side_tab('Settings')
         self.page.select_vm_image('cirros-0.3.5')
         self.page.click_update_group()
+        wta.assertHasAttribute('group', self.group_name, 'vm_image', 'cirros-0.3.5', group=self.group_name, defaults=True)
 
     def test_web_default_update_vm_flavor(self):
         self.page.click_side_button(self.group_name)
         self.page.click_side_tab('Settings')
         self.page.select_vm_flavor('s8')
         self.page.click_update_group()
+        wta.assertHasAttribute('group', self.group_name, 'vm_flavor', 's8', group=self.group_name, defaults=True)
 
     def test_web_default_update_vm_network(self):
         self.page.click_side_button(self.group_name)
         self.page.click_side_tab('Settings')
         self.page.select_vm_network('private')
         self.page.click_update_group()
+        wta.assertHasAttribute('group', self.group_name, 'vm_network', 'private', group=self.group_name, defaults=True)
 
     def test_web_default_update_vm_keep_alive(self):
         self.page.click_side_button(self.group_name)
         self.page.click_side_tab('Settings')
         self.page.type_vm_keep_alive('2048')
         self.page.click_update_group()
+        wta.assertHasAttribute('group', self.group_name, 'vm_keep_alive', '2048', group=self.group_name, defaults=True)
 
     def test_web_default_metadata_add(self):
         # Adds metadata to a group
@@ -110,7 +120,7 @@ class TestWebDefaultSuperUser(unittest.TestCase):
         self.page.type_metadata('sample_key: sample_value')
         self.page.click_metadata_add()
         self.assertTrue(self.page.metadata_tab_exists(metadata_name))
-        wta.assertAdded('metadata', metadata_name, self.group_name)
+        wta.assertExists('metadata', metadata_name, group=self.group_name)
 
     @unittest.skip("Not working in production (issue 319)")
     def test_web_default_metadata_add_without_name(self):
@@ -132,7 +142,7 @@ class TestWebDefaultSuperUser(unittest.TestCase):
         self.page.type_metadata_name(metadata_name)
         self.page.click_metadata_add()
         self.assertTrue(self.page.error_message_displayed())
-        wta.assertHasNotAttribute('cloud', cloud_name, 'metadata_names', metadata_name, self.gvar['base_group'])
+        wta.assertNotExists('metadata', metadata_name, group=self.group_name)
 
     @unittest.skip("Not working in production (issue 319)")
     def test_web_default_metadata_add_name_with_two_dashes(self):
@@ -144,7 +154,7 @@ class TestWebDefaultSuperUser(unittest.TestCase):
         self.page.type_metadata_name(metadata_name)
         self.page.click_metadata_add()
         self.assertTrue(self.page.error_message_displayed())
-        wta.assertHasNotAttribute('cloud', cloud_name, 'metadata_names', metadata_name, self.gvar['base_group'])
+        wta.assertNotExists('metadata', metadata_name, group=self.group_name)
 
     @unittest.skip("Not working in production (issue 319)")
     def test_web_default_metadata_add_name_with_uppercase(self):
@@ -156,7 +166,7 @@ class TestWebDefaultSuperUser(unittest.TestCase):
         self.page.type_metadata_name(metadata_name)
         self.page.click_metadata_add()
         self.assertTrue(self.page.error_message_displayed())
-        wta.assertHasNotAttribute('cloud', cloud_name, 'metadata_names', metadata_name, self.gvar['base_group'])
+        wta.assertNotExists('metadata', metadata_name, group=self.group_name)
 
     @unittest.skip("Not working in production (issue 319)")
     def test_web_default_metadata_add_name_with_starting_ending_dash(self):
@@ -168,7 +178,7 @@ class TestWebDefaultSuperUser(unittest.TestCase):
         self.page.type_metadata_name(metadata_name)
         self.page.click_metadata_add()
         self.assertTrue(self.page.error_message_displayed())
-        wta.assertHasNotAttribute('cloud', cloud_name, 'metadata_names', metadata_name, self.gvar['base_group'])
+        wta.assertNotExists('metadata', metadata_name, group=self.group_name)
 
     def test_web_default_metadata_add_not_enabled(self):
         # Adds metadata to a group without enabling it
@@ -181,7 +191,7 @@ class TestWebDefaultSuperUser(unittest.TestCase):
         self.page.type_metadata('sample_key: sample_value')
         self.page.click_metadata_add()
         self.assertTrue(self.page.metadata_tab_exists(metadata_name))
-        wta.assertAddedWithAttribute('metadata', metadata_name, 'enabled', '0', self.group_name)
+        wta.assertHasAttribute('metadata', metadata_name, 'enabled', '0', group=self.group_name)
 
     def test_web_default_metadata_add_different_priority_by_typing(self):
         # Adds metadata to a group with a different priority by typing it in the blank
@@ -194,7 +204,7 @@ class TestWebDefaultSuperUser(unittest.TestCase):
         self.page.type_metadata('sample_key: sample_value')
         self.page.click_metadata_add()
         self.assertTrue(self.page.metadata_tab_exists(metadata_name))
-        wta.assertAddedWithAttribute('metadata', metadata_name, 'priority', '8', self.group_name)
+        wta.assertHasAttribute('metadata', metadata_name, 'priority', '8', group=self.group_name)
 
     def test_web_default_metadata_add_different_priority_by_typing_float(self):
         # Tries to add metadata to a cloud with a float value for its priority by typing it in the blank
@@ -208,7 +218,7 @@ class TestWebDefaultSuperUser(unittest.TestCase):
         self.page.click_metadata_add()
         self.assertTrue(self.page.metadata_priority_popup_exists())
         self.assertFalse(self.page.metadata_tab_exists(metadata_name))
-        wta.assertNotAdded('metadata', metadata_name, self.group_name)
+        wta.assertNotExists('metadata', metadata_name, group= self.group_name)
 
     def test_web_default_metadata_add_different_priority_by_typing_string(self):
         # Tries to metadata to a group with a string value priority by typing it in the blank
@@ -222,7 +232,7 @@ class TestWebDefaultSuperUser(unittest.TestCase):
         self.page.click_metadata_add()
         self.assertTrue(self.page.metadata_priority_popup_exists())
         self.assertFalse(self.page.metadata_tab_exists(metadata_name))
-        wta.assertNotAdded('metadata', metadata_name, self.group_name)
+        wta.assertNotExists('metadata', metadata_name, group=self.group_name)
 
     def test_web_default_metadata_add_different_priority_by_arrows(self):
         # Adds metadata to a group with a different priority using the arrow keys
@@ -235,7 +245,7 @@ class TestWebDefaultSuperUser(unittest.TestCase):
         self.page.type_metadata('sample_key: sample_value')
         self.page.click_metadata_add()
         self.assertTrue(self.page.metadata_tab_exists(metadata_name))
-        wta.assertAddedWithAttribute('metadata', metadata_name, 'priority', '16', self.group_name)
+        wta.assertHasAttribute('metadata', metadata_name, 'priority', '16', group=self.group_name)
 
     def test_web_default_metadata_add_different_mime_type(self):
         # Adds metadata to a group with a different MIME type
@@ -248,7 +258,7 @@ class TestWebDefaultSuperUser(unittest.TestCase):
         self.page.type_metadata('sample_key: sample_value')
         self.page.click_metadata_add()
         self.assertTrue(self.page.metadata_tab_exists(metadata_name))
-        wta.assertAddedWithAttribute('metadata', metadata_name, 'mime_type', 'ucernvm-config', self.group_name)
+        wta.assertHasAttribute('metadata', metadata_name, 'mime_type', 'ucernvm-config', group=self.group_name)
 
     @unittest.skip("Not working (supposed to work?)")
     def test_web_group_metadata_add_mismatched_file_type(self):
@@ -262,7 +272,7 @@ class TestWebDefaultSuperUser(unittest.TestCase):
         self.page.click_metadata_add()
         self.assertTrue(self.page.error_message_displayed())
         self.assertFalse(self.page.metadata_tab_exists(metadata_name))
-        wta.assertNotAdded('metadata', metadata_name, self.group_name)
+        wta.assertNotExists('metadata', metadata_name, group=self.group_name)
 
     def test_web_default_metadata_update_enabled_status(self):
         # Changes enabled metadata to not enabled
@@ -273,7 +283,7 @@ class TestWebDefaultSuperUser(unittest.TestCase):
         self.page.click_metadata_enabled()
         self.page.click_metadata_update()
         # TODO: implement checkbox clicked check method
-        wta.assertHasAttribute('metadata', metadata_name, 'enabled', '0', self.group_name)
+        wta.assertHasAttribute('metadata', metadata_name, 'enabled', '0', group=self.group_name)
 
     def test_web_default_metadata_update_priority_by_typing(self):
         # Changes metadata priority by typing in the blank
@@ -283,7 +293,7 @@ class TestWebDefaultSuperUser(unittest.TestCase):
         self.page.click_metadata(metadata_name)
         self.page.type_metadata_priority('8')
         self.page.click_metadata_update()
-        wta.assertHasAttribute('metadata', metadata_name, 'priority', '8', self.group_name)
+        wta.assertHasAttribute('metadata', metadata_name, 'priority', '8', group=self.group_name)
 
     def test_web_default_metadata_update_priority_by_typing_float(self):
         # Tries to change metadata priority to a float by typing it in the blank
@@ -294,7 +304,7 @@ class TestWebDefaultSuperUser(unittest.TestCase):
         self.page.type_metadata_priority('8.5')
         self.page.click_metadata_update()
         self.assertTrue(self.page.metadata_priority_popup_exists())
-        wta.assertHasNotAttribute('metadata', metadata_name, 'priority', '8.5', self.group_name)
+        wta.assertHasNotAttribute('metadata', metadata_name, 'priority', '8.5', group=self.group_name)
 
     def test_web_default_metadata_update_priority_by_typing_string(self):
         # Tries to change metadata priority to a string by typing it in the blank
@@ -305,7 +315,7 @@ class TestWebDefaultSuperUser(unittest.TestCase):
         self.page.type_metadata_priority('invalid-web-test')
         self.page.click_metadata_update()
         self.assertTrue(self.page.metadata_priority_popup_exists())
-        wta.assertHasNotAttribute('metadata', metadata_name, 'priority', 'invalid-web-test', self.group_name)
+        wta.assertHasNotAttribute('metadata', metadata_name, 'priority', 'invalid-web-test', group=self.group_name)
 
     def test_web_default_metadata_update_priority_by_arrow_keys(self):
         # Changes metadata priority using the arrow keys
@@ -315,7 +325,7 @@ class TestWebDefaultSuperUser(unittest.TestCase):
         self.page.click_metadata(metadata_name)
         self.page.increment_metadata_priority_by_arrows(16)
         self.page.click_metadata_update()
-        wta.assertHasAttribute('metadata', metadata_name, 'priority', '16', self.group_name)
+        wta.assertHasAttribute('metadata', metadata_name, 'priority', '16', group=self.group_name)
 
     def test_web_default_metadata_update_mime_type(self):
         # Changes metadata mime type
@@ -325,7 +335,7 @@ class TestWebDefaultSuperUser(unittest.TestCase):
         self.page.click_metadata(metadata_name)
         self.page.select_metadata_mime_type('ucernvm-config')
         self.page.click_metadata_update()
-        wta.assertHasAttribute('metadata', metadata_name, 'mime_type', 'ucernvm-config', self.group_name)
+        wta.assertHasAttribute('metadata', metadata_name, 'mime_type', 'ucernvm-config', group=self.group_name)
 
     def test_web_default_metadata_update_contents(self):
         # Changes metadata text
@@ -359,7 +369,7 @@ class TestWebDefaultSuperUser(unittest.TestCase):
         self.page.click_metadata_delete()
         self.page.click_metadata_delete_modal()
         self.assertFalse(self.page.metadata_tab_exists(metadata_name))
-        wta.assertDeleted('metadata', metadata_name, self.group_name)
+        wta.assertNotExists('metadata', metadata_name, self.group_name)
 
     @classmethod
     def tearDownClass(cls):

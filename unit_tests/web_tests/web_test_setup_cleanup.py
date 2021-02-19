@@ -48,7 +48,7 @@ def setup_objects(objects=[]):
     for i in range(1, groups_num + 1):
         groups.append(gvar['user'] + '-wig' + str(i))
     for i in range(0, groups_num):
-        subprocess.run(['cloudscheduler', 'group', 'add', '-htcf', gvar['fqdn'], '-gn', groups[i]])
+        subprocess.run(['cloudscheduler', 'group', 'add', '-htcf', gvar['fqdn'], '-gn', groups[i], '-un', gvar['user']])
 
     #add users
     users_num = 0
