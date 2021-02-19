@@ -21,6 +21,85 @@ class TestWebDefaultSuperUser(unittest.TestCase):
     def test_web_default_find(self):
         pass
 
+# TODO: check longer than 128 character strings (in all files)
+
+    def test_web_default_update_htcondor_fqdn(self):
+        group_name = self.gvar['user'] + '-wig2'
+        self.page.switch_default_group(group_name)
+        self.page.click_side_button(group_name)
+        self.page.click_side_tab('Settings')
+        self.page.type_htcondor_fqdn('csv2-dev2.heprc.uvic.ca')
+        self.page.click_update_group()
+        #TODO: make assertions to work with group defaults
+
+    def test_web_default_update_htcondor_container_hostname(self):
+        group_name = self.gvar['user'] + '-wig2'
+        self.page.switch_default_group(group_name)
+        self.page.click_side_button(group_name)
+        self.page.click_side_tab('Settings')
+        self.page.type_htcondor_container_hostname(self.gvar['user'] + '-host')
+        self.page.click_update_group()
+
+    def test_web_default_update_htcondor_other_submitters(self):
+        group_name = self.gvar['user'] + '-wig2'
+        self.page.swich_default_group(group_name)
+        self.page.click_side_button(group_name)
+        self.page.click_side_tab('Settings')
+        self.page.type_htcondor_other_submitters(self.gvar['user'] + '-wiu1') #change for regular user
+        self.page.click_update_group()
+
+    def test_web_default_update_job_cpus(self):
+        self.page.click_side_button(self.group_name)
+        self.page.click_side_tab('Settings')
+        self.page.type_job_cpus('8')
+        self.page.click_update_group()
+
+    def test_web_default_update_job_ram(self):
+        self.page.click_side_button(self.group_name)
+        self.page.click_side_tab('Settings')
+        self.page.type_job_ram('1024')
+        self.page.click_update_group()
+
+    def test_web_default_update_job_disk(self):
+        self.page.click_side_button(self.group_name)
+        self.page.click_side_tab('Settings')
+        self.page.type_job_disk('4')
+        self.page.click_update_group()
+
+    def test_web_default_update_job_swap(self):
+        self.page.click_side_button(self.group_name)
+        self.page.click_side_tab('Settings')
+        self.page.type_job_swap('2')
+        self.page.click_update_group()
+
+    @unittest.skip("TODO: implement")
+    def test_web_default_update_vm_keyname(self):
+        pass
+
+    def test_web_default_update_vm_image(self):
+        self.page.click_side_button(self.group_name)
+        self.page.click_side_tab('Settings')
+        self.page.select_vm_image('cirros-0.3.5')
+        self.page.click_update_group()
+
+    def test_web_default_update_vm_flavor(self):
+        self.page.click_side_button(self.group_name)
+        self.page.click_side_tab('Settings')
+        self.page.select_vm_flavor('s8')
+        self.page.click_update_group()
+
+    def test_web_default_update_vm_network(self):
+        self.page.click_side_button(self.group_name)
+        self.page.click_side_tab('Settings')
+        self.page.select_vm_network('private')
+        self.page.click_update_group()
+
+    def test_web_default_update_vm_keep_alive(self):
+        self.page.click_side_button(self.group_name)
+        self.page.click_side_tab('Settings')
+        self.page.type_vm_keep_alive('2048')
+        self.page.click_update_group()
+
     def test_web_default_metadata_add(self):
         # Adds metadata to a group
         metadata_name = self.gvar['user'] + '-wim3.yaml'
