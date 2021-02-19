@@ -3,6 +3,7 @@ import subprocess
 from time import sleep
 
 logfile = 'assert_v2_objects.txt'
+sleep_time = 2
 
 def assertExists(type, name, group=None, metadata_cloud=None, defaults=False, is_retry=False):
     object_names = names()
@@ -29,7 +30,7 @@ def assertExists(type, name, group=None, metadata_cloud=None, defaults=False, is
     if is_retry:
         raise AssertionError()
     else:
-        sleep(5)
+        sleep(sleep_time)
         assertExists(type, name, group, metadata_cloud, defaults, True)
 
 def assertNotExists(type, name, group=None, metadata_cloud=None, defaults=False, is_retry=False):
@@ -54,7 +55,7 @@ def assertNotExists(type, name, group=None, metadata_cloud=None, defaults=False,
             if is_retry:
                 raise AssertionError()
             else:
-                sleep(5)
+                sleep(sleep_time)
                 assertNotExists(type, name, group, metadata_cloud, defaults, True)
 
     object_file.close()
@@ -84,7 +85,7 @@ def assertHasAttribute(type, name, attribute, attribute_name, group=None, err=No
             if is_retry:
                 raise AssertionError()
             else:
-                sleep(5)
+                sleep(sleep_time)
                 assertHasAttribute(type, name, attribute, attribute_name, group, err, metadata_cloud, defaults, name_field, True)
 
         record = record.split(',')
@@ -106,7 +107,7 @@ def assertHasAttribute(type, name, attribute, attribute_name, group=None, err=No
             if is_retry:
                 raise AssertionError()
             else:
-                sleep(5)
+                sleep(sleep_time)
                 assertHasAttribute(type, name, attribute, attribute_name, group, err, metadata_cloud, defaults, name_field, True)
 
         else:
@@ -116,7 +117,7 @@ def assertHasAttribute(type, name, attribute, attribute_name, group=None, err=No
                     if is_retry:
                         raise AssertionError()
                     else:
-                        sleep(5)
+                        sleep(sleep_time)
                         assertHasAttribute(type, name, attribute, attribute_name, group, err, metadata_cloud, defaults, name_field, True)
             object_file.close()
 
@@ -133,6 +134,7 @@ def assertHasAttribute(type, name, attribute, attribute_name, group=None, err=No
             if is_retry:
                 raise AssertionError()
             else:
+                sleep(sleep_time)
                 assertHasAttribute(type, name, attribute, attribute_name, group, err, metadata_cloud, defaults, name_field, True)
 
 def assertHasNotAttribute(type, name, attribute, attribute_name, group=None, err=None, metadata_cloud=None, defaults=False, name_field=True, is_retry=False):
@@ -158,7 +160,7 @@ def assertHasNotAttribute(type, name, attribute, attribute_name, group=None, err
             if is_retry:
                 raise AssertionError()
             else:
-                sleep(5)
+                sleep(sleep_time)
                 assertHasNotAttribute(type, name, attribute, attribute_name, group, err, metadata_cloud, defaults, name_field, True)
 
         record = record.split(',')
@@ -177,6 +179,7 @@ def assertHasNotAttribute(type, name, attribute, attribute_name, group=None, err
                     if is_retry:
                         raise AssertionError()
                     else:
+                        sleep(sleep_time)
                         assertHasNotAttribute(type, name, attribute, attribute_name, group, err, metadata_cloud, defaults, name_field, True)
 
             object_file.close()
@@ -189,7 +192,7 @@ def assertHasNotAttribute(type, name, attribute, attribute_name, group=None, err
                     if is_retry:
                         raise AssertionError()
                     else:
-                        sleep(5)
+                        sleep(sleep_time)
                         assertHasNotAttribute(type, name, attribute, attribute_name, group, err, metadata_cloud, defaults, name_field, True)
             object_file.close()
 
@@ -206,6 +209,7 @@ def assertHasNotAttribute(type, name, attribute, attribute_name, group=None, err
             if is_retry:
                 raise AssertionError()
             else:
+                sleep(sleep_time)
                 assertHasNotAttribute(type, name, attribute, attribute_name, group, err, metadata_cloud, defaults, name_field, True)
 
 def list_objects(type, columns, name, group, metadata, defaults):

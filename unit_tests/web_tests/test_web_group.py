@@ -1,6 +1,6 @@
 import unittest
 import web_tests.web_test_setup_cleanup as wtsc
-import web_tests.web_test_assertions as wta
+import web_tests.web_test_assertions_v2 as wta
 import web_tests.web_test_page_objects as pages
 
 class TestWebGroup(unittest.TestCase):
@@ -46,7 +46,7 @@ class TestWebGroup(unittest.TestCase):
         self.page.type_group_name(group_name)
         self.page.click_add_group()
         self.assertTrue(self.page.side_button_exists(group_name))
-        wta.assertAdded('group', group_name)
+        wta.assertExists('group', group_name)
 
     def test_web_group_add_checkbox(self):
         # Adds a group with a user, using the checkbox to select the user
@@ -81,7 +81,7 @@ class TestWebGroup(unittest.TestCase):
         self.page.click_add_group()
         self.assertTrue(self.page.error_message_displayed())
         self.assertFalse(self.page.side_button_exists(group_name))
-        wta.assertNotAdded('group', group_name)
+        wta.assertNotExists('group', group_name)
 
     def test_web_group_add_name_with_two_dashes(self):
         # Tries to add a group with two dashes in its name
@@ -93,7 +93,7 @@ class TestWebGroup(unittest.TestCase):
         self.page.click_add_group()
         self.assertTrue(self.page.error_message_displayed())
         self.assertFalse(self.page.side_button_exists(group_name))
-        wta.assertNotAdded('group', group_name)
+        wta.assertNotExists('group', group_name)
 
     def test_web_group_add_name_with_uppercase(self):
         # Tries to add a group with uppercase letters in its name
@@ -105,7 +105,7 @@ class TestWebGroup(unittest.TestCase):
         self.page.click_add_group()
         self.assertTrue(self.page.error_message_displayed())
         self.assertFalse(self.page.side_button_exists(group_name))
-        wta.assertNotAdded('group', group_name)
+        wta.assertNotExists('group', group_name)
 
     def test_web_group_add_name_with_starting_ending_dash(self):
         # Tries to add a group with starting and ending dashes in its name
@@ -117,7 +117,7 @@ class TestWebGroup(unittest.TestCase):
         self.page.click_add_group()
         self.assertTrue(self.page.error_message_displayed())
         self.assertFalse(self.page.side_button_exists(group_name))
-        wta.assertNotAdded('group', group_name)
+        wta.assertNotExists('group', group_name)
 
     def test_web_group_delete(self):
         # Deletes a group
@@ -126,7 +126,7 @@ class TestWebGroup(unittest.TestCase):
         self.page.click_delete_button()
         self.page.click_delete_modal()
         self.assertFalse(self.page.side_button_exists(group_name))
-        wta.assertDeleted('group', group_name)
+        wta.assertNotExists('group', group_name)
 
     @unittest.skip("Not working in production")
     def test_web_group_update_add_user_search_bar(self):

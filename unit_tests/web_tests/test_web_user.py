@@ -1,6 +1,6 @@
 import unittest
 import web_tests.web_test_setup_cleanup as wtsc
-import web_tests.web_test_assertions as wta
+import web_tests.web_test_assertions_v2 as wta
 import web_tests.web_test_page_objects as pages
 
 class TestWebUser(unittest.TestCase):
@@ -32,7 +32,7 @@ class TestWebUser(unittest.TestCase):
         self.page.click_add_user()
         self.assertTrue(self.page.side_button_exists(user_name))
         self.assertTrue(self.page.group_box_checked(group_name))
-        wta.assertAddedWithAttribute('user', user_name, 'user_groups', group_name)
+        wta.assertHasAttribute('user', user_name, 'user_groups', group_name)
 
     def test_web_user_add_without_group(self):
         # Adds a user who's not in any groups
@@ -43,7 +43,7 @@ class TestWebUser(unittest.TestCase):
         self.page.click_superuser_checkbox()
         self.page.click_add_user()
         self.assertTrue(self.page.side_button_exists(user_name))
-        wta.assertAddedWithAttribute('user', user_name, 'user_groups', 'None')
+        wta.assertHasAttribute('user', user_name, 'user_groups', 'None')
 
     def test_web_user_add_superuser(self):
         # Adds a super user
@@ -57,7 +57,7 @@ class TestWebUser(unittest.TestCase):
         self.page.click_add_user()
         self.assertTrue(self.page.side_button_exists(user_name))
         self.assertTrue(self.page.superuser_box_checked())
-        wta.assertAddedWithAttribute('user', user_name, 'is_superuser', '1')
+        wta.assertHasAttribute('user', user_name, 'is_superuser', '1')
 
     def test_web_user_add_regular_user(self):
         # Adds a non-super user
@@ -70,7 +70,7 @@ class TestWebUser(unittest.TestCase):
         self.page.click_add_user()
         self.assertTrue(self.page.side_button_exists(user_name))
         self.assertFalse(self.page.superuser_box_checked())
-        wta.assertAddedWithAttribute('user', user_name, 'is_superuser', '0')
+        wta.assertHasAttribute('user', user_name, 'is_superuser', '0')
 
     def test_web_user_add_without_username(self):
         # Tries to add a user without a username
@@ -105,7 +105,7 @@ class TestWebUser(unittest.TestCase):
         self.page.click_add_user()
         self.assertTrue(self.page.error_message_displayed())
         self.assertFalse(self.page.side_button_exists(user_name))
-        wta.assertNotAdded('user', user_name)
+        wta.assertNotExists('user', user_name)
 
     def test_web_user_add_name_with_two_dashes(self):
         # Tries to add a user with two dashes in their name
@@ -118,7 +118,7 @@ class TestWebUser(unittest.TestCase):
         self.page.click_add_user()
         self.assertTrue(self.page.error_message_displayed())
         self.assertFalse(self.page.side_button_exists(user_name))
-        wta.assertNotAdded('user', user_name)
+        wta.assertNotExists('user', user_name)
 
     def test_web_user_add_name_with_uppercase(self):
         # Tries to add a user with uppercase letters in their name
@@ -131,7 +131,7 @@ class TestWebUser(unittest.TestCase):
         self.page.click_add_user()
         self.assertTrue(self.page.error_message_displayed())
         self.assertFalse(self.page.side_button_exists(user_name))
-        wta.assertNotAdded('user', user_name)
+        wta.assertNotExists('user', user_name)
 
     def test_web_user_add_name_with_starting_ending_dash(self):
         # Tries to add a user with starting and ending dashes in their name
@@ -144,7 +144,7 @@ class TestWebUser(unittest.TestCase):
         self.page.click_add_user()
         self.assertTrue(self.page.error_message_displayed())
         self.assertFalse(self.page.side_button_exists(user_name))
-        wta.assertNotAdded('user', user_name)
+        wta.assertNotExists('user', user_name)
      
     def test_web_user_add_without_password(self):
         # Tries to add a user without a password
@@ -156,7 +156,7 @@ class TestWebUser(unittest.TestCase):
         self.page.click_group_checkbox(group_name)
         self.page.click_add_user()
         self.assertTrue(self.page.error_message_displayed())
-        wta.assertNotAdded('user', user_name)
+        wta.assertNotExists('user', user_name)
 
     def test_web_user_add_password_mismatched(self):
         # Tries to add a user with a non-matching "confirm password"
@@ -169,7 +169,7 @@ class TestWebUser(unittest.TestCase):
         self.page.click_group_checkbox(group_name)
         self.page.click_add_user()
         self.assertTrue(self.page.error_message_displayed())
-        wta.assertNotAdded('user', user_name)
+        wta.assertNotExists('user', user_name)
 
     def test_web_user_add_password_too_short(self):
         # Tries to add a user with a password that's too short
@@ -183,7 +183,7 @@ class TestWebUser(unittest.TestCase):
         self.page.click_add_user()
         self.assertTrue(self.page.error_message_displayed())
         self.assertFalse(self.page.side_button_exists(user_name))
-        wta.assertNotAdded('user', user_name)
+        wta.assertNotExists('user', user_name)
 
     def test_web_user_add_password_without_uppercase(self):
         # Tries to add a user with a password without uppercase letters
@@ -197,7 +197,7 @@ class TestWebUser(unittest.TestCase):
         self.page.click_add_user()
         self.assertTrue(self.page.error_message_displayed())
         self.assertFalse(self.page.side_button_exists(user_name))
-        wta.assertNotAdded('user', user_name)
+        wta.assertNotExists('user', user_name)
 
     def test_web_user_add_password_without_lowercase(self):
         # Tries to add a user with a password without lowercase letters
@@ -211,7 +211,7 @@ class TestWebUser(unittest.TestCase):
         self.page.click_add_user()
         self.assertTrue(self.page.error_message_displayed())
         self.assertFalse(self.page.side_button_exists(user_name))
-        wta.assertNotAdded('user', user_name)
+        wta.assertNotExists('user', user_name)
 
     def test_web_user_add_password_without_numbers(self):
         # Tries to add a user with a password without numbers
@@ -225,7 +225,7 @@ class TestWebUser(unittest.TestCase):
         self.page.click_add_user()
         self.assertTrue(self.page.error_message_displayed())
         self.assertFalse(self.page.side_button_exists(user_name))
-        wta.assertNotAdded('user', user_name)
+        wta.assertNotExists('user', user_name)
 
     def test_web_user_update_password(self):
         # Changes a user's password
@@ -317,7 +317,7 @@ class TestWebUser(unittest.TestCase):
         self.page.click_delete_button()
         self.page.click_delete_modal()
         self.assertFalse(self.page.side_button_exists(user_name))
-        wta.assertDeleted('user', user_name)
+        wta.assertNotExists('user', user_name)
 
     @classmethod
     def tearDownClass(cls):
