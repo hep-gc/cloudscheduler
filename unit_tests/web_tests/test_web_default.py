@@ -42,7 +42,7 @@ class TestWebDefaultSuperUser(unittest.TestCase):
 
     def test_web_default_update_htcondor_other_submitters(self):
         group_name = self.gvar['user'] + '-wig2'
-        self.page.swich_default_group(group_name)
+        self.page.switch_default_group(group_name)
         self.page.click_side_button(group_name)
         self.page.click_side_tab('Settings')
         self.page.type_htcondor_other_submitters(self.gvar['user'] + '-wiu1') #change for regular user

@@ -130,6 +130,8 @@ def setup_objects(objects=[]):
             pass
         filename = os.path.abspath('web_tests/' + name)
         subprocess.run(['cloudscheduler', 'metadata', 'load', '-g', gvar['user'] + '-wig1', '-f', filename, '-mn', name])
+    if 'defaults' in objects:
+        subprocess.run(['cloudscheduler', 'cloud', 'add', '-ca', credentials['authurl'], '-cn', gvar['user'] + '-wic1', '-cpw', credentials['password'], '-cP', credentials['project'], '-cr', credentials['region'], '-cU', credentials['username'], '-ct', 'openstack', '-g', gvar['user'] + '-wig1'])
 
     return gvar
 
@@ -177,6 +179,7 @@ def cleanup_objects():
             subprocess.run(['cloudscheduler', 'alias', 'update', '-an', alias[0], '-cn', alias[1], '-co', 'delete', '-g', gvar['base_group']])
     object_log.close()
 
+    delete_by_type(gvar, ['cloud', '-wic', '-cn', 'cloud_name', ['-g', gvar['user'] + '-wig1']], 1)
     delete_by_type(gvar, ['metadata', '-wim', '-mn', 'metadata_name', ['-g', gvar['user'] + '-wig1']], 9)
     delete_by_type(gvar, ['cloud', '-wic', '-cn', 'cloud_name', ['-g', gvar['base_group']]], 5)
     delete_by_type(gvar, ['user', '-wiu', '-un', 'username', []], 8)

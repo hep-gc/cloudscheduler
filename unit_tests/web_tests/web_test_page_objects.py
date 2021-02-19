@@ -417,55 +417,55 @@ class DefaultsPage(Page):
         self.active_metadata = None
 
     def type_htcondor_fqdn(self, fqdn):
-        xpath = wtxs.form_input_by_name('defaults', 'htcondor_fqdn')
+        xpath = wtxs.form_input_by_name(self.active_group, 'htcondor_fqdn')
         wti.fill_blank_by_xpath(self.driver, xpath, fqdn)
 
     def type_htcondor_container_hostname(self, hostname):
-        xpath = wtxs.form_input_by_name('defaults', 'htcondor_container_hostname')
+        xpath = wtxs.form_input_by_name(self.active_group, 'htcondor_container_hostname')
         wti.fill_blank_by_xpath(self.driver, xpath, hostname)
 
     def type_htcondor_other_submitters(self, submitters):
-        xpath = wtxs.form_input_by_name('defaults', 'htcondor_other_submitters')
+        xpath = wtxs.form_input_by_name(self.active_group, 'htcondor_other_submitters')
         wti.fill_blank_by_xpath(self.driver, xpath, submitters)
 
     def type_job_cpus(self, cpus):
-        xpath = wtxs.form_input_by_name('defaults', 'job_cpus')
+        xpath = wtxs.form_input_by_name(self.active_group, 'job_cpus')
         wti.fill_blank_by_xpath(self.driver, xpath, cpus)
 
     def type_job_ram(self, ram):
-        xpath = wtxs.form_input_by_name('defaults', 'job_ram')
+        xpath = wtxs.form_input_by_name(self.active_group, 'job_ram')
         wti.fill_blank_by_xpath(self.driver, xpath, ram)
 
     def type_job_disk(self, disk):
-        xpath = wtxs.form_input_by_name('defaults', 'job_disk')
+        xpath = wtxs.form_input_by_name(self.active_group, 'job_disk')
         wti.fill_blank_by_xpath(self.driver, xpath, disk)
 
     def type_job_swap(self, swap):
-        xpath = wtxs.form_input_by_name('defaults', 'job_swap')
+        xpath = wtxs.form_input_by_name(self.active_group, 'job_swap')
         wti.fill_blank_by_xpath(self.driver, xpath, swap) 
 
     def select_vm_keyname(self, keyname):
-        xpath = wtxs.form_select_by_name('defaults', 'vm_keyname')
+        xpath = wtxs.form_select_by_name(self.active_group, 'vm_keyname')
         wti.select_option_by_xpath(self.driver, xpath, keyname)
 
     def select_vm_image(self, image):
-        xpath = wtxs.form_select_by_name('defaults', 'vm_image')
+        xpath = wtxs.form_select_by_name(self.active_group, 'vm_image')
         wti.select_option_by_xpath(self.driver, xpath, image)
 
     def select_vm_flavor(self, flavor):
-        xpath = wtxs.form_select_by_name('defaults', 'vm_flavor')
+        xpath = wtxs.form_select_by_name(self.active_group, 'vm_flavor')
         wti.select_option_by_xpath(self.driver, xpath, flavor)
 
     def select_vm_network(self, network):
-        xpath = wtxs.form_select_by_name('defaults', 'vm_network')
+        xpath = wtxs.form_select_by_name(self.active_group, 'vm_network')
         wti.select_option_by_xpath(self.driver, xpath, network)
 
     def type_vm_keep_alive(self, time):
-        xpath = wtxs.form_input_by_name('defaults', 'vm_keep_alive')
+        xpath = wtxs.form_input_by_name(self.active_group, 'vm_keep_alive')
         wti.fill_blank_by_xpath(self.driver, xpath, time)
 
     def click_update_group(self):
-        xpath = wtxs.form_submit_by_value('defaults', 'Update Group')
+        xpath = wtxs.form_submit_by_value(self.active_group, 'Update Group')
         wti.click_by_xpath(self.driver, xpath)
 
     def click_metadata_new(self):
