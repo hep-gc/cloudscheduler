@@ -21,7 +21,7 @@ As with the other unit tests, a server configuration and cloud credentials are r
 
 ## Adding Tests
 
-New test modules should be named starting with `test_web_` (the modules starting with `web_test_` are helper modules). The test files should be named `test_web_<page>.py`, with the class being named `TestWeb<Page>`. Individual tests should be named `test_web_<page>_<action>_<details>`, where `<action>` is the name of the action using the `cloudscheduler` command. If suitably complex, `<action>` should ideally be formatted as `<object>_<action_on_object>_details`. Note that individual tests having names that start with `test` is currently the only breaking naming requirement.
+New test modules should be named starting with `test_web_` (the modules starting with `web_test_` are helper modules). The test files should be named `test_web_<page>.py`, with the class being named `TestWeb<Page>`. Individual tests should be named `test_web_<page>_<action>_<details>`, where `<action>` is the name of the action using the `cloudscheduler` command. If suitably complex, `<action>` should ideally be formatted as `<object>_<action_on_object>_<details>`. Note that individual tests having names that start with `test` is currently the only breaking naming requirement.
 
 All test files must be put in the `web_tests` directory, and each test class must have the following added to `create_test_suite.py`:
 
@@ -50,6 +50,8 @@ The `web_test_assertions` module contains a set of functions that should be call
 The `web_test_assertions` module contains a pair of functions asserting that two numbers are near each other. These should only be used in situations where the test cannot reliably produce exact numbers and should not be able to (such as with sliding a slider, which can only produce numbers within a certain pixel sensitivity). These functions cannot be used to assert any value that cannot be converted to an integer by Python's `int()` function.
 
 This module also contains a pair of functions to look for attributes with a certain name when there is no cloudscheduler flag for specifying an object's name (check the `web_test_assertions.names()` function to see which objects these are - they will have their `flag` attribute set to `None`). These methods should only be used for objects that do not have a name flag, and they do not take the argument specifying metadata.
+
+By default, all actions will be performed within the `{user}-wig0` group (see Test Profiles, below). The base `Page` class (see Page Objects, below) contains a method for switching between these groups. Be aware that the active user must be in a group to switch to it.
 
 Test files should perform actions on the page via page objects (see below). 
 
@@ -145,3 +147,9 @@ Note that some objects (like the metadata files) do not have their own delete me
 `{user}-wig0.{user}-wia2` is a standard alias. It contains the `{user}-wic1` and `{user}-wic2` clouds. It is to be edited in update tests.
 
 `{user}-wig0.{user}-wia3` is a standard alias. It contains the `{user}-wic1` cloud. It is to be deleted in delete tests.
+
+### Defaults
+
+`{user}-wig1::{user}-wim1.yaml` is a standard group metadata. It is to be edited in update tests.
+
+`{user}-wig1::{user}-wim2.yaml` is a standard group metadata. It is to be removed in deletion tests.
