@@ -1,6 +1,6 @@
 import unittest
 import web_tests.web_test_setup_cleanup as wtsc
-import web_tests.web_test_assertions as wta
+import web_tests.web_test_assertions_v2 as wta
 import web_tests.web_test_page_objects as pages
 
 class TestWebAliasSuperUser(unittest.TestCase):
@@ -23,7 +23,7 @@ class TestWebAliasSuperUser(unittest.TestCase):
         self.page.click_cloud_checkbox(self.gvar['user'] + '-wic1')
         self.page.click_add_alias()
         self.assertTrue(self.page.side_button_exists(alias_name))
-        wta.assertAdded('alias', alias_name, self.gvar['base_group'])
+        wta.assertExists('alias', alias_name, self.gvar['base_group'])
 
     def test_web_alias_add_without_name(self):
         self.page.click_add_button()
@@ -39,7 +39,7 @@ class TestWebAliasSuperUser(unittest.TestCase):
         self.page.click_cloud_checkbox(cloud_name)
         self.page.click_add_alias()
         self.assertTrue(self.page.error_message_displayed())
-        wta.assertHasNotAttributeNoNameFlag('alias', alias_name, 'clouds', cloud_name, self.gvar['base_group'])
+        wta.assertHasNotAttribute('alias', alias_name, 'clouds', cloud_name, group=self.gvar['base_group'], name_field=False)
 
     def test_web_alias_add_name_with_symbols(self):
         alias_name = 'inv@|id-web-te$t'
@@ -49,7 +49,7 @@ class TestWebAliasSuperUser(unittest.TestCase):
         self.page.click_cloud_checkbox(cloud_name)
         self.page.click_add_alias()
         self.assertTrue(self.page.error_message_displayed())
-        wta.assertNotAdded('alias', alias_name, self.gvar['base_group'])
+        wta.assertNotExists('alias', alias_name, self.gvar['base_group'])
 
     def test_web_alias_add_name_with_two_dashes(self):
         alias_name = 'invalid--web--test'
@@ -59,7 +59,7 @@ class TestWebAliasSuperUser(unittest.TestCase):
         self.page.click_cloud_checkbox(cloud_name)
         self.page.click_add_alias()
         self.assertTrue(self.page.error_message_displayed())
-        wta.assertNotAdded('alias', alias_name, self.gvar['base_group'])
+        wta.assertNotExists('alias', alias_name, self.gvar['base_group'])
 
     def test_web_alias_add_name_with_uppercase(self):
         alias_name = 'INVALID-WEB-TEST'
@@ -69,7 +69,7 @@ class TestWebAliasSuperUser(unittest.TestCase):
         self.page.click_cloud_checkbox(cloud_name)
         self.page.click_add_alias()
         self.assertTrue(self.page.error_message_displayed())
-        wta.assertNotAdded('alias', alias_name, self.gvar['base_group'])
+        wta.assertNotExists('alias', alias_name, self.gvar['base_group'])
 
     def test_web_alias_add_name_with_starting_ending_dash(self):
         alias_name = '-invalid-web-test-'
@@ -79,7 +79,7 @@ class TestWebAliasSuperUser(unittest.TestCase):
         self.page.click_cloud_checkbox(cloud_name)
         self.page.click_add_alias()
         self.assertTrue(self.page.error_message_displayed())
-        wta.assertNotAdded('alias', alias_name, self.gvar['base_group'])
+        wta.assertNotExists('alias', alias_name, self.gvar['base_group'])
 
     def test_web_alias_add_without_cloud(self):
         alias_name = self.gvar['user'] + '-wia5'
@@ -87,7 +87,7 @@ class TestWebAliasSuperUser(unittest.TestCase):
         self.page.type_alias_name(alias_name)
         self.page.click_add_alias()
         self.assertTrue(self.page.error_message_displayed())
-        wta.assertNotAdded('alias', alias_name, self.gvar['base_group'])
+        wta.assertNotExists('alias', alias_name, self.gvar['base_group'])
 
     @unittest.skip("Not working in production")
     def test_web_alias_delete(self):
@@ -96,7 +96,7 @@ class TestWebAliasSuperUser(unittest.TestCase):
         self.page.click_cloud_checkbox(self.gvar['user'] + '-wic1')
         self.page.click_update_alias()
         self.assertFalse(self.page.side_button_exists(alias_name))
-        wta.assertDeleted('alias', alias_name, self.gvar['base_group'])
+        wta.assertNotExists('alias', alias_name, self.gvar['base_group'])
 
     def test_web_alias_find(self):
         pass
@@ -107,7 +107,7 @@ class TestWebAliasSuperUser(unittest.TestCase):
         self.page.click_side_button(alias_name)
         self.page.click_cloud_checkbox(cloud_name)
         self.page.click_update_alias()
-        wta.assertHasAttributeNoNameFlag('alias', alias_name, 'clouds', cloud_name, self.gvar['base_group'])
+        wta.assertHasAttribute('alias', alias_name, 'clouds', cloud_name, group=self.gvar['base_group'], name_field=False)
 
     def test_web_alias_update_cloud_remove(self):
         alias_name = self.gvar['user'] + '-wia2'
@@ -115,7 +115,7 @@ class TestWebAliasSuperUser(unittest.TestCase):
         self.page.click_side_button(alias_name)
         self.page.click_cloud_checkbox(cloud_name)
         self.page.click_update_alias()
-        wta.assertHasNotAttributeNoNameFlag('alias', alias_name, 'clouds', cloud_name, self.gvar['base_group'])
+        wta.assertHasNotAttribute('alias', alias_name, 'clouds', cloud_name, group=self.gvar['base_group'], name_field=False)
 
     @classmethod
     def tearDownClass(cls):
@@ -141,7 +141,7 @@ class TestWebAliasRegularUser(unittest.TestCase):
         self.page.click_cloud_checkbox(self.gvar['user'] + '-wic1')
         self.page.click_add_alias()
         self.assertTrue(self.page.side_button_exists(alias_name))
-        wta.assertAdded('alias', alias_name, self.gvar['base_group'])
+        wta.assertExists('alias', alias_name, self.gvar['base_group'])
 
     def test_web_alias_add_without_name(self):
         self.page.click_add_button()
@@ -157,7 +157,7 @@ class TestWebAliasRegularUser(unittest.TestCase):
         self.page.click_cloud_checkbox(cloud_name)
         self.page.click_add_alias()
         self.assertTrue(self.page.error_message_displayed())
-        wta.assertHasNotAttributeNoNameFlag('alias', alias_name, 'clouds', cloud_name, self.gvar['base_group'])
+        wta.assertHasNotAttribute('alias', alias_name, 'clouds', cloud_name, group=self.gvar['base_group'], name_field=False)
 
     def test_web_alias_add_name_with_symbols(self):
         alias_name = 'inv@|id-web-te$t'
@@ -167,7 +167,7 @@ class TestWebAliasRegularUser(unittest.TestCase):
         self.page.click_cloud_checkbox(cloud_name)
         self.page.click_add_alias()
         self.assertTrue(self.page.error_message_displayed())
-        wta.assertNotAdded('alias', alias_name, self.gvar['base_group'])
+        wta.assertNotExists('alias', alias_name, self.gvar['base_group'])
 
     def test_web_alias_add_name_with_two_dashes(self):
         alias_name = 'invalid--web--test'
@@ -177,7 +177,7 @@ class TestWebAliasRegularUser(unittest.TestCase):
         self.page.click_cloud_checkbox(cloud_name)
         self.page.click_add_alias()
         self.assertTrue(self.page.error_message_displayed())
-        wta.assertNotAdded('alias', alias_name, self.gvar['base_group'])
+        wta.assertNotExists('alias', alias_name, self.gvar['base_group'])
 
     def test_web_alias_add_name_with_uppercase(self):
         alias_name = 'INVALID-WEB-TEST'
@@ -187,7 +187,7 @@ class TestWebAliasRegularUser(unittest.TestCase):
         self.page.click_cloud_checkbox(cloud_name)
         self.page.click_add_alias()
         self.assertTrue(self.page.error_message_displayed())
-        wta.assertNotAdded('alias', alias_name, self.gvar['base_group'])
+        wta.assertNotExists('alias', alias_name, self.gvar['base_group'])
 
     def test_web_alias_add_name_with_starting_ending_dash(self):
         alias_name = '-invalid-web-test-'
@@ -197,7 +197,7 @@ class TestWebAliasRegularUser(unittest.TestCase):
         self.page.click_cloud_checkbox(cloud_name)
         self.page.click_add_alias()
         self.assertTrue(self.page.error_message_displayed())
-        wta.assertNotAdded('alias', alias_name, self.gvar['base_group'])
+        wta.assertNotExists('alias', alias_name, self.gvar['base_group'])
 
     def test_web_alias_add_without_cloud(self):
         alias_name = self.gvar['user'] + '-wia5'
@@ -205,7 +205,7 @@ class TestWebAliasRegularUser(unittest.TestCase):
         self.page.type_alias_name(alias_name)
         self.page.click_add_alias()
         self.assertTrue(self.page.error_message_displayed())
-        wta.assertNotAdded('alias', alias_name, self.gvar['base_group'])
+        wta.assertNotExists('alias', alias_name, self.gvar['base_group'])
 
     @unittest.skip("Not working in production")
     def test_web_alias_delete(self):
@@ -214,7 +214,7 @@ class TestWebAliasRegularUser(unittest.TestCase):
         self.page.click_cloud_checkbox(self.gvar['user'] + '-wic1')
         self.page.click_update_alias()
         self.assertFalse(self.page.side_button_exists(alias_name))
-        wta.assertDeleted('alias', alias_name, self.gvar['base_group'])
+        wta.assertNotExists('alias', alias_name, self.gvar['base_group'])
 
     def test_web_alias_find(self):
         pass
@@ -225,7 +225,7 @@ class TestWebAliasRegularUser(unittest.TestCase):
         self.page.click_side_button(alias_name)
         self.page.click_cloud_checkbox(cloud_name)
         self.page.click_update_alias()
-        wta.assertHasAttributeNoNameFlag('alias', alias_name, 'clouds', cloud_name, self.gvar['base_group'])
+        wta.assertHasAttribute('alias', alias_name, 'clouds', cloud_name, group=self.gvar['base_group'], name_field=False)
 
     def test_web_alias_update_cloud_remove(self):
         alias_name = self.gvar['user'] + '-wia2'
@@ -233,7 +233,7 @@ class TestWebAliasRegularUser(unittest.TestCase):
         self.page.click_side_button(alias_name)
         self.page.click_cloud_checkbox(cloud_name)
         self.page.click_update_alias()
-        wta.assertHasNotAttributeNoNameFlag('alias', alias_name, 'clouds', cloud_name, self.gvar['base_group'])
+        wta.assertHasNotAttribute('alias', alias_name, 'clouds', cloud_name, group=self.gvar['base_group'], name_field=False)
 
     @classmethod
     def tearDownClass(cls):

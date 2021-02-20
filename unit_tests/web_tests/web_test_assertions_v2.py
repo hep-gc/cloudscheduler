@@ -69,7 +69,7 @@ def assertHasAttribute(type, name, attribute, attribute_name, group=None, err=No
 
     if metadata_cloud:
         list_objects('cloud', columns, metadata_cloud, group, name, defaults)
-    elif defaults:
+    elif defaults or not name_field:
         list_objects(type, columns, None, group, None, defaults)
     else:
         list_objects(type, columns, name, group, None, defaults)
@@ -146,6 +146,8 @@ def assertHasNotAttribute(type, name, attribute, attribute_name, group=None, err
 
     if metadata_cloud:
         list_objects('cloud', columns, metadata_cloud, group, name, defaults)
+    elif defaults or not name_field:
+        list_objects(type, columns, None, group, None, defaults)
     else:
         list_objects(type, columns, name, group, None, defaults)
 
@@ -205,12 +207,12 @@ def assertHasNotAttribute(type, name, attribute, attribute_name, group=None, err
                     if item == attribute_name:
                         object_file.close()
                         return
-            object_file.close()
-            if is_retry:
-                raise AssertionError()
-            else:
-                sleep(sleep_time)
-                assertHasNotAttribute(type, name, attribute, attribute_name, group, err, metadata_cloud, defaults, name_field, True)
+        object_file.close()
+        if is_retry:
+            raise AssertionError()
+        else:
+            sleep(sleep_time)
+            assertHasNotAttribute(type, name, attribute, attribute_name, group, err, metadata_cloud, defaults, name_field, True)
 
 def list_objects(type, columns, name, group, metadata, defaults):
     object_file = None
