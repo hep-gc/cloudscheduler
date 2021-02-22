@@ -206,13 +206,12 @@ def assertHasNotAttribute(type, name, attribute, attribute_name, group=None, err
                 for item in list[1:]:
                     if item == attribute_name:
                         object_file.close()
-                        return
+                        if is_retry:
+                            raise AssertionError()
+                        else:
+                            sleep(sleep_time)
+                            assertHasNotAttribute(type, name, attribute, attribute_name, group, err, metadata_cloud, name_field, True)
         object_file.close()
-        if is_retry:
-            raise AssertionError()
-        else:
-            sleep(sleep_time)
-            assertHasNotAttribute(type, name, attribute, attribute_name, group, err, metadata_cloud, defaults, name_field, True)
 
 def list_objects(type, columns, name, group, metadata, defaults):
     object_file = None
