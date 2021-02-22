@@ -38,6 +38,18 @@ def setup_objects(objects=[]):
     gvar['base_group'] = gvar['user'] + '-wig0'
     subprocess.run(['cloudscheduler', 'group', 'add', '-gn', gvar['base_group'], '-un', gvar['user'], '-htcf', gvar['fqdn']], stdout=subprocess.DEVNULL)
 
+    #setup gvar additions
+    oversize = {}
+    oversize['varchar_20'] = 'invalid-web-test-20-char'
+    oversize['varchar_32'] = 'invalid-web-test-too-long-32-char'
+    oversize['varchar_64'] = 'invalid-web-test-string-that-is-too-long-for-64-character-sql-data-field'
+    oversize['varchar_128'] = 'invalid-web-test-data-example-for-testing-string-that-is-too-long-for-a-one-hundred-and-twenty-eight-character-sql-database-field'
+    oversize['varchar_256'] = 'invalid-web-test-data-example-for-testing-string-that-is-too-long-for-a-two-hundred-and-fifty-six-character-sql-database-field-and-is-also-lowerdash-compliant-so-that-verification-looking-for-lowerdash-compliant-strings-will-not-get-tripped-up-and-throw-an-error'
+    oversize['varchar_512'] = 'invalid-web-test-data-example-for-testing-string-that-is-too-long-for-a-five-hundred-and-twelve-character-sql-database-field-and-is-also-lowerdash-compliant-so-that-verification-looking-for-lowerdash-compliant-strings-will-not-get-tripped-up-and-throw-an-error-and-is-also-this-extremely-long-because-some-database-fields-have-their-length-cut-off-at-five-hundred-and-twelve-characters-so-tests-for-those-fields-require-a-string-that-is-over-five-hundred-and-twelve-characters-long-which-is-why-this-is-created-in-the-setup-because-this-would-be-a-hassle-to-type-every-time'
+    oversize['int_11'] = 2147483690
+    oversize['bigint_20'] = 9223372036854775810
+    gvar['oversize'] = oversize
+
     #add groups
     groups_num = 0
     if 'groups' in objects:
