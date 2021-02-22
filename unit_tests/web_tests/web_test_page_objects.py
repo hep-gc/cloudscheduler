@@ -592,7 +592,7 @@ class UsersPage(Page):
         wtjsi.javascript_click_by_link_text(self.driver, name)
         self.active_user = name
 
-    def type_user_name(self, name):
+    def type_username(self, name):
         wti.fill_blank_by_id(self.driver, 'new_user', name)
 
     def type_password(self, password, alt_password=None):
