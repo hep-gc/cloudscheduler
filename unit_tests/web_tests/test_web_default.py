@@ -32,6 +32,16 @@ class TestWebDefaultSuperUser(unittest.TestCase):
         self.page.click_update_group()
         wta.assertHasAttribute('group', group_name, 'htcondor_fqdn', 'csv2-dev2.heprc.uvic.ca', group=group_name, defaults=True)
 
+    def test_web_default_update_htcondor_fqdn_invalid(self):
+        group_name = self.gvar['user'] + '-wig2'
+        self.page.switch_default_group(group_name)
+        self.page.click_side_button(group_name)
+        self.page.click_side_tab('Settings')
+        self.page.type_htcondor_fqdn('invalid-web-test')
+        self.page.click_update_group()
+        self.assertTrue(self.page.error_message_displayed())
+        wta.assertHasNotAttribute('group', group_name, 'htcondor_fqdn', 'invalid-web-test', group=group_name, defaults=True)
+
     def test_web_default_update_htcondor_container_hostname(self):
         group_name = self.gvar['user'] + '-wig2'
         self.page.switch_default_group(group_name)
@@ -57,12 +67,44 @@ class TestWebDefaultSuperUser(unittest.TestCase):
         self.page.click_update_group()
         wta.assertHasAttribute('group', self.group_name, 'job_cpus', '8', group=self.group_name, defaults=True)
 
+    def test_web_default_update_job_cpus_float(self):
+        self.page.click_side_button(self.group_name)
+        self.page.click_side_tab('Settings')
+        self.page.type_job_cpus('8.5')
+        self.page.click_update_group()
+        self.assertTrue(self.page.error_message_displayed())
+        wta.assertHasNotAttribute('group', self.group_name, 'job_cpus', '8.5', group=self.group_name, defaults=True)
+
+    def test_web_default_update_job_cpus_string(self):
+        self.page.click_side_button(self.group_name)
+        self.page.click_side_tab('Settings')
+        self.page.type_job_cpus('invalid-web-test')
+        self.page.click_update_group()
+        self.assertTrue(self.page.error_message_displayed())
+        wta.assertHasNotAttribute('group', self.group_name, 'job_cpus', 'invalid-web-test', group=self.group_name, defaults=True)
+
     def test_web_default_update_job_ram(self):
         self.page.click_side_button(self.group_name)
         self.page.click_side_tab('Settings')
         self.page.type_job_ram('1024')
         self.page.click_update_group()
         wta.assertHasAttribute('group', self.group_name, 'job_ram', '1024', group=self.group_name, defaults=True)
+
+    def test_web_default_update_job_ram_float(self):
+        self.page.click_side_button(self.group_name)
+        self.page.click_side_tab('Settings')
+        self.page.type_job_ram('1024.5')
+        self.page.click_update_group()
+        self.assertTrue(self.page.error_message_displayed())
+        wta.assertHasNotAttribute('group', self.group_name, 'job_ram', '1024.5', group=self.group_name, defaults=True)
+
+    def test_web_default_update_job_ram_string(self):
+        self.page.click_side_button(self.group_name)
+        self.page.click_side_tab('Settings')
+        self.page.type_job_ram('invalid-web-test')
+        self.page.click_update_group()
+        self.assertTrue(self.page.error_message_displayed())
+        wta.assertHasNotAttribute('group', self.group_name, 'job_ram', 'invalid-web-test', group=self.group_name, defaults=True)
 
     def test_web_default_update_job_disk(self):
         self.page.click_side_button(self.group_name)
@@ -71,12 +113,44 @@ class TestWebDefaultSuperUser(unittest.TestCase):
         self.page.click_update_group()
         wta.assertHasAttribute('group', self.group_name, 'job_disk', '4', group=self.group_name, defaults=True)
 
+    def test_web_default_update_job_disk_float(self):
+        self.page.click_side_button(self.group_name)
+        self.page.click_side_tab('Settings')
+        self.page.type_job_disk('8.5')
+        self.page.click_update_group()
+        self.assertTrue(self.page.error_message_displayed())
+        wta.assertHasNotAttribute('group', self.group_name, 'job_disk', '4.5', group=self.group_name, defaults=True)
+
+    def test_web_default_update_job_disk_string(self):
+        self.page.click_side_button(self.group_name)
+        self.page.click_side_tab('Settings')
+        self.page.type_job_disk('invalid-web-test')
+        self.page.click_update_group()
+        self.assertTrue(self.page.error_message_displayed())
+        wta.assertHasNotAttribute('group', self.group_name, 'job_disk', 'invalid-web-test', group=self.group_name, defaults=True)
+
     def test_web_default_update_job_swap(self):
         self.page.click_side_button(self.group_name)
         self.page.click_side_tab('Settings')
         self.page.type_job_swap('2')
         self.page.click_update_group()
         wta.assertHasAttribute('group', self.group_name, 'job_swap', '2', group=self.group_name, defaults=True)
+
+    def test_web_default_update_job_swap_float(self):
+        self.page.click_side_button(self.group_name)
+        self.page.click_side_tab('Settings')
+        self.page.type_job_swap('2.5')
+        self.page.click_update_group()
+        self.assertTrue(self.page.error_message_displayed())
+        wta.assertHasNotAttribute('group', self.group_name, 'job_swap', '2.5', group=self.group_name, defaults=True)
+
+    def test_web_default_update_job_swap_string(self):
+        self.page.click_side_button(self.group_name)
+        self.page.click_side_tab('Settings')
+        self.page.type_job_swap('invalid-web-test')
+        self.page.click_update_group()
+        self.assertTrue(self.page.error_message_displayed())
+        wta.assertHasNotAttribute('group', self.group_name, 'job_swap', 'invalid-web-test', group=self.group_name, defaults=True)
 
     @unittest.skip("TODO: implement")
     def test_web_default_update_vm_keyname(self):
@@ -109,6 +183,22 @@ class TestWebDefaultSuperUser(unittest.TestCase):
         self.page.type_vm_keep_alive('2048')
         self.page.click_update_group()
         wta.assertHasAttribute('group', self.group_name, 'vm_keep_alive', '2048', group=self.group_name, defaults=True)
+
+    def test_web_default_update_vm_keep_alive_float(self):
+        self.page.click_side_button(self.group_name)
+        self.page.click_side_tab('Settings')
+        self.page.type_vm_keep_alive('2048.5')
+        self.page.click_update_group()
+        self.assertTrue(self.page.error_message_displayed())
+        wta.assertHasNotAttribute('group', self.group_name, 'vm_keep_alive', '2048.5', group=self.group_name, defaults=True)
+
+    def test_web_default_update_vm_keep_alive_string(self):
+        self.page.click_side_button(self.group_name)
+        self.page.click_side_tab('Settings')
+        self.page.type_vm_keep_alive('invalid-web-test')
+        self.page.click_update_group()
+        self.assertTrue(self.page.error_message_displayed())
+        wta.assertHasNotAttribute('group', self.group_name, 'vm_keep_alive', 'invalid-web-test', group=self.group_name, defaults=True)
 
     def test_web_default_metadata_add(self):
         # Adds metadata to a group
