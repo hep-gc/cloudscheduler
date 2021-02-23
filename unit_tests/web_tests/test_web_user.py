@@ -246,19 +246,6 @@ class TestWebUser(unittest.TestCase):
         self.assertFalse(self.page.side_button_exists(username))
         wta.assertNotExists('user', username)
 
-    def test_web_user_add_password_too_long(self):
-        # Tries to add a user with a password that's too long for the database
-        username = self.gvar['user'] + '-wiu9'
-        group_name = self.gvar['user'] + '-wig3'
-        password = self.oversize['varchar_128']
-        self.page.click_add_button()
-        self.page.type_username(username)
-        self.page.type_password(password)
-        self.page.click_group_checkbox(group_name)
-        self.page.click_add_user()
-        self.assertFalse(self.page.side_button_exists(username))
-        wta.assertNotExists('user', username)
-
     def test_web_user_update_password(self):
         # Changes a user's password
         username = self.gvar['user'] + '-wiu4'
@@ -307,14 +294,6 @@ class TestWebUser(unittest.TestCase):
         self.page.type_password('ABCDabcd')
         self.page.click_update_user()
         self.assertTrue(self.page.error_message_displayed())
-
-    def test_web_user_update_password_too_long(self):
-        # Tries to change a user's password to one that's too long for the database
-        username = self.gvar['user'] + '-wiu4'
-        self.page.click_side_button(username)
-        self.page.type_password(self.oversize['varchar_128'])
-        self.page.click_update_user()
-        #TODO: figure out how to test this
 
     @unittest.skip("No current infrastructure to test this.")
     def test_web_user_update_cert_cn(self):

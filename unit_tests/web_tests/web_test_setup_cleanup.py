@@ -43,7 +43,7 @@ def setup_objects(objects=[]):
     oversize['varchar_20'] = 'invalid-web-test-20-char'
     oversize['varchar_32'] = 'invalid-web-test-too-long-32-char'
     oversize['varchar_64'] = 'invalid-web-test-string-that-is-too-long-for-64-character-sql-data-field'
-    oversize['varchar_128'] = 'invalid-web-test-data-example-for-testing-string-that-is-too-long-for-a-one-hundred-and-twenty-eight-character-sql-database-field'
+    oversize['varchar_128'] = 'invalid-web-test-data-example-for-testing-string-that-is-too-long-for-a-one-hundred-and-twenty-eight-character-sql-database-field-and-is-lowerdash'
     oversize['varchar_256'] = 'invalid-web-test-data-example-for-testing-string-that-is-too-long-for-a-two-hundred-and-fifty-six-character-sql-database-field-and-is-also-lowerdash-compliant-so-that-verification-looking-for-lowerdash-compliant-strings-will-not-get-tripped-up-and-throw-an-error'
     oversize['varchar_512'] = 'invalid-web-test-data-example-for-testing-string-that-is-too-long-for-a-five-hundred-and-twelve-character-sql-database-field-and-is-also-lowerdash-compliant-so-that-verification-looking-for-lowerdash-compliant-strings-will-not-get-tripped-up-and-throw-an-error-and-is-also-this-extremely-long-because-some-database-fields-have-their-length-cut-off-at-five-hundred-and-twelve-characters-so-tests-for-those-fields-require-a-string-that-is-over-five-hundred-and-twelve-characters-long-which-is-why-this-is-created-in-the-setup-because-this-would-be-a-hassle-to-type-every-time'
     oversize['int_11'] = 2147483690
@@ -193,9 +193,9 @@ def cleanup_objects():
 
     delete_by_type(gvar, ['cloud', '-wic', '-cn', 'cloud_name', ['-g', gvar['user'] + '-wig1']], 1)
     delete_by_type(gvar, ['metadata', '-wim', '-mn', 'metadata_name', ['-g', gvar['user'] + '-wig1']], 9)
-    delete_by_type(gvar, ['cloud', '-wic', '-cn', 'cloud_name', ['-g', gvar['base_group']]], 5)
-    delete_by_type(gvar, ['user', '-wiu', '-un', 'username', []], 8)
-    delete_by_type(gvar, ['group', '-wig', '-gn', 'group_name', []], 7)
+    delete_by_type(gvar, ['cloud', '-wic', '-cn', 'cloud_name', ['-g', gvar['base_group']]], 6)
+    delete_by_type(gvar, ['user', '-wiu', '-un', 'username', []], 9)
+    delete_by_type(gvar, ['group', '-wig', '-gn', 'group_name', []], 8)
     
     # This group must be deleted last - it is the containing group for clouds
     # and cleanup will fail if it is deleted earlier.

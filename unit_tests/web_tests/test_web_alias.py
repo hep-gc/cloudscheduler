@@ -10,6 +10,7 @@ class TestWebAliasSuperUser(unittest.TestCase):
     def setUpClass(cls):
         wtsc.setup(cls, 2, ['aliases'])
         cls.page = pages.AliasesPage(cls.driver)
+        cls.oversize = cls.gvar['oversize']
         print("\nAlias Tests (Super User):")
 
     def setUp(self):
@@ -81,6 +82,16 @@ class TestWebAliasSuperUser(unittest.TestCase):
         self.assertTrue(self.page.error_message_displayed())
         wta.assertNotExists('alias', alias_name, self.gvar['base_group'])
 
+    def test_web_alias_add_name_too_long(self):
+        alias_name = self.oversize['varchar_32']
+        cloud_name = self.gvar['user'] + '-wic2'
+        self.page.click_add_button()
+        self.page.type_alias_name(alias_name)
+        self.page.click_cloud_checkbox(cloud_name)
+        self.page.click_add_alias()
+        self.assertTrue(self.page.error_message_displayed())
+        wta.assertNotExists('alias', alias_name, self.gvar['base_group'])
+
     def test_web_alias_add_without_cloud(self):
         alias_name = self.gvar['user'] + '-wia5'
         self.page.click_add_button()
@@ -128,6 +139,7 @@ class TestWebAliasRegularUser(unittest.TestCase):
     def setUpClass(cls):
         wtsc.setup(cls, 1, ['aliases'])
         cls.page = pages.AliasesPage(cls.driver)
+        cls.oversize = cls.gvar['oversize']
         print("\nAlias Tests (Regular User):")
 
     def setUp(self):
@@ -191,6 +203,16 @@ class TestWebAliasRegularUser(unittest.TestCase):
 
     def test_web_alias_add_name_with_starting_ending_dash(self):
         alias_name = '-invalid-web-test-'
+        cloud_name = self.gvar['user'] + '-wic2'
+        self.page.click_add_button()
+        self.page.type_alias_name(alias_name)
+        self.page.click_cloud_checkbox(cloud_name)
+        self.page.click_add_alias()
+        self.assertTrue(self.page.error_message_displayed())
+        wta.assertNotExists('alias', alias_name, self.gvar['base_group'])
+
+    def test_web_alias_add_name_too_long(self):
+        alias_name = self.oversize['varchar_32']
         cloud_name = self.gvar['user'] + '-wic2'
         self.page.click_add_button()
         self.page.type_alias_name(alias_name)
