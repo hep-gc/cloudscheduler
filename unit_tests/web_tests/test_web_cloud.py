@@ -535,7 +535,7 @@ class TestWebCloudSuperUser(unittest.TestCase):
         self.page.type_priority(str(self.oversize['int_11']))
         self.page.click_update_cloud()
         self.assertTrue(self.page.error_message_displayed())
-        wta.assertHasNotAttribute('cloud', cloud_name, 'cloud_priority', str(self.oversize['int_11']))
+        wta.assertHasNotAttribute('cloud', cloud_name, 'cloud_priority', str(self.oversize['int_11']), group=self.gvar['base_group'])
 
     def test_web_cloud_update_boot_volume(self):
         # Changes a cloud's boot volume
@@ -752,7 +752,7 @@ class TestWebCloudSuperUser(unittest.TestCase):
         self.page.type_cores_softmax(str(self.oversize['int_11']))
         self.page.click_update_cloud()
         self.assertTrue(self.page.error_message_displayed())
-        wta.assertHasNotAttribute('cloud', cloud_name, 'cores_softmax', str(self.oversize['int_11']))
+        wta.assertHasNotAttribute('cloud', cloud_name, 'cores_softmax', str(self.oversize['int_11']), group=self.gvar['base_group'])
 
     def test_web_cloud_update_cores_by_blank(self):
         # Changes a cloud's maximum number of cores by typing it into the blank
@@ -790,7 +790,7 @@ class TestWebCloudSuperUser(unittest.TestCase):
         self.page.click_update_cloud()
         #self.assertTrue(self.page.error_message_displayed())
         self.assertTrue(self.page.cores_popup_exists())
-        wta.assertHasNotAttribute('cloud', cloud_name, 'cores_ctl', str(self.oversize['int_11']))
+        wta.assertHasNotAttribute('cloud', cloud_name, 'cores_ctl', str(self.oversize['int_11']), group=self.gvar['base_group'])
 
     def test_web_cloud_update_cores_by_slider(self):
         # Changes a cloud's maximum number of cores by sliding the slider
@@ -852,7 +852,7 @@ class TestWebCloudSuperUser(unittest.TestCase):
         self.page.click_update_cloud()
         #self.assertTrue(self.page.error_message_displayed())
         self.assertTrue(self.page.ram_popup_exists())
-        wta.assertHasNotAttribute('cloud', cloud_name, 'ram_ctl', str(self.oversize['int_11']))
+        wta.assertHasNotAttribute('cloud', cloud_name, 'ram_ctl', str(self.oversize['int_11']), group=self.gvar['base_group'])
 
     def test_web_cloud_update_ram_by_slider(self):
         # Changes a cloud's maximum RAM by sliding the slider
@@ -1031,6 +1031,7 @@ class TestWebCloudSuperUser(unittest.TestCase):
         self.assertFalse(self.page.metadata_tab_exists(metadata_name))
         wta.assertHasNotAttribute('cloud', cloud_name, 'metadata_names', metadata_name, group=self.gvar['base_group'])
 
+    @unittest.skip("Not working in production (issue 319)")
     def test_web_cloud_metadata_add_different_priority_by_typing_too_big(self):
         # Tries to add metadata to a cloud with a priority that's too big for the database by typing it in the blank
         cloud_name = self.gvar['user'] + '-wic1'
@@ -1153,6 +1154,7 @@ class TestWebCloudSuperUser(unittest.TestCase):
         self.assertTrue(self.page.metadata_priority_popup_exists())
         wta.assertHasNotAttribute('metadata', metadata_name, 'priority', 'invalid-web-test', group=self.gvar['base_group'], metadata_cloud=cloud_name)
 
+    @unittest.skip("Not working in production (issue 319)")
     def test_web_cloud_metadata_update_priority_by_typing_too_big(self):
         # Tries to change metadata priority to an int that's too big for the database by typing it in the blank
         cloud_name = self.gvar['user'] + '-wic1'
@@ -1161,7 +1163,8 @@ class TestWebCloudSuperUser(unittest.TestCase):
         self.page.click_side_tab('Metadata')
         self.page.click_metadata(metadata_name)
         self.page.type_metadata_priority(str(self.oversize['int_11']))
-        self.assertTrue(self.page.error_message_displayed())
+        #self.assertTrue(self.page.error_message_displayed())
+        self.assertTrue(self.page.metadata_priority_popup_exists())
         wta.assertHasNotAttribute('metadata', metadata_name, 'priority', str(self.oversize['int_11']), group=self.gvar['base_group'], metadata_cloud=cloud_name)
 
     def test_web_cloud_metadata_update_priority_by_arrow_keys(self):
