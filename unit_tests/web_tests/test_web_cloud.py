@@ -815,7 +815,7 @@ class TestWebCloudSuperUser(unittest.TestCase):
         self.page.click_side_button(cloud_name)
         self.page.increment_cores_by_arrows(self.oversize['int_11'])
         self.page.click_update_cloud()
-        wta.assertHasNotAttribute('cloud', cloud_name, 'cores_ctl', str(self.oversize['int_11']))
+        wta.assertHasNotAttribute('cloud', cloud_name, 'cores_ctl', str(self.oversize['int_11']), group=self.gvar['base_group'])
 
     def test_web_cloud_update_ram_by_blank(self):
         # Changes a cloud's maximum RAM by typing it into the blank
@@ -1269,6 +1269,7 @@ class TestWebCloudRegularUser(unittest.TestCase):
         wtsc.setup(cls, 1, ['clouds'])
         cls.credentials = cls.gvar['cloud_credentials']
         cls.page = pages.CloudsPage(cls.driver)
+        cls.oversize = cls.gvar['oversize']
         print("\nCloud Tests (Regular User):")
 
     def setUp(self):
@@ -1442,6 +1443,25 @@ class TestWebCloudRegularUser(unittest.TestCase):
         self.assertFalse(self.page.side_button_exists(cloud_name))
         wta.assertNotExists('cloud', cloud_name, group=self.gvar['base_group'])
 
+    def test_web_cloud_add_name_too_long(self):
+        # Tries to add a cloud with a name that's too long for the database
+        cloud_name = self.oversize['varchar_32']
+        self.page.click_add_button()
+        self.page.type_priority('0')
+        self.page.type_cloud_name(cloud_name)
+        self.page.select_cloud_type('openstack')
+        self.page.type_url(self.credentials['authurl'])
+        self.page.type_region(self.credentials['region'])
+        self.page.type_project(self.credentials['project'])
+        self.page.type_username(self.credentials['username'])
+        self.page.type_password(self.credentials['password'])
+        self.page.type_user_domain_name('Default')
+        self.page.type_project_domain_name('default')
+        self.page.click_add_cloud()
+        self.assertTrue(self.page.error_message_displayed())
+        self.assertFalse(self.page.side_button_exists(cloud_name))
+        wta.assertNotExists('cloud', cloud_name, group=self.gvar['base_group'])
+
     def test_web_cloud_add_priority_float(self):
         # Tries to add a cloud with a float value for priority
         cloud_name = self.gvar['user'] + '-wic6'
@@ -1478,6 +1498,24 @@ class TestWebCloudRegularUser(unittest.TestCase):
         self.assertFalse(self.page.side_button_exists(cloud_name))
         wta.assertNotExists('cloud', cloud_name, group=self.gvar['base_group'])
 
+    def test_web_cloud_add_priority_too_big(self):
+        # Tries to add a cloud with a priority that's too big for the database
+        cloud_name = self.gvar['user'] + '-wic6'
+        self.page.click_add_button()
+        self.page.type_priority(str(self.oversize['int_11']))
+        self.page.select_cloud_type('openstack')
+        self.page.type_url(self.credentials['authurl'])
+        self.page.type_region(self.credentials['region'])
+        self.page.type_project(self.credentials['project'])
+        self.page.type_username(self.credentials['username'])
+        self.page.type_password(self.credentials['password'])
+        self.page.type_user_domain_name('Default')
+        self.page.type_project_domain_name('default')
+        self.page.click_add_cloud()
+        self.assertTrue(self.page.error_message_displayed())
+        self.assertFalse(self.page.side_button_exists(cloud_name))
+        wta.assertNotExists('cloud', cloud_name, group=self.gvar['base_group'])
+
     def test_web_cloud_add_without_url(self):
         # Tries to add a cloud without an authurl
         cloud_name = self.gvar['user'] + '-wic6'
@@ -1494,6 +1532,24 @@ class TestWebCloudRegularUser(unittest.TestCase):
         self.page.type_project_domain_name('default')
         self.page.click_add_cloud()
         self.assertTrue(self.page.error_message_displayed())
+        wta.assertNotExists('cloud', cloud_name, group=self.gvar['base_group'])
+
+    def test_web_cloud_add_url_too_long(self):
+        # Tries to add a cloud with an authurl that's too long for the database
+        cloud_name = self.gvar['user'] + '-wic6'
+        self.page.click_add_button()
+        self.page.type_priority('0')
+        self.page.select_cloud_type('openstack')
+        self.page.type_url(self.oversize['varchar_128'])
+        self.page.type_region(self.credentials['region'])
+        self.page.type_project(self.credentials['project'])
+        self.page.type_username(self.credentials['username'])
+        self.page.type_password(self.credentials['password'])
+        self.page.type_user_domain_name('Default')
+        self.page.type_project_domain_name('default')
+        self.page.click_add_cloud()
+        self.assertTrue(self.page.error_message_displayed())
+        self.assertFalse(self.page.side_button_exists(cloud_name))
         wta.assertNotExists('cloud', cloud_name, group=self.gvar['base_group'])
 
     def test_web_cloud_add_without_region(self):
@@ -1514,6 +1570,42 @@ class TestWebCloudRegularUser(unittest.TestCase):
         self.assertTrue(self.page.error_message_displayed())
         wta.assertNotExists('cloud', cloud_name, group=self.gvar['base_group'])
 
+    def test_web_cloud_add_region_too_long(self):
+        # Tries to add a cloud with a region that's too long for the database
+        cloud_name = self.gvar['user'] + '-wic6'
+        self.page.click_add_button()
+        self.page.type_priority('0')
+        self.page.select_cloud_type('openstack')
+        self.page.type_url(self.credentials['authurl'])
+        self.page.type_region(self.oversize['varchar_32'])
+        self.page.type_project(self.credentials['project'])
+        self.page.type_username(self.credentials['username'])
+        self.page.type_password(self.credentials['password'])
+        self.page.type_user_domain_name('Default')
+        self.page.type_project_domain_name('default')
+        self.page.click_add_cloud()
+        self.assertTrue(self.page.error_message_displayed())
+        self.assertFalse(self.page.side_button_exists(cloud_name))
+        wta.assertNotExists('cloud', cloud_name, group=self.gvar['base_group'])
+
+    def test_web_cloud_add_project_too_long(self):
+        # Tries to add a cloud with a project that's too long for the database
+        cloud_name = self.gvar['user'] + '-wic6'
+        self.page.click_add_button()
+        self.page.type_priority('0')
+        self.page.select_cloud_type('openstack')
+        self.page.type_url(self.credentials['authurl'])
+        self.page.type_region(self.credentials['region'])
+        self.page.type_project(self.oversize['varchar_128'])
+        self.page.type_username(self.credentials['username'])
+        self.page.type_password(self.credentials['password'])
+        self.page.type_user_domain_name('Default')
+        self.page.type_project_domain_name('default')
+        self.page.click_add_cloud()
+        self.assertTrue(self.page.error_message_displayed())
+        self.assertFalse(self.page.side_button_exists(cloud_name))
+        wta.assertNotExists('cloud', cloud_name, group=self.gvar['base_group'])
+
     def test_web_cloud_add_without_username(self):
         # Tries to add a cloud without a username
         cloud_name = self.gvar['user'] + '-wic6'
@@ -1530,6 +1622,24 @@ class TestWebCloudRegularUser(unittest.TestCase):
         self.page.type_project_domain_name('default')
         self.page.click_add_cloud()
         self.assertTrue(self.page.error_message_displayed())
+        wta.assertNotExists('cloud', cloud_name, group=self.gvar['base_group'])
+
+    def test_web_cloud_add_username_too_long(self):
+        # Tries to add a cloud with a username that's too long for the database
+        cloud_name = self.gvar['user'] + '-wic6'
+        self.page.click_add_button()
+        self.page.type_priority('0')
+        self.page.select_cloud_type('openstack')
+        self.page.type_url(self.credentials['authurl'])
+        self.page.type_region(self.credentials['region'])
+        self.page.type_project(self.credentials['project'])
+        self.page.type_username(self.oversize['varchar_20'])
+        self.page.type_password(self.credentials['password'])
+        self.page.type_user_domain_name('Default')
+        self.page.type_project_domain_name('default')
+        self.page.click_add_cloud()
+        self.assertTrue(self.page.error_message_displayed())
+        self.assertFalse(self.page.side_button_exists(cloud_name))
         wta.assertNotExists('cloud', cloud_name, group=self.gvar['base_group'])
 
     def test_web_cloud_add_without_password(self):
@@ -1568,6 +1678,24 @@ class TestWebCloudRegularUser(unittest.TestCase):
         self.assertTrue(self.page.error_message_displayed())
         wta.assertNotExists('cloud', cloud_name, group=self.gvar['base_group'])
 
+    def test_web_cloud_add_user_domain_name_too_long(self):
+        # Tries to add a cloud with a user domain name that's too long for the database
+        cloud_name = self.gvar['user'] + '-wic6'
+        self.page.click_add_button()
+        self.page.type_priority('0')
+        self.page.select_cloud_type('openstack')
+        self.page.type_url(self.credentials['authurl'])
+        self.page.type_region(self.credentials['region'])
+        self.page.type_project(self.credentials['project'])
+        self.page.type_username(self.credentials['username'])
+        self.page.type_password(self.credentials['password'])
+        self.page.type_user_domain_name(self.oversize['varchar_20'])
+        self.page.type_project_domain_name('default')
+        self.page.click_add_cloud()
+        self.assertTrue(self.page.error_message_displayed())
+        self.assertFalse(self.page.side_button_exists(cloud_name))
+        wta.assertNotExists('cloud', cloud_name, group=self.gvar['base_group'])
+
     def test_web_cloud_add_without_project_domain_name(self):
         # Tries to add a cloud without a project domain name
         cloud_name = self.gvar['user'] + '-wic6'
@@ -1584,6 +1712,24 @@ class TestWebCloudRegularUser(unittest.TestCase):
         self.page.type_user_domain_name('Default')
         self.page.click_add_cloud()
         self.assertTrue(self.page.error_message_displayed())
+        wta.assertNotExists('cloud', cloud_name, group=self.gvar['base_group'])
+
+    def test_web_cloud_add_project_domain_name_too_long(self):
+        # Tries to add a cloud with a project domain name that's too long for the database
+        cloud_name = self.gvar['user'] + '-wic6'
+        self.page.click_add_button()
+        self.page.type_priority('0')
+        self.page.select_cloud_type('openstack')
+        self.page.type_url(self.credentials['authurl'])
+        self.page.type_region(self.credentials['region'])
+        self.page.type_project(self.credentials['project'])
+        self.page.type_username(self.credentials['username'])
+        self.page.type_password(self.credentials['password'])
+        self.page.type_user_domain_name('Default')
+        self.page.type_project_domain_name(self.oversize['varchar_20'])
+        self.page.click_add_cloud()
+        self.assertTrue(self.page.error_message_displayed())
+        self.assertFalse(self.page.side_button_exists(cloud_name))
         wta.assertNotExists('cloud', cloud_name, group=self.gvar['base_group'])
 
     def test_web_cloud_find(self):
@@ -1639,6 +1785,15 @@ class TestWebCloudRegularUser(unittest.TestCase):
         self.page.click_update_cloud()
         self.assertTrue(self.page.error_message_displayed())
         wta.assertHasNotAttribute('cloud', cloud_name, 'cloud_priority', '3.5', group=self.gvar['base_group'])
+
+    def test_web_cloud_update_priority_too_big(self):
+        # Tries to change a cloud's priority to an int that's too big for the database
+        cloud_name = self.gvar['user'] + '-wic1'
+        self.page.click_side_button(cloud_name)
+        self.page.type_priority(str(self.oversize['int_11']))
+        self.page.click_update_cloud()
+        self.assertTrue(self.page.error_message_displayed())
+        wta.assertHasNotAttribute('cloud', cloud_name, 'cloud_priority', str(self.oversize['int_11']), group=self.gvar['base_group'])
 
     def test_web_cloud_update_boot_volume(self):
         # Changes a cloud's boot volume
@@ -1719,6 +1874,16 @@ class TestWebCloudRegularUser(unittest.TestCase):
         self.assertTrue(self.page.error_message_displayed())
         wta.assertHasNotAttribute('cloud', cloud_name, 'vm_boot_volume', boot_volume, group=self.gvar['base_group'])
 
+    def test_web_cloud_update_boot_volume_too_long(self):
+        # Tries to change a cloud's boot volume to one that's too long for the database
+        cloud_name = self.gvar['user'] + '-wic1'
+        boot_volume = self.oversize['varchar_64']
+        self.page.click_side_button(cloud_name)
+        self.page.type_boot_volume(boot_volume)
+        self.page.click_update_cloud()
+        self.assertTrue(self.page.error_message_displayed())
+        wta.assertHasNotAttribute('cloud', cloud_name, 'vm_boot_volume', boot_volume, group=self.gvar['base_group'])
+
     def test_web_cloud_update_add_security_group(self):
         # Adds a cloud to a security group
         cloud_name = self.gvar['user'] + '-wic1'
@@ -1792,6 +1957,15 @@ class TestWebCloudRegularUser(unittest.TestCase):
         self.page.click_update_cloud()
         self.assertTrue(self.page.error_message_displayed())
         wta.assertHasNotAttribute('cloud', cloud_name, 'vm_keep_alive', 'invalid-web-test', group=self.gvar['base_group'])
+
+    def test_web_cloud_update_vm_keep_alive_too_big(self):
+        # Tries to change a cloud's vm keep alive time to an int that's too big for the database
+        cloud_name = self.gvar['user'] + '-wic1'
+        self.page.click_side_button(cloud_name)
+        self.page.type_vm_keep_alive(str(self.oversize['int_11']))
+        self.page.click_update_cloud()
+        self.assertTrue(self.page.error_message_displayed())
+        wta.assertHasNotAttribute('cloud', cloud_name, 'vm_keep_alive', str(self.oversize['int_11']), group=self.gvar['base_group'])
   
     @unittest.skip("Needs Amazon cloud")
     def test_web_cloud_update_spot_price(self):
@@ -1829,6 +2003,15 @@ class TestWebCloudRegularUser(unittest.TestCase):
         self.assertTrue(self.page.error_message_displayed())
         wta.assertHasNotAttribute('cloud', cloud_name, 'cores_softmax', 'invalid-web-test', group=self.gvar['base_group'])
 
+    def test_web_cloud_update_cores_softmax_too_big(self):
+        # Tries to change a cloud's core softmax to an int that's too big for the database
+        cloud_name = self.gvar['user'] + '-wic1'
+        self.page.click_side_button(cloud_name)
+        self.page.type_cores_softmax(str(self.oversize['int_11']))
+        self.page.click_update_cloud()
+        self.assertTrue(self.page.error_message_displayed())
+        wta.assertHasNotAttribute('cloud', cloud_name, 'cores_softmax', str(self.oversize['int_11']), group=self.gvar['base_group'])
+
     def test_web_cloud_update_cores_by_blank(self):
         # Changes a cloud's maximum number of cores by typing it into the blank
         cloud_name = self.gvar['user'] + '-wic1'
@@ -1857,6 +2040,16 @@ class TestWebCloudRegularUser(unittest.TestCase):
         self.assertTrue(self.page.cores_popup_exists())
         wta.assertHasNotAttribute('cloud', cloud_name, 'cores_ctl', 'invalid-web-test', group=self.gvar['base_group'])
 
+    def test_web_cloud_update_cores_by_blank_too_big(self):
+        # Tries to change a cloud's maximum number of cores to an int that's too big for the database by typing it into the blank
+        cloud_name = self.gvar['user'] + '-wic1'
+        self.page.click_side_button(cloud_name)
+        self.page.type_cores(str(self.oversize['int_11']))
+        self.page.click_update_cloud()
+        #self.assertTrue(self.page.error_message_displayed())
+        self.assertTrue(self.page.cores_popup_exists())
+        wta.assertHasNotAttribute('cloud', cloud_name, 'cores_ctl', str(self.oversize['int_11']), group=self.gvar['base_group'])
+
     def test_web_cloud_update_cores_by_slider(self):
         # Changes a cloud's maximum number of cores by sliding the slider
         cloud_name = self.gvar['user'] + '-wic1'
@@ -1872,6 +2065,15 @@ class TestWebCloudRegularUser(unittest.TestCase):
         self.page.increment_cores_by_arrows(16)
         self.page.click_update_cloud()
         wta.assertHasAttribute('cloud', cloud_name, 'cores_ctl', '16', group=self.gvar['base_group'])
+
+    @unittest.skip("Probably too slow to be worth running")
+    def test_web_cloud_update_cores_by_arrows_too_big(self):
+        # Tries to change a cloud's maximum number of cores to an int that's too big for the database using the arrow keys
+        cloud_name = self.gvar['user'] + '-wic1'
+        self.page.click_side_button(cloud_name)
+        self.page.increment_cores_by_arrows(self.oversize['int_11'])
+        self.page.click_update_cloud()
+        wta.assertHasNotAttribute('cloud', cloud_name, 'cores_ctl', str(self.oversize['int_11']), group=self.gvar['base_group'])
 
     def test_web_cloud_update_ram_by_blank(self):
         # Changes a cloud's maximum RAM by typing it into the blank
@@ -1901,6 +2103,15 @@ class TestWebCloudRegularUser(unittest.TestCase):
         self.assertTrue(self.page.ram_popup_exists())
         wta.assertHasNotAttribute('cloud', cloud_name, 'ram_ctl', 'invalid-web-test', group=self.gvar['base_group'])
 
+    def test_web_cloud_update_ram_by_blank_too_big(self):
+        # Tries to change a cloud's maximum RAM to an int that's too big for the database by typing it into the blank
+        cloud_name = self.gvar['user'] + '-wic1'
+        self.page.type_ram(str(self.oversize['int_11']))
+        self.page.click_update_cloud()
+        #self.assertTrue(self.page.error_message_displayed())
+        self.assertTrue(self.page.ram_popup_exists())
+        wta.assertHasNotAttribute('cloud', cloud_name, 'ram_ctl', str(self.oversize['int_11']), group=self.gvar['base_group'])
+
     def test_web_cloud_update_ram_by_slider(self):
         # Changes a cloud's maximum RAM by sliding the slider
         cloud_name = self.gvar['user'] + '-wic1'
@@ -1916,6 +2127,16 @@ class TestWebCloudRegularUser(unittest.TestCase):
         self.page.increment_ram_by_arrows(4096)
         self.page.click_update_cloud()
         wta.assertHasAttribute('cloud', cloud_name, 'ram_ctl', '4096', group=self.gvar['base_group'])
+
+    @unittest.skip("Probably too slow to be worth running")
+    def test_web_cloud_update_ram_by_arrows(self):
+        # Tries to change a cloud's maximum RAM to an int that's too big for the database using the arrow keys
+        cloud_name = self.gvar['user'] + '-wic1'
+        self.page.click_side_button(cloud_name)
+        self.page.increment_ram_by_arrows(self.oversize['int_11'])
+        self.page.click_update_cloud()
+        self.assertTrue(self.page.error_message_displayed())
+        wta.assertHasNotAttribute('cloud', cloud_name, 'ram_ctl', str(self.oversize['int_11']), group=self.gvar['base_group'])
 
     def test_web_cloud_delete(self):
         # Deletes a cloud
@@ -1997,6 +2218,19 @@ class TestWebCloudRegularUser(unittest.TestCase):
         self.assertTrue(self.page.error_message_displayed())
         wta.assertHasNotAttribute('cloud', cloud_name, 'metadata_names', metadata_name, group=self.gvar['base_group'])
 
+    @unittest.skip("Not working in production (issue 319)")
+    def test_web_cloud_metadata_add_name_too_long(self):
+        # Tries to add metadata with a name that's too long for the database
+        cloud_name = self.gvar['user'] + '-wic1'
+        metadata_name = self.oversize['varchar_64']
+        self.page.click_side_button(cloud_name)
+        self.page.click_side_tab('Metadata')
+        self.page.click_metadata_new()
+        self.page.type_metadata_name(metadata_name)
+        self.page.click_metadata_add()
+        self.assertTrue(self.page.error_message_displayed())
+        wta.assertHasNotAttribute('cloud', cloud_name, 'metadata_names', metadata_name, group=self.gvar['base_group'])
+
     def test_web_cloud_metadata_add_not_enabled(self):
         # Adds metadata to a cloud without enabling it
         cloud_name = self.gvar['user'] + '-wic1'
@@ -2055,6 +2289,23 @@ class TestWebCloudRegularUser(unittest.TestCase):
         self.assertFalse(self.page.metadata_tab_exists(metadata_name))
         wta.assertHasNotAttribute('cloud', cloud_name, 'metadata_names', metadata_name, group=self.gvar['base_group'])
 
+    @unittest.skip("Not working in production (issue 319)")
+    def test_web_cloud_metadata_add_different_priority_by_typing_too_big(self):
+        # Tries to add metadata to a cloud with a priority that's too big for the database by typing it in the blank
+        cloud_name = self.gvar['user'] + '-wic1'
+        metadata_name = self.gvar['user'] + '-wim8.yaml'
+        self.page.click_side_button(cloud_name)
+        self.page.click_side_tab('Metadata')
+        self.page.click_metadata_new()
+        self.page.type_metadata_name(metadata_name)
+        self.page.type_metadata_priority(str(self.oversize['int_11']))
+        self.page.type_metadata('sample_key: sample_value')
+        self.page.click_metadata_add()
+        #self.assertTrue(self.page.error_message_displayed())
+        self.assertTrue(self.page.metadata_priority_popup_exists())
+        self.assertFalse(self.page.metadata_tab_exists(metadata_name))
+        wta.assertHasNotAttribute('cloud', cloud_name, 'metadata_names', metadata_name, group=self.gvar['base_group'])
+
     def test_web_cloud_metadata_add_different_priority_by_arrows(self):
         # Adds metadata to a cloud with a different priority using the arrow keys
         cloud_name = self.gvar['user'] + '-wic1'
@@ -2068,6 +2319,22 @@ class TestWebCloudRegularUser(unittest.TestCase):
         self.page.click_metadata_add()
         self.assertTrue(self.page.metadata_tab_exists(metadata_name))
         wta.assertHasAttribute('metadata', metadata_name, 'priority', '16', group=self.gvar['base_group'], metadata_cloud=cloud_name)
+
+    @unittest.skip("Probably too slow to be worth running")
+    def test_web_cloud_metadata_add_different_priority_by_arrows_too_big(self):
+        # Tries to add metadata to a cloud with a priority that's too big for the database using the arrow keys
+        cloud_name = self.gvar['user'] + '-wic1'
+        metadata_name = self.gvar['user'] + '-wim8.yaml'
+        self.page.click_side_button(cloud_name)
+        self.page.click_side_tab('Metadata')
+        self.page.click_metadata_new()
+        self.page.type_metadata_name(metadata_name)
+        self.page.increment_priority_by_arrows(self.oversize['int_11'])
+        self.page.type_metadata('sample_key: sample_value')
+        self.page.click_metadata_add()
+        self.assertTrue(self.page.error_message_displayed())
+        self.assertFalse(self.page.metadata_tab_exists(metadata_name))
+        wta.assertHasNotAttribute('cloud', cloud_name, 'metadata_names', metadata_name, group=self.gvar['base_group'])
 
     def test_web_cloud_metadata_add_different_mime_type(self):
         # Adds metadata to a cloud with a different MIME type
@@ -2145,6 +2412,18 @@ class TestWebCloudRegularUser(unittest.TestCase):
         self.assertTrue(self.page.metadata_priority_popup_exists())
         wta.assertHasNotAttribute('metadata', metadata_name, 'priority', 'invalid-web-test', group=self.gvar['base_group'], metadata_cloud=cloud_name)
 
+    @unittest.skip("Not working in production (issue 319)")
+    def test_web_cloud_metadata_update_priority_by_typing_too_big(self):
+        # Tries to change metadata priority to an int that's too big for the database by typing it in the blank
+        cloud_name = self.gvar['user'] + '-wic1'
+        metadata_name = self.gvar['user'] + '-wim1.yaml'
+        self.page.click_side_button(cloud_name)
+        self.page.click_side_tab('Metadata')
+        self.page.click_metadata(metadata_name)
+        self.page.type_metadata_priority(str(self.oversize['int_11']))
+        self.assertTrue(self.page.error_message_displayed())
+        wta.assertHasNotAttribute('metadata', metadata_name, 'priority', str(self.oversize['int_11']), group=self.gvar['base_group'], metadata_cloud=cloud_name)
+
     def test_web_cloud_metadata_update_priority_by_arrow_keys(self):
         # Changes metadata priority using the arrow keys
         cloud_name = self.gvar['user'] + '-wic1'
@@ -2155,6 +2434,19 @@ class TestWebCloudRegularUser(unittest.TestCase):
         self.page.increment_metadata_priority_by_arrows(16)
         self.page.click_metadata_update()
         wta.assertHasAttribute('metadata', metadata_name, 'priority', '16', group=self.gvar['base_group'], metadata_cloud=cloud_name)
+
+    @unittest.skip("Probably takes too long to be worth running")
+    def test_web_cloud_metadata_update_priority_by_arrow_keys_too_big(self):
+        # Tries to change metadata priority to an int that's too big for the database using the arrow keys
+        cloud_name = self.gvar['user'] + '-wic1'
+        metadata_name = self.gvar['user'] + '-wim1.yaml'
+        self.page.click_side_button(cloud_name)
+        self.page.click_side_tab('Metadata')
+        self.page.click_metadata(metadata_name)
+        self.page.increment_metadata_priority_by_arrows(self.oversize['int_11'])
+        self.page.click_metadata_update()
+        self.assertTrue(self.page.error_message_displayed())
+        wta.assertHasNotAttribute('metadata', metadata_name, 'priority', str(self.oversize['int_11']), group=self.gvar['base_group'], metadata_cloud=cloud_name)
 
     def test_web_cloud_metadata_update_mime_type(self):
         # Changes metadata mime type
