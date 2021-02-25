@@ -767,7 +767,7 @@ class SettingsPage(Page):
     """This is the page object class for the User Settings page."""
     
     def __init__(self, driver):
-        super(self, SettingsPage).__init__(driver)
+        super(SettingsPage, self).__init__(driver)
         # The active_user variable stores the active user in the sidebar
         self.active_user = None
 
@@ -810,7 +810,7 @@ class SettingsPage(Page):
     def increment_status_refresh_by_arrows(self, refresh):
         xpath = wtxs.form_input_by_name(self.active_user, 'status_refresh_interval')
         element = self.driver.find_element_by_xpath(xpath)
-        start = int(element.get_attribute('value')
+        start = int(element.get_attribute('value'))
         if start < value:
             for i in range(start, value):
                 element.send_keys(Keys.ARROW_UP)

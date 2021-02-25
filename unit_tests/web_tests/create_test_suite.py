@@ -5,6 +5,7 @@ from .test_web_cloud import TestWebCloudSuperUser, TestWebCloudRegularUser
 from .test_web_alias import TestWebAliasSuperUser, TestWebAliasRegularUser
 from .test_web_default import TestWebDefaultSuperUser, TestWebDefaultRegularUser
 from .test_web_image import TestWebImageSuperUser
+from .test_web_setting import TestWebSettingSuperUser
 
 #IMPORTANT: All web tests must be added as suites here using `suite.addTest` in order for the `run_tests` script to pick them up
 def test_suite():
@@ -18,4 +19,5 @@ def test_suite():
     suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(TestWebDefaultSuperUser))
     suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(TestWebDefaultRegularUser))
     suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(TestWebImageSuperUser))
+    suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(TestWebSettingSuperUser))
     return suite
