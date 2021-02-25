@@ -561,7 +561,45 @@ class DefaultsPage(Page):
 
 class ImagesPage(Page):
     """This is the page object class for the Images page."""
-    pass
+    def __init__(self, driver):
+        super(ImagesPage, self).__init__(driver)
+        # There is no active image, so there is no variable for it
+
+    def type_in_search_bar(self, text):
+        wti.fill_blank_by_id(self.driver, 'image_search', text)
+
+    def click_upload_image(self):
+        wti.click_by_value(self.driver, '+Upload Image')
+
+    def click_download_image(self, image):
+        xpath = wtxs.download_button(image)
+        wti.click_by_xpath(self.driver, xpath)
+
+    def click_download_ok(self):
+        alert = self.driver.switch_to.alert()
+        alert.accept()
+
+    def click_download_cancel(self):
+        alert = self.driver.switch_to.alert()
+        alert.dismiss()
+
+    def click_delete_button(self, image, cloud):
+        xpath = wtxs.image_delete_button(image)
+        buttons = self.driver.find_elements_by_xpath(image)
+        delete_button = None
+        for button in buttons:
+            text = button.get_attribute('onclick')
+            if cloud in text:
+                delete_button = button
+        delete_button.click()
+
+    def click_delete_ok(self):
+        alert = self.driver.switch_to.alert()
+        alert.accept()
+
+    def click_delete_cancel(self):
+        alert = self.driver.switch_to.alert()
+        alert.dismiss()
 
 class KeysPage(Page):
     """This is the page object class for the Keys page."""

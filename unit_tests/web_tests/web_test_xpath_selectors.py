@@ -25,6 +25,12 @@ def label_button(element, button):
 def label_button_no_category(button):
     return "//label[@for='" + button + "']"
 
+def download_button(image_name):
+    return "//b[text()='" + image_name + "']/following-sibling::img[@title='Download Image']"
+
+def image_delete_button(image_name):
+    return "//b[text()='" + image_name + "']/..//button[@title='Delete image']"
+
 def delete_button(item_name, element_name):
     return "//div[@id='delete-" + item_name + "']/div/form/input[@value='Delete "+ element_name + "']"
 
