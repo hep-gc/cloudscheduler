@@ -146,6 +146,18 @@ def setup_objects(objects=[]):
     if 'defaults' in objects:
         subprocess.run(['cloudscheduler', 'cloud', 'add', '-ca', credentials['authurl'], '-cn', gvar['user'] + '-wic1', '-cpw', credentials['password'], '-cP', credentials['project'], '-cr', credentials['region'], '-cU', credentials['username'], '-ct', 'openstack', '-g', gvar['user'] + '-wig1'])
 
+    #add images
+    if 'images' in objects:
+        images_num = 2
+    else:
+        images_num = 0
+    images = []
+    for i in range(1, images_num+1):
+        images.append(gvar['user'] + '-wii' + str(i) + '.hdd')
+    for i in range(0, images_num):
+        filename = os.path.abspath('web_tests/' + images[i])
+        subprocess.run(['cloudscheduler', 'image', 'upload', '-ip', 'file://' + filename, '-df', 'raw', '-cl', gvar['user'] + '-wic1,' + gvar['user'] + '-wic2', '-g', gvar['base_group']])
+
     return gvar
 
 def get_homepage(driver):
@@ -160,6 +172,8 @@ def cleanup(cls):
 def cleanup_objects():
     gvar = load_settings(web=True)
     gvar['base_group'] = gvar['user'] + '-wig0'
+
+    delete_by_type(gvar, ['image', '-wii', '-in', 'image_name', ['-g', gvar['user'] + '-wig0']], 3)
 
     logfile = 'objects.txt'
     try:
@@ -232,6 +246,8 @@ def delete_by_type(gvar, type_info, number):
         add = ''
         if type_info[0] == 'metadata':
             add = '.yaml'
+        if type_info[0] == 'image':
+            add = '.hdd'
         objects.append(gvar['user'] + type_info[1] + str(i) + add)
     
     for object in objects:
