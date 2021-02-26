@@ -825,3 +825,9 @@ class SettingsPage(Page):
     def click_update_user(self):
         xpath = wtxs.form_input_by_value(self.active_user, 'Update user')
         wti.click_by_xpath(self.driver, xpath)
+
+    def status_refresh_popup_exists(self):
+        popup = wti.get_validation_message_by_name(self.driver, 'status_refresh_interval')
+        if popup:
+            return True
+        return False
