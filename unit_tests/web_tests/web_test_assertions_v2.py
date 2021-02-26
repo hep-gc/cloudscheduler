@@ -5,14 +5,16 @@ from time import sleep
 logfile = 'assert_v2_objects.txt'
 sleep_time = 2
 
-def assertExists(type, name, group=None, metadata_cloud=None, defaults=False, is_retry=False):
+def assertExists(type, name, group=None, metadata_cloud=None, defaults=False, settings=False, is_retry=False):
     object_names = names()
     columns = object_names[type]['column_name']
 
     if metadata_cloud:
-        list_objects('cloud', 'metadata_names', metadata_cloud, group, None, defaults)
+        list_objects('cloud', 'metadata_names', metadata_cloud, group, None, defaults, settings)
+    elif settings:
+        list_objects('my', columns, None, group, None, defaults, settings)
     else:
-        list_objects(type, columns, None, group, None, defaults)
+        list_objects(type, columns, None, group, None, defaults, settings)
 
     object_file = open(logfile, 'r')
     record = []
@@ -31,16 +33,18 @@ def assertExists(type, name, group=None, metadata_cloud=None, defaults=False, is
         raise AssertionError()
     else:
         sleep(sleep_time)
-        assertExists(type, name, group, metadata_cloud, defaults, True)
+        assertExists(type, name, group, metadata_cloud, defaults, settings, True)
 
-def assertNotExists(type, name, group=None, metadata_cloud=None, defaults=False, is_retry=False):
+def assertNotExists(type, name, group=None, metadata_cloud=None, defaults=False, settings=False, is_retry=False):
     object_names = names()
     columns = object_names[type]['column_name']
 
     if metadata_cloud:
-        list_objects('cloud', 'metadata_names', metadata_cloud, group, None, defaults)
+        list_objects('cloud', 'metadata_names', metadata_cloud, group, None, defaults, settings)
+    elif settings:
+        list_objects('my', columns, None, group, None, defaults, settings)
     else:
-        list_objects(type, columns, None, group, None, defaults)
+        list_objects(type, columns, None, group, None, defaults, settings)
 
     object_file = open(logfile, 'r')
     record = []
@@ -56,11 +60,11 @@ def assertNotExists(type, name, group=None, metadata_cloud=None, defaults=False,
                 raise AssertionError()
             else:
                 sleep(sleep_time)
-                assertNotExists(type, name, group, metadata_cloud, defaults, True)
+                assertNotExists(type, name, group, metadata_cloud, defaults, settings, True)
 
     object_file.close()
 
-def assertHasAttribute(type, name, attribute, attribute_name, group=None, err=None, metadata_cloud=None, defaults=False, name_field=True, is_retry=False):
+def assertHasAttribute(type, name, attribute, attribute_name, group=None, err=None, metadata_cloud=None, defaults=False, name_field=True, settings=False, is_retry=False):
     object_names = names()
     columns = object_names[type]['column_name']
     if attribute:
@@ -68,11 +72,13 @@ def assertHasAttribute(type, name, attribute, attribute_name, group=None, err=No
         columns += attribute
 
     if metadata_cloud:
-        list_objects('cloud', columns, metadata_cloud, group, name, defaults)
+        list_objects('cloud', columns, metadata_cloud, group, name, defaults, settings)
+    elif settings:
+        list_objects('my', columns, None, group, None, defaults, settings)
     elif defaults or not name_field:
-        list_objects(type, columns, None, group, None, defaults)
+        list_objects(type, columns, None, group, None, defaults, settings)
     else:
-        list_objects(type, columns, name, group, None, defaults)
+        list_objects(type, columns, name, group, None, defaults, settings)
 
     object_file = open(logfile, 'r')
     record = ''
@@ -86,7 +92,7 @@ def assertHasAttribute(type, name, attribute, attribute_name, group=None, err=No
                 raise AssertionError()
             else:
                 sleep(sleep_time)
-                assertHasAttribute(type, name, attribute, attribute_name, group, err, metadata_cloud, defaults, name_field, True)
+                assertHasAttribute(type, name, attribute, attribute_name, group, err, metadata_cloud, defaults, name_field, settings, True)
 
         record = record.split(',')
         record[-1] = record[-1].strip()
@@ -108,7 +114,7 @@ def assertHasAttribute(type, name, attribute, attribute_name, group=None, err=No
                 raise AssertionError()
             else:
                 sleep(sleep_time)
-                assertHasAttribute(type, name, attribute, attribute_name, group, err, metadata_cloud, defaults, name_field, True)
+                assertHasAttribute(type, name, attribute, attribute_name, group, err, metadata_cloud, defaults, name_field, settings, True)
 
         else:
             for line in attribute_test:
@@ -118,7 +124,7 @@ def assertHasAttribute(type, name, attribute, attribute_name, group=None, err=No
                         raise AssertionError()
                     else:
                         sleep(sleep_time)
-                        assertHasAttribute(type, name, attribute, attribute_name, group, err, metadata_cloud, defaults, name_field, True)
+                        assertHasAttribute(type, name, attribute, attribute_name, group, err, metadata_cloud, defaults, name_field, settings, True)
             object_file.close()
 
     else:
@@ -135,7 +141,7 @@ def assertHasAttribute(type, name, attribute, attribute_name, group=None, err=No
                 raise AssertionError()
             else:
                 sleep(sleep_time)
-                assertHasAttribute(type, name, attribute, attribute_name, group, err, metadata_cloud, defaults, name_field, True)
+                assertHasAttribute(type, name, attribute, attribute_name, group, err, metadata_cloud, defaults, name_field, settings, True)
 
 def assertHasNotAttribute(type, name, attribute, attribute_name, group=None, err=None, metadata_cloud=None, defaults=False, name_field=True, is_retry=False):
     object_names = names()
@@ -145,11 +151,13 @@ def assertHasNotAttribute(type, name, attribute, attribute_name, group=None, err
         columns += attribute
 
     if metadata_cloud:
-        list_objects('cloud', columns, metadata_cloud, group, name, defaults)
+        list_objects('cloud', columns, metadata_cloud, group, name, defaults, settings)
+    elif settings:
+        list_objects('my', columns, None, group, None, defaults, settings)
     elif defaults or not name_field:
-        list_objects(type, columns, None, group, None, defaults)
+        list_objects(type, columns, None, group, None, defaults, settings)
     else:
-        list_objects(type, columns, name, group, None, defaults)
+        list_objects(type, columns, name, group, None, defaults, settings)
 
     object_file = open(logfile, 'r')
     record = ''
@@ -163,7 +171,7 @@ def assertHasNotAttribute(type, name, attribute, attribute_name, group=None, err
                 raise AssertionError()
             else:
                 sleep(sleep_time)
-                assertHasNotAttribute(type, name, attribute, attribute_name, group, err, metadata_cloud, defaults, name_field, True)
+                assertHasNotAttribute(type, name, attribute, attribute_name, group, err, metadata_cloud, defaults, name_field, settings, True)
 
         record = record.split(',')
         record[-1] = record[-1].strip()
@@ -182,7 +190,7 @@ def assertHasNotAttribute(type, name, attribute, attribute_name, group=None, err
                         raise AssertionError()
                     else:
                         sleep(sleep_time)
-                        assertHasNotAttribute(type, name, attribute, attribute_name, group, err, metadata_cloud, defaults, name_field, True)
+                        assertHasNotAttribute(type, name, attribute, attribute_name, group, err, metadata_cloud, defaults, name_field, settings, True)
 
             object_file.close()
             return
@@ -195,7 +203,7 @@ def assertHasNotAttribute(type, name, attribute, attribute_name, group=None, err
                         raise AssertionError()
                     else:
                         sleep(sleep_time)
-                        assertHasNotAttribute(type, name, attribute, attribute_name, group, err, metadata_cloud, defaults, name_field, True)
+                        assertHasNotAttribute(type, name, attribute, attribute_name, group, err, metadata_cloud, defaults, name_field, settings, True)
             object_file.close()
 
     else:
@@ -210,10 +218,10 @@ def assertHasNotAttribute(type, name, attribute, attribute_name, group=None, err
                             raise AssertionError()
                         else:
                             sleep(sleep_time)
-                            assertHasNotAttribute(type, name, attribute, attribute_name, group, err, metadata_cloud, name_field, True)
+                            assertHasNotAttribute(type, name, attribute, attribute_name, group, err, metadata_cloud, name_field, settings, True)
         object_file.close()
 
-def list_objects(type, columns, name, group, metadata, defaults):
+def list_objects(type, columns, name, group, metadata, defaults, settings):
     object_file = None
     try:
         object_file = open(logfile, 'x')
@@ -225,6 +233,8 @@ def list_objects(type, columns, name, group, metadata, defaults):
         command = 'metadata-list'
     if defaults:
         command = 'defaults'
+    if settings:
+        command = 'settings'
         
     object_names = names()
 

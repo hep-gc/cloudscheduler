@@ -37,6 +37,27 @@ class TestWebSetting(unittest.TestCase):
         alert = driver.switch_to.alert
         alert.accept()
 
+    def test_web_setting_update_password_mismatched(self):
+        # Tries to update the current user's password with mismatched passwords
+        self.page.click_side_button(self.user)
+        self.page.type_password(self.gvar['user'] + '-password1', self.gvar['user'] + '-password2')
+        self.page.click_update_user()
+        self.assertTrue(self.page.error_message_displayed())
+
+    def test_web_setting_update_password_too_short(self):
+        # Tries to update the current user's password to one that's too short
+        self.page.click_side_button(self.user)
+        self.page.type_password('Aa1')
+        self.page.click_update_user()
+        self.assertTrue(self.page.error_message_displayed())
+
+    def test_web_setting_update_password_without_uppercase(self):
+        # Tries to update the current user's password to one without uppercase letters
+        self.page.click_side_button(self.user)
+        self.page.type_password('abcd1234')
+        self.page.click_update_user()
+        self.assertTrue(self.page.error_message_displayed())
+
     def test_web_setting_update_global_view_on_status_page(self):
         # Update's the current user's "enabled global view on status page" setting
         self.page.click_side_button(self.user)
