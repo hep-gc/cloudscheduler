@@ -60,7 +60,7 @@ def setup_objects(objects=[]):
     for i in range(1, groups_num + 1):
         groups.append(gvar['user'] + '-wig' + str(i))
     for i in range(0, groups_num):
-        subprocess.run(['cloudscheduler', 'group', 'add', '-htcf', gvar['fqdn'], '-gn', groups[i], '-un', gvar['user']])
+        subprocess.run(['cloudscheduler', 'group', 'add', '-htcf', gvar['fqdn'], '-gn', groups[i], '-un', gvar['user'], '-s', 'unit-test'])
 
     #add users
     users_num = 0
@@ -78,7 +78,7 @@ def setup_objects(objects=[]):
     if 'users' in objects:
         flags.append(['-gn', gvar['user'] + '-wig1'])
     for i in range(0, users_num):
-        subprocess.run(['cloudscheduler', 'user', 'add', '-un', users[i], '-upw', gvar['user_secret'], *flags[i]])
+        subprocess.run(['cloudscheduler', 'user', 'add', '-un', users[i], '-upw', gvar['user_secret'], *flags[i], '-s', 'unit-test'])
 
     #add clouds
     clouds_num = 0
@@ -91,7 +91,7 @@ def setup_objects(objects=[]):
     for i in range(1, clouds_num + 1):
         clouds.append(gvar['user'] + '-wic' + str(i))
     for i in range(0, clouds_num):
-        subprocess.run(['cloudscheduler', 'cloud', 'add', '-ca', credentials['authurl'], '-cn', clouds[i], '-cpw', credentials['password'], '-cP', credentials['project'], '-cr', credentials['region'], '-cU', credentials['username'], '-ct', 'openstack', '-g', gvar['base_group']])
+        subprocess.run(['cloudscheduler', 'cloud', 'add', '-ca', credentials['authurl'], '-cn', clouds[i], '-cpw', credentials['password'], '-cP', credentials['project'], '-cr', credentials['region'], '-cU', credentials['username'], '-ct', 'openstack', '-g', gvar['base_group'], '-s', 'unit-test'])
     if 'clouds' in objects:
         for i in range(1, 3):
             name = gvar['user'] + '-wim' + str(i) + '.yaml'
@@ -106,7 +106,7 @@ def setup_objects(objects=[]):
         # This updates the security group setting, which requires a connection
         # to the cloud. The setup timing is unpredictable, so this loops it 
         # until the connection is established.
-        while subprocess.run(['cloudscheduler', 'cloud', 'update', '-cn', clouds[0], '-vsg', 'default']).returncode != 0:
+        while subprocess.run(['cloudscheduler', 'cloud', 'update', '-cn', clouds[0], '-vsg', 'default', '-s', 'unit-test']).returncode != 0:
             print("Error connecting to the cloud. This may happen several times. Retrying...")
             sleep(15)
 
@@ -122,13 +122,13 @@ def setup_objects(objects=[]):
         clouds = [gvar['user'] + '-wic1'] * 3
         clouds[1] += ',' + gvar['user'] + '-wic2'
     for i in range(0, aliases_num):
-        subprocess.run(['cloudscheduler', 'alias', 'add', '-an', aliases[i], '-cn', clouds[i], '-g', gvar['base_group']])
+        subprocess.run(['cloudscheduler', 'alias', 'add', '-an', aliases[i], '-cn', clouds[i], '-g', gvar['base_group'], '-s', 'unit-test'])
 
     # add defaults
     defaults_num = 0
     if 'defaults' in objects:
-        subprocess.run(['cloudscheduler', 'group', 'update', '-gn', gvar['user'] + '-wig1', '-un',  gvar['user'] + ',' + gvar['user'] + '-wiu2'])
-        subprocess.run(['cloudscheduler', 'group', 'update', '-gn', gvar['user'] + '-wig2', '-un', gvar['user'] + '-wiu1'])
+        subprocess.run(['cloudscheduler', 'group', 'update', '-gn', gvar['user'] + '-wig1', '-un',  gvar['user'] + ',' + gvar['user'] + '-wiu2', '-s', 'unit-test'])
+        subprocess.run(['cloudscheduler', 'group', 'update', '-gn', gvar['user'] + '-wig2', '-un', gvar['user'] + '-wiu1', '-s', 'unit-test'])
     if 'defaults' in objects:
         defaults_num = 2
     else:
@@ -142,9 +142,9 @@ def setup_objects(objects=[]):
         except FileExistsError:
             pass
         filename = os.path.abspath('web_tests/' + name)
-        subprocess.run(['cloudscheduler', 'metadata', 'load', '-g', gvar['user'] + '-wig1', '-f', filename, '-mn', name])
+        subprocess.run(['cloudscheduler', 'metadata', 'load', '-g', gvar['user'] + '-wig1', '-f', filename, '-mn', name, '-s', 'unit-test'])
     if 'defaults' in objects:
-        subprocess.run(['cloudscheduler', 'cloud', 'add', '-ca', credentials['authurl'], '-cn', gvar['user'] + '-wic1', '-cpw', credentials['password'], '-cP', credentials['project'], '-cr', credentials['region'], '-cU', credentials['username'], '-ct', 'openstack', '-g', gvar['user'] + '-wig1'])
+        subprocess.run(['cloudscheduler', 'cloud', 'add', '-ca', credentials['authurl'], '-cn', gvar['user'] + '-wic1', '-cpw', credentials['password'], '-cP', credentials['project'], '-cr', credentials['region'], '-cU', credentials['username'], '-ct', 'openstack', '-g', gvar['user'] + '-wig1', '-s', 'unit-test'])
 
     #add images
     if 'images' in objects:
@@ -156,7 +156,20 @@ def setup_objects(objects=[]):
         images.append(gvar['user'] + '-wii' + str(i) + '.hdd')
     for i in range(0, images_num):
         filename = os.path.abspath('web_tests/' + images[i])
-        subprocess.run(['cloudscheduler', 'image', 'upload', '-ip', 'file://' + filename, '-df', 'raw', '-cl', gvar['user'] + '-wic1,' + gvar['user'] + '-wic2', '-g', gvar['base_group']])
+        subprocess.run(['cloudscheduler', 'image', 'upload', '-ip', 'file://' + filename, '-df', 'raw', '-cl', gvar['user'] + '-wic1,' + gvar['user'] + '-wic2', '-g', gvar['base_group'], '-s', 'unit-test'])
+
+    #add servers
+    if 'servers' in objects:
+        servers_num = 2
+    else:
+        servers_num = 0
+    servers = []
+    users = []
+    for i in range(1, servers_num+1):
+        servers.append(gvar['user'] + '-wis' + str(i))
+        users.append(gvar['user'] + '-wiu' + str(i))
+    for i in range(0, servers_num):
+        subprocess.run(['cloudscheduler', 'defaults', 'set', '-s', servers[i], '-sa', gvar['address'], '-su', users[i], '-spw', gvar['user_secret']])
 
     return gvar
 
@@ -173,6 +186,7 @@ def cleanup_objects():
     gvar = load_settings(web=True)
     gvar['base_group'] = gvar['user'] + '-wig0'
 
+    delete_by_type(gvar, ['defaults', '-wis', '-s', 'server', []], 2)
     delete_by_type(gvar, ['image', '-wii', '-in', 'image_name', ['-g', gvar['user'] + '-wig0']], 3)
 
     logfile = 'objects.txt'
@@ -181,7 +195,7 @@ def cleanup_objects():
     except FileExistsError:
         object_log = open(logfile, mode = 'w') 
     
-    subprocess.run(['cloudscheduler', 'alias', 'list', '-CSV', 'alias_name,clouds', '-g', gvar['base_group']], stdout=object_log)
+    subprocess.run(['cloudscheduler', 'alias', 'list', '-CSV', 'alias_name,clouds', '-g', gvar['base_group'], '-s', 'unit-test'], stdout=object_log)
     
     object_log.close()
     object_log = open(logfile, mode = 'r')
@@ -203,7 +217,7 @@ def cleanup_objects():
         test_objects.append(gvar['user'] + '-wia' + str(i))
     for alias in aliases:
         if alias[0] in test_objects:
-            subprocess.run(['cloudscheduler', 'alias', 'update', '-an', alias[0], '-cn', alias[1], '-co', 'delete', '-g', gvar['base_group']])
+            subprocess.run(['cloudscheduler', 'alias', 'update', '-an', alias[0], '-cn', alias[1], '-co', 'delete', '-g', gvar['base_group'], '-s', 'unit-test'])
     object_log.close()
 
     delete_by_type(gvar, ['cloud', '-wic', '-cn', 'cloud_name', ['-g', gvar['user'] + '-wig1']], 1)
@@ -214,7 +228,7 @@ def cleanup_objects():
     
     # This group must be deleted last - it is the containing group for clouds
     # and cleanup will fail if it is deleted earlier.
-    subprocess.run(['cloudscheduler', 'group', 'delete', '-gn', gvar['base_group'], '-Y'], stdout=subprocess.DEVNULL)
+    subprocess.run(['cloudscheduler', 'group', 'delete', '-gn', gvar['base_group'], '-Y', '-s', 'unit-test'], stdout=subprocess.DEVNULL)
 
 def delete_by_type(gvar, type_info, number):
     # type_info is a list of strings (and one list of strings)
@@ -234,7 +248,7 @@ def delete_by_type(gvar, type_info, number):
     except FileExistsError:
         object_log = open(logfile, mode = 'w') 
     
-    subprocess.run(['cloudscheduler', type_info[0], 'list', '-CSV', type_info[3], *type_info[4]], stdout=object_log)
+    subprocess.run(['cloudscheduler', type_info[0], 'list', '-CSV', type_info[3], *type_info[4], '-s', 'unit-test'], stdout=object_log)
     
     object_log.close()
     object_log = open(logfile, mode = 'r')
@@ -252,7 +266,7 @@ def delete_by_type(gvar, type_info, number):
     
     for object in objects:
         if object in object_list:
-            subprocess.run(['cloudscheduler', type_info[0], 'delete', type_info[2], object, *type_info[4], '-Y'])
+            subprocess.run(['cloudscheduler', type_info[0], 'delete', type_info[2], object, *type_info[4], '-Y', '-s', 'unit-test'])
 
     object_log.close()
 
