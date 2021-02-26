@@ -9,6 +9,7 @@ class TestWebSetting(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         wtsc.setup(cls, 2, ['settings'])
+        print(cls.gvar)
         cls.page = pages.SettingsPage(cls.driver)
         cls.oversize = cls.gvar['oversize']
         cls.user = cls.gvar['user'] + '-wiu2'
@@ -58,6 +59,19 @@ class TestWebSetting(unittest.TestCase):
         self.page.click_update_user()
         self.assertTrue(self.page.error_message_displayed())
 
+    def test_web_setting_update_password_without_lowercase(self):
+        # Tries to update the current user's password to one without lowercase letters
+        self.page.click_side_button(self.user)
+        self.page.type_password('ABCD1234')
+        self.page.click_update_user()
+        self.assertTrue(self.page.error_message_displayed())
+
+    def test_web_setting_update_password_without_numbers(self):
+        self.page.click_side_button(self.user)
+        self.page.type_password('ABCDabcd')
+        self.page.click_update_user()
+        self.assertTrue(self.page.error_message_displayed())
+
     def test_web_setting_update_global_view_on_status_page(self):
         # Update's the current user's "enabled global view on status page" setting
         self.page.click_side_button(self.user)
@@ -100,12 +114,41 @@ class TestWebSetting(unittest.TestCase):
         self.page.click_update_user()
         self.assertFalse(self.page.error_message_displayed())
 
+    def test_web_setting_update_status_refresh_interval_by_blank_float(self):
+        # Tries to update the current user's status page refresh interval to a float by typing it in the blank
+        self.page.click_side_button(self.user)
+        self.page.type_status_refresh('30.5')
+        self.page.click_update_user()
+        self.assertTrue(self.page.error_message_displayed())
+
+    def test_web_setting_update_status_refresh_interval_by_blank_string(self):
+        # Tries to update the current user's status page refresh interval to a string by typing it in the blank
+        self.page.click_side_button(self.user)
+        self.page.type_status_refresh('invalid-web-test')
+        self.page.click_update_user()
+        self.page.assertTrue(self.page.error_message_displayed())
+
+    def test_web_setting_update_status_refresh_interval_by_blank_too_big(self):
+        # Tries to update the current user's status page refresh interval to an int that's too big for the database by typing it in the blank
+        self.page.click_side_button(self.user)
+        self.page.type_status_refresh(str(self.oversize['int_11']))
+        self.page.click_update_user()
+        self.page.assertTrue(self.page.error_message_displayed())
+
     def test_web_setting_update_status_refresh_interval_by_arrow_keys(self):
         # Updates the current user's status page refresh interval using the arrow keys
         self.page.click_side_button(self.user)
         self.page.increment_status_refresh_by_arrows(40)
         self.page.click_update_user()
         self.assertFalse(self.page.error_message_displayed())
+
+    @unittest.skip("Probably takes too long to be worth running")
+    def test_web_setting_update_status_refresh_interval_by_arrow_keys_too_big(self):
+        # Updates the current user's status page refresh interval to an int that's too long for the database using the arrow keys
+        self.page.click_side_button(self.user)
+        self.page.increment_status_refresh_by_arrows(self.oversize['int_11'])
+        self.page.click_update_user()
+        self.assertTrue(self.page.error_message_displayed())
 
     def test_web_setting_update_default_group(self):
         # Updates the current user's default group
