@@ -773,49 +773,49 @@ class SettingsPage(Page):
 
     def click_side_button(self, name):
         wti.click_by_link_text(self.driver, name)
-        self.active_cloud = name
+        self.active_user = name
 
     def type_password(self, password, alt_password=None):
         if not alt_password:
             alt_password = password
-        xpath1 = wtxs.form_input_by_name(self.active_user, 'password1')
-        xpath2 = wtxs.form_input_by_name(self.active_user, 'password2')
+        xpath1 = wtxs.form_input_by_name_not_hidden(self.active_user, 'password1')
+        xpath2 = wtxs.form_input_by_name_not_hidden(self.active_user, 'password2')
         wti.fill_blank_by_xpath(self.driver, xpath1, password)
         wti.fill_blank_by_xpath(self.driver, xpath2, alt_password)
 
     def click_global_view_checkbox(self):
-        xpath = wtxs.form_input_by_name(self.active_user, 'flag_global_status')
+        xpath = wtxs.form_input_by_name_not_hidden(self.active_user, 'flag_global_status')
         wti.click_by_xpath(self.driver, xpath)
 
     def click_jobs_by_alias_checkbox(self):
-        xpath = wtxs.form_input_by_name(self.active_user, 'flag_jobs_by_target_alias')
+        xpath = wtxs.form_input_by_name_not_hidden(self.active_user, 'flag_jobs_by_target_alias')
         wti.click_by_xpath(self.driver, xpath)
 
     def click_foreign_global_vms_checkbox(self):
-        xpath = wtxs.form_input_by_name(self.active_user, 'flag_show_foreign_global_vms')
+        xpath = wtxs.form_input_by_name_not_hidden(self.active_user, 'flag_show_foreign_global_vms')
         wti.click_by_xpath(self.driver, xpath)
 
     def click_slot_detail_checkbox(self):
-        xpath = wtxs.form_input_by_name(self.active_user, 'flag_show_slot_detail')
+        xpath = wtxs.form_input_by_name_not_hidden(self.active_user, 'flag_show_slot_detail')
         wti.click_by_xpath(self.driver, xpath)
 
     def click_slot_flavor_info_checkbox(self):
-        xpath = wtxs.form_input_by_name(self.active_user, 'flag_show_slot_flavors')
+        xpath = wtxs.form_input_by_name_not_hidden(self.active_user, 'flag_show_slot_flavors')
         wti.click_by_xpath(self.driver, xpath)
 
     def type_status_refresh(self, refresh):
-        xpath = wtxs.form_input_by_name(self.active_user, 'status_refresh_interval')
+        xpath = wtxs.form_input_by_name_not_hidden(self.active_user, 'status_refresh_interval')
         wti.fill_blank_by_xpath(self.driver, xpath, refresh)
 
     def increment_status_refresh_by_arrows(self, refresh):
-        xpath = wtxs.form_input_by_name(self.active_user, 'status_refresh_interval')
+        xpath = wtxs.form_input_by_name_not_hidden(self.active_user, 'status_refresh_interval')
         element = self.driver.find_element_by_xpath(xpath)
         start = int(element.get_attribute('value'))
-        if start < value:
-            for i in range(start, value):
+        if start < refresh:
+            for i in range(start, refresh):
                 element.send_keys(Keys.ARROW_UP)
         else:
-            for i in range(value, start):
+            for i in range(refresh, start):
                 element.send_keys(Keys.ARROW_DOWN)
 
     def select_default_group(self, group):
