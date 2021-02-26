@@ -5,7 +5,7 @@ After=network.target
 [Service]
 Type=simple
 User=condor
-ExecStart=/opt/cloudscheduler/python3/bin/python3 /opt/cloudscheduler/data_collectors/condor/condor_poller_na.py /opt/cloudscheduler/etc/cloudscheduler/condor_poller.yaml
+ExecStart=/opt/cloudscheduler/python3/bin/python3 /opt/cloudscheduler/data_collectors/condor/condor_poller.py /opt/cloudscheduler/etc/cloudscheduler/condor_poller.yaml
 Restart=always
 
 [Install]

@@ -7,7 +7,7 @@ from cloudscheduler.lib.select_ec2 import \
     select_ec2_images, \
     select_ec2_instance_types
 
-from cloudscheduler.lib.view_utils_na import \
+from cloudscheduler.lib.view_utils import \
     lno, \
     qt, \
     qt_filter_get, \
@@ -16,7 +16,7 @@ from cloudscheduler.lib.view_utils_na import \
     table_fields, \
     validate_fields
 
-from cloudscheduler.lib.schema_na import *
+from cloudscheduler.lib.schema import *
 
 from cloudscheduler.lib.signal_functions import event_signal_send
 

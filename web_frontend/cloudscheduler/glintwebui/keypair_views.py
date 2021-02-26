@@ -12,7 +12,7 @@ from .keypair_utils import get_keypair, delete_keypair, transfer_keypair, \
                          create_keypair, create_new_keypair, getUser, verifyUser
 
 from cloudscheduler.lib.web_profiler import silk_profile as silkp
-from cloudscheduler.lib.view_utils_na import set_user_groups
+from cloudscheduler.lib.view_utils import set_user_groups
 
 logger = logging.getLogger('glintv2')
 

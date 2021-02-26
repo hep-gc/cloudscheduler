@@ -6,8 +6,8 @@ from django.views.decorators.csrf import requires_csrf_token
 from django.http import HttpResponse
 from django.core.exceptions import PermissionDenied
 
-from cloudscheduler.lib.fw_config_na import configure_fw 
-from cloudscheduler.lib.view_utils_na import \
+from cloudscheduler.lib.fw_config import configure_fw 
+from cloudscheduler.lib.view_utils import \
     lno,  \
     manage_group_users, \
     manage_user_group_verification, \
@@ -20,7 +20,7 @@ from cloudscheduler.lib.view_utils_na import \
 from collections import defaultdict
 import bcrypt
 
-from cloudscheduler.lib.schema_na import *
+from cloudscheduler.lib.schema import *
 import re
 
 from cloudscheduler.lib.web_profiler import silk_profile as silkp
@@ -34,7 +34,7 @@ GROUP_KEYS = {
     'auto_active_group': False,
     # Named argument formats (anything else is a string).
     'format': {
-        'group_name':                                 'lower',
+        'group_name':                                 'lowerdash',
         'csrfmiddlewaretoken':                        'ignore',
         'group':                                      'ignore',
         'htcondor_fqdn':                              'fqdn,htcondor_host_id',
@@ -93,7 +93,7 @@ METADATA_KEYS = {
         'enabled':                                    'dboolean',
         'priority':                                   'integer',
         'metadata':                                   'metadata',
-        'metadata_name':                              'lower',
+        'metadata_name':                              'lowerdash',
         'mime_type':                                  ('csv2_mime_types', 'mime_type'),
 
         'csrfmiddlewaretoken':                        'ignore',
@@ -260,6 +260,7 @@ def add(request):
 
     ### Bad request.
     else:
+        config.db_close()
         return group_list(request, active_user=active_user, response_code=1, message='%s group add, invalid method "%s" specified.' % (lno(MODID), request.method))
 
 #-------------------------------------------------------------------------------
@@ -536,6 +537,7 @@ def delete(request):
         table = 'cloud_flavors'
         rc, msg = config.db_delete(table, where=where_clause)
         if rc != 0:
+            config.db_close()
             return group_list(request, active_user=active_user, response_code=1, message='%s group flavors delete "%s" failed - %s.' % (lno(MODID), fields['group_name'], msg))
 
         # Delete the group.
@@ -554,6 +556,7 @@ def delete(request):
     ### Bad request.
     else:
       # return group_list(request, active_user=active_user, response_code=1, message='%s group delete request did not contain mandatory parameter "group_name".' % lno(MODID))
+        config.db_close()
         return group_list(request, active_user=active_user, response_code=1, message='%s group delete, invalid method "%s" specified.' % (lno(MODID), request.method))
 
 #-------------------------------------------------------------------------------
@@ -688,6 +691,7 @@ def metadata_add(request):
 
     ### Bad request.
     else:
+        config.db_close()
         return render(request, 'csv2/blank_msg.html', {'response_code': 1, 'message': '%s group metadata_add, invalid method "%s" specified.' % (lno(MODID), request.method)})
 
 
@@ -743,6 +747,7 @@ def metadata_delete(request):
     ### Bad request.
     else:
       # return render(request, 'csv2/blank_msg.html', {'response_code': 1, 'message': '%s group metadata-delete request did not contain mandatory parameter "metadata_name".' % lno(MODID)})
+        config.db_close()
         return render(request, 'csv2/blank_msg.html', {'response_code': 1, 'message': '%s group metadata-delete, invalid method "%s" specified.' % (lno(MODID), request.method)})
 
 #-------------------------------------------------------------------------------
@@ -796,7 +801,7 @@ def metadata_fetch(request, response_code=0, message=None, metadata_name=None):
                 return render(request, 'csv2/meta_editor.html', context)
         
         config.db_close()
-        return render(request, 'csv2/blank_msg.html', {'response_code': 1, 'message': 'group metadata_fetch, file "%s::%s" does not exist.' % (active_user.active_group, active_user.kwargs['metadata_name'])})
+        return render(request, 'csv2/blank_msg.html', {'response_code': 1, 'message': 'group metadata_fetch, file "%s::%s" does not exist.' % (active_user.active_group, metadata_name)})
 
     config.db_close()
     return render(request, 'csv2/blank_msg.html', {'response_code': 1, 'message': 'group metadata_fetch, metadata file name omitted.'})
@@ -950,11 +955,11 @@ def metadata_update(request):
         # Update the group metadata file.
         table = 'csv2_group_metadata'
         updates = table_fields(fields, table, columns, 'update')
-        if len(updates) < 1:
+        if len(updates) < 3: #updates always have to have the keys so (name & group) so unless there is 3 fields there is no update to do.
             config.db_close()
             return render(request, 'csv2/blank_msg.html', {'response_code': 1, 'message': '%s group metadata-update "%s::%s" specified no fields to update and was ignored.' % (lno(MODID), active_user.active_group, fields['metadata_name'])})
 
-        where_clause = "group_name='%s' and metadata_name='%s'" % (active_user.active_group, fields['metadata_name'])
+        where_clause = 'group_name="%s" and metadata_name="%s"' % (active_user.active_group, fields['metadata_name'])
         rc, msg = config.db_update(table, updates, where=where_clause)
         if rc == 0:
             config.db_close(commit=True)
@@ -969,6 +974,7 @@ def metadata_update(request):
 
     ### Bad request.
     else:
+        config.db_close()
         return render(request, 'csv2/blank_msg.html', {'response_code': 1, 'message': '%s group metadata_update, invalid method "%s" specified.' % (lno(MODID), request.method)})
 
 #-------------------------------------------------------------------------------
@@ -1032,18 +1038,19 @@ def update(request):
         if 'username' in fields:
             rc, msg = manage_user_group_verification(config, tables, fields['username'], None) 
             if rc != 0:
+                config.db_close()
                 return group_list(request, active_user=active_user, response_code=1, message='%s group update, "%s" failed - %s.' % (lno(MODID), fields['group_name'], msg))
 
         # Update the group.
         table = 'csv2_groups'
         group_updates = table_fields(fields, table, columns, 'update')
 
-        if len(group_updates) > 0:
+        # group_updates should always have the group name so it should have > 1 updates for there to actually be a change
+        if len(group_updates) > 1:
             where_clause = 'group_name="%s"' % fields['group_name']
             rc, msg = config.db_update(table, group_updates, where=where_clause)
             if rc != 0:
                 config.db_close()
-                0/0
                 return group_list(request, active_user=active_user, response_code=1, message='%s group update, "%s" failed - %s.' % (lno(MODID), fields['group_name'], msg))
         else:
             if 'username' not in fields and request.META['HTTP_ACCEPT'] == 'application/json':
@@ -1067,7 +1074,7 @@ def update(request):
 
         if rc == 0:
             # Commit the updates, configure firewall and return.
-            config.db_session.commit()
+            config.db_commit()
             configure_fw(config)
             config.db_close()
             return group_list(request, active_user=active_user, response_code=0, message='group "%s" successfully updated.' % (fields['group_name']))

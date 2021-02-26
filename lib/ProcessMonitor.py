@@ -20,16 +20,23 @@ class ProcessMonitor:
     log_file = None
     log_level = None
 
-    def __init__(self, config_params, pool_size,  process_ids=None, config_file='/etc/cloudscheduler/cloudscheduler.yaml', log_file=None, log_level=None):
+    def __init__(self, config_params, pool_size,  process_ids=None, config_file='/etc/cloudscheduler/cloudscheduler.yaml', log_file=None, log_level=None, log_key=None):
         self.config = Config(config_file, config_params, pool_size=pool_size)
         if log_file is None:
-            self.log_file = self.config.categories[os.path.basename(sys.argv[0])]["log_file"]
+            if log_key is not None:
+                self.log_file = self.config.__dict__[log_key]["log_file"]
+            else:
+                self.log_file = self.config.categories[os.path.basename(sys.argv[0])]["log_file"]
         else:
             self.log_file = log_file
         if log_level is None:
-            self.log_level = self.config.categories[os.path.basename(sys.argv[0])]["log_level"]
+            if log_key is not None:
+                self.log_level = self.config.__dict__[log_key]["log_level"]
+            else:
+                self.log_level = self.config.categories[os.path.basename(sys.argv[0])]["log_level"]
         else:
             self.log_level = log_level
+
         logging.basicConfig(
             filename=self.log_file,
             level=self.log_level,
@@ -42,13 +49,16 @@ class ProcessMonitor:
                 function = process_ids[proc][0]
                 select = process_ids[proc][1]
                 self.config.db_open()
-                rows = self.config.db_session.execute(select)
-                if rows.rowcount > 0:
+                rows=[]
+                rc, msg = self.config.db_execute(select)
+                for row in self.config.db_cursor:
+                    rows.append(row)
+                if rc == 0:
                     #process rows
                     for row in rows:
                         logging.debug("Parsing csv2_cloud row: %s" % row)
-                        target_group = row.group_name
-                        target_cloud = row.cloud_name
+                        target_group = row["group_name"]
+                        target_cloud = row["cloud_name"]
                         dyna_proc = {
                             "function": function,
                             "args": [target_group, target_cloud],
@@ -57,7 +67,7 @@ class ProcessMonitor:
                         self.dynamic_process_ids[proc + "-" + target_group + "-" + target_cloud] = dyna_proc
                 else:
                     #something wrong with the select
-                    self.logging.error("Failed to retrieve any group-cloud pairs to monitor using select statement:%s" % select)
+                    self.logging.error("Failed to retrieve child targets from select statement:%s \n Error: %s" % (select, msg))
                 self.config.db_close()
             else:
                 # its a static process
@@ -76,8 +86,7 @@ class ProcessMonitor:
     def del_process(self, process_id, dynamic=False):
         proc = self.processes[process_id]
         logging.info("Deleting process: %s" % process_id)
-        if self.is_alive(process_id):
-            proc.terminate()
+        if self.is_alive(proc):
             proc.join()
         del self.processes[process_id]
         if dynamic:
@@ -127,7 +136,7 @@ class ProcessMonitor:
         except Exception as ex:
             self.logging.exception(ex)
         if dynamic:
-            self.processes[process] = Process(target=self.dynamic_process_ids[process]["function"], args = (self.dynamic_process_ids[process]["args"],))
+            self.processes[process] = Process(target=dynamic_process_ids[process]["function"], args = (dynamic_process_ids[process]["args"],))
             self.processes[process].start()
         else:
             self.processes[process] = Process(target=self.process_ids[process])
@@ -188,8 +197,6 @@ class ProcessMonitor:
         # handle dynamic processes
         dynamic_procs = self.dynamic_process_ids.keys()
         dynamic_procs_set = set(dynamic_procs)
-        logging.debug("Dyanmic proc set:")
-        logging.debug(dynamic_procs_set)
         for proc in self.process_ids:
             #check if its a list
             if isinstance(self.process_ids[proc], list):
@@ -198,28 +205,18 @@ class ProcessMonitor:
                 function = self.process_ids[proc][0]
                 select = self.process_ids[proc][1]
                 self.config.db_open()
-                rows = self.config.db_session.execute(select)
-                if rows.rowcount > 0:
+                rows=[]
+                rc, msg = self.config.db_execute(select)
+                for row in self.config.db_cursor:
+                    rows.append(row)
+                if rc == 0:
                     #process rows
                     for row in rows:
-                        target_group = row.group_name
-                        target_cloud = row.cloud_name
+                        target_group = row["group_name"]
+                        target_cloud = row["cloud_name"]
                         # check if process already in our list, if it is check if it's alive
                         proc_key = proc + "-" + target_group + "-" + target_cloud
-                        try:
-                             dynamic_procs_set.remove(proc_key)
-                        except:
-                            logging.info("New process required for %s" % proc_key)
-                            # add new process
-                            dyna_proc = {
-                                "function": function,
-                                "args": [target_group, target_cloud],
-                                "process": None
-                            }
-                            self.dynamic_process_ids[proc_key] = dyna_proc
-
-                            self.processes[proc_key] = Process(target=self.dynamic_process_ids[proc_key]["function"], args = (self.dynamic_process_ids[proc_key]["args"],))
-                            self.processes[proc_key].start()
+                        dynamic_procs_set.remove(proc_key)
                         if proc_key in self.processes:
                             #check if it's alive
                             if not self.is_alive(proc_key):
@@ -237,7 +234,7 @@ class ProcessMonitor:
                             self.dynamic_process_ids[proc + "-" + target_group + "-" + target_cloud] = dyna_proc
                 else:
                     #something wrong with the select
-                    self.logging.error("Failed to retrieve any group-cloud pairs to monitor using select statement:%s" % select)
+                    self.logging.error("Failed to retrieve child targets from select statement: %s" % msg)
 
         #check for any dynamic processes that are no longer needed
         # anything left in dynamic_procs_set is no longer in the database

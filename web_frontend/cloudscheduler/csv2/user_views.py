@@ -4,7 +4,7 @@ config = settings.CSV2_CONFIG
 from django.core.exceptions import PermissionDenied
 from django.contrib.auth import update_session_auth_hash
 
-from cloudscheduler.lib.view_utils_na import \
+from cloudscheduler.lib.view_utils import \
     lno, \
     manage_user_groups, \
     manage_user_group_verification, \
@@ -17,7 +17,7 @@ from cloudscheduler.lib.view_utils_na import \
 from collections import defaultdict
 import bcrypt
 
-from cloudscheduler.lib.schema_na import *
+from cloudscheduler.lib.schema import *
 import datetime
 
 from cloudscheduler.lib.web_profiler import silk_profile as silkp
@@ -30,7 +30,7 @@ MODID = 'UV'
 USER_GROUP_KEYS = {
     # Named argument formats (anything else is a string).
     'format': {
-        'username':            'lower',
+        'username':            'lowerdash',
         'is_superuser':        'dboolean',
         'password':            'password',
         'password1':           'password1',
@@ -61,7 +61,7 @@ UNPRIVILEGED_USER_KEYS = {
     'unnamed_fields_are_bad': True,
     # Named argument formats (anything else is a string).
     'format': {
-        'default_group':                'lower',
+        'default_group':                'lowerdash',
         'password':                     'password',
         'password1':                    'password1',
         'password2':                    'password2',
@@ -136,6 +136,7 @@ def add(request):
         # Need to perform several checks (Note: password checks are now done in validate_fields).
         rc, msg = _verify_username_cert_cn(fields, check_username=True)
         if rc != 0:
+            config.db_close()
             return user_list(request, active_user=active_user, response_code=1, message='%s user add, "%s"' % (lno(MODID), msg))
 
         # Validity check the specified groups.
@@ -149,7 +150,9 @@ def add(request):
         
         # Add the user.
         table = 'csv2_user'
-        rc, msg = config.db_insert(table, table_fields(fields, table, columns, 'insert'))
+        user_updates = table_fields(fields, table, columns, 'insert')
+        user_updates = check_convert_bytestrings(user_updates)
+        rc, msg = config.db_insert(table, user_updates)
         if rc != 0:
             config.db_close()
             return user_list(request, active_user=active_user, response_code=1, message='%s user add, "%s" failed - %s.' % (lno(MODID), fields['username'], msg))
@@ -167,6 +170,7 @@ def add(request):
                     
     ### Bad request.
     else:
+        config.db_close()
         return user_list(request, active_user=active_user, response_code=1, message='%s user add, invalid method "%s" specified.' % (lno(MODID), request.method))
 
 #-------------------------------------------------------------------------------
@@ -215,6 +219,7 @@ def delete(request):
     ### Bad request.
     else:
       # return user_list(request, active_user=active_user, response_code=1, message='%s user delete did not contain mandatory parameter "username".' % lno(MODID))
+        config.db_close()
         return user_list(request, active_user=active_user, response_code=1, message='%s user delete add, invalid method "%s" specified.' % (lno(MODID), request.method))
 
 #-------------------------------------------------------------------------------

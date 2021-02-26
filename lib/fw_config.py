@@ -51,7 +51,9 @@ def configure_fw(config, logger=None, other_dns=[]):
         # firewall-cmd rich-rules
         rr_xref = {}
         new_fw_set = set()
-        for fqdn in config.db_connection.execute('select distinct htcondor_fqdn from csv2_groups where htcondor_fqdn is not null and htcondor_fqdn!="localhost"'):
+        where_clause = 'htcondor_fqdn is not null and htcondor_fqdn!="localhost"'
+        rc, msg, rows = config.db_query("csv2_groups", select=["htcondor_fqdn"], where=where_clause, distinct=True)
+        for fqdn in rows:
             try:
                 ip_addr = socket.gethostbyname(fqdn['htcondor_fqdn'])
                 rr = 'rule family="ipv4" source address="%s" port port="%s" protocol="tcp" accept' % (ip_addr, config.public_ports['amqp'])

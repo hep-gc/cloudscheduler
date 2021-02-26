@@ -8,10 +8,10 @@ import requests
 import signal
 
 from cloudscheduler.lib.view_utils import qt
-from cloudscheduler.lib.db_config_na import Config
-from cloudscheduler.lib.ProcessMonitor_na import ProcessMonitor, terminate, check_pid
+from cloudscheduler.lib.db_config import Config
+from cloudscheduler.lib.ProcessMonitor import ProcessMonitor, terminate, check_pid
 
-from cloudscheduler.lib.poller_functions_na import start_cycle, wait_cycle
+from cloudscheduler.lib.poller_functions import start_cycle, wait_cycle
 
 
 def _cast_int(variable):

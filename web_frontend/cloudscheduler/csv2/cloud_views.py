@@ -7,7 +7,7 @@ from django.http import HttpResponse
 from django.http.response import JsonResponse
 from django.core.exceptions import PermissionDenied
 
-from cloudscheduler.lib.view_utils_na import \
+from cloudscheduler.lib.view_utils import \
     diff_lists, \
     kill_retire, \
     lno, \
@@ -24,7 +24,7 @@ from cloudscheduler.lib.view_utils_na import \
 
 import bcrypt
 
-from cloudscheduler.lib.schema_na import *
+from cloudscheduler.lib.schema import *
 from cloudscheduler.lib.log_tools import get_frame_info
 from cloudscheduler.lib.signal_functions import event_signal_send
 
@@ -47,7 +47,7 @@ CLOUD_KEYS = {
     'auto_active_group': True,
     # Named argument formats (anything else is a string).
     'format': {
-        'cloud_name':                           'lower',
+        'cloud_name':                           'lowerdash',
         'cloud_type':                           ('csv2_cloud_types', 'cloud_type'),
         'enabled':                              'dboolean',
         'priority':                             'integer',
@@ -112,11 +112,11 @@ METADATA_KEYS = {
     'auto_active_group': True,
     # Named argument formats (anything else is a string).
     'format': {
-        'cloud_name':                           'lower',
+        'cloud_name':                           'lowerdash',
         'enabled':                              'dboolean',
         'priority':                             'integer',
         'metadata':                             'metadata',
-        'metadata_name':                        'lower',
+        'metadata_name':                        'lowerdash',
         'mime_type':                            ('csv2_mime_types', 'mime_type'),
 
         'csrfmiddlewaretoken':                  'ignore',
@@ -127,6 +127,7 @@ METADATA_KEYS = {
         'metadata_name',
         ],
     'not_empty': [
+        'cloud_name',
         'metadata_name',
         ]
     }
@@ -275,7 +276,7 @@ def manage_cloud_flavor_exclusions(config, tables, active_group, cloud_name, fla
     # Retrieve the list of flavor exclusions the cloud already has.
     exclusions=[]
     
-    where_clause = "group_name='%s' and cloud_name='%s" % (active_group, cloud_name)
+    where_clause = "group_name='%s' and cloud_name='%s'" % (active_group, cloud_name)
     rc, msg, exclusion_list = config.db_query(table, where=where_clause)
 
     for row in exclusion_list:
@@ -448,7 +449,7 @@ def manage_group_metadata_verification(config, tables, active_group, cloud_names
         # Get the list of valid metadata names.
         table = 'csv2_group_metadata'
         where_clause="group_name='%s'" % active_group
-        rc, msg, metadata_list = config.db_query(table, where_clause)
+        rc, msg, metadata_list = config.db_query(table, where=where_clause)
 
         valid_metadata = {}
         for row in metadata_list:
@@ -608,6 +609,7 @@ def add(request):
     ### Bad request.
     else:
       # return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud add request did not contain mandatory parameter "cloud_name".' % lno(MODID))
+        config.db_close()
         return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud add, invalid method "%s" specified.' % (lno(MODID), request.method))
 
 #-------------------------------------------------------------------------------
@@ -681,6 +683,7 @@ def delete(request):
     ### Bad request.
     else:
       # return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud delete request did not contain mandatory parameter "cloud_name".' % lno(MODID))
+        config.db_close()
         return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud delete, invalid method "%s" specified.' % (lno(MODID), request.method))
 
 #-------------------------------------------------------------------------------
@@ -1225,9 +1228,9 @@ def metadata_update(request):
             if not 'metadata' in fields.keys():
                 where_clause = "group_name='%s' and cloud_name='%s' and metadata_name='%s'" % (active_user.active_group, fields['cloud_name'], fields['metadata_name'])
                 rc, msg, metadata_list = config.db_query(table, where=where_clause)
-                if len(metadata_list) != 1:
+                if rc==0 and len(metadata_list) != 1:
                     config.db_close()
-                    return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud metadata-update could not retrieve metadata' % (lno(MODID), request.method))
+                    return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud metadata-update could not retrieve metadata' % lno(MODID))
                 metadata = metadata_list[0]
             else:
                 metadata = fields['metadata']
@@ -1547,7 +1550,7 @@ def status(request, group_name=None):
             table = "view_job_status_by_target_alias"
         else:
             table = "view_job_status"
-        where_clause = "group_name='%s" % active_user.active_group
+        where_clause = "group_name='%s'" % active_user.active_group
         rc, msg, job_status_list = config.db_query(table, where=where_clause)
 
     # Get GSI configuration variables.
@@ -1745,7 +1748,7 @@ def update(request):
             rc, msg = validate_by_filtered_table_entries(config, fields['vm_security_groups'], 'vm_security_groups', 'cloud_security_groups', 'name', [['group_name', fields['group_name']], ['cloud_name', fields['cloud_name']]], allow_value_list=True)
             if rc != 0:
                 config.db_close()
-                return list(request, active_user=active_user, response_code=1, message='%s cloud update, "%s" failed - %s.' % (lno(MODID), fields['cloud_name'], msg))
+                return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud update, "%s" failed - %s.' % (lno(MODID), fields['cloud_name'], msg))
         if 'cloud_type' in fields:
             if 'authurl' in fields and fields['cloud_type'] == 'openstack':
                 #check if url has a trailing slash
@@ -1779,6 +1782,7 @@ def update(request):
         if updates > 2:
             where_clause = "group_name='%s' and cloud_name='%s'" % (fields['group_name'], fields['cloud_name'])
             rc, msg = config.db_update(table, cloud_updates, where=where_clause)
+            config.db_commit()
             if rc != 0:
                 config.db_close()
                 return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud update "%s::%s" failed - %s.' % (lno(MODID), fields['group_name'], fields['cloud_name'], msg))
@@ -1790,12 +1794,15 @@ def update(request):
                 retire_cloud_vms(config, fields['group_name'], fields['cloud_name'])
 
         # If either the cores_ctl or the ram_ctl have been modified, call kill_retire to scale current usage.
-        if 'cores_ctl' in fields and 'ram_ctl' in fields:
-            updates += kill_retire(config, active_user.active_group, fields['cloud_name'], 'control', [fields['cores_ctl'], fields['ram_ctl']], get_frame_info())
-        elif 'cores_ctl' in fields:
-            updates += kill_retire(config, active_user.active_group, fields['cloud_name'], 'control', [fields['cores_ctl'], -1], get_frame_info())
-        elif 'ram_ctl' in fields:
-            updates += kill_retire(config, active_user.active_group, fields['cloud_name'], 'control', [-1, fields['ram_ctl']], get_frame_info())
+        try:
+            if 'cores_ctl' in fields and 'ram_ctl' in fields:
+                updates += kill_retire(config, active_user.active_group, fields['cloud_name'], 'control', [fields['cores_ctl'], fields['ram_ctl']], get_frame_info())
+            elif 'cores_ctl' in fields:
+                updates += kill_retire(config, active_user.active_group, fields['cloud_name'], 'control', [fields['cores_ctl'], -1], get_frame_info())
+            elif 'ram_ctl' in fields:
+                updates += kill_retire(config, active_user.active_group, fields['cloud_name'], 'control', [-1, fields['ram_ctl']], get_frame_info())
+        except Exception as exc:
+            print(exc)
 
         # Update the cloud's flavor exclusions.
         if request.META['HTTP_ACCEPT'] == 'application/json':
@@ -1845,10 +1852,11 @@ def update(request):
                     updates += 1
                 else:
                     config.db_close()
-                    return list(request, active_user=active_user, response_code=1, message='%s cloud update "%s::%s" failed - %s.' % (lno(MODID), fields['group_name'], fields['cloud_name'], msg))
+                    return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud update "%s::%s" failed - %s.' % (lno(MODID), fields['group_name'], fields['cloud_name'], msg))
 
         config.db_commit()
-        if updates > 0:
+        # updates must always contain at least the keys so if there isnt more than 2 there is nothing to actually update
+        if updates > 2:
             if 'cloud_type' in fields:
                 cloud_type = fields['cloud_type']
             else:

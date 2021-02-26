@@ -7,9 +7,9 @@
 # Source function library.
 . /etc/init.d/functions
 
-exec="/opt/cloudscheduler/python3/bin/python3 /opt/cloudscheduler/data_collectors/condor/condor_poller_na.py"
+exec="/opt/cloudscheduler/python3/bin/python3 /opt/cloudscheduler/data_collectors/condor/condor_poller.py"
 config="/opt/cloudscheduler/etc/cloudscheduler/condor_poller.yaml"
-pidfile="/var/local/cloudscheduler/run/condor_poller_na.py"
+pidfile="/var/local/cloudscheduler/run/condor_poller.py"
 
 start() {
     echo "Starting csv2-condor-poller"

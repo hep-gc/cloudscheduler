@@ -8,7 +8,7 @@ import datetime
 from django.conf import settings
 from celery import Celery
 from celery.utils.log import get_task_logger
-from cloudscheduler.lib.db_config_na import Config
+from cloudscheduler.lib.db_config import Config
 # this should be more specific as we don't need to import private functions, it will likely boil down to trasfer/delete/upload/glance client
 from . import glint_utils
 

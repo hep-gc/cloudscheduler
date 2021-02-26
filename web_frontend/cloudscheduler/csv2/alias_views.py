@@ -4,7 +4,7 @@ config = settings.CSV2_CONFIG
 from django.core.exceptions import PermissionDenied
 from django.contrib.auth import update_session_auth_hash
 
-from cloudscheduler.lib.view_utils_na import \
+from cloudscheduler.lib.view_utils import \
     diff_lists, \
     lno, \
     qt, \
@@ -15,10 +15,7 @@ from cloudscheduler.lib.view_utils_na import \
 from collections import defaultdict
 import bcrypt
 
-from sqlalchemy import exists
-from sqlalchemy.sql import select
 from cloudscheduler.lib.schema import *
-import sqlalchemy.exc
 import datetime
 
 from cloudscheduler.lib.web_profiler import silk_profile as silkp
@@ -32,8 +29,8 @@ CLOUD_ALIAS_KEYS = {
     # Named argument formats (anything else is a string).
     'auto_active_group': True,
     'format': {
-        'alias_name':          'lower',
-        'cloud_name':          'lower',
+        'alias_name':          'lowerdash',
+        'cloud_name':          'lowerdash',
         'cloud_option':        ['add', 'delete'],
         'csrfmiddlewaretoken': 'ignore',
         'group':               'ignore',
@@ -43,6 +40,9 @@ CLOUD_ALIAS_KEYS = {
         'alias_name',
     ],
     'array_fields': [
+        'cloud_name'
+    ],
+    'not_empty': [
         'cloud_name'
     ]
 }
@@ -64,7 +64,6 @@ def manage_cloud_aliases(config, tables, group_name, alias_name, clouds, option=
     have all been pre-verified.
     """
 
-    from sqlalchemy.sql import select
 
     table ='csv2_cloud_aliases'
 
@@ -80,7 +79,7 @@ def manage_cloud_aliases(config, tables, group_name, alias_name, clouds, option=
     # Retrieve the list of clouds the cloud alias already has.
     db_clouds = []
 
-    where_clause = "group_name='%s' and alias='%s'" % (group_name, alias_name)
+    where_clause = "group_name='%s' and alias_name='%s'" % (group_name, alias_name)
     rc, qmsg, _alias_list = config.db_query(table, where=where_clause)
 
     for row in _alias_list:
@@ -187,6 +186,7 @@ def add(request):
                     
     ### Bad request.
     else:
+        config.db_close()
         return alias_list(request, active_user=active_user, response_code=1, message='%s cloud alias add, invalid method "%s" specified.' % (lno(MODID), request.method))
 
 #-------------------------------------------------------------------------------
@@ -299,5 +299,6 @@ def update(request):
 
     ### Bad request.
     else:
+        config.db_close()
         return alias_list(request, active_user=active_user, response_code=1, message='%s cloud alias update, invalid method "%s" specified.' % (lno(MODID), request.method))
 

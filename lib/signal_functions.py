@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-from cloudscheduler.lib.db_config_na import Config
+from cloudscheduler.lib.db_config import Config
 from inspect import stack
 import datetime
 import os

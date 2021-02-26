@@ -7,7 +7,7 @@ from django.http import HttpResponse
 from django.core.exceptions import PermissionDenied
 
 
-from cloudscheduler.lib.view_utils_na import \
+from cloudscheduler.lib.view_utils import \
     kill_retire, \
     lno, \
     qt, \
@@ -20,7 +20,7 @@ from collections import defaultdict
 import bcrypt
 import time
 
-from cloudscheduler.lib.schema_na import *
+from cloudscheduler.lib.schema import *
 from cloudscheduler.lib.log_tools import get_frame_info
 
 from cloudscheduler.lib.web_profiler import silk_profile as silkp
@@ -43,6 +43,9 @@ VM_KEYS = {
         'group':                                                        'ignore',
         'vm_hosts':                                                     'lowerdash',
         },
+    'array_fields': [
+        'vm_hosts',
+        ],
     'not_empty': [
         'vm_hosts',
         ],
@@ -218,12 +221,12 @@ def update(request):
             table = 'csv2_vms'
             verb = 'set to system control'
         else:
+            config.db_close()
             return render(request, 'csv2/vms.html', {'response_code': 1, 'message': '%s vm update, option "%s" is invalid.' % (lno(MODID), fields['vm_option']), 'active_user': active_user.username, 'active_group': active_user.active_group, 'user_groups': active_user.user_groups})
 
 
         # Retrieve VM information.
-        if fields['vm_hosts'].isnumeric():
-#       if isinstance(fields['vm_hosts'], int):
+        if isinstance(fields['vm_hosts'], int):
             count = kill_retire(config, active_user.active_group, fields.get('cloud_name', default='-'), fields['vm_option'], fields['vm_hosts'], get_frame_info())
 #           count = kill_retire(config, active_user.active_group, fields['cloud_name'], 'control', [50,1000000], get_frame_info())
         else:
@@ -235,7 +238,7 @@ def update(request):
             else:
                 fields['hostname'] = fields['vm_hosts']
                 where_clause = "group_name='%s'" % active_user.active_group
-                vm_list_raw = config.db_query("view_vms", where=where_clause)
+                rc, msg, vm_list_raw = config.db_query("view_vms", where=where_clause)
                 _vm_list = qt(vm_list_raw, filter=qt_filter_get(['cloud_name', 'hostname', 'poller_status'], fields, aliases=ALIASES))
 
             for vm in _vm_list:
@@ -257,7 +260,7 @@ def update(request):
                     rc, msg = config.db_update(table, vm_dict, where=where_clause)
 
                 if rc == 0:
-                    count += msg
+                    count += 1
                 else:
                     config.db_close()
                     return render(request, 'csv2/vms.html', {'response_code': 1, 'message': '%s vm update (%s) failed - %s' % (lno(MODID), fields['vm_option'], msg), 'active_user': active_user.username, 'active_group': active_user.active_group, 'user_groups': active_user.user_groups})
@@ -279,5 +282,6 @@ def update(request):
 
     ### Bad request.
     else:
+        config.db_close()
         return render(request, 'csv2/vms.html', {'response_code': 1, 'message': '%s vm update, invalid method "%s" specified.' % (lno(MODID), request.method), 'active_user': active_user.username, 'active_group': active_user.active_group, 'user_groups': active_user.user_groups})
 #       return vm_list(request, selector, response_code=1, message='%s vm update, invalid method "%s" specified.' % (lno(MODID), request.method))
