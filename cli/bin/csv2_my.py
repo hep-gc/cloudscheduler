@@ -8,6 +8,7 @@ import csv2_defaults
 
 KEY_MAP = {
     '-gn':   'default_group',
+    '-un':   'username',
     '-upw':  'password',
     '-sfv':  'flag_show_foreign_global_vms',
     '-sgs':  'flag_global_status',
@@ -24,7 +25,7 @@ def settings(gvar):
 
     mandatory = []
     required = []
-    optional = ['-CSEP', '-CSV', '-gn', '-H', '-h', '-NV', '-ok', '-r', '-s', '-sfv', '-sgs', '-sjta', '-sri', '-ssd', '-ssf', '-upw', '-V', '-VC', '-v','-x509', '-xA']
+    optional = ['-CSEP', '-CSV', '-gn', '-H', '-h', '-NV', '-ok', '-r', '-s', '-sfv', '-sgs', '-sjta', '-sri', '-ssd', '-ssf', '-un', '-upw', '-V', '-VC', '-v','-x509', '-xA']
 
 
     if gvar['retrieve_options']:
