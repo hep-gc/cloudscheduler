@@ -706,7 +706,7 @@ def upload(request, group_name=None):
                     bad_clouds.append(image["cloud_name"])
         if len(bad_clouds) > 0:
             for cloud in bad_clouds:
-                cloud_name_list.remove(cloud)
+                if cloud in cloud_name_list: cloud_name_list.remove(cloud)
             msg = ("Upload failed for one or more projects because the image name was already in use.")
 
         if len(cloud_name_list) == 0:
@@ -754,7 +754,33 @@ def upload(request, group_name=None):
         # get the cloud row for this cloud
         where_clause = "group_name='%s' and cloud_name='%s'" % (group_name, target_cloud_name)
         rc, qmsg, target_cloud_list = config.db_query(CLOUDS, where=where_clause)
-        target_cloud = target_cloud_list[0]
+        try:
+            target_cloud = target_cloud_list[0]
+        except IndexError:
+            logger.error("Unable to find target cloud: %s" % target_cloud_name)
+            msg = "Unable to find target cloud: %s" % target_cloud_name
+            where_clause = "group_name='%s' and cloud_type='%s'" % (group_name, "openstack")
+            rc, qmsg, cloud_list = config.db_query(CLOUDS, where=where_clause)
+            context = {
+                'group_name': group_name,
+                'cloud_list': cloud_list,
+                'max_repos': len(cloud_list),
+                'redirect': "false",
+
+                #view agnostic data
+                'active_user': active_user.username,
+                'active_group': active_user.active_group,
+                'user_groups': active_user.user_groups,
+                'response_code': rc,
+                'message': msg,
+                'is_superuser': active_user.is_superuser,
+                'version': config.get_version()
+            }
+            config.db_close()
+            return render(request, 'glintwebui/upload_image.html', context)
+
+
+
         os_session = get_openstack_session(target_cloud)
         glance = get_glance_client(os_session, target_cloud["region"])
 
@@ -785,7 +811,7 @@ def upload(request, group_name=None):
             'created_at': created_time,
             'last_updated': time.time()
         }
-        img_dict, unmapped = map_attributes(src="os_images", dest="csv2", attr_dict=new_image_dict)
+        img_dict, unmapped = map_attributes(src="os_images", dest="csv2", attr_dict=new_image_dict, config=config)
         if unmapped:
             logging.error("Unmapped attributes found during mapping, discarding:")
             logging.error(unmapped)
@@ -976,7 +1002,7 @@ def upload(request, group_name=None):
             'created_at': created_time,
             'last_updated': time.time()
         }
-        img_dict, unmapped = map_attributes(src="os_images", dest="csv2", attr_dict=new_image_dict)
+        img_dict, unmapped = map_attributes(src="os_images", dest="csv2", attr_dict=new_image_dict, config=config)
         if unmapped:
             logging.error("Unmapped attributes found during mapping, discarding:")
             logging.error(unmapped)
@@ -1054,7 +1080,6 @@ def upload(request, group_name=None):
             'active_group': active_user.active_group,
             'user_groups': active_user.user_groups,
             'response_code': rc,
-            'message': msg,
             'is_superuser': active_user.is_superuser,
             'version': config.get_version()
         }
@@ -1333,7 +1358,7 @@ def image_list(request):
         cloud= None
     
     sql = "select rank() over (partition by rank order by group_name,cloud_name,name,created_at,checksum) as rank,group_name,cloud_name,name,created_at,checksum from (select 1 as rank,i.* from (select * from cloud_images) as i) as i where cloud_type='openstack';"
-    config.db_connection.execute(sql)
+    config.db_execute(sql)
     image_list = []
     for row in config.db_cursor:
         image_list.append(row)
