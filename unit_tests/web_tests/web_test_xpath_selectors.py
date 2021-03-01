@@ -19,6 +19,24 @@ def form_select_by_value(form, value):
 def form_submit_by_value(form, value):
     return "//form[@name='" + form + "']//input[@value='" + value + "']"
 
+def div_input_by_value(div, value):
+    return "//div[@id='" + div + "']//input[@value='" + value + "']"
+
+def div_input_by_name(div, name):
+    return "//div[@id='" + div + "']//input[@name='" + name + "']"
+
+def div_input_by_name_not_hidden(div, name):
+    return "//div[@id='" + div + "']//input[@name='" + name + "' and not(@type='hidden')]"
+
+def div_select_by_name(div, name):
+    return "//div[@id='" + div + "']//select[@name='" + name + "']"
+
+def div_select_by_value(div, value):
+    return "//div[@id='" + div + "']//select[@value='" + value + "']"
+
+def div_submit_by_value(div, value):
+    return "//div[@id='" + div + "']//input[@value='" + value + "']"
+
 def label_button(element, button):
     return "//label[@for='" + element + "-" + button + "']"
 
