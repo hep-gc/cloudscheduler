@@ -761,7 +761,75 @@ class GroupsPage(Page):
 
 class ConfigPage(Page):
     """This is the page object class for the Config page."""
-    pass
+    
+    def __init__(self, driver):
+        super(ConfigPage, self).__init__(driver)
+        # The active_config variable stores the active config file in the sidebar
+        self.active_config = None
+
+    def click_side_button(self, name):
+        # This method uses the JavaScript click to avoid a Selenium bug with
+        # clicking an element when another element's padding covers it.
+        wtjsi.javascript_click_by_link_text(self.driver, name)
+        self.active_config = name
+
+    # Note: these fields are listed in alphabetical order. Not every config file
+    # will have every field, and not every config file will necessarily be
+    # listed here.
+    # Currently, the config files that are fully documented are:
+    # condor_poller.py
+
+    def type_batch_commit_size(self, size):
+        xpath = wtxs.form_input_by_name(self.active_config, 'batch_commit_size')
+        wti.fill_blank_by_xpath(self.driver, xpath, size)
+
+    def type_ca_certs(self, ca_certs):
+        xpath = wtxs.form_input_by_name(self.active_config, 'cacerts')
+        wti.fill_blank_by_xpath(self.driver, xpath, ca_certs)
+
+    def type_delete_cycle_interval(self, interval):
+        xpath = wtxs.form_input_by_name(self.active_config, 'delete_cycle_interval')
+        wti.fill_blank_by_xpath(self.driver, xpath, interval)
+
+    def type_log_file(self, file):
+        xpath = wtxs.form_input_by_name(self.active_config, 'log_file')
+        wti.fill_blank_by_xpath(self.driver, xpath, file)
+
+    def select_log_level(self, level):
+        xpath = wtxs.form_select_by_name(self.active_config, 'log_level')
+        wti.select_option_by_xpath(self.driver, xpath, level)
+
+    def type_retire_interval(self, interval):
+        xpath = wtxs.form_input_by_name(self.active_config, 'retire_interval')
+        wti.fill_blank_by_xpath(self.driver, xpath, interval)
+
+    def click_retire_off(self):
+        xpath = wtxs.form_input_by_name(self.active_config, 'retire_off')
+        wti.click_by_xpath(self.driver, xpath)
+
+    def type_sleep_interval_command(self, interval):
+        xpath = wtxs.form_input_by_name(self.active_config, 'sleep_interval_command')
+        wti.fill_blank_by_xpath(self.driver, xpath, interval)
+
+    def type_sleep_interval_condor_gsi(self, interval):
+        xpath = wtxs.form_input_by_name(self.active_config, 'sleep_interval_condor_gsi')
+        wti.fill_blank_by_xpath(self.driver, xpath, interval)
+
+    def type_sleep_interval_job(self, interval):
+        xpath = wtxs.form_input_by_name(self.active_config, 'sleep_interval_job')
+        wti.fill_blank_by_xpath(self.driver, xpath, interval)
+
+    def type_sleep_interval_machine(self, interval):
+        xpath = wtxs.form_input_by_name(self.active_config, 'sleep_interval_machine')
+        wti.fill_blank_by_xpath(self.driver, xpath, interval)
+
+    def type_sleep_interval_worker_gsi(self, interval):
+        xpath = wtxs.form_input_by_name(self.active_config, 'sleep_interval_worker_gsi')
+        wti.fill_blank_by_xpath(self.driver, xpath, interval)
+
+    def click_update_config(self):
+        xpath = wtxs.form_submit_by_value(self.active_config, 'Update Config')
+        wti.click_by_xpath(self.driver, xpath)
 
 class SettingsPage(Page):
     """This is the page object class for the User Settings page."""
