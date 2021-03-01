@@ -779,25 +779,61 @@ class ConfigPage(Page):
     # Currently, the config files that are fully documented are:
     # condor_poller.py
 
+    def get_value_batch_commit_size(self):
+        xpath = wtxs.form_input_by_name(self.active_config, 'batch_commit_size')
+        element = self.driver.find_element_by_xpath(xpath)
+        value = element.get_attribute('value')
+        return value
+
     def type_batch_commit_size(self, size):
         xpath = wtxs.form_input_by_name(self.active_config, 'batch_commit_size')
         wti.fill_blank_by_xpath(self.driver, xpath, size)
+
+    def get_value_ca_certs(self):
+        xpath = wtxs.form_input_by_name(self.active_config, 'cacerts')
+        element = self.driver.find_element_by_xpath(xpath)
+        value = element.get_attribute('value')
+        return value
 
     def type_ca_certs(self, ca_certs):
         xpath = wtxs.form_input_by_name(self.active_config, 'cacerts')
         wti.fill_blank_by_xpath(self.driver, xpath, ca_certs)
 
+    def get_value_delete_cycle_interval(self):
+        xpath = wtxs.form_input_by_name(self.active_config, 'delete_cycle_interval')
+        element = self.driver.find_element_by_xpath(xpath)
+        text = element.get_attribute('value')
+        return text
+
     def type_delete_cycle_interval(self, interval):
         xpath = wtxs.form_input_by_name(self.active_config, 'delete_cycle_interval')
         wti.fill_blank_by_xpath(self.driver, xpath, interval)
+
+    def get_value_log_file(self):
+        xpath = wtxs.form_input_by_name(self.active_config, 'log_file')
+        element = self.driver.find_element_by_xpath(xpath)
+        value = element.get_attribute('value')
+        return value
 
     def type_log_file(self, file):
         xpath = wtxs.form_input_by_name(self.active_config, 'log_file')
         wti.fill_blank_by_xpath(self.driver, xpath, file)
 
+    def get_value_log_level(self):
+        xpath = wtxs.form_select_by_name(self.active_config, 'log_level')
+        element = self.driver.find_element_by_xpath(xpath)
+        value = element.get_attribute('value')
+        return value
+
     def select_log_level(self, level):
         xpath = wtxs.form_select_by_name(self.active_config, 'log_level')
         wti.select_option_by_xpath(self.driver, xpath, level)
+
+    def get_value_retire_interval(self):
+        xpath = wtxs.form_input_by_name(self.active_config, 'retire_interval')
+        element = self.driver.find_element_by_xpath(xpath)
+        value = element.get_attribute('value')
+        return value
 
     def type_retire_interval(self, interval):
         xpath = wtxs.form_input_by_name(self.active_config, 'retire_interval')
@@ -807,21 +843,51 @@ class ConfigPage(Page):
         xpath = wtxs.form_input_by_name(self.active_config, 'retire_off')
         wti.click_by_xpath(self.driver, xpath)
 
+    def get_value_sleep_interval_command(self):
+        xpath = wtxs.form_input_by_name(self.active_config, 'sleep_interval_command')
+        element = self.driver.find_element_by_xpath(xpath)
+        value = element.get_attribute('value')
+        return value
+
     def type_sleep_interval_command(self, interval):
         xpath = wtxs.form_input_by_name(self.active_config, 'sleep_interval_command')
         wti.fill_blank_by_xpath(self.driver, xpath, interval)
+
+    def get_value_sleep_interval_condor_gsi(self):
+        xpath = wtxs.form_input_by_name(self.active_config, 'sleep_interval_condor_gsi')
+        element = self.driver.find_element_by_xpath(xpath)
+        value = element.get_attribute('value')
+        return value
 
     def type_sleep_interval_condor_gsi(self, interval):
         xpath = wtxs.form_input_by_name(self.active_config, 'sleep_interval_condor_gsi')
         wti.fill_blank_by_xpath(self.driver, xpath, interval)
 
+    def get_value_sleep_interval_job(self):
+        xpath = wtxs.form_input_by_name(self.active_config, 'sleep_interval_job')
+        element = self.driver.find_element_by_xpath(xpath)
+        value = element.get_attribute('value')
+        return value
+
     def type_sleep_interval_job(self, interval):
         xpath = wtxs.form_input_by_name(self.active_config, 'sleep_interval_job')
         wti.fill_blank_by_xpath(self.driver, xpath, interval)
 
+    def get_value_sleep_interval_machine(self):
+        xpath = wtxs.form_input_by_name(self.active_config, 'sleep_interval_machine')
+        element = self.driver.find_element_by_xpath(xpath)
+        value = element.get_attribute('value')
+        return value
+
     def type_sleep_interval_machine(self, interval):
         xpath = wtxs.form_input_by_name(self.active_config, 'sleep_interval_machine')
         wti.fill_blank_by_xpath(self.driver, xpath, interval)
+
+    def get_value_sleep_interval_worker_gsi(self):
+        xpath = wtxs.form_input_by_name(self.active_config, 'sleep_interval_worker_gsi')
+        element = self.driver.find_element_by_xpath(xpath)
+        value = element.get_attribute('value')
+        return value
 
     def type_sleep_interval_worker_gsi(self, interval):
         xpath = wtxs.form_input_by_name(self.active_config, 'sleep_interval_worker_gsi')
