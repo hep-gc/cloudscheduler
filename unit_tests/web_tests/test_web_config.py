@@ -27,16 +27,44 @@ class TestWebConfig(unittest.TestCase):
     # Currently, the tested files are:
     # condor_poller.py
 
+    # Tests for condor_poller.py
+
     def test_web_config_update_condor_poller_batch_commit_size(self):
         self.page.click_side_button('condor_poller.py')
         original = self.page.get_value_batch_commit_size() 
         self.page.type_batch_commit_size('40')
         self.page.click_update_config()
         self.assertFalse(self.page.error_message_displayed())
+        self.page.click_top_nav('Config')
         self.assertEqual(self.page.get_value_batch_commit_size(), '40')
         # reverse
         self.page.type_batch_commit_size(original)
         self.page.click_update_config()
+
+    def test_web_config_update_condor_poller_batch_commit_size_float(self):
+        self.page.click_side_button('condor_poller.py')
+        self.page.type_batch_commit_size('50.5')
+        self.page.click_update_config()
+        self.assertTrue(self.page.error_message_displayed())
+        self.page.click_top_nav('Config')
+        self.assertNotEqual(self.page.get_value_batch_commit_size(), '50.5')
+
+    def test_web_config_update_condor_poller_batch_commit_size_string(self):
+        self.page.click_side_button('condor_poller.py')
+        self.page.type_batch_commit_size('invalid-web-test')
+        self.page.click_update_config()
+        self.assertTrue(self.page.error_message_displayed())
+        self.page.click_top_nav('Config')
+        self.assertNotEqual(self.page.get_value_batch_commit_size(), 'invalid-web-test')
+
+    @unittest.skip("No apparent maximum size")
+    def test_web_config_update_condor_poller_batch_commit_size_too_big(self):
+        self.page.click_side_button('condor_poller.py')
+        self.page.type_batch_commit_size(str(self.oversize['int_11']))
+        self.page.click_update_config()
+        self.assertTrue(self.page.error_message_displayed())
+        self.page.click_top_nav('Config')
+        self.assertNotEqual(self.page.get_value_batch_commit_size(), str(self.oversize['int_11']))
 
     def test_web_config_update_condor_poller_delete_cycle_interval(self):
         self.page.click_side_button('condor_poller.py')
@@ -44,10 +72,36 @@ class TestWebConfig(unittest.TestCase):
         self.page.type_delete_cycle_interval('5')
         self.page.click_update_config()
         self.assertFalse(self.page.error_message_displayed())
+        self.page.click_top_nav('Config')
         self.assertEqual(self.page.get_value_delete_cycle_interval(), '5')
         # reverse
         self.page.type_delete_cycle_interval(original)
         self.page.click_update_config()
+
+    def test_web_config_update_condor_poller_delete_cycle_interval_float(self):
+        self.page.click_side_button('condor_poller.py')
+        self.page.type_delete_cycle_interval('1.5')
+        self.page.click_update_config()
+        self.assertTrue(self.page.error_message_displayed())
+        self.page.click_top_nav('Config')
+        self.assertNotEqual(self.page.get_value_delete_cycle_interval(), '1.5')
+
+    def test_web_config_update_condor_poller_delete_cycle_interval_string(self):
+        self.page.click_side_button('condor_poller.py')
+        self.page.type_delete_cycle_interval('invalid-web-test')
+        self.page.click_update_config()
+        self.assertTrue(self.page.error_message_displayed())
+        self.page.click_top_nav('Config')
+        self.assertNotEqual(self.page.get_value_delete_cycle_interval(), 'invalid-web-test')
+
+    @unittest.skip("No apparent maximum size")
+    def test_web_config_update_condor_poller_delete_cycle_interval_too_big(self):
+        self.page.click_side_button('condor_poller.py')
+        self.page.type_delete_cycle_interval(str(self.oversize['bigint_20']))
+        self.page.click_update_config()
+        self.assertTrue(self.page.error_message_displayed())
+        self.page.click_top_nav('Config')
+        self.assertFalse(self.page.get_value_delete_cycle_interval(), str(self.oversize['bigint_20']))
 
     def test_web_config_update_condor_poller_log_level(self):
         self.page.click_side_button('condor_poller.py')
@@ -55,6 +109,7 @@ class TestWebConfig(unittest.TestCase):
         self.page.select_log_level('WARNING')
         self.page.click_update_config()
         self.assertFalse(self.page.error_message_displayed())
+        self.page.click_top_nav('Config')
         self.assertEqual(self.page.get_text_log_level(), 'WARNING')
         # reverse
         self.page.select_log_level(original)
@@ -66,10 +121,36 @@ class TestWebConfig(unittest.TestCase):
         self.page.type_retire_interval('1024')
         self.page.click_update_config()
         self.assertFalse(self.page.error_message_displayed())
+        self.page.click_top_nav('Config')
         self.assertEqual(self.page.get_value_retire_interval(), '1024')
         # reverse
         self.page.type_retire_interval(original)
         self.page.click_update_config()
+
+    def test_web_config_update_condor_poller_retire_interval_float(self):
+        self.page.click_side_button('condor_poller.py')
+        self.page.type_retire_interval('1200.5')
+        self.page.click_update_config()
+        self.assertTrue(self.page.error_message_displayed())
+        self.page.click_top_nav('Config')
+        self.assertNotEqual(self.page.get_value_retire_interval(), '1200.5')
+
+    def test_web_config_update_condor_poller_retire_interval_string(self):
+        self.page.click_side_button('condor_poller.py')
+        self.page.type_retire_interval('invalid-web-test')
+        self.page.click_update_config()
+        self.assertTrue(self.page.error_message_displayed())
+        self.page.click_top_nav('Config')
+        self.assertNotEqual(self.page.get_value_retire_interval(), 'invalid-web-test')
+
+    @unittest.skip("No apparent maximum size")
+    def test_web_config_update_condor_poller_retire_interval_too_big(self):
+        self.page.click_side_button('condor_poller.py')
+        self.page.type_retire_interval(str(self.oversize['int_11']))
+        self.page.click_update_config()
+        self.assertTrue(self.page.error_message_displayed())
+        self.driver.click_top_nav('Config')
+        self.assertNotEqual(self.page.get_value_retire_interval(), str(self.oversize['int_11']))
 
     def test_web_config_update_condor_poller_retire_off(self):
         self.page.click_side_button('condor_poller.py')
@@ -88,10 +169,36 @@ class TestWebConfig(unittest.TestCase):
         self.page.type_sleep_interval_command('16')
         self.page.click_update_config()
         self.assertFalse(self.page.error_message_displayed())
+        self.page.click_top_nav('Config')
         self.assertEqual(self.page.get_value_sleep_interval_command(), '16')
         # reverse
         self.page.type_sleep_interval_command(original)
         self.page.click_update_config()
+
+    def test_web_config_update_condor_poller_sleep_interval_command_float(self):
+        self.page.click_side_button('condor_poller.py')
+        self.page.type_sleep_interval_command('15.5')
+        self.page.click_update_config()
+        self.assertTrue(self.page.error_message_displayed())
+        self.page.click_top_nav('Config')
+        self.assertNotEqual(self.page.get_value_sleep_interval_command(), '15.5')
+
+    def test_web_config_update_condor_poller_sleep_interval_command_string(self):
+        self.page.click_side_button('condor_poller.py')
+        self.page.type_sleep_interval_command('invalid-web-test')
+        self.page.click_update_config()
+        self.assertTrue(self.page.error_message_displayed())
+        self.page.click_top_nav('Config')
+        self.assertNotEqual(self.page.get_value_sleep_interval_command(), 'invalid-web-test')
+
+    @unittest.skip("No apparent maximum size")
+    def test_web_config_update_condor_poller_sleep_interval_command_too_big(self):
+        self.page.click_side_button('condor_poller.py')
+        self.page.type_sleep_interval_command(str(self.oversize['int_11']))
+        self.page.click_update_config()
+        self.assertTrue(self.page.error_message_displayed())
+        self.page.click_top_nav('Config')
+        self.assertNotEqual(self.page.get_value_sleep_interval_command(), str(self.oversize['int_11']))
 
     def test_web_config_update_condor_poller_sleep_interval_condor_gsi(self):
         self.page.click_side_button('condor_poller.py')
@@ -99,10 +206,36 @@ class TestWebConfig(unittest.TestCase):
         self.page.type_sleep_interval_condor_gsi('4096')
         self.page.click_update_config()
         self.assertFalse(self.page.error_message_displayed())
+        self.page.click_top_nav('Config')
         self.assertEqual(self.page.get_value_sleep_interval_condor_gsi(), '4096')
         # reverse
         self.page.type_sleep_interval_condor_gsi(original)
         self.page.click_update_config()
+
+    def test_web_config_update_condor_poller_sleep_interval_condor_gsi_float(self):
+        self.page.click_side_button('condor_poller.py')
+        self.page.type_sleep_interval_condor_gsi('3600.5')
+        self.page.click_update_config()
+        self.assertTrue(self.page.error_message_displayed())
+        self.page.click_top_nav('Config')
+        self.assertNotEqual(self.page.get_value_sleep_interval_condor_gsi(), '3600.5')
+
+    def test_web_config_update_condor_poller_sleep_interval_condor_gsi_string(self):
+        self.page.click_side_button('condor_poller.py')
+        self.page.type_sleep_interval_condor_gsi('invalid-web-test')
+        self.page.click_update_config()
+        self.assertTrue(self.page.error_message_displayed())
+        self.page.click_top_nav('Config')
+        self.assertNotEqual(self.page.get_value_sleep_interval_condor_gsi(), 'invalid-web-test')
+
+    @unittest.skip("No apparent maximum size")
+    def test_web_config_update_condor_poller_sleep_interval_condor_gsi_too_big(self):
+        self.page.click_side_button('condor_poller.py')
+        self.page.type_sleep_interval_condor_gsi(str(self.oversize['int_11']))
+        self.page.click_update_config()
+        self.assertTrue(self.page.error_message_displayed())
+        self.page.click_top_nav('Config')
+        self.assertNotEqual(self.page.get_value_sleep_interval_condor_gsi(), str(self.oversize['int_11']))
 
     def test_web_config_update_condor_poller_sleep_interval_job(self):
         self.page.click_side_button('condor_poller.py')
@@ -110,10 +243,36 @@ class TestWebConfig(unittest.TestCase):
         self.page.type_sleep_interval_job('16')
         self.page.click_update_config()
         self.assertFalse(self.page.error_message_displayed())
+        self.page.click_top_nav('Config')
         self.assertEqual(self.page.get_value_sleep_interval_job(), '16')
         # reverse
         self.page.type_sleep_interval_job(original)
         self.page.click_update_config()
+
+    def test_web_config_update_condor_poller_sleep_interval_job_float(self):
+        self.page.click_side_button('condor_poller.py')
+        self.page.type_sleep_interval_job('15.5')
+        self.page.click_update_config()
+        self.assertTrue(self.page.error_message_displayed())
+        self.page.click_top_nav('Config')
+        self.assertNotEqual(self.page.get_value_sleep_interval_job(), '15.5')
+
+    def test_web_config_update_condor_poller_sleep_interval_job_string(self):
+        self.page.click_side_button('condor_poller.py')
+        self.page.type_sleep_interval_job('invalid-web-test')
+        self.page.click_update_config()
+        self.assertTrue(self.page.error_message_displayed())
+        self.page.click_top_nav('Config')
+        self.assertNotEqual(self.page.get_value_sleep_interval_job(), 'invalid-web-test')
+
+    @unittest.skip("No apparent maximum size")
+    def test_web_config_update_condor_poller_sleep_interval_job_too_big(self):
+        self.page.click_side_button('condor_poller.py')
+        self.page.type_sleep_interval_job(str(self.oversize['int_11']))
+        self.page.click_update_config()
+        self.assertTrue(self.page.error_message_displayed())
+        self.page.click_top_nav('Config')
+        self.assertNotEqual(self.page.get_value_sleep_interval_job(), str(self.oversize['int_11']))
 
     def test_web_config_update_condor_poller_sleep_interval_machine(self):
         self.page.click_side_button('condor_poller.py')
@@ -121,10 +280,36 @@ class TestWebConfig(unittest.TestCase):
         self.page.type_sleep_interval_machine('16')
         self.page.click_update_config()
         self.assertFalse(self.page.error_message_displayed())
+        self.page.click_top_nav('Config')
         self.assertEqual(self.page.get_value_sleep_interval_machine(), '16')
         # reverse
         self.page.type_sleep_interval_machine(original)
         self.page.click_update_config()
+
+    def test_web_config_update_condor_poller_sleep_interval_machine_float(self):
+        self.page.click_side_button('condor_poller.py')
+        self.page.type_sleep_interval_machine('15.5')
+        self.page.click_update_config()
+        self.assertTrue(self.page.error_message_displayed())
+        self.page.click_top_nav('Config')
+        self.assertNotEqual(self.page.get_value_sleep_interval_machine(), '15.5')
+
+    def test_web_config_update_condor_poller_sleep_interval_machine_string(self):
+        self.page.click_side_button('condor_poller.py')
+        self.page.type_sleep_interval_machine('invalid-web-test')
+        self.page.click_update_config()
+        self.assertTrue(self.page.error_message_displayed())
+        self.page.click_top_nav('Config')
+        self.assertNotEqual(self.page.get_value_sleep_interval_machine(), 'invalid-web-test')
+
+    @unittest.skip("No apparent maximum size")
+    def test_web_config_update_condor_poller_sleep_interval_machine_too_big(self):
+        self.page.click_side_button('condor_poller.py')
+        self.page.type_sleep_interval_machine(str(self.oversize['int_11']))
+        self.page.click_update_config()
+        self.assertTrue(self.page.error_message_displayed())
+        self.page.click_top_nav('Config')
+        self.assertNotEqual(self.page.get_value_sleep_interval_machine(), str(self.oversize['int_11']))
 
     def test_web_config_update_condor_poller_sleep_interval_worker_gsi(self):
         self.page.click_side_button('condor_poller.py')
@@ -132,10 +317,37 @@ class TestWebConfig(unittest.TestCase):
         self.page.type_sleep_interval_worker_gsi('4096')
         self.page.click_update_config()
         self.assertFalse(self.page.error_message_displayed())
+        self.page.click_top_nav('Config')
         self.assertEqual(self.page.get_value_sleep_interval_worker_gsi(), '4096')
         # reverse
         self.page.type_sleep_interval_worker_gsi(original)
         self.page.click_update_config()
+
+
+    def test_web_config_update_condor_poller_sleep_interval_worker_gsi_float(self):
+        self.page.click_side_button('condor_poller.py')
+        self.page.type_sleep_interval_worker_gsi('3600.5')
+        self.page.click_update_config()
+        self.assertTrue(self.page.error_message_displayed())
+        self.page.click_top_nav('Config')
+        self.assertNotEqual(self.page.get_value_sleep_interval_worker_gsi(), '3600.5')
+
+    def test_web_config_update_condor_poller_sleep_interval_worker_gsi_string(self):
+        self.page.click_side_button('condor_poller.py')
+        self.page.type_sleep_interval_worker_gsi('invalid-web-test')
+        self.page.click_update_config()
+        self.assertTrue(self.page.error_message_displayed())
+        self.page.click_top_nav('Config')
+        self.assertNotEqual(self.page.get_value_sleep_interval_condor_gsi(), 'invalid-web-test')
+
+    @unittest.skip("No apparent maximum size")
+    def test_web_config_update_condor_poller_sleep_interval_worker_gsi_too_big(self):
+        self.page.click_side_button('condor_poller.py')
+        self.page.type_sleep_interval_worker_gsi(str(self.oversize['int_11']))
+        self.page.click_update_config()
+        self.assertTrue(self.page.error_message_displayed())
+        self.page.click_top_nav('Config')
+        self.assertNotEqual(self.page.get_value_sleep_interval_worker_gsi(), str(self.oversize['int_11']))
 
     @classmethod
     def tearDownClass(cls):
