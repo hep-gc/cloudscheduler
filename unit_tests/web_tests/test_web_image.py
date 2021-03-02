@@ -18,17 +18,32 @@ class TestWebImageSuperUser(unittest.TestCase):
         wtsc.get_homepage(self.driver)
         self.page.click_top_nav('Images')
 
-    def test_web_image_upload(self):
+    def test_web_image_upload_filename(self):
+        image_name = self.gvar['user'] + '-wii3.hdd'
+        cloud_name = self.gvar['user'] + '-wic1'
         self.page.click_upload_image()
         # TODO: fix hardcoding
-        self.page.type_image_file_path('/home/centos/cloudscheduler/unit_tests/web_tests/eklassen-wii3.hdd')
+        self.page.type_image_file_path('/home/centos/cloudscheduler/unit_tests/web_tests/' + image_name)
         self.page.select_disk_format('Raw')
-        self.page.add_upload_to_cloud(self.gvar['user'] + '-wic1')
+        self.page.add_upload_to_cloud(cloud_name)
         self.page.click_upload()
-        wta.assertExists('image', self.gvar['user'] + '-wii3.hdd', group=self.gvar['base_group'], image_cloud=self.gvar['user'] + '-wic1')
+        wta.assertExists('image', image_name, group=self.gvar['base_group'], image_cloud=cloud_name)
 
     def test_web_image_find(self):
         pass
+
+    def test_web_image_download(self):
+        image_name = self.gvar['user'] + '-wii1.hdd'
+        cloud_name = self.gvar['user'] + '-wic1'
+        self.page.click_download_image(image_name)
+        self.page.click_download_ok()
+
+    def test_web_image_delete(self):
+        image_name = self.gvar['user'] + '-wii2.hdd'
+        cloud_name = self.gvar['user'] + '-wic1'
+        self.page.click_delete_button(image_name, cloud_name)
+        self.page.click_delete_ok()
+        wta.assertNotExists('image', image_name, group=self.gvar['base_group'], image_cloud=cloud_name)
 
     @classmethod
     def tearDownClass(cls):
