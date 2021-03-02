@@ -156,7 +156,7 @@ def setup_objects(objects=[]):
         images.append(gvar['user'] + '-wii' + str(i) + '.hdd')
     for i in range(0, images_num):
         filename = os.path.abspath('web_tests/' + images[i])
-        subprocess.run(['cloudscheduler', 'image', 'upload', '-ip', 'file://' + filename, '-df', 'raw', '-cl', gvar['user'] + '-wic1,' + gvar['user'] + '-wic2', '-g', gvar['base_group'], '-s', 'unit-test'])
+        subprocess.run(['cloudscheduler', 'image', 'upload', '-ip', 'file://' + filename, '-df', 'raw', '-cl', gvar['user'] + '-wic1', '-g', gvar['base_group'], '-s', 'unit-test'])
 
     #add servers
     if 'servers' in objects:
@@ -187,7 +187,7 @@ def cleanup_objects():
     gvar['base_group'] = gvar['user'] + '-wig0'
 
     delete_by_type(gvar, ['defaults', '-wis', '-s', 'server', []], 2)
-    delete_by_type(gvar, ['image', '-wii', '-in', 'image_name', ['-g', gvar['user'] + '-wig0']], 3)
+    delete_by_type(gvar, ['image', '-wii', '-in', 'image_name', ['-g', gvar['user'] + '-wig0', '-cn', gvar['user'] + '-wic1']], 3)
 
     logfile = 'objects.txt'
     try:
