@@ -921,7 +921,9 @@ def machine_poller():
         # old inventory func
         #inventory = get_inventory_item_hash_from_database(config.db_engine, RESOURCE, 'name', debug_hash=(config.categories["condor_poller.py"]["log_level"]<20), condor_host=config.local_host_id)
         configure_fw(config, logging)
+        config.db_close()
         while True:
+            config.db_open()
             new_poll_time, cycle_start_time = start_cycle(new_poll_time, cycle_start_time)
 
             config.refresh()
@@ -1142,6 +1144,7 @@ def machine_poller():
             signal.signal(signal.SIGINT, config.signals['SIGINT'])
             config.db_close()
             wait_cycle(cycle_start_time, poll_time_history, config.categories["condor_poller.py"]["sleep_interval_machine"], config)
+            
 
     except Exception as exc:
         logging.exception("Machine poller while loop exception, process terminating...")
@@ -1377,7 +1380,7 @@ if __name__ == '__main__':
         'worker_gsi':       worker_gsi_poller,
     }
 
-    db_category_list = ["condor_poller.py", "condor_poller_na.py", "ProcessMonitor", "general", "signal_manager"]
+    db_category_list = ["condor_poller.py", "ProcessMonitor", "general", "signal_manager"]
 
     #procMon = ProcessMonitor(config_params=db_category_list, pool_size=3, process_ids=process_ids, config_file=sys.argv[1], log_file="/var/log/cloudscheduler/condor_poller.log", log_level=20)
     procMon = ProcessMonitor(config_params=db_category_list, pool_size=3, process_ids=process_ids, config_file=sys.argv[1], log_key="condor_poller")
