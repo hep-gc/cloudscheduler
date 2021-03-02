@@ -186,8 +186,8 @@ def cleanup_objects():
     gvar = load_settings(web=True)
     gvar['base_group'] = gvar['user'] + '-wig0'
 
-    delete_by_type(gvar, ['defaults', '-wis', '-s', 'server', []], 2, csv=False)
-    delete_by_type(gvar, ['image', '-wii', '-in', 'name', ['-g', gvar['user'] + '-wig0', '-cn', gvar['user'] + '-wic1']], 3, csv=False)
+    delete_by_type(gvar, ['defaults', '-wis', '-s', 'server', []], 2)
+    delete_by_type(gvar, ['image', '-wii', '-in', 'name', ['-g', gvar['user'] + '-wig0', '-cn', gvar['user'] + '-wic1']], 3)
 
     logfile = 'objects.txt'
     try:
@@ -230,7 +230,7 @@ def cleanup_objects():
     # and cleanup will fail if it is deleted earlier.
     subprocess.run(['cloudscheduler', 'group', 'delete', '-gn', gvar['base_group'], '-Y', '-s', 'unit-test'], stdout=subprocess.DEVNULL)
 
-def delete_by_type(gvar, type_info, number, csv=True):
+def delete_by_type(gvar, type_info, number):
     # type_info is a list of strings (and one list of strings)
     # The first string is the name of the object to be deleted (ex 'user')
     # The second string is the suffix used to generate the names of the test objects (ex '-wiu')

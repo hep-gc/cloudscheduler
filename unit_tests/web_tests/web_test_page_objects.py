@@ -569,7 +569,41 @@ class ImagesPage(Page):
         wti.fill_blank_by_id(self.driver, 'image_search', text)
 
     def click_upload_image(self):
-        wti.click_by_value(self.driver, '+Upload Image')
+        xpath = wtxs.input_by_value('+Upload Image')
+        wti.click_by_xpath(self.driver, xpath)
+
+    def click_from_url(self):
+        xpath = wtxs.button_by_visible_text('From URL')
+        wti.click_by_xpath(self.driver, xpath)
+
+    def click_from_file(self):
+        xpath = wtxs.button_by_visible_text('From File')
+        wti.click_by_xpath(self.driver, xpath)
+
+    def type_image_file_path(self, path):
+        wti.fill_blank_by_name(self.driver, 'myfile', path)
+
+    def type_image_url(self, url):
+        wti.fill_blank_by_name(self.driver, 'myfileurl', url)
+
+    def select_disk_format(self, format):
+        wti.select_option_by_name(self.driver, 'disk_format', format)
+
+    def add_upload_to_cloud(self, cloud):
+        wti.select_option_by_id(self.driver, 'rightValues', cloud)
+        wti.click_by_id(self.driver, 'btnLeft')
+
+    def remove_upload_to_cloud(self, cloud):
+        wti.select_option_by_id(self.driver, 'leftValues', cloud)
+        wti.click_by_id(self.driver, 'btnRight')
+
+    def click_cancel_upload(self):
+        xpath = wtxs.button_by_visible_text('Cancel')
+        wti.click_by_xpath(self.driver, xpath)
+
+    def click_upload(self):
+        xpath = wtxs.button_by_visible_text('Upload')
+        wti.click_by_xpath(self.driver, xpath)
 
     def click_download_image(self, image):
         xpath = wtxs.download_button(image)
