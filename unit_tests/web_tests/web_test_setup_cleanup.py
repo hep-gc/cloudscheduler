@@ -186,8 +186,8 @@ def cleanup_objects():
     gvar = load_settings(web=True)
     gvar['base_group'] = gvar['user'] + '-wig0'
 
-    delete_by_type(gvar, ['defaults', '-wis', '-s', 'server', []], 2)
-    delete_by_type(gvar, ['image', '-wii', '-in', 'image_name', ['-g', gvar['user'] + '-wig0', '-cn', gvar['user'] + '-wic1']], 3)
+    delete_by_type(gvar, ['defaults', '-wis', '-s', 'server', []], 2, csv=False)
+    delete_by_type(gvar, ['image', '-wii', '-in', 'image_name', ['-g', gvar['user'] + '-wig0', '-cn', gvar['user'] + '-wic1']], 3, csv=False)
 
     logfile = 'objects.txt'
     try:
@@ -230,7 +230,7 @@ def cleanup_objects():
     # and cleanup will fail if it is deleted earlier.
     subprocess.run(['cloudscheduler', 'group', 'delete', '-gn', gvar['base_group'], '-Y', '-s', 'unit-test'], stdout=subprocess.DEVNULL)
 
-def delete_by_type(gvar, type_info, number):
+def delete_by_type(gvar, type_info, number, csv=True):
     # type_info is a list of strings (and one list of strings)
     # The first string is the name of the object to be deleted (ex 'user')
     # The second string is the suffix used to generate the names of the test objects (ex '-wiu')
@@ -247,14 +247,36 @@ def delete_by_type(gvar, type_info, number):
         object_log = open(logfile, mode = 'x')
     except FileExistsError:
         object_log = open(logfile, mode = 'w') 
+
+    flags = []
+    if csv:
+        flags.append('-CSV')
+    else:
+        flags.append('-V')
+    flags.append(type_info[3])
+    if type_info[0] != 'defaults':
+        flags.append('-s')
+        flags.append('unit-test')
+    for flag in type_info[4]:
+        flags.append(flag)
     
-    subprocess.run(['cloudscheduler', type_info[0], 'list', '-CSV', type_info[3], *type_info[4], '-s', 'unit-test'], stdout=object_log)
+    subprocess.run(['cloudscheduler', type_info[0], 'list', *flags], stdout=object_log)
     
     object_log.close()
     object_log = open(logfile, mode = 'r')
 
-    for line in object_log:
-        object_list.append(line.strip())
+    if csv:
+        for line in object_log:
+            object_list.append(line.strip())
+    else:
+        first = True
+        for line in object_log:
+            if '---' not in line and '(' not in line:
+                if first == False:
+                    object_list.append(line.strip(' |+\n'))
+                else:
+                    first = False
+        object_list = object_list[:-1]
 
     for i in range(1, number+1):
         add = ''
@@ -265,8 +287,12 @@ def delete_by_type(gvar, type_info, number):
         objects.append(gvar['user'] + type_info[1] + str(i) + add)
     
     for object in objects:
+        flags = type_info[4]
+        if type_info[0] != 'defaults':
+            flags.append('-s')
+            flags.append('unit-test')
         if object in object_list:
-            subprocess.run(['cloudscheduler', type_info[0], 'delete', type_info[2], object, *type_info[4], '-Y', '-s', 'unit-test'])
+            subprocess.run(['cloudscheduler', type_info[0], 'delete', type_info[2], object, '-Y', *flags])
 
     object_log.close()
 
