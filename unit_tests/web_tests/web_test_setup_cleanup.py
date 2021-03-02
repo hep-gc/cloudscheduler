@@ -187,7 +187,7 @@ def cleanup_objects():
     gvar['base_group'] = gvar['user'] + '-wig0'
 
     delete_by_type(gvar, ['defaults', '-wis', '-s', 'server', []], 2, csv=False)
-    delete_by_type(gvar, ['image', '-wii', '-in', 'image_name', ['-g', gvar['user'] + '-wig0', '-cn', gvar['user'] + '-wic1']], 3, csv=False)
+    delete_by_type(gvar, ['image', '-wii', '-in', 'name', ['-g', gvar['user'] + '-wig0', '-cn', gvar['user'] + '-wic1']], 3, csv=False)
 
     logfile = 'objects.txt'
     try:
@@ -249,10 +249,7 @@ def delete_by_type(gvar, type_info, number, csv=True):
         object_log = open(logfile, mode = 'w') 
 
     flags = []
-    if csv:
-        flags.append('-CSV')
-    else:
-        flags.append('-V')
+    flags.append('-CSV')
     flags.append(type_info[3])
     if type_info[0] != 'defaults':
         flags.append('-s')
@@ -265,18 +262,8 @@ def delete_by_type(gvar, type_info, number, csv=True):
     object_log.close()
     object_log = open(logfile, mode = 'r')
 
-    if csv:
-        for line in object_log:
-            object_list.append(line.strip())
-    else:
-        first = True
-        for line in object_log:
-            if '---' not in line and '(' not in line:
-                if first == False:
-                    object_list.append(line.strip(' |+\n'))
-                else:
-                    first = False
-        object_list = object_list[:-1]
+    for line in object_log:
+        object_list.append(line.strip())
 
     for i in range(1, number+1):
         add = ''
@@ -291,8 +278,10 @@ def delete_by_type(gvar, type_info, number, csv=True):
         if type_info[0] != 'defaults':
             flags.append('-s')
             flags.append('unit-test')
+        if type_info[0] != 'image':
+            flags.append('-Y')
         if object in object_list:
-            subprocess.run(['cloudscheduler', type_info[0], 'delete', type_info[2], object, '-Y', *flags])
+            subprocess.run(['cloudscheduler', type_info[0], 'delete', type_info[2], object,  *flags])
 
     object_log.close()
 
