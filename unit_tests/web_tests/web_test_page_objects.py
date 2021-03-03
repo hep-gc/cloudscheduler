@@ -651,7 +651,66 @@ class ImagesPage(Page):
 
 class KeysPage(Page):
     """This is the page object class for the Keys page."""
-    pass
+    def __init__(self, driver):
+        super(KeysPage, self).__init__(driver)
+        # There is no active key, so there is no variable here
+        # Instead, there is a variable to save whether the popup is an upload
+        # or create popup
+        self.active_popup = None
+
+    def search_keys(self, key):
+        wti.fill_blank_by_id(self.driver, 'image_search')
+
+    def click_upload_key(self):
+        wti.click_by_id(self.driver, 'popover-uploadkey')
+        self.active_popup = 'upload_key'
+
+    def click_create_key(self):
+        wti.click_by_id(self.driver, 'popover-newkey')
+        self.active_popup = 'new_key'
+
+    def type_key_name(self, name):
+        xpath = wtxs.form_input_by_name(self.active_popup, 'key_name')
+        wti.fill_blank_by_xpath(self.driver, xpath, name)
+
+    def type_public_key(self, key):
+        xpath = wtxs.form_input_by_name(self.active_popup, 'key_string')
+        wti.fill_blank_by_xpath(self.driver, xpath, key)
+
+    def add_upload_to_cloud(self, cloud):
+        suffix = ''
+        if self.active_popup == 'upload_key':
+            suffix = 'Upload'
+        if self.active_popup == 'new_key':
+            suffix = 'Create'
+        wti.select_option_by_id(self.driver, 'rightValues' + suffix, cloud)
+        wti.click_by_id(self.driver, 'btnLeft' + suffix)
+
+    def remove_upload_from_cloud(self, cloud):
+        suffix = ''
+        if self.active_popup == 'upload_key':
+            suffix = 'Upload'
+        if self.active_popup == 'new_key':
+            suffix = 'Create'
+        wti.select_option_by_id(self.driver, 'leftValues' + suffix, cloud)
+        wti.click_by_id(self.driver, 'btnRight' + suffix)
+
+    def click_submit(self):
+        xpath = wtxs.form_submit_by_value(self.active_popup, 'Submit')
+        wti.click_by_xpath(self.driver, xpath)
+
+    def click_submit_changes(self):
+        xpath = wtxs.button_by_value('Submit Changes')
+        wti.click_by_xpath(self.driver, xpath)
+
+    def click_cloud_checkbox(self, key, cloud):
+        checkboxes = driver.find_elements_by_name(cloud)
+        cloud_checkbox = None
+        for box in checkboxes:
+            value = box.get_attribute('value')
+            if key in value:
+                cloud_checkbox = box
+        cloud_checkbox.click()
 
 class UsersPage(Page):
     """This is the page object class for the Users page."""
