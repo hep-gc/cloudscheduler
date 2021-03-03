@@ -29,8 +29,8 @@ def click_by_name(driver, name):
     element.click()
 
 def click_by_xpath(driver, xpath):
-    #WebDriverWait(driver, 20).until(
-    #    EC.presence_of_element_located((By.XPATH, xpath)))
+    WebDriverWait(driver, 20).until(
+        EC.presence_of_element_located((By.XPATH, xpath)))
     element = driver.find_element_by_xpath(xpath)
     element.click()
 

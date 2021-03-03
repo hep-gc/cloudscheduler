@@ -625,7 +625,18 @@ class TestWebDefaultSuperUser(unittest.TestCase):
         self.page.click_metadata_delete()
         self.page.click_metadata_delete_modal()
         self.assertFalse(self.page.metadata_tab_exists(metadata_name))
-        wta.assertNotExists('metadata', metadata_name, self.group_name)
+        wta.assertNotExists('metadata', metadata_name, group=self.group_name)
+
+    def test_web_default_metadata_delete_cancel(self):
+        # Tries to delete metadata from a group but clicks cancel
+        metadata_name = self.gvar['user'] + '-wim1.yaml'
+        self.page.click_side_button(self.group_name)
+        self.page.click_side_tab('Metadata')
+        self.page.click_metadata(metadata_name)
+        self.page.click_metadata_delete()
+        self.page.click_metadata_delete_cancel()
+        self.assertTrue(self.page.metadata_tab_exists(metadata_name))
+        wta.assertExists('metadata', metadata_name, group=self.group_name)
 
     @classmethod
     def tearDownClass(cls):
@@ -1254,6 +1265,17 @@ class TestWebDefaultRegularUser(unittest.TestCase):
         self.page.click_metadata_delete_modal()
         self.assertFalse(self.page.metadata_tab_exists(metadata_name))
         wta.assertNotExists('metadata', metadata_name, self.group_name)
+
+    def test_web_default_metadata_delete_cancel(self):
+        # Tries to delete metadata from a group but clicks cancel
+        metadata_name = self.gvar['user'] + '-wim1.yaml'
+        self.page.click_side_button(self.group_name)
+        self.page.click_side_tab('Metadata')
+        self.page.click_metadata(metadata_name)
+        self.page.click_metadata_delete()
+        self.page.click_metadata_delete_cancel()
+        self.assertTrue(self.page.metadata_tab_exists(metadata_name))
+        wta.assertExists('metadata', metadata_name, group=self.group_name)
 
     @classmethod
     def tearDownClass(cls):

@@ -40,9 +40,6 @@ def div_submit_by_value(div, value):
 def button_by_visible_text(text):
     return "//button[contains(text(), '" + text + "')]"
 
-def input_by_visible_text(text):
-    return "//input[contains(text(), '" + text + "')]"
-
 def button_by_value(value):
     return "//button[@value='" + value + "']"
 
@@ -62,7 +59,10 @@ def image_delete_button(image_name):
     return "//b[contains(text(), '" + image_name + "')]/../..//button[@title='Delete image']"
 
 def delete_button(item_name, element_name):
-    return "//div[@id='delete-" + item_name + "']/div/form/input[@value='Delete "+ element_name + "']"
+    return "//div[@id='delete-" + item_name + "']//input[@value='Delete "+ element_name + "']"
+
+def delete_cancel(item_name):
+    return "//div[@id='delete-" + item_name + "']//a[@title='Close']"
 
 def unspecified_error_message():
     return "//div[@class='footer']/b"

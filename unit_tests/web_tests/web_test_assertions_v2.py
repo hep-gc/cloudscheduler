@@ -315,7 +315,7 @@ def names():
 
     user = {
         'name': 'user',
-        'flag': None,
+        'flag': '-un',
         'column_name': 'username'
     }
 

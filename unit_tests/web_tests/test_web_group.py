@@ -140,6 +140,15 @@ class TestWebGroup(unittest.TestCase):
         self.assertFalse(self.page.side_button_exists(group_name))
         wta.assertNotExists('group', group_name)
 
+    def test_web_group_delete_cancel(self):
+        # Tries to delete a group but clicks cancel
+        group_name = self.gvar['user'] + '-wig1'
+        self.page.click_side_button(group_name)
+        self.page.click_delete_button()
+        self.page.click_delete_cancel()
+        self.assertTrue(self.page.side_button_exists(group_name))
+        wta.assertExists('group', group_name)
+
     @unittest.skip("Not working in production")
     def test_web_group_update_user_add_search_bar(self):
         # Adds a user to a group using the search bar

@@ -343,6 +343,15 @@ class TestWebUser(unittest.TestCase):
         self.assertFalse(self.page.side_button_exists(username))
         wta.assertNotExists('user', username)
 
+    def test_web_user_delete_cancel(self):
+        # Tries to delete a user but clicks cancel
+        username = self.gvar['user'] + '-wiu1'
+        self.page.click_side_button(username)
+        self.page.click_delete_button()
+        self.page.click_delete_cancel()
+        self.assertTrue(self.page.side_button_exists(username))
+        wta.assertExists('user', username)
+
     @classmethod
     def tearDownClass(cls):
         wtsc.cleanup(cls)

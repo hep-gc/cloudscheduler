@@ -223,6 +223,10 @@ class CloudsPage(Page):
         wti.click_by_xpath(self.driver, xpath)
         self.active_cloud = None
 
+    def click_delete_cancel(self):
+        xpath = wtxs.delete_cancel(self.active_cloud)
+        wti.click_by_xpath(self.driver, xpath)
+
     def click_metadata_new(self):
         xpath = wtxs.label_button(self.active_cloud, 'metadata-add')
         wti.click_by_xpath(self.driver, xpath)
@@ -284,6 +288,11 @@ class CloudsPage(Page):
         wti.click_by_xpath(self.driver, xpath)
         self.driver.switch_to.default_content()
         self.active_metadata = None
+
+    def click_metadata_delete_cancel(self):
+        xpath = wtxs.delete_cancel('metadata')
+        wti.click_by_xpath(self.driver, xpath)
+        self.driver.switch_to.default_content()
 
     def click_metadata_exclusions(self):
         xpath = wtxs.label_button(self.active_cloud, 'metadata-exclusions')
@@ -530,6 +539,11 @@ class DefaultsPage(Page):
         self.driver.switch_to.default_content()
         self.active_metadata = None
 
+    def click_metadata_delete_cancel(self):
+        xpath = wtxs.delete_cancel('metadata')
+        wti.click_by_xpath(self.driver, xpath)
+        self.driver.switch_to.default_content()
+
     def side_button_exists(self, name):
         try:
             WebDriverWait(self.driver, 10).until(
@@ -634,7 +648,6 @@ class ImagesPage(Page):
     def click_delete_cancel(self):
         alert = self.driver.switch_to.alert
         alert.dismiss()
-        sleep(2)
 
 class KeysPage(Page):
     """This is the page object class for the Keys page."""
@@ -699,6 +712,10 @@ class UsersPage(Page):
         wti.click_by_xpath(self.driver, xpath)
         self.active_user = None
 
+    def click_delete_cancel(self):
+        xpath = wtxs.delete_cancel(self.active_user)
+        wti.click_by_xpath(self.driver, xpath)
+    
     def side_button_exists(self, name):
         try:
             WebDriverWait(self.driver, 10).until(
@@ -724,7 +741,6 @@ class UsersPage(Page):
             return True
         except TimeoutException:
             return False
-
 
 class GroupsPage(Page):
     """This is the page object class for the Groups page."""
@@ -776,6 +792,10 @@ class GroupsPage(Page):
         xpath = wtxs.delete_button(self.active_group, self.active_group)
         wti.click_by_xpath(self.driver, xpath)
         self.active_group = None
+
+    def click_delete_cancel(self):
+        xpath = wtxs.delete_cancel(self.active_group)
+        wti.click_by_xpath(self.driver, xpath)
 
     def side_button_exists(self, name):
         try:

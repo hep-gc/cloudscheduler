@@ -889,6 +889,15 @@ class TestWebCloudSuperUser(unittest.TestCase):
         self.assertFalse(self.page.side_button_exists(cloud_name))
         wta.assertNotExists('cloud', cloud_name, group=self.gvar['base_group'])
 
+    def test_web_cloud_delete_cancel(self):
+        # Tries to delete a cloud but cancels the modal
+        cloud_name = self.gvar['user'] + '-wic1'
+        self.page.click_side_button(cloud_name)
+        self.page.click_delete_button()
+        self.page.click_delete_cancel()
+        self.assertTrue(self.page.side_button_exists(cloud_name))
+        wta.assertExists('cloud', cloud_name, group=self.gvar['base_group'])
+
     def test_web_cloud_metadata_add(self):
         # Adds metadata to a cloud
         cloud_name = self.gvar['user'] + '-wic1'
@@ -1238,6 +1247,18 @@ class TestWebCloudSuperUser(unittest.TestCase):
         self.page.click_metadata_delete_modal()
         self.assertFalse(self.page.metadata_tab_exists(metadata_name))
         wta.assertHasNotAttribute('cloud', cloud_name, 'metadata_names', metadata_name, group=self.gvar['base_group'])
+
+    def test_web_cloud_metadata_delete_cancel(self):
+        # Tries to delete metadata from a cloud but clicks cancel on the delete modal
+        cloud_name = self.gvar['user'] + '-wic1'
+        metadata_name = self.gvar['user'] + '-wim1.yaml'
+        self.page.click_side_button(cloud_name)
+        self.page.click_side_tab('Metadata')
+        self.page.click_metadata(metadata_name)
+        self.page.click_metadata_delete()
+        self.page.click_metadata_delete_cancel()
+        self.assertTrue(self.page.metadata_tab_exists(metadata_name))
+        wta.assertHasAttribute('cloud', cloud_name, 'metadata_names', metadata_name, group=self.gvar['base_group'])
 
     def test_web_cloud_exclusions_metadata(self):
         cloud_name = self.gvar['user'] + '-wic1'
@@ -2147,6 +2168,15 @@ class TestWebCloudRegularUser(unittest.TestCase):
         self.assertFalse(self.page.side_button_exists(cloud_name))
         wta.assertNotExists('cloud', cloud_name, group=self.gvar['base_group'])
 
+    def test_web_cloud_delete_cancel(self):
+        # Tries to delete a cloud but cancels the modal
+        cloud_name = self.gvar['user'] + '-wic1'
+        self.page.click_side_button(cloud_name)
+        self.page.click_delete_button()
+        self.page.click_delete_cancel()
+        self.assertTrue(self.page.side_button_exists(cloud_name))
+        wta.assertExists('cloud', cloud_name, group=self.gvar['base_group'])
+
     def test_web_cloud_metadata_add(self):
         # Adds metadata to a cloud
         cloud_name = self.gvar['user'] + '-wic1'
@@ -2492,6 +2522,18 @@ class TestWebCloudRegularUser(unittest.TestCase):
         self.page.click_metadata_delete_modal()
         self.assertFalse(self.page.metadata_tab_exists(metadata_name))
         wta.assertHasNotAttribute('cloud', cloud_name, 'metadata_names', metadata_name, group=self.gvar['base_group'])
+
+    def test_web_cloud_metadata_delete_cancel(self):
+        # Tries to delete metadata from a cloud but clicks cancel
+        cloud_name = self.gvar['user'] + '-wic1'
+        metadata_name = self.gvar['user'] + '-wim1.yaml'
+        self.page.click_side_button(cloud_name)
+        self.page.click_side_tab('Metadata')
+        self.page.click_metadata(metadata_name)
+        self.page.click_metadata_delete()
+        self.page.click_metadata_delete_cancel()
+        self.assertTrue(self.page.metadata_tab_exists(metadata_name))
+        wta.assertHasAttribute('cloud', cloud_name, 'metadata_names', metadata_name, group=self.gvar['base_group'])
 
     def test_web_cloud_exclusions_metadata(self):
         cloud_name = self.gvar['user'] + '-wic1'
