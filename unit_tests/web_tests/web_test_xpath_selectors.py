@@ -38,7 +38,10 @@ def div_submit_by_value(div, value):
     return "//div[@id='" + div + "']//input[@value='" + value + "']"
 
 def button_by_visible_text(text):
-    return "//button[text()='" + text + "']"
+    return "//button[contains(text(), '" + text + "')]"
+
+def input_by_visible_text(text):
+    return "//input[contains(text(), '" + text + "')]"
 
 def button_by_value(value):
     return "//button[@value='" + value + "']"

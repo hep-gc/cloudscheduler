@@ -598,7 +598,7 @@ class ImagesPage(Page):
         wti.click_by_id(self.driver, 'btnRight')
 
     def click_cancel_upload(self):
-        xpath = wtxs.button_by_visible_text('Cancel')
+        xpath = wtxs.input_by_value('Cancel')
         wti.click_by_xpath(self.driver, xpath)
 
     def click_upload(self):
@@ -634,6 +634,7 @@ class ImagesPage(Page):
     def click_delete_cancel(self):
         alert = self.driver.switch_to.alert
         alert.dismiss()
+        sleep(2)
 
 class KeysPage(Page):
     """This is the page object class for the Keys page."""

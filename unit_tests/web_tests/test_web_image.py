@@ -29,6 +29,28 @@ class TestWebImageSuperUser(unittest.TestCase):
         self.page.click_upload()
         wta.assertExists('image', image_name, group=self.gvar['base_group'], image_cloud=cloud_name)
 
+    @unittest.skip("Ensure this is safe")
+    def test_web_image_upload_url(self):
+        image_name = 'cernvm4-micro-2020.07-1.hdd'
+        cloud_name = self.gvar['user'] + '-wic1'
+        self.page.click_upload_image()
+        self.page.click_from_url()
+        self.page.type_image_url('http://cernvm.cern.ch/releases/production/' + image_name)
+        self.page.select_disk_format('Raw')
+        self.page.add_upload_to_cloud(cloud_name)
+        self.page.click_upload()
+        wta.assertExists('image', image_name, group=self.gvar['base_group'], image_cloud=cloud_name)
+
+    def test_web_image_upload_cancel(self):
+        image_name = self.gvar['user'] + '-wii4.hdd'
+        cloud_name = self.gvar['user'] + '-wic1'
+        self.page.click_upload_image()
+        self.page.type_image_file_path('/home/centos/cloudscheduler/unit_tests/web_tests/' + image_name)
+        self.page.select_disk_format('Raw')
+        self.page.add_upload_to_cloud(cloud_name)
+        self.page.click_cancel_upload()
+        wta.assertNotExists('image', image_name, group=self.gvar['base_group'], image_cloud=cloud_name)
+
     def test_web_image_find(self):
         pass
 
@@ -38,12 +60,26 @@ class TestWebImageSuperUser(unittest.TestCase):
         self.page.click_download_image(image_name)
         self.page.click_download_ok()
 
+    def test_web_image_download_cancel(self):
+        image_name = self.gvar['user'] + '-wii1.hdd'
+        cloud_name = self.gvar['user'] + '-wic1'
+        self.page.click_download_image(image_name)
+        self.page.click_download_cancel()
+        sleep(5)
+
     def test_web_image_delete(self):
         image_name = self.gvar['user'] + '-wii2.hdd'
         cloud_name = self.gvar['user'] + '-wic1'
         self.page.click_delete_button(image_name, cloud_name)
         self.page.click_delete_ok()
         wta.assertNotExists('image', image_name, group=self.gvar['base_group'], image_cloud=cloud_name)
+
+    def test_web_image_delete_cancel(self):
+        image_name = self.gvar['user'] + '-wii1.hdd'
+        cloud_name = self.gvar['user'] + '-wic1'
+        self.page.click_delete_button(image_name, cloud_name)
+        self.page.click_delete_cancel()
+        wta.assertExists('image', image_name, group=self.gvar['base_group'], image_cloud=cloud_name)
 
     @classmethod
     def tearDownClass(cls):
