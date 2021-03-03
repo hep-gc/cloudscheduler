@@ -4,7 +4,7 @@ from .test_web_user import TestWebUser
 from .test_web_cloud import TestWebCloudSuperUser, TestWebCloudRegularUser
 from .test_web_alias import TestWebAliasSuperUser, TestWebAliasRegularUser
 from .test_web_default import TestWebDefaultSuperUser, TestWebDefaultRegularUser
-from .test_web_image import TestWebImageSuperUser
+from .test_web_image import TestWebImageSuperUser, TestWebImageRegularUser
 from .test_web_setting import TestWebSettingSuperUser, TestWebSettingRegularUser
 from .test_web_config import TestWebConfig
 
@@ -20,6 +20,7 @@ def test_suite():
     suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(TestWebDefaultSuperUser))
     suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(TestWebDefaultRegularUser))
     suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(TestWebImageSuperUser))
+    suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(TestWebImageRegularUser))
     suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(TestWebSettingSuperUser))
     suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(TestWebSettingRegularUser))
     suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(TestWebConfig))

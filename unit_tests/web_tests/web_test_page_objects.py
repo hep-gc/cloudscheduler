@@ -631,15 +631,15 @@ class ImagesPage(Page):
         alert = self.driver.switch_to.alert
         alert.dismiss()
 
-    def click_delete_button(self, image, cloud):
-        xpath = wtxs.image_delete_button(image)
+    def click_cloud_button(self, image, cloud):
+        xpath = wtxs.image_cloud_button(image)
         buttons = self.driver.find_elements_by_xpath(xpath)
-        delete_button = None
+        cloud_button = None
         for button in buttons:
             text = button.get_attribute('onclick')
             if cloud in text:
-                delete_button = button
-        delete_button.click()
+                cloud_button = button
+        cloud_button.click()
 
     def click_delete_ok(self):
         alert = self.driver.switch_to.alert
