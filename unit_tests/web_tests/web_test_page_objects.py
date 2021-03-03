@@ -610,16 +610,16 @@ class ImagesPage(Page):
         wti.click_by_xpath(self.driver, xpath)
 
     def click_download_ok(self):
-        alert = self.driver.switch_to.alert()
+        alert = self.driver.switch_to.alert
         alert.accept()
 
     def click_download_cancel(self):
-        alert = self.driver.switch_to.alert()
+        alert = self.driver.switch_to.alert
         alert.dismiss()
 
     def click_delete_button(self, image, cloud):
         xpath = wtxs.image_delete_button(image)
-        buttons = self.driver.find_elements_by_xpath(image)
+        buttons = self.driver.find_elements_by_xpath(xpath)
         delete_button = None
         for button in buttons:
             text = button.get_attribute('onclick')
@@ -628,11 +628,11 @@ class ImagesPage(Page):
         delete_button.click()
 
     def click_delete_ok(self):
-        alert = self.driver.switch_to.alert()
+        alert = self.driver.switch_to.alert
         alert.accept()
 
     def click_delete_cancel(self):
-        alert = self.driver.switch_to.alert()
+        alert = self.driver.switch_to.alert
         alert.dismiss()
 
 class KeysPage(Page):
