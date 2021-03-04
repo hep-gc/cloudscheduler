@@ -1,9 +1,12 @@
 from selenium import webdriver
+from selenium.common.exceptions import TimeoutException
+from selenium.webdriver.firefox.options import Options
 from cloudscheduler.unit_tests.unit_test_common import load_settings
 from time import sleep
 import subprocess
 import signal
 import os
+import web_tests.web_test_interactions as wti
 
 # This module contains setup and cleanup functions for the unittest web tests.
 # Setups and cleanups are done here to prevent issues of passing variables
@@ -171,6 +174,14 @@ def setup_objects(objects=[]):
     for i in range(0, servers_num):
         subprocess.run(['cloudscheduler', 'defaults', 'set', '-s', servers[i], '-sa', gvar['address'], '-su', users[i], '-spw', gvar['user_secret']])
 
+    #add keys
+    if 'keys' in objects:
+        beaver_setup_keys(gvar, 2)
+        keystring = gvar['user'] + '-wik1'
+        while subprocess.run(['cloudscheduler', 'cloud', 'update', '-cn', gvar['user'] + '-wic1', '-vk', keystring, '-s', 'unit-test']).returncode != 0:
+            print("Error connecting to the cloud. This may happen several times. Retrying...")
+            sleep(15)
+
     return gvar
 
 def get_homepage(driver):
@@ -186,8 +197,11 @@ def cleanup_objects():
     gvar = load_settings(web=True)
     gvar['base_group'] = gvar['user'] + '-wig0'
 
+    beaver_cleanup_keys(gvar, 4)
+
     delete_by_type(gvar, ['defaults', '-wis', '-s', 'server', []], 2)
-    delete_by_type(gvar, ['image', '-wii', '-in', 'name', ['-g', gvar['user'] + '-wig0', '-cn', gvar['user'] + '-wic1']], 3)
+    for i in range(2, 1, -1):
+        delete_by_type(gvar, ['image', '-wii', '-in', 'name', ['-g', gvar['user'] + '-wig0', '-cn', gvar['user'] + '-wic' + str(i)]], 3)
 
     logfile = 'objects.txt'
     try:
@@ -284,6 +298,48 @@ def delete_by_type(gvar, type_info, number):
             subprocess.run(['cloudscheduler', type_info[0], 'delete', type_info[2], object,  *flags])
 
     object_log.close()
+
+def beaver_setup_keys(gvar, number):
+    options = Options()
+    options.headless = True
+    driver = webdriver.Firefox(webdriver.FirefoxProfile(gvar['firefox_profiles'][1]), options=options)
+    driver.get('https://beaver.heprc.uvic.ca/dashboard/project/key_pairs')
+
+    wti.fill_blank_by_id(driver, 'id_username', gvar['cloud_credentials']['username'])
+    wti.fill_blank_by_id(driver, 'id_password', gvar['cloud_credentials']['password'])
+    wti.click_by_id(driver, 'loginBtn')
+
+    for i in range(1, number+1):
+        wti.click_by_xpath(driver, "//span[contains(text(), 'Create Key Pair')]")
+        wti.fill_blank_by_id(driver, 'name', gvar['user'] + '-wik' + str(i))
+        wti.select_option_by_name(driver, 'key-type', 'SSH Key')
+        wti.click_by_xpath(driver, "//button[@class='btn btn-primary ng-binding']")
+        sleep(5)
+        print("keypair \"" + gvar['user'] + "-wik" + str(i) + "\" successfully added.")
+
+    driver.quit()
+
+def beaver_cleanup_keys(gvar, number):
+    options = Options()
+    options.headless = True
+    driver = webdriver.Firefox(webdriver.FirefoxProfile(gvar['firefox_profiles'][1]), options=options)
+    driver.get('https://beaver.heprc.uvic.ca/dashboard/project/key_pairs')
+
+    wti.fill_blank_by_id(driver, 'id_username', gvar['cloud_credentials']['username'])
+    wti.fill_blank_by_id(driver, 'id_password', gvar['cloud_credentials']['password'])
+    wti.click_by_id(driver, 'loginBtn')
+
+    for i in range(1, number+1):
+        xpath = "//a[contains(text(), '" + gvar['user'] + "-wik" + str(i) + "')]/../../following-sibling::td//button[@class='btn btn-danger']"
+        try:
+            wti.click_by_xpath(driver, xpath, timeout=5)
+            wti.click_by_xpath(driver, "//div[@class='modal-content']/descendant::button[@class='btn btn-danger']")
+            sleep(5)
+            print("keypair \"" + gvar['user'] + "-wik" + str(i) + "\" successfully deleted.")
+        except TimeoutException:
+            pass
+
+    driver.quit()   
 
 def keyboard_interrupt_handler(signal, frame):
     # This ensures that interrupted tests will still clean up. If cloudscheduler
