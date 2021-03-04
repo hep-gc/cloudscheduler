@@ -2,7 +2,7 @@ import unittest
 import subprocess
 from time import sleep
 
-logfile = 'assert_v2_objects.txt'
+logfile = 'web_tests/misc_files/assert_v2_objects.txt'
 sleep_time = 2
 
 def assertExists(type, name, group=None, metadata_cloud=None, defaults=False, settings=False, server='unit-test', image_cloud=None, is_retry=False):

@@ -6,7 +6,7 @@ from time import sleep
 # use in the web tests. Note that these methods use the cloudscheduler list
 # command, and therefore are much slower than Selenium assertions. These should # be used only once per test.
 
-logfile = 'assert_objects.txt'
+logfile = 'web_tests/misc_files/assert_objects.txt'
 
 def assertAdded(type, name, group=None, is_retry=False):
     list_by_type(type, group)

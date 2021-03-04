@@ -99,12 +99,12 @@ def setup_objects(objects=[]):
         for i in range(1, 3):
             name = gvar['user'] + '-wim' + str(i) + '.yaml'
             try:
-                metadata = open('web_tests/' + name, 'x')
+                metadata = open('web_tests/misc_files/' + name, 'x')
                 metadata.write("sample_value_" + str(i) + ": sample_key_" + str(i))
                 metadata.close()
             except FileExistsError:
                 pass
-            filename = os.path.abspath('web_tests/' + name)
+            filename = os.path.abspath('web_tests/misc_files/' + name)
             subprocess.run(['cloudscheduler', 'cloud', 'metadata-load', '-cn', gvar['user'] + '-wic1', '-f', filename, '-mn', name])
         # This updates the security group setting, which requires a connection
         # to the cloud. The setup timing is unpredictable, so this loops it 
@@ -139,12 +139,12 @@ def setup_objects(objects=[]):
     for i in range(1, defaults_num+1):
         name = gvar['user'] + '-wim' + str(i) + '.yaml'
         try:
-            metadata = open('web_tests/' + name, 'x')
+            metadata = open('web_tests/misc_files/' + name, 'x')
             metadata.write("sample_value_" + str(i) + ": sample_key_" + str(i))
             metadata.close()
         except FileExistsError:
             pass
-        filename = os.path.abspath('web_tests/' + name)
+        filename = os.path.abspath('web_tests/misc_files/' + name)
         subprocess.run(['cloudscheduler', 'metadata', 'load', '-g', gvar['user'] + '-wig1', '-f', filename, '-mn', name, '-s', 'unit-test'])
     if 'defaults' in objects:
         subprocess.run(['cloudscheduler', 'cloud', 'add', '-ca', credentials['authurl'], '-cn', gvar['user'] + '-wic1', '-cpw', credentials['password'], '-cP', credentials['project'], '-cr', credentials['region'], '-cU', credentials['username'], '-ct', 'openstack', '-g', gvar['user'] + '-wig1', '-s', 'unit-test'])
@@ -158,7 +158,7 @@ def setup_objects(objects=[]):
     for i in range(1, images_num+1):
         images.append(gvar['user'] + '-wii' + str(i) + '.hdd')
     for i in range(0, images_num):
-        filename = os.path.abspath('web_tests/' + images[i])
+        filename = os.path.abspath('web_tests/misc_files/' + images[i])
         subprocess.run(['cloudscheduler', 'image', 'upload', '-ip', 'file://' + filename, '-df', 'raw', '-cl', gvar['user'] + '-wic1', '-g', gvar['base_group'], '-s', 'unit-test'])
 
     #add servers
@@ -203,7 +203,7 @@ def cleanup_objects():
     for i in range(2, 1, -1):
         delete_by_type(gvar, ['image', '-wii', '-in', 'name', ['-g', gvar['user'] + '-wig0', '-cn', gvar['user'] + '-wic' + str(i)]], 3)
 
-    logfile = 'objects.txt'
+    logfile = 'web_tests/misc_files/objects.txt'
     try:
         object_log = open(logfile, mode = 'x')
     except FileExistsError:
@@ -255,7 +255,7 @@ def delete_by_type(gvar, type_info, number):
     objects = []
     object_log = None
     object_list = []
-    logfile = 'objects.txt'
+    logfile = 'web_tests/misc_files/objects.txt'
 
     try:
         object_log = open(logfile, mode = 'x')
