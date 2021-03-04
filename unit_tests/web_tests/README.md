@@ -19,6 +19,8 @@ Ideally, there will be a script to do this eventually, but as Firefox currently 
 
 As with the other unit tests, a server configuration and cloud credentials are required to run the tests. If the server configuration script is rerun, the Firefox profiles will need to have their passwords updated.
 
+Additionally, the tests require a set of cloud images in RAW format. These should be named `{user}-wii1.hdd`, `{user}-wii2.hdd`, `{user}-wii3.hdd`, and `{user}-wii4.hdd`. They should be placed in the `unit_tests/web_tests` directory.
+
 ## Adding Tests
 
 New test modules should be named starting with `test_web_` (the modules starting with `web_test_` are helper modules). The test files should be named `test_web_<page>.py`, with the class being named `TestWeb<Page>`. Individual tests should be named `test_web_<page>_<action>_<details>`, where `<action>` is the name of the action using the `cloudscheduler` command. If suitably complex, `<action>` should ideally be formatted as `<object>_<action_on_object>_<details>`. Note that individual tests having names that start with `test` is currently the only breaking naming requirement.
@@ -122,9 +124,9 @@ Note that some objects (like the metadata files) do not have their own delete me
 
 `{user}-wig3` contains no users.
 
-`{user}-wig0::{user}-wic1` is a standard cloud. It is a cloud to be edited in update tests.
+`{user}-wig0::{user}-wic1` is a standard openstack cloud. It is a cloud to be edited in update tests.
 
-`{user}-wig0::{user}-wic2` is a standard cloud. It is a cloud to be removed in deletion tests.
+`{user}-wig0::{user}-wic2` is a standard openstack cloud. It is a cloud to be removed in deletion tests.
 
 ### Users
 
@@ -153,3 +155,9 @@ Note that some objects (like the metadata files) do not have their own delete me
 `{user}-wig1::{user}-wim1.yaml` is a standard group metadata. It is to be edited in update tests.
 
 `{user}-wig1::{user}-wim2.yaml` is a standard group metadata. It is to be removed in deletion tests.
+
+### Images
+
+`{user}-wig0::{user}-wic1::{user}-wii1.hdd` is a standard RAW image. It is to be edited in edit tests.
+
+`{user}-wig0::{user}-wic1::{user}-wii2.hdd` is a standard RAW image. It is to be deleted in delete tests.
