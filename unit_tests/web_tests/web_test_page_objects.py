@@ -689,7 +689,7 @@ class KeysPage(Page):
         wti.select_option_by_id(self.driver, 'rightValues' + select_suffix, cloud)
         wti.click_by_id(self.driver, 'btnLeft' + button_suffix)
 
-    def remove_upload_from_cloud(self, cloud):
+    def remove_to_from_cloud(self, cloud):
         button_suffix = ''
         select_suffix = ''
         if self.active_popup == 'upload_key':
@@ -707,11 +707,11 @@ class KeysPage(Page):
         self.active_popup = None
 
     def click_submit_changes(self):
-        xpath = wtxs.button_by_value('Submit Changes')
+        xpath = wtxs.input_by_value('Submit Changes')
         wti.click_by_xpath(self.driver, xpath)
 
     def click_cloud_checkbox(self, key, cloud):
-        checkboxes = driver.find_elements_by_name(cloud)
+        checkboxes = self.driver.find_elements_by_name(cloud)
         cloud_checkbox = None
         for box in checkboxes:
             value = box.get_attribute('value')
@@ -729,7 +729,7 @@ class KeysPage(Page):
             return False
 
     def cloud_box_checked(self, key, cloud):
-        checkboxes = driver.find_elements_by_name(cloud)
+        checkboxes = self.driver.find_elements_by_name(cloud)
         cloud_checkbox = None
         for box in checkboxes:
             value = box.get_attribute('value')

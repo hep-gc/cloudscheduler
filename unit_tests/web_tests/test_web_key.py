@@ -18,6 +18,8 @@ class TestWebKeySuperUser(unittest.TestCase):
         wtsc.get_homepage(self.driver)
         self.page.click_top_nav('Keys')
 
+    # TODO: Remove skip when done developing tests
+    @unittest.skip("Working but takes too long to run for other tests")
     def test_web_key_add_create(self):
         # Adds a key by creating it
         key_name = self.gvar['user'] + '-wik4'
@@ -30,6 +32,8 @@ class TestWebKeySuperUser(unittest.TestCase):
         self.page.click_top_nav('Keys')
         self.assertTrue(self.page.key_exists(key_name))
 
+    # TODO: Remove skip when done developing tests
+    @unittest.skip("Working but takes too long to run for other tests")
     def test_web_key_add_upload(self):
         # Adds a key by uploading it
         key_name = self.gvar['user'] + '-wik3'
@@ -49,6 +53,26 @@ class TestWebKeySuperUser(unittest.TestCase):
     def test_web_key_find(self):
         # Finds the keys page
         pass
+
+    def test_web_key_delete(self):
+        # Removes a key from the keys page
+        key_name = self.gvar['user'] + '-wik2'
+        self.page.click_cloud_checkbox(key_name, self.gvar['user'] + '-wic1')
+        self.page.click_cloud_checkbox(key_name, self.gvar['user'] + '-wic2')
+        self.page.click_submit_changes()
+        self.page.click_top_nav('Keys')
+        self.assertFalse(self.page.key_exists(key_name))
+
+    def test_web_key_update_remove_cloud(self):
+        # Removes a key from one cloud, but not all
+        key_name = self.gvar['user'] + '-wik1'
+        cloud_name = self.gvar['user'] + '-wic2'
+        self.page.click_cloud_checkbox(key_name, cloud_name)
+        self.page.click_submit_changes()
+        self.page.click_top_nav('Keys')
+        self.assertTrue(self.page.key_exists(key_name))
+        self.assertTrue(self.page.cloud_box_checked(key_name, self.gvar['user'] + '-wic1'))
+        self.assertFalse(self.page.cloud_box_checked(key_name, cloud_name))
 
     @classmethod
     def tearDownClass(cls):
