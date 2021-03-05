@@ -15,11 +15,13 @@ firefox_profiles:
 
 Currently, the credentials added should be `{user}-wiu1`, `{user}-wiu2`, and `{user}-wiu3` (although `{user}-wiu3` may be phased out), and all of them should have the password `user_secret`.
 
-Ideally, there will be a script to do this eventually, but as Firefox currently does not seem to recognize passwords input into the `about:logins` page, this isn't currently feasible.
+Additionally, the user will need to log into [Beaver](https://beaver.heprc.uvic.ca/dashboard) as `{user}-wiu2` and create a key. There will be a popup regarding the downloading of files. The user should request that Firefox save the file and should click the box dictating that this is done automatically in the future. The files can also be saved to an alternate location (for example, the `unit_tests/web_tests/misc_files` directory) so as not to clog up the host computer's default downloads folder.
+
+Ideally, there will be a script to do the Firefox profile setup eventually. However, Firefox currently does not seem to recognize passwords input into the `about:logins` page and Selenium cannot interact with Firefox popups, so this isn't currently feasible.
 
 As with the other unit tests, a server configuration and cloud credentials are required to run the tests. If the server configuration script is rerun, the Firefox profiles will need to have their passwords updated.
 
-Additionally, the tests require a set of cloud images in RAW format. These should be named `{user}-wii1.hdd`, `{user}-wii2.hdd`, `{user}-wii3.hdd`, and `{user}-wii4.hdd`. They should be placed in the `unit_tests/web_tests` directory.
+Additionally, the tests require a set of cloud images in RAW format. These should be named `{user}-wii1.hdd`, `{user}-wii2.hdd`, `{user}-wii3.hdd`, and `{user}-wii4.hdd`. They should be placed in the `unit_tests/web_tests/misc_files` directory.
 
 ## Adding Tests
 
@@ -49,11 +51,13 @@ The `cls.gvar` variable, which is assigned in `web_test_setup_cleanup.setup()`, 
 
 The `web_test_assertions_v2` module contains a set of functions that should be callable within a `TestCase` class and raise the proper errors on failure. These functions access the cloudscheduler database via the command line interface and can test if objects were properly created in the database. However, they are extremely slow compared to assertions using Selenium selectors, and therefore should be used only once per test. Additionally, objects without a `cloudscheduler` command (like config objects) cannot use these assertions - they should instead refresh the page and ensure that the data has persisted.
 
-Each assertion in the `web_test_assertions_v2` module takes a list of arguments, most of which are optional. The four mandatory arguments (only two of which are taken by `assertExists` and `assertNotExists`) are `type`, the type of object being asserted; `name`, the name of the individual object the assertion is about; `attribute`, the name of the attribute in the database (found via the `list` command with the `-VC` option); and `attribute_name`, the name of the particular item of that attribute being asserted. There are also six optional arguments: `group`, a group name, which should be specified when an object exists within a particular group, and which defaults to `None`; `err`, the margin of error, which should be specified when a value will be within a range, and which defaults to `None`; `metadata_cloud`, the name of a cloud within which the metadata exists, which should be specified for cloud metadata, and which defaults to `None`; `defaults`, a true/false flag, which should be specified when the item is a group default, and which defaults to false; `name_field`, a true/false flag, which should be specified for objects for which there is no name flag, and which defaults to true; `settings`, a true/false flag, which should be specified when the item is a user setting, and which defaults to false; `server`, the name of the server default to use, which should be specified when the object can only be accessed by a server that is not the unit-test server, and which defaults to `unit-test`; and `is_retry`, a true/false flag, which should never be manually passed (it is only used within the functions).
+Each assertion in the `web_test_assertions_v2` module takes a list of arguments, most of which are optional. The four mandatory arguments (only two of which are taken by `assertExists` and `assertNotExists`) are `type`, the type of object being asserted; `name`, the name of the individual object the assertion is about; `attribute`, the name of the attribute in the database (found via the `list` command with the `-VC` option); and `attribute_name`, the name of the particular item of that attribute being asserted. There are also six optional arguments: `group`, a group name, which should be specified when an object exists within a particular group, and which defaults to `None`; `err`, the margin of error, which should be specified when a value will be within a range, and which defaults to `None`; `metadata_cloud`, the name of a cloud within which the metadata exists, which should be specified for cloud metadata, and which defaults to `None`; `defaults`, a true/false flag, which should be specified when the item is a group default, and which defaults to false; `name_field`, a true/false flag, which should be specified for objects for which there is no name flag, and which defaults to true; `settings`, a true/false flag, which should be specified when the item is a user setting, and which defaults to false; `server`, the name of the server default to use, which should be specified when the object can only be accessed by a server that is not the unit-test server, and which defaults to `unit-test`; `image_cloud`, which should be specified when the object is an image, and which defaults to `None`; and `is_retry`, a true/false flag, which should never be manually passed (it is only used within the functions).
 
 This module also contains a pair of functions to look for attributes with a certain name when there is no cloudscheduler flag for specifying an object's name (check the `web_test_assertions_v2.names()` function to see which objects these are - they will have their `flag` attribute set to `None`). These methods should only be used for objects that do not have a name flag, and they do not take the argument specifying metadata.
 
 By default, all actions will be performed within the `{user}-wig0` group (see Test Profiles, below). The base `Page` class (see Page Objects, below) contains a method for switching between these groups. Be aware that the active user must be in a group to switch to it.
+
+Additional files the tests may need (for example, image files to upload) should be stored in the `misc_files` directory. These files will not be committed (unless they are markdown files, which they shouldn't be), and the current tests look in this folder for these files. This is also where test log files and test downloads are stored.
 
 Test files should perform actions on the page via page objects (see below). 
 
@@ -86,7 +90,9 @@ Error: CV-01749 cloud update, "{user}-wic1" failed - specified value in list of 
 Error connecting to the cloud. This may happen several times. Retrying...
 ```
 
-This is expected behaviour - the cloud setup requires resources from the cloud connection, and when it can access those resources is unpredictable, so the script will try, print that message on a failure, and continue trying until the setup is successful. Depending on where the cloud poller is in its process, it may take up to a dozen retries. The tests will continue to set up properly and run - this is not a setup error.
+A similar error occurs with the key setup, although the values that do not exist are slightly different.
+
+This is expected behaviour - the setup requires resources from the cloud connection, and when it can access those resources is unpredictable, so the script will try, print that message on a failure, and continue trying until the setup is successful. Depending on where the cloud poller is in its process, it may take up to a dozen retries. The tests will continue to set up properly and run - this is not a setup error.
 
 ## Debugging Tests
 
@@ -105,6 +111,8 @@ Additional profiles can be added to the suite. In order to do so, the object sho
 New types of objects can also be added to the suite, in a similar manner. A new group of creation `subprocess.run` calls will need to be added in `setup_objects()`, and an accompanying call to `delete_objects_by_type()` in `cleanup_objects()`. If the objects cannot be deleted with the `delete_objects_by_type()` command syntax, they must either be deleted in a custom method (like aliases) or automatically deleted as part of another method (like cloud metadata). Again, they should be added in an optional group if possible.
 
 There are two categories of objects - some that are created by `setup_objects()` regardless of arguments passed, and some that are only created when the tests request them. The objects created under "Defaults", below, are created automatically when `setup_objects()` is run, regardless of arguments. To create the other set of objects, pass the names of the object groups (ie "users") to the `setup()` function as a list of strings.
+
+A few of the test objects do not have a command line setup for their creation and deletion (currently only the keypairs). These items should use Selenium to set up the objects on the web site that dictates them. This setup should be done in headless mode and should be configured to give outputs similar to the command line. Using Selenium for setups is slow and fragile, and should not be used if there is a command line alternative.
 
 There is one additional group created as part of the default setup that is not specified below and has no output in the setup scripts. It is not to be edited in any way during the tests, and any user with a profile (with the exception of `{user}-wiu3`, who is not in groups) should be in it. The real user account (ie `{user}`) is also added to this group when it is created, to allow this user to make the test objects within this group. The group is called `{user}-wig0`. All clouds, aliases, and any other objects requiring a group are and should be created under this group, and it is saved as `gvar['base_group']`. It is the first item created as part of the setup, and the last item deleted, and should remain so. Many functions have an optional `group` argument that is invoked to prevent cloud tests from failing, and, if needed, this is the group that should be passed.
 
@@ -161,3 +169,9 @@ Note that some objects (like the metadata files) do not have their own delete me
 `{user}-wig0::{user}-wic1::{user}-wii1.hdd` is a standard RAW image. It is to be edited in edit tests.
 
 `{user}-wig0::{user}-wic1::{user}-wii2.hdd` is a standard RAW image. It is to be deleted in delete tests.
+
+### Keys
+
+`{user}-wik1` is a standard key.
+
+`{user}-wik2` is a standard key. It is to be deleted in delete tests.
