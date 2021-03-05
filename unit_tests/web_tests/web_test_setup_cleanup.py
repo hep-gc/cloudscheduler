@@ -7,6 +7,7 @@ import subprocess
 import signal
 import os
 import web_tests.web_test_interactions as wti
+import web_tests.web_test_helpers as helpers
 
 # This module contains setup and cleanup functions for the unittest web tests.
 # Setups and cleanups are done here to prevent issues of passing variables
@@ -178,9 +179,10 @@ def setup_objects(objects=[]):
     if 'keys' in objects:
         beaver_setup_keys(gvar, 2)
         keystring = gvar['user'] + '-wik1'
-        while subprocess.run(['cloudscheduler', 'cloud', 'update', '-cn', gvar['user'] + '-wic1', '-vk', keystring, '-s', 'unit-test']).returncode != 0:
-            print("Error connecting to the cloud. This may happen several times. Retrying...")
-            sleep(15)
+        #while subprocess.run(['cloudscheduler', 'cloud', 'update', '-cn', gvar['user'] + '-wic1', '-vk', keystring, '-s', 'unit-test']).returncode != 0:
+        #    print("Error connecting to the cloud. This may happen several times. Retrying...")
+        #    sleep(15)
+        helpers.wait_for_openstack_poller(gvar['user'] + '-wic1', '-vk', keystring, output=True)
 
     return gvar
 
