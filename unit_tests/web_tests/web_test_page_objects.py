@@ -720,7 +720,7 @@ class KeysPage(Page):
         cloud_checkbox.click()
 
     def key_exists(self, key):
-        xpath = "//th[contains(text(), '" + key + "')]"
+        xpath = wtxs.key_label(key)
         try:
             WebDriverWait(self.driver, 10).until(
                 EC.presence_of_element_located((By.XPATH, xpath)))

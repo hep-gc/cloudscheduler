@@ -2,7 +2,7 @@ import unittest
 import web_tests.web_test_setup_cleanup as wtsc
 import web_tests.web_test_assertions_v2 as wta
 import web_tests.web_test_page_objects as pages
-import os
+import web_tests.web_test_helpers as helpers
 
 class TestWebImageSuperUser(unittest.TestCase):
     """A class to test image operations via the web interface, with a super user."""
@@ -23,7 +23,7 @@ class TestWebImageSuperUser(unittest.TestCase):
         image_name = self.gvar['user'] + '-wii3.hdd'
         cloud_name = self.gvar['user'] + '-wic1'
         self.page.click_upload_image()
-        self.page.type_image_file_path(os.path.abspath('web_tests/misc_files/' + image_name))
+        self.page.type_image_file_path(helpers.misc_file_full_path(image_name))
         self.page.select_disk_format('Raw')
         self.page.add_upload_to_cloud(cloud_name)
         self.page.click_upload()
@@ -47,7 +47,7 @@ class TestWebImageSuperUser(unittest.TestCase):
         image_name = self.gvar['user'] + '-wii4.hdd'
         cloud_name = self.gvar['user'] + '-wic1'
         self.page.click_upload_image()
-        self.page.type_image_file_path(os.path.abspath('web_tests/misc_files/' + image_name))
+        self.page.type_image_file_path(helpers.misc_file_full_path(image_name))
         self.page.select_disk_format('Raw')
         self.page.add_upload_to_cloud(cloud_name)
         self.page.click_cancel_upload()
@@ -119,7 +119,7 @@ class TestWebImageRegularUser(unittest.TestCase):
         image_name = self.gvar['user'] + '-wii3.hdd'
         cloud_name = self.gvar['user'] + '-wic1'
         self.page.click_upload_image()
-        self.page.type_image_file_path(os.path.abspath('web_tests/misc_files/' + image_name))
+        self.page.type_image_file_path(helpers.misc_file_full_path(image_name))
         self.page.select_disk_format('Raw')
         self.page.add_upload_to_cloud(cloud_name)
         self.page.click_upload()
@@ -143,7 +143,7 @@ class TestWebImageRegularUser(unittest.TestCase):
         image_name = self.gvar['user'] + '-wii4.hdd'
         cloud_name = self.gvar['user'] + '-wic1'
         self.page.click_upload_image()
-        self.page.type_image_file_path(os.path.abspath('web_tests/misc_files/' + image_name))
+        self.page.type_image_file_path(helpers.misc_file_full_path(image_name))
         self.page.select_disk_format('Raw')
         self.page.add_upload_to_cloud(cloud_name)
         self.page.click_cancel_upload()

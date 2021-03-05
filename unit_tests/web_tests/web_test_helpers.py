@@ -1,6 +1,7 @@
 import sys
 import subprocess
 from time import sleep
+import os
 
 # This module contains a variety of wrapper functions for miscellaneous test 
 # actions. This module may be deleted if the functions within all have a better
@@ -17,3 +18,6 @@ def wait_for_openstack_poller(cloud_name, item_flag, item_name, wait=sys.maxsize
             print("Error connecting to the cloud. This may happen several times. Retrying...")
         sleep(15)
     
+def misc_file_full_path(filename):
+    path = os.path.abspath('web_tests/misc_files/' + filename)
+    return path

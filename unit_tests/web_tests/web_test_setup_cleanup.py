@@ -5,7 +5,6 @@ from cloudscheduler.unit_tests.unit_test_common import load_settings
 from time import sleep
 import subprocess
 import signal
-import os
 import web_tests.web_test_interactions as wti
 import web_tests.web_test_helpers as helpers
 
@@ -105,14 +104,16 @@ def setup_objects(objects=[]):
                 metadata.close()
             except FileExistsError:
                 pass
-            filename = os.path.abspath('web_tests/misc_files/' + name)
+            filename = helpers.misc_file_full_path(name)
             subprocess.run(['cloudscheduler', 'cloud', 'metadata-load', '-cn', gvar['user'] + '-wic1', '-f', filename, '-mn', name])
         # This updates the security group setting, which requires a connection
         # to the cloud. The setup timing is unpredictable, so this loops it 
         # until the connection is established.
-        while subprocess.run(['cloudscheduler', 'cloud', 'update', '-cn', clouds[0], '-vsg', 'default', '-s', 'unit-test']).returncode != 0:
-            print("Error connecting to the cloud. This may happen several times. Retrying...")
-            sleep(15)
+        #while subprocess.run(['cloudscheduler', 'cloud', 'update', '-cn', clouds[0], '-vsg', 'default', '-s', 'unit-test']).returncode != 0:
+        #    print("Error connecting to the cloud. This may happen several times. Retrying...")
+        #    sleep(15)
+        beaver_setup_keys(gvar, 1)
+        helpers.wait_for_openstack_poller(gvar['user'] + '-wic1', '-vsg', 'default', output=True)
 
     aliases_num = 0
     if 'aliases' in objects:
@@ -145,7 +146,7 @@ def setup_objects(objects=[]):
             metadata.close()
         except FileExistsError:
             pass
-        filename = os.path.abspath('web_tests/misc_files/' + name)
+        filename = helpers.misc_file_full_path(name)
         subprocess.run(['cloudscheduler', 'metadata', 'load', '-g', gvar['user'] + '-wig1', '-f', filename, '-mn', name, '-s', 'unit-test'])
     if 'defaults' in objects:
         subprocess.run(['cloudscheduler', 'cloud', 'add', '-ca', credentials['authurl'], '-cn', gvar['user'] + '-wic1', '-cpw', credentials['password'], '-cP', credentials['project'], '-cr', credentials['region'], '-cU', credentials['username'], '-ct', 'openstack', '-g', gvar['user'] + '-wig1', '-s', 'unit-test'])
@@ -159,7 +160,8 @@ def setup_objects(objects=[]):
     for i in range(1, images_num+1):
         images.append(gvar['user'] + '-wii' + str(i) + '.hdd')
     for i in range(0, images_num):
-        filename = os.path.abspath('web_tests/misc_files/' + images[i])
+        filename = helpers.misc_file_full_path(images[i])
+        #    sleep(15)
         subprocess.run(['cloudscheduler', 'image', 'upload', '-ip', 'file://' + filename, '-df', 'raw', '-cl', gvar['user'] + '-wic1', '-g', gvar['base_group'], '-s', 'unit-test'])
 
     #add servers
@@ -179,9 +181,6 @@ def setup_objects(objects=[]):
     if 'keys' in objects:
         beaver_setup_keys(gvar, 2)
         keystring = gvar['user'] + '-wik1'
-        #while subprocess.run(['cloudscheduler', 'cloud', 'update', '-cn', gvar['user'] + '-wic1', '-vk', keystring, '-s', 'unit-test']).returncode != 0:
-        #    print("Error connecting to the cloud. This may happen several times. Retrying...")
-        #    sleep(15)
         helpers.wait_for_openstack_poller(gvar['user'] + '-wic1', '-vk', keystring, output=True)
 
     return gvar

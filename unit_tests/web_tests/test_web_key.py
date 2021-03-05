@@ -43,11 +43,6 @@ class TestWebKeySuperUser(unittest.TestCase):
         self.page.add_upload_to_cloud(cloud_name)
         self.page.click_submit()
         helpers.wait_for_openstack_poller(cloud_name, '-vk', key_name, wait=20)
-        #count = 0
-        #while subprocess.run(['cloudscheduler', 'cloud', 'update', '-cn', self.gvar['user'] + '-wic1', '-vk', key_name, '-s', 'unit-test']).returncode != 0 and count<20:
-        #    print(count)
-        #    count += 1
-        #    sleep(15)
         self.page.click_top_nav('Keys')
         self.assertTrue(self.page.key_exists(key_name))
 

@@ -645,10 +645,14 @@ class TestWebCloudSuperUser(unittest.TestCase):
         self.page.click_update_cloud()
         wta.assertHasNotAttribute('cloud', cloud_name, 'vm_security_groups', security_group, group=self.gvar['base_group'])
 
-    @unittest.skip("TODO: implement")
     def test_web_cloud_update_vm_keyname(self):
         # Changes a cloud's vm keyname
-        pass
+        cloud_name = self.gvar['user'] + '-wic1'
+        key = self.gvar['user'] + '-wik1'
+        self.page.click_side_button(cloud_name)
+        self.page.select_vm_keyname(key)
+        self.page.click_update_cloud()
+        wta.assertHasAttribute('cloud', cloud_name, 'vm_keyname', key, group=self.gvar['base_group'])
 
     def test_web_cloud_update_vm_network(self):
         # Changes a cloud's vm network
@@ -1924,10 +1928,15 @@ class TestWebCloudRegularUser(unittest.TestCase):
         self.page.click_update_cloud()
         wta.assertHasNotAttribute('cloud', cloud_name, 'vm_security_groups', security_group, group=self.gvar['base_group'])
 
-    @unittest.skip("TODO: implement")
     def test_web_cloud_update_vm_keyname(self):
         # Changes a cloud's vm keyname
-        pass
+        cloud_name = self.gvar['user'] + '-wic1'
+        key = self.gvar['user'] + '-wik1'
+        self.page.click_side_button(cloud_name)
+        self.page.select_vm_keyname(key)
+        self.page.click_update_cloud()
+        wta.assertHasAttribute('cloud', cloud_name, 'vm_keyname', key, group=self.gvar['base_group'])
+
 
     def test_web_cloud_update_vm_network(self):
         # Changes a cloud's vm network

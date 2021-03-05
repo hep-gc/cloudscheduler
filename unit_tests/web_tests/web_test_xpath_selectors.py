@@ -58,6 +58,9 @@ def download_button(image_name):
 def image_cloud_button(image_name):
     return "//b[contains(text(), '" + image_name + "')]/../..//button[@title='Delete image']"
 
+def key_label(key_name):
+    return "//th[contains(text(), '" + key_name + "')]"
+
 def delete_button(item_name, element_name):
     return "//div[@id='delete-" + item_name + "']//input[@value='Delete "+ element_name + "']"
 
