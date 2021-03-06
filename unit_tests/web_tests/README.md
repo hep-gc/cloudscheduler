@@ -21,7 +21,7 @@ Ideally, there will be a script to do the Firefox profile setup eventually. Howe
 
 As with the other unit tests, a server configuration and cloud credentials are required to run the tests. If the server configuration script is rerun, the Firefox profiles will need to have their passwords updated.
 
-Additionally, the tests require a set of cloud images in RAW format. These should be named `{user}-wii1.hdd`, `{user}-wii2.hdd`, `{user}-wii3.hdd`, and `{user}-wii4.hdd`. They should be placed in the `unit_tests/web_tests/misc_files` directory.
+Additionally, the tests require a set of files to start off with. These consist of four cloud files in RAW format, named `{user}-wii1.hdd`, `{user}-wii2.hdd`, `{user}-wii3.hdd`, and `{user}-wii4.hdd`; and one ssh public key named `{user}-wik3.pub`. They should be placed in the `unit_tests/web_tests/misc_files` directory.
 
 ## Adding Tests
 
@@ -39,7 +39,7 @@ New tests should additionally follow all rules for Unittest test classes, as the
 
 New test classes should include the `web_test_setup_cleanup` module and call the `setup()` function as part of the `setUpClass()` function, passing it the test class it is being called as a part of. `setup()` currently automatically deletes all old test setups when run (via calling the `cleanup()` function). The `cleanup()` function should be called during the `tearDownClass()` function, again passing it the test class it is being called in. `cleanup()` is also called on error in the setup, and `cleanup_objects()` is called on a `KeyboardInterrupt` at any time during the tests (using a handler contained in this module). Neither function will attempt to delete any object it cannot find. 
 
-New tests should include the `web_test_setup_cleanup`, `web_test_assertions_v2`, and `web_test_page_objects` modules. The other `web_test_*` modules are used in these three modules, and should only be accessed via these three modules. The `web_test_assertions` module is not and should not be used in any module, and should eventually be deleted.
+New tests should include the `web_test_setup_cleanup`, `web_test_assertions_v2`, `web_test_page_objects`, and, if necessary, `web_test_helpers` modules. The other `web_test_*` modules are used in these modules, and should only be accessed via these modules. The `web_test_assertions` module is not and should not be used in any module, and should eventually be deleted. `web_test_helpers` is also included in `web_test_setup_cleanup`, but should not be used via that module.
 
 New tests that create objects should make sure to update the maximum item numbers in the calls to `delete_objects_by_type()` in `web_test_setup_cleanup.cleanup_objects()`
 
@@ -93,6 +93,8 @@ Error connecting to the cloud. This may happen several times. Retrying...
 A similar error occurs with the key setup, although the values that do not exist are slightly different.
 
 This is expected behaviour - the setup requires resources from the cloud connection, and when it can access those resources is unpredictable, so the script will try, print that message on a failure, and continue trying until the setup is successful. Depending on where the cloud poller is in its process, it may take up to a dozen retries. The tests will continue to set up properly and run - this is not a setup error.
+
+A small portion of the tests (currently the key add tests only) require the poller to be queried like in the setup. These tests may appear to hang for as long as five minutes. This is expected behaviour - the tests are not hanging infinitely, as there is a maxiumum wait assigned, and they will continue as expected.
 
 ## Debugging Tests
 
