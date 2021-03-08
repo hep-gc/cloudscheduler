@@ -740,6 +740,19 @@ class KeysPage(Page):
                 return True
         return False
 
+    def key_error_message_displayed(self, message=None):
+        xpath = ''
+        if message:
+            xpath = wtxs.specific_glint_error_message(message)
+        else:
+            xpath = wtxs.unspecified_glint_error_message()
+        try:
+            WebDriverWait(self.driver, 10).until(
+                EC.presence_of_element_located((By.XPATH, xpath)))
+            return True
+        except TimeoutException:
+            return False
+
 class UsersPage(Page):
     """This is the page object class for the Users page."""
     def __init__(self, driver):

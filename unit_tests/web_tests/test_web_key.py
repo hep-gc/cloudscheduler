@@ -32,6 +32,28 @@ class TestWebKeySuperUser(unittest.TestCase):
         self.page.click_top_nav('Keys')
         self.assertTrue(self.page.key_exists(key_name))
 
+    # TODO: remove skip when done developing tests
+    #@unittest.skip("Working but takes too long to run for other tests")
+    def test_web_key_add_create_name_too_long(self):
+        key_name = self.oversize['varchar_64'] + '1'
+        cloud_name = self.gvar['user'] + '-wic1'
+        self.page.click_create_key()
+        self.page.type_key_name(key_name)
+        self.page.add_upload_to_cloud(cloud_name)
+        self.page.click_submit()
+        helpers.wait_for_openstack_poller(cloud_name, '-vk', key_name, wait=20)
+        self.page.click_top_nav('Keys')
+        self.assertFalse(self.page.key_exists(key_name))
+
+    def test_web_key_add_create_name_taken(self):
+        key_name = self.gvar['user'] + '-wik1'
+        cloud_name = self.gvar['user'] + '-wic1'
+        self.page.click_create_key()
+        self.page.type_key_name(key_name)
+        self.page.add_upload_to_cloud(cloud_name)
+        self.page.click_submit()
+        self.assertTrue(self.page.key_error_message_displayed())
+
     # TODO: Remove skip when done developing tests
     @unittest.skip("Working but takes too long to run for other tests")
     def test_web_key_add_upload(self):
@@ -49,6 +71,34 @@ class TestWebKeySuperUser(unittest.TestCase):
         helpers.wait_for_openstack_poller(cloud_name, '-vk', key_name, wait=20)
         self.page.click_top_nav('Keys')
         self.assertTrue(self.page.key_exists(key_name))
+
+    def test_web_key_add_upload_name_too_long(self):
+        key_name = self.oversize['varchar_64'] + '2'
+        cloud_name = self.gvar['user'] + '-wic1'
+        key_file = open('web_tests/misc_files/invalid-web-test.pub', 'r')
+        public_key = key_file.read()
+        key_file.close()
+        self.page.click_upload_key()
+        self.page.type_key_name(key_name)
+        self.page.type_public_key(public_key)
+        self.page.add_upload_to_cloud(cloud_name)
+        self.page.click_submit()
+        helpers.wait_for_openstack_poller(cloud_name, '-vk', key_name, wait=20)
+        self.page.click_top_nav('Keys')
+        self.assertFalse(self.page.key_exists(key_name))
+
+    def test_web_key_add_upload_name_taken(self):
+        key_name = self.gvar['user'] + '-wik1'
+        cloud_name = self.gvar['user'] + '-wic1'
+        key_file = open('web_tests/misc_files/invalid-web-test.pub', 'r')
+        public_key = key_file.read()
+        key_file.close()
+        self.page.click_upload_key()
+        self.page.type_key_name(key_name)
+        self.page.type_public_key(public_key)
+        self.page.add_upload_to_cloud(cloud_name)
+        self.page.click_submit()
+        self.assertTrue(self.page.key_error_message_displayed())
 
     def test_web_key_find(self):
         # Finds the keys page

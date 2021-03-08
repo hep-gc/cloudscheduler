@@ -72,3 +72,9 @@ def unspecified_error_message():
 
 def specific_error_message(message):
     return "//div[@class='footer']/b[contains(text(), '" + message + "')]"
+
+def unspecified_glint_error_message():
+    return "//h3[@style='color:red']"
+
+def specific_glint_error_message(message):
+    return "//h3[@style='color:red' and contains(text(), '" + message + "')]"

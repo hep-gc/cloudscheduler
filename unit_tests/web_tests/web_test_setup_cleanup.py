@@ -198,7 +198,7 @@ def cleanup_objects():
     gvar = load_settings(web=True)
     gvar['base_group'] = gvar['user'] + '-wig0'
 
-    beaver_cleanup_keys(gvar, 4)
+    beaver_cleanup_keys(gvar, 4, 2)
 
     delete_by_type(gvar, ['defaults', '-wis', '-s', 'server', []], 2)
     for i in range(2, 1, -1):
@@ -320,9 +320,13 @@ def beaver_setup_keys(gvar, number):
 
     driver.quit()
 
-def beaver_cleanup_keys(gvar, number):
+def beaver_cleanup_keys(gvar, number, oversize_number):
+
+    oversize = {}
+    oversize['varchar_64'] = 'invalid-web-test-string-that-is-too-long-for-64-character-sql-data-field'
+
     options = Options()
-    options.headless = True
+    #options.headless = True
     driver = webdriver.Firefox(webdriver.FirefoxProfile(gvar['firefox_profiles'][1]), options=options)
     driver.get('https://beaver.heprc.uvic.ca/dashboard/project/key_pairs')
 
@@ -330,13 +334,25 @@ def beaver_cleanup_keys(gvar, number):
     wti.fill_blank_by_id(driver, 'id_password', gvar['cloud_credentials']['password'])
     wti.click_by_id(driver, 'loginBtn')
 
+
+    delete_button = "//div[@class='modal-content']/descendant::button[@class='btn btn-danger']"
     for i in range(1, number+1):
         xpath = "//a[contains(text(), '" + gvar['user'] + "-wik" + str(i) + "')]/../../following-sibling::td//button[@class='btn btn-danger']"
         try:
             wti.click_by_xpath(driver, xpath, timeout=5)
-            wti.click_by_xpath(driver, "//div[@class='modal-content']/descendant::button[@class='btn btn-danger']")
-            sleep(5)
+            wti.click_by_xpath(driver, delete_button)
+            sleep(10)
             print("keypair \"" + gvar['user'] + "-wik" + str(i) + "\" successfully deleted.")
+        except TimeoutException:
+            pass
+
+    for i in range(1, oversize_number+1):
+        xpath = "//a[contains(text(), '" + oversize['varchar_64'] + str(i) + "')]/../../following-sibling::td//button[@class='btn btn-danger']"
+        try:
+            wti.click_by_xpath(driver, xpath, timeout=5)
+            wti.click_by_xpath(driver, delete_button)
+            sleep(10)
+            print("keypair \"" + oversize['varchar_64'] + str(i) + "\" successfully deleted.")
         except TimeoutException:
             pass
 
