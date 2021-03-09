@@ -649,6 +649,64 @@ class ImagesPage(Page):
         alert = self.driver.switch_to.alert
         alert.dismiss()
 
+    def find_non_matching_image(self, pattern):
+        images = self.driver.find_elements_by_tag_name('b')
+        for image in images:
+            text = image.text
+            if pattern not in text:
+                return text
+        return None
+
+    def image_exists(self, image):
+        sleep(5)
+        xpath = wtxs.table_row_name('image_row', image)
+        #print(xpath)
+        try:
+            WebDriverWait(self.driver, 10).until(
+                EC.presence_of_element_located((By.XPATH, xpath)))
+            return True
+        except TimeoutException:
+            return False
+
+    def image_is_public_in_cloud(self, image, cloud):
+        xpath = wtxs.image_state_box_button(image, 'public')
+        elements = self.driver.find_elements_by_xpath(xpath)
+        button = None
+        for element in elements:
+            text = element.get_attribute('onclick')
+            if cloud in text:
+                button = element
+        if button:
+            return True
+        else:
+            return False
+
+    def image_is_private_in_cloud(self, image, cloud):
+        xpath = wtxs.image_state_box_button(image, 'shared')
+        elements = self.driver.find_elements_by_xpath(xpath)
+        button = None
+        for element in elements:
+            text = element.get_attribute('onclick')
+            if cloud in text:
+                button = element
+        if button:
+            return True
+        else:
+            return False
+
+    def image_is_error_in_cloud(self, image, cloud):
+        xpath = wtxs.image_state_box_button(image, 'error') # TODO: check this
+        elements = self.driver.find_elements_by_xpath(xpath)
+        button = None
+        for element in elements:
+            text = element.get_attribute('onclick')
+            if cloud in text:
+                button = element
+        if button:
+            return True
+        else:
+            return False
+
 class KeysPage(Page):
     """This is the page object class for the Keys page."""
     def __init__(self, driver):

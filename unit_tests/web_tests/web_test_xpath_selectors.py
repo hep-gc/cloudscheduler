@@ -46,6 +46,9 @@ def button_by_value(value):
 def input_by_value(value):
     return "//input[@value='" + value + "']"
 
+def table_row_name(cls, row):
+    return "//tr[@class='" + cls + "']//b[contains(text(), '" + row + "')]"
+
 def label_button(element, button):
     return "//label[@for='" + element + "-" + button + "']"
 
@@ -57,6 +60,9 @@ def download_button(image_name):
 
 def image_cloud_button(image_name):
     return "//b[contains(text(), '" + image_name + "')]/../..//button[@title='Delete image']"
+
+def image_state_box_button(image_name, state):
+    return "//b[contains(text(), '" + image_name + "')]/../..//td[@class='" + state + "']/button[@title='Delete image']"
 
 def key_label(key_name):
     return "//th[contains(text(), '" + key_name + "')]"

@@ -158,8 +158,9 @@ def setup_objects(objects=[]):
         images.append(gvar['user'] + '-wii' + str(i) + '.hdd')
     for i in range(0, images_num):
         filename = helpers.misc_file_full_path(images[i])
-        #    sleep(15)
         subprocess.run(['cloudscheduler', 'image', 'upload', '-ip', 'file://' + filename, '-df', 'raw', '-cl', gvar['user'] + '-wic1', '-g', gvar['base_group'], '-s', 'unit-test'])
+    if 'images' in objects:
+        helpers.wait_for_openstack_poller(gvar['user'] + '-wic1', '-vi', gvar['user'] + '-wii1.hdd', output=True)
 
     #add servers
     if 'servers' in objects:
@@ -276,6 +277,8 @@ def delete_by_type(gvar, type_info, number, others=[]):
 
     for line in object_log:
         object_list.append(line.strip())
+
+    print(object_list)
 
     add = ''
     if type_info[0] == 'metadata':
