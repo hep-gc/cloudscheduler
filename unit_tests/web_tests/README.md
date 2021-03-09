@@ -59,6 +59,8 @@ By default, all actions will be performed within the `{user}-wig0` group (see Te
 
 Additional files the tests may need (for example, image files to upload) should be stored in the `misc_files` directory. These files will not be committed (unless they are markdown files, which they shouldn't be), and the current tests look in this folder for these files. This is also where test log files and test downloads are stored.
 
+Test objects should, if possible, be named `{user}-wixn`, where `x` is the letter identifier (usually the first letter of the object name, but can be chosen to be anything as long as it's consistent) and `n` is the number of the individual object (typically starting at 1 - 0 is reserved for behind-the-scenes objects). The `web_test_setup_cleanup.delete_by_type()` function assumes this naming pattern, although it takes an optional argument, `others`, which is a list of names of objects that do not fit this pattern. Despite this, objects should be named to follow the pattern unless there is a reason they cannot.
+
 Test files should perform actions on the page via page objects (see below). 
 
 ## Page Objects
@@ -95,6 +97,13 @@ A similar error occurs with the key setup, although the values that do not exist
 This is expected behaviour - the setup requires resources from the cloud connection, and when it can access those resources is unpredictable, so the script will try, print that message on a failure, and continue trying until the setup is successful. Depending on where the cloud poller is in its process, it may take up to a dozen retries. The tests will continue to set up properly and run - this is not a setup error.
 
 A small portion of the tests (currently the key add tests only) require the poller to be queried like in the setup. These tests may appear to hang for as long as five minutes. This is expected behaviour - the tests are not hanging infinitely, as there is a maxiumum wait assigned, and they will continue as expected.
+
+The key tests will occasionally generate the following warning:
+```
+/usr/local/lib64/python3.6/site-packages/yaml/scanner.py:286: ResourceWarning: unclosed <socket.socket fd=5, family=AddressFamily.AF_INET, type=SocketKind.SOCK_STREAM, proto=6, laddr=('127.0.0.1', 40206), raddr=('127.0.0.1', 41942)>
+```
+
+The exact cause of this warning is currently unknown. It does not impact the functionality of the tests, but it may be worth investigating.
 
 ## Debugging Tests
 
