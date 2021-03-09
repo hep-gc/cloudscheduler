@@ -29,14 +29,13 @@ class TestWebImageSuperUser(unittest.TestCase):
         self.page.click_upload()
         wta.assertExists('image', image_name, group=self.gvar['base_group'], image_cloud=cloud_name)
 
-    @unittest.skip("Ensure this is safe")
     def test_web_image_upload_url(self):
         # Uploads an image to a cloud using a URL
-        image_name = 'cernvm4-micro-2020.07-1.hdd'
+        image_name = 'test-os-image-raw.hdd'
         cloud_name = self.gvar['user'] + '-wic1'
         self.page.click_upload_image()
         self.page.click_from_url()
-        self.page.type_image_url('http://cernvm.cern.ch/releases/production/' + image_name)
+        self.page.type_image_url('http://elephant06.heprc.uvic.ca/' + image_name)
         self.page.select_disk_format('Raw')
         self.page.add_upload_to_cloud(cloud_name)
         self.page.click_upload()

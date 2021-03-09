@@ -109,9 +109,6 @@ def setup_objects(objects=[]):
         # This updates the security group setting, which requires a connection
         # to the cloud. The setup timing is unpredictable, so this loops it 
         # until the connection is established.
-        #while subprocess.run(['cloudscheduler', 'cloud', 'update', '-cn', clouds[0], '-vsg', 'default', '-s', 'unit-test']).returncode != 0:
-        #    print("Error connecting to the cloud. This may happen several times. Retrying...")
-        #    sleep(15)
         beaver_setup_keys(gvar, 1)
         helpers.wait_for_openstack_poller(gvar['user'] + '-wic1', '-vsg', 'default', output=True)
 
@@ -202,7 +199,7 @@ def cleanup_objects():
 
     delete_by_type(gvar, ['defaults', '-wis', '-s', 'server', []], 2)
     for i in range(2, 1, -1):
-        delete_by_type(gvar, ['image', '-wii', '-in', 'name', ['-g', gvar['user'] + '-wig0', '-cn', gvar['user'] + '-wic' + str(i)]], 3)
+        delete_by_type(gvar, ['image', '-wii', '-in', 'name', ['-g', gvar['user'] + '-wig0', '-cn', gvar['user'] + '-wic' + str(i)]], 3, others=['test-os-image-raw'])
 
     logfile = 'web_tests/misc_files/objects.txt'
     try:
@@ -245,7 +242,7 @@ def cleanup_objects():
     # and cleanup will fail if it is deleted earlier.
     subprocess.run(['cloudscheduler', 'group', 'delete', '-gn', gvar['base_group'], '-Y', '-s', 'unit-test'], stdout=subprocess.DEVNULL)
 
-def delete_by_type(gvar, type_info, number):
+def delete_by_type(gvar, type_info, number, others=[]):
     # type_info is a list of strings (and one list of strings)
     # The first string is the name of the object to be deleted (ex 'user')
     # The second string is the suffix used to generate the names of the test objects (ex '-wiu')
@@ -280,12 +277,16 @@ def delete_by_type(gvar, type_info, number):
     for line in object_log:
         object_list.append(line.strip())
 
+    add = ''
+    if type_info[0] == 'metadata':
+        add = '.yaml'
+    if type_info[0] == 'image':
+        add = '.hdd'
+
+    for name in others:
+        objects.append(name + add)
+
     for i in range(1, number+1):
-        add = ''
-        if type_info[0] == 'metadata':
-            add = '.yaml'
-        if type_info[0] == 'image':
-            add = '.hdd'
         objects.append(gvar['user'] + type_info[1] + str(i) + add)
     
     for object in objects:
@@ -321,12 +322,11 @@ def beaver_setup_keys(gvar, number):
     driver.quit()
 
 def beaver_cleanup_keys(gvar, number, oversize_number):
-
     oversize = {}
     oversize['varchar_64'] = 'invalid-web-test-string-that-is-too-long-for-64-character-sql-data-field'
 
     options = Options()
-    #options.headless = True
+    options.headless = True
     driver = webdriver.Firefox(webdriver.FirefoxProfile(gvar['firefox_profiles'][1]), options=options)
     driver.get('https://beaver.heprc.uvic.ca/dashboard/project/key_pairs')
 

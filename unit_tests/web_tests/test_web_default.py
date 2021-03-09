@@ -494,7 +494,7 @@ class TestWebDefaultSuperUser(unittest.TestCase):
         wta.assertHasAttribute('metadata', metadata_name, 'mime_type', 'ucernvm-config', group=self.group_name)
 
     @unittest.skip("Not working (supposed to work?)")
-    def test_web_group_metadata_add_mismatched_file_type(self):
+    def test_web_default_metadata_add_mismatched_file_type(self):
         # Tries to add metadata to a group with a file that doesn't match its name
         metadata_name = self.gvar['user'] + '-wim8.yaml'
         self.page.click_side_button(self.group_name)
@@ -1133,7 +1133,7 @@ class TestWebDefaultRegularUser(unittest.TestCase):
         wta.assertHasAttribute('metadata', metadata_name, 'mime_type', 'ucernvm-config', group=self.group_name)
 
     @unittest.skip("Not working (supposed to work?)")
-    def test_web_group_metadata_add_mismatched_file_type(self):
+    def test_web_default_metadata_add_mismatched_file_type(self):
         # Tries to add metadata to a group with a file that doesn't match its name
         metadata_name = self.gvar['user'] + '-wim8.yaml'
         self.page.click_side_button(self.group_name)
