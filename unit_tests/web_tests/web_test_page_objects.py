@@ -659,8 +659,8 @@ class ImagesPage(Page):
 
     def image_exists(self, image):
         sleep(5)
-        xpath = wtxs.table_row_name('image_row', image)
-        #print(xpath)
+        xpath = wtxs.table_row_name_not_hidden('image_row', image)
+        print(xpath)
         try:
             WebDriverWait(self.driver, 10).until(
                 EC.presence_of_element_located((By.XPATH, xpath)))

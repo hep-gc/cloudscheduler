@@ -278,8 +278,6 @@ def delete_by_type(gvar, type_info, number, others=[]):
     for line in object_log:
         object_list.append(line.strip())
 
-    print(object_list)
-
     add = ''
     if type_info[0] == 'metadata':
         add = '.yaml'

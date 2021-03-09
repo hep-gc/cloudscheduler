@@ -49,6 +49,9 @@ def input_by_value(value):
 def table_row_name(cls, row):
     return "//tr[@class='" + cls + "']//b[contains(text(), '" + row + "')]"
 
+def table_row_name_not_hidden(cls, row):
+    return "//tr[@class='" + cls + "' and not contains(@style, 'display: none')]//b[contains(text(), '" + row + "')]"
+
 def label_button(element, button):
     return "//label[@for='" + element + "-" + button + "']"
 
