@@ -93,7 +93,6 @@ class TestWebImageSuperUser(unittest.TestCase):
         self.page.click_cloud_button(image_name, cloud_name)
         self.page.click_delete_ok()
         self.page.click_top_nav('Images')
-        sleep(5)
         self.assertTrue(self.page.image_is_disabled_in_cloud(image_name, cloud_name))
         wta.assertNotExists('image', image_name, group=self.gvar['base_group'], image_cloud=cloud_name)
 
@@ -141,19 +140,22 @@ class TestWebImageRegularUser(unittest.TestCase):
         self.page.select_disk_format('Raw')
         self.page.add_upload_to_cloud(cloud_name)
         self.page.click_upload()
+        self.page.click_top_nav('Images')
+        self.assertTrue(self.page.image_exists(image_name))
         wta.assertExists('image', image_name, group=self.gvar['base_group'], image_cloud=cloud_name)
 
-    @unittest.skip("Ensure this is safe")
     def test_web_image_upload_url(self):
         # Uploads an image to a cloud using a URL
-        image_name = 'cernvm4-micro-2020.07-1.hdd'
+        image_name = 'test-os-image-raw.hdd'
         cloud_name = self.gvar['user'] + '-wic1'
         self.page.click_upload_image()
         self.page.click_from_url()
-        self.page.type_image_url('http://cernvm.cern.ch/releases/production/' + image_name)
+        self.page.type_image_url('http://elephant06.heprc.uvic.ca/' + image_name)
         self.page.select_disk_format('Raw')
         self.page.add_upload_to_cloud(cloud_name)
         self.page.click_upload()
+        self.page.click_top_nav('Images')
+        self.assertTrue(self.page.image_exists(image_name))
         wta.assertExists('image', image_name, group=self.gvar['base_group'], image_cloud=cloud_name)
 
     def test_web_image_upload_cancel(self):
@@ -165,6 +167,8 @@ class TestWebImageRegularUser(unittest.TestCase):
         self.page.select_disk_format('Raw')
         self.page.add_upload_to_cloud(cloud_name)
         self.page.click_cancel_upload()
+        self.page.click_top_nav('Images')
+        self.assertFalse(self.page.image_exists(image_name))
         wta.assertNotExists('image', image_name, group=self.gvar['base_group'], image_cloud=cloud_name)
 
     @unittest.skip("Requires different kinds of clouds")
@@ -200,6 +204,8 @@ class TestWebImageRegularUser(unittest.TestCase):
         cloud_name = self.gvar['user'] + '-wic1'
         self.page.click_cloud_button(image_name, cloud_name)
         self.page.click_delete_ok()
+        self.page.click_top_nav('Images')
+        self.assertTrue(self.page.image_is_disabled_in_cloud(image_name, cloud_name))
         wta.assertNotExists('image', image_name, group=self.gvar['base_group'], image_cloud=cloud_name)
 
     def test_web_image_delete_cancel(self):
@@ -208,7 +214,16 @@ class TestWebImageRegularUser(unittest.TestCase):
         cloud_name = self.gvar['user'] + '-wic1'
         self.page.click_cloud_button(image_name, cloud_name)
         self.page.click_delete_cancel()
+        self.page.click_top_nav('Images')
+        self.assertTrue(self.page.image_exists(image_name))
         wta.assertExists('image', image_name, group=self.gvar['base_group'], image_cloud=cloud_name)
+
+    def test_web_image_search(self):
+        # Searches for an image
+        non_matching_image = self.page.find_non_matching_image(self.gvar['user'])
+        self.page.type_in_search_bar(self.gvar['user'])
+        self.assertTrue(self.page.image_exists(self.gvar['user'] + '-wii1.hdd'))
+        self.assertFalse(self.page.image_exists(non_matching_image))
 
     @classmethod
     def tearDownClass(cls):
