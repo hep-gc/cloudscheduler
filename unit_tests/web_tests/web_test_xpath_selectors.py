@@ -65,7 +65,7 @@ def image_cloud_button(image_name):
     return "//b[contains(text(), '" + image_name + "')]/../..//button[@title='Delete image']"
 
 def image_state_box_button(image_name, state):
-    return "//b[contains(text(), '" + image_name + "')]/../..//td[@class='" + state + "']/button[@title='Delete image']"
+    return "//b[contains(text(), '" + image_name + "')]/../..//td[@class='" + state + "']/button"#[contains(title, 'Delete image')]"
 
 def key_label(key_name):
     return "//th[contains(text(), '" + key_name + "')]"

@@ -3,6 +3,7 @@ import web_tests.web_test_setup_cleanup as wtsc
 import web_tests.web_test_assertions_v2 as wta
 import web_tests.web_test_page_objects as pages
 import web_tests.web_test_helpers as helpers
+from time import sleep
 
 class TestWebImageSuperUser(unittest.TestCase):
     """A class to test image operations via the web interface, with a super user."""
@@ -92,7 +93,8 @@ class TestWebImageSuperUser(unittest.TestCase):
         self.page.click_cloud_button(image_name, cloud_name)
         self.page.click_delete_ok()
         self.page.click_top_nav('Images')
-        self.assertFalse(self.page.image_exists(image_name))
+        sleep(5)
+        self.assertTrue(self.page.image_is_disabled_in_cloud(image_name, cloud_name))
         wta.assertNotExists('image', image_name, group=self.gvar['base_group'], image_cloud=cloud_name)
 
     def test_web_image_delete_cancel(self):

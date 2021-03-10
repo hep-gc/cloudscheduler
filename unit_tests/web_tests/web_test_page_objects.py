@@ -658,17 +658,20 @@ class ImagesPage(Page):
         return None
 
     def image_exists(self, image):
-        sleep(5)
-        xpath = wtxs.table_row_name_not_hidden('image_row', image)
-        print(xpath)
+        xpath = wtxs.table_row_name('image_row', image)
         try:
             WebDriverWait(self.driver, 10).until(
                 EC.presence_of_element_located((By.XPATH, xpath)))
-            return True
+            elements = self.driver.find_elements_by_xpath(xpath)
+            for element in elements:
+                if element.is_displayed():
+                    return True
+            return False
         except TimeoutException:
             return False
 
     def image_is_public_in_cloud(self, image, cloud):
+        sleep(5)
         xpath = wtxs.image_state_box_button(image, 'public')
         elements = self.driver.find_elements_by_xpath(xpath)
         button = None
@@ -682,6 +685,7 @@ class ImagesPage(Page):
             return False
 
     def image_is_private_in_cloud(self, image, cloud):
+        sleep(5)
         xpath = wtxs.image_state_box_button(image, 'shared')
         elements = self.driver.find_elements_by_xpath(xpath)
         button = None
@@ -695,7 +699,22 @@ class ImagesPage(Page):
             return False
 
     def image_is_error_in_cloud(self, image, cloud):
+        sleep(5)
         xpath = wtxs.image_state_box_button(image, 'error') # TODO: check this
+        elements = self.driver.find_elements_by_xpath(xpath)
+        button = None
+        for element in elements:
+            text = element.get_attribute('onclick')
+            if cloud in text:
+                button = element
+        if button:
+            return True
+        else:
+            return False
+
+    def image_is_disabled_in_cloud(self, image, cloud):
+        sleep(5)
+        xpath = wtxs.image_state_box_button(image, 'missing')
         elements = self.driver.find_elements_by_xpath(xpath)
         button = None
         for element in elements:
