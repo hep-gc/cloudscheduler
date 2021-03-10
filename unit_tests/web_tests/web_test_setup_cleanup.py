@@ -13,6 +13,9 @@ import web_tests.web_test_helpers as helpers
 # between test runners and to allow tests to be run individually with the
 # unittest framework
 
+server_url = 'https://csv2-dev.heprc.uvic.ca'
+beaver_url = 'https://beaver.heprc.uvic.ca/dashboard/project/key_pairs'
+
 def setup(cls, profile, objects):
     # Try/except block here ensures that cleanups will occur even on setup
     # error. If we update to python 3.8 or later, the unittest
@@ -20,7 +23,7 @@ def setup(cls, profile, objects):
     try:
         cls.gvar = setup_objects(objects)
         cls.driver = webdriver.Firefox(webdriver.FirefoxProfile(cls.gvar['firefox_profiles'][profile-1]))
-        cls.driver.get("https://csv2-dev.heprc.uvic.ca")
+        cls.driver.get(server_url)
         cls.alert = cls.driver.switch_to.alert
         cls.alert.accept()
     except:
@@ -184,7 +187,7 @@ def setup_objects(objects=[]):
     return gvar
 
 def get_homepage(driver):
-    driver.get("https://csv2-dev.heprc.uvic.ca")
+    driver.get(server_url)
 
 def cleanup(cls):
     print("\nUnittest Teardown:")
@@ -306,7 +309,7 @@ def beaver_setup_keys(gvar, number):
     options = Options()
     options.headless = True
     driver = webdriver.Firefox(webdriver.FirefoxProfile(gvar['firefox_profiles'][1]), options=options)
-    driver.get('https://beaver.heprc.uvic.ca/dashboard/project/key_pairs')
+    driver.get(beaver_url)
 
     wti.fill_blank_by_id(driver, 'id_username', gvar['cloud_credentials']['username'])
     wti.fill_blank_by_id(driver, 'id_password', gvar['cloud_credentials']['password'])
@@ -329,7 +332,7 @@ def beaver_cleanup_keys(gvar, number, oversize_number):
     options = Options()
     options.headless = True
     driver = webdriver.Firefox(webdriver.FirefoxProfile(gvar['firefox_profiles'][1]), options=options)
-    driver.get('https://beaver.heprc.uvic.ca/dashboard/project/key_pairs')
+    driver.get(beaver_url)
 
     wti.fill_blank_by_id(driver, 'id_username', gvar['cloud_credentials']['username'])
     wti.fill_blank_by_id(driver, 'id_password', gvar['cloud_credentials']['password'])
