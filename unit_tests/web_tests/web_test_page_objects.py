@@ -39,7 +39,135 @@ class Page(object):
 
 class StatusPage(Page):
     """This is the page object class for the Status page."""
-    pass
+    def __init__(self, driver):
+        super(StatusPage, self).__init__(driver)
+        # There may be variables here in the future, currently unknown
+
+    def click_jobs_group_expand(self, group):
+        xpath = wtxs.status_page_dropdown(1, group)
+        wti.click_by_xpath(self.driver, xpath)
+
+    def click_job_data_box(self, group, state):
+        state_tag = '_' + state.lower()
+        if state == 'Jobs':
+            state_tag = ''
+        path = group + ' jobs' + state_tag
+        xpath = wtxs.data_box(path)
+        wti.click_by_xpath(self.driver, xpath)
+
+    def click_vms_group_expand(self, group):
+        xpath = wtxs.status_page_dropdown(2, group)
+        wti.click_by_xpath(self.driver, xpath)
+
+    def click_vms_cloud_expand(self, cloud):
+        xpath = wtxs.status_page_dropdown(2, cloud)
+        wti.click_by_xpath(self.driver, xpath)
+
+    def click_vm_data_box(self, cloud, state):
+        state_tag = '_' + state.lower()
+        if state == 'VMs':
+            state_tag = ''
+        if state == 'Error':
+            state_tag = '_in_error'
+        if cloud == 'Totals':
+            state_tag += '_total'
+            path = 'VMs' + state_tag
+        else:
+            path = cloud + ' VMs' + state_tag
+        xpath = wtxs.data_box(path)
+        wti.click_by_xpath(self.driver, xpath)
+
+    def click_slot_data_box(self, cloud, state):
+        state_tag = '_' + state.lower()
+        if state == 'Slots':
+            state_tag = 'count'
+        if state == 'Busy':
+            state_tag = '_core_count'
+        if state == 'Idle':
+            state_tag = '_idle_core_count'
+        if cloud == 'Totals':
+            state_tag += '_total'
+            path = 'slot' + state_tag
+        else:
+            path = cloud + ' slot' + state_tag
+        xpath = wtxs.data_box(path)
+        wti.click_by_xpath(self.driver, xpath)
+
+    def click_native_cores_data_box(self, cloud, state):
+        state_tag = '_' + state.lower()
+        if state == 'Used':
+            state_tag = '_native'
+        if cloud == 'Totals':
+            state_tag += '_total'
+            path = 'cores' + state_tag
+        else:
+            path = cloud + ' cores' + state_tag
+        xpath = wtxs.data_box(path)
+        wti.click_by_xpath(self.driver, xpath)
+
+    def select_plot_range(self, range):
+        wti.select_option_by_id(self.driver, 'range-select', range)
+
+    def click_plot_legend_item(self, item):
+        xpath = wtxs.legend_item(item)
+        wti.click_by_xpath(self.driver, xpath)
+
+    def click_close_plot(self):
+        wti.click_by_id(self.driver, 'close-plot')
+
+    def job_group_expanded(self, group):
+        element = self.driver.find_element_by_id('expand-jobs-' + group.lower())
+        return element.is_displayed()
+
+    def vm_group_expanded(self, group):
+        xpath = wtxs.vm_expand(group)
+        element = self.driver.find_element_by_xpath(xpath)
+        return element.is_displayed()
+
+    def vm_cloud_expanded(self, cloud):
+        xpath = wtxs.vm_expand(cloud)
+        element = self.driver.find_element_by_xpath(xpath)
+        return element.is_displayed()
+
+    def plot_open(self):
+        element = self.driver.find_element_by_id('plot')
+        return element.is_displayed()
+
+    def first_date_on_plot_is(date):
+        xpath = wtxs.axis_data_point('xtick')
+        elements = self.driver.find_elements_by_xpath(xpath)
+        left_date = ''
+        for element in elements:
+            text = element.get_attribute('data-unformatted')
+            if '<br>' in text:
+                left_date = text
+                break
+        left_date = left_date.split('<br>')[1]
+        return date == left_date
+
+    def first_time_on_plot_is(time):
+        xpath = wtxs.axis_data_point('xtick')
+        element = self.driver.find_element_by_xpath(xpath)
+        left_time = element.text.split('<br>')[0]
+        return time == left_time
+
+    def last_date_on_plot_is(date):
+        xpath = wtxs.axis_data_point('xtick')
+        elements = self.driver.find_elements_by_xpath(xpath)
+        right_date = ''
+        for element in elements:
+            text = element.get_attribute('data-unformatted')
+            if '<br>' in text:
+                right_date = text
+        right_date = right_date.split('<br>')[1]
+        return date == right_date
+
+    def last_time_on_plot_is(time):
+        xpath = wtxs.axis_data_point('xtick')
+        elements = self.driver.find_elements_by_xpath(xpath)
+        element = elements[-1]
+        right_time = element.text.split('<br>')[0]
+        return time == right_time
 
 class CloudsPage(Page):
     """This is the page object class for the Clouds page."""
