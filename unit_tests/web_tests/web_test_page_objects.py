@@ -145,7 +145,7 @@ class StatusPage(Page):
         element = self.driver.find_element_by_id('plot')
         return element.is_displayed()
 
-    def first_date_on_plot_is(year, month, day):
+    def first_date_on_plot_is(self, year, month, day):
         xpath = wtxs.axis_data_point('xtick')
         elements = self.driver.find_elements_by_xpath(xpath)
         left_date = ''
@@ -154,20 +154,17 @@ class StatusPage(Page):
             if '<br>' in text:
                 left_date = text
                 break
-        #if left_date.split(':').isdigit():
-        #    left_date = left_date.split('<br>')[1]
         if year in left_date and month in left_date and day in left_date:
             return True
         return False
-        #return date == left_date
 
-    def first_time_on_plot_is(time):
+    def first_time_on_plot_is(self, time):
         xpath = wtxs.axis_data_point('xtick')
         element = self.driver.find_element_by_xpath(xpath)
         left_time = element.text.split('<br>')[0]
         return time == left_time
 
-    def last_date_on_plot_is(year, month, day):
+    def last_date_on_plot_is(self, year, month, day):
         xpath = wtxs.axis_data_point('xtick')
         elements = self.driver.find_elements_by_xpath(xpath)
         right_date = ''
@@ -175,18 +172,25 @@ class StatusPage(Page):
             text = element.get_attribute('data-unformatted')
             if '<br>' in text:
                 right_date = text
-        #right_date = right_date.split('<br>')[1]
-        #return date == right_date
         if year in right_date and month in right_date and day in right_date:
             return True
         return False
 
-    def last_time_on_plot_is(time):
+    def last_time_on_plot_is(self, time):
         xpath = wtxs.axis_data_point('xtick')
         elements = self.driver.find_elements_by_xpath(xpath)
         element = elements[-1]
         right_time = element.text.split('<br>')[0]
         return time == right_time
+
+    def plot_has_legend(self, legend):
+        xpath = wtxs.legend_item(item)
+        try:
+            WebDriverWait(self.driver, 10).until(
+                EC.presence_of_element_located((By.XPATH, xpath)))
+            return True
+        except TimeoutException:
+            return False
 
 class CloudsPage(Page):
     """This is the page object class for the Clouds page."""
