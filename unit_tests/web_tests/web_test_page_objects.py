@@ -63,7 +63,7 @@ class StatusPage(Page):
         xpath = wtxs.status_page_dropdown('2', cloud)
         wti.click_by_xpath(self.driver, xpath)
 
-    def click_vm_data_box(self, cloud, state):
+    def click_vm_data_box(self, group, cloud, state):
         state_tag = '_' + state.lower()
         if state == 'VMs':
             state_tag = ''
@@ -73,11 +73,12 @@ class StatusPage(Page):
             state_tag += '_total'
             path = 'VMs' + state_tag
         else:
-            path = cloud + ' VMs' + state_tag
+            path = group + ' ' +  cloud + ' VMs' + state_tag
         xpath = wtxs.data_box(path)
+        print(xpath)
         wti.click_by_xpath(self.driver, xpath)
 
-    def click_slot_data_box(self, cloud, state):
+    def click_slot_data_box(self, group, cloud, state):
         state_tag = '_' + state.lower()
         if state == 'Slots':
             state_tag = 'count'
@@ -89,11 +90,11 @@ class StatusPage(Page):
             state_tag += '_total'
             path = 'slot' + state_tag
         else:
-            path = cloud + ' slot' + state_tag
+            path = group + ' ' + cloud + ' slot' + state_tag
         xpath = wtxs.data_box(path)
         wti.click_by_xpath(self.driver, xpath)
 
-    def click_native_cores_data_box(self, cloud, state):
+    def click_native_cores_data_box(self, group, cloud, state):
         state_tag = '_' + state.lower()
         if state == 'Used':
             state_tag = '_native'
@@ -101,8 +102,12 @@ class StatusPage(Page):
             state_tag += '_total'
             path = 'cores' + state_tag
         else:
-            path = cloud + ' cores' + state_tag
+            path = group + ' ' + cloud + ' cores' + state_tag
         xpath = wtxs.data_box(path)
+        wti.click_by_xpath(self.driver, xpath)
+
+    def click_ram_data_box(self, group, cloud):
+        xpath = wtxs.data_box(group + ' ' + cloud + ' ' + 'ram_native')
         wti.click_by_xpath(self.driver, xpath)
 
     def select_plot_range(self, range):

@@ -184,6 +184,10 @@ def setup_objects(objects=[]):
         keystring = gvar['user'] + '-wik1'
         helpers.wait_for_openstack_poller(gvar['user'] + '-wic1', '-vk', keystring, output=True)
 
+    if 'status' in objects:
+        for i in range(1, 3):
+            subprocess.run(['cloudscheduler', 'my', 'settings', '-sri', '300', '-s', gvar['user'] + '-wis' + str(i)], stdout=subprocess.DEVNULL)
+
     return gvar
 
 def get_homepage(driver):
