@@ -44,7 +44,7 @@ class StatusPage(Page):
         # There may be variables here in the future, currently unknown
 
     def click_jobs_group_expand(self, group):
-        xpath = wtxs.status_page_dropdown(1, group)
+        xpath = wtxs.status_page_dropdown('1', group)
         wti.click_by_xpath(self.driver, xpath)
 
     def click_job_data_box(self, group, state):
@@ -56,11 +56,11 @@ class StatusPage(Page):
         wti.click_by_xpath(self.driver, xpath)
 
     def click_vms_group_expand(self, group):
-        xpath = wtxs.status_page_dropdown(2, group)
+        xpath = wtxs.status_page_dropdown('2', group)
         wti.click_by_xpath(self.driver, xpath)
 
     def click_vms_cloud_expand(self, cloud):
-        xpath = wtxs.status_page_dropdown(2, cloud)
+        xpath = wtxs.status_page_dropdown('2', cloud)
         wti.click_by_xpath(self.driver, xpath)
 
     def click_vm_data_box(self, cloud, state):
@@ -121,12 +121,19 @@ class StatusPage(Page):
 
     def vm_group_expanded(self, group):
         xpath = wtxs.vm_expand(group)
+        print(xpath)
+        try:
+            WebDriverWait(self.driver, 10).until(
+                EC.presence_of_element_located((By.XPATH, xpath)))
+        except TimeoutException:
+            return False
         element = self.driver.find_element_by_xpath(xpath)
         return element.is_displayed()
 
-    def vm_cloud_expanded(self, cloud):
-        xpath = wtxs.vm_expand(cloud)
-        element = self.driver.find_element_by_xpath(xpath)
+    def vm_cloud_expanded(self, group, cloud):
+        if cloud == 'Totals':
+            cloud = ''
+        element = self.driver.find_element_by_id('expand-' + group + '-' + cloud)
         return element.is_displayed()
 
     def plot_open(self):

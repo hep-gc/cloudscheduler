@@ -77,7 +77,7 @@ def delete_cancel(item_name):
     return "//div[@id='delete-" + item_name + "']//a[@title='Close']"
 
 def status_page_dropdown(index, name):
-    return "//div[@class='status-table'][" + index + "]//div[@class='float-left' and contains(text(), '" + name + "']"
+    return "//div[@class='status-table'][" + index + "]//div[@class='float-left' and contains(text(), '" + name + "')]"
 
 def legend_item(name):
     return "//text[contains(text(), + '" + name + "')]../self/rect"
@@ -86,7 +86,7 @@ def axis_data_point(axis):
     return "//g[@class='" + axis + "']/text"
 
 def data_box(data_path):
-    return "//td[@class='zero-style float-center plottable' and contains(data-path, '" + data_path + "']"
+    return "//td[@class='zero-style float-center plottable' and contains(data-path, '" + data_path + "')]"
 
 def vm_expand(element):
     return "//tr[contains(id, 'expand') and contains(id, '" + element + "')]"
