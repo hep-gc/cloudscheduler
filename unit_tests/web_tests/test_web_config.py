@@ -357,6 +357,7 @@ class TestWebConfigSuperUser(TestWebConfigCommon):
     @classmethod
     def setUpClass(cls):
         wtsc.setup(cls, 2, ['config'])
+        super(TestWebConfigSuperUser, cls).setUpClass()
         print("\nConfig Tests:")
 
 if __name__ == "__main__":

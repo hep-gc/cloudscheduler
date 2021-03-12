@@ -7,8 +7,8 @@ from .test_web_default import TestWebDefaultSuperUser, TestWebDefaultRegularUser
 from .test_web_image import TestWebImageSuperUser, TestWebImageRegularUser
 from .test_web_setting import TestWebSettingSuperUser, TestWebSettingRegularUser
 from .test_web_config import TestWebConfigSuperUser
-from .test_web_key import TestWebKeySuperUser, TestWebKeyRegularUser
-from .test_web_status import TestWebStatusSuperUser, TestWebStatusRegularUser
+from .test_web_key import TestWebKeySuperUser
+from .test_web_status import TestWebStatusSuperUser
 
 #IMPORTANT: All web tests must be added to the `tests` array here in order for the `run_tests` script to pick them up
 def test_suite():
@@ -21,8 +21,8 @@ def test_suite():
         TestWebImageSuperUser, TestWebImageRegularUser,
         TestWebSettingSuperUser, TestWebSettingRegularUser,
         TestWebConfigSuperUser,
-        TestWebKeySuperUser, TestWebKeyRegularUser,
-        TestWebStatusSuperUser, TestWebStatusRegularUser
+        TestWebKeySuperUser,
+        TestWebStatusSuperUser
     ]
 
     suite = unittest.TestSuite()

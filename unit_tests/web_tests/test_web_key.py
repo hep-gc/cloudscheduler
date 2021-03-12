@@ -9,10 +9,8 @@ class TestWebKeyCommon(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        wtsc.setup(cls, 2, ['keys'])
         cls.page = pages.KeysPage(cls.driver)
         cls.oversize = cls.gvar['oversize']
-        print("\nKey Tests (Super User):")
 
     def setUp(self):
         wtsc.get_homepage(self.driver)
@@ -136,8 +134,7 @@ class TestWebKeySuperUser(TestWebKeyCommon):
     @classmethod
     def setUpClass(cls):
         wtsc.setup(cls, 2, ['keys'])
-        cls.page = pages.KeysPage(cls.driver)
-        cls.oversize = cls.gvar['oversize']
+        super(TestWebKeySuperUser, cls).setUpClass()
         print("\nKey Tests (Super User):")
 
 if __name__ == "__main__":

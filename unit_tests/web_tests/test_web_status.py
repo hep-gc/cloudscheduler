@@ -181,7 +181,7 @@ class TestWebStatusSuperUser(TestWebStatusCommon):
     @classmethod
     def setUpClass(cls):
         wtsc.setup(cls, 2, ['servers', 'status'])
-        super(TestWebStatusSuperUser, self).setUpClass()
+        super(TestWebStatusSuperUser, cls).setUpClass()
         print("\nStatus Tests (Super User):")
    
 

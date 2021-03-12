@@ -1290,7 +1290,7 @@ class TestWebCloudSuperUser(TestWebCloudCommon):
     @classmethod
     def setUpClass(cls):
         wtsc.setup(cls, 2, ['clouds'])
-        super(TestWebCloudSuperUser, self).setUpClass()
+        super(TestWebCloudSuperUser, cls).setUpClass()
         print("\nCloud Tests (Super User):")
 
 class TestWebCloudRegularUser(TestWebCloudCommon):
@@ -1299,7 +1299,7 @@ class TestWebCloudRegularUser(TestWebCloudCommon):
     @classmethod
     def setUpClass(cls):
         wtsc.setup(cls, 1, ['clouds'])
-        super(TestWebCloudRegularUser, self).setUpClass()
+        super(TestWebCloudRegularUser, cls).setUpClass()
         print("\nCloud Tests (Regular User):")
 
 if __name__ == "__main__":

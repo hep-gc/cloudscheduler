@@ -12,7 +12,6 @@ class TestWebSettingCommon(unittest.TestCase):
         cls.page = pages.SettingsPage(cls.driver)
         cls.oversize = cls.gvar['oversize']
         cls.user = cls.gvar['user'] + '-wiu2'
-        cls.server = cls.gvar['user'] + '-wis2'
         print("\nUser Settings Tests (Super User):")
 
     def setUp(self):
@@ -183,6 +182,7 @@ class TestWebSettingSuperUser(TestWebSettingCommon):
     def setUpClass(cls):
         wtsc.setup(cls, 2, ['settings', 'servers'])
         super(TestWebSettingSuperUser, cls).setUpClass()
+        cls.server = cls.gvar['user'] + '-wis2'
         print("\nUser Settings Tests (Super User):")
 
 class TestWebSettingRegularUser(TestWebSettingCommon):
@@ -192,6 +192,7 @@ class TestWebSettingRegularUser(TestWebSettingCommon):
     def setUpClass(cls):
         wtsc.setup(cls, 1, ['settings', 'servers'])
         super(TestWebSettingRegularUser, cls).setUpClass()
+        cls.server = cls.gvar['user'] + '-wis1'
         print("\nUser Settings Tests (Regular User):")
 
 if __name__ == "__main__":
