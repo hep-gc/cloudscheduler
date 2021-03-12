@@ -86,7 +86,7 @@ def upload_keypair(request, group_name=None):
 
         for cloud in cloud_name_list:
             where_clause = "group_name='%s' and cloud_name='%s'" % (grp, cloud)
-            rc, qmsg, db_cloud_list = db_config.query(Group_Resources, where=where_clause)
+            rc, qmsg, db_cloud_list = db_config.db_query(Group_Resources, where=where_clause)
             db_cloud = db_cloud_list[0]
             try:
                 new_key = create_keypair(key_name=key_name, key_string=key_string, cloud=db_cloud)
