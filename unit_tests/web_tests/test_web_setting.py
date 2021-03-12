@@ -3,8 +3,8 @@ import web_tests.web_test_setup_cleanup as wtsc
 import web_tests.web_test_assertions_v2 as wta
 import web_tests.web_test_page_objects as pages
 
-class TestWebSettingSuperUser(unittest.TestCase):
-    """A class to test user settings operations via the web interface, with a super user."""
+class TestWebSettingCommon(unittest.TestCase):
+    """A class for the user settings tests that should be repeated in all iterations."""
 
     @classmethod
     def setUpClass(cls):

@@ -5,7 +5,7 @@ import web_tests.web_test_page_objects as pages
 import web_tests.web_test_helpers as helpers
 
 class TestWebKeyCommon(unittest.TestCase):
-    """A class to test key operations via the web interface, with a super user."""
+    """A class for the key tests that should be repeated in all iterations."""
 
     @classmethod
     def setUpClass(cls):

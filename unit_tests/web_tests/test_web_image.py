@@ -4,8 +4,8 @@ import web_tests.web_test_assertions_v2 as wta
 import web_tests.web_test_page_objects as pages
 import web_tests.web_test_helpers as helpers
 
-class TestWebImageSuperUser(unittest.TestCase):
-    """A class to test image operations via the web interface, with a super user."""
+class TestWebImageCommon(unittest.TestCase):
+    """A class for the image tests that should be repeated in all iterations."""
 
     @classmethod
     def setUpClass(cls):
