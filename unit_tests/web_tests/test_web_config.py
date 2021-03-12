@@ -3,15 +3,13 @@ import web_tests.web_test_setup_cleanup as wtsc
 import web_tests.web_test_assertions_v2 as wta
 import web_tests.web_test_page_objects as pages
 
-class TestWebConfig(unittest.TestCase):
-    """A class to test config operatiohns via the web interface."""
+class TestWebConfigCommon(unittest.TestCase):
+    """A class for the config tests that should be repeated in all iterations."""
 
     @classmethod
     def setUpClass(cls):
-        wtsc.setup(cls, 2, ['config'])
         cls.page = pages.ConfigPage(cls.driver)
         cls.oversize = cls.gvar['oversize']
-        print("\nConfig Tests:")
 
     def setUp(self):
         wtsc.get_homepage(self.driver)
@@ -352,6 +350,14 @@ class TestWebConfig(unittest.TestCase):
     @classmethod
     def tearDownClass(cls):
         wtsc.cleanup(cls)
+
+class TestWebConfigSuperUser(TestWebConfigCommon):
+    """A class to test config operations via the web interface."""
+
+    @classmethod
+    def setUpClass(cls):
+        wtsc.setup(cls, 2, ['config'])
+        print("\nConfig Tests:")
 
 if __name__ == "__main__":
     unittest.main()

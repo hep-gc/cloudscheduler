@@ -3,17 +3,15 @@ import web_tests.web_test_setup_cleanup as wtsc
 import web_tests.web_test_assertions_v2 as wta
 import web_tests.web_test_page_objects as pages
 
-class TestWebStatusSuperUser(unittest.TestCase):
+class TestWebStatusCommon(unittest.TestCase):
     """A class to test status operations via the web interface, with a super user."""
 
     @classmethod
     def setUpClass(cls):
-        wtsc.setup(cls, 2, ['servers', 'status'])
         cls.page = pages.StatusPage(cls.driver)
         cls.oversize = cls.gvar['oversize']
         cls.cloud_name = cls.gvar['user'] + '-wic1'
         cls.group_name = cls.gvar['user'] + '-wig0'
-        print("\nStatus Tests (Super User):")
 
     def setUp(self):
         wtsc.get_homepage(self.driver)
@@ -178,6 +176,14 @@ class TestWebStatusSuperUser(unittest.TestCase):
     @classmethod
     def tearDownClass(cls):
         wtsc.cleanup(cls)
+
+class TestWebStatusSuperUser(TestWebStatusCommon):
+    @classmethod
+    def setUpClass(cls):
+        wtsc.setup(cls, 2, ['servers', 'status'])
+        super(TestWebStatusSuperUser, self).setUpClass()
+        print("\nStatus Tests (Super User):")
+   
 
 if __name__ == "__main__":
     unittest.main()

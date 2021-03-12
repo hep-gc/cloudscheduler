@@ -3,15 +3,13 @@ import web_tests.web_test_setup_cleanup as wtsc
 import web_tests.web_test_assertions_v2 as wta
 import web_tests.web_test_page_objects as pages
 
-class TestWebUser(unittest.TestCase):
-    """A class to test user operations via the web interface."""
+class TestWebUserCommon(unittest.TestCase):
+    """A class for the user tests that should be repeated in all iterations."""
 
     @classmethod
     def setUpClass(cls):
-        wtsc.setup(cls, 2, ['users'])
         cls.page = pages.UsersPage(cls.driver)
         cls.oversize = cls.gvar['oversize']
-        print("\nUser Tests:")
 
     def setUp(self):
         wtsc.get_homepage(self.driver)
@@ -355,6 +353,15 @@ class TestWebUser(unittest.TestCase):
     @classmethod
     def tearDownClass(cls):
         wtsc.cleanup(cls)
+
+class TestWebUserSuperUser(TestWebUserCommon):
+    """A class to test user operations via the web interface, with a super user."""
+
+    @classmethod
+    def setUpClass(cls):
+        wtsc.setup(cls, 2, ['users'])
+        super(TestWebGroupSuperUser, cls).setUpClass()
+        print("\nUser Tests:")
 
 if __name__ == "__main__":
     unittest.main()
