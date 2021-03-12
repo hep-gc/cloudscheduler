@@ -23,6 +23,8 @@ As with the other unit tests, a server configuration and cloud credentials are r
 
 Additionally, the tests require a set of files to start off with. These consist of four cloud files in RAW format, named `{user}-wii1.hdd`, `{user}-wii2.hdd`, `{user}-wii3.hdd`, and `{user}-wii4.hdd`; and one ssh public key named `{user}-wik3.pub`. They should be placed in the `unit_tests/web_tests/misc_files` directory.
 
+In order to set up the tests on a new server, the `unit-test` server in `.csv2/unit-test/settings.yaml` must be modified accordingly, and the profiles must be set up again for the new server. The `server_url` variable in `web_test_setup_cleanup` should also be modified to match the new server.
+
 ## Adding Tests
 
 New test modules should be named starting with `test_web_` (the modules starting with `web_test_` are helper modules). The test files should be named `test_web_<page>.py`, with the class being named `TestWeb<Page>`. Individual tests should be named `test_web_<page>_<action>_<details>`, where `<action>` is the name of the action using the `cloudscheduler` command. If suitably complex, `<action>` should ideally be formatted as `<object>_<action_on_object>_<details>`. Note that individual tests having names that start with `test` is currently the only breaking naming requirement.
@@ -186,3 +188,9 @@ Note that some objects (like the metadata files) do not have their own delete me
 `{user}-wik1` is a standard key.
 
 `{user}-wik2` is a standard key. It is to be deleted in delete tests.
+
+### Servers
+
+`{user}-wis1` is a server with the login credentials of the `{user}-wiu1` user.
+
+`{user}-wis2` is a server with the login credentials of the `{user}-wiu2` user.
