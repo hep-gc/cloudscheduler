@@ -75,7 +75,6 @@ class StatusPage(Page):
         else:
             path = group + ' ' +  cloud + ' VMs' + state_tag
         xpath = wtxs.data_box(path)
-        print(xpath)
         wti.click_by_xpath(self.driver, xpath)
 
     def click_slot_data_box(self, group, cloud, state):
@@ -126,7 +125,6 @@ class StatusPage(Page):
 
     def vm_group_expanded(self, group):
         xpath = wtxs.vm_expand(group)
-        print(xpath)
         try:
             WebDriverWait(self.driver, 10).until(
                 EC.presence_of_element_located((By.XPATH, xpath)))
@@ -184,7 +182,7 @@ class StatusPage(Page):
         return time == right_time
 
     def plot_has_legend(self, legend):
-        xpath = wtxs.legend_item(item)
+        xpath = wtxs.legend_item(legend)
         try:
             WebDriverWait(self.driver, 10).until(
                 EC.presence_of_element_located((By.XPATH, xpath)))

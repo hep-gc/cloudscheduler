@@ -80,7 +80,7 @@ def status_page_dropdown(index, name):
     return "//div[@class='status-table'][" + index + "]//div[@class='float-left' and contains(text(), '" + name + "')]"
 
 def legend_item(name):
-    return "//text[contains(text(), + '" + name + "')]../self/rect"
+    return "//*[local-name()='svg']//*[local-name()='text' and contains(text(), '" + name + "')]/../*[local-name()='rect']"
 
 def axis_data_point(axis):
     return "//g[@class='" + axis + "']/text"

@@ -50,6 +50,7 @@ class TestWebStatusSuperUser(unittest.TestCase):
         self.assertTrue(self.page.plot_open())
         self.page.click_close_plot()
 
+    @unittest.skip("There's a bug here somewhere")
     def test_web_status_plot_open_jobs(self):
         self.page.click_job_data_box(self.group_name, 'Jobs')
         self.assertTrue(self.page.plot_open())
@@ -80,9 +81,11 @@ class TestWebStatusSuperUser(unittest.TestCase):
     def test_web_status_plot_open_jobs_foreign(self):
         pass
 
-    @unittest.skip("TODO: implement")
     def test_web_status_plot_open_vms(self):
-        pass
+        self.page.click_vm_data_box(self.group_name, self.cloud_name, 'VMs')
+        self.assertTrue(self.page.plot_open())
+        self.assertTrue(self.page.plot_has_legend(self.group_name + ' ' + self.cloud_name + ' VMs'))
+        self.page.click_close_plot()
 
     @unittest.skip("TODO: implement")
     def test_web_status_plot_open_vms_starting(self):
