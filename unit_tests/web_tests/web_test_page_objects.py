@@ -80,7 +80,7 @@ class StatusPage(Page):
     def click_slot_data_box(self, group, cloud, state):
         state_tag = '_' + state.lower()
         if state == 'Slots':
-            state_tag = 'count'
+            state_tag = '_count'
         if state == 'Busy':
             state_tag = '_core_count'
         if state == 'Idle':

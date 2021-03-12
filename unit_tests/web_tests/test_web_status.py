@@ -38,7 +38,6 @@ class TestWebStatusSuperUser(unittest.TestCase):
         self.assertTrue(self.page.vm_cloud_expanded(self.group_name, self.cloud_name))
         self.page.click_vms_cloud_expand(self.cloud_name)
 
-    @unittest.skip("Let's see if this is the problem")
     def test_web_status_expand_vm_cloud_totals(self):
         cloud_name = 'Totals'
         self.page.click_vms_cloud_expand(cloud_name)
@@ -50,36 +49,47 @@ class TestWebStatusSuperUser(unittest.TestCase):
         self.assertTrue(self.page.plot_open())
         self.page.click_close_plot()
 
-    @unittest.skip("There's a bug here somewhere")
     def test_web_status_plot_open_jobs(self):
         self.page.click_job_data_box(self.group_name, 'Jobs')
         self.assertTrue(self.page.plot_open())
         self.assertTrue(self.page.plot_has_legend(self.group_name + ' jobs'))
         self.page.click_close_plot()
 
-    @unittest.skip("TODO: implement")
     def test_web_status_plot_open_jobs_idle(self):
-        pass
+        self.page.click_job_data_box(self.group_name, 'Idle')
+        self.assertTrue(self.page.plot_open())
+        self.assertTrue(self.page.plot_has_legend(self.group_name + ' jobs_idle'))
+        self.page.click_close_plot()
 
-    @unittest.skip("TODO: implement")
     def test_web_status_plot_open_jobs_running(self):
-        pass
+        self.page.click_job_data_box(self.group_name, 'Running')
+        self.assertTrue(self.page.plot_open())
+        self.assertTrue(self.page.plot_has_legend(self.group_name + ' jobs_running'))
+        self.page.click_close_plot()
 
-    @unittest.skip("TODO: implement")
     def test_web_status_plot_open_jobs_completed(self):
-        pass
+        self.page.click_job_data_box(self.group_name, 'Completed')
+        self.assertTrue(self.page.plot_open())
+        self.assertTrue(self.page.plot_has_legend(self.group_name + ' jobs_completed'))
+        self.page.click_close_plot()
 
-    @unittest.skip("TODO: implement")
     def test_web_status_plot_open_jobs_held(self):
-        pass
+        self.page.click_job_data_box(self.group_name, 'Held')
+        self.assertTrue(self.page.plot_open())
+        self.assertTrue(self.page.plot_has_legend(self.group_name + ' jobs_held'))
+        self.page.click_close_plot()
 
-    @unittest.skip("TODO: implement")
     def test_web_status_plot_open_jobs_other(self):
-        pass
+        self.page.click_job_data_box(self.group_name, 'Other')
+        self.assertTrue(self.page.plot_open())
+        self.assertTrue(self.page.plot_has_legend(self.group_name + ' jobs_other'))
+        self.page.click_close_plot()
 
-    @unittest.skip("TODO: implement")
     def test_web_status_plot_open_jobs_foreign(self):
-        pass
+        self.page.click_job_data_box(self.group_name, 'Foreign')
+        self.assertTrue(self.page.plot_open())
+        self.assertTrue(self.page.plot_has_legend(self.group_name + ' jobs_foreign'))
+        self.page.click_close_plot()
 
     def test_web_status_plot_open_vms(self):
         self.page.click_vm_data_box(self.group_name, self.cloud_name, 'VMs')
@@ -87,57 +97,83 @@ class TestWebStatusSuperUser(unittest.TestCase):
         self.assertTrue(self.page.plot_has_legend(self.group_name + ' ' + self.cloud_name + ' VMs'))
         self.page.click_close_plot()
 
-    @unittest.skip("TODO: implement")
     def test_web_status_plot_open_vms_starting(self):
-        pass
+        self.page.click_vm_data_box(self.group_name, self.cloud_name, 'Starting')
+        self.assertTrue(self.page.plot_open())
+        self.assertTrue(self.page.plot_has_legend(self.group_name + ' ' + self.cloud_name + ' VMs_starting'))
+        self.page.click_close_plot()
 
-    @unittest.skip("TODO: implement")
     def test_web_status_plot_open_vms_unregistered(self):
-        pass
+        self.page.click_vm_data_box(self.group_name, self.cloud_name, 'Unregistered')
+        self.assertTrue(self.page.plot_open())
+        self.assertTrue(self.page.plot_has_legend(self.group_name + ' ' + self.cloud_name + ' VMs_unregistered'))
+        self.page.click_close_plot()
 
-    @unittest.skip("TODO: implement")
     def test_web_status_plot_open_vms_idle(self):
-        pass
+        self.page.click_vm_data_box(self.group_name, self.cloud_name, 'Idle')
+        self.assertTrue(self.page.plot_open())
+        self.assertTrue(self.page.plot_has_legend(self.group_name + ' ' + self.cloud_name + ' VMs_idle'))
+        self.page.click_close_plot()
 
-    @unittest.skip("TODO: implement")
     def test_web_status_plot_open_vms_running(self):
-        pass
+        self.page.click_vm_data_box(self.group_name, self.cloud_name, 'Running')
+        self.assertTrue(self.page.plot_open())
+        self.assertTrue(self.page.plot_has_legend(self.group_name + ' ' + self.cloud_name + ' VMs_running'))
+        self.page.click_close_plot()
 
-    @unittest.skip("TODO: implement")
     def test_web_status_plot_open_vms_retiring(self):
-        pass
+        self.page.click_vm_data_box(self.group_name, self.cloud_name, 'Retiring')
+        self.assertTrue(self.page.plot_open())
+        self.assertTrue(self.page.plot_has_legend(self.group_name + ' ' + self.cloud_name + ' VMs_retiring'))
+        self.page.click_close_plot()
 
-    @unittest.skip("TODO: implement")
     def test_web_status_plot_open_vms_manual(self):
-        pass
+        self.page.click_vm_data_box(self.group_name, self.cloud_name, 'Manual')
+        self.assertTrue(self.page.plot_open())
+        self.assertTrue(self.page.plot_has_legend(self.group_name + ' ' + self.cloud_name + ' VMs_manual'))
+        self.page.click_close_plot()
 
-    @unittest.skip("TODO: implement")
     def test_web_status_plot_open_vms_error(self):
-        pass
+        self.page.click_vm_data_box(self.group_name, self.cloud_name, 'Error')
+        self.assertTrue(self.page.plot_open())
+        self.assertTrue(self.page.plot_has_legend(self.group_name + ' ' + self.cloud_name + ' VMs_in_error'))
+        self.page.click_close_plot()
 
-    @unittest.skip("TODO: implement")
     def test_web_status_plot_open_slots(self):
-        pass
+        self.page.click_slot_data_box(self.group_name, self.cloud_name, 'Slots')
+        self.assertTrue(self.page.plot_open())
+        self.assertTrue(self.page.plot_has_legend(self.group_name + ' ' + self.cloud_name + ' slot_count'))
+        self.page.click_close_plot()
 
-    @unittest.skip("TODO: implement")
     def test_web_status_plot_open_slot_cores_busy(self):
-        pass
+        self.page.click_slot_data_box(self.group_name, self.cloud_name, 'Busy')
+        self.assertTrue(self.page.plot_open())
+        self.assertTrue(self.page.plot_has_legend(self.group_name + ' ' + self.cloud_name + ' slot_core_count'))
+        self.page.click_close_plot()
 
-    @unittest.skip("TODO: implement")
     def test_web_status_plot_open_slot_cores_idle(self):
-        pass
+        self.page.click_slot_data_box(self.group_name, self.cloud_name, 'Idle')
+        self.assertTrue(self.page.plot_open())
+        self.assertTrue(self.page.plot_has_legend(self.group_name + ' ' + self.cloud_name + ' slot_idle_core_count'))
+        self.page.click_close_plot()
 
-    @unittest.skip("TODO: implement")
     def test_web_status_plot_open_native_cores_used(self):
-        pass
+        self.page.click_native_cores_data_box(self.group_name, self.cloud_name, 'Used')
+        self.assertTrue(self.page.plot_open())
+        self.assertTrue(self.page.plot_has_legend(self.group_name + ' ' + self.cloud_name + ' cores_native'))
+        self.page.click_close_plot()
 
-    @unittest.skip("TODO: implement")
     def test_web_status_plot_open_native_cores_limit(self):
-        pass
+        self.page.click_native_cores_data_box(self.group_name, self.cloud_name, 'Limit')
+        self.assertTrue(self.page.plot_open())
+        self.assertTrue(self.page.plot_has_legend(self.group_name + ' ' + self.cloud_name + ' cores_limit'))
+        self.page.click_close_plot()
 
-    @unittest.skip("TODO: implement")
     def test_web_status_plot_open_ram(self):
-        pass
+        self.page.click_ram_data_box(self.group_name, self.cloud_name)
+        self.assertTrue(self.page.plot_open())
+        self.assertTrue(self.page.plot_has_legend(self.group_name + ' ' + self.cloud_name + ' ram_native'))
+        self.page.click_close_plot()
 
     @classmethod
     def tearDownClass(cls):
