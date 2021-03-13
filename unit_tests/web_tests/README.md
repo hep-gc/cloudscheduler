@@ -29,13 +29,7 @@ In order to set up the tests on a new server, the `unit-test` server in `.csv2/u
 
 New test modules should be named starting with `test_web_` (the modules starting with `web_test_` are helper modules). The test files should be named `test_web_<page>.py`, with the class being named `TestWeb<Page>`. Individual tests should be named `test_web_<page>_<action>_<details>`, where `<action>` is the name of the action using the `cloudscheduler` command. If suitably complex, `<action>` should ideally be formatted as `<object>_<action_on_object>_<details>`. Note that individual tests having names that start with `test` is currently the only breaking naming requirement.
 
-All test files must be put in the `web_tests` directory, and each test class must have the following added to `create_test_suite.py`:
-
-```python
-    from .<filename> import <ClassName>
-
-    suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(<ClassName>))
-```
+All test files must be put in the `web_tests` directory, and each test class must be imported into `create_test_suite.py` and have its name added to the list of tests. Note that the detailed classes (see below) should be the only ones put in here - the common classes (see below) do not have the proper setup to be run on their own and should not be included.
 
 New tests should additionally follow all rules for Unittest test classes, as they are run using the Unittest framework.
 
@@ -43,9 +37,11 @@ New test classes should include the `web_test_setup_cleanup` module and call the
 
 New tests should include the `web_test_setup_cleanup`, `web_test_assertions_v2`, `web_test_page_objects`, and, if necessary, `web_test_helpers` modules. The other `web_test_*` modules are used in these modules, and should only be accessed via these modules. The `web_test_assertions` module is not and should not be used in any module, and should eventually be deleted. `web_test_helpers` is also included in `web_test_setup_cleanup`, but should not be used via that module.
 
-New tests that create objects should make sure to update the maximum item numbers in the calls to `delete_objects_by_type()` in `web_test_setup_cleanup.cleanup_objects()`
+New tests that create objects should make sure to update the maximum item numbers in the calls to `delete_objects_by_type()` in `web_test_setup_cleanup.cleanup_objects()`.
 
-Each test class uses either the regular user (`{user}-wiu1`) or the super user (`{user}-wiu2`) profile. There is currently no setup to use both. Established practice is to put both the `TestWeb<Page>RegularUser` and `TestWeb<Page>SuperUser` classes in the same file, `test_web_<page>.py`.
+Tests should be created in a common class that inherits `unittest.TestCase`, called `TestWeb<Page>Common`. Each different setup for these tests (ie different users, different browsers, etc) should have its own class, called `TestWeb<Page><Details>`. This class should inherit `TestWeb<Page>Common` and should override the `setUpClass` method (usually with a call to `super()` as well) to do the proper setup. All details not related to the setup should be put in the common class. All test classes for one page should be put in the same file, `test_web_<page>.py`. 
+
+In rare cases, a certain setup may require a few tests to be different. These individual tests and no others should be overriden in the detailed class. However, all tests that can be put in the common class should be put in the common class, where they only need be edited once.
 
 ## Writing Tests
 
@@ -85,7 +81,7 @@ Note that the use of Selenium's built-in `.submit()` method has been phased out.
 
 The web tests do run with the `run_tests` script in the `unit_tests` folder. However, because failure and error numbers are not surfaced by `unittest`, the script does not add the numbers for the web tests to its error tallies.
 
-Web tests can be run using `./run_tests web`, or using `python3 -m unittest -s web_tests`, both from the `unit_tests` folder. For compatibility with the other unit tests, the first approach is recommended, as other unit tests can then be run simultaneously. One can also run a particular file or class directly using `python3 <filename>.py` or `python3 -m unittest <filename>.<ClassName>`, respectively. Individual tests can be run with `python3 -m unittest <filename>.<ClassName>.<test_name>`. All tests should be run from the `unit_tests` folder to allow module imports to work properly. Note that individual test files, classes, and methods cannot currently be run with the `run_tests` script.
+Web tests can be run using `./run_tests web` from the `unit_tests` folder. One can also run a particular class directly using `python3 -m unittest <filename>.<ClassName>`. While unittest does support running tests by file, the setup of the test fixtures does not allow that and will run duplicate tests, which will fail, and, thus, the `python3 -m unittest <filename>` syntax is not to be used. Each detailed class should be run individually, and common classes should never be run (see Adding Tests, above). Individual tests can be run with `python3 -m unittest <filename>.<ClassName>.<test_name>`. All tests should be run from the `unit_tests` folder to allow module imports to work properly. Note that individual test files, classes, and methods cannot currently be run with the `run_tests` script.
 
 If tests are being set up with clouds, the setup script may display an error similar to: 
 
