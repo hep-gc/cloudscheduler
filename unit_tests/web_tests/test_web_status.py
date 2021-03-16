@@ -173,10 +173,52 @@ class TestWebStatusCommon(unittest.TestCase):
         self.assertTrue(self.page.plot_has_legend(self.group_name + ' ' + self.cloud_name + ' ram_native'))
         self.page.click_close_plot()
 
-    def test_web_status_plot_open_time_last_hour(self):
+    def test_web_status_plot_open_time_hours_one(self):
         self.page.click_vm_data_box(self.group_name, self.cloud_name, 'VMs')
-        self.assertTrue(self.page.plot_open())
+        self.page.select_plot_range('Last 1 hour')
         self.assertTrue(self.page.first_time_on_plot_before_now(1, 'hours', 10))
+        self.page.click_close_plot()
+
+    def test_web_status_plot_open_time_minutes_five(self):
+        self.page.click_vm_data_box(self.group_name, self.cloud_name, 'VMs')
+        self.page.select_plot_range('Last 5 minutes')
+        self.assertTrue(self.page.first_time_on_plot_before_now(5, 'minutes', 0.5))
+        self.page.click_close_plot()
+
+    def test_web_status_plot_open_time_minutes_fifteen(self):
+        self.page.click_vm_data_box(self.group_name, self.cloud_name, 'VMs')
+        self.page.select_plot_range('Last 15 minutes')
+        self.assertTrue(self.page.first_time_on_plot_before_now(15, 'minutes', 2))
+        self.page.click_close_plot()
+
+    def test_web_status_plot_open_time_minutes_thirty(self):
+        self.page.click_vm_data_box(self.group_name, self.cloud_name, 'VMs')
+        self.page.select_plot_range('Last 30 minutes')
+        self.assertTrue(self.page.first_time_on_plot_before_now(30, 'minutes', 5))
+        self.page.click_close_plot()
+
+    def test_web_status_plot_open_time_hours_three(self):
+        self.page.click_vm_data_box(self.group_name, self.cloud_name, 'VMs')
+        self.page.select_plot_range('Last 3 hours')
+        self.assertTrue(self.page.first_time_on_plot_before_now(3, 'hours', 30))
+        self.page.click_close_plot()
+
+    def test_web_status_plot_open_time_hours_six(self):
+        self.page.click_vm_data_box(self.group_name, self.cloud_name, 'VMs')
+        self.page.select_plot_range('Last 6 hours')
+        self.assertTrue(self.page.first_time_on_plot_before_now(6, 'hours', 60))
+        self.page.click_close_plot()
+
+    def test_web_status_plot_open_time_hours_twelve(self):
+        self.page.click_vm_data_box(self.group_name, self.cloud_name, 'VMs')
+        self.page.select_plot_range('Last 12 hours')
+        self.assertTrue(self.page.first_time_on_plot_before_now(12, 'hours', 120))
+        self.page.click_close_plot()
+
+    def test_web_status_plot_open_time_hours_twenty_four(self):
+        self.page.click_vm_data_box(self.group_name, self.cloud_name, 'VMs')
+        self.page.select_plot_range('Last 24 hours')
+        self.assertTrue(self.page.first_time_on_plot_before_now(24, 'hours', 180))
         self.page.click_close_plot()
 
     @classmethod

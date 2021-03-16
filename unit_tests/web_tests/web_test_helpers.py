@@ -49,20 +49,27 @@ def parse_datetime(datetime_string):
 
     start_time = None
     try:
-        start_time = datetime.datetime.strptime(datetime_string, '%H:%M%b %d, %Y')
+        start_time = datetime.datetime.strptime(datetime_string, '%H:%M:%S%b %d, %Y')
+        print("Try 1")
     except ValueError:
         try:
-            start_time = datetime.datetime.strptime(datetime_string, '%b %d, %Y')
+            start_time = datetime.datetime.strptime(datetime_string, '%H:%M%b %d, %Y')
+            print("Try 2")
         except ValueError:
-            start_time = datetime.datetime.strptime(datetime_string, '%b %Y')
+            try:
+                start_time = datetime.datetime.strptime(datetime_string, '%b %d, %Y')
+                print("Try 3")
+            except ValueError:
+                start_time = datetime.datetime.strptime(datetime_string, '%b %Y')
+                print("Try 4")
 
     return start_time
 
 def round_datetime(dt, round, forward):
     import datetime
 
-    subtract = datetime.timedelta(minutes=dt.minute%round, seconds=dt.second, microseconds=dt.microsecond)
+    subtract = datetime.timedelta(seconds=(dt.hour*3600 + dt.minute*60 + dt.second)%round, microseconds=dt.microsecond)
     dt = dt - subtract
     if forward:
-        dt += datetime.timedelta(minutes=round)
+        dt += datetime.timedelta(seconds=round)
     return dt

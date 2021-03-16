@@ -111,7 +111,10 @@ class StatusPage(Page):
         wti.click_by_xpath(self.driver, xpath)
 
     def select_plot_range(self, range):
-        wti.select_option_by_id(self.driver, 'range-select', range)
+        xpath = wtxs.div_a_by_text('myDropdown', range)
+        print(xpath)
+        wti.click_by_id(self.driver, 'range-select')
+        wti.click_by_xpath(self.driver, xpath)
 
     def click_plot_legend_item(self, item):
         xpath = wtxs.legend_item(item)
@@ -145,6 +148,7 @@ class StatusPage(Page):
         return element.is_displayed()
 
     def first_date_on_plot_before_now(self, time, units):
+        sleep(5)
         xpath = wtxs.axis_data_point('xtick')
         WebDriverWait(self.driver, 20).until(
             EC.presence_of_element_located((By.XPATH, xpath)))
@@ -154,13 +158,17 @@ class StatusPage(Page):
         return chart_date.date() == test_date.date()
 
     def first_time_on_plot_before_now(self, time, units, margin):
+        sleep(10)
         xpath = wtxs.axis_data_point('xtick')
         WebDriverWait(self.driver, 20).until(
             EC.presence_of_element_located((By.XPATH, xpath)))
         element = self.driver.find_element_by_xpath(xpath)
         chart_time = helpers.parse_datetime(element.text)
         test_time = helpers.time_before(time, units)
-        test_time = helpers.round_datetime(test_time, margin, True)
+        print(test_time)
+        test_time = helpers.round_datetime(test_time, margin*60, True)
+        print(chart_time)
+        print(test_time)
         return chart_time == test_time
 
     def last_date_on_plot_before_now(self, time, units):
@@ -180,7 +188,7 @@ class StatusPage(Page):
         element = elements[-1]
         chart_time = helpers.parse_datetime(element.text)
         test_time = helpers.time_before(0, 'minutes')
-        test_time = helpers.round_datetime(test_time, margin, False)
+        test_time = helpers.round_datetime(test_time, margin*60, False)
         return chart_time == test_time
 
     def plot_has_legend(self, legend):
