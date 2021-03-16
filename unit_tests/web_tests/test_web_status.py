@@ -173,6 +173,12 @@ class TestWebStatusCommon(unittest.TestCase):
         self.assertTrue(self.page.plot_has_legend(self.group_name + ' ' + self.cloud_name + ' ram_native'))
         self.page.click_close_plot()
 
+    def test_web_status_plot_open_time_last_hour(self):
+        self.page.click_vm_data_box(self.group_name, self.cloud_name, 'VMs')
+        self.assertTrue(self.page.plot_open())
+        self.assertTrue(self.page.first_time_on_plot_before_now(1, 'hours', 10))
+        self.page.click_close_plot()
+
     @classmethod
     def tearDownClass(cls):
         wtsc.cleanup(cls)
@@ -184,6 +190,12 @@ class TestWebStatusSuperUser(TestWebStatusCommon):
         super(TestWebStatusSuperUser, cls).setUpClass()
         print("\nStatus Tests (Super User):")
    
+class TestWebStatusRegularUser(TestWebStatusCommon):
+    @classmethod
+    def setUpClass(cls):
+        wtsc.setup(cls, 1, ['servers', 'status'])
+        super(TestWebStatusRegularUser, cls).setUpClass()
+        print("\nStatus Tests (Regular User):")
 
 if __name__ == "__main__":
     unittest.main()

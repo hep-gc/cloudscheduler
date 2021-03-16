@@ -7,6 +7,7 @@ from time import sleep
 import web_tests.web_test_interactions as wti
 import web_tests.web_test_javascript_interactions as wtjsi
 import web_tests.web_test_xpath_selectors as wtxs
+import web_tests.web_test_helpers as helpers
 
 # This module contains the page objects (classes to represent pages) for the
 # unittest web tests.
@@ -143,43 +144,44 @@ class StatusPage(Page):
         element = self.driver.find_element_by_id('plot')
         return element.is_displayed()
 
-    def first_date_on_plot_is(self, year, month, day):
+    def first_date_on_plot_before_now(self, time, units):
         xpath = wtxs.axis_data_point('xtick')
-        elements = self.driver.find_elements_by_xpath(xpath)
-        left_date = ''
-        for element in elements:
-            text = element.get_attribute('data-unformatted')
-            if '<br>' in text:
-                left_date = text
-                break
-        if year in left_date and month in left_date and day in left_date:
-            return True
-        return False
+        WebDriverWait(self.driver, 20).until(
+            EC.presence_of_element_located((By.XPATH, xpath)))
+        element = self.driver.find_element_by_xpath(xpath) 
+        chart_date = helpers.parse_datetime(element.text)
+        test_date = helpers.time_before(time, units)
+        return chart_date.date() == test_date.date()
 
-    def first_time_on_plot_is(self, time):
+    def first_time_on_plot_before_now(self, time, units, margin):
         xpath = wtxs.axis_data_point('xtick')
+        WebDriverWait(self.driver, 20).until(
+            EC.presence_of_element_located((By.XPATH, xpath)))
         element = self.driver.find_element_by_xpath(xpath)
-        left_time = element.text.split('<br>')[0]
-        return time == left_time
+        chart_time = helpers.parse_datetime(element.text)
+        test_time = helpers.time_before(time, units)
+        test_time = helpers.round_datetime(test_time, margin, True)
+        return chart_time == test_time
 
-    def last_date_on_plot_is(self, year, month, day):
+    def last_date_on_plot_before_now(self, time, units):
         xpath = wtxs.axis_data_point('xtick')
+        WebDriverWait(self.driver, 20).until(
+            EC.presence_of_element_located((By.XPATH, xpath)))
         elements = self.driver.find_elements_by_xpath(xpath)
-        right_date = ''
-        for element in elements:
-            text = element.get_attribute('data-unformatted')
-            if '<br>' in text:
-                right_date = text
-        if year in right_date and month in right_date and day in right_date:
-            return True
-        return False
+        chart_date = helpers.parse_datetime(element.text)
+        test_date = helpers.time_before(time, units)
+        return chart_date.date() == test_date.date()
 
-    def last_time_on_plot_is(self, time):
+    def last_time_on_plot_before_now(self, time, units):
         xpath = wtxs.axis_data_point('xtick')
+        WebDriverWait(self.driver, 20).until(
+            EC.presence_of_element_located((By.XPATH, xpath)))
         elements = self.driver.find_elements_by_xpath(xpath)
         element = elements[-1]
-        right_time = element.text.split('<br>')[0]
-        return time == right_time
+        chart_time = helpers.parse_datetime(element.text)
+        test_time = helpers.time_before(0, 'minutes')
+        test_time = helpers.round_datetime(test_time, margin, False)
+        return chart_time == test_time
 
     def plot_has_legend(self, legend):
         xpath = wtxs.legend_item(legend)

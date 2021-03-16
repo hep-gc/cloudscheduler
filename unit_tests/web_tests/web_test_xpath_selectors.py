@@ -83,7 +83,7 @@ def legend_item(name):
     return "//*[local-name()='svg']//*[local-name()='text' and contains(text(), '" + name + "')]/../*[local-name()='rect']"
 
 def axis_data_point(axis):
-    return "//g[@class='" + axis + "']/text"
+    return "//*[local-name()='g' and @class='" + axis + "']/*[local-name()='text']"
 
 def data_box(data_path):
     return "//td[@data-path='" + data_path + "']"
