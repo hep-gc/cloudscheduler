@@ -77,6 +77,8 @@ class StatusPage(Page):
             path = group + ' ' +  cloud + ' VMs' + state_tag
         xpath = wtxs.data_box(path)
         wti.click_by_xpath(self.driver, xpath)
+        WebDriverWait(self.driver, 20).until(
+            EC.presence_of_element_located((By.CLASS_NAME, 'plot-container')))
 
     def click_slot_data_box(self, group, cloud, state):
         state_tag = '_' + state.lower()
@@ -93,6 +95,8 @@ class StatusPage(Page):
             path = group + ' ' + cloud + ' slot' + state_tag
         xpath = wtxs.data_box(path)
         wti.click_by_xpath(self.driver, xpath)
+        WebDriverWait(self.driver, 20).until(
+            EC.presence_of_element_located((By.CLASS_NAME, 'plot-container')))
 
     def click_native_cores_data_box(self, group, cloud, state):
         state_tag = '_' + state.lower()
@@ -105,6 +109,8 @@ class StatusPage(Page):
             path = group + ' ' + cloud + ' cores' + state_tag
         xpath = wtxs.data_box(path)
         wti.click_by_xpath(self.driver, xpath)
+        WebDriverWait(self.driver, 20).until(
+            EC.presence_of_element_located((By.CLASS_NAME, 'plot-container')))
 
     def click_ram_data_box(self, group, cloud):
         xpath = wtxs.data_box(group + ' ' + cloud + ' ' + 'ram_native')
@@ -112,7 +118,6 @@ class StatusPage(Page):
 
     def select_plot_range(self, range):
         xpath = wtxs.div_a_by_text('myDropdown', range)
-        print(xpath)
         wti.click_by_id(self.driver, 'range-select')
         wti.click_by_xpath(self.driver, xpath)
 
@@ -158,17 +163,14 @@ class StatusPage(Page):
         return chart_date.date() == test_date.date()
 
     def first_time_on_plot_before_now(self, time, units, margin):
-        sleep(10)
+        sleep(5)
         xpath = wtxs.axis_data_point('xtick')
         WebDriverWait(self.driver, 20).until(
             EC.presence_of_element_located((By.XPATH, xpath)))
         element = self.driver.find_element_by_xpath(xpath)
         chart_time = helpers.parse_datetime(element.text)
         test_time = helpers.time_before(time, units)
-        print(test_time)
         test_time = helpers.round_datetime(test_time, margin*60, True)
-        print(chart_time)
-        print(test_time)
         return chart_time == test_time
 
     def last_date_on_plot_before_now(self, time, units):

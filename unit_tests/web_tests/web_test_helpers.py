@@ -68,8 +68,9 @@ def parse_datetime(datetime_string):
 def round_datetime(dt, round, forward):
     import datetime
 
+    round = int(round)
     subtract = datetime.timedelta(seconds=(dt.hour*3600 + dt.minute*60 + dt.second)%round, microseconds=dt.microsecond)
     dt = dt - subtract
-    if forward:
+    if forward and (round >= 60 or subtract.seconds > 6):
         dt += datetime.timedelta(seconds=round)
     return dt
