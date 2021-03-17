@@ -221,6 +221,54 @@ class TestWebStatusCommon(unittest.TestCase):
         self.assertTrue(self.page.first_time_on_plot_before_now(24, 'hours', 180))
         self.page.click_close_plot()
 
+    def test_web_status_plot_open_time_days_seven(self):
+        self.page.click_vm_data_box(self.group_name, self.cloud_name, 'VMs')
+        self.page.select_plot_range('Last 7 days')
+        self.assertTrue(self.page.first_date_on_plot_before_now(7, 'days', 1))
+        self.page.click_close_plot()
+
+    def test_web_status_plot_open_time_days_thirty(self):
+        self.page.click_vm_data_box(self.group_name, self.cloud_name, 'VMs')
+        self.page.select_plot_range('Last 30 days')
+        self.assertTrue(self.page.first_date_on_plot_before_now(30, 'days', 7))
+        self.page.click_close_plot()
+
+    def test_web_status_plot_open_time_days_sixty(self):
+        self.page.click_vm_data_box(self.group_name, self.cloud_name, 'VMs')
+        self.page.select_plot_range('Last 60 days')
+        self.assertTrue(self.page.first_date_on_plot_before_now(60, 'days', 7))
+        self.page.click_close_plot()
+
+    def test_web_status_plot_open_time_days_ninety(self):
+        self.page.click_vm_data_box(self.group_name, self.cloud_name, 'VMs')
+        self.page.select_plot_range('Last 90 days')
+        self.assertTrue(self.page.first_date_on_plot_before_now(90, 'days', 14))
+        self.page.click_close_plot()
+
+    def test_web_status_plot_open_time_months_six(self):
+        self.page.click_vm_data_box(self.group_name, self.cloud_name, 'VMs')
+        self.page.select_plot_range('Last 6 months')
+        self.assertTrue(self.page.first_date_on_plot_before_now(6, 'months', 31))
+        self.page.click_close_plot()
+
+    def test_web_status_plot_open_time_years_one(self):
+        self.page.click_vm_data_box(self.group_name, self.cloud_name, 'VMs')
+        self.page.select_plot_range('Last 1 year')
+        self.assertTrue(self.page.first_date_on_plot_before_now(1, 'years', 62))
+        self.page.click_close_plot()
+
+    def test_web_status_plot_open_time_years_two(self):
+        self.page.click_vm_data_box(self.group_name, self.cloud_name, 'VMs')
+        self.page.select_plot_range('Last 2 years')
+        self.assertTrue(self.page.first_date_on_plot_before_now(2, 'years', 92))
+        self.page.click_close_plot()
+
+    def test_web_status_plot_open_time_years_five(self):
+        self.page.click_vm_data_box(self.group_name, self.cloud_name, 'VMs')
+        self.page.select_plot_range('Last 5 years')
+        self.assertTrue(self.page.first_date_on_plot_before_now(5, 'years', 168))
+        self.page.click_close_plot()
+
     @classmethod
     def tearDownClass(cls):
         wtsc.cleanup(cls)

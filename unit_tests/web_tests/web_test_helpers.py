@@ -25,6 +25,16 @@ def misc_file_full_path(filename):
     path = os.path.abspath('web_tests/misc_files/' + filename)
     return path
 
+def cumulative_days(month, year):
+    feb = 28
+    if year%4 == 0 and year%100 !=0:
+        feb = 29
+    days = [31, feb, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
+    sum = 0
+    for number in days[:month]:
+        sum += number
+    return sum
+
 def time_before(difference, units):
     import datetime
 
@@ -50,18 +60,22 @@ def parse_datetime(datetime_string):
     start_time = None
     try:
         start_time = datetime.datetime.strptime(datetime_string, '%H:%M:%S%b %d, %Y')
-        print("Try 1")
+        print("H:M:Sb d, Y")
     except ValueError:
         try:
             start_time = datetime.datetime.strptime(datetime_string, '%H:%M%b %d, %Y')
-            print("Try 2")
+            print("H:Mb d, Y")
         except ValueError:
             try:
                 start_time = datetime.datetime.strptime(datetime_string, '%b %d, %Y')
-                print("Try 3")
+                print("b d, Y")
             except ValueError:
-                start_time = datetime.datetime.strptime(datetime_string, '%b %Y')
-                print("Try 4")
+                try:
+                    start_time = datetime.datetime.strptime(datetime_string, '%b %d%Y')
+                    print("b dY")
+                except ValueError:
+                    start_time = datetime.datetime.strptime(datetime_string, '%b %Y')
+                    print("b Y")
 
     return start_time
 
@@ -73,4 +87,18 @@ def round_datetime(dt, round, forward):
     dt = dt - subtract
     if forward and (round >= 60 or subtract.seconds > 6):
         dt += datetime.timedelta(seconds=round)
+    return dt
+
+def round_date(dt, round, forward):
+    import datetime
+
+    subtract = datetime.timedelta(days=(dt.year*365 + cumulative_days(dt.month, dt.year) + dt.day) % round)
+    dt = dt - subtract
+    if forward:
+        dt += datetime.timedelta(days=round)
+    if round >= 7:
+        if dt.weekday() < 3:
+            dt -= datetime.timedelta(dt.weekday())
+        else:
+            dt += datetime.timedelta(7 - dt.weekday())
     return dt

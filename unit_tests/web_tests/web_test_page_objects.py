@@ -152,7 +152,7 @@ class StatusPage(Page):
         element = self.driver.find_element_by_id('plot')
         return element.is_displayed()
 
-    def first_date_on_plot_before_now(self, time, units):
+    def first_date_on_plot_before_now(self, time, units, margin):
         sleep(5)
         xpath = wtxs.axis_data_point('xtick')
         WebDriverWait(self.driver, 20).until(
@@ -160,6 +160,12 @@ class StatusPage(Page):
         element = self.driver.find_element_by_xpath(xpath) 
         chart_date = helpers.parse_datetime(element.text)
         test_date = helpers.time_before(time, units)
+        print(test_date)
+        test_date = helpers.round_date(test_date, margin, True)
+        if margin > 30:
+            test_date = test_date.replace(day=1)
+        print(chart_date)
+        print(test_date)
         return chart_date.date() == test_date.date()
 
     def first_time_on_plot_before_now(self, time, units, margin):
@@ -173,13 +179,14 @@ class StatusPage(Page):
         test_time = helpers.round_datetime(test_time, margin*60, True)
         return chart_time == test_time
 
-    def last_date_on_plot_before_now(self, time, units):
+    def last_date_on_plot_before_now(self, time, units, margin):
         xpath = wtxs.axis_data_point('xtick')
         WebDriverWait(self.driver, 20).until(
             EC.presence_of_element_located((By.XPATH, xpath)))
         elements = self.driver.find_elements_by_xpath(xpath)
         chart_date = helpers.parse_datetime(element.text)
         test_date = helpers.time_before(time, units)
+        test_date = helpers.round_date(test_date, margin, False)
         return chart_date.date() == test_date.date()
 
     def last_time_on_plot_before_now(self, time, units):
