@@ -160,12 +160,9 @@ class StatusPage(Page):
         element = self.driver.find_element_by_xpath(xpath) 
         chart_date = helpers.parse_datetime(element.text)
         test_date = helpers.time_before(time, units)
-        print(test_date)
         test_date = helpers.round_date(test_date, margin, True)
         if margin > 30:
             test_date = test_date.replace(day=1)
-        print(chart_date)
-        print(test_date)
         return chart_date.date() == test_date.date()
 
     def first_time_on_plot_before_now(self, time, units, margin):

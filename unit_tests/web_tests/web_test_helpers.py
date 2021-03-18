@@ -60,22 +60,17 @@ def parse_datetime(datetime_string):
     start_time = None
     try:
         start_time = datetime.datetime.strptime(datetime_string, '%H:%M:%S%b %d, %Y')
-        print("H:M:Sb d, Y")
     except ValueError:
         try:
             start_time = datetime.datetime.strptime(datetime_string, '%H:%M%b %d, %Y')
-            print("H:Mb d, Y")
         except ValueError:
             try:
                 start_time = datetime.datetime.strptime(datetime_string, '%b %d, %Y')
-                print("b d, Y")
             except ValueError:
                 try:
                     start_time = datetime.datetime.strptime(datetime_string, '%b %d%Y')
-                    print("b dY")
                 except ValueError:
                     start_time = datetime.datetime.strptime(datetime_string, '%b %Y')
-                    print("b Y")
 
     return start_time
 
@@ -96,11 +91,16 @@ def round_date(dt, round, forward):
     dt = dt - subtract
     if forward:
         dt += datetime.timedelta(days=round)
-        print(dt)
     if round >= 7:
-        print(dt.weekday())
         if dt.weekday() < 2:
             dt -= datetime.timedelta(days=dt.isoweekday())
         else:
             dt += datetime.timedelta(days=(7 - dt.isoweekday()))
+    if round > 30:
+        divide = round//30
+        if (dt.month-1)%divide != 0:
+            if (dt.month-1)%divide < divide/2:
+                dt -= datetime.timedelta(days=15*divide)
+            else:
+                dt += datetime.timedelta(days=15*divide)
     return dt
