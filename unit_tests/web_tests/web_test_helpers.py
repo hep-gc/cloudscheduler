@@ -96,9 +96,11 @@ def round_date(dt, round, forward):
     dt = dt - subtract
     if forward:
         dt += datetime.timedelta(days=round)
+        print(dt)
     if round >= 7:
-        if dt.weekday() < 3:
-            dt -= datetime.timedelta(dt.weekday())
+        print(dt.weekday())
+        if dt.weekday() < 2:
+            dt -= datetime.timedelta(days=dt.isoweekday())
         else:
-            dt += datetime.timedelta(7 - dt.weekday())
+            dt += datetime.timedelta(days=(7 - dt.isoweekday()))
     return dt
