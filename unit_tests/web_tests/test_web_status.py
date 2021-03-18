@@ -269,6 +269,48 @@ class TestWebStatusCommon(unittest.TestCase):
         self.assertTrue(self.page.first_date_on_plot_before_now(5, 'years', 168))
         self.page.click_close_plot()
 
+    def test_web_status_plot_open_time_previous_day(self):
+        self.page.click_vm_data_box(self.group_name, self.cloud_name, 'VMs')
+        self.page.select_plot_range('Yesterday')
+        self.assertTrue(self.page.first_time_on_plot_before_now(2, 'days', 180))
+        self.assertTrue(self.page.last_time_on_plot_before_now(1, 'days', 180))
+        self.page.click_close_plot()
+
+    def test_web_status_plot_open_time_day_before_yesterday(self):
+        self.page.click_vm_data_box(self.group_name, self.cloud_name, 'VMs')
+        self.page.select_plot_range('Day before yesterday')
+        self.assertTrue(self.page.first_time_on_plot_before_now(3, 'days', 180))
+        self.assertTrue(self.page.last_time_on_plot_before_now(2, 'days', 180))
+        self.page.click_close_plot()
+
+    def test_web_status_plot_open_time_day_last_week(self):
+        self.page.click_vm_data_box(self.group_name, self.cloud_name, 'VMs')
+        self.page.select_plot_range('This day last week')
+        self.assertTrue(self.page.first_time_on_plot_before_now(8, 'days', 180))
+        self.assertTrue(self.page.last_time_on_plot_before_now(7, 'days', 180))
+        self.page.click_close_plot()
+
+    def test_web_status_plot_open_time_previous_week(self):
+        self.page.click_vm_data_box(self.group_name, self.cloud_name, 'VMs')
+        self.page.select_plot_range('Previous week')
+        self.assertTrue(self.page.first_date_on_plot_before_now(14, 'days', 1))
+        self.assertTrue(self.page.last_date_on_plot_before_now(7, 'days', 1))
+        self.page.click_close_plot()
+
+    def test_web_status_plot_open_time_previous_month(self):
+        self.page.click_vm_data_box(self.group_name, self.cloud_name, 'VMs')
+        self.page.select_plot_range('Previous month')
+        self.assertTrue(self.page.first_date_on_plot_before_now(2, 'months', 7))
+        self.assertTrue(self.page.last_date_on_plot_before_now(1, 'months', 7))
+        self.page.click_close_plot()
+
+    def test_web_status_plot_open_time_previous_year(self):
+        self.page.click_vm_data_box(self.group_name, self.cloud_name, 'VMs')
+        self.page.select_plot_range('Previous year')
+        self.assertTrue(self.page.first_date_on_plot_before_now(2, 'years', 62))
+        self.assertTrue(self.page.last_date_on_plot_before_now(1, 'years', 62))
+        self.page.click_close_plot()
+
     @classmethod
     def tearDownClass(cls):
         wtsc.cleanup(cls)

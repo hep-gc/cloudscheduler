@@ -4,6 +4,7 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.common.keys import Keys
 from time import sleep
+import datetime
 import web_tests.web_test_interactions as wti
 import web_tests.web_test_javascript_interactions as wtjsi
 import web_tests.web_test_xpath_selectors as wtxs
@@ -153,27 +154,33 @@ class StatusPage(Page):
         return element.is_displayed()
 
     def first_date_on_plot_before_now(self, time, units, margin):
-        sleep(5)
+        sleep(10)
         xpath = wtxs.axis_data_point('xtick')
         WebDriverWait(self.driver, 20).until(
             EC.presence_of_element_located((By.XPATH, xpath)))
         element = self.driver.find_element_by_xpath(xpath) 
         chart_date = helpers.parse_datetime(element.text)
         test_date = helpers.time_before(time, units)
+        print(test_date)
         test_date = helpers.round_date(test_date, margin, True)
         if margin > 30:
             test_date = test_date.replace(day=1)
+        print(chart_date)
+        print(test_date)
         return chart_date.date() == test_date.date()
 
     def first_time_on_plot_before_now(self, time, units, margin):
-        sleep(5)
+        sleep(10)
         xpath = wtxs.axis_data_point('xtick')
         WebDriverWait(self.driver, 20).until(
             EC.presence_of_element_located((By.XPATH, xpath)))
         element = self.driver.find_element_by_xpath(xpath)
         chart_time = helpers.parse_datetime(element.text)
         test_time = helpers.time_before(time, units)
+        print(test_time)
         test_time = helpers.round_datetime(test_time, margin*60, True)
+        print(chart_time)
+        print(test_time)
         return chart_time == test_time
 
     def last_date_on_plot_before_now(self, time, units, margin):
@@ -181,20 +188,45 @@ class StatusPage(Page):
         WebDriverWait(self.driver, 20).until(
             EC.presence_of_element_located((By.XPATH, xpath)))
         elements = self.driver.find_elements_by_xpath(xpath)
+        element = elements[-1]
         chart_date = helpers.parse_datetime(element.text)
+        for element in reversed(elements):
+            date_element = helpers.parse_datetime(element.text)
+            if date_element.year != 1900:
+                 chart_date = chart_date.replace(year=date_element.year)
+                 break
         test_date = helpers.time_before(time, units)
         test_date = helpers.round_date(test_date, margin, False)
         return chart_date.date() == test_date.date()
 
-    def last_time_on_plot_before_now(self, time, units):
+    def last_time_on_plot_before_now(self, time, units, margin):
         xpath = wtxs.axis_data_point('xtick')
         WebDriverWait(self.driver, 20).until(
             EC.presence_of_element_located((By.XPATH, xpath)))
         elements = self.driver.find_elements_by_xpath(xpath)
-        element = elements[-1]
-        chart_time = helpers.parse_datetime(element.text)
-        test_time = helpers.time_before(0, 'minutes')
+        time_element = elements[-1]
+        chart_time_time = helpers.parse_datetime(time_element.text)
+        chart_time_date = None
+        for element in reversed(elements):
+            date_element = helpers.parse_datetime(element.text)
+            if date_element.year != 1900:
+                 if date_element.month != 1 or date_element.day != 1:
+                     chart_time_date = date_element
+                     for element_inner in reversed(elements):
+                         date_element_inner = helpers.parse_datetime(element_inner.text)
+                         if date_element_inner.year != 1900:
+                             year = date_element_inner.year
+                             chart_time_date = chart_time_date.replace(year=year)
+                             break
+                 else:
+                     chart_time_date = date_element
+                 break
+        chart_time = datetime.datetime.combine(chart_time_date.date(), chart_time_time.time())
+        test_time = helpers.time_before(time, units)
+        print(test_time)
         test_time = helpers.round_datetime(test_time, margin*60, False)
+        print(chart_time)
+        print(test_time)
         return chart_time == test_time
 
     def plot_has_legend(self, legend):

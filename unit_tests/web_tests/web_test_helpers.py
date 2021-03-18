@@ -70,7 +70,13 @@ def parse_datetime(datetime_string):
                 try:
                     start_time = datetime.datetime.strptime(datetime_string, '%b %d%Y')
                 except ValueError:
-                    start_time = datetime.datetime.strptime(datetime_string, '%b %Y')
+                    try:
+                        start_time = datetime.datetime.strptime(datetime_string, '%b %Y')
+                    except ValueError:
+                        try:
+                            start_time = datetime.datetime.strptime(datetime_string, '%H:%M')
+                        except ValueError:
+                            start_time = datetime.datetime.strptime(datetime_string, '%b %d')
 
     return start_time
 
@@ -80,7 +86,7 @@ def round_datetime(dt, round, forward):
     round = int(round)
     subtract = datetime.timedelta(seconds=(dt.hour*3600 + dt.minute*60 + dt.second)%round, microseconds=dt.microsecond)
     dt = dt - subtract
-    if forward and (round >= 60 or subtract.seconds > 6):
+    if round >= 60 or subtract.seconds > 6 and forward:
         dt += datetime.timedelta(seconds=round)
     return dt
 
@@ -99,8 +105,8 @@ def round_date(dt, round, forward):
     if round > 30:
         divide = round//30
         if (dt.month-1)%divide != 0:
-            if (dt.month-1)%divide < divide/2:
-                dt -= datetime.timedelta(days=15*divide)
-            else:
-                dt += datetime.timedelta(days=15*divide)
+            #if (dt.month-1)%divide < divide/2:
+            #    dt -= datetime.timedelta(days=15*divide)
+            #else:
+            dt += datetime.timedelta(days=15*divide)
     return dt
