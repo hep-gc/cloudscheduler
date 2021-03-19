@@ -47,9 +47,9 @@ def time_before(difference, units):
     if units == 'days':
         time_difference = datetime.timedelta(days=difference)
     if units == 'months':
-        time_difference = datetime.timedelta(days=int(difference*30.4))
+        time_difference = datetime.timedelta(days=int(difference*(365/12)))
     if units == 'years':
-        time_difference = datetime.timedelta(days=difference*365)
+        time_difference = datetime.timedelta(days=difference*365 + difference//4 - difference//100)
 
     before = now - time_difference
     return before
@@ -86,27 +86,47 @@ def round_datetime(dt, round, forward):
     round = int(round)
     subtract = datetime.timedelta(seconds=(dt.hour*3600 + dt.minute*60 + dt.second)%round, microseconds=dt.microsecond)
     dt = dt - subtract
-    if round >= 60 or subtract.seconds > 6 and forward:
+    if (round >= 60 or subtract.seconds > 6) and forward and not (subtract.seconds < 6 and subtract.seconds // 60 == 0):
+        print(forward)
         dt += datetime.timedelta(seconds=round)
+    return dt
+
+def round_date_old(dt, round, forward):
+    import datetime
+
+    subtract = datetime.timedelta(days=(dt.year*365 + dt.year//4 - dt.year//100 + cumulative_days(dt.month, dt.year) + dt.day) % round)
+    dt = dt - subtract
+    print(dt)
+    print(round)
+    if forward:
+        dt += datetime.timedelta(days=round)
+    if round >= 7:
+        #if dt.weekday() < 2:
+        if dt.weekday() != 6:
+            dt -= datetime.timedelta(days=dt.isoweekday())
+        #else:
+        #    dt += datetime.timedelta(days=(7 - dt.isoweekday()))
+    print(dt)
+    #if round > 30:
+    #    divide = round//30
+    #    print(divide)
+    #    if (dt.month-1)%divide != 0:
+    #        dt += datetime.timedelta(days=30*(divide-(dt.month-1)%divide))
     return dt
 
 def round_date(dt, round, forward):
     import datetime
 
-    subtract = datetime.timedelta(days=(dt.year*365 + cumulative_days(dt.month, dt.year) + dt.day) % round)
-    dt = dt - subtract
-    if forward:
-        dt += datetime.timedelta(days=round)
-    if round >= 7:
-        if dt.weekday() < 2:
-            dt -= datetime.timedelta(days=dt.isoweekday())
-        else:
-            dt += datetime.timedelta(days=(7 - dt.isoweekday()))
-    if round > 30:
-        divide = round//30
-        if (dt.month-1)%divide != 0:
-            #if (dt.month-1)%divide < divide/2:
-            #    dt -= datetime.timedelta(days=15*divide)
-            #else:
-            dt += datetime.timedelta(days=15*divide)
+    if round < 30:
+        dt = round_date_old(dt, round, forward)
+    else:
+        print(round//31)
+        if forward:
+            dt = dt.replace(month=dt.month+1)
+        while (dt.month-1)%(round//31) != 0:
+            if dt.month >= 12:
+                dt = dt.replace(month=1, year= dt.year+1)
+            else:
+                dt = dt.replace(month=dt.month+1)
+    print(dt)
     return dt

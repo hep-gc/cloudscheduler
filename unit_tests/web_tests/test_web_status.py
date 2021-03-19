@@ -260,13 +260,13 @@ class TestWebStatusCommon(unittest.TestCase):
     def test_web_status_plot_open_time_years_two(self):
         self.page.click_vm_data_box(self.group_name, self.cloud_name, 'VMs')
         self.page.select_plot_range('Last 2 years')
-        self.assertTrue(self.page.first_date_on_plot_before_now(2, 'years', 92))
+        self.assertTrue(self.page.first_date_on_plot_before_now(2, 'years', 93))
         self.page.click_close_plot()
 
     def test_web_status_plot_open_time_years_five(self):
         self.page.click_vm_data_box(self.group_name, self.cloud_name, 'VMs')
         self.page.select_plot_range('Last 5 years')
-        self.assertTrue(self.page.first_date_on_plot_before_now(5, 'years', 168))
+        self.assertTrue(self.page.first_date_on_plot_before_now(5, 'years', 186))
         self.page.click_close_plot()
 
     def test_web_status_plot_open_time_previous_day(self):
@@ -286,7 +286,7 @@ class TestWebStatusCommon(unittest.TestCase):
     def test_web_status_plot_open_time_day_last_week(self):
         self.page.click_vm_data_box(self.group_name, self.cloud_name, 'VMs')
         self.page.select_plot_range('This day last week')
-        self.assertTrue(self.page.first_time_on_plot_before_now(8, 'days', 180))
+        self.assertTrue(self.page.first_time_on_plot_before_now(193, 'hours', 180))
         self.assertTrue(self.page.last_time_on_plot_before_now(7, 'days', 180))
         self.page.click_close_plot()
 

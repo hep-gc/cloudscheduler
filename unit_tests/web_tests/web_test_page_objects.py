@@ -184,6 +184,7 @@ class StatusPage(Page):
         return chart_time == test_time
 
     def last_date_on_plot_before_now(self, time, units, margin):
+        sleep(10)
         xpath = wtxs.axis_data_point('xtick')
         WebDriverWait(self.driver, 20).until(
             EC.presence_of_element_located((By.XPATH, xpath)))
@@ -196,7 +197,12 @@ class StatusPage(Page):
                  chart_date = chart_date.replace(year=date_element.year)
                  break
         test_date = helpers.time_before(time, units)
+        print(test_date)
         test_date = helpers.round_date(test_date, margin, False)
+        print(chart_date)
+        if margin > 30:
+            test_date = test_date.replace(day=1)
+        print(test_date)
         return chart_date.date() == test_date.date()
 
     def last_time_on_plot_before_now(self, time, units, margin):
