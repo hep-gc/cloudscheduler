@@ -179,6 +179,42 @@ class TestWebStatusCommon(unittest.TestCase):
         self.assertTrue(self.page.plot_has_legend(self.group_name + ' ' + self.cloud_name + ' ram_native'))
         self.page.click_close_plot()
 
+    def test_web_status_plot_open_foreign_vms(self):
+        self.page.click_foreign_data_box(self.group_name, self.cloud_name, 'VMs')
+        self.assertTrue(self.page.plot_open())
+        self.assertTrue(self.page.plot_has_legend(self.group_name + ' ' + self.cloud_name + ' Foreign_VMs'))
+        self.page.click_close_plot()
+
+    def test_web_status_plot_open_foreign_cores(self):
+        self.page.click_foreign_data_box(self.group_name, self.cloud_name, 'Cores')
+        self.assertTrue(self.page.plot_open())
+        self.assertTrue(self.page.plot_has_legend(self.group_name + ' ' + self.cloud_name + ' cores_foreign'))
+        self.page.click_close_plot()
+
+    def test_web_status_plot_open_foreign_ram(self):
+        self.page.click_foreign_data_box(self.group_name, self.cloud_name, 'RAM')
+        self.assertTrue(self.page.plot_open())
+        self.assertTrue(self.page.plot_has_legend(self.group_name + ' ' + self.cloud_name + ' ram_foreign'))
+        self.page.click_close_plot()
+
+    def test_web_status_plot_open_global_vms(self):
+        self.page.click_global_data_box(self.group_name, self.cloud_name, 'VMs')
+        self.assertTrue(self.page.plot_open())
+        self.assertTrue(self.page.plot_has_legend(self.group_name + ' ' + self.cloud_name + ' VMs_native_foreign'))
+        self.page.click_close_plot()
+
+    def test_web_status_plot_open_global_cores(self):
+        self.page.click_global_data_box(self.group_name, self.cloud_name, 'Cores')
+        self.assertTrue(self.page.plot_open())
+        self.assertTrue(self.page.plot_has_legend(self.group_name + ' ' + self.cloud_name + ' cores_native_foreign'))
+        self.page.click_close_plot()
+
+    def test_web_status_plot_open_global_ram(self):
+        self.page.click_global_data_box(self.group_name, self.cloud_name, 'RAM')
+        self.assertTrue(self.page.plot_open())
+        self.assertTrue(self.page.plot_has_legend(self.group_name + ' ' + self.cloud_name + ' ram_native_foreign'))
+        self.page.click_close_plot()
+
     def test_web_status_plot_open_main(self):
         self.page.click_bottom_icon('main')
         self.assertTrue(self.page.plot_open())

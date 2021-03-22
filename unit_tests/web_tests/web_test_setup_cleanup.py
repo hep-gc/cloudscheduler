@@ -186,7 +186,7 @@ def setup_objects(objects=[]):
 
     if 'status' in objects:
         for i in range(1, 3):
-            subprocess.run(['cloudscheduler', 'my', 'settings', '-sri', '300', '-s', gvar['user'] + '-wis' + str(i)], stdout=subprocess.DEVNULL)
+            subprocess.run(['cloudscheduler', 'my', 'settings', '-sri', '300','-sfv', 'true', '-s', gvar['user'] + '-wis' + str(i)], stdout=subprocess.DEVNULL)
 
     return gvar
 

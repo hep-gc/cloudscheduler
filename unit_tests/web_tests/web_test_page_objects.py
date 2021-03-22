@@ -119,6 +119,26 @@ class StatusPage(Page):
         WebDriverWait(self.driver, 20).until(
             EC.presence_of_element_located((By.CLASS_NAME, 'plot-container')))
 
+    def click_foreign_data_box(self, group, cloud, state):
+        state_tag = state.lower() + '_foreign'
+        if state == 'VMs':
+            state_tag = 'Foreign_VMs'
+        path = group + ' ' + cloud + ' ' + state_tag
+        xpath = wtxs.data_box(path)
+        wti.click_by_xpath(self.driver, xpath)
+        WebDriverWait(self.driver, 20).until(
+            EC.presence_of_element_located((By.CLASS_NAME, 'plot-container')))
+
+    def click_global_data_box(self, group, cloud, state):
+        state_tag = state.lower()
+        if state == 'VMs':
+            state_tag = state
+        path = group + ' ' + cloud + ' ' + state_tag + '_native_foreign'
+        xpath = wtxs.data_box(path)
+        wti.click_by_xpath(self.driver, xpath)
+        WebDriverWait(self.driver, 20).until(
+            EC.presence_of_element_located((By.CLASS_NAME, 'plot-container')))
+
     def click_ram_data_box(self, group, cloud):
         xpath = wtxs.data_box(group + ' ' + cloud + ' ' + 'ram_native')
         wti.click_by_xpath(self.driver, xpath)
