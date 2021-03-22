@@ -94,6 +94,9 @@ def data_box(data_path):
 def vm_expand(element):
     return "//tr[contains(id, 'expand') and contains(id, '" + element + "')]"
 
+def chart_header(cls, name):
+    return "//th[@class='" + cls + "' and contains(text(), '" + name + "')]"
+
 def plot_line():
     return "//*[local-name()='g' and @class='plot']/*[local-name()='g' and class='scatterlayer mlayer']"
 

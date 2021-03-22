@@ -8,11 +8,9 @@ class TestWebSettingCommon(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        wtsc.setup(cls, 2, ['settings', 'servers'])
         cls.page = pages.SettingsPage(cls.driver)
+        cls.status_page = pages.StatusPage(cls.driver)
         cls.oversize = cls.gvar['oversize']
-        cls.user = cls.gvar['user'] + '-wiu2'
-        print("\nUser Settings Tests (Super User):")
 
     def setUp(self):
         wtsc.get_homepage(self.driver)
@@ -78,6 +76,9 @@ class TestWebSettingCommon(unittest.TestCase):
         self.page.click_update_user()
         self.assertFalse(self.page.error_message_displayed())
         wta.assertHasAttribute('settings', self.user, 'flag_global_status', '1', settings=True, server=self.server)
+        self.page.click_top_nav('Status')
+        self.assertTrue(self.status_page.job_group_exists(self.gvar['user'] + '-wig0'))
+        self.assertTrue(self.status_page.job_group_exists(self.global_group))
 
     def test_web_setting_update_jobs_by_target_alias_on_status_page(self):
         # Updates the current user's "enabled jobs by target alias on status page" setting
@@ -86,6 +87,8 @@ class TestWebSettingCommon(unittest.TestCase):
         self.page.click_update_user()
         self.assertFalse(self.page.error_message_displayed())
         wta.assertHasAttribute('settings', self.user, 'flag_jobs_by_target_alias', '1', settings=True, server=self.server)
+        self.page.click_top_nav('Status')
+        self.assertTrue(self.status_page.aliases_displayed())
 
     def test_web_setting_update_foreign_global_vm_on_status_page(self):
         # Updates the current user's "enabled foreign/global VM information on status page" setting
@@ -94,6 +97,8 @@ class TestWebSettingCommon(unittest.TestCase):
         self.page.click_update_user()
         self.assertFalse(self.page.error_message_displayed())
         wta.assertHasAttribute('settings', self.user, 'flag_show_foreign_global_vms', '1', settings=True, server=self.server)
+        self.page.click_top_nav('Status')
+        self.assertTrue(self.status_page.foreign_global_vms_visible())
 
     def test_web_setting_update_slot_detail_on_status_page(self):
         # Updates the current user's "enabled slot detail on status page" setting
@@ -183,6 +188,8 @@ class TestWebSettingSuperUser(TestWebSettingCommon):
         wtsc.setup(cls, 2, ['settings', 'servers'])
         super(TestWebSettingSuperUser, cls).setUpClass()
         cls.server = cls.gvar['user'] + '-wis2'
+        cls.user = cls.gvar['user'] + '-wiu2'
+        cls.global_group = cls.gvar['user'] + '-wig2'
         print("\nUser Settings Tests (Super User):")
 
 class TestWebSettingRegularUser(TestWebSettingCommon):
@@ -193,6 +200,8 @@ class TestWebSettingRegularUser(TestWebSettingCommon):
         wtsc.setup(cls, 1, ['settings', 'servers'])
         super(TestWebSettingRegularUser, cls).setUpClass()
         cls.server = cls.gvar['user'] + '-wis1'
+        cls.user = cls.gvar['user'] + '-wiu1'
+        cls.global_group = cls.gvar['user'] + '-wig1'
         print("\nUser Settings Tests (Regular User):")
 
 if __name__ == "__main__":

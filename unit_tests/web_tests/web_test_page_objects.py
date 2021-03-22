@@ -139,7 +139,25 @@ class StatusPage(Page):
         xpath = wtxs.data_box(' ' + icon)
         wti.click_by_xpath(self.driver, xpath)
 
+    def aliases_displayed(self):
+        xpath = wtxs.chart_header('jobs-style', 'Target Alias')
+        try:
+            WebDriverWait(self.driver, 10).until(
+                EC.presence_of_element_located((By.XPATH, xpath)))
+            return True
+        except TimeoutException:
+            return False
+
+    def job_group_exists(self, group):
+        try:
+            WebDriverWait(self.driver, 10).until(
+                EC.presence_of_element_located((By.ID, 'sym-expand-jobs-' + group.lower())))
+            return True
+        except TimeoutException:
+            return False
+
     def job_group_expanded(self, group):
+        self.job_group_exists(group)
         element = self.driver.find_element_by_id('expand-jobs-' + group.lower())
         return element.is_displayed()
 
@@ -158,6 +176,16 @@ class StatusPage(Page):
             cloud = ''
         element = self.driver.find_element_by_id('expand-' + group + '-' + cloud)
         return element.is_displayed()
+
+    def foreign_global_vms_visible(self):
+        try:
+             WebDriverWait(self.driver, 10).until(
+                  EC.presence_of_element_located((By.CLASS_NAME, 'foreign-style')))
+             WebDriverWait(self.driver, 10).until(
+                  EC.presence_of_element_located((By.CLASS_NAME, 'total-style')))
+             return True
+        except TimeoutException:
+             return False
 
     def plot_open(self):
         element = self.driver.find_element_by_id('plot')
