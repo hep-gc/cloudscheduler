@@ -94,6 +94,9 @@ def data_box(data_path):
 def vm_expand(element):
     return "//tr[contains(id, 'expand') and contains(id, '" + element + "')]"
 
+def plot_line():
+    return "//*[local-name()='g' and @class='plot']/*[local-name()='g' and class='scatterlayer mlayer']"
+
 def unspecified_error_message():
     return "//div[@class='footer']/b"
 

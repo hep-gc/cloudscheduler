@@ -89,6 +89,12 @@ class TestWebStatusCommon(unittest.TestCase):
         self.assertTrue(self.page.plot_has_legend(self.group_name + ' jobs_foreign'))
         self.page.click_close_plot()
 
+    def test_web_status_plot_open_rt(self):
+        self.page.click_rt_data_box(self.group_name, self.cloud_name)
+        self.assertTrue(self.page.plot_open())
+        self.assertTrue(self.page.plot_has_legend(self.group_name + ' ' + self.cloud_name + ' communication_rt'))
+        self.page.click_close_plot()
+
     def test_web_status_plot_open_vms(self):
         self.page.click_vm_data_box(self.group_name, self.cloud_name, 'VMs')
         self.assertTrue(self.page.plot_open())
@@ -171,6 +177,48 @@ class TestWebStatusCommon(unittest.TestCase):
         self.page.click_ram_data_box(self.group_name, self.cloud_name)
         self.assertTrue(self.page.plot_open())
         self.assertTrue(self.page.plot_has_legend(self.group_name + ' ' + self.cloud_name + ' ram_native'))
+        self.page.click_close_plot()
+
+    def test_web_status_plot_open_main(self):
+        self.page.click_bottom_icon('main')
+        self.assertTrue(self.page.plot_open())
+        self.assertTrue(self.page.plot_has_legend('main'))
+        self.page.click_close_plot()
+
+    def test_web_status_plot_open_signals(self):
+        self.page.click_bottom_icon('signals')
+        self.assertTrue(self.page.plot_open())
+        self.assertTrue(self.page.plot_has_legend('signals'))
+        self.page.click_close_plot()
+
+    def test_web_status_plot_open_timeseries(self):
+        self.page.click_bottom_icon('timeseries')
+        self.assertTrue(self.page.plot_open())
+        self.assertTrue(self.page.plot_has_legend('timeseries'))
+        self.page.click_close_plot()
+
+    def test_web_status_plot_open_vmdata(self):
+        self.page.click_bottom_icon('VMdata')
+        self.assertTrue(self.page.plot_open())
+        self.assertTrue(self.page.plot_has_legend('VMdata'))
+        self.page.click_close_plot()
+
+    def test_web_status_plot_open_watch(self):
+        self.page.click_bottom_icon('watch')
+        self.assertTrue(self.page.plot_open())
+        self.assertTrue(self.page.plot_has_legend('watch'))
+        self.page.click_close_plot()
+
+    def test_web_status_plot_open_ec_two(self):
+        self.page.click_bottom_icon('ec2')
+        self.assertTrue(self.page.plot_open())
+        self.assertTrue(self.page.plot_has_legend('ec2'))
+        self.page.click_close_plot()
+
+    def test_web_status_plot_open_openstack(self):
+        self.page.click_bottom_icon('openstack')
+        self.assertTrue(self.page.plot_open())
+        self.assertTrue(self.page.plot_has_legend('openstack'))
         self.page.click_close_plot()
 
     def test_web_status_plot_open_time_hours_one(self):
@@ -309,6 +357,12 @@ class TestWebStatusCommon(unittest.TestCase):
         self.page.select_plot_range('Previous year')
         self.assertTrue(self.page.first_date_on_plot_before_now(2, 'years', 62))
         self.assertTrue(self.page.last_date_on_plot_before_now(1, 'years', 62))
+        self.page.click_close_plot()
+
+    def test_web_status_plot_hide_line(self):
+        self.page.click_vm_data_box(self.group_name, self.cloud_name, 'VMs')
+        self.page.click_plot_legend_item(self.group_name + ' ' + self.cloud_name + ' VMs')
+        self.assertFalse(self.page.plot_has_line())
         self.page.click_close_plot()
 
     @classmethod

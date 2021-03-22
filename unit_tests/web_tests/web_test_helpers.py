@@ -87,7 +87,6 @@ def round_datetime(dt, round, forward):
     subtract = datetime.timedelta(seconds=(dt.hour*3600 + dt.minute*60 + dt.second)%round, microseconds=dt.microsecond)
     dt = dt - subtract
     if subtract.seconds > (round / 10) and forward:# and not (subtract.seconds < 6 and subtract.seconds // 60 == 0):
-        print(forward)
         dt += datetime.timedelta(seconds=round)
     return dt
 
@@ -106,7 +105,6 @@ def round_date(dt, round, forward):
                 else:
                     dt -= datetime.timedelta(days=dt.isoweekday())
     else:
-        print(round//31)
         if forward:
             dt = dt.replace(month=dt.month+1)
         while (dt.month-1)%(round//31) != 0:

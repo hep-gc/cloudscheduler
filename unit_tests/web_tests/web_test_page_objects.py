@@ -65,6 +65,12 @@ class StatusPage(Page):
         xpath = wtxs.status_page_dropdown('2', cloud)
         wti.click_by_xpath(self.driver, xpath)
 
+    def click_rt_data_box(self, group, cloud):
+        xpath = wtxs.data_box(group + ' ' + cloud + ' communication_rt')
+        wti.click_by_xpath(self.driver, xpath)
+        WebDriverWait(self.driver, 20).until(
+            EC.presence_of_element_located((By.CLASS_NAME, 'plot-container')))
+
     def click_vm_data_box(self, group, cloud, state):
         state_tag = '_' + state.lower()
         if state == 'VMs':
@@ -128,6 +134,10 @@ class StatusPage(Page):
 
     def click_close_plot(self):
         wti.click_by_id(self.driver, 'close-plot')
+
+    def click_bottom_icon(self, icon):
+        xpath = wtxs.data_box(' ' + icon)
+        wti.click_by_xpath(self.driver, xpath)
 
     def job_group_expanded(self, group):
         element = self.driver.find_element_by_id('expand-jobs-' + group.lower())
@@ -225,6 +235,15 @@ class StatusPage(Page):
 
     def plot_has_legend(self, legend):
         xpath = wtxs.legend_item(legend)
+        try:
+            WebDriverWait(self.driver, 10).until(
+                EC.presence_of_element_located((By.XPATH, xpath)))
+            return True
+        except TimeoutException:
+            return False
+
+    def plot_has_line(self):
+        xpath = wtxs.plot_line()
         try:
             WebDriverWait(self.driver, 10).until(
                 EC.presence_of_element_located((By.XPATH, xpath)))
