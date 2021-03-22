@@ -10,16 +10,12 @@ from cloudscheduler.lib.view_utils import \
     qt, \
     render, \
     set_user_groups, \
-    table_fields, \
     validate_by_filtered_table_entries, \
     validate_fields
 from collections import defaultdict
 import bcrypt
 
-from sqlalchemy import exists
-from sqlalchemy.sql import select
 from cloudscheduler.lib.schema import *
-import sqlalchemy.exc
 import datetime
 
 from cloudscheduler.lib.web_profiler import silk_profile as silkp
@@ -33,8 +29,8 @@ CLOUD_ALIAS_KEYS = {
     # Named argument formats (anything else is a string).
     'auto_active_group': True,
     'format': {
-        'alias_name':          'lower',
-        'cloud_name':          'lower',
+        'alias_name':          'lowerdash',
+        'cloud_name':          'lowerdash',
         'cloud_option':        ['add', 'delete'],
         'csrfmiddlewaretoken': 'ignore',
         'group':               'ignore',
@@ -44,6 +40,9 @@ CLOUD_ALIAS_KEYS = {
         'alias_name',
     ],
     'array_fields': [
+        'cloud_name'
+    ],
+    'not_empty': [
         'cloud_name'
     ]
 }
@@ -65,9 +64,8 @@ def manage_cloud_aliases(config, tables, group_name, alias_name, clouds, option=
     have all been pre-verified.
     """
 
-    from sqlalchemy.sql import select
 
-    table = tables['csv2_cloud_aliases']
+    table ='csv2_cloud_aliases'
 
     # if there is only one cloud, make it a list anyway
     if clouds:
@@ -80,9 +78,9 @@ def manage_cloud_aliases(config, tables, group_name, alias_name, clouds, option=
 
     # Retrieve the list of clouds the cloud alias already has.
     db_clouds = []
-    
-    s = select([table]).where((table.c.group_name==group_name) & (table.c.alias_name==alias_name))
-    _alias_list = qt(config.db_connection.execute(s))
+
+    where_clause = "group_name='%s' and alias_name='%s'" % (group_name, alias_name)
+    rc, qmsg, _alias_list = config.db_query(table, where=where_clause)
 
     for row in _alias_list:
         db_clouds.append(row['cloud_name'])
@@ -100,7 +98,13 @@ def manage_cloud_aliases(config, tables, group_name, alias_name, clouds, option=
 
         # Add the missing clouds.
         for cloud_name in add_clouds:
-            rc, msg = config.db_session_execute(table.insert().values(group_name=group_name, alias_name=alias_name, cloud_name=cloud_name))
+            alias_dict = {
+                "group_name": group_name,
+                "alias_name": alias_name,
+                "cloud_name": cloud_name
+
+            }
+            rc, msg = config.db_insert(table, alias_dict)
             if rc != 0:
                 return 1, msg
 
@@ -110,7 +114,15 @@ def manage_cloud_aliases(config, tables, group_name, alias_name, clouds, option=
         
         # Remove the extraneous clouds.
         for cloud_name in remove_clouds:
-            rc, msg = config.db_session_execute(table.delete((table.c.group_name==group_name) & (table.c.alias_name==alias_name) & (table.c.cloud_name==cloud_name)))
+            alias_dict = {
+                "group_name": group_name,
+                "alias_name": alias_name,
+                "cloud_name": cloud_name
+
+            }
+            # might need to update dict to be a where clause but this should work find sicne these 3
+            # columns uniquely identify a row.
+            rc, msg = config.db_delete(table, alias_dict)
             if rc != 0:
                 return 1, msg
 
@@ -120,7 +132,13 @@ def manage_cloud_aliases(config, tables, group_name, alias_name, clouds, option=
         
         # Remove the extraneous clouds.
         for cloud_name in remove_clouds:
-            rc, msg = config.db_session_execute(table.delete((table.c.group_name==group_name) & (table.c.alias_name==alias_name) & (table.c.cloud_name==cloud_name)))
+            alias_dict = {
+                "group_name": group_name,
+                "alias_name": alias_name,
+                "cloud_name": cloud_name
+
+            }
+            rc, msg = config.db_delete(table, alias_dict)
             if rc != 0:
                 return 1, msg
 
@@ -168,6 +186,7 @@ def add(request):
                     
     ### Bad request.
     else:
+        config.db_close()
         return alias_list(request, active_user=active_user, response_code=1, message='%s cloud alias add, invalid method "%s" specified.' % (lno(MODID), request.method))
 
 #-------------------------------------------------------------------------------
@@ -199,17 +218,16 @@ def alias_list(request, active_user=None, response_code=0, message=None):
         config.db_close()
         return render(request, 'csv2/cloud_aliases.html', {'response_code': 1, 'message': '%s cloud alias list, %s' % (lno(MODID), msg)})
 
+    # this where clause can be recycled for all the following queries
+    where_clause = "group_name='%s'" % active_user.active_group
     # Retrieve the cloud alias view.
-    s = select([view_cloud_aliases]).where(view_cloud_aliases.c.group_name == active_user.active_group)
-    _alias_list = qt(config.db_connection.execute(s))
+    rc, msg, _alias_list = config.db_query('view_cloud_aliases', where=where_clause)
 
     # Retrieve the cloud alias table.
-    s = select([csv2_cloud_aliases]).where(csv2_cloud_aliases.c.group_name == active_user.active_group)
-    cloud_alias_list = qt(config.db_connection.execute(s))
+    rc, msg, cloud_alias_list = config.db_query("csv2_cloud_aliases", where=where_clause)
 
     # Retrieve the cloud table.
-    s = select([csv2_clouds]).where(csv2_clouds.c.group_name == active_user.active_group)
-    cloud_list = qt(config.db_connection.execute(s))
+    rc, msg, cloud_list = config.db_query("csv2_clouds", where=where_clause)
 
     # Render the page.
     context = {
@@ -281,5 +299,6 @@ def update(request):
 
     ### Bad request.
     else:
+        config.db_close()
         return alias_list(request, active_user=active_user, response_code=1, message='%s cloud alias update, invalid method "%s" specified.' % (lno(MODID), request.method))
 

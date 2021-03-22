@@ -6,7 +6,7 @@ from django.views.decorators.csrf import requires_csrf_token
 from django.http import HttpResponse
 from django.core.exceptions import PermissionDenied
 
-from cloudscheduler.lib.schema import csv2_configuration
+#from cloudscheduler.lib.schema import * 
 from cloudscheduler.lib.view_utils import \
     cskv,  \
     lno,  \
@@ -16,10 +16,6 @@ from cloudscheduler.lib.view_utils import \
 
 from collections import defaultdict
 import bcrypt
-
-from sqlalchemy import Table, MetaData
-from sqlalchemy.sql import select
-#import sqlalchemy.exc
 
 from cloudscheduler.lib.web_profiler import silk_profile as silkp
 
@@ -59,7 +55,11 @@ def configuration(request):
                         category = key_values.pop('category', None)
 
                     if rc == 0:
-                        config_list = qt(config.db_connection.execute('select config_key,config_type,config_value from csv2_configuration where category="%s"' % category))
+                        rc, msg = config.db_execute('select config_key,config_type,config_value from csv2_configuration where category="%s"' % category)
+                        config_list = []
+                        for row in config.db_cursor:
+                            config_list.append(row)
+                        
                         if len(config_list) > 0:
                             config_keys = {}
                             for config_item in config_list:
@@ -122,18 +122,21 @@ def configuration(request):
 
                             if not message:
                                 keys = []
-                                table = Table('csv2_configuration', MetaData(bind=config.db_engine), autoload=True)
+                                table = 'csv2_configuration'
                                 for key in key_values:
                                     if key_values[key] != config_keys[key]['value']:
                                         keys.append(key)
-                                        rc, msg = config.db_session_execute(table.update().where((table.c.category==category) & (table.c.config_key==key)).values({table.c.config_value:key_values[key]}))
+                                        where_clause="category='%s' and config_key='%s'" % (category, key)
+                                        updates = {
+                                            "config_value": key_values[key]
+                                        }
+                                        rc, msg = config.db_update(table, updates, where=where_clause)
                                         if rc != 0:
-                                            config.db_session.rollback()
                                             message = '{} server config update failed - {}'.format(lno(MODID), msg)
                                             break
 
                                 if len(keys) > 0:
-                                    config.db_session.commit()
+                                    config.db_commit()
                                     message = 'server config update successfully updated the following keys: %s' % ', '.join(keys)
 
                         else:
@@ -149,8 +152,7 @@ def configuration(request):
     else:
         response_code = 0
 
-    s = select([csv2_configuration])
-    config_list = qt(config.db_connection.execute(s))
+    rc, msg, config_list = config.db_query("csv2_configuration")
     config_categories = list({v['category']:v for v in config_list})
 
     # Render the page.

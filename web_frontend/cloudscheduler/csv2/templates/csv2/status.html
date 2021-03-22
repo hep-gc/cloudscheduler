@@ -192,7 +192,7 @@
                                     <td data-path="{{group.group_name}} jobs_htcondor_status" class="more-style float-center plottable" tooltip="Not Running">
                                 {% endif %}
 
-                                {% if process_monitor_pause == 1 %}
+                                {% if process_monitor_pause  %}
                                     <span class="blue-symbol">&#x1F4A4;</span>
                                 {% elif group.state == 'up' %}
                                     <span class="green-symbol">&#x2714;</span>
@@ -978,7 +978,7 @@
                         <td data-path="{{group.group_name}} {{service.alias}}" class="more-style float-center plottable" tooltip="Not Running">
                     {% endif %}
 
-                    {% if process_monitor_pause == 1 %}
+                    {% if process_monitor_pause %}
                         <span class="blue-symbol">&#x1F4A4;</span>
                     {% elif service.state == 'up' %}
                         <span class="green-symbol">&#x2714;</span>

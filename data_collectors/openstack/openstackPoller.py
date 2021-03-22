@@ -13,7 +13,6 @@ from cloudscheduler.lib.attribute_mapper import map_attributes
 from cloudscheduler.lib.db_config import Config
 from cloudscheduler.lib.ProcessMonitor import ProcessMonitor, terminate, check_pid
 #from cloudscheduler.lib.signal_manager import register_signal_receiver
-from cloudscheduler.lib.schema import view_vm_kill_retire_over_quota
 from cloudscheduler.lib.view_utils import kill_retire
 from cloudscheduler.lib.log_tools import get_frame_info
 
@@ -21,23 +20,14 @@ from glintwebui.glint_utils import get_keypair, transfer_keypair, generate_tx_id
 from glintwebui.celery_app import tx_request
 
 from cloudscheduler.lib.poller_functions import \
-    delete_obsolete_database_items, \
-    foreign, \
-    get_inventory_item_hash_from_database, \
-    test_and_set_inventory_item_hash, \
+    inventory_cleanup, \
+    inventory_obsolete_database_items_delete, \
+    inventory_get_item_hash_from_db_query_rows, \
+    inventory_test_and_set_item_hash, \
     start_cycle, \
-    wait_cycle, \
-    cleanup_inventory
-#   get_last_poll_time_from_database, \
-#   set_inventory_group_and_cloud, \
-#   set_inventory_item, \
+    wait_cycle
 
 from cloudscheduler.lib.signal_functions import event_receiver_registration
-
-from sqlalchemy import create_engine, or_
-from sqlalchemy.orm import Session
-from sqlalchemy.ext.automap import automap_base
-from sqlalchemy.sql import func
 
 from keystoneclient.auth.identity import v2, v3
 from keystoneauth1 import session
@@ -127,36 +117,36 @@ def _get_glance_client(session, region=None):
     return glance
 
 def _get_openstack_session(cloud):
-    authsplit = cloud.authurl.split('/')
+    authsplit = cloud["authurl"].split('/')
     try:
         version = int(float(authsplit[-1][1:])) if len(authsplit[-1]) > 0 else int(float(authsplit[-2][1:]))
     except ValueError:
-        logging.debug("Bad OpenStack URL, could not determine version, skipping %s", cloud.authurl)
+        logging.debug("Bad OpenStack URL, could not determine version, skipping %s", cloud["authurl"])
         return False
     if version == 2:
         session = _get_openstack_session_v1_v2(
-            auth_url=cloud.authurl,
-            username=cloud.username,
-            password=cloud.password,
-            project=cloud.project)
+            auth_url=cloud["authurl"],
+            username=cloud["username"],
+            password=cloud["password"],
+            project=cloud["project"])
     else:
         session = _get_openstack_session_v1_v2(
-            auth_url=cloud.authurl,
-            username=cloud.username,
-            password=cloud.password,
-            project=cloud.project,
-            user_domain=cloud.user_domain_name,
-            project_domain_name=cloud.project_domain_name,
-            project_domain_id=cloud.project_domain_id,)
+            auth_url=cloud["authurl"],
+            username=cloud["username"],
+            password=cloud["password"],
+            project=cloud["project"],
+            user_domain=cloud["user_domain_name"],
+            project_domain_name=cloud["project_domain_name"],
+            project_domain_id=cloud["project_domain_id"],)
     if session is False:
-        logging.error("Failed to setup session, skipping %s", cloud.cloud_name)
+        logging.error("Failed to setup session, skipping %s", cloud["cloud_name"])
         if version == 2:
             logging.error("Connection parameters: \n authurl: %s \n username: %s \n project: %s",
-                          (cloud.authurl, cloud.username, cloud.project))
+                          (cloud["authurl"], cloud["username"], cloud["project"]))
         else:
             logging.error(
                 "Connection parameters: \n authurl: %s \n username: %s \n project: %s \n user_domain: %s \n project_domain: %s",
-                (cloud.authurl, cloud.username, cloud.project, cloud.user_domain_name, cloud.project_domain_name))
+                (cloud["authurl"], cloud["username"], cloud["project"], cloud["user_domain_name"], cloud["project_domain_name"]))
     return session
 
 def _get_openstack_session_v1_v2(auth_url, username, password, project, user_domain="Default", project_domain_name="Default",
@@ -208,24 +198,28 @@ def flavor_poller():
     config = Config('/etc/cloudscheduler/cloudscheduler.yaml', db_category_list, pool_size=3, signals=True)
     PID_FILE = config.categories["ProcessMonitor"]["pid_path"] + os.path.basename(sys.argv[0])
 
-    FLAVOR = config.db_map.classes.cloud_flavors
-    CLOUD = config.db_map.classes.csv2_clouds
+    FLAVOR = "cloud_flavors"
+    CLOUD = "csv2_clouds"
+    ikey_names = ["group_name", "cloud_name", "id"]
 
     cycle_start_time = 0
     new_poll_time = 0
     poll_time_history = [0,0,0,0]
     failure_dict = {}
 
+    config.db_open()
     event_receiver_registration(config, "insert_csv2_clouds_openstack")
     event_receiver_registration(config, "update_csv2_clouds_openstack")
 
     try:
-        inventory = get_inventory_item_hash_from_database(config.db_engine, FLAVOR, 'name', debug_hash=(config.categories["openstackPoller.py"]["log_level"]<20), cloud_type="openstack")
-        
-        config.db_open()
+        where_clause = "cloud_type='openstack'"
+        rc, msg, rows = config.db_query(FLAVOR, where=where_clause)
+        inventory = inventory_get_item_hash_from_db_query_rows(ikey_names, rows)
+        config.db_close()
         while True:
             try:
                 logging.debug("Beginning flavor poller cycle")
+                config.db_open()
                 config.refresh()
                 new_poll_time, cycle_start_time = start_cycle(new_poll_time, cycle_start_time)
                 if not os.path.exists(PID_FILE):
@@ -233,25 +227,24 @@ def flavor_poller():
                     break
 
                 signal.signal(signal.SIGINT, signal.SIG_IGN) 
-                db_session = config.db_session
 
                 abort_cycle = False
-                cloud_list = db_session.query(CLOUD).filter(CLOUD.cloud_type == "openstack")
+                rc, msg, cloud_list = config.db_query(CLOUD, where="cloud_type='openstack'")
 
                 # build unique cloud list to only query a given cloud once per cycle
                 unique_cloud_dict = {}
                 for cloud in cloud_list:
-                    if cloud.authurl+cloud.project+cloud.region not in unique_cloud_dict:
-                        unique_cloud_dict[cloud.authurl+cloud.project+cloud.region] = {
+                    if cloud["authurl"]+cloud["project"]+cloud["region"] not in unique_cloud_dict:
+                        unique_cloud_dict[cloud["authurl"]+cloud["project"]+cloud["region"]] = {
                             'cloud_obj': cloud,
-                            'groups': [(cloud.group_name, cloud.cloud_name)]
+                            'groups': [(cloud["group_name"], cloud["cloud_name"])]
                         }
                     else:
-                        unique_cloud_dict[cloud.authurl+cloud.project+cloud.region]['groups'].append((cloud.group_name, cloud.cloud_name))
+                        unique_cloud_dict[cloud["authurl"]+cloud["project"]+cloud["region"]]['groups'].append((cloud["group_name"], cloud["cloud_name"]))
 
 
                 for cloud in unique_cloud_dict:
-                    cloud_name = unique_cloud_dict[cloud]['cloud_obj'].authurl
+                    cloud_name = unique_cloud_dict[cloud]['cloud_obj']["authurl"]
                     cloud_obj =  unique_cloud_dict[cloud]['cloud_obj']
                     logging.debug("Processing flavours from cloud - %s" % cloud_name)
                     session = _get_openstack_session(unique_cloud_dict[cloud]['cloud_obj'])
@@ -260,17 +253,17 @@ def flavor_poller():
                         for cloud_tuple in unique_cloud_dict[cloud]['groups']:
                             grp_nm = cloud_tuple[0]
                             cld_nm = cloud_tuple[1]
-                            if cloud_obj.authurl + cloud_obj.project + cloud_obj.region not in failure_dict:
-                                failure_dict[cloud_obj.authurl + cloud_obj.project + cloud_obj.region] = 1
+                            if cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] not in failure_dict:
+                                failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"]] = 1
                             else:
-                                failure_dict[cloud_obj.authurl + cloud_obj.project + cloud_obj.region] = failure_dict[cloud_obj.authurl + cloud_obj.project + cloud_obj.region] + 1
-                            if failure_dict[cloud_obj.authurl + cloud_obj.project + cloud_obj.region] > 3: #should be configurable
+                                failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"]] = failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"]] + 1
+                            if failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"]] > 3: #should be configurable
                                 logging.error("Failure threshhold limit reached for %s, manual action required, reporting cloud error" % grp_nm+cld_nm)
                                 config.incr_cloud_error(grp_nm, cld_nm)
                             continue
 
                     # setup OpenStack api objects
-                    nova = _get_nova_client(session, region=unique_cloud_dict[cloud]['cloud_obj'].region)
+                    nova = _get_nova_client(session, region=unique_cloud_dict[cloud]['cloud_obj']["region"])
 
                     # Retrieve all flavours for this cloud.
                     try:
@@ -281,11 +274,11 @@ def flavor_poller():
                         for cloud_tuple in unique_cloud_dict[cloud]['groups']:
                             grp_nm = cloud_tuple[0]
                             cld_nm = cloud_tuple[1]
-                            if cloud_obj.authurl + cloud_obj.project + cloud_obj.region not in failure_dict:
-                                failure_dict[cloud_obj.authurl + cloud_obj.project + cloud_obj.region] = 1
+                            if cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] not in failure_dict:
+                                failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"]] = 1
                             else:
-                                failure_dict[cloud_obj.authurl + cloud_obj.project + cloud_obj.region] = failure_dict[cloud_obj.authurl + cloud_obj.project + cloud_obj.region] + 1
-                            if failure_dict[cloud_obj.authurl + cloud_obj.project + cloud_obj.region] > 3: #should be configurable
+                                failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"]] = failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"]] + 1
+                            if failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"]] > 3: #should be configurable
                                 logging.error("Failure threshhold limit reached for %s, manual action required, reporting cloud error" % grp_nm+cld_nm)
                                 config.incr_cloud_error(grp_nm, cld_nm)
                         continue
@@ -297,7 +290,7 @@ def flavor_poller():
                     for cloud_tuple in unique_cloud_dict[cloud]['groups']:
                         grp_nm = cloud_tuple[0]
                         cld_nm = cloud_tuple[1]
-                        failure_dict.pop(cloud_obj.authurl + cloud_obj.project + cloud_obj.region, None)
+                        failure_dict.pop(cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"], None)
                         config.reset_cloud_error(grp_nm, cld_nm)
 
                     # Process flavours for this cloud.
@@ -332,17 +325,16 @@ def flavor_poller():
                                 'last_updated': new_poll_time
                                 }
 
-                            flav_dict, unmapped = map_attributes(src="os_flavors", dest="csv2", attr_dict=flav_dict)
+                            flav_dict, unmapped = map_attributes(src="os_flavors", dest="csv2", attr_dict=flav_dict, config=config)
                             if unmapped:
                                 logging.error("Unmapped attributes found during mapping, discarding:")
                                 logging.error(unmapped)
 
-                            if test_and_set_inventory_item_hash(inventory, group_n, cloud_n, flavor.name, flav_dict, new_poll_time, debug_hash=(config.categories["openstackPoller.py"]["log_level"]<20)):
+                            if inventory_test_and_set_item_hash(ikey_names, flav_dict, inventory, new_poll_time, debug_hash=(config.categories["openstackPoller.py"]["log_level"] < 20)):
                                 continue
 
-                            new_flav = FLAVOR(**flav_dict)
                             try:
-                                db_session.merge(new_flav)
+                                config.db_merge(FLAVOR, flav_dict)
                                 uncommitted_updates += 1
                             except Exception as exc:
                                 logging.exception("Failed to merge flavor entry for %s::%s::%s, aborting cycle..." % (group_n, cloud_n, flavor.name))
@@ -356,7 +348,7 @@ def flavor_poller():
 
                     if uncommitted_updates > 0:
                         try:        
-                            db_session.commit()
+                            config.db_commit()
                             logging.info("Flavor updates committed: %d" % uncommitted_updates)
                         except Exception as exc:
                             logging.exception("Failed to commit flavor updates for %s, aborting cycle..." % cloud_name)
@@ -370,27 +362,35 @@ def flavor_poller():
 
 
                 # Expand failure dict for deletion schema (key needs to be grp+cloud)
-                cloud_list = db_session.query(CLOUD).filter(CLOUD.cloud_type == "openstack")
+                rc, msg, cloud_list = config.db_query(CLOUD, where="cloud_type='openstack'")
                 new_f_dict = {}
                 for cloud in cloud_list:
-                    key = cloud.authurl + cloud.project + cloud.region
+                    key = cloud["authurl"] + cloud["project"] + cloud["region"]
                     if key in failure_dict:
-                        new_f_dict[cloud.group_name+cloud.cloud_name] = 1
+                        new_f_dict[cloud["group_name"]+cloud["cloud_name"]] = 1
 
-                # Scan the OpenStack flavors in the database, removing each one that was` not iupdated in the inventory.
-                delete_obsolete_database_items('Flavor', inventory, db_session, FLAVOR, 'name', poll_time=new_poll_time, failure_dict=new_f_dict, cloud_type="openstack")
+                # since the new inventory function doesn't accept a failfure dict we need to screen the rows ourself
+                where_clause="cloud_type='openstack'"
+                rc, msg, unfiltered_rows = config.db_query(FLAVOR, where=where_clause)
+                rows = []
+                for row in unfiltered_rows:
+                    if row['group_name'] + row['cloud_name'] in failure_dict.keys():
+                        continue
+                    else:
+                        rows.append(row)
+                inventory_obsolete_database_items_delete(ikey_names, rows, inventory, new_poll_time, config, FLAVOR)
 
-                config.db_session.rollback()
 
                 if not os.path.exists(PID_FILE):
                     logging.info("Stop set, exiting...")
                     break
+
                 # Cleanup inventory, this function will clean up inventory entries for deleted clouds
-                group_clouds = config.db_connection.execute('select distinct group_name, cloud_name from csv2_clouds where cloud_type="openstack"')
-                cleanup_inventory(inventory, group_clouds)
+                inventory_cleanup(ikey_names, rows, inventory)
 
 
                 signal.signal(signal.SIGINT, config.signals['SIGINT'])
+                config.db_close()
                 try:
                     wait_cycle(cycle_start_time, poll_time_history, config.categories["openstackPoller.py"]["sleep_interval_flavor"], config)
                 except KeyboardInterrupt:
@@ -399,6 +399,7 @@ def flavor_poller():
             except KeyboardInterrupt:
                 # sigint recieved, cancel the sleep and start the loop
                 logging.error("Recieved wake-up signal during regular execution, resetting and continuing")
+                config.db_close()
                 continue
 
     except Exception as exc:
@@ -413,22 +414,28 @@ def image_poller():
     config = Config('/etc/cloudscheduler/cloudscheduler.yaml', db_category_list, pool_size=3, signals=True)
     PID_FILE = config.categories["ProcessMonitor"]["pid_path"] + os.path.basename(sys.argv[0])
 
-    IMAGE = config.db_map.classes.cloud_images
-    CLOUD = config.db_map.classes.csv2_clouds
+    IMAGE = "cloud_images"
+    CLOUD = "csv2_clouds"
+
+    ikey_names = ["group_name", "cloud_name", "id"]
 
     cycle_start_time = 0
     new_poll_time = 0
     poll_time_history = [0,0,0,0]
     failure_dict = {}
 
+    config.db_open()
     event_receiver_registration(config, "insert_csv2_clouds_openstack")
     event_receiver_registration(config, "update_csv2_clouds_openstack")
 
     try:
-        inventory = get_inventory_item_hash_from_database(config.db_engine, IMAGE, 'id', debug_hash=(config.categories["openstackPoller.py"]["log_level"]<20), cloud_type="openstack")
-        config.db_open()
+        where_clause = "cloud_type='openstack'"
+        rc, msg, rows = config.db_query(IMAGE, where=where_clause)
+        inventory = inventory_get_item_hash_from_db_query_rows(ikey_names, rows)
+        config.db_close()
         while True:
             try:
+                config.db_open()
                 logging.debug("Beginning image poller cycle")
                 if not os.path.exists(PID_FILE):
                     logging.debug("Stop set, exiting...")
@@ -437,25 +444,25 @@ def image_poller():
                 signal.signal(signal.SIGINT, signal.SIG_IGN)
                 new_poll_time, cycle_start_time = start_cycle(new_poll_time, cycle_start_time)
                 config.refresh()
-                db_session = config.db_session
 
                 abort_cycle = False
-                cloud_list = db_session.query(CLOUD).filter(CLOUD.cloud_type == "openstack")
+                where_clause = "cloud_type='openstack'"
+                rc, msg, cloud_list = config.db_query(CLOUD, where=where_clause)
 
                 # build unique cloud list to only query a given cloud once per cycle
                 unique_cloud_dict = {}
                 for cloud in cloud_list:
-                    if cloud.authurl+cloud.project+cloud.region not in unique_cloud_dict:
-                        unique_cloud_dict[cloud.authurl+cloud.project+cloud.region] = {
+                    if cloud["authurl"]+cloud["project"]+cloud["region"] not in unique_cloud_dict:
+                        unique_cloud_dict[cloud["authurl"]+cloud["project"]+cloud["region"]] = {
                             'cloud_obj': cloud,
-                            'groups': [(cloud.group_name, cloud.cloud_name)]
+                            'groups': [(cloud["group_name"], cloud["cloud_name"])]
                         }
                     else:
-                        unique_cloud_dict[cloud.authurl+cloud.project+cloud.region]['groups'].append((cloud.group_name, cloud.cloud_name))
+                        unique_cloud_dict[cloud["authurl"]+cloud["project"]+cloud["region"]]['groups'].append((cloud["group_name"], cloud["cloud_name"]))
 
                 for cloud in unique_cloud_dict:
                     cloud_obj = unique_cloud_dict[cloud]['cloud_obj']
-                    cloud_name = unique_cloud_dict[cloud]['cloud_obj'].authurl
+                    cloud_name = unique_cloud_dict[cloud]['cloud_obj']["authurl"]
                     logging.info("Processing Images from cloud - %s" % cloud_name)
                     session = _get_openstack_session(unique_cloud_dict[cloud]['cloud_obj'])
                     if session is False:
@@ -463,11 +470,11 @@ def image_poller():
                         for cloud_tuple in unique_cloud_dict[cloud]['groups']:
                             grp_nm = cloud_tuple[0]
                             cld_nm = cloud_tuple[1]
-                            if cloud_obj.authurl + cloud_obj.project + cloud_obj.region not in failure_dict:
-                                failure_dict[cloud_obj.authurl + cloud_obj.project + cloud_obj.region] = 1
+                            if cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] not in failure_dict:
+                                failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"]] = 1
                             else:
-                                failure_dict[cloud_obj.authurl + cloud_obj.project + cloud_obj.region] = failure_dict[cloud_obj.authurl + cloud_obj.project + cloud_obj.region] + 1
-                            if failure_dict[cloud_obj.authurl + cloud_obj.project + cloud_obj.region] > 3: #should be configurable
+                                failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"]] = failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"]] + 1
+                            if failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"]] > 3: #should be configurable
                                 logging.error("Failure threshhold limit reached for %s, manual action required, reporting cloud error" % grp_nm+cld_nm)
                                 config.incr_cloud_error(grp_nm, cld_nm)
                         continue
@@ -475,7 +482,7 @@ def image_poller():
                     # Retrieve all images for this cloud.
                     post_req_time = 0
                     pre_req_time = time.time() * 1000000 
-                    glance = _get_glance_client(session, region=unique_cloud_dict[cloud]['cloud_obj'].region)
+                    glance = _get_glance_client(session, region=unique_cloud_dict[cloud]['cloud_obj']["region"])
                     try:
                         image_list =  glance.images.list()
                         post_req_time = time.time()*1000000
@@ -485,11 +492,11 @@ def image_poller():
                         for cloud_tuple in unique_cloud_dict[cloud]['groups']:
                             grp_nm = cloud_tuple[0]
                             cld_nm = cloud_tuple[1]
-                            if cloud_obj.authurl + cloud_obj.project + cloud_obj.region not in failure_dict:
-                                failure_dict[cloud_obj.authurl + cloud_obj.project + cloud_obj.region] = 1
+                            if cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] not in failure_dict:
+                                failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"]] = 1
                             else:
-                                failure_dict[cloud_obj.authurl + cloud_obj.project + cloud_obj.region] = failure_dict[cloud_obj.authurl + cloud_obj.project + cloud_obj.region] + 1
-                            if failure_dict[cloud_obj.authurl + cloud_obj.project + cloud_obj.region] > 3: #should be configurable
+                                failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"]] = failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"]] + 1
+                            if failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"]] > 3: #should be configurable
                                 logging.error("Failure threshhold limit reached for %s, manual action required, reporting cloud error" % grp_nm+cld_nm)
                                 config.incr_cloud_error(grp_nm, cld_nm)
                         continue
@@ -502,18 +509,24 @@ def image_poller():
                     for cloud_tuple in unique_cloud_dict[cloud]['groups']:
                         grp_nm = cloud_tuple[0]
                         cld_nm = cloud_tuple[1]
-                        failure_dict.pop(cloud_obj.authurl + cloud_obj.project + cloud_obj.region, None)
-                        cloud_row = db_session.query(CLOUD).filter(CLOUD.group_name == grp_nm, CLOUD.cloud_name == cld_nm)[0]
+                        failure_dict.pop(cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"], None)
+                        where_clause = "group_name='%s' and cloud_name='%s'" % (grp_nm, cld_nm)
+                        rc, msg, cloud_rows = config.db_query(CLOUD, where=where_clause)
+                        cloud_row = cloud_rows[0]
                         logging.debug("pre request time:%s   post request time:%s" % (post_req_time, pre_req_time))
-                        cloud_row.communication_rt = int(post_req_time - pre_req_time)
+                        cloud_row["communication_rt"] = int(post_req_time - pre_req_time)
                         try:
-                            db_session.merge(cloud_row)
+                            cld_update_dict = {
+                                group_name: cloud_row["group_name"],
+                                cloud_name: cloud_row["cloud_name"],
+                                communication_rt: cloud_row["communication_rt"],
+                            }
+                            config.db_merge(CLOUD, cld_update_dict)
                             uncommitted_updates += 1
                             config.reset_cloud_error(grp_nm, cld_nm)
                         except Exception as exc:
                             logging.warning("Failed merge and commit an update for communication_rt on cloud row : %s" % cloud_row)
                             logging.warning(exc)
-                            db_session.rollback()
 
                     try:
                         #logging.error(image_list)
@@ -547,17 +560,16 @@ def image_poller():
                                     'last_updated': new_poll_time
                                     }
 
-                                img_dict, unmapped = map_attributes(src="os_images", dest="csv2", attr_dict=img_dict)
+                                img_dict, unmapped = map_attributes(src="os_images", dest="csv2", attr_dict=img_dict, config=config)
                                 if unmapped:
                                     logging.error("Unmapped attributes found during mapping, discarding:")
                                     logging.error(unmapped)
 
-                                if test_and_set_inventory_item_hash(inventory, group_n, cloud_n, image.id, img_dict, new_poll_time, debug_hash=(config.categories["openstackPoller.py"]["log_level"]<20)):
+                                if inventory_test_and_set_item_hash(ikey_names, img_dict, inventory, new_poll_time, debug_hash=(config.categories["openstackPoller.py"]["log_level"] < 20)):
                                     continue
 
-                                new_image = IMAGE(**img_dict)
                                 try:
-                                    db_session.merge(new_image)
+                                    config.db_merge(IMAGE, img_dict)
                                     uncommitted_updates += 1
                                 except Exception as exc:
                                     logging.exception("Failed to merge image entry for %s::%s::%s:" % (group_n, cloud_n, image.name))
@@ -565,7 +577,7 @@ def image_poller():
                                     abort_cycle = True
                                     break
                     except Exception as exc:
-                        logging.error("Error proccessing image_list for cloud %s" % unique_cloud_dict[cloud]['cloud_obj'].authurl)
+                        logging.error("Error proccessing image_list for cloud %s" % unique_cloud_dict[cloud]['cloud_obj']["authurl"])
                         logging.error(exc)
                         logging.error("Skipping cloud...")
                         continue
@@ -577,7 +589,7 @@ def image_poller():
 
                     if uncommitted_updates > 0:
                         try:        
-                            db_session.commit()
+                            config.db_commit()
                             logging.info("Image updates committed: %d" % uncommitted_updates)
                         except Exception as exc:
                             logging.exception("Failed to commit image updates for %s, aborting cycle..." % cloud_name)
@@ -586,36 +598,48 @@ def image_poller():
                             break
 
                 if abort_cycle:
-                    config.db_session.rollback()
                     time.sleep(config.categories["openstackPoller.py"]["sleep_interval_image"])
                     continue
-                db_session.commit()
+                config.db_commit()
                 # Expand failure dict for deletion schema (key needs to be grp+cloud)
-                cloud_list = db_session.query(CLOUD).filter(CLOUD.cloud_type == "openstack")
+                where_clause = "cloud_type='openstack'"
+                rc, msg, cloud_list = config.db_query(CLOUD, where=where_clause)
                 new_f_dict = {}
                 logging.debug("Proccessing failure, failure_dict: %s" % failure_dict)
                 for cloud in cloud_list:
-                    key = cloud.authurl + cloud.project + cloud.region
+                    key = cloud["authurl"] + cloud["project"] + cloud["region"]
                     if key in failure_dict:
-                        new_f_dict[cloud.group_name+cloud.cloud_name] = 1
-                        cloud_row = db_session.query(CLOUD).filter(CLOUD.group_name == cloud.group_name, CLOUD.cloud_name == cloud.cloud_name)[0]
-                        db_session.merge(cloud_row)
-                        db_session.commit()
+                        new_f_dict[cloud["group_name"]+cloud["cloud_name"]] = 1
+                        cld_update_dict = {
+                            "group_name": cloud["group_name"],
+                            "cloud_name": cloud["cloud_name"],
+                            "communication_up": 0
+                        }
+                        config.db_commit()
 
                 # Scan the OpenStack images in the database, removing each one that is not in the inventory.
                 logging.info("Doing deletes, omitting failures: %s" % new_f_dict)
-                delete_obsolete_database_items('Image', inventory, db_session, IMAGE, 'id', new_poll_time, failure_dict=new_f_dict, cloud_type="openstack")
+                # since the new inventory function doesn't accept a failfure dict we need to screen the rows ourself
+                where_clause="cloud_type='openstack'"
+                rc, msg, unfiltered_rows = config.db_query(IMAGE, where=where_clause)
+                rows = []
+                for row in unfiltered_rows:
+                    if row['group_name'] + row['cloud_name'] in failure_dict.keys():
+                        continue
+                    else:
+                        rows.append(row)
+                inventory_obsolete_database_items_delete(ikey_names, rows, inventory, new_poll_time, config, IMAGE)
 
 
                 if not os.path.exists(PID_FILE):
                     logging.info("Stop set, exiting...")
                     break
                 # Cleanup inventory, this function will clean up inventory entries for deleted clouds
-                group_clouds = config.db_connection.execute('select distinct group_name, cloud_name from csv2_clouds where cloud_type="openstack"')
-                cleanup_inventory(inventory, group_clouds)
+                inventory_cleanup(ikey_names, rows, inventory)
 
 
                 signal.signal(signal.SIGINT, config.signals['SIGINT'])
+                config.db_close()
 
                 try:
                     wait_cycle(cycle_start_time, poll_time_history, config.categories["openstackPoller.py"]["sleep_interval_image"], config)
@@ -625,6 +649,7 @@ def image_poller():
             except KeyboardInterrupt:
                 # sigint recieved, cancel the sleep and start the loop
                 logging.error("Recieved wake-up signal during regular execution, resetting and continuing")
+                config.db_close()
                 continue
 
 
@@ -640,23 +665,28 @@ def keypair_poller():
     db_category_list = [os.path.basename(sys.argv[0]), "general", "signal_manager", "ProcessMonitor"]
     config = Config('/etc/cloudscheduler/cloudscheduler.yaml', db_category_list, pool_size=3, signals=True)
     PID_FILE = config.categories["ProcessMonitor"]["pid_path"] + os.path.basename(sys.argv[0])
-    KEYPAIR = config.db_map.classes.cloud_keypairs
-    CLOUD = config.db_map.classes.csv2_clouds
+    KEYPAIR = "cloud_keypairs"
+    CLOUD = "csv2_clouds"
+    ikey_names = ["group_name", "cloud_name", "fingerprint", "key_name"]
 
     cycle_start_time = 0
     new_poll_time = 0
     poll_time_history = [0,0,0,0]
     failure_dict = {}
 
+    config.db_open()
     event_receiver_registration(config, "insert_csv2_clouds_openstack")
     event_receiver_registration(config, "update_csv2_clouds_openstack")
 
     try:
-        inventory = get_inventory_item_hash_from_database(config.db_engine, KEYPAIR, 'key_name', debug_hash=(config.categories["openstackPoller.py"]["log_level"]<20), cloud_type="openstack")
-        config.db_open()
+        where_clause = "cloud_type='openstack'"
+        rc, msg, rows = config.db_query(KEYPAIR, where=where_clause)
+        inventory = inventory_get_item_hash_from_db_query_rows(ikey_names, rows)
+        config.db_close()
         while True:
             try:    
                 logging.debug("Beginning keypair poller cycle")
+                config.db_open()
                 if not os.path.exists(PID_FILE):
                     logging.debug("Stop set, exiting...")
                     break
@@ -664,23 +694,23 @@ def keypair_poller():
                 signal.signal(signal.SIGINT, signal.SIG_IGN)
                 new_poll_time, cycle_start_time = start_cycle(new_poll_time, cycle_start_time)
                 config.refresh()
-                db_session = config.db_session
 
                 abort_cycle = False
-                cloud_list = db_session.query(CLOUD).filter(CLOUD.cloud_type == "openstack")
+                where_clause = "cloud_type='openstack'"
+                rc, msg, cloud_list = config.db_query(CLOUD, where=where_clause)
                 # build unique cloud list to only query a given cloud once per cycle
                 unique_cloud_dict = {}
                 for cloud in cloud_list:
-                    if cloud.authurl+cloud.project+cloud.region not in unique_cloud_dict:
-                        unique_cloud_dict[cloud.authurl+cloud.project+cloud.region] = {
+                    if cloud["authurl"]+cloud["project"]+cloud["region"] not in unique_cloud_dict:
+                        unique_cloud_dict[cloud["authurl"]+cloud["project"]+cloud["region"]] = {
                             'cloud_obj': cloud,
-                            'groups': [(cloud.group_name, cloud.cloud_name)]
+                            'groups': [(cloud["group_name"], cloud["cloud_name"])]
                         }
                     else:
-                        unique_cloud_dict[cloud.authurl+cloud.project+cloud.region]['groups'].append((cloud.group_name, cloud.cloud_name))
+                        unique_cloud_dict[cloud["authurl"]+cloud["project"]+cloud["region"]]['groups'].append((cloud["group_name"], cloud["cloud_name"]))
 
                 for cloud in unique_cloud_dict:
-                    cloud_name = unique_cloud_dict[cloud]['cloud_obj'].authurl
+                    cloud_name = unique_cloud_dict[cloud]['cloud_obj']["authurl"]
                     cloud_obj = unique_cloud_dict[cloud]['cloud_obj']
                     logging.debug("Processing Key pairs from group:cloud - %s" % cloud_name)
                     session = _get_openstack_session(unique_cloud_dict[cloud]['cloud_obj'])
@@ -689,17 +719,17 @@ def keypair_poller():
                         for cloud_tuple in unique_cloud_dict[cloud]['groups']:
                             grp_nm = cloud_tuple[0]
                             cld_nm = cloud_tuple[1]
-                            if cloud_obj.authurl + cloud_obj.project + cloud_obj.region not in failure_dict:
-                                failure_dict[cloud_obj.authurl + cloud_obj.project + cloud_obj.region] = 1
+                            if cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] not in failure_dict:
+                                failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"]] = 1
                             else:
-                                failure_dict[cloud_obj.authurl + cloud_obj.project + cloud_obj.region] = failure_dict[cloud_obj.authurl + cloud_obj.project + cloud_obj.region] + 1
-                            if failure_dict[cloud_obj.authurl + cloud_obj.project + cloud_obj.region] > 3: #should be configurable
+                                failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"]] = failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"]] + 1
+                            if failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"]] > 3: #should be configurable
                                 logging.error("Failure threshhold limit reached for %s, manual action required, reporting cloud error" % grp_nm+cld_nm)
                                 config.incr_cloud_error(grp_nm, cld_nm)
                         continue
 
                     # setup openstack api objects
-                    nova = _get_nova_client(session, region=unique_cloud_dict[cloud]['cloud_obj'].region)
+                    nova = _get_nova_client(session, region=unique_cloud_dict[cloud]['cloud_obj']["region"])
 
                     #setup fingerprint list
                     fingerprint_list = []
@@ -713,11 +743,11 @@ def keypair_poller():
                         for cloud_tuple in unique_cloud_dict[cloud]['groups']:
                             grp_nm = cloud_tuple[0]
                             cld_nm = cloud_tuple[1]
-                            if cloud_obj.authurl + cloud_obj.project + cloud_obj.region not in failure_dict:
-                                failure_dict[cloud_obj.authurl + cloud_obj.project + cloud_obj.region] = 1
+                            if cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] not in failure_dict:
+                                failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"]] = 1
                             else:
-                                failure_dict[cloud_obj.authurl + cloud_obj.project + cloud_obj.region] = failure_dict[cloud_obj.authurl + cloud_obj.project + cloud_obj.region] + 1
-                            if failure_dict[cloud_obj.authurl + cloud_obj.project + cloud_obj.region] > 3: #should be configurable
+                                failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"]] = failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"]] + 1
+                            if failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"]] > 3: #should be configurable
                                 logging.error("Failure threshhold limit reached for %s, manual action required, reporting cloud error" % grp_nm+cld_nm)
                                 config.incr_cloud_error(grp_nm, cld_nm)
                         continue
@@ -725,7 +755,7 @@ def keypair_poller():
                     for cloud_tuple in unique_cloud_dict[cloud]['groups']:
                         grp_nm = cloud_tuple[0]
                         cld_nm = cloud_tuple[1]
-                        failure_dict.pop(cloud_obj.authurl + cloud_obj.project + cloud_obj.region, None)
+                        failure_dict.pop(cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"], None)
                         config.reset_cloud_error(grp_nm, cld_nm)
 
                     uncommitted_updates = 0
@@ -743,12 +773,11 @@ def keypair_poller():
                             }
                             
 
-                            if test_and_set_inventory_item_hash(inventory, group_n, cloud_n, key.name, key_dict, new_poll_time, debug_hash=(config.categories["openstackPoller.py"]["log_level"]<20)):
+                            if inventory_test_and_set_item_hash(ikey_names, key_dict, inventory, new_poll_time, debug_hash=(config.categories["openstackPoller.py"]["log_level"] < 20)):
                                 continue
 
-                            new_key = KEYPAIR(**key_dict)
                             try:
-                                db_session.merge(new_key)
+                                config.db_merge(KEYPAIR, key_dict)
                                 uncommitted_updates += 1
                             except Exception as exc:
                                 logging.exception("Failed to merge keypair entry for %s::%s, aborting cycle..." % (cloud_n, key.name))
@@ -762,7 +791,7 @@ def keypair_poller():
 
                     if uncommitted_updates > 0:
                         try:
-                            db_session.commit()
+                            config.db_commit()
                             logging.info("Keypair updates committed: %d" % uncommitted_updates)
                         except Exception as exc:
                             logging.error("Failed to commit new keypairs for %s, aborting cycle..."  % cloud_name)
@@ -771,33 +800,41 @@ def keypair_poller():
                             break
 
                 if abort_cycle:
-                    config.db_session.rollback()
                     time.sleep(config.categories["openstackPoller.py"]["sleep_interval_keypair"])
                     continue
                 
                 # Expand failure dict for deletion schema (key needs to be grp+cloud)
-                cloud_list = db_session.query(CLOUD).filter(CLOUD.cloud_type == "openstack")
+                where_clause = "cloud_type='openstack'"
+                rc, msg, cloud_list = config.db_query(CLOUD, where=where_clause)
                 new_f_dict = {}
                 for cloud in cloud_list:
-                    key = cloud.authurl + cloud.project + cloud.region
+                    key = cloud["authurl"] + cloud["project"] + cloud["region"]
                     if key in failure_dict:
-                        new_f_dict[cloud.group_name+cloud.cloud_name] = 1
+                        new_f_dict[cloud["group_name"]+cloud["cloud_name"]] = 1
 
 
-                # Scan the OpenStack keypairs in the database, removing each one that was not updated in the inventory.
-                delete_obsolete_database_items('Keypair', inventory, db_session, KEYPAIR, 'key_name', poll_time=new_poll_time, failure_dict=new_f_dict, cloud_type="openstack")
+                # since the new inventory function doesn't accept a failfure dict we need to screen the rows ourself
+                where_clause="cloud_type='openstack'"
+                rc, msg, unfiltered_rows = config.db_query(KEYPAIR, where=where_clause)
+                rows = []
+                for row in unfiltered_rows:
+                    if row['group_name'] + row['cloud_name'] in failure_dict.keys():
+                        continue
+                    else:
+                        rows.append(row)
+                inventory_obsolete_database_items_delete(ikey_names, rows, inventory, new_poll_time, config, KEYPAIR)
 
-                config.db_session.rollback()
+                config.db_rollback()
 
                 if not os.path.exists(PID_FILE):
                     logging.info("Stop set, exiting...")
                     break
                 # Cleanup inventory, this function will clean up inventory entries for deleted clouds
-                group_clouds = config.db_connection.execute('select distinct group_name, cloud_name from csv2_clouds where cloud_type="openstack"')
-                cleanup_inventory(inventory, group_clouds)
+                inventory_cleanup(ikey_names, rows, inventory)
 
 
                 signal.signal(signal.SIGINT, config.signals['SIGINT'])
+                config.db_close()
 
                 try:
                     wait_cycle(cycle_start_time, poll_time_history, config.categories["openstackPoller.py"]["sleep_interval_keypair"], config)
@@ -807,6 +844,7 @@ def keypair_poller():
             except KeyboardInterrupt:
                 # sigint recieved, cancel the sleep and start the loop
                 logging.error("Recieved wake-up signal during regular execution, resetting and continuing")
+                config.db_close()
                 continue
 
     except Exception as exc:
@@ -820,23 +858,28 @@ def limit_poller():
     db_category_list = [os.path.basename(sys.argv[0]), "general", "signal_manager", "ProcessMonitor"]
     config = Config('/etc/cloudscheduler/cloudscheduler.yaml', db_category_list, pool_size=3, signals=True)
     PID_FILE = config.categories["ProcessMonitor"]["pid_path"] + os.path.basename(sys.argv[0])
-    LIMIT = config.db_map.classes.cloud_limits
-    CLOUD = config.db_map.classes.csv2_clouds
+    LIMIT = "cloud_limits"
+    CLOUD = "csv2_clouds"
+    ikey_names = ["group_name", "cloud_name"]
 
     cycle_start_time = 0
     new_poll_time = 0
     poll_time_history = [0,0,0,0]
     failure_dict = {}
 
+    config.db_open()
     event_receiver_registration(config, "insert_csv2_clouds_openstack")
     event_receiver_registration(config, "update_csv2_clouds_openstack")
 
     try:
-        inventory = get_inventory_item_hash_from_database(config.db_engine, LIMIT, '-', debug_hash=(config.categories["openstackPoller.py"]["log_level"]<20), cloud_type="openstack")
-        config.db_open()
+        where_clause = "cloud_type='openstack'"
+        rc, msg, rows = config.db_query(LIMIT, where=where_clause)
+        inventory = inventory_get_item_hash_from_db_query_rows(ikey_names, rows)
+        config.db_close()
         while True:
             try:
                 logging.debug("Beginning limit poller cycle")
+                config.db_open()
                 if not os.path.exists(PID_FILE):
                     logging.debug("Stop set, exiting...")
                     break
@@ -844,25 +887,25 @@ def limit_poller():
                 signal.signal(signal.SIGINT, signal.SIG_IGN)
                 new_poll_time, cycle_start_time = start_cycle(new_poll_time, cycle_start_time)
                 config.refresh()
-                db_session = config.db_session
 
                 abort_cycle = False
-                cloud_list = db_session.query(CLOUD).filter(CLOUD.cloud_type == "openstack")
+                where_clause = "cloud_type='openstack'"
+                rc, msg, cloud_list = config.db_query(CLOUD, where=where_clause)
                 uncommitted_updates = 0
 
                 # build unique cloud list to only query a given cloud once per cycle
                 unique_cloud_dict = {}
                 for cloud in cloud_list:
-                    if cloud.authurl+cloud.project+cloud.region not in unique_cloud_dict:
-                        unique_cloud_dict[cloud.authurl+cloud.project+cloud.region] = {
+                    if cloud["authurl"]+cloud["project"]+cloud["region"] not in unique_cloud_dict:
+                        unique_cloud_dict[cloud["authurl"]+cloud["project"]+cloud["region"]] = {
                             'cloud_obj': cloud,
-                            'groups': [(cloud.group_name, cloud.cloud_name)]
+                            'groups': [(cloud["group_name"], cloud["cloud_name"])]
                         }
                     else:
-                        unique_cloud_dict[cloud.authurl+cloud.project+cloud.region]['groups'].append((cloud.group_name, cloud.cloud_name))
+                        unique_cloud_dict[cloud["authurl"]+cloud["project"]+cloud["region"]]['groups'].append((cloud["group_name"], cloud["cloud_name"]))
 
                 for cloud in unique_cloud_dict:
-                    cloud_name = unique_cloud_dict[cloud]['cloud_obj'].authurl
+                    cloud_name = unique_cloud_dict[cloud]['cloud_obj']["authurl"]
                     cloud_obj = unique_cloud_dict[cloud]['cloud_obj']
                     logging.debug("Processing limits from cloud - %s" % cloud_name)
                     session = _get_openstack_session(unique_cloud_dict[cloud]['cloud_obj'])
@@ -871,34 +914,34 @@ def limit_poller():
                         for cloud_tuple in unique_cloud_dict[cloud]['groups']:
                             grp_nm = cloud_tuple[0]
                             cld_nm = cloud_tuple[1]
-                            if cloud_obj.authurl + cloud_obj.project + cloud_obj.region not in failure_dict:
-                                failure_dict[cloud_obj.authurl + cloud_obj.project + cloud_obj.region] = 1
+                            if cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] not in failure_dict:
+                                failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"]] = 1
                             else:
-                                failure_dict[cloud_obj.authurl + cloud_obj.project + cloud_obj.region] = failure_dict[cloud_obj.authurl + cloud_obj.project + cloud_obj.region] + 1
-                            if failure_dict[cloud_obj.authurl + cloud_obj.project + cloud_obj.region] > 3: #should be configurable
+                                failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"]] = failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"]] + 1
+                            if failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"]] > 3: #should be configurable
                                 logging.error("Failure threshhold limit reached for %s, manual action required, reporting cloud error" % grp_nm+cld_nm)
                                 config.incr_cloud_error(grp_nm, cld_nm)
                         continue
 
                     # Retrieve limit list for the current cloud.
-                    nova = _get_nova_client(session, region=unique_cloud_dict[cloud]['cloud_obj'].region)
+                    nova = _get_nova_client(session, region=unique_cloud_dict[cloud]['cloud_obj']["region"])
 
                     shared_limits_dict = {}
                     try:
                         limit_list = nova.limits.get().absolute
                         for limit in limit_list:
-                            shared_limits_dict[limit.name] = [limit.value]
+                            shared_limits_dict[limit.name] = limit.value
                     except Exception as exc:
                         logging.error("Failed to retrieve limits from nova, skipping %s" %  cloud_name)
                         logging.error(exc)
                         for cloud_tuple in unique_cloud_dict[cloud]['groups']:
                             grp_nm = cloud_tuple[0]
                             cld_nm = cloud_tuple[1]
-                            if cloud_obj.authurl + cloud_obj.project + cloud_obj.region not in failure_dict:
-                                failure_dict[cloud_obj.authurl + cloud_obj.project + cloud_obj.region] = 1
+                            if cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] not in failure_dict:
+                                failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"]] = 1
                             else:
-                                failure_dict[cloud_obj.authurl + cloud_obj.project + cloud_obj.region] = failure_dict[cloud_obj.authurl + cloud_obj.project + cloud_obj.region] + 1
-                            if failure_dict[cloud_obj.authurl + cloud_obj.project + cloud_obj.region] > 3: #should be configurable
+                                failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"]] = failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"]] + 1
+                            if failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"]] > 3: #should be configurable
                                 logging.error("Failure threshhold limit reached for %s, manual action required, reporting cloud error" % grp_nm+cld_nm)
                                 config.incr_cloud_error(grp_nm, cld_nm)
                         continue
@@ -910,7 +953,7 @@ def limit_poller():
                     for cloud_tuple in unique_cloud_dict[cloud]['groups']:
                         grp_nm = cloud_tuple[0]
                         cld_nm = cloud_tuple[1]
-                        failure_dict.pop(cloud_obj.authurl + cloud_obj.project + cloud_obj.region, None)
+                        failure_dict.pop(cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"], None)
                         config.reset_cloud_error(grp_nm, cld_nm)
 
                     # Process limit list for the current cloud.
@@ -922,12 +965,12 @@ def limit_poller():
                         limits_dict['group_name'] = group_n
                         limits_dict['cloud_name'] = cloud_n
                         limits_dict['last_updated'] = int(time.time())
-                        limits_dict, unmapped = map_attributes(src="os_limits", dest="csv2", attr_dict=limits_dict)
+                        limits_dict, unmapped = map_attributes(src="os_limits", dest="csv2", attr_dict=limits_dict, config=config)
                         if unmapped:
                             logging.error("Unmapped attributes found during mapping, discarding:")
                             logging.error(unmapped)
 
-                        if test_and_set_inventory_item_hash(inventory, group_n, cloud_n, '-', limits_dict, new_poll_time, debug_hash=(config.categories["openstackPoller.py"]["log_level"]<20)):
+                        if inventory_test_and_set_item_hash(ikey_names, limits_dict, inventory, new_poll_time, debug_hash=(config.categories["openstackPoller.py"]["log_level"] < 20)):
                             continue
 
                         for limit in limits_dict:
@@ -935,9 +978,10 @@ def limit_poller():
                                 limits_dict[limit] = config.categories["openstackPoller.py"]["no_limit_default"]
                         limits_dict["cloud_type"] = "openstack"
 
-                        new_limits = LIMIT(**limits_dict)
                         try:
-                            db_session.merge(new_limits)
+                            logging.info("Updating grp:cld - %s:%s" % (group_n, cloud_n))
+                            logging.info(limits_dict)
+                            config.db_merge(LIMIT, limits_dict)
                             uncommitted_updates += 1
                         except Exception as exc:
                             logging.exception("Failed to merge limits for %s::%s, aborting cycle..." % (group_n, cloud_n))
@@ -947,13 +991,12 @@ def limit_poller():
 
                     del nova
                     if abort_cycle:
-                        config.db_session.rollback()
                         time.sleep(config.categories["openstackPoller.py"]["sleep_interval_limit"])
                         continue
 
                     if uncommitted_updates > 0:
                         try:
-                            db_session.commit()
+                            config.db_commit()
                             logging.info("Limit updates committed: %d" % uncommitted_updates)
                         except Exception as exc:
                             logging.error("Failed to commit new limits for %s, aborting cycle..."  % cloud_name)
@@ -961,26 +1004,33 @@ def limit_poller():
                             abort_cycle = True
                             break
                 # Expand failure dict for deletion schema (key needs to be grp+cloud)
-                cloud_list = db_session.query(CLOUD).filter(CLOUD.cloud_type == "openstack")
+                where_clause = "cloud_type='openstack'"
+                rc, msg, cloud_list = config.db_query(CLOUD, where=where_clause)
                 new_f_dict = {}
                 for cloud in cloud_list:
-                    key = cloud.authurl + cloud.project + cloud.region
+                    key = cloud["authurl"] + cloud["project"] + cloud["region"]
                     if key in failure_dict:
-                        new_f_dict[cloud.group_name+cloud.cloud_name] = 1
+                        new_f_dict[cloud["group_name"]+cloud["cloud_name"]] = 1
 
+                # since the new inventory function doesn't accept a failfure dict we need to screen the rows ourself
+                where_clause="cloud_type='openstack'"
+                rc, msg, unfiltered_rows = config.db_query(LIMIT, where=where_clause)
+                rows = []
+                for row in unfiltered_rows:
+                    if row['group_name'] + row['cloud_name'] in failure_dict.keys():
+                        continue
+                    else:
+                        rows.append(row)
+                inventory_obsolete_database_items_delete(ikey_names, rows, inventory, new_poll_time, config, LIMIT)
 
-                # Scan the OpenStack flavors in the database, removing each one that was` not iupdated in the inventory.
-                delete_obsolete_database_items('Limit', inventory, db_session, LIMIT, '-', poll_time=new_poll_time, failure_dict=new_f_dict, cloud_type="openstack")
-
-                config.db_session.rollback()
                 # Cleanup inventory, this function will clean up inventory entries for deleted clouds
-                group_clouds = config.db_connection.execute('select distinct group_name, cloud_name from csv2_clouds where cloud_type="openstack"')
-                cleanup_inventory(inventory, group_clouds)
+                inventory_cleanup(ikey_names, rows, inventory)
 
                 if not os.path.exists(PID_FILE):
                     logging.info("Stop set, exiting...")
                     break
                 signal.signal(signal.SIGINT, config.signals['SIGINT'])
+                config.db_close()
  
                 try:
                     wait_cycle(cycle_start_time, poll_time_history, config.categories["openstackPoller.py"]["sleep_interval_limit"], config)
@@ -990,6 +1040,7 @@ def limit_poller():
             except KeyboardInterrupt:
                 # sigint recieved, cancel the sleep and start the loop
                 logging.error("Recieved wake-up signal during regular execution, resetting and continuing")
+                config.db_close()
                 continue
 
     except Exception as exc:
@@ -1003,23 +1054,28 @@ def network_poller():
     db_category_list = [os.path.basename(sys.argv[0]), "general", "signal_manager", "ProcessMonitor"]
     config = Config('/etc/cloudscheduler/cloudscheduler.yaml', db_category_list, pool_size=3, signals=True)
     PID_FILE = config.categories["ProcessMonitor"]["pid_path"] + os.path.basename(sys.argv[0])
-    NETWORK = config.db_map.classes.cloud_networks
-    CLOUD = config.db_map.classes.csv2_clouds
+    NETWORK = "cloud_networks"
+    CLOUD = "csv2_clouds"
+    ikey_names = ["group_name", "cloud_name", "id"]
 
     cycle_start_time = 0
     new_poll_time = 0
     poll_time_history = [0,0,0,0]
     failure_dict = {}
 
+    config.db_open()
     event_receiver_registration(config, "insert_csv2_clouds_openstack")
     event_receiver_registration(config, "update_csv2_clouds_openstack")
 
     try:
-        inventory = get_inventory_item_hash_from_database(config.db_engine, NETWORK, 'name', debug_hash=(config.categories["openstackPoller.py"]["log_level"]<20), cloud_type="openstack")
-        config.db_open()
+        where_clause = "cloud_type='openstack'"
+        rc, msg, rows = config.db_query(NETWORK, where=where_clause)
+        inventory = inventory_get_item_hash_from_db_query_rows(ikey_names, rows)
+        config.db_close()
         while True:
             try:
                 logging.debug("Beginning network poller cycle")
+                config.db_open()
                 if not os.path.exists(PID_FILE):
                     logging.debug("Stop set, exiting...")
                     break
@@ -1028,24 +1084,24 @@ def network_poller():
 
                 new_poll_time, cycle_start_time = start_cycle(new_poll_time, cycle_start_time)
                 config.refresh()
-                db_session = config.db_session
 
                 abort_cycle = False
-                cloud_list = db_session.query(CLOUD).filter(CLOUD.cloud_type == "openstack")
+                where_clause = "cloud_type='openstack'"
+                rc, msg, cloud_list = config.db_query(CLOUD, where=where_clause)
 
                 # build unique cloud list to only query a given cloud once per cycle
                 unique_cloud_dict = {}
                 for cloud in cloud_list:
-                    if cloud.authurl+cloud.project+cloud.region not in unique_cloud_dict:
-                        unique_cloud_dict[cloud.authurl+cloud.project+cloud.region] = {
+                    if cloud["authurl"]+cloud["project"]+cloud["region"] not in unique_cloud_dict:
+                        unique_cloud_dict[cloud["authurl"]+cloud["project"]+cloud["region"]] = {
                             'cloud_obj': cloud,
-                            'groups': [(cloud.group_name, cloud.cloud_name)]
+                            'groups': [(cloud["group_name"], cloud["cloud_name"])]
                         }
                     else:
-                        unique_cloud_dict[cloud.authurl+cloud.project+cloud.region]['groups'].append((cloud.group_name, cloud.cloud_name))
+                        unique_cloud_dict[cloud["authurl"]+cloud["project"]+cloud["region"]]['groups'].append((cloud["group_name"], cloud["cloud_name"]))
 
                 for cloud in unique_cloud_dict:
-                    cloud_name = unique_cloud_dict[cloud]['cloud_obj'].authurl
+                    cloud_name = unique_cloud_dict[cloud]['cloud_obj']["authurl"]
                     cloud_obj = unique_cloud_dict[cloud]['cloud_obj']
                     logging.debug("Processing networks from cloud - %s" % cloud_name)
                     session = _get_openstack_session(unique_cloud_dict[cloud]['cloud_obj'])
@@ -1054,17 +1110,17 @@ def network_poller():
                         for cloud_tuple in unique_cloud_dict[cloud]['groups']:
                             grp_nm = cloud_tuple[0]
                             cld_nm = cloud_tuple[1]
-                            if cloud_obj.authurl + cloud_obj.project + cloud_obj.region not in failure_dict:
-                                failure_dict[cloud_obj.authurl + cloud_obj.project + cloud_obj.region] = 1
+                            if cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] not in failure_dict:
+                                failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"]] = 1
                             else:
-                                failure_dict[cloud_obj.authurl + cloud_obj.project + cloud_obj.region] = failure_dict[cloud_obj.authurl + cloud_obj.project + cloud_obj.region] + 1
-                            if failure_dict[cloud_obj.authurl + cloud_obj.project + cloud_obj.region] > 3: #should be configurable
+                                failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"]] = failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"]] + 1
+                            if failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"]] > 3: #should be configurable
                                 logging.error("Failure threshhold limit reached for %s, manual action required, reporting cloud error" % grp_nm+cld_nm)
                                 config.incr_cloud_error(grp_nm, cld_nm)
                         continue
 
                     # Retrieve network list.
-                    neutron = _get_neutron_client(session, region=unique_cloud_dict[cloud]['cloud_obj'].region)
+                    neutron = _get_neutron_client(session, region=unique_cloud_dict[cloud]['cloud_obj']["region"])
                     try:
                         net_list = neutron.list_networks()['networks']
                     except Exception as exc:
@@ -1073,11 +1129,11 @@ def network_poller():
                         for cloud_tuple in unique_cloud_dict[cloud]['groups']:
                             grp_nm = cloud_tuple[0]
                             cld_nm = cloud_tuple[1]
-                            if cloud_obj.authurl + cloud_obj.project + cloud_obj.region not in failure_dict:
-                                failure_dict[cloud_obj.authurl + cloud_obj.project + cloud_obj.region] = 1
+                            if cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] not in failure_dict:
+                                failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"]] = 1
                             else:
-                                failure_dict[cloud_obj.authurl + cloud_obj.project + cloud_obj.region] = failure_dict[cloud_obj.authurl + cloud_obj.project + cloud_obj.region] + 1
-                            if failure_dict[cloud_obj.authurl + cloud_obj.project + cloud_obj.region] > 3: #should be configurable
+                                failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"]] = failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"]] + 1
+                            if failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"]] > 3: #should be configurable
                                 logging.error("Failure threshhold limit reached for %s, manual action required, reporting cloud error" % grp_nm+cld_nm)
                                 config.incr_cloud_error(grp_nm, cld_nm)
                         continue
@@ -1089,7 +1145,7 @@ def network_poller():
                     for cloud_tuple in unique_cloud_dict[cloud]['groups']:
                         grp_nm = cloud_tuple[0]
                         cld_nm = cloud_tuple[1]
-                        failure_dict.pop(cloud_obj.authurl + cloud_obj.project + cloud_obj.region, None)
+                        failure_dict.pop(cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"], None)
                         config.reset_cloud_error(grp_nm, cld_nm)
 
                     uncommitted_updates = 0
@@ -1110,17 +1166,16 @@ def network_poller():
                                 'last_updated': int(time.time())
                             }
 
-                            network_dict, unmapped = map_attributes(src="os_networks", dest="csv2", attr_dict=network_dict)
+                            network_dict, unmapped = map_attributes(src="os_networks", dest="csv2", attr_dict=network_dict, config=config)
                             if unmapped:
                                 logging.error("Unmapped attributes found during mapping, discarding:")
                                 logging.error(unmapped)
 
-                            if test_and_set_inventory_item_hash(inventory, group_n, cloud_n, network['name'], network_dict, new_poll_time, debug_hash=(config.categories["openstackPoller.py"]["log_level"]<20)):
+                            if inventory_test_and_set_item_hash(ikey_names, network_dict, inventory, new_poll_time, debug_hash=(config.categories["openstackPoller.py"]["log_level"] < 20)):
                                 continue
 
-                            new_network = NETWORK(**network_dict)
                             try:
-                                db_session.merge(new_network)
+                                config.db_merge(NETWORK, network_dict)
                                 uncommitted_updates += 1
                             except Exception as exc:
                                 logging.exception("Failed to merge network entry for %s::%s::%s, aborting cycle..." % (group_n, cloud_n, network['name']))
@@ -1134,7 +1189,7 @@ def network_poller():
 
                     if uncommitted_updates > 0:
                         try:
-                            db_session.commit()
+                            config.db_commit()
                             logging.info("Network updates committed: %d" % uncommitted_updates)
                         except Exception as exc:
                             logging.error("Failed to commit new networks for %s, aborting cycle..." %  cloud_name)
@@ -1143,32 +1198,39 @@ def network_poller():
                             break
 
                 if abort_cycle:
-                    config.db_session.rollback()
+                    config.db_rollback()
                     time.sleep(config.categories["openstackPoller.py"]["sleep_interval_network"])
                     continue
                 # Expand failure dict for deletion schema (key needs to be grp+cloud)
-                cloud_list = db_session.query(CLOUD).filter(CLOUD.cloud_type == "openstack")
+                where_clause = "cloud_type='openstack'"
+                rc, msg, cloud_list = config.db_query(CLOUD, where=where_clause)
                 new_f_dict = {}
                 for cloud in cloud_list:
-                    key = cloud.authurl + cloud.project + cloud.region
+                    key = cloud["authurl"] + cloud["project"] + cloud["region"]
                     if key in failure_dict:
-                        new_f_dict[cloud.group_name+cloud.cloud_name] = 1
+                        new_f_dict[cloud["group_name"]+cloud["cloud_name"]] = 1
 
+                # since the new inventory function doesn't accept a failfure dict we need to screen the rows ourself
+                where_clause="cloud_type='openstack'"
+                rc, msg, unfiltered_rows = config.db_query(NETWORK, where=where_clause)
+                rows = []
+                for row in unfiltered_rows:
+                    if row['group_name'] + row['cloud_name'] in failure_dict.keys():
+                        continue
+                    else:
+                        rows.append(row)
+                inventory_obsolete_database_items_delete(ikey_names, rows, inventory, new_poll_time, config, NETWORK)
 
-                # Scan the OpenStack networks in the database, removing each one that was not updated in the inventory.
-                delete_obsolete_database_items('Network', inventory, db_session, NETWORK, 'name', poll_time=new_poll_time, failure_dict=new_f_dict, cloud_type="openstack")
-
-                config.db_session.rollback()
 
                 if not os.path.exists(PID_FILE):
                     logging.info("Stop set, exiting...")
                     break
 
                 # Cleanup inventory, this function will clean up inventory entries for deleted clouds
-                group_clouds = config.db_connection.execute('select distinct group_name, cloud_name from csv2_clouds where cloud_type="openstack"')
-                cleanup_inventory(inventory, group_clouds)
+                inventory_cleanup(ikey_names, rows, inventory)
 
                 signal.signal(signal.SIGINT, config.signals['SIGINT'])
+                config.db_close()
 
                 try:
                     wait_cycle(cycle_start_time, poll_time_history, config.categories["openstackPoller.py"]["sleep_interval_network"], config)
@@ -1178,6 +1240,7 @@ def network_poller():
             except KeyboardInterrupt:
                     # sigint recieved, cancel the sleep and start the loop
                     logging.error("Recieved wake-up signal during regular execution, resetting and continuing")
+                    config.db_close()
                     continue
 
     except Exception as exc:
@@ -1193,8 +1256,9 @@ def security_group_poller():
     config = Config('/etc/cloudscheduler/cloudscheduler.yaml', db_category_list, pool_size=3, signals=True)
     PID_FILE = config.categories["ProcessMonitor"]["pid_path"] + os.path.basename(sys.argv[0])
 
-    SECURITY_GROUP = config.db_map.classes.cloud_security_groups
-    CLOUD = config.db_map.classes.csv2_clouds
+    SECURITY_GROUP = "cloud_security_groups"
+    CLOUD = "csv2_clouds"
+    ikey_names = ["group_name", "cloud_name", "id"]
 
     cycle_start_time = 0
     new_poll_time = 0
@@ -1202,15 +1266,19 @@ def security_group_poller():
     failure_dict = {}
     my_pid = os.getpid()
 
+    config.db_open()
     event_receiver_registration(config, "insert_csv2_clouds_openstack")
     event_receiver_registration(config, "update_csv2_clouds_openstack")
 
     try:
-        inventory = get_inventory_item_hash_from_database(config.db_engine, SECURITY_GROUP, 'id', debug_hash=(config.categories["openstackPoller.py"]["log_level"]<20), cloud_type="openstack")
-        config.db_open()
+        where_clause = "cloud_type='openstack'"
+        rc, msg, rows = config.db_query(SECURITY_GROUP, where=where_clause)
+        inventory = inventory_get_item_hash_from_db_query_rows(ikey_names, rows)
+        config.db_close()
         while True:
             try:
                 logging.debug("Beginning security group poller cycle")
+                config.db_open()
                 if not os.path.exists(PID_FILE):
                     logging.debug("Stop set, exiting...")
                     break
@@ -1218,25 +1286,25 @@ def security_group_poller():
                 signal.signal(signal.SIGINT, signal.SIG_IGN)
                 new_poll_time, cycle_start_time = start_cycle(new_poll_time, cycle_start_time)
                 config.refresh()
-                db_session = config.db_session
 
                 abort_cycle = False
-                cloud_list = db_session.query(CLOUD).filter(CLOUD.cloud_type == "openstack")
+                where_clause = "cloud_type='openstack'"
+                rc, msg, cloud_list = config.db_query(CLOUD, where=where_clause)
 
                 # build unique cloud list to only query a given cloud once per cycle
                 unique_cloud_dict = {}
                 for cloud in cloud_list:
-                    if cloud.authurl+cloud.project+cloud.region not in unique_cloud_dict:
-                        unique_cloud_dict[cloud.authurl+cloud.project+cloud.region] = {
+                    if cloud["authurl"]+cloud["project"]+cloud["region"] not in unique_cloud_dict:
+                        unique_cloud_dict[cloud["authurl"]+cloud["project"]+cloud["region"]] = {
                             'cloud_obj': cloud,
-                            'groups': [(cloud.group_name, cloud.cloud_name)]
+                            'groups': [(cloud["group_name"], cloud["cloud_name"])]
                         }
                     else:
-                        unique_cloud_dict[cloud.authurl+cloud.project+cloud.region]['groups'].append((cloud.group_name, cloud.cloud_name))
+                        unique_cloud_dict[cloud["authurl"]+cloud["project"]+cloud["region"]]['groups'].append((cloud["group_name"], cloud["cloud_name"]))
 
 
                 for cloud in unique_cloud_dict:
-                    cloud_name = unique_cloud_dict[cloud]['cloud_obj'].authurl
+                    cloud_name = unique_cloud_dict[cloud]['cloud_obj']["authurl"]
                     cloud_obj = unique_cloud_dict[cloud]['cloud_obj']
                     logging.debug("Processing security groups from cloud - %s" % cloud_name)
                     session = _get_openstack_session(unique_cloud_dict[cloud]['cloud_obj'])
@@ -1245,17 +1313,17 @@ def security_group_poller():
                         for cloud_tuple in unique_cloud_dict[cloud]['groups']:
                             grp_nm = cloud_tuple[0]
                             cld_nm = cloud_tuple[1]
-                            if cloud_obj.authurl + cloud_obj.project + cloud_obj.region not in failure_dict:
-                                failure_dict[cloud_obj.authurl + cloud_obj.project + cloud_obj.region] = 1
+                            if cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] not in failure_dict:
+                                failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"]] = 1
                             else:
-                                failure_dict[cloud_obj.authurl + cloud_obj.project + cloud_obj.region] = failure_dict[cloud_obj.authurl + cloud_obj.project + cloud_obj.region] + 1
-                            if failure_dict[cloud_obj.authurl + cloud_obj.project + cloud_obj.region] > 3: #should be configurable
+                                failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"]] = failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"]] + 1
+                            if failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"]] > 3: #should be configurable
                                 logging.error("Failure threshhold limit reached for %s, manual action required, reporting cloud error" % grp_nm+cld_nm)
                                 config.incr_cloud_error(grp_nm, cld_nm)
                             continue
 
                     # setup OpenStack api objects
-                    neu = _get_neutron_client(session, region=unique_cloud_dict[cloud]['cloud_obj'].region)
+                    neu = _get_neutron_client(session, region=unique_cloud_dict[cloud]['cloud_obj']["region"])
 
                     # Retrieve all flavours for this cloud.
                     try:
@@ -1266,11 +1334,11 @@ def security_group_poller():
                         for cloud_tuple in unique_cloud_dict[cloud]['groups']:
                             grp_nm = cloud_tuple[0]
                             cld_nm = cloud_tuple[1]
-                            if cloud_obj.authurl + cloud_obj.project + cloud_obj.region not in failure_dict:
-                                failure_dict[cloud_obj.authurl + cloud_obj.project + cloud_obj.region] = 1
+                            if cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] not in failure_dict:
+                                failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"]] = 1
                             else:
-                                failure_dict[cloud_obj.authurl + cloud_obj.project + cloud_obj.region] = failure_dict[cloud_obj.authurl + cloud_obj.project + cloud_obj.region] + 1
-                            if failure_dict[cloud_obj.authurl + cloud_obj.project + cloud_obj.region] > 3: #should be configurable
+                                failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"]] = failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"]] + 1
+                            if failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"]] > 3: #should be configurable
                                 logging.error("Failure threshhold limit reached for %s, manual action required, reporting cloud error" % grp_nm+cld_nm)
                                 config.incr_cloud_error(grp_nm, cld_nm)
                         continue
@@ -1282,7 +1350,7 @@ def security_group_poller():
                     for cloud_tuple in unique_cloud_dict[cloud]['groups']:
                         grp_nm = cloud_tuple[0]
                         cld_nm = cloud_tuple[1]
-                        failure_dict.pop(cloud_obj.authurl + cloud_obj.project + cloud_obj.region, None)
+                        failure_dict.pop(cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"], None)
                         config.reset_cloud_error(grp_nm, cld_nm)
 
                     # Process security groups for this cloud.
@@ -1301,17 +1369,16 @@ def security_group_poller():
                                 'last_updated': new_poll_time
                                 }
 
-                            flav_dict, unmapped = map_attributes(src="os_sec_grps", dest="csv2", attr_dict=sec_grp_dict)
+                            flav_dict, unmapped = map_attributes(src="os_sec_grps", dest="csv2", attr_dict=sec_grp_dict, config=config)
                             if unmapped:
                                 logging.error("Unmapped attributes found during mapping, discarding:")
                                 logging.error(unmapped)
 
-                            if test_and_set_inventory_item_hash(inventory, group_n, cloud_n, sec_grp["id"], sec_grp_dict, new_poll_time, debug_hash=(config.categories["openstackPoller.py"]["log_level"]<20)):
+                            if inventory_test_and_set_item_hash(ikey_names, sec_grp_dict, inventory, new_poll_time, debug_hash=(config.categories["openstackPoller.py"]["log_level"] < 20)):
                                 continue
 
-                            new_sec_grp = SECURITY_GROUP(**sec_grp_dict)
                             try:
-                                db_session.merge(new_sec_grp)
+                                config.db_merge(SECURITY_GROUP, sec_grp_dict)
                                 uncommitted_updates += 1
                             except Exception as exc:
                                 logging.exception("Failed to merge security group entry for %s::%s::%s, aborting cycle..." % (group_n, cloud_n, sec_grp.name))
@@ -1325,7 +1392,7 @@ def security_group_poller():
 
                     if uncommitted_updates > 0:
                         try:        
-                            db_session.commit()
+                            config.db_commit()
                             logging.info("Security group updates committed: %d" % uncommitted_updates)
                         except Exception as exc:
                             logging.exception("Failed to commit security group updates for %s, aborting cycle..." % cloud_name)
@@ -1334,31 +1401,40 @@ def security_group_poller():
                             break
 
                 if abort_cycle:
-                    db_session.close()
+                    config.db_close()
                     time.sleep(config.categories["openstackPoller.py"]["sleep_interval_sec_grp"])
                     continue
                 # Expand failure dict for deletion schema (key needs to be grp+cloud)
-                cloud_list = db_session.query(CLOUD).filter(CLOUD.cloud_type == "openstack")
+                where_clause = "cloud_type='openstack'"
+                rc, qmsg, cloud_list = config.db_query(CLOUD, where=where_clause)
                 new_f_dict = {}
                 for cloud in cloud_list:
-                    key = cloud.authurl + cloud.project + cloud.region
+                    key = cloud["authurl"] + cloud["project"] + cloud["region"]
                     if key in failure_dict:
-                        new_f_dict[cloud.group_name+cloud.cloud_name] = 1
+                        new_f_dict[cloud["group_name"]+cloud["cloud_name"]] = 1
 
-                # Scan the OpenStack sec_grps in the database, removing each one that was not iupdated in the inventory.
-                delete_obsolete_database_items('sec_grp', inventory, db_session, SECURITY_GROUP, 'id', poll_time=new_poll_time, failure_dict=failure_dict, cloud_type="openstack")
+                # since the new inventory function doesn't accept a failfure dict we need to screen the rows ourself
+                where_clause="cloud_type='openstack'"
+                rc, msg, unfiltered_rows = config.db_query(SECURITY_GROUP, where=where_clause)
+                rows = []
+                for row in unfiltered_rows:
+                    if row['group_name'] + row['cloud_name'] in failure_dict.keys():
+                        continue
+                    else:
+                        rows.append(row)
+                inventory_obsolete_database_items_delete(ikey_names, rows, inventory, new_poll_time, config, SECURITY_GROUP)
 
-                config.db_session.rollback()
 
                 if not os.path.exists(PID_FILE):
                     logging.info("Stop set, exiting...")
+                    config.db_close()
                     break
                 # Cleanup inventory, this function will clean up inventory entries for deleted clouds
-                group_clouds = config.db_connection.execute('select distinct group_name, cloud_name from csv2_clouds where cloud_type="openstack"')
-                cleanup_inventory(inventory, group_clouds)
+                inventory_cleanup(ikey_names, rows, inventory)
 
 
                 signal.signal(signal.SIGINT, config.signals['SIGINT'])
+                config.db_close()
 
                 try:
                     wait_cycle(cycle_start_time, poll_time_history, config.categories["openstackPoller.py"]["sleep_interval_security_group"], config)
@@ -1370,6 +1446,7 @@ def security_group_poller():
             except KeyboardInterrupt:
                 # sigint recieved, cancel the sleep and start the loop
                 logging.error("Recieved wake-up signal during regular execution, resetting and continuing")
+                config.db_close()
                 continue
 
     except Exception as exc:
@@ -1384,22 +1461,26 @@ def vm_poller():
 
     config = Config('/etc/cloudscheduler/cloudscheduler.yaml', [os.path.basename(sys.argv[0]), "SQL", "ProcessMonitor"], pool_size=3, signals=True)
     PID_FILE = config.categories["ProcessMonitor"]["pid_path"] + os.path.basename(sys.argv[0])
-    VM = config.db_map.classes.csv2_vms
-    FVM = config.db_map.classes.csv2_vms_foreign
-    GROUP = config.db_map.classes.csv2_groups
-    CLOUD = config.db_map.classes.csv2_clouds
+    VM = "csv2_vms"
+    FVM = "csv2_vms_foreign"
+    GROUP = "csv2_groups"
+    CLOUD = "csv2_clouds"
+    ikey_names = ["group_name", "cloud_name", "vmid"]
 
     cycle_start_time = 0
     new_poll_time = 0
     poll_time_history = [0,0,0,0]
     failure_dict = {}
 
+    config.db_open()
     event_receiver_registration(config, "insert_csv2_clouds_openstack")
     event_receiver_registration(config, "update_csv2_clouds_openstack")
     
     try:
-        inventory = get_inventory_item_hash_from_database(config.db_engine, VM, 'hostname', debug_hash=(config.categories["openstackPoller.py"]["log_level"]<20), cloud_type="openstack")
-        config.db_open()
+        where_clause = "cloud_type='openstack'"
+        rc, msg, rows = config.db_query(VM, where=where_clause)
+        inventory = inventory_get_item_hash_from_db_query_rows(ikey_names, rows)
+        config.db_close()
         while True:
             # This cycle should be reasonably fast such that the scheduler will always have the most
             # up to date data during a given execution cycle.
@@ -1408,38 +1489,40 @@ def vm_poller():
             if not os.path.exists(PID_FILE):
                 logging.debug("Stop set, exiting...")
                 break
+            config.db_open()
             signal.signal(signal.SIGINT, signal.SIG_IGN)
 
             new_poll_time, cycle_start_time = start_cycle(new_poll_time, cycle_start_time)
             config.refresh()
-            db_session = config.db_session
 
             # For each OpenStack cloud, retrieve and process VMs.
             abort_cycle = False
-            group_list = db_session.query(GROUP)
+            rc, msg, group_list = config.db_query(GROUP)
 
-            cloud_list = db_session.query(CLOUD).filter(CLOUD.cloud_type == "openstack")
+            where_clause = "cloud_type='openstack'"
+            rc, msg, cloud_list = config.db_query(CLOUD, where=where_clause)
 
             # build unique cloud list to only query a given cloud once per cycle
             unique_cloud_dict = {}
             for cloud in cloud_list:
-                if cloud.authurl+cloud.project+cloud.region not in unique_cloud_dict:
-                    unique_cloud_dict[cloud.authurl+cloud.project+cloud.region] = {
+                if cloud["authurl"]+cloud["project"]+cloud["region"] not in unique_cloud_dict:
+                    unique_cloud_dict[cloud["authurl"]+cloud["project"]+cloud["region"]] = {
                         'cloud_obj': cloud,
-                        'groups': [(cloud.group_name, cloud.cloud_name)]
+                        'groups': [(cloud["group_name"], cloud["cloud_name"])]
                     }
                 else:
-                    unique_cloud_dict[cloud.authurl+cloud.project+cloud.region]['groups'].append((cloud.group_name, cloud.cloud_name))
+                    unique_cloud_dict[cloud["authurl"]+cloud["project"]+cloud["region"]]['groups'].append((cloud["group_name"], cloud["cloud_name"]))
 
             group_list = []
             for cloud in unique_cloud_dict:
                 group_list = group_list +unique_cloud_dict[cloud]['groups']
 
             for cloud in unique_cloud_dict:
-                auth_url = unique_cloud_dict[cloud]['cloud_obj'].authurl
+                auth_url = unique_cloud_dict[cloud]['cloud_obj']["authurl"]
                 cloud_obj = unique_cloud_dict[cloud]['cloud_obj']
 
-                foreign_vm_list = db_session.query(FVM).filter(FVM.authurl == cloud_obj.authurl, FVM.region == cloud_obj.region, FVM.project == cloud_obj.project)
+                where_clause = "authurl='%s' and region='%s' and project='%s'" % (cloud_obj["authurl"], cloud_obj["region"], cloud_obj["project"])
+                rc, msg, foreign_vm_list = config.db_query(FVM, where=where_clause)
 
                 #set foreign vm counts to zero as we will recalculate them as we go, any rows left at zero should be deleted
                 # dict[cloud+flavor]
@@ -1448,56 +1531,62 @@ def vm_poller():
                     fvm_dict = {
                         "fvm_obj": for_vm,
                         "count": 0,
-                        "region": cloud_obj.region,
-                        "authurl": cloud_obj.authurl,
-                        "project": cloud_obj.project
+                        "region": cloud_obj["region"],
+                        "authurl": cloud_obj["authurl"],
+                        "project": cloud_obj["project"]
                     }
-                    for_vm_dict[auth_url + "--" + for_vm.flavor_id] = fvm_dict
+                    for_vm_dict[auth_url + "--" + for_vm["flavor_id"]] = fvm_dict
 
                 logging.debug("Polling VMs from cloud: %s" % auth_url)
                 session = _get_openstack_session(cloud_obj)
 
                 if session is False:
-                    logging.debug("Failed to establish session with %s::%s::%s, using group %s's credentials skipping this cloud..." % (cloud_obj.authurl, cloud_obj.project, cloud_obj.region, cloud_obj.group_name))
-                    if auth_url + cloud_obj.project + cloud_obj.region not in failure_dict:
-                        failure_dict[auth_url + cloud_obj.project + cloud_obj.region] = 1
+                    logging.debug("Failed to establish session with %s::%s::%s, using group %s's credentials skipping this cloud..." % (cloud_obj["authurl"], cloud_obj["project"], cloud_obj["region"], cloud_obj["group_name"]))
+                    if auth_url + cloud_obj["project"] + cloud_obj["region"] not in failure_dict:
+                        failure_dict[auth_url + cloud_obj["project"] + cloud_obj["region"]] = 1
                     else:
-                        failure_dict[auth_url + cloud_obj.project + cloud_obj.region] = failure_dict[auth_url + cloud_obj.project + cloud_obj.region] + 1
-                    if failure_dict[auth_url + cloud_obj.project + cloud_obj.region] > 3: #could be configurable
-                        logging.error("Failure threshhold limit reached for %s::%s::%s, using group %s's credentials, manual action required, skipping" % (cloud_obj.authurl, cloud_obj.project, cloud_obj.region, cloud_obj.group_name))
+                        failure_dict[auth_url + cloud_obj["project"] + cloud_obj["region"]] = failure_dict[auth_url + cloud_obj["project"] + cloud_obj["region"]] + 1
+                    if failure_dict[auth_url + cloud_obj["project"] + cloud_obj["region"]] > 3: #could be configurable
+                        logging.error("Failure threshhold limit reached for %s::%s::%s, using group %s's credentials, manual action required, skipping" % (cloud_obj["authurl"], cloud_obj["project"], cloud_obj["region"], cloud_obj["group_name"]))
                     continue
 
                 # Retrieve VM list for this cloud.
-                nova = _get_nova_client(session, region=cloud_obj.region)
+                nova = _get_nova_client(session, region=cloud_obj["region"])
                 try:
                     vm_list = nova.servers.list()
                 except Exception as exc:
-                    logging.error("Failed to retrieve VM data for  %s::%s::%s, skipping this cloud..." % (cloud_obj.authurl, cloud_obj.project, cloud_obj.region))
+                    logging.error("Failed to retrieve VM data for  %s::%s::%s, skipping this cloud..." % (cloud_obj["authurl"], cloud_obj["project"], cloud_obj["region"]))
                     logging.error("Exception type: %s" % type(exc))
                     logging.error(exc)
-                    if auth_url + cloud_obj.project + cloud_obj.region not in failure_dict:
-                        failure_dict[auth_url + cloud_obj.project + cloud_obj.region] = 1
+                    if auth_url + cloud_obj["project"] + cloud_obj["region"] not in failure_dict:
+                        failure_dict[auth_url + cloud_obj["project"] + cloud_obj["region"]] = 1
                     else:
-                        failure_dict[auth_url + cloud_obj.project + cloud_obj.region] = failure_dict[auth_url + cloud_obj.project + cloud_obj.region] + 1
-                    if failure_dict[auth_url + cloud_obj.project + cloud_obj.region] > 3: #should be configurable
-                        logging.error("Failure threshhold limit reached for %s::%s::%s, using group %s's crednetials manual action required, skipping" % (cloud_obj.authurl, cloud_obj.project, cloud_obj.region, cloud_obj.group_name))
+                        failure_dict[auth_url + cloud_obj["project"] + cloud_obj["region"]] = failure_dict[auth_url + cloud_obj["project"] + cloud_obj["region"]] + 1
+                    if failure_dict[auth_url + cloud_obj["project"] + cloud_obj["region"]] > 3: #should be configurable
+                        logging.error("Failure threshhold limit reached for %s::%s::%s, using group %s's crednetials manual action required, skipping" % (cloud_obj["authurl"], cloud_obj["project"], cloud_obj["region"], cloud_obj["group_name"]))
                     continue
 
                 if vm_list is False:
-                    logging.info("No VMs defined for %s::%s:%s, skipping this cloud..." % (cloud_obj.authurl, cloud_obj.project, cloud_obj.region))
+                    logging.info("No VMs defined for %s::%s:%s, skipping this cloud..." % (cloud_obj["authurl"], cloud_obj["project"], cloud_obj["region"]))
                     del nova
                     continue
 
                 # if we get here the connection to openstack has been succussful and we can remove the error status
-                failure_dict.pop(auth_url + cloud_obj.project + cloud_obj.region, None)
+                failure_dict.pop(auth_url + cloud_obj["project"] + cloud_obj["region"], None)
                 #update network status
                 for cloud_tuple in unique_cloud_dict[cloud]['groups']:
                     grp_nm = cloud_tuple[0]
                     cld_nm = cloud_tuple[1]
-                    cloud_row = db_session.query(CLOUD).filter(CLOUD.group_name == grp_nm, CLOUD.cloud_name == cld_nm)[0]
-                    cloud_row.communication_up = 1
-                    db_session.merge(cloud_row)
-                    db_session.commit()
+                    #where_clause = "group_name='%s' and cloud_name='%s'" % (grp_nm, cld_nm)
+                    #rc, msg, cloud_rows = config.db_query(CLOUD, where=where_clause)
+                    #cloud_row = cloud_rows[0]
+                    cloud_row = {
+                        "group_name": grp_nm,
+                        "cloud_name": cld_nm,
+                        "communication_up": 1
+                    }
+                    config.db_update(CLOUD, cloud_row)
+                    config.db_commit()
                     
 
                 # Process VM list for this cloud.
@@ -1528,9 +1617,9 @@ def vm_poller():
                                 # no entry yet
                                 for_vm_dict[auth_url + "--" + vm.flavor["id"]]= {
                                     'count': 1,
-                                    'region': cloud_obj.region,
-                                    'project': cloud_obj.project,
-                                    'authurl': cloud_obj.authurl, 
+                                    'region': cloud_obj["region"],
+                                    'project': cloud_obj["project"],
+                                    'authurl': cloud_obj["authurl"], 
                                     'flavor_id': vm.flavor["id"]
                                 }
                             continue
@@ -1542,9 +1631,9 @@ def vm_poller():
                                 # no entry yet
                                 for_vm_dict[auth_url + "--" + vm.flavor["id"]]= {
                                     'count': 1,
-                                    'region': cloud_obj.region,
-                                    'project': cloud_obj.project,
-                                    'authurl': cloud_obj.authurl, 
+                                    'region': cloud_obj["region"],
+                                    'project': cloud_obj["project"],
+                                    'authurl': cloud_obj["authurl"], 
                                     'flavor_id': vm.flavor["id"]
                                 }
 
@@ -1559,9 +1648,9 @@ def vm_poller():
                             # no entry yet
                             for_vm_dict[auth_url + "--" + vm.flavor["id"]]= {
                                 'count': 1,
-                                'region': cloud_obj.region,
-                                'project': cloud_obj.project,
-                                'authurl': cloud_obj.authurl, 
+                                'region': cloud_obj["region"],
+                                'project': cloud_obj["project"],
+                                'authurl': cloud_obj["authurl"], 
                                 'flavor_id': vm.flavor["id"]
                             }
 
@@ -1578,9 +1667,9 @@ def vm_poller():
                     vm_dict = {
                         'group_name': vm_group_name,
                         'cloud_name': vm_cloud_name,
-                        "region": cloud_obj.region,
-                        'auth_url': cloud_obj.authurl,
-                        'project': cloud_obj.project,
+                        "region": cloud_obj["region"],
+                        'auth_url': cloud_obj["authurl"],
+                        'project': cloud_obj["project"],
                         'cloud_type': "openstack",
                         'hostname': vm.name,
                         'vmid': vm.id,
@@ -1594,26 +1683,25 @@ def vm_poller():
                         'last_updated': new_poll_time
                     }
 
-                    vm_dict, unmapped = map_attributes(src="os_vms", dest="csv2", attr_dict=vm_dict)
+                    vm_dict, unmapped = map_attributes(src="os_vms", dest="csv2", attr_dict=vm_dict, config=config)
                     if unmapped:
                         logging.error("unmapped attributes found during mapping, discarding:")
                         logging.error(unmapped)
 
-                    if test_and_set_inventory_item_hash(inventory, vm_group_name, vm_cloud_name, vm.name, vm_dict, new_poll_time, debug_hash=(config.categories["openstackPoller.py"]["log_level"]<20)):
+                    if inventory_test_and_set_item_hash(ikey_names, vm_dict, inventory, new_poll_time, debug_hash=(config.categories["openstackPoller.py"]["log_level"] < 20)):
                         continue
 
-                    new_vm = VM(**vm_dict)
                     try:
-                        db_session.merge(new_vm)
+                        config.db_merge(VM, vm_dict)
                         uncommitted_updates += 1
                     except Exception as exc:
-                        logging.exception("Failed to merge VM entry for %s::%s::%s, using group %s's credentials aborting cycle..." % (cloud_obj.authurl, cloud_obj.project, cloud_obj.region, cloud_obj.group_name))
+                        logging.exception("Failed to merge VM entry for %s::%s::%s, using group %s's credentials aborting cycle..." % (cloud_obj["authurl"], cloud_obj["project"], cloud_obj["region"], cloud_obj["group_name"]))
                         logging.error(exc)
                         abort_cycle = True
                         break
                     if uncommitted_updates >= config.categories["openstackPoller.py"]["batch_commit_size"]:
                         try:
-                            db_session.commit()
+                            config.db_commit()
                             logging.debug("Comitted %s VMs" % uncommitted_updates)
                             uncommitted_updates = 0
                         except Exception as exc:
@@ -1626,10 +1714,10 @@ def vm_poller():
 
                 if uncommitted_updates > 0:
                     try:        
-                        db_session.commit()
+                        config.db_commit()
                         logging.info("VM updates committed: %d" % uncommitted_updates)
                     except Exception as exc:
-                        logging.exception("Failed to commit VM updates for %s::%s:%s, using group %s's credentials aborting cycle..." % (cloud_obj.authurl, cloud_obj.project, cloud_obj.region, cloud_obj.group_name))
+                        logging.exception("Failed to commit VM updates for %s::%s:%s, using group %s's credentials aborting cycle..." % (cloud_obj["authurl"], cloud_obj["project"], cloud_obj["region"], cloud_obj["group_name"]))
                         logging.error(exc)
                         abort_cycle = True
                         break
@@ -1641,12 +1729,12 @@ def vm_poller():
                     split_key = key.split("--")
                     if for_vm_dict[key]['count'] == 0:
                         # delete this row
-                        db_session.delete(for_vm_dict[key]['fvm_obj'])
+                        config.db_delete(FVM, for_vm_dict[key]['fvm_obj'])
                     else:
                         try:
                             # if we get here there is at least 1 count of this flavor, though there may not be a database object yet
-                            for_vm_dict[key]['fvm_obj'].count = for_vm_dict[key]['count']
-                            db_session.merge(for_vm_dict[key]['fvm_obj'])
+                            for_vm_dict[key]['fvm_obj']["count"] = for_vm_dict[key]['count']
+                            config.db_merge(FVM, for_vm_dict[key]['fvm_obj'])
                         except KeyError:
                             # need to create new db obj for this entry
                             fvm_dict = {
@@ -1657,10 +1745,9 @@ def vm_poller():
                                 'count':      for_vm_dict[key]['count'],
                                 'cloud_type': "openstack"
                             }
-                            new_fvm = FVM(**fvm_dict)
-                            db_session.merge(new_fvm)
+                            config.db_merge(FVM, fvm_dict)
                 try:
-                    db_session.commit()
+                    config.db_commit()
                 except Exception as exc:
                     logging.exception("Failed to commit foreign VM updates, aborting cycle...")
                     logging.error(exc)
@@ -1669,7 +1756,8 @@ def vm_poller():
 
 
             if abort_cycle:
-                config.db_session.rollback()
+                config.db_rollback()
+                config.db_close()
                 time.sleep(config.categories["openstackPoller.py"]["sleep_interval_vm"])
                 continue
 
@@ -1677,39 +1765,54 @@ def vm_poller():
             # VMs have a different failure dict schema using group_name + auth_url instead of group_name + cloud_name
             #     failure_dict needs to be remapped before calling
             logging.debug("Expanding failure_dict: %s" % failure_dict)
-            cloud_list = db_session.query(CLOUD).filter(CLOUD.cloud_type == "openstack")
+            where_clause="cloud_type='openstack'"
+            rc, qmsg, cloud_list = config.db_query(CLOUD, where=where_clause)
             new_f_dict = {}
             for cloud in cloud_list:
-                key = cloud.authurl + cloud.project + cloud.region
+                key = cloud["authurl"] + cloud["project"] + cloud["region"]
                 if key in failure_dict:
-                    new_f_dict[cloud.group_name+cloud.cloud_name] = 1
+                    new_f_dict[cloud["group_name"]+cloud["cloud_name"]] = 1
                     # update cloud network status
-                    cloud.communication_up = 0
-                    db_session.merge(cloud)
-                    db_session.commit()
+                    cloud_row = {
+                        "group_name": cloud["group_name"],
+                        "cloud_name": cloud["cloud_name"],
+                        "communication_up": 0
+                    }
+                    config.db_update(CLOUD, cloud_row)
+                    config.db_commit()
 
-            delete_obsolete_database_items('VM', inventory, db_session, VM, 'hostname', new_poll_time, failure_dict=new_f_dict, cloud_type="openstack")
+            # since the new inventory function doesn't accept a failfure dict we need to screen the rows ourself
+            where_clause="cloud_type='openstack'"
+            rc, msg, unfiltered_rows = config.db_query(VM, where=where_clause)
+            rows = []
+            for row in unfiltered_rows:
+                if row['group_name'] + row['cloud_name'] in failure_dict.keys():
+                    continue
+                else:
+                    rows.append(row)
+            inventory_obsolete_database_items_delete(ikey_names, rows, inventory, new_poll_time, config, VM)
 
 
             # Check on the core limits to see if any clouds need to be scaled down.
             logging.debug("checking for over-quota clouds")
-            over_quota_clouds = db_session.query(view_vm_kill_retire_over_quota).filter(view_vm_kill_retire_over_quota.c.cloud_type=="openstack")
+            where_clause = "cloud_type='openstack'"
+            rc, msg, over_quota_clouds = config.db_query("view_vm_kill_retire_over_quota", where=where_clause)
             for cloud in over_quota_clouds:
-                kill_retire(config, cloud.group_name, cloud.cloud_name, "control", [cloud.cores, cloud.ram], get_frame_info())
+                kill_retire(config, cloud["group_name"], cloud["cloud_name"], "control", [cloud["cores"], cloud["ram"]], get_frame_info())
 
 
             logging.debug("Completed VM poller cycle")
-            config.db_session.rollback()
 
             if not os.path.exists(PID_FILE):
                 logging.info("Stop set, exiting...")
+                config.db_close()
                 break
 
             # Cleanup inventory, this function will clean up inventory entries for deleted clouds
-            group_clouds = config.db_connection.execute('select distinct group_name, cloud_name from csv2_clouds where cloud_type="openstack"')
-            cleanup_inventory(inventory, group_clouds)
+            inventory_cleanup(ikey_names, rows, inventory)
 
             signal.signal(signal.SIGINT, config.signals['SIGINT'])
+            config.db_close()
 
             try:
                 wait_cycle(cycle_start_time, poll_time_history, config.categories["openstackPoller.py"]["sleep_interval_vm"], config)
@@ -1728,20 +1831,20 @@ def defaults_replication():
     db_category_list = [os.path.basename(sys.argv[0]), "general", "glintPoller.py" "signal_manager", "ProcessMonitor"]
     config = Config('/etc/cloudscheduler/cloudscheduler.yaml', db_category_list, pool_size=3, signals=True)
     PID_FILE = config.categories["ProcessMonitor"]["pid_path"] + os.path.basename(sys.argv[0])
-    GROUPS = config.db_map.classes.csv2_groups
-    CLOUDS = config.db_map.classes.csv2_clouds
-    KEYPAIRS = config.db_map.classes.cloud_keypairs
-    IMAGES = config.db_map.classes.cloud_images
-    IMAGE_TX = config.db_map.classes.csv2_image_transactions
+    GROUPS = "csv2_groups"
+    CLOUDS = "csv2_clouds"
+    KEYPAIRS = "cloud_keypairs"
+    IMAGES = "cloud_images"
+    IMAGE_TX = "csv2_image_transactions"
 
 
     cycle_start_time = 0
     new_poll_time = 0
     poll_time_history = [0,0,0,0]
 
-    config.db_open()
     while True:
         try:
+            config.db_open()
             config.refresh()
             if not os.path.exists(PID_FILE):
                 logging.debug("Stop set, exiting...")
@@ -1750,42 +1853,43 @@ def defaults_replication():
             signal.signal(signal.SIGINT, signal.SIG_IGN)
             new_poll_time, cycle_start_time = start_cycle(new_poll_time, cycle_start_time)
 
-            db_session = config.db_session
-            group_list = db_session.query(GROUPS)
+            rc, msg, group_list = config.db_query(GROUPS)
             for group in group_list:
-                logging.debug("Checking defaults for %s" % group.group_name)
+                logging.debug("Checking defaults for %s" % group["group_name"])
                 src_image = None
-                grp_default_image_name = group.vm_image
+                grp_default_image_name = group["vm_image"]
                 enabled_clouds = []
-                cloud_list = db_session.query(CLOUDS).filter(CLOUDS.group_name == group.group_name, CLOUDS.cloud_type == "openstack", CLOUDS.enabled == 1, CLOUDS.communication_up == 1)
+                where_clause = "group_name='%s' and cloud_type='openstack' and enabled=1 and communication_up=1" % group["group_name"]
+                rc, msg, cloud_list = config.db_query(CLOUDS, where=where_clause)
                 for cld in cloud_list:
-                    enabled_clouds.append(cld.cloud_name)
-                cloud_list = db_session.query(CLOUDS).filter(CLOUDS.group_name == group.group_name, CLOUDS.cloud_type == "openstack", CLOUDS.enabled == 1, CLOUDS.communication_up == 1)
+                    enabled_clouds.append(cld["cloud_name"])
                 for cloud in cloud_list:
-                    logging.debug("Checking defaults for group-cloud: %s-%s" % (group.group_name, cloud.cloud_name))
+                    logging.debug("Checking defaults for group-cloud: %s-%s" % (group["group_name"], cloud["cloud_name"]))
                     # if there is a default image for the group, check for default image in the cloud
                     logging.debug("Group image: %s", grp_default_image_name)
-                    logging.debug("Cloud image: %s", cloud.vm_image)
-                    if cloud.vm_image is None or cloud.vm_image == "":
+                    logging.debug("Cloud image: %s", cloud["vm_image"])
+                    if cloud["vm_image"] is None or cloud["vm_image"] == "":
                         default_image_name = grp_default_image_name
                     else:
-                        default_image_name = cloud.vm_image
+                        default_image_name = cloud["vm_image"]
                     if default_image_name is not None and not default_image_name == "":
-                        images = db_session.query(IMAGES).filter(IMAGES.group_name == group.group_name, IMAGES.cloud_name == cloud.cloud_name, IMAGES.name == default_image_name)
-                        if images.count() == 0:
+                        where_clause = "group_name='%s' and cloud_name='%s' and name='%s'" % (group["group_name"], cloud["cloud_name"], default_image_name)
+                        rc, msg, images = config.db_query(IMAGES, where=where_clause)
+                        if len(images) == 0:
                             # gasp, image isn't there, lets queue up a transfer.
                             if src_image is None:
-                               image_candidates = db_session.query(IMAGES).filter(IMAGES.group_name == group.group_name, IMAGES.name == default_image_name) 
-                               img_count = image_candidates.count()
+                               where_clause = "group_name='%s' and name='%s'" % (group["group_name"], default_image_name)
+                               rc, qmsg, image_candidates = config.db_query(IMAGES, where=where_clause)
+                               img_count = len(image_candidates)
                                if img_count == 0:
                                    #default image not defined
-                                   logging.error("Default image %s not present on any openstack clouds in group %s. Failed to replicate default image." % (default_image_name, group.group_name))
+                                   logging.error("Default image %s not present on any openstack clouds in group %s. Failed to replicate default image." % (default_image_name, group["group_name"]))
                                    continue
                                elif img_count > 1:
                                    logging.warning("More than one candidate image with name %s" % default_image_name)
                                    src_image = None
                                    for image in image_candidates:
-                                       if image.cloud_name in enabled_clouds:
+                                       if image["cloud_name"] in enabled_clouds:
                                            src_image = image
                                            break
                                    if src_image is None:
@@ -1797,7 +1901,7 @@ def defaults_replication():
                                    src_image = image_candidates[0]
                             # We've got a source image, time to queue a transfer
                             # but first check the cache to see if we need to queue a pull request
-                            cache_result = check_cache(config, default_image_name, src_image.checksum, src_image.group_name, "cloudscheduler")
+                            cache_result = check_cache(config, default_image_name, src_image["checksum"], src_image["group_name"], "cloudscheduler")
                             if cache_result is False:
                                 #Something went wrong checking the cache or queueing a pull request
                                 logging.error("Failure checking cache or queuing pull request for image: %s" % default_image_name)
@@ -1805,54 +1909,58 @@ def defaults_replication():
                             #Once here the image is in the cache of a pull request has been queued so we can go ahead and queue the transfer
 
                             #on second thought lets check to see we don't already have one queue'd up so we don't bombard the request queue
-                            pending_xfers = db_session.query(IMAGE_TX).filter(IMAGE_TX.target_group_name == group.group_name, IMAGE_TX.target_cloud_name == cloud.cloud_name, IMAGE_TX.image_name == default_image_name, or_(IMAGE_TX.status == "pending", IMAGE_TX.status == "error"))
+                            where_clause = "target_group_name='%s' and target_cloud_name='%s' and image_name='%s' and (status='pending' or status='error')" % (group["group_name"], cloud["cloud_name"], default_image_name)
+                            rc, qmsg, pending_xfers = config.db_query(IMAGE_TX, where=where_clause)
                             if pending_xfers.count() > 0:
-                                logging.info("Default image (%s) transfer already queued for cloud: %s... skipping" % (default_image_name, cloud.cloud_name))
+                                logging.info("Default image (%s) transfer already queued for cloud: %s... skipping" % (default_image_name, cloud["cloud_name"]))
                                 continue
                             tx_id = generate_tx_id()
                             tx_req = {
                                 "tx_id":             tx_id,
                                 "status":            "pending",
-                                "target_group_name": group.group_name,
-                                "target_cloud_name": cloud.cloud_name,
+                                "target_group_name": group["group_name"],
+                                "target_cloud_name": cloud["cloud_name"],
                                 "image_name":        default_image_name,
-                                "image_id":          src_image.id,
-                                "checksum":          src_image.checksum,
+                                "image_id":          src_image["id"],
+                                "checksum":          src_image["checksum"],
                                 "requester":         "cloudscheduler",
                             }
-                            new_tx_req = IMAGE_TX(**tx_req)
-                            db_session.merge(new_tx_req)
-                            db_session.commit()
-                            #tx_request.delay(tx_id = tx_id)
+                            config.db_merge(IMAGE_TX, tx_req)
+                            config.db_commit()
                             logging.info("Transfer queued")
                             tx_request.apply_async((tx_id,), queue='tx_requests')
 
                             
                     else:
-                        logging.info("No default image for group %s, skipping image transfers for cloud %s" % (group.group_name, cloud.cloud_name))
+                        logging.info("No default image for group %s, skipping image transfers for cloud %s" % (group["group_name"], cloud["cloud_name"]))
 
 
             # seperate image and keypair loops so if one fails the other can have success
-            group_list = db_session.query(GROUPS)
+            rc, msg, group_list = config.db_query(GROUPS)
             for group in group_list:
                 src_keypair = None
-                default_key_name = group.vm_keyname
-                cloud_list = db_session.query(CLOUDS).filter(CLOUDS.group_name == group.group_name, CLOUDS.cloud_type == "openstack", CLOUDS.enabled == 1, CLOUDS.communication_up == 1)
+                default_key_name = group["vm_keyname"]
+                where_clause = "group_name='%s' and cloud_type='openstack' and enabled=1 and communication_up=1"
+                rc, msg, cloud_list = config.db_query(CLOUDS, where=where_clause)
                 for cloud in cloud_list:
 
                     # now lets check keys- if there is a default key, check the keys for the cloud
                     if default_key_name is not None:
-                        keys = db_session.query(KEYPAIRS).filter(KEYPAIRS.group_name == group.group_name, KEYPAIRS.cloud_name == cloud.cloud_name, KEYPAIRS.key_name == default_key_name)
-                        if keys.count() == 0:
+                        where_clause = "group_name='%s' and cloud_name='%s' and key_namee='%s'" % (group["group_name"], cloud["cloud_name"], default_key_name)
+                        rc, msg, keys = config.db_query(KEYPAIRS, where=where_clause)
+                        if len(keys) == 0:
                             # gasp again, keypair isn't present, keypairs are fast so lets just go ahead and do the transfer
                             if src_keypair == None:
                                 # we haven't dug up a source keypair yet so lets grab one
-                                db_keypair = db_session.query(KEYPAIRS).filter(KEYPAIRS.group_name == group.group_name, KEYPAIRS.key_name == default_key_name).first()
+                                where_clause = "group_name='%s' and key_name='%s'" % (group["group_name"], default_key_name)
+                                rc, msg, db_keypairs = config.db_query(KEYPAIRS, where=where_clause)
+                                db_keypair = db_keypairs[0]
                                 if db_keypair == None:
                                     #we couldn't find a source keypair for this group, yikes
-                                    logging.error("Unable to locate a source keypair: %s for group %s, skipping group." % (default_key_name, group.group_name))
+                                    logging.error("Unable to locate a source keypair: %s for group %s, skipping group." % (default_key_name, group["group_name"]))
                                     break
-                                src_cloud = db_session.query(CLOUDS).get((db_keypair.group_name, db_keypair.cloud_name))
+                                where_clause = "group_name='%s' and cloud_name='%s'" % (db_keypair["group_name"], db_keypair["cloud_name"])
+                                rc, msg, src_cloud = config.db_query(CLOUDS, where=where_clause)
                                 try:
                                     src_keypair = get_keypair(default_key_name, src_cloud)
                                 except Exception as exc:
@@ -1861,21 +1969,21 @@ def defaults_replication():
                                     src_keypair = None
                                 if src_keypair == None:
                                     #we couldn't find a source keypair for this group, yikes
-                                    logging.error("Unable to locate a source keypair: %s for group %s, skipping group." % (default_key_name, group.group_name))
+                                    logging.error("Unable to locate a source keypair: %s for group %s, skipping group." % (default_key_name, group["group_name"]))
                                     break
                                 #transfer keypair
                                 logging.info("Source keypair found, uploading new keypair")
                                 try:
                                     transfer_keypair(src_keypair, src_cloud)
-                                    logging.info("Keypair %s transferred to cloud %s successfully" % (default_key_name, cloud.cloud_name))
+                                    logging.info("Keypair %s transferred to cloud %s successfully" % (default_key_name, cloud["cloud_name"]))
                                 except Exception as exc:
                                     logging.error("Keypair transfer failed:")
                                     logging.error(exc)
 
                     else:
-                        logging.info("No default keypair for group %s, skipping keypair transfers for cloud %s" % (group.group_name, cloud.cloud_name))
+                        logging.info("No default keypair for group %s, skipping keypair transfers for cloud %s" % (group["group_name"], cloud["cloud_name"]))
             
-            db_session.commit()
+            config.db_commit()
 
         except Exception as exc:
             logging.error("Exception during general operation:")
@@ -1885,7 +1993,12 @@ def defaults_replication():
             logging.info("Stop set, exiting...")
             break
         signal.signal(signal.SIGINT, config.signals['SIGINT'])
-        wait_cycle(cycle_start_time, poll_time_history, 300, config)
+        config.db_close()
+        try:
+            wait_cycle(cycle_start_time, poll_time_history, 300, config)
+        except KeyboardInterrupt:
+            # sigint recieved, cancel the sleep and start the loop
+            continue
 
 
 ## Main.

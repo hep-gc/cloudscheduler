@@ -20,12 +20,8 @@ from collections import defaultdict
 import bcrypt
 import time
 
-from sqlalchemy import exists
-from sqlalchemy.sql import select
-from sqlalchemy.sql import and_
 from cloudscheduler.lib.schema import *
 from cloudscheduler.lib.log_tools import get_frame_info
-import sqlalchemy.exc
 
 from cloudscheduler.lib.web_profiler import silk_profile as silkp
 
@@ -47,6 +43,9 @@ VM_KEYS = {
         'group':                                                        'ignore',
         'vm_hosts':                                                     'lowerdash',
         },
+    'array_fields': [
+        'vm_hosts',
+        ],
     'not_empty': [
         'vm_hosts',
         ],
@@ -90,13 +89,13 @@ def foreign(request):
     global_view = active_user.kwargs['global_view']
 
     if global_view=='1':
-        s = select([view_foreign_flavors])
-        foreign_list = qt(config.db_connection.execute(s))
+        rc, msg, foreign_list = config.db_query(view_foreign_flavors)
 
     else:
         # Retrieve VM information.
-        s = select([view_foreign_flavors]).where(view_foreign_flavors.c.group_name == active_user.active_group)
-        foreign_list = qt(config.db_connection.execute(s), filter=qt_filter_get(['cloud_name'], active_user.kwargs))
+        where_clause = "group_name='%s'" % active_user.active_group
+        rc, msg, foreign_list_raw = config.db_query(view_foreign_flavors, where=where_clause)
+        foreign_list = qt(foreign_list_raw, filter=qt_filter_get(['cloud_name'], active_user.kwargs))
 #   _vm_list = qt(config.db_connection.execute(s), filter=qt_filter_get(['cloud_name', 'poller_status', 'hostname'], selector.split('::'), aliases=ALIASES), convert={
 
 
@@ -146,9 +145,10 @@ def vm_list(request, args=None, response_code=0, message=None):
             return render(request, 'csv2/vms.html', {'response_code': 1, 'message': '%s vm list, %s' % (lno(MODID), msg)})
 
     # Retrieve VM information.
-    s = select([view_vms]).where(view_vms.c.group_name == active_user.active_group)
+    where_clause = "group_name='%s'" % active_user.active_group
+    rc, msg, vm_list_raw = config.db_query("view_vms", where=where_clause)
 
-    _vm_list = qt(config.db_connection.execute(s), filter=qt_filter_get(['cloud_name', 'poller_status', 'hostname'], args, aliases=ALIASES), convert={
+    _vm_list = qt(vm_list_raw, filter=qt_filter_get(['cloud_name', 'poller_status', 'hostname'], args, aliases=ALIASES), convert={
         'htcondor_slots_timestamp': 'datetime',
         'htcondor_startd_time': 'datetime',
         'last_updated': 'datetime',
@@ -202,10 +202,10 @@ def update(request):
 #           return vm_list(request, selector, response_code=1, message='%s vm update %s' % (lno(MODID), msg), user_groups=user_groups)
 
         if fields['vm_option'] == 'kill':
-            table = tables['csv2_vms']
+            table = 'csv2_vms'
             verb = 'killed'
         elif fields['vm_option'] == 'retire':
-            table = tables['csv2_vms']
+            table = 'csv2_vms'
             verb = 'retired'
         elif fields['vm_option'] == 'retain':
             if fields['vm_hosts'].isnumeric():
@@ -215,43 +215,52 @@ def update(request):
                 return render(request, 'csv2/vms.html', {'response_code': 1, 'message': '%s vm update, the "--vm-hosts" parameter must be numeric when "--vm-option retain" is specified.' % lno(MODID), 'active_user': active_user.username, 'active_group': active_user.active_group, 'user_groups': active_user.user_groups})
 #               return vm_list(request, selector, response_code=1, message='%s vm update, the "--vm-hosts" parameter must be numeric when "--vm-option retain" is specified.' % lno(MODID))
         elif fields['vm_option'] == 'manctl':
-            table = tables['csv2_vms']
+            table ='csv2_vms'
             verb = 'set to manual control'
         elif fields['vm_option'] == 'sysctl':
-            table = tables['csv2_vms']
+            table = 'csv2_vms'
             verb = 'set to system control'
         else:
+            config.db_close()
             return render(request, 'csv2/vms.html', {'response_code': 1, 'message': '%s vm update, option "%s" is invalid.' % (lno(MODID), fields['vm_option']), 'active_user': active_user.username, 'active_group': active_user.active_group, 'user_groups': active_user.user_groups})
 
 
         # Retrieve VM information.
-        if fields['vm_hosts'].isnumeric():
-#       if isinstance(fields['vm_hosts'], int):
+        if isinstance(fields['vm_hosts'], int):
             count = kill_retire(config, active_user.active_group, fields.get('cloud_name', default='-'), fields['vm_option'], fields['vm_hosts'], get_frame_info())
 #           count = kill_retire(config, active_user.active_group, fields['cloud_name'], 'control', [50,1000000], get_frame_info())
         else:
             count = 0
             if fields['vm_hosts'] == 'all':
-                s = select([view_vms]).where(view_vms.c.group_name == active_user.active_group)
-                _vm_list = qt(config.db_connection.execute(s), filter=qt_filter_get(['cloud_name', 'poller_status'], fields, aliases=ALIASES))
+                where_clause = "group_name='%s'" % active_user.active_group
+                vm_list_raw = config.db_query("view_vms", where=where_clause)
+                _vm_list = qt(vm_list_raw, filter=qt_filter_get(['cloud_name', 'poller_status'], fields, aliases=ALIASES))
             else:
                 fields['hostname'] = fields['vm_hosts']
-                s = select([view_vms]).where(view_vms.c.group_name == active_user.active_group)
-                _vm_list = qt(config.db_connection.execute(s), filter=qt_filter_get(['cloud_name', 'hostname', 'poller_status'], fields, aliases=ALIASES))
+                where_clause = "group_name='%s'" % active_user.active_group
+                rc, msg, vm_list_raw = config.db_query("view_vms", where=where_clause)
+                _vm_list = qt(vm_list_raw, filter=qt_filter_get(['cloud_name', 'hostname', 'poller_status'], fields, aliases=ALIASES))
 
             for vm in _vm_list:
                 if fields['vm_option'] == 'kill':
-                    update = table.update().where(table.c.vmid == vm['vmid']).values({'terminate': 2, 'updater': get_frame_info()})
+                    vm_dict = {'terminate': 2, 'updater': get_frame_info()}
+                    where_clause = "vmid='%s'" % vm['vmid']
+                    rc, msg = config.db_update(table, vm_dict, where=where_clause)
                 elif fields['vm_option'] == 'retire':
-                    update = table.update().where(table.c.vmid == vm['vmid']).values({'retire': 1, 'updater': get_frame_info()})
+                    vm_dict = {'retire': 1, 'updater': get_frame_info()}
+                    where_clause = "vmid='%s'" % vm['vmid']
+                    rc, msg = config.db_update(table, vm_dict, where=where_clause)
                 elif fields['vm_option'] == 'manctl':
-                    update = table.update().where(table.c.vmid == vm['vmid']).values({'manual_control': 1})
+                    vm_dict = {'manual_control': 1}
+                    where_clause = "vmid='%s'" % vm['vmid']
+                    rc, msg = config.db_update(table, vm_dict, where=where_clause)
                 elif fields['vm_option'] == 'sysctl':
-                    update = table.update().where(table.c.vmid == vm['vmid']).values({'manual_control': 0})
+                    vm_dict = {'manual_control': 0}
+                    where_clause = "vmid='%s'" % vm['vmid']
+                    rc, msg = config.db_update(table, vm_dict, where=where_clause)
 
-                rc, msg = config.db_session_execute(update, allow_no_rows=True)
                 if rc == 0:
-                    count += msg
+                    count += 1
                 else:
                     config.db_close()
                     return render(request, 'csv2/vms.html', {'response_code': 1, 'message': '%s vm update (%s) failed - %s' % (lno(MODID), fields['vm_option'], msg), 'active_user': active_user.username, 'active_group': active_user.active_group, 'user_groups': active_user.user_groups})
@@ -273,5 +282,6 @@ def update(request):
 
     ### Bad request.
     else:
+        config.db_close()
         return render(request, 'csv2/vms.html', {'response_code': 1, 'message': '%s vm update, invalid method "%s" specified.' % (lno(MODID), request.method), 'active_user': active_user.username, 'active_group': active_user.active_group, 'user_groups': active_user.user_groups})
 #       return vm_list(request, selector, response_code=1, message='%s vm update, invalid method "%s" specified.' % (lno(MODID), request.method))

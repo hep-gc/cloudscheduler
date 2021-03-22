@@ -27,30 +27,31 @@ def manage_keys(request, group_name=None, message=None):
     if group_name is None:
         group_name = user_obj.active_group
 
-    session = db_config.db_session
-    Group_Resources = db_config.db_map.classes.csv2_clouds
-    Keypairs = db_config.db_map.classes.cloud_keypairs
+    Group_Resources = "csv2_clouds"
+    Keypairs = "cloud_keypairs"
 
-    grp_resources = session.query(Group_Resources).filter(Group_Resources.group_name == group_name)
+    where_clause = "group_name='%s'" % group_name
+    rc, qmsg, grp_resources = db_config.db_query(Group_Resources, where=where_clause)
     key_dict = {}
 
     num_clouds=0
     for cloud in grp_resources:
         num_clouds=num_clouds+1
         for key in key_dict:
-            key_dict[key][cloud.cloud_name] = False
-        cloud_keys = session.query(Keypairs).filter(Keypairs.cloud_name == cloud.cloud_name, Keypairs.group_name == cloud.group_name)
+            key_dict[key][cloud["cloud_name"]] = False
+        where_clause = "cloud_name='%s' and group_name='%s'" % (cloud["cloud_name"], cloud["group_name"])
+        rc, qmsg, cloud_keys = db_config.db_query(Keypairs, where=where_clause)
         for key in cloud_keys:
             # issue of renaming here if keys have different names on different clouds
             # the keys will have a unique fingerprint and that is what is used as an identifier
-            if (key.fingerprint + ";" + key.key_name) in key_dict:
-                dict_key = key.fingerprint + ";" + key.key_name
-                key_dict[dict_key][key.cloud_name] = True
+            if (key["fingerprint"] + ";" + key["key_name"]) in key_dict:
+                dict_key = key["fingerprint"] + ";" + key["key_name"]
+                key_dict[dict_key][key["cloud_name"]] = True
             else:
-                dict_key = key.fingerprint + ";" + key.key_name
+                dict_key = key["fingerprint"] + ";" + key["key_name"]
                 key_dict[dict_key] = {}
-                key_dict[dict_key]["name"] = key.key_name
-                key_dict[dict_key][key.cloud_name] = True
+                key_dict[dict_key]["name"] = key["key_name"]
+                key_dict[dict_key][key["cloud_name"]] = True
 
     context = {
         "group_resources": grp_resources,
@@ -73,9 +74,8 @@ def upload_keypair(request, group_name=None):
     if request.method == 'POST':
          # set up database objects
         user = getUser(request, db_config)
-        session = db_config.db_session
-        Group_Resources = db_config.db_map.classes.csv2_clouds
-        Keypairs = db_config.db_map.classes.cloud_keypairs
+        Group_Resources = "csv2_clouds"
+        Keypairs = "cloud_keypairs"
 
 
         # get list of target clouds to upload key to
@@ -85,7 +85,9 @@ def upload_keypair(request, group_name=None):
         grp = request.POST.get("group_name")
 
         for cloud in cloud_name_list:
-            db_cloud = session.query(Group_Resources).filter(Group_Resources.group_name == grp, Group_Resources.cloud_name == cloud).first()
+            where_clause = "group_name='%s' and cloud_name='%s'" % (grp, cloud)
+            rc, qmsg, db_cloud_list = db_config.db_query(Group_Resources, where=where_clause)
+            db_cloud = db_cloud_list[0]
             try:
                 new_key = create_keypair(key_name=key_name, key_string=key_string, cloud=db_cloud)
             except Exception as exc:
@@ -101,11 +103,10 @@ def upload_keypair(request, group_name=None):
                 "fingerprint": new_key.fingerprint,
                 "key_name": key_name
             }
-            new_keypair = Keypairs(**keypair_dict)
-            session.merge(new_keypair)
+            db_config.db_merge(Keypairs, keypair_dict)
 
             try:
-                session.commit()
+                db_config.db_commit()
             except Exception as exc:
                 logger.error(exc)
                 logger.error("Error committing database session after creating new key")
@@ -127,9 +128,8 @@ def new_keypair(request, group_name=None,):
     if request.method == 'POST':
         # set up database objects
         user = getUser(request, db_config)
-        session = db_config.db_session
-        Group_Resources = db_config.db_map.classes.csv2_clouds
-        Keypairs = db_config.db_map.classes.cloud_keypairs
+        Group_Resources = "csv2_clouds"
+        Keypairs = "cloud_keypairs"
         
 
         # get list of target clouds to upload key to
@@ -139,13 +139,16 @@ def new_keypair(request, group_name=None,):
 
         # Only check that needs to be made is if the key name is used on any of the target clouds
         for cloud in cloud_name_list:
-            db_keypair = session.query(Keypairs).filter(Keypairs.group_name == grp, Keypairs.cloud_name == cloud, Keypairs.key_name == key_name).one_or_none()
-            if db_keypair is None:
+            where_clause = "group_name='%s' and cloud_name='%s' and key_name='%s'" % (grp, cloud, key_name)
+            rc, qmsg, db_keypair_list = db_config.db_query(Keypairs, where=where_clause)
+            if len(db_keypair_list)==0:
                 #no entry exists, its safe to create this keypair
                 logging.info("creating new keypair %s on cloud %s" % (key_name, cloud))
 
                 #get grp resources obj
-                cloud_obj =  session.query(Group_Resources).filter(Group_Resources.group_name == grp, Group_Resources.cloud_name == cloud).one()
+                where_clause = "group_name='%s' and cloud_name='%s'" % (grp, cloud)
+                rc, msg, cloud_obj_list =  db_config.db_query(Group_Resources, where=where_clause)
+                cloud_obj = cloud_obj_list[0]
                 new_key = create_new_keypair(key_name=key_name, cloud=cloud_obj)
 
                 keypair_dict = {
@@ -154,11 +157,10 @@ def new_keypair(request, group_name=None,):
                 "fingerprint": new_key.fingerprint,
                 "key_name": key_name
                 }
-                new_keypair = Keypairs(**keypair_dict)
-                session.merge(new_keypair)
+                db_config.db_merge(Keypairs, keypair_dict)
 
                 try:
-                    session.commit()
+                    db_config.db_commit()
                 except Exception as exc:
                     logger.error(exc)
                     logger.error("Error committing database session after creating new key")
@@ -189,44 +191,48 @@ def save_keypairs(request, group_name=None, message=None):
     if request.method == 'POST':
         try:
             #set up database objects
-            session = db_config.db_session
-            Group_Resources = db_config.db_map.classes.csv2_clouds
-            Keypairs = db_config.db_map.classes.cloud_keypairs
+            Group_Resources = "csv2_clouds"
+            Keypairs = "cloud_keypairs"
             # get list of clouds for this group
             # for each cloud: check_list = request.POST.getlist(cloud.cloud_name)
             # check the checklist for diffs (add/remove keys)
-            grp_resources = session.query(Group_Resources).filter(Group_Resources.group_name == group_name)
+            where_clause = "group_name='%s'" % (group_name)
+            rc, qmsg, grp_resources = db_config.db_query(Group_Resources, where=where_clause)
             logger.info("Checking for keys to transfer")
             for cloud in grp_resources:
                 #check_list will only have the names of keys checked for that cloud
-                check_list = request.POST.getlist(cloud.cloud_name)
+                check_list = request.POST.getlist(cloud["cloud_name"])
 
                 #cross reference check list against what is in database:
-                cloud_keys = session.query(Keypairs).filter(Keypairs.group_name == group_name, Keypairs.cloud_name == cloud.cloud_name)
+                where_clause = "group_name='%s' and cloud_name='%s'" % (group_name, cloud["cloud_name"])
+                rc, qmsg, cloud_keys = db_config.db_query(Keypairs, where=where_clause)
                 cloud_fingerprints = []
 
                 for keypair in cloud_keys:
-                    cloud_fingerprints.append(keypair.fingerprint + ";" + keypair.key_name)
+                    cloud_fingerprints.append(keypair["fingerprint"] + ";" + keypair["key_name"])
 
                 # check for new key transfers
                 for keypair_key in check_list:
                     if keypair_key not in cloud_fingerprints:
                         # transfer key to this cloud
                         logger.info("%s not found in %s" % (keypair_key, cloud_fingerprints))
-                        logger.info("Found key: %s to transfer to %s" % (keypair_key, cloud.cloud_name))
+                        logger.info("Found key: %s to transfer to %s" % (keypair_key, cloud["cloud_name"]))
                         split_key = keypair_key.split(";")
                         fingerprint = split_key[0]
                         key_name = split_key[1]
                         # get existing keypair: need name, public_key, key_type and ?user?
                         logger.info("getting source keypair database object...")
                         # get list of keypairs to try and try each one
-                        src_keypairs = session.query(Keypairs).filter(Keypairs.fingerprint == fingerprint, Keypairs.key_name == key_name)
+                        where_clause = "fingerprint='%s' and key_name='%s'" % (fingerprint, key_name)
+                        rc, qmsg, src_keypairs = db_config.db_query(Keypairs, where=where_clause)
                         transfer_success = False
                         for src_keypair in src_keypairs:
                             try:
                                 # get group resources corresponding to that keypair
                                 logger.info("getting source cloud...")
-                                src_cloud = session.query(Group_Resources).filter(Group_Resources.group_name == src_keypair.group_name, Group_Resources.cloud_name == src_keypair.cloud_name).first()
+                                where_clause = "group_name='%s' and cloud_name='%s'" % (src_keypair["group_name"], src_keypair["cloud_name"])
+                                rc, qmsg, src_clouds = db_config.db_query(Group_Resources, where=where_clause)
+                                src_cloud = src_clouds[0]
                                 # download key from that group resources
                                 logger.info("getting source keypair openstack object...")
                                 os_keypair = get_keypair(keypair_key, src_cloud)
@@ -240,18 +246,18 @@ def save_keypairs(request, group_name=None, message=None):
                                     "fingerprint": fingerprint,
                                     "key_name": key_name
                                 }
-                                new_keypair = Keypairs(**keypair_dict)
-                                session.merge(new_keypair)
+                                db_config.db_merge(Keypairs, keypair_dict)
                                 # Transfer successful, break
                                 transfer_success = True
                                 break
-                            except:
-                                logger.error("Failed to get src keypair from %s:%s, trying next src key" % (src_keypair.group_name, src_keypair.cloud_name))
+                            except Exception as exc:
+                                logger.error("Failed to get src keypair from %s:%s, trying next src key" % (src_keypair["group_name"], src_keypair["cloud_name"]))
+                                logger.exception(exc)
                                 continue
                         if not transfer_success:
                             logger.error("Failed to transfer %s" %  keypair_key)
                 try:
-                    session.commit()
+                    db_config.db_commit()
                 except Exception as exc:
                     logger.error(exc)
                     logger.error("Error committing database session after proccessing key transfers")
@@ -261,19 +267,20 @@ def save_keypairs(request, group_name=None, message=None):
             logger.info("Checking for keys to delete")
             for cloud in grp_resources:
                 #check_list will only have the names of keys checked for that cloud
-                check_list = request.POST.getlist(cloud.cloud_name)
+                check_list = request.POST.getlist(cloud["cloud_name"])
 
                 #cross reference check list against what is in database:
-                cloud_keys = session.query(Keypairs).filter(Keypairs.group_name == group_name, Keypairs.cloud_name == cloud.cloud_name)
+                where_clause = "group_name='%s' and cloud_name='%s'" % (group_name, cloud["cloud_name"])
+                rc, qmsg, cloud_keys = db_config.db_query(Keypairs, where=where_clause)
                 for keypair in cloud_keys:
-                    if (keypair.fingerprint + ";" + keypair.key_name) not in check_list:
+                    if (keypair["fingerprint"] + ";" + keypair["key_name"]) not in check_list:
                         # key has been deleted from this cloud:
-                        logger.info("Found key to delete: %s" % keypair.key_name)
-                        delete_keypair(keypair.key_name, cloud)
+                        logger.info("Found key to delete: %s" % keypair["key_name"])
+                        delete_keypair(keypair["key_name"], cloud)
                         # delete from database
-                        session.delete(keypair)
+                        db_config.db_delete(Keypairs, keypair)
                 try:
-                    session.commit()
+                    db_config.db_commit()
                 except Exception as exc:
                     logger.error(exc)
                     logger.error("Error committing database session after proccessing key transfers")

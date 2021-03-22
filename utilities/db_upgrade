@@ -192,7 +192,7 @@ def main(args):
         map_csv2_configuration(gvar, gvar['model_fqdn'])
 
         gvar['db_config'].db_open()
-        CONFIG = gvar['db_config'].db_map.classes.csv2_configuration
+        CONFIG = "csv2_configuration"
         updates = 0
         for category in gvar['csv2_configuration_values'][model_fqdn]:
             if category in gvar['csv2_configuration_values'][my_fqdn]:
@@ -203,13 +203,15 @@ def main(args):
                                 # update database.
                                 if gvar['run_mode'] == 'live':
                                     print('   Restoring configuration item:', category, key, gvar['csv2_configuration_values'][model_fqdn][category][key]['value'], '<-',  gvar['csv2_configuration_values'][my_fqdn][category][key]['value'])
-                                    config_item = gvar['db_config'].db_session.query(CONFIG).filter((CONFIG.category == category) & (CONFIG.config_key == key)).first()
-                                    config_item.config_value = gvar['csv2_configuration_values'][my_fqdn][category][key]['value']
+                                    where_clause = "category='%s' and config_key='%s'" % (category, key)
+                                    rc, msg, config_items = gvar['db_config'].db_query(CONFIG)
+                                    config_item = config_items[0]
+                                    config_item["config_value"] = gvar['csv2_configuration_values'][my_fqdn][category][key]['value']
                                     updates += 1
                                 else:
                                     print('   TEST MODE, skip restoring configuration item:', category, key, gvar['csv2_configuration_values'][model_fqdn][category][key]['value'], '<-',  gvar['csv2_configuration_values'][my_fqdn][category][key]['value'])
         if updates > 0:
-            gvar['db_config'].db_session.commit()
+            gvar['db_config'].db_commit()
 
         gvar['db_config'].db_close()
 

@@ -12,31 +12,22 @@ import copy
 from cloudscheduler.lib.attribute_mapper import map_attributes
 from cloudscheduler.lib.db_config import Config
 from cloudscheduler.lib.ProcessMonitor import ProcessMonitor, terminate, check_pid
-from cloudscheduler.lib.schema import view_vm_kill_retire_over_quota
 from cloudscheduler.lib.view_utils import kill_retire
 from cloudscheduler.lib.log_tools import get_frame_info
 from cloudscheduler.lib.view_utils import qt, verify_cloud_credentials 
 from cloudscheduler.lib.html_tables_to_dictionary import get_html_tables
 
 from cloudscheduler.lib.poller_functions import \
-    delete_obsolete_database_items, \
-    get_inventory_item_hash_from_database, \
-    test_and_set_inventory_item_hash, \
+    inventory_cleanup, \
+    inventory_obsolete_database_items_delete, \
+    inventory_get_item_hash_from_db_query_rows, \
+    inventory_test_and_set_item_hash, \
     start_cycle, \
-    wait_cycle, \
-    cleanup_inventory
-#   get_last_poll_time_from_database, \
-#   set_inventory_group_and_cloud, \
-#   set_inventory_item, \
+    wait_cycle
 
 from cloudscheduler.lib.signal_functions import event_receiver_registration
 
 from cloudscheduler.lib.select_ec2 import select_ec2_images, select_ec2_instance_types
-
-from sqlalchemy import create_engine
-from sqlalchemy.orm import Session
-from sqlalchemy.ext.automap import automap_base
-from sqlalchemy.sql import func
 
 from keystoneclient.auth.identity import v2, v3
 from keystoneauth1 import session
@@ -63,9 +54,9 @@ import json
 
 ## Poller sub-functions.
 def _get_ec2_session(cloud):
-    return boto3.session.Session(region_name=cloud.region,
-                                 aws_access_key_id=cloud.username,
-                                 aws_secret_access_key=cloud.password)
+    return boto3.session.Session(region_name=cloud["region"],
+                                 aws_access_key_id=cloud["username"],
+                                 aws_secret_access_key=cloud["password"])
 
 def _get_ec2_client(session):
     return session.client('ec2')
@@ -99,21 +90,20 @@ def _tag_instance(tag_dict, instance_id, spot_id, client):
 
 # This function checks that the local files exist, and that they are not older than a week
 def check_instance_types(config):
-    REGIONS = config.db_map.classes.ec2_regions
+    REGIONS = "ec2_regions"
 
-    db_session = config.db_session
     seven_days_ago = time.time() - 60*60*24*7
 
     json_path = config.categories["ec2cloudPoller.py"]["region_flavor_file_location"]
-    region_list = db_session.query(REGIONS)
+    rc, msg, region_list = config.db_query(REGIONS)
 
     for region in region_list:
-        region_path = json_path + "/" + region.region + "/instance_types.json"
+        region_path = json_path + "/" + region["region"] + "/instance_types.json"
         no_file = False
         if not os.path.exists(json_path):
             os.mkdir(json_path)
-        if not os.path.exists(json_path + "/" + region.region):
-            os.mkdir(json_path + "/" + region.region)
+        if not os.path.exists(json_path + "/" + region["region"]):
+            os.mkdir(json_path + "/" + region["region"])
         if not os.path.exists(region_path):
             open(region_path, 'a').close()
             no_file = True
@@ -121,14 +111,14 @@ def check_instance_types(config):
             logging.info("%s out of date, downloading new version" % region_path)
             # Download new version
             try:
-                refresh_instance_types(config, region_path, region.region)
+                refresh_instance_types(config, region_path, region["region"])
             except Exception as exc:
-                logging.error("Unable to refresh instance types for region %s error:" % region.region)
+                logging.error("Unable to refresh instance types for region %s error:" % region["region"])
                 logging.error(exc)
 
 #This function downloads the new regional instance types file and parses them into the ec2_instance_types table
 def refresh_instance_types(config, file_path, region):
-    EC2_INSTANCE_TYPES = config.db_map.classes.ec2_instance_types
+    EC2_INSTANCE_TYPES = "ec2_instance_types"
     url = "https://pricing.us-east-1.amazonaws.com/offers/v1.0/aws/AmazonEC2/current/" + region + "/index.json"
     try:
         urllib.request.urlretrieve(url, file_path)
@@ -182,20 +172,21 @@ def refresh_instance_types(config, file_path, region):
                     logging.error("Attributes: %s" % itxsku['products'][sku]['attributes'])
 
     # delete old entries then load the its dict into the table
-    old_its = config.db_session.query(EC2_INSTANCE_TYPES).filter(EC2_INSTANCE_TYPES.region == region)
+    where_clause = "region='%s'" % region
+    rc, msg, old_its = config.db_query(EC2_INSTANCE_TYPES, where=where_clause)
     for it in old_its:
-        config.db_session.delete(it)
-    config.db_session.commit()
+        config.db_delete(EC2_INSTANCE_TYPES, it)
+    config.db_commit()
     # now add the updated list
     for it in its:
-        new_it = EC2_INSTANCE_TYPES(**its[it])
+        new_it = its[it]
         try:
-            config.db_session.merge(new_it)
+            config.db_merge(EC2_INSTANCE_TYPES, new_it)
         except Exception as exc:
             logging.exception("Failed to merge instance type entry %s cancelling:" % it)
             logging.error(exc)
             break
-    config.db_session.commit()
+    config.db_commit()
 
     return False
 
@@ -211,9 +202,9 @@ def ec2_filterer():
     config = Config('/etc/cloudscheduler/cloudscheduler.yaml', db_category_list, pool_size=20, signals=True)
     PID_FILE = config.categories["ProcessMonitor"]["pid_path"] + os.path.basename(sys.argv[0])
 
-    CLOUD = config.db_map.classes.csv2_clouds
-    FLAVOR = config.db_map.classes.cloud_flavors
-    IMAGE = config.db_map.classes.cloud_images
+    CLOUD = "csv2_clouds"
+    FLAVOR = "cloud_flavors"
+    IMAGE = "cloud_images"
 
 
     new_poll_time = 0
@@ -221,10 +212,12 @@ def ec2_filterer():
     poll_time_history = [0,0,0,0]
 
 
+    config.db_open()
     event_receiver_registration(config, "insert_csv2_clouds_amazon")
     event_receiver_registration(config, "insert_csv2_clouds_amazon")
     event_receiver_registration(config, "update_ec2_instance_types")
     event_receiver_registration(config, "update_ec2_images")
+    config.db_close()
 
 
     while True:
@@ -234,21 +227,23 @@ def ec2_filterer():
             new_poll_time, cycle_start_time = start_cycle(new_poll_time, cycle_start_time)
             if not os.path.exists(PID_FILE):
                 logging.debug("Stop set, exiting...")
+                config.db_close()
                 break
             signal.signal(signal.SIGINT, signal.SIG_IGN)
 
-            cloud_list = config.db_session.query(CLOUD).filter(CLOUD.cloud_type == "amazon")
+            where_clause = "cloud_type='amazon'"
+            rc, msg, cloud_list = config.db_query(CLOUD, where=where_clause)
 
             # Process Images and Instance types
             for cloud in cloud_list:
-                logging.info("PROCESSING CLOUD: %s:%s:%s" % (cloud.group_name, cloud.cloud_name, cloud.region))
+                logging.info("PROCESSING CLOUD: %s:%s:%s" % (cloud["group_name"], cloud["cloud_name"], cloud["region"]))
                 uncommitted_updates = 0
-                rc, msg, filtered_images_query = select_ec2_images(config, cloud.group_name, cloud.cloud_name)
+                rc, msg, filtered_images_query = select_ec2_images(config, cloud["group_name"], cloud["cloud_name"])
                 # check rc?
                 logging.debug("SQL: %s" % filtered_images_query)
                 filtered_images = qt(config.db_connection.execute(filtered_images_query))
                 
-                rc, msg, filtered_flavors_query = select_ec2_instance_types(config, cloud.group_name, cloud.cloud_name)
+                rc, msg, filtered_flavors_query = select_ec2_instance_types(config, cloud["group_name"], cloud["cloud_name"])
                 #check rc?
                 logging.debug("SQL: %s" % filtered_flavors_query)
                 filtered_flavors = qt(config.db_connection.execute(filtered_flavors_query))
@@ -260,8 +255,8 @@ def ec2_filterer():
                     # FORMAT:
                     # {'region': 'us-east-1', 'id': 'ami-e53e239e', 'borrower_id': 'not_shared', 'owner_id': '013907871322', 'owner_alias': 'amazon', 'disk_format': 'ebs', 'size': 10, 'image_location': 'amazon/suse-sles-12-sp3-v20170907-ecs-hvm-ssd-x86_64', 'visibility': '1', 'name': 'suse-sles-12-sp3-v20170907-ecs-hvm-ssd-x86_64', 'description': 'SUSE Linux Enterprise Server 12 SP3 ECS Optimized (HVM, 64-bit, SSD-Backed)', 'last_updated': 1557253620, 'lower_location': 'amazon/suse-sles-12-sp3-v20170907-ecs-hvm-ssd-x86_64', 'opsys': 'linux', 'arch': '64bit'}
                     image_dict = {
-                        'group_name': cloud.group_name,
-                        'cloud_name': cloud.cloud_name,
+                        'group_name': cloud["group_name"],
+                        'cloud_name': cloud["cloud_name"],
                         'cloud_type': 'amazon',
                         #'container_format': image.container_format,
                         'disk_format': image["disk_format"],
@@ -273,12 +268,11 @@ def ec2_filterer():
                         'name': image["name"],
                         'last_updated': new_poll_time
                     }
-                    new_image = IMAGE(**image_dict)
                     try:
-                        config.db_session.merge(new_image)
+                        config.db_merge(IMAGE, image_dict)
                         uncommitted_updates += 1
                     except Exception as exc:
-                        logging.exception("Failed to merge image entry for %s::%s::%s, aborting cycle..." % (cloud.group_name, cloud.cloud_name, image["name"]))
+                        logging.exception("Failed to merge image entry for %s::%s::%s, aborting cycle..." % (cloud["group_name"], cloud["cloud_name"], image["name"]))
                         logging.error(exc)
                         break
 
@@ -288,8 +282,8 @@ def ec2_filterer():
                     # FORMAT:
                     # {'region': 'us-east-1', 'instance_type': 'c3.2xlarge', 'operating_system': 'Linux', 'instance_family': 'Compute optimized', 'processor': 'Intel Xeon E5-2680 v2 (Ivy Bridge)', 'storage': '2 x 80 SSD', 'cores': 8, 'memory': 15.0, 'cost_per_hour': 0.597, 'memory_per_core': 1.875, 'processor_manufacturer': 'Intel'}
                     flav_dict = {
-                        'group_name': cloud.group_name,
-                        'cloud_name': cloud.cloud_name,
+                        'group_name': cloud["group_name"],
+                        'cloud_name': cloud["cloud_name"],
                         'name': flavor["instance_type"],
                         'cloud_type': "amazon",
                         'ram': flavor["memory"] * 1024, #from amazon its in gigs
@@ -301,12 +295,12 @@ def ec2_filterer():
                         #'is_public': flavor.__dict__.get('os-flavor-access:is_public'),
                         'last_updated': new_poll_time
                     }
-                    new_flav = FLAVOR(**flav_dict)
+
                     try:
-                        config.db_session.merge(new_flav)
+                        config.db_merge(FLAVOR, flav_dict)
                         uncommitted_updates += 1
                     except Exception as exc:
-                        logging.exception("Failed to merge flavor entry for %s::%s::%s, aborting cycle..." % (cloud.group_name, cloud.cloud_name, flavor["instance_type"]))
+                        logging.exception("Failed to merge flavor entry for %s::%s::%s, aborting cycle..." % (cloud["group_name"], cloud["cloud_name"], flavor["instance_type"]))
                         logging.error(exc)
                         break
 
@@ -314,10 +308,10 @@ def ec2_filterer():
                 #commit updates
                 if uncommitted_updates > 0:
                     try:        
-                        config.db_session.commit()
+                        config.db_commit()
                         logging.info("Flavor & Image updates committed: %d" % uncommitted_updates)
                     except Exception as exc:
-                        logging.exception("Failed to commit flavor updates for %s, aborting cycle..." % cloud.cloud_name)
+                        logging.exception("Failed to commit flavor updates for %s, aborting cycle..." % cloud["cloud_name"])
                         logging.error(exc)
                         break
                 
@@ -325,8 +319,9 @@ def ec2_filterer():
 
             # do cleanup
             deletions = 0
-            obsolete_image_rows = config.db_session.query(IMAGE).filter(IMAGE.last_updated<new_poll_time, IMAGE.cloud_type == "amazon")
-            obsolete_flavor_rows = config.db_session.query(FLAVOR).filter(FLAVOR.last_updated<new_poll_time, FLAVOR.cloud_type == "amazon")
+            where_clause = "last_updated<%s and cloud_type='amazon'" % new_poll_time
+            rc, msg, obsolete_image_rows = config.db_query(IMAGE, where=where_clause)
+            rc, msg, obsolete_flavor_rows = config.db_query(FLAVOR, where=where_clause)
 
             # it should be possible to delete the query results without looping through them
             # i believe you can just take the above generators and do a .delete() ie obsolete_image_rows.delete(), then commit it
@@ -334,24 +329,25 @@ def ec2_filterer():
             #    config.db_session.query(IMAGE).filter(IMAGE.last_updated<new_poll_time, IMAGE.cloud_type == "amazon").delete()
 
             for row in obsolete_image_rows:
-                config.db_session.delete(row)
+                config.db_delete(IMAGE, row)
                 deletions += 1
 
             for row in obsolete_flavor_rows:
-                config.db_session.delete(row)
+                config.db_delete(FLAVOR, row)
                 deletions += 1
 
             if deletions > 0:
                 logging.info("Comitting %s image and flavor deletes" % deletions)
-                config.db_session.commit()
+                config.db_commit()
 
-            #need to add signaling
-            config.db_close()
 
             if not os.path.exists(PID_FILE):
                 logging.info("Stop set, exiting...")
+                config.db_close()
                 break
             signal.signal(signal.SIGINT, config.signals['SIGINT'])
+            #need to add signaling
+            config.db_close()
             try:
                 wait_cycle(cycle_start_time, poll_time_history, config.categories["ec2cloudPoller.py"]["sleep_interval_filterer"], config)
             except KeyboardInterrupt:
@@ -375,38 +371,44 @@ def flavor_poller():
     config = Config('/etc/cloudscheduler/cloudscheduler.yaml', db_category_list, pool_size=20, signals=True)
     PID_FILE = config.categories["ProcessMonitor"]["pid_path"] + os.path.basename(sys.argv[0])
 
-    FLAVOR = config.db_map.classes.cloud_flavors
-    CLOUD = config.db_map.classes.csv2_clouds
-    FILTERS = config.db_map.classes.ec2_instance_type_filters
-    CONFIG = config.db_map.classes.csv2_configuration
+    FLAVOR = "cloud_flavors"
+    CLOUD = "csv2_clouds"
+    FILTERS = "ec2_instance_type_filters"
+    CONFIG = "csv2_configuration"
+    ikey_names = ["group_name", "cloud_name", "id"]
 
     cycle_start_time = 0
     new_poll_time = 0
     poll_time_history = [0,0,0,0]
     failure_dict = {}
 
+    config.db_open()
     event_receiver_registration(config, "insert_csv2_clouds_amazon")
     event_receiver_registration(config, "update_csv2_clouds_amazon")
+    config.db_close()
 
 
-    config.db_open()
-    db_session = config.db_session
     while True:
-        inventory = get_inventory_item_hash_from_database(config.db_engine, FLAVOR, 'name', debug_hash=(config.categories["ec2cloudPoller.py"]["log_level"]<20), cloud_type='amazon')
+        config.db_open()
+        where_clause = "cloud_type='amazon'"
+        rc, msg, rows = config.db_query(FLAVOR, where=where_clause)
+        inventory = inventory_get_item_hash_from_db_query_rows(ikey_names, rows)
+        config.db_close()
 
         try:
             #poll flavors
+            config.db_open()
             logging.debug("Beginning flavor poller cycle")
             if not os.path.exists(PID_FILE):
                 logging.debug("Stop set, exiting...")
+                config.db_close()
                 break
 
             signal.signal(signal.SIGINT, signal.SIG_IGN)
 
             new_poll_time, cycle_start_time = start_cycle(new_poll_time, cycle_start_time)
             # Cleanup inventory, this function will clean up inventory entries for deleted clouds
-            group_clouds = config.db_connection.execute('select distinct group_name, cloud_name from csv2_clouds where cloud_type="amazon"')
-            cleanup_inventory(inventory, group_clouds)
+            inventory_cleanup(ikey_names, rows, inventory)
 
 
             # First check that our ec2 instance types table is up to date:
@@ -414,9 +416,15 @@ def flavor_poller():
 
             if not os.path.exists(PID_FILE):
                 logging.info("Stop set, exiting...")
+                config.db_close()
                 break
             signal.signal(signal.SIGINT, config.signals['SIGINT'])
-            wait_cycle(cycle_start_time, poll_time_history, config.categories["ec2cloudPoller.py"]["sleep_interval_flavor"], config)
+            config.db_close()
+            try:
+                wait_cycle(cycle_start_time, poll_time_history, config.categories["ec2cloudPoller.py"]["sleep_interval_flavor"], config)
+            except KeyboardInterrupt:
+                continue
+                #got signaled
 
 
         except Exception as exc:
@@ -433,22 +441,24 @@ def image_poller():
     config = Config('/etc/cloudscheduler/cloudscheduler.yaml', db_category_list, pool_size=8, signals=True)
     PID_FILE = config.categories["ProcessMonitor"]["pid_path"] + os.path.basename(sys.argv[0])
 
-    EC2_IMAGE = config.db_map.classes.ec2_images
-    IMAGE = config.db_map.classes.cloud_images
-    CLOUD = config.db_map.classes.csv2_clouds
-    EC2_IMAGE_FILTER = config.db_map.classes.ec2_image_filters
+    EC2_IMAGE = "ec2_images"
+    IMAGE = "cloud_images"
+    CLOUD = "csv2_clouds"
+    EC2_IMAGE_FILTER = "ec2_image_filters"
+
 
     cycle_start_time = 0
     new_poll_time = 0
     poll_time_history = [0, 0, 0, 0]
     failure_dict = {}
 
+    config.db_open()
     event_receiver_registration(config, "insert_csv2_clouds_amazon")
     event_receiver_registration(config, "update_csv2_clouds_amazon")
+    config.db_close()
 
     try:
-        #inventory = get_inventory_item_hash_from_database(config.db_engine, EC2_IMAGE, 'id',
-        #                                                  debug_hash=(config.log_level < 20), cloud_type='amazon')
+
         while True:
             try:
                 logging.debug("Beginning image poller cycle")
@@ -461,32 +471,34 @@ def image_poller():
                 new_poll_time, cycle_start_time = start_cycle(new_poll_time, cycle_start_time)
                 config.db_open()
                 config.refresh()
-                db_session = config.db_session
 
                 abort_cycle = False
-                cloud_list = db_session.query(CLOUD).filter(CLOUD.cloud_type == "amazon")
+                where_clause = "cloud_type='amazon'"
+                rc, msg, cloud_list = config.db_query(CLOUD, where=where_clause)
 
                 # build unique cloud list to only query a given cloud once per cycle
                 unique_cloud_dict = {}
                 for cloud in cloud_list:
-                    if cloud.authurl + cloud.project + cloud.region not in unique_cloud_dict:
-                        unique_cloud_dict[cloud.authurl + cloud.project + cloud.region] = {
+                    if cloud["authurl"] + cloud["project"] + cloud["region"] not in unique_cloud_dict:
+                        unique_cloud_dict[cloud["authurl"] + cloud["project"] + cloud["region"]] = {
                             'cloud_obj': cloud,
-                            'groups': [(cloud.group_name, cloud.cloud_name)],
+                            'groups': [(cloud["group_name"], cloud["cloud_name"])],
                             'filter_aliases': [],
                             'filter_owner_ids': []
                         }
                     else:
-                        unique_cloud_dict[cloud.authurl + cloud.project + cloud.region]['groups'].append(
-                            (cloud.group_name, cloud.cloud_name))
+                        unique_cloud_dict[cloud["authurl"] + cloud["project"] + cloud["region"]]['groups'].append(
+                            (cloud["group_name"], cloud["cloud_name"]))
                     try:
-                        filter_row = db_session.query(EC2_IMAGE_FILTER).filter(EC2_IMAGE_FILTER.group_name == cloud.group_name, EC2_IMAGE_FILTER.cloud_name == cloud.cloud_name)[0]
-                        if filter_row.owner_aliases is not None:
-                            unique_cloud_dict[cloud.authurl + cloud.project + cloud.region]['filter_aliases'] += filter_row.owner_aliases.split(',')
+                        where_clause = "group_name='%s and cloud_name='%s'" % (cloud["group_name"], cloud["cloud_name"])
+                        rc, msg, filter_rows = config.db_query(EC2_IMAGE_FILTER, where=where_clause)
+                        filter_row = filter_rows[0]
+                        if filter_row["owner_aliases"] is not None:
+                            unique_cloud_dict[cloud["authurl"] + cloud["project"] + cloud["region"]]['filter_aliases'] += filter_row["owner_aliases"].split(',')
                         if filter_row.owner_ids is not None:
-                            unique_cloud_dict[cloud.authurl + cloud.project + cloud.region]['filter_owner_ids'] += filter_row.owner_ids.split(',')
+                            unique_cloud_dict[cloud["authurl"] + cloud["project"] + cloud["region"]]['filter_owner_ids'] += filter_row["owner_ids"].split(',')
                     except:
-                        logging.info("No filter row for cloud %s::%s" % (cloud.group_name, cloud.cloud_name))
+                        logging.info("No filter row for cloud %s::%s" % (cloud["group_name"], cloud["cloud_name"]))
                         continue
 
                 # We'll need to make 3 sets of queries here, firstly for each set of credentials to get their own images and images shared with them
@@ -513,26 +525,28 @@ def image_poller():
                     # infact since each cloud row can have its own filters it would be ideal to loop over each row instead of getting fancy with regional polling.
 
                     try:
-                        filter_row = db_session.query(EC2_IMAGE_FILTER).filter(EC2_IMAGE_FILTER.group_name == cloud.group_name, EC2_IMAGE_FILTER.cloud_name == cloud.cloud_name)[0]
-                        if "self" in filter_row.owner_aliases:
+                        where_clause = "group_name='%s and cloud_name='%s'" % (cloud["group_name"], cloud["cloud_name"])
+                        rc, msg, filter_rows = config.db_query(EC2_IMAGE_FILTER, where=where_clause)
+                        filter_row = filter_rows[0]
+                        if "self" in filter_row["owner_aliases"]:
                             self_filter = True
-                        if "shared" in filter_row.owner_aliases:
+                        if "shared" in filter_row["owner_aliases"]:
                             shared_filter = True
                     except:
-                        logging.info("No filter row for cloud %s::%s" % (cloud.group_name, cloud.cloud_name))
+                        logging.info("No filter row for cloud %s::%s" % (cloud["group_name"], cloud["cloud_name"]))
                         continue
                     requester_id = None
-                    if cloud.ec2_owner_id is None or cloud.ec2_owner_id == "":
+                    if cloud["ec2_owner_id"] is None or cloud["ec2_owner_id"] == "":
                         obj = lambda: None
-                        obj.active_group = cloud.group_name
-                        rc, msg, owner_id = verify_cloud_credentials(config, {'cloud_name': cloud.cloud_name}, obj)
+                        obj["active_group"] = cloud["group_name"]
+                        rc, msg, owner_id = verify_cloud_credentials(config, {'cloud_name': cloud["cloud_name"]}, obj)
                         if rc != 0 or owner_id is None:
-                            logging.error("unable to retrieve owner id skipping cloud %s:%s message: %s" % (cloud.group_name, cloud.cloud_name, msg))
+                            logging.error("unable to retrieve owner id skipping cloud %s:%s message: %s" % (cloud["group_name"], cloud["cloud_name"], msg))
                             continue
                         else:
                             requester_id = owner_id
                     else:
-                        requester_id = cloud.ec2_owner_id
+                        requester_id = cloud["ec2_owner_id"]
                       
 
                     # get self-owned and directly shared images
@@ -583,7 +597,7 @@ def image_poller():
                                         logging.debug("Ignoring self image..")
                                         continue
                                 img_dict = {
-                                    'region': cloud.region,
+                                    'region': cloud["region"],
                                     'ImageId': image['ImageId'],
                                     'borrower_id': borrower_id,
                                     'OwnerId': image['OwnerId'],
@@ -607,25 +621,20 @@ def image_poller():
                                 logging.debug("Unmapped attributes found during mapping, discarding:")
                                 logging.debug(unmapped)
 
-                            #if test_and_set_inventory_item_hash(inventory, cloud.group_name, cloud.cloud_name, image['ImageId'], img_dict,
-                            #                                    new_poll_time, debug_hash=(config.log_level < 20)):
-                            #    continue
-
-                            new_image = EC2_IMAGE(**img_dict)
                             try:
                                 logging.debug("adding self/shared image: %s" % nm)
-                                db_session.merge(new_image)
+                                config.db_merge(EC2_IMAGE, img_dict)
                                 uncommitted_updates += 1
                             except Exception as exc:
                                 logging.exception(
-                                    "Failed to merge image entry for %s::%s::%s:" % (cloud.group_name, cloud.cloud_name, image['ImageId']))
+                                    "Failed to merge image entry for %s::%s::%s:" % (cloud["group_name"], cloud["cloud_name"], image['ImageId']))
                                 logging.error(exc)
                                 abort_cycle = True
 
 
                 for cloud in unique_cloud_dict:
-                    cloud_name = unique_cloud_dict[cloud]['cloud_obj'].authurl
-                    region = unique_cloud_dict[cloud]['cloud_obj'].region
+                    cloud_name = unique_cloud_dict[cloud]['cloud_obj']["authurl"]
+                    region = unique_cloud_dict[cloud]['cloud_obj']["region"]
                     logging.debug("Processing Images from cloud - %s" % cloud_name)
                     session = _get_ec2_session(unique_cloud_dict[cloud]['cloud_obj'])
                     if session is False:
@@ -765,13 +774,8 @@ def image_poller():
                                 logging.debug("Unmapped attributes found during mapping, discarding:")
                                 logging.debug(unmapped)
 
-                            #if test_and_set_inventory_item_hash(inventory, group_n, cloud_n, image['ImageId'], img_dict,
-                            #                                    new_poll_time, debug_hash=(config.log_level < 20)):
-                            #    continue
-
-                            new_image = EC2_IMAGE(**img_dict)
                             try:
-                                db_session.merge(new_image)
+                                config.db_merge(EC2_IMAGE, img_dict)
                                 uncommitted_updates += 1
                             except Exception as exc:
                                 logging.exception(
@@ -786,7 +790,7 @@ def image_poller():
 
                     if uncommitted_updates > 0:
                         try:
-                            db_session.commit()
+                            config.db_commit()
                             logging.info("%d non-unique Images updated (may contain duplicates due to filtering)" % uncommitted_updates)
                             uncommitted_updates = 0
                         except Exception as exc:
@@ -797,7 +801,6 @@ def image_poller():
 
                 if abort_cycle:
                     config.db_close()
-                    del db_session
                     time.sleep(config.categories["ec2cloudPoller.py"]["sleep_interval_image"])
                     continue
 
@@ -806,25 +809,24 @@ def image_poller():
                 #
                 # query based on new_poll_time 
 
-                obsolete_rows = db_session.query(EC2_IMAGE).filter(EC2_IMAGE.last_updated<new_poll_time)
-                deletions = obsolete_rows.count()
-                obsolete_rows.delete()
-                '''
+                where_clause = "last_updated<%s" % new_poll_time
+                rc, msg, obsolete_rows = config.db_query(EC2_IMAGE, where=where_clause)
+
                 deletions = 0
                 for row in obsolete_rows:
-                    db_session.delete(row)
+                    config.db_delete(EC2_IMAGE, row)
                     deletions += 1
-                '''
+
                 if deletions > 0:
                     logging.info("Comitting %s deletes" % deletions)
-                    db_session.commit()
+                    config.db_commit()
                 config.db_close() 
-                del db_session
 
                 if not os.path.exists(PID_FILE):
                     logging.info("Stop set, exiting...")
                     break
                 signal.signal(signal.SIGINT, config.signals['SIGINT'])
+                config.db_close()
                 try:
                     wait_cycle(cycle_start_time, poll_time_history, config.categories["ec2cloudPoller.py"]["sleep_interval_image"], config)
                 except KeyboardInterrupt:
@@ -833,6 +835,7 @@ def image_poller():
             except KeyboardInterrupt:
                 # sigint received, cancel the sleep and start the loop
                 logging.error("Received wake-up signal during regular execution, resetting and continuing")
+                config.db_close()
                 continue
 
 
@@ -850,20 +853,25 @@ def keypair_poller():
     config = Config('/etc/cloudscheduler/cloudscheduler.yaml', db_category_list, pool_size=8, signals=True)
     PID_FILE = config.categories["ProcessMonitor"]["pid_path"] + os.path.basename(sys.argv[0])
 
-    KEYPAIR = config.db_map.classes.cloud_keypairs
-    CLOUD = config.db_map.classes.csv2_clouds
+    KEYPAIR = "cloud_keypairs"
+    CLOUD = "csv2_clouds"
+    ikey_names = ["group_name", "cloud_name", "fingerprint", "key_name"]
 
     cycle_start_time = 0
     new_poll_time = 0
     poll_time_history = [0, 0, 0, 0]
     failure_dict = {}
 
+    config.db_open()
     event_receiver_registration(config, "insert_csv2_clouds_amazon")
     event_receiver_registration(config, "update_csv2_clouds_amazon")
 
     try:
-        inventory = get_inventory_item_hash_from_database(config.db_engine, KEYPAIR, 'key_name',
-                                                          debug_hash=(config.categories["ec2cloudPoller.py"]["log_level"] < 20), cloud_type='amazon')
+
+        where_clause = "cloud_type='amazon'"
+        rc, msg, rows = config.db_query(KEYPAIR, where=where_clause)
+        inventory = inventory_get_item_hash_from_db_query_rows(ikey_names, rows)
+        config.db_close()
         while True:
             try:
                 logging.debug("Beginning keypair poller cycle")
@@ -876,28 +884,27 @@ def keypair_poller():
                 new_poll_time, cycle_start_time = start_cycle(new_poll_time, cycle_start_time)
                 config.db_open()
                 config.refresh()
-                db_session = config.db_session
                 # Cleanup inventory, this function will clean up inventory entries for deleted clouds
-                group_clouds = config.db_connection.execute('select distinct group_name, cloud_name from csv2_clouds where cloud_type="amazon"')
-                cleanup_inventory(inventory, group_clouds)
+                inventory_cleanup(ikey_names, rows, inventory)
 
 
                 abort_cycle = False
-                cloud_list = db_session.query(CLOUD).filter(CLOUD.cloud_type == "amazon")
+                where_clause = "cloud_type='amazon'"
+                rc, msg, cloud_list = config.db_query(CLOUD, where=where_clause)
                 # build unique cloud list to only query a given cloud once per cycle
                 unique_cloud_dict = {}
                 for cloud in cloud_list:
-                    if cloud.authurl + cloud.project + cloud.region not in unique_cloud_dict:
-                        unique_cloud_dict[cloud.authurl + cloud.project + cloud.region] = {
+                    if cloud["authurl"] + cloud["project"] + cloud["region"] not in unique_cloud_dict:
+                        unique_cloud_dict[cloud["authurl"] + cloud["project"] + cloud["region"]] = {
                             'cloud_obj': cloud,
-                            'groups': [(cloud.group_name, cloud.cloud_name)]
+                            'groups': [(cloud["group_name"], cloud["cloud_name"])]
                         }
                     else:
-                        unique_cloud_dict[cloud.authurl + cloud.project + cloud.region]['groups'].append(
-                            (cloud.group_name, cloud.cloud_name))
+                        unique_cloud_dict[cloud["authurl"] + cloud["project"] + cloud["region"]]['groups'].append(
+                            (cloud["group_name"], cloud["cloud_name"]))
 
                 for cloud in unique_cloud_dict:
-                    cloud_name = unique_cloud_dict[cloud]['cloud_obj'].authurl
+                    cloud_name = unique_cloud_dict[cloud]['cloud_obj']["authurl"]
                     logging.debug("Processing Key pairs from group:cloud - %s" % cloud_name)
                     session = _get_ec2_session(unique_cloud_dict[cloud]['cloud_obj'])
                     if session is False:
@@ -960,13 +967,10 @@ def keypair_poller():
                                 "cloud_type": 'amazon',
                             }
 
-                            if test_and_set_inventory_item_hash(inventory, group_n, cloud_n, key['KeyName'], key_dict,
-                                                                new_poll_time, debug_hash=(config.categories["ec2cloudPoller.py"]["log_level"] < 20)):
+                            if inventory_test_and_set_item_hash(ikey_names, key_dict, inventory, new_poll_time, debug_hash=(config.categories["ec2cloudPoller.py"]["log_level"] < 20)):
                                 continue
-
-                            new_key = KEYPAIR(**key_dict)
                             try:
-                                db_session.merge(new_key)
+                                config.db_merge(KEYPAIR, key_dict)
                                 uncommitted_updates += 1
                             except Exception as exc:
                                 logging.exception(
@@ -981,7 +985,7 @@ def keypair_poller():
 
                     if uncommitted_updates > 0:
                         try:
-                            db_session.commit()
+                            config.db_commit()
                             logging.info("Keypair updates committed: %d" % uncommitted_updates)
                         except Exception as exc:
                             logging.error("Failed to commit new keypairs for %s, aborting cycle..." % cloud_name)
@@ -991,16 +995,22 @@ def keypair_poller():
 
                 if abort_cycle:
                     config.db_close()
-                    del db_session
                     time.sleep(config.categories["ec2cloudPoller.py"]["sleep_interval_keypair"])
                     continue
 
-                # Scan the EC2 keypairs in the database, removing each one that was not updated in the inventory.
-                delete_obsolete_database_items('Keypair', inventory, db_session, KEYPAIR, 'key_name',
-                                               poll_time=new_poll_time, failure_dict=failure_dict)
+
+                # since the new inventory function doesn't accept a failfure dict we need to screen the rows ourself
+                where_clause="cloud_type='amazon'"
+                rc, msg, unfiltered_rows = config.db_query(KEYPAIR, where=where_clause)
+                rows = []
+                for row in unfiltered_rows:
+                    if row['group_name'] + row['cloud_name'] in failure_dict.keys():
+                        continue
+                    else:
+                        rows.append(row)
+                inventory_obsolete_database_items_delete(ikey_names, rows, inventory, new_poll_time, config, KEYPAIR)
 
                 config.db_close()
-                del db_session
 
                 if not os.path.exists(PID_FILE):
                     logging.info("Stop set, exiting...")
@@ -1030,56 +1040,61 @@ def limit_poller():
     config = Config('/etc/cloudscheduler/cloudscheduler.yaml', db_category_list, pool_size=8, signals=True)
     PID_FILE = config.categories["ProcessMonitor"]["pid_path"] + os.path.basename(sys.argv[0])
 
-    LIMIT = config.db_map.classes.cloud_limits
-    CLOUD = config.db_map.classes.csv2_clouds
+    LIMIT = "cloud_limits"
+    CLOUD = "csv2_clouds"
+    ikey_names = ["group_name", "cloud_name"]
 
     cycle_start_time = 0
     new_poll_time = 0
     poll_time_history = [0, 0, 0, 0]
     failure_dict = {}
-
+    
+    config.db_open()
     event_receiver_registration(config, "insert_csv2_clouds_amazon")
     event_receiver_registration(config, "update_csv2_clouds_amazon")
 
     try:
-        inventory = get_inventory_item_hash_from_database(config.db_engine, LIMIT, '-',
-                                                          debug_hash=(config.categories["ec2cloudPoller.py"]["log_level"] < 20), cloud_type='amazon')
+        where_clause = "cloud_type='amazon'"
+        rc, msg, rows = config.db_query(LIMIT, where=where_clause)
+        inventory = inventory_get_item_hash_from_db_query_rows(ikey_names, rows)
+        config.db_close()
+
         while True:
             try:
+                config.db_open()
+                config.refresh()
                 logging.debug("Beginning limit poller cycle")
                 if not os.path.exists(PID_FILE):
                     logging.debug("Stop set, exiting...")
+                    config.db_close()
                     break
 
                 signal.signal(signal.SIGINT, signal.SIG_IGN)
 
                 new_poll_time, cycle_start_time = start_cycle(new_poll_time, cycle_start_time)
-                config.db_open()
-                config.refresh()
-                db_session = config.db_session
-                # Cleanup inventory, this function will clean up inventory entries for deleted clouds
-                group_clouds = config.db_connection.execute('select distinct group_name, cloud_name from csv2_clouds where cloud_type="amazon"')
-                cleanup_inventory(inventory, group_clouds)
+
+                inventory_cleanup(ikey_names, rows, inventory)
 
 
                 abort_cycle = False
-                cloud_list = db_session.query(CLOUD).filter(CLOUD.cloud_type == "amazon")
+                where_clause = "cloud_type='amazon'"
+                rc, msg, cloud_list = config.db_query(CLOUD, where=where_clause)
                 uncommitted_updates = 0
 
                 # build unique cloud list to only query a given cloud once per cycle
                 unique_cloud_dict = {}
                 for cloud in cloud_list:
-                    if cloud.authurl + cloud.project + cloud.region not in unique_cloud_dict:
-                        unique_cloud_dict[cloud.authurl + cloud.project + cloud.region] = {
+                    if cloud["authurl"] + cloud["project"] + cloud["region"] not in unique_cloud_dict:
+                        unique_cloud_dict[cloud["authurl"] + cloud["project"] + cloud["region"]] = {
                             'cloud_obj': cloud,
-                            'groups': [(cloud.group_name, cloud.cloud_name)]
+                            'groups': [(cloud["group_name"], cloud["cloud_name"])]
                         }
                     else:
-                        unique_cloud_dict[cloud.authurl + cloud.project + cloud.region]['groups'].append(
-                            (cloud.group_name, cloud.cloud_name))
+                        unique_cloud_dict[cloud["authurl"] + cloud["project"] + cloud["region"]]['groups'].append(
+                            (cloud["group_name"], cloud["cloud_name"]))
 
                 for cloud in unique_cloud_dict:
-                    cloud_name = unique_cloud_dict[cloud]['cloud_obj'].authurl
+                    cloud_name = unique_cloud_dict[cloud]['cloud_obj']["authurl"]
                     logging.debug("Processing limits from cloud - %s" % cloud_name)
                     session = _get_ec2_session(unique_cloud_dict[cloud]['cloud_obj'])
                     if session is False:
@@ -1114,10 +1129,16 @@ def limit_poller():
                         for cloud_tuple in unique_cloud_dict[cloud]['groups']:
                             grp_nm = cloud_tuple[0]
                             cld_nm = cloud_tuple[1]
-                            cloud_row = db_session.query(CLOUD).filter(CLOUD.group_name == grp_nm, CLOUD.cloud_name == cld_nm)[0]
-                            cloud_row.communication_up = 0
-                            db_session.merge(cloud_row)
-                            db_session.commit()
+                            where_clause = "group_name='%s' and cloud_name='%s'" % (grp_nm, cld_nm)
+                            rc, msg, cloud_rows = config.db_query(CLOUD, where=where_clause)
+                            cloud_row = cloud_rows[0]
+                            cld_update_dict = {
+                                "group_name": cloud_row["group_name"],
+                                "cloud_name": cloud_row["cloud_name"],
+                                "communication_up": 0
+                            }
+                            config.db_update(CLOUD, cld_update_dict)
+                            config.db_commit()
 
                             if grp_nm + cld_nm not in failure_dict:
                                 failure_dict[grp_nm + cld_nm] = 1
@@ -1136,18 +1157,23 @@ def limit_poller():
                         grp_nm = cloud_tuple[0]
                         cld_nm = cloud_tuple[1]
                         failure_dict.pop(grp_nm + cld_nm, None)
-                        cloud_row = db_session.query(CLOUD).filter(CLOUD.group_name == grp_nm, CLOUD.cloud_name == cld_nm)[0]
+                        where_clause = "group_name='%s' and cloud_name='%s'" % (grp_nm, cld_nm)
+                        rc, msg, cloud_rows = config.db_query(CLOUD, where=where_clause)
+                        cloud_row = cloud_rows[0]
                         logging.debug("pre request time:%s   post request time:%s" % (post_req_time, pre_req_time))
-                        cloud_row.communication_rt = int(post_req_time - pre_req_time)
-                        cloud_row.communication_up = 1
+                        cld_update_dict = {
+                            "group_name": cloud_row["group_name"],
+                            "cloud_name": cloud_row["cloud_name"],
+                            "communication_up": 1,
+                            "communication_rt": int(post_req_time - pre_req_time)
+                        }
                         try:
-                            db_session.merge(cloud_row)
+                            config.db_update(CLOUD, cld_update_dict)
                             uncommitted_updates += 1
                             config.reset_cloud_error(grp_nm, cld_nm)
                         except Exception as exc:
                             logging.warning("Failed to update communication_rt for cloud_row: %s" % cloud_row)
                             logging.warning(exc)
-                            db_session.rollback()
 
                     if shared_limits_dict is False:
                         logging.info("No limits defined for %s, skipping this cloud..." % cloud_name)
@@ -1187,17 +1213,15 @@ def limit_poller():
                             logging.debug("Unmapped attributes found during mapping, discarding:")
                             logging.debug(unmapped)
 
-                        if test_and_set_inventory_item_hash(inventory, group_n, cloud_n, '-', limits_dict,
-                                                            new_poll_time, debug_hash=(config.categories["ec2cloudPoller.py"]["log_level"] < 20)):
+                        if inventory_test_and_set_item_hash(ikey_names, limits_dict, inventory, new_poll_time, debug_hash=(config.categories["ec2cloudPoller.py"]["log_level"] < 20)):
                             continue
 
                         for limit in limits_dict:
                             if "-1" in str(limits_dict[limit]):
                                 limits_dict[limit] = config.categories["ec2cloudPoller.py"]["no_limit_default"]
 
-                        new_limits = LIMIT(**limits_dict)
                         try:
-                            db_session.merge(new_limits)
+                            config.db_merge(LIMIT, limits_dict)
                             uncommitted_updates += 1
                         except Exception as exc:
                             logging.exception(
@@ -1209,13 +1233,12 @@ def limit_poller():
                     del nova
                     if abort_cycle:
                         config.db_close()
-                        del db_session
                         time.sleep(config.categories["ec2cloudPoller.py"]["sleep_interval_limit"])
                         continue
 
                     if uncommitted_updates > 0:
                         try:
-                            db_session.commit()
+                            config.db_commit()
                             logging.info("Limit updates committed: %d" % uncommitted_updates)
                         except Exception as exc:
                             logging.error("Failed to commit new limits for %s, aborting cycle..." % cloud_name)
@@ -1223,12 +1246,18 @@ def limit_poller():
                             abort_cycle = True
                             break
 
-                # Scan the OpenStack flavors in the database, removing each one that was` not iupdated in the inventory.
-                delete_obsolete_database_items('Limit', inventory, db_session, LIMIT, '-', poll_time=new_poll_time,
-                                               failure_dict=failure_dict)
+
+                where_clause="cloud_type='amazon'"
+                rc, msg, unfiltered_rows = config.db_query(LIMIT, where=where_clause)
+                rows = []
+                for row in unfiltered_rows:
+                    if row['group_name'] + row['cloud_name'] in failure_dict.keys():
+                        continue
+                    else:
+                        rows.append(row)
+                inventory_obsolete_database_items_delete(ikey_names, rows, inventory, new_poll_time, config, LIMIT)
 
                 config.db_close()
-                del db_session
 
                 if not os.path.exists(PID_FILE):
                     logging.info("Stop set, exiting...")
@@ -1243,6 +1272,7 @@ def limit_poller():
             except KeyboardInterrupt:
                 # sigint recieved, cancel the sleep and start the loop
                 logging.error("Recieved wake-up signal during regular execution, resetting and continuing")
+                config.db_close()
                 continue
 
     except Exception as exc:
@@ -1258,54 +1288,57 @@ def network_poller():
     config = Config('/etc/cloudscheduler/cloudscheduler.yaml', db_category_list, pool_size=8, signals=True)
     PID_FILE = config.categories["ProcessMonitor"]["pid_path"] + os.path.basename(sys.argv[0])
 
-    NETWORK = config.db_map.classes.cloud_networks
-    CLOUD = config.db_map.classes.csv2_clouds
+    NETWORK = "cloud_networks"
+    CLOUD = "csv2_clouds"
+    ikey_names = ["group_name", "cloud_name", "id"]
 
     cycle_start_time = 0
     new_poll_time = 0
     poll_time_history = [0, 0, 0, 0]
     failure_dict = {}
 
+    config.db_open()
     event_receiver_registration(config, "insert_csv2_clouds_amazon")
     event_receiver_registration(config, "update_csv2_clouds_amazon")
 
     try:
-        inventory = get_inventory_item_hash_from_database(config.db_engine, NETWORK, 'name',
-                                                          debug_hash=(config.categories["ec2cloudPoller.py"]["log_level"] < 20), cloud_type='amazon')
+        where_clause = "cloud_type='amazon'"
+        rc, msg, rows = config.db_query(NETWORK, where=where_clause)
+        inventory = inventory_get_item_hash_from_db_query_rows(ikey_names, rows)
+        config.db_close()
         while True:
             try:
                 logging.debug("Beginning network poller cycle")
+                config.db_open()
+                config.refresh()
                 if not os.path.exists(PID_FILE):
                     logging.debug("Stop set, exiting...")
                     break
 
                 signal.signal(signal.SIGINT, signal.SIG_IGN)
                 new_poll_time, cycle_start_time = start_cycle(new_poll_time, cycle_start_time)
-                config.db_open()
-                config.refresh()
-                db_session = config.db_session
 
                 # Cleanup inventory, this function will clean up inventory entries for deleted clouds
-                group_clouds = config.db_connection.execute('select distinct group_name, cloud_name from csv2_clouds where cloud_type="amazon"')
-                cleanup_inventory(inventory, group_clouds)
+                inventory_cleanup(ikey_names, rows, inventory)
 
                 abort_cycle = False
-                cloud_list = db_session.query(CLOUD).filter(CLOUD.cloud_type == "amazon")
+                where_clause = "cloud_type='amazon'"
+                rc, msg, cloud_list = config.db_query(CLOUD, where=where_clause)
 
                 # build unique cloud list to only query a given cloud once per cycle
                 unique_cloud_dict = {}
                 for cloud in cloud_list:
-                    if cloud.authurl + cloud.project + cloud.region not in unique_cloud_dict:
-                        unique_cloud_dict[cloud.authurl + cloud.project + cloud.region] = {
+                    if cloud["authurl"] + cloud["project"] + cloud["region"] not in unique_cloud_dict:
+                        unique_cloud_dict[cloud["authurl"] + cloud["project"] + cloud["region"]] = {
                             'cloud_obj': cloud,
-                            'groups': [(cloud.group_name, cloud.cloud_name)]
+                            'groups': [(cloud["group_name"], cloud["cloud_name"])]
                         }
                     else:
-                        unique_cloud_dict[cloud.authurl + cloud.project + cloud.region]['groups'].append(
-                            (cloud.group_name, cloud.cloud_name))
+                        unique_cloud_dict[cloud["authurl"] + cloud["project"] + cloud["region"]]['groups'].append(
+                            (cloud["group_name"], cloud["cloud_name"]))
 
                 for cloud in unique_cloud_dict:
-                    cloud_name = unique_cloud_dict[cloud]['cloud_obj'].authurl
+                    cloud_name = unique_cloud_dict[cloud]['cloud_obj']["authurl"]
                     logging.debug("Processing networks from cloud - %s" % cloud_name)
                     session = _get_ec2_session(unique_cloud_dict[cloud]['cloud_obj'])
                     if session is False:
@@ -1377,14 +1410,12 @@ def network_poller():
                             #    logging.error("Unmapped attributes found during mapping, discarding:")
                             #    logging.error(unmapped)
 
-                            if test_and_set_inventory_item_hash(inventory, group_n, cloud_n, network['Description'],
-                                                                network_dict, new_poll_time,
-                                                                debug_hash=(config.categories["ec2cloudPoller.py"]["log_level"] < 20)):
+                            if inventory_test_and_set_item_hash(ikey_names, network_dict, inventory, new_poll_time, debug_hash=(config.categories["ec2cloudPoller.py"]["log_level"] < 20)):
+
                                 continue
 
-                            new_network = NETWORK(**network_dict)
                             try:
-                                db_session.merge(new_network)
+                                config.db_merge(NETWORK, network_dict)
                                 uncommitted_updates += 1
                             except Exception as exc:
                                 logging.exception("Failed to merge network entry for %s::%s::%s, aborting cycle..." % (
@@ -1399,7 +1430,7 @@ def network_poller():
 
                     if uncommitted_updates > 0:
                         try:
-                            db_session.commit()
+                            config.db_commit()
                             logging.info("Network updates committed: %d" % uncommitted_updates)
                         except Exception as exc:
                             logging.error("Failed to commit new networks for %s, aborting cycle..." % cloud_name)
@@ -1409,16 +1440,24 @@ def network_poller():
 
                 if abort_cycle:
                     config.db_close()
-                    del db_session
                     time.sleep(config.categories["ec2cloudPoller.py"]["sleep_interval_network"])
                     continue
 
-                # Scan the OpenStack networks in the database, removing each one that was not updated in the inventory.
-                delete_obsolete_database_items('Network', inventory, db_session, NETWORK, 'name',
-                                               poll_time=new_poll_time, failure_dict=failure_dict)
+
+                # since the new inventory function doesn't accept a failfure dict we need to screen the rows ourself
+                where_clause="cloud_type='amazon'"
+                rc, msg, unfiltered_rows = config.db_query(NETWORK, where=where_clause)
+                rows = []
+                for row in unfiltered_rows:
+                    if row['group_name'] + row['cloud_name'] in failure_dict.keys():
+                        continue
+                    else:
+                        rows.append(row)
+                inventory_obsolete_database_items_delete(ikey_names, rows, inventory, new_poll_time, config, NETWORK)
+
+
 
                 config.db_close()
-                del db_session
 
                 if not os.path.exists(PID_FILE):
                     logging.info("Stop set, exiting...")
@@ -1448,8 +1487,9 @@ def security_group_poller():
     config = Config('/etc/cloudscheduler/cloudscheduler.yaml', db_category_list, pool_size=8, signals=True)
     PID_FILE = config.categories["ProcessMonitor"]["pid_path"] + os.path.basename(sys.argv[0])
 
-    SECURITY_GROUP = config.db_map.classes.cloud_security_groups
-    CLOUD = config.db_map.classes.csv2_clouds
+    SECURITY_GROUP = "cloud_security_groups"
+    CLOUD = "csv2_clouds"
+    ikey_names = ["group_name", "cloud_name", "id"]
 
     cycle_start_time = 0
     new_poll_time = 0
@@ -1457,15 +1497,20 @@ def security_group_poller():
     failure_dict = {}
     my_pid = os.getpid()
 
+    config.db_open()
     event_receiver_registration(config, "insert_csv2_clouds_amazon")
     event_receiver_registration(config, "update_csv2_clouds_amazon")
 
     try:
-        inventory = get_inventory_item_hash_from_database(config.db_engine, SECURITY_GROUP, 'id',
-                                                          debug_hash=(config.categories["ec2cloudPoller.py"]["log_level"] < 20), cloud_type='amazon')
+        where_clause = "cloud_type='amazon'"
+        rc, msg, rows = config.db_query(SECURITY_GROUP, where=where_clause)
+        inventory = inventory_get_item_hash_from_db_query_rows(ikey_names, rows)
+        config.db_close()
         while True:
             try:
                 logging.debug("Beginning security group poller cycle")
+                config.db_open()
+                config.refresh()
                 if not os.path.exists(PID_FILE):
                     logging.debug("Stop set, exiting...")
                     break
@@ -1473,31 +1518,28 @@ def security_group_poller():
                 signal.signal(signal.SIGINT, signal.SIG_IGN)
 
                 new_poll_time, cycle_start_time = start_cycle(new_poll_time, cycle_start_time)
-                config.db_open()
-                config.refresh()
-                db_session = config.db_session
 
                 # Cleanup inventory, this function will clean up inventory entries for deleted clouds
-                group_clouds = config.db_connection.execute('select distinct group_name, cloud_name from csv2_clouds where cloud_type="amazon"')
-                cleanup_inventory(inventory, group_clouds)
+                inventory_cleanup(ikey_names, rows, inventory)
 
                 abort_cycle = False
-                cloud_list = db_session.query(CLOUD).filter(CLOUD.cloud_type == "amazon")
+                where_clause = "cloud_type='amazon'"
+                rc, msg, cloud_list = config.db_query(CLOUD, where=where_clause)
 
                 # build unique cloud list to only query a given cloud once per cycle
                 unique_cloud_dict = {}
                 for cloud in cloud_list:
-                    if cloud.authurl + cloud.project + cloud.region not in unique_cloud_dict:
-                        unique_cloud_dict[cloud.authurl + cloud.project + cloud.region] = {
+                    if cloud["authurl"] + cloud["project"] + cloud["region"] not in unique_cloud_dict:
+                        unique_cloud_dict[cloud["authurl"] + cloud["project"] + cloud["region"]] = {
                             'cloud_obj': cloud,
-                            'groups': [(cloud.group_name, cloud.cloud_name)]
+                            'groups': [(cloud["group_name"], cloud["cloud_name"])]
                         }
                     else:
-                        unique_cloud_dict[cloud.authurl + cloud.project + cloud.region]['groups'].append(
-                            (cloud.group_name, cloud.cloud_name))
+                        unique_cloud_dict[cloud["authurl"] + cloud["project"] + cloud["region"]]['groups'].append(
+                            (cloud["group_name"], cloud["cloud_name"]))
 
                 for cloud in unique_cloud_dict:
-                    cloud_name = unique_cloud_dict[cloud]['cloud_obj'].authurl
+                    cloud_name = unique_cloud_dict[cloud]['cloud_obj']["authurl"]
                     logging.debug("Processing security groups from cloud - %s" % cloud_name)
                     session = _get_ec2_session(unique_cloud_dict[cloud]['cloud_obj'])
                     if session is False:
@@ -1567,19 +1609,16 @@ def security_group_poller():
                                 logging.debug("Unmapped attributes found during mapping, discarding:")
                                 logging.debug(unmapped)
 
-                            if test_and_set_inventory_item_hash(inventory, group_n, cloud_n, sec_grp["GroupId"],
-                                                                sec_grp_dict, new_poll_time,
-                                                                debug_hash=(config.categories["ec2cloudPoller.py"]["log_level"] < 20)):
+                            if inventory_test_and_set_item_hash(ikey_names, sec_grp_dict_dict, inventory, new_poll_time, debug_hash=(config.categories["ec2cloudPoller.py"]["log_level"] < 20)):
                                 continue
 
-                            new_sec_grp = SECURITY_GROUP(**sec_grp_dict)
                             try:
-                                db_session.merge(new_sec_grp)
+                                config.db_merge(SECURITY_GROUP, sec_grp_dict)
                                 uncommitted_updates += 1
                             except Exception as exc:
                                 logging.exception(
                                     "Failed to merge security group entry for %s::%s::%s, aborting cycle..." % (
-                                    group_n, cloud_n, sec_grp.name))
+                                    group_n, cloud_n, sec_grp["name"]))
                                 logging.error(exc)
                                 abort_cycle = True
                                 break
@@ -1590,7 +1629,7 @@ def security_group_poller():
 
                     if uncommitted_updates > 0:
                         try:
-                            db_session.commit()
+                            config.db_commit()
                             logging.info("Security group updates committed: %d" % uncommitted_updates)
                         except Exception as exc:
                             logging.exception(
@@ -1600,22 +1639,27 @@ def security_group_poller():
                             break
 
                 if abort_cycle:
-                    db_session.close()
                     time.sleep(config.categories["ec2cloudPoller.py"]["sleep_interval_sec_grp"])
                     continue
 
-                # Scan the OpenStack sec_grps in the database, removing each one that was not iupdated in the inventory.
-                delete_obsolete_database_items('sec_grp', inventory, db_session, SECURITY_GROUP, 'id',
-                                               poll_time=new_poll_time, failure_dict=failure_dict)
+                # since the new inventory function doesn't accept a failfure dict we need to screen the rows ourself
+                where_clause="cloud_type='amazon'"
+                rc, msg, unfiltered_rows = config.db_query(SECURITY_GROUP, where=where_clause)
+                rows = []
+                for row in unfiltered_rows:
+                    if row['group_name'] + row['cloud_name'] in failure_dict.keys():
+                        continue
+                    else:
+                        rows.append(row)
+                inventory_obsolete_database_items_delete(ikey_names, rows, inventory, new_poll_time, config, SECURITY_GROUP)
 
-                config.db_close()
-                del db_session
 
                 if not os.path.exists(PID_FILE):
                     logging.info("Stop set, exiting...")
                     break
                 signal.signal(signal.SIGINT, config.signals['SIGINT'])
 
+                config.db_close()
                 try:
                     wait_cycle(cycle_start_time, poll_time_history, config.categories["ec2cloudPoller.py"]["sleep_interval_sec_grp"], config)
 
@@ -1632,7 +1676,6 @@ def security_group_poller():
         logging.exception("sec_grp poller cycle while loop exception, process terminating...")
         logging.error(exc)
         config.db_close()
-        del db_session
 
 
 def vm_poller():
@@ -1641,11 +1684,12 @@ def vm_poller():
     config = Config('/etc/cloudscheduler/cloudscheduler.yaml', [os.path.basename(sys.argv[0]), "SQL", "ProcessMonitor"], pool_size=8, signals=True)
     PID_FILE = config.categories["ProcessMonitor"]["pid_path"] + os.path.basename(sys.argv[0])
 
-    VM = config.db_map.classes.csv2_vms
-    FVM = config.db_map.classes.csv2_vms_foreign
-    GROUP = config.db_map.classes.csv2_groups
-    CLOUD = config.db_map.classes.csv2_clouds
-    EC2_STATUS = config.db_map.classes.ec2_instance_status_codes
+    VM = "csv2_vms"
+    FVM = "csv2_vms_foreign"
+    GROUP = "csv2_groups"
+    CLOUD = "csv2_clouds"
+    EC2_STATUS = "ec2_instance_status_codes"
+    ikey_names = ["group_name", "cloud_name", "vmid"]
 
     cycle_start_time = 0
     new_poll_time = 0
@@ -1653,18 +1697,21 @@ def vm_poller():
     failure_dict = {}
     ec2_status_dict = {}
 
+    config.db_open()
     event_receiver_registration(config, "insert_csv2_clouds_amazon")
     event_receiver_registration(config, "update_csv2_clouds_amazon")
 
-    config.db_open()
-    ec2_status = config.db_session.query(EC2_STATUS)
+    rc, msg, ec2_status = config.db_query(EC2_STATUS)
     for row in ec2_status:
-        ec2_status_dict[row.ec2_state] = row.csv2_state
-    config.db_close()
-    
+        ec2_status_dict[row["ec2_state"]] = row["csv2_state"]
+
     try:
-        inventory = get_inventory_item_hash_from_database(config.db_engine, VM, 'vmid', debug_hash=(config.categories["ec2cloudPoller.py"]["log_level"]<20), cloud_type="amazon")
+        where_clause = "cloud_type='amazon'"
+        rc, msg, rows = config.db_query(VM, where=where_clause)
+        inventory = inventory_get_item_hash_from_db_query_rows(ikey_names, rows)
+        config.db_close()
         while True:
+            config.db_open()
             # This cycle should be reasonably fast such that the scheduler will always have the most
             # up to date data during a given execution cycle.
             logging.debug("Beginning VM poller cycle")
@@ -1674,43 +1721,41 @@ def vm_poller():
 
             signal.signal(signal.SIGINT, signal.SIG_IGN)
 
-
             new_poll_time, cycle_start_time = start_cycle(new_poll_time, cycle_start_time)
-            config.db_open()
             config.refresh()
-            db_session = config.db_session
 
             # Cleanup inventory, this function will clean up inventory entries for deleted clouds
-            group_clouds = config.db_connection.execute('select distinct group_name, cloud_name from csv2_clouds where cloud_type="amazon"')
-            cleanup_inventory(inventory, group_clouds)
+            inventory_cleanup(ikey_names, rows, inventory)
 
             # For each amazon region, retrieve and process VMs.
             abort_cycle = False
-            group_list = db_session.query(GROUP)
+            rc, msg, group_list = config.db_query(GROUP)
 
-            cloud_list = db_session.query(CLOUD).filter(CLOUD.cloud_type == "amazon")
+            where_clause = "cloud_type='amazon'"
+            rc, msg, cloud_list = config.db_query(CLOUD, where=where_clause)
 
             # build unique cloud list to only query a given cloud once per cycle
             unique_cloud_dict = {}
             for cloud in cloud_list:
-                if cloud.authurl+cloud.project+cloud.region not in unique_cloud_dict:
-                    unique_cloud_dict[cloud.authurl+cloud.project+cloud.region] = {
+                if cloud["authurl"]+cloud["project"]+cloud["region"] not in unique_cloud_dict:
+                    unique_cloud_dict[cloud["authurl"]+cloud["project"]+cloud["region"]] = {
                         'cloud_obj': cloud,
-                        'groups': [(cloud.group_name, cloud.cloud_name)]
+                        'groups': [(cloud["group_name"], cloud["cloud_name"])]
                     }
                 else:
-                    unique_cloud_dict[cloud.authurl+cloud.project+cloud.region]['groups'].append((cloud.group_name, cloud.cloud_name))
+                    unique_cloud_dict[cloud["authurl"]+cloud["project"]+cloud["region"]]['groups'].append((cloud["group_name"], cloud["cloud_name"]))
 
             group_list = []
             for cloud in unique_cloud_dict:
                 group_list = group_list + unique_cloud_dict[cloud]['groups']
 
             for cloud in unique_cloud_dict:
-                auth_url = unique_cloud_dict[cloud]['cloud_obj'].authurl
+                auth_url = unique_cloud_dict[cloud]['cloud_obj']["authurl"]
                 cloud_obj = unique_cloud_dict[cloud]['cloud_obj']
 
                 logging.debug("Generating FVM list...")
-                foreign_vm_list = db_session.query(FVM).filter(FVM.authurl == cloud_obj.authurl, FVM.region == cloud_obj.region, FVM.project == cloud_obj.project)
+                where_clause = "authurl='%s' and region='%s' and project='%s'" % (cloud_obj["authurl"], cloud_obj["region"], cloud_obj["project"])
+                rc, msg, foreign_vm_list = config.db_query(FVM, where=where_clause)
 
                 #set foreign vm counts to zero as we will recalculate them as we go, any rows left at zero should be deleted
                 # dict[cloud+flavor]
@@ -1719,9 +1764,9 @@ def vm_poller():
                     fvm_dict = {
                         "fvm_obj": for_vm,
                         "count": 0,
-                        "region": cloud_obj.region,
-                        "authurl": cloud_obj.authurl,
-                        "project": cloud_obj.project
+                        "region": cloud_obj["region"],
+                        "authurl": cloud_obj["authurl"],
+                        "project": cloud_obj["project"]
                     }
                     for_vm_dict[auth_url + "--" + for_vm.flavor_id] = fvm_dict
 
@@ -1729,13 +1774,13 @@ def vm_poller():
                 session = _get_ec2_session(cloud_obj)
 
                 if session is False:
-                    logging.debug("Failed to establish session with %s::%s::%s, using group %s's credentials skipping this cloud..." % (cloud_obj.authurl, cloud_obj.project, cloud_obj.region, cloud_obj.group_name))
-                    if cloud_obj.group_name+auth_url not in failure_dict:
-                        failure_dict[cloud_obj.group_name+auth_url] = 1
+                    logging.debug("Failed to establish session with %s::%s::%s, using group %s's credentials skipping this cloud..." % (cloud_obj["authurl"], cloud_obj["project"], cloud_obj["region"], cloud_obj["group_name"]))
+                    if cloud_obj["group_name"]+auth_url not in failure_dict:
+                        failure_dict[cloud_obj["group_name"]+auth_url] = 1
                     else:
-                        failure_dict[cloud_obj.group_name+auth_url] = failure_dict[cloud_obj.group_name+auth_url] + 1
-                    if failure_dict[cloud_obj.group_name+auth_url] > 3: #could be configurable
-                        logging.error("Failure threshhold limit reached for %s::%s::%s, using group %s's credentials, manual action required, skipping" % (cloud_obj.authurl, cloud_obj.project, cloud_obj.region, cloud_obj.group_name))
+                        failure_dict[cloud_obj["group_name"]+auth_url] = failure_dict[cloud_obj["group_name"]+auth_url] + 1
+                    if failure_dict[cloud_obj["group_name"]+auth_url] > 3: #could be configurable
+                        logging.error("Failure threshhold limit reached for %s::%s::%s, using group %s's credentials, manual action required, skipping" % (cloud_obj["authurl"], cloud_obj["project"], cloud_obj["region"], cloud_obj["group_name"]))
                     continue
 
                 # Retrieve VM list for this cloud.
@@ -1744,24 +1789,24 @@ def vm_poller():
                     logging.debug("Polling VMs from cloud: %s" % auth_url)
                     vm_list = nova.describe_instances()
                 except Exception as exc:
-                    logging.error("Failed to retrieve VM data for  %s::%s::%s, skipping this cloud..." % (cloud_obj.authurl, cloud_obj.project, cloud_obj.region))
+                    logging.error("Failed to retrieve VM data for  %s::%s::%s, skipping this cloud..." % (cloud_obj["authurl"], cloud_obj["project"], cloud_obj["region"]))
                     logging.error("Exception type: %s" % type(exc))
                     logging.error(exc)
-                    if cloud_obj.group_name+auth_url not in failure_dict:
-                        failure_dict[cloud_obj.group_name+auth_url] = 1
+                    if cloud_obj["group_name"]+auth_url not in failure_dict:
+                        failure_dict[cloud_obj["group_name"]+auth_url] = 1
                     else:
-                        failure_dict[cloud_obj.group_name+auth_url] = failure_dict[cloud_obj.group_name+auth_url] + 1
-                    if failure_dict[cloud_obj.group_name+auth_url] > 3: #should be configurable
-                        logging.error("Failure threshhold limit reached for %s::%s::%s, using group %s's crednetials manual action required, skipping" % (cloud_obj.authurl, cloud_obj.project, cloud_obj.region, cloud_obj.group_name))
+                        failure_dict[cloud_obj["group_name"]+auth_url] = failure_dict[cloud_obj["group_name"]+auth_url] + 1
+                    if failure_dict[cloud_obj["group_name"]+auth_url] > 3: #should be configurable
+                        logging.error("Failure threshhold limit reached for %s::%s::%s, using group %s's crednetials manual action required, skipping" % (cloud_obj["authurl"], cloud_obj["project"], cloud_obj["region"], cloud_obj["group_name"]))
                     continue
 
                 if vm_list is False:
-                    logging.info("No VMs defined for %s::%s:%s, skipping this cloud..." % (cloud_obj.authurl, cloud_obj.project, cloud_obj.region))
+                    logging.info("No VMs defined for %s::%s:%s, skipping this cloud..." % (cloud_obj["authurl"], cloud_obj["project"], cloud_obj["region"]))
                     del nova
                     continue
 
                 # if we get here the connection to amazon has been succussful and we can remove the error status
-                failure_dict.pop(cloud_obj.group_name+auth_url, None)
+                failure_dict.pop(cloud_obj["group_name"]+auth_url, None)
 
                 # Process VM list for this cloud.
                 # We've decided to remove the variable "status_changed_time" since it was holding the exact same value as "last_updated"
@@ -1812,7 +1857,9 @@ def vm_poller():
                                         break
                             # if we get here it should be a valid vm, if there are no tags then lets do one last check to make sure this vm isn't one of our before throwing an error
                             else:
-                                result = db_session.query(VM).filter(VM.vmid == vm['SpotInstanceRequestId']).count()
+                                where_clause = "vmid='%s'" % vm['SpotInstanceRequestId']
+                                rc, msg, results = config.db_query(VM, where=where_clause)
+                                result = len(results)
                                 # if result is not empty then there was an error surrounding tags and this VM is actually one of ours
                                 if result >= 1:
                                     logging.error("VM matches SIR in csv2 database but doesn't have any registered tags, try again later.")
@@ -1831,9 +1878,9 @@ def vm_poller():
                                     # no entry yet
                                     for_vm_dict[auth_url + "--" + vm['InstanceType']]= {
                                         'count': 1,
-                                        'region': cloud_obj.region,
-                                        'project': cloud_obj.project,
-                                        'authurl': cloud_obj.authurl, 
+                                        'region': cloud_obj["region"],
+                                        'project': cloud_obj["project"],
+                                        'authurl': cloud_obj["authurl"], 
                                         'flavor_id': vm['InstanceType']
                                     }
                                 continue
@@ -1845,9 +1892,9 @@ def vm_poller():
                                     # no entry yet
                                     for_vm_dict[auth_url + "--" + vm['InstanceType']]= {
                                         'count': 1,
-                                        'region': cloud_obj.region,
-                                        'project': cloud_obj.project,
-                                        'authurl': cloud_obj.authurl, 
+                                        'region': cloud_obj["region"],
+                                        'project': cloud_obj["project"],
+                                        'authurl': cloud_obj["authurl"], 
                                         'flavor_id': vm['InstanceType']
                                     }
 
@@ -1863,9 +1910,9 @@ def vm_poller():
                                 # no entry yet
                                 for_vm_dict[auth_url + "--" + vm['InstanceType']]= {
                                     'count': 1,
-                                    'region': cloud_obj.region,
-                                    'project': cloud_obj.project,
-                                    'authurl': cloud_obj.authurl, 
+                                    'region': cloud_obj["region"],
+                                    'project': cloud_obj["project"],
+                                    'authurl': cloud_obj["authurl"], 
                                     'flavor_id': vm['InstanceType']
                                 }
 
@@ -1884,9 +1931,9 @@ def vm_poller():
                         vm_dict = {
                             'group_name': vm_group_name,
                             'cloud_name': vm_cloud_name,
-                            'region': cloud_obj.region,
-                            'auth_url': cloud_obj.authurl,
-                            'project': cloud_obj.project,
+                            'region': cloud_obj["region"],
+                            'auth_url': cloud_obj["authurl"],
+                            'project': cloud_obj["project"],
                             'cloud_type': 'amazon',
                             'hostname': vm.get('PublicDnsName'),
                             'vmid': vm['SpotInstanceRequestId'] if 'SpotInstanceRequestId' in vm else vm['InstanceId'],
@@ -1904,21 +1951,21 @@ def vm_poller():
                             logging.debug("unmapped attributes found during mapping, discarding:")
                             logging.debug(unmapped)
 
-                        if test_and_set_inventory_item_hash(inventory, vm_group_name, vm_cloud_name, vm_dict['vmid'], vm_dict, new_poll_time, debug_hash=(config.categories["ec2cloudPoller.py"]["log_level"]<20)):
+                        if inventory_test_and_set_item_hash(ikey_names, vm_dict, inventory, new_poll_time, debug_hash=(config.categories["ec2cloudPoller.py"]["log_level"] < 20)):
                             continue
 
-                        new_vm = VM(**vm_dict)
+
                         try:
-                            db_session.merge(new_vm)
+                            config.db_merge(VM, vm_dict)
                             uncommitted_updates += 1
                         except Exception as exc:
-                            logging.exception("Failed to merge VM entry for %s::%s::%s, using group %s's credentials aborting cycle..." % (cloud_obj.authurl, cloud_obj.project, cloud_obj.region, cloud_obj.group_name))
+                            logging.exception("Failed to merge VM entry for %s::%s::%s, using group %s's credentials aborting cycle..." % (cloud_obj["authurl"], cloud_obj["project"], cloud_obj["region"], cloud_obj["group_name"]))
                             logging.error(exc)
                             abort_cycle = True
                             break
                         if uncommitted_updates >= config.categories["ec2cloudPoller.py"]["batch_commit_size"]:
                             try:
-                                db_session.commit()
+                                config.db_commit()
                                 logging.info("Comitted %s VMs" % uncommitted_updates)
                                 uncommitted_updates = 0
                             except Exception as exc:
@@ -1931,10 +1978,10 @@ def vm_poller():
 
                 if uncommitted_updates > 0:
                     try:        
-                        db_session.commit()
+                        config.db_commit()
                         logging.info("VM updates committed: %d" % uncommitted_updates)
                     except Exception as exc:
-                        logging.exception("Failed to commit VM updates for %s::%s:%s, using group %s's credentials aborting cycle..." % (cloud_obj.authurl, cloud_obj.project, cloud_obj.region, cloud_obj.group_name))
+                        logging.exception("Failed to commit VM updates for %s::%s:%s, using group %s's credentials aborting cycle..." % (cloud_obj["authurl"], cloud_obj["project"], cloud_obj["region"], cloud_obj["group_name"]))
                         logging.error(exc)
                         abort_cycle = True
                         break
@@ -1947,12 +1994,12 @@ def vm_poller():
                     split_key = key.split("--")
                     if for_vm_dict[key]['count'] == 0:
                         # delete this row
-                        db_session.delete(for_vm_dict[key]['fvm_obj'])
+                        config.db_delete(FVM, for_vm_dict[key]['fvm_obj'])
                     else:
                         try:
                             # if we get here there is at least 1 count of this flavor, though there may not be a database object yet
-                            for_vm_dict[key]['fvm_obj'].count = for_vm_dict[key]['count']
-                            db_session.merge(for_vm_dict[key]['fvm_obj'])
+                            for_vm_dict[key]['fvm_obj']["count"] = for_vm_dict[key]['count']
+                            config.db_merge(FVM, for_vm_dict[key]['fvm_obj'])
                         except KeyError:
                             # need to create new db obj for this entry
                             fvm_dict = {
@@ -1963,11 +2010,10 @@ def vm_poller():
                                 'count':      for_vm_dict[key]['count'],
                                 'cloud_type': "amazon"
                             }
-                            new_fvm = FVM(**fvm_dict)
-                            db_session.merge(new_fvm)
+                            config.db_merge(FVM, fvm_dict)
                 
                 try:
-                    db_session.commit()
+                    config.db_commit()
                 except Exception as exc:
                     logging.exception("Failed to commit foreign VM updates, aborting cycle...")
                     logging.error(exc)
@@ -1977,7 +2023,6 @@ def vm_poller():
 
             if abort_cycle:
                 config.db_close()
-                del db_session
                 time.sleep(config.categories["ec2cloudPoller.py"]["sleep_interval_vm"])
                 continue
 
@@ -1987,33 +2032,46 @@ def vm_poller():
             logging.debug("Expanding failure_dict")
             new_f_dict = {}
             for cloud in cloud_list:
-                if cloud.cloud_name + cloud.authurl in failure_dict:
-                    new_f_dict[cloud.group_name+cloud.cloud_name] = 1
+                if cloud["cloud_name"] + cloud["authurl"] in failure_dict:
+                    new_f_dict[cloud["group_name"]+cloud["cloud_name"]] = 1
             logging.debug("Calling delete function")
-            delete_obsolete_database_items('VM', inventory, db_session, VM, 'vmid', new_poll_time, failure_dict=new_f_dict, cloud_type="amazon")
+
+            # since the new inventory function doesn't accept a failfure dict we need to screen the rows ourself
+            where_clause="cloud_type='amazon'"
+            rc, msg, unfiltered_rows = config.db_query(VM, where=where_clause)
+            rows = []
+            for row in unfiltered_rows:
+                if row['group_name'] + row['cloud_name'] in new_f_dict.keys():
+                    continue
+                else:
+                    rows.append(row)
+            inventory_obsolete_database_items_delete(ikey_names, rows, inventory, new_poll_time, config, VM)
 
             # Check on the core limits to see if any clouds need to be scaled down.
-            over_quota_clouds = db_session.query(view_vm_kill_retire_over_quota).filter(view_vm_kill_retire_over_quota.c.cloud_type=="amazon")
+            where_clause = "cloud_type='amazon'"
+            rc, msg, over_quota_clouds = config.db_query("view_vm_kill_retire_over_quota", where=where_clause)
             for cloud in over_quota_clouds:
-                kill_retire(config, cloud.group_name, cloud.cloud_name, "control", [cloud.cores, cloud.ram], get_frame_info())
+                kill_retire(config, cloud["group_name"], cloud["cloud_name"], "control", cloud["cores"], cloud["ram"], get_frame_info())
 
 
             logging.debug("Completed VM poller cycle")
             config.db_close()
-            del db_session
 
             if not os.path.exists(PID_FILE):
                 logging.info("Stop set, exiting...")
                 break
             signal.signal(signal.SIGINT, config.signals['SIGINT'])
 
-            wait_cycle(cycle_start_time, poll_time_history, config.categories["ec2cloudPoller.py"]["sleep_interval_vm"], config)
+            try:
+                wait_cycle(cycle_start_time, poll_time_history, config.categories["ec2cloudPoller.py"]["sleep_interval_vm"], config)
+            except KeyboardInterrupt:
+                continue
+                #got signaled
 
     except Exception as exc:
         logging.exception("VM poller cycle while loop exception, process terminating...")
         logging.error(exc)
         config.db_close()
-        del db_session
 
 
 ## Main.

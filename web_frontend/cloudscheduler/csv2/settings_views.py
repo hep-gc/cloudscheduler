@@ -66,7 +66,6 @@ def prepare(request):
             'version': config.get_version() 
     }
     config.db_close()
-    print("Prepare time: %f.5" % time.time())
 
 
     return render(request, 'csv2/settings.html', context)

@@ -12,20 +12,6 @@ import multiprocessing
 from multiprocessing import Process
 from collections import defaultdict
 
-from sqlalchemy import exists
-from sqlalchemy.sql import select
-from sqlalchemy.exc import TimeoutError
-
-import cloudmanager
-from cloudscheduler.lib.schema import view_idle_vms
-from cloudscheduler.lib.schema import view_groups_of_idle_jobs
-from cloudscheduler.lib.schema import view_active_resource_shortfall
-from cloudscheduler.lib.schema import view_resource_contention
-from cloudscheduler.lib.schema import view_available_resources
-from cloudscheduler.lib.schema import view_total_used_resources
-from cloudscheduler.lib.schema import view_condor_jobs_group_defaults_applied
-from cloudscheduler.lib.schema import view_metadata_collation_json
-from cloudscheduler.lib.schema import view_condor_host
 from cloudscheduler.lib.db_config import Config
 from cloudscheduler.lib.view_utils import qt
 from cloudscheduler.lib.log_tools import get_frame_info
@@ -58,35 +44,35 @@ def _get_nova_client(session, region=None):
     return nova
 
 def _get_openstack_session(cloud):
-    authsplit = cloud.authurl.split('/')
+    authsplit = cloud["authurl"].split('/')
     try:
         version = int(float(authsplit[-1][1:])) if len(authsplit[-1]) > 0 else int(float(authsplit[-2][1:]))
     except ValueError:
-        logging.error("Bad OpenStack URL, could not determine version, skipping %s", cloud.authurl)
+        logging.error("Bad OpenStack URL, could not determine version, skipping %s", cloud["authurl"])
         return False
     if version == 2:
         session = _get_openstack_session_v1_v2(
-            auth_url=cloud.authurl,
-            username=cloud.username,
-            password=cloud.password,
-            project=cloud.project)
+            auth_url=cloud["authurl"],
+            username=cloud["username"],
+            password=cloud["password"],
+            project=cloud["project"])
     else:
         session = _get_openstack_session_v1_v2(
-            auth_url=cloud.authurl,
-            username=cloud.username,
-            password=cloud.password,
-            project=cloud.project,
-            user_domain=cloud.user_domain_name,
-            project_domain_name=cloud.project_domain_name)
+            auth_url=cloud["authurl"],
+            username=cloud["username"],
+            password=cloud["password"],
+            project=cloud["project"],
+            user_domain=cloud["user_domain_name"],
+            project_domain_name=cloud["project_domain_name"])
     if session is False:
-        logging.error("Failed to setup session, skipping %s", cloud.cloud_name)
+        logging.error("Failed to setup session, skipping %s", cloud["cloud_name"])
         if version == 2:
             logging.error("Connection parameters: \n authurl: %s \n username: %s \n project: %s" %
-                          (cloud.authurl, cloud.username, cloud.project))
+                          (cloud["authurl"], cloud["username"], cloud["project"]))
         else:
             logging.error(
                 "Connection parameters: \n authurl: %s \n username: %s \n project: %s \n user_domain: %s \n project_domain: %s" %
-                (cloud.authurl, cloud.username, cloud.project, cloud.user_domain_name, cloud.project_domain_name))
+                (cloud["authurl"], cloud["username"], cloud["project"], cloud["user_domain_name"], cloud["project_domain_name"]))
     return session
 
 
@@ -130,9 +116,9 @@ def _get_openstack_session_v1_v2(auth_url, username, password, project, user_dom
 
 
 def _get_ec2_session(cloud):
-    return boto3.session.Session(region_name=cloud.region,
-                                 aws_access_key_id=cloud.username,
-                                 aws_secret_access_key=cloud.password)
+    return boto3.session.Session(region_name=cloud["region"],
+                                 aws_access_key_id=cloud["username"],
+                                 aws_secret_access_key=cloud["password"])
 
 def _get_ec2_client(session):
     return session.client('ec2')
@@ -187,7 +173,11 @@ def invalidate_startd_classads(session, classad_list):
     return session.advertise(classad_list, "INVALIDATE_STARTD_ADS")
 
 def available_resources_initialize(config):
-    used_resource_list = qt(config.db_session.execute('select * from view_total_used_resources'))
+    used_resource_list = []
+    rc, msg = config.db_execute('select * from view_total_used_resources')
+    for row in config.db_cursor:
+        used_resource_list.append(row)
+
     used_resources = {'group_cloud': {}, 'provider': {}}
     for used_resource in used_resource_list:
         provider = '%s|%s|%s' % (used_resource['authurl'], used_resource['region'], used_resource['project'])
@@ -326,31 +316,35 @@ def check_view_idle_vms():
     log = logging.getLogger(__name__)
     config = Config('/etc/cloudscheduler/cloudscheduler.yaml', 'csmain',
                     pool_size=15)
-    config.db_engine.dispose()
     if not config:
         print("Problem loading config file.")
         return
     while True:
+        config.db_open()
         config.refresh()
         log.debug("-------------------check_view_idle_vms-------------------")
         try:
-            config.db_open()
-            results = config.db_session.query(view_idle_vms)\
-                .filter(view_idle_vms.c.retire == 0, view_idle_vms.c.terminate == 0)
+            where_clause = "retire=0 and terminate=0"
+            rc, msg, results = config.db_query("view_idle_vms", where=where_clause)
             vmids = []
             for res in results:
-                vmids.append(res.vmid)
+                vmids.append(res["vmid"])
             if vmids:
                 log.debug("Setting retire flag on %s VMs.", len(vmids))
-                vms = config.db_map.classes.csv2_vms
-                update_result = config.db_session.query(vms).filter(vms.vmid.in_(vmids))
+                vms = "csv2_vms"
+                where_clause = "vmid in ("
+                for id in vmids:
+                    where_clause += "'%s'," % id
+                #replace last , with closing bracket
+                where_clause = where_clause[:-1] + ")"
+                rc, msg, update_result = config.db_query(vms, where=where_clause)
                 for row in update_result:
-                    row.retire = 1
-                    old_updater = row.updater
-                    row.updater = get_frame_info() + ":r1"
-                    config.db_session.merge(row)
+                    row["retire"] = 1
+                    old_updater = row["updater"]
+                    row["updater"] = get_frame_info() + ":r1"
+                    config.db_merge(vms, row)
                     log.debug("Set retire flag on %s, previous updater: %s",
-                              row.hostname, old_updater)
+                              row["hostname"], old_updater)
             config.db_close(commit=True)
         except TimeoutError as ex:
             log.exception(ex)
@@ -372,8 +366,8 @@ def process_group_cloud_terminates(pair, config):
 
     #config.db_open()
 
-    VM = config.db_map.classes.csv2_vms
-    CLOUD = config.db_map.classes.csv2_clouds
+    VM = "csv2_vms"
+    CLOUD = "csv2_clouds"
 
     terminate_off = config.categories[os.path.basename(sys.argv[0])]["terminate_off"]
 
@@ -385,57 +379,59 @@ def process_group_cloud_terminates(pair, config):
     # Terminate code:
     master_list = []
     startd_list = []
-    redundant_machine_list = config.db_session.query(view_condor_host).filter(view_condor_host.c.cloud_name==cloud_name, view_condor_host.c.group_name==group_name, view_condor_host.c.terminate >= 1)
+    where_clause = "cloud_name='%s' and group_name='%s' and terminate>=1" % (cloud_name, group_name)
+    rc, msg, redundant_machine_list = config.db_query("view_condor_host", where=where_clause)
     logging.debug("Actionable VMS:")
     for resource in redundant_machine_list:
-        logging.debug(resource)
-        if resource[6] is not None:
-            if resource[5] is not None:
-                if resource.terminate == 1 and resource[6] >= 1 and resource[5] >=1:
-                    logging.info("VM still has active slots, skipping terminate on %s" % resource.vmid)
+        if resource["dynamic_slots"] is not None:
+            if resource["primary_slots"] is not None:
+                if resource["terminate"] == 1 and resource["dynamic_slots"] >= 1 and resource["primary_slots"] >=1:
+                    logging.info("VM still has active slots, skipping terminate on %s" % resource["vmid"])
                     continue
 
 
         # we need the relevent vm row to check if its in manual mode and if not, terminate and update termination status
         try:
-            vm_row = config.db_session.query(VM).filter(VM.group_name == resource.group_name, VM.cloud_name == resource.cloud_name, VM.vmid == resource.vmid)[0]
+            where_clause = "group_name='%s' and cloud_name='%s' and vmid='%s'" % (resource["group_name"], resource["cloud_name"], resource["vmid"])
+            rc, msg, vm_rows = config.db_query(VM, where=where_clause)
+            vm_row = vm_rows[0]
         except Exception as exc:
             logging.error("Unable to retrieve VM row for vmid: %s, skipping terminate..." % resource.vmid)
             continue
-        if vm_row.manual_control == 1:
-            logging.info("VM %s under manual control, skipping terminate..." % resource.vmid)
+        if vm_row["manual_control"] == 1:
+            logging.info("VM %s under manual control, skipping terminate..." % resource["vmid"])
             continue
 
 
         # Get session with hosting cloud.
-        cloud = config.db_session.query(CLOUD).filter(
-            CLOUD.group_name == vm_row.group_name,
-            CLOUD.cloud_name == vm_row.cloud_name).first()
+        where_clause = "group_name='%s' and cloud_name='%s'" % (vm_row["group_name"], vm_row["cloud_name"])
+        rc, msg, clouds = config.db_query(CLOUD, where=where_clause)
+        cloud=clouds[0]
 
-        if cloud.cloud_type == "openstack":
+        if cloud["cloud_type"] == "openstack":
             session = _get_openstack_session(cloud)
             if session is False:
                 continue
          
             if terminate_off:
-                logging.critical("Terminates disabled, normal operation would terminate %s" % vm_row.hostname)
+                logging.critical("Terminates disabled, normal operation would terminate %s" % vm_row["hostname"])
                 continue
 
             # terminate the vm
-            nova = _get_nova_client(session, region=cloud.region)
+            nova = _get_nova_client(session, region=cloud["region"])
             try:
                 # may want to check for result here Returns: An instance of novaclient.base.TupleWithMeta so probably not that useful
-                vm_row.terminate = vm_row.terminate + 1
-                old_updater = vm_row.updater
-                vm_row.updater = str(get_frame_info() + ":t+")
+                vm_row["terminate"] = vm_row["terminate"] + 1
+                old_updater = vm_row["updater"]
+                vm_row["updater"] = str(get_frame_info() + ":t+")
 
                 try:
-                    nova.servers.delete(vm_row.vmid)
+                    nova.servers.delete(vm_row["vmid"])
                 except novaclient.exceptions.NotFound:
-                    logging.error("VM not found on cloud, deleting vm entry %s" % vm_row.vmid)
-                    config.db_session.delete(vm_row)
+                    logging.error("VM not found on cloud, deleting vm entry %s" % vm_row["vmid"])
+                    config.db_delete(VM, vm_row)
                     try:
-                        config.db_session.commit()
+                        config.db_commit()
                     except Exception as exc:
                         logging.exception("Failed to commit vm delete, aborting cycle...")
                         logging.error(exc)
@@ -449,44 +445,44 @@ def process_group_cloud_terminates(pair, config):
                     logging.error(exc_type)
                     logging.error(exc)
                     continue
-                logging.info("VM Terminated(%s): %s primary slots: %s dynamic slots: %s, last updater: %s" % (vm_row.terminate, vm_row.hostname, vm_row.htcondor_partitionable_slots, vm_row.htcondor_dynamic_slots, old_updater))
-                config.db_session.merge(vm_row)
+                logging.info("VM Terminated(%s): %s primary slots: %s dynamic slots: %s, last updater: %s" % (vm_row["terminate"], vm_row["hostname"], vm_row["htcondor_partitionable_slots"], vm_row["htcondor_dynamic_slots"], old_updater))
+                config.db_merge(VM, vm_row)
                 # log here if terminate # /10 = remainder zero
-                if vm_row.terminate %10 == 0:
-                    logging.critical("%s failed terminates on %s user action required" % (vm_row.terminate - 1, vm_row.hostname))
+                if vm_row["terminate"] %10 == 0:
+                    logging.critical("%s failed terminates on %s user action required" % (vm_row["terminate"] - 1, vm_row["hostname"]))
             except Exception as exc:
-                logging.error("Failed to terminate VM: %s, terminates issued: %s" % (vm_row.hostname, vm_row.terminate - 1))
+                logging.error("Failed to terminate VM: %s, terminates issued: %s" % (vm_row["hostname"], vm_row["terminate"] - 1))
                 logging.error(exc)
 
             # Now that the machine is terminated, we can speed up operations by invalidating the related classads
             # double check that a condor_session exists
             if 'condor_session' not in locals():
                 condor_session = get_condor_session()
-            if resource.machine is not None:
-                logging.info("Removing classads for machine %s" % resource.machine)
+            if resource["machine"] is not None:
+                logging.info("Removing classads for machine %s" % resource["machine"])
             else:
-                logging.info("Removing classads for machine %s" % resource.hostname)
+                logging.info("Removing classads for machine %s" % resource["hostname"])
             try:
-                master_classad = get_master_classad(condor_session, resource.machine, resource.hostname)
+                master_classad = get_master_classad(condor_session, resource["machine"], resource["hostname"])
                 if not master_classad:
                     # there was no matching classad
-                    logging.error("Classad not found for %s//%s" % (resource.machine, resource.hostname))
+                    logging.error("Classad not found for %s//%s" % (resource["machine"], resource["hostname"]))
 
                 master_result = invalidate_master_classad(condor_session, master_classad)
                 logging.debug("Invalidate master result: %s" % master_result)
-                startd_classads = get_startd_classads(condor_session, resource.hostname)
+                startd_classads = get_startd_classads(condor_session, resource["hostname"])
                 startd_result = invalidate_startd_classads(condor_session, startd_classads)
                 logging.debug("Invalidate startd result: %s" % startd_result)
 
 
                 #if resource.machine is not None and resource.machine is not "":
-                #    condor_classad = condor_session.query(master_type, 'Name=="%s"' % resource.machine)[0]
+                #    condor_classad = condor_session.query(master_type, 'Name=="%s"' % resource["machine"])[0]
                 #else:
-                #    condor_classad = condor_session.query(master_type, 'regexp("%s", Name, "i")' % resource.hostname)[0]
+                #    condor_classad = condor_session.query(master_type, 'regexp("%s", Name, "i")' % resource["hostname"])[0]
                 #master_list.append(condor_classad)
 
                 # this could be a list of adds if a machine has many slots
-                #condor_classads = condor_session.query(startd_type, 'Machine=="%s"' % resource.hostname)
+                #condor_classads = condor_session.query(startd_type, 'Machine=="%s"' % resource["hostname"])
                 #for classad in condor_classads:
                 #    startd_list.append(classad)
             #except IndexError as exc:
@@ -496,19 +492,19 @@ def process_group_cloud_terminates(pair, config):
                 logging.error(exc)
                 continue
 
-        elif cloud.cloud_type == "amazon":
+        elif cloud["cloud_type"] == "amazon":
             if terminate_off:
-                logging.critical("Terminates disabled, normal operation would terminate %s" % vm_row.hostname)
+                logging.critical("Terminates disabled, normal operation would terminate %s" % vm_row["hostname"])
                 continue
             #terminate the vm
             amz_session = _get_ec2_session(cloud)
             amz_client = _get_ec2_client(amz_session)
             try:
-                vm_row.terminate = vm_row.terminate + 1
-                old_updater = vm_row.updater
-                vm_row.updater = str(get_frame_info() + ":t+")
+                vm_row.terminate = vm_row["terminate"] + 1
+                old_updater = vm_row["updater"]
+                vm_row["updater"] = str(get_frame_info() + ":t+")
                 #destroy amazon vm, first we'll need to check if its a reservation
-                if vm_row.vmid[0:3].lower() == "sir":
+                if vm_row["vmid"][0:3].lower() == "sir":
                     #its a reservation just delete it and destroy the vm
                     # not sure what the difference between a client and connection from csv1 is but there is more work to be done here
                     #
@@ -517,21 +513,21 @@ def process_group_cloud_terminates(pair, config):
                     #
                     # need to terminate request, and possible image if instance_id isn't empty
                     try:
-                        logging.info("Canceling amazon spot price request: %s" % vm_row.vmid)
-                        amz_client.cancel_spot_instance_requests(SpotInstanceRequestIds=[vm_row.vmid])
-                        if vm_row.instance_id is not None:
+                        logging.info("Canceling amazon spot price request: %s" % vm_row["vmid"])
+                        amz_client.cancel_spot_instance_requests(SpotInstanceRequestIds=[vm_row["vmid"]])
+                        if vm_row["instance_id"] is not None:
                             #spot price vm running need to terminate it:
-                            logging.info("Terminating amazon vm: %s" % vm_row.instance_id)
-                            amz_client.terminate_instances(InstanceIds=[vm_row.instance_id])
+                            logging.info("Terminating amazon vm: %s" % vm_row["instance_id"])
+                            amz_client.terminate_instances(InstanceIds=[vm_row["instance_id"]])
                     except Exception as exc:
-                        logging.error("Unable to terminate %s due to:" % vm_row.vmid)
+                        logging.error("Unable to terminate %s due to:" % vm_row["vmid"])
                         logging.error(exc)
                 else:
                     #its a regular instance and just terminate it
-                    logging.info("Terminating amazon vm: %s" % vm_row.vmid)
-                    amz_client.terminate_instances(InstanceIds=[vm_row.vmid])
+                    logging.info("Terminating amazon vm: %s" % vm_row["vmid"])
+                    amz_client.terminate_instances(InstanceIds=[vm_row["vmid"]])
             except Exception as exc:
-                logging.error("Unable to terminate %s due to:" % vm_row.vmid)
+                logging.error("Unable to terminate %s due to:" % vm_row["vmid"])
                 logging.error(exc)
 
 
@@ -540,11 +536,10 @@ def process_group_cloud_terminates(pair, config):
             logging.info("Vm not from openstack, or amazon cloud, skipping...")
             continue
     try:
-        config.db_session.commit()
+        config.db_commit()
     except Exception as exc:
         logging.exception("Failed to commit vm updates, aborting cycle...")
         logging.error(exc)
-        config.db_session.rollback()
         return
 
     logging.debug("Commands complete")
@@ -562,15 +557,9 @@ def main():
     multiprocessing.current_process().name = "csmain"
 
     config = Config('/etc/cloudscheduler/cloudscheduler.yaml', ['csmain', 'GSI'], pool_size=25)
-    config.db_engine.dispose()
     if not config:
         print("Problem loading config file.")
     log = logging.getLogger(__name__)
-
-    try:
-        config.db_open()
-    except Exception as ex:
-        log.exception(ex)
 
     cs_host = socket.gethostname()
     try:
@@ -578,15 +567,14 @@ def main():
     except:
         cs_host_ip = '*** unresolved ***'
 
-
     while_counter = 0
     while(True):
+        config.db_open()
         config.refresh()
         logging.basicConfig(filename=config.categories['csmain']['log_file'],
                             level=config.categories['csmain']['log_level'],
                             format="%(asctime)s - %(processName)-12s - %(levelname)s - %(message)s")
 
-        config.db_open()
 
         # Get the metadata for groups as json selects with mime_types pre-sorted
         # metadata format: { group : { cloud: [(yaml select, mime_type), (yaml select, mime_type) ] } }
@@ -594,18 +582,19 @@ def main():
             ec2_image_dict = get_ami_dictionary()
         except Exception as ex:
             log.exception(ex)
-            config.db_close()
             continue
 
         try:
-            metadata = json.loads(config.db_connection.execute(select([view_metadata_collation_json])).fetchone().group_metadata)
+            rc, msg, g_metadatas = config.db_query("view_metadata_collation_json")
+            metadata = json.loads(g_metadatas[0]["group_metadata"])
         except AttributeError as ae:
             log.exception("Problem loading metadata, is there no metadata?")
             metadata = {}
 
         used_resources = available_resources_initialize(config)
 
-        available_resources_dict = qt(config.db_session.execute('select * from view_available_resources'),
+        rc, msg, avail_resources = config.db_query("view_available_resources")
+        available_resources_dict = qt(avail_resources,
             keys = {
                 'primary': [
                     'group_name',
@@ -619,7 +608,8 @@ def main():
             # Get the idle jobs for the current group
 
             # need to transform this into a tiered dictionary keyed on group
-            idle_job_groups = qt(config.db_session.execute('select * from view_groups_of_idle_jobs order by job_priority'),
+            rc, msg, grps_of_idle_jobs = config.db_query("view_groups_of_idle_jobs", order_by="job_priority")
+            idle_job_groups = qt(grps_of_idle_jobs,
                  keys = {
                     'primary': [
                         'group_name',
@@ -671,6 +661,7 @@ def main():
                             if available_resources_dict[job_group].get(flavor, None) is not None:
                                 #Found flavour with available resources
                                 ####### log.debug("Flavor:%s found to have available slots" % flavor)
+                                log.info("Flavor:%s found to have available slots" % flavor)
                                 boot_flavor = available_resources_dict[job_group].get(flavor, None)
                             else:
                                 ####### log.debug("No available slots for flavor: %s, trying next..." % flavor)
@@ -685,9 +676,11 @@ def main():
                                 ####### log.debug("No available resources to boot %s" % boot_flavor.get("flavor"))
 
                             try:
-                                shortfall = list(config.db_session.query(view_active_resource_shortfall).filter(
-                                    view_active_resource_shortfall.c.group_name == idle_job.get("group_name"),
-                                    view_active_resource_shortfall.c.target_alias == idle_job.get("target_alias")))
+                                if idle_job.get("target_alias") is not None: 
+                                    where_clause = "group_name='%s' and target_alias='%s'" % (idle_job.get("group_name"), idle_job.get("target_alias"))
+                                else:
+                                    where_clause = "group_name='%s' and target_alias is NULL" % idle_job.get("group_name")
+                                rc, msg, shortfall = config.db_query("view_active_resource_shortfall", where=where_clause)
                             except:
                                 shortfall = []
 
@@ -698,44 +691,45 @@ def main():
                                     idle_job.get("target_alias"))
                                 continue
 
-                            if shortfall[0].shortfall_cores<=0 and shortfall[0].shortfall_disk<=0 and shortfall[0].shortfall_ram<=0:
+                            if shortfall[0]["shortfall_cores"]<=0 and shortfall[0]["shortfall_disk"]<=0 and shortfall[0]["shortfall_ram"]<=0:
                                 log.info('view_active_resource_shortfall for group=%s, target_alias=%s, cores=%s, disk=%s, ram=%s, no shortfall, trying next flavor or skipping idle_job_group.',
                                     idle_job.get("group_name"),
                                     idle_job.get("target_alias"),
-                                    shortfall[0].shortfall_cores,
-                                    shortfall[0].shortfall_disk,
-                                    shortfall[0].shortfall_ram)
+                                    shortfall[0]["shortfall_cores"],
+                                    shortfall[0]["shortfall_disk"],
+                                    shortfall[0]["shortfall_ram"])
                                 continue
                                 
-                            idle_VMs_throttle = max(config.categories['csmain']['idle_VMs_throttle'], int(shortfall[0].running/10))
-                            if shortfall[0].idle>=idle_VMs_throttle:
+                            idle_VMs_throttle = max(config.categories['csmain']['idle_VMs_throttle'], int(shortfall[0]["running"]/10))
+                            if shortfall[0]["idle"]>=idle_VMs_throttle:
                                 log.info('Too many idle VMs: group=%s, target_alias=%s, idle=%s, running=%s, calculated throttle=%s configurred throttle=%s, trying next flavor or skipping idle_job_group.',
                                     idle_job.get("group_name"),
                                     idle_job.get("target_alias"),
-                                    shortfall[0].idle,
-                                    shortfall[0].running,
+                                    shortfall[0]["idle"],
+                                    shortfall[0]["running"],
                                     idle_VMs_throttle,
                                     config.categories['csmain']['idle_VMs_throttle'])
                                 continue
 
                             else:
-                                log.debug('view_active_resource_shortfall for group=%s, target_alias=%s, cores=%s, disk=%s, ram=%s, too few active resources, processing continues...',
+                                ##log.debug('view_active_resource_shortfall for group=%s, target_alias=%s, cores=%s, disk=%s, ram=%s, too few active resources, processing continues...',
+                                log.info('view_active_resource_shortfall for group=%s, target_alias=%s, cores=%s, disk=%s, ram=%s, too few active resources, processing continues...',
                                     idle_job.get("group_name"),
                                     idle_job.get("target_alias"),
-                                    shortfall[0].shortfall_cores,
-                                    shortfall[0].shortfall_disk,
-                                    shortfall[0].shortfall_ram)
+                                    shortfall[0]["shortfall_cores"],
+                                    shortfall[0]["shortfall_disk"],
+                                    shortfall[0]["shortfall_ram"])
 
                                 # Looks like we need more VMs, we should have the flavor slots available from the view_available resources row.
                                 # Before we boot anything lets check resrouce contention
                                 try:
-                                    resource = list(config.db_session.query(view_resource_contention).filter(
-                                            view_resource_contention.c.authurl == boot_flavor.get("authurl")))
+                                    where_clause = "authurl='%s'" % boot_flavor.get("authurl")
+                                    rc, msg, resource = config.db_query("view_resource_contention", where=where_clause)
                                 except:
                                      resource = []
 
                                 if len(resource) < 1:
-                                    resource = [type('', (object,), {
+                                    resource = [{
                                         "authurl":boot_flavor.get("authurl"),
                                         "VMs": 0,
                                         "starting": 0,
@@ -745,20 +739,20 @@ def main():
                                         "retiring": 0,
                                         "manual": 0,
                                         "error": 0
-                                    })]
+                                    }]
 
                                     log.debug('No active vms for group=%s, cloud=%s, authurl=%s, assuming no contention).',
                                         boot_flavor.get("group_name"),
                                         boot_flavor.get("cloud_name"),
                                         boot_flavor.get("authurl"))
 
-                                if resource[0].starting + resource[0].unregistered >= config.categories['csmain']['new_VMs_throttle']:
+                                if resource[0]["starting"] + resource[0]["unregistered"] >= config.categories['csmain']['new_VMs_throttle']:
                                     log.info('Resource contention: group=%s, cloud=%s, resource=%s, starting=%s, unregistered=%s, trying next flavor or moving on to next job group.',
                                         boot_flavor.get("group_name"),
                                         boot_flavor.get("cloud_name"),
-                                        resource[0].authurl,
-                                        resource[0].starting,
-                                        resource[0].unregistered)
+                                        resource[0]["authurl"],
+                                        resource[0]["starting"],
+                                        resource[0]["unregistered"])
                                     continue
 
 #                               if idle_job.get("cloud_name") in cloud_booted_on:
@@ -784,9 +778,9 @@ def main():
                                         return int(val)
                                     else:
                                         return 1
-                                shortfall_cores = math.ceil(shortfall[0].shortfall_cores/no_zero(boot_flavor['flavor_cores']))
-                                shortfall_disk = math.ceil(shortfall[0].shortfall_disk/no_zero(boot_flavor['flavor_disk']))
-                                shortfall_ram = math.ceil(shortfall[0].shortfall_ram/no_zero(boot_flavor['flavor_ram']))
+                                shortfall_cores = math.ceil(shortfall[0]["shortfall_cores"]/no_zero(boot_flavor['flavor_cores']))
+                                shortfall_disk = math.ceil(shortfall[0]["shortfall_disk"]/no_zero(boot_flavor['flavor_disk']))
+                                shortfall_ram = math.ceil(shortfall[0]["shortfall_ram"]/no_zero(boot_flavor['flavor_ram']))
                                 shortfall_slots = max(0,
                                     shortfall_cores,
                                     shortfall_disk,
@@ -872,7 +866,7 @@ def main():
                                 # Let's try to boot
                                 try:
                                     if idle_job.get("image"):
-                                        use_image = None
+                                        use_image = idle_job.get("image")
                                     elif boot_flavor.get("default_image"):
                                         use_image = boot_flavor.get("default_image")
                                     else:
@@ -931,7 +925,6 @@ def main():
                         if not booted_for_group:
                             log.info("No Flavor Slots for %s, target alias: %s." % (boot_flavor.get("group_name"), current_boot_target_alias))
 
-            config.db_close()
         except TimeoutError as ex:
             log.exception(ex)
             sys.exit(1)
@@ -940,6 +933,7 @@ def main():
             config.db_close()
             time.sleep(2)
             continue
+        config.db_close()
         while_counter += 1
         time.sleep(config.categories['csmain']['sleep_interval_main_long'])
 
@@ -955,11 +949,6 @@ def vm_termination(args_list):
     # database setup
     config = Config('/etc/cloudscheduler/cloudscheduler.yaml', ['csmain', 'condor_poller.py',  "ProcessMonitor"], pool_size=3, signals=True)
     PID_FILE = config.categories["ProcessMonitor"]["pid_path"] + os.path.basename(sys.argv[0])
-
-    Resource = config.db_map.classes.condor_machines
-    GROUPS = config.db_map.classes.csv2_groups
-    VM = config.db_map.classes.csv2_vms
-    CLOUD = config.db_map.classes.csv2_clouds
 
     cycle_start_time = 0
     new_poll_time = 0
@@ -989,7 +978,7 @@ def vm_termination(args_list):
             process_group_cloud_terminates(pair, config)
             
             try:
-                config.db_session.commit()
+                config.db_commit()
             except Exception as exc:
                 logging.error("Error during final commit, likely that a vm was removed from database before final terminate update was comitted..")
                 logging.exception(exc)

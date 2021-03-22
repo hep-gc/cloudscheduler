@@ -68,7 +68,7 @@ def _log_signal_(config, event, action, pid=os.getpid(), signame='-', depth=2):
     if event == 'signal_tests' and 'signal_monitor' in config.categories and config.categories['signal_monitor']['log_signal_tests'] == False:
         return
 
-    if not config.db_session:
+    if not hasattr(config, "db_cursor"):
         auto_close = True
         config.db_open()
     else:
@@ -76,7 +76,7 @@ def _log_signal_(config, event, action, pid=os.getpid(), signame='-', depth=2):
 
     caller = _get_caller_(depth)
 
-    config.db_session.execute('insert into csv2_signal_log (timestamp,fqdn,pid,event,action,signame,caller) values (%f,"%s",%d,"%s","%s","%s","%s");' % (
+    config.db_execute('insert into csv2_signal_log (timestamp,fqdn,pid,event,action,signame,caller) values (%f,"%s",%d,"%s","%s","%s","%s");' % (
         time.time(),
         socket.gethostname(),
         pid,
@@ -89,7 +89,7 @@ def _log_signal_(config, event, action, pid=os.getpid(), signame='-', depth=2):
     if auto_close:
         config.db_close(commit=True)
     else:
-        config.db_session.commit()
+        config.db_commit()
 
 def _verify_event_registration_(config, event, pid, action='deregister'):
     """
