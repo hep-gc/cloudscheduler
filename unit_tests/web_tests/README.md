@@ -4,22 +4,18 @@ This document contains details of how to set up, write, and run the web tests.
 
 ## Setup
 
-The web tests require Python3, Selenium Webdriver, and Geckodriver to run. Selenium Webdriver can be installed via `pip install selenium`. Geckodriver can be downloaded from [GitHub](https://github.com/mozilla/geckodriver/releases/tag/v0.28.0).
+The web tests require Python3, Selenium Webdriver, and at least one of the drivers below to run. Currently supported browser/driver combinations are Firefox/Geckodriver and Chromium/Chromedriver (in progress).Selenium Webdriver can be installed via `pip install selenium`. 
 
-Each user used as an active user in the tests must have a Firefox profile, in order to deal with a Selenium issue around username/password popups. In order to make these, go into the python interpreter and run the `setup_objects()` function from `web_test_setup_cleanup` (no parameters need be passed). Then, create a new Firefox profile at `about:profiles`, switch to that profile, log into cloudscheduler manually with that user's credentials, and save them. These profiles should be added to the `settings.yaml` file like so:
+Each user used as an active user in the tests must have a profile in each browser they are using, in order to deal with a Selenium issue around username/password popups. In order to make these, go into the python interpreter and run the `setup_objects()` function from `web_test_setup_cleanup` (no parameters need be passed).
+Then, follow the instructions for creating a profile in the chosen browser, below. 
 
-```yaml
-firefox_profiles:
-- root/.mozilla/firefox/<profile_name>
-```
+Currently, the credentials added should be `{user}-wiu1`, `{user}-wiu2`, and `{user}-wiu3` (although `{user}-wiu3` may be phased out), and all of them should have the password `user_secret`. These can be found in the `credentials.yaml` file, which is created upon running the unit tests.
 
-Currently, the credentials added should be `{user}-wiu1`, `{user}-wiu2`, and `{user}-wiu3` (although `{user}-wiu3` may be phased out), and all of them should have the password `user_secret`.
-
-Additionally, the user will need to log into [Beaver](https://beaver.heprc.uvic.ca/dashboard) as `{user}-wiu2` and create a key. There will be a popup regarding the downloading of files. The user should request that Firefox save the file and should click the box dictating that this is done automatically in the future. The files can also be saved to an alternate location (for example, the `unit_tests/web_tests/misc_files` directory) so as not to clog up the host computer's default downloads folder.
+Additionally, the user will need to log into [Beaver](https://beaver.heprc.uvic.ca/dashboard) as `{user}-wiu2` and create a key. There will be a popup regarding the downloading of files. The user should request that the browser save the file and should click the box dictating that this is done automatically in the future. The files can also be saved to an alternate location (for example, the `unit_tests/web_tests/misc_files` directory) so as not to clog up the host computer's default downloads folder.
 
 Ideally, there will be a script to do the Firefox profile setup eventually. However, Firefox currently does not seem to recognize passwords input into the `about:logins` page and Selenium cannot interact with Firefox popups, so this isn't currently feasible.
 
-As with the other unit tests, a server configuration and cloud credentials are required to run the tests. If the server configuration script is rerun, the Firefox profiles will need to have their passwords updated.
+As with the other unit tests, a server configuration and cloud credentials are required to run the tests. If the server configuration script is rerun, the browser profiles will need to have their passwords updated.
 
 Additionally, the tests require a set of files to start off with. These consist of four cloud files in RAW format, named `{user}-wii1.hdd`, `{user}-wii2.hdd`, `{user}-wii3.hdd`, and `{user}-wii4.hdd`; and one ssh public key named `{user}-wik3.pub`. They should be placed in the `unit_tests/web_tests/misc_files` directory.
 
@@ -27,11 +23,32 @@ In order to set up the tests on a new server, the `unit-test` server in `.csv2/u
 
 The status tests additionally require the system time to be set to the correct time zone. This is a non-issue on a computer that is already set up, but is important on a virtual machine.
 
+### Firefox
+
+Geckodriver can be downloaded from [GitHub](https://github.com/mozilla/geckodriver/releases/tag/v0.28.0). Firefox comes preinstalled on Linux machines, or can be downloaded from [Mozilla](https://www.mozilla.org/en-CA/firefox/new/).
+
+To add a user profile in Firefox, create a new Firefox profile at `about:profiles`, switch to that profile, log into cloudscheduler manually with that user's credentials, and save them. These profiles should be added to the `settings.yaml` file like so:
+
+```yaml
+firefox_profiles:
+- root/.mozilla/firefox/<profile_name>
+```
+### Chromium
+
+Chromedriver and Chromium can be installed through the default package manager.
+
+To add a user profile in Chromium, create a new Chromium profile by clicking on the profile image and following the prompts. Switch to that profile, log into cloudscheduler manually with the user's credentials, and save them. These profiles should be added to the `settings.yaml` file like so:
+
+```yaml
+chromium_profiles:
+- /root/.config/chromium/Profile <number>
+```
+
 ## Adding Tests
 
-New test modules should be named starting with `test_web_` (the modules starting with `web_test_` are helper modules). The test files should be named `test_web_<page>.py`, with the class being named `TestWeb<Page>`. Individual tests should be named `test_web_<page>_<action>_<details>`, where `<action>` is the name of the action using the `cloudscheduler` command. If suitably complex, `<action>` should ideally be formatted as `<object>_<action_on_object>_<details>`. Note that individual tests having names that start with `test` is currently the only breaking naming requirement.
+New test modules should be named starting with `test_web_` (the modules starting with `web_test_` are helper modules). The test files should be named `test_web_<page>.py`. The common class, where the majority of tests are implemented, should be named `TestWeb<Page>Common`. The classes with the proper setups (see below) should be named `TestWeb<Page><UserType><Browser>`. Individual tests should be named `test_web_<page>_<action>_<details>`, where `<action>` is the name of the action using the `cloudscheduler` command. If suitably complex, `<action>` should ideally be formatted as `<object>_<action_on_object>_<details>`. Note that individual tests having names that start with `test` is currently the only breaking naming requirement.
 
-All test files must be put in the `web_tests` directory, and each test class must be imported into `create_test_suite.py` and have its name added to the list of tests. Note that the detailed classes (see below) should be the only ones put in here - the common classes (see below) do not have the proper setup to be run on their own and should not be included.
+All test files must be put in the `web_tests` directory, and each test class must be imported into `create_test_suite.py` and have its name added to the list of tests for its respective browser. Note that the detailed classes (see below) should be the only ones put in here - the common classes (see below) do not have the proper setup to be run on their own and should not be included.
 
 New tests should additionally follow all rules for Unittest test classes, as they are run using the Unittest framework.
 
@@ -41,21 +58,19 @@ New tests should include the `web_test_setup_cleanup`, `web_test_assertions_v2`,
 
 New tests that create objects should make sure to update the maximum item numbers in the calls to `delete_objects_by_type()` in `web_test_setup_cleanup.cleanup_objects()`.
 
-Tests should be created in a common class that inherits `unittest.TestCase`, called `TestWeb<Page>Common`. Each different setup for these tests (ie different users, different browsers, etc) should have its own class, called `TestWeb<Page><Details>`. This class should inherit `TestWeb<Page>Common` and should override the `setUpClass` method (usually with a call to `super()` as well) to do the proper setup. All details not related to the setup should be put in the common class. All test classes for one page should be put in the same file, `test_web_<page>.py`. 
+Tests should be created in a common class that inherits `unittest.TestCase`, called `TestWeb<Page>Common`. Each different setup for these tests (ie different users, different browsers, etc) should have its own class, called `TestWeb<Page><Details>`. This class should inherit `TestWeb<Page>Common` and should override the `setUpClass` method (usually with a call to `super()` as well) to do the proper setup. All details not related to the setup or contingent on factors in that particular configuration should be put in the common class. All test classes for one page should be put in the same file, `test_web_<page>.py`. 
 
 In rare cases, a certain setup may require a few tests to be different. These individual tests and no others should be overriden in the detailed class. However, all tests that can be put in the common class should be put in the common class, where they only need be edited once.
 
 ## Writing Tests
 
-The `cls.gvar` variable, which is assigned in `web_test_setup_cleanup.setup()`, contains server and user information read from various `.yaml` configuration files. This includes the locations of the firefox profiles and the user credentials for the sample users. It also contains a sub-dictionary called `oversize`, which contains a set of values that are oversize for the various types in the database. These can be accessed as `gvar['oversize']['<type_name>']` and are primarily used in verification tests.
+The `cls.gvar` variable, which is assigned in `web_test_setup_cleanup.setup()`, contains server and user information read from various `.yaml` configuration files. This includes the locations of the browser profiles and the user credentials for the sample users. It also contains a sub-dictionary called `oversize`, which contains a set of values that are oversize for the various types in the database. These can be accessed as `gvar['oversize']['<type_name>']` and are primarily used in database verification tests.
 
 The `web_test_assertions_v2` module contains a set of functions that should be callable within a `TestCase` class and raise the proper errors on failure. These functions access the cloudscheduler database via the command line interface and can test if objects were properly created in the database. However, they are extremely slow compared to assertions using Selenium selectors, and therefore should be used only once per test. Additionally, objects without a `cloudscheduler` command (like config objects) cannot use these assertions - they should instead refresh the page and ensure that the data has persisted.
 
 Each assertion in the `web_test_assertions_v2` module takes a list of arguments, most of which are optional. The four mandatory arguments (only two of which are taken by `assertExists` and `assertNotExists`) are `type`, the type of object being asserted; `name`, the name of the individual object the assertion is about; `attribute`, the name of the attribute in the database (found via the `list` command with the `-VC` option); and `attribute_name`, the name of the particular item of that attribute being asserted. There are also six optional arguments: `group`, a group name, which should be specified when an object exists within a particular group, and which defaults to `None`; `err`, the margin of error, which should be specified when a value will be within a range, and which defaults to `None`; `metadata_cloud`, the name of a cloud within which the metadata exists, which should be specified for cloud metadata, and which defaults to `None`; `defaults`, a true/false flag, which should be specified when the item is a group default, and which defaults to false; `name_field`, a true/false flag, which should be specified for objects for which there is no name flag, and which defaults to true; `settings`, a true/false flag, which should be specified when the item is a user setting, and which defaults to false; `server`, the name of the server default to use, which should be specified when the object can only be accessed by a server that is not the unit-test server, and which defaults to `unit-test`; `image_cloud`, which should be specified when the object is an image, and which defaults to `None`; and `is_retry`, a true/false flag, which should never be manually passed (it is only used within the functions).
 
-This module also contains a pair of functions to look for attributes with a certain name when there is no cloudscheduler flag for specifying an object's name (check the `web_test_assertions_v2.names()` function to see which objects these are - they will have their `flag` attribute set to `None`). These methods should only be used for objects that do not have a name flag, and they do not take the argument specifying metadata.
-
-By default, all actions will be performed within the `{user}-wig0` group (see Test Profiles, below). The base `Page` class (see Page Objects, below) contains a method for switching between these groups. Be aware that the active user must be in a group to switch to it.
+By default, all actions will be performed within the `{user}-wig0` group (see Test Profiles, below). The base `Page` class (see Page Objects, below) contains a method for switching between these groups. Be aware that the active user must be in a particular group to switch to it.
 
 Additional files the tests may need (for example, image files to upload) should be stored in the `misc_files` directory. These files will not be committed (unless they are markdown files, which they shouldn't be), and the current tests look in this folder for these files. This is also where test log files and test downloads are stored.
 
@@ -85,7 +100,7 @@ The page objects additionally use some functions from the `web_test_helpers` mod
 
 The web tests do run with the `run_tests` script in the `unit_tests` folder. However, because failure and error numbers are not surfaced by `unittest`, the script does not add the numbers for the web tests to its error tallies.
 
-Web tests can be run using `./run_tests web` from the `unit_tests` folder. One can also run a particular class directly using `python3 -m unittest <filename>.<ClassName>`. While unittest does support running tests by file, the setup of the test fixtures does not allow that and will run duplicate tests, which will fail, and, thus, the `python3 -m unittest <filename>` syntax is not to be used. Each detailed class should be run individually, and common classes should never be run (see Adding Tests, above). Individual tests can be run with `python3 -m unittest <filename>.<ClassName>.<test_name>`. All tests should be run from the `unit_tests` folder to allow module imports to work properly. Note that individual test files, classes, and methods cannot currently be run with the `run_tests` script.
+Web tests can be run using `./run_tests web` from the `unit_tests` folder, and tests for a specific browser can be run using `./run_tests web_<browser>`. One can also run a particular class directly using `python3 -m unittest <filename>.<ClassName>`. While unittest does support running tests by file, the setup of the test fixtures does not allow that and will run duplicate tests, which will fail, and, thus, the `python3 -m unittest <filename>` syntax is not to be used. Each detailed class should be run individually, and common classes should never be run (see Adding Tests, above). Individual tests can be run with `python3 -m unittest <filename>.<ClassName>.<test_name>`. All tests should be run from the `unit_tests` folder to allow module imports to work properly. Note that individual test files, classes, and methods cannot currently be run with the `run_tests` script.
 
 If tests are being set up with clouds, the setup script may display an error similar to: 
 
@@ -109,7 +124,7 @@ The exact cause of this warning is currently unknown. It does not impact the fun
 
 ## Debugging Tests
 
-To create the test fixtures to manually inspect the tests, the `.setup_objects()` and `.cleanup_objects()` functions from the `web_test_setup_cleanup` module should be used (passing any additonal arguments as specified in the "Test Profiles" section). The `setup()` and `cleanup()` functions do the driver setup as well, but, in addition, require the calling class and the suffix number of the Firefox profile to use (ie 1 for `{user}-wig1`) as arguments. 
+To create the test fixtures to manually inspect the tests, the `.setup_objects()` and `.cleanup_objects()` functions from the `web_test_setup_cleanup` module should be used (passing any additonal arguments as specified in the "Test Profiles" section). The `setup()` and `cleanup()` functions do the driver setup as well, but, in addition, require the calling class, the suffix number of the browser profile to use (ie 1 for `{user}-wig1`), and the name of the browser as arguments. 
 
 Several functions log information in files called `*objects.txt`. These files can be useful for debugging. They should not be committed, and it is harmless to delete them - they will be automatically remade when needed. Note that these files are reused every time one of the functions that use them is called, so if multiple tests or test suites are run, they will likely only contain information about the last test. If possible, the use of these files will eventually be phased out. All log files will be automatically placed in the `misc_files` folder.
 
