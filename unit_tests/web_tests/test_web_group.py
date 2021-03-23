@@ -191,5 +191,14 @@ class TestWebGroupSuperUser(TestWebGroupCommon):
         super(TestWebGroupSuperUser, cls).setUpClass()
         print("\nGroup Tests:")
 
+class TestWebGroupSuperUserChromium(TestWebGroupCommon):
+    """A class to test group operations via the web interface, with a super user, in the Chromium browser."""
+
+    @classmethod
+    def setUpClass(cls):
+        wtsc.setup(cls, 2, ['groups'], browser='chromium')
+        super(TestWebGroupSuperUser, cls).setUpClass()
+        print("\nGroup Tests (Chromium):")
+
 if __name__ == "__main__":
     unittest.main()

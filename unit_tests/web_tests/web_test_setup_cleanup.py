@@ -16,13 +16,19 @@ import web_tests.web_test_helpers as helpers
 server_url = 'https://csv2-dev.heprc.uvic.ca'
 beaver_url = 'https://beaver.heprc.uvic.ca/dashboard/project/key_pairs'
 
-def setup(cls, profile, objects):
+def setup(cls, profile, objects, browser='firefox'):
     # Try/except block here ensures that cleanups will occur even on setup
     # error. If we update to python 3.8 or later, the unittest
     # addClassCleanup() is a better way of handling this.
     try:
         cls.gvar = setup_objects(objects)
-        cls.driver = webdriver.Firefox(webdriver.FirefoxProfile(cls.gvar['firefox_profiles'][profile-1]))
+        if browser == 'firefox':
+            cls.driver = webdriver.Firefox(webdriver.FirefoxProfile(cls.gvar['firefox_profiles'][profile-1]))
+        elif browser == 'chromium':
+            options = webdriver.ChromeOptions()
+            options.add_argument('user-data-dir=' + cls.gvar['chromium_profiles'][profile-1])
+            options.add_argument('no-sandbox')
+            cls.driver = webdriver.Chrome(options=options)
         cls.driver.get(server_url)
         cls.alert = cls.driver.switch_to.alert
         cls.alert.accept()
