@@ -30,7 +30,9 @@ def setup(cls, profile, objects, browser='firefox'):
             # stackoverflow.com/questions/51959986/how-to-solve-selenium-
             # chromedriver-timed-out-receiving-message-from-renderer-exc)
             options.add_argument('--disable-gpu')
-            options.add_argument('--user-data-dir=' + cls.gvar['chromium_profiles'][profile-1])
+            print(cls.gvar['chromium_profiles'][profile-1])
+            options.add_argument('--user-data-dir=' + cls.gvar['chromium_profile_path'])
+            options.add_argument('--profile-directory=' + cls.gvar['chromium_profiles'][profile-1])
             cls.driver = webdriver.Chrome(options=options)
         cls.driver.get(server_url)
         sleep(10)
