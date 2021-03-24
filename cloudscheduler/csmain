@@ -396,7 +396,7 @@ def process_group_cloud_terminates(pair, config):
             rc, msg, vm_rows = config.db_query(VM, where=where_clause)
             vm_row = vm_rows[0]
         except Exception as exc:
-            logging.error("Unable to retrieve VM row for vmid: %s, skipping terminate..." % resource.vmid)
+            logging.error("Unable to retrieve VM row for vmid: %s, skipping terminate..." % resource["vmid"])
             continue
         if vm_row["manual_control"] == 1:
             logging.info("VM %s under manual control, skipping terminate..." % resource["vmid"])
