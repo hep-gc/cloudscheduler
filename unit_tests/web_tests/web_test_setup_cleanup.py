@@ -26,10 +26,14 @@ def setup(cls, profile, objects, browser='firefox'):
             cls.driver = webdriver.Firefox(webdriver.FirefoxProfile(cls.gvar['firefox_profiles'][profile-1]))
         elif browser == 'chromium':
             options = webdriver.ChromeOptions()
-            options.add_argument('user-data-dir=' + cls.gvar['chromium_profiles'][profile-1])
-            options.add_argument('no-sandbox')
+            # This line prevents Chromedriver hanging (see here: https://
+            # stackoverflow.com/questions/51959986/how-to-solve-selenium-
+            # chromedriver-timed-out-receiving-message-from-renderer-exc)
+            options.add_argument('--disable-gpu')
+            options.add_argument('--user-data-dir=' + cls.gvar['chromium_profiles'][profile-1])
             cls.driver = webdriver.Chrome(options=options)
         cls.driver.get(server_url)
+        sleep(10)
         cls.alert = cls.driver.switch_to.alert
         cls.alert.accept()
     except:
