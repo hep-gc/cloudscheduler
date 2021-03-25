@@ -13,16 +13,16 @@ from .test_web_status import TestWebStatusSuperUser
 #IMPORTANT: All web tests must be added to the `tests` array in the appropriate browser's test suite in order for the `run_tests` script to pick them up
 def firefox_test_suite():
     tests = [
-        TestWebGroupSuperUser
-        #TestWebUserSuperUser,
-        #TestWebCloudSuperUser, TestWebCloudRegularUser,
-        #TestWebAliasSuperUser, TestWebAliasRegularUser,
-        #TestWebDefaultSuperUser, TestWebDefaultRegularUser,
-        #TestWebImageSuperUser, TestWebImageRegularUser,
-        #TestWebSettingSuperUser, TestWebSettingRegularUser,
-        #TestWebConfigSuperUser,
-        #TestWebKeySuperUser,
-        #TestWebStatusSuperUser
+        TestWebGroupSuperUser,
+        TestWebUserSuperUser,
+        TestWebCloudSuperUser, TestWebCloudRegularUser,
+        TestWebAliasSuperUser, TestWebAliasRegularUser,
+        TestWebDefaultSuperUser, TestWebDefaultRegularUser,
+        TestWebImageSuperUser, TestWebImageRegularUser,
+        TestWebSettingSuperUser, TestWebSettingRegularUser,
+        TestWebConfigSuperUser,
+        TestWebKeySuperUser,
+        TestWebStatusSuperUser
     ]
 
     suite = unittest.TestSuite()

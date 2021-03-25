@@ -21,7 +21,7 @@ def setup(cls, profile, objects, browser='firefox'):
     # error. If we update to python 3.8 or later, the unittest
     # addClassCleanup() is a better way of handling this.
     try:
-        cls.gvar = setup_objects(objects)
+        cls.gvar = setup_objects(objects, browser)
         if browser == 'firefox':
             cls.driver = webdriver.Firefox()
         elif browser == 'chromium':
@@ -42,7 +42,7 @@ def setup(cls, profile, objects, browser='firefox'):
             cls.driver.quit()
         raise
 
-def setup_objects(objects=[]):
+def setup_objects(objects=[], browser='firefox'):
     print('\nUnittest setup:')
 
     cleanup_objects()
@@ -190,7 +190,7 @@ def setup_objects(objects=[]):
 
     #add keys
     if 'keys' in objects:
-        beaver_setup_keys(gvar, 2)
+        beaver_setup_keys(gvar, 2, browser)
         keystring = gvar['user'] + '-wik1'
         helpers.wait_for_openstack_poller(gvar['user'] + '-wic1', '-vk', keystring, output=True)
 
@@ -203,17 +203,18 @@ def setup_objects(objects=[]):
 def get_homepage(driver):
     driver.get(server_url)
 
-def cleanup(cls):
+def cleanup(cls, browser='firefox'):
     print("\nUnittest Teardown:")
     if hasattr(cls, 'driver') and cls.driver is not None:
+        browser = cls.driver.name
         cls.driver.quit()
-    cleanup_objects()
+    cleanup_objects(browser)
 
-def cleanup_objects():
+def cleanup_objects(browser='firefox'):
     gvar = load_settings(web=True)
     gvar['base_group'] = gvar['user'] + '-wig0'
 
-    beaver_cleanup_keys(gvar, 4, 2)
+    beaver_cleanup_keys(gvar, 4, 2, browser)
 
     delete_by_type(gvar, ['defaults', '-wis', '-s', 'server', []], 2)
     for i in range(2, 1, -1):
@@ -319,10 +320,18 @@ def delete_by_type(gvar, type_info, number, others=[]):
 
     object_log.close()
 
-def beaver_setup_keys(gvar, number):
+def beaver_setup_keys(gvar, number, browser):
     options = Options()
     options.headless = True
-    driver = webdriver.Firefox(options=options)
+    if browser == 'firefox':
+        driver = webdriver.Firefox(options=options)
+    elif browser == 'chromium':
+        options.add_argument('--disable-gpu')
+        driver = webdriver.Chrome(options=options)
+    elif browser == 'opera':
+        driver = webdriver.Opera(options=options)
+    else:
+        driver = webdriver.Firefox(options=options)
     driver.get(beaver_url)
 
     wti.fill_blank_by_id(driver, 'id_username', gvar['cloud_credentials']['username'])
@@ -339,13 +348,22 @@ def beaver_setup_keys(gvar, number):
 
     driver.quit()
 
-def beaver_cleanup_keys(gvar, number, oversize_number):
+def beaver_cleanup_keys(gvar, number, oversize_number, browser):
     oversize = {}
     oversize['varchar_64'] = 'invalid-web-test-string-that-is-too-long-for-64-character-sql-data-field'
 
+    print(browser)
     options = Options()
     options.headless = True
-    driver = webdriver.Firefox(options=options)
+    if browser == 'firefox':
+        driver = webdriver.Firefox(options=options)
+    elif browser == 'chromium' or browser == 'chrome':
+        options.add_argument('--disable-gpu')
+        driver = webdriver.Chrome(options=options)
+    elif browser == 'opera':
+        driver = webdriver.Opera(options=options)
+    else:
+        driver = webdriver.Firefox(options=options)
     driver.get(beaver_url)
 
     wti.fill_blank_by_id(driver, 'id_username', gvar['cloud_credentials']['username'])
@@ -369,7 +387,7 @@ def beaver_cleanup_keys(gvar, number, oversize_number):
         try:
             wti.click_by_xpath(driver, xpath, timeout=5)
             wti.click_by_xpath(driver, delete_button)
-            sleep(10)
+            sleep(5)
             print("keypair \"" + oversize['varchar_64'] + str(i) + "\" successfully deleted.")
         except TimeoutException:
             pass
