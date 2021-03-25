@@ -23,21 +23,19 @@ def setup(cls, profile, objects, browser='firefox'):
     try:
         cls.gvar = setup_objects(objects)
         if browser == 'firefox':
-            cls.driver = webdriver.Firefox(webdriver.FirefoxProfile(cls.gvar['firefox_profiles'][profile-1]))
+            cls.driver = webdriver.Firefox()
         elif browser == 'chromium':
             options = webdriver.ChromeOptions()
             # This line prevents Chromedriver hanging (see here: https://
             # stackoverflow.com/questions/51959986/how-to-solve-selenium-
             # chromedriver-timed-out-receiving-message-from-renderer-exc)
             options.add_argument('--disable-gpu')
-            print(cls.gvar['chromium_profiles'][profile-1])
-            options.add_argument('--user-data-dir=' + cls.gvar['chromium_profile_path'])
-            options.add_argument('--profile-directory=' + cls.gvar['chromium_profiles'][profile-1])
             cls.driver = webdriver.Chrome(options=options)
-        cls.driver.get(server_url)
-        sleep(10)
-        cls.alert = cls.driver.switch_to.alert
-        cls.alert.accept()
+        elif browser == 'opera':
+            cls.driver = webdriver.Opera()
+        url_split = server_url.split('//')
+        authenticated_url = url_split[0] + '//' + cls.gvar['user'] + '-wiu' + str(profile) + ':' + cls.gvar['user_secret'] + '@' + url_split[1]
+        cls.driver.get(authenticated_url)
     except:
         print("Error in test setup")
         if hasattr(cls, 'driver') and cls.driver:
@@ -324,7 +322,7 @@ def delete_by_type(gvar, type_info, number, others=[]):
 def beaver_setup_keys(gvar, number):
     options = Options()
     options.headless = True
-    driver = webdriver.Firefox(webdriver.FirefoxProfile(gvar['firefox_profiles'][1]), options=options)
+    driver = webdriver.Firefox(options=options)
     driver.get(beaver_url)
 
     wti.fill_blank_by_id(driver, 'id_username', gvar['cloud_credentials']['username'])
@@ -347,7 +345,7 @@ def beaver_cleanup_keys(gvar, number, oversize_number):
 
     options = Options()
     options.headless = True
-    driver = webdriver.Firefox(webdriver.FirefoxProfile(gvar['firefox_profiles'][1]), options=options)
+    driver = webdriver.Firefox(options=options)
     driver.get(beaver_url)
 
     wti.fill_blank_by_id(driver, 'id_username', gvar['cloud_credentials']['username'])
