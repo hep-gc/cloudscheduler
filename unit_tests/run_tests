@@ -128,7 +128,7 @@ def main():
 
     total_failed = 0
     for ((_, n), s) in user_options['tests']:
-        if n=="web":
+        if 'web' in n:
             print('Test web details recorded in unittest framework')
         else:
             print('Test {} run={}, skipped={}, failed={}.'.format(n, s['ut_count'][0]-s['ut_skipped'], s['ut_skipped'], s['ut_failed']))

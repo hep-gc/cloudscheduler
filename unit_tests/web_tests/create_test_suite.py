@@ -1,5 +1,5 @@
 import unittest
-from .test_web_group import TestWebGroupSuperUser, TestWebGroupSuperUserChromium
+from .test_web_group import TestWebGroupSuperUser, TestWebGroupSuperUserChromium, TestWebGroupSuperUserOpera
 from .test_web_user import TestWebUserSuperUser
 from .test_web_cloud import TestWebCloudSuperUser, TestWebCloudRegularUser
 from .test_web_alias import TestWebAliasSuperUser, TestWebAliasRegularUser
@@ -13,16 +13,16 @@ from .test_web_status import TestWebStatusSuperUser
 #IMPORTANT: All web tests must be added to the `tests` array in the appropriate browser's test suite in order for the `run_tests` script to pick them up
 def firefox_test_suite():
     tests = [
-        TestWebGroupSuperUser,
-        TestWebUserSuperUser,
-        TestWebCloudSuperUser, TestWebCloudRegularUser,
-        TestWebAliasSuperUser, TestWebAliasRegularUser,
-        TestWebDefaultSuperUser, TestWebDefaultRegularUser,
-        TestWebImageSuperUser, TestWebImageRegularUser,
-        TestWebSettingSuperUser, TestWebSettingRegularUser,
-        TestWebConfigSuperUser,
-        TestWebKeySuperUser,
-        TestWebStatusSuperUser
+        TestWebGroupSuperUser
+        #TestWebUserSuperUser,
+        #TestWebCloudSuperUser, TestWebCloudRegularUser,
+        #TestWebAliasSuperUser, TestWebAliasRegularUser,
+        #TestWebDefaultSuperUser, TestWebDefaultRegularUser,
+        #TestWebImageSuperUser, TestWebImageRegularUser,
+        #TestWebSettingSuperUser, TestWebSettingRegularUser,
+        #TestWebConfigSuperUser,
+        #TestWebKeySuperUser,
+        #TestWebStatusSuperUser
     ]
 
     suite = unittest.TestSuite()
@@ -39,3 +39,14 @@ def chromium_test_suite():
     for test in tests:
         suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(test))
     return suite
+
+def opera_test_suite():
+    tests = [
+        TestWebGroupSuperUserOpera
+    ]
+
+    suite = unittest.TestSuite()
+    for test in tests:
+        suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(test))
+    return suite
+

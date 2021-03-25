@@ -698,9 +698,6 @@ def load_settings(web=False):
 
 def _prompt_for_web_credentials(credentials, server_user):
     credentials['web'] = {}
-    credentials['web']['firefox_profiles'] = [input('Location of a Firefox profile with the credentials for {}-wiu{} saved: '.format(server_user, i)) for i in range(1, 4)]
-    credentials['web']['chromium_profile_path'] = input('Path to the Chromium profiles folder ')
-    credentials['web']['chromium_profiles'] = [input('Name of a Chromium profile with the credentials for {}-wiu{} saved '.format(server_user, i)) for i in range(1,4)]
     credentials['web']['max_wait'] = float(input('Maximum time in seconds that web interface pages may take to load (float): '))
     credentials['web']['setup_required'] = True
 
