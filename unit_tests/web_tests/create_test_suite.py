@@ -1,28 +1,28 @@
 import unittest
-from .test_web_group import TestWebGroupSuperUser, TestWebGroupSuperUserChromium, TestWebGroupSuperUserOpera
-from .test_web_user import TestWebUserSuperUser
-from .test_web_cloud import TestWebCloudSuperUser, TestWebCloudRegularUser
-from .test_web_alias import TestWebAliasSuperUser, TestWebAliasRegularUser
-from .test_web_default import TestWebDefaultSuperUser, TestWebDefaultRegularUser
-from .test_web_image import TestWebImageSuperUser, TestWebImageRegularUser
-from .test_web_setting import TestWebSettingSuperUser, TestWebSettingRegularUser
-from .test_web_config import TestWebConfigSuperUser
-from .test_web_key import TestWebKeySuperUser
-from .test_web_status import TestWebStatusSuperUser
+import .test_web_group as group
+import .test_web_user as user
+import .test_web_cloud as cloud
+import .test_web_alias as alias
+import .test_web_default as default
+import .test_web_image as image
+import .test_web_setting as setting
+import .test_web_config as config
+import .test_web_key as key
+import .test_web_status as status
 
 #IMPORTANT: All web tests must be added to the `tests` array in the appropriate browser's test suite in order for the `run_tests` script to pick them up
 def firefox_test_suite():
     tests = [
-        TestWebGroupSuperUser,
-        TestWebUserSuperUser,
-        TestWebCloudSuperUser, TestWebCloudRegularUser,
-        TestWebAliasSuperUser, TestWebAliasRegularUser,
-        TestWebDefaultSuperUser, TestWebDefaultRegularUser,
-        TestWebImageSuperUser, TestWebImageRegularUser,
-        TestWebSettingSuperUser, TestWebSettingRegularUser,
-        TestWebConfigSuperUser,
-        TestWebKeySuperUser,
-        TestWebStatusSuperUser
+        group.TestWebGroupSuperUser,
+        user.TestWebUserSuperUser,
+        cloud.TestWebCloudSuperUser, cloud.TestWebCloudRegularUser,
+        alias.TestWebAliasSuperUser, alias.TestWebAliasRegularUser,
+        default.TestWebDefaultSuperUser, default.TestWebDefaultRegularUser,
+        image.TestWebImageSuperUser, image.TestWebImageRegularUser,
+        setting.TestWebSettingSuperUser, setting.TestWebSettingRegularUser,
+        config.TestWebConfigSuperUser,
+        key.TestWebKeySuperUser,
+        status.TestWebStatusSuperUser, status.TestWebStatusRegularUser
     ]
 
     suite = unittest.TestSuite()
@@ -32,7 +32,16 @@ def firefox_test_suite():
 
 def chromium_test_suite():
     tests = [
-        TestWebGroupSuperUserChromium
+        group.TestWebGroupSuperUserChromium,
+        user.TestWebUserSuperUserChromium,
+        cloud.TestWebCloudSuperUserChromium, cloud.TestWebCloudRegularUserChromium,
+        alias.TestWebAliasSuperUserChromium, alias.TestWebAliasRegularUserChromium,
+        default.TestWebDefaultSuperUserChromium, default.TestWebDefaultRegularUserChromium,
+        image.TestWebImageSuperUserChromium, image.TestWebImageRegularUserChromium,
+        setting.TestWebSettingSuperUserChromium, setting.TestWebSettingRegularUserChromium,
+        config.TestWebConfigSuperUserChromium,
+        key.TestWebKeySuperUserChromium,
+        status.TestWebStatusSuperUserChromium, status.TestWebStatusRegularUserChromium
     ]
 
     suite = unittest.TestSuite()
@@ -42,7 +51,16 @@ def chromium_test_suite():
 
 def opera_test_suite():
     tests = [
-        TestWebGroupSuperUserOpera
+        group.TestWebGroupSuperUserOpera,
+        user.TestWebUserSuperUserOpera,
+        cloud.TestWebCloudSuperUserOpera, cloud.TestWebCloudRegularUserOpera,
+        alias.TestWebAliasSuperUserOpera, alias.TestWebAliasRegularUserOpera,
+        default.TestWebDefaultSuperUserOpera, default.TestWebDefaultRegularUserOpera,
+        image.TestWebImageSuperUserOpera, image.TestWebImageRegularUserOpera,
+        setting.TestWebSettingSuperUserOpera, setting.TestWebSettingRegularUserOpera,
+        config.TestWebConfigSuperUserOpera,
+        key.TestWebKeySuperUserOpera,
+        status.TestWebStatusSuperUserOpera, status.TestWebStatusRegularUserOpera
     ]
 
     suite = unittest.TestSuite()

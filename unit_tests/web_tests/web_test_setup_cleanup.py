@@ -123,7 +123,7 @@ def setup_objects(objects=[], browser='firefox'):
         # This updates the security group setting, which requires a connection
         # to the cloud. The setup timing is unpredictable, so this loops it 
         # until the connection is established.
-        beaver_setup_keys(gvar, 1)
+        beaver_setup_keys(gvar, 1, browser)
         helpers.wait_for_openstack_poller(gvar['user'] + '-wic1', '-vsg', 'default', output=True)
 
     aliases_num = 0

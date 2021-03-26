@@ -134,5 +134,41 @@ class TestWebImageRegularUser(unittest.TestCase):
         super(TestWebImageRegularUser, cls).setUpClass()
         print("\nImage Tests (Regular User):")
 
+class TestWebImageSuperUserChromium(TestWebImageCommon):
+    """A class to test image operations via the web interface, in Chromium, with a super user."""
+
+    @classmethod
+    def setUpClass(cls):
+        wtsc.setup(cls, 2, ['images'], browser='chromium')
+        super(TestWebImageSuperUserChromium, cls).setUpClass()
+        print("\nImage Tests (Chromium) (Super User):")
+
+class TestWebImageRegularUserChromium(unittest.TestCase):
+    """A class to test image operations via the web interface, in Chromium, with a regular user."""
+
+    @classmethod
+    def setUpClass(cls):
+        wtsc.setup(cls, 1, ['images'], browser='chromium')
+        super(TestWebImageRegularUserChromium, cls).setUpClass()
+        print("\nImage Tests (Chromium) (Regular User):")
+
+class TestWebImageSuperUserOpera(TestWebImageCommon):
+    """A class to test image operations via the web interface, in Opera, with a super user."""
+
+    @classmethod
+    def setUpClass(cls):
+        wtsc.setup(cls, 2, ['images'], browser='opera')
+        super(TestWebImageSuperUserOpera, cls).setUpClass()
+        print("\nImage Tests (Opera) (Super User):")
+
+class TestWebImageRegularUserOpera(unittest.TestCase):
+    """A class to test image operations via the web interface, in Opera, with a regular user."""
+
+    @classmethod
+    def setUpClass(cls):
+        wtsc.setup(cls, 1, ['images'])
+        super(TestWebImageRegularUser, cls).setUpClass()
+        print("\nImage Tests (Regular User):")
+
 if __name__ == "__main__":
     unittest.main()

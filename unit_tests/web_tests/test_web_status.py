@@ -419,5 +419,33 @@ class TestWebStatusRegularUser(TestWebStatusCommon):
         super(TestWebStatusRegularUser, cls).setUpClass()
         print("\nStatus Tests (Regular User):")
 
+class TestWebStatusSuperUserChromium(TestWebStatusCommon):
+    @classmethod
+    def setUpClass(cls):
+        wtsc.setup(cls, 2, ['servers', 'status'], browser='chromium')
+        super(TestWebStatusSuperUserChromium, cls).setUpClass()
+        print("\nStatus Tests (Chromium) (Super User):")
+   
+class TestWebStatusRegularUserChromium(TestWebStatusCommon):
+    @classmethod
+    def setUpClass(cls):
+        wtsc.setup(cls, 1, ['servers', 'status'], browser='chromium')
+        super(TestWebStatusRegularUserChromium, cls).setUpClass()
+        print("\nStatus Tests (Chromium) (Regular User):")
+
+class TestWebStatusSuperUserOpera(TestWebStatusCommon):
+    @classmethod
+    def setUpClass(cls):
+        wtsc.setup(cls, 2, ['servers', 'status'], browser='opera')
+        super(TestWebStatusSuperUserOpera, cls).setUpClass()
+        print("\nStatus Tests (Opera) (Super User):")
+   
+class TestWebStatusRegularUserOpera(TestWebStatusCommon):
+    @classmethod
+    def setUpClass(cls):
+        wtsc.setup(cls, 1, ['servers', 'status'], browser='opera')
+        super(TestWebStatusRegularUserOpera, cls).setUpClass()
+        print("\nStatus Tests (Opera) (Regular User):")
+
 if __name__ == "__main__":
     unittest.main()

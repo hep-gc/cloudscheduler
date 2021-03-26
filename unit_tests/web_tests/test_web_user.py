@@ -360,8 +360,26 @@ class TestWebUserSuperUser(TestWebUserCommon):
     @classmethod
     def setUpClass(cls):
         wtsc.setup(cls, 2, ['users'])
-        super(TestWebGroupSuperUser, cls).setUpClass()
+        super(TestWebUserSuperUser, cls).setUpClass()
         print("\nUser Tests:")
+
+class TestWebUserSuperUserChromium(TestWebUserCommon):
+    """A class to test user operations via the web interface, in Chromium, with a super user."""
+
+    @classmethod
+    def setUpClass(cls):
+        wtsc.setup(cls, 2, ['users'], browser='chromium')
+        super(TestWebUserSuperUserChromium, cls).setUpClass()
+        print("\nUser Tests (Chromium):")
+
+class TestWebUserSuperUserOpera(TestWebUserCommon):
+    """A class to test user operations via the web interface, in Opera, with a super user."""
+
+    @classmethod
+    def setUpClass(cls):
+        wtsc.setup(cls, 2, ['users'], browser='opera')
+        super(TestWebUserSuperUserOpera, cls).setUpClass()
+        print("\nUser Tests (Opera):")
 
 if __name__ == "__main__":
     unittest.main()

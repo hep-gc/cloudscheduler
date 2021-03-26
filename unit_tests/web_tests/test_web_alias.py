@@ -148,5 +148,41 @@ class TestWebAliasRegularUser(TestWebAliasCommon):
         super(TestWebAliasRegularUser, cls).setUpClass()
         print("\nAlias Tests (Regular User):")
 
+class TestWebAliasSuperUserChromium(TestWebAliasCommon):
+    """A class to test alias operations via the web interface, in Chromium, with a super user."""
+
+    @classmethod
+    def setUpClass(cls):
+        wtsc.setup(cls, 2, ['aliases'], browser='chromium')
+        super(TestWebAliasSuperUserChromium, cls).setUpClass()
+        print("\nAlias Tests (Chromium) (Super User):")
+
+class TestWebAliasRegularUserChromium(TestWebAliasCommon):
+    """A class to test alias operations via the web interface, in Chromium, with a regular user."""
+
+    @classmethod
+    def setUpClass(cls):
+        wtsc.setup(cls, 1, ['aliases'], browser='chromium')
+        super(TestWebAliasRegularUserChromium, cls).setUpClass()
+        print("\nAlias Tests (Chromium) (Regular User):")
+
+class TestWebAliasSuperUserOpera(TestWebAliasCommon):
+    """A class to test alias operations via the web interface, in Opera, with a super user."""
+
+    @classmethod
+    def setUpClass(cls):
+        wtsc.setup(cls, 2, ['aliases'], browser='opera')
+        super(TestWebAliasSuperUserOpera, cls).setUpClass()
+        print("\nAlias Tests (Opera) (Super User):")
+
+class TestWebAliasRegularUserOpera(TestWebAliasCommon):
+    """A class to test alias operations via the web interface, in Opera, with a regular user."""
+
+    @classmethod
+    def setUpClass(cls):
+        wtsc.setup(cls, 1, ['aliases'], browser='opera')
+        super(TestWebAliasRegularUserOpera, cls).setUpClass()
+        print("\nAlias Tests (Opera) (Regular User):")
+
 if __name__ == '__main__':
     unittest.main()

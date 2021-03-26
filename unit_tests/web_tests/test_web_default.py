@@ -658,5 +658,41 @@ class TestWebDefaultRegularUser(TestWebDefaultCommon):
         super(TestWebDefaultRegularUser, cls).setUpClass()
         print("\nDefault Tests (Regular User):")
 
+class TestWebDefaultSuperUserChromium(TestWebDefaultCommon):
+    """A class to test default operations via the web interface, in Chromium, with a super user."""
+
+    @classmethod
+    def setUpClass(cls):
+        wtsc.setup(cls, 2, ['defaults'], browser='chromium')
+        super(TestWebDefaultSuperUserChromium, cls).setUpClass()
+        print("\nDefault Tests (Chromium) (Super User):")
+
+class TestWebDefaultRegularUserChromium(TestWebDefaultCommon):
+    """A class to test default operations via the web interface, in Chromium, with a regular user."""
+
+    @classmethod
+    def setUpClass(cls):
+        wtsc.setup(cls, 1, ['defaults'], browser='chromium')
+        super(TestWebDefaultRegularUser, cls).setUpClass()
+        print("\nDefault Tests (Regular User):")
+
+class TestWebDefaultSuperUserOpera(TestWebDefaultCommon):
+    """A class to test default operations via the web interface, in Opera, with a super user."""
+
+    @classmethod
+    def setUpClass(cls):
+        wtsc.setup(cls, 2, ['defaults'], browser='opera')
+        super(TestWebDefaultSuperUserOpera, cls).setUpClass()
+        print("\nDefault Tests (Opera) (Super User):")
+
+class TestWebDefaultRegularUserOpera(TestWebDefaultCommon):
+    """A class to test default operations via the web interface, in Opera, with a regular user."""
+
+    @classmethod
+    def setUpClass(cls):
+        wtsc.setup(cls, 1, ['defaults'], browser='opera')
+        super(TestWebDefaultRegularUserOpera, cls).setUpClass()
+        print("\nDefault Tests (Opera) (Regular User):")
+
 if __name__ == "__main__":
     unittest.main()

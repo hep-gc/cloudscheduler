@@ -798,9 +798,9 @@ class TestWebCloudCommon(unittest.TestCase):
         # Changes a cloud's maximum number of cores by sliding the slider
         cloud_name = self.gvar['user'] + '-wic1'
         self.page.click_side_button(cloud_name)
-        self.page.slide_cores_slider(8)
+        self.page.slide_cores_slider(128)
         self.page.click_update_cloud()
-        wta.assertHasAttribute('cloud', cloud_name, 'cores_ctl', '8', group=self.gvar['base_group'], err=3)
+        wta.assertHasAttribute('cloud', cloud_name, 'cores_ctl', '128', group=self.gvar['base_group'], err=16)
 
     def test_web_cloud_update_cores_by_arrows(self):
         # Changes a cloud's maximum number of cores using the arrow keys
@@ -860,9 +860,9 @@ class TestWebCloudCommon(unittest.TestCase):
         # Changes a cloud's maximum RAM by sliding the slider
         cloud_name = self.gvar['user'] + '-wic1'
         self.page.click_side_button(cloud_name)
-        self.page.slide_ram_slider(131072)
+        self.page.slide_ram_slider(262144)
         self.page.click_update_cloud()
-        wta.assertHasAttribute('cloud', cloud_name, 'ram_ctl', '131072', group=self.gvar['base_group'], err=6000)
+        wta.assertHasAttribute('cloud', cloud_name, 'ram_ctl', '262144', group=self.gvar['base_group'], err=48000)
 
     def test_web_cloud_update_ram_by_arrows(self):
         # Changes a cloud's maximum RAM using the arrow keys
@@ -1301,6 +1301,42 @@ class TestWebCloudRegularUser(TestWebCloudCommon):
         wtsc.setup(cls, 1, ['clouds'])
         super(TestWebCloudRegularUser, cls).setUpClass()
         print("\nCloud Tests (Regular User):")
+
+class TestWebCloudSuperUserChromium(TestWebCloudCommon):
+    """A class to test cloud operations via the web interface, in Chromium, with a super user."""
+
+    @classmethod
+    def setUpClass(cls):
+        wtsc.setup(cls, 2, ['clouds'], browser='chromium')
+        super(TestWebCloudSuperUserChromium, cls).setUpClass()
+        print("\nCloud Tests (Chromium) (Super User):")
+
+class TestWebCloudRegularUserChromium(TestWebCloudCommon):
+    """A class to test cloud operations via the web interface, in Chromium, with a regular user."""
+
+    @classmethod
+    def setUpClass(cls):
+        wtsc.setup(cls, 1, ['clouds'], browser='chromium')
+        super(TestWebCloudRegularUserChromium, cls).setUpClass()
+        print("\nCloud Tests (Chromium) (Regular User):")
+
+class TestWebCloudSuperUserOpera(TestWebCloudCommon):
+    """A class to test cloud operations via the web interface, in Opera, with a super user."""
+
+    @classmethod
+    def setUpClass(cls):
+        wtsc.setup(cls, 2, ['clouds'], browser='opera')
+        super(TestWebCloudSuperUserOpera, cls).setUpClass()
+        print("\nCloud Tests (Opera) (Super User):")
+
+class TestWebCloudRegularUserOpera(TestWebCloudCommon):
+    """A class to test cloud operations via the web interface, in Opera, with a regular user."""
+
+    @classmethod
+    def setUpClass(cls):
+        wtsc.setup(cls, 1, ['clouds'], browser='opera')
+        super(TestWebCloudRegularUserOpera, cls).setUpClass()
+        print("\nCloud Tests (Opera) (Regular User):")
 
 if __name__ == "__main__":
     unittest.main()
