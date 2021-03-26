@@ -517,9 +517,9 @@ def image_poller():
                         cloud_row["communication_rt"] = int(post_req_time - pre_req_time)
                         try:
                             cld_update_dict = {
-                                group_name: cloud_row["group_name"],
-                                cloud_name: cloud_row["cloud_name"],
-                                communication_rt: cloud_row["communication_rt"],
+                                "group_name": cloud_row["group_name"],
+                                "cloud_name": cloud_row["cloud_name"],
+                                "communication_rt": cloud_row["communication_rt"],
                             }
                             config.db_merge(CLOUD, cld_update_dict)
                             uncommitted_updates += 1
@@ -531,7 +531,7 @@ def image_poller():
                     try:
                         #logging.error(image_list)
                         for image in image_list:
-                            if image.size == "":
+                            if image.size == "" or image.size is None:
                                 size = 0
                             else:
                                 size = image.size
@@ -569,6 +569,7 @@ def image_poller():
                                     continue
 
                                 try:
+                                    logging.debug("Merging: %s" % img_dict)
                                     config.db_merge(IMAGE, img_dict)
                                     uncommitted_updates += 1
                                 except Exception as exc:
@@ -979,8 +980,7 @@ def limit_poller():
                         limits_dict["cloud_type"] = "openstack"
 
                         try:
-                            logging.info("Updating grp:cld - %s:%s" % (group_n, cloud_n))
-                            logging.info(limits_dict)
+                            logging.debug("Updating grp:cld - %s:%s" % (group_n, cloud_n))
                             config.db_merge(LIMIT, limits_dict)
                             uncommitted_updates += 1
                         except Exception as exc:
@@ -1516,6 +1516,7 @@ def vm_poller():
             group_list = []
             for cloud in unique_cloud_dict:
                 group_list = group_list +unique_cloud_dict[cloud]['groups']
+
 
             for cloud in unique_cloud_dict:
                 auth_url = unique_cloud_dict[cloud]['cloud_obj']["authurl"]
