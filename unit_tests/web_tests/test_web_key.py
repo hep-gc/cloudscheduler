@@ -93,6 +93,7 @@ class TestWebKeyCommon(unittest.TestCase):
         key_file = open('web_tests/misc_files/invalid-web-test.pub', 'r')
         public_key = key_file.read()
         key_file.close()
+        public_key = public_key.strip()
         self.page.click_upload_key()
         self.page.type_key_name(key_name)
         self.page.type_public_key(public_key)
@@ -136,6 +137,24 @@ class TestWebKeySuperUser(TestWebKeyCommon):
         wtsc.setup(cls, 2, ['keys'])
         super(TestWebKeySuperUser, cls).setUpClass()
         print("\nKey Tests (Super User):")
+
+class TestWebKeySuperUserChromium(TestWebKeyCommon):
+    """A class to test key operations via the web interface, in Chromium, with a super user."""
+
+    @classmethod
+    def setUpClass(cls):
+        wtsc.setup(cls, 2, ['keys'], browser='chromium')
+        super(TestWebKeySuperUserChromium, cls).setUpClass()
+        print("\nKey Tests (Chromium) (Super User):")
+
+class TestWebKeySuperUserOpera(TestWebKeyCommon):
+    """A class to test key operations via the web interface, in Chromium, with a super user."""
+
+    @classmethod
+    def setUpClass(cls):
+        wtsc.setup(cls, 2, ['keys'], browser='opera')
+        super(TestWebKeySuperUserOpera, cls).setUpClass()
+        print("\nKey Tests (Opera) (Super User):")
 
 if __name__ == "__main__":
     unittest.main()

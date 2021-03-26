@@ -5,6 +5,7 @@ from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.common.keys import Keys
 from time import sleep
 import datetime
+import sys
 import web_tests.web_test_interactions as wti
 import web_tests.web_test_javascript_interactions as wtjsi
 import web_tests.web_test_xpath_selectors as wtxs
@@ -25,6 +26,15 @@ class Page(object):
 
     def switch_default_group(self, group):
         wti.select_option_by_name(self.driver, 'group', group)
+
+    def take_screenshot(self):
+        #sleep(5)
+        #stack = list(inspect.stack())
+        #file_name = stack[1].function + '_screenshot.png'
+        file_name = sys._getframe(1).f_code.co_name + '_screenshot.png'
+        print(file_name)
+        location = helpers.misc_file_full_path(file_name)
+        self.driver.save_screenshot(location)
 
     def error_message_displayed(self, message=None):
         xpath = ""

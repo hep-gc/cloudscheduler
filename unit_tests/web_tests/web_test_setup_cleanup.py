@@ -30,6 +30,7 @@ def setup(cls, profile, objects, browser='firefox'):
             # stackoverflow.com/questions/51959986/how-to-solve-selenium-
             # chromedriver-timed-out-receiving-message-from-renderer-exc)
             options.add_argument('--disable-gpu')
+            options.add_argument('--start-maximized')
             cls.driver = webdriver.Chrome(options=options)
         elif browser == 'opera':
             cls.driver = webdriver.Opera()
@@ -323,15 +324,7 @@ def delete_by_type(gvar, type_info, number, others=[]):
 def beaver_setup_keys(gvar, number, browser):
     options = Options()
     options.headless = True
-    if browser == 'firefox':
-        driver = webdriver.Firefox(options=options)
-    elif browser == 'chromium':
-        options.add_argument('--disable-gpu')
-        driver = webdriver.Chrome(options=options)
-    elif browser == 'opera':
-        driver = webdriver.Opera(options=options)
-    else:
-        driver = webdriver.Firefox(options=options)
+    driver = webdriver.Firefox(options=options)
     driver.get(beaver_url)
 
     wti.fill_blank_by_id(driver, 'id_username', gvar['cloud_credentials']['username'])
@@ -352,18 +345,9 @@ def beaver_cleanup_keys(gvar, number, oversize_number, browser):
     oversize = {}
     oversize['varchar_64'] = 'invalid-web-test-string-that-is-too-long-for-64-character-sql-data-field'
 
-    print(browser)
     options = Options()
     options.headless = True
-    if browser == 'firefox':
-        driver = webdriver.Firefox(options=options)
-    elif browser == 'chromium' or browser == 'chrome':
-        options.add_argument('--disable-gpu')
-        driver = webdriver.Chrome(options=options)
-    elif browser == 'opera':
-        driver = webdriver.Opera(options=options)
-    else:
-        driver = webdriver.Firefox(options=options)
+    driver = webdriver.Firefox(options=options)
     driver.get(beaver_url)
 
     wti.fill_blank_by_id(driver, 'id_username', gvar['cloud_credentials']['username'])
