@@ -4,7 +4,9 @@ This document contains details of how to set up, write, and run the web tests.
 
 ## Setup
 
-The web tests require Python3, Selenium Webdriver, and at least one of the drivers below to run. Currently supported browser/driver combinations are Firefox/Geckodriver. In-progress browser combinations are Chromium/Chromedriver and Opera/OperaChromiumDriver. Selenium Webdriver can be installed via `pip install selenium`. 
+The web tests require Python3, Selenium Webdriver, and at least one of the drivers below to run. Currently supported browser/driver combinations are Firefox/Geckodriver, Chromium/Chromedriver, and Opera/OperaChromeDriver (the latter two of which are still under testing) The tests currently require Firefox and Geckodriver, regardless of the chosen testing browser, in order to run a headless browser for setup purposes.
+
+Selenium Webdriver can be installed via `pip install selenium`. Browser and driver installation steps are listed below.
 
 The user will need to log into [Beaver](https://beaver.heprc.uvic.ca/dashboard) as `{user}-wiu2` and create a key. There will be a popup regarding the downloading of files. The user should request that the browser save the file and should click the box dictating that this is done automatically in the future. The files can also be saved to an alternate location (for example, the `unit_tests/web_tests/misc_files` directory) so as not to clog up the host computer's default downloads folder. There will need to be a profile implemented for this, which has not been done yet.
 
@@ -12,7 +14,7 @@ As with the other unit tests, a server configuration and cloud credentials are r
 
 Additionally, the tests require a set of files to start off with. These consist of four cloud files in RAW format, named `{user}-wii1.hdd`, `{user}-wii2.hdd`, `{user}-wii3.hdd`, and `{user}-wii4.hdd`; and one ssh public key named `{user}-wik3.pub`. They should be placed in the `unit_tests/web_tests/misc_files` directory.
 
-In order to set up the tests on a new server, the `unit-test` server in `.csv2/unit-test/settings.yaml` must be modified accordingly. The `server_url` variable in `web_test_setup_cleanup` should also be modified to match the new server.
+In order to set up the tests on a new server, the `unit-test` server in `.csv2/unit-test/settings.yaml` must be modified accordingly, and the login credentials if necessary. The `server_url` variable in `web_test_setup_cleanup` should also be modified to match the new server.
 
 The status tests additionally require the system time to be set to the correct time zone. This is a non-issue on a computer that is already set up, but is important on a virtual machine.
 
@@ -32,7 +34,7 @@ Opera can be installed following the instructions [here](https://www.itzgeek.com
 
 New test modules should be named starting with `test_web_` (the modules starting with `web_test_` are helper modules). The test files should be named `test_web_<page>.py`. The common class, where the majority of tests are implemented, should be named `TestWeb<Page>Common`. The classes with the proper setups (see below) should be named `TestWeb<Page><UserType><Browser>`. Individual tests should be named `test_web_<page>_<action>_<details>`, where `<action>` is the name of the action using the `cloudscheduler` command. If suitably complex, `<action>` should ideally be formatted as `<object>_<action_on_object>_<details>`. Note that individual tests having names that start with `test` is currently the only breaking naming requirement.
 
-All test files must be put in the `web_tests` directory, and each test class must be imported into `create_test_suite.py` and have its name added to the list of tests for its respective browser. Note that the detailed classes (see below) should be the only ones put in here - the common classes (see below) do not have the proper setup to be run on their own and should not be included.
+All test files must be put in the `web_tests` directory, and each test file must be imported into `create_test_suite.py` and have its classes added to the lists of tests for their respective browsers. Note that the detailed classes (see below) should be the only ones put in here - the common classes (see below) do not have the proper setup to be run on their own and should not be included.
 
 New tests should additionally follow all rules for Unittest test classes, as they are run using the Unittest framework.
 
@@ -88,6 +90,8 @@ Web tests can be run using `./run_tests web` from the `unit_tests` folder, and t
 
 The tests should be run as a non-root user. Root users may experience problems with the Chromium browser tests, as Chromium is not designed to run as a root user.
 
+Regardless of which browser the tests are run in, the setup requires the Firefox browser in order to run a headless setup mode. The tests will fail without a valid Firefox and Geckodriver installation.
+
 If tests are being set up with clouds, the setup script may display an error similar to: 
 
 ```
@@ -115,6 +119,8 @@ To create the test fixtures to manually inspect the tests, the `.setup_objects()
 Several functions log information in files called `*objects.txt`. These files can be useful for debugging. They should not be committed, and it is harmless to delete them - they will be automatically remade when needed. Note that these files are reused every time one of the functions that use them is called, so if multiple tests or test suites are run, they will likely only contain information about the last test. If possible, the use of these files will eventually be phased out. All log files will be automatically placed in the `misc_files` folder.
 
 The primary known cause of flaky tests is the test not waiting long enough for the object to properly appear. Using the `sleep()` or `WebDriverWait` functions can help fix this, as can retrying the action if it fails. For example, the `setup_objects` function uses `sleep()`, the `web_test_interactions` and `web_test_page_objects` methods use `WebDriverWait`, and the `web_test_assertions_v2` methods will retry the query an additional time (after a five-second `sleep()`) if they fail to find what they're looking for.
+
+The `Page` class contains a `take_screenshot()` function. This function can be called at any time during the tests and requires no additional arguments. It will name the screenshot file `<method>_screenshot.png` and save it to the `unit_tests/web_tests/misc_files` folder.
 
 ## Test Profiles
 
