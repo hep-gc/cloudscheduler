@@ -405,18 +405,18 @@ class TestWebStatusCommon(unittest.TestCase):
     def tearDownClass(cls):
         wtsc.cleanup(cls)
 
-class TestWebStatusSuperUser(TestWebStatusCommon):
+class TestWebStatusSuperUserFirefox(TestWebStatusCommon):
     @classmethod
     def setUpClass(cls):
-        wtsc.setup(cls, 2, ['servers', 'status'])
-        super(TestWebStatusSuperUser, cls).setUpClass()
+        wtsc.setup(cls, 2, ['servers', 'status'], browser='firefox')
+        super(TestWebStatusSuperUserFirefox, cls).setUpClass()
         print("\nStatus Tests (Super User):")
    
-class TestWebStatusRegularUser(TestWebStatusCommon):
+class TestWebStatusRegularUserFirefox(TestWebStatusCommon):
     @classmethod
     def setUpClass(cls):
-        wtsc.setup(cls, 1, ['servers', 'status'])
-        super(TestWebStatusRegularUser, cls).setUpClass()
+        wtsc.setup(cls, 1, ['servers', 'status'], browser='firefox')
+        super(TestWebStatusRegularUserFirefox, cls).setUpClass()
         print("\nStatus Tests (Regular User):")
 
 class TestWebStatusSuperUserChromium(TestWebStatusCommon):

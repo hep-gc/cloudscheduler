@@ -1284,22 +1284,22 @@ class TestWebCloudCommon(unittest.TestCase):
     def tearDownClass(cls):
         wtsc.cleanup(cls)
 
-class TestWebCloudSuperUser(TestWebCloudCommon):
-    """A class to test cloud operations via the web interface, with a super user."""
+class TestWebCloudSuperUserFirefox(TestWebCloudCommon):
+    """A class to test cloud operations via the web interface, in Firefox, with a super user."""
 
     @classmethod
     def setUpClass(cls):
-        wtsc.setup(cls, 2, ['clouds'])
-        super(TestWebCloudSuperUser, cls).setUpClass()
+        wtsc.setup(cls, 2, ['clouds'], browser='firefox')
+        super(TestWebCloudSuperUserFirefox, cls).setUpClass()
         print("\nCloud Tests (Super User):")
 
-class TestWebCloudRegularUser(TestWebCloudCommon):
-    """A class to test cloud operations via the web interface, with a regular user."""
+class TestWebCloudRegularUserFirefox(TestWebCloudCommon):
+    """A class to test cloud operations via the web interface, in Firefox, with a regular user."""
 
     @classmethod
     def setUpClass(cls):
-        wtsc.setup(cls, 1, ['clouds'])
-        super(TestWebCloudRegularUser, cls).setUpClass()
+        wtsc.setup(cls, 1, ['clouds'], browser='firefox')
+        super(TestWebCloudRegularUserFirefox, cls).setUpClass()
         print("\nCloud Tests (Regular User):")
 
 class TestWebCloudSuperUserChromium(TestWebCloudCommon):

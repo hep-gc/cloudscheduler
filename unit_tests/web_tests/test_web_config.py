@@ -351,13 +351,13 @@ class TestWebConfigCommon(unittest.TestCase):
     def tearDownClass(cls):
         wtsc.cleanup(cls)
 
-class TestWebConfigSuperUser(TestWebConfigCommon):
-    """A class to test config operations via the web interface."""
+class TestWebConfigSuperUserFirefox(TestWebConfigCommon):
+    """A class to test config operations via the web interface, in Firefox."""
 
     @classmethod
     def setUpClass(cls):
-        wtsc.setup(cls, 2, ['config'])
-        super(TestWebConfigSuperUser, cls).setUpClass()
+        wtsc.setup(cls, 2, ['config'], browser='firefox')
+        super(TestWebConfigSuperUserFirefox, cls).setUpClass()
         print("\nConfig Tests:")
 
 class TestWebConfigSuperUserChromium(TestWebConfigCommon):

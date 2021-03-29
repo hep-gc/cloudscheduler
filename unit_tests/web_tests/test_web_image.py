@@ -114,22 +114,22 @@ class TestWebImageCommon(unittest.TestCase):
     def tearDownClass(cls):
         wtsc.cleanup(cls)
 
-class TestWebImageSuperUser(TestWebImageCommon):
-    """A class to test image operations via the web interface, with a super user."""
+class TestWebImageSuperUserFirefox(TestWebImageCommon):
+    """A class to test image operations via the web interface, in Firefox, with a super user."""
 
     @classmethod
     def setUpClass(cls):
-        wtsc.setup(cls, 2, ['images'])
-        super(TestWebImageSuperUser, cls).setUpClass()
+        wtsc.setup(cls, 2, ['images'], browser='firefox')
+        super(TestWebImageSuperUserFirefox, cls).setUpClass()
         print("\nImage Tests (Super User):")
 
 class TestWebImageRegularUser(TestWebImageCommon):
-    """A class to test image operations via the web interface, with a regular user."""
+    """A class to test image operations via the web interface, in Firefox, with a regular user."""
 
     @classmethod
     def setUpClass(cls):
-        wtsc.setup(cls, 1, ['images'])
-        super(TestWebImageRegularUser, cls).setUpClass()
+        wtsc.setup(cls, 1, ['images'], browser='firefox')
+        super(TestWebImageRegularUserFirefox, cls).setUpClass()
         print("\nImage Tests (Regular User):")
 
 class TestWebImageSuperUserChromium(TestWebImageCommon):

@@ -180,25 +180,25 @@ class TestWebSettingCommon(unittest.TestCase):
     def tearDownClass(cls):
         wtsc.cleanup(cls)
 
-class TestWebSettingSuperUser(TestWebSettingCommon):
-    """A class to test user settings operations via the web interface, with a super user."""
+class TestWebSettingSuperUserFirefox(TestWebSettingCommon):
+    """A class to test user settings operations via the web interface, in Firefox, with a super user."""
 
     @classmethod
     def setUpClass(cls):
-        wtsc.setup(cls, 2, ['settings', 'servers'])
-        super(TestWebSettingSuperUser, cls).setUpClass()
+        wtsc.setup(cls, 2, ['settings', 'servers'], browser='firefox')
+        super(TestWebSettingSuperUserFirefox, cls).setUpClass()
         cls.server = cls.gvar['user'] + '-wis2'
         cls.user = cls.gvar['user'] + '-wiu2'
         cls.global_group = cls.gvar['user'] + '-wig2'
         print("\nUser Settings Tests (Super User):")
 
-class TestWebSettingRegularUser(TestWebSettingCommon):
-    """A class to test user settings operations via the web interface, with a regular user."""
+class TestWebSettingRegularUserFirefox(TestWebSettingCommon):
+    """A class to test user settings operations via the web interface, in Firefox, with a regular user."""
 
     @classmethod
     def setUpClass(cls):
-        wtsc.setup(cls, 1, ['settings', 'servers'])
-        super(TestWebSettingRegularUser, cls).setUpClass()
+        wtsc.setup(cls, 1, ['settings', 'servers'], browser='firefox')
+        super(TestWebSettingRegularUserFirefox, cls).setUpClass()
         cls.server = cls.gvar['user'] + '-wis1'
         cls.user = cls.gvar['user'] + '-wiu1'
         cls.global_group = cls.gvar['user'] + '-wig1'

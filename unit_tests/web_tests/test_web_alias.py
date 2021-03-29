@@ -130,22 +130,22 @@ class TestWebAliasCommon(unittest.TestCase):
     def tearDownClass(cls):
         wtsc.cleanup(cls)
 
-class TestWebAliasSuperUser(TestWebAliasCommon):
-    """A class to test alias operations via the web interface, with a super user."""
+class TestWebAliasSuperUserFirefox(TestWebAliasCommon):
+    """A class to test alias operations via the web interface, in Firefox, with a super user."""
 
     @classmethod
     def setUpClass(cls):
-        wtsc.setup(cls, 2, ['aliases'])
-        super(TestWebAliasSuperUser, cls).setUpClass()
+        wtsc.setup(cls, 2, ['aliases'], browser='firefox')
+        super(TestWebAliasSuperUserFirefox, cls).setUpClass()
         print("\nAlias Tests (Super User):")
 
-class TestWebAliasRegularUser(TestWebAliasCommon):
-    """A class to test alias operations via the web interface, with a regular user."""
+class TestWebAliasRegularUserFirefox(TestWebAliasCommon):
+    """A class to test alias operations via the web interface, in Firefox, with a regular user."""
 
     @classmethod
     def setUpClass(cls):
         wtsc.setup(cls, 1, ['aliases'])
-        super(TestWebAliasRegularUser, cls).setUpClass()
+        super(TestWebAliasRegularUserFirefox, cls).setUpClass()
         print("\nAlias Tests (Regular User):")
 
 class TestWebAliasSuperUserChromium(TestWebAliasCommon):

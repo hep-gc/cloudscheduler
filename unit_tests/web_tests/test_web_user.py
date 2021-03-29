@@ -354,13 +354,13 @@ class TestWebUserCommon(unittest.TestCase):
     def tearDownClass(cls):
         wtsc.cleanup(cls)
 
-class TestWebUserSuperUser(TestWebUserCommon):
-    """A class to test user operations via the web interface, with a super user."""
+class TestWebUserSuperUserFirefox(TestWebUserCommon):
+    """A class to test user operations via the web interface, in Firefox, with a super user."""
 
     @classmethod
     def setUpClass(cls):
-        wtsc.setup(cls, 2, ['users'])
-        super(TestWebUserSuperUser, cls).setUpClass()
+        wtsc.setup(cls, 2, ['users'], browser='firefox')
+        super(TestWebUserSuperUserFirefox, cls).setUpClass()
         print("\nUser Tests:")
 
 class TestWebUserSuperUserChromium(TestWebUserCommon):

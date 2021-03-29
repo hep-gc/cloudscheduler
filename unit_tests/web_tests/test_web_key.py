@@ -131,13 +131,13 @@ class TestWebKeyCommon(unittest.TestCase):
     def tearDownClass(cls):
         wtsc.cleanup(cls)
 
-class TestWebKeySuperUser(TestWebKeyCommon):
-    """A class to test key operations via the web interface, with a super user."""
+class TestWebKeySuperUserFirefox(TestWebKeyCommon):
+    """A class to test key operations via the web interface, in Firefox, with a super user."""
 
     @classmethod
     def setUpClass(cls):
         wtsc.setup(cls, 2, ['keys'])
-        super(TestWebKeySuperUser, cls).setUpClass()
+        super(TestWebKeySuperUserFirefox, cls).setUpClass()
         print("\nKey Tests (Super User):")
 
 class TestWebKeySuperUserChromium(TestWebKeyCommon):

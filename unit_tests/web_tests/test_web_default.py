@@ -640,22 +640,22 @@ class TestWebDefaultCommon(unittest.TestCase):
     def tearDownClass(cls):
         wtsc.cleanup(cls)
 
-class TestWebDefaultSuperUser(TestWebDefaultCommon):
-    """A class to test default operations via the web interface, with a super user."""
+class TestWebDefaultSuperUserFirefox(TestWebDefaultCommon):
+    """A class to test default operations via the web interface, in Firefox, with a super user."""
 
     @classmethod
     def setUpClass(cls):
-        wtsc.setup(cls, 2, ['defaults'])
-        super(TestWebDefaultSuperUser, cls).setUpClass()
+        wtsc.setup(cls, 2, ['defaults'], browser='firefox')
+        super(TestWebDefaultSuperUserFirefox, cls).setUpClass()
         print("\nDefault Tests (Super User):")
 
-class TestWebDefaultRegularUser(TestWebDefaultCommon):
-    """A class to test default operations via the web interface, with a regular user."""
+class TestWebDefaultRegularUserFirefox(TestWebDefaultCommon):
+    """A class to test default operations via the web interface, in Firefox, with a regular user."""
 
     @classmethod
     def setUpClass(cls):
-        wtsc.setup(cls, 1, ['defaults'])
-        super(TestWebDefaultRegularUser, cls).setUpClass()
+        wtsc.setup(cls, 1, ['defaults'], browser='firefox')
+        super(TestWebDefaultRegularUserFirefox, cls).setUpClass()
         print("\nDefault Tests (Regular User):")
 
 class TestWebDefaultSuperUserChromium(TestWebDefaultCommon):

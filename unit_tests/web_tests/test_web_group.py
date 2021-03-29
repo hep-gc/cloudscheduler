@@ -182,13 +182,13 @@ class TestWebGroupCommon(unittest.TestCase):
     def tearDownClass(cls):
         wtsc.cleanup(cls)
 
-class TestWebGroupSuperUser(TestWebGroupCommon):
-    """A class to test group operations via the web interface, with a super user."""
+class TestWebGroupSuperUserFirefox(TestWebGroupCommon):
+    """A class to test group operations via the web interface, in Firefox, with a super user."""
 
     @classmethod
     def setUpClass(cls):
-        wtsc.setup(cls, 2, ['groups'])
-        super(TestWebGroupSuperUser, cls).setUpClass()
+        wtsc.setup(cls, 2, ['groups'], browser='firefox')
+        super(TestWebGroupSuperUserFirefox, cls).setUpClass()
         print("\nGroup Tests:")
 
 class TestWebGroupSuperUserChromium(TestWebGroupCommon):
