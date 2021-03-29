@@ -118,6 +118,31 @@
         }
     }
 
+    function auth_type_select(auth_type, target_cloud){
+
+        console.log(auth_type)
+        if(auth_type=="userpass"){
+
+            document.getElementById(target_cloud+'-username-row').style.visibility = "inherit";
+            document.getElementById(target_cloud+'-password-row').style.visibility = "inherit";
+            document.getElementById(target_cloud+'-app_creds').value = "";
+            document.getElementById(target_cloud+'-app_creds_secret').value = "";
+            document.getElementById(target_cloud+'-app_creds-row').style.visibility = "collapse";
+            document.getElementById(target_cloud+'-app_creds_secret-row').style.visibility = "collapse";
+
+
+        }
+        else if(auth_type="app_creds"){
+            
+            document.getElementById(target_cloud+'-app_creds-row').style.visibility = "inherit";
+            document.getElementById(target_cloud+'-app_creds_secret-row').style.visibility = "inherit";
+            document.getElementById(target_cloud+'-username').value = "";
+            document.getElementById(target_cloud+'-password').value = "";
+            document.getElementById(target_cloud+'-username-row').style.visibility = "collapse";
+            document.getElementById(target_cloud+'-password-row').style.visibility = "collapse";
+        }
+    }
+
     function set_authurl(target_cloud){
 
         var arrayLength = ec2_regions.length;
@@ -220,6 +245,18 @@
                                     {% endif %}
                                     </td></tr>
 
+                                    <tr class="highlight3"><td><label for="priority">Auth Type</label></td>
+                                    {% if cloud.auth_type == "userpass" or cloud.auth_type is None or cloud.auth_type == "" %}
+                                        <td><select name="auth_type" class="dropdown" onchange='auth_type_select(this.value, "{{cloud.cloud_name}}")'/>
+                                            <option value="userpass" selected>Username & Password</option>
+                                            <option value="app_creds">Application Credentials</option>
+                                        </td></tr>
+                                    {% else %}
+                                        <td><select name="auth_type" class="dropdown" onchange='auth_type_select(this.value, "{{cloud.cloud_name}}")'/>
+                                            <option value="userpass">Username & Password</option>
+                                            <option value="app_creds" selected>Application Credentials</option>
+                                        </td></tr>
+                                    {% endif %}
 
                                     <tr class="highlight3"><td><label for="project">Project</label></td>
                                     {% if cloud.cloud_type == "amazon" %}
@@ -229,14 +266,24 @@
                                     {% endif %}
                                     </td></tr>
 
-                                    <tr class="highlight3"><td><label for="username">Username</label></td>
-                                    <td><input type="text" name="username"  value="{{cloud.username}}" /></td></tr>
+                                    <tr class="highlight3" id="{{cloud.cloud_name}}-username-row"><td><label for="username">Username</label></td>
+                                    <td><input type="text" name="username" id="{{cloud.cloud_name}}-username" value="{{cloud.username}}" /></td></tr>
                                     
-                                    <tr class="highlight3"><td><label for="password">Password</label></td>
-                                    <td><input type="password" name="password" placeholder="Update password" value="" autocomplete="new-password"/></td></tr>
+                                    <tr class="highlight3" id="{{cloud.cloud_name}}-password-row"><td><label for="password">Password</label></td>
+                                    <td><input type="password" name="password" id="{{cloud.cloud_name}}-password" placeholder="Update password" value="" autocomplete="new-password"/></td></tr>
+
+                                    <tr class="highlight3" id="{{cloud.cloud_name}}-app_creds-row" style="visibility:collapse"><td><label for="app_credentials">Application Credential</label></td>
+                                    <td><input type="text" name="app_credentials" id="{{cloud.cloud_name}}-app_creds" value="" /></td></tr>
+
+                                    <tr class="highlight3" id="{{cloud.cloud_name}}-app_creds_secret-row" style="visibility:collapse"><td><label for="app_credentials_secret">Application Credential Secret</label></td>
+                                    <td><input type="password" name="app_credentials_secret" id="{{cloud.cloud_name}}-app_creds_secret" placeholder="Update secret" value="" /></td></tr>
 
                                     <tr class="highlight3"><td><label for="cacertificate">CA certificate</label></td>
-                                    <td><input type="text" name="cacertificate" value="{{cloud.cacertificate}}" /></td></tr>
+                                    {% if cloud.cacertificate == None or cloud.cacertificate == "None" %}
+                                        <td><input type="text" name="cacertificate" value="" /></td></tr>
+                                    {% else %}
+                                        <td><input type="text" name="cacertificate" value="{{cloud.cacertificate}}" /></td></tr>
+                                    {% endif %}
 
                                     <tr class="highlight3"><td><label for="user_domain_name">User domain name</label></td>
                                     <td><input type="text" name="user_domain_name" value="{{cloud.user_domain_name}}" /></td></tr>
@@ -578,6 +625,11 @@
                                 }
                             {% endfor %}
                             </td></tr>
+                            <tr class="highlight3"><td><label for="priority">Auth Type</label></td>
+                            <td><select name="auth_type" class="dropdown" onchange='auth_type_select(this.value, "add")'/>
+                                <option value="userpass" selected>Username & Password</option>
+                                <option value="app_creds">Application Credentials</option>
+                            </td></tr>
 
                             <tr class="highlight3"><td><label for="authurl">URL</label></td>
                             <td><input type="text" name="authurl" id="add-authurl" value="" /></td></tr>
@@ -588,14 +640,25 @@
                             <tr class="highlight3"><td><label for="project">Project</label></td>
                             <td><input type="text" name="project" id="add-project" value="{{cloud.project}}" /></td></tr>
                             
-                            <tr class="highlight3"><td><label for="username">Username</label></td>
-                            <td><input type="text" name="username" value="" /></td></tr>
+                            <tr class="highlight3" id="add-username-row"><td><label for="username">Username</label></td>
+                            <td><input type="text" id="add-username" name="username" value="" /></td></tr>
                             
-                            <tr class="highlight3"><td><label for="password">Password</label></td>
-                            <td><input type="password" name="password" value="" /></td></tr>
+                            <tr class="highlight3" id="add-password-row"><td><label for="password">Password</label></td>
+                            <td><input type="password" id="add-password" name="password" value="" /></td></tr>
+                            
+                            <tr class="highlight3" id="add-app_creds-row" style="visibility:collapse"><td><label for="app_credentials">Application Credential</label></td>
+                            <td><input type="text" name="app_credentials" id="add-app_creds" value="" /></td></tr>
+
+                            <tr class="highlight3" id="add-app_creds_secret-row" style="visibility:collapse"><td><label for="app_credentials_secret">Application Credential Secret</label></td>
+                            <td><input type="password" name="app_credentials_secret" id="add-app_creds_secret" value="" /></td></tr>
+
 
                             <tr class="highlight3"><td><label for="cacertificate">CA certificate</label></td>
-                            <td><input type="text" name="cacertificate" value="{{cloud.cacertificate}}" /></td></tr>
+                            {% if cloud.cacertificate == None or cloud.cacertificate == "None" %}
+                                <td><input type="text" name="cacertificate" value="" /></td></tr>
+                            {% else %}
+                                <td><input type="text" name="cacertificate" value="{{cloud.cacertificate}}" /></td></tr>
+                            {% endif %}
 
                             <tr class="highlight3"><td><label for="user_domain_name">User domain name</label></td>
                             <td><input type="text" name="user_domain_name" value="{{cloud.user_domain_name}}" /></td></tr>
