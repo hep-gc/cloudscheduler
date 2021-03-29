@@ -17,7 +17,7 @@ class TestWebKeyCommon(unittest.TestCase):
         self.page.click_top_nav('Keys')
 
     # TODO: Remove skip when done developing tests
-    @unittest.skip("Working but takes too long to run for other tests")
+    #@unittest.skip("Working but takes too long to run for other tests")
     def test_web_key_add_create(self):
         # Adds a key by creating it
         key_name = self.gvar['user'] + '-wik4'
@@ -31,7 +31,7 @@ class TestWebKeyCommon(unittest.TestCase):
         self.assertTrue(self.page.key_exists(key_name))
 
     # TODO: remove skip when done developing tests
-    @unittest.skip("Working but takes too long to run for other tests")
+    #@unittest.skip("Working but takes too long to run for other tests")
     def test_web_key_add_create_name_too_long(self):
         key_name = self.oversize['varchar_64'] + '1'
         cloud_name = self.gvar['user'] + '-wic1'
@@ -53,7 +53,7 @@ class TestWebKeyCommon(unittest.TestCase):
         self.assertTrue(self.page.key_error_message_displayed())
 
     # TODO: Remove skip when done developing tests
-    @unittest.skip("Working but takes too long to run for other tests")
+    #@unittest.skip("Working but takes too long to run for other tests")
     def test_web_key_add_upload(self):
         # Adds a key by uploading it
         key_name = self.gvar['user'] + '-wik3'
@@ -61,6 +61,7 @@ class TestWebKeyCommon(unittest.TestCase):
         key_file = open('web_tests/misc_files/' + key_name + '.pub', 'r')
         public_key = key_file.read()
         key_file.close()
+        public_key = public_key.strip()
         self.page.click_upload_key()
         self.page.type_key_name(key_name)
         self.page.type_public_key(public_key)
@@ -71,13 +72,14 @@ class TestWebKeyCommon(unittest.TestCase):
         self.assertTrue(self.page.key_exists(key_name))
 
     # TODO: remove skip when done developing tests
-    @unittest.skip("Working but takes too long to run for other tests")
+    #@unittest.skip("Working but takes too long to run for other tests")
     def test_web_key_add_upload_name_too_long(self):
         key_name = self.oversize['varchar_64'] + '2'
         cloud_name = self.gvar['user'] + '-wic1'
         key_file = open('web_tests/misc_files/invalid-web-test.pub', 'r')
         public_key = key_file.read()
         key_file.close()
+        public_key = public_key.strip()
         self.page.click_upload_key()
         self.page.type_key_name(key_name)
         self.page.type_public_key(public_key)

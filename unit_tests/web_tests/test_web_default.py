@@ -673,7 +673,7 @@ class TestWebDefaultRegularUserChromium(TestWebDefaultCommon):
     @classmethod
     def setUpClass(cls):
         wtsc.setup(cls, 1, ['defaults'], browser='chromium')
-        super(TestWebDefaultRegularUser, cls).setUpClass()
+        super(TestWebDefaultRegularUserChromium, cls).setUpClass()
         print("\nDefault Tests (Regular User):")
 
 class TestWebDefaultSuperUserOpera(TestWebDefaultCommon):

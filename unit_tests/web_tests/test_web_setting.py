@@ -171,10 +171,10 @@ class TestWebSettingCommon(unittest.TestCase):
     def test_web_setting_update_default_group(self):
         # Updates the current user's default group
         self.page.click_side_button(self.user)
-        self.page.select_default_group(self.gvar['user'] + '-wig2')
+        self.page.select_default_group(self.global_group)
         self.page.click_update_user()
         self.assertFalse(self.page.error_message_displayed())
-        wta.assertHasAttribute('settings', self.user, 'default_group', self.gvar['user'] + '-wig2', settings=True, server=self.server)
+        wta.assertHasAttribute('settings', self.user, 'default_group', self.global_group, settings=True, server=self.server)
 
     @classmethod
     def tearDownClass(cls):

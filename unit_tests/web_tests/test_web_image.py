@@ -9,10 +9,8 @@ class TestWebImageCommon(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        wtsc.setup(cls, 2, ['images'])
         cls.page = pages.ImagesPage(cls.driver)
         cls.oversize = cls.gvar['oversize']
-        print("\nImage Tests (Super User):")
 
     def setUp(self):
         wtsc.get_homepage(self.driver)
@@ -125,7 +123,7 @@ class TestWebImageSuperUser(TestWebImageCommon):
         super(TestWebImageSuperUser, cls).setUpClass()
         print("\nImage Tests (Super User):")
 
-class TestWebImageRegularUser(unittest.TestCase):
+class TestWebImageRegularUser(TestWebImageCommon):
     """A class to test image operations via the web interface, with a regular user."""
 
     @classmethod
@@ -143,7 +141,7 @@ class TestWebImageSuperUserChromium(TestWebImageCommon):
         super(TestWebImageSuperUserChromium, cls).setUpClass()
         print("\nImage Tests (Chromium) (Super User):")
 
-class TestWebImageRegularUserChromium(unittest.TestCase):
+class TestWebImageRegularUserChromium(TestWebImageCommon):
     """A class to test image operations via the web interface, in Chromium, with a regular user."""
 
     @classmethod
@@ -161,13 +159,13 @@ class TestWebImageSuperUserOpera(TestWebImageCommon):
         super(TestWebImageSuperUserOpera, cls).setUpClass()
         print("\nImage Tests (Opera) (Super User):")
 
-class TestWebImageRegularUserOpera(unittest.TestCase):
+class TestWebImageRegularUserOpera(TestWebImageCommon):
     """A class to test image operations via the web interface, in Opera, with a regular user."""
 
     @classmethod
     def setUpClass(cls):
-        wtsc.setup(cls, 1, ['images'])
-        super(TestWebImageRegularUser, cls).setUpClass()
+        wtsc.setup(cls, 1, ['images'], browser='opera')
+        super(TestWebImageRegularUserOpera, cls).setUpClass()
         print("\nImage Tests (Regular User):")
 
 if __name__ == "__main__":
