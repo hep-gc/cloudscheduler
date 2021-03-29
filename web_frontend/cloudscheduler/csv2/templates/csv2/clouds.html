@@ -236,7 +236,11 @@
                                     <td><input type="password" name="password" placeholder="Update password" value="" autocomplete="new-password"/></td></tr>
 
                                     <tr class="highlight3"><td><label for="cacertificate">CA certificate</label></td>
-                                    <td><input type="text" name="cacertificate" value="{{cloud.cacertificate}}" /></td></tr>
+                                    {% if cloud.cacertificate == None or cloud.cacertificate == "None" %}
+                                        <td><input type="text" name="cacertificate" value="" /></td></tr>
+                                    {% else %}
+                                        <td><input type="text" name="cacertificate" value="{{cloud.cacertificate}}" /></td></tr>
+                                    {% endif %}
 
                                     <tr class="highlight3"><td><label for="user_domain_name">User domain name</label></td>
                                     <td><input type="text" name="user_domain_name" value="{{cloud.user_domain_name}}" /></td></tr>
@@ -595,7 +599,11 @@
                             <td><input type="password" name="password" value="" /></td></tr>
 
                             <tr class="highlight3"><td><label for="cacertificate">CA certificate</label></td>
-                            <td><input type="text" name="cacertificate" value="{{cloud.cacertificate}}" /></td></tr>
+                            {% if cloud.cacertificate == None or cloud.cacertificate == "None" %}
+                                <td><input type="text" name="cacertificate" value="" /></td></tr>
+                            {% else %}
+                                <td><input type="text" name="cacertificate" value="{{cloud.cacertificate}}" /></td></tr>
+                            {% endif %}
 
                             <tr class="highlight3"><td><label for="user_domain_name">User domain name</label></td>
                             <td><input type="text" name="user_domain_name" value="{{cloud.user_domain_name}}" /></td></tr>
