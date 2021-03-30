@@ -4,6 +4,19 @@ import sys
 # actions. This module may be deleted if the functions within all have a better
 # location.
 
+server_url = 'https://csv2-dev.heprc.uvic.ca'
+
+def get_homepage(driver):
+    driver.get(server_url)
+
+def get_homepage_login(driver, username, password):
+    from time import sleep
+    from selenium.common.exceptions import UnexpectedAlertPresentException
+
+    url_split = server_url.split('//')
+    authenticated_url = url_split[0] + '//' + username + ':' + password + '@' + url_split[1]
+    driver.get(authenticated_url)
+
 def wait_for_openstack_poller(cloud_name, item_flag, item_name, wait=sys.maxsize, output=False):
 
     import subprocess

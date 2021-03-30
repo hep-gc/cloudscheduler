@@ -13,7 +13,7 @@ class TestWebKeyCommon(unittest.TestCase):
         cls.oversize = cls.gvar['oversize']
 
     def setUp(self):
-        wtsc.get_homepage(self.driver)
+        helpers.get_homepage(self.driver)
         self.page.click_top_nav('Keys')
 
     # TODO: Remove skip when done developing tests

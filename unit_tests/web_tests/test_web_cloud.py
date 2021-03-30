@@ -2,6 +2,7 @@ import unittest
 import web_tests.web_test_setup_cleanup as wtsc
 import web_tests.web_test_assertions_v2 as wta
 import web_tests.web_test_page_objects as pages
+import web_tests.web_test_helpers as helpers
 
 class TestWebCloudCommon(unittest.TestCase):
     """A class for the cloud tests that should be repeated in all iterations."""
@@ -13,7 +14,7 @@ class TestWebCloudCommon(unittest.TestCase):
         cls.oversize = cls.gvar['oversize']
 
     def setUp(self):
-        wtsc.get_homepage(self.driver)
+        helpers.get_homepage(self.driver)
         self.page.click_top_nav('Clouds')
 
     def test_web_cloud_add(self):

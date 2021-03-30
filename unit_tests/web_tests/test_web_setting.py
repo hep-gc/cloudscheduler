@@ -2,6 +2,7 @@ import unittest
 import web_tests.web_test_setup_cleanup as wtsc
 import web_tests.web_test_assertions_v2 as wta
 import web_tests.web_test_page_objects as pages
+import web_tests.web_test_helpers as helpers
 
 class TestWebSettingCommon(unittest.TestCase):
     """A class for the user settings tests that should be repeated in all iterations."""
@@ -13,27 +14,25 @@ class TestWebSettingCommon(unittest.TestCase):
         cls.oversize = cls.gvar['oversize']
 
     def setUp(self):
-        wtsc.get_homepage(self.driver)
+        helpers.get_homepage(self.driver)
         self.page.click_top_nav('User Settings')
 
     def test_web_setting_find(self):
         pass
 
-    @unittest.skip("Doesn't currently work with Firefox profile setup")
     def test_web_setting_update_password(self):
         # Updates the current user's password
+        password = self.gvar['user'] + '-password'
         self.page.click_side_button(self.user)
-        self.page.type_password(self.gvar['user'] + '-password')
+        self.page.type_password(password)
         self.page.click_update_user()
         self.assertFalse(self.page.error_message_displayed())
-        wtsc.get_homepage(self.driver)
-        alert = driver.switch_to.alert
-        alert.accept()
-        self.page.click_top_nav('User Settings')
+        helpers.get_homepage_login(self.driver, self.user, password)
+        self.page.click_top_nav_with_login('User Settings', self.user, password)
         self.page.type_password(self.gvar['user_secret'])
-        wtsc.get_homepage(self.driver)
-        alert = driver.switch_to.alert
-        alert.accept()
+        self.page.click_update_user()
+        helpers.get_homepage_login(self.driver, self.user, self.gvar['user_secret'])
+        self.page.click_top_nav_with_login('User Settings', self.user, self.gvar['user_secret'])
 
     def test_web_setting_update_password_mismatched(self):
         # Tries to update the current user's password with mismatched passwords

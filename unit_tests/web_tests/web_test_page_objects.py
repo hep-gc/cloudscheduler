@@ -1,7 +1,7 @@
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-from selenium.common.exceptions import TimeoutException
+from selenium.common.exceptions import TimeoutException, UnexpectedAlertPresentException
 from selenium.webdriver.common.keys import Keys
 from time import sleep
 import datetime
@@ -23,6 +23,13 @@ class Page(object):
 
     def click_top_nav(self, name):
         wti.click_by_link_text(self.driver, name)
+
+    def click_top_nav_with_login(self, name, username, password):
+        try:
+            self.click_top_nav(name)
+        except UnexpectedAlertPresentException:
+            helpers.get_homepage_login(self.driver, username, password)
+            self.click_top_nav(name)
 
     def switch_default_group(self, group):
         wti.select_option_by_name(self.driver, 'group', group)

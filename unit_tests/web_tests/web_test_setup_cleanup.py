@@ -1,5 +1,5 @@
 from selenium import webdriver
-from selenium.common.exceptions import TimeoutException
+from selenium.common.exceptions import TimeoutException, UnexpectedAlertPresentException
 from selenium.webdriver.firefox.options import Options
 from cloudscheduler.unit_tests.unit_test_common import load_settings
 from time import sleep
@@ -13,7 +13,6 @@ import web_tests.web_test_helpers as helpers
 # between test runners and to allow tests to be run individually with the
 # unittest framework
 
-server_url = 'https://csv2-dev.heprc.uvic.ca'
 beaver_url = 'https://beaver.heprc.uvic.ca/dashboard/project/key_pairs'
 
 def setup(cls, profile, objects, browser='firefox'):
@@ -34,9 +33,7 @@ def setup(cls, profile, objects, browser='firefox'):
             cls.driver = webdriver.Chrome(options=options)
         elif browser == 'opera':
             cls.driver = webdriver.Opera()
-        url_split = server_url.split('//')
-        authenticated_url = url_split[0] + '//' + cls.gvar['user'] + '-wiu' + str(profile) + ':' + cls.gvar['user_secret'] + '@' + url_split[1]
-        cls.driver.get(authenticated_url)
+        helpers.get_homepage_login(cls.driver, cls.gvar['user'] + '-wiu' + str(profile), cls.gvar['user_secret'])
     except:
         print("Error in test setup")
         if hasattr(cls, 'driver') and cls.driver:
@@ -200,9 +197,6 @@ def setup_objects(objects=[], browser='firefox'):
             subprocess.run(['cloudscheduler', 'my', 'settings', '-sri', '300','-sfv', 'true', '-s', gvar['user'] + '-wis' + str(i)], stdout=subprocess.DEVNULL)
 
     return gvar
-
-def get_homepage(driver):
-    driver.get(server_url)
 
 def cleanup(cls, browser='firefox'):
     print("\nUnittest Teardown:")
