@@ -1912,7 +1912,7 @@ def defaults_replication():
                             #on second thought lets check to see we don't already have one queue'd up so we don't bombard the request queue
                             where_clause = "target_group_name='%s' and target_cloud_name='%s' and image_name='%s' and (status='pending' or status='error')" % (group["group_name"], cloud["cloud_name"], default_image_name)
                             rc, qmsg, pending_xfers = config.db_query(IMAGE_TX, where=where_clause)
-                            if pending_xfers.count() > 0:
+                            if len(pending_xfers) > 0:
                                 logging.info("Default image (%s) transfer already queued for cloud: %s... skipping" % (default_image_name, cloud["cloud_name"]))
                                 continue
                             tx_id = generate_tx_id()
