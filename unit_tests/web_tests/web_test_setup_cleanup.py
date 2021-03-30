@@ -158,6 +158,8 @@ def setup_objects(objects=[], browser='firefox'):
         subprocess.run(['cloudscheduler', 'metadata', 'load', '-g', gvar['user'] + '-wig1', '-f', filename, '-mn', name, '-s', 'unit-test'])
     if 'defaults' in objects:
         subprocess.run(['cloudscheduler', 'cloud', 'add', '-ca', credentials['authurl'], '-cn', gvar['user'] + '-wic1', '-cpw', credentials['password'], '-cP', credentials['project'], '-cr', credentials['region'], '-cU', credentials['username'], '-ct', 'openstack', '-g', gvar['user'] + '-wig1', '-s', 'unit-test'])
+        beaver_setup_keys(gvar, 1, browser)
+        helpers.wait_for_openstack_poller(gvar['user'] + '-wic1', '-vk', gvar['user'] + '-wik1', output=True)
 
     #add images
     if 'images' in objects:

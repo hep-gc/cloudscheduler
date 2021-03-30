@@ -239,10 +239,14 @@ class TestWebDefaultCommon(unittest.TestCase):
         #self.assertTrue(self.page.error_message_displayed())
         wta.assertHasNotAttribute('group', self.group_name, 'job_swap', str(self.oversize['int_11']), group=self.group_name, defaults=True)
 
-    @unittest.skip("TODO: implement")
     def test_web_default_update_vm_keyname(self):
         # Update's a group's default vm keyname
-        pass
+        keyname = self.gvar['user'] + '-wik1'
+        self.page.click_side_button(self.group_name)
+        self.page.click_side_tab('Settings')
+        self.page.select_vm_keyname(keyname)
+        self.page.click_update_group()
+        wta.assertHasAttribute('group', self.group_name, 'vm_keyname', keyname, group=self.group_name, defaults=True)
 
     def test_web_default_update_vm_image(self):
         # Updates a group's default vm image
