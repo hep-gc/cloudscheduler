@@ -49,6 +49,10 @@ CLOUD_KEYS = {
     'format': {
         'cloud_name':                           'lowerdash',
         'cloud_type':                           ('csv2_cloud_types', 'cloud_type'),
+        'auth_type':                            '', #may be converted to reference table like cloud_type
+        'app_credentials':                      'ignore',
+        'app_credentials_secret':               'ignore',
+        'app_credentials_expiry':               'integer', #this may need to change to a date obj
         'enabled':                              'dboolean',
         'priority':                             'integer',
         'flavor_name':                          'ignore',
@@ -105,6 +109,11 @@ CLOUD_ADD_KEYS = {
         'password',
         'region',
         'cloud_type',
+        ],
+    'optional': [
+        'auth_type',
+        'app_credentials',
+        'app_credentials_secret',
         ]
     }
 
