@@ -396,7 +396,7 @@ def process_group_cloud_terminates(pair, config):
             rc, msg, vm_rows = config.db_query(VM, where=where_clause)
             vm_row = vm_rows[0]
         except Exception as exc:
-            logging.error("Unable to retrieve VM row for vmid: %s, skipping terminate..." % resource.vmid)
+            logging.error("Unable to retrieve VM row for vmid: %s, skipping terminate..." % resource["vmid"])
             continue
         if vm_row["manual_control"] == 1:
             logging.info("VM %s under manual control, skipping terminate..." % resource["vmid"])
@@ -638,7 +638,15 @@ def main():
 #               for job_group in idle_job_groups:
                     ####### log.debug("Proccessing group: %s" % job_group)
                     booted_for_group = False
-                    for idle_job in idle_job_groups[job_group]:
+                    
+                    # This old for loop does not share between aliases, it has been updated to share between the job_groups using the same method as groups
+                    #for idle_job in idle_job_groups[job_group]:
+                    num_job_groups = len(idle_job_groups[job_group])
+                    if num_job_groups > 0:
+                        job_grp_modulo =  while_counter % num_job_groups
+                    else:
+                        job_grp_modulo = 0
+                    for idle_job in idle_job_groups[job_group][job_grp_modulo:] + idle_job_groups[job_group][:job_grp_modulo]:
                         current_boot_target_alias = idle_job.get("target_alias")
                         ####### log.debug("Idle jobs for group: %s" % idle_job_groups[job_group])
                         if idle_job.get("idle") == 0:
@@ -793,7 +801,7 @@ def main():
                                     shortfall_slots
                                     )
 
-                                if num_vms_to_boot == 0:
+                                if num_vms_to_boot <= 0:
                                     cloud_prio = None # reset cloud prio so if no slots on the higher priority clouds can still boot on lower
                                     log.debug("No Flavor Slots for %s %s, minumum of max_start_vm_cloud(%s), available_slots(%s), shortfall_slots(%s,%s,%s), check the softmax or foreign VMs to try and see why not booting a new VM." % (
                                         boot_flavor.get("group_name"),
