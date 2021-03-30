@@ -4,17 +4,15 @@ This document contains details of how to set up, write, and run the web tests.
 
 ## Setup
 
-The web tests require Python3, Selenium Webdriver, and at least one of the drivers below to run. Currently supported browser/driver combinations are Firefox/Geckodriver, Chromium/Chromedriver, and Opera/OperaChromeDriver (the latter two of which are still under testing) The tests currently require Firefox and Geckodriver, regardless of the chosen testing browser, in order to run a headless browser for setup purposes.
+The web tests require Python3, Selenium Webdriver, and at least one of the drivers below to run. Currently supported browser/driver combinations are Firefox/Geckodriver, Chromium/Chromedriver, and Opera/OperaChromiumDriver. The tests currently require Firefox and Geckodriver, regardless of the chosen testing browser, in order to run a headless browser for setup purposes.
 
 Selenium Webdriver can be installed via `pip install selenium`. Browser and driver installation steps are listed below.
-
-The user will need to log into [Beaver](https://beaver.heprc.uvic.ca/dashboard) as `{user}-wiu2` and create a key. There will be a popup regarding the downloading of files. The user should request that the browser save the file and should click the box dictating that this is done automatically in the future. The files can also be saved to an alternate location (for example, the `unit_tests/web_tests/misc_files` directory) so as not to clog up the host computer's default downloads folder. There will need to be a profile implemented for this, which has not been done yet.
 
 As with the other unit tests, a server configuration and cloud credentials are required to run the tests.
 
 Additionally, the tests require a set of files to start off with. These consist of four cloud files in RAW format, named `{user}-wii1.hdd`, `{user}-wii2.hdd`, `{user}-wii3.hdd`, and `{user}-wii4.hdd`; and one ssh public key named `{user}-wik3.pub`. They should be placed in the `unit_tests/web_tests/misc_files` directory.
 
-In order to set up the tests on a new server, the `unit-test` server in `.csv2/unit-test/settings.yaml` must be modified accordingly, and the login credentials if necessary. The `server_url` variable in `web_test_setup_cleanup` should also be modified to match the new server.
+In order to set up the tests on a new server, the `unit-test` server url in `.csv2/unit-test/settings.yaml` must be modified accordingly, and the login credentials if necessary. The `server_url` variable in `web_test_helpers` should also be modified to match the new server.
 
 The status tests additionally require the system time to be set to the correct time zone. This is a non-issue on a computer that is already set up, but is important on a virtual machine.
 
@@ -40,7 +38,7 @@ New tests should additionally follow all rules for Unittest test classes, as the
 
 New test classes should include the `web_test_setup_cleanup` module and call the `setup()` function as part of the `setUpClass()` function, passing it the test class it is being called as a part of. `setup()` currently automatically deletes all old test setups when run (via calling the `cleanup()` function). The `cleanup()` function should be called during the `tearDownClass()` function, again passing it the test class it is being called in. `cleanup()` is also called on error in the setup, and `cleanup_objects()` is called on a `KeyboardInterrupt` at any time during the tests (using a handler contained in this module). Neither function will attempt to delete any object it cannot find. 
 
-New tests should include the `web_test_setup_cleanup`, `web_test_assertions_v2`, `web_test_page_objects`, and, if necessary, `web_test_helpers` modules. The other `web_test_*` modules are used in these modules, and should only be accessed via these modules. The `web_test_assertions` module is not and should not be used in any module, and should eventually be deleted. `web_test_helpers` is also included in `web_test_setup_cleanup`, but should not be used via that module. `web_test_helpers` is also used in the `web_test_page_objects` module, currently to wrap actions with datetimes. 
+New tests should include the `web_test_setup_cleanup`, `web_test_assertions_v2`, `web_test_page_objects`, and `web_test_helpers` modules. The other `web_test_*` modules are used in these modules, and should only be accessed via these modules. The `web_test_assertions` module is not and should not be used in any module, and should eventually be deleted. `web_test_helpers` is also included in `web_test_setup_cleanup`, but should not be used via that module. `web_test_helpers` is also used in the `web_test_page_objects` module. 
 
 New tests that create objects should make sure to update the maximum item numbers in the calls to `delete_objects_by_type()` in `web_test_setup_cleanup.cleanup_objects()`.
 
@@ -60,7 +58,7 @@ By default, all actions will be performed within the `{user}-wig0` group (see Te
 
 Additional files the tests may need (for example, image files to upload) should be stored in the `misc_files` directory. These files will not be committed (unless they are markdown files, which they shouldn't be), and the current tests look in this folder for these files. This is also where test log files and test downloads are stored.
 
-Test objects should, if possible, be named `{user}-wixn`, where `x` is the letter identifier (usually the first letter of the object name, but can be chosen to be anything as long as it's consistent) and `n` is the number of the individual object (starting at 1 - 0 is reserved for behind-the-scenes objects and will need to be deleted seperately). The `web_test_setup_cleanup.delete_by_type()` function assumes this naming pattern, although it takes an optional argument, `others`, which is a list of names of objects that do not fit this pattern. Despite this, objects should be named to follow the pattern unless there is a reason they cannot.
+Test objects should, if possible, be named `{user}-wixn`, where `x` is the letter identifier (usually the first letter of the object name, but can be chosen to be anything as long as it's consistent) and `n` is the number of the individual object (starting at 1 - 0 is reserved for behind-the-scenes objects and will need to be deleted seperately). The `web_test_setup_cleanup.delete_by_type()` function assumes this naming pattern, although it takes an optional argument, `others`, which is a list of names of objects that do not fit this pattern. Despite this, objects should be named to follow the pattern unless there is a reason they cannot (for example, they are stored on the web and need to be used by many different test users).
 
 Test files should perform actions on the page via page objects (see below). 
 
@@ -72,7 +70,7 @@ A page object is essentially a class containing functions to perform all actions
 
 A new page object should inherit from the `Page` class, which will give it access to the driver and any website-wide components (such as the top navigation bar and error messages). Any interaction with that page should be done via methods implemented in that page class. 
 
-Some page value modification methods take strings, while others take integers. Ensure the correct type is passed to each method. These should eventually be standardized.
+Some page value modification methods take strings, while others take integers. Ensure the correct type is passed to each method.
 
 The `web_test_interactions`, `web_test_javascript_interactions`, and `web_test_xpath_selectors` modules define the actions that the page objects should use. `web_test_interactions` and `web_test_javascript_interactions` have very similar functions (see below). Each method wraps Selenium's wait action, the find method, and the action taken (sometimes a series of actions) into a single function. `web_test_xpath_selectors` is a set of wrapper functions for various XPath locators. Some of these are described by an object they represent (ie `delete_button`, which is the button on the delete object modal) and some are described by how they find the object (ie `form_input_by_value`, which finds an input within a particular form based on its value attribute).
 
@@ -80,7 +78,7 @@ The `web_test_javascript_interactions` module contains a set of functions that o
 
 Note that the use of Selenium's built-in `.submit()` method has been phased out. This is because the `submit` method only submits the form, and does not perform the `click` action on the button, meaning that some functionality is lost, which can cause improper behavior. The `web_test_xpath_selectors.form_submit_by_name` and `web_test_interactions.click_by_xpath` functions should be used instead.
 
-The page objects additionally use some functions from the `web_test_helpers` module. Currently, this module is only imported to allow the use of particular functions to simplify working with datetime objects, for evaluation of the status page. These functions may eventually be turned into a seperate module.
+The page objects additionally use some functions from the `web_test_helpers` module.
 
 ## Running Tests
 
@@ -90,7 +88,7 @@ Web tests can be run using `./run_tests web` from the `unit_tests` folder, and t
 
 The tests should be run as a non-root user. Root users may experience problems with the Chromium browser tests, as Chromium is not designed to run as a root user.
 
-Regardless of which browser the tests are run in, the setup requires the Firefox browser in order to run a headless setup mode. The tests will fail without a valid Firefox and Geckodriver installation.
+Regardless of which browser the tests are run in, the setup requires the Firefox browser in order to run a headless setup mode. The tests will fail without valid Firefox and Geckodriver installations.
 
 If tests are being set up with clouds, the setup script may display an error similar to: 
 
@@ -99,7 +97,7 @@ Error: CV-01749 cloud update, "{user}-wic1" failed - specified value in list of 
 Error connecting to the cloud. This may happen several times. Retrying...
 ```
 
-A similar error occurs with the key setup, although the values that do not exist are slightly different.
+A similar error occurs with the key setup and default setup, although the values that do not exist are slightly different (referring to the VM keyname instead of the security group).
 
 This is expected behaviour - the setup requires resources from the cloud connection, and when it can access those resources is unpredictable, so the script will try, print that message on a failure, and continue trying until the setup is successful. Depending on where the cloud poller is in its process, it may take up to a dozen retries. The tests will continue to set up properly and run - this is not a setup error.
 
@@ -116,7 +114,7 @@ The exact cause of this warning is currently unknown. It does not impact the fun
 
 To create the test fixtures to manually inspect the tests, the `.setup_objects()` and `.cleanup_objects()` functions from the `web_test_setup_cleanup` module should be used (passing any additonal arguments as specified in the "Test Profiles" section). The `setup()` and `cleanup()` functions do the driver setup as well, but, in addition, require the calling class, the suffix number of the user to use (ie 1 for `{user}-wig1`), and the name of the browser as arguments. 
 
-Several functions log information in files called `*objects.txt`. These files can be useful for debugging. They should not be committed, and it is harmless to delete them - they will be automatically remade when needed. Note that these files are reused every time one of the functions that use them is called, so if multiple tests or test suites are run, they will likely only contain information about the last test. If possible, the use of these files will eventually be phased out. All log files will be automatically placed in the `misc_files` folder.
+Several functions log information in files called `*objects.txt`. These files can be useful for debugging. They should not be committed, and it is harmless to delete them - they will be automatically remade when needed. Note that these files are reused every time one of the functions that use them is called, so if multiple tests or test suites are run, they will likely only contain information about the last test. All log files will be automatically placed in the `misc_files` folder.
 
 The primary known cause of flaky tests is the test not waiting long enough for the object to properly appear. Using the `sleep()` or `WebDriverWait` functions can help fix this, as can retrying the action if it fails. For example, the `setup_objects` function uses `sleep()`, the `web_test_interactions` and `web_test_page_objects` methods use `WebDriverWait`, and the `web_test_assertions_v2` methods will retry the query an additional time (after a five-second `sleep()`) if they fail to find what they're looking for.
 
@@ -126,21 +124,21 @@ The `Page` class contains a `take_screenshot()` function. This function can be c
 
 The tests have a set of automatically-created objects, created in the `web_test_setup_cleanup.setup()` function. 
 
-Additional profiles can be added to the suite. In order to do so, the object should be added to the creation list in `web_test_setup_cleanup.setup_objects()`. Any tests that previously used an object with that suffix (likely an `add` test) should given a new suffix. The corresponding `delete_objects_by_type()` call in `web_test_setup_cleanup.cleanup_objects()` should have the count updated to ensure it deletes all objects. Additional profiles should likely not be added in the defaults (see below) - they should be added in an optional group if at all possible, to cut down on test runtime.
+Additional profiles can be added to the suite. In order to do so, the object should be added to the creation list in `web_test_setup_cleanup.setup_objects()`. Any tests that previously used an object with that suffix (likely an `add` test) should given a new suffix. The corresponding `delete_objects_by_type()` call in `web_test_setup_cleanup.cleanup_objects()` should have the count updated to ensure it deletes all objects. Additional profiles should likely not be added in the universal objects (see below) - they should be added in an optional group if at all possible, to cut down on test runtime.
 
 New types of objects can also be added to the suite, in a similar manner. A new group of creation `subprocess.run` calls will need to be added in `setup_objects()`, and an accompanying call to `delete_objects_by_type()` in `cleanup_objects()`. If the objects cannot be deleted with the `delete_objects_by_type()` command syntax, they must either be deleted in a custom method (like aliases) or automatically deleted as part of another method (like cloud metadata). Again, they should be added in an optional group if possible (see below).
 
-There are two categories of objects - some that are created by `setup_objects()` regardless of arguments passed, and some that are only created when the tests request them. The objects created under "Defaults", below, are created automatically when `setup_objects()` is run, regardless of arguments. To create the other set of objects, pass the names of the object groups (ie "users") to the `setup()` function as a list of strings.
+There are two categories of objects - some that are created by `setup_objects()` regardless of arguments passed, and some that are only created when the tests request them. The objects created under "Universal Objects", below, are created automatically when `setup_objects()` is run, regardless of arguments. To create the other set of objects, pass the names of the object groups (ie "users") to the `setup()` function as a list of strings.
 
 A few of the test objects do not have a command line setup for their creation and deletion (currently only the keypairs). These items should use Selenium to set up the objects on the web site that dictates them. This setup should be done in headless mode and should be configured to give outputs similar to the command line. Using Selenium for setups is slow and fragile, and should not be used if there is a command line alternative. These tests are configured to use the same browser as the tests, so that if the user does not have all the browsers, the tests will still run.
 
-There is one additional group created as part of the default setup that is not specified below and has no output in the setup scripts. It is not to be edited in any way during the tests, and any user used to run tests should be in it. The real user account (ie `{user}`) is also added to this group when it is created, to allow this user to make the test objects within this group. The group is called `{user}-wig0`. All clouds, aliases, and any other objects requiring a group are and should be created under this group, and it is saved as `gvar['base_group']`. It is the first item created as part of the setup, and the last item deleted, and should remain so. Many functions have an optional `group` argument that is invoked to prevent cloud tests from failing, and, if needed, this is the group that should be passed.
+There is one additional group created as part of the universal setup that is not specified below and has no output in the setup scripts. It is not to be edited in any way during the tests, and any user used to run tests (currently `{user}-wiu1` and `{user}-wiu2`) should be in it. The real user account (ie `{user}`) is also added to this group when it is created, to allow this user to make the test objects within this group. The group is called `{user}-wig0`. All clouds, aliases, and any other objects requiring a group are and should be created under this group, with a few rare exceptions (for example, if a group test requires a group to have a cloud in it). It is saved as `gvar['base_group']`. It is the first item created as part of the setup, and the last item deleted, and should remain so. Many functions have an optional `group` argument that is invoked to prevent cloud tests from failing, and, if needed, this is the group that should be passed.
 
 Note that some objects (like the metadata files) do not have their own delete method. These objects are cleaned up when their containing objects are cleaned up.
 
 Note that some keywords do additional setup, besides creating the objects (in fact, some do not create objects at all). When creating test setup functions, these actions should be taken into account.
 
-### Defaults
+### Universal Objects
 
 `{user}-wiu1` is a standard user. They are in the `{user}-wig1` group. They are the account used in regular user tests.
 
@@ -194,7 +192,7 @@ Note that some keywords do additional setup, besides creating the objects (in fa
 
 ### Keys
 
-`{user}-wik1` is a standard key.
+`{user}-wik1` is a standard key. It is used in tests requiring the selection of a key (also added by `clouds` and `defaults`)
 
 `{user}-wik2` is a standard key. It is to be deleted in delete tests.
 
@@ -203,3 +201,61 @@ Note that some keywords do additional setup, besides creating the objects (in fa
 `{user}-wis1` is a server with the login credentials of the `{user}-wiu1` user.
 
 `{user}-wis2` is a server with the login credentials of the `{user}-wiu2` user.
+
+## Future Features (TODOs)
+
+This section discusses all the changes that would be beneficial to the web test framework. Some of the features in here may not be feasible, but this is a list of the ideal items that would be changed in the test suite.
+
+### Fixes
+
+These items should ideally be fixed before the test suite is complete.
+
+### Functional
+
+These items should be finished before the test suite is considered completed. They affect the test suite's functionality.
+
+- Firefox profile for Beaver downloads (re-add this paragraph to setup: The user will need to log into [Beaver](https://beaver.heprc.uvic.ca/dashboard) as `{user}-wiu2` and create a key. There will be a popup regarding the downloading of files. The user should request that the browser save the file and should click the box dictating that this is done automatically in the future. The files can also be saved to an alternate location (for example, the `unit_tests/web_tests/misc_files` directory) so as not to clog up the host computer's default downloads folder.)
+
+- Time-dependent flaky tests for status page (may be fixed)
+
+### Tidying Up
+
+These items shouldn't affect the test suite's functionality much, but they would make it tidier and easier to work with. They should be done before the test suite is considered completed if possible, but they won't break anything if they aren't.
+
+- Rewrite/edit README
+
+- Standardize integer vs string for page object methods
+
+- Update comments/docstrings
+
+- Remove code that was commented out for testing
+
+- Add setup option for single key (instead of having it be added as part of other setups)
+
+### Additional Features
+
+These are features for future implementation, or to be added if time permits.
+
+#### Test Coverage
+
+These items are additional test coverage that may or may not be necessary.
+
+- Multiple types of clouds (held up on not having access to multiple types of clouds)
+
+- Typing in select bars
+
+- Drag and drop to modify plot scale
+
+#### Other Features
+
+These items are not necessary, but would be useful.
+
+- Script to set up test starter files (image files, key files, etc)
+
+- Alternate assertion information passing (phase out logfiles)
+
+- Class/method documentation for test modules
+
+- Speed up setup/teardown
+
+- Chrome/Safari/Edge/IE tests (likely require VMs and use of `webdriver.Remote`)
