@@ -99,7 +99,7 @@ def round_datetime(dt, round, forward):
     round = int(round)
     subtract = datetime.timedelta(seconds=(dt.hour*3600 + dt.minute*60 + dt.second)%round, microseconds=dt.microsecond)
     dt = dt - subtract
-    if subtract.seconds > (round / 10) and forward:# and not (subtract.seconds < 6 and subtract.seconds // 60 == 0):
+    if subtract.seconds > (round / 15) and forward:# and not (subtract.seconds < 6 and subtract.seconds // 60 == 0):
         dt += datetime.timedelta(seconds=round)
     return dt
 
@@ -109,7 +109,10 @@ def round_date(dt, round, forward):
     if round < 30:
         subtract = datetime.timedelta(days=(dt.year*365 + dt.year//4 - dt.year//100 + cumulative_days(dt.month, dt.year) + dt.day) % round)
         dt = dt - subtract
-        if forward:
+        print(dt)
+        print(forward)
+        print(round)
+        if forward and not (round > 13 and subtract.days <= 1):
             dt += datetime.timedelta(days=round)
         if round >= 7:
             if dt.weekday() != 6:
@@ -117,12 +120,26 @@ def round_date(dt, round, forward):
                     dt += datetime.timedelta(days=7-dt.isoweekday())
                 else:
                     dt -= datetime.timedelta(days=dt.isoweekday())
+            if not forward and round < 10:
+                dt += datetime.timedelta(days=7)
+        print(dt)
+        try:
+            dt.replace(day=dt.day+1)
+        except ValueError:
+            if forward and dt.day < 30:
+                dt += datetime.timedelta(days=round)
+        #if not forward and dt.day == 1:
+        #    if (dt - datetime.timedelta(days=1)).day < 30:
+        #        dt -= datetime.timedelta(days=1)
     else:
         if forward:
-            dt = dt.replace(month=dt.month+1)
+            dt = dt.replace(month=(dt.month)%12 + 1)
         while (dt.month-1)%(round//31) != 0:
             if dt.month >= 12:
                 dt = dt.replace(month=1, year= dt.year+1)
             else:
-                dt = dt.replace(month=dt.month+1)
+                try:
+                    dt = dt.replace(month=dt.month+1)
+                except ValueError:
+                    dt = dt.replace(month=dt.month+2, day=1)
     return dt

@@ -35,9 +35,6 @@ class Page(object):
         wti.select_option_by_name(self.driver, 'group', group)
 
     def take_screenshot(self):
-        #sleep(5)
-        #stack = list(inspect.stack())
-        #file_name = stack[1].function + '_screenshot.png'
         file_name = sys._getframe(1).f_code.co_name + '_screenshot.png'
         print(file_name)
         location = helpers.misc_file_full_path(file_name)
@@ -236,9 +233,12 @@ class StatusPage(Page):
         element = self.driver.find_element_by_xpath(xpath) 
         chart_date = helpers.parse_datetime(element.text)
         test_date = helpers.time_before(time, units)
+        print(test_date)
         test_date = helpers.round_date(test_date, margin, True)
         if margin > 30:
             test_date = test_date.replace(day=1)
+        print(chart_date)
+        print(test_date)
         return chart_date.date() == test_date.date()
 
     def first_time_on_plot_before_now(self, time, units, margin):
@@ -249,7 +249,10 @@ class StatusPage(Page):
         element = self.driver.find_element_by_xpath(xpath)
         chart_time = helpers.parse_datetime(element.text)
         test_time = helpers.time_before(time, units)
+        print(test_time)
         test_time = helpers.round_datetime(test_time, margin*60, True)
+        print(chart_time)
+        print(test_time)
         return chart_time == test_time
 
     def last_date_on_plot_before_now(self, time, units, margin):
@@ -266,9 +269,12 @@ class StatusPage(Page):
                  chart_date = chart_date.replace(year=date_element.year)
                  break
         test_date = helpers.time_before(time, units)
+        print(test_date)
         test_date = helpers.round_date(test_date, margin, False)
         if margin > 30:
             test_date = test_date.replace(day=1)
+        print(chart_date)
+        print(test_date)
         return chart_date.date() == test_date.date()
 
     def last_time_on_plot_before_now(self, time, units, margin):
