@@ -1,32 +1,56 @@
 # Running the Web Tests
 
-This document contains details of how to set up, write, and run the web tests. 
+This document is the primary source of information on the web testing framework.
+
+To run the tests, follow the [setup](#setup) instructions, then use the instructions at the beginning of [Running Tests](#running-tests) to run the tests.
+
+To develop tests, start with the above, then read the remainder of the document to understand how the tests are designed and set up. This document also contains a list of [todos and possible future features][#future-features-todos] for developers.
+
+Note that unless web tests are specifically excluded from the command, web tests will be run as part of the `run_tests` framework. In order to run the entirety of that framework, the web tests must be set up as in the (setup section)[#setup].
 
 ## Setup
 
-The web tests require Python3, Selenium Webdriver, and at least one of the drivers below to run. Currently supported browser/driver combinations are Firefox/Geckodriver, Chromium/Chromedriver, and Opera/OperaChromiumDriver. The tests currently require Firefox and Geckodriver, regardless of the chosen testing browser, in order to run a headless browser for setup purposes.
+This section covers the steps to install the necessary web test components. [Python and Selenium](#python-and-selenium), [Testing Files](#testing-files), and [#Firefox and Geckodriver](#firefox-and-geckodriver) are needed for tests with any browser. [Chromium and Chromedriver](#chromium-and-chromedriver) and [Opera and OperaChromiumDriver](#opera-and-operachromiumdriver) are needed for tests in their respective browsers, and for the full `run_tests` script.
 
-Selenium Webdriver can be installed via `pip install selenium`. Browser and driver installation steps are listed below.
+Additionally, all the setup in [Other Setup](#other-setup) should be completed for all the tests.
 
-As with the other unit tests, a server configuration and cloud credentials are required to run the tests.
+### Python and Selenium
 
-Additionally, the tests require a set of files to start off with. These consist of four cloud files in RAW format, named `{user}-wii1.hdd`, `{user}-wii2.hdd`, `{user}-wii3.hdd`, and `{user}-wii4.hdd`; and one ssh public key named `{user}-wik3.pub`. They should be placed in the `unit_tests/web_tests/misc_files` directory.
+The web tests require Python3 and the Python Selenium bindings to run.
 
-In order to set up the tests on a new server, the `unit-test` server url in `.csv2/unit-test/settings.yaml` must be modified accordingly, and the login credentials if necessary. The `server_url` variable in `web_test_helpers` should also be modified to match the new server.
+Install `python3` using your default package manager. Selenium Webdriver for Python can then be installed via `pip3 install selenium`.
 
-The status tests additionally require the system time to be set to the correct time zone. This is a non-issue on a computer that is already set up, but is important on a virtual machine.
+### Testing Files
 
-### Firefox
+The tests require four images in RAW format and two ssh keys for upload purposes.
+
+Download a [CernVM image](http://cernvm.cern.ch/releases/production/cernvm4-micro-2020.07-1.hdd) and move it to the `misc_files` directory (unit_tests/web_tests/misc_files). Rename it `{user}-wii1.hdd`. Create three copies of it, called `{user}-wii2.hdd`, `{user}-wii3.hdd`, and `{user}-wii4.hdd`.
+
+Create a public key using `ssh-keygen`. Name it `{user}-wik3` and put it in the `misc_files` directory. Do not use a passphrase. Create another public key in the same manner, naming it `invalid-web-test`.
+
+### Firefox and Geckodriver
 
 Geckodriver can be downloaded from [GitHub](https://github.com/mozilla/geckodriver/releases/tag/v0.28.0). Firefox comes preinstalled on Linux machines, or can be downloaded from [Mozilla](https://www.mozilla.org/en-CA/firefox/new/).
 
-### Chromium
+### Chromium and Chromedriver
 
-Chromedriver and Chromium can be installed through the default package manager. Note that the tests have been set up and tested using Chromium, not Chrome, and so are not currently guaranteed to work seamlessly with Chrome.
+Chromedriver and Chromium can be installed through the default package manager. 
 
-### Opera
+Note that the tests have been set up and tested using Chromium, not Chrome, and so are not currently guaranteed to work seamlessly with Chrome. However, if the computer has Chrome installed, Chromedriver may look for and use the Chrome installation instead of the Chromium installation. It is unknown if this causes bugs - please update this README if this is tested.
+
+### Opera and OperaChromiumDriver
 
 Opera can be installed following the instructions [here](https://www.itzgeek.com/how-tos/linux/centos-how-tos/how-to-install-opera-browser-on-centos-7-rhel-7-fedora-28-27.html) or from their [web site](https://www.opera.com/download). OperaChromiumDriver, the driver for Opera versions 12 and later, can be downloaded from [Github](https://github.com/operasoftware/operachromiumdriver/releases).
+
+### Other Setup
+
+Like the unit tests, the web tests require a server configuration and cloud credentials. This can be created using the `cloudscheduler defaults set` command, or will be done automatically when the tests are first run.
+
+The status tests require the system time to be set to the user time zone.
+
+A GUI is needed for the web tests.
+
+To modify the server at which the tests are addressed (not mandatory for original setup), the `unit-test` server url in `.csv2/unit-test/settings.yaml` must be modified accordingly, and the login credentials if necessary. The `server_url` variable in `web_test_helpers` should also be modified to match the new server.
 
 ## Adding Tests
 
@@ -54,13 +78,13 @@ The `web_test_assertions_v2` module contains a set of functions that should be c
 
 Each assertion in the `web_test_assertions_v2` module takes a list of arguments, most of which are optional. The four mandatory arguments (only two of which are taken by `assertExists` and `assertNotExists`) are `type`, the type of object being asserted; `name`, the name of the individual object the assertion is about; `attribute`, the name of the attribute in the database (found via the `list` command with the `-VC` option); and `attribute_name`, the name of the particular item of that attribute being asserted. There are also six optional arguments: `group`, a group name, which should be specified when an object exists within a particular group, and which defaults to `None`; `err`, the margin of error, which should be specified when a value will be within a range, and which defaults to `None`; `metadata_cloud`, the name of a cloud within which the metadata exists, which should be specified for cloud metadata, and which defaults to `None`; `defaults`, a true/false flag, which should be specified when the item is a group default, and which defaults to false; `name_field`, a true/false flag, which should be specified for objects for which there is no name flag, and which defaults to true; `settings`, a true/false flag, which should be specified when the item is a user setting, and which defaults to false; `server`, the name of the server default to use, which should be specified when the object can only be accessed by a server that is not the unit-test server, and which defaults to `unit-test`; `image_cloud`, which should be specified when the object is an image, and which defaults to `None`; and `is_retry`, a true/false flag, which should never be manually passed (it is only used within the functions).
 
-By default, all actions will be performed within the `{user}-wig0` group (see Test Profiles, below). The base `Page` class (see Page Objects, below) contains a method for switching between these groups. Be aware that the active user must be in a particular group to switch to it.
+By default, all actions will be performed within the `{user}-wig0` group (see Test Profiles, below). The base `Page` class (see [Page Objects](#page-objects)) contains a method for switching between these groups. Be aware that the active user must be in a particular group to switch to it.
 
 Additional files the tests may need (for example, image files to upload) should be stored in the `misc_files` directory. These files will not be committed (unless they are markdown files, which they shouldn't be), and the current tests look in this folder for these files. This is also where test log files and test downloads are stored.
 
 Test objects should, if possible, be named `{user}-wixn`, where `x` is the letter identifier (usually the first letter of the object name, but can be chosen to be anything as long as it's consistent) and `n` is the number of the individual object (starting at 1 - 0 is reserved for behind-the-scenes objects and will need to be deleted seperately). The `web_test_setup_cleanup.delete_by_type()` function assumes this naming pattern, although it takes an optional argument, `others`, which is a list of names of objects that do not fit this pattern. Despite this, objects should be named to follow the pattern unless there is a reason they cannot (for example, they are stored on the web and need to be used by many different test users).
 
-Test files should perform actions on the page via page objects (see below). 
+Test files should perform actions on the page via [page objects](#page-objects). 
 
 ## Page Objects
 
@@ -128,7 +152,7 @@ Additional profiles can be added to the suite. In order to do so, the object sho
 
 New types of objects can also be added to the suite, in a similar manner. A new group of creation `subprocess.run` calls will need to be added in `setup_objects()`, and an accompanying call to `delete_objects_by_type()` in `cleanup_objects()`. If the objects cannot be deleted with the `delete_objects_by_type()` command syntax, they must either be deleted in a custom method (like aliases) or automatically deleted as part of another method (like cloud metadata). Again, they should be added in an optional group if possible (see below).
 
-There are two categories of objects - some that are created by `setup_objects()` regardless of arguments passed, and some that are only created when the tests request them. The objects created under "Universal Objects", below, are created automatically when `setup_objects()` is run, regardless of arguments. To create the other set of objects, pass the names of the object groups (ie "users") to the `setup()` function as a list of strings.
+There are two categories of objects - some that are created by `setup_objects()` regardless of arguments passed, and some that are only created when the tests request them. The objects created under [Universal Objects](#universal-objects) are created automatically when `setup_objects()` is run, regardless of arguments. To create the other set of objects, pass the names of the object groups (ie "users") to the `setup()` function as a list of strings.
 
 A few of the test objects do not have a command line setup for their creation and deletion (currently only the keypairs). These items should use Selenium to set up the objects on the web site that dictates them. This setup should be done in headless mode and should be configured to give outputs similar to the command line. Using Selenium for setups is slow and fragile, and should not be used if there is a command line alternative. These tests are configured to use the same browser as the tests, so that if the user does not have all the browsers, the tests will still run.
 
