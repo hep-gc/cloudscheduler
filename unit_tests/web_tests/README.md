@@ -4,9 +4,9 @@ This document is the primary source of information on the web testing framework.
 
 To run the tests, follow the [setup](#setup) instructions, then use the instructions at the beginning of [Running Tests](#running-tests) to run the tests.
 
-To develop tests, start with the above, then read the remainder of the document to understand how the tests are designed and set up. This document also contains a list of [todos and possible future features][#future-features-todos] for developers.
+To develop tests, start with the above, then read the remainder of the document to understand how the tests are designed and set up. This document also contains a list of [todos and possible future features](#future-features-todos) for developers.
 
-Note that unless web tests are specifically excluded from the command, web tests will be run as part of the `run_tests` framework. In order to run the entirety of that framework, the web tests must be set up as in the (setup section)[#setup].
+Note that unless web tests are specifically excluded from the command, web tests will be run as part of the `run_tests` framework. In order to run the entirety of that framework, the web tests must be set up as in the [setup section](#setup).
 
 ## Setup
 
