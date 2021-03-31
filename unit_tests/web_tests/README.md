@@ -238,9 +238,13 @@ These items should ideally be fixed before the test suite is complete.
 
 These items should be finished before the test suite is considered completed. They affect the test suite's functionality.
 
-- Firefox profile for Beaver downloads (re-add this paragraph to setup: The user will need to log into [Beaver](https://beaver.heprc.uvic.ca/dashboard) as `{user}-wiu2` and create a key. There will be a popup regarding the downloading of files. The user should request that the browser save the file and should click the box dictating that this is done automatically in the future. The files can also be saved to an alternate location (for example, the `unit_tests/web_tests/misc_files` directory) so as not to clog up the host computer's default downloads folder.)
+- Openstack command line
+
+- Script to set up test starter files (image files, key files, etc)
 
 - Time-dependent flaky tests for status page (may be fixed)
+
+- Chrome tests
 
 ### Tidying Up
 
@@ -268,13 +272,15 @@ These items are additional test coverage that may or may not be necessary.
 
 - Typing in select bars
 
-- Drag and drop to modify plot scale
+- Drag and drop to modify plot scale 
+
+- Click and drag plot zoom (and double click zoom out)
 
 #### Other Features
 
 These items are not necessary, but would be useful.
 
-- Script to set up test starter files (image files, key files, etc)
+- Rewrite time rounding function
 
 - Alternate assertion information passing (phase out logfiles)
 
@@ -282,4 +288,4 @@ These items are not necessary, but would be useful.
 
 - Speed up setup/teardown
 
-- Chrome/Safari/Edge/IE tests (likely require VMs and use of `webdriver.Remote`)
+- Safari/Edge/IE tests (likely require VMs and use of `webdriver.Remote`)
