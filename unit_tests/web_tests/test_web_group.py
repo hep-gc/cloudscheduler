@@ -193,7 +193,7 @@ class TestWebGroupSuperUserFirefox(TestWebGroupCommon):
         print("\nGroup Tests:")
 
 class TestWebGroupSuperUserChromium(TestWebGroupCommon):
-    """A class to test group operations via the web interface, with a super user, in the Chromium browser."""
+    """A class to test group operations via the web interface, in Chromium, with a super user."""
 
     @classmethod
     def setUpClass(cls):
@@ -202,7 +202,7 @@ class TestWebGroupSuperUserChromium(TestWebGroupCommon):
         print("\nGroup Tests (Chromium):")
 
 class TestWebGroupSuperUserOpera(TestWebGroupCommon):
-    """A class to test group operations via the web interface, with a super user, in the Opera browser."""
+    """A class to test group operations via the web interface, in Opera, with a super user."""
 
     @classmethod
     def setUpClass(cls):

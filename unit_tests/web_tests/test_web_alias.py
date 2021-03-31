@@ -17,6 +17,7 @@ class TestWebAliasCommon(unittest.TestCase):
         self.page.click_top_nav('Aliases')
 
     def test_web_alias_add(self):
+        # Adds an alias
         alias_name = self.gvar['user'] + '-wia4'
         self.page.click_add_button()
         self.page.type_alias_name(alias_name)
@@ -26,12 +27,14 @@ class TestWebAliasCommon(unittest.TestCase):
         wta.assertExists('alias', alias_name, self.gvar['base_group'])
 
     def test_web_alias_add_without_name(self):
+        # Tries to add an alias without a name
         self.page.click_add_button()
         self.page.click_cloud_checkbox(self.gvar['user'] + '-wic1')
         self.page.click_add_alias()
         self.assertTrue(self.page.error_message_displayed())
 
     def test_web_alias_add_with_conflicting_name(self):
+        # Tries to add an alias with a name that's already taken
         alias_name = self.gvar['user'] + '-wia1'
         cloud_name = self.gvar['user'] + '-wic2'
         self.page.click_add_button()
@@ -42,6 +45,7 @@ class TestWebAliasCommon(unittest.TestCase):
         wta.assertHasNotAttribute('alias', alias_name, 'clouds', cloud_name, group=self.gvar['base_group'], name_field=False)
 
     def test_web_alias_add_name_with_symbols(self):
+        # Tries to add an alias with symbols in its name
         alias_name = 'inv@|id-web-te$t'
         cloud_name = self.gvar['user'] + '-wic2'
         self.page.click_add_button()
@@ -52,6 +56,7 @@ class TestWebAliasCommon(unittest.TestCase):
         wta.assertNotExists('alias', alias_name, self.gvar['base_group'])
 
     def test_web_alias_add_name_with_two_dashes(self):
+        # Tries to add an alias with double dashes in its name
         alias_name = 'invalid--web--test'
         cloud_name = self.gvar['user'] + '-wic2'
         self.page.click_add_button()
@@ -62,6 +67,7 @@ class TestWebAliasCommon(unittest.TestCase):
         wta.assertNotExists('alias', alias_name, self.gvar['base_group'])
 
     def test_web_alias_add_name_with_uppercase(self):
+        # Tries to add an alias with uppercase letters in its name
         alias_name = 'INVALID-WEB-TEST'
         cloud_name = self.gvar['user'] + '-wic2'
         self.page.click_add_button()
@@ -72,6 +78,7 @@ class TestWebAliasCommon(unittest.TestCase):
         wta.assertNotExists('alias', alias_name, self.gvar['base_group'])
 
     def test_web_alias_add_name_with_starting_ending_dash(self):
+        # Tries to add an alias with starting and ending dashes in its name
         alias_name = '-invalid-web-test-'
         cloud_name = self.gvar['user'] + '-wic2'
         self.page.click_add_button()
@@ -82,6 +89,7 @@ class TestWebAliasCommon(unittest.TestCase):
         wta.assertNotExists('alias', alias_name, self.gvar['base_group'])
 
     def test_web_alias_add_name_too_long(self):
+        # Tries to add an alias with a name that's too long for the database
         alias_name = self.oversize['varchar_32']
         cloud_name = self.gvar['user'] + '-wic2'
         self.page.click_add_button()
@@ -92,6 +100,7 @@ class TestWebAliasCommon(unittest.TestCase):
         wta.assertNotExists('alias', alias_name, self.gvar['base_group'])
 
     def test_web_alias_add_without_cloud(self):
+        # Tries to add an alias with no clouds in it
         alias_name = self.gvar['user'] + '-wia5'
         self.page.click_add_button()
         self.page.type_alias_name(alias_name)
@@ -101,6 +110,7 @@ class TestWebAliasCommon(unittest.TestCase):
 
     @unittest.skip("Not working in production")
     def test_web_alias_delete(self):
+        # Deletes an alias
         alias_name = self.gvar['user'] + '-wia3'
         self.page.click_side_button(alias_name)
         self.page.click_cloud_checkbox(self.gvar['user'] + '-wic1')
@@ -109,9 +119,11 @@ class TestWebAliasCommon(unittest.TestCase):
         wta.assertNotExists('alias', alias_name, self.gvar['base_group'])
 
     def test_web_alias_find(self):
+        # Finds the aliases page
         pass
 
     def test_web_alias_update_cloud_add(self):
+        # Adds a cloud to an alias
         alias_name = self.gvar['user'] + '-wia1'
         cloud_name = self.gvar['user'] + '-wic2'
         self.page.click_side_button(alias_name)
@@ -120,6 +132,7 @@ class TestWebAliasCommon(unittest.TestCase):
         wta.assertHasAttribute('alias', alias_name, 'clouds', cloud_name, group=self.gvar['base_group'], name_field=False)
 
     def test_web_alias_update_cloud_remove(self):
+        # Removes a cloud from an alias
         alias_name = self.gvar['user'] + '-wia2'
         cloud_name = self.gvar['user'] + '-wic2'
         self.page.click_side_button(alias_name)

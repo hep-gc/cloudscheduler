@@ -18,6 +18,7 @@ class TestWebSettingCommon(unittest.TestCase):
         self.page.click_top_nav('User Settings')
 
     def test_web_setting_find(self):
+        # Finds the settings page
         pass
 
     def test_web_setting_update_password(self):
