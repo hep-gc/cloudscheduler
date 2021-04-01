@@ -1,19 +1,15 @@
 from selenium import webdriver
-from selenium.common.exceptions import TimeoutException, UnexpectedAlertPresentException
-from selenium.webdriver.firefox.options import Options
+from selenium.common.exceptions import UnexpectedAlertPresentException
 from cloudscheduler.unit_tests.unit_test_common import load_settings
 from time import sleep
 import subprocess
 import signal
-import web_tests.web_test_interactions as wti
 import web_tests.web_test_helpers as helpers
 
 # This module contains setup and cleanup functions for the unittest web tests.
 # Setups and cleanups are done here to prevent issues of passing variables
 # between test runners and to allow tests to be run individually with the
 # unittest framework
-
-beaver_url = 'https://beaver.heprc.uvic.ca/dashboard/project/key_pairs'
 
 def setup(cls, profile, objects, browser='firefox'):
     # Try/except block here ensures that cleanups will occur even on setup
@@ -190,7 +186,13 @@ def setup_objects(objects=[], browser='firefox'):
 
     #add keys
     if 'keys' in objects:
-        beaver_setup_keys(gvar, 2, browser)
+        keys_num = 2
+        keys = []
+        for i in range(1, keys_num+1):
+            keys.append(gvar['user'] + '-wik' + str(i))
+        for i in range(0, keys_num):
+            subprocess.run(['openstack', 'keypair', 'create', '--private-key', '/home/centos/cloudscheduler/unit_tests/web_tests/misc_files/' + keys[i], keys[i]], stdout=subprocess.DEVNULL)
+            print('keypair "' + keys[i] + '" successfully added.')
         keystring = gvar['user'] + '-wik1'
         helpers.wait_for_openstack_poller(gvar['user'] + '-wic1', '-vk', keystring, output=True)
 
@@ -211,13 +213,36 @@ def cleanup_objects(browser='firefox'):
     gvar = load_settings(web=True)
     gvar['base_group'] = gvar['user'] + '-wig0'
 
-    beaver_cleanup_keys(gvar, 4, 2, browser)
+    logfile = 'web_tests/misc_files/objects.txt'
+    #beaver_cleanup_keys(gvar, 4, 2, browser)
+
+    try:
+        object_log = open(logfile, mode = 'x')
+    except FileExistsError:
+        object_log = open(logfile, mode = 'w')
+ 
+    subprocess.run(['openstack', 'keypair', 'list', '--format', 'csv'], stdout=object_log)
+
+    object_log.close()
+    object_log = open(logfile, mode='r')
+
+    names = []
+    for line in object_log:
+        row = line.split(',')
+        names.append(row[0].strip('"'))
+
+    for i in range(1, 5):
+        remove = gvar['user'] + '-wik' + str(i)
+        if remove in names:
+            subprocess.run(['openstack', 'keypair', 'delete', remove])
+            print('keypair "' + remove + '" successfully deleted.')
+
+    object_log.close()
 
     delete_by_type(gvar, ['defaults', '-wis', '-s', 'server', []], 2)
     for i in range(2, 1, -1):
         delete_by_type(gvar, ['image', '-wii', '-in', 'name', ['-g', gvar['user'] + '-wig0', '-cn', gvar['user'] + '-wic' + str(i)]], 3, others=['test-os-image-raw'])
 
-    logfile = 'web_tests/misc_files/objects.txt'
     try:
         object_log = open(logfile, mode = 'x')
     except FileExistsError:
@@ -316,63 +341,6 @@ def delete_by_type(gvar, type_info, number, others=[]):
             subprocess.run(['cloudscheduler', type_info[0], 'delete', type_info[2], object,  *flags])
 
     object_log.close()
-
-def beaver_setup_keys(gvar, number, browser):
-    options = Options()
-    options.headless = True
-    driver = webdriver.Firefox(options=options)
-    driver.get(beaver_url)
-
-    wti.fill_blank_by_id(driver, 'id_username', gvar['cloud_credentials']['username'])
-    wti.fill_blank_by_id(driver, 'id_password', gvar['cloud_credentials']['password'])
-    wti.click_by_id(driver, 'loginBtn')
-
-    for i in range(1, number+1):
-        wti.click_by_xpath(driver, "//span[contains(text(), 'Create Key Pair')]")
-        wti.fill_blank_by_id(driver, 'name', gvar['user'] + '-wik' + str(i))
-        wti.select_option_by_name(driver, 'key-type', 'SSH Key')
-        wti.click_by_xpath(driver, "//button[@class='btn btn-primary ng-binding']")
-        sleep(5)
-        print("keypair \"" + gvar['user'] + "-wik" + str(i) + "\" successfully added.")
-
-    driver.quit()
-
-def beaver_cleanup_keys(gvar, number, oversize_number, browser):
-    oversize = {}
-    oversize['varchar_64'] = 'invalid-web-test-string-that-is-too-long-for-64-character-sql-data-field'
-
-    options = Options()
-    options.headless = True
-    driver = webdriver.Firefox(options=options)
-    driver.get(beaver_url)
-
-    wti.fill_blank_by_id(driver, 'id_username', gvar['cloud_credentials']['username'])
-    wti.fill_blank_by_id(driver, 'id_password', gvar['cloud_credentials']['password'])
-    wti.click_by_id(driver, 'loginBtn')
-
-
-    delete_button = "//div[@class='modal-content']/descendant::button[@class='btn btn-danger']"
-    for i in range(1, number+1):
-        xpath = "//a[contains(text(), '" + gvar['user'] + "-wik" + str(i) + "')]/../../following-sibling::td//button[@class='btn btn-danger']"
-        try:
-            wti.click_by_xpath(driver, xpath, timeout=5)
-            wti.click_by_xpath(driver, delete_button)
-            sleep(10)
-            print("keypair \"" + gvar['user'] + "-wik" + str(i) + "\" successfully deleted.")
-        except TimeoutException:
-            pass
-
-    for i in range(1, oversize_number+1):
-        xpath = "//a[contains(text(), '" + oversize['varchar_64'] + str(i) + "')]/../../following-sibling::td//button[@class='btn btn-danger']"
-        try:
-            wti.click_by_xpath(driver, xpath, timeout=5)
-            wti.click_by_xpath(driver, delete_button)
-            sleep(5)
-            print("keypair \"" + oversize['varchar_64'] + str(i) + "\" successfully deleted.")
-        except TimeoutException:
-            pass
-
-    driver.quit()   
 
 def keyboard_interrupt_handler(signal, frame):
     # This ensures that interrupted tests will still clean up. If cloudscheduler
