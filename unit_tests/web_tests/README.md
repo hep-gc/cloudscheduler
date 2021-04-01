@@ -10,7 +10,7 @@ Note that unless web tests are specifically excluded from the command, web tests
 
 ## Setup
 
-This section covers the steps to install the necessary web test components. [Python and Selenium](#python-and-selenium), [Testing Files](#testing-files), and [#Firefox and Geckodriver](#firefox-and-geckodriver) are needed for tests with any browser. [Chromium and Chromedriver](#chromium-and-chromedriver) and [Opera and OperaChromiumDriver](#opera-and-operachromiumdriver) are needed for tests in their respective browsers, and for the full `run_tests` script.
+This section covers the steps to install the necessary web test components. [Python and Selenium](#python-and-selenium), [Openstack CLI](#openstack-cli), and [Testing Files](#testing-files) are needed for tests with any browser. At least one of [#Firefox and Geckodriver](#firefox-and-geckodriver), [Chromium and Chromedriver](#chromium-and-chromedriver), or [Opera and OperaChromiumDriver](#opera-and-operachromiumdriver) is needed for any sort of browser tests. The `run_tests` script requires all three.
 
 Additionally, all the setup in [Other Setup](#other-setup) should be completed for all the tests.
 
@@ -19,6 +19,12 @@ Additionally, all the setup in [Other Setup](#other-setup) should be completed f
 The web tests require Python3 and the Python Selenium bindings to run.
 
 Install `python3` using your default package manager. Selenium Webdriver for Python can then be installed via `pip3 install selenium`.
+
+### Openstack CLI
+
+The key tests require the Openstack command line interface.
+
+Install the Openstack cli via `pip3 install python-openstackclient`. Set the environment variable `XDG_SESSION_TYPE` to `wayland`. Download the Openstack RC from [Beaver](https://beaver.heprc.uvic.ca/dashboard/project/api_access/), save it to the `misc_files` directory, and source it. You will need your Openstack password to source it.
 
 ### Testing Files
 
@@ -36,11 +42,17 @@ Geckodriver can be downloaded from [GitHub](https://github.com/mozilla/geckodriv
 
 Chromedriver and Chromium can be installed through the default package manager. 
 
-Note that the tests have been set up and tested using Chromium, not Chrome, and so are not currently guaranteed to work seamlessly with Chrome. However, if the computer has Chrome installed, Chromedriver may look for and use the Chrome installation instead of the Chromium installation. It is unknown if this causes bugs - please update this README if this is tested.
+Note that the tests have been set up and tested using Chromium, not Chrome, and so are not currently guaranteed to work seamlessly with Chrome. However, if the computer has Chrome installed, Chromedriver may look for and use the Chrome installation instead of the Chromium installation. [Chrome support](#chrome-and-chromedriver) is a work in progress.
 
 ### Opera and OperaChromiumDriver
 
 Opera can be installed following the instructions [here](https://www.itzgeek.com/how-tos/linux/centos-how-tos/how-to-install-opera-browser-on-centos-7-rhel-7-fedora-28-27.html) or from their [web site](https://www.opera.com/download). OperaChromiumDriver, the driver for Opera versions 12 and later, can be downloaded from [Github](https://github.com/operasoftware/operachromiumdriver/releases).
+
+### Chrome and Chromedriver
+
+Note that Chrome tests are a work in progress. Attempting to run the tests using only Chrome is not yet supported.
+
+Chromedriver can be installed through the default package manager. Chrome can be installed following the instructions [here](https://linuxize.com/post/how-to-install-google-chrome-web-browser-on-centos-7/) or via [Chrome's website](https://www.google.com/intl/en_ca/chrome/).
 
 ### Other Setup
 
@@ -154,7 +166,7 @@ New types of objects can also be added to the suite, in a similar manner. A new 
 
 There are two categories of objects - some that are created by `setup_objects()` regardless of arguments passed, and some that are only created when the tests request them. The objects created under [Universal Objects](#universal-objects) are created automatically when `setup_objects()` is run, regardless of arguments. To create the other set of objects, pass the names of the object groups (ie "users") to the `setup()` function as a list of strings.
 
-A few of the test objects do not have a command line setup for their creation and deletion (currently only the keypairs). These items should use Selenium to set up the objects on the web site that dictates them. This setup should be done in headless mode and should be configured to give outputs similar to the command line. Using Selenium for setups is slow and fragile, and should not be used if there is a command line alternative. These tests are configured to use the same browser as the tests, so that if the user does not have all the browsers, the tests will still run.
+The key setup does not have a cloudscheduler cli setup, and as such is done via the [Openstack CLI](#openstack-cli). Objects should be created using the cloudscheduler cli if possible, but those that cannot be can be created using other processes. A command-line tool is preferable to a browser-based tool controlled by Selenium.
 
 There is one additional group created as part of the universal setup that is not specified below and has no output in the setup scripts. It is not to be edited in any way during the tests, and any user used to run tests (currently `{user}-wiu1` and `{user}-wiu2`) should be in it. The real user account (ie `{user}`) is also added to this group when it is created, to allow this user to make the test objects within this group. The group is called `{user}-wig0`. All clouds, aliases, and any other objects requiring a group are and should be created under this group, with a few rare exceptions (for example, if a group test requires a group to have a cloud in it). It is saved as `gvar['base_group']`. It is the first item created as part of the setup, and the last item deleted, and should remain so. Many functions have an optional `group` argument that is invoked to prevent cloud tests from failing, and, if needed, this is the group that should be passed.
 
@@ -238,13 +250,11 @@ These items should ideally be fixed before the test suite is complete.
 
 These items should be finished before the test suite is considered completed. They affect the test suite's functionality.
 
-- Openstack command line
-
 - Script to set up test starter files (image files, key files, etc)
 
 - Time-dependent flaky tests for status page (may be fixed)
 
-- Chrome tests
+- Chrome tests (in progress)
 
 ### Tidying Up
 
