@@ -126,7 +126,7 @@ def round_date(dt, round, forward):
         try:
             dt.replace(day=dt.day+1)
         except ValueError:
-            if forward and dt.day < 30:
+            if forward:# and dt.day < 30:
                 dt += datetime.timedelta(days=round)
         #if not forward and dt.day == 1:
         #    if (dt - datetime.timedelta(days=1)).day < 30:
@@ -134,6 +134,8 @@ def round_date(dt, round, forward):
     else:
         if forward:
             dt = dt.replace(month=(dt.month)%12 + 1)
+        else:
+            dt = dt.replace(month=(dt.month)%12 - 1)
         while (dt.month-1)%(round//31) != 0:
             if dt.month >= 12:
                 dt = dt.replace(month=1, year= dt.year+1)
