@@ -26,6 +26,12 @@ def setup(cls, profile, objects, browser='firefox'):
             # chromedriver-timed-out-receiving-message-from-renderer-exc)
             options.add_argument('--disable-gpu')
             options.add_argument('--start-maximized')
+            options.binary_location = '/usr/bin/chromium-browser'
+            cls.driver = webdriver.Chrome(options=options)
+        elif browser == 'chrome':
+            options = webdriver.ChromeOptions()
+            options.add_argument('--start-maximized')
+            options.binary_location = '/usr/bin/google-chrome'
             cls.driver = webdriver.Chrome(options=options)
         elif browser == 'opera':
             cls.driver = webdriver.Opera()
