@@ -168,5 +168,23 @@ class TestWebImageRegularUserOpera(TestWebImageCommon):
         super(TestWebImageRegularUserOpera, cls).setUpClass()
         print("\nImage Tests (Regular User):")
 
+class TestWebImageSuperUserChrome(TestWebImageCommon):
+    """A class to test image operations via the web interface, in Chrome, with a super user."""
+
+    @classmethod
+    def setUpClass(cls):
+        wtsc.setup(cls, 2, ['images'], browser='chrome')
+        super(TestWebImageSuperUserChrome, cls).setUpClass()
+        print("\nImage Tests (Chrome) (Super User):")
+
+class TestWebImageRegularUserChrome(TestWebImageCommon):
+    """A class to test image operations via the web interface, in Chrome, with a regular user."""
+
+    @classmethod
+    def setUpClass(cls):
+        wtsc.setup(cls, 1, ['images'], browser='chrome')
+        super(TestWebImageRegularUserChrome, cls).setUpClass()
+        print("\nImage Tests (Chrome) (Regular User):")
+
 if __name__ == "__main__":
     unittest.main()

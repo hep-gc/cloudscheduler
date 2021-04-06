@@ -412,5 +412,14 @@ class TestWebConfigSuperUserOpera(TestWebConfigCommon):
         super(TestWebConfigSuperUserOpera, cls).setUpClass()
         print("\nConfig Tests (Opera):")
 
+class TestWebConfigSuperUserChrome(TestWebConfigCommon):
+    """A class to test config operations via the web interface, in Chrome, with a super user."""
+
+    @classmethod
+    def setUpClass(cls):
+        wtsc.setup(cls, 2, ['config'], browser='chrome')
+        super(TestWebConfigSuperUserChrome, cls).setUpClass()
+        print("\nConfig Tests (Chrome):")
+
 if __name__ == "__main__":
     unittest.main()

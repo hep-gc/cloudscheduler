@@ -252,5 +252,29 @@ class TestWebSettingRegularUserOpera(TestWebSettingCommon):
         cls.global_group = cls.gvar['user'] + '-wig1'
         print("\nUser Settings Tests (Opera) (Regular User):")
 
+class TestWebSettingSuperUserChrome(TestWebSettingCommon):
+    """A class to test user settings operations via the web interface, in Chrome, with a super user."""
+
+    @classmethod
+    def setUpClass(cls):
+        wtsc.setup(cls, 2, ['settings', 'servers'], browser='chrome')
+        super(TestWebSettingSuperUserChrome, cls).setUpClass()
+        cls.server = cls.gvar['user'] + '-wis2'
+        cls.user = cls.gvar['user'] + '-wiu2'
+        cls.global_group = cls.gvar['user'] + '-wig2'
+        print("\nUser Settings Tests (Chrome) (Super User):")
+
+class TestWebSettingRegularUserChrome(TestWebSettingCommon):
+    """A class to test user settings operations via the web interface, in Chrome, with a regular user."""
+
+    @classmethod
+    def setUpClass(cls):
+        wtsc.setup(cls, 1, ['settings', 'servers'], browser='chrome')
+        super(TestWebSettingRegularUserChrome, cls).setUpClass()
+        cls.server = cls.gvar['user'] + '-wis1'
+        cls.user = cls.gvar['user'] + '-wiu1'
+        cls.global_group = cls.gvar['user'] + '-wig1'
+        print("\nUser Settings Tests (Chrome) (Regular User):")
+
 if __name__ == "__main__":
     unittest.main()

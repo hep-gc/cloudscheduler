@@ -1339,5 +1339,23 @@ class TestWebCloudRegularUserOpera(TestWebCloudCommon):
         super(TestWebCloudRegularUserOpera, cls).setUpClass()
         print("\nCloud Tests (Opera) (Regular User):")
 
+class TestWebCloudSuperUserChrome(TestWebCloudCommon):
+    """A class to test cloud operations via the web interface, in Chrome, with a super user."""
+
+    @classmethod
+    def setUpClass(cls):
+        wtsc.setup(cls, 2, ['clouds', 'keys'], browser='chrome')
+        super(TestWebCloudSuperUserChrome, cls).setUpClass()
+        print("\nCloud Tests (Chrome) (Super User):")
+
+class TestWebCloudRegularUserChrome(TestWebCloudCommon):
+    """A class to test cloud operations via the web interface, in Chrome, with a regular user."""
+
+    @classmethod
+    def setUpClass(cls):
+        wtsc.setup(cls, 1, ['clouds', 'keys'], browser='chrome')
+        super(TestWebCloudRegularUserChrome, cls).setUpClass()
+        print("\nCloud Tests (Chrome) (Regular User):")
+
 if __name__ == "__main__":
     unittest.main()

@@ -382,5 +382,14 @@ class TestWebUserSuperUserOpera(TestWebUserCommon):
         super(TestWebUserSuperUserOpera, cls).setUpClass()
         print("\nUser Tests (Opera):")
 
+class TestWebUserSuperUserChrome(TestWebUserCommon):
+    """A class to test user operations via the web interface, in Chrome, with a super user."""
+
+    @classmethod
+    def setUpClass(cls):
+        wtsc.setup(cls, 2, ['users'], browser='chrome')
+        super(TestWebUserSuperUserChrome, cls).setUpClass()
+        print("\nUser Tests (Chrome):")
+
 if __name__ == "__main__":
     unittest.main()

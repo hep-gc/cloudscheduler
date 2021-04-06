@@ -150,13 +150,22 @@ class TestWebKeySuperUserChromium(TestWebKeyCommon):
         print("\nKey Tests (Chromium) (Super User):")
 
 class TestWebKeySuperUserOpera(TestWebKeyCommon):
-    """A class to test key operations via the web interface, in Chromium, with a super user."""
+    """A class to test key operations via the web interface, in Opera, with a super user."""
 
     @classmethod
     def setUpClass(cls):
         wtsc.setup(cls, 2, ['keys'], browser='opera')
         super(TestWebKeySuperUserOpera, cls).setUpClass()
         print("\nKey Tests (Opera) (Super User):")
+
+class TestWebKeySuperUserChrome(TestWebKeyCommon):
+    """A class to test key operations via the web interface, in Chrome, with a super user."""
+
+    @classmethod
+    def setUpClass(cls):
+        wtsc.setup(cls, 2, ['keys'], browser='chrome')
+        super(TestWebKeySuperUserChrome, cls).setUpClass()
+        print("\nKey Tests (Chrome) (Super User):")
 
 if __name__ == "__main__":
     unittest.main()

@@ -68,3 +68,22 @@ def opera_test_suite():
         suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(test))
     return suite
 
+def chrome_test_suite():
+    tests = [
+        group.TestWebGroupSuperUserChrome,
+        user.TestWebUserSuperUserChrome,
+        cloud.TestWebCloudSuperUserChrome, cloud.TestWebCloudRegularUserChrome,
+        alias.TestWebAliasSuperUserChrome, alias.TestWebAliasRegularUserChrome,
+        default.TestWebDefaultSuperUserChrome, default.TestWebDefaultRegularUserChrome,
+        image.TestWebImageSuperUserChrome, image.TestWebImageRegularUserChrome,
+        setting.TestWebSettingSuperUserChrome, setting.TestWebSettingRegularUserChrome,
+        config.TestWebConfigSuperUserChrome,
+        key.TestWebKeySuperUserChrome,
+        status.TestWebStatusSuperUserChrome, status.TestWebStatusRegularUserChrome
+    ]
+
+    suite = unittest.TestSuite()
+    for test in tests:
+        suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(test))
+    return suite
+
