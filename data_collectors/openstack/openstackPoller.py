@@ -1800,7 +1800,7 @@ def vm_poller():
             rc, msg, over_quota_clouds = config.db_query("view_vm_kill_retire_over_quota", where=where_clause)
             for cloud in over_quota_clouds:
                 kill_retire(config, cloud["group_name"], cloud["cloud_name"], "control", [cloud["cores"], cloud["ram"]], get_frame_info())
-                db_config.commit()
+                config.commit()
 
 
             logging.debug("Completed VM poller cycle")
