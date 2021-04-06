@@ -10,7 +10,7 @@ Note that unless web tests are specifically excluded from the command, web tests
 
 ## Setup
 
-This section covers the steps to install the necessary web test components. [Python and Selenium](#python-and-selenium), [Openstack CLI](#openstack-cli), and [Testing Files](#testing-files) are needed for tests with any browser. At least one of [#Firefox and Geckodriver](#firefox-and-geckodriver), [Chromium and Chromedriver](#chromium-and-chromedriver), or [Opera and OperaChromiumDriver](#opera-and-operachromiumdriver) is needed for any sort of browser tests. The `run_tests` script requires all three.
+This section covers the steps to install the necessary web test components. [Python and Selenium](#python-and-selenium), [Openstack CLI](#openstack-cli), and [Testing Files](#testing-files) are needed for tests with any browser. At least one of [Firefox and Geckodriver](#firefox-and-geckodriver), [Chromium and Chromedriver](#chromium-and-chromedriver), [Opera and OperaChromiumDriver](#opera-and-operachromiumdriver), or [Chrome and Chromedriver](#chrome-and-chromedriver) is needed for any sort of browser tests. The full `run_tests` script requires all available browsers.
 
 Additionally, all the setup in [Other Setup](#other-setup) should be completed for all the tests.
 
@@ -36,13 +36,11 @@ Create a public key using `ssh-keygen`. Name it `{user}-wik3` and put it in the 
 
 ### Firefox and Geckodriver
 
-Geckodriver can be downloaded from [GitHub](https://github.com/mozilla/geckodriver/releases/tag/v0.28.0). Firefox comes preinstalled on Linux machines, or can be downloaded from [Mozilla](https://www.mozilla.org/en-CA/firefox/new/).
+Firefox comes preinstalled on Linux machines, or can be downloaded from [Mozilla](https://www.mozilla.org/en-CA/firefox/new/). Geckodriver can be downloaded from [GitHub](https://github.com/mozilla/geckodriver/releases/tag/v0.28.0). 
 
 ### Chromium and Chromedriver
 
 Chromedriver and Chromium can be installed through the default package manager. 
-
-Note that the tests have been set up and tested using Chromium, not Chrome, and so are not currently guaranteed to work seamlessly with Chrome. However, if the computer has Chrome installed, Chromedriver may look for and use the Chrome installation instead of the Chromium installation. [Chrome support](#chrome-and-chromedriver) is a work in progress.
 
 ### Opera and OperaChromiumDriver
 
@@ -50,9 +48,7 @@ Opera can be installed following the instructions [here](https://www.itzgeek.com
 
 ### Chrome and Chromedriver
 
-Note that Chrome tests are a work in progress. Attempting to run the tests using only Chrome is not yet supported.
-
-Chromedriver can be installed through the default package manager. Chrome can be installed following the instructions [here](https://linuxize.com/post/how-to-install-google-chrome-web-browser-on-centos-7/) or via [Chrome's website](https://www.google.com/intl/en_ca/chrome/).
+Chrome can be installed following the instructions [here](https://linuxize.com/post/how-to-install-google-chrome-web-browser-on-centos-7/) or via [Chrome's website](https://www.google.com/intl/en_ca/chrome/). Chromedriver can be installed through the default package manager. 
 
 ### Other Setup
 
@@ -123,8 +119,6 @@ The web tests do run with the `run_tests` script in the `unit_tests` folder. How
 Web tests can be run using `./run_tests web` from the `unit_tests` folder, and tests for a specific browser can be run using `./run_tests web_<browser>`. One can also run a particular class directly using `python3 -m unittest <filename>.<ClassName>`. While unittest does support running tests by file, the setup of the test fixtures does not allow that and will run duplicate tests, some of which will fail, and, thus, the `python3 -m unittest <filename>` syntax is not to be used. Each detailed class should be run individually, and common classes should never be run (see Adding Tests, above). Individual tests can be run with `python3 -m unittest <filename>.<ClassName>.<test_name>`. All tests should be run from the `unit_tests` folder to allow module imports to work properly. Note that individual test files, classes, and methods cannot currently be run with the `run_tests` script.
 
 The tests should be run as a non-root user. Root users may experience problems with the Chromium browser tests, as Chromium is not designed to run as a root user.
-
-Regardless of which browser the tests are run in, the setup requires the Firefox browser in order to run a headless setup mode. The tests will fail without valid Firefox and Geckodriver installations.
 
 If tests are being set up with clouds, the setup script may display an error similar to: 
 
@@ -228,7 +222,7 @@ Note that some keywords do additional setup, besides creating the objects (in fa
 
 ### Keys
 
-`{user}-wik1` is a standard key. It is used in tests requiring the selection of a key (also added by `clouds` and `defaults`)
+`{user}-wik1` is a standard key. It is used in tests requiring the selection of a key
 
 `{user}-wik2` is a standard key. It is to be deleted in delete tests.
 
@@ -250,11 +244,9 @@ These items should ideally be fixed before the test suite is complete.
 
 These items should be finished before the test suite is considered completed. They affect the test suite's functionality.
 
-- Script to set up test starter files (image files, key files, etc)
+- Script to set up test starter files (image files, key files, etc) - wip
 
 - Time-dependent flaky tests for status page (may be fixed)
-
-- Chrome tests (in progress)
 
 ### Tidying Up
 
@@ -299,3 +291,5 @@ These items are not necessary, but would be useful.
 - Speed up setup/teardown
 
 - Safari/Edge/IE tests (likely require VMs and use of `webdriver.Remote`)
+
+- Headless test option (for Firefox/Chrome only)
