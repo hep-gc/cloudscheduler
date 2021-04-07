@@ -260,8 +260,6 @@ These items shouldn't affect the test suite's functionality much, but they would
 
 - Remove code that was commented out for testing
 
-- Add setup option for single key (instead of having it be added as part of other setups)
-
 ### Additional Features
 
 These are features for future implementation, or to be added if time permits.
