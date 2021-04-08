@@ -73,8 +73,8 @@ if [ "$OPERA" = "y" ]; then
     fi
     OPERA_PATH=`which opera`
     if [ -z "$OPERA_PATH" ]; then
-        sudo rpm --import https://rpm.opera.com/rpmrepo.key
-        sudo yum -y install opera-stable
+        # install instructions found at https://www.itzgeek.com/how-tos/linux/centos-how-tos/how-to-install-opera-browser-on-centos-7-rhel-7-fedora-28-27.html
+        sudo wget https://download.opera.com/download/get/?partner=www&opsys=Linux
     fi
     OPERACHROMIUMDRIVER_PATH=`which operadriver`
     if [ $OPERACHROMIUMDRIVER_PATH ="\n" ]; then
@@ -99,12 +99,4 @@ fi
 OPENSTACK_PATH=`which openstack`
 if [ -z "$OPENSTACK_PATH" ]; then
     sudo pip3 install python-openstackclient
-fi
-
-cd ~/cloudscheduler/unit_tests/web_tests/misc_files
-read -p 'Openstack URL: ' OPENSTACK_URL
-read -p 'Openstack username: ' OPENSTACK_USERNAME
-read -s -p 'Openstack password: ' OPENSTACK_PASSWORD
-if [ ! -e "testing-openrc.sh" ]; then
-    wget https://$OPENSTACK_USERNAME:$OPENSTACK_PASSWORD@$OPENSTACK_URL/dashboard/project/api_access/openrc/
 fi
