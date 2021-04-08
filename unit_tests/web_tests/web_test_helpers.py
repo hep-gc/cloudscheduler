@@ -145,3 +145,73 @@ def round_date(dt, round, forward):
                 except ValueError:
                     dt = dt.replace(month=dt.month+2, day=1)
     return dt
+
+def parse_command_line_arguments(args, classes, has_regular_user):
+    import unittest
+
+    suite = unittest.TestSuite()
+    tests = []
+
+    firefox = False
+    chromium = False
+    opera = False
+    chrome = False
+    super_user = False
+    regular_user = False
+
+    for arg in args:
+        if arg == '--firefox' or arg == '-f':
+            firefox = True
+        elif arg == '--chromium' or arg == '-cb':
+            chromium = True
+        elif arg == '--opera' or arg == '-o':
+            opera = True
+        elif arg == '--chrome' or arg == '-gc':
+            chrome = True
+        elif arg == '--super-user' or arg == '-su':
+            super_user = True
+        elif arg == '--regular-user' or arg == '-ru':
+            regular_user = True
+
+    if not firefox and not chromium and not opera and not chrome:
+        firefox = True
+        chromium = True
+        opera = True
+        chrome = True
+    if not super_user and not regular_user:
+        super_user = True
+        regular_user = True
+
+    if firefox and super_user:
+        tests.append(classes[0])
+    if firefox and regular_user:
+        if has_regular_user:
+            tests.append(classes[1])
+    if chromium and super_user:
+        if has_regular_user:
+             tests.append(classes[2])
+        else:
+             tests.append(classes[1])
+    if chromium and regular_user:
+        if has_regular_user:
+            tests.append(classes[3])
+    if opera and super_user:
+        if has_regular_user:
+            tests.append(classes[4])
+        else:
+            tests.append(classes[2])
+    if opera and regular_user:
+        if has_regular_user:
+            tests.append(classes[5])
+    if chrome and super_user:
+        if has_regular_user:
+            tests.append(classes[6])
+        else:
+            tests.append(classes[3])
+    if chrome and regular_user:
+        if has_regular_user:
+            tests.append(classes[7])
+
+    for test in tests:
+        suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(test))
+    return suite
