@@ -1,4 +1,5 @@
 import unittest
+import sys
 import web_tests.web_test_setup_cleanup as wtsc
 import web_tests.web_test_assertions_v2 as wta
 import web_tests.web_test_page_objects as pages
@@ -123,7 +124,7 @@ class TestWebImageSuperUserFirefox(TestWebImageCommon):
         super(TestWebImageSuperUserFirefox, cls).setUpClass()
         print("\nImage Tests (Super User):")
 
-class TestWebImageRegularUser(TestWebImageCommon):
+class TestWebImageRegularUserFirefox(TestWebImageCommon):
     """A class to test image operations via the web interface, in Firefox, with a regular user."""
 
     @classmethod
@@ -187,4 +188,10 @@ class TestWebImageRegularUserChrome(TestWebImageCommon):
         print("\nImage Tests (Chrome) (Regular User):")
 
 if __name__ == "__main__":
-    unittest.main()
+    runner = unittest.TextTestRunner(verbosity=2)
+    tests = [ TestWebImageSuperUserFirefox, TestWebImageRegularUserFirefox,
+              TestWebImageSuperUserChromium, TestWebImageRegularUserChromium,
+              TestWebImageSuperUserOpera, TestWebImageRegularUserOpera,
+              TestWebImageSuperUserChrome, TestWebImageRegularUserChrome ]
+    suite = helpers.parse_command_line_arguments(sys.argv, tests, True)
+    runner.run(suite)

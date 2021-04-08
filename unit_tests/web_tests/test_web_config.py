@@ -1,4 +1,5 @@
 import unittest
+import sys
 import web_tests.web_test_setup_cleanup as wtsc
 import web_tests.web_test_assertions_v2 as wta
 import web_tests.web_test_page_objects as pages
@@ -422,4 +423,10 @@ class TestWebConfigSuperUserChrome(TestWebConfigCommon):
         print("\nConfig Tests (Chrome):")
 
 if __name__ == "__main__":
-    unittest.main()
+    runner = unittest.TextTestRunner(verbosity=2)
+    tests = [ TestWebConfigSuperUserFirefox,
+              TestWebConfigSuperUserChromium,
+              TestWebConfigSuperUserOpera,
+              TestWebConfigSuperUserChrome ]
+    suite = helpers.parse_command_line_arguments(sys.argv, tests, False)
+    runner.run(suite)
