@@ -116,7 +116,20 @@ The page objects additionally use some functions from the `web_test_helpers` mod
 
 The web tests do run with the `run_tests` script in the `unit_tests` folder. However, because failure and error numbers are not surfaced by `unittest`, the script does not add the numbers for the web tests to its error tallies.
 
-Web tests can be run using `./run_tests web` from the `unit_tests` folder, and tests for a specific browser can be run using `./run_tests web_<browser>`. One can also run a particular class directly using `python3 -m unittest <filename>.<ClassName>`. While unittest does support running tests by file, the setup of the test fixtures does not allow that and will run duplicate tests, some of which will fail, and, thus, the `python3 -m unittest <filename>` syntax is not to be used. Each detailed class should be run individually, and common classes should never be run (see Adding Tests, above). Individual tests can be run with `python3 -m unittest <filename>.<ClassName>.<test_name>`. All tests should be run from the `unit_tests` folder to allow module imports to work properly. Note that individual test files, classes, and methods cannot currently be run with the `run_tests` script.
+Web tests can be run using `./run_tests web` from the `unit_tests` folder. Tests for a specific browser (or group of browsers, by adding additional arguments) can be run using `./run_tests web_<browser>`. Note that running by test numbers and similar as in the unittest framework is not supported.
+
+The tests can also be run by files as a module, using `python3 -m <filename>` from the `unit_tests` folder. Run without any flags, this will run all of the test classes in the file. Any listed browser flags will restrict the tests to only the tests within the listed browsers, and any listed user flags will restrict the tests to only tests using the listed users. The tags are as follows:
+
+| Short-Form Tag | Long-Form Tag    | Meaning                                   |
+|----------------|------------------|-------------------------------------------|
+| `-f`           | `--firefox`      | Run the Firefox tests                     |
+| `-cb`          | `--chromium`     | Run the Chromium (chromium-browser) tests |
+| `-o`           | `--opera`        | Run the Opera tests                       |
+| `-gc`          | `--chrome`       | Run the Chrome (google-chrome) tests      |
+| `-su`          | `--super-user`   | Run the tests with a super user           |
+| `-ru`          | `--regular-user` | Run the tests with a regular user         |
+
+One can also run a particular class directly using `python3 -m unittest <filename>.<ClassName>` (although the above flags are typically simpler). While unittest does support running tests by file, the setup of the test fixtures does not allow that and will run duplicate tests, some of which will fail, and, thus, the `python3 -m unittest <filename>` syntax is not to be used. Each detailed class, if run with the unittest framework, should be run individually, and common classes should never be run (see [Adding Tests](#adding-tests)). Individual tests can be run with `python3 -m unittest <filename>.<ClassName>.<test_name>`. All tests should be run from the `unit_tests` folder to allow module imports to work properly. Note that individual test files, classes, and methods cannot currently be run with the `run_tests` script, and individual test methods cannot be run with the `python3 -m <filename>` syntax.
 
 The tests should be run as a non-root user. Root users may experience problems with the Chromium browser tests, as Chromium is not designed to run as a root user.
 
@@ -160,7 +173,7 @@ New types of objects can also be added to the suite, in a similar manner. A new 
 
 There are two categories of objects - some that are created by `setup_objects()` regardless of arguments passed, and some that are only created when the tests request them. The objects created under [Universal Objects](#universal-objects) are created automatically when `setup_objects()` is run, regardless of arguments. To create the other set of objects, pass the names of the object groups (ie "users") to the `setup()` function as a list of strings.
 
-The key setup does not have a cloudscheduler cli setup, and as such is done via the [Openstack CLI](#openstack-cli). Objects should be created using the cloudscheduler cli if possible, but those that cannot be can be created using other processes. A command-line tool is preferable to a browser-based tool controlled by Selenium.
+The key setup does not have a cloudscheduler cli setup, and as such is done via the [Openstack CLI](#openstack-cli). Objects should be created using the cloudscheduler cli if possible, but those that cannot be can be created using other processes, keeping in mind that a command-line tool is preferable to a browser-based tool controlled by Selenium.
 
 There is one additional group created as part of the universal setup that is not specified below and has no output in the setup scripts. It is not to be edited in any way during the tests, and any user used to run tests (currently `{user}-wiu1` and `{user}-wiu2`) should be in it. The real user account (ie `{user}`) is also added to this group when it is created, to allow this user to make the test objects within this group. The group is called `{user}-wig0`. All clouds, aliases, and any other objects requiring a group are and should be created under this group, with a few rare exceptions (for example, if a group test requires a group to have a cloud in it). It is saved as `gvar['base_group']`. It is the first item created as part of the setup, and the last item deleted, and should remain so. Many functions have an optional `group` argument that is invoked to prevent cloud tests from failing, and, if needed, this is the group that should be passed.
 
@@ -240,7 +253,7 @@ This section discusses all the changes that would be beneficial to the web test 
 
 These items should ideally be fixed before the test suite is complete.
 
-### Functional
+#### Functional
 
 These items should be finished before the test suite is considered completed. They affect the test suite's functionality.
 
@@ -248,7 +261,7 @@ These items should be finished before the test suite is considered completed. Th
 
 - Time-dependent flaky tests for status page (may be fixed)
 
-### Tidying Up
+#### Tidying Up
 
 These items shouldn't affect the test suite's functionality much, but they would make it tidier and easier to work with. They should be done before the test suite is considered completed if possible, but they won't break anything if they aren't.
 
@@ -259,6 +272,8 @@ These items shouldn't affect the test suite's functionality much, but they would
 - Update comments/docstrings
 
 - Remove code that was commented out for testing
+
+- Remove status test outputs
 
 ### Additional Features
 
@@ -291,3 +306,5 @@ These items are not necessary, but would be useful.
 - Safari/Edge/IE tests (likely require VMs and use of `webdriver.Remote`)
 
 - Headless test option (for Firefox/Chrome only)
+
+- Better keyboard interrupt handling
