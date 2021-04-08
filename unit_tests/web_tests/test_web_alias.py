@@ -1,4 +1,5 @@
 import unittest
+import sys
 import web_tests.web_test_setup_cleanup as wtsc
 import web_tests.web_test_assertions_v2 as wta
 import web_tests.web_test_page_objects as pages
@@ -217,4 +218,10 @@ class TestWebAliasRegularUserChrome(TestWebAliasCommon):
         print("\nAlias Tests (Chrome) (Regular User):")
 
 if __name__ == '__main__':
-    unittest.main()
+    runner = unittest.TextTestRunner(verbosity=2)
+    tests = [ TestWebAliasSuperUserFirefox, TestWebAliasRegularUserFirefox,
+              TestWebAliasSuperUserChromium, TestWebAliasRegularUserChromium,
+              TestWebAliasSuperUserOpera, TestWebAliasRegularUserOpera,
+              TestWebAliasSuperUserChrome, TestWebAliasRegularUserChrome ]
+    suite = helpers.parse_command_line_arguments(sys.argv, tests, True)
+    runner.run(suite)
