@@ -24,7 +24,7 @@ Install `python3` using your default package manager. Selenium Webdriver for Pyt
 
 The key tests require the Openstack command line interface.
 
-Install the Openstack cli via `pip3 install python-openstackclient`. Set the environment variable `XDG_SESSION_TYPE` to `wayland`. Download the Openstack RC from [Beaver](https://beaver.heprc.uvic.ca/dashboard/project/api_access/), save it to the `misc_files` directory, and source it. You will need your Openstack password to source it.
+Install the Openstack cli via `pip3 install python-openstackclient`. Set your host computer's environment variable `XDG_SESSION_TYPE` to `wayland`.
 
 ### Testing Files
 
@@ -40,7 +40,7 @@ Firefox comes preinstalled on Linux machines, or can be downloaded from [Mozilla
 
 ### Chromium and Chromedriver
 
-Chromedriver and Chromium can be installed through the default package manager. 
+Chromedriver and Chromium can be installed through the default package manager. They may require the EPEL repository (which can also be installed via the default package manager).
 
 ### Opera and OperaChromiumDriver
 
@@ -48,7 +48,7 @@ Opera can be installed following the instructions [here](https://www.itzgeek.com
 
 ### Chrome and Chromedriver
 
-Chrome can be installed following the instructions [here](https://linuxize.com/post/how-to-install-google-chrome-web-browser-on-centos-7/) or via [Chrome's website](https://www.google.com/intl/en_ca/chrome/). Chromedriver can be installed through the default package manager. 
+Chrome can be installed following the instructions [here](https://linuxize.com/post/how-to-install-google-chrome-web-browser-on-centos-7/) or via [Chrome's website](https://www.google.com/intl/en_ca/chrome/). Chromedriver can be installed through the default package manager, but may require the EPEL repository (which can also be installed via the default package manager). 
 
 ### Other Setup
 
@@ -65,6 +65,18 @@ To modify the server at which the tests are addressed (not mandatory for origina
 New test modules should be named starting with `test_web_` (the modules starting with `web_test_` are helper modules). The test files should be named `test_web_<page>.py`. The common class, where the majority of tests are implemented, should be named `TestWeb<Page>Common`. The classes with the proper setups (see below) should be named `TestWeb<Page><UserType><Browser>`. Individual tests should be named `test_web_<page>_<action>_<details>`, where `<action>` is the name of the action using the `cloudscheduler` command. If suitably complex, `<action>` should ideally be formatted as `<object>_<action_on_object>_<details>`. Note that individual tests having names that start with `test` is currently the only breaking naming requirement.
 
 All test files must be put in the `web_tests` directory, and each test file must be imported into `create_test_suite.py` and have its classes added to the lists of tests for their respective browsers. Note that the detailed classes (see below) should be the only ones put in here - the common classes (see below) do not have the proper setup to be run on their own and should not be included.
+
+Additionally, each new test module should contain the following code:
+
+```python
+if __name__ == "__main__":
+    runner = unittest.TextTestRunner(verbosity=2)
+    tests = [ <TestClasses> ]
+    suite = helpers.parse_command_line_arguments(sys.argv, tests, <has_regular_user>)
+    runner.run(suite)
+```
+
+`<TestClasses>` should be a list of the detailed classes, sorted by browser (currently in the order Firefox, Chromium, Opera, Chrome), and, within that, the users (super user then regular user). The order is important - the flags will fail without using the correct order. `<has_regular_user>` is a true/false flag of whether the module has regular user tests.
 
 New tests should additionally follow all rules for Unittest test classes, as they are run using the Unittest framework.
 
@@ -257,9 +269,9 @@ These items should ideally be fixed before the test suite is complete.
 
 These items should be finished before the test suite is considered completed. They affect the test suite's functionality.
 
-- Script to set up test starter files (image files, key files, etc) - wip
+- Script to set up test starter files (image files, key files, etc) - wip (only needs Opera browser setup)
 
-- Time-dependent flaky tests for status page (may be fixed)
+- Time-dependent flaky tests for status page
 
 #### Tidying Up
 
