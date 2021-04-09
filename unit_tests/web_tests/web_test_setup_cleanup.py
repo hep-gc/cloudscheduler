@@ -5,6 +5,7 @@ from time import sleep
 import subprocess
 import signal
 import web_tests.web_test_helpers as helpers
+import os
 
 # This module contains setup and cleanup functions for the unittest web tests.
 # Setups and cleanups are done here to prevent issues of passing variables
@@ -214,11 +215,20 @@ def cleanup(cls, browser='firefox'):
     cleanup_objects(browser)
 
 def cleanup_objects(browser='firefox'):
+    #subprocess.call(helpers.misc_file_full_path('testing-openrc.sh'))
+
     gvar = load_settings(web=True)
     gvar['base_group'] = gvar['user'] + '-wig0'
 
     logfile = 'web_tests/misc_files/objects.txt'
     #beaver_cleanup_keys(gvar, 4, 2, browser)
+
+    os.environ['OS_PROJECT_NAME'] = gvar['cloud_credentials']['project']
+    os.environ['OS_USER_DOMAIN_NAME'] = 'Default'
+    os.environ['OS_PROJECT_DOMAIN_ID'] = 'default'
+    os.environ['OS_USERNAME'] = gvar['cloud_credentials']['username']
+    os.environ['OS_PASSWORD'] = gvar['cloud_credentials']['password']
+    os.environ['OS_REGION_NAME'] = gvar['cloud_credentials']['region']
 
     try:
         object_log = open(logfile, mode = 'x')

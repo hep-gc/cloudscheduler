@@ -73,13 +73,18 @@ if [ "$OPERA" = "y" ]; then
     fi
     OPERA_PATH=`which opera`
     if [ -z "$OPERA_PATH" ]; then
-        # install instructions found at https://www.itzgeek.com/how-tos/linux/centos-how-tos/how-to-install-opera-browser-on-centos-7-rhel-7-fedora-28-27.html
-        sudo wget https://download.opera.com/download/get/?partner=www&opsys=Linux
+        #sudo wget https://download.opera.com/download/get/?partner=www&opsys=Linux&package=RPM
+        pwd
+        ls -la
     fi
     OPERACHROMIUMDRIVER_PATH=`which operadriver`
     if [ $OPERACHROMIUMDRIVER_PATH ="\n" ]; then
         sudo wget https://github.com/operasoftware/operachromiumdriver/releases/latest/download/operadriver_linux64.zip 
        sudo unzip operadriver_linux64.zip
+       cd operadriver_linux64
+       sudo cp operadriver ..
+       cd ..
+       sudo chmod u+x operadriver
     fi
 fi
 
