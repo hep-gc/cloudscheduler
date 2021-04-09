@@ -1,14 +1,14 @@
 import unittest
-import .test_web_group as group
-import .test_web_user as user
-import .test_web_cloud as cloud
-import .test_web_alias as alias
-import .test_web_default as default
-import .test_web_image as image
-import .test_web_setting as setting
-import .test_web_config as config
-import .test_web_key as key
-import .test_web_status as status
+import web_tests.test_web_group as group
+import web_tests.test_web_user as user
+import web_tests.test_web_cloud as cloud
+import web_tests.test_web_alias as alias
+import web_tests.test_web_default as default
+import web_tests.test_web_image as image
+import web_tests.test_web_setting as setting
+import web_tests.test_web_config as config
+import web_tests.test_web_key as key
+import web_tests.test_web_status as status
 
 #IMPORTANT: All web tests must be added to the `tests` array in the appropriate browser's test suite in order for the `run_tests` script to pick them up
 def firefox_test_suite():
