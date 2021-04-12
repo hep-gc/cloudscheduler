@@ -271,7 +271,7 @@ These items should be finished before the test suite is considered completed. Th
 
 - Script to set up test starter files (image files, key files, etc) - wip (only needs Opera browser setup)
 
-- Time-dependent flaky tests for status page
+- Time-dependent flaky tests for status page - rewrite time rounding function (needs testing)
 
 #### Tidying Up
 
@@ -306,8 +306,6 @@ These items are additional test coverage that may or may not be necessary.
 #### Other Features
 
 These items are not necessary, but would be useful.
-
-- Rewrite time rounding function
 
 - Alternate assertion information passing (phase out logfiles)
 
