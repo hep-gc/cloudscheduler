@@ -146,6 +146,32 @@ def round_date(dt, round, forward):
                     dt = dt.replace(month=dt.month+2, day=1)
     return dt
 
+def margin_units_from_units(units):
+    if units == 'seconds' or units == 'minutes' or units == 'hours':
+        return 'minutes'
+    elif units == 'days':
+        return 'hours'
+    elif units == 'weeks' or units == 'months' or units == 'years':
+        return 'days'
+
+def time_within_margin(shown_time, true_time, margin, units):
+    import datetime
+
+    first = None
+    last = None
+    # last is multiplied by 2 to account for the graph sometimes rounding the
+    # value forward
+    if units == 'minutes':
+        first = true_time - datetime.timedelta(seconds=int(margin*60))
+        last = true_time + datetime.timedelta(seconds=int(margin*120))
+    elif units == 'hours':
+        first = true_time - datetime.timedelta(hours=margin)
+        last = true_time + datetime.timedelta(hours=margin*2)
+    elif units == 'days':
+        first = true_time - datetime.timedelta(days=margin*2)
+        last = true_time + datetime.timedelta(days=margin)
+    return shown_time > first and shown_time < last
+
 def parse_command_line_arguments(args, classes, has_regular_user):
     import unittest
 

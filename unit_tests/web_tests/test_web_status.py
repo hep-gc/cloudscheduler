@@ -304,160 +304,160 @@ class TestWebStatusCommon(unittest.TestCase):
         # Sets the plot's time range to the last hour
         self.page.click_vm_data_box(self.group_name, self.cloud_name, 'VMs')
         self.page.select_plot_range('Last 1 hour')
-        self.assertTrue(self.page.first_time_on_plot_before_now(1, 'hours', 10))
+        self.assertTrue(self.page.first_time_on_plot_before_now_within(1, 'hours', 10))
         self.page.click_close_plot()
 
     def test_web_status_plot_open_time_minutes_five(self):
         # Sets the plot's time range to the last five minutes
         self.page.click_vm_data_box(self.group_name, self.cloud_name, 'VMs')
         self.page.select_plot_range('Last 5 minutes')
-        self.assertTrue(self.page.first_time_on_plot_before_now(5, 'minutes', 0.5))
+        self.assertTrue(self.page.first_time_on_plot_before_now_within(5, 'minutes', 0.5))
         self.page.click_close_plot()
 
     def test_web_status_plot_open_time_minutes_fifteen(self):
         # Sets the plot's time range to the last fifteen minutes
         self.page.click_vm_data_box(self.group_name, self.cloud_name, 'VMs')
         self.page.select_plot_range('Last 15 minutes')
-        self.assertTrue(self.page.first_time_on_plot_before_now(15, 'minutes', 2))
+        self.assertTrue(self.page.first_time_on_plot_before_now_within(15, 'minutes', 2))
         self.page.click_close_plot()
 
     def test_web_status_plot_open_time_minutes_thirty(self):
         # Sets the plot's time range to the last thirty minutes
         self.page.click_vm_data_box(self.group_name, self.cloud_name, 'VMs')
         self.page.select_plot_range('Last 30 minutes')
-        self.assertTrue(self.page.first_time_on_plot_before_now(30, 'minutes', 5))
+        self.assertTrue(self.page.first_time_on_plot_before_now_within(30, 'minutes', 5))
         self.page.click_close_plot()
 
     def test_web_status_plot_open_time_hours_three(self):
         # Sets the plot's time range to the last three hours
         self.page.click_vm_data_box(self.group_name, self.cloud_name, 'VMs')
         self.page.select_plot_range('Last 3 hours')
-        self.assertTrue(self.page.first_time_on_plot_before_now(3, 'hours', 30))
+        self.assertTrue(self.page.first_time_on_plot_before_now_within(3, 'hours', 30))
         self.page.click_close_plot()
 
     def test_web_status_plot_open_time_hours_six(self):
         # Sets the plot's time range to the last six hours
         self.page.click_vm_data_box(self.group_name, self.cloud_name, 'VMs')
         self.page.select_plot_range('Last 6 hours')
-        self.assertTrue(self.page.first_time_on_plot_before_now(6, 'hours', 60))
+        self.assertTrue(self.page.first_time_on_plot_before_now_within(6, 'hours', 60))
         self.page.click_close_plot()
 
     def test_web_status_plot_open_time_hours_twelve(self):
         # Sets the plot's time range to the last twelve hours
         self.page.click_vm_data_box(self.group_name, self.cloud_name, 'VMs')
         self.page.select_plot_range('Last 12 hours')
-        self.assertTrue(self.page.first_time_on_plot_before_now(12, 'hours', 120))
+        self.assertTrue(self.page.first_time_on_plot_before_now_within(12, 'hours', 120))
         self.page.click_close_plot()
 
     def test_web_status_plot_open_time_hours_twenty_four(self):
         # Sets the plot's time range to the last twenty-four hours
         self.page.click_vm_data_box(self.group_name, self.cloud_name, 'VMs')
         self.page.select_plot_range('Last 24 hours')
-        self.assertTrue(self.page.first_time_on_plot_before_now(24, 'hours', 180))
+        self.assertTrue(self.page.first_time_on_plot_before_now_within(24, 'hours', 180))
         self.page.click_close_plot()
 
     def test_web_status_plot_open_time_days_seven(self):
         # Sets the plot's time range to the last seven days
         self.page.click_vm_data_box(self.group_name, self.cloud_name, 'VMs')
         self.page.select_plot_range('Last 7 days')
-        self.assertTrue(self.page.first_date_on_plot_before_now(7, 'days', 1))
+        self.assertTrue(self.page.first_time_on_plot_before_now_within(7, 'days', 24))
         self.page.click_close_plot()
 
     def test_web_status_plot_open_time_days_thirty(self):
         # Sets the plot's time range to the last thirty days
         self.page.click_vm_data_box(self.group_name, self.cloud_name, 'VMs')
         self.page.select_plot_range('Last 30 days')
-        self.assertTrue(self.page.first_date_on_plot_before_now(30, 'days', 7))
+        self.assertTrue(self.page.first_time_on_plot_before_now_within(30, 'days', 168))
         self.page.click_close_plot()
 
     def test_web_status_plot_open_time_days_sixty(self):
         # Sets the plot's time range to the last sixty days
         self.page.click_vm_data_box(self.group_name, self.cloud_name, 'VMs')
         self.page.select_plot_range('Last 60 days')
-        self.assertTrue(self.page.first_date_on_plot_before_now(60, 'days', 7))
+        self.assertTrue(self.page.first_time_on_plot_before_now_within(60, 'days', 168))
         self.page.click_close_plot()
 
     def test_web_status_plot_open_time_days_ninety(self):
         # Sets the plot's time range to the last ninety days
         self.page.click_vm_data_box(self.group_name, self.cloud_name, 'VMs')
         self.page.select_plot_range('Last 90 days')
-        self.assertTrue(self.page.first_date_on_plot_before_now(90, 'days', 14))
+        self.assertTrue(self.page.first_time_on_plot_before_now_within(90, 'days', 336))
         self.page.click_close_plot()
 
     def test_web_status_plot_open_time_months_six(self):
         # Sets the plot's time range to the last six months
         self.page.click_vm_data_box(self.group_name, self.cloud_name, 'VMs')
         self.page.select_plot_range('Last 6 months')
-        self.assertTrue(self.page.first_date_on_plot_before_now(6, 'months', 31))
+        self.assertTrue(self.page.first_time_on_plot_before_now_within(6, 'months', 31))
         self.page.click_close_plot()
 
     def test_web_status_plot_open_time_years_one(self):
         # Sets the plot's tiime range to the last year
         self.page.click_vm_data_box(self.group_name, self.cloud_name, 'VMs')
         self.page.select_plot_range('Last 1 year')
-        self.assertTrue(self.page.first_date_on_plot_before_now(1, 'years', 62))
+        self.assertTrue(self.page.first_time_on_plot_before_now_within(1, 'years', 62))
         self.page.click_close_plot()
 
     def test_web_status_plot_open_time_years_two(self):
         # Sets the plot's time range to the last two years
         self.page.click_vm_data_box(self.group_name, self.cloud_name, 'VMs')
         self.page.select_plot_range('Last 2 years')
-        self.assertTrue(self.page.first_date_on_plot_before_now(2, 'years', 93))
+        self.assertTrue(self.page.first_time_on_plot_before_now_within(2, 'years', 93))
         self.page.click_close_plot()
 
     def test_web_status_plot_open_time_years_five(self):
         # Sets the plot's time range to the last five years
         self.page.click_vm_data_box(self.group_name, self.cloud_name, 'VMs')
         self.page.select_plot_range('Last 5 years')
-        self.assertTrue(self.page.first_date_on_plot_before_now(5, 'years', 186))
+        self.assertTrue(self.page.first_time_on_plot_before_now_within(5, 'years', 186))
         self.page.click_close_plot()
 
     def test_web_status_plot_open_time_previous_day(self):
         # Sets the plot's time range to the previous day
         self.page.click_vm_data_box(self.group_name, self.cloud_name, 'VMs')
         self.page.select_plot_range('Yesterday')
-        self.assertTrue(self.page.first_time_on_plot_before_now(2, 'days', 180))
-        self.assertTrue(self.page.last_time_on_plot_before_now(1, 'days', 180))
+        self.assertTrue(self.page.first_time_on_plot_before_now_within(2, 'days', 3))
+        self.assertTrue(self.page.last_time_on_plot_before_now_within(1, 'days', 3))
         self.page.click_close_plot()
 
     def test_web_status_plot_open_time_day_before_yesterday(self):
         # Sets the plot's time range to the day before yesterday
         self.page.click_vm_data_box(self.group_name, self.cloud_name, 'VMs')
         self.page.select_plot_range('Day before yesterday')
-        self.assertTrue(self.page.first_time_on_plot_before_now(3, 'days', 180))
-        self.assertTrue(self.page.last_time_on_plot_before_now(2, 'days', 180))
+        self.assertTrue(self.page.first_time_on_plot_before_now_within(3, 'days', 3))
+        self.assertTrue(self.page.last_time_on_plot_before_now_within(2, 'days', 3))
         self.page.click_close_plot()
 
     def test_web_status_plot_open_time_day_last_week(self):
         # Sets the plot's time range to this day last week
         self.page.click_vm_data_box(self.group_name, self.cloud_name, 'VMs')
         self.page.select_plot_range('This day last week')
-        self.assertTrue(self.page.first_time_on_plot_before_now(193, 'hours', 180))
-        self.assertTrue(self.page.last_time_on_plot_before_now(7, 'days', 180))
+        self.assertTrue(self.page.first_time_on_plot_before_now_within(193, 'hours', 180))
+        self.assertTrue(self.page.last_time_on_plot_before_now_within(7, 'days', 3))
         self.page.click_close_plot()
 
     def test_web_status_plot_open_time_previous_week(self):
         # Sets the plot's time range to the week before
         self.page.click_vm_data_box(self.group_name, self.cloud_name, 'VMs')
         self.page.select_plot_range('Previous week')
-        self.assertTrue(self.page.first_date_on_plot_before_now(14, 'days', 1))
-        self.assertTrue(self.page.last_date_on_plot_before_now(7, 'days', 1))
+        self.assertTrue(self.page.first_time_on_plot_before_now_within(14, 'days', 24))
+        self.assertTrue(self.page.last_time_on_plot_before_now_within(7, 'days', 24))
         self.page.click_close_plot()
 
     def test_web_status_plot_open_time_previous_month(self):
         # Sets the plot's time range to the month before
         self.page.click_vm_data_box(self.group_name, self.cloud_name, 'VMs')
         self.page.select_plot_range('Previous month')
-        self.assertTrue(self.page.first_date_on_plot_before_now(2, 'months', 7))
-        self.assertTrue(self.page.last_date_on_plot_before_now(1, 'months', 7))
+        self.assertTrue(self.page.first_time_on_plot_before_now_within(2, 'months', 7))
+        self.assertTrue(self.page.last_time_on_plot_before_now_within(1, 'months', 7))
         self.page.click_close_plot()
 
     def test_web_status_plot_open_time_previous_year(self):
         # Sets the plot's time range to the year before
         self.page.click_vm_data_box(self.group_name, self.cloud_name, 'VMs')
         self.page.select_plot_range('Previous year')
-        self.assertTrue(self.page.first_date_on_plot_before_now(2, 'years', 62))
-        self.assertTrue(self.page.last_date_on_plot_before_now(1, 'years', 62))
+        self.assertTrue(self.page.first_time_on_plot_before_now_within(2, 'years', 62))
+        self.assertTrue(self.page.last_time_on_plot_before_now_within(1, 'years', 62))
         self.page.click_close_plot()
 
     def test_web_status_plot_hide_line(self):

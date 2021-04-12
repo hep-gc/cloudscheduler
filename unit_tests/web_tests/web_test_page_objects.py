@@ -225,23 +225,7 @@ class StatusPage(Page):
         element = self.driver.find_element_by_id('plot')
         return element.is_displayed()
 
-    def first_date_on_plot_before_now(self, time, units, margin):
-        sleep(10)
-        xpath = wtxs.axis_data_point('xtick')
-        WebDriverWait(self.driver, 20).until(
-            EC.presence_of_element_located((By.XPATH, xpath)))
-        element = self.driver.find_element_by_xpath(xpath) 
-        chart_date = helpers.parse_datetime(element.text)
-        test_date = helpers.time_before(time, units)
-        print(test_date)
-        test_date = helpers.round_date(test_date, margin, True)
-        if margin > 30:
-            test_date = test_date.replace(day=1)
-        print(chart_date)
-        print(test_date)
-        return chart_date.date() == test_date.date()
-
-    def first_time_on_plot_before_now(self, time, units, margin):
+    def first_time_on_plot_before_now_within(self, time, units, margin):
         sleep(10)
         xpath = wtxs.axis_data_point('xtick')
         WebDriverWait(self.driver, 20).until(
@@ -249,35 +233,11 @@ class StatusPage(Page):
         element = self.driver.find_element_by_xpath(xpath)
         chart_time = helpers.parse_datetime(element.text)
         test_time = helpers.time_before(time, units)
-        print(test_time)
-        test_time = helpers.round_datetime(test_time, margin*60, True)
-        print(chart_time)
-        print(test_time)
-        return chart_time == test_time
+        margin_units = helpers.margin_units_from_units(units)
+        return helpers.time_within_margin(chart_time, test_time, margin, margin_units)
 
-    def last_date_on_plot_before_now(self, time, units, margin):
+    def last_time_on_plot_before_now_within(self, time, units, margin):
         sleep(10)
-        xpath = wtxs.axis_data_point('xtick')
-        WebDriverWait(self.driver, 20).until(
-            EC.presence_of_element_located((By.XPATH, xpath)))
-        elements = self.driver.find_elements_by_xpath(xpath)
-        element = elements[-1]
-        chart_date = helpers.parse_datetime(element.text)
-        for element in reversed(elements):
-            date_element = helpers.parse_datetime(element.text)
-            if date_element.year != 1900:
-                 chart_date = chart_date.replace(year=date_element.year)
-                 break
-        test_date = helpers.time_before(time, units)
-        print(test_date)
-        test_date = helpers.round_date(test_date, margin, False)
-        if margin > 30:
-            test_date = test_date.replace(day=1)
-        print(chart_date)
-        print(test_date)
-        return chart_date.date() == test_date.date()
-
-    def last_time_on_plot_before_now(self, time, units, margin):
         xpath = wtxs.axis_data_point('xtick')
         WebDriverWait(self.driver, 20).until(
             EC.presence_of_element_located((By.XPATH, xpath)))
@@ -287,7 +247,7 @@ class StatusPage(Page):
         chart_time_date = None
         for element in reversed(elements):
             date_element = helpers.parse_datetime(element.text)
-            if date_element.year != 1900:
+            if date_element.year != 1900 or (chart_time_time.hour == 0 and chart_time_time.minute == 0):
                  if date_element.month != 1 or date_element.day != 1:
                      chart_time_date = date_element
                      for element_inner in reversed(elements):
@@ -301,8 +261,8 @@ class StatusPage(Page):
                  break
         chart_time = datetime.datetime.combine(chart_time_date.date(), chart_time_time.time())
         test_time = helpers.time_before(time, units)
-        test_time = helpers.round_datetime(test_time, margin*60, False)
-        return chart_time == test_time
+        margin_units = helpers.margin_units_from_units(units)
+        return helpers.time_within_margin(chart_time, test_time, margin, margin_units)
 
     def plot_has_legend(self, legend):
         xpath = wtxs.legend_item(legend)
