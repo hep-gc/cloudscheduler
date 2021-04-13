@@ -1,7 +1,7 @@
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-from selenium.common.exceptions import TimeoutException, UnexpectedAlertPresentException
+from selenium.common.exceptions import TimeoutException, UnexpectedAlertPresentException, ElementClickInterceptedException
 from selenium.webdriver.common.keys import Keys
 from time import sleep
 import datetime
@@ -64,12 +64,20 @@ class StatusPage(Page):
         wti.click_by_xpath(self.driver, xpath)
 
     def click_job_data_box(self, group, state):
+        #sleep(1)
         state_tag = '_' + state.lower()
         if state == 'Jobs':
             state_tag = ''
         path = group + ' jobs' + state_tag
         xpath = wtxs.data_box(path)
-        wti.click_by_xpath(self.driver, xpath)
+        try:
+            wti.click_by_xpath(self.driver, xpath)
+        except ElementClickInterceptedException:
+            print("Exception") 
+            sleep(0.5)
+            wti.click_by_xpath(self.driver, xpath)
+        WebDriverWait(self.driver, 20).until(
+            EC.presence_of_element_located((By.CLASS_NAME, 'plot-container')))
 
     def click_vms_group_expand(self, group):
         xpath = wtxs.status_page_dropdown('2', group)
@@ -80,12 +88,19 @@ class StatusPage(Page):
         wti.click_by_xpath(self.driver, xpath)
 
     def click_rt_data_box(self, group, cloud):
+        #sleep(1)
         xpath = wtxs.data_box(group + ' ' + cloud + ' communication_rt')
-        wti.click_by_xpath(self.driver, xpath)
+        try:
+            wti.click_by_xpath(self.driver, xpath)
+        except ElementClickInterceptedException:
+            print("Exception") 
+            sleep(0.5)
+            wti.click_by_xpath(self.driver, xpath)
         WebDriverWait(self.driver, 20).until(
             EC.presence_of_element_located((By.CLASS_NAME, 'plot-container')))
 
     def click_vm_data_box(self, group, cloud, state):
+        sleep(1)
         state_tag = '_' + state.lower()
         if state == 'VMs':
             state_tag = ''
@@ -97,11 +112,17 @@ class StatusPage(Page):
         else:
             path = group + ' ' +  cloud + ' VMs' + state_tag
         xpath = wtxs.data_box(path)
-        wti.click_by_xpath(self.driver, xpath)
+        try:
+            wti.click_by_xpath(self.driver, xpath)
+        except ElementClickInterceptedException:
+            print("Exception") 
+            sleep(0.5)
+            wti.click_by_xpath(self.driver, xpath)
         WebDriverWait(self.driver, 20).until(
             EC.presence_of_element_located((By.CLASS_NAME, 'plot-container')))
 
     def click_slot_data_box(self, group, cloud, state):
+        #sleep(1)
         state_tag = '_' + state.lower()
         if state == 'Slots':
             state_tag = '_count'
@@ -115,11 +136,17 @@ class StatusPage(Page):
         else:
             path = group + ' ' + cloud + ' slot' + state_tag
         xpath = wtxs.data_box(path)
-        wti.click_by_xpath(self.driver, xpath)
+        try:
+            wti.click_by_xpath(self.driver, xpath)
+        except ElementClickInterceptedException:
+            print("Exception") 
+            sleep(0.5)
+            wti.click_by_xpath(self.driver, xpath)
         WebDriverWait(self.driver, 20).until(
             EC.presence_of_element_located((By.CLASS_NAME, 'plot-container')))
 
     def click_native_cores_data_box(self, group, cloud, state):
+        #sleep(1)
         state_tag = '_' + state.lower()
         if state == 'Used':
             state_tag = '_native'
@@ -129,33 +156,58 @@ class StatusPage(Page):
         else:
             path = group + ' ' + cloud + ' cores' + state_tag
         xpath = wtxs.data_box(path)
-        wti.click_by_xpath(self.driver, xpath)
+        try:
+            wti.click_by_xpath(self.driver, xpath)
+        except ElementClickInterceptedException:
+            print("Exception") 
+            sleep(0.5)
+            wti.click_by_xpath(self.driver, xpath)
         WebDriverWait(self.driver, 20).until(
             EC.presence_of_element_located((By.CLASS_NAME, 'plot-container')))
 
     def click_foreign_data_box(self, group, cloud, state):
+        #sleep(1)
         state_tag = state.lower() + '_foreign'
         if state == 'VMs':
             state_tag = 'Foreign_VMs'
         path = group + ' ' + cloud + ' ' + state_tag
         xpath = wtxs.data_box(path)
-        wti.click_by_xpath(self.driver, xpath)
+        try:
+            wti.click_by_xpath(self.driver, xpath)
+        except ElementClickInterceptedException:
+            print("Exception") 
+            sleep(0.5)
+            wti.click_by_xpath(self.driver, xpath)
         WebDriverWait(self.driver, 20).until(
             EC.presence_of_element_located((By.CLASS_NAME, 'plot-container')))
 
     def click_global_data_box(self, group, cloud, state):
+        #sleep(1)
         state_tag = state.lower()
         if state == 'VMs':
             state_tag = state
         path = group + ' ' + cloud + ' ' + state_tag + '_native_foreign'
         xpath = wtxs.data_box(path)
-        wti.click_by_xpath(self.driver, xpath)
+        try:
+            wti.click_by_xpath(self.driver, xpath)
+        except ElementClickInterceptedException:
+            print("Exception") 
+            sleep(0.5)
+            wti.click_by_xpath(self.driver, xpath)
         WebDriverWait(self.driver, 20).until(
             EC.presence_of_element_located((By.CLASS_NAME, 'plot-container')))
 
     def click_ram_data_box(self, group, cloud):
+        #sleep(1)
         xpath = wtxs.data_box(group + ' ' + cloud + ' ' + 'ram_native')
-        wti.click_by_xpath(self.driver, xpath)
+        try:
+            wti.click_by_xpath(self.driver, xpath)
+        except ElementClickInterceptedException:
+            print("Exception") 
+            sleep(0.5)
+            wti.click_by_xpath(self.driver, xpath)
+        WebDriverWait(self.driver, 20).until(
+            EC.presence_of_element_located((By.CLASS_NAME, 'plot-container')))
 
     def select_plot_range(self, range):
         xpath = wtxs.div_a_by_text('myDropdown', range)
