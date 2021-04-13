@@ -12,21 +12,47 @@ Note that unless web tests are specifically excluded from the command, web tests
 
 This section covers the steps to install the necessary web test components. [Python and Selenium](#python-and-selenium), [Openstack CLI](#openstack-cli), and [Testing Files](#testing-files) are needed for tests with any browser. At least one of [Firefox and Geckodriver](#firefox-and-geckodriver), [Chromium and Chromedriver](#chromium-and-chromedriver), [Opera and OperaChromiumDriver](#opera-and-operachromiumdriver), or [Chrome and Chromedriver](#chrome-and-chromedriver) is needed for any sort of browser tests. The full `run_tests` script requires all available browsers.
 
-Additionally, all the setup in [Other Setup](#other-setup) should be completed for all the tests.
+The [Setup Script](#setup-script) automates these steps for some operating systems.
 
-### Python and Selenium
+Additionally, all the setup in [Other Setup](#other-setup) should be completed for all the tests, even if using the setup script.
+
+### Setup Script
+
+Some operating systems have a setup script (stored in `unit_tests/web_tests/setup_scripts`) to automate the setup.
+
+#### Object Setup
+
+Object setup is supported on any bash shell (currently tested for CentOS 7). 
+
+The object setup can be run via `./web_test_setup_objects` in the `setup_scripts` directory. It will create the necessary keypairs and vm images for the tests.
+
+The object setup replaces the [Testing Files](#testing-files) section.
+
+#### Full Setup
+
+Full setup is supported on CentOS 7 and Ubuntu (version unknown - Ubuntu script is a work in progress).
+
+The full setup can be run via `./web_test_setup_full_<operating_system>` in the `setup_scripts` directory. It will install the necessary software (including Python, Selenium, and the Openstack command line interface) and will ask for installation for each browser and corresponding driver. It also creates the setup objects.
+
+Note that, if the full setup is run, the object setup does not need to be run in addition.
+
+### Manual Setup
+
+If you are attempting to run the testing framework on an operating system that doesn't support a setup script, the steps below can be performed manually. 
+
+#### Python and Selenium
 
 The web tests require Python3 and the Python Selenium bindings to run.
 
 Install `python3` using your default package manager. Selenium Webdriver for Python can then be installed via `pip3 install selenium`.
 
-### Openstack CLI
+#### Openstack CLI
 
 The key tests require the Openstack command line interface.
 
 Install the Openstack cli via `pip3 install python-openstackclient`. Set your host computer's environment variable `XDG_SESSION_TYPE` to `wayland`.
 
-### Testing Files
+#### Testing Files
 
 The tests require four images in RAW format and two ssh keys for upload purposes.
 
@@ -34,19 +60,19 @@ Download a [CernVM image](http://cernvm.cern.ch/releases/production/cernvm4-micr
 
 Create a public key using `ssh-keygen`. Name it `{user}-wik3` and put it in the `misc_files` directory. Do not use a passphrase. Create another public key in the same manner, naming it `invalid-web-test`.
 
-### Firefox and Geckodriver
+#### Firefox and Geckodriver
 
 Firefox comes preinstalled on Linux machines, or can be downloaded from [Mozilla](https://www.mozilla.org/en-CA/firefox/new/). Geckodriver can be downloaded from [GitHub](https://github.com/mozilla/geckodriver/releases/tag/v0.28.0). 
 
-### Chromium and Chromedriver
+#### Chromium and Chromedriver
 
 Chromedriver and Chromium can be installed through the default package manager. They may require the EPEL repository (which can also be installed via the default package manager).
 
-### Opera and OperaChromiumDriver
+#### Opera and OperaChromiumDriver
 
 Opera can be installed following the instructions [here](https://www.itzgeek.com/how-tos/linux/centos-how-tos/how-to-install-opera-browser-on-centos-7-rhel-7-fedora-28-27.html) or from their [web site](https://www.opera.com/download). OperaChromiumDriver, the driver for Opera versions 12 and later, can be downloaded from [Github](https://github.com/operasoftware/operachromiumdriver/releases).
 
-### Chrome and Chromedriver
+#### Chrome and Chromedriver
 
 Chrome can be installed following the instructions [here](https://linuxize.com/post/how-to-install-google-chrome-web-browser-on-centos-7/) or via [Chrome's website](https://www.google.com/intl/en_ca/chrome/). Chromedriver can be installed through the default package manager, but may require the EPEL repository (which can also be installed via the default package manager). 
 
@@ -269,9 +295,9 @@ These items should ideally be fixed before the test suite is complete.
 
 These items should be finished before the test suite is considered completed. They affect the test suite's functionality.
 
-- Script to set up test starter files (image files, key files, etc) - wip (only needs Opera browser setup)
+- Miscellaneous tests file (logout test, regular user can't do superuser actions tests)
 
-- Time-dependent flaky tests for status page - rewrite time rounding function (needs testing)
+- Expand available systems for setup script (ubuntu wip)
 
 #### Tidying Up
 
@@ -284,8 +310,6 @@ These items shouldn't affect the test suite's functionality much, but they would
 - Update comments/docstrings
 
 - Remove code that was commented out for testing
-
-- Remove status test outputs
 
 ### Additional Features
 
@@ -318,3 +342,5 @@ These items are not necessary, but would be useful.
 - Headless test option (for Firefox/Chrome only)
 
 - Better keyboard interrupt handling
+
+- Verify fixed error with row-spacer on status page
