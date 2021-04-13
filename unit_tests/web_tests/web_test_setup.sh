@@ -73,18 +73,27 @@ if [ "$OPERA" = "y" ]; then
     fi
     OPERA_PATH=`which opera`
     if [ -z "$OPERA_PATH" ]; then
-        #sudo wget https://download.opera.com/download/get/?partner=www&opsys=Linux&package=RPM
-        pwd
-        ls -la
+        # source for Opera installation: https://linuxconfig.org/how-to-install-opera-web-browser-on-linux
+        sudo rpm --import https://rpm.opera.com/rpmrepo.key
+        sudo tee /etc/yum.repos.d/opera.repo <<RPMREPO
+[opera]
+name=Opera packages
+type=rpm-md
+baseurl=https://rpm.opera.com/rpm
+gpgcheck=1
+gpgkey=https://rpm.opera.com/rpmrepo.key
+enabled=1
+RPMREPO
+        sudo yum -y install opera-stable
     fi
     OPERACHROMIUMDRIVER_PATH=`which operadriver`
-    if [ $OPERACHROMIUMDRIVER_PATH ="\n" ]; then
+    if [ -z "$OPERACHROMIUMDRIVER_PATH" ]; then
         sudo wget https://github.com/operasoftware/operachromiumdriver/releases/latest/download/operadriver_linux64.zip 
        sudo unzip operadriver_linux64.zip
        cd operadriver_linux64
        sudo cp operadriver ..
        cd ..
-       sudo chmod u+x operadriver
+       sudo chmod +x operadriver
     fi
 fi
 
