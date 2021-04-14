@@ -14,6 +14,8 @@ if [ -z "$pip_path" ]; then
     sudo yum -y install pip3
 fi
 
+sudo pip3 install --upgrade pip
+
 sudo pip3 install selenium
 
 sudo pip3 install python-openstackclient
@@ -101,7 +103,7 @@ read -p 'Install Chrome? [y/n]: ' chrome
 if [ "$chrome" = "y" ]; then
     chrome_path=`which google-chrome`
     if [ -z "$chrome_path" ]; then
-        wget https://dl.google.com/linux/direct/google-chrome-stable_current_x86_64.rpm
+        sudo wget https://dl.google.com/linux/direct/google-chrome-stable_current_x86_64.rpm
         sudo yum -y localinstall google-chrome-stable_current_x86_64.rpm
     fi
     chromedriver_path=`which chromedriver`
