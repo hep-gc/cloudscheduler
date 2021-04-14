@@ -6,7 +6,7 @@ To run the tests, follow the [setup](#setup) instructions, then use the instruct
 
 To develop tests, start with the above, then read the remainder of the document to understand how the tests are designed and set up. This document also contains a list of [todos and possible future features](#future-features-todos) for developers.
 
-Note that unless web tests are specifically excluded from the command, web tests will be run as part of the `run_tests` framework. In order to run the entirety of that framework, the web tests must be set up as in the [setup section](#setup).
+Note that unless web tests are specifically excluded from the command, web tests will be run as part of the [run_tests](../run_tests) framework. In order to run the entirety of that framework, the web tests must be set up as in the [setup section](#setup).
 
 ## Setup
 
@@ -19,6 +19,8 @@ Additionally, all the setup in [Other Setup](#other-setup) should be completed f
 ### Setup Script
 
 Some operating systems have a setup script (stored in `unit_tests/web_tests/setup_scripts`) to automate the setup.
+
+Note that the setup scripts assume the cloudscheduler repository is in the home directory. 
 
 #### Object Setup
 
@@ -84,13 +86,13 @@ The status tests require the system time to be set to the user time zone.
 
 A GUI is needed for the web tests.
 
-To modify the server at which the tests are addressed (not mandatory for original setup), the `unit-test` server url in `.csv2/unit-test/settings.yaml` must be modified accordingly, and the login credentials if necessary. The `server_url` variable in `web_test_helpers` should also be modified to match the new server.
+To modify the server at which the tests are addressed (not mandatory for original setup), the `unit-test` server url in `.csv2/unit-test/settings.yaml` must be modified accordingly, and the login credentials if necessary. The `server_url` variable in [web_test_helpers](./web_test_helpers.py) should also be modified to match the new server.
 
 ## Adding Tests
 
 New test modules should be named starting with `test_web_` (the modules starting with `web_test_` are helper modules). The test files should be named `test_web_<page>.py`. The common class, where the majority of tests are implemented, should be named `TestWeb<Page>Common`. The classes with the proper setups (see below) should be named `TestWeb<Page><UserType><Browser>`. Individual tests should be named `test_web_<page>_<action>_<details>`, where `<action>` is the name of the action using the `cloudscheduler` command. If suitably complex, `<action>` should ideally be formatted as `<object>_<action_on_object>_<details>`. Note that individual tests having names that start with `test` is currently the only breaking naming requirement.
 
-All test files must be put in the `web_tests` directory, and each test file must be imported into `create_test_suite.py` and have its classes added to the lists of tests for their respective browsers. Note that the detailed classes (see below) should be the only ones put in here - the common classes (see below) do not have the proper setup to be run on their own and should not be included.
+All test files must be put in the `web_tests` directory, and each test file must be imported into [create_test_suite.py](./create_test_suite.py) and have its classes added to the lists of tests for their respective browsers. Note that the detailed classes (see below) should be the only ones put in here - the common classes (see below) do not have the proper setup to be run on their own and should not be included.
 
 Additionally, each new test module should contain the following code:
 
@@ -106,9 +108,9 @@ if __name__ == "__main__":
 
 New tests should additionally follow all rules for Unittest test classes, as they are run using the Unittest framework.
 
-New test classes should include the `web_test_setup_cleanup` module and call the `setup()` function as part of the `setUpClass()` function, passing it the test class it is being called as a part of. `setup()` currently automatically deletes all old test setups when run (via calling the `cleanup()` function). The `cleanup()` function should be called during the `tearDownClass()` function, again passing it the test class it is being called in. `cleanup()` is also called on error in the setup, and `cleanup_objects()` is called on a `KeyboardInterrupt` at any time during the tests (using a handler contained in this module). Neither function will attempt to delete any object it cannot find. 
+New test classes should include the [web_test_setup_cleanup](./web_test_setup_cleanup.py) module and call the `setup()` function as part of the `setUpClass()` function, passing it the test class it is being called as a part of. `setup()` currently automatically deletes all old test setups when run (via calling the `cleanup()` function). The `cleanup()` function should be called during the `tearDownClass()` function, again passing it the test class it is being called in. `cleanup()` is also called on error in the setup, and `cleanup_objects()` is called on a `KeyboardInterrupt` at any time during the tests (using a handler contained in this module). Neither function will attempt to delete any object it cannot find. 
 
-New tests should include the `web_test_setup_cleanup`, `web_test_assertions_v2`, `web_test_page_objects`, and `web_test_helpers` modules. The other `web_test_*` modules are used in these modules, and should only be accessed via these modules. The `web_test_assertions` module is not and should not be used in any module, and should eventually be deleted. `web_test_helpers` is also included in `web_test_setup_cleanup`, but should not be used via that module. `web_test_helpers` is also used in the `web_test_page_objects` module. 
+New tests should include the [web_test_setup_cleanup](./web_test_setup_cleanup.py), [web_test_assertions_v2](./web_test_assertions_v2.py), [web_test_page_objects](./web_test_page_objects.py), and [web_test_helpers](./web_test_helpers.py) modules. The other `web_test_*` modules are used in these modules, and should only be accessed via these modules. The [web_test_assertions](./web_test_assertions.py) module is not and should not be used in any module, and should eventually be deleted. `web_test_helpers` is also included in `web_test_setup_cleanup`, but should not be used via that module. `web_test_helpers` is also used in the `web_test_page_objects` module. 
 
 New tests that create objects should make sure to update the maximum item numbers in the calls to `delete_objects_by_type()` in `web_test_setup_cleanup.cleanup_objects()`.
 
@@ -118,11 +120,13 @@ In rare cases, a certain setup may require a few tests to be different. These in
 
 ## Writing Tests
 
+The web test functions (modules that start with `web_test`) are documented in a more concise format in the [Web Test Docs](./web_test_docs.md).
+
 The `cls.gvar` variable, which is assigned in `web_test_setup_cleanup.setup()`, contains server and user information read from various `.yaml` configuration files. This includes  the user credentials for the sample users. It also contains a sub-dictionary called `oversize`, which contains a set of values that are oversize for the various types in the database. These can be accessed as `gvar['oversize']['<type_name>']` and are primarily used in database verification tests.
 
-The `web_test_assertions_v2` module contains a set of functions that should be callable within a `TestCase` class and raise the proper errors on failure. These functions access the cloudscheduler database via the command line interface and can test if objects were properly created in the database. However, they are extremely slow compared to assertions using Selenium selectors, and therefore should be used only once per test. Additionally, objects without a `cloudscheduler` command (like config objects) cannot use these assertions - they should instead refresh the page and ensure that the data has persisted.
+The [web_test_assertions_v2](./web_test_assertiosn_v2.py) module contains a set of functions that should be callable within a `TestCase` class and raise the proper errors on failure. These functions access the cloudscheduler database via the command line interface and can test if objects were properly created in the database. However, they are extremely slow compared to assertions using Selenium selectors, and therefore should be used only once per test. Additionally, objects without a `cloudscheduler` command (like config objects) cannot use these assertions - they should instead refresh the page and ensure that the data has persisted.
 
-Each assertion in the `web_test_assertions_v2` module takes a list of arguments, most of which are optional. The four mandatory arguments (only two of which are taken by `assertExists` and `assertNotExists`) are `type`, the type of object being asserted; `name`, the name of the individual object the assertion is about; `attribute`, the name of the attribute in the database (found via the `list` command with the `-VC` option); and `attribute_name`, the name of the particular item of that attribute being asserted. There are also six optional arguments: `group`, a group name, which should be specified when an object exists within a particular group, and which defaults to `None`; `err`, the margin of error, which should be specified when a value will be within a range, and which defaults to `None`; `metadata_cloud`, the name of a cloud within which the metadata exists, which should be specified for cloud metadata, and which defaults to `None`; `defaults`, a true/false flag, which should be specified when the item is a group default, and which defaults to false; `name_field`, a true/false flag, which should be specified for objects for which there is no name flag, and which defaults to true; `settings`, a true/false flag, which should be specified when the item is a user setting, and which defaults to false; `server`, the name of the server default to use, which should be specified when the object can only be accessed by a server that is not the unit-test server, and which defaults to `unit-test`; `image_cloud`, which should be specified when the object is an image, and which defaults to `None`; and `is_retry`, a true/false flag, which should never be manually passed (it is only used within the functions).
+Each assertion in the [web_test_assertions_v2](./web_test_assertions_v2.py) module takes a list of arguments, most of which are optional. The four mandatory arguments (only two of which are taken by `assertExists` and `assertNotExists`) are `type`, the type of object being asserted; `name`, the name of the individual object the assertion is about; `attribute`, the name of the attribute in the database (found via the `list` command with the `-VC` option); and `attribute_name`, the name of the particular item of that attribute being asserted. There are also six optional arguments: `group`, a group name, which should be specified when an object exists within a particular group, and which defaults to `None`; `err`, the margin of error, which should be specified when a value will be within a range, and which defaults to `None`; `metadata_cloud`, the name of a cloud within which the metadata exists, which should be specified for cloud metadata, and which defaults to `None`; `defaults`, a true/false flag, which should be specified when the item is a group default, and which defaults to false; `name_field`, a true/false flag, which should be specified for objects for which there is no name flag, and which defaults to true; `settings`, a true/false flag, which should be specified when the item is a user setting, and which defaults to false; `server`, the name of the server default to use, which should be specified when the object can only be accessed by a server that is not the unit-test server, and which defaults to `unit-test`; `image_cloud`, which should be specified when the object is an image, and which defaults to `None`; and `is_retry`, a true/false flag, which should never be manually passed (it is only used within the functions).
 
 By default, all actions will be performed within the `{user}-wig0` group (see Test Profiles, below). The base `Page` class (see [Page Objects](#page-objects)) contains a method for switching between these groups. Be aware that the active user must be in a particular group to switch to it.
 
@@ -134,29 +138,29 @@ Test files should perform actions on the page via [page objects](#page-objects).
 
 ## Page Objects
 
-The test files should access the page via the use of page objects. Each page on the csv2 website has one page class, stored in the `web_test_page_objects` module. 
+The test files should access the page via the use of page objects. Each page on the csv2 website has one page class, stored in the [web_test_page_objects](./web_test_page_objects.py) module. 
 
-A page object is essentially a class containing functions to perform all actions performable on the page it represents. It is an interface through which the test objects know how to locate, click, type, and perform actions on the page. One page object method should perform one specific click, type, location, or similar action - ie, while the same page object function may be used to click checkboxes adding a user to different groups, a different function should be used to click the superuser checkbox. Actions that are repeated a lot (such as the interaction functions in `web_test_interactions`) should be refactored into a common file, rather than being made a multipurpose function in the page object. Functions should also be named appropriately, so that someone scrolling through the test code without looking at the page objects file would know, in UI terms, what the test is attempting to do.
+A page object is essentially a class containing functions to perform all actions performable on the page it represents. It is an interface through which the test objects know how to locate, click, type, and perform actions on the page. One page object method should perform one specific click, type, location, or similar action - ie, while the same page object function may be used to click checkboxes adding a user to different groups, a different function should be used to click the superuser checkbox. Actions that are repeated a lot (such as the interaction functions in [web_test_interactions](./web_test_interactions.py)) should be refactored into a common file, rather than being made a multipurpose function in the page object. Functions should also be named appropriately, so that someone scrolling through the test code without looking at the page objects file would know, in UI terms, what the test is attempting to do.
 
 A new page object should inherit from the `Page` class, which will give it access to the driver and any website-wide components (such as the top navigation bar and error messages). Any interaction with that page should be done via methods implemented in that page class. 
 
 Some page value modification methods take strings, while others take integers. Ensure the correct type is passed to each method.
 
-The `web_test_interactions`, `web_test_javascript_interactions`, and `web_test_xpath_selectors` modules define the actions that the page objects should use. `web_test_interactions` and `web_test_javascript_interactions` have very similar functions (see below). Each method wraps Selenium's wait action, the find method, and the action taken (sometimes a series of actions) into a single function. `web_test_xpath_selectors` is a set of wrapper functions for various XPath locators. Some of these are described by an object they represent (ie `delete_button`, which is the button on the delete object modal) and some are described by how they find the object (ie `form_input_by_value`, which finds an input within a particular form based on its value attribute).
+The [web_test_interactions](./web_test_interactions.py), [web_test_javascript_interactions](./web_test_javascript_interactions.py), and [web_test_xpath_selectors](./web_test_xpath_selectors.py) modules define the actions that the page objects should use. [web_test_interactions](./web_test_interactions.py) and [web_test_javascript_interactions](./web_test_javascript_interactions.py) have very similar functions (see below). Each method wraps Selenium's wait action, the find method, and the action taken (sometimes a series of actions) into a single function. [web_test_xpath_selectors](./web_test_xpath_selectors.py) is a set of wrapper functions for various XPath locators. Some of these are described by an object they represent (ie `delete_button`, which is the button on the delete object modal) and some are described by how they find the object (ie `form_input_by_value`, which finds an input within a particular form based on its value attribute).
 
-The `web_test_javascript_interactions` module contains a set of functions that operate similarly to the `web_test_interactions` functions, except for the fact that they use the JavaScript `execute_script` to do the click action. These should not be used without a justifiable reason (ie a Selenium glitch) that the other ones cannot be used, and this glitch should be documented in the comments above the use of the function. Currently, the only Selenium bug requiring the use of these is an inability to click on the side buttons on some pages due to overlapping padding.
+The [web_test_javascript_interactions](./web_test_javascript_interactions.py) module contains a set of functions that operate similarly to the [web_test_interactions](./web_test_interactions.py) functions, except for the fact that they use the JavaScript `execute_script` to do the click action. These should not be used without a justifiable reason (ie a Selenium glitch) that the other ones cannot be used, and this glitch should be documented in the comments above the use of the function. Currently, the only Selenium bug requiring the use of these is an inability to click on the side buttons on some pages due to overlapping padding.
 
 Note that the use of Selenium's built-in `.submit()` method has been phased out. This is because the `submit` method only submits the form, and does not perform the `click` action on the button, meaning that some functionality is lost, which can cause improper behavior. The `web_test_xpath_selectors.form_submit_by_name` and `web_test_interactions.click_by_xpath` functions should be used instead.
 
-The page objects additionally use some functions from the `web_test_helpers` module.
+The page objects additionally use some functions from the [web_test_helpers](./web_test_helpers.py) module.
 
 ## Running Tests
 
-The web tests do run with the `run_tests` script in the `unit_tests` folder. However, because failure and error numbers are not surfaced by `unittest`, the script does not add the numbers for the web tests to its error tallies.
+The web tests run with the [run_tests](../run_tests) script. However, because failure and error numbers are not surfaced by `unittest`, the script does not add the numbers for the web tests to its error tallies.
 
-Web tests can be run using `./run_tests web` from the `unit_tests` folder. Tests for a specific browser (or group of browsers, by adding additional arguments) can be run using `./run_tests web_<browser>`. Note that running by test numbers and similar as in the unittest framework is not supported.
+Web tests can be run using `./run_tests web` from the `unit_tests` folder. Tests for a specific browser (or group of browsers, by adding additional arguments) can be run using `./run_tests web_<browser>`. Note that running by test numbers and similar as in the unit test framework is not supported.
 
-The tests can also be run by files as a module, using `python3 -m <filename>` from the `unit_tests` folder. Run without any flags, this will run all of the test classes in the file. Any listed browser flags will restrict the tests to only the tests within the listed browsers, and any listed user flags will restrict the tests to only tests using the listed users. The tags are as follows:
+The tests can also be run by files as a module, using `python3 -m <filename>` from the `unit_tests` folder. Run without any flags, this will run all of the detailed test classes in the file. Any listed browser flags will restrict the tests to only the tests within the listed browsers, and any listed user flags will restrict the tests to only tests using the listed users. The tags are as follows:
 
 | Short-Form Tag | Long-Form Tag    | Meaning                                   |
 |----------------|------------------|-------------------------------------------|
@@ -167,7 +171,7 @@ The tests can also be run by files as a module, using `python3 -m <filename>` fr
 | `-su`          | `--super-user`   | Run the tests with a super user           |
 | `-ru`          | `--regular-user` | Run the tests with a regular user         |
 
-One can also run a particular class directly using `python3 -m unittest <filename>.<ClassName>` (although the above flags are typically simpler). While unittest does support running tests by file, the setup of the test fixtures does not allow that and will run duplicate tests, some of which will fail, and, thus, the `python3 -m unittest <filename>` syntax is not to be used. Each detailed class, if run with the unittest framework, should be run individually, and common classes should never be run (see [Adding Tests](#adding-tests)). Individual tests can be run with `python3 -m unittest <filename>.<ClassName>.<test_name>`. All tests should be run from the `unit_tests` folder to allow module imports to work properly. Note that individual test files, classes, and methods cannot currently be run with the `run_tests` script, and individual test methods cannot be run with the `python3 -m <filename>` syntax.
+One can also run a particular class directly using `python3 -m unittest <filename>.<ClassName>` (although the above flags are typically simpler). While unittest supports running tests by file, the setup of the test fixtures does not allow that and will run duplicate tests, some of which will fail, and, thus, the `python3 -m unittest <filename>` syntax is not to be used. Each detailed class, if run with the unittest framework, should be run individually, and common classes should never be run (see [Adding Tests](#adding-tests)). Individual tests can be run with `python3 -m unittest <filename>.<ClassName>.<test_name>`. All tests should be run from the `unit_tests` folder to allow module imports to work properly. Note that individual test files, classes, and methods cannot currently be run with the `run_tests` script, and individual test methods cannot be run with the `python3 -m <filename>` syntax.
 
 The tests should be run as a non-root user. Root users may experience problems with the Chromium browser tests, as Chromium is not designed to run as a root user.
 
@@ -193,7 +197,7 @@ The exact cause of this warning is currently unknown. It does not impact the fun
 
 ## Debugging Tests
 
-To create the test fixtures to manually inspect the tests, the `.setup_objects()` and `.cleanup_objects()` functions from the `web_test_setup_cleanup` module should be used (passing any additonal arguments as specified in the "Test Profiles" section). The `setup()` and `cleanup()` functions do the driver setup as well, but, in addition, require the calling class, the suffix number of the user to use (ie 1 for `{user}-wig1`), and the name of the browser as arguments. 
+To create the test fixtures to manually inspect the tests, the `.setup_objects()` and `.cleanup_objects()` functions from the [web_test_setup_cleanup](./web_test_setup_cleanup.py) module should be used (passing any additonal arguments as specified in the "Test Profiles" section). The `setup()` and `cleanup()` functions do the driver setup as well, but, in addition, require the calling class, the suffix number of the user to use (ie 1 for `{user}-wig1`), and the name of the browser as arguments. 
 
 Several functions log information in files called `*objects.txt`. These files can be useful for debugging. They should not be committed, and it is harmless to delete them - they will be automatically remade when needed. Note that these files are reused every time one of the functions that use them is called, so if multiple tests or test suites are run, they will likely only contain information about the last test. All log files will be automatically placed in the `misc_files` folder.
 
@@ -326,6 +330,10 @@ These items are additional test coverage that may or may not be necessary.
 - Drag and drop to modify plot scale 
 
 - Click and drag plot zoom (and double click zoom out)
+
+- Additional config file tests (only `condor_poller.py` is currently tested)
+
+- Testing status page with jobs 
 
 #### Other Features
 
