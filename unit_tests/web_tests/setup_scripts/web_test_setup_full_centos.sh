@@ -116,3 +116,6 @@ openstack_path=`which openstack`
 if [ -z "$openstack_path" ]; then
     sudo pip3 install python-openstackclient
 fi
+
+sudo ln -s /home/centos/cloudscheduler/cli/bin/cloudscheduler cloudscheduler
+cloudscheduler defaults set
