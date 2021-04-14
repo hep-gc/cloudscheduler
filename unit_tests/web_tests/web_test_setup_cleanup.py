@@ -223,6 +223,7 @@ def cleanup_objects(browser='firefox'):
     logfile = 'web_tests/misc_files/objects.txt'
     #beaver_cleanup_keys(gvar, 4, 2, browser)
 
+    os.environ['OS_AUTH_URL'] = gvar['cloud_credentials']['authurl']
     os.environ['OS_PROJECT_NAME'] = gvar['cloud_credentials']['project']
     os.environ['OS_USER_DOMAIN_NAME'] = 'Default'
     os.environ['OS_PROJECT_DOMAIN_ID'] = 'default'
