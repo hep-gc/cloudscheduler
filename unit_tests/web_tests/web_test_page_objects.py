@@ -74,7 +74,9 @@ class StatusPage(Page):
             wti.click_by_xpath(self.driver, xpath)
         except ElementClickInterceptedException:
             print("Exception") 
-            sleep(0.5)
+            #sleep(7.3) 
+            WebDriverWait(self.driver, 20).until(
+                EC.element_to_be_clickable((By.XPATH, xpath)))
             wti.click_by_xpath(self.driver, xpath)
         WebDriverWait(self.driver, 20).until(
             EC.presence_of_element_located((By.CLASS_NAME, 'plot-container')))
@@ -94,13 +96,15 @@ class StatusPage(Page):
             wti.click_by_xpath(self.driver, xpath)
         except ElementClickInterceptedException:
             print("Exception") 
-            sleep(0.5)
+            #sleep(7.3)
+            WebDriverWait(self.driver, 20).until(
+                EC.element_to_be_clickable((By.XPATH, xpath)))
             wti.click_by_xpath(self.driver, xpath)
         WebDriverWait(self.driver, 20).until(
             EC.presence_of_element_located((By.CLASS_NAME, 'plot-container')))
 
     def click_vm_data_box(self, group, cloud, state):
-        sleep(1)
+        #sleep(1)
         state_tag = '_' + state.lower()
         if state == 'VMs':
             state_tag = ''
@@ -116,7 +120,9 @@ class StatusPage(Page):
             wti.click_by_xpath(self.driver, xpath)
         except ElementClickInterceptedException:
             print("Exception") 
-            sleep(0.5)
+            #sleep(7.3)
+            WebDriverWait(self.driver, 20).until(
+                EC.element_to_be_clickable((By.XPATH, xpath)))
             wti.click_by_xpath(self.driver, xpath)
         WebDriverWait(self.driver, 20).until(
             EC.presence_of_element_located((By.CLASS_NAME, 'plot-container')))
@@ -140,7 +146,9 @@ class StatusPage(Page):
             wti.click_by_xpath(self.driver, xpath)
         except ElementClickInterceptedException:
             print("Exception") 
-            sleep(0.5)
+            #sleep(7.3)
+            WebDriverWait(self.driver, 20).until(
+                EC.element_to_be_clickable((By.XPATH, xpath)))
             wti.click_by_xpath(self.driver, xpath)
         WebDriverWait(self.driver, 20).until(
             EC.presence_of_element_located((By.CLASS_NAME, 'plot-container')))
@@ -160,7 +168,9 @@ class StatusPage(Page):
             wti.click_by_xpath(self.driver, xpath)
         except ElementClickInterceptedException:
             print("Exception") 
-            sleep(0.5)
+            #sleep(7.3)
+            WebDriverWait(self.driver, 20).until(
+                EC.element_to_be_clickable((By.XPATH, xpath)))
             wti.click_by_xpath(self.driver, xpath)
         WebDriverWait(self.driver, 20).until(
             EC.presence_of_element_located((By.CLASS_NAME, 'plot-container')))
@@ -176,7 +186,9 @@ class StatusPage(Page):
             wti.click_by_xpath(self.driver, xpath)
         except ElementClickInterceptedException:
             print("Exception") 
-            sleep(0.5)
+            #sleep(7.3)
+            WebDriverWait(self.driver, 20).until(
+                EC.element_to_be_clickable((By.XPATH, xpath)))
             wti.click_by_xpath(self.driver, xpath)
         WebDriverWait(self.driver, 20).until(
             EC.presence_of_element_located((By.CLASS_NAME, 'plot-container')))
@@ -192,7 +204,9 @@ class StatusPage(Page):
             wti.click_by_xpath(self.driver, xpath)
         except ElementClickInterceptedException:
             print("Exception") 
-            sleep(0.5)
+            #sleep(7.3)
+            WebDriverWait(self.driver, 20).until(
+                EC.element_to_be_clickable((By.XPATH, xpath)))
             wti.click_by_xpath(self.driver, xpath)
         WebDriverWait(self.driver, 20).until(
             EC.presence_of_element_located((By.CLASS_NAME, 'plot-container')))
@@ -204,7 +218,9 @@ class StatusPage(Page):
             wti.click_by_xpath(self.driver, xpath)
         except ElementClickInterceptedException:
             print("Exception") 
-            sleep(0.5)
+            #sleep(7.3) 
+            WebDriverWait(self.driver, 20).until(
+                EC.element_to_be_clickable((By.XPATH, xpath)))
             wti.click_by_xpath(self.driver, xpath)
         WebDriverWait(self.driver, 20).until(
             EC.presence_of_element_located((By.CLASS_NAME, 'plot-container')))
