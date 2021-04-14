@@ -1,8 +1,9 @@
-#! /usr/bin/bash
+#! /bin/bash
 
 read -p 'Please enter your username on the server you wish to address: ' username
 
 sudo apt-get -y install epel-release
+sudo apt-get -y install software-properties-common 
 
 python_path=`which python3`
 if [ -z "$python_path" ]; then
@@ -11,9 +12,10 @@ fi
 
 pip_path=`which pip3`
 if [ -z "$pip_path" ]; then
-    sudo apt-get -y install pip3
+    sudo apt-get -y install python3-pip
 fi
 
+sudo pip3 install --upgrade pip
 sudo pip3 install selenium
 
 sudo pip3 install python-openstackclient
@@ -74,8 +76,9 @@ if [ "$opera" = "y" ]; then
     opera_path=`which opera`
     if [ -z "$opera_path" ]; then
         # source for Opera installation: https://vitux.com/ubuntu_opera_browser
-        wget -qO- https://deb.opera.com/archive.key | sudo apt-key add –
+        sudo wget -qO- https://deb.opera.com/archive.key | sudo apt-key add -
         sudo add-apt-repository “deb [arch=i386,amd64] https://deb.opera.com/opera-stable/ stable non-free”
+	sudo apt-get update
         sudo apt-get -y install opera-stable
     fi
     operachromiumdriver_path=`which operadriver`
@@ -93,7 +96,8 @@ read -p 'Install Chrome? [y/n]: ' chrome
 if [ "$chrome" = "y" ]; then
     chrome_path=`which google-chrome`
     if [ -z "$chrome_path" ]; then
-        wget https://dl.google.com/linux/direct/google-chrome-stable_current_x86_64.rpm
+        sudo wget https://dl.google.com/linux/direct/google-chrome-stable_current_x86_64.rpm
+	sudo apt-get update
         sudo apt-get -y install google-chrome-stable_current_amd64.deb
     fi
     chromedriver_path=`which chromedriver`
