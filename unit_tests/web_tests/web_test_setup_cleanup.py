@@ -205,6 +205,11 @@ def setup_objects(objects=[], browser='firefox'):
         for i in range(1, 3):
             subprocess.run(['cloudscheduler', 'my', 'settings', '-sri', '300','-sfv', 'true', '-s', gvar['user'] + '-wis' + str(i)], stdout=subprocess.DEVNULL)
 
+    if 'jobs' in objects:
+        server_vm = helpers.server_url.split('//')[1]
+        server_account = gvar['server_username'] + '@' + server_vm
+        subprocess.run(['ssh', server_account, '-p', str(gvar['server_port']), '-i', gvar['server_keypath'], 'condor_submit job.condor'])
+
     return gvar
 
 def cleanup(cls, browser='firefox'):
@@ -231,6 +236,23 @@ def cleanup_objects(browser='firefox'):
     os.environ['OS_PASSWORD'] = gvar['cloud_credentials']['password']
     os.environ['OS_REGION_NAME'] = gvar['cloud_credentials']['region']
 
+    for i in range(1, 3):
+        is_empty = False
+        while not is_empty:
+            try:
+                object_log = open(logfile, mode='x')
+            except FileExistsError:
+                object_log = open(logfile, mode='w')
+            subprocess.run(['cloudscheduler', 'vm', 'list', '-g', gvar['base_group'], '-cn', gvar['user'] + '-wig' + str(i), '-CSV', 'hostname'], stdout=object_log)
+            object_log.close()
+            object_log = open(logfile, mode='r')
+            first = object_log.read(5)
+            if not first or first == 'Error':
+                is_empty = True                
+            else:
+                print("Waiting for vms to shut down...")
+            object_log.close()
+        
     try:
         object_log = open(logfile, mode = 'x')
     except FileExistsError:

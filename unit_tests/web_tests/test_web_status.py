@@ -475,7 +475,7 @@ class TestWebStatusSuperUserFirefox(TestWebStatusCommon):
     """A class to test status operations via the web interface, in Firefox, with a super user."""
     @classmethod
     def setUpClass(cls):
-        wtsc.setup(cls, 2, ['servers', 'status'], browser='firefox')
+        wtsc.setup(cls, 2, ['servers', 'status', 'jobs'], browser='firefox')
         super(TestWebStatusSuperUserFirefox, cls).setUpClass()
         print("\nStatus Tests (Super User):")
    
@@ -483,7 +483,7 @@ class TestWebStatusRegularUserFirefox(TestWebStatusCommon):
     """A class to test status operations via the web interface, in Firefox, with a regular user."""
     @classmethod
     def setUpClass(cls):
-        wtsc.setup(cls, 1, ['servers', 'status'], browser='firefox')
+        wtsc.setup(cls, 1, ['servers', 'status', 'jobs'], browser='firefox')
         super(TestWebStatusRegularUserFirefox, cls).setUpClass()
         print("\nStatus Tests (Regular User):")
 
@@ -491,7 +491,7 @@ class TestWebStatusSuperUserChromium(TestWebStatusCommon):
     """A class to test status operations via the web interface, in Chromium, with a super user."""
     @classmethod
     def setUpClass(cls):
-        wtsc.setup(cls, 2, ['servers', 'status'], browser='chromium')
+        wtsc.setup(cls, 2, ['servers', 'status', 'jobs'], browser='chromium')
         super(TestWebStatusSuperUserChromium, cls).setUpClass()
         print("\nStatus Tests (Chromium) (Super User):")
    
@@ -499,7 +499,7 @@ class TestWebStatusRegularUserChromium(TestWebStatusCommon):
     """A class to test status operations via the web interface, in Chromium, with a regular user."""
     @classmethod
     def setUpClass(cls):
-        wtsc.setup(cls, 1, ['servers', 'status'], browser='chromium')
+        wtsc.setup(cls, 1, ['servers', 'status', 'jobs'], browser='chromium')
         super(TestWebStatusRegularUserChromium, cls).setUpClass()
         print("\nStatus Tests (Chromium) (Regular User):")
 
@@ -507,7 +507,7 @@ class TestWebStatusSuperUserOpera(TestWebStatusCommon):
     """A class to test status operations via the web interface, in Opera, with a super user."""
     @classmethod
     def setUpClass(cls):
-        wtsc.setup(cls, 2, ['servers', 'status'], browser='opera')
+        wtsc.setup(cls, 2, ['servers', 'status', 'jobs'], browser='opera')
         super(TestWebStatusSuperUserOpera, cls).setUpClass()
         print("\nStatus Tests (Opera) (Super User):")
    
@@ -515,7 +515,7 @@ class TestWebStatusRegularUserOpera(TestWebStatusCommon):
     """A class to test status operations via the web interface, in Opera, with a regular user."""
     @classmethod
     def setUpClass(cls):
-        wtsc.setup(cls, 1, ['servers', 'status'], browser='opera')
+        wtsc.setup(cls, 1, ['servers', 'status', 'jobs'], browser='opera')
         super(TestWebStatusRegularUserOpera, cls).setUpClass()
         print("\nStatus Tests (Opera) (Regular User):")
 
@@ -523,7 +523,7 @@ class TestWebStatusSuperUserChrome(TestWebStatusCommon):
     """A class to test status operations via the web interface, in Chrome, with a super user."""
     @classmethod
     def setUpClass(cls):
-        wtsc.setup(cls, 2, ['servers', 'status'], browser='chrome')
+        wtsc.setup(cls, 2, ['servers', 'status', 'jobs'], browser='chrome')
         super(TestWebStatusSuperUserChrome, cls).setUpClass()
         print("\nStatus Tests (Chrome) (Super User):")
    
@@ -531,7 +531,7 @@ class TestWebStatusRegularUserChrome(TestWebStatusCommon):
     """A class to test status operations via the web interface, in Chrome, with a regular user."""
     @classmethod
     def setUpClass(cls):
-        wtsc.setup(cls, 1, ['servers', 'status'], browser='chrome')
+        wtsc.setup(cls, 1, ['servers', 'status', 'jobs'], browser='chrome')
         super(TestWebStatusRegularUserChrome, cls).setUpClass()
         print("\nStatus Tests (Chrome) (Regular User):")
 

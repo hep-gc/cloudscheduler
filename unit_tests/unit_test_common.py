@@ -698,6 +698,9 @@ def load_settings(web=False):
 
 def _prompt_for_web_credentials(credentials, server_user):
     credentials['web'] = {}
+    credentials['web']['server_username'] = input('Username on the server vm you wish to address: ')
+    credentials['web']['server_port'] = int(input('Port number for the server vm: '))
+    credentials['web']['server_keypath'] = input('Full path to the private key used to access the server vm: ')
     credentials['web']['max_wait'] = float(input('Maximum time in seconds that web interface pages may take to load (float): '))
     credentials['web']['setup_required'] = True
 
