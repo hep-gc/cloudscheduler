@@ -303,6 +303,8 @@ These items should be finished before the test suite is considered completed. Th
 
 - Expand available systems for setup script (ubuntu wip)
 
+- Testing status page with jobs (wip)
+
 #### Tidying Up
 
 These items shouldn't affect the test suite's functionality much, but they would make it tidier and easier to work with. They should be done before the test suite is considered completed if possible, but they won't break anything if they aren't.
@@ -332,8 +334,6 @@ These items are additional test coverage that may or may not be necessary.
 - Click and drag plot zoom (and double click zoom out)
 
 - Additional config file tests (only `condor_poller.py` is currently tested)
-
-- Testing status page with jobs 
 
 #### Other Features
 
