@@ -91,6 +91,13 @@ def slide_slider_by_xpath(driver, xpath, offset, vertical_offset, timeout=defaul
     action = ActionChains(driver).move_to_element_with_offset(slider, offset, vertical_offset).click()
     action.perform()
 
+def right_click_by_xpath(driver, xpath, timeout=default_timeout):
+    WebDriverWait(driver, timeout).until(
+        EC.element_to_be_clickable((By.XPATH, xpath)))
+    element = driver.find_element_by_xpath(xpath)
+    action = ActionChains(driver).context_click(element)
+    action.perform()
+
 def get_validation_message_by_name(driver, name, timeout=default_timeout):
     WebDriverWait(driver, timeout).until(
         EC.presence_of_element_located((By.NAME, name)))

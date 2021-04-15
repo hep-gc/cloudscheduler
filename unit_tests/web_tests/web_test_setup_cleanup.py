@@ -203,11 +203,13 @@ def setup_objects(objects=[], browser='firefox'):
 
     if 'status' in objects:
         for i in range(1, 3):
-            subprocess.run(['cloudscheduler', 'my', 'settings', '-sri', '300','-sfv', 'true', '-s', gvar['user'] + '-wis' + str(i)], stdout=subprocess.DEVNULL)
+            subprocess.run(['cloudscheduler', 'my', 'settings', '-sri', '60','-sfv', 'true', '-s', gvar['user'] + '-wis' + str(i)], stdout=subprocess.DEVNULL)
 
     if 'jobs' in objects:
         server_vm = helpers.server_url.split('//')[1]
         server_account = gvar['server_username'] + '@' + server_vm
+        subprocess.run(['cloudscheduler', 'group', 'update', '-htcu', gvar['server_username'], '-gn', gvar['base_group']])
+        subprocess.run(['cloudscheduler', 'group', 'defaults', '-g', gvar['base_group']])
         subprocess.run(['ssh', server_account, '-p', str(gvar['server_port']), '-i', gvar['server_keypath'], 'condor_submit job.condor'])
 
     return gvar

@@ -103,7 +103,7 @@ class StatusPage(Page):
         WebDriverWait(self.driver, 20).until(
             EC.presence_of_element_located((By.CLASS_NAME, 'plot-container')))
 
-    def click_vm_data_box(self, group, cloud, state):
+    def click_vm_data_box(self, group, cloud, state, right_click=False):
         #sleep(1)
         state_tag = '_' + state.lower()
         if state == 'VMs':
@@ -117,15 +117,22 @@ class StatusPage(Page):
             path = group + ' ' +  cloud + ' VMs' + state_tag
         xpath = wtxs.data_box(path)
         try:
-            wti.click_by_xpath(self.driver, xpath)
+            if right_click:
+                wti.right_click_by_xpath(self.driver, xpath)
+            else:
+                wti.click_by_xpath(self.driver, xpath)
         except ElementClickInterceptedException:
             print("Exception") 
             #sleep(7.3)
             WebDriverWait(self.driver, 20).until(
                 EC.element_to_be_clickable((By.XPATH, xpath)))
-            wti.click_by_xpath(self.driver, xpath)
-        WebDriverWait(self.driver, 20).until(
-            EC.presence_of_element_located((By.CLASS_NAME, 'plot-container')))
+            if right_click:
+                wti.right_click_by_xpath(self.driver, xpath)
+            else:
+                wti.click_by_xpath(self.driver, xpath)
+        if not right_click:
+            WebDriverWait(self.driver, 20).until(
+                EC.presence_of_element_located((By.CLASS_NAME, 'plot-container')))
 
     def click_slot_data_box(self, group, cloud, state):
         #sleep(1)
@@ -241,6 +248,21 @@ class StatusPage(Page):
         xpath = wtxs.data_box(' ' + icon)
         wti.click_by_xpath(self.driver, xpath)
 
+    def wait_until_vms_not_zero(self, group, cloud, max_wait=sys.maxsize):
+        if cloud == 'Totals':
+            path = 'VMs_total'
+        else:
+            path = group + ' ' + cloud + ' VMs'
+        xpath = wtxs.data_box(path)
+        text = '0'
+        count = 0
+        while text == '0' and count < max_wait:
+            element = self.driver.find_element_by_xpath(xpath)
+            text = element.text
+            print(count)
+            count += 1
+            sleep(65)
+
     def aliases_displayed(self):
         xpath = wtxs.chart_header('jobs-style', 'Target Alias')
         try:
@@ -346,6 +368,17 @@ class StatusPage(Page):
         try:
             WebDriverWait(self.driver, 10).until(
                 EC.presence_of_element_located((By.XPATH, xpath)))
+            return True
+        except TimeoutException:
+            return False
+
+    def vm_overlay_open(self):
+        try:
+            WebDriverWait(self.driver, 10).until(
+                EC.presence_of_element_located((By.ID, 'vms-iframe')))
+            element = self.driver.find_element_by_id('vms-iframe')
+            if element.get_attribute('src') == '':
+                return False
             return True
         except TimeoutException:
             return False
