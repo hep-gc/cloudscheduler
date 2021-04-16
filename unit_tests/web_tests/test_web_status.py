@@ -471,7 +471,14 @@ class TestWebStatusCommon(unittest.TestCase):
         # Clicks on the vm overlay
         self.page.wait_until_vms_not_zero(self.group_name, self.cloud_name, 3)
         self.page.click_vm_data_box(self.group_name, self.cloud_name, 'VMs', right_click=True)
-        self.assertTrue(self.page.vm_overlay_open()) 
+        self.assertTrue(self.page.vm_overlay_open())
+        self.page.click_vm_overlay_close()
+
+    def test_web_status_vm_overlay_zero_vms(self):
+        # Clicks on the vm overlay
+        self.page.click_vm_data_box(self.group_name, self.cloud_name, 'Manual', right_click=True)
+        self.assertFalse(self.page.vm_overlay_open())
+        self.page.click_vm_overlay_close()
 
     @classmethod
     def tearDownClass(cls):

@@ -256,11 +256,17 @@ class StatusPage(Page):
         xpath = wtxs.data_box(path)
         text = '0'
         count = 0
-        while text == '0' and count < max_wait:
+        while count < max_wait:
             element = self.driver.find_element_by_xpath(xpath)
             text = element.text
             count += 1
-            sleep(65)
+            if text == '0':
+                sleep(65)
+            else:
+                break
+
+    def click_vm_overlay_close(self):
+        wti.click_by_id(self.driver, 'timer-count')
 
     def aliases_displayed(self):
         xpath = wtxs.chart_header('jobs-style', 'Target Alias')
@@ -376,7 +382,7 @@ class StatusPage(Page):
             WebDriverWait(self.driver, 10).until(
                 EC.presence_of_element_located((By.ID, 'vms-iframe')))
             element = self.driver.find_element_by_id('vms-iframe')
-            #print('"' + element.get_attribute('src') + '"')
+            print('"' + element.get_attribute('src') + '"')
             if element.get_attribute('src') == '':
                 return False
             return True
