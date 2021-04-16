@@ -108,7 +108,7 @@ def setup_objects(objects=[], browser='firefox'):
     for i in range(1, clouds_num + 1):
         clouds.append(gvar['user'] + '-wic' + str(i))
     for i in range(0, clouds_num):
-        subprocess.run(['cloudscheduler', 'cloud', 'add', '-ca', credentials['authurl'], '-cn', clouds[i], '-cpw', credentials['password'], '-cP', credentials['project'], '-cr', credentials['region'], '-cU', credentials['username'], '-ct', 'openstack', '-g', gvar['base_group'], '-s', 'unit-test'])
+        subprocess.run(['cloudscheduler', 'cloud', 'add', '-ca', credentials['authurl'], '-cn', clouds[i], '-cpw', credentials['password'], '-cP', credentials['project'], '-cr', credentials['region'], '-cU', credentials['username'], '-ct', 'openstack', '-vc', '1', '-g', gvar['base_group'], '-s', 'unit-test'])
     if 'clouds' in objects:
         for i in range(1, 3):
             name = gvar['user'] + '-wim' + str(i) + '.yaml'
@@ -124,7 +124,7 @@ def setup_objects(objects=[], browser='firefox'):
         # to the cloud. The setup timing is unpredictable, so this loops it 
         # until the connection is established.
         #beaver_setup_keys(gvar, 1, browser)
-        helpers.wait_for_openstack_poller(gvar['user'] + '-wic1', '-vsg', 'default', output=True)
+        helpers.wait_for_openstack_poller(gvar['user'] + '-wic1', ['-vsg', 'default', '-vf', 't1'], output=True)
 
     aliases_num = 0
     if 'aliases' in objects:
@@ -174,7 +174,7 @@ def setup_objects(objects=[], browser='firefox'):
         filename = helpers.misc_file_full_path(images[i])
         subprocess.run(['cloudscheduler', 'image', 'upload', '-ip', 'file://' + filename, '-df', 'raw', '-cl', gvar['user'] + '-wic1', '-g', gvar['base_group'], '-s', 'unit-test'])
     if 'images' in objects:
-        helpers.wait_for_openstack_poller(gvar['user'] + '-wic1', '-vi', gvar['user'] + '-wii1.hdd', output=True)
+        helpers.wait_for_openstack_poller(gvar['user'] + '-wic1', ['-vi', gvar['user'] + '-wii1.hdd'], output=True)
 
     #add servers
     if 'servers' in objects:
@@ -199,17 +199,17 @@ def setup_objects(objects=[], browser='firefox'):
             subprocess.run(['openstack', 'keypair', 'create', '--private-key', '/home/centos/cloudscheduler/unit_tests/web_tests/misc_files/' + keys[i], keys[i]], stdout=subprocess.DEVNULL)
             print('keypair "' + keys[i] + '" successfully added.')
         keystring = gvar['user'] + '-wik1'
-        helpers.wait_for_openstack_poller(gvar['user'] + '-wic1', '-vk', keystring, output=True)
+        helpers.wait_for_openstack_poller(gvar['user'] + '-wic1', ['-vk', keystring], output=True)
 
     if 'status' in objects:
         for i in range(1, 3):
             subprocess.run(['cloudscheduler', 'my', 'settings', '-sri', '60','-sfv', 'true', '-s', gvar['user'] + '-wis' + str(i)], stdout=subprocess.DEVNULL)
+            helpers.wait_for_openstack_poller(gvar['user'] + '-wic' + str(i), ['-vi', 'centos7-image', '-vn', 'private'], output=True)
 
     if 'jobs' in objects:
         server_vm = helpers.server_url.split('//')[1]
         server_account = gvar['server_username'] + '@' + server_vm
         subprocess.run(['cloudscheduler', 'group', 'update', '-htcu', gvar['server_username'], '-gn', gvar['base_group']])
-        subprocess.run(['cloudscheduler', 'group', 'defaults', '-g', gvar['base_group']])
         subprocess.run(['ssh', server_account, '-p', str(gvar['server_port']), '-i', gvar['server_keypath'], 'condor_submit job.condor'])
 
     return gvar
@@ -238,23 +238,50 @@ def cleanup_objects(browser='firefox'):
     os.environ['OS_PASSWORD'] = gvar['cloud_credentials']['password']
     os.environ['OS_REGION_NAME'] = gvar['cloud_credentials']['region']
 
-    for i in range(1, 3):
-        is_empty = False
-        while not is_empty:
-            try:
-                object_log = open(logfile, mode='x')
-            except FileExistsError:
-                object_log = open(logfile, mode='w')
-            subprocess.run(['cloudscheduler', 'vm', 'list', '-g', gvar['base_group'], '-cn', gvar['user'] + '-wig' + str(i), '-CSV', 'hostname'], stdout=object_log)
-            object_log.close()
-            object_log = open(logfile, mode='r')
-            first = object_log.read(5)
-            if not first or first == 'Error':
-                is_empty = True                
-            else:
-                print("Waiting for vms to shut down...")
-            object_log.close()
-        
+    try:
+        object_log = open(logfile, mode='x')
+    except FileExistsError:
+        object_log = open(logfile, mode='w')
+
+    server_vm = helpers.server_url.split('//')[1]
+    server_account = gvar['server_username'] + '@' + server_vm
+
+    subprocess.run(['ssh', server_account, '-p', str(gvar['server_port']), '-i', gvar['server_keypath'], 'condor_q -nobatch -format "%d." ClusterId -format "%d " ProcId -format "%s\n" cmd'], stdout=object_log)
+
+    object_log.close()
+    object_log = open(logfile, mode='r')
+
+    for line in object_log:
+        job = line.split(' ')
+        job[-1] = job[-1].strip()
+        task = job[-1]
+        task = task.split('/')
+        if task[-1] == 'job.sh' and job[0] != 'Name':
+            subprocess.run(['ssh', server_account, '-p', str(gvar['server_port']), '-i', gvar['server_keypath'], 'condor_rm ' + job[0]])
+
+    object_log.close()
+
+    try:
+        object_log = open(logfile, mode='x')
+    except FileExistsError:
+        object_log = open(logfile, mode='w')
+
+    subprocess.run(['nova', 'list', '--name', gvar['base_group'] + '--' + gvar['user'] + '-wic.*'], stdout=object_log)
+
+    object_log.close()
+    object_log = open(logfile, mode='r')
+
+    for line in object_log:
+        names = line.split('|')
+        try:
+            name = names[2].strip()
+        except IndexError:
+            continue
+        if not name == '' and not name[0] == '-' and not name == 'Name':
+            subprocess.run(['nova', 'delete', name])
+
+    object_log.close()
+   
     try:
         object_log = open(logfile, mode = 'x')
     except FileExistsError:

@@ -17,7 +17,7 @@ def get_homepage_login(driver, username, password):
     authenticated_url = url_split[0] + '//' + username + ':' + password + '@' + url_split[1]
     driver.get(authenticated_url)
 
-def wait_for_openstack_poller(cloud_name, item_flag, item_name, wait=sys.maxsize, output=False):
+def wait_for_openstack_poller(cloud_name, args, wait=sys.maxsize, output=False):
 
     import subprocess
     from time import sleep
@@ -26,7 +26,7 @@ def wait_for_openstack_poller(cloud_name, item_flag, item_name, wait=sys.maxsize
     if output:
         out = None
     count = 0
-    while subprocess.run(['cloudscheduler', 'cloud', 'update', '-cn', cloud_name, item_flag, item_name], stdout=out).returncode != 0 and count < wait:
+    while subprocess.run(['cloudscheduler', 'cloud', 'update', '-cn', cloud_name, *args], stdout=out).returncode != 0 and count < wait:
         count += 1
         if output:
             print("Error connecting to the cloud. This may happen several times. Retrying...")

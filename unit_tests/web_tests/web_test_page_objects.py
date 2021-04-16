@@ -259,7 +259,6 @@ class StatusPage(Page):
         while text == '0' and count < max_wait:
             element = self.driver.find_element_by_xpath(xpath)
             text = element.text
-            print(count)
             count += 1
             sleep(65)
 
@@ -377,6 +376,7 @@ class StatusPage(Page):
             WebDriverWait(self.driver, 10).until(
                 EC.presence_of_element_located((By.ID, 'vms-iframe')))
             element = self.driver.find_element_by_id('vms-iframe')
+            #print('"' + element.get_attribute('src') + '"')
             if element.get_attribute('src') == '':
                 return False
             return True
