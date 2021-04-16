@@ -123,7 +123,6 @@
         console.log(auth_type)
         if(auth_type=="userpass"){
 
-            document.getElementById(target_cloud+'-username-row').style.visibility = "inherit";
             document.getElementById(target_cloud+'-password-row').style.visibility = "inherit";
             document.getElementById(target_cloud+'-app_creds').value = "";
             document.getElementById(target_cloud+'-app_creds_secret').value = "";
@@ -136,9 +135,7 @@
             
             document.getElementById(target_cloud+'-app_creds-row').style.visibility = "inherit";
             document.getElementById(target_cloud+'-app_creds_secret-row').style.visibility = "inherit";
-            document.getElementById(target_cloud+'-username').value = "";
             document.getElementById(target_cloud+'-password').value = "";
-            document.getElementById(target_cloud+'-username-row').style.visibility = "collapse";
             document.getElementById(target_cloud+'-password-row').style.visibility = "collapse";
         }
     }
