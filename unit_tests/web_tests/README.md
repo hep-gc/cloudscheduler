@@ -20,7 +20,7 @@ Additionally, all the setup in [Other Setup](#other-setup) should be completed f
 
 Some operating systems have a setup script (stored in `unit_tests/web_tests/setup_scripts`) to automate the setup.
 
-Note that the setup scripts assume the cloudscheduler repository is in the home directory. 
+Note that the setup scripts assume the cloudscheduler repository is in the active user's home directory. 
 
 #### Object Setup
 
@@ -146,7 +146,7 @@ A new page object should inherit from the `Page` class, which will give it acces
 
 Some page value modification methods take strings, while others take integers. Ensure the correct type is passed to each method.
 
-The [web_test_interactions](./web_test_interactions.py), [web_test_javascript_interactions](./web_test_javascript_interactions.py), and [web_test_xpath_selectors](./web_test_xpath_selectors.py) modules define the actions that the page objects should use. [web_test_interactions](./web_test_interactions.py) and [web_test_javascript_interactions](./web_test_javascript_interactions.py) have very similar functions (see below). Each method wraps Selenium's wait action, the find method, and the action taken (sometimes a series of actions) into a single function. [web_test_xpath_selectors](./web_test_xpath_selectors.py) is a set of wrapper functions for various XPath locators. Some of these are described by an object they represent (ie `delete_button`, which is the button on the delete object modal) and some are described by how they find the object (ie `form_input_by_value`, which finds an input within a particular form based on its value attribute).
+The [web_test_interactions](./web_test_interactions.py), [web_test_javascript_interactions](./web_test_javascript_interactions.py), and [web_test_xpath_selectors](./web_test_xpath_selectors.py) modules define the actions that the page objects should use. [web_test_interactions](./web_test_interactions.py) and [web_test_javascript_interactions](./web_test_javascript_interactions.py) have very similar functions (see below). Each method wraps Selenium's wait action, the find method, and the action taken (sometimes a series of actions) into a single function. [web_test_xpath_selectors](./web_test_xpath_selectors.py) is a set of wrapper functions for various XPath locators. Some of these are described by an object they represent (ie `delete_button`, which is the button on the delete object modal) and some are described by how they find the object (ie `form_input_by_value`, which finds an input within a particular form based on its value attribute). These functions should not perform any logic on the xpath - they are simply wrappers. Any logic should be performed within the page object.
 
 The [web_test_javascript_interactions](./web_test_javascript_interactions.py) module contains a set of functions that operate similarly to the [web_test_interactions](./web_test_interactions.py) functions, except for the fact that they use the JavaScript `execute_script` to do the click action. These should not be used without a justifiable reason (ie a Selenium glitch) that the other ones cannot be used, and this glitch should be documented in the comments above the use of the function. Currently, the only Selenium bug requiring the use of these is an inability to click on the side buttons on some pages due to overlapping padding.
 
@@ -287,6 +287,18 @@ Note that some keywords do additional setup, besides creating the objects (in fa
 
 `{user}-wis2` is a server with the login credentials of the `{user}-wiu2` user.
 
+### Other Test Setup Arguments
+
+Some keywords do not create csv2 objects, but do other setup instead.
+
+#### Status
+
+The `status` argument modifies user settings to make the status page tests more reliable.
+
+#### Jobs
+
+The `jobs` argument queues up two jobs in condor, in the `{user}-wig0` group.
+
 ## Future Features (TODOs)
 
 This section discusses all the changes that would be beneficial to the web test framework. Some of the features in here may not be feasible, but this is a list of the ideal items that would be changed in the test suite.
@@ -301,7 +313,7 @@ These items should be finished before the test suite is considered completed. Th
 
 - Miscellaneous tests file (logout test, regular user can't do superuser actions tests)
 
-- Expand available systems for setup script (ubuntu wip)
+- Expand available systems for setup script (ubuntu wip, fix to include condor jobs)
 
 - Testing status page with jobs (wip)
 
@@ -352,3 +364,5 @@ These items are not necessary, but would be useful.
 - Better keyboard interrupt handling
 
 - Verify fixed error with row-spacer on status page
+
+- Investigate vms immediately going to error state (not actually necessary for making tests work - appears to be a resource shortage)

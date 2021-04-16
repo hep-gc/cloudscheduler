@@ -66,10 +66,9 @@ The `get_homepage` function is used in test setups to initially get the homepage
 
 The `get_homepage_login` function gets the homepage using username/password authentication. It requires the driver and the user's csv2 username and password as arguments.
 
-The `wait_for_openstack_poller` function tries a specified number of times to check if an object exists, in order to wait for the openstack poller. Its arguments are as follows:
+The `wait_for_openstack_poller` function tries a specified number of times to update a cloud with an object, in order to wait for the openstack poller. Its arguments are as follows:
 - `cloud_name`, the name of the cloud the object should be in
-- `item_flag`, the flag for the type of item being looked for
-- `item_name`, the name of the individual item being looked for
+- `args`, a list of item flags and names of the objects being updated with
 - `wait`, the amount of times to look before failing (defaults to `sys.MAXSIZE`)
 - `output`, whether to print the error messages or not (defaults to `False`)
 
