@@ -36,6 +36,12 @@ def click_by_xpath(driver, xpath, timeout=default_timeout):
     element = driver.find_element_by_xpath(xpath)
     element.click()
 
+def click_by_class_name(driver, class_name, timeout=default_timeout):
+    WebDriverWait(driver, timeout).until(
+        EC.presence_of_element_located((By.CLASS_NAME, class_name)))
+    element = driver.find_element_by_class_name(class_name)
+    element.click()
+
 def fill_blank_by_id(driver, id, text, timeout=default_timeout):
     WebDriverWait(driver, timeout).until(
         EC.element_to_be_clickable((By.ID, id)))

@@ -100,6 +100,9 @@ def chart_header(cls, name):
 def plot_line():
     return "//*[local-name()='g' and @class='plot']/*[local-name()='g' and class='scatterlayer mlayer']"
 
+def vm_operation_button(operation):
+    return "//button[@class='button " + operation + "-button']"
+
 def unspecified_error_message():
     return "//div[@class='footer']/b"
 

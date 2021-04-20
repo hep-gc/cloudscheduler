@@ -119,6 +119,7 @@ class StatusPage(Page):
         try:
             if right_click:
                 wti.right_click_by_xpath(self.driver, xpath)
+                self.driver.switch_to.frame('vms-iframe')
             else:
                 wti.click_by_xpath(self.driver, xpath)
         except ElementClickInterceptedException:
@@ -128,6 +129,7 @@ class StatusPage(Page):
                 EC.element_to_be_clickable((By.XPATH, xpath)))
             if right_click:
                 wti.right_click_by_xpath(self.driver, xpath)
+                self.driver.switch_to.frame('vms-iframe')
             else:
                 wti.click_by_xpath(self.driver, xpath)
         if not right_click:
@@ -249,24 +251,42 @@ class StatusPage(Page):
         wti.click_by_xpath(self.driver, xpath)
 
     def wait_until_vms_not_zero(self, group, cloud, max_wait=sys.maxsize):
-        if cloud == 'Totals':
-            path = 'VMs_total'
-        else:
-            path = group + ' ' + cloud + ' VMs'
-        xpath = wtxs.data_box(path)
-        text = '0'
         count = 0
         while count < max_wait:
-            element = self.driver.find_element_by_xpath(xpath)
-            text = element.text
             count += 1
-            if text == '0':
+            if self.vms_in_state(group, cloud, 'VMs') == 0:
                 sleep(65)
             else:
                 break
 
+    def click_vm_checkbox(self, number):
+        wti.click_by_name(self.driver, 'vm_hosts.' + str(number))
+
+    def click_vm_operation_button(self, button):
+        tag = button.split(' ')[0].lower()
+        xpath = wtxs.vm_operation_button(tag)
+        print(xpath)
+        wti.click_by_xpath(self.driver, xpath)
+
     def click_vm_overlay_close(self):
+        self.driver.switch_to.default_content()
         wti.click_by_id(self.driver, 'timer-count')
+
+    def vms_in_state(self, group, cloud, state):
+        state_tag = '_' + state.lower()
+        if state == 'VMs':
+            state_tag = ''
+        if state == 'Error':
+            state_tag = '_in_error'
+        if cloud == 'Totals':
+            state_tag += '_total'
+            path = 'VMs' + state_tag
+        else:
+            path = group + ' ' +  cloud + ' VMs' + state_tag
+        xpath = wtxs.data_box(path)
+        element = self.driver.find_element_by_xpath(xpath)
+        text = element.text
+        return int(text)
 
     def aliases_displayed(self):
         xpath = wtxs.chart_header('jobs-style', 'Target Alias')
@@ -380,19 +400,18 @@ class StatusPage(Page):
     def vm_overlay_open(self):
         try:
             WebDriverWait(self.driver, 10).until(
-                EC.presence_of_element_located((By.ID, 'vms-iframe')))
-            #element = self.driver.find_element_by_id('vms-iframe')
-            #print('"' + element.get_attribute('src') + '"')
-            #if element.get_attribute('src') == '':
-            #    return False
-            #return True
-            self.driver.switch_to.frame('vms-iframe')
-            WebDriverWait(self.driver, 10).until(
                 EC.presence_of_element_located((By.CLASS_NAME, 'vm-div')))
-            self.driver.switch_to.default_content()
             return True
         except TimeoutException:
             self.driver.switch_to.default_content()
+            return False
+
+    def vm_selected(self, number):
+        try:
+            WebDriverWait(self.driver, 10).until(
+                EC.element_located_to_be_selected((By.NAME, 'vm_hosts.' + str(number))))
+            return True
+        except TimeoutException:
             return False
 
 class CloudsPage(Page):

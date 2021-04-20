@@ -4,6 +4,7 @@ import web_tests.web_test_setup_cleanup as wtsc
 import web_tests.web_test_assertions_v2 as wta
 import web_tests.web_test_page_objects as pages
 import web_tests.web_test_helpers as helpers
+from time import sleep
 
 class TestWebStatusCommon(unittest.TestCase):
     """A class for the status tests that should be repeated in all iterations."""
@@ -476,8 +477,39 @@ class TestWebStatusCommon(unittest.TestCase):
 
     def test_web_status_vm_overlay_zero_vms(self):
         # Clicks on the vm overlay
-        self.page.click_vm_data_box(self.group_name, self.cloud_name, 'Manual', right_click=True)
+        self.page.click_vm_data_box(self.group_name, self.cloud_name, 'Error', right_click=True)
         self.assertFalse(self.page.vm_overlay_open())
+
+    def test_web_status_vm_overlay_select(self):
+        # Clicks on the vm overlay and selects a vm
+        self.page.click_vm_data_box(self.group_name, self.cloud_name, 'VMs', right_click=True)
+        self.page.click_vm_checkbox(1)
+        self.assertTrue(self.page.vm_selected(1))
+        self.page.click_vm_overlay_close()
+
+    def test_web_status_vm_overlay_manual(self):
+        # Clicks on the vm overlay and sets a vm to manual control
+        self.page.click_vm_data_box(self.group_name, self.cloud_name, 'VMs', right_click=True)
+        self.page.click_vm_checkbox(1)
+        self.page.click_vm_operation_button('Manual Control')
+        self.page.click_vm_overlay_close()
+        helpers.get_homepage(self.driver)
+        self.assertGreater(self.page.vms_in_state(self.group_name, self.cloud_name, 'Manual'), 0)
+
+    def test_web_status_vm_overlay_system(self):
+        # Clicks on the vm overlay and sets a vm to system control
+        self.page.click_vm_data_box(self.group_name, self.cloud_name, 'VMs', right_click=True)
+        self.page.click_vm_checkbox(1)
+        self.page.click_vm_operation_button('Manual Control')
+        self.page.click_vm_overlay_close()
+        helpers.get_homepage(self.driver)
+        manual_control = self.page.vms_in_state(self.group_name, self.cloud_name, 'Manual')
+        self.page.click_vm_data_box(self.group_name, self.cloud_name, 'VMs', right_click=True)
+        self.page.click_vm_checkbox(1)
+        self.page.click_vm_operation_button('System Control')
+        self.page.click_vm_overlay_close()
+        helpers.get_homepage(self.driver)
+        self.assertLess(self.page.vms_in_state(self.group_name, self.cloud_name, 'Manual'), manual_control)
 
     @classmethod
     def tearDownClass(cls):
