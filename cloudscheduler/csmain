@@ -18,6 +18,7 @@ from cloudscheduler.lib.log_tools import get_frame_info
 from cloudscheduler.lib.ec2_translations import get_ami_dictionary
 from cloudscheduler.lib.ProcessMonitor import ProcessMonitor, check_pid, terminate
 from cloudscheduler.lib.poller_functions import start_cycle, wait_cycle
+from cloudscheduler.lib.openstack_functions import _get_openstack_sess, _get_nova_connection
 
 import openstackcloud
 import localhostcloud
@@ -27,10 +28,11 @@ import htcondor
 import classad
 import boto3
 
-from keystoneclient.auth.identity import v2, v3
-from keystoneauth1 import session
-from keystoneauth1 import exceptions
-from novaclient import client as novaclient
+import openstack
+#from keystoneclient.auth.identity import v2, v3
+#from keystoneauth1 import session
+#from keystoneauth1 import exceptions
+#from novaclient import client as novaclient
 
 
 
@@ -39,6 +41,7 @@ from novaclient import client as novaclient
 
 
 # Supporting functions
+"""
 def _get_nova_client(session, region=None):
     nova = novaclient.Client("2", session=session, region_name=region, timeout=10)
     return nova
@@ -112,7 +115,7 @@ def _get_openstack_session_v1_v2(auth_url, username, password, project, user_dom
             logging.error("Connection parameters: \n authurl: %s \n username: %s \n project: %s \n user_domain: %s \n project_domain: %s" % (auth_url, username, project, user_domain, project_domain_name))
             return False
         return sess
-
+"""
 
 
 def _get_ec2_session(cloud):
@@ -409,7 +412,8 @@ def process_group_cloud_terminates(pair, config):
         cloud=clouds[0]
 
         if cloud["cloud_type"] == "openstack":
-            session = _get_openstack_session(cloud)
+            #session = _get_openstack_session(cloud)
+            session = _get_openstack_sess(cloud, config.categories["condor_poller.py"]["cacerts"])
             if session is False:
                 continue
          
@@ -418,7 +422,13 @@ def process_group_cloud_terminates(pair, config):
                 continue
 
             # terminate the vm
-            nova = _get_nova_client(session, region=cloud["region"])
+            #nova = _get_nova_client(session, region=cloud["region"])
+            nova = _get_nova_connection(session, region=cloud["region"])
+
+            if nova is False:
+                logging.error("Openstack nova connection failed")
+                continue
+
             try:
                 # may want to check for result here Returns: An instance of novaclient.base.TupleWithMeta so probably not that useful
                 vm_row["terminate"] = vm_row["terminate"] + 1
@@ -426,8 +436,10 @@ def process_group_cloud_terminates(pair, config):
                 vm_row["updater"] = str(get_frame_info() + ":t+")
 
                 try:
-                    nova.servers.delete(vm_row["vmid"])
-                except novaclient.exceptions.NotFound:
+                    #nova.servers.delete(vm_row["vmid"])
+                    nova.delete_server(vm_row["vmid"])
+                #except novaclient.exceptions.NotFound:
+                except openstack.exceptions.ResourceNotFound as ex:
                     logging.error("VM not found on cloud, deleting vm entry %s" % vm_row["vmid"])
                     config.db_delete(VM, vm_row)
                     try:
@@ -623,7 +635,7 @@ def main():
                 list_groups_with_idle_jobs_ix = while_counter % list_groups_with_idle_jobs_len
             else:
                 list_groups_with_idle_jobs_ix = 0
-
+            
             log.info('while_counter: %s, groups with idle jobs (%s/%s): %s' % (
                 while_counter,
                 list_groups_with_idle_jobs_ix,

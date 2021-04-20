@@ -5,12 +5,13 @@ import os
 import string
 import random
 
-from keystoneclient.auth.identity import v2, v3
-from keystoneauth1 import session
-from keystoneauth1 import exceptions
-from novaclient import client as novaclient
-import glanceclient
+#from keystoneclient.auth.identity import v2, v3
+#from keystoneauth1 import session
+#from keystoneauth1 import exceptions
+#from novaclient import client as novaclient
+#import glanceclient
 
+from cloudscheduler.lib.openstack_functions import _get_openstack_sess, _get_glance_connection
 
 
 from cloudscheduler.lib.db_config import Config
@@ -19,6 +20,7 @@ ALPHABET = string.ascii_letters + string.digits + string.punctuation
 ALPHABET = ALPHABET.replace("'", "")
 ALPHABET = ALPHABET.replace('"', "")
 
+"""
 def get_nova_client(session, region=None):
     nova = novaclient.Client("2", session=session, region_name=region, timeout=10)
     return nova
@@ -98,59 +100,101 @@ def _get_openstack_session_v1_v2(auth_url, username, password, project, user_dom
             logging.error("Connection parameters: \n authurl: %s \n username: %s \n project: %s \n user_domain: %s \n project_domain: %s", (auth_url, username, project, user_domain, project_domain_name))
             return False
         return sess
-
+"""
 
 
 
 # new glint api, maybe make this part of glint utils?
 
+"""
 def create_placeholder_image(glance, image_name, disk_format, container_format):
     image = glance.images.create(
+    #image = glance.create_image(
         name=image_name,
         disk_format=disk_format,
         container_format=container_format)
     return image.id
-
+"""
 
 # Upload an image to repo, returns image id if successful
 # if there is no image_id it is a direct upload and no placeholder exists
-def upload_image(glance, image_id, image_name, scratch_dir, image_checksum=None, disk_format=None, container_format="bare"):
-    if image_id is not None:
-        #this is the 2nd part of a transfer not a direct upload
-        file_path = scratch_dir + image_name + "---" + image_checksum
-        glance.images.upload(image_id, open(file_path, 'rb'))
-        return glance.images.get(image_id)
+def upload_image(cloud, image_id, image_name, scratch_dir, image_checksum=None, disk_format=None, container_format="bare"):
+    try:
+        sess =  _get_openstack_sess(cloud, config.categories["openstackPoller.py"]["cacerts"])
+        if sess is False:
+            logging.error("Failed to get openstack session")
+            return False
+        glance =  _get_glance_connection(sess, cloud["region"])
+        if glance is False:
+            logging.error("Failed to get openstack glance connection")
+            return False
+ 
+        file_path = scratch_dir
+        if image_checksum:
+            file_path = scratch_dir + image_name + "---" + image_checksum
+        image = glance.upload_image(name=image_name, disk_format=disk_format, container_format=container_format, data=open(file_path, 'rb'))
+        logging.info("Image upload complete")
+        return glance.get_image(image.id)
+    except Exception as exc:
+        logging.error("Image upload failed: %s" % exc)
+        return False
 
-    else:
-        #this is a straight upload not part of a transfer
-        image = glance.images.create(
-            name=image_name,
-            disk_format=disk_format,
-            container_format=container_format)
-        glance.images.upload(image.id, open(scratch_dir, 'rb'))
-        logging.info("Upload complete")
-        return glance.images.get(image.id) 
+#    if image_id is not None:
+#        #this is the 2nd part of a transfer not a direct upload
+#        file_path = scratch_dir + image_name + "---" + image_checksum
+#        glance.images.upload(image_id, open(file_path, 'rb'))
+#        return glance.images.get(image_id)
+
+#    else:
+#        #this is a straight upload not part of a transfer
+#        image = glance.images.create(
+#            name=image_name,
+#            disk_format=disk_format,
+#            container_format=container_format)
+#        glance.images.upload(image.id, open(scratch_dir, 'rb'))
+#        logging.info("Upload complete")
+#        return glance.images.get(image.id)
 
 
 # Download an image from the repo, returns True if successful or False if not
-def download_image(glance, image_name, image_id, image_checksum, scratch_dir):
+def download_image(cloud, image_name, image_id, image_checksum, scratch_dir):
     #open file then write to it
     try:
+        sess =  _get_openstack_sess(cloud, config.categories["openstackPoller.py"]["cacerts"])
+        if sess is False:
+            return (False, "Failed to get openstack session", "", "")
+        glance =  _get_glance_connection(sess, cloud["region"])
+        if glance is False:
+            return (False, "Failed to get openstack glance connection", "", "")
+        
         if not os.path.exists(scratch_dir):
             os.makedirs(scratch_dir)
         file_path = scratch_dir + image_name + "---" + image_checksum
-        image_file = open(file_path, 'wb')
-        for chunk in glance.images.data(image_id):
-            image_file.write(bytes(chunk))
-        img = glance.images.get(image_id)
-
+        
+#        image_file = open(file_path, 'wb')
+#        for chunk in glance.images.data(image_id):
+#            image_file.write(bytes(chunk))
+#        img = glance.images.get(image_id)
+        
+        glance.download_image(image_id, output=file_path)
+        img = glance.get_image(image_id)
+ 
         return (True, "Success", img.disk_format, img.container_format)
     except Exception as exc:
         return (False, exc, "", "")
 
-def delete_image(glance, image_id):
+#def delete_image(glance, image_id):
+def delete_image(cloud, image_id):
     try:
-        glance.images.delete(image_id)
+        sess =  _get_openstack_sess(cloud, config.categories["openstackPoller.py"]["cacerts"])
+        if sess is False:
+            return (1, "Failed to get openstack session")
+        glance =  _get_glance_connection(sess, cloud["region"])
+        if glance is False:
+            return (1, "Failed to get openstack glance connection")
+
+#        glance.images.delete(image_id)
+        glance.delete_image(image_id)
     except Exception as exc:
         logging.error("Unknown error, unable to delete image")
         logging.error(exc)
@@ -158,13 +202,17 @@ def delete_image(glance, image_id):
     return (0,)
 
 
+"""
 def update_image_name(glance, image_id, image_name):
-    glance.images.update(image_id, name=image_name)
+    #glance.images.update(image_id, name=image_name)
+    glance.update_image(image_id, name=image_name)
 
 
 def get_checksum(glance, image_id):
-    image = glance.images.get(image_id)
+    #image = glance.images.get(image_id)
+    image = glance.get_images(image_id)
     return image['checksum']
+"""
 
 #
 # Check image cache and queue up a pull request if target image is not present
@@ -271,6 +319,7 @@ def get_image(config, image_name, image_checksum, group_name, cloud_name=None):
 def generate_tx_id(length=16):
     return ''.join(random.choice(ALPHABET) for i in range(length)) 
 
+"""
 def delete_keypair(key_name, cloud):
     sess = get_openstack_session(cloud)
     nova = get_nova_client(sess, cloud.region)
@@ -332,5 +381,5 @@ def getUser(request, db_config):
 def verifyUser(request, db_config):
     auth_user = getUser(request, db_config)
     return bool(auth_user)
-
+"""
 
