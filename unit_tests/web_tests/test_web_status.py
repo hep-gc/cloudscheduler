@@ -478,7 +478,6 @@ class TestWebStatusCommon(unittest.TestCase):
         # Clicks on the vm overlay
         self.page.click_vm_data_box(self.group_name, self.cloud_name, 'Manual', right_click=True)
         self.assertFalse(self.page.vm_overlay_open())
-        self.page.click_vm_overlay_close()
 
     @classmethod
     def tearDownClass(cls):

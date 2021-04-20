@@ -381,12 +381,18 @@ class StatusPage(Page):
         try:
             WebDriverWait(self.driver, 10).until(
                 EC.presence_of_element_located((By.ID, 'vms-iframe')))
-            element = self.driver.find_element_by_id('vms-iframe')
-            print('"' + element.get_attribute('src') + '"')
-            if element.get_attribute('src') == '':
-                return False
+            #element = self.driver.find_element_by_id('vms-iframe')
+            #print('"' + element.get_attribute('src') + '"')
+            #if element.get_attribute('src') == '':
+            #    return False
+            #return True
+            self.driver.switch_to.frame('vms-iframe')
+            WebDriverWait(self.driver, 10).until(
+                EC.presence_of_element_located((By.CLASS_NAME, 'vm-div')))
+            self.driver.switch_to.default_content()
             return True
         except TimeoutException:
+            self.driver.switch_to.default_content()
             return False
 
 class CloudsPage(Page):
