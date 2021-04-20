@@ -105,10 +105,15 @@ def setup_objects(objects=[], browser='firefox'):
         clouds_num = 2
     credentials = gvar['cloud_credentials']
     clouds = []
+    cores = []
     for i in range(1, clouds_num + 1):
         clouds.append(gvar['user'] + '-wic' + str(i))
+        if i == 1:
+            cores.append('4')
+        else:
+            cores.append('0')
     for i in range(0, clouds_num):
-        subprocess.run(['cloudscheduler', 'cloud', 'add', '-ca', credentials['authurl'], '-cn', clouds[i], '-cpw', credentials['password'], '-cP', credentials['project'], '-cr', credentials['region'], '-cU', credentials['username'], '-ct', 'openstack', '-vc', '3', '-g', gvar['base_group'], '-s', 'unit-test'])
+        subprocess.run(['cloudscheduler', 'cloud', 'add', '-ca', credentials['authurl'], '-cn', clouds[i], '-cpw', credentials['password'], '-cP', credentials['project'], '-cr', credentials['region'], '-cU', credentials['username'], '-ct', 'openstack', '-vc', cores[i], '-g', gvar['base_group'], '-s', 'unit-test'])
     for i in range(0, clouds_num):
         helpers.wait_for_openstack_poller(clouds[i], ['-vsg', 'default', '-vf', 't1'], output=True)
     if 'clouds' in objects:

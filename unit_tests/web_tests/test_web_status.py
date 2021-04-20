@@ -511,6 +511,24 @@ class TestWebStatusCommon(unittest.TestCase):
         helpers.get_homepage(self.driver)
         self.assertLess(self.page.vms_in_state(self.group_name, self.cloud_name, 'Manual'), manual_control)
 
+    def test_web_status_vm_overlay_retire(self):
+        self.page.click_vm_data_box(self.group_name, self.cloud_name, 'VMs', right_click=True)
+        self.page.click_vm_checkbox(1)
+        self.page.click_vm_operation_button('Retire VMs')
+        self.page.click_vm_overlay_close()
+        helpers.get_homepage(self.driver)
+        self.assertGreater(self.page.vms_in_state(self.group_name, self.cloud_name, 'Retiring'), 0)
+
+    def test_web_status_vm_overlay_kill(self):
+        vms = self.page.vms_in_state(self.group_name, self.cloud_name, 'VMs')
+        self.page.click_vm_data_box(self.group_name, self.cloud_name, 'VMs', right_click=True)
+        self.page.click_vm_checkbox(1)
+        self.page.click_vm_operation_button('Kill VMs')
+        self.page.click_vm_overlay_close()
+        sleep(60)
+        helpers.get_homepage(self.driver)
+        self.assertLess(self.page.vms_in_state(self.group_name, self.cloud_name, 'VMs'), vms)
+
     @classmethod
     def tearDownClass(cls):
         wtsc.cleanup(cls)
