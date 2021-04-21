@@ -87,3 +87,14 @@ def chrome_test_suite():
         suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(test))
     return suite
 
+# A small, sample test suite for testing the run_tests framework
+# This suite should not be included in any tests - it only contains duplicates
+def test_test_suite():
+    tests = [
+        status.TestWebStatusRegularUserChrome
+    ]
+
+    suite = unittest.TestSuite()
+    for test in tests:
+        suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(test))
+    return suite
