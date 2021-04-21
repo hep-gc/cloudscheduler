@@ -482,6 +482,7 @@ class TestWebStatusCommon(unittest.TestCase):
 
     def test_web_status_vm_overlay_select(self):
         # Clicks on the vm overlay and selects a vm
+        self.page.wait_until_vms_not_zero(self.group_name, self.cloud_name, 3)
         self.page.click_vm_data_box(self.group_name, self.cloud_name, 'VMs', right_click=True)
         self.page.click_vm_checkbox(1)
         self.assertTrue(self.page.vm_selected(1))
@@ -489,6 +490,7 @@ class TestWebStatusCommon(unittest.TestCase):
 
     def test_web_status_vm_overlay_manual(self):
         # Clicks on the vm overlay and sets a vm to manual control
+        self.page.wait_until_vms_not_zero(self.group_name, self.cloud_name, 3)
         self.page.click_vm_data_box(self.group_name, self.cloud_name, 'VMs', right_click=True)
         self.page.click_vm_checkbox(1)
         self.page.click_vm_operation_button('Manual Control')
@@ -498,6 +500,7 @@ class TestWebStatusCommon(unittest.TestCase):
 
     def test_web_status_vm_overlay_system(self):
         # Clicks on the vm overlay and sets a vm to system control
+        self.page.wait_until_vms_not_zero(self.group_name, self.cloud_name, 3)
         self.page.click_vm_data_box(self.group_name, self.cloud_name, 'VMs', right_click=True)
         self.page.click_vm_checkbox(1)
         self.page.click_vm_operation_button('Manual Control')
@@ -512,22 +515,27 @@ class TestWebStatusCommon(unittest.TestCase):
         self.assertLess(self.page.vms_in_state(self.group_name, self.cloud_name, 'Manual'), manual_control)
 
     def test_web_status_vm_overlay_retire(self):
+        self.page.wait_until_vms_not_zero(self.group_name, self.cloud_name, 3)
         self.page.click_vm_data_box(self.group_name, self.cloud_name, 'VMs', right_click=True)
         self.page.click_vm_checkbox(1)
         self.page.click_vm_operation_button('Retire VMs')
+        self.page.click_vm_overlay_close()
+        self.page.click_vm_data_box(self.group_name, self.cloud_name, 'VMs', right_click=True)
+        self.assertFalse(self.page.vm_overlay_column_is(1, 'Retire', 0))
         self.page.click_vm_overlay_close()
         helpers.get_homepage(self.driver)
         self.assertGreater(self.page.vms_in_state(self.group_name, self.cloud_name, 'Retiring'), 0)
 
     def test_web_status_vm_overlay_kill(self):
+        self.page.wait_until_vms_not_zero(self.group_name, self.cloud_name, 3)
         vms = self.page.vms_in_state(self.group_name, self.cloud_name, 'VMs')
         self.page.click_vm_data_box(self.group_name, self.cloud_name, 'VMs', right_click=True)
-        self.page.click_vm_checkbox(1)
+        self.page.click_vm_checkbox(3)
         self.page.click_vm_operation_button('Kill VMs')
         self.page.click_vm_overlay_close()
-        sleep(60)
-        helpers.get_homepage(self.driver)
-        self.assertLess(self.page.vms_in_state(self.group_name, self.cloud_name, 'VMs'), vms)
+        self.page.click_vm_data_box(self.group_name, self.cloud_name, 'VMs', right_click=True)
+        self.assertFalse(self.page.vm_overlay_column_is(1, 'Terminate', 0))
+        self.page.click_vm_overlay_close()
 
     @classmethod
     def tearDownClass(cls):

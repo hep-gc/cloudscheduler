@@ -414,6 +414,18 @@ class StatusPage(Page):
         except TimeoutException:
             return False
 
+    def vm_overlay_column_is(self, row, column, data):
+        headings = ['checkbox', 'hostname', 'flavor', 'cores', 'poller status', 'partitionable slots', 'dynamic slots', 'retire', 'terminate', 'age', 'startd errors']
+        column = column.lower()
+        if column not in headings:
+            return False
+        xpath = wtxs.vm_overlay_column_row(row, headings.index(column))
+        print(xpath)
+        WebDriverWait(self.driver, 10).until(
+            EC.presence_of_element_located((By.XPATH, xpath)))
+        element = self.driver.find_element_by_xpath(xpath)
+        return element.text == str(data)
+
 class CloudsPage(Page):
     """This is the page object class for the Clouds page."""
     def __init__(self, driver):
