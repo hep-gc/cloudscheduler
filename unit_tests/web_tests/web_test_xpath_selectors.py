@@ -103,6 +103,9 @@ def plot_line():
 def vm_operation_button(operation):
     return "//button[@class='button " + operation + "-button']"
 
+def vm_overlay_row():
+    return "//tr[not(contains(@style, 'display: none;'))]/td/input[contains(@name, 'vm_hosts')]"
+
 def vm_overlay_column_row(row, column):
     return "//input[@name='vm_hosts." + str(row) + "']/../following-sibling::td[" + str(column) + "]"
 

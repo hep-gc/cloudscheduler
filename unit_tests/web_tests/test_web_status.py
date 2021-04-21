@@ -517,11 +517,11 @@ class TestWebStatusCommon(unittest.TestCase):
     def test_web_status_vm_overlay_retire(self):
         self.page.wait_until_vms_not_zero(self.group_name, self.cloud_name, 3)
         self.page.click_vm_data_box(self.group_name, self.cloud_name, 'VMs', right_click=True)
-        self.page.click_vm_checkbox(1)
+        self.page.click_vm_checkbox(2)
         self.page.click_vm_operation_button('Retire VMs')
         self.page.click_vm_overlay_close()
         self.page.click_vm_data_box(self.group_name, self.cloud_name, 'VMs', right_click=True)
-        self.assertFalse(self.page.vm_overlay_column_is(1, 'Retire', 0))
+        self.assertFalse(self.page.vm_overlay_column_is(2, 'Retire', 0))
         self.page.click_vm_overlay_close()
         helpers.get_homepage(self.driver)
         self.assertGreater(self.page.vms_in_state(self.group_name, self.cloud_name, 'Retiring'), 0)
@@ -534,7 +534,52 @@ class TestWebStatusCommon(unittest.TestCase):
         self.page.click_vm_operation_button('Kill VMs')
         self.page.click_vm_overlay_close()
         self.page.click_vm_data_box(self.group_name, self.cloud_name, 'VMs', right_click=True)
-        self.assertFalse(self.page.vm_overlay_column_is(1, 'Terminate', 0))
+        self.assertFalse(self.page.vm_overlay_column_is(3, 'Terminate', 0))
+        self.page.click_vm_overlay_close()
+
+    def test_web_status_vm_overlay_filter_cores(self):
+        self.page.wait_until_vms_not_zero(self.group_name, self.cloud_name, 3)
+        self.page.click_vm_data_box(self.group_name, self.cloud_name, 'VMs', right_click=True)
+        self.page.click_vm_filter_checkbox('2')
+        self.page.click_vm_filter_checkbox('4')
+        self.page.click_vm_filter_checkbox('8')
+        rows = self.page.vm_overlay_rows()
+        self.assertNotEqual(rows, 0)
+        for i in range(1, rows+1):
+            self.assertTrue(self.page.vm_overlay_column_is(i, 'Cores', 1))
+
+    def test_web_status_vm_overlay_filter_cores_none(self):
+        self.page.wait_until_vms_not_zero(self.group_name, self.cloud_name, 3)
+        self.page.click_vm_data_box(self.group_name, self.cloud_name, 'VMs', right_click=True)
+        self.page.click_vm_filter_checkbox('1')
+        self.assertEqual(self.page.vm_overlay_rows(), 0)
+        self.page.click_vm_overlay_close()
+
+    def test_web_status_vm_overlay_filter_state(self):
+        self.page.wait_until_vms_not_zero(self.group_name, self.cloud_name, 3)
+        self.page.click_vm_data_box(self.group_name, self.cloud_name, 'VMs', right_click=True)
+        self.page.click_vm_filter_checkbox('Starting')
+        self.page.click_vm_filter_checkbox('Idle')
+        self.page.click_vm_filter_checkbox('Running')
+        self.page.click_vm_filter_checkbox('Retiring')
+        self.page.click_vm_filter_checkbox('Manual')
+        self.page.click_vm_filter_checkbox('Error')
+        rows = self.page.vm_overlay_rows()
+        self.assertNotEqual(rows, 0)
+        for i in range(1, rows+1):
+            self.assertTrue(self.page.vm_overlay_column_is(i, 'Poller Status', 'unregistered'))
+        self.page.click_vm_overlay_close()
+
+    def test_web_status_vm_overlay_filter_state_none(self):
+        self.page.wait_until_vms_not_zero(self.group_name, self.cloud_name, 3)
+        self.page.click_vm_data_box(self.group_name, self.cloud_name, 'VMs', right_click=True)
+        self.page.click_vm_filter_checkbox('Starting')
+        self.page.click_vm_filter_checkbox('Unregistered')
+        self.page.click_vm_filter_checkbox('Idle')
+        self.page.click_vm_filter_checkbox('Running')
+        self.page.click_vm_filter_checkbox('Retiring')
+        self.page.click_vm_filter_checkbox('Manual')
+        self.assertEqual(self.page.vm_overlay_rows(), 0)
         self.page.click_vm_overlay_close()
 
     @classmethod

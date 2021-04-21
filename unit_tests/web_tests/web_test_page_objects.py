@@ -1,7 +1,7 @@
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-from selenium.common.exceptions import TimeoutException, UnexpectedAlertPresentException, ElementClickInterceptedException
+from selenium.common.exceptions import TimeoutException, UnexpectedAlertPresentException, ElementClickInterceptedException, NoSuchElementException
 from selenium.webdriver.common.keys import Keys
 from time import sleep
 import datetime
@@ -265,8 +265,10 @@ class StatusPage(Page):
     def click_vm_operation_button(self, button):
         tag = button.split(' ')[0].lower()
         xpath = wtxs.vm_operation_button(tag)
-        print(xpath)
         wti.click_by_xpath(self.driver, xpath)
+
+    def click_vm_filter_checkbox(self, box):
+        wti.click_by_id(self.driver, box.lower())
 
     def click_vm_overlay_close(self):
         self.driver.switch_to.default_content()
@@ -414,13 +416,20 @@ class StatusPage(Page):
         except TimeoutException:
             return False
 
+    def vm_overlay_rows(self):
+        xpath = wtxs.vm_overlay_row()
+        try:
+            elements = self.driver.find_elements_by_xpath(xpath)
+            return len(elements)
+        except NoSuchElementException:
+            return 0
+
     def vm_overlay_column_is(self, row, column, data):
         headings = ['checkbox', 'hostname', 'flavor', 'cores', 'poller status', 'partitionable slots', 'dynamic slots', 'retire', 'terminate', 'age', 'startd errors']
         column = column.lower()
         if column not in headings:
             return False
         xpath = wtxs.vm_overlay_column_row(row, headings.index(column))
-        print(xpath)
         WebDriverWait(self.driver, 10).until(
             EC.presence_of_element_located((By.XPATH, xpath)))
         element = self.driver.find_element_by_xpath(xpath)
