@@ -110,3 +110,38 @@ openstack_path=`which openstack`
 if [ -z "$openstack_path" ]; then
     sudo pip3 install python-openstackclient
 fi
+
+read -p 'Please enter the path to a private ssh key with no password that allows you to ssh onto the server: ' keypath
+read -p 'Please enter your server username: ' server_username
+read -p 'Please enter the server you wish to address: ' server
+read -p 'Please enter the port the server is on: ' server_port
+
+sudo ssh -oStrictHostKeyChecking=no $server_username@$server -p $server_port -i $keypath "cat > job.condor <<EOF1
+Universe   = vanilla
+Executable = job.sh
+dir           = \$ENV(HOME)/logs
+# dir           = /var/tmp/apf-logs
+output        = \$\(dir\)/\$\(Cluster\).\$\(Process\).out
+error         = \$\(dir\)/\$\(Cluster\).\$\(Process\).err
+log           = \$\(dir\)/\$\(Cluster\).\$\(Process\).log
+priority       = 10
+Requirements = group_name =?= \"$username-wig0\" && TARGET.Arch == \"x86_64\"
+should_transfer_files = YES
+when_to_transfer_output = ON_EXIT
+request_cpus = 1
+request_memory = 1500
+request_disk = 20G
+RunAsOwner = False
+getenv = False
+queue 4
+EOF1
+"
+
+sudo ssh $server_username@$server -p $server_port -i $keypath "cat > job.sh <<EOF2
+o $HOSTNAME
+date
+cat /var/lib/cloud_type
+cat /var/lib/cloud_name
+sleep 780
+EOF2
+"
