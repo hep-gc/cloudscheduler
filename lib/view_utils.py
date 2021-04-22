@@ -7,9 +7,6 @@ import boto3
 from cloudscheduler.lib.schema import *
 from cloudscheduler.lib.openstack_functions import _get_openstack_sess, _get_openstack_api_version
 
-#from keystoneclient.auth.identity import v2, v3
-#from keystoneauth1 import session as keystone
-#from keystoneauth1 import exceptions
 import keystoneclient.v2_0.client as v2c
 import keystoneclient.v3.client as v3c
 
@@ -1688,14 +1685,6 @@ def get_amazon_session(config, cloud, target_cloud=None):
 #-------------------------------------------------------------------------------
 
 def get_openstack_session(config, cloud, target_cloud=None):
-#    def __get_openstack_api_version__(authurl):
-#        authsplit = authurl.split('/')
-#        try:
-#            version = int(float(authsplit[-1][1:])) if len(authsplit[-1]) > 0 else int(float(authsplit[-2][1:]))
-#            return 0, None, version
-#        except:
-#            return 1, 'Bad openstack URL: %s, could not determine version' % authurl, None
-
     C = {'authurl': None}
     if not target_cloud and 'group_name' in cloud and 'cloud_name' in cloud:
         rc, msg, target_cloud = get_target_cloud(config, cloud['group_name'], cloud['cloud_name'])
@@ -1790,14 +1779,6 @@ def get_openstack_session(config, cloud, target_cloud=None):
                     username=C['username'],
                     password=C['password']
                     )
-
-                #auth = v2.Password(
-                #    auth_url=C['authurl'],
-                #    tenant_name=C['project'],
-                #    username=C['username'],
-                #    password=C['password']
-                #    )
-                #session = keystone.Session(auth=auth, verify=config.categories["GSI"]["cacerts"])
                 session = _get_openstack_sess(C, config.categories["GSI"]["cacerts"])
                 return 0, None, session
 
@@ -1820,17 +1801,6 @@ def get_openstack_session(config, cloud, target_cloud=None):
                     username=C['username'],
                     password=C['password']
                     )
-
-                #auth = v3.Password(
-                #    auth_url=C['authurl'],
-                #    project_domain_id=C['project_domain_id'],
-                #    project_domain_name=C['project_domain_name'],
-                #    project_name=C['project'],
-                #    user_domain_name=C['user_domain_name'],
-                #    username=C['username'],
-                #    password=C['password']
-                #    )
-                #session = keystone.Session(auth=auth, verify=config.categories["GSI"]["cacerts"])
                 session = _get_openstack_sess(C, config.categories["GSI"]["cacerts"])
                 return 0, None, session
 

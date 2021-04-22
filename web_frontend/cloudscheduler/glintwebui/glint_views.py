@@ -13,7 +13,6 @@ from django.views.decorators.csrf import requires_csrf_token
 from django.http import HttpResponse, StreamingHttpResponse
 from django.core.exceptions import PermissionDenied
 
-#from .glint_utils import get_openstack_session, get_glance_client, delete_image, check_cache, generate_tx_id, get_image, download_image, upload_image
 from .glint_utils import delete_image, check_cache, generate_tx_id, get_image, download_image, upload_image
 
 from cloudscheduler.lib.view_utils import \
@@ -549,9 +548,6 @@ def delete(request, args=None, response_code=0, message=None):
             where_clause = "group_name='%s' and cloud_name='%s'" % (target_group, target_cloud)
             rc, qmsg, cloud_list =  config.db_query(CLOUDS, where=where_clause)
             cloud = cloud_list[0]
-            #os_session = get_openstack_session(cloud)
-            #glance = get_glance_client(os_session, cloud["region"])
-            #result = delete_image(glance, target_image["id"])
             result = delete_image(cloud, target_image["id"])
 
             if result[0] == 0:
@@ -632,9 +628,6 @@ def delete(request, args=None, response_code=0, message=None):
             where_clause = "group_name='%s' and cloud_name='%s'" % (target_image["group_name"], target_image["cloud_name"])
             rc, msg, cloud_list =  config.db_query(CLOUDS, where=where_clause)
             cloud = cloud_list[0]
-            #os_session = get_openstack_session(cloud)
-            #glance = get_glance_client(os_session, cloud["region"])
-            #result = delete_image(glance, target_image["id"])
             result = delete_image(cloud, target_image["id"])
 
             if result[0] == 0:
@@ -784,13 +777,8 @@ def upload(request, group_name=None):
             return render(request, 'glintwebui/upload_image.html', context)
 
 
-
-        #os_session = get_openstack_session(target_cloud)
-        #glance = get_glance_client(os_session, target_cloud["region"])
-
         logger.info("uploading image %s to cloud %s" % (image_file.name, target_cloud_name))
 
-        #image = upload_image(glance, None, image_file.name, file_path, disk_format=request.POST.get('disk_format'))
         image = upload_image(target_cloud, None, image_file.name, file_path, disk_format=request.POST.get('disk_format'))
         if image is False:
             logger.error("Upload failed for image %s" % image_file.name)
@@ -1003,10 +991,7 @@ def upload(request, group_name=None):
         where_clause = "group_name='%s' and cloud_name='%s'" % (group_name, target_cloud_name)
         rc, qmsg, target_cloud_list = config.db_query(CLOUDS, where=where_clause)
         target_cloud = target_cloud_list[0]
-        #os_session = get_openstack_session(target_cloud)
-        #glance = get_glance_client(os_session, target_cloud["region"])
 
-        #image = upload_image(glance, None, image_name, file_path, disk_format=request.POST.get('disk_format'))
         image = upload_image(target_cloud, None, image_name, file_path, disk_format=request.POST.get('disk_format'))
         if image is False:
             logger.error("Upload failed for image %s" % image_name)
@@ -1203,9 +1188,6 @@ def download(request, group_name, image_key, args=None, response_code=0, message
         where_clause = "group_name='%s' and cloud_name='%s'" % (group_name, src_image["cloud_name"])
         rc, qmsg, cloud_row_list = config.db_query(CLOUD, where=where_clause)
         cloud_row = cloud_row_list[0]
-        #os_session = get_openstack_session(cloud_row)
-        #glance = get_glance_client(os_session, cloud_row["region"])
-        #result_tuple = download_image(glance, image_name, src_image["id"], image_checksum, config.categories["glintPoller.py"]["image_cache_dir"])
         result_tuple = download_image(cloud_row, image_name, src_image["id"], image_checksum, config.categories["glintPoller.py"]["image_cache_dir"])
         if result_tuple[0]:
             # successful download, update the cache and remove transaction

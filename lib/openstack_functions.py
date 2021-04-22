@@ -69,10 +69,25 @@ def _get_cinder_connection(sess, region=None):
         logging.error("Problem getting openstacksdk cinder connection - %s" % exc)
         return False
 
-def _get_openstack_sess(cloud, verify=None, appcredential=None):
+def _get_keystone_connection(sess, region=None):
+    try:
+        conn = connection.Connection(
+            region_name=region,
+            session=sess,
+            #identity_interface='public',
+            identity_api_version='3'
+        )
+        keystone = conn.identity
+        return keystone
+    except Exception as exc:
+        logging.error("Problem getting openstacksdk keystone connection - %s" % exc)
+        return False
+
+def _get_openstack_sess(cloud, verify=None):
     try:
         auth = None
-        if appcredential:
+        # todo: check the attribute name in cloud
+        if cloud["application_credential_secret"] and cloud["application_credential_id"]:
             auth = _get_openstack_appcredential_auth(cloud)
         else:
             auth = _get_openstack_auth(cloud)

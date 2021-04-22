@@ -31,17 +31,7 @@ from cloudscheduler.lib.poller_functions import \
 
 from cloudscheduler.lib.signal_functions import event_receiver_registration
 from cloudscheduler.lib.openstack_functions import _get_openstack_sess, _get_nova_connection, _get_glance_connection, _get_neutron_connection
-
-#from keystoneclient.auth.identity import v2, v3
-#from keystoneauth1 import session
-#from keystoneauth1 import exceptions
-#from novaclient import client as novaclient
-#from neutronclient.v2_0 import client as neuclient
-#from cinderclient import client as cinclient
-#import glanceclient
 #import openstack
-
-
 
 '''
 
@@ -105,93 +95,9 @@ body_logger.addHandler(body_handler)
 #
 # This file also polls the openstack clouds for live VM information and inserts it into the database
 
-## Poller sub-functions.
-
-#def _get_neutron_client(session, region=None):
-#    neutron = neuclient.Client(session=session, region_name=region, timeout=10, logger=None)
-#    return neutron
-#
-#def _get_nova_client(session, region=None):
-#    nova = novaclient.Client("2", session=session, region_name=region, timeout=10, logger=None)
-#    return nova
-#
-#def _get_glance_client(session, region=None):
-#    glance = glanceclient.Client("2", session=session, region_name=region, logger=None)
-#    return glance
-
-#def _get_openstack_session(cloud):
-#    authsplit = cloud["authurl"].split('/')
-#    try:
-#        version = int(float(authsplit[-1][1:])) if len(authsplit[-1]) > 0 else int(float(authsplit[-2][1:]))
-#    except ValueError:
-#        logging.debug("Bad OpenStack URL, could not determine version, skipping %s", cloud["authurl"])
-#        return False
-#    if version == 2:
-#        session = _get_openstack_session_v1_v2(
-#            auth_url=cloud["authurl"],
-#            username=cloud["username"],
-#            password=cloud["password"],
-#            project=cloud["project"])
-#    else:
-#        session = _get_openstack_session_v1_v2(
-#            auth_url=cloud["authurl"],
-#            username=cloud["username"],
-#            password=cloud["password"],
-#            project=cloud["project"],
-#            user_domain=cloud["user_domain_name"],
-#            project_domain_name=cloud["project_domain_name"],
-#            project_domain_id=cloud["project_domain_id"],)
-#    if session is False:
-#        logging.error("Failed to setup session, skipping %s", cloud["cloud_name"])
-#        if version == 2:
-#            logging.error("Connection parameters: \n authurl: %s \n username: %s \n project: %s",
-#                          (cloud["authurl"], cloud["username"], cloud["project"]))
-#        else:
-#            logging.error(
-#                "Connection parameters: \n authurl: %s \n username: %s \n project: %s \n user_domain: %s \n project_domain: %s",
-#                (cloud["authurl"], cloud["username"], cloud["project"], cloud["user_domain_name"], cloud["project_domain_name"]))
-#    return session
-
-#def _get_openstack_session_v1_v2(auth_url, username, password, project, user_domain="Default", project_domain_name="Default",
-#                                 project_domain_id=None):
-#    authsplit = auth_url.split('/')
-#    try:
-#        version = int(float(authsplit[-1][1:])) if len(authsplit[-1]) > 0 else int(float(authsplit[-2][1:]))
-#    except ValueError:
-#        logging.debug("Bad openstack URL: %s, could not determine version, aborting session", auth_url)
-#        return False
-#    if version == 2:
-#        try:
-#            auth = v2.Password(
-#                auth_url=auth_url,
-#                username=username,
-#                password=password,
-#                tenant_name=project)
-#            sess = session.Session(auth=auth, verify=config.categories["openstackPoller.py"]["cacerts"], split_loggers=False)
-#        except Exception as exc:
-#            logging.error("Problem importing keystone modules, and getting session for grp:cloud - %s::%s" % (auth_url, exc))
-#            logging.error("Connection parameters: \n authurl: %s \n username: %s \n project: %s", (auth_url, username, project))
-#            return False
-#        return sess
-#    elif version == 3:
-#        #connect using keystone v3
-#        try:
-#            auth = v3.Password(
-#                auth_url=auth_url,
-#                username=username,
-#                password=password,
-#                project_name=project,
-#                user_domain_name=user_domain,
-#                project_domain_name=project_domain_name,
-#                project_domain_id=project_domain_id)
-#            sess = session.Session(auth=auth, verify=config.categories["openstackPoller.py"]["cacerts"], split_loggers=False)
-#        except Exception as exc:
-#            logging.error("Problem importing keystone modules, and getting session for grp:cloud - %s: %s", exc)
-#            logging.error("Connection parameters: \n authurl: %s \n username: %s \n project: %s \n user_domain: %s \n project_domain: %s", (auth_url, username, project, user_domain, project_domain_name))
-#            return False
-#        return sess
-
 CLOUD = "csv2_clouds"
+
+## Poller sub-functions.
 
 def poller_setup(): 
     db_category_list = [os.path.basename(sys.argv[0]), "general", "signal_manager", "ProcessMonitor"]
@@ -254,10 +160,8 @@ def flavor_poller():
                     cloud_name = unique_cloud_dict[cloud]['cloud_obj']["authurl"]
                     cloud_obj =  unique_cloud_dict[cloud]['cloud_obj']
                     logging.debug("Processing flavours from cloud - %s" % cloud_name)
-                    #session = _get_openstack_session(unique_cloud_dict[cloud]['cloud_obj'])
                     sess = _get_openstack_sess(unique_cloud_dict[cloud]['cloud_obj'], config.categories["openstackPoller.py"]["cacerts"])
                     if sess is False:
-                    #if session is False:
                         logging.debug("Failed to establish session with %s, skipping this cloud..." % cloud_name)
                         for cloud_tuple in unique_cloud_dict[cloud]['groups']:
                             grp_nm = cloud_tuple[0]
@@ -272,7 +176,6 @@ def flavor_poller():
                             continue
 
                     # setup OpenStack api objects
-                    #nova = _get_nova_client(session, region=unique_cloud_dict[cloud]['cloud_obj']["region"])
                     nova = _get_nova_connection(sess, region=unique_cloud_dict[cloud]['cloud_obj']["region"])
 
                     if nova is False:
@@ -281,7 +184,6 @@ def flavor_poller():
 
                     # Retrieve all flavours for this cloud.
                     try:
-                        #flav_list =  nova.flavors.list()
                         flav_list = nova.flavors()
                     except Exception as exc:
                         logging.error("Failed to retrieve flavor data for %s, skipping this cloud..." % cloud_name)
@@ -336,7 +238,7 @@ def flavor_poller():
                                 'swap': swap,
                                 'disk': disk,
                                 'ephemeral_disk': flavor.ephemeral,
-                                'is_public': flavor.to_dict().get('is_public'),    #flavor.__dict__.get('os-flavor-access:is_public'),
+                                'is_public': flavor.to_dict().get('is_public'),
                                 'last_updated': new_poll_time
                                 }
 
@@ -425,12 +327,7 @@ def flavor_poller():
 def image_poller():
     multiprocessing.current_process().name = "Image Poller"
 
-#    db_category_list = [os.path.basename(sys.argv[0]), "general", "signal_manager", "ProcessMonitor"]
-#    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', db_category_list, pool_size=3, signals=True)
-#    PID_FILE = config.categories["ProcessMonitor"]["pid_path"] + os.path.basename(sys.argv[0])
-
     IMAGE = "cloud_images"
-#    CLOUD = "csv2_clouds"
 
     ikey_names = ["group_name", "cloud_name", "id"]
 
@@ -440,9 +337,6 @@ def image_poller():
     failure_dict = {}
 
     config, PID_FILE = poller_setup()
-#    config.db_open()
-#    event_receiver_registration(config, "insert_csv2_clouds_openstack")
-#    event_receiver_registration(config, "update_csv2_clouds_openstack")
 
     try:
         where_clause = "cloud_type='openstack'"
@@ -480,10 +374,8 @@ def image_poller():
                     cloud_obj = unique_cloud_dict[cloud]['cloud_obj']
                     cloud_name = unique_cloud_dict[cloud]['cloud_obj']["authurl"]
                     logging.info("Processing Images from cloud - %s" % cloud_name)
-                    #session = _get_openstack_session(unique_cloud_dict[cloud]['cloud_obj'])
                     sess = _get_openstack_sess(unique_cloud_dict[cloud]['cloud_obj'], config.categories["openstackPoller.py"]["cacerts"])
                     if sess is False:
-                    #if session is False:
                         logging.debug("Failed to establish session with %s, skipping this cloud..." % cloud_name)
                         for cloud_tuple in unique_cloud_dict[cloud]['groups']:
                             grp_nm = cloud_tuple[0]
@@ -508,7 +400,6 @@ def image_poller():
                         continue
                     
                     try:
-                        #image_list =  glance.images.list()
                         image_list = glance.images()
                         post_req_time = time.time()*1000000
                     except Exception as exc:
@@ -554,7 +445,6 @@ def image_poller():
                             logging.warning(exc)
 
                     try:
-                        #logging.error(image_list)
                         for image in image_list:
                             if image.size == "" or image.size is None:
                                 size = 0
@@ -688,11 +578,7 @@ def image_poller():
 def keypair_poller():
     multiprocessing.current_process().name = "Keypair Poller"
     
-#    db_category_list = [os.path.basename(sys.argv[0]), "general", "signal_manager", "ProcessMonitor"]
-#    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', db_category_list, pool_size=3, signals=True)
-#    PID_FILE = config.categories["ProcessMonitor"]["pid_path"] + os.path.basename(sys.argv[0])
     KEYPAIR = "cloud_keypairs"
-#    CLOUD = "csv2_clouds"
     ikey_names = ["group_name", "cloud_name", "fingerprint", "key_name"]
 
     cycle_start_time = 0
@@ -701,9 +587,6 @@ def keypair_poller():
     failure_dict = {}
 
     config, PID_FILE = poller_setup()
-#    config.db_open()
-#    event_receiver_registration(config, "insert_csv2_clouds_openstack")
-#    event_receiver_registration(config, "update_csv2_clouds_openstack")
 
     try:
         where_clause = "cloud_type='openstack'"
@@ -740,10 +623,8 @@ def keypair_poller():
                     cloud_name = unique_cloud_dict[cloud]['cloud_obj']["authurl"]
                     cloud_obj = unique_cloud_dict[cloud]['cloud_obj']
                     logging.debug("Processing Key pairs from group:cloud - %s" % cloud_name)
-                    #session = _get_openstack_session(unique_cloud_dict[cloud]['cloud_obj'])
                     sess = _get_openstack_sess(unique_cloud_dict[cloud]['cloud_obj'], config.categories["openstackPoller.py"]["cacerts"])
                     if sess is False:
-                    #if session is False:
                         logging.debug("Failed to establish session with %s" % cloud_name)
                         for cloud_tuple in unique_cloud_dict[cloud]['groups']:
                             grp_nm = cloud_tuple[0]
@@ -758,7 +639,6 @@ def keypair_poller():
                         continue
 
                     # setup openstack api objects
-                    #nova = _get_nova_client(session, region=unique_cloud_dict[cloud]['cloud_obj']["region"])
                     nova = _get_nova_connection(sess, region=unique_cloud_dict[cloud]['cloud_obj']["region"])
 
                     if nova is False:
@@ -770,7 +650,6 @@ def keypair_poller():
 
                     try:
                         # get keypairs and add them to database
-                        #cloud_keys = nova.keypairs.list()
                         cloud_keys = nova.keypairs()
                     except Exception as exc:
                         logging.error("Failed to poll key pairs from nova, skipping %s" % cloud_name)
@@ -890,11 +769,7 @@ def keypair_poller():
 def limit_poller():
     multiprocessing.current_process().name = "Limit Poller"
 
-#    db_category_list = [os.path.basename(sys.argv[0]), "general", "signal_manager", "ProcessMonitor"]
-#    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', db_category_list, pool_size=3, signals=True)
-#    PID_FILE = config.categories["ProcessMonitor"]["pid_path"] + os.path.basename(sys.argv[0])
     LIMIT = "cloud_limits"
-#    CLOUD = "csv2_clouds"
     ikey_names = ["group_name", "cloud_name"]
 
     cycle_start_time = 0
@@ -903,9 +778,6 @@ def limit_poller():
     failure_dict = {}
 
     config, PID_FILE = poller_setup()
-#    config.db_open()
-#    event_receiver_registration(config, "insert_csv2_clouds_openstack")
-#    event_receiver_registration(config, "update_csv2_clouds_openstack")
 
     try:
         where_clause = "cloud_type='openstack'"
@@ -944,10 +816,8 @@ def limit_poller():
                     cloud_name = unique_cloud_dict[cloud]['cloud_obj']["authurl"]
                     cloud_obj = unique_cloud_dict[cloud]['cloud_obj']
                     logging.debug("Processing limits from cloud - %s" % cloud_name)
-                    #session = _get_openstack_session(unique_cloud_dict[cloud]['cloud_obj'])
                     sess = _get_openstack_sess(unique_cloud_dict[cloud]['cloud_obj'], config.categories["openstackPoller.py"]["cacerts"])
                     if sess is False:
-                    #if session is False:
                         logging.debug("Failed to establish session with %s, skipping this cloud..." % cloud_name)
                         for cloud_tuple in unique_cloud_dict[cloud]['groups']:
                             grp_nm = cloud_tuple[0]
@@ -962,7 +832,6 @@ def limit_poller():
                         continue
 
                     # Retrieve limit list for the current cloud.
-                    #nova = _get_nova_client(session, region=unique_cloud_dict[cloud]['cloud_obj']["region"])
                     nova = _get_nova_connection(sess, region=unique_cloud_dict[cloud]['cloud_obj']["region"])
 
                     if nova is False:
@@ -971,10 +840,8 @@ def limit_poller():
 
                     shared_limits_dict = {}
                     try:
-                        #limit_list = nova.limits.get().absolute
                         limit_list = nova.get_limits().absolute
                         for limit in limit_list:
-                            #shared_limits_dict[limit.name] = limit.value
                             shared_limits_dict[limit] = limit_list[limit]
                     except Exception as exc:
                         logging.error("Failed to retrieve limits from nova, skipping %s" %  cloud_name)
@@ -1100,11 +967,7 @@ def limit_poller():
 def network_poller():
     multiprocessing.current_process().name = "Network Poller"
 
-#    db_category_list = [os.path.basename(sys.argv[0]), "general", "signal_manager", "ProcessMonitor"]
-#    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', db_category_list, pool_size=3, signals=True)
-#    PID_FILE = config.categories["ProcessMonitor"]["pid_path"] + os.path.basename(sys.argv[0])
     NETWORK = "cloud_networks"
-#    CLOUD = "csv2_clouds"
     ikey_names = ["group_name", "cloud_name", "id"]
 
     cycle_start_time = 0
@@ -1113,9 +976,6 @@ def network_poller():
     failure_dict = {}
 
     config, PID_FILE = poller_setup()
-#    config.db_open()
-#    event_receiver_registration(config, "insert_csv2_clouds_openstack")
-#    event_receiver_registration(config, "update_csv2_clouds_openstack")
 
     try:
         where_clause = "cloud_type='openstack'"
@@ -1154,10 +1014,8 @@ def network_poller():
                     cloud_name = unique_cloud_dict[cloud]['cloud_obj']["authurl"]
                     cloud_obj = unique_cloud_dict[cloud]['cloud_obj']
                     logging.debug("Processing networks from cloud - %s" % cloud_name)
-                    #session = _get_openstack_session(unique_cloud_dict[cloud]['cloud_obj'])
                     sess = _get_openstack_sess(unique_cloud_dict[cloud]['cloud_obj'], config.categories["openstackPoller.py"]["cacerts"])
                     if sess is False:
-                    #if session is False:
                         logging.debug("Failed to establish session with %s, skipping this cloud..." % cloud_name)
                         for cloud_tuple in unique_cloud_dict[cloud]['groups']:
                             grp_nm = cloud_tuple[0]
@@ -1172,7 +1030,6 @@ def network_poller():
                         continue
 
                     # Retrieve network list.
-                    #neutron = _get_neutron_client(session, region=unique_cloud_dict[cloud]['cloud_obj']["region"])
                     neutron = _get_neutron_connection(sess, region=unique_cloud_dict[cloud]['cloud_obj']["region"])
 
                     if neutron is False:
@@ -1180,7 +1037,6 @@ def network_poller():
                         continue
                     
                     try:
-                        #net_list = neutron.list_networks()['networks']
                         net_list = neutron.networks()
                     except Exception as exc:
                         logging.error("Failed to retrieve networks from neutron, skipping %s" %  cloud_name)
@@ -1217,10 +1073,10 @@ def network_poller():
                                 'cloud_name': cloud_n,
                                 'name': network['name'],
                                 'cloud_type': "openstack",
-                                'subnets': ''.join(network['subnet_ids']),    #''.join(network['subnets']),
-                                'tenant_id': network['project_id'],   #network['tenant_id'],
-                                'router:external': network['is_router_external'],   #network['router:external'],
-                                'shared': network['is_shared'],   #network['shared'],
+                                'subnets': ''.join(network['subnet_ids']),
+                                'tenant_id': network['project_id'],
+                                'router:external': network['is_router_external'],
+                                'shared': network['is_shared'],
                                 'id': network['id'],
                                 'last_updated': int(time.time())
                             }
@@ -1311,12 +1167,7 @@ def network_poller():
 def security_group_poller():
     multiprocessing.current_process().name = "Security Group Poller"
 
-#    db_category_list = [os.path.basename(sys.argv[0]), "general", "signal_manager", "ProcessMonitor"]
-#    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', db_category_list, pool_size=3, signals=True)
-#    PID_FILE = config.categories["ProcessMonitor"]["pid_path"] + os.path.basename(sys.argv[0])
-
     SECURITY_GROUP = "cloud_security_groups"
-#    CLOUD = "csv2_clouds"
     ikey_names = ["group_name", "cloud_name", "id"]
 
     cycle_start_time = 0
@@ -1326,9 +1177,6 @@ def security_group_poller():
     my_pid = os.getpid()
 
     config, PID_FILE = poller_setup()
- #   config.db_open()
- #   event_receiver_registration(config, "insert_csv2_clouds_openstack")
- #   event_receiver_registration(config, "update_csv2_clouds_openstack")
 
     try:
         where_clause = "cloud_type='openstack'"
@@ -1367,10 +1215,8 @@ def security_group_poller():
                     cloud_name = unique_cloud_dict[cloud]['cloud_obj']["authurl"]
                     cloud_obj = unique_cloud_dict[cloud]['cloud_obj']
                     logging.debug("Processing security groups from cloud - %s" % cloud_name)
-                    #session = _get_openstack_session(unique_cloud_dict[cloud]['cloud_obj'])
                     sess = _get_openstack_sess(unique_cloud_dict[cloud]['cloud_obj'], config.categories["openstackPoller.py"]["cacerts"])
                     if sess is False:
-                    #if session is False:
                         logging.debug("Failed to establish session with %s, skipping this cloud..." % cloud_name)
                         for cloud_tuple in unique_cloud_dict[cloud]['groups']:
                             grp_nm = cloud_tuple[0]
@@ -1385,7 +1231,6 @@ def security_group_poller():
                             continue
 
                     # setup OpenStack api objects
-                    #neu = _get_neutron_client(session, region=unique_cloud_dict[cloud]['cloud_obj']["region"])
                     neu = _get_neutron_connection(sess, region=unique_cloud_dict[cloud]['cloud_obj']["region"])
                     
                     if neu is False:
@@ -1394,7 +1239,6 @@ def security_group_poller():
 
                     # Retrieve all flavours for this cloud.
                     try:
-                        #sec_grp_list =  neu.list_security_groups()
                         sec_grp_list = neu.security_groups()
                     except Exception as exc:
                         logging.error("Failed to retrieve security groups for %s, skipping this cloud..." % cloud_name)
@@ -1424,7 +1268,6 @@ def security_group_poller():
                     # Process security groups for this cloud.
                     uncommitted_updates = 0
                     for sec_grp in sec_grp_list:
-                    #for sec_grp in sec_grp_list["security_groups"]:
                         for groups in unique_cloud_dict[cloud]['groups']:
                             group_n = groups[0]
                             cloud_n = groups[1]
@@ -1608,10 +1451,8 @@ def vm_poller():
                     for_vm_dict[auth_url + "--" + for_vm["flavor_id"]] = fvm_dict
 
                 logging.debug("Polling VMs from cloud: %s" % auth_url)
-                #session = _get_openstack_session(cloud_obj)
                 sess = _get_openstack_sess(cloud_obj, config.categories["openstackPoller.py"]["cacerts"])
                 if sess is False:
-                #if session is False:
                     logging.debug("Failed to establish session with %s::%s::%s, using group %s's credentials skipping this cloud..." % (cloud_obj["authurl"], cloud_obj["project"], cloud_obj["region"], cloud_obj["group_name"]))
                     if auth_url + cloud_obj["project"] + cloud_obj["region"] not in failure_dict:
                         failure_dict[auth_url + cloud_obj["project"] + cloud_obj["region"]] = 1
@@ -1622,7 +1463,6 @@ def vm_poller():
                     continue
 
                 # Retrieve VM list for this cloud.
-                #nova = _get_nova_client(session, region=cloud_obj["region"])
                 nova = _get_nova_connection(sess, region=cloud_obj["region"])
 
                 if nova is False:
@@ -1630,7 +1470,6 @@ def vm_poller():
                     continue
 
                 try:
-                    #vm_list = nova.servers.list()
                     vm_list = nova.servers()
                 except Exception as exc:
                     logging.error("Failed to retrieve VM data for  %s::%s::%s, skipping this cloud..." % (cloud_obj["authurl"], cloud_obj["project"], cloud_obj["region"]))
@@ -1686,7 +1525,6 @@ def vm_poller():
                         vm_cloud_name = host_tokens[1]
                         found_flavor = nova.find_flavor(name_or_id=vm.flavor['original_name'])
                         vm_flavor_id = found_flavor.id
-                        #vm_flavor_id = vm.flavor['id']                        
 
                         if (host_tokens[0], host_tokens[1]) not in group_list:
                             logging.debug("Group-Cloud combination doesn't match any in csv2, marking %s as foreign vm" % vm.name)
@@ -1757,9 +1595,9 @@ def vm_poller():
                         'vmid': vm.id,
                         'image_id': vm.image['id'],
                         'status': vm.status,
-                        'flavor_id': vm_flavor_id,    #vm.flavor["id"],
-                        'task': vm.to_dict().get('task_state'),    #vm.__dict__.get("OS-EXT-STS:task_state"),
-                        'power_state': vm.to_dict().get('power_state'),    #vm.__dict__.get("OS-EXT-STS:power_state"),
+                        'flavor_id': vm_flavor_id,
+                        'task': vm.to_dict().get('task_state'),
+                        'power_state': vm.to_dict().get('power_state'),
                         'vm_ips': str(ip_addrs),
                         'vm_floating_ips': str(floating_ips),
                         'last_updated': new_poll_time
