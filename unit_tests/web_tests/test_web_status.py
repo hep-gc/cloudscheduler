@@ -521,10 +521,10 @@ class TestWebStatusCommon(unittest.TestCase):
         self.page.click_vm_operation_button('Retire VMs')
         self.page.click_vm_overlay_close()
         self.page.click_vm_data_box(self.group_name, self.cloud_name, 'VMs', right_click=True)
-        self.assertFalse(self.page.vm_overlay_column_is(2, 'Retire', 0))
+        self.assertFalse(self.page.vm_overlay_column_is(2, 'Retire', 0) and self.page.vm_overlay_column_is(2, 'Terminate', 0))
         self.page.click_vm_overlay_close()
         helpers.get_homepage(self.driver)
-        self.assertGreater(self.page.vms_in_state(self.group_name, self.cloud_name, 'Retiring'), 0)
+        #self.assertGreater(self.page.vms_in_state(self.group_name, self.cloud_name, 'Retiring'), 0)
 
     def test_web_status_vm_overlay_kill(self):
         self.page.wait_until_vms_not_zero(self.group_name, self.cloud_name, 3)
