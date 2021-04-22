@@ -64,7 +64,6 @@ class StatusPage(Page):
         wti.click_by_xpath(self.driver, xpath)
 
     def click_job_data_box(self, group, state):
-        #sleep(1)
         state_tag = '_' + state.lower()
         if state == 'Jobs':
             state_tag = ''
@@ -73,8 +72,7 @@ class StatusPage(Page):
         try:
             wti.click_by_xpath(self.driver, xpath)
         except ElementClickInterceptedException:
-            print("Exception") 
-            #sleep(7.3) 
+            print("Exception")
             WebDriverWait(self.driver, 20).until(
                 EC.element_to_be_clickable((By.XPATH, xpath)))
             wti.click_by_xpath(self.driver, xpath)
@@ -90,13 +88,11 @@ class StatusPage(Page):
         wti.click_by_xpath(self.driver, xpath)
 
     def click_rt_data_box(self, group, cloud):
-        #sleep(1)
         xpath = wtxs.data_box(group + ' ' + cloud + ' communication_rt')
         try:
             wti.click_by_xpath(self.driver, xpath)
         except ElementClickInterceptedException:
-            print("Exception") 
-            #sleep(7.3)
+            print("Exception")
             WebDriverWait(self.driver, 20).until(
                 EC.element_to_be_clickable((By.XPATH, xpath)))
             wti.click_by_xpath(self.driver, xpath)
@@ -104,7 +100,6 @@ class StatusPage(Page):
             EC.presence_of_element_located((By.CLASS_NAME, 'plot-container')))
 
     def click_vm_data_box(self, group, cloud, state, right_click=False):
-        #sleep(1)
         state_tag = '_' + state.lower()
         if state == 'VMs':
             state_tag = ''
@@ -123,8 +118,7 @@ class StatusPage(Page):
             else:
                 wti.click_by_xpath(self.driver, xpath)
         except ElementClickInterceptedException:
-            print("Exception") 
-            #sleep(7.3)
+            print("Exception")
             WebDriverWait(self.driver, 20).until(
                 EC.element_to_be_clickable((By.XPATH, xpath)))
             if right_click:
@@ -137,7 +131,6 @@ class StatusPage(Page):
                 EC.presence_of_element_located((By.CLASS_NAME, 'plot-container')))
 
     def click_slot_data_box(self, group, cloud, state):
-        #sleep(1)
         state_tag = '_' + state.lower()
         if state == 'Slots':
             state_tag = '_count'
@@ -154,8 +147,7 @@ class StatusPage(Page):
         try:
             wti.click_by_xpath(self.driver, xpath)
         except ElementClickInterceptedException:
-            print("Exception") 
-            #sleep(7.3)
+            print("Exception")
             WebDriverWait(self.driver, 20).until(
                 EC.element_to_be_clickable((By.XPATH, xpath)))
             wti.click_by_xpath(self.driver, xpath)
@@ -163,7 +155,6 @@ class StatusPage(Page):
             EC.presence_of_element_located((By.CLASS_NAME, 'plot-container')))
 
     def click_native_cores_data_box(self, group, cloud, state):
-        #sleep(1)
         state_tag = '_' + state.lower()
         if state == 'Used':
             state_tag = '_native'
@@ -176,8 +167,7 @@ class StatusPage(Page):
         try:
             wti.click_by_xpath(self.driver, xpath)
         except ElementClickInterceptedException:
-            print("Exception") 
-            #sleep(7.3)
+            print("Exception")
             WebDriverWait(self.driver, 20).until(
                 EC.element_to_be_clickable((By.XPATH, xpath)))
             wti.click_by_xpath(self.driver, xpath)
@@ -185,7 +175,6 @@ class StatusPage(Page):
             EC.presence_of_element_located((By.CLASS_NAME, 'plot-container')))
 
     def click_foreign_data_box(self, group, cloud, state):
-        #sleep(1)
         state_tag = state.lower() + '_foreign'
         if state == 'VMs':
             state_tag = 'Foreign_VMs'
@@ -194,8 +183,7 @@ class StatusPage(Page):
         try:
             wti.click_by_xpath(self.driver, xpath)
         except ElementClickInterceptedException:
-            print("Exception") 
-            #sleep(7.3)
+            print("Exception")
             WebDriverWait(self.driver, 20).until(
                 EC.element_to_be_clickable((By.XPATH, xpath)))
             wti.click_by_xpath(self.driver, xpath)
@@ -203,7 +191,6 @@ class StatusPage(Page):
             EC.presence_of_element_located((By.CLASS_NAME, 'plot-container')))
 
     def click_global_data_box(self, group, cloud, state):
-        #sleep(1)
         state_tag = state.lower()
         if state == 'VMs':
             state_tag = state
@@ -212,8 +199,7 @@ class StatusPage(Page):
         try:
             wti.click_by_xpath(self.driver, xpath)
         except ElementClickInterceptedException:
-            print("Exception") 
-            #sleep(7.3)
+            print("Exception")
             WebDriverWait(self.driver, 20).until(
                 EC.element_to_be_clickable((By.XPATH, xpath)))
             wti.click_by_xpath(self.driver, xpath)
@@ -221,13 +207,11 @@ class StatusPage(Page):
             EC.presence_of_element_located((By.CLASS_NAME, 'plot-container')))
 
     def click_ram_data_box(self, group, cloud):
-        #sleep(1)
         xpath = wtxs.data_box(group + ' ' + cloud + ' ' + 'ram_native')
         try:
             wti.click_by_xpath(self.driver, xpath)
         except ElementClickInterceptedException:
-            print("Exception") 
-            #sleep(7.3) 
+            print("Exception")
             WebDriverWait(self.driver, 20).until(
                 EC.element_to_be_clickable((By.XPATH, xpath)))
             wti.click_by_xpath(self.driver, xpath)

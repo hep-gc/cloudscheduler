@@ -252,7 +252,6 @@ class TestWebUserCommon(unittest.TestCase):
         self.page.click_side_button(username)
         self.page.type_password(username + '-password')
         self.page.click_update_user()
-        # TODO: Assertion?
         self.assertFalse(self.page.error_message_displayed())
 
     def test_web_user_update_password_mismatched(self):

@@ -792,7 +792,6 @@ class TestWebCloudCommon(unittest.TestCase):
         self.page.click_side_button(cloud_name)
         self.page.type_cores(str(self.oversize['int_11']))
         self.page.click_update_cloud()
-        #self.assertTrue(self.page.error_message_displayed())
         self.assertTrue(self.page.cores_popup_exists())
         wta.assertHasNotAttribute('cloud', cloud_name, 'cores_ctl', str(self.oversize['int_11']), group=self.gvar['base_group'])
 
@@ -835,7 +834,6 @@ class TestWebCloudCommon(unittest.TestCase):
         self.page.click_side_button(cloud_name)
         self.page.type_ram('3.5')
         self.page.click_update_cloud()
-        #self.assertTrue(self.page.error_message_displayed())
         self.assertTrue(self.page.ram_popup_exists())
         wta.assertHasNotAttribute('cloud', cloud_name, 'ram_ctl', '3.5', group=self.gvar['base_group'])
 
@@ -845,7 +843,6 @@ class TestWebCloudCommon(unittest.TestCase):
         self.page.click_side_button(cloud_name)
         self.page.type_ram('invalid-web-test')
         self.page.click_update_cloud()
-        #self.assertTrue(self.page.error_message_displayed())
         self.assertTrue(self.page.ram_popup_exists())
         wta.assertHasNotAttribute('cloud', cloud_name, 'ram_ctl', 'invalid-web-test', group=self.gvar['base_group'])
 
@@ -854,7 +851,6 @@ class TestWebCloudCommon(unittest.TestCase):
         cloud_name = self.gvar['user'] + '-wic1'
         self.page.type_ram(str(self.oversize['int_11']))
         self.page.click_update_cloud()
-        #self.assertTrue(self.page.error_message_displayed())
         self.assertTrue(self.page.ram_popup_exists())
         wta.assertHasNotAttribute('cloud', cloud_name, 'ram_ctl', str(self.oversize['int_11']), group=self.gvar['base_group'])
 
@@ -1056,7 +1052,6 @@ class TestWebCloudCommon(unittest.TestCase):
         self.page.type_metadata_priority(str(self.oversize['int_11']))
         self.page.type_metadata('sample_key: sample_value')
         self.page.click_metadata_add()
-        #self.assertTrue(self.page.error_message_displayed())
         self.assertTrue(self.page.metadata_priority_popup_exists())
         self.assertFalse(self.page.metadata_tab_exists(metadata_name))
         wta.assertHasNotAttribute('cloud', cloud_name, 'metadata_names', metadata_name, group=self.gvar['base_group'])

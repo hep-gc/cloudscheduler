@@ -127,10 +127,6 @@ def setup_objects(objects=[], browser='firefox'):
                 pass
             filename = helpers.misc_file_full_path(name)
             subprocess.run(['cloudscheduler', 'cloud', 'metadata-load', '-cn', gvar['user'] + '-wic1', '-f', filename, '-mn', name])
-        # This updates the security group setting, which requires a connection
-        # to the cloud. The setup timing is unpredictable, so this loops it 
-        # until the connection is established.
-        #beaver_setup_keys(gvar, 1, browser)
 
     aliases_num = 0
     if 'aliases' in objects:
@@ -228,13 +224,11 @@ def cleanup(cls, browser='firefox'):
     cleanup_objects(browser)
 
 def cleanup_objects(browser='firefox'):
-    #subprocess.call(helpers.misc_file_full_path('testing-openrc.sh'))
 
     gvar = load_settings(web=True)
     gvar['base_group'] = gvar['user'] + '-wig0'
 
     logfile = 'web_tests/misc_files/objects.txt'
-    #beaver_cleanup_keys(gvar, 4, 2, browser)
 
     os.environ['OS_AUTH_URL'] = gvar['cloud_credentials']['authurl']
     os.environ['OS_PROJECT_NAME'] = gvar['cloud_credentials']['project']

@@ -319,10 +319,6 @@ These items should be finished before the test suite is considered completed. Th
 
 - Miscellaneous tests file (logout test, regular user can't do superuser actions tests)
 
-- Expand available systems for setup script (ubuntu wip, fix to include condor jobs)
-
-- Testing status page with jobs (wip)
-
 #### Tidying Up
 
 These items shouldn't affect the test suite's functionality much, but they would make it tidier and easier to work with. They should be done before the test suite is considered completed if possible, but they won't break anything if they aren't.

@@ -19,8 +19,6 @@ class TestWebDefaultCommon(unittest.TestCase):
         self.page.switch_default_group(self.group_name)
         self.page.click_top_nav('Defaults')
 
-    #TODO: test typing in select boxes?
-
     def test_web_default_find(self):
         pass
 
