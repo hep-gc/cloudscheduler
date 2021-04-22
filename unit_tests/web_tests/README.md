@@ -22,6 +22,8 @@ Some operating systems have a setup script (stored in `unit_tests/web_tests/setu
 
 Note that the setup scripts assume the cloudscheduler repository is in the active user's home directory. 
 
+The setup scripts require that you have sudo access on your machine, cloudscheduler account credentials, and an account on the cloudscheduler server, which can be accessed via at least one ssh key with no passphrase.
+
 #### Object Setup
 
 Object setup is supported on any bash shell (currently tested for CentOS 7). 
@@ -56,11 +58,13 @@ Install the Openstack cli via `pip3 install python-openstackclient`. Set your ho
 
 #### Testing Files
 
-The tests require four images in RAW format and two ssh keys for upload purposes.
+The tests require four images in RAW format and two ssh keys for upload purposes. They also require a condor file and a job file for creating vms.
 
 Download a [CernVM image](http://cernvm.cern.ch/releases/production/cernvm4-micro-2020.07-1.hdd) and move it to the `misc_files` directory (unit_tests/web_tests/misc_files). Rename it `{user}-wii1.hdd`. Create three copies of it, called `{user}-wii2.hdd`, `{user}-wii3.hdd`, and `{user}-wii4.hdd`.
 
 Create a public key using `ssh-keygen`. Name it `{user}-wik3` and put it in the `misc_files` directory. Do not use a passphrase. Create another public key in the same manner, naming it `invalid-web-test`.
+
+Connect to the server. In your home directory, add the [job.condor](/misc_files/job.condor) file, updating the `{user}-wig0` accordingly, and the [job.sh](/misc_files/job.sh) file.
 
 #### Firefox and Geckodriver
 
@@ -85,6 +89,8 @@ Like the unit tests, the web tests require a server configuration and cloud cred
 The status tests require the system time to be set to the user time zone.
 
 A GUI is needed for the web tests.
+
+The user account on the server needs to be accessible via at least one ssh key without a passphrase, for job tests.
 
 To modify the server at which the tests are addressed (not mandatory for original setup), the `unit-test` server url in `.csv2/unit-test/settings.yaml` must be modified accordingly, and the login credentials if necessary. The `server_url` variable in [web_test_helpers](./web_test_helpers.py) should also be modified to match the new server.
 
