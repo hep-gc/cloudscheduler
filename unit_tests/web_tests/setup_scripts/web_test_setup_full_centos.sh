@@ -122,8 +122,10 @@ cloudscheduler defaults set
 
 read -p 'Please enter the path to a private ssh key with no password that allows you to ssh onto the server: ' keypath
 read -p 'Please enter your server username: ' server_username
+read -p 'Please enter the server you wish to address: ' server
+read -p 'Please enter the port the server is on: ' server_port
 
-sudo ssh -oStrictHostKeyChecking=no $server_username@csv2-dev.heprc.uvic.ca -p 3121 -i $keypath "cat > job.condor <<EOF1
+sudo ssh -oStrictHostKeyChecking=no $server_username@$server -p $server_port -i $keypath "cat > job.condor <<EOF1
 Universe   = vanilla
 Executable = job.sh
 dir           = \$ENV(HOME)/logs
@@ -144,7 +146,7 @@ queue 4
 EOF1
 "
 
-sudo ssh $server_username@csv2-dev.heprc.uvic.ca -p 3121 -i $keypath "cat > job.sh <<EOF2
+sudo ssh $server_username@$server -p server_port -i $keypath "cat > job.sh <<EOF2
 o $HOSTNAME
 date
 cat /var/lib/cloud_type
