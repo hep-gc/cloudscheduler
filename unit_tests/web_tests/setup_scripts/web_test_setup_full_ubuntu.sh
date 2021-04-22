@@ -15,10 +15,10 @@ if [ -z "$pip_path" ]; then
     sudo apt-get -y install python3-pip
 fi
 
-sudo pip3 install --upgrade pip
-sudo pip3 install selenium
+sudo pip3 install --upgrade pip -H
+sudo pip3 install selenium -H
 
-sudo pip3 install python-openstackclient
+sudo pip3 install python-openstackclient -H
 XDG_SESSION_TYPE=wayland
 
 wget_path=`which wget`
@@ -77,9 +77,10 @@ if [ "$opera" = "y" ]; then
     if [ -z "$opera_path" ]; then
         # source for Opera installation: https://vitux.com/ubuntu_opera_browser
         sudo wget -qO- https://deb.opera.com/archive.key | sudo apt-key add -
-        sudo add-apt-repository “deb [arch=i386,amd64] https://deb.opera.com/opera-stable/ stable non-free”
 	sudo apt-get update
-        sudo apt-get -y install opera-stable
+	sudo add-apt-repository "deb [arch=i386,amd64] https://deb.opera.com/opera-stable stable non-free #Opera Browser (final releases)"
+	sudo apt-get update
+        sudo apt-get --yes --force-yes install opera-stable
     fi
     operachromiumdriver_path=`which operadriver`
     if [ -z "$operachromiumdriver_path" ]; then
@@ -96,9 +97,9 @@ read -p 'Install Chrome? [y/n]: ' chrome
 if [ "$chrome" = "y" ]; then
     chrome_path=`which google-chrome`
     if [ -z "$chrome_path" ]; then
-        sudo wget https://dl.google.com/linux/direct/google-chrome-stable_current_x86_64.rpm
+        sudo wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
 	sudo apt-get update
-        sudo apt-get -y install google-chrome-stable_current_amd64.deb
+        sudo apt-get -y install ./google-chrome-stable_current_amd64.deb
     fi
     chromedriver_path=`which chromedriver`
     if [ -z "$chromedriver_path" ]; then
@@ -108,7 +109,7 @@ fi
 
 openstack_path=`which openstack`
 if [ -z "$openstack_path" ]; then
-    sudo pip3 install python-openstackclient
+    sudo pip3 install python-openstackclient -H
 fi
 
 read -p 'Please enter the path to a private ssh key with no password that allows you to ssh onto the server: ' keypath
