@@ -291,7 +291,7 @@ def flavor_poller():
                 rc, msg, unfiltered_rows = config.db_query(FLAVOR, where=where_clause)
                 rows = []
                 for row in unfiltered_rows:
-                    if row['group_name'] + row['cloud_name'] in failure_dict.keys():
+                    if row['group_name'] + row['cloud_name'] in new_f_dict.keys():
                         continue
                     else:
                         rows.append(row)
@@ -540,7 +540,7 @@ def image_poller():
                 rc, msg, unfiltered_rows = config.db_query(IMAGE, where=where_clause)
                 rows = []
                 for row in unfiltered_rows:
-                    if row['group_name'] + row['cloud_name'] in failure_dict.keys():
+                    if row['group_name'] + row['cloud_name'] in new_f_dict.keys():
                         continue
                     else:
                         rows.append(row)
@@ -732,7 +732,7 @@ def keypair_poller():
                 rc, msg, unfiltered_rows = config.db_query(KEYPAIR, where=where_clause)
                 rows = []
                 for row in unfiltered_rows:
-                    if row['group_name'] + row['cloud_name'] in failure_dict.keys():
+                    if row['group_name'] + row['cloud_name'] in new_f_dict.keys():
                         continue
                     else:
                         rows.append(row)
@@ -933,7 +933,7 @@ def limit_poller():
                 rc, msg, unfiltered_rows = config.db_query(LIMIT, where=where_clause)
                 rows = []
                 for row in unfiltered_rows:
-                    if row['group_name'] + row['cloud_name'] in failure_dict.keys():
+                    if row['group_name'] + row['cloud_name'] in new_f_dict.keys():
                         continue
                     else:
                         rows.append(row)
@@ -1130,7 +1130,7 @@ def network_poller():
                 rc, msg, unfiltered_rows = config.db_query(NETWORK, where=where_clause)
                 rows = []
                 for row in unfiltered_rows:
-                    if row['group_name'] + row['cloud_name'] in failure_dict.keys():
+                    if row['group_name'] + row['cloud_name'] in new_f_dict.keys():
                         continue
                     else:
                         rows.append(row)
@@ -1330,7 +1330,7 @@ def security_group_poller():
                 rc, msg, unfiltered_rows = config.db_query(SECURITY_GROUP, where=where_clause)
                 rows = []
                 for row in unfiltered_rows:
-                    if row['group_name'] + row['cloud_name'] in failure_dict.keys():
+                    if row['group_name'] + row['cloud_name'] in new_f_dict.keys():
                         continue
                     else:
                         rows.append(row)
@@ -1706,7 +1706,7 @@ def vm_poller():
             rc, msg, unfiltered_rows = config.db_query(VM, where=where_clause)
             rows = []
             for row in unfiltered_rows:
-                if row['group_name'] + row['cloud_name'] in failure_dict.keys():
+                if row['group_name'] + row['cloud_name'] in new_f_dict.keys():
                     continue
                 else:
                     rows.append(row)
@@ -1719,6 +1719,7 @@ def vm_poller():
             rc, msg, over_quota_clouds = config.db_query("view_vm_kill_retire_over_quota", where=where_clause)
             for cloud in over_quota_clouds:
                 kill_retire(config, cloud["group_name"], cloud["cloud_name"], "control", [cloud["cores"], cloud["ram"]], get_frame_info())
+                config.db_commit()
 
 
             logging.debug("Completed VM poller cycle")

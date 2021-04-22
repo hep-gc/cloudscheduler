@@ -300,12 +300,12 @@ def process_group_cloud_terminates(pair, config):
     startd_list = []
     where_clause = "cloud_name='%s' and group_name='%s' and terminate>=1" % (cloud_name, group_name)
     rc, msg, redundant_machine_list = config.db_query("view_condor_host", where=where_clause)
-    logging.debug("Actionable VMS:")
+    logging.debug("%s : %s: Actionable VMS:" % (group_name, cloud_name))
     for resource in redundant_machine_list:
         if resource["dynamic_slots"] is not None:
             if resource["primary_slots"] is not None:
                 if resource["terminate"] == 1 and resource["dynamic_slots"] >= 1 and resource["primary_slots"] >=1:
-                    logging.info("VM still has active slots, skipping terminate on %s" % resource["vmid"])
+                    logging.info("%s : %s: VM still has active slots, skipping terminate on %s" % (group_name, cloud_name, resource["vmid"]))
                     continue
 
 
@@ -315,10 +315,10 @@ def process_group_cloud_terminates(pair, config):
             rc, msg, vm_rows = config.db_query(VM, where=where_clause)
             vm_row = vm_rows[0]
         except Exception as exc:
-            logging.error("Unable to retrieve VM row for vmid: %s, skipping terminate..." % resource["vmid"])
+            logging.error("%s : %s: Unable to retrieve VM row for vmid: %s, skipping terminate..." % (group_name, cloud_name, resource["vmid"]))
             continue
         if vm_row["manual_control"] == 1:
-            logging.info("VM %s under manual control, skipping terminate..." % resource["vmid"])
+            logging.info("%s : %s: VM %s under manual control, skipping terminate..." % (group_name, cloud_name, resource["vmid"]))
             continue
 
 
@@ -333,7 +333,7 @@ def process_group_cloud_terminates(pair, config):
                 continue
          
             if terminate_off:
-                logging.critical("Terminates disabled, normal operation would terminate %s" % vm_row["hostname"])
+                logging.critical("%s : %s: Terminates disabled, normal operation would terminate %s" % (group_name, cloud_name, vm_row["hostname"]))
                 continue
 
             # terminate the vm
@@ -350,32 +350,32 @@ def process_group_cloud_terminates(pair, config):
                 vm_row["updater"] = str(get_frame_info() + ":t+")
 
                 try:
-                    nova.delete_server(vm_row["vmid"])
-                except openstack.exceptions.ResourceNotFound as ex:
-                    logging.error("VM not found on cloud, deleting vm entry %s" % vm_row["vmid"])
+                    nova.servers.delete(vm_row["vmid"])
+                except novaclient.exceptions.NotFound:
+                    logging.error("%s : %s: VM not found on cloud, deleting vm entry %s" % (group_name, cloud_name, vm_row["vmid"]))
                     config.db_delete(VM, vm_row)
                     try:
                         config.db_commit()
                     except Exception as exc:
-                        logging.exception("Failed to commit vm delete, aborting cycle...")
-                        logging.error(exc)
+                        logging.error("%s : %s: Failed to commit vm delete, aborting cycle..." % (group_name, cloud_name))
+                        logging.exception(exc)
                         break
                     continue #skip rest of logic since this vm is gone anywheres 
                         
 
                 except Exception as exc:
-                    logging.error("Unable to delete vm, vm doesnt exist or openstack failure:")
+                    logging.error("%s : %s: Unable to delete vm, vm doesnt exist or openstack failure:" % (group_name, cloud_name))
                     exc_type, exc_obj, exc_tb = sys.exc_info()
                     logging.error(exc_type)
                     logging.error(exc)
                     continue
-                logging.info("VM Terminated(%s): %s primary slots: %s dynamic slots: %s, last updater: %s" % (vm_row["terminate"], vm_row["hostname"], vm_row["htcondor_partitionable_slots"], vm_row["htcondor_dynamic_slots"], old_updater))
+                logging.info("%s : %s: VM Terminated(%s): %s primary slots: %s dynamic slots: %s, last updater: %s" % (group_name, cloud_name, vm_row["terminate"], vm_row["hostname"], vm_row["htcondor_partitionable_slots"], vm_row["htcondor_dynamic_slots"], old_updater))
                 config.db_merge(VM, vm_row)
                 # log here if terminate # /10 = remainder zero
                 if vm_row["terminate"] %10 == 0:
-                    logging.critical("%s failed terminates on %s user action required" % (vm_row["terminate"] - 1, vm_row["hostname"]))
+                    logging.critical("%s : %s: %s failed terminates on %s user action required" % (group_name, cloud_name, vm_row["terminate"] - 1, vm_row["hostname"]))
             except Exception as exc:
-                logging.error("Failed to terminate VM: %s, terminates issued: %s" % (vm_row["hostname"], vm_row["terminate"] - 1))
+                logging.error("%s : %s: Failed to terminate VM: %s, terminates issued: %s" % (group_name, cloud_name, vm_row["hostname"], vm_row["terminate"] - 1))
                 logging.error(exc)
 
             # Now that the machine is terminated, we can speed up operations by invalidating the related classads
@@ -383,20 +383,20 @@ def process_group_cloud_terminates(pair, config):
             if 'condor_session' not in locals():
                 condor_session = get_condor_session()
             if resource["machine"] is not None:
-                logging.info("Removing classads for machine %s" % resource["machine"])
+                logging.info("%s : %s: Removing classads for machine %s" % (group_name, cloud_name, resource["machine"]))
             else:
-                logging.info("Removing classads for machine %s" % resource["hostname"])
+                logging.info("%s : %s: Removing classads for machine %s" % (group_name, cloud_name, resource["hostname"]))
             try:
                 master_classad = get_master_classad(condor_session, resource["machine"], resource["hostname"])
                 if not master_classad:
                     # there was no matching classad
-                    logging.error("Classad not found for %s//%s" % (resource["machine"], resource["hostname"]))
+                    logging.error("%s : %s: Classad not found for %s//%s" % (group_name, cloud_name, resource["machine"], resource["hostname"]))
 
                 master_result = invalidate_master_classad(condor_session, master_classad)
-                logging.debug("Invalidate master result: %s" % master_result)
+                logging.debug("%s : %s: Invalidate master result: %s" % (group_name, cloud_name, master_result))
                 startd_classads = get_startd_classads(condor_session, resource["hostname"])
                 startd_result = invalidate_startd_classads(condor_session, startd_classads)
-                logging.debug("Invalidate startd result: %s" % startd_result)
+                logging.debug("%s % %s: Invalidate startd result: %s" % (group_name, cloud_name, startd_result))
 
 
                 #if resource.machine is not None and resource.machine is not "":
@@ -412,13 +412,13 @@ def process_group_cloud_terminates(pair, config):
             #except IndexError as exc:
             #    pass
             except Exception as exc:
-                logging.error("Failed to get condor classads or issue invalidate:")
+                logging.error("%s : %s: Failed to get condor classads or issue invalidate:" % (group_name, cloud_name))
                 logging.error(exc)
                 continue
 
         elif cloud["cloud_type"] == "amazon":
             if terminate_off:
-                logging.critical("Terminates disabled, normal operation would terminate %s" % vm_row["hostname"])
+                logging.critical("%s : %s: Terminates disabled, normal operation would terminate %s" % (group_name, cloud_name, vm_row["hostname"]))
                 continue
             #terminate the vm
             amz_session = _get_ec2_session(cloud)
@@ -437,36 +437,36 @@ def process_group_cloud_terminates(pair, config):
                     #
                     # need to terminate request, and possible image if instance_id isn't empty
                     try:
-                        logging.info("Canceling amazon spot price request: %s" % vm_row["vmid"])
+                        logging.info("%s %s: Canceling amazon spot price request: %s" % (group_name, cloud_name, vm_row["vmid"]))
                         amz_client.cancel_spot_instance_requests(SpotInstanceRequestIds=[vm_row["vmid"]])
                         if vm_row["instance_id"] is not None:
                             #spot price vm running need to terminate it:
-                            logging.info("Terminating amazon vm: %s" % vm_row["instance_id"])
+                            logging.info("%s : %s: Terminating amazon vm: %s" % (group_name, cloud_name, vm_row["instance_id"]))
                             amz_client.terminate_instances(InstanceIds=[vm_row["instance_id"]])
                     except Exception as exc:
-                        logging.error("Unable to terminate %s due to:" % vm_row["vmid"])
+                        logging.error("%s : %s: Unable to terminate %s due to:" % (group_name, cloud_name, vm_row["vmid"]))
                         logging.error(exc)
                 else:
                     #its a regular instance and just terminate it
-                    logging.info("Terminating amazon vm: %s" % vm_row["vmid"])
+                    logging.info("%s : %s: Terminating amazon vm: %s" % (group_name, cloud_name, vm_row["vmid"]))
                     amz_client.terminate_instances(InstanceIds=[vm_row["vmid"]])
             except Exception as exc:
-                logging.error("Unable to terminate %s due to:" % vm_row["vmid"])
+                logging.error("%s : %s: Unable to terminate %s due to:" % (group_name, cloud_name, vm_row["vmid"]))
                 logging.error(exc)
 
 
         else:
             # Other cloud types will need to be implemented here to terminate any vms not from openstack
-            logging.info("Vm not from openstack, or amazon cloud, skipping...")
+            logging.info("%s : %s: Vm not from openstack, or amazon cloud, skipping..." % (group_name, cloud_name))
             continue
     try:
         config.db_commit()
     except Exception as exc:
-        logging.exception("Failed to commit vm updates, aborting cycle...")
+        logging.exception("%s : %s: Failed to commit vm updates, aborting cycle..." % (group_name, cloud_name))
         logging.error(exc)
         return
 
-    logging.debug("Commands complete")
+    logging.debug("%s : %s: Commands complete" % (group_name, cloud_name))
     return
 
 
@@ -873,7 +873,7 @@ def main():
 def vm_termination(args_list):
     target_group = args_list[0]
     target_cloud = args_list[1]
-    multiprocessing.current_process().name = "VM Termination - %s - %s" % (target_group, target_cloud)
+    multiprocessing.current_process().name = "VM Termination"
 
     #over-ride signal handler defined in main
     signal.signal(signal.SIGTERM, _exit)
@@ -893,11 +893,11 @@ def vm_termination(args_list):
     try:
         config.db_open()
         while True:
-            logging.debug("Beginning vm retire cycle")
+            logging.debug("%s : %s: Beginning vm retire cycle" % (target_group, target_cloud))
             config.refresh()
 
             if not os.path.exists(PID_FILE):
-                logging.debug("Stop set, exiting...")
+                logging.debug("%s : %s: Stop set, exiting..."  % (target_group, target_cloud))
                 break
 
 #            signal.signal(signal.SIGINT, signal.SIG_IGN)
@@ -912,13 +912,13 @@ def vm_termination(args_list):
             try:
                 config.db_commit()
             except Exception as exc:
-                logging.error("Error during final commit, likely that a vm was removed from database before final terminate update was comitted..")
+                logging.error("%s : %s: Error during final commit, likely that a vm was removed from database before final terminate update was comitted.."  % (target_group, target_cloud))
                 logging.exception(exc)
 
             
 #            signal.signal(signal.SIGINT, config.signals['SIGINT'])
             if not os.path.exists(PID_FILE):
-                logging.info("Stop set, exiting...")
+                logging.info("%s : %s: Stop set, exiting..." % (target_group, target_cloud))
                 break
             wait_cycle(cycle_start_time, poll_time_history, config.categories["condor_poller.py"]["sleep_interval_command"], config)
 
