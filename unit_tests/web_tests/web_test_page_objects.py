@@ -34,6 +34,12 @@ class Page(object):
     def switch_default_group(self, group):
         wti.select_option_by_name(self.driver, 'group', group)
 
+    def dismiss_login_prompt(self):
+        WebDriverWait(self.driver, 20).until(
+            EC.alert_is_present())
+        alert = self.driver.switch_to.alert
+        alert.dismiss()
+
     def take_screenshot(self):
         file_name = sys._getframe(1).f_code.co_name + '_screenshot.png'
         print(file_name)
@@ -59,6 +65,30 @@ class Page(object):
                 EC.presence_of_element_located((By.LINK_TEXT, name)))
             return True
         except TimeoutException:
+            return False
+
+    def error_page_displayed(self, error_message):
+        try:
+            WebDriverWait(self.driver, 10).until(
+                EC.presence_of_element_located((By.LINK_TEXT, 'Status')))
+            return False
+        except TimeoutException:
+            if error_message:
+                xpath = wtxs.error_page_message(error_message)
+                try:
+                    WebDriverWait(self.driver, 10).until(
+                        EC.presence_of_element_located((By.XPATH, xpath)))
+                    return True
+                except TimeoutException:
+                    return False
+
+    def page_blank(self):
+        sleep(1)
+        xpath = wtxs.all()
+        elements = self.driver.find_elements_by_xpath(xpath)
+        if len(elements) <= 3:
+            return True
+        else:
             return False
 
 class StatusPage(Page):
