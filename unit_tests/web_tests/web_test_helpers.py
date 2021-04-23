@@ -4,7 +4,7 @@ import sys
 # actions. This module may be deleted if the functions within all have a better
 # location.
 
-server_url = 'https://csv2-dev.heprc.uvic.ca'
+server_url = 'https://csv2-dev2.heprc.uvic.ca'
 
 def get_homepage(driver):
     driver.get(server_url)
