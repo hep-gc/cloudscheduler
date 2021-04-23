@@ -25,8 +25,14 @@ class TestWebMiscCommon(unittest.TestCase):
 class TestWebMiscRegularUser(TestWebMiscCommon):
     """A class for the miscellaneous tests that should be done for regular users only."""
 
-    def test_web_misc_find_regular(self):
-        pass
+    def test_web_misc_no_header_group(self):
+        self.assertFalse(self.page.top_nav_exists('Groups'))
+
+    def test_web_misc_no_header_user(self):
+        self.assertFalse(self.page.top_nav_exists('Users'))
+
+    def test_web_misc_no_header_config(self):
+        self.assertFalse(self.page.top_nav_exists('Config'))
 
 class TestWebMiscSuperUserFirefox(TestWebMiscCommon):
     """A class to test miscellaneous operations via the web interface, in Firefox, with a super user."""

@@ -5,6 +5,7 @@ import web_tests.web_test_assertions_v2 as wta
 import web_tests.web_test_page_objects as pages
 import web_tests.web_test_helpers as helpers
 
+#@unittest.skip("Keypair error")
 class TestWebKeyCommon(unittest.TestCase):
     """A class for the key tests that should be repeated in all iterations."""
 
@@ -137,9 +138,18 @@ class TestWebKeySuperUserFirefox(TestWebKeyCommon):
 
     @classmethod
     def setUpClass(cls):
-        wtsc.setup(cls, 2, ['keys'])
+        wtsc.setup(cls, 2, ['keys'], browser='firefox')
         super(TestWebKeySuperUserFirefox, cls).setUpClass()
-        print("\nKey Tests (Super User):")
+        print("\nKey Tests (Firefox) (Super User):")
+
+class TestWebKeyRegularUserFirefox(TestWebKeyCommon):
+    """A class to test key operations via the web interface, in Firefox, with a regular user."""
+
+    @classmethod
+    def setUpClass(cls):
+        wtsc.setup(cls, 1, ['keys'], browser='firefox')
+        super(TestWebKeyRegularUserFirefox, cls).setUpClass()
+        print("\nKey Tests (Firefox) (Super User):")
 
 class TestWebKeySuperUserChromium(TestWebKeyCommon):
     """A class to test key operations via the web interface, in Chromium, with a super user."""
@@ -150,6 +160,15 @@ class TestWebKeySuperUserChromium(TestWebKeyCommon):
         super(TestWebKeySuperUserChromium, cls).setUpClass()
         print("\nKey Tests (Chromium) (Super User):")
 
+class TestWebKeyRegularUserChromium(TestWebKeyCommon):
+    """A class to test key operations via the web interface, in Chromium, with a regular user."""
+
+    @classmethod
+    def setUpClass(cls):
+        wtsc.setup(cls, 1, ['keys'], browser='chromium')
+        super(TestWebKeyRegularUserChromium, cls).setUpClass()
+        print("\nKey Tests (Chromium) (Regular User):")
+
 class TestWebKeySuperUserOpera(TestWebKeyCommon):
     """A class to test key operations via the web interface, in Opera, with a super user."""
 
@@ -158,6 +177,15 @@ class TestWebKeySuperUserOpera(TestWebKeyCommon):
         wtsc.setup(cls, 2, ['keys'], browser='opera')
         super(TestWebKeySuperUserOpera, cls).setUpClass()
         print("\nKey Tests (Opera) (Super User):")
+
+class TestWebKeyRegularUserOpera(TestWebKeyCommon):
+    """A class to test key operations via the web interface, in Opera, with a regular user."""
+
+    @classmethod
+    def setUpClass(cls):
+        wtsc.setup(cls, 1, ['keys'], browser='opera')
+        super(TestWebKeyRegularUserOpera, cls).setUpClass()
+        print("\nKey Tests (Opera) (Regular User):")
 
 class TestWebKeySuperUserChrome(TestWebKeyCommon):
     """A class to test key operations via the web interface, in Chrome, with a super user."""
@@ -168,11 +196,20 @@ class TestWebKeySuperUserChrome(TestWebKeyCommon):
         super(TestWebKeySuperUserChrome, cls).setUpClass()
         print("\nKey Tests (Chrome) (Super User):")
 
+class TestWebKeyRegularUserChrome(TestWebKeyCommon):
+    """A class to test key operations via the web interface, in Chrome, with a regular user."""
+
+    @classmethod
+    def setUpClass(cls):
+        wtsc.setup(cls, 1, ['keys'], browser='chrome')
+        super(TestWebKeySuperUserChrome, cls).setUpClass()
+        print("\nKey Tests (Chrome) (Regular User):")
+
 if __name__ == "__main__":
     runner = unittest.TextTestRunner(verbosity=2)
-    tests = [ TestWebKeySuperUserFirefox,
-              TestWebKeySuperUserChromium,
-              TestWebKeySuperUserOpera,
-              TestWebKeySuperUserChrome ]
-    suite = helpers.parse_command_line_arguments(sys.argv, tests, False)
+    tests = [ TestWebKeySuperUserFirefox, TestWebKeyRegularUserFirefox,
+              TestWebKeySuperUserChromium, TestWebKeyRegularUserChromium,
+              TestWebKeySuperUserOpera, TestWebKeyRegularUserOpera,
+              TestWebKeySuperUserChrome, TestWebKeyRegularUserChrome ]
+    suite = helpers.parse_command_line_arguments(sys.argv, tests, True)
     runner.run(suite)

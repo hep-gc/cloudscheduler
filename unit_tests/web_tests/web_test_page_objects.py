@@ -53,6 +53,14 @@ class Page(object):
         except TimeoutException:
             return False
 
+    def top_nav_exists(self, name):
+        try:
+            WebDriverWait(self.driver, 10).until(
+                EC.presence_of_element_located((By.LINK_TEXT, name)))
+            return True
+        except TimeoutException:
+            return False
+
 class StatusPage(Page):
     """This is the page object class for the Status page."""
     def __init__(self, driver):
