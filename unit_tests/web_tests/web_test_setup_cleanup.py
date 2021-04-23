@@ -67,6 +67,8 @@ def setup_objects(objects=[], browser='firefox'):
     oversize['bigint_20'] = 9223372036854775810
     gvar['oversize'] = oversize
 
+    gvar['browser'] = browser
+
     #add groups
     groups_num = 0
     if 'groups' in objects:

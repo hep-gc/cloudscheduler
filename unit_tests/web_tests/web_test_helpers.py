@@ -38,6 +38,22 @@ def misc_file_full_path(filename):
     path = os.path.abspath('web_tests/misc_files/' + filename)
     return path
 
+def skip_if_browsers(browser, skip):
+    import unittest
+
+    browser_list = ''
+    if len(skip) == 1:
+        browser_list = ' ' +  skip[0]
+    else:
+        for s in skip:
+            if s == skip[-1]:
+                browser_list += ' and ' + s
+            else:
+                browser_list += ' ' + s + ','
+    message = "Incompatible with" + browser_list
+    if browser in skip:
+        raise unittest.SkipTest(message)
+
 def cumulative_days(month, year):
     feb = 28
     if year%4 == 0 and year%100 !=0:

@@ -40,6 +40,9 @@ def div_submit_by_value(div, value):
 def div_a_by_text(div, text):
     return "//div[@id='" + div + "']//a[contains(text(), '" + text + "')]"
 
+def all():
+    return "//*"
+
 def button_by_visible_text(text):
     return "//button[contains(text(), '" + text + "')]"
 
@@ -120,3 +123,6 @@ def unspecified_glint_error_message():
 
 def specific_glint_error_message(message):
     return "//h3[@style='color:red' and contains(text(), '" + message + "')]"
+
+def error_page_message(message):
+    return "//title[contains(text(), '" + message + "')]"
