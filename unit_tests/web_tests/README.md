@@ -64,7 +64,7 @@ Download a [CernVM image](http://cernvm.cern.ch/releases/production/cernvm4-micr
 
 Create a public key using `ssh-keygen`. Name it `{user}-wik3` and put it in the `misc_files` directory. Do not use a passphrase. Create another public key in the same manner, naming it `invalid-web-test`.
 
-Connect to the server. In your home directory, add the [job.condor](/misc_files/job.condor) file, updating the `{user}-wig0` accordingly, and the [job.sh](/misc_files/job.sh) file.
+Connect to the server. In your home directory, add the [job.condor](/misc_files/job.condor) file, updating the `{user}-wig0` with your username, and the [job.sh](/misc_files/job.sh) file.
 
 #### Firefox and Geckodriver
 
@@ -181,14 +181,12 @@ One can also run a particular class directly using `python3 -m unittest <filenam
 
 The tests should be run as a non-root user. Root users may experience problems with the Chromium browser tests, as Chromium is not designed to run as a root user.
 
-If tests are being set up with clouds, the setup script may display an error similar to: 
+The setup script may display an error similar to: 
 
 ```
 Error: CV-01749 cloud update, "{user}-wic1" failed - specified value in list of values does not exist: vm_security_groups=default, group_name={user}-wig0, cloud_name={user}-wic1.
 Error connecting to the cloud. This may happen several times. Retrying...
 ```
-
-A similar error occurs with the key setup and default setup, although the values that do not exist are slightly different (referring to the VM keyname instead of the security group).
 
 This is expected behaviour - the setup requires resources from the cloud connection, and when it can access those resources is unpredictable, so the script will try, print that message on a failure, and continue trying until the setup is successful. Depending on where the cloud poller is in its process, it may take up to a dozen retries. The tests will continue to set up properly and run - this is not a setup error.
 
@@ -209,7 +207,7 @@ Several functions log information in files called `*objects.txt`. These files ca
 
 The primary known cause of flaky tests is the test not waiting long enough for the object to properly appear. Using the `sleep()` or `WebDriverWait` functions can help fix this, as can retrying the action if it fails. For example, the `setup_objects` function uses `sleep()`, the `web_test_interactions` and `web_test_page_objects` methods use `WebDriverWait`, and the `web_test_assertions_v2` methods will retry the query an additional time (after a five-second `sleep()`) if they fail to find what they're looking for.
 
-The `Page` class contains a `take_screenshot()` function. This function can be called at any time during the tests and requires no additional arguments. It will name the screenshot file `<method>_screenshot.png` and save it to the `unit_tests/web_tests/misc_files` folder.
+The `Page` class contains a `take_screenshot()` function. This function can be called at any time during the tests and requires no additional arguments. It will name the screenshot file `<method>_screenshot.png` and save it to the [misc_files](./misc_files) folder.
 
 ## Test Profiles
 
