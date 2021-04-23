@@ -74,6 +74,8 @@ The `wait_for_openstack_poller` function tries a specified number of times to up
 
 The `misc_file_full_path` function takes a file name in the `misc_files` folder and returns its full absolute path.
 
+The `skip_if_browsers` function takes a browser and a list of browsers to exclue. It raises a `unittest.skip` error if the browser is within the list, and generates an appropriate skip message. It's designed to be used in place of the `@unittest.skipIf` decorator, when that decorator requires access to the browser, because the browser is not accessible outside of a method.
+
 The `parse_command_line_arguments` function parses command line arguments for the direct module running of the test files. It takes a list of arguments, a list of available test classes, and a flag stating if the tests have regular user classes.
 
 ## Web Test Interactions

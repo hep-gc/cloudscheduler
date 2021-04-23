@@ -34,7 +34,7 @@ The object setup replaces the [Testing Files](#testing-files) section.
 
 #### Full Setup
 
-Full setup is supported on CentOS 7 and Ubuntu (version unknown - Ubuntu script is a work in progress).
+Full setup is supported on CentOS 7 and Ubuntu.
 
 The full setup can be run via `./web_test_setup_full_<operating_system>` in the `setup_scripts` directory. It will install the necessary software (including Python, Selenium, and the Openstack command line interface) and will ask for installation for each browser and corresponding driver. It also creates the setup objects.
 
@@ -66,6 +66,8 @@ Create a public key using `ssh-keygen`. Name it `{user}-wik3` and put it in the 
 
 Connect to the server. In your home directory, add the [job.condor](/misc_files/job.condor) file, updating the `{user}-wig0` with your username, and the [job.sh](/misc_files/job.sh) file.
 
+Like the unit tests, the web tests require a server configuration and cloud credentials. This can be created using the `cloudscheduler defaults set` command, or will be done automatically when the tests are first run.
+
 #### Firefox and Geckodriver
 
 Firefox comes preinstalled on Linux machines, or can be downloaded from [Mozilla](https://www.mozilla.org/en-CA/firefox/new/). Geckodriver can be downloaded from [GitHub](https://github.com/mozilla/geckodriver/releases/tag/v0.28.0). 
@@ -83,8 +85,6 @@ Opera can be installed following the instructions [here](https://www.itzgeek.com
 Chrome can be installed following the instructions [here](https://linuxize.com/post/how-to-install-google-chrome-web-browser-on-centos-7/) or via [Chrome's website](https://www.google.com/intl/en_ca/chrome/). Chromedriver can be installed through the default package manager, but may require the EPEL repository (which can also be installed via the default package manager). 
 
 ### Other Setup
-
-Like the unit tests, the web tests require a server configuration and cloud credentials. This can be created using the `cloudscheduler defaults set` command, or will be done automatically when the tests are first run.
 
 The status tests require the system time to be set to the user time zone.
 
@@ -315,7 +315,7 @@ These items should ideally be fixed before the test suite is complete.
 
 These items should be finished before the test suite is considered completed. They affect the test suite's functionality.
 
-- Miscellaneous tests file (logout test, regular user can't do superuser actions tests)
+- Adjust imports to allow running tests outside of `unit_tests` folder (.web_tests.module?)
 
 #### Tidying Up
 
@@ -328,6 +328,8 @@ These items shouldn't affect the test suite's functionality much, but they would
 - Update comments/docstrings
 
 - Remove code that was commented out for testing
+
+- Edit openstack delete method for overlong keys
 
 ### Additional Features
 
@@ -353,8 +355,6 @@ These items are not necessary, but would be useful.
 
 - Alternate assertion information passing (phase out logfiles)
 
-- Class/method documentation for test modules
-
 - Speed up setup/teardown
 
 - Safari/Edge/IE tests (likely require VMs and use of `webdriver.Remote`)
@@ -363,6 +363,6 @@ These items are not necessary, but would be useful.
 
 - Better keyboard interrupt handling
 
-- Verify fixed error with row-spacer on status page
+- Fix row-spacer bug on Chrome
 
-- Investigate vms immediately going to error state (not actually necessary for making tests work - appears to be a resource shortage)
+- Investigate vms not registering in condor
