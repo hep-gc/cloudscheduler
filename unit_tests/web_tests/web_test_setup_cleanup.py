@@ -48,6 +48,7 @@ def setup_objects(objects=[], browser='firefox'):
 
     cleanup_objects()
 
+    print("cleanup successful")
     gvar = load_settings(web=True)
 
     # detailed descriptions of the test data is in the web_tests README
@@ -240,6 +241,8 @@ def cleanup_objects(browser='firefox'):
     os.environ['OS_PASSWORD'] = gvar['cloud_credentials']['password']
     os.environ['OS_REGION_NAME'] = gvar['cloud_credentials']['region']
 
+    print("Environment: (authurl, " + os.environ['OS_AUTH_URL'] + "), (project name, " + os.environ['OS_PROJECT_NAME'] + "), (user domain name, " + os.environ['OS_USER_DOMAIN_NAME'] + "), (project domain name, " + os.environ['OS_PROJECT_DOMAIN_ID'] + "), (username, " + os.environ['OS_USERNAME'] + "), (region name, " + os.environ['OS_REGION_NAME'] + ")")
+
     try:
         object_log = open(logfile, mode='x')
     except FileExistsError:
@@ -248,9 +251,12 @@ def cleanup_objects(browser='firefox'):
     server_vm = helpers.server_url.split('//')[1]
     server_account = gvar['server_username'] + '@' + server_vm
 
+    print(server_account)
+
     subprocess.run(['ssh', server_account, '-p', str(gvar['server_port']), '-i', gvar['server_keypath'], 'condor_q -nobatch -format "%d." ClusterId -format "%d " ProcId -format "%s\n" cmd'], stdout=object_log)
 
     object_log.close()
+    print("ssh successful")
     object_log = open(logfile, mode='r')
 
     for line in object_log:
@@ -262,6 +268,7 @@ def cleanup_objects(browser='firefox'):
             subprocess.run(['ssh', server_account, '-p', str(gvar['server_port']), '-i', gvar['server_keypath'], 'condor_rm ' + job[0]])
 
     object_log.close()
+    print("job delete successful")
 
     try:
         object_log = open(logfile, mode='x')
@@ -271,6 +278,7 @@ def cleanup_objects(browser='firefox'):
     subprocess.run(['nova', 'list', '--name', gvar['base_group'] + '--' + gvar['user'] + '-wic.*'], stdout=object_log)
 
     object_log.close()
+    print("vm search successful")
     object_log = open(logfile, mode='r')
 
     for line in object_log:
@@ -281,8 +289,10 @@ def cleanup_objects(browser='firefox'):
             continue
         if not name == '' and not name[0] == '-' and not name == 'Name':
             subprocess.run(['nova', 'delete', name])
+            printf(name)
 
     object_log.close()
+    print("vm delete successful")
    
     try:
         object_log = open(logfile, mode = 'x')
@@ -292,6 +302,7 @@ def cleanup_objects(browser='firefox'):
     subprocess.run(['openstack', 'keypair', 'list', '--format', 'csv'], stdout=object_log)
 
     object_log.close()
+    print("keypair list successful")
     object_log = open(logfile, mode='r')
 
     names = []
@@ -306,6 +317,7 @@ def cleanup_objects(browser='firefox'):
             print('keypair "' + remove + '" successfully deleted.')
 
     object_log.close()
+    print("keypair delete successful")
 
     delete_by_type(gvar, ['defaults', '-wis', '-s', 'server', []], 2)
     for i in range(2, 1, -1):
@@ -340,16 +352,23 @@ def cleanup_objects(browser='firefox'):
         if alias[0] in test_objects:
             subprocess.run(['cloudscheduler', 'alias', 'update', '-an', alias[0], '-cn', alias[1], '-co', 'delete', '-g', gvar['base_group'], '-s', 'unit-test'])
     object_log.close()
+    print("alias delete successful")
 
     delete_by_type(gvar, ['cloud', '-wic', '-cn', 'cloud_name', ['-g', gvar['user'] + '-wig1']], 1)
+    print("cloud delete successful")
     delete_by_type(gvar, ['metadata', '-wim', '-mn', 'metadata_name', ['-g', gvar['user'] + '-wig1']], 9)
+    print("metadata delete successful")
     delete_by_type(gvar, ['cloud', '-wic', '-cn', 'cloud_name', ['-g', gvar['base_group']]], 6)
+    print("cloud delete successful")
     delete_by_type(gvar, ['user', '-wiu', '-un', 'username', []], 9)
+    print("user delete successful")
     delete_by_type(gvar, ['group', '-wig', '-gn', 'group_name', []], 8)
+    print("group delete successful")
     
     # This group must be deleted last - it is the containing group for clouds
     # and cleanup will fail if it is deleted earlier.
     subprocess.run(['cloudscheduler', 'group', 'delete', '-gn', gvar['base_group'], '-Y', '-s', 'unit-test'], stdout=subprocess.DEVNULL)
+    print("delete successful")
 
 def delete_by_type(gvar, type_info, number, others=[]):
     # type_info is a list of strings (and one list of strings)
