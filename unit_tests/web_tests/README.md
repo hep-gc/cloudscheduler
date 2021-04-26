@@ -315,7 +315,9 @@ These items should ideally be fixed before the test suite is complete.
 
 These items should be finished before the test suite is considered completed. They affect the test suite's functionality.
 
-- Adjust imports to allow running tests outside of `unit_tests` folder (.web_tests.module?)
+- Adjust imports to allow running tests outside of `unit_tests` folder 
+
+- Refactor away `server_url` variable
 
 #### Tidying Up
 
