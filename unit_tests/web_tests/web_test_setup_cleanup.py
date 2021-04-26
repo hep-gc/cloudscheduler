@@ -48,7 +48,6 @@ def setup_objects(objects=[], browser='firefox'):
 
     cleanup_objects()
 
-    print("cleanup successful")
     gvar = load_settings(web=True)
 
     # detailed descriptions of the test data is in the web_tests README
@@ -80,7 +79,8 @@ def setup_objects(objects=[], browser='firefox'):
     for i in range(1, groups_num + 1):
         groups.append(gvar['user'] + '-wig' + str(i))
     for i in range(0, groups_num):
-        subprocess.run(['cloudscheduler', 'group', 'add', '-htcf', gvar['fqdn'], '-gn', groups[i], '-un', gvar['user'], '-s', 'unit-test'])
+        if subprocess.run(['cloudscheduler', 'group', 'add', '-htcf', gvar['fqdn'], '-gn', groups[i], '-un', gvar['user'], '-s', 'unit-test']).returncode != 0:
+            raise SetUpException("group add failed - check the server status and try again")
 
     #add users
     users_num = 0
@@ -98,7 +98,8 @@ def setup_objects(objects=[], browser='firefox'):
     if 'users' in objects:
         flags.append(['-gn', gvar['user'] + '-wig1'])
     for i in range(0, users_num):
-        subprocess.run(['cloudscheduler', 'user', 'add', '-un', users[i], '-upw', gvar['user_secret'], *flags[i], '-s', 'unit-test'])
+        if subprocess.run(['cloudscheduler', 'user', 'add', '-un', users[i], '-upw', gvar['user_secret'], *flags[i], '-s', 'unit-test']).returncode != 0:
+            raise SetUpException("user add failed - check the server status and try again")
 
     #add clouds
     clouds_num = 0
@@ -116,7 +117,8 @@ def setup_objects(objects=[], browser='firefox'):
         else:
             cores.append('0')
     for i in range(0, clouds_num):
-        subprocess.run(['cloudscheduler', 'cloud', 'add', '-ca', credentials['authurl'], '-cn', clouds[i], '-cpw', credentials['password'], '-cP', credentials['project'], '-cr', credentials['region'], '-cU', credentials['username'], '-ct', 'openstack', '-vc', cores[i], '-g', gvar['base_group'], '-s', 'unit-test'])
+        if subprocess.run(['cloudscheduler', 'cloud', 'add', '-ca', credentials['authurl'], '-cn', clouds[i], '-cpw', credentials['password'], '-cP', credentials['project'], '-cr', credentials['region'], '-cU', credentials['username'], '-ct', 'openstack', '-vc', cores[i], '-g', gvar['base_group'], '-s', 'unit-test']).returncode != 0:
+            raise SetUpException("cloud add failed - check the server status and openstack status")
     for i in range(0, clouds_num):
         helpers.wait_for_openstack_poller(clouds[i], ['-vsg', 'default', '-vf', 't1'], output=True)
     if 'clouds' in objects:
@@ -129,7 +131,8 @@ def setup_objects(objects=[], browser='firefox'):
             except FileExistsError:
                 pass
             filename = helpers.misc_file_full_path(name)
-            subprocess.run(['cloudscheduler', 'cloud', 'metadata-load', '-cn', gvar['user'] + '-wic1', '-f', filename, '-mn', name])
+            if subprocess.run(['cloudscheduler', 'cloud', 'metadata-load', '-cn', gvar['user'] + '-wic1', '-f', filename, '-mn', name]).returncode != 0:
+                raise SetUpException("metadata add failed - check the server status and try again")
 
     aliases_num = 0
     if 'aliases' in objects:
@@ -143,13 +146,16 @@ def setup_objects(objects=[], browser='firefox'):
         clouds = [gvar['user'] + '-wic1'] * 3
         clouds[1] += ',' + gvar['user'] + '-wic2'
     for i in range(0, aliases_num):
-        subprocess.run(['cloudscheduler', 'alias', 'add', '-an', aliases[i], '-cn', clouds[i], '-g', gvar['base_group'], '-s', 'unit-test'])
+        if subprocess.run(['cloudscheduler', 'alias', 'add', '-an', aliases[i], '-cn', clouds[i], '-g', gvar['base_group'], '-s', 'unit-test']).returncode != 0:
+            raise SetUpException("alias add failed - check the server status and try again")
 
     # add defaults
     defaults_num = 0
     if 'defaults' in objects:
-        subprocess.run(['cloudscheduler', 'group', 'update', '-gn', gvar['user'] + '-wig1', '-un',  gvar['user'] + ',' + gvar['user'] + '-wiu2', '-s', 'unit-test'])
-        subprocess.run(['cloudscheduler', 'group', 'update', '-gn', gvar['user'] + '-wig2', '-un', gvar['user'] + '-wiu1', '-s', 'unit-test'])
+        if subprocess.run(['cloudscheduler', 'group', 'update', '-gn', gvar['user'] + '-wig1', '-un',  gvar['user'] + ',' + gvar['user'] + '-wiu2', '-s', 'unit-test']).returncode != 0:
+            raise SetUpException("adding users to groups failed - check the server status and try again")
+        if subprocess.run(['cloudscheduler', 'group', 'update', '-gn', gvar['user'] + '-wig2', '-un', gvar['user'] + '-wiu1', '-s', 'unit-test']).returncode != 0:
+            raise SetUpException("adding users to groups failed - check the server status and try again")
     if 'defaults' in objects:
         defaults_num = 2
     else:
@@ -163,9 +169,11 @@ def setup_objects(objects=[], browser='firefox'):
         except FileExistsError:
             pass
         filename = helpers.misc_file_full_path(name)
-        subprocess.run(['cloudscheduler', 'metadata', 'load', '-g', gvar['user'] + '-wig1', '-f', filename, '-mn', name, '-s', 'unit-test'])
+        if subprocess.run(['cloudscheduler', 'metadata', 'load', '-g', gvar['user'] + '-wig1', '-f', filename, '-mn', name, '-s', 'unit-test']).returncode != 0:
+            raise SetUpException("metadata add failed - check the server status and try again")
     if 'defaults' in objects:
-        subprocess.run(['cloudscheduler', 'cloud', 'add', '-ca', credentials['authurl'], '-cn', gvar['user'] + '-wic1', '-cpw', credentials['password'], '-cP', credentials['project'], '-cr', credentials['region'], '-cU', credentials['username'], '-ct', 'openstack', '-g', gvar['user'] + '-wig1', '-s', 'unit-test'])
+        if subprocess.run(['cloudscheduler', 'cloud', 'add', '-ca', credentials['authurl'], '-cn', gvar['user'] + '-wic1', '-cpw', credentials['password'], '-cP', credentials['project'], '-cr', credentials['region'], '-cU', credentials['username'], '-ct', 'openstack', '-g', gvar['user'] + '-wig1', '-s', 'unit-test']).returncode != 0:
+            raise SetUpException("cloud add failed - check the server status and openstack status")
 
     #add images
     if 'images' in objects:
@@ -177,7 +185,8 @@ def setup_objects(objects=[], browser='firefox'):
         images.append(gvar['user'] + '-wii' + str(i) + '.hdd')
     for i in range(0, images_num):
         filename = helpers.misc_file_full_path(images[i])
-        subprocess.run(['cloudscheduler', 'image', 'upload', '-ip', 'file://' + filename, '-df', 'raw', '-cl', gvar['user'] + '-wic1', '-g', gvar['base_group'], '-s', 'unit-test'])
+        if subprocess.run(['cloudscheduler', 'image', 'upload', '-ip', 'file://' + filename, '-df', 'raw', '-cl', gvar['user'] + '-wic1', '-g', gvar['base_group'], '-s', 'unit-test']).returncode != 0:
+            raise SetUpException("image add failed - check the server status and openstack status")
     if 'images' in objects:
         helpers.wait_for_openstack_poller(gvar['user'] + '-wic1', ['-vi', gvar['user'] + '-wii1.hdd'], output=True)
 
@@ -192,7 +201,8 @@ def setup_objects(objects=[], browser='firefox'):
         servers.append(gvar['user'] + '-wis' + str(i))
         users.append(gvar['user'] + '-wiu' + str(i))
     for i in range(0, servers_num):
-        subprocess.run(['cloudscheduler', 'defaults', 'set', '-s', servers[i], '-sa', gvar['address'], '-su', users[i], '-spw', gvar['user_secret']])
+        if subprocess.run(['cloudscheduler', 'defaults', 'set', '-s', servers[i], '-sa', gvar['address'], '-su', users[i], '-spw', gvar['user_secret']]).returncode != 0:
+            raise SetUpException("server add failed - check the server configuration and try again")
 
     #add keys
     if 'keys' in objects:
@@ -201,21 +211,25 @@ def setup_objects(objects=[], browser='firefox'):
         for i in range(1, keys_num+1):
             keys.append(gvar['user'] + '-wik' + str(i))
         for i in range(0, keys_num):
-            subprocess.run(['openstack', 'keypair', 'create', '--private-key', '/home/centos/cloudscheduler/unit_tests/web_tests/misc_files/' + keys[i], keys[i]], stdout=subprocess.DEVNULL)
+            if subprocess.run(['openstack', 'keypair', 'create', '--private-key', '/home/centos/cloudscheduler/unit_tests/web_tests/misc_files/' + keys[i], keys[i]], stdout=subprocess.DEVNULL).returncode != 0:
+                raise SetUpException("key add failed - check the server status and openstack status")
             print('keypair "' + keys[i] + '" successfully added.')
         keystring = gvar['user'] + '-wik1'
         helpers.wait_for_openstack_poller(gvar['user'] + '-wic1', ['-vk', keystring], output=True)
 
     if 'status' in objects:
         for i in range(1, 3):
-            subprocess.run(['cloudscheduler', 'my', 'settings', '-sri', '60','-sfv', 'true', '-s', gvar['user'] + '-wis' + str(i)], stdout=subprocess.DEVNULL)
+            if subprocess.run(['cloudscheduler', 'my', 'settings', '-sri', '60','-sfv', 'true', '-s', gvar['user'] + '-wis' + str(i)], stdout=subprocess.DEVNULL).returncode != 0:
+                raise SetUpException("user update failed - check the server status and try again")
             helpers.wait_for_openstack_poller(gvar['user'] + '-wic' + str(i), ['-vi', 'centos7-image', '-vn', 'private'], output=True)
 
     if 'jobs' in objects:
         server_vm = helpers.server_url.split('//')[1]
         server_account = gvar['server_username'] + '@' + server_vm
-        subprocess.run(['cloudscheduler', 'group', 'update', '-htcu', gvar['server_username'], '-gn', gvar['base_group']])
-        subprocess.run(['ssh', server_account, '-p', str(gvar['server_port']), '-i', gvar['server_keypath'], 'condor_submit job.condor'])
+        if subprocess.run(['cloudscheduler', 'group', 'update', '-htcu', gvar['server_username'], '-gn', gvar['base_group']]).returncode != 0:
+             raise SetUpException("group update failed - check the server status and try again")
+        if subprocess.run(['ssh', server_account, '-p', str(gvar['server_port']), '-i', gvar['server_keypath'], 'condor_submit job.condor']).returncode != 0:
+             raise SetUpException("ssh failed - check the ssh configuration and try again")
 
     return gvar
 
@@ -241,8 +255,6 @@ def cleanup_objects(browser='firefox'):
     os.environ['OS_PASSWORD'] = gvar['cloud_credentials']['password']
     os.environ['OS_REGION_NAME'] = gvar['cloud_credentials']['region']
 
-    print("Environment: (authurl, " + os.environ['OS_AUTH_URL'] + "), (project name, " + os.environ['OS_PROJECT_NAME'] + "), (user domain name, " + os.environ['OS_USER_DOMAIN_NAME'] + "), (project domain name, " + os.environ['OS_PROJECT_DOMAIN_ID'] + "), (username, " + os.environ['OS_USERNAME'] + "), (region name, " + os.environ['OS_REGION_NAME'] + ")")
-
     try:
         object_log = open(logfile, mode='x')
     except FileExistsError:
@@ -251,12 +263,10 @@ def cleanup_objects(browser='firefox'):
     server_vm = helpers.server_url.split('//')[1]
     server_account = gvar['server_username'] + '@' + server_vm
 
-    print(server_account)
-
-    subprocess.run(['ssh', server_account, '-p', str(gvar['server_port']), '-i', gvar['server_keypath'], 'condor_q -nobatch -format "%d." ClusterId -format "%d " ProcId -format "%s\n" cmd'], stdout=object_log)
+    if subprocess.run(['ssh', server_account, '-p', str(gvar['server_port']), '-i', gvar['server_keypath'], 'condor_q -nobatch -format "%d." ClusterId -format "%d " ProcId -format "%s\n" cmd'], stdout=object_log).returncode != 0:
+        raise CleanUpException("ssh failed - check the ssh configuration and try again")
 
     object_log.close()
-    print("ssh successful")
     object_log = open(logfile, mode='r')
 
     for line in object_log:
@@ -265,23 +275,24 @@ def cleanup_objects(browser='firefox'):
         task = job[-1]
         task = task.split('/')
         if task[-1] == 'job.sh' and job[0] != 'Name':
-            subprocess.run(['ssh', server_account, '-p', str(gvar['server_port']), '-i', gvar['server_keypath'], 'condor_rm ' + job[0]])
+            if subprocess.run(['ssh', server_account, '-p', str(gvar['server_port']), '-i', gvar['server_keypath'], 'condor_rm ' + job[0]]).returncode != 0:
+                raise CleanUpException("ssh failed - check the ssh configuration and try again")
 
     object_log.close()
-    print("job delete successful")
 
     try:
         object_log = open(logfile, mode='x')
     except FileExistsError:
         object_log = open(logfile, mode='w')
 
-    subprocess.run(['nova', 'list', '--name', gvar['base_group'] + '--' + gvar['user'] + '-wic.*'], stdout=object_log)
+    subprocess.run(['nova', 'list', '--name', gvar['base_group'] + '--' + gvar['user'] + '-wic.*'], stdout=object_log, stderr=subprocess.STDOUT)
 
     object_log.close()
-    print("vm search successful")
     object_log = open(logfile, mode='r')
 
     for line in object_log:
+        if 'ERROR' in line:
+            raise CleanUpException("vm removal failed - check the server machine configuration and setup configuration")
         names = line.split('|')
         try:
             name = names[2].strip()
@@ -289,20 +300,18 @@ def cleanup_objects(browser='firefox'):
             continue
         if not name == '' and not name[0] == '-' and not name == 'Name':
             subprocess.run(['nova', 'delete', name])
-            printf(name)
 
     object_log.close()
-    print("vm delete successful")
    
     try:
         object_log = open(logfile, mode = 'x')
     except FileExistsError:
         object_log = open(logfile, mode = 'w')
  
-    subprocess.run(['openstack', 'keypair', 'list', '--format', 'csv'], stdout=object_log)
+    if subprocess.run(['openstack', 'keypair', 'list', '--format', 'csv'], stdout=object_log).returncode != 0:
+        raise CleanUpException("keypair access failed - check the openstack configuration and try again")
 
     object_log.close()
-    print("keypair list successful")
     object_log = open(logfile, mode='r')
 
     names = []
@@ -313,27 +322,23 @@ def cleanup_objects(browser='firefox'):
     for i in range(1, 5):
         remove = gvar['user'] + '-wik' + str(i)
         if remove in names:
-            subprocess.run(['openstack', 'keypair', 'delete', remove])
-            print('keypair "' + remove + '" successfully deleted.')
+            if subprocess.run(['openstack', 'keypair', 'delete', remove]).returncode != 0:
+                raise CleanUpError("keypair removal failed - check the openstack configuration and try again")
 
     object_log.close()
-    print("keypair delete successful")
 
     delete_by_type(gvar, ['defaults', '-wis', '-s', 'server', []], 2)
-    print("server delete successful")
     for i in range(2, 1, -1):
         delete_by_type(gvar, ['image', '-wii', '-in', 'name', ['-g', gvar['user'] + '-wig0', '-cn', gvar['user'] + '-wic' + str(i)]], 3, others=['test-os-image-raw'])
-    print("image delete successful")
 
     try:
         object_log = open(logfile, mode = 'x')
     except FileExistsError:
         object_log = open(logfile, mode = 'w') 
     
-    subprocess.run(['cloudscheduler', 'alias', 'list', '-CSV', 'alias_name,clouds', '-g', gvar['base_group'], '-s', 'unit-test'], stdout=object_log)
+    subprocess.run(['cloudscheduler', 'alias', 'list', '-CSV', 'alias_name,clouds', '-g', gvar['base_group'], '-s', 'unit-test'], stdout=object_log).returncode
     
     object_log.close()
-    print("alias list successful")
     object_log = open(logfile, mode = 'r')
 
     aliases = []
@@ -353,25 +358,19 @@ def cleanup_objects(browser='firefox'):
         test_objects.append(gvar['user'] + '-wia' + str(i))
     for alias in aliases:
         if alias[0] in test_objects:
-            subprocess.run(['cloudscheduler', 'alias', 'update', '-an', alias[0], '-cn', alias[1], '-co', 'delete', '-g', gvar['base_group'], '-s', 'unit-test'])
+            if subprocess.run(['cloudscheduler', 'alias', 'update', '-an', alias[0], '-cn', alias[1], '-co', 'delete', '-g', gvar['base_group'], '-s', 'unit-test']).returncode != 0:
+                raise CleanUpException("alias removal failed - check the server configuration and try again")
     object_log.close()
-    print("alias delete successful")
 
     delete_by_type(gvar, ['cloud', '-wic', '-cn', 'cloud_name', ['-g', gvar['user'] + '-wig1']], 1)
-    print("cloud delete successful")
     delete_by_type(gvar, ['metadata', '-wim', '-mn', 'metadata_name', ['-g', gvar['user'] + '-wig1']], 9)
-    print("metadata delete successful")
     delete_by_type(gvar, ['cloud', '-wic', '-cn', 'cloud_name', ['-g', gvar['base_group']]], 6)
-    print("cloud delete successful")
     delete_by_type(gvar, ['user', '-wiu', '-un', 'username', []], 9)
-    print("user delete successful")
     delete_by_type(gvar, ['group', '-wig', '-gn', 'group_name', []], 8)
-    print("group delete successful")
     
     # This group must be deleted last - it is the containing group for clouds
     # and cleanup will fail if it is deleted earlier.
     subprocess.run(['cloudscheduler', 'group', 'delete', '-gn', gvar['base_group'], '-Y', '-s', 'unit-test'], stdout=subprocess.DEVNULL)
-    print("delete successful")
 
 def delete_by_type(gvar, type_info, number, others=[]):
     # type_info is a list of strings (and one list of strings)
@@ -400,7 +399,7 @@ def delete_by_type(gvar, type_info, number, others=[]):
     for flag in type_info[4]:
         flags.append(flag)
     
-    subprocess.run(['cloudscheduler', type_info[0], 'list', *flags], stdout=object_log)
+    subprocess.run(['cloudscheduler', type_info[0], 'list', *flags], stdout=object_log).returncode
     
     object_log.close()
     object_log = open(logfile, mode = 'r')
@@ -428,9 +427,20 @@ def delete_by_type(gvar, type_info, number, others=[]):
         if type_info[0] != 'image':
             flags.append('-Y')
         if object in object_list:
-            subprocess.run(['cloudscheduler', type_info[0], 'delete', type_info[2], object,  *flags])
+            if subprocess.run(['cloudscheduler', type_info[0], 'delete', type_info[2], object,  *flags]).returncode != 0:
+                raise CleanUpException("base group removal failed - check the server configuration and try again")
 
     object_log.close()
+
+class SetUpException(Exception):
+    def __init__(self, message=''):
+        self.message = message
+        print(message)
+
+class CleanUpException(Exception):
+    def __init__(self, message=''):
+        self.message = message
+        print(message)
 
 def keyboard_interrupt_handler(signal, frame):
     # This ensures that interrupted tests will still clean up. If cloudscheduler
