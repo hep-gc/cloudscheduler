@@ -1,9 +1,19 @@
+# This is hideous, but there doesn't seem to be a better way to make relative
+# imports work with the command line
+
+if __name__ == "__main__":
+    __package__ = 'cloudscheduler.unit_tests.web_tests'
+
 import unittest
 import sys
-import web_tests.web_test_setup_cleanup as wtsc
-import web_tests.web_test_assertions_v2 as wta
-import web_tests.web_test_page_objects as pages
-import web_tests.web_test_helpers as helpers
+from . import web_test_setup_cleanup as wtsc
+from . import web_test_assertions_v2 as wta
+from . import web_test_page_objects as pages
+from . import web_test_helpers as helpers
+#import .web_tests.web_test_setup_cleanup as wtsc
+#import .web_tests.web_test_assertions_v2 as wta
+#import .web_tests.web_test_page_objects as pages
+#import .web_tests.web_test_helpers as helpers
 
 class TestWebGroupCommon(unittest.TestCase):
     """A class for the group tests that should be repeated in all iterations."""
