@@ -320,8 +320,10 @@ def cleanup_objects(browser='firefox'):
     print("keypair delete successful")
 
     delete_by_type(gvar, ['defaults', '-wis', '-s', 'server', []], 2)
+    print("server delete successful")
     for i in range(2, 1, -1):
         delete_by_type(gvar, ['image', '-wii', '-in', 'name', ['-g', gvar['user'] + '-wig0', '-cn', gvar['user'] + '-wic' + str(i)]], 3, others=['test-os-image-raw'])
+    print("image delete successful")
 
     try:
         object_log = open(logfile, mode = 'x')
@@ -331,6 +333,7 @@ def cleanup_objects(browser='firefox'):
     subprocess.run(['cloudscheduler', 'alias', 'list', '-CSV', 'alias_name,clouds', '-g', gvar['base_group'], '-s', 'unit-test'], stdout=object_log)
     
     object_log.close()
+    print("alias list successful")
     object_log = open(logfile, mode = 'r')
 
     aliases = []
