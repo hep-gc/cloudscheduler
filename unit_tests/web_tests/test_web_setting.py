@@ -13,12 +13,12 @@ class TestWebSettingCommon(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.page = pages.SettingsPage(cls.driver)
-        cls.status_page = pages.StatusPage(cls.driver)
+        cls.page = pages.SettingsPage(cls.driver, cls.gvar['address'])
+        cls.status_page = pages.StatusPage(cls.driver, cls.gvar['address'])
         cls.oversize = cls.gvar['oversize']
 
     def setUp(self):
-        helpers.get_homepage(self.driver)
+        self.page.get_homepage()
         self.page.click_top_nav('User Settings')
 
     def test_web_setting_find(self):
@@ -32,11 +32,11 @@ class TestWebSettingCommon(unittest.TestCase):
         self.page.type_password(password)
         self.page.click_update_user()
         self.assertFalse(self.page.error_message_displayed())
-        helpers.get_homepage_login(self.driver, self.user, password)
+        self.page.get_homepage_login(self.user, password)
         self.page.click_top_nav_with_login('User Settings', self.user, password)
         self.page.type_password(self.gvar['user_secret'])
         self.page.click_update_user()
-        helpers.get_homepage_login(self.driver, self.user, self.gvar['user_secret'])
+        self.page.get_homepage_login(self.user, self.gvar['user_secret'])
         self.page.click_top_nav_with_login('User Settings', self.user, self.gvar['user_secret'])
 
     def test_web_setting_update_password_mismatched(self):

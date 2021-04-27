@@ -14,11 +14,11 @@ class TestWebKeyCommon(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         helpers.skip_if_flag('keys accessible', cls.gvar['keys_accessible'], False)
-        cls.page = pages.KeysPage(cls.driver)
+        cls.page = pages.KeysPage(cls.driver, cls.gvar['address'])
         cls.oversize = cls.gvar['oversize']
 
     def setUp(self):
-        helpers.get_homepage(self.driver)
+        helpers.get_homepage()
         self.page.click_top_nav('Keys')
 
     # TODO: Remove skip when done developing tests

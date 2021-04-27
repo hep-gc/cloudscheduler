@@ -13,16 +13,16 @@ class TestWebMiscCommon(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.page = pages.StatusPage(cls.driver)
+        cls.page = pages.StatusPage(cls.driver, cls.gvar['address'])
 
     def setUp(self):
-        helpers.get_homepage(self.driver)
+        self.page.get_homepage()
 
     def test_web_misc_logout(self):
         helpers.skip_if_browsers(self.gvar['browser'], ['firefox'])
         self.page.click_top_nav('Log out')
         self.assertTrue(self.page.page_blank())
-        helpers.get_homepage_login(self.driver, self.user, self.gvar['user_secret'])
+        self.page.get_homepage_login(self.user, self.gvar['user_secret'])
         self.page.click_top_nav_with_login('Status', self.user, self.gvar['user_secret'])
 
     def test_web_misc_unauthorized(self):
@@ -30,7 +30,7 @@ class TestWebMiscCommon(unittest.TestCase):
         self.page.click_top_nav('Log out')
         self.page.dismiss_login_prompt()
         self.assertTrue(self.page.error_page_displayed('Unauthorized'))
-        helpers.get_homepage_login(self.driver, self.user, self.gvar['user_secret'])
+        self.page.get_homepage_login(self.user, self.gvar['user_secret'])
         self.page.click_top_nav_with_login('Status', self.user, self.gvar['user_secret'])
 
     @classmethod

@@ -32,7 +32,7 @@ def setup(cls, profile, objects, browser='firefox'):
         cls.driver = webdriver.Chrome(options=options)
     elif browser == 'opera':
         cls.driver = webdriver.Opera()
-    helpers.get_homepage_login(cls.driver, cls.gvar['user'] + '-wiu' + str(profile), cls.gvar['user_secret'])
+    cls.driver.get('https://' + cls.gvar['user'] + '-wiu' + str(profile) + ':' + cls.gvar['user_secret'] + '@' + cls.gvar['fqdn'])
 
 def setup_objects(objects=[], browser='firefox'):
     print('\nUnittest setup:')
@@ -215,8 +215,7 @@ def setup_objects(objects=[], browser='firefox'):
             helpers.wait_for_openstack_poller(gvar['user'] + '-wic' + str(i), ['-vi', 'centos7-image', '-vn', 'private'], output=True)
 
     if 'jobs' in objects:
-        server_vm = helpers.server_url.split('//')[1]
-        server_account = gvar['server_username'] + '@' + server_vm
+        server_account = gvar['server_username'] + '@' + gvar['fqdn']
         if subprocess.run(['cloudscheduler', 'group', 'update', '-htcu', gvar['server_username'], '-gn', gvar['base_group']]).returncode != 0:
              raise SetUpException("group update failed - check the server status and try again")
         if subprocess.run(['ssh', server_account, '-p', str(gvar['server_port']), '-i', gvar['server_keypath'], 'condor_submit job.condor']).returncode != 0:
@@ -251,8 +250,7 @@ def cleanup_objects(browser='firefox'):
     except FileExistsError:
         object_log = open(logfile, mode='w')
 
-    server_vm = helpers.server_url.split('//')[1]
-    server_account = gvar['server_username'] + '@' + server_vm
+    server_account = gvar['server_username'] + '@' + gvar['fqdn']
 
     if subprocess.run(['ssh', server_account, '-p', str(gvar['server_port']), '-i', gvar['server_keypath'], 'condor_q -nobatch -format "%d." ClusterId -format "%d " ProcId -format "%s\n" cmd'], stdout=object_log).returncode != 0:
         raise CleanUpException("ssh failed - check the ssh configuration and try again")

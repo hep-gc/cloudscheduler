@@ -13,13 +13,13 @@ class TestWebStatusCommon(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.page = pages.StatusPage(cls.driver)
+        cls.page = pages.StatusPage(cls.driver, cls.gvar['address'])
         cls.oversize = cls.gvar['oversize']
         cls.cloud_name = cls.gvar['user'] + '-wic1'
         cls.group_name = cls.gvar['user'] + '-wig0'
 
     def setUp(self):
-        helpers.get_homepage(self.driver)
+        self.page.get_homepage()
         self.page.click_top_nav('Status')
 
     def test_web_status_find(self):
@@ -497,7 +497,7 @@ class TestWebStatusCommon(unittest.TestCase):
         self.page.click_vm_checkbox(1)
         self.page.click_vm_operation_button('Manual Control')
         self.page.click_vm_overlay_close()
-        helpers.get_homepage(self.driver)
+        self.page.get_homepage()
         self.assertGreater(self.page.vms_in_state(self.group_name, self.cloud_name, 'Manual'), 0)
 
     def test_web_status_vm_overlay_system(self):
@@ -507,13 +507,13 @@ class TestWebStatusCommon(unittest.TestCase):
         self.page.click_vm_checkbox(1)
         self.page.click_vm_operation_button('Manual Control')
         self.page.click_vm_overlay_close()
-        helpers.get_homepage(self.driver)
+        self.page.get_homepage()
         manual_control = self.page.vms_in_state(self.group_name, self.cloud_name, 'Manual')
         self.page.click_vm_data_box(self.group_name, self.cloud_name, 'VMs', right_click=True)
         self.page.click_vm_checkbox(1)
         self.page.click_vm_operation_button('System Control')
         self.page.click_vm_overlay_close()
-        helpers.get_homepage(self.driver)
+        self.page.get_homepage()
         self.assertLess(self.page.vms_in_state(self.group_name, self.cloud_name, 'Manual'), manual_control)
 
     def test_web_status_vm_overlay_retire(self):
@@ -525,7 +525,7 @@ class TestWebStatusCommon(unittest.TestCase):
         self.page.click_vm_data_box(self.group_name, self.cloud_name, 'VMs', right_click=True)
         self.assertFalse(self.page.vm_overlay_column_is(2, 'Retire', 0) and self.page.vm_overlay_column_is(2, 'Terminate', 0))
         self.page.click_vm_overlay_close()
-        helpers.get_homepage(self.driver)
+        self.page.get_homepage()
         #self.assertGreater(self.page.vms_in_state(self.group_name, self.cloud_name, 'Retiring'), 0)
 
     def test_web_status_vm_overlay_kill(self):

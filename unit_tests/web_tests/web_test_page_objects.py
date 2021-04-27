@@ -18,8 +18,17 @@ class Page(object):
     """This is the base page class, which all pages inherit from. It contains
        methods for page functions all pages have."""
 
-    def __init__(self, driver):
+    def __init__(self, driver, homepage):
         self.driver = driver
+        self.homepage = homepage
+
+    def get_homepage(self):
+        self.driver.get(self.homepage)
+
+    def get_homepage_login(self, username, password):
+        url_split = self.homepage.split('//')
+        authenticated_url = url_split[0] + '//' + username + ':' + password + '@' + url_split[1]
+        self.driver.get(authenticated_url)
 
     def click_top_nav(self, name):
         wti.click_by_link_text(self.driver, name)
@@ -93,8 +102,8 @@ class Page(object):
 
 class StatusPage(Page):
     """This is the page object class for the Status page."""
-    def __init__(self, driver):
-        super(StatusPage, self).__init__(driver)
+    def __init__(self, driver, homepage):
+        super(StatusPage, self).__init__(driver, homepage)
         # There may be variables here in the future, currently unknown
 
     def click_jobs_group_expand(self, group):
@@ -459,8 +468,8 @@ class StatusPage(Page):
 
 class CloudsPage(Page):
     """This is the page object class for the Clouds page."""
-    def __init__(self, driver):
-        super(CloudsPage, self).__init__(driver)
+    def __init__(self, driver, homepage):
+        super(CloudsPage, self).__init__(driver, homepage)
         # The active_cloud variable stores the currently-selected cloud in the
         # sidebar.
         self.active_cloud = None
@@ -783,8 +792,8 @@ class CloudsPage(Page):
 
 class AliasesPage(Page):
     """This is the page object class for the Aliases page."""
-    def __init__(self, driver):
-        super(AliasesPage, self).__init__(driver)
+    def __init__(self, driver, homepage):
+        super(AliasesPage, self).__init__(driver, homepage)
         # The active_alias variable stores the currently-selected user in the
         # sidebar.
         self.active_alias = None
@@ -823,8 +832,8 @@ class AliasesPage(Page):
 
 class DefaultsPage(Page):
     """This is the page object class for the Defaults page."""
-    def __init__(self, driver):
-        super(DefaultsPage, self).__init__(driver)
+    def __init__(self, driver, homepage):
+        super(DefaultsPage, self).__init__(driver, homepage)
         # The active_cloud variable stores the currently-selected cloud in the
         # sidebar.
         self.active_group = None
@@ -991,8 +1000,8 @@ class DefaultsPage(Page):
 
 class ImagesPage(Page):
     """This is the page object class for the Images page."""
-    def __init__(self, driver):
-        super(ImagesPage, self).__init__(driver)
+    def __init__(self, driver, homepage):
+        super(ImagesPage, self).__init__(driver, homepage)
         # There is no active image, so there is no variable for it
 
     def type_in_search_bar(self, text):
@@ -1144,8 +1153,8 @@ class ImagesPage(Page):
 
 class KeysPage(Page):
     """This is the page object class for the Keys page."""
-    def __init__(self, driver):
-        super(KeysPage, self).__init__(driver)
+    def __init__(self, driver, homepage):
+        super(KeysPage, self).__init__(driver, homepage)
         # There is no active key, so there is no variable here
         # Instead, there is a variable to save whether the popup is an upload
         # or create popup
@@ -1248,8 +1257,8 @@ class KeysPage(Page):
 
 class UsersPage(Page):
     """This is the page object class for the Users page."""
-    def __init__(self, driver):
-        super(UsersPage, self).__init__(driver)
+    def __init__(self, driver, homepage):
+        super(UsersPage, self).__init__(driver, homepage)
         # The active_user variable stores the currently-selected user in the
         # sidebar.
         self.active_user = None
@@ -1338,8 +1347,8 @@ class UsersPage(Page):
 class GroupsPage(Page):
     """This is the page object class for the Groups page."""
 
-    def __init__(self, driver):
-        super(GroupsPage, self).__init__(driver)
+    def __init__(self, driver, homepage):
+        super(GroupsPage, self).__init__(driver, homepage)
         # The active_group variable stores the currently-selected group in the
         # sidebar. 
         self.active_group = None
@@ -1410,8 +1419,8 @@ class GroupsPage(Page):
 class ConfigPage(Page):
     """This is the page object class for the Config page."""
     
-    def __init__(self, driver):
-        super(ConfigPage, self).__init__(driver)
+    def __init__(self, driver, homepage):
+        super(ConfigPage, self).__init__(driver, homepage)
         # The active_config variable stores the active config file in the sidebar
         self.active_config = None
 
@@ -1549,8 +1558,8 @@ class ConfigPage(Page):
 class SettingsPage(Page):
     """This is the page object class for the User Settings page."""
     
-    def __init__(self, driver):
-        super(SettingsPage, self).__init__(driver)
+    def __init__(self, driver, homepage):
+        super(SettingsPage, self).__init__(driver, homepage)
         # The active_user variable stores the active user in the sidebar
         self.active_user = None
 

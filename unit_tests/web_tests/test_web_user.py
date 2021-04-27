@@ -13,11 +13,11 @@ class TestWebUserCommon(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.page = pages.UsersPage(cls.driver)
+        cls.page = pages.UsersPage(cls.driver, cls.gvar['address'])
         cls.oversize = cls.gvar['oversize']
 
     def setUp(self):
-        helpers.get_homepage(self.driver)
+        helpers.get_homepage()
         self.page.click_top_nav('Users')
 
     def test_web_user_find(self):

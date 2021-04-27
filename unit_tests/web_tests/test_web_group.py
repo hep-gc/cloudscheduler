@@ -1,5 +1,3 @@
-# This is hideous, but there doesn't seem to be a better way to make relative
-# imports work with the command line
 if __name__ == "__main__":
     __package__ = 'cloudscheduler.unit_tests.web_tests'
 
@@ -9,21 +7,17 @@ from . import web_test_setup_cleanup as wtsc
 from . import web_test_assertions_v2 as wta
 from . import web_test_page_objects as pages
 from . import web_test_helpers as helpers
-#import .web_tests.web_test_setup_cleanup as wtsc
-#import .web_tests.web_test_assertions_v2 as wta
-#import .web_tests.web_test_page_objects as pages
-#import .web_tests.web_test_helpers as helpers
 
 class TestWebGroupCommon(unittest.TestCase):
     """A class for the group tests that should be repeated in all iterations."""
 
     @classmethod
     def setUpClass(cls):
-        cls.page = pages.GroupsPage(cls.driver)
+        cls.page = pages.GroupsPage(cls.driver, cls.gvar['address'])
         cls.oversize = cls.gvar['oversize']
         
     def setUp(self):
-        helpers.get_homepage(self.driver)
+        self.page.get_homepage()
         self.page.click_top_nav('Groups')
 
     def test_web_group_find(self):

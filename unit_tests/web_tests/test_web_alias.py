@@ -13,11 +13,11 @@ class TestWebAliasCommon(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.page = pages.AliasesPage(cls.driver)
+        cls.page = pages.AliasesPage(cls.driver, cls.gvar['address'])
         cls.oversize = cls.gvar['oversize']
 
     def setUp(self):
-        helpers.get_homepage(self.driver)
+        self.page.get_homepage()
         self.page.click_top_nav('Aliases')
 
     def test_web_alias_add(self):

@@ -13,11 +13,11 @@ class TestWebConfigCommon(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.page = pages.ConfigPage(cls.driver)
+        cls.page = pages.ConfigPage(cls.driver, cls.gvar['address'])
         cls.oversize = cls.gvar['oversize']
 
     def setUp(self):
-        helpers.get_homepage(self.driver)
+        self.page.get_homepage()
         self.page.click_top_nav('Config')
 
     def test_web_config_find(self):

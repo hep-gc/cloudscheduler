@@ -13,11 +13,11 @@ class TestWebImageCommon(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.page = pages.ImagesPage(cls.driver)
+        cls.page = pages.ImagesPage(cls.driver, cls.gvar['address'])
         cls.oversize = cls.gvar['oversize']
 
     def setUp(self):
-        helpers.get_homepage(self.driver)
+        helpers.get_homepage()
         self.page.click_top_nav('Images')
 
     def test_web_image_upload_filename(self):

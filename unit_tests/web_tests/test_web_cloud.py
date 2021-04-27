@@ -14,11 +14,11 @@ class TestWebCloudCommon(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.credentials = cls.gvar['cloud_credentials']
-        cls.page = pages.CloudsPage(cls.driver)
+        cls.page = pages.CloudsPage(cls.driver, cls.gvar['address'])
         cls.oversize = cls.gvar['oversize']
 
     def setUp(self):
-        helpers.get_homepage(self.driver)
+        self.page.get_homepage()
         self.page.click_top_nav('Clouds')
 
     def test_web_cloud_add(self):

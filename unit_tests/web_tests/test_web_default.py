@@ -13,12 +13,12 @@ class TestWebDefaultCommon(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.page = pages.DefaultsPage(cls.driver)
+        cls.page = pages.DefaultsPage(cls.driver, cls.gvar['address'])
         cls.group_name = cls.gvar['user'] + '-wig1'
         cls.oversize = cls.gvar['oversize']
 
     def setUp(self):
-        helpers.get_homepage(self.driver)
+        self.page.get_homepage()
         self.page.switch_default_group(self.group_name)
         self.page.click_top_nav('Defaults')
 
