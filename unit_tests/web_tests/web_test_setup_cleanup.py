@@ -125,7 +125,7 @@ def setup_objects(objects=[], browser='firefox'):
         for i in range(1, 3):
             name = gvar['user'] + '-wim' + str(i) + '.yaml'
             try:
-                metadata = open('web_tests/misc_files/' + name, 'x')
+                metadata = open(helpers.misc_file_full_path(name), 'x')
                 metadata.write("sample_value_" + str(i) + ": sample_key_" + str(i))
                 metadata.close()
             except FileExistsError:
@@ -163,7 +163,7 @@ def setup_objects(objects=[], browser='firefox'):
     for i in range(1, defaults_num+1):
         name = gvar['user'] + '-wim' + str(i) + '.yaml'
         try:
-            metadata = open('web_tests/misc_files/' + name, 'x')
+            metadata = open(helpers.misc_file_full_path(name), 'x')
             metadata.write("sample_value_" + str(i) + ": sample_key_" + str(i))
             metadata.close()
         except FileExistsError:
@@ -428,7 +428,7 @@ def delete_by_type(gvar, type_info, number, others=[]):
             flags.append('-Y')
         if object in object_list:
             if subprocess.run(['cloudscheduler', type_info[0], 'delete', type_info[2], object,  *flags]).returncode != 0:
-                raise CleanUpException("base group removal failed - check the server configuration and try again")
+                raise CleanUpException(type_info[0] + " delete failed - check the server configuration and try again")
 
     object_log.close()
 

@@ -1,10 +1,12 @@
+if __name__ == "__main__":
+    __package__ = 'cloudscheduler.unit_tests.web_tests'
+
 import unittest
 import sys
-import web_tests.web_test_setup_cleanup as wtsc
-import web_tests.web_test_assertions_v2 as wta
-import web_tests.web_test_page_objects as pages
-import web_tests.web_test_helpers as helpers
-from time import sleep
+from . import web_test_setup_cleanup as wtsc
+from . import web_test_assertions_v2 as wta
+from . import web_test_page_objects as pages
+from . import web_test_helpers as helpers
 
 class TestWebStatusCommon(unittest.TestCase):
     """A class for the status tests that should be repeated in all iterations."""
