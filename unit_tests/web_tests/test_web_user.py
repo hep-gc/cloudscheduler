@@ -363,36 +363,56 @@ class TestWebUserSuperUserFirefox(TestWebUserCommon):
 
     @classmethod
     def setUpClass(cls):
-        wtsc.setup(cls, 2, ['users'], browser='firefox')
-        super(TestWebUserSuperUserFirefox, cls).setUpClass()
-        print("\nUser Tests:")
+        try:
+            wtsc.setup(cls, 2, ['users'], browser='firefox')
+            super(TestWebUserSuperUserFirefox, cls).setUpClass()
+            print("\nUser Tests:")
+        except:
+            print("Error in test setup")
+            super(TestWebUserSuperUserFirefox, cls).tearDownClass()
+            raise
 
 class TestWebUserSuperUserChromium(TestWebUserCommon):
     """A class to test user operations via the web interface, in Chromium, with a super user."""
 
     @classmethod
     def setUpClass(cls):
-        wtsc.setup(cls, 2, ['users'], browser='chromium')
-        super(TestWebUserSuperUserChromium, cls).setUpClass()
-        print("\nUser Tests (Chromium):")
+        try:
+            wtsc.setup(cls, 2, ['users'], browser='chromium')
+            super(TestWebUserSuperUserChromium, cls).setUpClass()
+            print("\nUser Tests (Chromium):")
+        except:
+            print("Error in test setup")
+            super(TestWebUserSuperUserChromium, cls).tearDownClass()
+            raise
 
 class TestWebUserSuperUserOpera(TestWebUserCommon):
     """A class to test user operations via the web interface, in Opera, with a super user."""
 
     @classmethod
     def setUpClass(cls):
-        wtsc.setup(cls, 2, ['users'], browser='opera')
-        super(TestWebUserSuperUserOpera, cls).setUpClass()
-        print("\nUser Tests (Opera):")
+        try:
+            wtsc.setup(cls, 2, ['users'], browser='opera')
+            super(TestWebUserSuperUserOpera, cls).setUpClass()
+            print("\nUser Tests (Opera):")
+        except:
+            print("Error in test setup")
+            super(TestWebUserSuperUserOpera, cls).tearDownClass()
+            raise
 
 class TestWebUserSuperUserChrome(TestWebUserCommon):
     """A class to test user operations via the web interface, in Chrome, with a super user."""
 
     @classmethod
     def setUpClass(cls):
-        wtsc.setup(cls, 2, ['users'], browser='chrome')
-        super(TestWebUserSuperUserChrome, cls).setUpClass()
-        print("\nUser Tests (Chrome):")
+        try:
+            wtsc.setup(cls, 2, ['users'], browser='chrome')
+            super(TestWebUserSuperUserChrome, cls).setUpClass()
+            print("\nUser Tests (Chrome):")
+        except:
+            print("Error in test setup")
+            super(TestWebUserSuperUserChrome, cls).tearDownClass()
+            raise
 
 if __name__ == "__main__":
     runner = unittest.TextTestRunner(verbosity=2)

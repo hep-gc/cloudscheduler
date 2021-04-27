@@ -123,72 +123,112 @@ class TestWebImageSuperUserFirefox(TestWebImageCommon):
 
     @classmethod
     def setUpClass(cls):
-        wtsc.setup(cls, 2, ['images'], browser='firefox')
-        super(TestWebImageSuperUserFirefox, cls).setUpClass()
-        print("\nImage Tests (Super User):")
+        try:
+            wtsc.setup(cls, 2, ['images'], browser='firefox')
+            super(TestWebImageSuperUserFirefox, cls).setUpClass()
+            print("\nImage Tests (Super User):")
+        except:
+            print("Error in test setup")
+            super(TestWebImageSuperUserFirefox, cls).tearDownClass()
+            raise
 
 class TestWebImageRegularUserFirefox(TestWebImageCommon):
     """A class to test image operations via the web interface, in Firefox, with a regular user."""
 
     @classmethod
     def setUpClass(cls):
-        wtsc.setup(cls, 1, ['images'], browser='firefox')
-        super(TestWebImageRegularUserFirefox, cls).setUpClass()
-        print("\nImage Tests (Regular User):")
+        try:
+            wtsc.setup(cls, 1, ['images'], browser='firefox')
+            super(TestWebImageRegularUserFirefox, cls).setUpClass()
+            print("\nImage Tests (Regular User):")
+        except:
+            print("Error in test setup")
+            super(TestWebImageRegularUserFirefox, cls).tearDownClass()
+            raise
 
 class TestWebImageSuperUserChromium(TestWebImageCommon):
     """A class to test image operations via the web interface, in Chromium, with a super user."""
 
     @classmethod
     def setUpClass(cls):
-        wtsc.setup(cls, 2, ['images'], browser='chromium')
-        super(TestWebImageSuperUserChromium, cls).setUpClass()
-        print("\nImage Tests (Chromium) (Super User):")
+        try:
+            wtsc.setup(cls, 2, ['images'], browser='chromium')
+            super(TestWebImageSuperUserChromium, cls).setUpClass()
+            print("\nImage Tests (Chromium) (Super User):")
+        except:
+            print("Error in test setup")
+            super(TestWebImageSuperUserChromium, cls).tearDownClass()
+            raise
 
 class TestWebImageRegularUserChromium(TestWebImageCommon):
     """A class to test image operations via the web interface, in Chromium, with a regular user."""
 
     @classmethod
     def setUpClass(cls):
-        wtsc.setup(cls, 1, ['images'], browser='chromium')
-        super(TestWebImageRegularUserChromium, cls).setUpClass()
-        print("\nImage Tests (Chromium) (Regular User):")
+        try:
+            wtsc.setup(cls, 1, ['images'], browser='chromium')
+            super(TestWebImageRegularUserChromium, cls).setUpClass()
+            print("\nImage Tests (Chromium) (Regular User):")
+        except:
+            print("Error in test setup")
+            super(TestWebImageRegularUserChromium, cls).tearDownClass()
+            raise
 
 class TestWebImageSuperUserOpera(TestWebImageCommon):
     """A class to test image operations via the web interface, in Opera, with a super user."""
 
     @classmethod
     def setUpClass(cls):
-        wtsc.setup(cls, 2, ['images'], browser='opera')
-        super(TestWebImageSuperUserOpera, cls).setUpClass()
-        print("\nImage Tests (Opera) (Super User):")
+        try:
+            wtsc.setup(cls, 2, ['images'], browser='opera')
+            super(TestWebImageSuperUserOpera, cls).setUpClass()
+            print("\nImage Tests (Opera) (Super User):")
+        except:
+            print("Error in test setup")
+            super(TestWebImageSuperUserOpera, cls).tearDownClass()
+            raise
 
 class TestWebImageRegularUserOpera(TestWebImageCommon):
     """A class to test image operations via the web interface, in Opera, with a regular user."""
 
     @classmethod
     def setUpClass(cls):
-        wtsc.setup(cls, 1, ['images'], browser='opera')
-        super(TestWebImageRegularUserOpera, cls).setUpClass()
-        print("\nImage Tests (Regular User):")
+        try:
+            wtsc.setup(cls, 1, ['images'], browser='opera')
+            super(TestWebImageRegularUserOpera, cls).setUpClass()
+            print("\nImage Tests (Regular User):")
+        except:
+            print("Error in test setup")
+            super(TestWebImageRegularUserOpera, cls).tearDownClass()
+            raise
 
 class TestWebImageSuperUserChrome(TestWebImageCommon):
     """A class to test image operations via the web interface, in Chrome, with a super user."""
 
     @classmethod
     def setUpClass(cls):
-        wtsc.setup(cls, 2, ['images'], browser='chrome')
-        super(TestWebImageSuperUserChrome, cls).setUpClass()
-        print("\nImage Tests (Chrome) (Super User):")
+        try:
+            wtsc.setup(cls, 2, ['images'], browser='chrome')
+            super(TestWebImageSuperUserChrome, cls).setUpClass()
+            print("\nImage Tests (Chrome) (Super User):")
+        except:
+            print("Error in test setup")
+            super(TestWebImageSuperUserChrome, cls).tearDownClass()
+            raise
 
 class TestWebImageRegularUserChrome(TestWebImageCommon):
     """A class to test image operations via the web interface, in Chrome, with a regular user."""
 
     @classmethod
     def setUpClass(cls):
-        wtsc.setup(cls, 1, ['images'], browser='chrome')
-        super(TestWebImageRegularUserChrome, cls).setUpClass()
-        print("\nImage Tests (Chrome) (Regular User):")
+        try:
+            wtsc.setup(cls, 1, ['images'], browser='chrome')
+            super(TestWebImageRegularUserChrome, cls).setUpClass()
+            print("\nImage Tests (Chrome) (Regular User):")
+        except:
+            print("Error in test setup")
+            super(TestWebImageRegularUserChrome, cls).tearDownClass()
+            raise
 
 if __name__ == "__main__":
     runner = unittest.TextTestRunner(verbosity=2)

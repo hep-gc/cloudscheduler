@@ -13,35 +13,26 @@ import os
 # unittest framework
 
 def setup(cls, profile, objects, browser='firefox'):
-    # Try/except block here ensures that cleanups will occur even on setup
-    # error. If we update to python 3.8 or later, the unittest
-    # addClassCleanup() is a better way of handling this.
-    try:
-        cls.gvar = setup_objects(objects, browser)
-        if browser == 'firefox':
-            cls.driver = webdriver.Firefox()
-        elif browser == 'chromium':
-            options = webdriver.ChromeOptions()
-            # This line prevents Chromedriver hanging (see here: https://
-            # stackoverflow.com/questions/51959986/how-to-solve-selenium-
-            # chromedriver-timed-out-receiving-message-from-renderer-exc)
-            options.add_argument('--disable-gpu')
-            options.add_argument('--start-maximized')
-            options.binary_location = '/usr/bin/chromium-browser'
-            cls.driver = webdriver.Chrome(options=options)
-        elif browser == 'chrome':
-            options = webdriver.ChromeOptions()
-            options.add_argument('--start-maximized')
-            options.binary_location = '/usr/bin/google-chrome'
-            cls.driver = webdriver.Chrome(options=options)
-        elif browser == 'opera':
-            cls.driver = webdriver.Opera()
-        helpers.get_homepage_login(cls.driver, cls.gvar['user'] + '-wiu' + str(profile), cls.gvar['user_secret'])
-    except:
-        print("Error in test setup")
-        if hasattr(cls, 'driver') and cls.driver:
-            cls.driver.quit()
-        raise
+    cls.gvar = setup_objects(objects, browser)
+    if browser == 'firefox':
+        cls.driver = webdriver.Firefox()
+    elif browser == 'chromium':
+        options = webdriver.ChromeOptions()
+        # This line prevents Chromedriver hanging (see here: https://
+        # stackoverflow.com/questions/51959986/how-to-solve-selenium-
+        # chromedriver-timed-out-receiving-message-from-renderer-exc)
+        options.add_argument('--disable-gpu')
+        options.add_argument('--start-maximized')
+        options.binary_location = '/usr/bin/chromium-browser'
+        cls.driver = webdriver.Chrome(options=options)
+    elif browser == 'chrome':
+        options = webdriver.ChromeOptions()
+        options.add_argument('--start-maximized')
+        options.binary_location = '/usr/bin/google-chrome'
+        cls.driver = webdriver.Chrome(options=options)
+    elif browser == 'opera':
+        cls.driver = webdriver.Opera()
+    helpers.get_homepage_login(cls.driver, cls.gvar['user'] + '-wiu' + str(profile), cls.gvar['user_secret'])
 
 def setup_objects(objects=[], browser='firefox'):
     print('\nUnittest setup:')
@@ -205,7 +196,7 @@ def setup_objects(objects=[], browser='firefox'):
             raise SetUpException("server add failed - check the server configuration and try again")
 
     #add keys
-    if 'keys' in objects:
+    if 'keys' in objects and gvar['keys_accessible']:
         keys_num = 2
         keys = []
         for i in range(1, keys_num+1):

@@ -54,80 +54,120 @@ class TestWebMiscSuperUserFirefox(TestWebMiscCommon):
 
     @classmethod
     def setUpClass(cls):
-        wtsc.setup(cls, 2, [], browser='firefox')
-        super(TestWebMiscSuperUserFirefox, cls).setUpClass()
-        cls.user = cls.gvar['user'] + '-wiu2'
-        print("\nMiscellaneous Tests (Firefox) (Super User):")
+        try:
+            wtsc.setup(cls, 2, [], browser='firefox')
+            super(TestWebMiscSuperUserFirefox, cls).setUpClass()
+            cls.user = cls.gvar['user'] + '-wiu2'
+            print("\nMiscellaneous Tests (Firefox) (Super User):")
+        except:
+            print("Error in test setup")
+            super(TestWebMiscSuperUserFirefox, cls).tearDownClass()
+            raise
 
 class TestWebMiscRegularUserFirefox(TestWebMiscRegularUser):
     """A class to test miscellaneous operations via the web interface, in Firefox, with a regular user."""
 
     @classmethod
     def setUpClass(cls):
-        wtsc.setup(cls, 1, [], browser='firefox')
-        super(TestWebMiscRegularUserFirefox, cls).setUpClass()
-        cls.user = cls.gvar['user'] + '-wiu1'
-        print("\nMiscellaneous Tests (Firefox) (Regular User):")
+        try:
+            wtsc.setup(cls, 1, [], browser='firefox')
+            super(TestWebMiscRegularUserFirefox, cls).setUpClass()
+            cls.user = cls.gvar['user'] + '-wiu1'
+            print("\nMiscellaneous Tests (Firefox) (Regular User):")
+        except:
+            print("Error in test setup")
+            super(TestWebMiscRegularUserFirefox, cls).tearDownClass()
+            raise
 
 class TestWebMiscSuperUserChromium(TestWebMiscCommon):
     """A class to test miscellaneous operations via the web interface, in Chromium, with a super user."""
 
     @classmethod
     def setUpClass(cls):
-        wtsc.setup(cls, 2, [], browser='chromium')
-        super(TestWebMiscSuperUserChromium, cls).setUpClass()
-        cls.user = cls.gvar['user'] + '-wiu2'
-        print("\nMiscellaneous Tests (Chromium) (Super User):")
+        try:
+            wtsc.setup(cls, 2, [], browser='chromium')
+            super(TestWebMiscSuperUserChromium, cls).setUpClass()
+            cls.user = cls.gvar['user'] + '-wiu2'
+            print("\nMiscellaneous Tests (Chromium) (Super User):")
+        except:
+            print("Error in test setup")
+            super(TestWebMiscSuperUserChromium, cls).tearDownClass()
+            raise
 
 class TestWebMiscRegularUserChromium(TestWebMiscRegularUser):
     """A class to test miscellaneous operations via the web interface, in Chromium, with a regular user."""
 
     @classmethod
     def setUpClass(cls):
-        wtsc.setup(cls, 1, [], browser='chromium')
-        super(TestWebMiscRegularUserChromium, cls).setUpClass()
-        cls.user = cls.gvar['user'] + '-wiu1'
-        print("\nMiscellaneous Tests (Chromium) (Regular User):")
+        try:
+            wtsc.setup(cls, 1, [], browser='chromium')
+            super(TestWebMiscRegularUserChromium, cls).setUpClass()
+            cls.user = cls.gvar['user'] + '-wiu1'
+            print("\nMiscellaneous Tests (Chromium) (Regular User):")
+        except:
+            print("Error in test setup")
+            super(TestWebMiscRegularUserChromium, cls).tearDownClass()
+            raise
 
 class TestWebMiscSuperUserOpera(TestWebMiscCommon):
     """A class to test miscellaneous operations via the web interface, in Opera, with a super user."""
 
     @classmethod
     def setUpClass(cls):
-        wtsc.setup(cls, 2, [], browser='opera')
-        super(TestWebMiscSuperUserOpera, cls).setUpClass()
-        cls.user = cls.gvar['user'] + '-wiu2'
-        print("\nMiscellaneous Tests (Opera) (Super User):")
+        try:
+            wtsc.setup(cls, 2, [], browser='opera')
+            super(TestWebMiscSuperUserOpera, cls).setUpClass()
+            cls.user = cls.gvar['user'] + '-wiu2'
+            print("\nMiscellaneous Tests (Opera) (Super User):")
+        except:
+            print("Error in test setup")
+            super(TestWebMiscSuperUserFirefox, cls).tearDownClass()
+            raise
 
 class TestWebMiscRegularUserOpera(TestWebMiscRegularUser):
     """A class to test miscellaneous operations via the web interface, in Opera, with a regular user."""
 
     @classmethod
     def setUpClass(cls):
-        wtsc.setup(cls, 1, [], browser='opera')
-        super(TestWebMiscRegularUserOpera, cls).setUpClass()
-        cls.user = cls.gvar['user'] + '-wiu1'
-        print("\nMiscellaneous Tests (Opera) (Regular User):")
+        try:
+            wtsc.setup(cls, 1, [], browser='opera')
+            super(TestWebMiscRegularUserOpera, cls).setUpClass()
+            cls.user = cls.gvar['user'] + '-wiu1'
+            print("\nMiscellaneous Tests (Opera) (Regular User):")
+        except:
+            print("Error in test setup")
+            super(TestWebMiscRegularUserOpera, cls).tearDownClass()
+            raise
 
 class TestWebMiscSuperUserChrome(TestWebMiscCommon):
     """A class to test miscellaneous operations via the web interface, in Chrome, with a super user."""
 
     @classmethod
     def setUpClass(cls):
-        wtsc.setup(cls, 2, [], browser='chrome')
-        super(TestWebMiscSuperUserChrome, cls).setUpClass()
-        cls.user = cls.gvar['user'] + '-wiu2'
-        print("\nMiscellaneous Tests (Chrome) (Super User):")
+        try:
+            wtsc.setup(cls, 2, [], browser='chrome')
+            super(TestWebMiscSuperUserChrome, cls).setUpClass()
+            cls.user = cls.gvar['user'] + '-wiu2'
+            print("\nMiscellaneous Tests (Chrome) (Super User):")
+        except:
+            print("Error in test setup")
+            super(TestWebMiscSuperUserChrome, cls).tearDownClass()
+            raise
 
 class TestWebMiscRegularUserChrome(TestWebMiscRegularUser):
     """A class to test miscellaneous operations via the web interface, in Chrome, with a regular user."""
 
     @classmethod
     def setUpClass(cls):
-        wtsc.setup(cls, 1, [], browser='chrome')
-        super(TestWebMiscRegularUserChrome, cls).setUpClass()
-        cls.user = cls.gvar['user'] + '-wiu1'
-        print("\nMiscellaneous Tests (Chrome) (Regular User):")
+        try:
+            wtsc.setup(cls, 1, [], browser='chrome')
+            super(TestWebMiscRegularUserChrome, cls).setUpClass()
+            cls.user = cls.gvar['user'] + '-wiu1'
+            print("\nMiscellaneous Tests (Chrome) (Regular User):")
+        except:
+            print("Error in test setup")
+            super(TestWebMiscRegularUserChrome, cls).tearDownClass()
+            raise
 
 if __name__ == "__main__":
     runner = unittest.TextTestRunner(verbosity=2)

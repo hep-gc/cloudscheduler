@@ -54,6 +54,14 @@ def skip_if_browsers(browser, skip):
     if browser in skip:
         raise unittest.SkipTest(message)
 
+def skip_if_flag(name, flag, value):
+    import unittest
+
+    message = name + ' flag is set to ' + str(value)
+
+    if flag == value:
+        raise unittest.SkipTest(message)
+
 def cumulative_days(month, year):
     feb = 28
     if year%4 == 0 and year%100 !=0:

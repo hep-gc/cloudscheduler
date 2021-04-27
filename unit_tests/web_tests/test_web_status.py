@@ -592,65 +592,105 @@ class TestWebStatusSuperUserFirefox(TestWebStatusCommon):
     """A class to test status operations via the web interface, in Firefox, with a super user."""
     @classmethod
     def setUpClass(cls):
-        wtsc.setup(cls, 2, ['servers', 'status', 'jobs'], browser='firefox')
-        super(TestWebStatusSuperUserFirefox, cls).setUpClass()
-        print("\nStatus Tests (Super User):")
+        try:
+            wtsc.setup(cls, 2, ['servers', 'status', 'jobs'], browser='firefox')
+            super(TestWebStatusSuperUserFirefox, cls).setUpClass()
+            print("\nStatus Tests (Super User):")
+        except:
+            print("Error in test setup")
+            super(TestWebStatusSuperUserFirefox, cls).tearDownClass()
+            raise
    
 class TestWebStatusRegularUserFirefox(TestWebStatusCommon):
     """A class to test status operations via the web interface, in Firefox, with a regular user."""
     @classmethod
     def setUpClass(cls):
-        wtsc.setup(cls, 1, ['servers', 'status', 'jobs'], browser='firefox')
-        super(TestWebStatusRegularUserFirefox, cls).setUpClass()
-        print("\nStatus Tests (Regular User):")
+        try:
+            wtsc.setup(cls, 1, ['servers', 'status', 'jobs'], browser='firefox')
+            super(TestWebStatusRegularUserFirefox, cls).setUpClass()
+            print("\nStatus Tests (Regular User):")
+        except:
+            print("Error in test setup")
+            super(TestWebStatusRegularUserFirefox, cls).tearDownClass()
+            raise
 
 class TestWebStatusSuperUserChromium(TestWebStatusCommon):
     """A class to test status operations via the web interface, in Chromium, with a super user."""
     @classmethod
     def setUpClass(cls):
-        wtsc.setup(cls, 2, ['servers', 'status', 'jobs'], browser='chromium')
-        super(TestWebStatusSuperUserChromium, cls).setUpClass()
-        print("\nStatus Tests (Chromium) (Super User):")
+        try:
+            wtsc.setup(cls, 2, ['servers', 'status', 'jobs'], browser='chromium')
+            super(TestWebStatusSuperUserChromium, cls).setUpClass()
+            print("\nStatus Tests (Chromium) (Super User):")
+        except:
+            print("Error in test setup")
+            super(TestWebStatusSuperUserChromium, cls).tearDownClass()
+            raise
    
 class TestWebStatusRegularUserChromium(TestWebStatusCommon):
     """A class to test status operations via the web interface, in Chromium, with a regular user."""
     @classmethod
     def setUpClass(cls):
-        wtsc.setup(cls, 1, ['servers', 'status', 'jobs'], browser='chromium')
-        super(TestWebStatusRegularUserChromium, cls).setUpClass()
-        print("\nStatus Tests (Chromium) (Regular User):")
+        try:
+            wtsc.setup(cls, 1, ['servers', 'status', 'jobs'], browser='chromium')
+            super(TestWebStatusRegularUserChromium, cls).setUpClass()
+            print("\nStatus Tests (Chromium) (Regular User):")
+        except:
+            print("Error in test setup")
+            super(TestWebStatusRegularUserChromium, cls).tearDownClass()
+            raise
 
 class TestWebStatusSuperUserOpera(TestWebStatusCommon):
     """A class to test status operations via the web interface, in Opera, with a super user."""
     @classmethod
     def setUpClass(cls):
-        wtsc.setup(cls, 2, ['servers', 'status', 'jobs'], browser='opera')
-        super(TestWebStatusSuperUserOpera, cls).setUpClass()
-        print("\nStatus Tests (Opera) (Super User):")
+        try:
+            wtsc.setup(cls, 2, ['servers', 'status', 'jobs'], browser='opera')
+            super(TestWebStatusSuperUserOpera, cls).setUpClass()
+            print("\nStatus Tests (Opera) (Super User):")
+        except:
+            print("Error in test setup")
+            super(TestWebStatusSuperUserOpera, cls).tearDownClass()
+            raise
    
 class TestWebStatusRegularUserOpera(TestWebStatusCommon):
     """A class to test status operations via the web interface, in Opera, with a regular user."""
     @classmethod
     def setUpClass(cls):
-        wtsc.setup(cls, 1, ['servers', 'status', 'jobs'], browser='opera')
-        super(TestWebStatusRegularUserOpera, cls).setUpClass()
-        print("\nStatus Tests (Opera) (Regular User):")
+        try:
+            wtsc.setup(cls, 1, ['servers', 'status', 'jobs'], browser='opera')
+            super(TestWebStatusRegularUserOpera, cls).setUpClass()
+            print("\nStatus Tests (Opera) (Regular User):")
+        except:
+            print("Error in test setup")
+            super(TestWebStatusRegularUserOpera, cls).tearDownClass()
+            raise
 
 class TestWebStatusSuperUserChrome(TestWebStatusCommon):
     """A class to test status operations via the web interface, in Chrome, with a super user."""
     @classmethod
     def setUpClass(cls):
-        wtsc.setup(cls, 2, ['servers', 'status', 'jobs'], browser='chrome')
-        super(TestWebStatusSuperUserChrome, cls).setUpClass()
-        print("\nStatus Tests (Chrome) (Super User):")
+        try:
+            wtsc.setup(cls, 2, ['servers', 'status', 'jobs'], browser='chrome')
+            super(TestWebStatusSuperUserChrome, cls).setUpClass()
+            print("\nStatus Tests (Chrome) (Super User):")
+        except:
+            print("Error in test setup")
+            super(TestWebStatusSuperUserChrome, cls).tearDownClass()
+            raise
    
 class TestWebStatusRegularUserChrome(TestWebStatusCommon):
     """A class to test status operations via the web interface, in Chrome, with a regular user."""
     @classmethod
     def setUpClass(cls):
-        wtsc.setup(cls, 1, ['servers', 'status', 'jobs'], browser='chrome')
-        super(TestWebStatusRegularUserChrome, cls).setUpClass()
-        print("\nStatus Tests (Chrome) (Regular User):")
+        try:
+            wtsc.setup(cls, 1, ['servers', 'status', 'jobs'], browser='chrome')
+            super(TestWebStatusRegularUserChrome, cls).setUpClass()
+            print("\nStatus Tests (Chrome) (Regular User):")
+        except:
+            print("Error in test setup")
+            super(TestWebStatusRegularUserChrome, cls).tearDownClass()
+            raise
 
 if __name__ == "__main__":
     runner = unittest.TextTestRunner(verbosity=2)

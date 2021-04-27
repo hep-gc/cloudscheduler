@@ -8,12 +8,12 @@ from . import web_test_assertions_v2 as wta
 from . import web_test_page_objects as pages
 from . import web_test_helpers as helpers
 
-#@unittest.skip("Keypair error")
 class TestWebKeyCommon(unittest.TestCase):
     """A class for the key tests that should be repeated in all iterations."""
 
     @classmethod
     def setUpClass(cls):
+        helpers.skip_if_flag('keys accessible', cls.gvar['keys_accessible'], False)
         cls.page = pages.KeysPage(cls.driver)
         cls.oversize = cls.gvar['oversize']
 
@@ -141,72 +141,112 @@ class TestWebKeySuperUserFirefox(TestWebKeyCommon):
 
     @classmethod
     def setUpClass(cls):
-        wtsc.setup(cls, 2, ['keys'], browser='firefox')
-        super(TestWebKeySuperUserFirefox, cls).setUpClass()
-        print("\nKey Tests (Firefox) (Super User):")
+        try:
+            wtsc.setup(cls, 2, ['keys'], browser='firefox')
+            super(TestWebKeySuperUserFirefox, cls).setUpClass()
+            print("\nKey Tests (Firefox) (Super User):")
+        except:
+            print("Error in test setup")
+            super(TestWebKeySuperUserFirefox, cls).tearDownClass()
+            raise
 
 class TestWebKeyRegularUserFirefox(TestWebKeyCommon):
     """A class to test key operations via the web interface, in Firefox, with a regular user."""
 
     @classmethod
     def setUpClass(cls):
-        wtsc.setup(cls, 1, ['keys'], browser='firefox')
-        super(TestWebKeyRegularUserFirefox, cls).setUpClass()
-        print("\nKey Tests (Firefox) (Super User):")
+        try:
+            wtsc.setup(cls, 1, ['keys'], browser='firefox')
+            super(TestWebKeyRegularUserFirefox, cls).setUpClass()
+            print("\nKey Tests (Firefox) (Super User):")
+        except:
+            print("Error in test setup")
+            super(TestWebKeyRegularUserFirefox, cls).tearDownClass()
+            raise
 
 class TestWebKeySuperUserChromium(TestWebKeyCommon):
     """A class to test key operations via the web interface, in Chromium, with a super user."""
 
     @classmethod
     def setUpClass(cls):
-        wtsc.setup(cls, 2, ['keys'], browser='chromium')
-        super(TestWebKeySuperUserChromium, cls).setUpClass()
-        print("\nKey Tests (Chromium) (Super User):")
+        try:
+            wtsc.setup(cls, 2, ['keys'], browser='chromium')
+            super(TestWebKeySuperUserChromium, cls).setUpClass()
+            print("\nKey Tests (Chromium) (Super User):")
+        except:
+            print("Error in test setup")
+            super(TestWebKeySuperUserChromium, cls).tearDownClass()
+            raise
 
 class TestWebKeyRegularUserChromium(TestWebKeyCommon):
     """A class to test key operations via the web interface, in Chromium, with a regular user."""
 
     @classmethod
     def setUpClass(cls):
-        wtsc.setup(cls, 1, ['keys'], browser='chromium')
-        super(TestWebKeyRegularUserChromium, cls).setUpClass()
-        print("\nKey Tests (Chromium) (Regular User):")
+        try:
+            wtsc.setup(cls, 1, ['keys'], browser='chromium')
+            super(TestWebKeyRegularUserChromium, cls).setUpClass()
+            print("\nKey Tests (Chromium) (Regular User):")
+        except:
+            print("Error in test setup")
+            super(TestWebKeyRegularUserChromium, cls).tearDownClass()
+            raise
 
 class TestWebKeySuperUserOpera(TestWebKeyCommon):
     """A class to test key operations via the web interface, in Opera, with a super user."""
 
     @classmethod
     def setUpClass(cls):
-        wtsc.setup(cls, 2, ['keys'], browser='opera')
-        super(TestWebKeySuperUserOpera, cls).setUpClass()
-        print("\nKey Tests (Opera) (Super User):")
+        try:
+            wtsc.setup(cls, 2, ['keys'], browser='opera')
+            super(TestWebKeySuperUserOpera, cls).setUpClass()
+            print("\nKey Tests (Opera) (Super User):")
+        except:
+            print("Error in test setup")
+            super(TestWebKeySuperUserOpera, cls).tearDownClass()
+            raise
 
 class TestWebKeyRegularUserOpera(TestWebKeyCommon):
     """A class to test key operations via the web interface, in Opera, with a regular user."""
 
     @classmethod
     def setUpClass(cls):
-        wtsc.setup(cls, 1, ['keys'], browser='opera')
-        super(TestWebKeyRegularUserOpera, cls).setUpClass()
-        print("\nKey Tests (Opera) (Regular User):")
+        try:
+            wtsc.setup(cls, 1, ['keys'], browser='opera')
+            super(TestWebKeyRegularUserOpera, cls).setUpClass()
+            print("\nKey Tests (Opera) (Regular User):")
+        except:
+            print("Error in test setup")
+            super(TestWebKeyRegularUserOpera, cls).tearDownClass()
+            raise
 
 class TestWebKeySuperUserChrome(TestWebKeyCommon):
     """A class to test key operations via the web interface, in Chrome, with a super user."""
 
     @classmethod
     def setUpClass(cls):
-        wtsc.setup(cls, 2, ['keys'], browser='chrome')
-        super(TestWebKeySuperUserChrome, cls).setUpClass()
-        print("\nKey Tests (Chrome) (Super User):")
+        try:
+            wtsc.setup(cls, 2, ['keys'], browser='chrome')
+            super(TestWebKeySuperUserChrome, cls).setUpClass()
+            print("\nKey Tests (Chrome) (Super User):")
+        except:
+            print("Error in test setup")
+            super(TestWebKeySuperUserChrome, cls).tearDownClass()
+            raise
 
 class TestWebKeyRegularUserChrome(TestWebKeyCommon):
     """A class to test key operations via the web interface, in Chrome, with a regular user."""
 
     @classmethod
     def setUpClass(cls):
-        wtsc.setup(cls, 1, ['keys'], browser='chrome')
-        super(TestWebKeySuperUserChrome, cls).setUpClass()
-        print("\nKey Tests (Chrome) (Regular User):")
+        try:
+            wtsc.setup(cls, 1, ['keys'], browser='chrome')
+            super(TestWebKeySuperUserChrome, cls).setUpClass()
+            print("\nKey Tests (Chrome) (Regular User):")
+        except:
+            print("Error in test setup")
+            super(TestWebKeyRegularUserChrome, cls).tearDownClass()
+            raise
 
 if __name__ == "__main__":
     runner = unittest.TextTestRunner(verbosity=2)

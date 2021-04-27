@@ -243,6 +243,7 @@ class TestWebDefaultCommon(unittest.TestCase):
 
     def test_web_default_update_vm_keyname(self):
         # Update's a group's default vm keyname
+        helpers.skip_if_flag('keys accessible', self.gvar['keys_accessible'], False)
         keyname = self.gvar['user'] + '-wik1'
         self.page.click_side_button(self.group_name)
         self.page.click_side_tab('Settings')
@@ -652,72 +653,112 @@ class TestWebDefaultSuperUserFirefox(TestWebDefaultCommon):
 
     @classmethod
     def setUpClass(cls):
-        wtsc.setup(cls, 2, ['defaults', 'keys'], browser='firefox')
-        super(TestWebDefaultSuperUserFirefox, cls).setUpClass()
-        print("\nDefault Tests (Super User):")
+        try:
+            wtsc.setup(cls, 2, ['defaults', 'keys'], browser='firefox')
+            super(TestWebDefaultSuperUserFirefox, cls).setUpClass()
+            print("\nDefault Tests (Super User):")
+        except:
+            print("Error in test setup")
+            super(TestWebDefaultSuperUserFirefox, cls).tearDownClass()
+            raise
 
 class TestWebDefaultRegularUserFirefox(TestWebDefaultCommon):
     """A class to test default operations via the web interface, in Firefox, with a regular user."""
 
     @classmethod
     def setUpClass(cls):
-        wtsc.setup(cls, 1, ['defaults', 'keys'], browser='firefox')
-        super(TestWebDefaultRegularUserFirefox, cls).setUpClass()
-        print("\nDefault Tests (Regular User):")
+        try:
+            wtsc.setup(cls, 1, ['defaults', 'keys'], browser='firefox')
+            super(TestWebDefaultRegularUserFirefox, cls).setUpClass()
+            print("\nDefault Tests (Regular User):")
+        except:
+            print("Error in test setup")
+            super(TestWebDefaultRegularUserFirefox, cls).tearDownClass()
+            raise
 
 class TestWebDefaultSuperUserChromium(TestWebDefaultCommon):
     """A class to test default operations via the web interface, in Chromium, with a super user."""
 
     @classmethod
     def setUpClass(cls):
-        wtsc.setup(cls, 2, ['defaults', 'keys'], browser='chromium')
-        super(TestWebDefaultSuperUserChromium, cls).setUpClass()
-        print("\nDefault Tests (Chromium) (Super User):")
+        try:
+            wtsc.setup(cls, 2, ['defaults', 'keys'], browser='chromium')
+            super(TestWebDefaultSuperUserChromium, cls).setUpClass()
+            print("\nDefault Tests (Chromium) (Super User):")
+        except:
+            print("Error in test setup")
+            super(TestWebDefaultSuperUserChromium, cls).tearDownClass()
+            raise
 
 class TestWebDefaultRegularUserChromium(TestWebDefaultCommon):
     """A class to test default operations via the web interface, in Chromium, with a regular user."""
 
     @classmethod
     def setUpClass(cls):
-        wtsc.setup(cls, 1, ['defaults', 'keys'], browser='chromium')
-        super(TestWebDefaultRegularUserChromium, cls).setUpClass()
-        print("\nDefault Tests (Chromium) (Regular User):")
+        try:
+            wtsc.setup(cls, 1, ['defaults', 'keys'], browser='chromium')
+            super(TestWebDefaultRegularUserChromium, cls).setUpClass()
+            print("\nDefault Tests (Chromium) (Regular User):")
+        except:
+            print("Error in test setup")
+            super(TestWebDefaultRegularUserChromium, cls).tearDownClass()
+            raise
 
 class TestWebDefaultSuperUserOpera(TestWebDefaultCommon):
     """A class to test default operations via the web interface, in Opera, with a super user."""
 
     @classmethod
     def setUpClass(cls):
-        wtsc.setup(cls, 2, ['defaults', 'keys'], browser='opera')
-        super(TestWebDefaultSuperUserOpera, cls).setUpClass()
-        print("\nDefault Tests (Opera) (Super User):")
+        try:
+            wtsc.setup(cls, 2, ['defaults', 'keys'], browser='opera')
+            super(TestWebDefaultSuperUserOpera, cls).setUpClass()
+            print("\nDefault Tests (Opera) (Super User):")
+        except:
+            print("Error in test setup")
+            super(TestWebDefaultSuperUserOpera, cls).tearDownClass()
+            raise
 
 class TestWebDefaultRegularUserOpera(TestWebDefaultCommon):
     """A class to test default operations via the web interface, in Opera, with a regular user."""
 
     @classmethod
     def setUpClass(cls):
-        wtsc.setup(cls, 1, ['defaults', 'keys'], browser='opera')
-        super(TestWebDefaultRegularUserOpera, cls).setUpClass()
-        print("\nDefault Tests (Opera) (Regular User):")
+        try:
+            wtsc.setup(cls, 1, ['defaults', 'keys'], browser='opera')
+            super(TestWebDefaultRegularUserOpera, cls).setUpClass()
+            print("\nDefault Tests (Opera) (Regular User):")
+        except:
+            print("Error in test setup")
+            super(TestWebDefaultRegularUserOpera, cls).tearDownClass()
+            raise
 
 class TestWebDefaultSuperUserChrome(TestWebDefaultCommon):
     """A class to test default operations via the web interface, in Chrome, with a super user."""
 
     @classmethod
     def setUpClass(cls):
-        wtsc.setup(cls, 2, ['defaults', 'keys'], browser='chrome')
-        super(TestWebDefaultSuperUserChrome, cls).setUpClass()
-        print("\nDefault Tests (Chrome) (Super User):")
+        try:
+            wtsc.setup(cls, 2, ['defaults', 'keys'], browser='chrome')
+            super(TestWebDefaultSuperUserChrome, cls).setUpClass()
+            print("\nDefault Tests (Chrome) (Super User):")
+        except:
+            print("Error in test setup")
+            super(TestWebDefaultSuperUserChrome, cls).tearDownClass()
+            raise
 
 class TestWebDefaultRegularUserChrome(TestWebDefaultCommon):
     """A class to test default operations via the web interface, in Chrome, with a regular user."""
 
     @classmethod
     def setUpClass(cls):
-        wtsc.setup(cls, 1, ['defaults', 'keys'], browser='chrome')
-        super(TestWebDefaultRegularUserChrome, cls).setUpClass()
-        print("\nDefault Tests (Chrome) (Regular User):")
+        try:
+            wtsc.setup(cls, 1, ['defaults', 'keys'], browser='chrome')
+            super(TestWebDefaultRegularUserChrome, cls).setUpClass()
+            print("\nDefault Tests (Chrome) (Regular User):")
+        except:
+            print("Error in test setup")
+            super(TestWebDefaultRegularUserChrome, cls).tearDownClass()
+            raise
 
 if __name__ == "__main__":
     runner = unittest.TextTestRunner(verbosity=2)
