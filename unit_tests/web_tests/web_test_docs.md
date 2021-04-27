@@ -34,15 +34,9 @@ The [web_test_helpers](./web_test_helpers.py) module is an assortment of functio
 
 The `web_test_helpers` module currently contains all of the web tests' datetime handling, for the status pages.
 
-The `cumulative_days` function calculates how many days were in the year up to and including a month. It takes a month and a year. It is part of the original datetime handling and is unused.
-
 The `time_before` function calculates a specified amount of time before now. It takes a unit and a number of units.
 
 The `parse_datetime` function parses a datetime from the format used on the status page chart. It takes a string read from the status page chart.
-
-The `round_datetime` function rounds a datetime by a specified number of seconds. It takes a datetime, the seconds to round it by, and whether it should be rounded forward or backward. It is part of the original datetime handling and is unused.
-
-The `round_date` function rounds a date by a specified number of days. It takes a datetime, the days to round it by, and whether it should be rounded forward or backward. It is part of the original datetime handling and is unused.
 
 The `margin_units_from_units` function determines the units of the margin of error based on the units of the number. The conversion is as follows:
 
@@ -62,10 +56,6 @@ The `time_within_margin` function calculates whether a time is within the proper
 
 The `web_test_helpers` module also contains a set of functions with no specific module.
 
-The `get_homepage` function is used in test setups to initially get the homepage. It requires the driver as an argument.
-
-The `get_homepage_login` function gets the homepage using username/password authentication. It requires the driver and the user's csv2 username and password as arguments.
-
 The `wait_for_openstack_poller` function tries a specified number of times to update a cloud with an object, in order to wait for the openstack poller. Its arguments are as follows:
 - `cloud_name`, the name of the cloud the object should be in
 - `args`, a list of item flags and names of the objects being updated with
@@ -74,7 +64,9 @@ The `wait_for_openstack_poller` function tries a specified number of times to up
 
 The `misc_file_full_path` function takes a file name in the `misc_files` folder and returns its full absolute path.
 
-The `skip_if_browsers` function takes a browser and a list of browsers to exclue. It raises a `unittest.skip` error if the browser is within the list, and generates an appropriate skip message. It's designed to be used in place of the `@unittest.skipIf` decorator, when that decorator requires access to the browser, because the browser is not accessible outside of a method.
+The `skip_if_browsers` function takes a browser and a list of browsers to exclude. It raises a `unittest.skip` error if the browser is within the list, and generates an appropriate skip message. It's designed to be used in place of the `@unittest.skipIf` decorator, when that decorator requires access to the browser, because the browser is not accessible outside of a method.
+
+The `skip_if_flag` function takes a flag name (for error messages), a flag value, and a value to skip on. It raises a `unittest.skip` error if the flag value is equal to the value to skip on, and generates an appropriate skip message. It's designed to be used in place of the `@unittest.skipIf` decorator, when that decorator requires access to a flag in the gvar, because the gvar is not accessible outside of a method.
 
 The `parse_command_line_arguments` function parses command line arguments for the direct module running of the test files. It takes a list of arguments, a list of available test classes, and a flag stating if the tests have regular user classes.
 

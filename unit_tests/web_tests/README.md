@@ -100,7 +100,14 @@ New test modules should be named starting with `test_web_` (the modules starting
 
 All test files must be put in the `web_tests` directory, and each test file must be imported into [create_test_suite.py](./create_test_suite.py) and have its classes added to the lists of tests for their respective browsers. Note that the detailed classes (see below) should be the only ones put in here - the common classes (see below) do not have the proper setup to be run on their own and should not be included.
 
-Additionally, each new test module should contain the following code:
+Additionally, each new test module should contain the following code at the top:
+
+```python
+if __name__ == "__main__":
+    __package__ = 'cloudscheduler.unit_tests.web_tests'
+```
+
+and the following code at the bottom:
 
 ```python
 if __name__ == "__main__":
@@ -164,9 +171,9 @@ The page objects additionally use some functions from the [web_test_helpers](./w
 
 ## Running Tests
 
-Web tests can be run using `./run_tests web` from the `unit_tests` folder. Tests for a specific browser (or group of browsers, by adding additional arguments) can be run using `./run_tests web_<browser>`. Note that running by test numbers and similar as in the unit testing framework is not supported. Additional unit tests can be run at the same time, and the test/skip/failure counts will tally appropriately.
+Web tests can be run using `./run_tests web`. Tests for a specific browser (or group of browsers, by adding additional arguments) can be run using `./run_tests web_<browser>`. Note that running by test numbers and similar as in the unit testing framework is not supported. Additional unit tests can be run at the same time, and the test/skip/failure counts will tally appropriately.
 
-The tests can also be run by files as a module, using `python3 -m <filename>` from the `unit_tests` folder. Run without any flags, this will run all of the detailed test classes in the file. Any listed browser flags will restrict the tests to only the tests within the listed browsers, and any listed user flags will restrict the tests to only tests using the listed users. The tags are as follows:
+The tests can also be run by files as a module, using `python3 -m <filename>`. Run without any flags, this will run all of the detailed test classes in the file. Any listed browser flags will restrict the tests to only the tests within the listed browsers, and any listed user flags will restrict the tests to only tests using the listed users. The tags are as follows:
 
 | Short-Form Tag | Long-Form Tag    | Meaning                                   |
 |----------------|------------------|-------------------------------------------|
@@ -177,7 +184,9 @@ The tests can also be run by files as a module, using `python3 -m <filename>` fr
 | `-su`          | `--super-user`   | Run the tests with a super user           |
 | `-ru`          | `--regular-user` | Run the tests with a regular user         |
 
-One can also run a particular class directly using `python3 -m unittest <filename>.<ClassName>` (although the above flags are typically simpler). While unittest supports running tests by file, the setup of the test fixtures does not allow that and will run duplicate tests, some of which will fail, and, thus, the `python3 -m unittest <filename>` syntax is not to be used. Each detailed class, if run with the unittest framework, should be run individually, and common classes should never be run (see [Adding Tests](#adding-tests)). Individual tests can be run with `python3 -m unittest <filename>.<ClassName>.<test_name>`. All tests should be run from the `unit_tests` folder to allow module imports to work properly. Note that individual test files, classes, and methods cannot currently be run with the `run_tests` script, and individual test methods cannot be run with the `python3 -m <filename>` syntax.
+One can also run a particular class directly using `python3 -m unittest <filename>.<ClassName>` (although the above flags are typically simpler). While unittest supports running tests by file, the setup of the test fixtures does not allow that and will run duplicate tests, some of which will fail, and, thus, the `python3 -m unittest <filename>` syntax is not to be used. Each detailed class, if run with the unittest framework, should be run individually, and common classes should never be run (see [Adding Tests](#adding-tests)). Individual tests can be run with `python3 -m unittest <filename>.<ClassName>.<test_name>`. Note that individual test files, classes, and methods cannot currently be run with the `run_tests` script, and individual test methods cannot be run with the `python3 -m <filename>` syntax.
+
+The tests must be run from a folder that contains a symbolic link to the cloudscheduler root directory.
 
 The tests should be run as a non-root user. Root users may experience problems with the Chromium browser tests, as Chromium is not designed to run as a root user.
 
@@ -314,10 +323,6 @@ These items should ideally be fixed before the test suite is complete.
 #### Functional
 
 These items should be finished before the test suite is considered completed. They affect the test suite's functionality.
-
-- Adjust imports to allow running tests outside of `unit_tests` folder 
-
-- Refactor away `server_url` variable
 
 #### Tidying Up
 
