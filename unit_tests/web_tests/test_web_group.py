@@ -1,6 +1,5 @@
 # This is hideous, but there doesn't seem to be a better way to make relative
 # imports work with the command line
-
 if __name__ == "__main__":
     __package__ = 'cloudscheduler.unit_tests.web_tests'
 

@@ -6,10 +6,10 @@ from selenium.webdriver.common.keys import Keys
 from time import sleep
 import datetime
 import sys
-import web_tests.web_test_interactions as wti
-import web_tests.web_test_javascript_interactions as wtjsi
-import web_tests.web_test_xpath_selectors as wtxs
-import web_tests.web_test_helpers as helpers
+from . import web_test_interactions as wti
+from . import web_test_javascript_interactions as wtjsi
+from . import web_test_xpath_selectors as wtxs
+from . import web_test_helpers as helpers
 
 # This module contains the page objects (classes to represent pages) for the
 # unittest web tests.

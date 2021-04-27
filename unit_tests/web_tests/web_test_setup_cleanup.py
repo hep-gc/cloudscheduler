@@ -1,10 +1,10 @@
 from selenium import webdriver
 from selenium.common.exceptions import UnexpectedAlertPresentException
-from cloudscheduler.unit_tests.unit_test_common import load_settings
+from .cloudscheduler.unit_tests.unit_test_common import load_settings
 from time import sleep
 import subprocess
 import signal
-import web_tests.web_test_helpers as helpers
+from . import web_test_helpers as helpers
 import os
 
 # This module contains setup and cleanup functions for the unittest web tests.
@@ -245,7 +245,7 @@ def cleanup_objects(browser='firefox'):
     gvar = load_settings(web=True)
     gvar['base_group'] = gvar['user'] + '-wig0'
 
-    logfile = 'web_tests/misc_files/objects.txt'
+    logfile = helpers.misc_file_full_path('objects.txt')
 
     os.environ['OS_AUTH_URL'] = gvar['cloud_credentials']['authurl']
     os.environ['OS_PROJECT_NAME'] = gvar['cloud_credentials']['project']
@@ -383,7 +383,7 @@ def delete_by_type(gvar, type_info, number, others=[]):
     objects = []
     object_log = None
     object_list = []
-    logfile = 'web_tests/misc_files/objects.txt'
+    logfile = helpers.misc_file_full_path('objects.txt')
 
     try:
         object_log = open(logfile, mode = 'x')

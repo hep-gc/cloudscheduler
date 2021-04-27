@@ -35,7 +35,7 @@ def wait_for_openstack_poller(cloud_name, args, wait=sys.maxsize, output=False):
 def misc_file_full_path(filename):
     import os
 
-    path = os.path.abspath('web_tests/misc_files/' + filename)
+    path = os.path.abspath('cloudscheduler/unit_tests/web_tests/misc_files/' + filename)
     return path
 
 def skip_if_browsers(browser, skip):
