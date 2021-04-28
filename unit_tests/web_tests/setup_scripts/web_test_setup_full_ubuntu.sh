@@ -116,9 +116,14 @@ sudo ln -s /home/ubuntu/cloudscheduler/cli/bin/cloudscheduler cloudscheduler
 echo 'Please save the following server settings as "unit-test":'
 cloudscheduler defaults set
 
+cd /etc
+
+sudo sed -i '/^PATH="/ s/"$/:\/home\/ubuntu\/.local\/bin"/' environment
+sudo sed -i '/^PATH="/ s/"\n/:\/home\/ubuntu\/.local\/bin"/' environment
+
 read -p 'Please enter the path to a private ssh key with no password that allows you to ssh onto the server (ex. /home/ubuntu/.ssh/web_testing): ' keypath
 read -p 'Please enter your server username (ex. sampleuser): ' server_username
-read -p 'Please enter the server you wish to address (ex. csv2-dev.heprc.uvic.ca: ' server
+read -p 'Please enter the server you wish to address (ex. csv2-dev.heprc.uvic.ca): ' server
 read -p 'Please enter the port the server is on (ex. 2200): ' server_port
 
 cd ~/cloudscheduler/unit_tests/web_tests/misc_files
