@@ -48,6 +48,10 @@ def fill_blank_by_id(driver, id, text, timeout=default_timeout):
     form = driver.find_element_by_id(id)
     form.clear()
     form.send_keys(text)
+    if form.get_attribute('value') != text:
+        form.clear()
+        for letter in text:
+            form.send_keys(letter)
 
 def fill_blank_by_name(driver, name, text, timeout=default_timeout):
     WebDriverWait(driver, timeout).until(
@@ -55,6 +59,10 @@ def fill_blank_by_name(driver, name, text, timeout=default_timeout):
     form = driver.find_element_by_name(name)
     form.clear()
     form.send_keys(text)
+    if form.get_attribute('value') != text:
+        form.clear()
+        for letter in text:
+            form.send_keys(letter)
 
 def fill_blank_by_xpath(driver, xpath, text, timeout=default_timeout):
     WebDriverWait(driver, timeout).until(
@@ -62,6 +70,10 @@ def fill_blank_by_xpath(driver, xpath, text, timeout=default_timeout):
     form = driver.find_element_by_xpath(xpath)
     form.clear()
     form.send_keys(text)
+    if form.get_attribute('value') != text:
+        form.clear()
+        for letter in text:
+            form.send_keys(letter)
 
 def fill_blank_by_tag_name(driver, tag_name, text, timeout=default_timeout):
     # Note: only use this method when there is definitely only one element with
@@ -71,6 +83,10 @@ def fill_blank_by_tag_name(driver, tag_name, text, timeout=default_timeout):
     form = driver.find_element_by_tag_name(tag_name)
     form.clear()
     form.send_keys(text)
+    if form.get_attribute('value') != text:
+        form.clear()
+        for letter in text:
+            form.send_keys(letter)
 
 def select_option_by_id(driver, id, option, timeout=default_timeout):
     WebDriverWait(driver, timeout).until(

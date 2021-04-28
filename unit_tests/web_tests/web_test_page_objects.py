@@ -120,8 +120,7 @@ class StatusPage(Page):
             wti.click_by_xpath(self.driver, xpath)
         except ElementClickInterceptedException:
             print("Exception")
-            WebDriverWait(self.driver, 20).until(
-                EC.element_to_be_clickable((By.XPATH, xpath)))
+            self.click_top_nav('Status')
             wti.click_by_xpath(self.driver, xpath)
         WebDriverWait(self.driver, 20).until(
             EC.presence_of_element_located((By.CLASS_NAME, 'plot-container')))
@@ -140,8 +139,7 @@ class StatusPage(Page):
             wti.click_by_xpath(self.driver, xpath)
         except ElementClickInterceptedException:
             print("Exception")
-            WebDriverWait(self.driver, 20).until(
-                EC.element_to_be_clickable((By.XPATH, xpath)))
+            self.click_top_nav('Status')
             wti.click_by_xpath(self.driver, xpath)
         WebDriverWait(self.driver, 20).until(
             EC.presence_of_element_located((By.CLASS_NAME, 'plot-container')))
@@ -166,8 +164,7 @@ class StatusPage(Page):
                 wti.click_by_xpath(self.driver, xpath)
         except ElementClickInterceptedException:
             print("Exception")
-            WebDriverWait(self.driver, 20).until(
-                EC.element_to_be_clickable((By.XPATH, xpath)))
+            self.click_top_nav('Status')
             if right_click:
                 wti.right_click_by_xpath(self.driver, xpath)
                 self.driver.switch_to.frame('vms-iframe')
@@ -195,8 +192,7 @@ class StatusPage(Page):
             wti.click_by_xpath(self.driver, xpath)
         except ElementClickInterceptedException:
             print("Exception")
-            WebDriverWait(self.driver, 20).until(
-                EC.element_to_be_clickable((By.XPATH, xpath)))
+            self.click_top_nav('Status')
             wti.click_by_xpath(self.driver, xpath)
         WebDriverWait(self.driver, 20).until(
             EC.presence_of_element_located((By.CLASS_NAME, 'plot-container')))
@@ -215,8 +211,7 @@ class StatusPage(Page):
             wti.click_by_xpath(self.driver, xpath)
         except ElementClickInterceptedException:
             print("Exception")
-            WebDriverWait(self.driver, 20).until(
-                EC.element_to_be_clickable((By.XPATH, xpath)))
+            self.click_top_nav('Status')
             wti.click_by_xpath(self.driver, xpath)
         WebDriverWait(self.driver, 20).until(
             EC.presence_of_element_located((By.CLASS_NAME, 'plot-container')))
@@ -231,8 +226,7 @@ class StatusPage(Page):
             wti.click_by_xpath(self.driver, xpath)
         except ElementClickInterceptedException:
             print("Exception")
-            WebDriverWait(self.driver, 20).until(
-                EC.element_to_be_clickable((By.XPATH, xpath)))
+            self.click_top_nav('Status')
             wti.click_by_xpath(self.driver, xpath)
         WebDriverWait(self.driver, 20).until(
             EC.presence_of_element_located((By.CLASS_NAME, 'plot-container')))
@@ -247,8 +241,7 @@ class StatusPage(Page):
             wti.click_by_xpath(self.driver, xpath)
         except ElementClickInterceptedException:
             print("Exception")
-            WebDriverWait(self.driver, 20).until(
-                EC.element_to_be_clickable((By.XPATH, xpath)))
+            self.click_top_nav('Status')
             wti.click_by_xpath(self.driver, xpath)
         WebDriverWait(self.driver, 20).until(
             EC.presence_of_element_located((By.CLASS_NAME, 'plot-container')))
@@ -259,8 +252,7 @@ class StatusPage(Page):
             wti.click_by_xpath(self.driver, xpath)
         except ElementClickInterceptedException:
             print("Exception")
-            WebDriverWait(self.driver, 20).until(
-                EC.element_to_be_clickable((By.XPATH, xpath)))
+            self.click_top_nav('Status')
             wti.click_by_xpath(self.driver, xpath)
         WebDriverWait(self.driver, 20).until(
             EC.presence_of_element_located((By.CLASS_NAME, 'plot-container')))
