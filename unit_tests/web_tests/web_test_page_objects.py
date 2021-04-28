@@ -6,10 +6,10 @@ from selenium.webdriver.common.keys import Keys
 from time import sleep
 import datetime
 import sys
-import web_tests.web_test_interactions as wti
-import web_tests.web_test_javascript_interactions as wtjsi
-import web_tests.web_test_xpath_selectors as wtxs
-import web_tests.web_test_helpers as helpers
+from . import web_test_interactions as wti
+from . import web_test_javascript_interactions as wtjsi
+from . import web_test_xpath_selectors as wtxs
+from . import web_test_helpers as helpers
 
 # This module contains the page objects (classes to represent pages) for the
 # unittest web tests.
@@ -18,8 +18,17 @@ class Page(object):
     """This is the base page class, which all pages inherit from. It contains
        methods for page functions all pages have."""
 
-    def __init__(self, driver):
+    def __init__(self, driver, homepage):
         self.driver = driver
+        self.homepage = homepage
+
+    def get_homepage(self):
+        self.driver.get(self.homepage)
+
+    def get_homepage_login(self, username, password):
+        url_split = self.homepage.split('//')
+        authenticated_url = url_split[0] + '//' + username + ':' + password + '@' + url_split[1]
+        self.driver.get(authenticated_url)
 
     def click_top_nav(self, name):
         wti.click_by_link_text(self.driver, name)
@@ -33,6 +42,12 @@ class Page(object):
 
     def switch_default_group(self, group):
         wti.select_option_by_name(self.driver, 'group', group)
+
+    def dismiss_login_prompt(self):
+        WebDriverWait(self.driver, 20).until(
+            EC.alert_is_present())
+        alert = self.driver.switch_to.alert
+        alert.dismiss()
 
     def take_screenshot(self):
         file_name = sys._getframe(1).f_code.co_name + '_screenshot.png'
@@ -53,10 +68,42 @@ class Page(object):
         except TimeoutException:
             return False
 
+    def top_nav_exists(self, name):
+        try:
+            WebDriverWait(self.driver, 10).until(
+                EC.presence_of_element_located((By.LINK_TEXT, name)))
+            return True
+        except TimeoutException:
+            return False
+
+    def error_page_displayed(self, error_message):
+        try:
+            WebDriverWait(self.driver, 10).until(
+                EC.presence_of_element_located((By.LINK_TEXT, 'Status')))
+            return False
+        except TimeoutException:
+            if error_message:
+                xpath = wtxs.error_page_message(error_message)
+                try:
+                    WebDriverWait(self.driver, 10).until(
+                        EC.presence_of_element_located((By.XPATH, xpath)))
+                    return True
+                except TimeoutException:
+                    return False
+
+    def page_blank(self):
+        sleep(1)
+        xpath = wtxs.all()
+        elements = self.driver.find_elements_by_xpath(xpath)
+        if len(elements) <= 3:
+            return True
+        else:
+            return False
+
 class StatusPage(Page):
     """This is the page object class for the Status page."""
-    def __init__(self, driver):
-        super(StatusPage, self).__init__(driver)
+    def __init__(self, driver, homepage):
+        super(StatusPage, self).__init__(driver, homepage)
         # There may be variables here in the future, currently unknown
 
     def click_jobs_group_expand(self, group):
@@ -64,7 +111,6 @@ class StatusPage(Page):
         wti.click_by_xpath(self.driver, xpath)
 
     def click_job_data_box(self, group, state):
-        #sleep(1)
         state_tag = '_' + state.lower()
         if state == 'Jobs':
             state_tag = ''
@@ -73,8 +119,7 @@ class StatusPage(Page):
         try:
             wti.click_by_xpath(self.driver, xpath)
         except ElementClickInterceptedException:
-            print("Exception") 
-            #sleep(7.3) 
+            print("Exception")
             WebDriverWait(self.driver, 20).until(
                 EC.element_to_be_clickable((By.XPATH, xpath)))
             wti.click_by_xpath(self.driver, xpath)
@@ -90,13 +135,11 @@ class StatusPage(Page):
         wti.click_by_xpath(self.driver, xpath)
 
     def click_rt_data_box(self, group, cloud):
-        #sleep(1)
         xpath = wtxs.data_box(group + ' ' + cloud + ' communication_rt')
         try:
             wti.click_by_xpath(self.driver, xpath)
         except ElementClickInterceptedException:
-            print("Exception") 
-            #sleep(7.3)
+            print("Exception")
             WebDriverWait(self.driver, 20).until(
                 EC.element_to_be_clickable((By.XPATH, xpath)))
             wti.click_by_xpath(self.driver, xpath)
@@ -104,7 +147,6 @@ class StatusPage(Page):
             EC.presence_of_element_located((By.CLASS_NAME, 'plot-container')))
 
     def click_vm_data_box(self, group, cloud, state, right_click=False):
-        #sleep(1)
         state_tag = '_' + state.lower()
         if state == 'VMs':
             state_tag = ''
@@ -123,8 +165,7 @@ class StatusPage(Page):
             else:
                 wti.click_by_xpath(self.driver, xpath)
         except ElementClickInterceptedException:
-            print("Exception") 
-            #sleep(7.3)
+            print("Exception")
             WebDriverWait(self.driver, 20).until(
                 EC.element_to_be_clickable((By.XPATH, xpath)))
             if right_click:
@@ -137,7 +178,6 @@ class StatusPage(Page):
                 EC.presence_of_element_located((By.CLASS_NAME, 'plot-container')))
 
     def click_slot_data_box(self, group, cloud, state):
-        #sleep(1)
         state_tag = '_' + state.lower()
         if state == 'Slots':
             state_tag = '_count'
@@ -154,8 +194,7 @@ class StatusPage(Page):
         try:
             wti.click_by_xpath(self.driver, xpath)
         except ElementClickInterceptedException:
-            print("Exception") 
-            #sleep(7.3)
+            print("Exception")
             WebDriverWait(self.driver, 20).until(
                 EC.element_to_be_clickable((By.XPATH, xpath)))
             wti.click_by_xpath(self.driver, xpath)
@@ -163,7 +202,6 @@ class StatusPage(Page):
             EC.presence_of_element_located((By.CLASS_NAME, 'plot-container')))
 
     def click_native_cores_data_box(self, group, cloud, state):
-        #sleep(1)
         state_tag = '_' + state.lower()
         if state == 'Used':
             state_tag = '_native'
@@ -176,8 +214,7 @@ class StatusPage(Page):
         try:
             wti.click_by_xpath(self.driver, xpath)
         except ElementClickInterceptedException:
-            print("Exception") 
-            #sleep(7.3)
+            print("Exception")
             WebDriverWait(self.driver, 20).until(
                 EC.element_to_be_clickable((By.XPATH, xpath)))
             wti.click_by_xpath(self.driver, xpath)
@@ -185,7 +222,6 @@ class StatusPage(Page):
             EC.presence_of_element_located((By.CLASS_NAME, 'plot-container')))
 
     def click_foreign_data_box(self, group, cloud, state):
-        #sleep(1)
         state_tag = state.lower() + '_foreign'
         if state == 'VMs':
             state_tag = 'Foreign_VMs'
@@ -194,8 +230,7 @@ class StatusPage(Page):
         try:
             wti.click_by_xpath(self.driver, xpath)
         except ElementClickInterceptedException:
-            print("Exception") 
-            #sleep(7.3)
+            print("Exception")
             WebDriverWait(self.driver, 20).until(
                 EC.element_to_be_clickable((By.XPATH, xpath)))
             wti.click_by_xpath(self.driver, xpath)
@@ -203,7 +238,6 @@ class StatusPage(Page):
             EC.presence_of_element_located((By.CLASS_NAME, 'plot-container')))
 
     def click_global_data_box(self, group, cloud, state):
-        #sleep(1)
         state_tag = state.lower()
         if state == 'VMs':
             state_tag = state
@@ -212,8 +246,7 @@ class StatusPage(Page):
         try:
             wti.click_by_xpath(self.driver, xpath)
         except ElementClickInterceptedException:
-            print("Exception") 
-            #sleep(7.3)
+            print("Exception")
             WebDriverWait(self.driver, 20).until(
                 EC.element_to_be_clickable((By.XPATH, xpath)))
             wti.click_by_xpath(self.driver, xpath)
@@ -221,13 +254,11 @@ class StatusPage(Page):
             EC.presence_of_element_located((By.CLASS_NAME, 'plot-container')))
 
     def click_ram_data_box(self, group, cloud):
-        #sleep(1)
         xpath = wtxs.data_box(group + ' ' + cloud + ' ' + 'ram_native')
         try:
             wti.click_by_xpath(self.driver, xpath)
         except ElementClickInterceptedException:
-            print("Exception") 
-            #sleep(7.3) 
+            print("Exception")
             WebDriverWait(self.driver, 20).until(
                 EC.element_to_be_clickable((By.XPATH, xpath)))
             wti.click_by_xpath(self.driver, xpath)
@@ -437,8 +468,8 @@ class StatusPage(Page):
 
 class CloudsPage(Page):
     """This is the page object class for the Clouds page."""
-    def __init__(self, driver):
-        super(CloudsPage, self).__init__(driver)
+    def __init__(self, driver, homepage):
+        super(CloudsPage, self).__init__(driver, homepage)
         # The active_cloud variable stores the currently-selected cloud in the
         # sidebar.
         self.active_cloud = None
@@ -761,8 +792,8 @@ class CloudsPage(Page):
 
 class AliasesPage(Page):
     """This is the page object class for the Aliases page."""
-    def __init__(self, driver):
-        super(AliasesPage, self).__init__(driver)
+    def __init__(self, driver, homepage):
+        super(AliasesPage, self).__init__(driver, homepage)
         # The active_alias variable stores the currently-selected user in the
         # sidebar.
         self.active_alias = None
@@ -801,8 +832,8 @@ class AliasesPage(Page):
 
 class DefaultsPage(Page):
     """This is the page object class for the Defaults page."""
-    def __init__(self, driver):
-        super(DefaultsPage, self).__init__(driver)
+    def __init__(self, driver, homepage):
+        super(DefaultsPage, self).__init__(driver, homepage)
         # The active_cloud variable stores the currently-selected cloud in the
         # sidebar.
         self.active_group = None
@@ -969,8 +1000,8 @@ class DefaultsPage(Page):
 
 class ImagesPage(Page):
     """This is the page object class for the Images page."""
-    def __init__(self, driver):
-        super(ImagesPage, self).__init__(driver)
+    def __init__(self, driver, homepage):
+        super(ImagesPage, self).__init__(driver, homepage)
         # There is no active image, so there is no variable for it
 
     def type_in_search_bar(self, text):
@@ -1122,8 +1153,8 @@ class ImagesPage(Page):
 
 class KeysPage(Page):
     """This is the page object class for the Keys page."""
-    def __init__(self, driver):
-        super(KeysPage, self).__init__(driver)
+    def __init__(self, driver, homepage):
+        super(KeysPage, self).__init__(driver, homepage)
         # There is no active key, so there is no variable here
         # Instead, there is a variable to save whether the popup is an upload
         # or create popup
@@ -1226,8 +1257,8 @@ class KeysPage(Page):
 
 class UsersPage(Page):
     """This is the page object class for the Users page."""
-    def __init__(self, driver):
-        super(UsersPage, self).__init__(driver)
+    def __init__(self, driver, homepage):
+        super(UsersPage, self).__init__(driver, homepage)
         # The active_user variable stores the currently-selected user in the
         # sidebar.
         self.active_user = None
@@ -1316,8 +1347,8 @@ class UsersPage(Page):
 class GroupsPage(Page):
     """This is the page object class for the Groups page."""
 
-    def __init__(self, driver):
-        super(GroupsPage, self).__init__(driver)
+    def __init__(self, driver, homepage):
+        super(GroupsPage, self).__init__(driver, homepage)
         # The active_group variable stores the currently-selected group in the
         # sidebar. 
         self.active_group = None
@@ -1388,8 +1419,8 @@ class GroupsPage(Page):
 class ConfigPage(Page):
     """This is the page object class for the Config page."""
     
-    def __init__(self, driver):
-        super(ConfigPage, self).__init__(driver)
+    def __init__(self, driver, homepage):
+        super(ConfigPage, self).__init__(driver, homepage)
         # The active_config variable stores the active config file in the sidebar
         self.active_config = None
 
@@ -1527,8 +1558,8 @@ class ConfigPage(Page):
 class SettingsPage(Page):
     """This is the page object class for the User Settings page."""
     
-    def __init__(self, driver):
-        super(SettingsPage, self).__init__(driver)
+    def __init__(self, driver, homepage):
+        super(SettingsPage, self).__init__(driver, homepage)
         # The active_user variable stores the active user in the sidebar
         self.active_user = None
 

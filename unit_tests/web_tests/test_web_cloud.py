@@ -1,9 +1,12 @@
+if __name__ == "__main__":
+    __package__ = 'cloudscheduler.unit_tests.web_tests'
+
 import unittest
 import sys
-import web_tests.web_test_setup_cleanup as wtsc
-import web_tests.web_test_assertions_v2 as wta
-import web_tests.web_test_page_objects as pages
-import web_tests.web_test_helpers as helpers
+from . import web_test_setup_cleanup as wtsc
+from . import web_test_assertions_v2 as wta
+from . import web_test_page_objects as pages
+from . import web_test_helpers as helpers
 
 class TestWebCloudCommon(unittest.TestCase):
     """A class for the cloud tests that should be repeated in all iterations."""
@@ -11,11 +14,11 @@ class TestWebCloudCommon(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.credentials = cls.gvar['cloud_credentials']
-        cls.page = pages.CloudsPage(cls.driver)
+        cls.page = pages.CloudsPage(cls.driver, cls.gvar['address'])
         cls.oversize = cls.gvar['oversize']
 
     def setUp(self):
-        helpers.get_homepage(self.driver)
+        self.page.get_homepage()
         self.page.click_top_nav('Clouds')
 
     def test_web_cloud_add(self):
@@ -647,6 +650,7 @@ class TestWebCloudCommon(unittest.TestCase):
 
     def test_web_cloud_update_vm_keyname(self):
         # Changes a cloud's vm keyname
+        helpers.skip_if_flag('keys accessible', self.gvar['keys_accessible'], False)
         cloud_name = self.gvar['user'] + '-wic1'
         key = self.gvar['user'] + '-wik1'
         self.page.click_side_button(cloud_name)
@@ -792,7 +796,6 @@ class TestWebCloudCommon(unittest.TestCase):
         self.page.click_side_button(cloud_name)
         self.page.type_cores(str(self.oversize['int_11']))
         self.page.click_update_cloud()
-        #self.assertTrue(self.page.error_message_displayed())
         self.assertTrue(self.page.cores_popup_exists())
         wta.assertHasNotAttribute('cloud', cloud_name, 'cores_ctl', str(self.oversize['int_11']), group=self.gvar['base_group'])
 
@@ -835,7 +838,6 @@ class TestWebCloudCommon(unittest.TestCase):
         self.page.click_side_button(cloud_name)
         self.page.type_ram('3.5')
         self.page.click_update_cloud()
-        #self.assertTrue(self.page.error_message_displayed())
         self.assertTrue(self.page.ram_popup_exists())
         wta.assertHasNotAttribute('cloud', cloud_name, 'ram_ctl', '3.5', group=self.gvar['base_group'])
 
@@ -845,7 +847,6 @@ class TestWebCloudCommon(unittest.TestCase):
         self.page.click_side_button(cloud_name)
         self.page.type_ram('invalid-web-test')
         self.page.click_update_cloud()
-        #self.assertTrue(self.page.error_message_displayed())
         self.assertTrue(self.page.ram_popup_exists())
         wta.assertHasNotAttribute('cloud', cloud_name, 'ram_ctl', 'invalid-web-test', group=self.gvar['base_group'])
 
@@ -854,7 +855,6 @@ class TestWebCloudCommon(unittest.TestCase):
         cloud_name = self.gvar['user'] + '-wic1'
         self.page.type_ram(str(self.oversize['int_11']))
         self.page.click_update_cloud()
-        #self.assertTrue(self.page.error_message_displayed())
         self.assertTrue(self.page.ram_popup_exists())
         wta.assertHasNotAttribute('cloud', cloud_name, 'ram_ctl', str(self.oversize['int_11']), group=self.gvar['base_group'])
 
@@ -1056,7 +1056,6 @@ class TestWebCloudCommon(unittest.TestCase):
         self.page.type_metadata_priority(str(self.oversize['int_11']))
         self.page.type_metadata('sample_key: sample_value')
         self.page.click_metadata_add()
-        #self.assertTrue(self.page.error_message_displayed())
         self.assertTrue(self.page.metadata_priority_popup_exists())
         self.assertFalse(self.page.metadata_tab_exists(metadata_name))
         wta.assertHasNotAttribute('cloud', cloud_name, 'metadata_names', metadata_name, group=self.gvar['base_group'])
@@ -1291,72 +1290,112 @@ class TestWebCloudSuperUserFirefox(TestWebCloudCommon):
 
     @classmethod
     def setUpClass(cls):
-        wtsc.setup(cls, 2, ['clouds'], browser='firefox')
-        super(TestWebCloudSuperUserFirefox, cls).setUpClass()
-        print("\nCloud Tests (Super User):")
+        try:
+            wtsc.setup(cls, 2, ['clouds'], browser='firefox')
+            super(TestWebCloudSuperUserFirefox, cls).setUpClass()
+            print("\nCloud Tests (Super User):")
+        except:
+            print("Error in test setup")
+            super(TestWebCloudSuperUserFirefox, cls).tearDownClass()
+            raise
 
 class TestWebCloudRegularUserFirefox(TestWebCloudCommon):
     """A class to test cloud operations via the web interface, in Firefox, with a regular user."""
 
     @classmethod
     def setUpClass(cls):
-        wtsc.setup(cls, 1, ['clouds'], browser='firefox')
-        super(TestWebCloudRegularUserFirefox, cls).setUpClass()
-        print("\nCloud Tests (Regular User):")
+        try:
+            wtsc.setup(cls, 1, ['clouds'], browser='firefox')
+            super(TestWebCloudRegularUserFirefox, cls).setUpClass()
+            print("\nCloud Tests (Regular User):")
+        except:
+            print("Error in test setup")
+            super(TestWebCloudRegularUserFirefox, cls).tearDownClass()
+            raise
 
 class TestWebCloudSuperUserChromium(TestWebCloudCommon):
     """A class to test cloud operations via the web interface, in Chromium, with a super user."""
 
     @classmethod
     def setUpClass(cls):
-        wtsc.setup(cls, 2, ['clouds'], browser='chromium')
-        super(TestWebCloudSuperUserChromium, cls).setUpClass()
-        print("\nCloud Tests (Chromium) (Super User):")
+        try:
+            wtsc.setup(cls, 2, ['clouds'], browser='chromium')
+            super(TestWebCloudSuperUserChromium, cls).setUpClass()
+            print("\nCloud Tests (Chromium) (Super User):")
+        except:
+            print("Error in test setup")
+            super(TestWebCloudSuperUserChromium, cls).tearDownClass()
+            raise
 
 class TestWebCloudRegularUserChromium(TestWebCloudCommon):
     """A class to test cloud operations via the web interface, in Chromium, with a regular user."""
 
     @classmethod
     def setUpClass(cls):
-        wtsc.setup(cls, 1, ['clouds'], browser='chromium')
-        super(TestWebCloudRegularUserChromium, cls).setUpClass()
-        print("\nCloud Tests (Chromium) (Regular User):")
+        try:
+            wtsc.setup(cls, 1, ['clouds'], browser='chromium')
+            super(TestWebCloudRegularUserChromium, cls).setUpClass()
+            print("\nCloud Tests (Chromium) (Regular User):")
+        except:
+            print("Error in test setup")
+            super(TestWebCloudRegularUserChromium, cls).tearDownClass()
+            raise
 
 class TestWebCloudSuperUserOpera(TestWebCloudCommon):
     """A class to test cloud operations via the web interface, in Opera, with a super user."""
 
     @classmethod
     def setUpClass(cls):
-        wtsc.setup(cls, 2, ['clouds'], browser='opera')
-        super(TestWebCloudSuperUserOpera, cls).setUpClass()
-        print("\nCloud Tests (Opera) (Super User):")
+        try:
+            wtsc.setup(cls, 2, ['clouds'], browser='opera')
+            super(TestWebCloudSuperUserOpera, cls).setUpClass()
+            print("\nCloud Tests (Opera) (Super User):")
+        except:
+            print("Error in test setup")
+            super(TestWebCloudSuperUserOpera, cls).tearDownClass()
+            raise
 
 class TestWebCloudRegularUserOpera(TestWebCloudCommon):
     """A class to test cloud operations via the web interface, in Opera, with a regular user."""
 
     @classmethod
     def setUpClass(cls):
-        wtsc.setup(cls, 1, ['clouds'], browser='opera')
-        super(TestWebCloudRegularUserOpera, cls).setUpClass()
-        print("\nCloud Tests (Opera) (Regular User):")
+        try:
+            wtsc.setup(cls, 1, ['clouds'], browser='opera')
+            super(TestWebCloudRegularUserOpera, cls).setUpClass()
+            print("\nCloud Tests (Opera) (Regular User):")
+        except:
+            print("Error in test setup")
+            super(TestWebCloudRegularUserOpera, cls).tearDownClass()
+            raise
 
 class TestWebCloudSuperUserChrome(TestWebCloudCommon):
     """A class to test cloud operations via the web interface, in Chrome, with a super user."""
 
     @classmethod
     def setUpClass(cls):
-        wtsc.setup(cls, 2, ['clouds', 'keys'], browser='chrome')
-        super(TestWebCloudSuperUserChrome, cls).setUpClass()
-        print("\nCloud Tests (Chrome) (Super User):")
+        try:
+            wtsc.setup(cls, 2, ['clouds', 'keys'], browser='chrome')
+            super(TestWebCloudSuperUserChrome, cls).setUpClass()
+            print("\nCloud Tests (Chrome) (Super User):")
+        except:
+            print("Error in test setup")
+            super(TestWebCloudSuperUserChrome, cls).tearDownClass()
+            raise
 
 class TestWebCloudRegularUserChrome(TestWebCloudCommon):
     """A class to test cloud operations via the web interface, in Chrome, with a regular user."""
 
     @classmethod
     def setUpClass(cls):
-        wtsc.setup(cls, 1, ['clouds', 'keys'], browser='chrome')
-        super(TestWebCloudRegularUserChrome, cls).setUpClass()
-        print("\nCloud Tests (Chrome) (Regular User):")
+        try:
+            wtsc.setup(cls, 1, ['clouds', 'keys'], browser='chrome')
+            super(TestWebCloudRegularUserChrome, cls).setUpClass()
+            print("\nCloud Tests (Chrome) (Regular User):")
+        except:
+            print("Error in test setup")
+            super(TestWebCloudRegularUserChrome, cls).tearDownClass()
+            raise
 
 if __name__ == "__main__":
     runner = unittest.TextTestRunner(verbosity=2)

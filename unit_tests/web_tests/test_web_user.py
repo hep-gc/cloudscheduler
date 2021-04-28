@@ -1,20 +1,23 @@
+if __name__ == "__main__":
+    __package__ = 'cloudscheduler.unit_tests.web_tests'
+
 import unittest
 import sys
-import web_tests.web_test_setup_cleanup as wtsc
-import web_tests.web_test_assertions_v2 as wta
-import web_tests.web_test_page_objects as pages
-import web_tests.web_test_helpers as helpers
+from . import web_test_setup_cleanup as wtsc
+from . import web_test_assertions_v2 as wta
+from . import web_test_page_objects as pages
+from . import web_test_helpers as helpers
 
 class TestWebUserCommon(unittest.TestCase):
     """A class for the user tests that should be repeated in all iterations."""
 
     @classmethod
     def setUpClass(cls):
-        cls.page = pages.UsersPage(cls.driver)
+        cls.page = pages.UsersPage(cls.driver, cls.gvar['address'])
         cls.oversize = cls.gvar['oversize']
 
     def setUp(self):
-        helpers.get_homepage(self.driver)
+        helpers.get_homepage()
         self.page.click_top_nav('Users')
 
     def test_web_user_find(self):
@@ -252,7 +255,6 @@ class TestWebUserCommon(unittest.TestCase):
         self.page.click_side_button(username)
         self.page.type_password(username + '-password')
         self.page.click_update_user()
-        # TODO: Assertion?
         self.assertFalse(self.page.error_message_displayed())
 
     def test_web_user_update_password_mismatched(self):
@@ -361,36 +363,56 @@ class TestWebUserSuperUserFirefox(TestWebUserCommon):
 
     @classmethod
     def setUpClass(cls):
-        wtsc.setup(cls, 2, ['users'], browser='firefox')
-        super(TestWebUserSuperUserFirefox, cls).setUpClass()
-        print("\nUser Tests:")
+        try:
+            wtsc.setup(cls, 2, ['users'], browser='firefox')
+            super(TestWebUserSuperUserFirefox, cls).setUpClass()
+            print("\nUser Tests:")
+        except:
+            print("Error in test setup")
+            super(TestWebUserSuperUserFirefox, cls).tearDownClass()
+            raise
 
 class TestWebUserSuperUserChromium(TestWebUserCommon):
     """A class to test user operations via the web interface, in Chromium, with a super user."""
 
     @classmethod
     def setUpClass(cls):
-        wtsc.setup(cls, 2, ['users'], browser='chromium')
-        super(TestWebUserSuperUserChromium, cls).setUpClass()
-        print("\nUser Tests (Chromium):")
+        try:
+            wtsc.setup(cls, 2, ['users'], browser='chromium')
+            super(TestWebUserSuperUserChromium, cls).setUpClass()
+            print("\nUser Tests (Chromium):")
+        except:
+            print("Error in test setup")
+            super(TestWebUserSuperUserChromium, cls).tearDownClass()
+            raise
 
 class TestWebUserSuperUserOpera(TestWebUserCommon):
     """A class to test user operations via the web interface, in Opera, with a super user."""
 
     @classmethod
     def setUpClass(cls):
-        wtsc.setup(cls, 2, ['users'], browser='opera')
-        super(TestWebUserSuperUserOpera, cls).setUpClass()
-        print("\nUser Tests (Opera):")
+        try:
+            wtsc.setup(cls, 2, ['users'], browser='opera')
+            super(TestWebUserSuperUserOpera, cls).setUpClass()
+            print("\nUser Tests (Opera):")
+        except:
+            print("Error in test setup")
+            super(TestWebUserSuperUserOpera, cls).tearDownClass()
+            raise
 
 class TestWebUserSuperUserChrome(TestWebUserCommon):
     """A class to test user operations via the web interface, in Chrome, with a super user."""
 
     @classmethod
     def setUpClass(cls):
-        wtsc.setup(cls, 2, ['users'], browser='chrome')
-        super(TestWebUserSuperUserChrome, cls).setUpClass()
-        print("\nUser Tests (Chrome):")
+        try:
+            wtsc.setup(cls, 2, ['users'], browser='chrome')
+            super(TestWebUserSuperUserChrome, cls).setUpClass()
+            print("\nUser Tests (Chrome):")
+        except:
+            print("Error in test setup")
+            super(TestWebUserSuperUserChrome, cls).tearDownClass()
+            raise
 
 if __name__ == "__main__":
     runner = unittest.TextTestRunner(verbosity=2)

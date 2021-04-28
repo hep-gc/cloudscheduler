@@ -1,20 +1,23 @@
+if __name__ == "__main__":
+    __package__ = 'cloudscheduler.unit_tests.web_tests'
+
 import unittest
 import sys
-import web_tests.web_test_setup_cleanup as wtsc
-import web_tests.web_test_assertions_v2 as wta
-import web_tests.web_test_page_objects as pages
-import web_tests.web_test_helpers as helpers
+from . import web_test_setup_cleanup as wtsc
+from . import web_test_assertions_v2 as wta
+from . import web_test_page_objects as pages
+from . import web_test_helpers as helpers
 
 class TestWebConfigCommon(unittest.TestCase):
     """A class for the config tests that should be repeated in all iterations."""
 
     @classmethod
     def setUpClass(cls):
-        cls.page = pages.ConfigPage(cls.driver)
+        cls.page = pages.ConfigPage(cls.driver, cls.gvar['address'])
         cls.oversize = cls.gvar['oversize']
 
     def setUp(self):
-        helpers.get_homepage(self.driver)
+        self.page.get_homepage()
         self.page.click_top_nav('Config')
 
     def test_web_config_find(self):
@@ -391,36 +394,56 @@ class TestWebConfigSuperUserFirefox(TestWebConfigCommon):
 
     @classmethod
     def setUpClass(cls):
-        wtsc.setup(cls, 2, ['config'], browser='firefox')
-        super(TestWebConfigSuperUserFirefox, cls).setUpClass()
-        print("\nConfig Tests:")
+        try:
+            wtsc.setup(cls, 2, ['config'], browser='firefox')
+            super(TestWebConfigSuperUserFirefox, cls).setUpClass()
+            print("\nConfig Tests:")
+        except:
+            print("Error in test setup")
+            super(TestWebConfigSuperUserFirefox, cls).tearDownClass()
+            raise
 
 class TestWebConfigSuperUserChromium(TestWebConfigCommon):
     """A class to test config operations via the web interface, in Chromium, with a super user."""
 
     @classmethod
     def setUpClass(cls):
-        wtsc.setup(cls, 2, ['config'], browser='chromium')
-        super(TestWebConfigSuperUserChromium, cls).setUpClass()
-        print("\nConfig Tests (Chromium):")
+        try:
+            wtsc.setup(cls, 2, ['config'], browser='chromium')
+            super(TestWebConfigSuperUserChromium, cls).setUpClass()
+            print("\nConfig Tests (Chromium):")
+        except:
+            print("Error in test setup")
+            super(TestWebConfigSuperUserChromium, cls).tearDownClass()
+            raise
 
 class TestWebConfigSuperUserOpera(TestWebConfigCommon):
     """A class to test config operations via the web interface, in Opera, with a super user."""
 
     @classmethod
     def setUpClass(cls):
-        wtsc.setup(cls, 2, ['config'], browser='opera')
-        super(TestWebConfigSuperUserOpera, cls).setUpClass()
-        print("\nConfig Tests (Opera):")
+        try:
+            wtsc.setup(cls, 2, ['config'], browser='opera')
+            super(TestWebConfigSuperUserOpera, cls).setUpClass()
+            print("\nConfig Tests (Opera):")
+        except:
+            print("Error in test setup")
+            super(TestWebConfigSuperUserOpera, cls).tearDownClass()
+            raise
 
 class TestWebConfigSuperUserChrome(TestWebConfigCommon):
     """A class to test config operations via the web interface, in Chrome, with a super user."""
 
     @classmethod
     def setUpClass(cls):
-        wtsc.setup(cls, 2, ['config'], browser='chrome')
-        super(TestWebConfigSuperUserChrome, cls).setUpClass()
-        print("\nConfig Tests (Chrome):")
+        try:
+            wtsc.setup(cls, 2, ['config'], browser='chrome')
+            super(TestWebConfigSuperUserChrome, cls).setUpClass()
+            print("\nConfig Tests (Chrome):")
+        except:
+            print("Error in test setup")
+            super(TestWebConfigSuperUserChrome, cls).tearDownClass()
+            raise
 
 if __name__ == "__main__":
     runner = unittest.TextTestRunner(verbosity=2)

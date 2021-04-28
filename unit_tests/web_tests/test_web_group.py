@@ -1,20 +1,23 @@
+if __name__ == "__main__":
+    __package__ = 'cloudscheduler.unit_tests.web_tests'
+
 import unittest
 import sys
-import web_tests.web_test_setup_cleanup as wtsc
-import web_tests.web_test_assertions_v2 as wta
-import web_tests.web_test_page_objects as pages
-import web_tests.web_test_helpers as helpers
+from . import web_test_setup_cleanup as wtsc
+from . import web_test_assertions_v2 as wta
+from . import web_test_page_objects as pages
+from . import web_test_helpers as helpers
 
 class TestWebGroupCommon(unittest.TestCase):
     """A class for the group tests that should be repeated in all iterations."""
 
     @classmethod
     def setUpClass(cls):
-        cls.page = pages.GroupsPage(cls.driver)
+        cls.page = pages.GroupsPage(cls.driver, cls.gvar['address'])
         cls.oversize = cls.gvar['oversize']
         
     def setUp(self):
-        helpers.get_homepage(self.driver)
+        self.page.get_homepage()
         self.page.click_top_nav('Groups')
 
     def test_web_group_find(self):
@@ -189,36 +192,56 @@ class TestWebGroupSuperUserFirefox(TestWebGroupCommon):
 
     @classmethod
     def setUpClass(cls):
-        wtsc.setup(cls, 2, ['groups'], browser='firefox')
-        super(TestWebGroupSuperUserFirefox, cls).setUpClass()
-        print("\nGroup Tests:")
+        try:
+            wtsc.setup(cls, 2, ['groups'], browser='firefox')
+            super(TestWebGroupSuperUserFirefox, cls).setUpClass()
+            print("\nGroup Tests:")
+        except:
+            print("Error in test setup")
+            super(TestWebGroupSuperUserFirefox, cls).tearDownClass()
+            raise
 
 class TestWebGroupSuperUserChromium(TestWebGroupCommon):
     """A class to test group operations via the web interface, in Chromium, with a super user."""
 
     @classmethod
     def setUpClass(cls):
-        wtsc.setup(cls, 2, ['groups'], browser='chromium')
-        super(TestWebGroupSuperUserChromium, cls).setUpClass()
-        print("\nGroup Tests (Chromium):")
+        try:
+            wtsc.setup(cls, 2, ['groups'], browser='chromium')
+            super(TestWebGroupSuperUserChromium, cls).setUpClass()
+            print("\nGroup Tests (Chromium):")
+        except:
+            print("Error in test setup")
+            super(TestWebGroupSuperUserChromium, cls).tearDownClass()
+            raise
 
 class TestWebGroupSuperUserOpera(TestWebGroupCommon):
     """A class to test group operations via the web interface, in Opera, with a super user."""
 
     @classmethod
     def setUpClass(cls):
-        wtsc.setup(cls, 2, ['groups'], browser='opera')
-        super(TestWebGroupSuperUserOpera, cls).setUpClass()
-        print("\nGroup Tests (Opera):")
+        try:
+            wtsc.setup(cls, 2, ['groups'], browser='opera')
+            super(TestWebGroupSuperUserOpera, cls).setUpClass()
+            print("\nGroup Tests (Opera):")
+        except:
+            print("Error in test setup")
+            super(TestWebGroupSuperUserOpera, cls).tearDownClass()
+            raise
 
 class TestWebGroupSuperUserChrome(TestWebGroupCommon):
     """A class to test group operations via the web interface, in Chrome, with a super user."""
 
     @classmethod
     def setUpClass(cls):
-        wtsc.setup(cls, 2, ['groups'], browser='chrome')
-        super(TestWebGroupSuperUserChrome, cls).setUpClass()
-        print("\nGroup Tests (Chrome):")
+        try:
+            wtsc.setup(cls, 2, ['groups'], browser='chrome')
+            super(TestWebGroupSuperUserChrome, cls).setUpClass()
+            print("\nGroup Tests (Chrome):")
+        except:
+            print("Error in test setup")
+            super(TestWebGroupSuperUserChrome, cls).tearDownClass()
+            raise
 
 if __name__ == "__main__":
     runner = unittest.TextTestRunner(verbosity=2)

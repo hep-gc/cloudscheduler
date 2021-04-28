@@ -1,21 +1,24 @@
+if __name__ == "__main__":
+    __package__ = 'cloudscheduler.unit_tests.web_tests'
+
 import unittest
 import sys
-import web_tests.web_test_setup_cleanup as wtsc
-import web_tests.web_test_assertions_v2 as wta
-import web_tests.web_test_page_objects as pages
-import web_tests.web_test_helpers as helpers
+from . import web_test_setup_cleanup as wtsc
+from . import web_test_assertions_v2 as wta
+from . import web_test_page_objects as pages
+from . import web_test_helpers as helpers
 
 class TestWebSettingCommon(unittest.TestCase):
     """A class for the user settings tests that should be repeated in all iterations."""
 
     @classmethod
     def setUpClass(cls):
-        cls.page = pages.SettingsPage(cls.driver)
-        cls.status_page = pages.StatusPage(cls.driver)
+        cls.page = pages.SettingsPage(cls.driver, cls.gvar['address'])
+        cls.status_page = pages.StatusPage(cls.driver, cls.gvar['address'])
         cls.oversize = cls.gvar['oversize']
 
     def setUp(self):
-        helpers.get_homepage(self.driver)
+        self.page.get_homepage()
         self.page.click_top_nav('User Settings')
 
     def test_web_setting_find(self):
@@ -29,11 +32,11 @@ class TestWebSettingCommon(unittest.TestCase):
         self.page.type_password(password)
         self.page.click_update_user()
         self.assertFalse(self.page.error_message_displayed())
-        helpers.get_homepage_login(self.driver, self.user, password)
+        self.page.get_homepage_login(self.user, password)
         self.page.click_top_nav_with_login('User Settings', self.user, password)
         self.page.type_password(self.gvar['user_secret'])
         self.page.click_update_user()
-        helpers.get_homepage_login(self.driver, self.user, self.gvar['user_secret'])
+        self.page.get_homepage_login(self.user, self.gvar['user_secret'])
         self.page.click_top_nav_with_login('User Settings', self.user, self.gvar['user_secret'])
 
     def test_web_setting_update_password_mismatched(self):
@@ -186,96 +189,136 @@ class TestWebSettingSuperUserFirefox(TestWebSettingCommon):
 
     @classmethod
     def setUpClass(cls):
-        wtsc.setup(cls, 2, ['settings', 'servers'], browser='firefox')
-        super(TestWebSettingSuperUserFirefox, cls).setUpClass()
-        cls.server = cls.gvar['user'] + '-wis2'
-        cls.user = cls.gvar['user'] + '-wiu2'
-        cls.global_group = cls.gvar['user'] + '-wig2'
-        print("\nUser Settings Tests (Super User):")
+        try:
+            wtsc.setup(cls, 2, ['settings', 'servers'], browser='firefox')
+            super(TestWebSettingSuperUserFirefox, cls).setUpClass()
+            cls.server = cls.gvar['user'] + '-wis2'
+            cls.user = cls.gvar['user'] + '-wiu2'
+            cls.global_group = cls.gvar['user'] + '-wig2'
+            print("\nUser Settings Tests (Super User):")
+        except:
+            print("Error in test setup")
+            super(TestWebSettingSuperUserFirefox, cls).tearDownClass()
+            raise
 
 class TestWebSettingRegularUserFirefox(TestWebSettingCommon):
     """A class to test user settings operations via the web interface, in Firefox, with a regular user."""
 
     @classmethod
     def setUpClass(cls):
-        wtsc.setup(cls, 1, ['settings', 'servers'], browser='firefox')
-        super(TestWebSettingRegularUserFirefox, cls).setUpClass()
-        cls.server = cls.gvar['user'] + '-wis1'
-        cls.user = cls.gvar['user'] + '-wiu1'
-        cls.global_group = cls.gvar['user'] + '-wig1'
-        print("\nUser Settings Tests (Regular User):")
+        try:
+            wtsc.setup(cls, 1, ['settings', 'servers'], browser='firefox')
+            super(TestWebSettingRegularUserFirefox, cls).setUpClass()
+            cls.server = cls.gvar['user'] + '-wis1'
+            cls.user = cls.gvar['user'] + '-wiu1'
+            cls.global_group = cls.gvar['user'] + '-wig1'
+            print("\nUser Settings Tests (Regular User):")
+        except:
+            print("Error in test setup")
+            super(TestWebSettingRegularUserFirefox, cls).tearDownClass()
+            raise
 
 class TestWebSettingSuperUserChromium(TestWebSettingCommon):
     """A class to test user settings operations via the web interface, in Chromium, with a super user."""
 
     @classmethod
     def setUpClass(cls):
-        wtsc.setup(cls, 2, ['settings', 'servers'], browser='chromium')
-        super(TestWebSettingSuperUserChromium, cls).setUpClass()
-        cls.server = cls.gvar['user'] + '-wis2'
-        cls.user = cls.gvar['user'] + '-wiu2'
-        cls.global_group = cls.gvar['user'] + '-wig2'
-        print("\nUser Settings Tests (Chromium) (Super User):")
+        try:
+            wtsc.setup(cls, 2, ['settings', 'servers'], browser='chromium')
+            super(TestWebSettingSuperUserChromium, cls).setUpClass()
+            cls.server = cls.gvar['user'] + '-wis2'
+            cls.user = cls.gvar['user'] + '-wiu2'
+            cls.global_group = cls.gvar['user'] + '-wig2'
+            print("\nUser Settings Tests (Chromium) (Super User):")
+        except:
+            print("Error in test setup")
+            super(TestWebSettingSuperUserChromium, cls).tearDownClass()
+            raise
 
 class TestWebSettingRegularUserChromium(TestWebSettingCommon):
     """A class to test user settings operations via the web interface, in Chromium, with a regular user."""
 
     @classmethod
     def setUpClass(cls):
-        wtsc.setup(cls, 1, ['settings', 'servers'], browser='chromium')
-        super(TestWebSettingRegularUserChromium, cls).setUpClass()
-        cls.server = cls.gvar['user'] + '-wis1'
-        cls.user = cls.gvar['user'] + '-wiu1'
-        cls.global_group = cls.gvar['user'] + '-wig1'
-        print("\nUser Settings Tests (Chromium) (Regular User):")
+        try:
+            wtsc.setup(cls, 1, ['settings', 'servers'], browser='chromium')
+            super(TestWebSettingRegularUserChromium, cls).setUpClass()
+            cls.server = cls.gvar['user'] + '-wis1'
+            cls.user = cls.gvar['user'] + '-wiu1'
+            cls.global_group = cls.gvar['user'] + '-wig1'
+            print("\nUser Settings Tests (Chromium) (Regular User):")
+        except:
+            print("Error in test setup")
+            super(TestWebSettingRegularUserChromium, cls).tearDownClass()
+            raise
 
 class TestWebSettingSuperUserOpera(TestWebSettingCommon):
     """A class to test user settings operations via the web interface, in Opera, with a super user."""
 
     @classmethod
     def setUpClass(cls):
-        wtsc.setup(cls, 2, ['settings', 'servers'], browser='opera')
-        super(TestWebSettingSuperUserOpera, cls).setUpClass()
-        cls.server = cls.gvar['user'] + '-wis2'
-        cls.user = cls.gvar['user'] + '-wiu2'
-        cls.global_group = cls.gvar['user'] + '-wig2'
-        print("\nUser Settings Tests (Opera) (Super User):")
+        try:
+            wtsc.setup(cls, 2, ['settings', 'servers'], browser='opera')
+            super(TestWebSettingSuperUserOpera, cls).setUpClass()
+            cls.server = cls.gvar['user'] + '-wis2'
+            cls.user = cls.gvar['user'] + '-wiu2'
+            cls.global_group = cls.gvar['user'] + '-wig2'
+            print("\nUser Settings Tests (Opera) (Super User):")
+        except:
+            print("Error in test setup")
+            super(TestWebSettingSuperUserOpera, cls).tearDownClass()
+            raise
 
 class TestWebSettingRegularUserOpera(TestWebSettingCommon):
     """A class to test user settings operations via the web interface, in Opera, with a regular user."""
 
     @classmethod
     def setUpClass(cls):
-        wtsc.setup(cls, 1, ['settings', 'servers'], browser='opera')
-        super(TestWebSettingRegularUserOpera, cls).setUpClass()
-        cls.server = cls.gvar['user'] + '-wis1'
-        cls.user = cls.gvar['user'] + '-wiu1'
-        cls.global_group = cls.gvar['user'] + '-wig1'
-        print("\nUser Settings Tests (Opera) (Regular User):")
+        try:
+            wtsc.setup(cls, 1, ['settings', 'servers'], browser='opera')
+            super(TestWebSettingRegularUserOpera, cls).setUpClass()
+            cls.server = cls.gvar['user'] + '-wis1'
+            cls.user = cls.gvar['user'] + '-wiu1'
+            cls.global_group = cls.gvar['user'] + '-wig1'
+            print("\nUser Settings Tests (Opera) (Regular User):")
+        except:
+            print("Error in test setup")
+            super(TestWebSettingRegularUserOpera, cls).tearDownClass()
+            raise
 
 class TestWebSettingSuperUserChrome(TestWebSettingCommon):
     """A class to test user settings operations via the web interface, in Chrome, with a super user."""
 
     @classmethod
     def setUpClass(cls):
-        wtsc.setup(cls, 2, ['settings', 'servers'], browser='chrome')
-        super(TestWebSettingSuperUserChrome, cls).setUpClass()
-        cls.server = cls.gvar['user'] + '-wis2'
-        cls.user = cls.gvar['user'] + '-wiu2'
-        cls.global_group = cls.gvar['user'] + '-wig2'
-        print("\nUser Settings Tests (Chrome) (Super User):")
+        try:
+            wtsc.setup(cls, 2, ['settings', 'servers'], browser='chrome')
+            super(TestWebSettingSuperUserChrome, cls).setUpClass()
+            cls.server = cls.gvar['user'] + '-wis2'
+            cls.user = cls.gvar['user'] + '-wiu2'
+            cls.global_group = cls.gvar['user'] + '-wig2'
+            print("\nUser Settings Tests (Chrome) (Super User):")
+        except:
+            print("Error in test setup")
+            super(TestWebSettingSuperUserChrome, cls).tearDownClass()
+            raise
 
 class TestWebSettingRegularUserChrome(TestWebSettingCommon):
     """A class to test user settings operations via the web interface, in Chrome, with a regular user."""
 
     @classmethod
     def setUpClass(cls):
-        wtsc.setup(cls, 1, ['settings', 'servers'], browser='chrome')
-        super(TestWebSettingRegularUserChrome, cls).setUpClass()
-        cls.server = cls.gvar['user'] + '-wis1'
-        cls.user = cls.gvar['user'] + '-wiu1'
-        cls.global_group = cls.gvar['user'] + '-wig1'
-        print("\nUser Settings Tests (Chrome) (Regular User):")
+        try:
+            wtsc.setup(cls, 1, ['settings', 'servers'], browser='chrome')
+            super(TestWebSettingRegularUserChrome, cls).setUpClass()
+            cls.server = cls.gvar['user'] + '-wis1'
+            cls.user = cls.gvar['user'] + '-wiu1'
+            cls.global_group = cls.gvar['user'] + '-wig1'
+            print("\nUser Settings Tests (Chrome) (Regular User):")
+        except:
+            print("Error in test setup")
+            super(TestWebSettingRegularUserChrome, cls).tearDownClass()
+            raise
 
 if __name__ == "__main__":
     runner = unittest.TextTestRunner(verbosity=2)

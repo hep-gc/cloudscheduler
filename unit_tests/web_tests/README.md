@@ -34,7 +34,7 @@ The object setup replaces the [Testing Files](#testing-files) section.
 
 #### Full Setup
 
-Full setup is supported on CentOS 7 and Ubuntu (version unknown - Ubuntu script is a work in progress).
+Full setup is supported on CentOS 7 and Ubuntu.
 
 The full setup can be run via `./web_test_setup_full_<operating_system>` in the `setup_scripts` directory. It will install the necessary software (including Python, Selenium, and the Openstack command line interface) and will ask for installation for each browser and corresponding driver. It also creates the setup objects.
 
@@ -64,7 +64,9 @@ Download a [CernVM image](http://cernvm.cern.ch/releases/production/cernvm4-micr
 
 Create a public key using `ssh-keygen`. Name it `{user}-wik3` and put it in the `misc_files` directory. Do not use a passphrase. Create another public key in the same manner, naming it `invalid-web-test`.
 
-Connect to the server. In your home directory, add the [job.condor](/misc_files/job.condor) file, updating the `{user}-wig0` accordingly, and the [job.sh](/misc_files/job.sh) file.
+Connect to the server. In your home directory, add the [job.condor](/misc_files/job.condor) file, updating the `{user}-wig0` with your username, and the [job.sh](/misc_files/job.sh) file.
+
+Like the unit tests, the web tests require a server configuration and cloud credentials. This can be created using the `cloudscheduler defaults set` command, or will be done automatically when the tests are first run.
 
 #### Firefox and Geckodriver
 
@@ -84,8 +86,6 @@ Chrome can be installed following the instructions [here](https://linuxize.com/p
 
 ### Other Setup
 
-Like the unit tests, the web tests require a server configuration and cloud credentials. This can be created using the `cloudscheduler defaults set` command, or will be done automatically when the tests are first run.
-
 The status tests require the system time to be set to the user time zone.
 
 A GUI is needed for the web tests.
@@ -100,7 +100,14 @@ New test modules should be named starting with `test_web_` (the modules starting
 
 All test files must be put in the `web_tests` directory, and each test file must be imported into [create_test_suite.py](./create_test_suite.py) and have its classes added to the lists of tests for their respective browsers. Note that the detailed classes (see below) should be the only ones put in here - the common classes (see below) do not have the proper setup to be run on their own and should not be included.
 
-Additionally, each new test module should contain the following code:
+Additionally, each new test module should contain the following code at the top:
+
+```python
+if __name__ == "__main__":
+    __package__ = 'cloudscheduler.unit_tests.web_tests'
+```
+
+and the following code at the bottom:
 
 ```python
 if __name__ == "__main__":
@@ -164,9 +171,9 @@ The page objects additionally use some functions from the [web_test_helpers](./w
 
 ## Running Tests
 
-Web tests can be run using `./run_tests web` from the `unit_tests` folder. Tests for a specific browser (or group of browsers, by adding additional arguments) can be run using `./run_tests web_<browser>`. Note that running by test numbers and similar as in the unit testing framework is not supported. Additional unit tests can be run at the same time, and the test/skip/failure counts will tally appropriately.
+Web tests can be run using `./run_tests web`. Tests for a specific browser (or group of browsers, by adding additional arguments) can be run using `./run_tests web_<browser>`. Note that running by test numbers and similar as in the unit testing framework is not supported. Additional unit tests can be run at the same time, and the test/skip/failure counts will tally appropriately.
 
-The tests can also be run by files as a module, using `python3 -m <filename>` from the `unit_tests` folder. Run without any flags, this will run all of the detailed test classes in the file. Any listed browser flags will restrict the tests to only the tests within the listed browsers, and any listed user flags will restrict the tests to only tests using the listed users. The tags are as follows:
+The tests can also be run by files as a module, using `python3 -m <filename>`. Run without any flags, this will run all of the detailed test classes in the file. Any listed browser flags will restrict the tests to only the tests within the listed browsers, and any listed user flags will restrict the tests to only tests using the listed users. The tags are as follows:
 
 | Short-Form Tag | Long-Form Tag    | Meaning                                   |
 |----------------|------------------|-------------------------------------------|
@@ -177,18 +184,18 @@ The tests can also be run by files as a module, using `python3 -m <filename>` fr
 | `-su`          | `--super-user`   | Run the tests with a super user           |
 | `-ru`          | `--regular-user` | Run the tests with a regular user         |
 
-One can also run a particular class directly using `python3 -m unittest <filename>.<ClassName>` (although the above flags are typically simpler). While unittest supports running tests by file, the setup of the test fixtures does not allow that and will run duplicate tests, some of which will fail, and, thus, the `python3 -m unittest <filename>` syntax is not to be used. Each detailed class, if run with the unittest framework, should be run individually, and common classes should never be run (see [Adding Tests](#adding-tests)). Individual tests can be run with `python3 -m unittest <filename>.<ClassName>.<test_name>`. All tests should be run from the `unit_tests` folder to allow module imports to work properly. Note that individual test files, classes, and methods cannot currently be run with the `run_tests` script, and individual test methods cannot be run with the `python3 -m <filename>` syntax.
+One can also run a particular class directly using `python3 -m unittest <filename>.<ClassName>` (although the above flags are typically simpler). While unittest supports running tests by file, the setup of the test fixtures does not allow that and will run duplicate tests, some of which will fail, and, thus, the `python3 -m unittest <filename>` syntax is not to be used. Each detailed class, if run with the unittest framework, should be run individually, and common classes should never be run (see [Adding Tests](#adding-tests)). Individual tests can be run with `python3 -m unittest <filename>.<ClassName>.<test_name>`. Note that individual test files, classes, and methods cannot currently be run with the `run_tests` script, and individual test methods cannot be run with the `python3 -m <filename>` syntax.
+
+The tests must be run from a folder that contains a symbolic link to the cloudscheduler root directory.
 
 The tests should be run as a non-root user. Root users may experience problems with the Chromium browser tests, as Chromium is not designed to run as a root user.
 
-If tests are being set up with clouds, the setup script may display an error similar to: 
+The setup script may display an error similar to: 
 
 ```
 Error: CV-01749 cloud update, "{user}-wic1" failed - specified value in list of values does not exist: vm_security_groups=default, group_name={user}-wig0, cloud_name={user}-wic1.
 Error connecting to the cloud. This may happen several times. Retrying...
 ```
-
-A similar error occurs with the key setup and default setup, although the values that do not exist are slightly different (referring to the VM keyname instead of the security group).
 
 This is expected behaviour - the setup requires resources from the cloud connection, and when it can access those resources is unpredictable, so the script will try, print that message on a failure, and continue trying until the setup is successful. Depending on where the cloud poller is in its process, it may take up to a dozen retries. The tests will continue to set up properly and run - this is not a setup error.
 
@@ -209,7 +216,7 @@ Several functions log information in files called `*objects.txt`. These files ca
 
 The primary known cause of flaky tests is the test not waiting long enough for the object to properly appear. Using the `sleep()` or `WebDriverWait` functions can help fix this, as can retrying the action if it fails. For example, the `setup_objects` function uses `sleep()`, the `web_test_interactions` and `web_test_page_objects` methods use `WebDriverWait`, and the `web_test_assertions_v2` methods will retry the query an additional time (after a five-second `sleep()`) if they fail to find what they're looking for.
 
-The `Page` class contains a `take_screenshot()` function. This function can be called at any time during the tests and requires no additional arguments. It will name the screenshot file `<method>_screenshot.png` and save it to the `unit_tests/web_tests/misc_files` folder.
+The `Page` class contains a `take_screenshot()` function. This function can be called at any time during the tests and requires no additional arguments. It will name the screenshot file `<method>_screenshot.png` and save it to the [misc_files](./misc_files) folder.
 
 ## Test Profiles
 
@@ -317,12 +324,6 @@ These items should ideally be fixed before the test suite is complete.
 
 These items should be finished before the test suite is considered completed. They affect the test suite's functionality.
 
-- Miscellaneous tests file (logout test, regular user can't do superuser actions tests)
-
-- Expand available systems for setup script (ubuntu wip, fix to include condor jobs)
-
-- Testing status page with jobs (wip)
-
 #### Tidying Up
 
 These items shouldn't affect the test suite's functionality much, but they would make it tidier and easier to work with. They should be done before the test suite is considered completed if possible, but they won't break anything if they aren't.
@@ -334,6 +335,8 @@ These items shouldn't affect the test suite's functionality much, but they would
 - Update comments/docstrings
 
 - Remove code that was commented out for testing
+
+- Edit openstack delete method for overlong keys
 
 ### Additional Features
 
@@ -359,8 +362,6 @@ These items are not necessary, but would be useful.
 
 - Alternate assertion information passing (phase out logfiles)
 
-- Class/method documentation for test modules
-
 - Speed up setup/teardown
 
 - Safari/Edge/IE tests (likely require VMs and use of `webdriver.Remote`)
@@ -369,6 +370,6 @@ These items are not necessary, but would be useful.
 
 - Better keyboard interrupt handling
 
-- Verify fixed error with row-spacer on status page
+- Fix row-spacer bug on Chrome
 
-- Investigate vms immediately going to error state (not actually necessary for making tests work - appears to be a resource shortage)
+- Investigate vms not registering in condor
