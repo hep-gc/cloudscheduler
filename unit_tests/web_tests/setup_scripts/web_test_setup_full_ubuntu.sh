@@ -112,7 +112,7 @@ if [ -z "$openstack_path" ]; then
     pip3 install python-openstackclient
 fi
 
-sudo ln -s /home/centos/cloudscheduler/cli/bin/cloudscheduler cloudscheduler
+sudo ln -s /home/ubuntu/cloudscheduler/cli/bin/cloudscheduler cloudscheduler
 echo 'Please save the following server settings as "unit-test":'
 cloudscheduler defaults set
 
