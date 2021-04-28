@@ -15,10 +15,10 @@ if [ -z "$pip_path" ]; then
     sudo apt-get -y install python3-pip
 fi
 
-sudo pip3 install --upgrade pip -H
-sudo pip3 install selenium -H
+pip3 install --upgrade pip
+pip3 install selenium
 
-sudo pip3 install python-openstackclient -H
+pip3 install python-openstackclient
 XDG_SESSION_TYPE=wayland
 
 wget_path=`which wget`
@@ -109,13 +109,13 @@ fi
 
 openstack_path=`which openstack`
 if [ -z "$openstack_path" ]; then
-    sudo pip3 install python-openstackclient -H
+    pip3 install python-openstackclient
 fi
 
-read -p 'Please enter the path to a private ssh key with no password that allows you to ssh onto the server: ' keypath
-read -p 'Please enter your server username: ' server_username
-read -p 'Please enter the server you wish to address: ' server
-read -p 'Please enter the port the server is on: ' server_port
+read -p 'Please enter the path to a private ssh key with no password that allows you to ssh onto the server (ex. /home/ubuntu/.ssh/web_testing): ' keypath
+read -p 'Please enter your server username (ex. sampleuser): ' server_username
+read -p 'Please enter the server you wish to address (ex. csv2-dev.heprc.uvic.ca: ' server
+read -p 'Please enter the port the server is on (ex. 2200): ' server_port
 
 cd ~/cloudscheduler/unit_tests/web_tests/misc_files
 
