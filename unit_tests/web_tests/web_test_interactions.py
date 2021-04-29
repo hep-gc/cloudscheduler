@@ -46,7 +46,6 @@ def fill_blank_by_id(driver, id, text, timeout=default_timeout):
     WebDriverWait(driver, timeout).until(
         EC.element_to_be_clickable((By.ID, id)))
     form = driver.find_element_by_id(id)
-    form.click()
     form.clear()
     form.send_keys(text)
     if form.get_attribute('value') != text:
@@ -58,7 +57,6 @@ def fill_blank_by_name(driver, name, text, timeout=default_timeout):
     WebDriverWait(driver, timeout).until(
         EC.element_to_be_clickable((By.NAME, name)))
     form = driver.find_element_by_name(name)
-    form.click()
     form.clear()
     form.send_keys(text)
     if form.get_attribute('value') != text:
@@ -70,7 +68,6 @@ def fill_blank_by_xpath(driver, xpath, text, timeout=default_timeout):
     WebDriverWait(driver, timeout).until(
         EC.element_to_be_clickable((By.XPATH, xpath)))
     form = driver.find_element_by_xpath(xpath)
-    form.click()
     form.clear()
     form.send_keys(text)
     if form.get_attribute('value') != text:
@@ -84,7 +81,6 @@ def fill_blank_by_tag_name(driver, tag_name, text, timeout=default_timeout):
     WebDriverWait(driver, timeout).until(
         EC.presence_of_element_located((By.TAG_NAME, tag_name)))
     form = driver.find_element_by_tag_name(tag_name)
-    form.click()
     form.clear()
     form.send_keys(text)
     if form.get_attribute('value') != text:

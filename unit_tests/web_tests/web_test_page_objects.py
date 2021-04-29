@@ -1012,7 +1012,12 @@ class ImagesPage(Page):
         wti.click_by_xpath(self.driver, xpath)
 
     def type_image_file_path(self, path):
-        wti.fill_blank_by_name(self.driver, 'myfile', path)
+        # Do not use 'wti.fill_blank_by_name' here
+        # It will fail because of the Chrome typing workaround
+        WebDriverWait(self.driver, 20).until(
+            EC.presence_of_element_located((By.NAME, 'myfile')))
+        file_path_blank = self.driver.find_element_by_name('myfile')
+        file_path_blank.send_keys(path)
 
     def type_image_url(self, url):
         wti.fill_blank_by_name(self.driver, 'myfileurl', url)
