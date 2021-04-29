@@ -314,6 +314,12 @@ def cleanup_objects(browser='firefox'):
             if subprocess.run(['openstack', 'keypair', 'delete', remove]).returncode != 0:
                 raise CleanUpError("keypair removal failed - check the openstack configuration and try again")
 
+    for i in range(1, 3):
+        remove = 'invalid-web-test-string-that-is-too-long-for-64-character-sql-data-field' + str(i)
+        if remove in names:
+            if subprocess.run(['openstack', 'keypair', 'delete', remove]).returncode != 0:
+                raise CleanUpError("keypair removal failed - check the openstack configuration and try again")
+
     object_log.close()
 
     delete_by_type(gvar, ['defaults', '-wis', '-s', 'server', []], 2)
