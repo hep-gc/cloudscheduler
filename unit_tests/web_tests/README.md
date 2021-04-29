@@ -104,8 +104,6 @@ Running as a module is done via `python3 -m <module_name> <options>`. It must be
 | `-su`          | `--super-user`   | Run the tests with a super user           |
 | `-ru`          | `--regular-user` | Run the tests with a regular user         |
 
-Running via unittest is done via `python3 -m <file_name>.<ClassName>.<function_name> -v`. It must be run in
-
 Running via unittest is done via `python3 -m <file_name>.<ClassName>.<function_name> -v`. It must be run in a directory with a symbolic link to the main cloudscheduler folder.
 
 ## Test Debugging
@@ -143,7 +141,7 @@ This is usually a result of x11 forwarding failing.
 
 ## Creating New Test Files
 
-New test files should be built off the template in [web_test_template.md](./web_test_template.md#test_web_page.py). These files should be placed in the `web_tests` directory.
+New test files should be built off the template in [web_test_template.md](./web_test_template.md#test_web_page.py). These files should be placed in [the `web_tests` directory](./).
 
 The new tests should be imported into and added to [create_test_suite.py](./create_test_suite.py).
 
@@ -239,7 +237,6 @@ This is a list of possible future features that have not been implemented.
 
 ### Future Features
 
-- Relative imports for [create_test_suite.py](./create_test_suite.py)
 - Standardize integer vs string for cloud page object inputs
 - Update comments/docstrings
 - Remove code that was commented out for testing
