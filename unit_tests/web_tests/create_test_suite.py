@@ -96,7 +96,7 @@ def chrome_test_suite():
 # This suite should not be included in any tests - it only contains duplicates
 def test_test_suite():
     tests = [
-        status.TestWebStatusRegularUserFirefox
+        group.TestWebGroupSuperUserFirefox
     ]
 
     suite = unittest.TestSuite()

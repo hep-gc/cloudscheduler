@@ -1,4 +1,4 @@
-if __name__ == "__main__":
+if __name__ == "__main__" or __name__ == "test_web_group":
     __package__ = 'cloudscheduler.unit_tests.web_tests'
 
 import unittest
