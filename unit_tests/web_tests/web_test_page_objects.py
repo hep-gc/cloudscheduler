@@ -37,7 +37,7 @@ class Page(object):
         try:
             self.click_top_nav(name)
         except UnexpectedAlertPresentException:
-            helpers.get_homepage_login(self.driver, username, password)
+            self.get_homepage_login(username, password)
             self.click_top_nav(name)
 
     def switch_default_group(self, group):

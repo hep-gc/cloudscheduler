@@ -18,7 +18,7 @@ class TestWebKeyCommon(unittest.TestCase):
         cls.oversize = cls.gvar['oversize']
 
     def setUp(self):
-        helpers.get_homepage()
+        self.page.get_homepage()
         self.page.click_top_nav('Keys')
 
     # TODO: Remove skip when done developing tests
