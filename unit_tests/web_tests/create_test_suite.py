@@ -1,14 +1,15 @@
 import unittest
-import web_tests.test_web_group as group
-import web_tests.test_web_user as user
-import web_tests.test_web_cloud as cloud
-import web_tests.test_web_alias as alias
-import web_tests.test_web_default as default
-import web_tests.test_web_image as image
-import web_tests.test_web_setting as setting
-import web_tests.test_web_config as config
-import web_tests.test_web_key as key
-import web_tests.test_web_status as status
+from . import test_web_group as group
+from . import test_web_user as user
+from . import test_web_cloud as cloud
+from . import test_web_alias as alias
+from . import test_web_default as default
+from . import test_web_image as image
+from . import test_web_setting as setting
+from . import test_web_config as config
+from . import test_web_key as key
+from . import test_web_status as status
+from . import test_web_misc as misc
 
 #IMPORTANT: All web tests must be added to the `tests` array in the appropriate browser's test suite in order for the `run_tests` script to pick them up
 def firefox_test_suite():
@@ -21,8 +22,9 @@ def firefox_test_suite():
         image.TestWebImageSuperUserFirefox, image.TestWebImageRegularUserFirefox,
         setting.TestWebSettingSuperUserFirefox, setting.TestWebSettingRegularUserFirefox,
         config.TestWebConfigSuperUserFirefox,
-        key.TestWebKeySuperUserFirefox,
-        status.TestWebStatusSuperUserFirefox, status.TestWebStatusRegularUserFirefox
+        key.TestWebKeySuperUserFirefox, key.TestWebKeyRegularUserFirefox,
+        status.TestWebStatusSuperUserFirefox, status.TestWebStatusRegularUserFirefox,
+        misc.TestWebMiscSuperUserFirefox, misc.TestWebMiscRegularUserFirefox
     ]
 
     suite = unittest.TestSuite()
@@ -40,8 +42,9 @@ def chromium_test_suite():
         image.TestWebImageSuperUserChromium, image.TestWebImageRegularUserChromium,
         setting.TestWebSettingSuperUserChromium, setting.TestWebSettingRegularUserChromium,
         config.TestWebConfigSuperUserChromium,
-        key.TestWebKeySuperUserChromium,
-        status.TestWebStatusSuperUserChromium, status.TestWebStatusRegularUserChromium
+        key.TestWebKeySuperUserChromium, key.TestWebKeyRegularUserChromium,
+        status.TestWebStatusSuperUserChromium, status.TestWebStatusRegularUserChromium,
+        misc.TestWebMiscSuperUserChromium, misc.TestWebMiscRegularUserChromium
     ]
 
     suite = unittest.TestSuite()
@@ -59,8 +62,9 @@ def opera_test_suite():
         image.TestWebImageSuperUserOpera, image.TestWebImageRegularUserOpera,
         setting.TestWebSettingSuperUserOpera, setting.TestWebSettingRegularUserOpera,
         config.TestWebConfigSuperUserOpera,
-        key.TestWebKeySuperUserOpera,
-        status.TestWebStatusSuperUserOpera, status.TestWebStatusRegularUserOpera
+        key.TestWebKeySuperUserOpera, key.TestWebKeyRegularUserOpera,
+        status.TestWebStatusSuperUserOpera, status.TestWebStatusRegularUserOpera,
+        misc.TestWebMiscSuperUserOpera, misc.TestWebMiscRegularUserOpera
     ]
 
     suite = unittest.TestSuite()
@@ -78,8 +82,9 @@ def chrome_test_suite():
         image.TestWebImageSuperUserChrome, image.TestWebImageRegularUserChrome,
         setting.TestWebSettingSuperUserChrome, setting.TestWebSettingRegularUserChrome,
         config.TestWebConfigSuperUserChrome,
-        key.TestWebKeySuperUserChrome,
-        status.TestWebStatusSuperUserChrome, status.TestWebStatusRegularUserChrome
+        key.TestWebKeySuperUserChrome, key.TestWebKeyRegularUserChrome,
+        status.TestWebStatusSuperUserChrome, status.TestWebStatusRegularUserChrome,
+        misc.TestWebMiscSuperUserChrome, misc.TestWebMiscRegularUserChrome
     ]
 
     suite = unittest.TestSuite()
@@ -91,7 +96,7 @@ def chrome_test_suite():
 # This suite should not be included in any tests - it only contains duplicates
 def test_test_suite():
     tests = [
-        status.TestWebStatusRegularUserChrome
+        status.TestWebStatusRegularUserFirefox
     ]
 
     suite = unittest.TestSuite()
