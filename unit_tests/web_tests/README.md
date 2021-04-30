@@ -230,7 +230,7 @@ This is a list of possible future features that have not been implemented.
 
 ### Future Tests
 
-- TMultiple types of clouds (held up on not having access to multiple types of clouds)
+- Multiple types of clouds (held up on not having access to multiple types of clouds)
 - Typing in select elements (works as a search feature)
 - Drag and drop actions on the status page plot (zoom in, double-click zoom out, move axes)
 - Additional config file tests (only `condor_poller.py` is currently tested)
@@ -239,8 +239,6 @@ This is a list of possible future features that have not been implemented.
 
 - Standardize integer vs string for cloud page object inputs
 - Update comments/docstrings
-- Remove code that was commented out for testing
-- Edit openstack delete method to properly delete keys that are too long for the cloudscheduler interface
 - Alternate assertion information passing (investigate if the logfiles are the most effective way to pass information)
 - Speed up setup/teardown
 - Safari/Edge/IE tests (likely require VMs and use of `webdriver.Remote`)
