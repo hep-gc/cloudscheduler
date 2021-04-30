@@ -103,7 +103,7 @@ def setup_objects(objects=[], browser='firefox'):
     cores = []
     for i in range(1, clouds_num + 1):
         clouds.append(gvar['user'] + '-wic' + str(i))
-        if i == 1:
+        if i == 1 and 'jobs' in objects:
             cores.append('4')
         else:
             cores.append('0')
@@ -111,7 +111,8 @@ def setup_objects(objects=[], browser='firefox'):
         if subprocess.run(['cloudscheduler', 'cloud', 'add', '-ca', credentials['authurl'], '-cn', clouds[i], '-cpw', credentials['password'], '-cP', credentials['project'], '-cr', credentials['region'], '-cU', credentials['username'], '-ct', 'openstack', '-vc', cores[i], '-g', gvar['base_group'], '-s', 'unit-test']).returncode != 0:
             raise SetUpException("cloud add failed - check the server status and openstack status")
     for i in range(0, clouds_num):
-        helpers.wait_for_openstack_poller(clouds[i], ['-vsg', 'default', '-vf', 't1'], output=True)
+        if 'clouds' in objects or 'jobs' in objects:
+            helpers.wait_for_openstack_poller(clouds[i], ['-vsg', 'default', '-vf', 't1'], output=True)
     if 'clouds' in objects:
         for i in range(1, 3):
             name = gvar['user'] + '-wim' + str(i) + '.yaml'
@@ -263,7 +264,7 @@ def cleanup_objects(browser='firefox'):
         job[-1] = job[-1].strip()
         task = job[-1]
         task = task.split('/')
-        if task[-1] == 'job.sh' and job[0] != 'Name':
+        if task[-1] == 'job.sh' and job[0] != 'Name' and gvar['server_username'] in task:
             if subprocess.run(['ssh', server_account, '-p', str(gvar['server_port']), '-i', gvar['server_keypath'], 'condor_rm ' + job[0]]).returncode != 0:
                 raise CleanUpException("ssh failed - check the ssh configuration and try again")
 
