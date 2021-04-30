@@ -29,18 +29,11 @@ from cloudscheduler.lib.signal_functions import event_receiver_registration
 
 from cloudscheduler.lib.select_ec2 import select_ec2_images, select_ec2_instance_types
 
-from keystoneclient.auth.identity import v2, v3
-from keystoneauth1 import session
-from keystoneauth1 import exceptions
-from novaclient import client as novaclient
-from neutronclient.v2_0 import client as neuclient
-from cinderclient import client as cinclient
-
 import boto3
 import urllib
 import json
 
-
+# Todo: this comment is about the openstack, maybe should update it to ec2
 # The purpose of this file is to get some information from the various registered
 # openstack clouds and place it in a database for use by cloudscheduler
 #

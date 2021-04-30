@@ -76,7 +76,7 @@ left outer join csv2_groups as cg on
     cj.group_name=cg.group_name
 left outer join csv2_service_catalog as csc on
     cg.htcondor_host_id=csc.host_id and
-    provider='condor_poller_na.py'
+    provider='condor_poller.py'
 left outer join condor_worker_gsi as cw on
     cg.htcondor_host_id=cw.htcondor_host_id
 join csv2_configuration as cc1 on

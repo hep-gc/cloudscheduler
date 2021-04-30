@@ -136,7 +136,7 @@ class ProcessMonitor:
         except Exception as ex:
             self.logging.exception(ex)
         if dynamic:
-            self.processes[process] = Process(target=dynamic_process_ids[process]["function"], args = (dynamic_process_ids[process]["args"],))
+            self.processes[process] = Process(target=self.dynamic_process_ids[process]["function"], args = (self.dynamic_process_ids[process]["args"],))
             self.processes[process].start()
         else:
             self.processes[process] = Process(target=self.process_ids[process])

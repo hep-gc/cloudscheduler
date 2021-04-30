@@ -5,10 +5,8 @@ import boto3
 
 
 from cloudscheduler.lib.schema import *
+from cloudscheduler.lib.openstack_functions import _get_openstack_sess, _get_openstack_api_version
 
-from keystoneclient.auth.identity import v2, v3
-from keystoneauth1 import session as keystone
-from keystoneauth1 import exceptions
 import keystoneclient.v2_0.client as v2c
 import keystoneclient.v3.client as v3c
 
@@ -116,14 +114,20 @@ def kill_retire(config, group_name, cloud_name, option, count, updater_str):
         else:
             ram_max = 999999999999
 
-        s = 'set @cores=0; set @ram=0; create or replace temporary table kill_retire_priority_list as select * from (select *,(@cores:=@cores+flavor_cores) as cores,(@ram:=@ram+flavor_ram) as ram from view_vm_kill_retire_priority_idle where group_name="%s" and cloud_name="%s" and killed<1 and retired<1 order by priority asc) as kpl where cores>%s or ram>%s' % (group_name, cloud_name, core_max, ram_max)
-        rc, msg = config.db_execute(s, multi=True)
+        s = 'set @cores=0;'
+        rc, msg = config.db_execute(s)
+        s = 'set @ram=0;'
+        rc, msg = config.db_execute(s)
+        s = 'create or replace temporary table kill_retire_priority_list as select * from (select *,(@cores:=@cores+flavor_cores) as cores,(@ram:=@ram+flavor_ram) as ram from view_vm_kill_retire_priority_idle where group_name="%s" and cloud_name="%s" and killed<1 and retired<1 order by priority asc) as kpl where cores>%s or ram>%s' % (group_name, cloud_name, core_max, ram_max) 
+        #print("setting up kill retire priority list")
+        rc, msg = config.db_execute(s)
         if rc != 0:
             print("Error setting up temp table kill_retire_priority_list:")
             print(msg)
             print("Unable to retire VMs..")
             config.db_rollback()
             return 0
+        #print("updating csv2_vms to retire")
         rc, msg = config.db_execute('update csv2_vms as cv left outer join (select * from kill_retire_priority_list) as kpl on cv.vmid=kpl.vmid set retire=1, updater="%s:r1" where kpl.vmid is not null' % updater_str)
         if rc != 0:
             print("Error updating VMs from kill_retire_priority_list:")
@@ -1681,40 +1685,33 @@ def get_amazon_session(config, cloud, target_cloud=None):
 #-------------------------------------------------------------------------------
 
 def get_openstack_session(config, cloud, target_cloud=None):
-    def __get_openstack_api_version__(authurl):
-        authsplit = authurl.split('/')
-        try:
-            version = int(float(authsplit[-1][1:])) if len(authsplit[-1]) > 0 else int(float(authsplit[-2][1:]))
-            return 0, None, version
-        except:
-            return 1, 'Bad openstack URL: %s, could not determine version' % authurl, None
-
-    C = {'auth_url': None}
+    C = {'authurl': None}
     if not target_cloud and 'group_name' in cloud and 'cloud_name' in cloud:
         rc, msg, target_cloud = get_target_cloud(config, cloud['group_name'], cloud['cloud_name'])
 
     if target_cloud:
-        C['auth_url'] = target_cloud['authurl']
+        C['authurl'] = target_cloud['authurl']
 
     if 'authurl' in cloud:
-        C['auth_url'] = cloud['authurl']
+        C['authurl'] = cloud['authurl']
 
-    #print(">>>>>>>>>>>>>>>>>>>>>>>>>> CLOUD", cloud, "TARGET", target_cloud, "AUTHURL", C['auth_url'])
-    if C['auth_url']:
-        rc, msg, version = __get_openstack_api_version__(C['auth_url'])
+    #print(">>>>>>>>>>>>>>>>>>>>>>>>>> CLOUD", cloud, "TARGET", target_cloud, "AUTHURL", C['authurl'])
+    if C['authurl']:
+        #rc, msg, version = __get_openstack_api_version__(C['authurl'])
+        rc, msg, version = _get_openstack_api_version(C['authurl'])
         if rc != 0:
             return rc, msg, None # could not determine version
 
         if version == 2:
             if target_cloud:
                 C['region'] = target_cloud['region']
-                C['tenant_name'] = target_cloud['project']
+                C['project'] = target_cloud['project']
                 C['username'] = target_cloud['username']
                 C['password'] = target_cloud['password']
 
             else:
                 C['region'] = None
-                C['tenant_name'] = None
+                C['project'] = None
                 C['username'] = None
                 C['password'] = None
 
@@ -1722,7 +1719,7 @@ def get_openstack_session(config, cloud, target_cloud=None):
                 C['region'] = cloud['region']
 
             if 'project' in cloud:
-                C['tenant_name'] = cloud['project']
+                C['project'] = cloud['project']
 
             if 'username' in cloud:
                 C['username'] = cloud['username']
@@ -1735,7 +1732,7 @@ def get_openstack_session(config, cloud, target_cloud=None):
                 C['region'] = target_cloud['region']
                 C['project_domain_id'] = target_cloud['project_domain_id']
                 C['project_domain_name'] = target_cloud['project_domain_name']
-                C['project_name'] = target_cloud['project']
+                C['project'] = target_cloud['project']
                 C['user_domain_name'] = target_cloud['user_domain_name']
                 C['username'] = target_cloud['username']
                 C['password'] = target_cloud['password']
@@ -1744,7 +1741,7 @@ def get_openstack_session(config, cloud, target_cloud=None):
                 C['region'] = None
                 C['project_domain_id'] = None
                 C['project_domain_name'] = 'Default'
-                C['project_name'] = None
+                C['project'] = None
                 C['user_domain_name'] = 'Default'
                 C['username'] = None
                 C['password'] = None
@@ -1759,7 +1756,7 @@ def get_openstack_session(config, cloud, target_cloud=None):
                 C['project_domain_name'] = cloud['project_domain_name']
 
             if 'project' in cloud:
-                C['project_name'] = cloud['project']
+                C['project'] = cloud['project']
 
             if 'user_domain_name' in cloud:
                 C['user_domain_name'] = cloud['user_domain_name']
@@ -1774,22 +1771,15 @@ def get_openstack_session(config, cloud, target_cloud=None):
         return 1, 'Missing openstack URL', None
             
     if version == 2:
-        if C['auth_url'] and C['region'] and C['tenant_name'] and C['username'] and C['password']:
+        if C['authurl'] and C['region'] and C['project'] and C['username'] and C['password']:
             try:
                 KC = v2c.Client(
-                    auth_url=C['auth_url'],
-                    tenant_name=C['tenant_name'],
+                    auth_url=C['authurl'],
+                    tenant_name=C['project'],
                     username=C['username'],
                     password=C['password']
                     )
-
-                auth = v2.Password(
-                    auth_url=C['auth_url'],
-                    tenant_name=C['tenant_name'],
-                    username=C['username'],
-                    password=C['password']
-                    )
-                session = keystone.Session(auth=auth, verify=config.categories["GSI"]["cacerts"])
+                session = _get_openstack_sess(C, config.categories["GSI"]["cacerts"])
                 return 0, None, session
 
             except Exception as exc:
@@ -1800,28 +1790,18 @@ def get_openstack_session(config, cloud, target_cloud=None):
             return 1, 'insufficient credentials to establish openstack v2 session: %s' % C, None
 
     elif version == 3:
-        if C['auth_url'] and C['region'] and C['project_domain_name'] and C['project_name'] and C['user_domain_name'] and C['username'] and C['password']:
+        if C['authurl'] and C['region'] and C['project_domain_name'] and C['project'] and C['user_domain_name'] and C['username'] and C['password']:
             try:
                 KC = v3c.Client(
-                    auth_url=C['auth_url'],
+                    auth_url=C['authurl'],
                     project_domain_id=C['project_domain_id'],
                     project_domain_name=C['project_domain_name'],
-                    project_name=C['project_name'],
+                    project_name=C['project'],
                     user_domain_name=C['user_domain_name'],
                     username=C['username'],
                     password=C['password']
                     )
-
-                auth = v3.Password(
-                    auth_url=C['auth_url'],
-                    project_domain_id=C['project_domain_id'],
-                    project_domain_name=C['project_domain_name'],
-                    project_name=C['project_name'],
-                    user_domain_name=C['user_domain_name'],
-                    username=C['username'],
-                    password=C['password']
-                    )
-                session = keystone.Session(auth=auth, verify=config.categories["GSI"]["cacerts"])
+                session = _get_openstack_sess(C, config.categories["GSI"]["cacerts"])
                 return 0, None, session
 
             except Exception as exc:

@@ -49,6 +49,10 @@ CLOUD_KEYS = {
     'format': {
         'cloud_name':                           'lowerdash',
         'cloud_type':                           ('csv2_cloud_types', 'cloud_type'),
+        'auth_type':                            '', #may be converted to reference table like cloud_type
+        'app_credentials':                      'ignore',
+        'app_credentials_secret':               'ignore',
+        'app_credentials_expiry':               'integer', #this may need to change to a date obj
         'enabled':                              'dboolean',
         'priority':                             'integer',
         'flavor_name':                          'ignore',
@@ -105,6 +109,11 @@ CLOUD_ADD_KEYS = {
         'password',
         'region',
         'cloud_type',
+        ],
+    'optional': [
+        'auth_type',
+        'app_credentials',
+        'app_credentials_secret',
         ]
     }
 
@@ -279,8 +288,9 @@ def manage_cloud_flavor_exclusions(config, tables, active_group, cloud_name, fla
     where_clause = "group_name='%s' and cloud_name='%s'" % (active_group, cloud_name)
     rc, msg, exclusion_list = config.db_query(table, where=where_clause)
 
-    for row in exclusion_list:
-        exclusions.append(row['flavor_name'])
+    if len(exclusion_list) > 0:
+        for row in exclusion_list:
+            exclusions.append(row['flavor_name'])
 
     if not option or option == 'add':
         # Get the list of flavor exclusions (flavor_names) specified that the cloud doesn't already have.
@@ -1802,6 +1812,7 @@ def update(request):
             elif 'ram_ctl' in fields:
                 updates += kill_retire(config, active_user.active_group, fields['cloud_name'], 'control', [-1, fields['ram_ctl']], get_frame_info())
         except Exception as exc:
+            print("Error executing kill_retire:")
             print(exc)
 
         # Update the cloud's flavor exclusions.

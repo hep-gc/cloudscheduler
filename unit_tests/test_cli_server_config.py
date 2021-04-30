@@ -73,8 +73,8 @@ def main(gvar):
 
     # 42
     execute_csv2_command(
-        gvar, 1, 'SV', 'server config update failed - value specified ("invalid-unit-test") for category="csjobs.py", config_key="log_level" must be an integer.',
-        ['server', 'config', '-cc', 'csjobs.py', '-ckv', 'log_level=invalid-unit-test']
+        gvar, 1, 'SV', 'server config update failed - value specified ("invalid-unit-test") for category="condor_poller.py", config_key="log_level" must be an integer.',
+        ['server', 'config', '-cc', 'condor_poller.py', '-ckv', 'log_level=invalid-unit-test']
     )
 
     # 43
@@ -93,7 +93,7 @@ def main(gvar):
     # 45
     execute_csv2_command(
         gvar, 0, None, 'server config update successfully updated the following keys: log_level',
-        ['server', 'config', '-cc', 'csjobs.py', '-ckv', 'log_level=10']
+        ['server', 'config', '-cc', 'condor_poller.py', '-ckv', 'log_level=10']
     )
 
     # Change settings back to what we presume they were.
@@ -106,7 +106,7 @@ def main(gvar):
     # 47
     execute_csv2_command(
         gvar, 0, None, 'server config update successfully updated the following keys: log_level',
-        ['server', 'config', '-cc', 'csjobs.py', '-ckv', 'log_level=20']
+        ['server', 'config', '-cc', 'condor_poller.py', '-ckv', 'log_level=20']
     )
 
 if __name__ == "__main__":
