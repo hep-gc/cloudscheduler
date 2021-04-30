@@ -49,16 +49,6 @@ def skip_if_flag(name, flag, value):
     if flag == value:
         raise unittest.SkipTest(message)
 
-#def cumulative_days(month, year):
-#    feb = 28
-#    if year%4 == 0 and year%100 !=0:
-#        feb = 29
-#    days = [31, feb, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
-#    sum = 0
-#    for number in days[:month-1]:
-#        sum += number
-#    return sum
-
 def time_before(difference, units):
     import datetime
 
@@ -104,59 +94,6 @@ def parse_datetime(datetime_string):
 
     return start_time
 
-#def round_datetime(dt, round, forward):
-#    import datetime
-#
-#    round = int(round)
-#    subtract = datetime.timedelta(seconds=(dt.hour*3600 + dt.minute*60 + dt.second)%round, microseconds=dt.microsecond)
-#    dt = dt - subtract
-#    if subtract.seconds > (round / 15) and forward:# and not (subtract.seconds < 6 and subtract.seconds // 60 == 0):
-#        dt += datetime.timedelta(seconds=round)
-#    return dt
-
-#def round_date(dt, round, forward):
-#    import datetime
-#
-#    if round < 30:
-#        subtract = datetime.timedelta(days=(dt.year*365 + dt.year//4 - dt.year//100 + cumulative_days(dt.month, dt.year) + dt.day) % round)
-#        dt = dt - subtract
-#        print(dt)
-#        print(forward)
-#        print(round)
-#        if forward and not (round > 13 and subtract.days <= 1):
-#            dt += datetime.timedelta(days=round)
-#        if round >= 7:
-#            if dt.weekday() != 6:
-#                if forward and round > 10:
-#                    dt += datetime.timedelta(days=7-dt.isoweekday())
-#                else:
-#                    dt -= datetime.timedelta(days=dt.isoweekday())
-#            if not forward and round < 10:
-#                dt += datetime.timedelta(days=7)
-#        print(dt)
-#        try:
-#            dt.replace(day=dt.day+1)
-#        except ValueError:
-#            if forward:# and dt.day < 30:
-#                dt += datetime.timedelta(days=round)
-#        #if not forward and dt.day == 1:
-#        #    if (dt - datetime.timedelta(days=1)).day < 30:
-#        #        dt -= datetime.timedelta(days=1)
-#    else:
-#        if forward:
-#            dt = dt.replace(month=(dt.month)%12 + 1)
-#        else:
-#            dt = dt.replace(month=(dt.month)%12 - 1)
-#        while (dt.month-1)%(round//31) != 0:
-#            if dt.month >= 12:
-#                dt = dt.replace(month=1, year= dt.year+1)
-#            else:
-#                try:
-#                    dt = dt.replace(month=dt.month+1)
-#                except ValueError:
-#                    dt = dt.replace(month=dt.month+2, day=1)
-#    return dt
-
 def margin_units_from_units(units):
     if units == 'seconds' or units == 'minutes' or units == 'hours':
         return 'minutes'
@@ -172,6 +109,7 @@ def time_within_margin(shown_time, true_time, margin, units):
     last = None
     # last is multiplied by 2 to account for the graph sometimes rounding the
     # value forward
+    # first has 1 added for the same reason (with months)
     if units == 'minutes':
         first = true_time - datetime.timedelta(seconds=int(margin*60))
         last = true_time + datetime.timedelta(seconds=int(margin*120))
@@ -180,7 +118,7 @@ def time_within_margin(shown_time, true_time, margin, units):
         last = true_time + datetime.timedelta(hours=margin*2)
     elif units == 'days':
         first = true_time - datetime.timedelta(days=margin*2)
-        last = true_time + datetime.timedelta(days=margin)
+        last = true_time + datetime.timedelta(days=margin+1)
     return shown_time > first and shown_time < last
 
 def parse_command_line_arguments(args, classes, has_regular_user):
