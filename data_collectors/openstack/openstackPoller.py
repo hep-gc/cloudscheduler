@@ -147,13 +147,13 @@ def flavor_poller():
                 # build unique cloud list to only query a given cloud once per cycle
                 unique_cloud_dict = {}
                 for cloud in cloud_list:
-                    if cloud["authurl"]+cloud["project"]+cloud["region"] not in unique_cloud_dict:
-                        unique_cloud_dict[cloud["authurl"]+cloud["project"]+cloud["region"]] = {
+                    if cloud["authurl"]+cloud["project"]+cloud["region"]+cloud["username"] not in unique_cloud_dict:
+                        unique_cloud_dict[cloud["authurl"]+cloud["project"]+cloud["region"]+cloud["username"]] = {
                             'cloud_obj': cloud,
                             'groups': [(cloud["group_name"], cloud["cloud_name"])]
                         }
                     else:
-                        unique_cloud_dict[cloud["authurl"]+cloud["project"]+cloud["region"]]['groups'].append((cloud["group_name"], cloud["cloud_name"]))
+                        unique_cloud_dict[cloud["authurl"]+cloud["project"]+cloud["region"]+cloud["username"]]['groups'].append((cloud["group_name"], cloud["cloud_name"]))
 
 
                 for cloud in unique_cloud_dict:
@@ -166,11 +166,11 @@ def flavor_poller():
                         for cloud_tuple in unique_cloud_dict[cloud]['groups']:
                             grp_nm = cloud_tuple[0]
                             cld_nm = cloud_tuple[1]
-                            if cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] not in failure_dict:
-                                failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"]] = 1
+                            if cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] + cloud["username"] not in failure_dict:
+                                failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] + cloud["username"]] = 1
                             else:
-                                failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"]] = failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"]] + 1
-                            if failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"]] > 3: #should be configurable
+                                failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] + cloud["username"]] = failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"]] + 1
+                            if failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] + cloud["username"]] > 3: #should be configurable
                                 logging.error("Failure threshhold limit reached for %s, manual action required, reporting cloud error" % grp_nm+cld_nm)
                                 config.incr_cloud_error(grp_nm, cld_nm)
                             continue
@@ -191,11 +191,11 @@ def flavor_poller():
                         for cloud_tuple in unique_cloud_dict[cloud]['groups']:
                             grp_nm = cloud_tuple[0]
                             cld_nm = cloud_tuple[1]
-                            if cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] not in failure_dict:
-                                failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"]] = 1
+                            if cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] + cloud["username"] not in failure_dict:
+                                failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] + cloud["username"]] = 1
                             else:
-                                failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"]] = failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"]] + 1
-                            if failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"]] > 3: #should be configurable
+                                failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] + cloud["username"]] = failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] + cloud["username"]] + 1
+                            if failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] + cloud["username"]] > 3: #should be configurable
                                 logging.error("Failure threshhold limit reached for %s, manual action required, reporting cloud error" % grp_nm+cld_nm)
                                 config.incr_cloud_error(grp_nm, cld_nm)
                         continue
@@ -207,7 +207,7 @@ def flavor_poller():
                     for cloud_tuple in unique_cloud_dict[cloud]['groups']:
                         grp_nm = cloud_tuple[0]
                         cld_nm = cloud_tuple[1]
-                        failure_dict.pop(cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"], None)
+                        failure_dict.pop(cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"], None)
                         config.reset_cloud_error(grp_nm, cld_nm)
 
                     # Process flavours for this cloud.
@@ -282,7 +282,7 @@ def flavor_poller():
                 rc, msg, cloud_list = config.db_query(CLOUD, where="cloud_type='openstack'")
                 new_f_dict = {}
                 for cloud in cloud_list:
-                    key = cloud["authurl"] + cloud["project"] + cloud["region"]
+                    key = cloud["authurl"] + cloud["project"] + cloud["region"] + cloud["username"]
                     if key in failure_dict:
                         new_f_dict[cloud["group_name"]+cloud["cloud_name"]] = 1
 
@@ -362,13 +362,13 @@ def image_poller():
                 # build unique cloud list to only query a given cloud once per cycle
                 unique_cloud_dict = {}
                 for cloud in cloud_list:
-                    if cloud["authurl"]+cloud["project"]+cloud["region"] not in unique_cloud_dict:
-                        unique_cloud_dict[cloud["authurl"]+cloud["project"]+cloud["region"]] = {
+                    if cloud["authurl"]+cloud["project"]+cloud["region"]+cloud["username"] not in unique_cloud_dict:
+                        unique_cloud_dict[cloud["authurl"]+cloud["project"]+cloud["region"]+cloud["username"]] = {
                             'cloud_obj': cloud,
                             'groups': [(cloud["group_name"], cloud["cloud_name"])]
                         }
                     else:
-                        unique_cloud_dict[cloud["authurl"]+cloud["project"]+cloud["region"]]['groups'].append((cloud["group_name"], cloud["cloud_name"]))
+                        unique_cloud_dict[cloud["authurl"]+cloud["project"]+cloud["region"]+cloud["username"]]['groups'].append((cloud["group_name"], cloud["cloud_name"]))
 
                 for cloud in unique_cloud_dict:
                     cloud_obj = unique_cloud_dict[cloud]['cloud_obj']
@@ -380,11 +380,11 @@ def image_poller():
                         for cloud_tuple in unique_cloud_dict[cloud]['groups']:
                             grp_nm = cloud_tuple[0]
                             cld_nm = cloud_tuple[1]
-                            if cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] not in failure_dict:
-                                failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"]] = 1
+                            if cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"] not in failure_dict:
+                                failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"]] = 1
                             else:
-                                failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"]] = failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"]] + 1
-                            if failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"]] > 3: #should be configurable
+                                failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] + cloud["username"]] = failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] + cloud["username"]] + 1
+                            if failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] + cloud["username"]] > 3: #should be configurable
                                 logging.error("Failure threshhold limit reached for %s, manual action required, reporting cloud error" % grp_nm+cld_nm)
                                 config.incr_cloud_error(grp_nm, cld_nm)
                         continue
@@ -401,18 +401,18 @@ def image_poller():
                     
                     try:
                         image_list = glance.images()
-                        post_req_time = time.time()*1000000
+                        post_req_time = time.time() * 1000000
                     except Exception as exc:
                         logging.error("Failed to retrieve image data for %s, skipping this cloud..." % cloud_name)
                         logging.error(exc)
                         for cloud_tuple in unique_cloud_dict[cloud]['groups']:
                             grp_nm = cloud_tuple[0]
                             cld_nm = cloud_tuple[1]
-                            if cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] not in failure_dict:
-                                failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"]] = 1
+                            if cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] + cloud["username"] not in failure_dict:
+                                failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] + cloud["username"]] = 1
                             else:
-                                failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"]] = failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"]] + 1
-                            if failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"]] > 3: #should be configurable
+                                failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] + cloud["username"]] = failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] + cloud["username"]] + 1
+                            if failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] + cloud["username"]] > 3: #should be configurable
                                 logging.error("Failure threshhold limit reached for %s, manual action required, reporting cloud error" % grp_nm+cld_nm)
                                 config.incr_cloud_error(grp_nm, cld_nm)
                         continue
@@ -425,11 +425,12 @@ def image_poller():
                     for cloud_tuple in unique_cloud_dict[cloud]['groups']:
                         grp_nm = cloud_tuple[0]
                         cld_nm = cloud_tuple[1]
-                        failure_dict.pop(cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"], None)
+                        failure_dict.pop(cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"], None)
                         where_clause = "group_name='%s' and cloud_name='%s'" % (grp_nm, cld_nm)
                         rc, msg, cloud_rows = config.db_query(CLOUD, where=where_clause)
                         cloud_row = cloud_rows[0]
-                        logging.debug("pre request time:%s   post request time:%s" % (post_req_time, pre_req_time))
+                        #logging.debug("pre request time:%s   post request time:%s" % (post_req_time, pre_req_time))
+                        logging.info("pre request time:%s   post request time:%s" % (post_req_time, pre_req_time))
                         cloud_row["communication_rt"] = int(post_req_time - pre_req_time)
                         try:
                             cld_update_dict = {
@@ -523,7 +524,7 @@ def image_poller():
                 new_f_dict = {}
                 logging.debug("Proccessing failure, failure_dict: %s" % failure_dict)
                 for cloud in cloud_list:
-                    key = cloud["authurl"] + cloud["project"] + cloud["region"]
+                    key = cloud["authurl"] + cloud["project"] + cloud["region"] + cloud["username"]
                     if key in failure_dict:
                         new_f_dict[cloud["group_name"]+cloud["cloud_name"]] = 1
                         cld_update_dict = {
@@ -611,13 +612,13 @@ def keypair_poller():
                 # build unique cloud list to only query a given cloud once per cycle
                 unique_cloud_dict = {}
                 for cloud in cloud_list:
-                    if cloud["authurl"]+cloud["project"]+cloud["region"] not in unique_cloud_dict:
-                        unique_cloud_dict[cloud["authurl"]+cloud["project"]+cloud["region"]] = {
+                    if cloud["authurl"]+cloud["project"]+cloud["region"]+cloud["username"] not in unique_cloud_dict:
+                        unique_cloud_dict[cloud["authurl"]+cloud["project"]+cloud["region"]+cloud["username"]] = {
                             'cloud_obj': cloud,
                             'groups': [(cloud["group_name"], cloud["cloud_name"])]
                         }
                     else:
-                        unique_cloud_dict[cloud["authurl"]+cloud["project"]+cloud["region"]]['groups'].append((cloud["group_name"], cloud["cloud_name"]))
+                        unique_cloud_dict[cloud["authurl"]+cloud["project"]+cloud["region"]+cloud["username"]]['groups'].append((cloud["group_name"], cloud["cloud_name"]))
 
                 for cloud in unique_cloud_dict:
                     cloud_name = unique_cloud_dict[cloud]['cloud_obj']["authurl"]
@@ -629,11 +630,11 @@ def keypair_poller():
                         for cloud_tuple in unique_cloud_dict[cloud]['groups']:
                             grp_nm = cloud_tuple[0]
                             cld_nm = cloud_tuple[1]
-                            if cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] not in failure_dict:
-                                failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"]] = 1
+                            if cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] + cloud["username"] not in failure_dict:
+                                failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] + cloud["username"]] = 1
                             else:
-                                failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"]] = failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"]] + 1
-                            if failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"]] > 3: #should be configurable
+                                failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] + cloud["username"]] = failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] + cloud["username"]] + 1
+                            if failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] + cloud["username"]] > 3: #should be configurable
                                 logging.error("Failure threshhold limit reached for %s, manual action required, reporting cloud error" % grp_nm+cld_nm)
                                 config.incr_cloud_error(grp_nm, cld_nm)
                         continue
@@ -657,11 +658,11 @@ def keypair_poller():
                         for cloud_tuple in unique_cloud_dict[cloud]['groups']:
                             grp_nm = cloud_tuple[0]
                             cld_nm = cloud_tuple[1]
-                            if cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] not in failure_dict:
-                                failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"]] = 1
+                            if cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"] not in failure_dict:
+                                failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"]] = 1
                             else:
-                                failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"]] = failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"]] + 1
-                            if failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"]] > 3: #should be configurable
+                                failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"]] = failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"]] + 1
+                            if failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"]] > 3: #should be configurable
                                 logging.error("Failure threshhold limit reached for %s, manual action required, reporting cloud error" % grp_nm+cld_nm)
                                 config.incr_cloud_error(grp_nm, cld_nm)
                         continue
@@ -669,7 +670,7 @@ def keypair_poller():
                     for cloud_tuple in unique_cloud_dict[cloud]['groups']:
                         grp_nm = cloud_tuple[0]
                         cld_nm = cloud_tuple[1]
-                        failure_dict.pop(cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"], None)
+                        failure_dict.pop(cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"], None)
                         config.reset_cloud_error(grp_nm, cld_nm)
 
                     uncommitted_updates = 0
@@ -722,7 +723,7 @@ def keypair_poller():
                 rc, msg, cloud_list = config.db_query(CLOUD, where=where_clause)
                 new_f_dict = {}
                 for cloud in cloud_list:
-                    key = cloud["authurl"] + cloud["project"] + cloud["region"]
+                    key = cloud["authurl"] + cloud["project"] + cloud["region"] + cloud["username"]
                     if key in failure_dict:
                         new_f_dict[cloud["group_name"]+cloud["cloud_name"]] = 1
 
@@ -804,13 +805,15 @@ def limit_poller():
                 # build unique cloud list to only query a given cloud once per cycle
                 unique_cloud_dict = {}
                 for cloud in cloud_list:
-                    if cloud["authurl"]+cloud["project"]+cloud["region"] not in unique_cloud_dict:
-                        unique_cloud_dict[cloud["authurl"]+cloud["project"]+cloud["region"]] = {
+                    if cloud["authurl"]+cloud["project"]+cloud["region"]+cloud["username"] not in unique_cloud_dict:
+                        unique_cloud_dict[cloud["authurl"]+cloud["project"]+cloud["region"]+cloud["username"]] = {
                             'cloud_obj': cloud,
                             'groups': [(cloud["group_name"], cloud["cloud_name"])]
                         }
                     else:
-                        unique_cloud_dict[cloud["authurl"]+cloud["project"]+cloud["region"]]['groups'].append((cloud["group_name"], cloud["cloud_name"]))
+                        unique_cloud_dict[cloud["authurl"]+cloud["project"]+cloud["region"]+cloud["username"]]['groups'].append((cloud["group_name"], cloud["cloud_name"]))
+
+                logging.debug("Unique clouds dict: %s" % unique_cloud_dict.keys())
 
                 for cloud in unique_cloud_dict:
                     cloud_name = unique_cloud_dict[cloud]['cloud_obj']["authurl"]
@@ -822,11 +825,11 @@ def limit_poller():
                         for cloud_tuple in unique_cloud_dict[cloud]['groups']:
                             grp_nm = cloud_tuple[0]
                             cld_nm = cloud_tuple[1]
-                            if cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] not in failure_dict:
-                                failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"]] = 1
+                            if cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"] not in failure_dict:
+                                failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"]] = 1
                             else:
-                                failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"]] = failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"]] + 1
-                            if failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"]] > 3: #should be configurable
+                                failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"]] = failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"]] + 1
+                            if failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"]] > 3: #should be configurable
                                 logging.error("Failure threshhold limit reached for %s, manual action required, reporting cloud error" % grp_nm+cld_nm)
                                 config.incr_cloud_error(grp_nm, cld_nm)
                         continue
@@ -849,11 +852,11 @@ def limit_poller():
                         for cloud_tuple in unique_cloud_dict[cloud]['groups']:
                             grp_nm = cloud_tuple[0]
                             cld_nm = cloud_tuple[1]
-                            if cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] not in failure_dict:
-                                failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"]] = 1
+                            if cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"] not in failure_dict:
+                                failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"]] = 1
                             else:
-                                failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"]] = failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"]] + 1
-                            if failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"]] > 3: #should be configurable
+                                failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"]] = failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"]] + 1
+                            if failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"]] > 3: #should be configurable
                                 logging.error("Failure threshhold limit reached for %s, manual action required, reporting cloud error" % grp_nm+cld_nm)
                                 config.incr_cloud_error(grp_nm, cld_nm)
                         continue
@@ -865,7 +868,7 @@ def limit_poller():
                     for cloud_tuple in unique_cloud_dict[cloud]['groups']:
                         grp_nm = cloud_tuple[0]
                         cld_nm = cloud_tuple[1]
-                        failure_dict.pop(cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"], None)
+                        failure_dict.pop(cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"], None)
                         config.reset_cloud_error(grp_nm, cld_nm)
 
                     # Process limit list for the current cloud.
@@ -924,7 +927,7 @@ def limit_poller():
                 rc, msg, cloud_list = config.db_query(CLOUD, where=where_clause)
                 new_f_dict = {}
                 for cloud in cloud_list:
-                    key = cloud["authurl"] + cloud["project"] + cloud["region"]
+                    key = cloud["authurl"] + cloud["project"] + cloud["region"] + cloud["username"]
                     if key in failure_dict:
                         new_f_dict[cloud["group_name"]+cloud["cloud_name"]] = 1
 
@@ -1002,13 +1005,13 @@ def network_poller():
                 # build unique cloud list to only query a given cloud once per cycle
                 unique_cloud_dict = {}
                 for cloud in cloud_list:
-                    if cloud["authurl"]+cloud["project"]+cloud["region"] not in unique_cloud_dict:
-                        unique_cloud_dict[cloud["authurl"]+cloud["project"]+cloud["region"]] = {
+                    if cloud["authurl"]+cloud["project"]+cloud["region"]+cloud["username"] not in unique_cloud_dict:
+                        unique_cloud_dict[cloud["authurl"]+cloud["project"]+cloud["region"]+cloud["username"]] = {
                             'cloud_obj': cloud,
                             'groups': [(cloud["group_name"], cloud["cloud_name"])]
                         }
                     else:
-                        unique_cloud_dict[cloud["authurl"]+cloud["project"]+cloud["region"]]['groups'].append((cloud["group_name"], cloud["cloud_name"]))
+                        unique_cloud_dict[cloud["authurl"]+cloud["project"]+cloud["region"]+cloud["username"]]['groups'].append((cloud["group_name"], cloud["cloud_name"]))
 
                 for cloud in unique_cloud_dict:
                     cloud_name = unique_cloud_dict[cloud]['cloud_obj']["authurl"]
@@ -1020,11 +1023,11 @@ def network_poller():
                         for cloud_tuple in unique_cloud_dict[cloud]['groups']:
                             grp_nm = cloud_tuple[0]
                             cld_nm = cloud_tuple[1]
-                            if cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] not in failure_dict:
-                                failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"]] = 1
+                            if cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"] not in failure_dict:
+                                failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"]] = 1
                             else:
-                                failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"]] = failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"]] + 1
-                            if failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"]] > 3: #should be configurable
+                                failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"]] = failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"]] + 1
+                            if failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"]] > 3: #should be configurable
                                 logging.error("Failure threshhold limit reached for %s, manual action required, reporting cloud error" % grp_nm+cld_nm)
                                 config.incr_cloud_error(grp_nm, cld_nm)
                         continue
@@ -1044,11 +1047,11 @@ def network_poller():
                         for cloud_tuple in unique_cloud_dict[cloud]['groups']:
                             grp_nm = cloud_tuple[0]
                             cld_nm = cloud_tuple[1]
-                            if cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] not in failure_dict:
-                                failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"]] = 1
+                            if cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"] not in failure_dict:
+                                failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"]] = 1
                             else:
-                                failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"]] = failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"]] + 1
-                            if failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"]] > 3: #should be configurable
+                                failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"]] = failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"]] + 1
+                            if failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"]] > 3: #should be configurable
                                 logging.error("Failure threshhold limit reached for %s, manual action required, reporting cloud error" % grp_nm+cld_nm)
                                 config.incr_cloud_error(grp_nm, cld_nm)
                         continue
@@ -1060,7 +1063,7 @@ def network_poller():
                     for cloud_tuple in unique_cloud_dict[cloud]['groups']:
                         grp_nm = cloud_tuple[0]
                         cld_nm = cloud_tuple[1]
-                        failure_dict.pop(cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"], None)
+                        failure_dict.pop(cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"], None)
                         config.reset_cloud_error(grp_nm, cld_nm)
 
                     uncommitted_updates = 0
@@ -1121,7 +1124,7 @@ def network_poller():
                 rc, msg, cloud_list = config.db_query(CLOUD, where=where_clause)
                 new_f_dict = {}
                 for cloud in cloud_list:
-                    key = cloud["authurl"] + cloud["project"] + cloud["region"]
+                    key = cloud["authurl"] + cloud["project"] + cloud["region"] + cloud["username"]
                     if key in failure_dict:
                         new_f_dict[cloud["group_name"]+cloud["cloud_name"]] = 1
 
@@ -1202,13 +1205,13 @@ def security_group_poller():
                 # build unique cloud list to only query a given cloud once per cycle
                 unique_cloud_dict = {}
                 for cloud in cloud_list:
-                    if cloud["authurl"]+cloud["project"]+cloud["region"] not in unique_cloud_dict:
-                        unique_cloud_dict[cloud["authurl"]+cloud["project"]+cloud["region"]] = {
+                    if cloud["authurl"]+cloud["project"]+cloud["region"]+cloud["username"] not in unique_cloud_dict:
+                        unique_cloud_dict[cloud["authurl"]+cloud["project"]+cloud["region"]+cloud["username"]] = {
                             'cloud_obj': cloud,
                             'groups': [(cloud["group_name"], cloud["cloud_name"])]
                         }
                     else:
-                        unique_cloud_dict[cloud["authurl"]+cloud["project"]+cloud["region"]]['groups'].append((cloud["group_name"], cloud["cloud_name"]))
+                        unique_cloud_dict[cloud["authurl"]+cloud["project"]+cloud["region"]+cloud["username"]]['groups'].append((cloud["group_name"], cloud["cloud_name"]))
 
 
                 for cloud in unique_cloud_dict:
@@ -1221,11 +1224,11 @@ def security_group_poller():
                         for cloud_tuple in unique_cloud_dict[cloud]['groups']:
                             grp_nm = cloud_tuple[0]
                             cld_nm = cloud_tuple[1]
-                            if cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] not in failure_dict:
-                                failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"]] = 1
+                            if cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"] not in failure_dict:
+                                failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"]] = 1
                             else:
-                                failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"]] = failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"]] + 1
-                            if failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"]] > 3: #should be configurable
+                                failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"]] = failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"]] + 1
+                            if failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"]] > 3: #should be configurable
                                 logging.error("Failure threshhold limit reached for %s, manual action required, reporting cloud error" % grp_nm+cld_nm)
                                 config.incr_cloud_error(grp_nm, cld_nm)
                             continue
@@ -1246,11 +1249,11 @@ def security_group_poller():
                         for cloud_tuple in unique_cloud_dict[cloud]['groups']:
                             grp_nm = cloud_tuple[0]
                             cld_nm = cloud_tuple[1]
-                            if cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] not in failure_dict:
-                                failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"]] = 1
+                            if cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"] not in failure_dict:
+                                failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"]] = 1
                             else:
-                                failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"]] = failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"]] + 1
-                            if failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"]] > 3: #should be configurable
+                                failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"]] = failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"]] + 1
+                            if failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"]] > 3: #should be configurable
                                 logging.error("Failure threshhold limit reached for %s, manual action required, reporting cloud error" % grp_nm+cld_nm)
                                 config.incr_cloud_error(grp_nm, cld_nm)
                         continue
@@ -1262,7 +1265,7 @@ def security_group_poller():
                     for cloud_tuple in unique_cloud_dict[cloud]['groups']:
                         grp_nm = cloud_tuple[0]
                         cld_nm = cloud_tuple[1]
-                        failure_dict.pop(cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"], None)
+                        failure_dict.pop(cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"], None)
                         config.reset_cloud_error(grp_nm, cld_nm)
 
                     # Process security groups for this cloud.
@@ -1321,7 +1324,7 @@ def security_group_poller():
                 rc, qmsg, cloud_list = config.db_query(CLOUD, where=where_clause)
                 new_f_dict = {}
                 for cloud in cloud_list:
-                    key = cloud["authurl"] + cloud["project"] + cloud["region"]
+                    key = cloud["authurl"] + cloud["project"] + cloud["region"] + cloud["username"]
                     if key in failure_dict:
                         new_f_dict[cloud["group_name"]+cloud["cloud_name"]] = 1
 
@@ -1417,13 +1420,13 @@ def vm_poller():
             # build unique cloud list to only query a given cloud once per cycle
             unique_cloud_dict = {}
             for cloud in cloud_list:
-                if cloud["authurl"]+cloud["project"]+cloud["region"] not in unique_cloud_dict:
-                    unique_cloud_dict[cloud["authurl"]+cloud["project"]+cloud["region"]] = {
+                if cloud["authurl"]+cloud["project"]+cloud["region"]+cloud["username"] not in unique_cloud_dict:
+                    unique_cloud_dict[cloud["authurl"]+cloud["project"]+cloud["region"]+cloud["username"]] = {
                         'cloud_obj': cloud,
                         'groups': [(cloud["group_name"], cloud["cloud_name"])]
                     }
                 else:
-                    unique_cloud_dict[cloud["authurl"]+cloud["project"]+cloud["region"]]['groups'].append((cloud["group_name"], cloud["cloud_name"]))
+                    unique_cloud_dict[cloud["authurl"]+cloud["project"]+cloud["region"]+cloud["username"]]['groups'].append((cloud["group_name"], cloud["cloud_name"]))
 
             group_list = []
             for cloud in unique_cloud_dict:
@@ -1454,11 +1457,11 @@ def vm_poller():
                 sess = _get_openstack_sess(cloud_obj, config.categories["openstackPoller.py"]["cacerts"])
                 if sess is False:
                     logging.debug("Failed to establish session with %s::%s::%s, using group %s's credentials skipping this cloud..." % (cloud_obj["authurl"], cloud_obj["project"], cloud_obj["region"], cloud_obj["group_name"]))
-                    if auth_url + cloud_obj["project"] + cloud_obj["region"] not in failure_dict:
-                        failure_dict[auth_url + cloud_obj["project"] + cloud_obj["region"]] = 1
+                    if auth_url + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"] not in failure_dict:
+                        failure_dict[auth_url + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"]] = 1
                     else:
-                        failure_dict[auth_url + cloud_obj["project"] + cloud_obj["region"]] = failure_dict[auth_url + cloud_obj["project"] + cloud_obj["region"]] + 1
-                    if failure_dict[auth_url + cloud_obj["project"] + cloud_obj["region"]] > 3: #could be configurable
+                        failure_dict[auth_url + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"]] = failure_dict[auth_url + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"]] + 1
+                    if failure_dict[auth_url + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"]] > 3: #could be configurable
                         logging.error("Failure threshhold limit reached for %s::%s::%s, using group %s's credentials, manual action required, skipping" % (cloud_obj["authurl"], cloud_obj["project"], cloud_obj["region"], cloud_obj["group_name"]))
                     continue
 
@@ -1475,11 +1478,11 @@ def vm_poller():
                     logging.error("Failed to retrieve VM data for  %s::%s::%s, skipping this cloud..." % (cloud_obj["authurl"], cloud_obj["project"], cloud_obj["region"]))
                     logging.error("Exception type: %s" % type(exc))
                     logging.error(exc)
-                    if auth_url + cloud_obj["project"] + cloud_obj["region"] not in failure_dict:
-                        failure_dict[auth_url + cloud_obj["project"] + cloud_obj["region"]] = 1
+                    if auth_url + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"] not in failure_dict:
+                        failure_dict[auth_url + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"]] = 1
                     else:
-                        failure_dict[auth_url + cloud_obj["project"] + cloud_obj["region"]] = failure_dict[auth_url + cloud_obj["project"] + cloud_obj["region"]] + 1
-                    if failure_dict[auth_url + cloud_obj["project"] + cloud_obj["region"]] > 3: #should be configurable
+                        failure_dict[auth_url + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"]] = failure_dict[auth_url + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"]] + 1
+                    if failure_dict[auth_url + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"]] > 3: #should be configurable
                         logging.error("Failure threshhold limit reached for %s::%s::%s, using group %s's crednetials manual action required, skipping" % (cloud_obj["authurl"], cloud_obj["project"], cloud_obj["region"], cloud_obj["group_name"]))
                     continue
 
@@ -1489,7 +1492,7 @@ def vm_poller():
                     continue
 
                 # if we get here the connection to openstack has been succussful and we can remove the error status
-                failure_dict.pop(auth_url + cloud_obj["project"] + cloud_obj["region"], None)
+                failure_dict.pop(auth_url + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"], None)
                 #update network status
                 for cloud_tuple in unique_cloud_dict[cloud]['groups']:
                     grp_nm = cloud_tuple[0]
@@ -1561,7 +1564,10 @@ def vm_poller():
                         #not enough tokens, bad hostname or foreign vm
                         logging.debug("Not enough tokens from hostname, bad hostname or foreign vm: %s" % vm.name)
                         found_flavor = nova.find_flavor(name_or_id=vm.flavor['original_name'])
-                        vm_flavor_id = found_flavor.id
+                        if found_flavor is not None:
+                            vm_flavor_id = found_flavor.id
+                        else:
+                            vm_flavor_id = vm.flavor['original_name']
                         if auth_url + "--" + vm_flavor_id in for_vm_dict:
                             for_vm_dict[auth_url + "--" + vm_flavor_id]["count"] = for_vm_dict[auth_url + "--" + vm_flavor_id]["count"] + 1
                         else:
@@ -1689,7 +1695,7 @@ def vm_poller():
             rc, qmsg, cloud_list = config.db_query(CLOUD, where=where_clause)
             new_f_dict = {}
             for cloud in cloud_list:
-                key = cloud["authurl"] + cloud["project"] + cloud["region"]
+                key = cloud["authurl"] + cloud["project"] + cloud["region"] + cloud["username"]
                 if key in failure_dict:
                     new_f_dict[cloud["group_name"]+cloud["cloud_name"]] = 1
                     # update cloud network status
