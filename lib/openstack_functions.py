@@ -1,20 +1,26 @@
 import logging
 from openstack import connection
+from openstack import resource
+from openstack.compute.v2 import server as _server
 #from keystoneclient.auth.identity import v2
 from keystoneauth1.identity import v2, v3
 from keystoneauth1 import session
+
+class MyServer(_server.Server):
+    min_count = resource.Body('min_count')
+    max_count = resource.Body('max_count')
 
 def _get_openstack_appcredential_auth(cloud):
     try:
         auth = v3.ApplicationCredential(
             auth_url=cloud["authurl"],
-            application_credential_secret=cloud["application_credential_secret"], # todo: check what is name of application_credential... in cloud
-            application_credential_id=cloud["application_credential_id"]
+            application_credential_secret=cloud["app_credentials_secret"], # todo: check what is name of application_credential... in cloud
+            application_credential_id=cloud["app_credentials"]
         )
     except Exception as exc:
         logging.error("Failed to setup auth, skipping %s", cloud["cloud_name"])
         logging.error("Problem importing keystone modules for application credential identity, and getting auth for grp:cloud - %s: %s", (cloud["authurl"] ,exc))
-        logging.error("Connection parameters: \n authurl: %s \n application_credential_secret: %s \n application_credential_id: %s", (cloud["authurl"], cloud["application_credential_secret"], cloud["application_credential_id"]))
+        logging.error("Connection parameters: \n authurl: %s \n application_credential_secret: %s \n application_credential_id: %s", (cloud["authurl"], cloud["app_credentials_secret"], cloud["app_credentials"]))
         return False
     return auth
 
@@ -86,8 +92,7 @@ def _get_keystone_connection(sess, region=None):
 def _get_openstack_sess(cloud, verify=None):
     try:
         auth = None
-        # todo: check the attribute name in cloud
-        if cloud["application_credential_secret"] and cloud["application_credential_id"]:
+        if cloud.get("app_credentials_secret") and cloud.get("app_credentials"):
             auth = _get_openstack_appcredential_auth(cloud)
         else:
             auth = _get_openstack_auth(cloud)

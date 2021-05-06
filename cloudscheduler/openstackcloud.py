@@ -8,13 +8,14 @@ import logging
 import openstack
 import novaclient.exceptions
 from novaclient import client as nvclient
+import base64
 
 #import cloudscheduler.basecloud
 #import cloudscheduler.config as csconfig
 import json
 import basecloud
 import config as csconfig
-from cloudscheduler.lib.openstack_functions import _get_openstack_sess, _get_nova_connection, _get_glance_connection, _get_neutron_connection, _get_cinder_connection
+from cloudscheduler.lib.openstack_functions import MyServer, _get_openstack_sess, _get_nova_connection, _get_glance_connection, _get_neutron_connection, _get_cinder_connection
 
 class OpenStackCloud(basecloud.BaseCloud):
 
@@ -81,7 +82,7 @@ class OpenStackCloud(basecloud.BaseCloud):
                                          template_dict=template_dict)
         self.log.debug("~!~!~Userdata~!~!~")
         self.log.debug(userdata)
-
+        
         nova = self._get_creds_nova()
         # Check For valid security groups
 
@@ -116,8 +117,8 @@ class OpenStackCloud(basecloud.BaseCloud):
             else:
                 imageobj = self._find_image(glance, csconfig.config.default_image)
         except Exceptions as ex:
-            imageob = None
-
+            imageobj = None
+        
         if not imageobj:
             self.config.update_service_catalog(provider='csmain', error='Error finding image for group: %s, cloud: %s - %s' % (self.group, self.name, ex), logger=self.log)
             return -1
@@ -126,7 +127,6 @@ class OpenStackCloud(basecloud.BaseCloud):
         #flavor = flavor
         instancetype_dict = self._attr_list_to_dict(job.get("instance_type"))
         try:
-            #flavor = nova.flavors.find(name=flavor)
             if instancetype_dict and self.name in instancetype_dict:
                 flavorl = nova.find_flavor(name_or_id=instancetype_dict[self.name])
             elif 'default' in instancetype_dict:
@@ -146,25 +146,21 @@ class OpenStackCloud(basecloud.BaseCloud):
         network_dict = self._attr_list_to_dict(job.get("network"))
         if network_dict and self.name in network_dict:
             if len(network_dict[self.name].split('-')) == 5:  # uuid
-                netid = [{'net-id': network_dict[self.name]}]
-                #netid = [{'uuid': network_dict[self.name]}]
+                netid = [{'uuid': network_dict[self.name]}]
             else:
                 network = self._find_network(network_dict[self.name])
         elif self.default_network:
             if len(self.default_network.split('-')) == 5:  # uuid
-                netid = [{'net-id': self.default_network}]
-                #netid = [{'uuid': self.default_network}]
+                netid = [{'uuid': self.default_network}]
             else:
                 network = self._find_network(self.default_network)
         elif csconfig.config.default_network:
             if len(csconfig.config.default_network.split('-')) == 5:  # uuid
-                netid = [{'net-id': csconfig.config.default_network}]
-                #netid = [{'uuid': csconfig.config.default_network}]
+                netid = [{'uuid': csconfig.config.default_network}]
             else:
                 network = self._find_network(csconfig.config.default_network)
         if network and not netid:
-            netid = [{'net-id': network.id}]
-            #netid = [{'uuid': network.id}]
+            netid = [{'uuid': network.id}]
         hostname = self._generate_next_name()
         instance = None
         
@@ -179,22 +175,21 @@ class OpenStackCloud(basecloud.BaseCloud):
             self.log.debug('Invalid or null volume for group: %s, cloud: %s - %s' % (self.group, self.name, ex))
             vol_info = None
 
-        oldnova = self._get_nova_client()
+        instance = None
+        instances = None
         try:
             if vol_info is None:
                 # boot without a volume
                 self.log.debug("Booting without volume")
-                instance = oldnova.servers.create(name=hostname, image=imageobj,
-                                               flavor=flavorl, key_name=key_name,
-                                               availability_zone=None, nics=netid,
-                                               userdata=userdata,
-                                               security_groups=self.default_security_groups, max_count=num)
-                # todo: check self.default_security_groups value, and set the security_groups attr
-                #sec_groups= = list(map(lambda x: {"name": x}, self.default_security_groups))
-                #instance = []
-                #for i in range(num):
-                    #instance.append(nova.create_server(name=hostname, image_id=imageobj.id, flavor_id=flavorl.id, key_name=key_name, user_data=userdata, networks=netid, security_groups=sec_groups, max_count=num))
-                    #time.sleep(1)
+                based_userdata = base64.b64encode(userdata)
+                format_userdata = based_userdata.decode('utf-8')
+                sec_groups = []
+                if self.default_security_groups:
+                    sec_groups = list(map(lambda x: {"name": x}, self.default_security_groups))
+                if key_name == '':
+                    instance = nova._create(MyServer, name=hostname, image_id=imageobj.id, flavor_id=flavorl.id, user_data=format_userdata, networks=netid, security_groups=sec_groups, max_count=num)
+                else:
+                    instance = nova._create(MyServer, name=hostname, image_id=imageobj.id, flavor_id=flavorl.id, key_name=key_name, user_data=format_userdata, networks=netid, security_groups=sec_groups, max_count=num)
             else:
                 instances = []
                 self.log.debug("Booting with volume")
@@ -218,18 +213,15 @@ class OpenStackCloud(basecloud.BaseCloud):
                         cv = cinder.get_volume(cv.id)
                     bdm = {'vda': str(cv.id) + ':::1'}
                     #append tuple with nova responce and hostname used
-                    instances.append((oldnova.servers.create(
-                                name=hostname,
-                                image=imageobj,
-                                flavor=flavorl,
-                                key_name=key_name,
-                                block_device_mapping=bdm,
-                                availability_zone=None,
-                                nics=netid,
-                                userdata=userdata,
-                                security_groups=self.default_security_groups), hostname))
-                    #sec_groups= = list(map(lambda x: {"name": x}, self.default_security_groups))
-                    #instance.append((nova.create_server(name=hostname, image_id=imageobj.id, flavor_id=flavorl.id, key_name=key_name, block_device_mapping=bdm, user_data=userdata, networks=netid, security_groups=sec_groups), hostname))
+                    based_userdata = base64.b64encode(userdata)
+                    format_userdata = based_userdata.decode()
+                    sec_groups = []
+                    if self.default_security_groups:
+                        sec_groups = list(map(lambda x: {"name": x}, self.default_security_groups))
+                    if key_name == '':
+                        instances.append((nova.create_server(name=hostname, image_id=imageobj.id, flavor_id=flavorl.id, block_device_mapping=bdm, user_data=format_userdata, networks=netid, security_groups=sec_groups), hostname))
+                    else:
+                        instances.append((nova.create_server(name=hostname, image_id=imageobj.id, flavor_id=flavorl.id, key_name=key_name, block_device_mapping=bdm, user_data=format_userdata, networks=netid, security_groups=sec_groups), hostname))
                     hostname = self._generate_next_name()
 
 
@@ -287,7 +279,6 @@ class OpenStackCloud(basecloud.BaseCloud):
                     try:
                         list_vms = nova.servers(name=i_hostname)
                         break
-                    #except novaclient.exceptions.BadRequest as ex:
                     except Exception as ex:
                         self.log.warning("Bad Request caught, OpenStack db may not be updated yet, "
                                          "retrying %s" % ex)
@@ -334,13 +325,6 @@ class OpenStackCloud(basecloud.BaseCloud):
         Format the data for keystone session for version 3
         """
         return {"authurl": self.authurl, "username": self.username, "password": self.password, "project": self.project, "project_domain_name": self.projectdomainname, "user_domain_name": self.userdomainname, "project_domain_id": self.projectdomainid}
-
-    def _get_nova_client(self):
-        """
-        Get nova client by python-novaclient. todo: this is currently only use for create multiple servers
-        """
-        client = nvclient.Client("2.0", session=self.session, region_name=self.region, timeout=10,)
-        return client
 
     def _get_creds_nova(self):
         """

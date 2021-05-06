@@ -350,8 +350,8 @@ def process_group_cloud_terminates(pair, config):
                 vm_row["updater"] = str(get_frame_info() + ":t+")
 
                 try:
-                    nova.servers.delete(vm_row["vmid"])
-                except novaclient.exceptions.NotFound:
+                    nova.delete_server(vm_row["vmid"], ignore_missing=False)
+                except openstack.exceptions.ResourceNotFound as ex:
                     logging.error("%s : %s: VM not found on cloud, deleting vm entry %s" % (group_name, cloud_name, vm_row["vmid"]))
                     config.db_delete(VM, vm_row)
                     try:
@@ -724,7 +724,7 @@ def main():
                                     available_slots,
                                     shortfall_slots
                                     )
-
+                                
                                 if num_vms_to_boot <= 0:
                                     cloud_prio = None # reset cloud prio so if no slots on the higher priority clouds can still boot on lower
                                     log.debug("No Flavor Slots for %s %s, minumum of max_start_vm_cloud(%s), available_slots(%s), shortfall_slots(%s,%s,%s), check the softmax or foreign VMs to try and see why not booting a new VM." % (
@@ -803,7 +803,6 @@ def main():
                                         use_image = boot_flavor.get("default_image")
                                     else:
                                         use_image = None
-                                     
                                     current_cloud_type = boot_flavor.get("cloud_type")
                                     if current_cloud_type == 'openstack':
                                         boot_cloud = openstackcloud.OpenStackCloud(config, resource=boot_flavor, metadata=metadata[boot_flavor.get("group_name")][boot_flavor.get("cloud_name")]
@@ -967,7 +966,7 @@ if __name__ == '__main__':
         signal.signal(signal.SIGTERM, terminate)
         while True:
             config.refresh()
-            config.update_service_catalog()
+            config.update_service_catalog(logger=log)
             stop = check_pid(PID_FILE)
             procMon.check_processes(stop=stop)
             time.sleep(config.categories['ProcessMonitor']['sleep_interval_main_long'])
