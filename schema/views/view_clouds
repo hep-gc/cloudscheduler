@@ -44,6 +44,10 @@ from (
     cc.vm_keyname,
     cc.vm_network,
     cc.vm_security_groups,
+    cc.auth_type,
+    cc.app_credentials,
+    cc.app_credentials_secret,
+    cc.app_credentials_expiry,
 
     case when ifnull(cc.vm_flavor,'')='' then
         case when ifnull(cg.vm_flavor,'')='' then
