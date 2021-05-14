@@ -2,10 +2,10 @@ from django.core.exceptions import PermissionDenied
 
 import time
 import boto3
-
+from datetime import datetime
 
 from cloudscheduler.lib.schema import *
-from cloudscheduler.lib.openstack_functions import _get_openstack_sess, _get_openstack_api_version
+from cloudscheduler.lib.openstack_functions import _get_openstack_sess, _get_openstack_api_version, _get_keystone_connection
 
 import keystoneclient.v2_0.client as v2c
 import keystoneclient.v3.client as v3c
@@ -1621,7 +1621,10 @@ def verify_cloud_credentials(config, cloud):
             return rc, msg, None
 
     elif cloud_type == 'openstack':
-        rc, msg, session = get_openstack_session(config, cloud, target_cloud=target_cloud)
+        if cloud.get('auth_type') and cloud['auth_type'] == 'app_creds':
+            rc, msg, session = get_openstack_app_creds_session(config, cloud, target_cloud=target_cloud)
+        else:
+            rc, msg, session = get_openstack_session(config, cloud, target_cloud=target_cloud)
         return rc, msg, None
 
     else:
@@ -1681,6 +1684,40 @@ def get_amazon_session(config, cloud, target_cloud=None):
 
     else:
         return 1, 'insufficient credentials to establish Amazon EC2 session: $s' % C, None
+
+#-------------------------------------------------------------------------------
+
+def get_openstack_app_creds_session(config, cloud, target_cloud=None):
+    C = {}
+    if not target_cloud and 'group_name' in cloud and 'cloud_name' in cloud:
+        rc, msg, target_cloud = get_target_cloud(config, cloud['group_name'], cloud['cloud_name'])
+
+    if target_cloud:
+        if target_cloud.get('authurl'):
+            C['authurl'] = target_cloud['authurl']
+        if target_cloud.get('app_credentials'):
+            C['app_credentials'] = target_cloud['app_credentials']
+        if target_cloud.get('app_credentials_secret'):
+            C['app_credentials_secret'] = target_cloud['app_credentials_secret']
+
+    if 'authurl' in cloud:
+        C['authurl'] = cloud['authurl']
+
+    if 'app_credentials' in cloud:
+        C['app_credentials'] = cloud['app_credentials']
+
+    if 'app_credentials_secret' in cloud:
+        C['app_credentials_secret'] = cloud['app_credentials_secret']
+
+    if C.get('authurl') and C.get('app_credentials') and C.get('app_credentials_secret'):
+        sess = _get_openstack_sess(C, config.categories["GSI"]["cacerts"])
+        if sess:
+            return 0, None, sess
+        else:
+            C.pop('app_credentials_secret')
+            return 1, 'failed to esablish openstack session using application credentials, credentials: %s, error: %s' % (C, exc), None
+    else:
+        return 1, 'Missing openstack URL or applicaion credentials info', None
 
 #-------------------------------------------------------------------------------
 
@@ -1769,50 +1806,82 @@ def get_openstack_session(config, cloud, target_cloud=None):
 
     else:
         return 1, 'Missing openstack URL', None
-            
+    
     if version == 2:
         if C['authurl'] and C['region'] and C['project'] and C['username'] and C['password']:
-            try:
-                KC = v2c.Client(
-                    auth_url=C['authurl'],
-                    tenant_name=C['project'],
-                    username=C['username'],
-                    password=C['password']
-                    )
-                session = _get_openstack_sess(C, config.categories["GSI"]["cacerts"])
+#            try:
+#                KC = v2c.Client(
+#                    auth_url=C['authurl'],
+#                    tenant_name=C['project'],
+#                    username=C['username'],
+#                    password=C['password']
+#                    )
+            session = _get_openstack_sess(C, config.categories["GSI"]["cacerts"])
+            if session:
                 return 0, None, session
-
-            except Exception as exc:
-                C.pop("password")
+            else:
+                C.pop("password") 
                 return 1, 'failed to esablish openstack v2 session, credentials: %s, error: %s' % (C, exc), None
+
+#            except Exception as exc:
+#                C.pop("password")
+#                return 1, 'failed to esablish openstack v2 session, credentials: %s, error: %s' % (C, exc), None
 
         else:
             return 1, 'insufficient credentials to establish openstack v2 session: %s' % C, None
 
     elif version == 3:
         if C['authurl'] and C['region'] and C['project_domain_name'] and C['project'] and C['user_domain_name'] and C['username'] and C['password']:
-            try:
-                KC = v3c.Client(
-                    auth_url=C['authurl'],
-                    project_domain_id=C['project_domain_id'],
-                    project_domain_name=C['project_domain_name'],
-                    project_name=C['project'],
-                    user_domain_name=C['user_domain_name'],
-                    username=C['username'],
-                    password=C['password']
-                    )
-                session = _get_openstack_sess(C, config.categories["GSI"]["cacerts"])
+#            try:
+#                KC = v3c.Client(
+#                    auth_url=C['authurl'],
+#                    project_domain_id=C['project_domain_id'],
+#                    project_domain_name=C['project_domain_name'],
+#                    project_name=C['project'],
+#                    user_domain_name=C['user_domain_name'],
+#                    username=C['username'],
+#                    password=C['password']
+#                    )
+            session = _get_openstack_sess(C, config.categories["GSI"]["cacerts"])
+            if session:    
                 return 0, None, session
-
-            except Exception as exc:
+            else:
                 C.pop("password")
                 return 1, 'failed to esablish openstack v3 session, credentials: %s, error: %s' % (C, exc), None
+
+#            except Exception as exc:
+#                C.pop("password")
+#                return 1, 'failed to esablish openstack v3 session, credentials: %s, error: %s' % (C, exc), None
 
         else:
             return 1, 'insufficient credentials to establish openstack v3 session: %s' % C, None
 
     else:
         return 1, 'Bad openstack URL: %s, unsupported version: %s' % (target_cloud['authurl'], version), None
+
+#-------------------------------------------------------------------------------
+
+def get_app_credentail_expiry(cloud=None, user_id=None, app_credential_id=None, sess=None, verify=None):
+    if not sess and cloud and cloud.get('authurl') and cloud.get('app_credentials') and cloud.get('app_credentials_secret'):
+        sess = _get_openstack_sess(cloud, verify)
+    if sess:
+        keystone = _get_keystone_connection(sess)
+        if not user_id and cloud.get('userid'):
+            user_id = cloud['userid']
+        if not app_credential_id and cloud.get('app_credentials'):
+            app_credential_id = cloud['app_credentials']
+        if user_id and app_credential_id:
+            try:
+                found_app_credential = keystone.get_application_credential(user=user_id, application_credential=app_credential_id)
+                expire_date = found_app_credential['expires_at']
+                if expire_date:
+                    # convert to epoch time
+                    datetimeObj = datetime.strptime(expire_date, '%Y-%m-%dT%H:%M:%S.%f')
+                    expire_date = datetimeObj.timestamp()
+                return 0, None, expire_date
+            except Exception as exc:
+                return 1, exc, None            
+    return 1, 'could not get the session, or missing userid/credential info', None
 
 #-------------------------------------------------------------------------------
 
@@ -1831,4 +1900,5 @@ def check_convert_bytestrings(values):
             return values.decode("utf-8")
         else:
             return values
+
 

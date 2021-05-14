@@ -6,6 +6,7 @@
 <head>
 {% load template_utils %}
 {% load static %}
+{% load mathfilters %}
 <link rel="stylesheet" type="text/css" href="{% static "csv2/common.css" %}?{{version}}">
 <link rel="stylesheet" type="text/css" href="{% static "csv2/menu.css" %}?{{version}}">
 <link rel="stylesheet" type="text/css" href="{% static "csv2/tabs.css" %}?{{version}}">
@@ -124,17 +125,17 @@
         if(auth_type=="userpass"){
 
             document.getElementById(target_cloud+'-password-row').style.visibility = "inherit";
-            document.getElementById(target_cloud+'-app_creds').value = "";
             document.getElementById(target_cloud+'-app_creds_secret').value = "";
             document.getElementById(target_cloud+'-app_creds-row').style.visibility = "collapse";
             document.getElementById(target_cloud+'-app_creds_secret-row').style.visibility = "collapse";
-
+            document.getElementById(target_cloud+'-userid-row').style.visibility = "collapse";
 
         }
         else if(auth_type="app_creds"){
             
             document.getElementById(target_cloud+'-app_creds-row').style.visibility = "inherit";
             document.getElementById(target_cloud+'-app_creds_secret-row').style.visibility = "inherit";
+            document.getElementById(target_cloud+'-userid-row').style.visibility = "inherit";
             document.getElementById(target_cloud+'-password').value = "";
             document.getElementById(target_cloud+'-password-row').style.visibility = "collapse";
         }
@@ -266,14 +267,31 @@
                                     <tr class="highlight3" id="{{cloud.cloud_name}}-username-row"><td><label for="username">Username</label></td>
                                     <td><input type="text" name="username" id="{{cloud.cloud_name}}-username" value="{{cloud.username}}" /></td></tr>
                                     
-                                    <tr class="highlight3" id="{{cloud.cloud_name}}-password-row"><td><label for="password">Password</label></td>
+                                    <tr class="highlight3" id="{{cloud.cloud_name}}-password-row" style="{% if cloud.auth_type == "userpass" %}visibility:inherit{% else %}visibility:collapse{% endif %}"><td><label for="password">Password</label></td>
                                     <td><input type="password" name="password" id="{{cloud.cloud_name}}-password" placeholder="Update password" value="" autocomplete="new-password"/></td></tr>
 
-                                    <tr class="highlight3" id="{{cloud.cloud_name}}-app_creds-row" style="visibility:collapse"><td><label for="app_credentials">Application Credential</label></td>
-                                    <td><input type="text" name="app_credentials" id="{{cloud.cloud_name}}-app_creds" value="" /></td></tr>
+                                    <tr class="highlight3" id="{{cloud.cloud_name}}-app_creds-row" style="{% if cloud.auth_type == "userpass" %}visibility:collapse{% else %}visibility:inherit{% endif %}"><td><label for="app_credentials">Application Credential Id</label></td>
+                                    <td><input type="text" name="app_credentials" id="{{cloud.cloud_name}}-app_creds" value="{{cloud.app_credentials}}" /></td></tr>
 
-                                    <tr class="highlight3" id="{{cloud.cloud_name}}-app_creds_secret-row" style="visibility:collapse"><td><label for="app_credentials_secret">Application Credential Secret</label></td>
+                                    <tr class="highlight3" id="{{cloud.cloud_name}}-app_creds_secret-row" style="{% if cloud.auth_type == "userpass" %}visibility:collapse{% else %}visibility:inherit{% endif %}"><td><label for="app_credentials_secret">Application Credential Secret</label></td>
                                     <td><input type="password" name="app_credentials_secret" id="{{cloud.cloud_name}}-app_creds_secret" placeholder="Update secret" value="" /></td></tr>
+
+                                    <tr class="highlight3" id="{{cloud.cloud_name}}-userid-row" style="{% if cloud.auth_type == "userpass" %}visibility:collapse{% else %}visibility:inherit{% endif %}"><td><label for="userid">User Id (Optional)</label></td>
+                                    <td><input type="text" name="userid" id="{{cloud.cloud_name}}-userid" value="{{cloud.userid}}" /></td></tr>
+
+                                    {% if cloud.userid and cloud.app_credentials_expiry and cloud.app_credentials_expiry != 0 %}
+                                        <tr class="highlight3" id="{{cloud.cloud_name}}-app_creds_expiry-row"><td><label for="app_credentials_expiry">Application Credential Expiry</label></td>
+                                        {% if cloud.app_credentials_expiry|sub:cloud.current_time|div:86400 > 7 %}
+                                            <td><div id="{{cloud.cloud_name}}-app_creds_expiry">{{cloud.app_credentials_expiry|sub:cloud.current_time|intdiv:86400|floatformat:"0"}} days</div></td>
+                                        {% elif cloud.app_credentials_expiry|sub:cloud.current_time|div:86400 > 1 %}
+                                            <td><div id="{{cloud.cloud_name}}-app_creds_expiry" style="color:red">{{cloud.app_credentials_expiry|sub:cloud.current_time|intdiv:86400|floatformat:"0"}} days</div></td>
+                                        {% elif cloud.app_credentials_expiry|sub:cloud.current_time|div:86400 > 0 %}
+                                            <td><div id="{{cloud.cloud_name}}-app_creds_expiry" style="color:red">{{cloud.app_credentials_expiry|sub:cloud.current_time|intdiv:3600|floatformat:"0"}} hours</div></td>
+                                        {% else %}
+                                            <td><div id="{{cloud.cloud_name}}-app_creds_expiry" style="color:red">expired</div></td>
+                                        {% endif %}
+                                        </tr>
+                                    {% endif %}
 
                                     <tr class="highlight3"><td><label for="cacertificate">CA certificate</label></td>
                                     {% if cloud.cacertificate == None or cloud.cacertificate == "None" %}
@@ -643,12 +661,14 @@
                             <tr class="highlight3" id="add-password-row"><td><label for="password">Password</label></td>
                             <td><input type="password" id="add-password" name="password" value="" /></td></tr>
                             
-                            <tr class="highlight3" id="add-app_creds-row" style="visibility:collapse"><td><label for="app_credentials">Application Credential</label></td>
+                            <tr class="highlight3" id="add-app_creds-row" style="visibility:collapse"><td><label for="app_credentials">Application Credential Id</label></td>
                             <td><input type="text" name="app_credentials" id="add-app_creds" value="" /></td></tr>
 
                             <tr class="highlight3" id="add-app_creds_secret-row" style="visibility:collapse"><td><label for="app_credentials_secret">Application Credential Secret</label></td>
                             <td><input type="password" name="app_credentials_secret" id="add-app_creds_secret" value="" /></td></tr>
-
+                            
+                            <tr class="highlight3" id="add-userid-row" style="visibility:collapse"><td><label for="userid">User Id (Optional)</label></td>
+                            <td><input type="text" name="userid" id="add-userid" value="" /></td></tr>
 
                             <tr class="highlight3"><td><label for="cacertificate">CA certificate</label></td>
                             {% if cloud.cacertificate == None or cloud.cacertificate == "None" %}

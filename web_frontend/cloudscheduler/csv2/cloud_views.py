@@ -20,7 +20,8 @@ from cloudscheduler.lib.view_utils import \
     validate_by_filtered_table_entries, \
     validate_fields, \
     get_target_cloud, \
-    verify_cloud_credentials
+    verify_cloud_credentials, \
+    get_app_credentail_expiry
 
 import bcrypt
 
@@ -50,6 +51,7 @@ CLOUD_KEYS = {
         'cloud_name':                           'lowerdash',
         'cloud_type':                           ('csv2_cloud_types', 'cloud_type'),
         'auth_type':                            '', #may be converted to reference table like cloud_type
+        'userid':                               '',
         'app_credentials':                      'ignore',
         'app_credentials_secret':               'ignore',
         'app_credentials_expiry':               'integer', #this may need to change to a date obj
@@ -91,7 +93,7 @@ CLOUD_KEYS = {
         'authurl',
         'project',
         'username',
-        'password',
+#        'password',
         'region',
         ],
     'array_fields': [
@@ -111,6 +113,7 @@ CLOUD_ADD_KEYS = {
         'cloud_type',
         ],
     'optional': [
+        'userid',
         'auth_type',
         'app_credentials',
         'app_credentials_secret',
@@ -575,6 +578,10 @@ def add(request):
         if rc == 0:
             if owner_id:
                 fields['ec2_owner_id'] = owner_id
+            if 'auth_type' in fields and fields['auth_type'] == 'app_creds':
+                rc, msg, app_cred_expiry = get_app_credentail_expiry({**fields, 'group_name': active_user.active_group}, verify=config.categories["GSI"]["cacerts"])
+                if rc == 0 and app_cred_expiry:
+                    fields['app_credentials_expiry'] = app_cred_expiry
         else:
             config.db_close()
             return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud add "%s::%s" failed - %s.' % (lno(MODID), fields['group_name'], fields['cloud_name'], msg))
@@ -731,7 +738,7 @@ def cloud_list(request, active_user=None, response_code=0, message=None):
         table = "view_clouds_with_metadata_names"
         where_clause = "group_name='%s'" % active_user.active_group
         rc, msg, _src_cloud_list = config.db_query(table, where=where_clause)
-        _cloud_list = qt(_src_cloud_list, prune=['password'])
+        _cloud_list = qt(_src_cloud_list, prune=['password', 'app_credentials_secret'])
         metadata_dict = {}
     else:
         table = "view_clouds_with_metadata_info"
@@ -751,9 +758,13 @@ def cloud_list(request, active_user=None, response_code=0, message=None):
                     'metadata_mime_type',
                     ]
                 },
-            prune=['password']    
+            prune=['password', 'app_credentials_secret']    
             )
-
+    
+    # Get the current time in epoch format
+    for cloud in _cloud_list:
+        cloud["current_time"] = time.time()
+    
     where_clause = "group_name='%s'" % active_user.active_group
     # Get all the images in group:
     rc, msg, image_list = config.db_query("cloud_images", where=where_clause)
@@ -781,7 +792,6 @@ def cloud_list(request, active_user=None, response_code=0, message=None):
 
     # Retrieve the list ec2 regions:
     rc, msg, ec2_regions_list = config.db_query("ec2_regions")
-
 
     # Position the page.
     if len(_cloud_list) > 0:
@@ -1708,10 +1718,13 @@ def update(request):
         if request.META['HTTP_ACCEPT'] != 'application/json' and len(request.POST['password']) == 0:
             # create a copy of the dict to make it mutable.
             request.POST = request.POST.copy()
-
             # remove the password field.
             del request.POST['password']
-
+        
+        if request.META['HTTP_ACCEPT'] != 'application/json' and len(request.POST['app_credentials_secret']) == 0:
+            request.POST = request.POST.copy()
+            del request.POST['app_credentials_secret']
+        
         # check if there were multiple security groups posted
         if len(request.POST.getlist("vm_security_groups")) > 1:
             # if there is a list more than 1 security group was selected
@@ -1735,7 +1748,7 @@ def update(request):
             if rc != 0:
                 config.db_close()
                 return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud update, "%s" failed - %s.' % (lno(MODID), fields['cloud_name'], msg))
-
+        
         if 'vm_image' in fields and fields['vm_image']:
             rc, msg = validate_by_filtered_table_entries(config, fields['vm_image'], 'vm_image', 'cloud_images', 'name', [['group_name', fields['group_name']], ['cloud_name', fields['cloud_name']]])
             if rc != 0:
@@ -1753,7 +1766,7 @@ def update(request):
             if rc != 0:
                 config.db_close()
                 return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud update, "%s" failed - %s.' % (lno(MODID), fields['cloud_name'], msg))
-
+        
         if 'vm_security_groups' in fields and fields['vm_security_groups']:
             rc, msg = validate_by_filtered_table_entries(config, fields['vm_security_groups'], 'vm_security_groups', 'cloud_security_groups', 'name', [['group_name', fields['group_name']], ['cloud_name', fields['cloud_name']]], allow_value_list=True)
             if rc != 0:
@@ -1765,7 +1778,7 @@ def update(request):
                 if not fields['authurl'].endswith('/'):
                     #no slash, add one
                     fields['authurl'] =  fields['authurl'] + '/'
-
+        
         # Validity check the specified metadata exclusions.
         if 'metadata_name' in fields:
             rc, msg = manage_group_metadata_verification(config, tables, fields['group_name'], fields['cloud_name'], fields['metadata_name']) 
@@ -1778,6 +1791,12 @@ def update(request):
         if rc == 0:
             if owner_id:
                 fields['ec2_owner_id'] = owner_id
+            if 'auth_type' in fields and fields['auth_type'] == 'app_creds':
+                rc, msg, app_cred_expiry = get_app_credentail_expiry({**fields, 'group_name': active_user.active_group}, verify=config.categories["GSI"]["cacerts"])
+                if rc == 0 and app_cred_expiry:
+                    fields['app_credentials_expiry'] = app_cred_expiry
+                else:
+                    fields['app_credentials_expiry'] = 0
         else:
             config.db_close()
             return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud update "%s::%s" failed - %s.' % (lno(MODID), fields['group_name'], fields['cloud_name'], msg))
@@ -1785,7 +1804,7 @@ def update(request):
         # update the cloud.
         table = 'csv2_clouds'
         cloud_updates = table_fields(fields, table, columns, 'update')
-        
+
         updates = len(cloud_updates)
         # updates will always contain group and cloud name so im going to upate the below it statement to >2 instead of >0.
         # If the CLI has a different functionality it may cause failure
