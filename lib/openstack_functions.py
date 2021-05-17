@@ -19,7 +19,8 @@ def _get_openstack_appcredential_auth(cloud):
         )
         return auth
     except Exception as exc:
-        logging.error("Failed to setup auth, skipping %s", cloud["cloud_name"])
+        if cloud.get("cloud_name"):
+            logging.error("Failed to setup auth, skipping %s", cloud["cloud_name"])
         logging.error("Problem importing keystone modules for application credential identity, and getting auth for grp:cloud - %s: %s", (cloud["authurl"] ,exc))
         logging.error("Connection parameters: \n authurl: %s \n application_credential_secret: %s \n application_credential_id: %s", (cloud["authurl"], cloud["app_credentials_secret"], cloud["app_credentials"]))
         return False
@@ -46,7 +47,7 @@ def _get_nova_connection(sess, region=None):
         nova = conn.compute
         return nova
     except Exception as exc:
-        logging.error("Problem getting openstacksdk nova connection - %s" % exc)
+        logging.error("Problem getting openstacksdk nova connection - %s, sess %s, conn %s" % (exc, sess, conn))
         return False
 
 def _get_glance_connection(sess, region=None):
@@ -96,11 +97,12 @@ def _get_openstack_sess(cloud, verify=None):
             auth = _get_openstack_appcredential_auth(cloud)
         else:
             auth = _get_openstack_auth(cloud)
-        sess = session.Session(auth=auth, verify=verify, split_loggers=False)        
+        sess = session.Session(auth = auth, verify=verify, split_loggers = False)
     except Exception as exc:
         sess = False
         logging.error("Problem getting session for grp: cloud - %s::%s" % (cloud["authurl"], exc))
-        logging.error("Failed to setup session, skipping %s", cloud["cloud_name"])
+        if cloud.get("cloud_name"):
+            logging.error("Failed to setup session, skipping %s", cloud["cloud_name"])
     return sess
 
 def _get_openstack_api_version(authurl):

@@ -92,7 +92,7 @@ CLOUD_KEYS = {
     'not_empty': [
         'authurl',
         'project',
-        'username',
+#        'username',
 #        'password',
         'region',
         ],
@@ -579,9 +579,17 @@ def add(request):
             if owner_id:
                 fields['ec2_owner_id'] = owner_id
             if 'auth_type' in fields and fields['auth_type'] == 'app_creds':
-                rc, msg, app_cred_expiry = get_app_credentail_expiry({**fields, 'group_name': active_user.active_group}, verify=config.categories["GSI"]["cacerts"])
-                if rc == 0 and app_cred_expiry:
-                    fields['app_credentials_expiry'] = app_cred_expiry
+                rc, msg, app_cred_expiry = get_app_credentail_expiry({**fields, 'group_name': active_user.active_group}, config=config)
+                if rc == 0:
+                    current_time = time.time()
+                    if not app_cred_expiry or (app_cred_expiry - current_time)/86400 > 7:
+                        fields['app_credentials_expiry'] = app_cred_expiry
+                    else:
+                        config.db_close()
+                        return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud add "%s::%s" failed - %s.' % (lno(MODID), fields['group_name'], fields['cloud_name'], 'Application Credential expires within a week'))
+                else:
+                    config.db_close()
+                    return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud add "%s::%s" failed - %s.' % (lno(MODID), fields['group_name'], fields['cloud_name'], msg))
         else:
             config.db_close()
             return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud add "%s::%s" failed - %s.' % (lno(MODID), fields['group_name'], fields['cloud_name'], msg))
@@ -1792,11 +1800,17 @@ def update(request):
             if owner_id:
                 fields['ec2_owner_id'] = owner_id
             if 'auth_type' in fields and fields['auth_type'] == 'app_creds':
-                rc, msg, app_cred_expiry = get_app_credentail_expiry({**fields, 'group_name': active_user.active_group}, verify=config.categories["GSI"]["cacerts"])
-                if rc == 0 and app_cred_expiry:
-                    fields['app_credentials_expiry'] = app_cred_expiry
+                rc, msg, app_cred_expiry = get_app_credentail_expiry({**fields, 'group_name': active_user.active_group}, config=config)
+                if rc == 0:
+                    current_time = time.time()
+                    if not app_cred_expiry or (app_cred_expiry - current_time)/86400 > 7:
+                        fields['app_credentials_expiry'] = app_cred_expiry
+                    else:
+                        config.db_close()
+                        return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud update "%s::%s" failed - %s.' % (lno(MODID), fields['group_name'], fields['cloud_name'], 'Application Credential expires within a week'))
                 else:
-                    fields['app_credentials_expiry'] = 0
+                    config.db_close()
+                    return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud update "%s::%s" failed - %s.' % (lno(MODID), fields['group_name'], fields['cloud_name'], msg))
         else:
             config.db_close()
             return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud update "%s::%s" failed - %s.' % (lno(MODID), fields['group_name'], fields['cloud_name'], msg))

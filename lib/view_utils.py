@@ -5,7 +5,7 @@ import boto3
 from datetime import datetime
 
 from cloudscheduler.lib.schema import *
-from cloudscheduler.lib.openstack_functions import _get_openstack_sess, _get_openstack_api_version, _get_keystone_connection
+from cloudscheduler.lib.openstack_functions import _get_openstack_sess, _get_openstack_api_version, _get_keystone_connection, _get_nova_connection
 
 import keystoneclient.v2_0.client as v2c
 import keystoneclient.v3.client as v3c
@@ -1699,6 +1699,8 @@ def get_openstack_app_creds_session(config, cloud, target_cloud=None):
             C['app_credentials'] = target_cloud['app_credentials']
         if target_cloud.get('app_credentials_secret'):
             C['app_credentials_secret'] = target_cloud['app_credentials_secret']
+        if target_cloud.get('region'):
+            C['region'] = target_cloud['region']
 
     if 'authurl' in cloud:
         C['authurl'] = cloud['authurl']
@@ -1709,9 +1711,19 @@ def get_openstack_app_creds_session(config, cloud, target_cloud=None):
     if 'app_credentials_secret' in cloud:
         C['app_credentials_secret'] = cloud['app_credentials_secret']
 
+    if 'region' in cloud:
+        C['region'] = cloud['region']
+
     if C.get('authurl') and C.get('app_credentials') and C.get('app_credentials_secret'):
         sess = _get_openstack_sess(C, config.categories["GSI"]["cacerts"])
         if sess:
+            region = None
+            if C.get('region'):
+                region = C['region']
+            nova = _get_nova_connection(sess, region)
+            if nova is False:
+                C.pop('app_credentials_secret')
+                return 1, 'failed to get openstack connection using the app credential session, credentials: %s' % C, None
             return 0, None, sess
         else:
             C.pop('app_credentials_secret')
@@ -1818,6 +1830,10 @@ def get_openstack_session(config, cloud, target_cloud=None):
 #                    )
             session = _get_openstack_sess(C, config.categories["GSI"]["cacerts"])
             if session:
+                nova = _get_nova_connection(session, C['region'])
+                if nova is False:
+                    C.pop("password")
+                    return 1, 'failed to get openstack connection using the v2 password session, credentials: %s' % C, None
                 return 0, None, session
             else:
                 C.pop("password") 
@@ -1844,6 +1860,10 @@ def get_openstack_session(config, cloud, target_cloud=None):
 #                    )
             session = _get_openstack_sess(C, config.categories["GSI"]["cacerts"])
             if session:    
+                nova = _get_nova_connection(session, C['region'])
+                if nova is False:
+                    C.pop("password")
+                    return 1, 'failed to get openstack connection using the v3 password session, credentials: %s' % C, None
                 return 0, None, session
             else:
                 C.pop("password")
@@ -1861,18 +1881,43 @@ def get_openstack_session(config, cloud, target_cloud=None):
 
 #-------------------------------------------------------------------------------
 
-def get_app_credentail_expiry(cloud=None, user_id=None, app_credential_id=None, sess=None, verify=None):
-    if not sess and cloud and cloud.get('authurl') and cloud.get('app_credentials') and cloud.get('app_credentials_secret'):
-        sess = _get_openstack_sess(cloud, verify)
+def get_app_credentail_expiry(cloud=None, config=None, target_cloud=None, user_id=None, app_credential_id=None, sess=None):
+    C = {}
+    if not target_cloud and cloud.get('group_name') and cloud.get('cloud_name'):
+        rc, msg, target_cloud = get_target_cloud(config, cloud['group_name'], cloud['cloud_name'])
+    
+    if target_cloud:
+        if target_cloud.get('authurl'):
+            C['authurl'] = target_cloud['authurl']
+        if target_cloud.get('userid'):
+            C['userid'] = target_cloud['userid']
+        if target_cloud.get('app_credentials'):
+            C['app_credentials'] = target_cloud['app_credentials']
+        if target_cloud.get('app_credentials_secret'):
+            C['app_credentials_secret'] = target_cloud['app_credentials_secret']
+
+    if cloud:
+        if cloud.get('authurl'):
+            C['authurl'] = cloud['authurl']
+        if cloud.get('userid'):
+            C['userid'] = cloud['userid']
+        if cloud.get('app_credentials'):
+            C['app_credentials'] = cloud['app_credentials']
+        if cloud.get('app_credentials_secret'):
+            C['app_credentials_secret'] = cloud['app_credentials_secret']
+
+    if app_credential_id:
+        C['app_credentials'] = app_credential_id
+    if user_id:
+        C['userid'] = user_id
+
+    if not sess and C.get('authurl') and C.get('app_credentials') and C.get('app_credentials_secret'):
+        sess = _get_openstack_sess(C, config.categories["GSI"]["cacerts"])
     if sess:
         keystone = _get_keystone_connection(sess)
-        if not user_id and cloud.get('userid'):
-            user_id = cloud['userid']
-        if not app_credential_id and cloud.get('app_credentials'):
-            app_credential_id = cloud['app_credentials']
-        if user_id and app_credential_id:
+        if C['userid'] and C['app_credentials']:
             try:
-                found_app_credential = keystone.get_application_credential(user=user_id, application_credential=app_credential_id)
+                found_app_credential = keystone.get_application_credential(user=C['userid'], application_credential=C['app_credentials'])
                 expire_date = found_app_credential['expires_at']
                 if expire_date:
                     # convert to epoch time
@@ -1881,7 +1926,7 @@ def get_app_credentail_expiry(cloud=None, user_id=None, app_credential_id=None, 
                 return 0, None, expire_date
             except Exception as exc:
                 return 1, exc, None            
-    return 1, 'could not get the session, or missing userid/credential info', None
+    return 1, 'Failed to get expire date of app creds, could not get the session, or missing userid/credential info', None
 
 #-------------------------------------------------------------------------------
 
