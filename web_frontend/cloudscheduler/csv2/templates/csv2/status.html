@@ -447,7 +447,17 @@
                                 {% if cloud.display >= 9 %}
                                     <td class="bold-style" onclick="toggle_id('expand-{{cloud.group_name}}-{{cloud.cloud_name}}')"><div class="float-left">Totals</div>
                                 {% elif cloud.enabled > 0 %}
-                                    <td class="bold-style" onclick="toggle_id('expand-{{cloud.group_name}}-{{cloud.cloud_name}}')"><div class="float-left">{{cloud.cloud_name}}</div>
+                                    {% if cloud.app_credentials_expiry and cloud.current_time %}
+                                        {% if cloud.app_credentials_expiry|sub:cloud.current_time|div:86400 > 14 %}
+                                            <td class="bold-style" onclick="toggle_id('expand-{{cloud.group_name}}-{{cloud.cloud_name}}')"><div class="float-left">{{cloud.cloud_name}}</div>
+                                        {% elif cloud.app_credentials_expiry|sub:cloud.current_time|div:86400 > 7 %}
+                                            <td class="warn-style" onclick="toggle_id('expand-{{cloud.group_name}}-{{cloud.cloud_name}}')"><div class="float-left">{{cloud.cloud_name}}</div>
+                                        {% else %}
+                                            <td class="disabled-style" onclick="toggle_id('expand-{{cloud.group_name}}-{{cloud.cloud_name}}')"><div class="float-left">{{cloud.cloud_name}}</div>
+                                        {% endif %}
+                                    {% else %}
+                                        <td class="bold-style" onclick="toggle_id('expand-{{cloud.group_name}}-{{cloud.cloud_name}}')"><div class="float-left">{{cloud.cloud_name}}</div>
+                                    {% endif %}
                                 {% else %}
                                     <td class="disabled-style" onclick="toggle_id('expand-{{cloud.group_name}}-{{cloud.cloud_name}}')"><div class="float-left">{{cloud.cloud_name}}</div>
                                 {% endif %}
@@ -651,9 +661,19 @@
 
 
                                     <td onclick="toggle_group('expand-{{cloud.group_name}}')"></td>
-                                    <td onclick="toggle_id('expand-{{cloud.group_name}}-{{cloud.cloud_name}}')">
+                                    <td onclick="toggle_id('expand-{{cloud.group_name}}-{{cloud.cloud_name}}')" style="text-align: left">
                                         {% if cloud.enabled == 0 %}
                                             Cloud disabled
+                                            <br />
+                                        {% endif %}
+                                        {% if cloud.app_credentials_expiry and cloud.current_time %}
+                                            {% if cloud.app_credentials_expiry|sub:cloud.current_time|div:86400 > 1 %}
+                                                Cloud application credential will expire in {{cloud.app_credentials_expiry|sub:cloud.current_time|intdiv:86400|floatformat:"0"}} days
+                                            {% elif cloud.app_credentials_expiry|sub:cloud.current_time|div:86400 > 0 %}
+                                                Cloud application credential will expire in {{cloud.app_credentials_expiry|sub:cloud.current_time|intdiv:3600|floatformat:"0"}} hours
+                                            {% else %}
+                                                Cloud application credential expired
+                                            {% endif %}
                                         {% endif %}
                                     </td>
 

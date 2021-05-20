@@ -47,7 +47,7 @@ def _get_nova_connection(sess, region=None):
         nova = conn.compute
         return nova
     except Exception as exc:
-        logging.error("Problem getting openstacksdk nova connection - %s, sess %s, conn %s" % (exc, sess, conn))
+        logging.error("Problem getting openstacksdk nova connection - %s" % exc)
         return False
 
 def _get_glance_connection(sess, region=None):
@@ -97,7 +97,7 @@ def _get_openstack_sess(cloud, verify=None):
             auth = _get_openstack_appcredential_auth(cloud)
         else:
             auth = _get_openstack_auth(cloud)
-        sess = session.Session(auth = auth, verify=verify, split_loggers = False)
+        sess = session.Session(auth=auth, verify=verify, split_loggers=False)
     except Exception as exc:
         sess = False
         logging.error("Problem getting session for grp: cloud - %s::%s" % (cloud["authurl"], exc))

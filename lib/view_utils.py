@@ -10,7 +10,6 @@ from cloudscheduler.lib.openstack_functions import _get_openstack_sess, _get_ope
 import keystoneclient.v2_0.client as v2c
 import keystoneclient.v3.client as v3c
 
-
 '''
 UTILITY FUNCTIONS
 '''
@@ -1727,7 +1726,7 @@ def get_openstack_app_creds_session(config, cloud, target_cloud=None):
             return 0, None, sess
         else:
             C.pop('app_credentials_secret')
-            return 1, 'failed to esablish openstack session using application credentials, credentials: %s, error: %s' % (C, exc), None
+            return 1, 'failed to esablish openstack session using application credentials, credentials: %s' % C, None
     else:
         return 1, 'Missing openstack URL or applicaion credentials info', None
 

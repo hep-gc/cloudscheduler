@@ -1603,6 +1603,11 @@ def status(request, group_name=None):
     system_list["disk_size"] = round(psutil.disk_usage('/').total/1000000000 , 1)
     system_list["disk_used"] = round(psutil.disk_usage('/').used/1000000000 , 1)
 
+    # add current time for app credential expiry to determine how many days left
+    for cloud in cloud_status_list:
+        if cloud.get("app_credentials_expiry"):
+            cloud["current_time"] = time.time()
+    
     context = {
             'active_user': active_user.username,
             'active_group': active_user.active_group,
