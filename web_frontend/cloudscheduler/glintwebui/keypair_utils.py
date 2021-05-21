@@ -1,12 +1,12 @@
-from cloudscheduler.lib.openstack_functions import _get_openstack_sess, _get_nova_connection
+from cloudscheduler.lib.openstack_functions import get_openstack_sess, get_nova_connection
 from cloudscheduler.lib.db_config import Config
 
 config = Config('/etc/cloudscheduler/cloudscheduler.yaml', 'web_frontend', pool_size=2, max_overflow=10)
 
 
 def delete_keypair(key_name, cloud):
-    sess = _get_openstack_sess(cloud, config.categories["web_frontend"]["cert_auth_bundle_path"])
-    nova = _get_nova_connection(sess)
+    sess = get_openstack_sess(cloud, config.categories["web_frontend"]["cert_auth_bundle_path"])
+    nova = get_nova_connection(sess)
 
     keys = nova.keypairs()
     for key in keys:
@@ -17,8 +17,8 @@ def delete_keypair(key_name, cloud):
     return False
 
 def get_keypair(keypair_key, cloud, key_name = None):
-    sess = _get_openstack_sess(cloud, config.categories["web_frontend"]["cert_auth_bundle_path"])
-    nova = _get_nova_connection(sess)
+    sess = get_openstack_sess(cloud, config.categories["web_frontend"]["cert_auth_bundle_path"])
+    nova = get_nova_connection(sess)
 
     found_key_name = None
     if key_name:
@@ -35,15 +35,15 @@ def get_keypair(keypair_key, cloud, key_name = None):
     return None
 
 def transfer_keypair(keypair, cloud):
-    sess = _get_openstack_sess(cloud, config.categories["web_frontend"]["cert_auth_bundle_path"])
-    nova = _get_nova_connection(sess)
+    sess = get_openstack_sess(cloud, config.categories["web_frontend"]["cert_auth_bundle_path"])
+    nova = get_nova_connection(sess)
 
     result = nova.create_keypair(name=keypair.name, public_key=keypair.public_key)
     return result
 
 def create_keypair(key_name, key_string, cloud):
-    sess = _get_openstack_sess(cloud, config.categories["web_frontend"]["cert_auth_bundle_path"])
-    nova = _get_nova_connection(sess)
+    sess = get_openstack_sess(cloud, config.categories["web_frontend"]["cert_auth_bundle_path"])
+    nova = get_nova_connection(sess)
 
     try:
         new_key = nova.create_keypair(name=key_name, public_key=key_string)
@@ -53,8 +53,8 @@ def create_keypair(key_name, key_string, cloud):
 
 
 def create_new_keypair(key_name, cloud):
-    sess = _get_openstack_sess(cloud, config.categories["web_frontend"]["cert_auth_bundle_path"])
-    nova = _get_nova_connection(sess)
+    sess = get_openstack_sess(cloud, config.categories["web_frontend"]["cert_auth_bundle_path"])
+    nova = get_nova_connection(sess)
 
     try:
         new_key = nova.create_keypair(name=key_name)

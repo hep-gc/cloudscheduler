@@ -5,7 +5,7 @@ import boto3
 from datetime import datetime
 
 from cloudscheduler.lib.schema import *
-from cloudscheduler.lib.openstack_functions import _get_openstack_sess, _get_openstack_api_version, _get_keystone_connection, _get_nova_connection
+from cloudscheduler.lib.openstack_functions import get_openstack_sess, get_openstack_api_version, get_keystone_connection, get_nova_connection
 from cloudscheduler.lib.log_tools import get_frame_info
 
 import keystoneclient.v2_0.client as v2c
@@ -1715,12 +1715,12 @@ def get_openstack_app_creds_session(config, cloud, target_cloud=None):
         C['region'] = cloud['region']
 
     if C.get('authurl') and C.get('app_credentials') and C.get('app_credentials_secret'):
-        sess = _get_openstack_sess(C, config.categories["GSI"]["cacerts"])
+        sess = get_openstack_sess(C, config.categories["GSI"]["cacerts"])
         if sess:
             region = None
             if C.get('region'):
                 region = C['region']
-            nova = _get_nova_connection(sess, region)
+            nova = get_nova_connection(sess, region)
             if nova is False:
                 C.pop('app_credentials_secret')
                 return 1, 'failed to get openstack connection using the app credential session, credentials: %s' % C, None
@@ -1746,8 +1746,7 @@ def get_openstack_session(config, cloud, target_cloud=None):
 
     #print(">>>>>>>>>>>>>>>>>>>>>>>>>> CLOUD", cloud, "TARGET", target_cloud, "AUTHURL", C['authurl'])
     if C['authurl']:
-        #rc, msg, version = __get_openstack_api_version__(C['authurl'])
-        rc, msg, version = _get_openstack_api_version(C['authurl'])
+        rc, msg, version = get_openstack_api_version(C['authurl'])
         if rc != 0:
             return rc, msg, None # could not determine version
 
@@ -1828,9 +1827,9 @@ def get_openstack_session(config, cloud, target_cloud=None):
 #                    username=C['username'],
 #                    password=C['password']
 #                    )
-            session = _get_openstack_sess(C, config.categories["GSI"]["cacerts"])
+            session = get_openstack_sess(C, config.categories["GSI"]["cacerts"])
             if session:
-                nova = _get_nova_connection(session, C['region'])
+                nova = get_nova_connection(session, C['region'])
                 if nova is False:
                     C.pop("password")
                     return 1, 'failed to get openstack connection using the v2 password session, credentials: %s' % C, None
@@ -1858,9 +1857,9 @@ def get_openstack_session(config, cloud, target_cloud=None):
 #                    username=C['username'],
 #                    password=C['password']
 #                    )
-            session = _get_openstack_sess(C, config.categories["GSI"]["cacerts"])
+            session = get_openstack_sess(C, config.categories["GSI"]["cacerts"])
             if session:    
-                nova = _get_nova_connection(session, C['region'])
+                nova = get_nova_connection(session, C['region'])
                 if nova is False:
                     C.pop("password")
                     return 1, 'failed to get openstack connection using the v3 password session, credentials: %s' % C, None
@@ -1913,9 +1912,9 @@ def get_app_credentail_expiry(cloud=None, config=None, target_cloud=None, user_i
 
     if not sess and C.get('authurl') and C.get('app_credentials') and C.get('app_credentials_secret'):
         verify = config.categories["GSI"]["cacerts"] if config else None
-        sess = _get_openstack_sess(C, verify)
+        sess = get_openstack_sess(C, verify)
     if sess:
-        keystone = _get_keystone_connection(sess)
+        keystone = get_keystone_connection(sess)
         if C['userid'] and C['app_credentials']:
             try:
                 found_app_credential = keystone.get_application_credential(user=C['userid'], application_credential=C['app_credentials'])

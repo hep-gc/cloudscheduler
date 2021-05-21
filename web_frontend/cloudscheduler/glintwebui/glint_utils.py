@@ -5,7 +5,7 @@ import os
 import string
 import random
 
-from cloudscheduler.lib.openstack_functions import _get_openstack_sess, _get_glance_connection
+from cloudscheduler.lib.openstack_functions import get_openstack_sess, get_glance_connection
 
 from cloudscheduler.lib.db_config import Config
 config = Config('/etc/cloudscheduler/cloudscheduler.yaml', ['general', 'openstackPoller.py', 'web_frontend'], pool_size=2, max_overflow=10)
@@ -29,11 +29,11 @@ def create_placeholder_image(glance, image_name, disk_format, container_format):
 # if there is no image_id it is a direct upload and no placeholder exists
 def upload_image(cloud, image_id, image_name, scratch_dir, image_checksum=None, disk_format=None, container_format="bare"):
     try:
-        sess =  _get_openstack_sess(cloud, config.categories["openstackPoller.py"]["cacerts"])
+        sess = get_openstack_sess(cloud, config.categories["openstackPoller.py"]["cacerts"])
         if sess is False:
             logging.error("Failed to get openstack session")
             return False
-        glance =  _get_glance_connection(sess, cloud["region"])
+        glance = get_glance_connection(sess, cloud["region"])
         if glance is False:
             logging.error("Failed to get openstack glance connection")
             return False
@@ -52,10 +52,10 @@ def upload_image(cloud, image_id, image_name, scratch_dir, image_checksum=None, 
 def download_image(cloud, image_name, image_id, image_checksum, scratch_dir):
     #open file then write to it
     try:
-        sess =  _get_openstack_sess(cloud, config.categories["openstackPoller.py"]["cacerts"])
+        sess = get_openstack_sess(cloud, config.categories["openstackPoller.py"]["cacerts"])
         if sess is False:
             return (False, "Failed to get openstack session", "", "")
-        glance =  _get_glance_connection(sess, cloud["region"])
+        glance = get_glance_connection(sess, cloud["region"])
         if glance is False:
             return (False, "Failed to get openstack glance connection", "", "")
         
@@ -73,10 +73,10 @@ def download_image(cloud, image_name, image_id, image_checksum, scratch_dir):
 #def delete_image(glance, image_id):
 def delete_image(cloud, image_id):
     try:
-        sess =  _get_openstack_sess(cloud, config.categories["openstackPoller.py"]["cacerts"])
+        sess = get_openstack_sess(cloud, config.categories["openstackPoller.py"]["cacerts"])
         if sess is False:
             return (1, "Failed to get openstack session")
-        glance =  _get_glance_connection(sess, cloud["region"])
+        glance = get_glance_connection(sess, cloud["region"])
         if glance is False:
             return (1, "Failed to get openstack glance connection")
 

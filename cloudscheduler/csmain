@@ -13,12 +13,12 @@ from multiprocessing import Process
 from collections import defaultdict
 
 from cloudscheduler.lib.db_config import Config
-from cloudscheduler.lib.view_utils import qt
+from cloudscheduler.lib.view_utils import qt, retire_cloud_vms
 from cloudscheduler.lib.log_tools import get_frame_info
 from cloudscheduler.lib.ec2_translations import get_ami_dictionary
 from cloudscheduler.lib.ProcessMonitor import ProcessMonitor, check_pid, terminate
 from cloudscheduler.lib.poller_functions import start_cycle, wait_cycle
-from cloudscheduler.lib.openstack_functions import _get_openstack_sess, _get_nova_connection
+from cloudscheduler.lib.openstack_functions import get_openstack_sess, get_nova_connection
 
 import openstackcloud
 import localhostcloud
@@ -328,7 +328,7 @@ def process_group_cloud_terminates(pair, config):
         cloud=clouds[0]
 
         if cloud["cloud_type"] == "openstack":
-            session = _get_openstack_sess(cloud, config.categories["condor_poller.py"]["cacerts"])
+            session = get_openstack_sess(cloud, config.categories["condor_poller.py"]["cacerts"])
             if session is False:
                 continue
          
@@ -337,7 +337,7 @@ def process_group_cloud_terminates(pair, config):
                 continue
 
             # terminate the vm
-            nova = _get_nova_connection(session, region=cloud["region"])
+            nova = get_nova_connection(session, region=cloud["region"])
 
             if nova is False:
                 logging.error("Openstack nova connection failed")
@@ -498,7 +498,9 @@ def main():
         logging.basicConfig(filename=config.categories['csmain']['log_file'],
                             level=config.categories['csmain']['log_level'],
                             format="%(asctime)s - %(processName)-12s - %(levelname)s - %(message)s")
-
+        
+        # check/disable if any cloud will expire in one week
+        disable_expired_clouds(config)
 
         # Get the metadata for groups as json selects with mime_types pre-sorted
         # metadata format: { group : { cloud: [(yaml select, mime_type), (yaml select, mime_type) ] } }
@@ -928,8 +930,26 @@ def vm_termination(args_list):
 #~~~~~~~~~~~~~~~~~
 
 
-
-
+def disable_expired_clouds(config):
+    # suppose database opened and will be closed in the main function
+    CLOUD = "csv2_clouds"
+    where_clause = "cloud_type='openstack'"
+    #config.db_open()
+    rc, msg, cloud_list = config.db_query(CLOUD, where=where_clause)
+    try:
+        for cloud in cloud_list:
+            if cloud.get("app_credentials_expiry"):
+                current_time = time.time()
+                if (cloud["app_credentials_expiry"] - current_time) / 86400 < 8 and cloud.get("enabled") and cloud["enabled"] == 1:
+                    where_clause = "group_name='%s' and cloud_name='%s'" % (cloud['group_name'], cloud['cloud_name'])
+                    cloud_row = { "enabled": 0 }
+                    config.db_update(CLOUD, cloud_row, where=where_clause)
+                    config.db_commit()
+                    retire_cloud_vms(config, cloud["group_name"], cloud["cloud_name"])
+        #config.db_close()
+    except Exception as exc:
+        logging.error("Unable to disable and retire the expired cloud: %s" % exc)
+        #config.db_close()
 
 
 if __name__ == '__main__':

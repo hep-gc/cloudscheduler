@@ -10,7 +10,7 @@ class MyServer(_server.Server):
     min_count = resource.Body('min_count')
     max_count = resource.Body('max_count')
 
-def _get_openstack_appcredential_auth(cloud):
+def get_openstack_appcredential_auth(cloud):
     try:
         auth = v3.ApplicationCredential(
             auth_url=cloud["authurl"],
@@ -40,7 +40,7 @@ def get_openstack_conn(sess, region=None):
         logging.error("Problem getting openstacksdk connection - %s" % exc)
         return False
 
-def _get_neutron_connection(sess, region=None):
+def get_neutron_connection(sess, region=None):
     try:
         conn = get_openstack_conn(sess, region)
         neutron = conn.network
@@ -49,7 +49,7 @@ def _get_neutron_connection(sess, region=None):
         logging.error("Problem getting openstacksdk neutron connection - %s" % exc)
         return False
 
-def _get_nova_connection(sess, region=None):
+def get_nova_connection(sess, region=None):
     try:
         conn = get_openstack_conn(sess, region)
         nova = conn.compute
@@ -58,7 +58,7 @@ def _get_nova_connection(sess, region=None):
         logging.error("Problem getting openstacksdk nova connection - %s" % exc)
         return False
 
-def _get_glance_connection(sess, region=None):
+def get_glance_connection(sess, region=None):
     try:
         conn = get_openstack_conn(sess, region)
         glance = conn.image
@@ -67,7 +67,7 @@ def _get_glance_connection(sess, region=None):
         logging.error("Problem getting openstacksdk glance connection - %s" % exc)
         return False
 
-def _get_cinder_connection(sess, region=None):
+def get_cinder_connection(sess, region=None):
     try:
         conn = get_openstack_conn(sess, region)
         cinder = conn.block_storage
@@ -76,7 +76,7 @@ def _get_cinder_connection(sess, region=None):
         logging.error("Problem getting openstacksdk cinder connection - %s" % exc)
         return False
 
-def _get_keystone_connection(sess, region=None):
+def get_keystone_connection(sess, region=None):
     try:
         conn = get_openstack_conn(sess, region)
         keystone = conn.identity
@@ -85,13 +85,13 @@ def _get_keystone_connection(sess, region=None):
         logging.error("Problem getting openstacksdk keystone connection - %s" % exc)
         return False
 
-def _get_openstack_sess(cloud, verify=None):
+def get_openstack_sess(cloud, verify=None):
     try:
         auth = None
         if cloud.get("app_credentials_secret") and cloud.get("app_credentials"):
-            auth = _get_openstack_appcredential_auth(cloud)
+            auth = get_openstack_appcredential_auth(cloud)
         else:
-            auth = _get_openstack_auth(cloud)
+            auth = get_openstack_auth(cloud)
         sess = session.Session(auth=auth, verify=verify, split_loggers=False)
     except Exception as exc:
         sess = False
@@ -100,7 +100,7 @@ def _get_openstack_sess(cloud, verify=None):
             logging.error("Failed to setup session, skipping %s", cloud["cloud_name"])
     return sess
 
-def _get_openstack_api_version(authurl):
+def get_openstack_api_version(authurl):
     authsplit = authurl.split('/')
     try:
         version = int(float(authsplit[-1][1:])) if len(authsplit[-1]) > 0 else int(float(authsplit[-2][1:]))
@@ -108,8 +108,8 @@ def _get_openstack_api_version(authurl):
     except:
         return 1, 'Bad openstack URL: %s, could not determine version, skipping' % authurl, None
 
-def _get_openstack_auth(cloud):
-    rc, msg, version = _get_openstack_api_version(cloud["authurl"])
+def get_openstack_auth(cloud):
+    rc, msg, version = get_openstack_api_version(cloud["authurl"])
     if rc != 0:
         logging.debug(msg)
         return False

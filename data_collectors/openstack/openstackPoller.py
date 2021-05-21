@@ -30,7 +30,7 @@ from cloudscheduler.lib.poller_functions import \
     wait_cycle
 
 from cloudscheduler.lib.signal_functions import event_receiver_registration
-from cloudscheduler.lib.openstack_functions import _get_openstack_sess, _get_nova_connection, _get_glance_connection, _get_neutron_connection, _get_cinder_connection, get_openstack_conn
+from cloudscheduler.lib.openstack_functions import get_openstack_sess, get_nova_connection, get_glance_connection, get_neutron_connection, get_cinder_connection, get_openstack_conn
 #import openstack
 
 '''
@@ -160,7 +160,7 @@ def flavor_poller():
                     cloud_name = unique_cloud_dict[cloud]['cloud_obj']["authurl"]
                     cloud_obj =  unique_cloud_dict[cloud]['cloud_obj']
                     logging.debug("Processing flavours from cloud - %s" % cloud_name)
-                    sess = _get_openstack_sess(unique_cloud_dict[cloud]['cloud_obj'], config.categories["openstackPoller.py"]["cacerts"])
+                    sess = get_openstack_sess(unique_cloud_dict[cloud]['cloud_obj'], config.categories["openstackPoller.py"]["cacerts"])
                     if sess is False:
                         logging.debug("Failed to establish session with %s, skipping this cloud..." % cloud_name)
                         for cloud_tuple in unique_cloud_dict[cloud]['groups']:
@@ -176,7 +176,7 @@ def flavor_poller():
                             continue
 
                     # setup OpenStack api objects
-                    nova = _get_nova_connection(sess, region=unique_cloud_dict[cloud]['cloud_obj']["region"])
+                    nova = get_nova_connection(sess, region=unique_cloud_dict[cloud]['cloud_obj']["region"])
 
                     if nova is False:
                         logging.info("Openstack nova connection failed for %s, skipping this cloud..." % cloud_name)
@@ -374,7 +374,7 @@ def image_poller():
                     cloud_obj = unique_cloud_dict[cloud]['cloud_obj']
                     cloud_name = unique_cloud_dict[cloud]['cloud_obj']["authurl"]
                     logging.info("Processing Images from cloud - %s" % cloud_name)
-                    sess = _get_openstack_sess(unique_cloud_dict[cloud]['cloud_obj'], config.categories["openstackPoller.py"]["cacerts"])
+                    sess = get_openstack_sess(unique_cloud_dict[cloud]['cloud_obj'], config.categories["openstackPoller.py"]["cacerts"])
                     if sess is False:
                         logging.debug("Failed to establish session with %s, skipping this cloud..." % cloud_name)
                         for cloud_tuple in unique_cloud_dict[cloud]['groups']:
@@ -392,8 +392,7 @@ def image_poller():
                     # Retrieve all images for this cloud.
                     post_req_time = 0
                     pre_req_time = time.time() * 1000000 
-                    #glance = _get_glance_client(session, region=unique_cloud_dict[cloud]['cloud_obj']["region"])
-                    glance = _get_glance_connection(sess, region=unique_cloud_dict[cloud]['cloud_obj']["region"])
+                    glance = get_glance_connection(sess, region=unique_cloud_dict[cloud]['cloud_obj']["region"])
 
                     if glance is False:
                         logging.info("Openstack glance connection failed for %s, skipping this cloud..." % cloud_name)
@@ -624,7 +623,7 @@ def keypair_poller():
                     cloud_name = unique_cloud_dict[cloud]['cloud_obj']["authurl"]
                     cloud_obj = unique_cloud_dict[cloud]['cloud_obj']
                     logging.debug("Processing Key pairs from group:cloud - %s" % cloud_name)
-                    sess = _get_openstack_sess(unique_cloud_dict[cloud]['cloud_obj'], config.categories["openstackPoller.py"]["cacerts"])
+                    sess = get_openstack_sess(unique_cloud_dict[cloud]['cloud_obj'], config.categories["openstackPoller.py"]["cacerts"])
                     if sess is False:
                         logging.debug("Failed to establish session with %s" % cloud_name)
                         for cloud_tuple in unique_cloud_dict[cloud]['groups']:
@@ -640,7 +639,7 @@ def keypair_poller():
                         continue
 
                     # setup openstack api objects
-                    nova = _get_nova_connection(sess, region=unique_cloud_dict[cloud]['cloud_obj']["region"])
+                    nova = get_nova_connection(sess, region=unique_cloud_dict[cloud]['cloud_obj']["region"])
 
                     if nova is False:
                         logging.info("Openstack nova connection failed for %s, skipping this cloud..." % cloud_name)
@@ -819,7 +818,7 @@ def limit_poller():
                     cloud_name = unique_cloud_dict[cloud]['cloud_obj']["authurl"]
                     cloud_obj = unique_cloud_dict[cloud]['cloud_obj']
                     logging.debug("Processing limits from cloud - %s" % cloud_name)
-                    sess = _get_openstack_sess(unique_cloud_dict[cloud]['cloud_obj'], config.categories["openstackPoller.py"]["cacerts"])
+                    sess = get_openstack_sess(unique_cloud_dict[cloud]['cloud_obj'], config.categories["openstackPoller.py"]["cacerts"])
                     if sess is False:
                         logging.debug("Failed to establish session with %s, skipping this cloud..." % cloud_name)
                         for cloud_tuple in unique_cloud_dict[cloud]['groups']:
@@ -835,7 +834,7 @@ def limit_poller():
                         continue
 
                     # Retrieve limit list for the current cloud.
-                    nova = _get_nova_connection(sess, region=unique_cloud_dict[cloud]['cloud_obj']["region"])
+                    nova = get_nova_connection(sess, region=unique_cloud_dict[cloud]['cloud_obj']["region"])
 
                     if nova is False:
                         logging.info("Openstack nova connection failed for %s, skipping this cloud..." % cloud_name)
@@ -1028,7 +1027,7 @@ def network_poller():
                     cloud_name = unique_cloud_dict[cloud]['cloud_obj']["authurl"]
                     cloud_obj = unique_cloud_dict[cloud]['cloud_obj']
                     logging.debug("Processing networks from cloud - %s" % cloud_name)
-                    sess = _get_openstack_sess(unique_cloud_dict[cloud]['cloud_obj'], config.categories["openstackPoller.py"]["cacerts"])
+                    sess = get_openstack_sess(unique_cloud_dict[cloud]['cloud_obj'], config.categories["openstackPoller.py"]["cacerts"])
                     if sess is False:
                         logging.debug("Failed to establish session with %s, skipping this cloud..." % cloud_name)
                         for cloud_tuple in unique_cloud_dict[cloud]['groups']:
@@ -1044,7 +1043,7 @@ def network_poller():
                         continue
 
                     # Retrieve network list.
-                    neutron = _get_neutron_connection(sess, region=unique_cloud_dict[cloud]['cloud_obj']["region"])
+                    neutron = get_neutron_connection(sess, region=unique_cloud_dict[cloud]['cloud_obj']["region"])
 
                     if neutron is False:
                         logging.info("Openstack neutron connection failed for %s, skipping this cloud..." % cloud_name)
@@ -1229,7 +1228,7 @@ def security_group_poller():
                     cloud_name = unique_cloud_dict[cloud]['cloud_obj']["authurl"]
                     cloud_obj = unique_cloud_dict[cloud]['cloud_obj']
                     logging.debug("Processing security groups from cloud - %s" % cloud_name)
-                    sess = _get_openstack_sess(unique_cloud_dict[cloud]['cloud_obj'], config.categories["openstackPoller.py"]["cacerts"])
+                    sess = get_openstack_sess(unique_cloud_dict[cloud]['cloud_obj'], config.categories["openstackPoller.py"]["cacerts"])
                     if sess is False:
                         logging.debug("Failed to establish session with %s, skipping this cloud..." % cloud_name)
                         for cloud_tuple in unique_cloud_dict[cloud]['groups']:
@@ -1245,7 +1244,7 @@ def security_group_poller():
                             continue
 
                     # setup OpenStack api objects
-                    neu = _get_neutron_connection(sess, region=unique_cloud_dict[cloud]['cloud_obj']["region"])
+                    neu = get_neutron_connection(sess, region=unique_cloud_dict[cloud]['cloud_obj']["region"])
                     
                     if neu is False:
                         logging.info("Openstack neutron connection failed for %s, skipping this cloud..." % cloud_name)
@@ -1465,7 +1464,7 @@ def vm_poller():
                     for_vm_dict[auth_url + "--" + for_vm["flavor_id"]] = fvm_dict
 
                 logging.debug("Polling VMs from cloud: %s" % auth_url)
-                sess = _get_openstack_sess(cloud_obj, config.categories["openstackPoller.py"]["cacerts"])
+                sess = get_openstack_sess(cloud_obj, config.categories["openstackPoller.py"]["cacerts"])
                 if sess is False:
                     logging.debug("Failed to establish session with %s::%s::%s, using group %s's credentials skipping this cloud..." % (cloud_obj["authurl"], cloud_obj["project"], cloud_obj["region"], cloud_obj["group_name"]))
                     if auth_url + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"] not in failure_dict:
@@ -1477,7 +1476,7 @@ def vm_poller():
                     continue
 
                 # Retrieve VM list for this cloud.
-                nova = _get_nova_connection(sess, region=cloud_obj["region"])
+                nova = get_nova_connection(sess, region=cloud_obj["region"])
 
                 if nova is False:
                     logging.info("Openstack nova connection failed for %s, skipping this cloud..." % cloud_obj["cloud_name"])
@@ -1823,7 +1822,7 @@ def volume_poller():
                     cloud_obj = unique_cloud_dict[cloud]['cloud_obj']
                     auth_url = unique_cloud_dict[cloud]['cloud_obj']["authurl"]
                     logging.debug("Processing limits from cloud - %s" % cloud_name)
-                    sess = _get_openstack_sess(unique_cloud_dict[cloud]['cloud_obj'], config.categories["openstackPoller.py"]["cacerts"])
+                    sess = get_openstack_sess(unique_cloud_dict[cloud]['cloud_obj'], config.categories["openstackPoller.py"]["cacerts"])
                     if sess is False:
                         logging.debug("Failed to establish session with %s, skipping this cloud..." % cloud_name)
                         for cloud_tuple in unique_cloud_dict[cloud]['groups']:
@@ -1839,7 +1838,7 @@ def volume_poller():
                         continue
 
                     # Retrieve volume list for the current cloud.
-                    cinder = _get_cinder_connection(sess, region=unique_cloud_dict[cloud]['cloud_obj']["region"])
+                    cinder = get_cinder_connection(sess, region=unique_cloud_dict[cloud]['cloud_obj']["region"])
 
                     if cinder is False:
                         logging.info("Openstack nova connection failed for %s, skipping this cloud..." % cloud_name)

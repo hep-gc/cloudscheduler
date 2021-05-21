@@ -15,7 +15,7 @@ import base64
 import json
 import basecloud
 import config as csconfig
-from cloudscheduler.lib.openstack_functions import MyServer, _get_openstack_sess, _get_openstack_api_version,  _get_nova_connection, _get_glance_connection, _get_neutron_connection, _get_cinder_connection
+from cloudscheduler.lib.openstack_functions import MyServer, get_openstack_sess, get_nova_connection, get_glance_connection, get_neutron_connection, get_cinder_connection
 
 class OpenStackCloud(basecloud.BaseCloud):
 
@@ -341,7 +341,7 @@ class OpenStackCloud(basecloud.BaseCloud):
         :return: novaclient client.
         """
         try:
-            nova = _get_nova_connection(self.session, self.region)
+            nova = get_nova_connection(self.session, self.region)
         except Exception as e:
             self.log.error("Cannot use nova on %s:%s" % (self.name, e))
             raise e
@@ -353,7 +353,7 @@ class OpenStackCloud(basecloud.BaseCloud):
         :return: neutron client.
         """
         try:
-            neutron = _get_neutron_connection(self.session, self.region)
+            neutron = get_neutron_connection(self.session, self.region)
         except Exception as e:
             self.log.error("Cannot use neutron on %s:%s" % (self.name, e))
             raise e
@@ -361,7 +361,7 @@ class OpenStackCloud(basecloud.BaseCloud):
 
     def _get_creds_cinder(self):
         try:
-            cinder = _get_cinder_connection(self.session, self.region)
+            cinder = get_cinder_connection(self.session, self.region)
         except Exception as e:
             self.log.error("Cannot use cinder on %s:%s" % (self.name, e))
             raise e
@@ -369,7 +369,7 @@ class OpenStackCloud(basecloud.BaseCloud):
 
     def _get_creds_glance(self):
         try:
-            glance = _get_glance_connection(self.session, self.region)
+            glance = get_glance_connection(self.session, self.region)
         except Exception as e:
             self.log.error("Cannot use glance on %s:%s" % (self.name, e))
             raise e
@@ -420,7 +420,7 @@ class OpenStackCloud(basecloud.BaseCloud):
                 elif version == 3:
                     #self.log.debug("Using a v3 session for %s", self.name)
                     cloud_data = self._get_keystone_data_v3()
-            keystone_session = _get_openstack_sess(cloud_data, self.cacertificate)
+            keystone_session = get_openstack_sess(cloud_data, self.cacertificate)
         except ValueError as ex:
             self.log.exception("Error determining keystone version from auth url: %s", ex)
             keystone_session = None
