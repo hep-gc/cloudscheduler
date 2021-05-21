@@ -450,7 +450,7 @@
                                     {% if cloud.app_credentials_expiry and cloud.current_time %}
                                         {% if cloud.app_credentials_expiry|sub:cloud.current_time|div:86400 > 14 %}
                                             <td class="bold-style" onclick="toggle_id('expand-{{cloud.group_name}}-{{cloud.cloud_name}}')"><div class="float-left">{{cloud.cloud_name}}</div>
-                                        {% elif cloud.app_credentials_expiry|sub:cloud.current_time|div:86400 > 7 %}
+                                        {% elif cloud.app_credentials_expiry|sub:cloud.current_time|div:86400 >= 8 %}
                                             <td class="warn-style" onclick="toggle_id('expand-{{cloud.group_name}}-{{cloud.cloud_name}}')"><div class="float-left">{{cloud.cloud_name}}</div>
                                         {% else %}
                                             <td class="disabled-style" onclick="toggle_id('expand-{{cloud.group_name}}-{{cloud.cloud_name}}')"><div class="float-left">{{cloud.cloud_name}}</div>

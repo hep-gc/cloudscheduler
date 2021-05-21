@@ -25,12 +25,24 @@ def _get_openstack_appcredential_auth(cloud):
         logging.error("Connection parameters: \n authurl: %s \n application_credential_secret: %s \n application_credential_id: %s", (cloud["authurl"], cloud["app_credentials_secret"], cloud["app_credentials"]))
         return False
 
-def _get_neutron_connection(sess, region=None):
+def get_openstack_conn(sess, region=None):
     try:
         conn = connection.Connection(
             region_name=region,
-            session=sess
+            session=sess,
+            compute_api_version='2',
+            image_api_version='2', 
+            block_storage_api_version='3',
+            identity_api_version='3'
         )
+        return conn
+    except Exception as exc:
+        logging.error("Problem getting openstacksdk connection - %s" % exc)
+        return False
+
+def _get_neutron_connection(sess, region=None):
+    try:
+        conn = get_openstack_conn(sess, region)
         neutron = conn.network
         return neutron
     except Exception as exc:
@@ -39,11 +51,7 @@ def _get_neutron_connection(sess, region=None):
 
 def _get_nova_connection(sess, region=None):
     try:
-        conn = connection.Connection(
-            region_name=region,
-            session=sess,
-            compute_api_version='2'
-        )
+        conn = get_openstack_conn(sess, region)
         nova = conn.compute
         return nova
     except Exception as exc:
@@ -52,11 +60,7 @@ def _get_nova_connection(sess, region=None):
 
 def _get_glance_connection(sess, region=None):
     try:
-        conn = connection.Connection(
-            region_name=region,
-            session=sess,
-            image_api_version='2'
-        )
+        conn = get_openstack_conn(sess, region)
         glance = conn.image
         return glance
     except Exception as exc:
@@ -65,11 +69,7 @@ def _get_glance_connection(sess, region=None):
 
 def _get_cinder_connection(sess, region=None):
     try:
-        conn = connection.Connection(
-            region_name=region,
-            session=sess,
-            block_storage_api_version='3'
-        )
+        conn = get_openstack_conn(sess, region)
         cinder = conn.block_storage
         return cinder
     except Exception as exc:
@@ -78,12 +78,7 @@ def _get_cinder_connection(sess, region=None):
 
 def _get_keystone_connection(sess, region=None):
     try:
-        conn = connection.Connection(
-            region_name=region,
-            session=sess,
-            #identity_interface='public',
-            identity_api_version='3'
-        )
+        conn = get_openstack_conn(sess, region)
         keystone = conn.identity
         return keystone
     except Exception as exc:

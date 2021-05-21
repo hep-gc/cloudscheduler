@@ -15,7 +15,7 @@ import base64
 import json
 import basecloud
 import config as csconfig
-from cloudscheduler.lib.openstack_functions import MyServer, _get_openstack_sess, _get_nova_connection, _get_glance_connection, _get_neutron_connection, _get_cinder_connection
+from cloudscheduler.lib.openstack_functions import MyServer, _get_openstack_sess, _get_openstack_api_version,  _get_nova_connection, _get_glance_connection, _get_neutron_connection, _get_cinder_connection
 
 class OpenStackCloud(basecloud.BaseCloud):
 
@@ -47,6 +47,9 @@ class OpenStackCloud(basecloud.BaseCloud):
         self.userdomainname = resource.get("user_domain_name")
         self.projectdomainname = resource.get("project_domain_name")
         self.projectdomainid = resource.get("project_domain_id")
+        self.authtype = resource.get("auth_type")
+        self.appcredentials = resource.get("app_credentials")
+        self.appcredentialssecret = resource.get("app_credentials_secret")
         self.session = self._get_auth_version(self.authurl)
         if not self.session:
             raise Exception
@@ -211,7 +214,7 @@ class OpenStackCloud(basecloud.BaseCloud):
                     while (cv.status != 'available'):
                         time.sleep(1)
                         cv = cinder.get_volume(cv.id)
-                    bdm = {'vda': str(cv.id) + ':::1'}
+                    bdm = [{'uuid': cv.id, 'source_type': 'volume', 'destination_type': 'volume', 'delete_on_termination': True, 'boot_index': i}]
                     #append tuple with nova responce and hostname used
                     based_userdata = base64.b64encode(userdata)
                     format_userdata = based_userdata.decode()
@@ -326,6 +329,12 @@ class OpenStackCloud(basecloud.BaseCloud):
         """
         return {"authurl": self.authurl, "username": self.username, "password": self.password, "project": self.project, "project_domain_name": self.projectdomainname, "user_domain_name": self.userdomainname, "project_domain_id": self.projectdomainid}
 
+    def _get_keystone_app_cred_data(self):
+        """
+        Format the data for keystone session using application credential
+        """
+        return {"authurl": self.authurl, "app_credentials": self.appcredentials, "app_credentials_secret": self.appcredentialssecret}
+
     def _get_creds_nova(self):
         """
         Get a novaclient client object by openstacksdk.
@@ -400,15 +409,17 @@ class OpenStackCloud(basecloud.BaseCloud):
         keystone_session = None
         cloud_data = {}
         try:
-            authsplit = authurl.split('/')
-            version = int(float(authsplit[-1][1:])) if authsplit[-1]\
-                else int(float(authsplit[-2][1:]))
-            if version == 2:
-                #self.log.debug("Using a v2 session for %s", self.name)
-                cloud_data = self._get_keystone_data_v2()
-            elif version == 3:
-                #self.log.debug("Using a v3 session for %s", self.name)
-                cloud_data = self._get_keystone_data_v3()
+            if self.authtype and self.authtype == 'app_creds':
+               cloud_data = self._get_keystone_app_cred_data()
+            else:
+                authsplit = authurl.split('/')
+                version = int(float(authsplit[-1][1:])) if authsplit[-1] else int(float(authsplit[-2][1:]))
+                if version == 2:
+                    #self.log.debug("Using a v2 session for %s", self.name)
+                    cloud_data = self._get_keystone_data_v2()
+                elif version == 3:
+                    #self.log.debug("Using a v3 session for %s", self.name)
+                    cloud_data = self._get_keystone_data_v3()
             keystone_session = _get_openstack_sess(cloud_data, self.cacertificate)
         except ValueError as ex:
             self.log.exception("Error determining keystone version from auth url: %s", ex)

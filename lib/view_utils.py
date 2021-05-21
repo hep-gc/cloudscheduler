@@ -6,6 +6,7 @@ from datetime import datetime
 
 from cloudscheduler.lib.schema import *
 from cloudscheduler.lib.openstack_functions import _get_openstack_sess, _get_openstack_api_version, _get_keystone_connection, _get_nova_connection
+from cloudscheduler.lib.log_tools import get_frame_info
 
 import keystoneclient.v2_0.client as v2c
 import keystoneclient.v3.client as v3c
@@ -1882,7 +1883,7 @@ def get_openstack_session(config, cloud, target_cloud=None):
 
 def get_app_credentail_expiry(cloud=None, config=None, target_cloud=None, user_id=None, app_credential_id=None, sess=None):
     C = {}
-    if not target_cloud and cloud.get('group_name') and cloud.get('cloud_name'):
+    if not target_cloud and config and cloud.get('group_name') and cloud.get('cloud_name'):
         rc, msg, target_cloud = get_target_cloud(config, cloud['group_name'], cloud['cloud_name'])
     
     if target_cloud:
@@ -1911,7 +1912,8 @@ def get_app_credentail_expiry(cloud=None, config=None, target_cloud=None, user_i
         C['userid'] = user_id
 
     if not sess and C.get('authurl') and C.get('app_credentials') and C.get('app_credentials_secret'):
-        sess = _get_openstack_sess(C, config.categories["GSI"]["cacerts"])
+        verify = config.categories["GSI"]["cacerts"] if config else None
+        sess = _get_openstack_sess(C, verify)
     if sess:
         keystone = _get_keystone_connection(sess)
         if C['userid'] and C['app_credentials']:
@@ -1946,3 +1948,12 @@ def check_convert_bytestrings(values):
             return values
 
 
+def retire_cloud_vms(config, group_name, cloud_name):
+    VM = "csv2_vms"
+    where_clause = "cloud_name='%s' and group_name='%s'" % (cloud_name, group_name)
+    rc, msg, vm_list = config.db_query(VM, where=where_clause)
+    for vm in vm_list:
+        vm["retire"] = 1
+        vm["updater"]= get_frame_info() + ":r1"
+        config.db_merge(VM, vm)
+    config.db_commit()

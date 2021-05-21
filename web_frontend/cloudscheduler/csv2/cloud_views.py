@@ -21,7 +21,8 @@ from cloudscheduler.lib.view_utils import \
     validate_fields, \
     get_target_cloud, \
     verify_cloud_credentials, \
-    get_app_credentail_expiry
+    get_app_credentail_expiry, \
+    retire_cloud_vms
 
 import bcrypt
 
@@ -165,20 +166,6 @@ METADATA_LIST_KEYS = {
         'group':                                'ignore',
         },
     }
-
-#-------------------------------------------------------------------------------
-
-
-def retire_cloud_vms(config, group_name, cloud_name):
-    VM = "csv2_vms"
-    where_clause = "cloud_name='%s' and group_name='%s'" % (cloud_name, group_name)
-    rc, msg, vm_list = config.db_query(VM, where=where_clause)
-    for vm in vm_list:
-        vm["retire"] = 1
-        vm["updater"]= get_frame_info() + ":r1"
-        config.db_merge(VM, vm)
-    config.db_commit()
-
 
 #-------------------------------------------------------------------------------
 
@@ -582,7 +569,7 @@ def add(request):
                 rc, msg, app_cred_expiry = get_app_credentail_expiry({**fields, 'group_name': active_user.active_group}, config=config)
                 if rc == 0:
                     current_time = time.time()
-                    if not app_cred_expiry or (app_cred_expiry - current_time)/86400 > 7:
+                    if not app_cred_expiry or (app_cred_expiry - current_time)/86400 >= 8:
                         fields['app_credentials_expiry'] = app_cred_expiry
                     else:
                         config.db_close()
@@ -1808,7 +1795,7 @@ def update(request):
                 rc, msg, app_cred_expiry = get_app_credentail_expiry({**fields, 'group_name': active_user.active_group}, config=config)
                 if rc == 0:
                     current_time = time.time()
-                    if not app_cred_expiry or (app_cred_expiry - current_time)/86400 > 7:
+                    if not app_cred_expiry or (app_cred_expiry - current_time)/86400 >= 8:
                         fields['app_credentials_expiry'] = app_cred_expiry
                     else:
                         config.db_close()

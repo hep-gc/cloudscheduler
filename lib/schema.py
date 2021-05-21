@@ -240,6 +240,10 @@ schema = {
             "security_groups_used": {"type": "int"},
             "floating_ips_used": {"type": "int"},
             "cores_used": {"type": "int"},
+            "volumes_max": {"type": "int"},
+            "volumes_used": {"type": "int"},
+            "volume_gigs_max": {"type": "int"},
+            "volume_gigs_used": {"type": "int"},
             "last_updated": {"type": "int"}
             }
         },
@@ -274,6 +278,25 @@ schema = {
             "id": {"type": "str", "len": "64", "nulls": "NO"},
             "name": {"type": "str", "len": "128", "nulls": "YES"},
             "cloud_type": {"type": "str", "len": "64", "nulls": "YES"},
+            "last_updated": {"type": "int"}
+            }
+        },
+    "cloud_volumes": {
+        "keys": [
+            "group_name",
+            "cloud_name",
+            "id"
+            ],
+        "columns": {
+            "group_name": {"type": "str", "len": "32", "nulls": "NO"},
+            "cloud_name": {"type": "str", "len": "32", "nulls": "NO"},
+            "name": {"type": "str", "len": "256", "nulls": "NO"},
+            "host": {"type": "str", "len": "256", "nulls": "NO"},
+            "id": {"type": "str", "len": "128", "nulls": "NO"},
+            "size": {"type": "int"},
+            "volume_type": {"type": "str", "len": "64", "nulls": "NO"},
+            "status": {"type": "str", "len": "32", "nulls": "NO"},
+            "cloud_type": {"type": "str", "len": "32", "nulls": "NO"},
             "last_updated": {"type": "int"}
             }
         },
@@ -439,7 +462,7 @@ schema = {
             "authurl": {"type": "str", "len": "128", "nulls": "NO"},
             "project": {"type": "str", "len": "128", "nulls": "NO"},
             "username": {"type": "str", "len": "20", "nulls": "NO"},
-            "userid": {"type": "str", "len": "32", "nulls": "YES"},
+            "userid": {"type": "str", "len": "64", "nulls": "YES"},
             "password": {"type": "str", "nulls": "NO"},
             "obsolete_keyname": {"type": "str", "len": "20", "nulls": "YES"},
             "cacertificate": {"type": "str", "nulls": "YES"},
@@ -1108,6 +1131,9 @@ schema = {
             "flavor_disk": {"type": "int"},
             "flavor_ram": {"type": "int"},
             "flavor_swap": {"type": "int"},
+            "auth_type": {"type": "str", "len": "32", "nulls": "YES"},
+            "app_credentials": {"type": "str", "len": "128", "nulls": "YES"},
+            "app_credentials_secret": {"type": "str", "len": "128", "nulls": "YES"},
             "flavor_VMs": {"type": "int"},
             "flavor_starting": {"type": "int"},
             "flavor_unregistered": {"type": "int"},
@@ -1136,6 +1162,7 @@ schema = {
         "columns": {
             "group_name": {"type": "str", "len": "32", "nulls": "NO"},
             "cloud_name": {"type": "str", "len": "32", "nulls": "NO"},
+            "app_credentials_expiry": {"type": "str", "len": "11", "nulls": "YES"},
             "VMs": {"type": "int"},
             "VMs_manual": {"type": "int"},
             "VMs_in_error": {"type": "int"},
@@ -1255,7 +1282,7 @@ schema = {
             "vm_keyname": {"type": "str", "len": "64", "nulls": "YES"},
             "vm_network": {"type": "str", "len": "64", "nulls": "NO"},
             "vm_security_groups": {"type": "str", "len": "128", "nulls": "YES"},
-            "userid": {"type": "str", "len": "32", "nulls": "YES"},
+            "userid": {"type": "str", "len": "64", "nulls": "YES"},
             "auth_type": {"type": "str", "len": "32", "nulls": "YES"},
             "app_credentials": {"type": "str", "len": "128", "nulls": "YES"},
             "app_credentials_secret": {"type": "str", "len": "128", "nulls": "YES"},
@@ -1324,7 +1351,7 @@ schema = {
             "vm_keyname": {"type": "str", "len": "64", "nulls": "YES"},
             "vm_network": {"type": "str", "len": "64", "nulls": "NO"},
             "vm_security_groups": {"type": "str", "len": "128", "nulls": "YES"},
-            "userid": {"type": "str", "len": "32", "nulls": "YES"},
+            "userid": {"type": "str", "len": "64", "nulls": "YES"},
             "auth_type": {"type": "str", "len": "32", "nulls": "YES"},
             "app_credentials": {"type": "str", "len": "128", "nulls": "YES"},
             "app_credentials_secret": {"type": "str", "len": "128", "nulls": "YES"},
@@ -1397,7 +1424,7 @@ schema = {
             "vm_keyname": {"type": "str", "len": "64", "nulls": "YES"},
             "vm_network": {"type": "str", "len": "64", "nulls": "NO"},
             "vm_security_groups": {"type": "str", "len": "128", "nulls": "YES"},
-            "userid": {"type": "str", "len": "32", "nulls": "YES"},
+            "userid": {"type": "str", "len": "64", "nulls": "YES"},
             "auth_type": {"type": "str", "len": "32", "nulls": "YES"},
             "app_credentials": {"type": "str", "len": "128", "nulls": "YES"},
             "app_credentials_secret": {"type": "str", "len": "128", "nulls": "YES"},
