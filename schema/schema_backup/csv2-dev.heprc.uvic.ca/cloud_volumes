@@ -16,42 +16,25 @@
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
 --
--- Table structure for table `cloud_limits`
+-- Table structure for table `cloud_volumes`
 --
 
-DROP TABLE IF EXISTS `cloud_limits`;
+DROP TABLE IF EXISTS `cloud_volumes`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
-CREATE TABLE `cloud_limits` (
-  `group_name` varchar(32) NOT NULL,
-  `cloud_name` varchar(32) NOT NULL,
-  `cloud_type` varchar(64) DEFAULT NULL,
-  `server_meta_max` int(11) NOT NULL,
-  `instances_max` int(11) NOT NULL,
-  `personality_max` int(11) NOT NULL,
-  `image_meta_max` int(11) NOT NULL,
-  `personality_size_max` int(11) NOT NULL,
-  `ram_max` int(11) NOT NULL,
-  `server_groups_max` int(11) NOT NULL,
-  `security_group_rules_max` int(11) NOT NULL,
-  `keypairs_max` int(11) NOT NULL,
-  `security_groups_max` int(11) NOT NULL,
-  `server_group_members_max` int(11) NOT NULL,
-  `floating_ips_max` int(11) NOT NULL,
-  `cores_max` int(11) NOT NULL,
-  `server_groups_used` int(11) NOT NULL,
-  `instances_used` int(11) NOT NULL,
-  `ram_used` int(11) NOT NULL,
-  `security_groups_used` int(11) NOT NULL,
-  `floating_ips_used` int(11) NOT NULL,
-  `cores_used` int(11) NOT NULL,
-  `volumes_max` int(11) DEFAULT NULL,
-  `volumes_used` int(11) DEFAULT NULL,
-  `volume_gigs_max` int(11) DEFAULT NULL,
-  `volume_gigs_used` int(11) DEFAULT NULL,
+CREATE TABLE `cloud_volumes` (
+  `group_name` varchar(32) CHARACTER SET utf8 NOT NULL,
+  `cloud_name` varchar(32) CHARACTER SET utf8 NOT NULL,
+  `name` varchar(256) CHARACTER SET utf8 NOT NULL,
+  `host` varchar(256) CHARACTER SET utf8 NOT NULL,
+  `id` varchar(128) CHARACTER SET utf8 NOT NULL,
+  `size` int(13) NOT NULL,
+  `volume_type` varchar(64) CHARACTER SET utf8 NOT NULL,
+  `status` varchar(32) CHARACTER SET utf8 NOT NULL,
+  `cloud_type` varchar(32) NOT NULL,
   `last_updated` int(11) NOT NULL,
-  PRIMARY KEY (`group_name`,`cloud_name`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+  PRIMARY KEY (`group_name`,`cloud_name`,`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 

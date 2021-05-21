@@ -30,6 +30,7 @@ CREATE TABLE `csv2_clouds` (
   `authurl` varchar(128) NOT NULL,
   `project` varchar(128) NOT NULL,
   `username` varchar(20) NOT NULL,
+  `userid` varchar(64) DEFAULT NULL,
   `password` text NOT NULL,
   `obsolete_keyname` varchar(20) DEFAULT NULL,
   `cacertificate` text DEFAULT NULL,
@@ -40,6 +41,10 @@ CREATE TABLE `csv2_clouds` (
   `project_domain_id` varchar(64) DEFAULT NULL,
   `cloud_type` varchar(64) NOT NULL,
   `ec2_owner_id` varchar(32) DEFAULT NULL,
+  `auth_type` varchar(32) DEFAULT 'userpass',
+  `app_credentials` varchar(128) DEFAULT NULL,
+  `app_credentials_secret` varchar(128) DEFAULT NULL,
+  `app_credentials_expiry` int(11) DEFAULT NULL,
   `communication_up` tinyint(1) NOT NULL DEFAULT 0,
   `communication_rt` int(11) NOT NULL DEFAULT 0,
   `server_meta_ctl` int(11) DEFAULT NULL,
@@ -80,4 +85,4 @@ CREATE TABLE `csv2_clouds` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2020-05-13 11:27:44
+-- Dump completed on 2021-05-21 15:38:03
