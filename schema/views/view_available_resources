@@ -2,7 +2,7 @@
 ** List group/cloud/flavors in flavor priority order and for each group/cloud/flavor
 ** combination show the number of VMs up and down.
 */
-create or replace view view_available_resources as
+create or replace view t0 as
 /* fwdac - flavors with defaults and counts */
 select
 fwd.group_name,
@@ -47,6 +47,10 @@ ifnull(fwd.ram_foreign,0) as ram_foreign,
 ifnull(ru.swap_used,0) as swap_used,
 fwd.flavor,
 fwd.flavor_id,
+fwd.volumes_max,
+fwd.volumes_used,
+fwd.volume_gigs_max,
+fwd.volume_gigs_used,
 
 case when ifnull(fwd.VMs_max,0)>ifnull(ru.VMs,0) and ifnull(fwd.cores_limit,0)>ifnull(ru.cores_used,0) and ifnull(fwd.ram_limit,0)>ifnull(ru.ram_used,0) then
     least((fwd.cores_limit-ifnull(ru.cores_used,0)) div fwd.flavor_cores, (fwd.ram_limit-ifnull(ru.ram_used,0)) div fwd.flavor_ram)
@@ -90,6 +94,10 @@ from (
             cg.htcondor_fqdn,
             cg.htcondor_container_hostname,
             cg.htcondor_other_submitters,
+            cl.volumes_max,
+            cl.volumes_used,
+            cl.volume_gigs_max,
+            cl.volume_gigs_used,
 
 
             case when ifnull(cc.vm_flavor,'')!='' then
