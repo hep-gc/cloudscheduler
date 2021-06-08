@@ -1,0 +1,123 @@
+-- MySQL dump 10.17  Distrib 10.3.21-MariaDB, for Linux (x86_64)
+--
+-- Host: localhost    Database: csv2
+-- ------------------------------------------------------
+-- Server version	10.3.21-MariaDB
+
+/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
+/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
+/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
+/*!40101 SET NAMES utf8mb4 */;
+/*!40103 SET @OLD_TIME_ZONE=@@TIME_ZONE */;
+/*!40103 SET TIME_ZONE='+00:00' */;
+/*!40014 SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0 */;
+/*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
+/*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
+/*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
+
+--
+-- Temporary table structure for view `t0`
+--
+
+DROP TABLE IF EXISTS `t0`;
+/*!50001 DROP VIEW IF EXISTS `t0`*/;
+SET @saved_cs_client     = @@character_set_client;
+SET character_set_client = utf8;
+/*!50001 CREATE TABLE `t0` (
+  `group_name` tinyint NOT NULL,
+  `cloud_name` tinyint NOT NULL,
+  `cloud_priority` tinyint NOT NULL,
+  `region` tinyint NOT NULL,
+  `cloud_type` tinyint NOT NULL,
+  `htcondor_fqdn` tinyint NOT NULL,
+  `htcondor_container_hostname` tinyint NOT NULL,
+  `htcondor_other_submitters` tinyint NOT NULL,
+  `vm_boot_volume` tinyint NOT NULL,
+  `spot_price` tinyint NOT NULL,
+  `authurl` tinyint NOT NULL,
+  `cacertificate` tinyint NOT NULL,
+  `project_domain_name` tinyint NOT NULL,
+  `project_domain_id` tinyint NOT NULL,
+  `project` tinyint NOT NULL,
+  `user_domain_name` tinyint NOT NULL,
+  `user_domain_id` tinyint NOT NULL,
+  `username` tinyint NOT NULL,
+  `password` tinyint NOT NULL,
+  `default_flavor` tinyint NOT NULL,
+  `default_image` tinyint NOT NULL,
+  `default_keep_alive` tinyint NOT NULL,
+  `default_keyname` tinyint NOT NULL,
+  `default_network` tinyint NOT NULL,
+  `default_security_groups` tinyint NOT NULL,
+  `VMs` tinyint NOT NULL,
+  `VMs_max` tinyint NOT NULL,
+  `cores_ctl` tinyint NOT NULL,
+  `cores_softmax` tinyint NOT NULL,
+  `cores_limit` tinyint NOT NULL,
+  `cores_max` tinyint NOT NULL,
+  `cores_used` tinyint NOT NULL,
+  `cores_foreign` tinyint NOT NULL,
+  `disk_used` tinyint NOT NULL,
+  `ram_ctl` tinyint NOT NULL,
+  `ram_max` tinyint NOT NULL,
+  `ram_limit` tinyint NOT NULL,
+  `ram_used` tinyint NOT NULL,
+  `ram_foreign` tinyint NOT NULL,
+  `swap_used` tinyint NOT NULL,
+  `flavor` tinyint NOT NULL,
+  `flavor_id` tinyint NOT NULL,
+  `volumes_max` tinyint NOT NULL,
+  `volumes_used` tinyint NOT NULL,
+  `volume_gigs_max` tinyint NOT NULL,
+  `volume_gigs_used` tinyint NOT NULL,
+  `flavor_slots` tinyint NOT NULL,
+  `flavor_cores` tinyint NOT NULL,
+  `flavor_disk` tinyint NOT NULL,
+  `flavor_ram` tinyint NOT NULL,
+  `flavor_swap` tinyint NOT NULL,
+  `auth_type` tinyint NOT NULL,
+  `app_credentials` tinyint NOT NULL,
+  `app_credentials_secret` tinyint NOT NULL,
+  `flavor_VMs` tinyint NOT NULL,
+  `flavor_starting` tinyint NOT NULL,
+  `flavor_unregistered` tinyint NOT NULL,
+  `flavor_idle` tinyint NOT NULL,
+  `flavor_running` tinyint NOT NULL,
+  `flavor_retiring` tinyint NOT NULL,
+  `flavor_error` tinyint NOT NULL,
+  `flavor_manual` tinyint NOT NULL,
+  `updater` tinyint NOT NULL,
+  `worker_cert` tinyint NOT NULL,
+  `worker_key` tinyint NOT NULL
+) ENGINE=MyISAM */;
+SET character_set_client = @saved_cs_client;
+
+--
+-- Final view structure for view `t0`
+--
+
+/*!50001 DROP TABLE IF EXISTS `t0`*/;
+/*!50001 DROP VIEW IF EXISTS `t0`*/;
+/*!50001 SET @saved_cs_client          = @@character_set_client */;
+/*!50001 SET @saved_cs_results         = @@character_set_results */;
+/*!50001 SET @saved_col_connection     = @@collation_connection */;
+/*!50001 SET character_set_client      = utf8 */;
+/*!50001 SET character_set_results     = utf8 */;
+/*!50001 SET collation_connection      = utf8_general_ci */;
+/*!50001 CREATE ALGORITHM=UNDEFINED */
+/*!50013 DEFINER=`csv2`@`localhost` SQL SECURITY DEFINER */
+/*!50001 VIEW `t0` AS select `fwd`.`group_name` AS `group_name`,`fwd`.`cloud_name` AS `cloud_name`,`fwd`.`priority` AS `cloud_priority`,`fwd`.`region` AS `region`,`fwd`.`cloud_type` AS `cloud_type`,`fwd`.`htcondor_fqdn` AS `htcondor_fqdn`,`fwd`.`htcondor_container_hostname` AS `htcondor_container_hostname`,`fwd`.`htcondor_other_submitters` AS `htcondor_other_submitters`,`fwd`.`vm_boot_volume` AS `vm_boot_volume`,`fwd`.`spot_price` AS `spot_price`,`fwd`.`authurl` AS `authurl`,`fwd`.`cacertificate` AS `cacertificate`,`fwd`.`project_domain_name` AS `project_domain_name`,ifnull(`fwd`.`project_domain_id`,'') AS `project_domain_id`,`fwd`.`project` AS `project`,`fwd`.`user_domain_name` AS `user_domain_name`,ifnull(`fwd`.`user_domain_id`,'') AS `user_domain_id`,`fwd`.`username` AS `username`,`fwd`.`password` AS `password`,`fwd`.`default_flavor` AS `default_flavor`,`fwd`.`default_image` AS `default_image`,`fwd`.`default_keep_alive` AS `default_keep_alive`,`fwd`.`default_keyname` AS `default_keyname`,`fwd`.`default_network` AS `default_network`,`fwd`.`default_security_groups` AS `default_security_groups`,ifnull(`ru`.`VMs`,0) AS `VMs`,ifnull(`fwd`.`VMs_max`,0) AS `VMs_max`,ifnull(`fwd`.`cores_ctl`,0) AS `cores_ctl`,ifnull(`fwd`.`cores_softmax`,0) AS `cores_softmax`,ifnull(`fwd`.`cores_limit`,0) AS `cores_limit`,ifnull(`fwd`.`cores_max`,0) AS `cores_max`,ifnull(`ru`.`cores_used`,0) AS `cores_used`,ifnull(`fwd`.`cores_foreign`,0) AS `cores_foreign`,ifnull(`ru`.`disk_used`,0) AS `disk_used`,ifnull(`fwd`.`ram_ctl`,0) AS `ram_ctl`,ifnull(`fwd`.`ram_max`,0) AS `ram_max`,ifnull(`fwd`.`ram_limit`,0) AS `ram_limit`,ifnull(`ru`.`ram_used`,0) AS `ram_used`,ifnull(`fwd`.`ram_foreign`,0) AS `ram_foreign`,ifnull(`ru`.`swap_used`,0) AS `swap_used`,`fwd`.`flavor` AS `flavor`,`fwd`.`flavor_id` AS `flavor_id`,`fwd`.`volumes_max` AS `volumes_max`,`fwd`.`volumes_used` AS `volumes_used`,`fwd`.`volume_gigs_max` AS `volume_gigs_max`,`fwd`.`volume_gigs_used` AS `volume_gigs_used`,case when (ifnull(`fwd`.`VMs_max`,0) > ifnull(`ru`.`VMs`,0) and ifnull(`fwd`.`cores_limit`,0) > ifnull(`ru`.`cores_used`,0) and ifnull(`fwd`.`ram_limit`,0) > ifnull(`ru`.`ram_used`,0)) then least((`fwd`.`cores_limit` - ifnull(`ru`.`cores_used`,0)) DIV `fwd`.`flavor_cores`,(`fwd`.`ram_limit` - ifnull(`ru`.`ram_used`,0)) DIV `fwd`.`flavor_ram`) else 0 end AS `flavor_slots`,`fwd`.`flavor_cores` AS `flavor_cores`,`fwd`.`flavor_disk` AS `flavor_disk`,`fwd`.`flavor_ram` AS `flavor_ram`,`fwd`.`flavor_swap` AS `flavor_swap`,`fwd`.`auth_type` AS `auth_type`,`fwd`.`app_credentials` AS `app_credentials`,`fwd`.`app_credentials_secret` AS `app_credentials_secret`,ifnull(`fru`.`flavor_VMs`,0) AS `flavor_VMs`,ifnull(`fru`.`flavor_starting`,0) AS `flavor_starting`,ifnull(`fru`.`flavor_unregistered`,0) AS `flavor_unregistered`,ifnull(`fru`.`flavor_idle`,0) AS `flavor_idle`,ifnull(`fru`.`flavor_running`,0) AS `flavor_running`,ifnull(`fru`.`flavor_retiring`,0) AS `flavor_retiring`,ifnull(`fru`.`flavor_error`,0) AS `flavor_error`,ifnull(`fru`.`flavor_manual`,0) AS `flavor_manual`,`fru`.`updater` AS `updater`,ifnull(`fwd`.`worker_cert`,'None') AS `worker_cert`,ifnull(`fwd`.`worker_key`,'None') AS `worker_key` from ((((select `cwd`.`group_name` AS `group_name`,`cwd`.`cloud_name` AS `cloud_name`,`cwd`.`enabled` AS `enabled`,`cwd`.`priority` AS `priority`,`cwd`.`authurl` AS `authurl`,`cwd`.`project` AS `project`,`cwd`.`username` AS `username`,`cwd`.`userid` AS `userid`,`cwd`.`password` AS `password`,`cwd`.`obsolete_keyname` AS `obsolete_keyname`,`cwd`.`cacertificate` AS `cacertificate`,`cwd`.`region` AS `region`,`cwd`.`user_domain_name` AS `user_domain_name`,`cwd`.`user_domain_id` AS `user_domain_id`,`cwd`.`project_domain_name` AS `project_domain_name`,`cwd`.`project_domain_id` AS `project_domain_id`,`cwd`.`cloud_type` AS `cloud_type`,`cwd`.`ec2_owner_id` AS `ec2_owner_id`,`cwd`.`auth_type` AS `auth_type`,`cwd`.`app_credentials` AS `app_credentials`,`cwd`.`app_credentials_secret` AS `app_credentials_secret`,`cwd`.`app_credentials_expiry` AS `app_credentials_expiry`,`cwd`.`communication_up` AS `communication_up`,`cwd`.`communication_rt` AS `communication_rt`,`cwd`.`server_meta_ctl` AS `server_meta_ctl`,`cwd`.`instances_ctl` AS `instances_ctl`,`cwd`.`personality_ctl` AS `personality_ctl`,`cwd`.`image_meta_ctl` AS `image_meta_ctl`,`cwd`.`personality_size_ctl` AS `personality_size_ctl`,`cwd`.`ram_ctl` AS `ram_ctl`,`cwd`.`server_groups_ctl` AS `server_groups_ctl`,`cwd`.`security_group_rules_ctl` AS `security_group_rules_ctl`,`cwd`.`keypairs_ctl` AS `keypairs_ctl`,`cwd`.`security_groups_ctl` AS `security_groups_ctl`,`cwd`.`server_group_members_ctl` AS `server_group_members_ctl`,`cwd`.`floating_ips_ctl` AS `floating_ips_ctl`,`cwd`.`cores_ctl` AS `cores_ctl`,`cwd`.`cores_softmax` AS `cores_softmax`,`cwd`.`spot_price` AS `spot_price`,`cwd`.`vm_boot_volume` AS `vm_boot_volume`,`cwd`.`vm_flavor` AS `vm_flavor`,`cwd`.`vm_image` AS `vm_image`,`cwd`.`vm_keep_alive` AS `vm_keep_alive`,`cwd`.`vm_keyname` AS `vm_keyname`,`cwd`.`vm_network` AS `vm_network`,`cwd`.`vm_security_groups` AS `vm_security_groups`,`cwd`.`error_count` AS `error_count`,`cwd`.`error_time` AS `error_time`,`cwd`.`machine_subprocess_pid` AS `machine_subprocess_pid`,`cwd`.`htcondor_fqdn` AS `htcondor_fqdn`,`cwd`.`htcondor_container_hostname` AS `htcondor_container_hostname`,`cwd`.`htcondor_other_submitters` AS `htcondor_other_submitters`,`cwd`.`volumes_max` AS `volumes_max`,`cwd`.`volumes_used` AS `volumes_used`,`cwd`.`volume_gigs_max` AS `volume_gigs_max`,`cwd`.`volume_gigs_used` AS `volume_gigs_used`,`cwd`.`default_flavor` AS `default_flavor`,`cwd`.`default_image` AS `default_image`,`cwd`.`default_keep_alive` AS `default_keep_alive`,`cwd`.`default_keyname` AS `default_keyname`,`cwd`.`default_network` AS `default_network`,`cwd`.`default_security_groups` AS `default_security_groups`,`cwd`.`VMs_max` AS `VMs_max`,`cwd`.`cores_max` AS `cores_max`,`cwd`.`cores_limit` AS `cores_limit`,`cwd`.`cores_foreign` AS `cores_foreign`,`cwd`.`ram_max` AS `ram_max`,`cwd`.`ram_limit` AS `ram_limit`,`cwd`.`ram_foreign` AS `ram_foreign`,`cwd`.`worker_cert` AS `worker_cert`,`cwd`.`worker_key` AS `worker_key`,concat(`cf1`.`cloud_name`,':',`cf1`.`name`) AS `flavor`,`cf1`.`id` AS `flavor_id`,`cf1`.`cores` AS `flavor_cores`,`cf1`.`disk` + `cf1`.`ephemeral_disk` AS `flavor_disk`,`cf1`.`ram` AS `flavor_ram`,`cf1`.`swap` AS `flavor_swap` from ((((select `cc`.`group_name` AS `group_name`,`cc`.`cloud_name` AS `cloud_name`,`cc`.`enabled` AS `enabled`,`cc`.`priority` AS `priority`,`cc`.`authurl` AS `authurl`,`cc`.`project` AS `project`,`cc`.`username` AS `username`,`cc`.`userid` AS `userid`,`cc`.`password` AS `password`,`cc`.`obsolete_keyname` AS `obsolete_keyname`,`cc`.`cacertificate` AS `cacertificate`,`cc`.`region` AS `region`,`cc`.`user_domain_name` AS `user_domain_name`,`cc`.`user_domain_id` AS `user_domain_id`,`cc`.`project_domain_name` AS `project_domain_name`,`cc`.`project_domain_id` AS `project_domain_id`,`cc`.`cloud_type` AS `cloud_type`,`cc`.`ec2_owner_id` AS `ec2_owner_id`,`cc`.`auth_type` AS `auth_type`,`cc`.`app_credentials` AS `app_credentials`,`cc`.`app_credentials_secret` AS `app_credentials_secret`,`cc`.`app_credentials_expiry` AS `app_credentials_expiry`,`cc`.`communication_up` AS `communication_up`,`cc`.`communication_rt` AS `communication_rt`,`cc`.`server_meta_ctl` AS `server_meta_ctl`,`cc`.`instances_ctl` AS `instances_ctl`,`cc`.`personality_ctl` AS `personality_ctl`,`cc`.`image_meta_ctl` AS `image_meta_ctl`,`cc`.`personality_size_ctl` AS `personality_size_ctl`,`cc`.`ram_ctl` AS `ram_ctl`,`cc`.`server_groups_ctl` AS `server_groups_ctl`,`cc`.`security_group_rules_ctl` AS `security_group_rules_ctl`,`cc`.`keypairs_ctl` AS `keypairs_ctl`,`cc`.`security_groups_ctl` AS `security_groups_ctl`,`cc`.`server_group_members_ctl` AS `server_group_members_ctl`,`cc`.`floating_ips_ctl` AS `floating_ips_ctl`,`cc`.`cores_ctl` AS `cores_ctl`,`cc`.`cores_softmax` AS `cores_softmax`,`cc`.`spot_price` AS `spot_price`,`cc`.`vm_boot_volume` AS `vm_boot_volume`,`cc`.`vm_flavor` AS `vm_flavor`,`cc`.`vm_image` AS `vm_image`,`cc`.`vm_keep_alive` AS `vm_keep_alive`,`cc`.`vm_keyname` AS `vm_keyname`,`cc`.`vm_network` AS `vm_network`,`cc`.`vm_security_groups` AS `vm_security_groups`,`cc`.`error_count` AS `error_count`,`cc`.`error_time` AS `error_time`,`cc`.`machine_subprocess_pid` AS `machine_subprocess_pid`,`cg`.`htcondor_fqdn` AS `htcondor_fqdn`,`cg`.`htcondor_container_hostname` AS `htcondor_container_hostname`,`cg`.`htcondor_other_submitters` AS `htcondor_other_submitters`,`cl`.`volumes_max` AS `volumes_max`,`cl`.`volumes_used` AS `volumes_used`,`cl`.`volume_gigs_max` AS `volume_gigs_max`,`cl`.`volume_gigs_used` AS `volume_gigs_used`,case when ifnull(`cc`.`vm_flavor`,'') <> '' then concat(`cc`.`cloud_name`,':',`cc`.`vm_flavor`) else case when ifnull(`cg`.`vm_flavor`,'') <> '' then concat(`cc`.`cloud_name`,':',`cg`.`vm_flavor`) else NULL end end AS `default_flavor`,case when ifnull(`cc`.`vm_image`,'') <> '' then `cc`.`vm_image` else case when ifnull(`cg`.`vm_image`,'') <> '' then `cg`.`vm_image` else NULL end end AS `default_image`,case when ifnull(`cc`.`vm_keep_alive`,-1) <> -1 then `cc`.`vm_keep_alive` else case when ifnull(`cg`.`vm_keep_alive`,-1) <> -1 then `cg`.`vm_keep_alive` else 0 end end AS `default_keep_alive`,case when ifnull(`cc`.`vm_keyname`,'') <> '' then `cc`.`vm_keyname` else case when ifnull(`cg`.`vm_keyname`,'') <> '' then `cg`.`vm_keyname` else NULL end end AS `default_keyname`,case when ifnull(`cc`.`vm_network`,'') <> '' then `cc`.`vm_network` else case when ifnull(`cg`.`vm_network`,'') <> '' then `cg`.`vm_network` else NULL end end AS `default_network`,case when ifnull(`cc`.`vm_security_groups`,'') <> '' then `cc`.`vm_security_groups` else case when ifnull(`cg`.`vm_security_groups`,'') <> '' then `cg`.`vm_security_groups` else NULL end end AS `default_security_groups`,`cl`.`instances_max` AS `VMs_max`,`cl`.`cores_max` AS `cores_max`,case when ifnull(`cc`.`cores_ctl`,-1) <> -1 then case when ifnull(`cc`.`cores_softmax`,-1) <> -1 then least(`cc`.`cores_ctl`,`cc`.`cores_softmax` - ifnull(`vfr`.`cores`,0),`cl`.`cores_max` - ifnull(`vfr`.`cores`,0)) else least(`cc`.`cores_ctl`,`cl`.`cores_max` - ifnull(`vfr`.`cores`,0)) end else case when ifnull(`cc`.`cores_softmax`,-1) <> -1 then least(`cc`.`cores_softmax` - ifnull(`vfr`.`cores`,0),`cl`.`cores_max` - ifnull(`vfr`.`cores`,0)) else `cl`.`cores_max` - ifnull(`vfr`.`cores`,0) end end AS `cores_limit`,`vfr`.`cores` AS `cores_foreign`,`cl`.`ram_max` AS `ram_max`,case when ifnull(`cc`.`ram_ctl`,-1) <> -1 then least(`cc`.`ram_ctl`,`cl`.`ram_max` - ifnull(`vfr`.`ram`,0)) else `cl`.`ram_max` - ifnull(`vfr`.`ram`,0) end AS `ram_limit`,`vfr`.`ram` AS `ram_foreign`,`cw`.`worker_cert` AS `worker_cert`,`cw`.`worker_key` AS `worker_key` from (((((`csv2`.`csv2_clouds` `cc` left join `csv2`.`csv2_groups` `cg` on(`cc`.`group_name` = `cg`.`group_name`)) left join `csv2`.`cloud_limits` `cl` on(`cc`.`group_name` = `cl`.`group_name` and `cc`.`cloud_name` = `cl`.`cloud_name`)) left join `csv2`.`view_foreign_resources` `vfr` on(`cc`.`group_name` = `vfr`.`group_name` and `cc`.`cloud_name` = `vfr`.`cloud_name`)) left join `csv2`.`condor_worker_gsi` `cw` on(`cg`.`htcondor_fqdn` = `cw`.`htcondor_fqdn` or `cg`.`htcondor_container_hostname` = `cw`.`htcondor_fqdn`)) join `csv2`.`csv2_configuration` `gsi` on(`gsi`.`category` = 'GSI' and `gsi`.`config_key` = 'cert_days_left_bad')) where `cc`.`enabled` = 1 and `cc`.`communication_up` > 0 and (`cg`.`htcondor_gsi_dn` is null or (`cg`.`htcondor_gsi_eol` - unix_timestamp()) DIV 86400 > `gsi`.`config_value`) and (`cw`.`worker_dn` is null or (`cw`.`worker_eol` - unix_timestamp()) DIV 86400 > `gsi`.`config_value`))) `cwd` join `csv2`.`cloud_flavors` `cf1` on(`cwd`.`group_name` = `cf1`.`group_name` and `cwd`.`cloud_name` = `cf1`.`cloud_name`)) left join `csv2`.`csv2_cloud_flavor_exclusions` `ccfe` on(`cf1`.`group_name` = `ccfe`.`group_name` and `cf1`.`cloud_name` = `ccfe`.`cloud_name` and `cf1`.`name` = `ccfe`.`flavor_name`)) where `ccfe`.`flavor_name` is null)) `fwd` left join (select `cv`.`group_name` AS `group_name`,`cv`.`cloud_name` AS `cloud_name`,sum(1) AS `VMs`,sum(`cf`.`cores`) AS `cores_used`,sum(`cf`.`disk` + `cf`.`ephemeral_disk`) AS `disk_used`,sum(`cf`.`ram`) AS `ram_used`,sum(`cf`.`swap`) AS `swap_used` from (`csv2`.`csv2_vms` `cv` left join `csv2`.`cloud_flavors` `cf` on(`cv`.`group_name` = `cf`.`group_name` and `cv`.`cloud_name` = `cf`.`cloud_name` and `cv`.`flavor_id` = `cf`.`id`)) group by `cv`.`group_name`,`cv`.`cloud_name`) `ru` on(`fwd`.`group_name` = `ru`.`group_name` and `fwd`.`cloud_name` = `ru`.`cloud_name`)) left join (select `cv2`.`group_name` AS `group_name`,`cv2`.`cloud_name` AS `cloud_name`,`cv2`.`flavor_id` AS `flavor_id`,sum(`cv2`.`VMs`) AS `flavor_VMs`,sum(case when `cv2`.`poller_status` = 'starting' then 1 else 0 end) AS `flavor_starting`,sum(case when `cv2`.`poller_status` = 'unregistered' then 1 else 0 end) AS `flavor_unregistered`,sum(case when `cv2`.`poller_status` = 'idle' then 1 else 0 end) AS `flavor_idle`,sum(case when `cv2`.`poller_status` = 'running' then 1 else 0 end) AS `flavor_running`,sum(case when `cv2`.`poller_status` = 'retiring' then 1 else 0 end) AS `flavor_retiring`,sum(case when `cv2`.`poller_status` = 'error' then 1 else 0 end) AS `flavor_error`,sum(case when `cv2`.`poller_status` = 'manual' then 1 else 0 end) AS `flavor_manual`,group_concat(distinct `cv2`.`updater` order by `cv2`.`updater` ASC separator ',') AS `updater` from (select `csv2`.`csv2_vms`.`group_name` AS `group_name`,`csv2`.`csv2_vms`.`cloud_name` AS `cloud_name`,`csv2`.`csv2_vms`.`target_alias` AS `target_alias`,`csv2`.`csv2_vms`.`region` AS `region`,`csv2`.`csv2_vms`.`vmid` AS `vmid`,`csv2`.`csv2_vms`.`spot_instance` AS `spot_instance`,`csv2`.`csv2_vms`.`instance_id` AS `instance_id`,`csv2`.`csv2_vms`.`cloud_type` AS `cloud_type`,`csv2`.`csv2_vms`.`vm_ips` AS `vm_ips`,`csv2`.`csv2_vms`.`vm_floating_ips` AS `vm_floating_ips`,`csv2`.`csv2_vms`.`auth_url` AS `auth_url`,`csv2`.`csv2_vms`.`project` AS `project`,`csv2`.`csv2_vms`.`hostname` AS `hostname`,`csv2`.`csv2_vms`.`keep_alive` AS `keep_alive`,`csv2`.`csv2_vms`.`start_time` AS `start_time`,`csv2`.`csv2_vms`.`status` AS `status`,`csv2`.`csv2_vms`.`flavor_id` AS `flavor_id`,`csv2`.`csv2_vms`.`image_id` AS `image_id`,`csv2`.`csv2_vms`.`task` AS `task`,`csv2`.`csv2_vms`.`power_status` AS `power_status`,`csv2`.`csv2_vms`.`manual_control` AS `manual_control`,`csv2`.`csv2_vms`.`htcondor_startd_errors` AS `htcondor_startd_errors`,`csv2`.`csv2_vms`.`htcondor_startd_time` AS `htcondor_startd_time`,`csv2`.`csv2_vms`.`htcondor_partitionable_slots` AS `htcondor_partitionable_slots`,`csv2`.`csv2_vms`.`htcondor_dynamic_slots` AS `htcondor_dynamic_slots`,`csv2`.`csv2_vms`.`htcondor_slots_timestamp` AS `htcondor_slots_timestamp`,`csv2`.`csv2_vms`.`retire` AS `retire`,`csv2`.`csv2_vms`.`retire_time` AS `retire_time`,`csv2`.`csv2_vms`.`terminate` AS `terminate`,`csv2`.`csv2_vms`.`terminate_time` AS `terminate_time`,`csv2`.`csv2_vms`.`status_changed_time` AS `status_changed_time`,`csv2`.`csv2_vms`.`last_updated` AS `last_updated`,`csv2`.`csv2_vms`.`updater` AS `updater`,1 AS `VMs`,case when `csv2`.`csv2_vms`.`manual_control` = 1 then 'manual' else case when `csv2`.`csv2_vms`.`status` = 'ERROR' then 'error' else case when `csv2`.`csv2_vms`.`retire` > 0 then 'retiring' else case when `csv2`.`csv2_vms`.`status` = 'BUILD' then 'starting' else case when (`csv2`.`csv2_vms`.`status` = 'ACTIVE' and `csv2`.`csv2_vms`.`htcondor_partitionable_slots` is null) then 'unregistered' else case when (`csv2`.`csv2_vms`.`status` = 'ACTIVE' and ifnull(`csv2`.`csv2_vms`.`htcondor_dynamic_slots`,0) < 1) then 'idle' else case when (`csv2`.`csv2_vms`.`status` = 'ACTIVE' and ifnull(`csv2`.`csv2_vms`.`htcondor_dynamic_slots`,0) > 0) then 'running' else 'error' end end end end end end end AS `poller_status` from `csv2`.`csv2_vms`) `cv2` group by `cv2`.`group_name`,`cv2`.`cloud_name`,`cv2`.`flavor_id`) `fru` on(`fwd`.`group_name` = `fru`.`group_name` and `fwd`.`cloud_name` = `fru`.`cloud_name` and `fwd`.`flavor_id` = `fru`.`flavor_id`)) */;
+/*!50001 SET character_set_client      = @saved_cs_client */;
+/*!50001 SET character_set_results     = @saved_cs_results */;
+/*!50001 SET collation_connection      = @saved_col_connection */;
+/*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
+
+/*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
+/*!40014 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS */;
+/*!40014 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS */;
+/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
+/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
+/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
+/*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
+
+-- Dump completed on 2021-06-07 10:55:35

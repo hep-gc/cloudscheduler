@@ -2,7 +2,7 @@
 ** List group/cloud/flavors in flavor priority order and for each group/cloud/flavor
 ** combination show the number of VMs up and down.
 */
-create or replace view t0 as
+create or replace view view_available_resources as
 /* fwdac - flavors with defaults and counts */
 select
 fwd.group_name,

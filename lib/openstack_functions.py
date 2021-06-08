@@ -5,6 +5,8 @@ from openstack.compute.v2 import server as _server
 #from keystoneclient.auth.identity import v2
 from keystoneauth1.identity import v2, v3
 from keystoneauth1 import session
+from pytz import timezone
+import pytz
 
 class MyServer(_server.Server):
     min_count = resource.Body('min_count')
@@ -154,5 +156,13 @@ def get_openstack_auth(cloud):
             logging.error("Connection parameters: \n authurl: %s \n username: %s \n project: %s \n user_domain: %s \n project_domain: %s", (cloud["authurl"], cloud["username"], cloud["project"], user_domain_name, project_domain_name))
     return auth
 
+def convert_openstack_date_timezone(origin_date):
+    try:
+        localized_timestamp = pytz.timezone("UTC").localize(origin_date)
+        pstdatetime = localized_timestamp.astimezone(timezone('Canada/Pacific'))
+        return pstdatetime.timestamp()
+    except Exception as exc:
+        logging.error("Unable to conver the timestamp to pacific timezone: %s" % exc)
+        return origin_date.timestamp()
 
 

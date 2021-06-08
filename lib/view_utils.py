@@ -1723,13 +1723,13 @@ def get_openstack_app_creds_session(config, cloud, target_cloud=None):
             nova = get_nova_connection(sess, region)
             if nova is False:
                 C.pop('app_credentials_secret')
-                return 1, 'failed to get openstack connection using the app credential session, credentials: %s' % C, None
+                return 1, 'failed to get openstack connection using application credentials: %s' % C, None
             return 0, None, sess
         else:
             C.pop('app_credentials_secret')
-            return 1, 'failed to esablish openstack session using application credentials, credentials: %s' % C, None
+            return 1, 'failed to esablish openstack session using application credentials: %s' % C, None
     else:
-        return 1, 'Missing openstack URL or applicaion credentials info', None
+        return 1, 'Insufficient credentials to establish openstack session, check if missing any applicaion credentials info %s' % C, None
 
 #-------------------------------------------------------------------------------
 
@@ -1820,7 +1820,6 @@ def get_openstack_session(config, cloud, target_cloud=None):
     
     if version == 2:
         if C['authurl'] and C['region'] and C['project'] and C['username'] and C['password']:
-#            try:
 #                KC = v2c.Client(
 #                    auth_url=C['authurl'],
 #                    tenant_name=C['project'],
@@ -1832,22 +1831,17 @@ def get_openstack_session(config, cloud, target_cloud=None):
                 nova = get_nova_connection(session, C['region'])
                 if nova is False:
                     C.pop("password")
-                    return 1, 'failed to get openstack connection using the v2 password session, credentials: %s' % C, None
+                    return 1, 'failed to get openstack connection using the v2 password session with credentials: %s' % C, None
                 return 0, None, session
             else:
                 C.pop("password") 
-                return 1, 'failed to esablish openstack v2 session, credentials: %s, error: %s' % (C, exc), None
-
-#            except Exception as exc:
-#                C.pop("password")
-#                return 1, 'failed to esablish openstack v2 session, credentials: %s, error: %s' % (C, exc), None
+                return 1, 'failed to esablish openstack v2 session with credentials: %s' % C, None
 
         else:
-            return 1, 'insufficient credentials to establish openstack v2 session: %s' % C, None
+            return 1, 'insufficient credentials to establish openstack v2 session, check if missed openstack url or user/project info: %s' % C, None
 
     elif version == 3:
         if C['authurl'] and C['region'] and C['project_domain_name'] and C['project'] and C['user_domain_name'] and C['username'] and C['password']:
-#            try:
 #                KC = v3c.Client(
 #                    auth_url=C['authurl'],
 #                    project_domain_id=C['project_domain_id'],
@@ -1862,18 +1856,14 @@ def get_openstack_session(config, cloud, target_cloud=None):
                 nova = get_nova_connection(session, C['region'])
                 if nova is False:
                     C.pop("password")
-                    return 1, 'failed to get openstack connection using the v3 password session, credentials: %s' % C, None
+                    return 1, 'failed to get openstack connection using the v3 password session with credentials: %s' % C, None
                 return 0, None, session
             else:
                 C.pop("password")
-                return 1, 'failed to esablish openstack v3 session, credentials: %s, error: %s' % (C, exc), None
-
-#            except Exception as exc:
-#                C.pop("password")
-#                return 1, 'failed to esablish openstack v3 session, credentials: %s, error: %s' % (C, exc), None
+                return 1, 'failed to esablish openstack v3 session with credentials: %s' % C, None
 
         else:
-            return 1, 'insufficient credentials to establish openstack v3 session: %s' % C, None
+            return 1, 'insufficient credentials to establish openstack v3 session, check if missing any user/project info: %s' % C, None
 
     else:
         return 1, 'Bad openstack URL: %s, unsupported version: %s' % (target_cloud['authurl'], version), None
@@ -1915,7 +1905,7 @@ def get_app_credentail_expiry(cloud=None, config=None, target_cloud=None, user_i
         sess = get_openstack_sess(C, verify)
     if sess:
         keystone = get_keystone_connection(sess)
-        if C['userid'] and C['app_credentials']:
+        if C.get('userid') and C.get('app_credentials'):
             try:
                 found_app_credential = keystone.get_application_credential(user=C['userid'], application_credential=C['app_credentials'])
                 expire_date = found_app_credential['expires_at']
@@ -1925,8 +1915,10 @@ def get_app_credentail_expiry(cloud=None, config=None, target_cloud=None, user_i
                     expire_date = datetimeObj.timestamp()
                 return 0, None, expire_date
             except Exception as exc:
-                return 1, exc, None            
-    return 1, 'Failed to get expire date of app creds, could not get the session, or missing userid/credential info', None
+                return 1, 'failed to get expire date of app creds %s' % exc, None
+        else:
+            return 1, 'Failed to get expire date of app creds, insufficient credentials to establish openstack session, check if missing userid or application credentials info: %s' % C, None
+    return 1, 'Failed to get expire date of app creds, failed establish openstack session using application credentials: %s' % C, None
 
 #-------------------------------------------------------------------------------
 
