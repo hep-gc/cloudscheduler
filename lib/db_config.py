@@ -680,6 +680,8 @@ class Config:
             if logger:
                 logger.debug('Heartbeat for provider: %s, host ID: %s' % (provider, host_id))
 
+        if logger:
+            logger.debug("~~~~ UPDATED CATALOG ~~~~")
         if auto_close:
             self.db_close(commit=True)
         else:

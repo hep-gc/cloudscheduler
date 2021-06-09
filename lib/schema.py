@@ -291,12 +291,12 @@ schema = {
             "group_name": {"type": "str", "len": "32", "nulls": "NO"},
             "cloud_name": {"type": "str", "len": "32", "nulls": "NO"},
             "name": {"type": "str", "len": "256", "nulls": "NO"},
-            "host": {"type": "str", "len": "256", "nulls": "NO"},
             "id": {"type": "str", "len": "128", "nulls": "NO"},
             "size": {"type": "int"},
             "volume_type": {"type": "str", "len": "64", "nulls": "NO"},
             "status": {"type": "str", "len": "32", "nulls": "NO"},
             "cloud_type": {"type": "str", "len": "32", "nulls": "NO"},
+            "created_at": {"type": "int"},
             "last_updated": {"type": "int"}
             }
         },
@@ -1126,6 +1126,10 @@ schema = {
             "swap_used": {"type": "int"},
             "flavor": {"type": "str", "len": "161", "nulls": "YES"},
             "flavor_id": {"type": "str", "len": "128", "nulls": "NO"},
+            "volumes_max": {"type": "int"},
+            "volumes_used": {"type": "int"},
+            "volume_gigs_max": {"type": "int"},
+            "volume_gigs_used": {"type": "int"},
             "flavor_slots": {"type": "int"},
             "flavor_cores": {"type": "int"},
             "flavor_disk": {"type": "int"},
@@ -1192,7 +1196,9 @@ schema = {
             "ram_limit": {"type": "int"},
             "ram_quota": {"type": "int"},
             "ram_foreign": {"type": "float"},
-            "ram_native_foreign": {"type": "float"}
+            "ram_native_foreign": {"type": "float"},
+            "volume_gigs_max": {"type": "int"},
+            "volume_gigs_used": {"type": "int"}
             }
         },
     "view_cloud_status_flavor_slot_detail": {

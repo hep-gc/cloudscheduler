@@ -6,8 +6,6 @@ import time
 from time import sleep
 import logging
 import openstack
-import novaclient.exceptions
-from novaclient import client as nvclient
 import base64
 
 #import cloudscheduler.basecloud
@@ -65,6 +63,10 @@ class OpenStackCloud(basecloud.BaseCloud):
         self.keep_alive = resource.get("default_keep_alive")
         self.volume_info = resource.get("vm_boot_volume")
         self.flavor_cores = resource.get("flavor_cores")
+        self.vol_max = resource.get("volumes_max")
+        self.vol_used = resource.get("volumes_used")
+        self.vol_gigs_max = resource.get("volume_gigs_max")
+        self.vol_gigs_used = resource.get("volume_gigs_used")
 
     def vm_create(self, num=1, job=None, flavor=None, template_dict=None, image=None):
         """
@@ -88,6 +90,9 @@ class OpenStackCloud(basecloud.BaseCloud):
         
         nova = self._get_creds_nova()
         # Check For valid security groups
+        if nova is False:
+            self.config.update_service_catalog(provider='csmain', error='Failed to get openstack nova connection for cloud: %s' % (self.name), logger=self.log)
+            raise
 
         # Ensure keyname is valid
         if self.keyname:
@@ -210,7 +215,12 @@ class OpenStackCloud(basecloud.BaseCloud):
                     self.log.debug("creating boot volume")
                     cinder = self._get_creds_cinder()
                     bv_name = "vol-" + hostname
-                    cv = cinder.create_volume(name=bv_name, size=size, image_id=imageobj.id, volume_type=volume_type, is_bootable=True)
+                    try:
+                        cv = cinder.create_volume(name=bv_name, size=size, image_id=imageobj.id, volume_type=volume_type, is_bootable=True)
+                    except Exception as exc:
+                        self.log.info("Failed to create new volume, endpoint error, or volume limit exceeded canceling remaining boot requests")
+                        self.log.debug(exc)
+                        break
                     while (cv.status != 'available'):
                         time.sleep(1)
                         cv = cinder.get_volume(cv.id)
@@ -425,3 +435,54 @@ class OpenStackCloud(basecloud.BaseCloud):
             self.log.exception("Error determining keystone version from auth url: %s", ex)
             keystone_session = None
         return keystone_session
+
+
+    def check_volume_limits(self, num_vms):
+        """
+        Determine if there is enough space//available volumes to boot num_vms
+        Return number of vms there is space for, if the vm does not require a volume
+        just return num_vms
+        """
+
+        # first check if there is actually a need for volumes
+        if self.volume_info is None:
+            return num_vms
+
+        adjusted_num_vms = num_vms
+
+        if self.vol_max - self.vol_used < adjusted_num_vms:
+            adjusted_num_vms = self.vol_max - self.vol_used
+            if adjusted_num_vms<=0:
+                self.log.info("Volume allocation fully in use, unable to boot")
+                return 0
+            else:
+                self.log.info("Not enough volumes to boot %s vms, reducing boot number to %s" % (num_vms, adjusted_num_vms))
+        remaining_gigs = self.vol_gigs_max - self.vol_gigs_used 
+
+        try:
+            vol_info = json.loads(self.volume_info)
+        except Exception as ex:
+            self.log.debug('Invalid or null volume for group: %s, cloud: %s - %s' % (self.group, self.name, ex))
+            vol_info = None
+        size_per_core = vol_info.get("GBs_per_core")
+        base_size = vol_info.get("GBs", 0)
+        if size_per_core:
+            size_per_vm = base_size + (size_per_core * self.flavor_cores)
+        else:
+            size_per_vm = base_size
+
+
+        total_gigs_requested = size_per_vm * adjusted_num_vms
+        num_adjusted = False
+        while(total_gigs_requested > remaining_gigs):
+            num_adjusted = True
+            adjusted_num_vms = adjusted_num_vms - 1
+            total_gigs_requested = total_gigs_requested - size_per_vm
+        if num_adjusted:
+            if adjusted_num_vms == 0:
+                logging.info("Not enough remaining volume space to boot any VMs")
+                return 0
+            logging.info("VMs to boot adjusted to: %s due to volume constraints" % adjusted_num_vms)
+
+        
+        return adjusted_num_vms

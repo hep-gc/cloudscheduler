@@ -18,7 +18,7 @@ from cloudscheduler.lib.log_tools import get_frame_info
 from cloudscheduler.lib.ec2_translations import get_ami_dictionary
 from cloudscheduler.lib.ProcessMonitor import ProcessMonitor, check_pid, terminate
 from cloudscheduler.lib.poller_functions import start_cycle, wait_cycle
-from cloudscheduler.lib.openstack_functions import get_openstack_sess, get_nova_connection
+from cloudscheduler.lib.openstack_functions import get_openstack_sess, get_nova_connection, get_cinder_connection
 
 import openstackcloud
 import localhostcloud
@@ -502,6 +502,9 @@ def main():
         # check/disable if any cloud will expire in one week
         disable_expired_clouds(config)
 
+        # test remove_orphaned_volumes
+        remove_orphaned_volumes(config)
+
         # Get the metadata for groups as json selects with mime_types pre-sorted
         # metadata format: { group : { cloud: [(yaml select, mime_type), (yaml select, mime_type) ] } }
         try:
@@ -726,7 +729,6 @@ def main():
                                     available_slots,
                                     shortfall_slots
                                     )
-                                
                                 if num_vms_to_boot <= 0:
                                     cloud_prio = None # reset cloud prio so if no slots on the higher priority clouds can still boot on lower
                                     log.debug("No Flavor Slots for %s %s, minumum of max_start_vm_cloud(%s), available_slots(%s), shortfall_slots(%s,%s,%s), check the softmax or foreign VMs to try and see why not booting a new VM." % (
@@ -810,6 +812,11 @@ def main():
                                         boot_cloud = openstackcloud.OpenStackCloud(config, resource=boot_flavor, metadata=metadata[boot_flavor.get("group_name")][boot_flavor.get("cloud_name")]
                                                  if metadata and boot_flavor.get("group_name") in metadata
                                                  else [])
+                                        # check for volumes here?? make a new method in the openstack cloud object
+                                        num_vms_to_boot = boot_cloud.check_volume_limits(num_vms_to_boot)
+                                        if num_vms_to_boot <= 0:
+                                            # not enough volume space
+                                            continue
                                         boot_cloud.vm_create(num=int(num_vms_to_boot),
                                                    flavor=boot_flavor.get("flavor"),
                                                    job=idle_job,
@@ -929,6 +936,73 @@ def vm_termination(args_list):
 
 #~~~~~~~~~~~~~~~~~
 
+def remove_orphaned_volumes(config):
+    CLOUD = "csv2_clouds"
+    VOLUME = "cloud_volumes"
+    sql_config = Config('/etc/cloudscheduler/cloudscheduler.yaml', [os.path.basename(sys.argv[0]), "SQL", "ProcessMonitor"], pool_size=3, signals=True)
+    # config.db_open()
+    rc, msg, volume_list = config.db_query(VOLUME)
+
+    group_list = []
+    for volume in volume_list:
+        if volume.get("cloud_name") and volume.get("group_name"):
+            group_list.append((volume["group_name"], volume["cloud_name"]))
+    
+    for volume in volume_list:
+        volume_name = volume["name"]
+        group_name = volume["group_name"] if volume.get("group_name") else ""
+        cloud_name = volume["cloud_name"] if volume.get("cloud_name") else ""
+        cloud_type = volume["cloud_type"] if volume.get("cloud_type") else ""
+        if cloud_type == "openstack" and volume_name.startswith("vol-"):
+            try:
+                snip_vol_name = volume_name[4:] # remove the front "vol-"
+                host_tokens = snip_vol_name.split("--")
+                vol_group_name = host_tokens[0]
+                vol_cloud_name = host_tokens[1] if len(host_tokens) > 1 else ''
+                vol_host = int(host_tokens[2]) if len(host_tokens) > 2 else None
+                if (vol_group_name, vol_cloud_name) not in group_list:
+                    logging.debug("Group-Cloud combination doesn't match any in csv2, marking %s as foreign vol in cloud %s" % (volume_name, cloud_name))
+                elif vol_host != int(sql_config.categories["SQL"]["csv2_host_id"]):
+                    logging.debug("csv2 host id from host does not match (should be %s), marking %s as foreign vol in cloud %s" % (config.categories["SQL"]["csv2_host_id"], volume_name, cloud_name))
+                else:
+                    logging.debug("volume %s is a csv2 volume in cloud %s" % (volume_name, cloud_name))
+                    volume_status = volume["status"]
+                    if volume_status == 'error' or volume_status == 'available':
+                        current_time = time.time()
+                        created_time = volume["created_at"] if volume.get("created_at") else None
+                        if created_time:
+                            time_diff = (current_time - created_time) / 60 # current - created returns second / 60 returns mins
+                        else:
+                            logging.error("volume %s in cloud %s has no created time" % (volume_name, cloud_name))
+                            continue
+                        if time_diff > 15:
+                            where_clause = "group_name='%s' and cloud_name='%s'" % (group_name, cloud_name)
+                            rc, msg, clouds = config.db_query(CLOUD, where=where_clause)
+                            cloud=clouds[0]
+                            region = cloud["region"] if cloud.get("region") else None
+                            verify = cloud["cacertificate"] if cloud.get("cacertificate") else None
+                            sess = get_openstack_sess(cloud, verify)
+                            if sess is False:
+                                logging.error("Failed to establish session with %s, skipping this cloud..." % cloud_name)
+                                continue
+                            cinder = get_cinder_connection(sess, region)
+                            if cinder is False:
+                                logging.debug("Openstack cinder connection failed for %s, skipping this cloud..." % cloud_name)
+                                continue
+                            try:
+                                cinder.delete_volume(volume["id"])
+                                logging.info("Removed volume %s in cloud %s, as not attached to any server and live more than 15 mins" % (volume_name, cloud_name))
+                                config.db_delete(VOLUME, volume)
+                                config.db_commit()
+                            except Exception as exc:
+                                logging.error("Delete volume %s in cloud %s failed: %s" % (volume_name, cloud_name, exc))
+                        else:
+                            logging.debug("not attached to any server, volume %s in cloud %s created within 15 mins" % (volume_name, cloud_name))
+            except Exception as exc:
+                logging.error("Unable to get volume info: %s in cloud %s: %s" % (volume_name, cloud_name, exc))
+        else:
+            logging.debug("Not from openstack or doesn't match csv2 volume name pattern, marking %s as foreign vol in cloud %s" % (volume_name, cloud_name))
+
 
 def disable_expired_clouds(config):
     # suppose database opened and will be closed in the main function
@@ -938,9 +1012,9 @@ def disable_expired_clouds(config):
     rc, msg, cloud_list = config.db_query(CLOUD, where=where_clause)
     try:
         for cloud in cloud_list:
-            if cloud.get("app_credentials_expiry"):
+            if cloud.get("app_credentials_expiry") and cloud.get("enabled") and cloud["enabled"] == 1:
                 current_time = time.time()
-                if (cloud["app_credentials_expiry"] - current_time) / 86400 < 8 and cloud.get("enabled") and cloud["enabled"] == 1:
+                if (cloud["app_credentials_expiry"] - current_time) / 86400 < 8:
                     where_clause = "group_name='%s' and cloud_name='%s'" % (cloud['group_name'], cloud['cloud_name'])
                     cloud_row = { "enabled": 0 }
                     config.db_update(CLOUD, cloud_row, where=where_clause)

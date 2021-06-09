@@ -6,6 +6,7 @@ import sys
 import signal
 import os
 import datetime
+from pytz import timezone
 from dateutil import tz
 import copy
 
@@ -30,7 +31,7 @@ from cloudscheduler.lib.poller_functions import \
     wait_cycle
 
 from cloudscheduler.lib.signal_functions import event_receiver_registration
-from cloudscheduler.lib.openstack_functions import get_openstack_sess, get_nova_connection, get_glance_connection, get_neutron_connection, get_cinder_connection, get_openstack_conn
+from cloudscheduler.lib.openstack_functions import get_openstack_sess, get_nova_connection, get_glance_connection, get_neutron_connection, get_cinder_connection, get_openstack_conn, convert_openstack_date_timezone
 #import openstack
 
 '''
@@ -100,7 +101,7 @@ CLOUD = "csv2_clouds"
 ## Poller sub-functions.
 
 def poller_setup(): 
-    db_category_list = [os.path.basename(sys.argv[0]), "general", "signal_manager", "ProcessMonitor"]
+    db_category_list = [os.path.basename(sys.argv[0]), "general", "signal_manager", "ProcessMonitor", "SQL"]
     config = Config('/etc/cloudscheduler/cloudscheduler.yaml', db_category_list, pool_size=3, signals=True)
     PID_FILE = config.categories["ProcessMonitor"]["pid_path"] + os.path.basename(sys.argv[0])
     
@@ -457,7 +458,7 @@ def image_poller():
 
                                 created_datetime = datetime.datetime.strptime(image.created_at, "%Y-%m-%dT%H:%M:%SZ")
                                 created_datetime.strftime("%Y-%m-%d %H:%M:%S")
-
+                                
                                 img_dict = {
                                     'group_name': group_n,
                                     'cloud_name': cloud_n,
@@ -1442,7 +1443,6 @@ def vm_poller():
             for cloud in unique_cloud_dict:
                 group_list = group_list +unique_cloud_dict[cloud]['groups']
 
-
             for cloud in unique_cloud_dict:
                 auth_url = unique_cloud_dict[cloud]['cloud_obj']["authurl"]
                 cloud_obj = unique_cloud_dict[cloud]['cloud_obj']
@@ -1538,7 +1538,7 @@ def vm_poller():
                         vm_cloud_name = host_tokens[1]
                         found_flavor = nova.find_flavor(name_or_id=vm.flavor['original_name'])
                         vm_flavor_id = found_flavor.id
-
+                     
                         if (host_tokens[0], host_tokens[1]) not in group_list:
                             logging.debug("Group-Cloud combination doesn't match any in csv2, marking %s as foreign vm" % vm.name)
                             logging.debug(group_list)
@@ -1768,7 +1768,7 @@ def volume_poller():
     multiprocessing.current_process().name = "Volume Poller"
 
     VOLUME = "cloud_volumes"
-    ikey_names = ["group_name", "cloud_name"]
+    ikey_names = ["group_name", "cloud_name", "id"]
 
     cycle_start_time = 0
     new_poll_time = 0
@@ -1816,7 +1816,6 @@ def volume_poller():
                 for cloud in unique_cloud_dict:
                     group_list = group_list +unique_cloud_dict[cloud]['groups']
                     logging.debug("Unique clouds dict: %s" % unique_cloud_dict.keys())
-
                 for cloud in unique_cloud_dict:
                     cloud_name = unique_cloud_dict[cloud]['cloud_obj']["authurl"]
                     cloud_obj = unique_cloud_dict[cloud]['cloud_obj']
@@ -1841,7 +1840,7 @@ def volume_poller():
                     cinder = get_cinder_connection(sess, region=unique_cloud_dict[cloud]['cloud_obj']["region"])
 
                     if cinder is False:
-                        logging.info("Openstack nova connection failed for %s, skipping this cloud..." % cloud_name)
+                        logging.info("Openstack cinder connection failed for %s, skipping this cloud..." % cloud_name)
                         continue
 
 
@@ -1857,68 +1856,77 @@ def volume_poller():
                         failure_dict[auth_url + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"]] = failure_dict[auth_url + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"]] + 1
                     if failure_dict[auth_url + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"]] > 3: #should be configurable
                         logging.error("Failure threshhold limit reached for %s::%s::%s, using group %s's crednetials manual action required, skipping" % (cloud_obj["authurl"], cloud_obj["project"], cloud_obj["region"], cloud_obj["group_name"]))
-                    continue
 
-                if volume_list is False:
-                    logging.info("No Volumes defined for %s::%s:%s, skipping this cloud..." % (cloud_obj["authurl"], cloud_obj["project"], cloud_obj["region"]))
-                    del nova
-                    continue
-
-                failure_dict.pop(auth_url + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"], None)
-
-                # Process Volume list for this cloud.
-                # We've decided to remove the variable "status_changed_time" since it was holding the exact same value as "last_updated"
-                # This is because we are only pushing updates to the csv2 database when the state of a vm is changed and thus it would be logically equivalent
-                uncommitted_updates = 0
-                for volume in volume_list:
-                    try:
-                        host_tokens = volume.name.split("--")
-                        vol_group_name = host_tokens[0]
-                        vol_cloud_name = host_tokens[1]
-
-                        if (host_tokens[0], host_tokens[1]) not in group_list:
-                            logging.debug("Group-Cloud combination doesn't match any in csv2, marking %s as foreign vol" % volume.name)
-                            continue
-                        elif int(host_tokens[2]) != int(config.categories["SQL"]["csv2_host_id"]):
-                            logging.debug("csv2 host id from host does not match (should be %s), marking %s as foreign vol" % (config.categories["SQL"]["csv2_host_id"], volume.name))
-                            continue
-                    except IndexError as exc:
-                        #not enough tokens, bad hostname or foreign vm
-                        logging.debug("Not enough tokens from hostname, bad hostname or foreign volume: %s" % volume.name)
+                    if volume_list is False:
+                        logging.info("No Volumes defined for %s::%s:%s, skipping this cloud..." % (cloud_obj["authurl"], cloud_obj["project"], cloud_obj["region"]))
+                        del nova
                         continue
 
-                    vol_dict = {
-                        'group_name': vol_group_name,
-                        'cloud_name': vol_cloud_name,
-                        'id': volume.id,
-                        'name': volume.name,
-                        'host': volume.hostname,
-                        'size': volume.size,
-                        'volume_type': volume.volume_type,
-                        'status': volume.status,
-                        'cloud_type': "openstack",
-                        'last_updated': new_poll_time
-                    }
+                    failure_dict.pop(auth_url + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"], None)
 
-                    if inventory_test_and_set_item_hash(ikey_names, vol_dict, inventory, new_poll_time, debug_hash=(config.categories["openstackPoller.py"]["log_level"] < 20)):
-                        continue
-
-                    try:
-                        config.db_merge(VOLUME, vol_dict)
-                        uncommitted_updates += 1
-                    except Exception as exc:
-                        logging.exception("Failed to merge Volume entry for %s::%s::%s, using group %s's credentials aborting cycle..." % (cloud_obj["authurl"], cloud_obj["project"], cloud_obj["region"], cloud_obj["group_name"]))
-                        logging.error(exc)
-                        abort_cycle = True
-                        break
-                    if uncommitted_updates >= config.categories["openstackPoller.py"]["batch_commit_size"]:
+                    # Process Volume list for this cloud.
+                    # We've decided to remove the variable "status_changed_time" since it was holding the exact same value as "last_updated"
+                    # This is because we are only pushing updates to the csv2 database when the state of a vm is changed and thus it would be logically equivalent
+                    uncommitted_updates = 0
+                    for volume in volume_list:
                         try:
-                            config.db_commit()
-                            logging.debug("Comitted %s VMs" % uncommitted_updates)
-                            uncommitted_updates = 0
+                            if volume.name.startswith("vol-"):
+                                host_tokens_string = volume.name[4:]
+                            else:
+                                logging.debug("Volume name does not match csv2 nomenclature, marking %s as foreign vol" % volume.name)
+                                continue
+                            host_tokens = host_tokens_string.split("--")
+                            vol_group_name = host_tokens[0]
+                            vol_cloud_name = host_tokens[1]
+
+                            if (host_tokens[0], host_tokens[1]) not in group_list:
+                                logging.debug("Group-Cloud combination doesn't match any in csv2, marking %s as foreign vol" % volume.name)
+                                continue
+                            elif int(host_tokens[2]) != int(config.categories["SQL"]["csv2_host_id"]):
+                                logging.debug("csv2 host id from host does not match (should be %s), marking %s as foreign vol" % (config.categories["SQL"]["csv2_host_id"], volume.name))
+                                continue
+                        except IndexError as exc:
+                            #not enough tokens, bad hostname or foreign vm
+                            logging.debug("Not enough tokens from hostname, bad hostname or foreign volume: %s" % volume.name)
+                            continue
+                        
+                        if volume.created_at:
+                            datetimeObj = datetime.datetime.strptime(volume.created_at, '%Y-%m-%dT%H:%M:%S.%f')
+                            created_time = convert_openstack_date_timezone(datetimeObj)
+                        else:
+                            created_time = None
+                        
+                        vol_dict = {
+                            'group_name': vol_group_name,
+                            'cloud_name': vol_cloud_name,
+                            'id': volume.id,
+                            'name': volume.name,
+                            'size': volume.size,
+                            'volume_type': volume.volume_type,
+                            'status': volume.status,
+                            'cloud_type': "openstack",
+                            'created_at': created_time,
+                            'last_updated': new_poll_time
+                        }
+                        if inventory_test_and_set_item_hash(ikey_names, vol_dict, inventory, new_poll_time, debug_hash=(config.categories["openstackPoller.py"]["log_level"] < 20)):
+                            continue
+
+                        try:
+                            config.db_merge(VOLUME, vol_dict)
+                            uncommitted_updates += 1
                         except Exception as exc:
-                            logging.error("Error during batch commit of Volumes:")
+                            logging.exception("Failed to merge Volume entry for %s::%s::%s, using group %s's credentials aborting cycle..." % (cloud_obj["authurl"], cloud_obj["project"], cloud_obj["region"], cloud_obj["group_name"]))
                             logging.error(exc)
+                            abort_cycle = True
+                            break
+                        if uncommitted_updates >= config.categories["openstackPoller.py"]["batch_commit_size"]:
+                            try:
+                                config.db_commit()
+                                logging.debug("Comitted %s Volumes" % uncommitted_updates)
+                                uncommitted_updates = 0
+                            except Exception as exc:
+                                logging.error("Error during batch commit of Volumes:")
+                                logging.error(exc)
 
                     del cinder
                     if abort_cycle:
@@ -2152,7 +2160,7 @@ def defaults_replication():
         signal.signal(signal.SIGINT, config.signals['SIGINT'])
         config.db_close()
         try:
-            wait_cycle(cycle_start_time, poll_time_history, 300, config)
+            wait_cycle(cycle_start_time, poll_time_history, 21600, config) # sleep 6 hours if no cloud add/update
         except KeyboardInterrupt:
             # sigint recieved, cancel the sleep and start the loop
             continue

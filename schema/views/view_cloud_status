@@ -46,7 +46,9 @@ select
 
     ifnull(cl.ram_max,0) as ram_quota,
     ifnull(vfr.ram,0) as ram_foreign,
-    ifnull(cc.ram_native,0)+ifnull(vfr.ram,0) as ram_native_foreign
+    ifnull(cc.ram_native,0)+ifnull(vfr.ram,0) as ram_native_foreign,
+    ifnull(cl.volume_gigs_max,0) as volume_gigs_max,
+    ifnull(cl.volume_gigs_used,0) as volume_gigs_used
 from (
     select
         cc.group_name,
