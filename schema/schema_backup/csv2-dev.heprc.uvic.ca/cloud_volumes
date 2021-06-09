@@ -26,12 +26,12 @@ CREATE TABLE `cloud_volumes` (
   `group_name` varchar(32) CHARACTER SET utf8 NOT NULL,
   `cloud_name` varchar(32) CHARACTER SET utf8 NOT NULL,
   `name` varchar(256) CHARACTER SET utf8 NOT NULL,
-  `host` varchar(256) CHARACTER SET utf8 NOT NULL,
   `id` varchar(128) CHARACTER SET utf8 NOT NULL,
   `size` int(13) NOT NULL,
   `volume_type` varchar(64) CHARACTER SET utf8 NOT NULL,
   `status` varchar(32) CHARACTER SET utf8 NOT NULL,
   `cloud_type` varchar(32) NOT NULL,
+  `created_at` int(11) DEFAULT NULL,
   `last_updated` int(11) NOT NULL,
   PRIMARY KEY (`group_name`,`cloud_name`,`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
@@ -46,4 +46,4 @@ CREATE TABLE `cloud_volumes` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2021-05-21 15:38:02
+-- Dump completed on 2021-06-07 10:55:26
