@@ -1,4 +1,4 @@
-/var/log/cloudscheduler/timeseries.log {
+/var/log/cloudscheduler/*.log {
   weekly
   su cloudscheduler cloudscheduler
   notifempty
