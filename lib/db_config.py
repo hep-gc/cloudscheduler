@@ -26,7 +26,6 @@ class Config:
 
         # show we are initializing.
         self.initialized = False
-
         # Calculate csv2 version
         self.version = self._calculate_version()
 
@@ -724,6 +723,5 @@ class Config:
             else:
                 version = 'Version: %s + %d commits' % (tag, tag_ix)
         except Exception as exc:
-            print("Error Determining version")
-
+            print("Error Determining version", exc)
         return version

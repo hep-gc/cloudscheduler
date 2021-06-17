@@ -55,7 +55,10 @@ def timeseries_data_transfer():
             rc, msg, cloud_status = config.db_query("view_cloud_status")
             # This column list used to be generated via a sqlalchemy object, we may need to make a more specific database query to do the trick here
             # but for now we'll just take they keys of the resultant dictionary as the column names
-            column_list = list(cloud_status[0].keys())
+            if len(cloud_status) > 0:
+                column_list = list(cloud_status[0].keys())
+            else:
+                column_list = []
             rc, msg, job_status = config.db_query("view_job_status")
             
             job_column_list = [

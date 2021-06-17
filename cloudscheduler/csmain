@@ -517,7 +517,10 @@ def main():
             rc, msg, g_metadatas = config.db_query("view_metadata_collation_json")
             metadata = json.loads(g_metadatas[0]["group_metadata"])
         except AttributeError as ae:
-            log.exception("Problem loading metadata, is there no metadata?")
+            log.exception("Problem loading metadata, is there no metadata? %s" % ae)
+            metadata = {}
+        except Exception as exc:
+            log.info("Problem loading metadata, no metadata %s" % exc)
             metadata = {}
 
         used_resources = available_resources_initialize(config)
