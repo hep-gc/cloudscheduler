@@ -51,7 +51,7 @@ CREATE TABLE `condor_jobs` (
   `hold_reason_code` tinyint(4) DEFAULT NULL,
   `hold_reason_subcode` tinyint(4) DEFAULT NULL,
   `last_remote_host` varchar(64) DEFAULT NULL,
-  `held_reason` varchar(128) DEFAULT NULL,
+  `held_reason` varchar(512) DEFAULT NULL,
   `hold_job_reason` varchar(64) DEFAULT NULL,
   PRIMARY KEY (`global_job_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
