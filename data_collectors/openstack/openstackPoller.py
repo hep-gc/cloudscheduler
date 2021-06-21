@@ -535,7 +535,7 @@ def image_poller():
                         config.db_commit()
 
                 # Scan the OpenStack images in the database, removing each one that is not in the inventory.
-                logging.info("Doing deletes, omitting failures: %s" % new_f_dict)
+                logging.debug("Doing deletes, omitting failures: %s" % new_f_dict)
                 # since the new inventory function doesn't accept a failfure dict we need to screen the rows ourself
                 where_clause="cloud_type='openstack'"
                 rc, msg, unfiltered_rows = config.db_query(IMAGE, where=where_clause)

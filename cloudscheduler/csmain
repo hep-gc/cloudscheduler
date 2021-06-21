@@ -520,7 +520,7 @@ def main():
             log.exception("Problem loading metadata, is there no metadata? %s" % ae)
             metadata = {}
         except Exception as exc:
-            log.info("Problem loading metadata, no metadata %s" % exc)
+            log.debug("Problem loading metadata, no metadata %s" % exc)
             metadata = {}
 
         used_resources = available_resources_initialize(config)
