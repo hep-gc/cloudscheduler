@@ -44,6 +44,7 @@ write_files:
         HOSTALLOW_READ = *
 
         START = (Owner == "{{cs_user}}")
+        DAEMON_LIST = MASTER, STARTD
     owner: root:root                                                                                                                                                
     permissions: '0644'                                                                                                                                             
     path: /etc/condor/condor_config.local                                                                                                                           
