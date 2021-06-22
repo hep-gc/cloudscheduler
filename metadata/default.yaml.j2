@@ -47,6 +47,9 @@ write_files:
         DAEMON_LIST = MASTER, STARTD
         SLOT_TYPE_1_PARTITIONABLE = True
         SLOT_TYPE_1 = cpus=100%, ram=100%
+        NUM_SLOTS = 1
+        NUM_SLOTS_TYPE_1 = 1
+
     owner: root:root                                                                                                                                                
     permissions: '0644'                                                                                                                                             
     path: /etc/condor/condor_config.local                                                                                                                           
