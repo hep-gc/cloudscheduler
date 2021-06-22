@@ -45,6 +45,8 @@ write_files:
 
         START = (Owner == "{{cs_user}}")
         DAEMON_LIST = MASTER, STARTD
+        SLOT_TYPE_1_PARTITIONABLE = True
+        SLOT_TYPE_1 = cpus=100%, ram=100%
     owner: root:root                                                                                                                                                
     permissions: '0644'                                                                                                                                             
     path: /etc/condor/condor_config.local                                                                                                                           
