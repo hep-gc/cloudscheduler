@@ -16,35 +16,32 @@
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
 --
--- Table structure for table `archived_condor_machines`
+-- Table structure for table `apel_accounting`
 --
 
-DROP TABLE IF EXISTS `archived_condor_machines`;
+DROP TABLE IF EXISTS `apel_accounting`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
-CREATE TABLE `archived_condor_machines` (
-  `name` varchar(128) NOT NULL,
-  `machine` varchar(256) DEFAULT NULL,
-  `group_name` varchar(32) DEFAULT NULL,
-  `condor_host` varchar(64) DEFAULT NULL,
-  `flavor` varchar(32) DEFAULT NULL,
-  `job_id` varchar(128) DEFAULT NULL,
-  `global_job_id` varchar(128) DEFAULT NULL,
-  `address` varchar(512) DEFAULT NULL,
-  `state` varchar(128) DEFAULT NULL,
-  `activity` varchar(128) DEFAULT NULL,
-  `vm_type` varchar(128) DEFAULT NULL,
-  `my_current_time` int(11) DEFAULT NULL,
-  `entered_current_state` int(11) DEFAULT NULL,
-  `start` varchar(128) DEFAULT NULL,
-  `remote_owner` varchar(128) DEFAULT NULL,
-  `slot_type` varchar(128) DEFAULT NULL,
-  `total_slots` int(11) DEFAULT NULL,
-  `idle_time` int(11) DEFAULT NULL,
-  `retire_request_time` int(11) NOT NULL DEFAULT 0,
-  `retired_time` int(11) NOT NULL DEFAULT 0,
-  PRIMARY KEY (`name`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+CREATE TABLE `apel_accounting` (
+  `group_name` varchar(32) NOT NULL,
+  `cloud_name` varchar(32) NOT NULL,
+  `vmid` varchar(128) NOT NULL,
+  `hostname` varchar(128) NOT NULL,
+  `cloud_type` varchar(32) DEFAULT NULL,
+  `region` varchar(32) DEFAULT NULL,
+  `flavor_id` varchar(128) DEFAULT NULL,
+  `image_id` varchar(128) DEFAULT NULL,
+  `benchmark_type` varchar(32) DEFAULT NULL,
+  `benchmark` decimal(10,2) NOT NULL DEFAULT 0.00,
+  `start_time` int(11) NOT NULL DEFAULT 0,
+  `end_time` int(11) NOT NULL DEFAULT 0,
+  `last_update` int(11) NOT NULL DEFAULT 0,
+  `cpu_time` int(11) NOT NULL DEFAULT 0,
+  `network_type` varchar(32) DEFAULT NULL,
+  `rx` int(11) NOT NULL DEFAULT 0,
+  `tx` int(11) NOT NULL DEFAULT 0,
+  PRIMARY KEY (`group_name`,`cloud_name`,`vmid`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
