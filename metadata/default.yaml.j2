@@ -52,9 +52,45 @@ write_files:
 
     owner: root:root                                                                                                                                                
     permissions: '0644'                                                                                                                                             
-    path: /etc/condor/condor_config.local                                                                                                                           
+    path: /etc/condor/condor_config.local     
+-   content: |
+        #!/bin/bash -l
+        unset DIRAC
+        export JOBFEATURES=`/usr/sbin/make-jobfeatures`
+        if [ -d /etc/machinefeatures ]
+        then
+          export MACHINEFEATURES=/etc/machinefeatures
+        fi
+        uptime=$(date -d "$(uptime -s)" +%s)
+        now=$(date +%s)
+        if [ $((now-uptime)) -lt 3600 ]; 
+        then
+          sleep ${USER:4:2}m
+        fi
+        exec "$@"
+    owner: root:root
+    permissions: "0755"
+    path: /usr/libexec/condor/jobwrapper.sh
+-   content: |
+        LOG=/var/log/condor
+        RUN=/var/run/condor
+        SPOOL=/var/lib/condor/spool
+        JAVA_BENCHMARK_TIME = 0
+        CCB_ADDRESS = $(CONDOR_HOST)
+        CCB_HEARTBEAT_INTERVAL = 180
+        USE_SHARED_PORT = False
+        USER_JOB_WRAPPER = /usr/libexec/condor/jobwrapper.sh
+        MEMORY = $(DETECTED_MEMORY)*1.2
+        EXECUTE = /var/lib/condor/execute
+        CONTINUE = True
+        PREEMPT = ifThenElse((CurrentTime - JobStart) > 172800, True, False)
+        KILL = $(ActivityTimer) > 7200
+        HIGHPORT = 50000
+        LOWPORT = 40000
+    owner: root:root
+    permissions: "0644"
+    path: /etc/condor/config.d/belle
 
 runcmd:                                                                                                                                                             
  - [ service, condor, restart ]              
-
 
