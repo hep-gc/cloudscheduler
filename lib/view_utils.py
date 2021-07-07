@@ -1598,15 +1598,16 @@ def verify_cloud_credentials(config, cloud):
 
     cloud_type = None
     target_cloud = None
+    auth_type = None
 
     if 'cloud_type' in cloud:
         cloud_type = cloud['cloud_type']
-
     # Must be a /cloud/update/ (not /cloud/add/) request.
     elif 'group_name' in cloud and 'cloud_name' in cloud:
         rc, msg, target_cloud = get_target_cloud(config, cloud['group_name'], cloud['cloud_name'])
         if rc == 0:
             cloud_type = target_cloud['cloud_type']
+            auth_type = target_cloud.get('auth_type')
         else:
             return rc, msg, None
 
@@ -1621,7 +1622,9 @@ def verify_cloud_credentials(config, cloud):
             return rc, msg, None
 
     elif cloud_type == 'openstack':
-        if cloud.get('auth_type') and cloud['auth_type'] == 'app_creds':
+        if cloud.get('auth_type'):
+            auth_type = cloud.get('auth_type')
+        if auth_type and auth_type == 'app_creds':
             rc, msg, session = get_openstack_app_creds_session(config, cloud, target_cloud=target_cloud)
         else:
             rc, msg, session = get_openstack_session(config, cloud, target_cloud=target_cloud)
