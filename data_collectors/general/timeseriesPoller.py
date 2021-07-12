@@ -55,10 +55,7 @@ def timeseries_data_transfer():
             rc, msg, cloud_status = config.db_query("view_cloud_status")
             # This column list used to be generated via a sqlalchemy object, we may need to make a more specific database query to do the trick here
             # but for now we'll just take they keys of the resultant dictionary as the column names
-            if len(cloud_status) > 0:
-                column_list = list(cloud_status[0].keys())
-            else:
-                column_list = []
+            column_list = list(cloud_status[0].keys())
             rc, msg, job_status = config.db_query("view_job_status")
             
             job_column_list = [
@@ -135,19 +132,20 @@ def timeseries_data_transfer():
                     data_points.append(new_point)
 
             # Parse job status data into line protocol for influxdb
-            for line in job_status:
+            rc, msg, job_status_alias = config.db_query("view_job_status_by_target_alias")
+            for line in job_status_alias:
                 group = line["group_name"]
-
+                alias = line["target_alias"]
                 for key in line:
                     #this is a dirty way to do it but we dont want to plot the following fields, everything else should get a trace
-                    if key == "group_name" or key == "htcondor_fqdn" or key == "state" or key == "condor_days_left" or key == "worker_days_left" or key == "error_message":
+                    if key == "group_name" or key == "target_alias" or  key == "htcondor_fqdn" or key == "state" or key == "condor_days_left" or key == "worker_days_left" or key == "error_message":
                         continue
                     if key == "Jobs":
                         trace_name = "jobs"
                     else:
                         trace_name = "jobs_" + key
                         trace_name = trace_name.lower()
-                    new_point = "{0},group={1} value={2}i {3}".format(trace_name, group, _cast_int(line[key]), ts)
+                    new_point = "{0},cloud={4},group={1} value={2}i {3}".format(trace_name, group, _cast_int(line[key]), ts, alias)
                     data_points.append(new_point)
 
             # Collect group totals
@@ -168,6 +166,7 @@ def timeseries_data_transfer():
                         'VMs_manual',
                         'VMs_in_error',
                         'Foreign_VMs',
+                        'VMs_native_foreign',
                         'cores_limit',
                         'cores_foreign',
                         'cores_idle',
@@ -181,9 +180,7 @@ def timeseries_data_transfer():
                         'ram_native_foreign',
                         'slot_count',
                         'slot_core_count',
-                        'slot_idle_core_count',
-                        'volume_gigs_max',
-                        'volume_gigs_used'
+                        'slot_idle_core_count'
                     ]
                 })
                 cloud_total_list = cloud_status_list_totals[0]
@@ -198,7 +195,7 @@ def timeseries_data_transfer():
                         continue
                     new_point = "{0}{4},group={1} value={2}i {3}".format(measurement, group, int(cloud_total_list[measurement]), ts, '_total')
                     data_points.append(new_point)
-             
+            
             # Get slot type counts details
             try:
                 rc, msg, slot_list = config.db_query("view_cloud_status_slot_detail")
