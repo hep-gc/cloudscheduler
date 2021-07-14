@@ -1006,7 +1006,7 @@ schema = {
         "columns": {
             "group_name": {"type": "str", "len": "32", "nulls": "NO"},
             "cloud_name": {"type": "str", "len": "32", "nulls": "NO"},
-            "app_credentials_expiry": {"type": "str", "len": "11", "nulls": "YES"},
+            "app_credentials_expiry": {"type": "int"},
             "VMs": {"type": "int"},
             "VMs_manual": {"type": "int"},
             "VMs_in_error": {"type": "int"},

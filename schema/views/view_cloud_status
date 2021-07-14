@@ -129,7 +129,7 @@ from (
                         end
                     end
                 end as poller_status,
-                'dummy' as app_credentials_expiry,
+                NULL as app_credentials_expiry,
                 1 as VMs
             from csv2_vms
         ) as cv
