@@ -134,50 +134,95 @@
 
                                 {% if jobs_by_target_alias_flag %}
                                     <td class="bold-style"><div class="float-left">{{group.target_alias}}</div></td>
-                                {% endif %}
+                                    
+                                    {% if group.Jobs == 0 %}
+                                        <td data-path="{{group.group_name}} {{group.target_alias}} jobs" class="zero-style float-center plottable">0</td>
+                                    {% else %}
+                                        <td data-path="{{group.group_name}} {{group.target_alias}} jobs" class="more-style float-center plottable">{{group.Jobs}}</td>
+                                    {% endif %}
 
-                                {% if group.Jobs == 0 %}
-                                    <td data-path="{{group.group_name}} jobs" class="zero-style float-center plottable">0</td>
-                                {% else %}
-                                    <td data-path="{{group.group_name}} jobs" class="more-style float-center plottable">{{group.Jobs}}</td>
-                                {% endif %}
+                                    {% if group.Idle == 0 %}
+                                        <td tabindex="2" data-path="{{group.group_name}} {{group.target_alias}} jobs_idle" class="zero-style float-center plottable">0</td>
+                                    {% else %}
+                                        <td tabindex="2" data-path="{{group.group_name}} {{group.target_alias}} jobs_idle" class="more-style float-center plottable">{{group.Idle}}</td>
+                                    {% endif %}
 
-                                {% if group.Idle == 0 %}
-                                    <td tabindex="2" data-path="{{group.group_name}} jobs_idle" class="zero-style float-center plottable">0</td>
-                                {% else %}
-                                    <td tabindex="2" data-path="{{group.group_name}} jobs_idle" class="more-style float-center plottable">{{group.Idle}}</td>
-                                {% endif %}
+                                    {% if group.Running == 0 %}
+                                        <td data-path="{{group.group_name}} {{group.target_alias}} jobs_running" class="zero-style float-center plottable">0</td>
+                                    {% else %}
+                                        <td data-path="{{group.group_name}} {{group.target_alias}} jobs_running" class="more-style float-center plottable">{{group.Running}}</td>
+                                    {% endif %}
 
-                                {% if group.Running == 0 %}
-                                    <td data-path="{{group.group_name}} jobs_running" class="zero-style float-center plottable">0</td>
-                                {% else %}
-                                    <td data-path="{{group.group_name}} jobs_running" class="more-style float-center plottable">{{group.Running}}</td>
-                                {% endif %}
+                                    {% if group.Completed == 0 %}
+                                        <td data-path="{{group.group_name}} {{group.target_alias}} jobs_completed" class="zero-style float-center plottable">0</td>
+                                    {% else %}
+                                        <td data-path="{{group.group_name}} {{group.target_alias}} jobs_completed" class="more-style float-center plottable">{{group.Completed}}</td>
+                                    {% endif %}
 
-                                {% if group.Completed == 0 %}
-                                    <td data-path="{{group.group_name}} jobs_completed" class="zero-style float-center plottable">0</td>
-                                {% else %}
-                                    <td data-path="{{group.group_name}} jobs_completed" class="more-style float-center plottable">{{group.Completed}}</td>
-                                {% endif %}
+                                    {% if group.Held == 0 %}
+                                        <td data-path="{{group.group_name}} {{group.target_alias}} jobs_held" class="zero-style float-center plottable">0</td>
+                                    {% else %}
+                                        <td data-path="{{group.group_name}} {{group.target_alias}} jobs_held" class="more-style float-center plottable">{{group.Held}}</td>
+                                    {% endif %}
 
-                                {% if group.Held == 0 %}
-                                    <td data-path="{{group.group_name}} jobs_held" class="zero-style float-center plottable">0</td>
-                                {% else %}
-                                    <td data-path="{{group.group_name}} jobs_held" class="more-style float-center plottable">{{group.Held}}</td>
-                                {% endif %}
+                                    {% if group.Other == 0 %}
+                                        <td data-path="{{group.group_name}} {{group.target_alias}} jobs_other" class="zero-style float-center plottable">0</td>
+                                    {% else %}
+                                        <td data-path="{{group.group_name}} {{group.target_alias}} jobs_other" class="more-style float-center plottable">{{group.Other}}</td>
+                                    {% endif %}
 
-                                {% if group.Other == 0 %}
-                                    <td data-path="{{group.group_name}} jobs_other" class="zero-style float-center plottable">0</td>
+                                    <td class="col-spacer">&nbsp;</td>
+                                    
+                                    {% if group.foreign == 0 %}
+                                        <td data-path="{{group.group_name}} {{group.target_alias}} jobs_foreign" class="zero-style float-center plottable">0</td>
+                                    {% else %}
+                                        <td data-path="{{group.group_name}} {{group.target_alias}} jobs_foreign" class="more-style float-center plottable">{{group.foreign}}</td>
+                                    {% endif %}
                                 {% else %}
-                                    <td data-path="{{group.group_name}} jobs_other" class="more-style float-center plottable">{{group.Other}}</td>
-                                {% endif %}
+                                    {% if group.Jobs == 0 %}
+                                        <td data-path="{{group.group_name}} jobs" class="zero-style float-center plottable">0</td>
+                                    {% else %}
+                                        <td data-path="{{group.group_name}} jobs" class="more-style float-center plottable">{{group.Jobs}}</td>
+                                    {% endif %}
 
-                                <td class="col-spacer">&nbsp;</td>
-                                
-                                {% if group.foreign == 0 %}
-                                    <td data-path="{{group.group_name}} jobs_foreign" class="zero-style float-center plottable">0</td>
-                                {% else %}
-                                    <td data-path="{{group.group_name}} jobs_foreign" class="more-style float-center plottable">{{group.foreign}}</td>
+                                    {% if group.Idle == 0 %}
+                                        <td tabindex="2" data-path="{{group.group_name}} jobs_idle" class="zero-style float-center plottable">0</td>
+                                    {% else %}
+                                        <td tabindex="2" data-path="{{group.group_name}} jobs_idle" class="more-style float-center plottable">{{group.Idle}}</td>
+                                    {% endif %}
+
+                                    {% if group.Running == 0 %}
+                                        <td data-path="{{group.group_name}} jobs_running" class="zero-style float-center plottable">0</td>
+                                    {% else %}
+                                        <td data-path="{{group.group_name}} jobs_running" class="more-style float-center plottable">{{group.Running}}</td>
+                                    {% endif %}
+
+                                    {% if group.Completed == 0 %}
+                                        <td data-path="{{group.group_name}} jobs_completed" class="zero-style float-center plottable">0</td>
+                                    {% else %}
+                                        <td data-path="{{group.group_name}} jobs_completed" class="more-style float-center plottable">{{group.Completed}}</td>
+                                    {% endif %}
+
+                                    {% if group.Held == 0 %}
+                                        <td data-path="{{group.group_name}} jobs_held" class="zero-style float-center plottable">0</td>
+                                    {% else %}
+                                        <td data-path="{{group.group_name}} jobs_held" class="more-style float-center plottable">{{group.Held}}</td>
+                                    {% endif %}
+
+                                    {% if group.Other == 0 %}
+                                        <td data-path="{{group.group_name}} jobs_other" class="zero-style float-center plottable">0</td>
+                                    {% else %}
+                                        <td data-path="{{group.group_name}} jobs_other" class="more-style float-center plottable">{{group.Other}}</td>
+                                    {% endif %}
+
+                                    <td class="col-spacer">&nbsp;</td>
+                                    
+                                    {% if group.foreign == 0 %}
+                                        <td data-path="{{group.group_name}} jobs_foreign" class="zero-style float-center plottable">0</td>
+                                    {% else %}
+                                        <td data-path="{{group.group_name}} jobs_foreign" class="more-style float-center plottable">{{group.foreign}}</td>
+                                    {% endif %}
+
                                 {% endif %}
 
                                 <td class="col-spacer">&nbsp;</td>
@@ -408,16 +453,15 @@
 
                             <th class="col-spacer">&nbsp;</th>
 
-                            <th class="total-style" colspan="4">
+                            <th class="total-style" colspan="3">
                                 <table>
                                     <tr>
-                                        <th colspan="4">Global</th>
+                                        <th colspan="3">Global</th>
                                     </tr>
                                     <tr>
                                         <th>VMs</th>
                                         <th>Cores</th>
                                         <th>RAM</th>
-                                        <th>Volume</th>
                                     </tr>
                                 </table>
                             </th>
@@ -448,17 +492,7 @@
                                 {% if cloud.display >= 9 %}
                                     <td class="bold-style" onclick="toggle_id('expand-{{cloud.group_name}}-{{cloud.cloud_name}}')"><div class="float-left">Totals</div>
                                 {% elif cloud.enabled > 0 %}
-                                    {% if cloud.app_credentials_expiry and cloud.current_time %}
-                                        {% if cloud.app_credentials_expiry|sub:cloud.current_time|div:86400 > 14 %}
-                                            <td class="bold-style" onclick="toggle_id('expand-{{cloud.group_name}}-{{cloud.cloud_name}}')"><div class="float-left">{{cloud.cloud_name}}</div>
-                                        {% elif cloud.app_credentials_expiry|sub:cloud.current_time|div:86400 >= 8 %}
-                                            <td class="warn-style" onclick="toggle_id('expand-{{cloud.group_name}}-{{cloud.cloud_name}}')"><div class="float-left">{{cloud.cloud_name}}</div>
-                                        {% else %}
-                                            <td class="disabled-style" onclick="toggle_id('expand-{{cloud.group_name}}-{{cloud.cloud_name}}')"><div class="float-left">{{cloud.cloud_name}}</div>
-                                        {% endif %}
-                                    {% else %}
-                                        <td class="bold-style" onclick="toggle_id('expand-{{cloud.group_name}}-{{cloud.cloud_name}}')"><div class="float-left">{{cloud.cloud_name}}</div>
-                                    {% endif %}
+                                    <td class="bold-style" onclick="toggle_id('expand-{{cloud.group_name}}-{{cloud.cloud_name}}')"><div class="float-left">{{cloud.cloud_name}}</div>
                                 {% else %}
                                     <td class="disabled-style" onclick="toggle_id('expand-{{cloud.group_name}}-{{cloud.cloud_name}}')"><div class="float-left">{{cloud.cloud_name}}</div>
                                 {% endif %}
@@ -648,14 +682,6 @@
                                                 {% endif %}
                                             {% endwith %}                        
                                         </td>
-
-                                        <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} volume_gigs_used{{cloud.tag}}" class="float-center plottable">
-                                        {% if cloud.volume_gigs_max == 0 %}
-                                            <meter class="ram-meter" min="0" low="0" optimum="0" high="0" max="1" value="0"></meter>
-                                        {% else %}
-                                            <meter class="ram-meter" min="0" low="0" optimum="{{cloud.volume_gigs_max|mul:0.5}}" high="{{cloud.volume_gigs_max|mul:0.9}}" max="{{ cloud.volume_gigs_max }}" value="{{ cloud.volume_gigs_used }}"></meter>
-                                        {% endif %}
-                                        </td>
                                     {% endif %}
                                 </tr>
 
@@ -670,19 +696,9 @@
 
 
                                     <td onclick="toggle_group('expand-{{cloud.group_name}}')"></td>
-                                    <td onclick="toggle_id('expand-{{cloud.group_name}}-{{cloud.cloud_name}}')" style="text-align: left">
+                                    <td onclick="toggle_id('expand-{{cloud.group_name}}-{{cloud.cloud_name}}')">
                                         {% if cloud.enabled == 0 %}
                                             Cloud disabled
-                                            <br />
-                                        {% endif %}
-                                        {% if cloud.app_credentials_expiry and cloud.current_time %}
-                                            {% if cloud.app_credentials_expiry|sub:cloud.current_time|div:86400 > 1 %}
-                                                Cloud application credential will expire in {{cloud.app_credentials_expiry|sub:cloud.current_time|intdiv:86400|floatformat:"0"}} days
-                                            {% elif cloud.app_credentials_expiry|sub:cloud.current_time|div:86400 > 0 %}
-                                                Cloud application credential will expire in {{cloud.app_credentials_expiry|sub:cloud.current_time|intdiv:3600|floatformat:"0"}} hours
-                                            {% else %}
-                                                Cloud application credential expired
-                                            {% endif %}
                                         {% endif %}
                                     </td>
 
