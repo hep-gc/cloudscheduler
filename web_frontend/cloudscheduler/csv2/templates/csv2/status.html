@@ -131,10 +131,10 @@
                         {% if global_flag or not global_flag and group.group_name == active_group %}
                             <tr>
                                 <td class="group-name bold-style" onclick="toggle_id('expand-jobs-{{group.group_name}}')"><div class="float-left">{{group.group_name}}</div><div id="sym-expand-jobs-{{group.group_name}}" class="float-right">&#x25BE;</div></td>
-
+                                
                                 {% if jobs_by_target_alias_flag %}
                                     <td class="bold-style"><div class="float-left">{{group.target_alias}}</div></td>
-                                    
+
                                     {% if group.Jobs == 0 %}
                                         <td data-path="{{group.group_name}} {{group.target_alias}} jobs" class="zero-style float-center plottable">0</td>
                                     {% else %}
@@ -180,47 +180,47 @@
                                     {% endif %}
                                 {% else %}
                                     {% if group.Jobs == 0 %}
-                                        <td data-path="{{group.group_name}} jobs" class="zero-style float-center plottable">0</td>
+                                        <td data-path="{{group.group_name}} jobs_total" class="zero-style float-center plottable">0</td>
                                     {% else %}
-                                        <td data-path="{{group.group_name}} jobs" class="more-style float-center plottable">{{group.Jobs}}</td>
+                                        <td data-path="{{group.group_name}} jobs_total" class="more-style float-center plottable">{{group.Jobs}}</td>
                                     {% endif %}
 
                                     {% if group.Idle == 0 %}
-                                        <td tabindex="2" data-path="{{group.group_name}} jobs_idle" class="zero-style float-center plottable">0</td>
+                                        <td tabindex="2" data-path="{{group.group_name}} jobs_idle_total" class="zero-style float-center plottable">0</td>
                                     {% else %}
-                                        <td tabindex="2" data-path="{{group.group_name}} jobs_idle" class="more-style float-center plottable">{{group.Idle}}</td>
+                                        <td tabindex="2" data-path="{{group.group_name}} jobs_idle_total" class="more-style float-center plottable">{{group.Idle}}</td>
                                     {% endif %}
 
                                     {% if group.Running == 0 %}
-                                        <td data-path="{{group.group_name}} jobs_running" class="zero-style float-center plottable">0</td>
+                                        <td data-path="{{group.group_name}} jobs_running_total" class="zero-style float-center plottable">0</td>
                                     {% else %}
-                                        <td data-path="{{group.group_name}} jobs_running" class="more-style float-center plottable">{{group.Running}}</td>
+                                        <td data-path="{{group.group_name}} jobs_running_total" class="more-style float-center plottable">{{group.Running}}</td>
                                     {% endif %}
 
                                     {% if group.Completed == 0 %}
-                                        <td data-path="{{group.group_name}} jobs_completed" class="zero-style float-center plottable">0</td>
+                                        <td data-path="{{group.group_name}} jobs_completed_total" class="zero-style float-center plottable">0</td>
                                     {% else %}
-                                        <td data-path="{{group.group_name}} jobs_completed" class="more-style float-center plottable">{{group.Completed}}</td>
+                                        <td data-path="{{group.group_name}} jobs_completed_total" class="more-style float-center plottable">{{group.Completed}}</td>
                                     {% endif %}
 
                                     {% if group.Held == 0 %}
-                                        <td data-path="{{group.group_name}} jobs_held" class="zero-style float-center plottable">0</td>
+                                        <td data-path="{{group.group_name}} jobs_held_total" class="zero-style float-center plottable">0</td>
                                     {% else %}
-                                        <td data-path="{{group.group_name}} jobs_held" class="more-style float-center plottable">{{group.Held}}</td>
+                                        <td data-path="{{group.group_name}} jobs_held_total" class="more-style float-center plottable">{{group.Held}}</td>
                                     {% endif %}
 
                                     {% if group.Other == 0 %}
-                                        <td data-path="{{group.group_name}} jobs_other" class="zero-style float-center plottable">0</td>
+                                        <td data-path="{{group.group_name}} jobs_other_total" class="zero-style float-center plottable">0</td>
                                     {% else %}
-                                        <td data-path="{{group.group_name}} jobs_other" class="more-style float-center plottable">{{group.Other}}</td>
+                                        <td data-path="{{group.group_name}} jobs_other_total" class="more-style float-center plottable">{{group.Other}}</td>
                                     {% endif %}
 
                                     <td class="col-spacer">&nbsp;</td>
                                     
                                     {% if group.foreign == 0 %}
-                                        <td data-path="{{group.group_name}} jobs_foreign" class="zero-style float-center plottable">0</td>
+                                        <td data-path="{{group.group_name}} jobs_foreign_total" class="zero-style float-center plottable">0</td>
                                     {% else %}
-                                        <td data-path="{{group.group_name}} jobs_foreign" class="more-style float-center plottable">{{group.foreign}}</td>
+                                        <td data-path="{{group.group_name}} jobs_foreign_total" class="more-style float-center plottable">{{group.foreign}}</td>
                                     {% endif %}
 
                                 {% endif %}
