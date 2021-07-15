@@ -240,6 +240,10 @@ schema = {
             "security_groups_used": {"type": "int"},
             "floating_ips_used": {"type": "int"},
             "cores_used": {"type": "int"},
+            "volumes_max": {"type": "int"},
+            "volumes_used": {"type": "int"},
+            "volume_gigs_max": {"type": "int"},
+            "volume_gigs_used": {"type": "int"},
             "last_updated": {"type": "int"}
             }
         },
@@ -277,6 +281,25 @@ schema = {
             "last_updated": {"type": "int"}
             }
         },
+    "cloud_volumes": {
+        "keys": [
+            "group_name",
+            "cloud_name",
+            "id"
+            ],
+        "columns": {
+            "group_name": {"type": "str", "len": "32", "nulls": "NO"},
+            "cloud_name": {"type": "str", "len": "32", "nulls": "NO"},
+            "name": {"type": "str", "len": "256", "nulls": "NO"},
+            "id": {"type": "str", "len": "128", "nulls": "NO"},
+            "size": {"type": "int"},
+            "volume_type": {"type": "str", "len": "64", "nulls": "NO"},
+            "status": {"type": "str", "len": "32", "nulls": "NO"},
+            "cloud_type": {"type": "str", "len": "32", "nulls": "NO"},
+            "created_at": {"type": "int"},
+            "last_updated": {"type": "int"}
+            }
+        },
     "condor_jobs": {
         "keys": [
             "global_job_id"
@@ -310,7 +333,7 @@ schema = {
             "hold_reason_code": {"type": "int"},
             "hold_reason_subcode": {"type": "int"},
             "last_remote_host": {"type": "str", "len": "64", "nulls": "YES"},
-            "held_reason": {"type": "str", "len": "128", "nulls": "YES"},
+            "held_reason": {"type": "str", "len": "512", "nulls": "YES"},
             "hold_job_reason": {"type": "str", "len": "64", "nulls": "YES"}
             }
         },
@@ -439,6 +462,7 @@ schema = {
             "authurl": {"type": "str", "len": "128", "nulls": "NO"},
             "project": {"type": "str", "len": "128", "nulls": "NO"},
             "username": {"type": "str", "len": "20", "nulls": "NO"},
+            "userid": {"type": "str", "len": "64", "nulls": "YES"},
             "password": {"type": "str", "nulls": "NO"},
             "obsolete_keyname": {"type": "str", "len": "20", "nulls": "YES"},
             "cacertificate": {"type": "str", "nulls": "YES"},
@@ -449,6 +473,10 @@ schema = {
             "project_domain_id": {"type": "str", "len": "64", "nulls": "YES"},
             "cloud_type": {"type": "str", "len": "64", "nulls": "NO"},
             "ec2_owner_id": {"type": "str", "len": "32", "nulls": "YES"},
+            "auth_type": {"type": "str", "len": "32", "nulls": "YES"},
+            "app_credentials": {"type": "str", "len": "128", "nulls": "YES"},
+            "app_credentials_secret": {"type": "str", "len": "128", "nulls": "YES"},
+            "app_credentials_expiry": {"type": "int"},
             "communication_up": {"type": "int"},
             "communication_rt": {"type": "int"},
             "server_meta_ctl": {"type": "int"},
@@ -476,15 +504,6 @@ schema = {
             "error_count": {"type": "int"},
             "error_time": {"type": "int"},
             "machine_subprocess_pid": {"type": "int"}
-            }
-        },
-    "csv2_config": {
-        "keys": [
-            "config_name"
-            ],
-        "columns": {
-            "config_name": {"type": "str", "len": "64", "nulls": "NO"},
-            "yaml": {"type": "str", "nulls": "YES"}
             }
         },
     "csv2_configuration": {
@@ -615,7 +634,7 @@ schema = {
             "host_id": {"type": "int"},
             "last_updated": {"type": "float"},
             "last_error": {"type": "float"},
-            "error_message": {"type": "str", "len": "256", "nulls": "YES"},
+            "error_message": {"type": "str", "len": "512", "nulls": "YES"},
             "counter": {"type": "int"}
             }
         },
@@ -947,11 +966,18 @@ schema = {
             "swap_used": {"type": "int"},
             "flavor": {"type": "str", "len": "161", "nulls": "YES"},
             "flavor_id": {"type": "str", "len": "128", "nulls": "NO"},
+            "volumes_max": {"type": "int"},
+            "volumes_used": {"type": "int"},
+            "volume_gigs_max": {"type": "int"},
+            "volume_gigs_used": {"type": "int"},
             "flavor_slots": {"type": "int"},
             "flavor_cores": {"type": "int"},
             "flavor_disk": {"type": "int"},
             "flavor_ram": {"type": "int"},
             "flavor_swap": {"type": "int"},
+            "auth_type": {"type": "str", "len": "32", "nulls": "YES"},
+            "app_credentials": {"type": "str", "len": "128", "nulls": "YES"},
+            "app_credentials_secret": {"type": "str", "len": "128", "nulls": "YES"},
             "flavor_VMs": {"type": "int"},
             "flavor_starting": {"type": "int"},
             "flavor_unregistered": {"type": "int"},
@@ -980,6 +1006,7 @@ schema = {
         "columns": {
             "group_name": {"type": "str", "len": "32", "nulls": "NO"},
             "cloud_name": {"type": "str", "len": "32", "nulls": "NO"},
+            "app_credentials_expiry": {"type": "int"},
             "VMs": {"type": "int"},
             "VMs_manual": {"type": "int"},
             "VMs_in_error": {"type": "int"},
@@ -1009,7 +1036,9 @@ schema = {
             "ram_limit": {"type": "int"},
             "ram_quota": {"type": "int"},
             "ram_foreign": {"type": "float"},
-            "ram_native_foreign": {"type": "float"}
+            "ram_native_foreign": {"type": "float"},
+            "volume_gigs_max": {"type": "int"},
+            "volume_gigs_used": {"type": "int"}
             }
         },
     "view_cloud_status_flavor_slot_detail": {
@@ -1099,6 +1128,11 @@ schema = {
             "vm_keyname": {"type": "str", "len": "64", "nulls": "YES"},
             "vm_network": {"type": "str", "len": "64", "nulls": "NO"},
             "vm_security_groups": {"type": "str", "len": "128", "nulls": "YES"},
+            "userid": {"type": "str", "len": "64", "nulls": "YES"},
+            "auth_type": {"type": "str", "len": "32", "nulls": "YES"},
+            "app_credentials": {"type": "str", "len": "128", "nulls": "YES"},
+            "app_credentials_secret": {"type": "str", "len": "128", "nulls": "YES"},
+            "app_credentials_expiry": {"type": "int"},
             "cascading_vm_flavor": {"type": "str", "len": "64", "nulls": "YES"},
             "cascading_vm_image": {"type": "str", "len": "64", "nulls": "YES"},
             "cascading_vm_keep_alive": {"type": "int"},
@@ -1163,6 +1197,11 @@ schema = {
             "vm_keyname": {"type": "str", "len": "64", "nulls": "YES"},
             "vm_network": {"type": "str", "len": "64", "nulls": "NO"},
             "vm_security_groups": {"type": "str", "len": "128", "nulls": "YES"},
+            "userid": {"type": "str", "len": "64", "nulls": "YES"},
+            "auth_type": {"type": "str", "len": "32", "nulls": "YES"},
+            "app_credentials": {"type": "str", "len": "128", "nulls": "YES"},
+            "app_credentials_secret": {"type": "str", "len": "128", "nulls": "YES"},
+            "app_credentials_expiry": {"type": "int"},
             "cascading_vm_flavor": {"type": "str", "len": "64", "nulls": "YES"},
             "cascading_vm_image": {"type": "str", "len": "64", "nulls": "YES"},
             "cascading_vm_keep_alive": {"type": "int"},
@@ -1231,6 +1270,11 @@ schema = {
             "vm_keyname": {"type": "str", "len": "64", "nulls": "YES"},
             "vm_network": {"type": "str", "len": "64", "nulls": "NO"},
             "vm_security_groups": {"type": "str", "len": "128", "nulls": "YES"},
+            "userid": {"type": "str", "len": "64", "nulls": "YES"},
+            "auth_type": {"type": "str", "len": "32", "nulls": "YES"},
+            "app_credentials": {"type": "str", "len": "128", "nulls": "YES"},
+            "app_credentials_secret": {"type": "str", "len": "128", "nulls": "YES"},
+            "app_credentials_expiry": {"type": "int"},
             "cascading_vm_flavor": {"type": "str", "len": "64", "nulls": "YES"},
             "cascading_vm_image": {"type": "str", "len": "64", "nulls": "YES"},
             "cascading_vm_keep_alive": {"type": "int"},
@@ -1328,7 +1372,7 @@ schema = {
             "entered_current_status": {"type": "int"},
             "q_date": {"type": "int"},
             "hold_job_reason": {"type": "str", "len": "64", "nulls": "YES"},
-            "held_reason": {"type": "str", "len": "128", "nulls": "YES"},
+            "held_reason": {"type": "str", "len": "512", "nulls": "YES"},
             "js_idle": {"type": "int"},
             "js_running": {"type": "int"},
             "js_completed": {"type": "int"},
@@ -1498,7 +1542,7 @@ schema = {
             "htcondor_fqdn": {"type": "str", "len": "128", "nulls": "YES"},
             "state": {"type": "str", "len": "4", "nulls": "YES"},
             "plotable_state": {"type": "str", "len": "1", "nulls": "YES"},
-            "error_message": {"type": "str", "len": "256", "nulls": "NO"},
+            "error_message": {"type": "str", "len": "512", "nulls": "NO"},
             "condor_days_left": {"type": "int"},
             "worker_days_left": {"type": "int"}
             }
@@ -1519,7 +1563,7 @@ schema = {
             "htcondor_fqdn": {"type": "str", "len": "128", "nulls": "YES"},
             "state": {"type": "str", "len": "4", "nulls": "YES"},
             "plotable_state": {"type": "str", "len": "1", "nulls": "YES"},
-            "error_message": {"type": "str", "len": "256", "nulls": "NO"},
+            "error_message": {"type": "str", "len": "512", "nulls": "NO"},
             "condor_days_left": {"type": "int"},
             "worker_days_left": {"type": "int"}
             }
@@ -1565,7 +1609,7 @@ schema = {
             "alias": {"type": "str", "len": "16", "nulls": "YES"},
             "state": {"type": "str", "len": "4", "nulls": "YES"},
             "plotable_state": {"type": "str", "len": "1", "nulls": "YES"},
-            "error_message": {"type": "str", "len": "256", "nulls": "YES"}
+            "error_message": {"type": "str", "len": "512", "nulls": "YES"}
             }
         },
     "view_total_used_resources": {

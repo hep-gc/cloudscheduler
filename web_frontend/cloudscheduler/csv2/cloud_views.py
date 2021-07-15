@@ -20,7 +20,9 @@ from cloudscheduler.lib.view_utils import \
     validate_by_filtered_table_entries, \
     validate_fields, \
     get_target_cloud, \
-    verify_cloud_credentials
+    verify_cloud_credentials, \
+    get_app_credentail_expiry, \
+    retire_cloud_vms
 
 import bcrypt
 
@@ -49,6 +51,11 @@ CLOUD_KEYS = {
     'format': {
         'cloud_name':                           'lowerdash',
         'cloud_type':                           ('csv2_cloud_types', 'cloud_type'),
+        'auth_type':                            '', #may be converted to reference table like cloud_type
+        'userid':                               '',
+        'app_credentials':                      'ignore',
+        'app_credentials_secret':               'ignore',
+        'app_credentials_expiry':               'integer', #this may need to change to a date obj
         'enabled':                              'dboolean',
         'priority':                             'integer',
         'flavor_name':                          'ignore',
@@ -86,8 +93,8 @@ CLOUD_KEYS = {
     'not_empty': [
         'authurl',
         'project',
-        'username',
-        'password',
+#        'username',
+#        'password',
         'region',
         ],
     'array_fields': [
@@ -105,6 +112,12 @@ CLOUD_ADD_KEYS = {
         'password',
         'region',
         'cloud_type',
+        ],
+    'optional': [
+        'userid',
+        'auth_type',
+        'app_credentials',
+        'app_credentials_secret',
         ]
     }
 
@@ -153,20 +166,6 @@ METADATA_LIST_KEYS = {
         'group':                                'ignore',
         },
     }
-
-#-------------------------------------------------------------------------------
-
-
-def retire_cloud_vms(config, group_name, cloud_name):
-    VM = "csv2_vms"
-    where_clause = "cloud_name='%s' and group_name='%s'" % (cloud_name, group_name)
-    rc, msg, vm_list = config.db_query(VM, where=where_clause)
-    for vm in vm_list:
-        vm["retire"] = 1
-        vm["updater"]= get_frame_info() + ":r1"
-        config.db_merge(VM, vm)
-    config.db_commit()
-
 
 #-------------------------------------------------------------------------------
 
@@ -279,8 +278,9 @@ def manage_cloud_flavor_exclusions(config, tables, active_group, cloud_name, fla
     where_clause = "group_name='%s' and cloud_name='%s'" % (active_group, cloud_name)
     rc, msg, exclusion_list = config.db_query(table, where=where_clause)
 
-    for row in exclusion_list:
-        exclusions.append(row['flavor_name'])
+    if len(exclusion_list) > 0:
+        for row in exclusion_list:
+            exclusions.append(row['flavor_name'])
 
     if not option or option == 'add':
         # Get the list of flavor exclusions (flavor_names) specified that the cloud doesn't already have.
@@ -565,6 +565,18 @@ def add(request):
         if rc == 0:
             if owner_id:
                 fields['ec2_owner_id'] = owner_id
+            if 'auth_type' in fields and fields['auth_type'] == 'app_creds':
+                rc, msg, app_cred_expiry = get_app_credentail_expiry({**fields, 'group_name': active_user.active_group}, config=config)
+                if rc == 0:
+                    current_time = time.time()
+                    if not app_cred_expiry or (app_cred_expiry - current_time)/86400 >= 8:
+                        fields['app_credentials_expiry'] = app_cred_expiry
+                    else:
+                        config.db_close()
+                        return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud add "%s::%s" failed - %s.' % (lno(MODID), fields['group_name'], fields['cloud_name'], 'Application Credential expires within a week'))
+                else:
+                    config.db_close()
+                    return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud add "%s::%s" failed - %s.' % (lno(MODID), fields['group_name'], fields['cloud_name'], msg))
         else:
             config.db_close()
             return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud add "%s::%s" failed - %s.' % (lno(MODID), fields['group_name'], fields['cloud_name'], msg))
@@ -721,7 +733,7 @@ def cloud_list(request, active_user=None, response_code=0, message=None):
         table = "view_clouds_with_metadata_names"
         where_clause = "group_name='%s'" % active_user.active_group
         rc, msg, _src_cloud_list = config.db_query(table, where=where_clause)
-        _cloud_list = qt(_src_cloud_list, prune=['password'])
+        _cloud_list = qt(_src_cloud_list, prune=['password', 'app_credentials_secret'])
         metadata_dict = {}
     else:
         table = "view_clouds_with_metadata_info"
@@ -741,9 +753,13 @@ def cloud_list(request, active_user=None, response_code=0, message=None):
                     'metadata_mime_type',
                     ]
                 },
-            prune=['password']    
+            prune=['password', 'app_credentials_secret']    
             )
-
+    
+    # Get the current time in epoch format
+    for cloud in _cloud_list:
+        cloud["current_time"] = time.time()
+    
     where_clause = "group_name='%s'" % active_user.active_group
     # Get all the images in group:
     rc, msg, image_list = config.db_query("cloud_images", where=where_clause)
@@ -771,7 +787,6 @@ def cloud_list(request, active_user=None, response_code=0, message=None):
 
     # Retrieve the list ec2 regions:
     rc, msg, ec2_regions_list = config.db_query("ec2_regions")
-
 
     # Position the page.
     if len(_cloud_list) > 0:
@@ -1318,7 +1333,9 @@ def status(request, group_name=None):
                 'VMs_native_foreign', 
                 'slot_count',
                 'slot_core_count',
-                'slot_idle_core_count'
+                'slot_idle_core_count',
+                'volume_gigs_max',
+                'volume_gigs_used'
                 ]
             })
 
@@ -1352,7 +1369,9 @@ def status(request, group_name=None):
                 'VMs_native_foreign',
                 'slot_count',
                 'slot_core_count',
-                'slot_idle_core_count'
+                'slot_idle_core_count',
+                'volume_gigs_max',
+                'volume_gigs_used'
                 ]
             })
 
@@ -1575,6 +1594,11 @@ def status(request, group_name=None):
     system_list["disk_size"] = round(psutil.disk_usage('/').total/1000000000 , 1)
     system_list["disk_used"] = round(psutil.disk_usage('/').used/1000000000 , 1)
 
+    # add current time for app credential expiry to determine how many days left
+    for cloud in cloud_status_list:
+        if cloud.get("app_credentials_expiry"):
+            cloud["current_time"] = time.time()
+    
     context = {
             'active_user': active_user.username,
             'active_group': active_user.active_group,
@@ -1695,13 +1719,16 @@ def update(request):
     if request.method == 'POST':
 
         # if the password is blank, remove the password field.
-        if request.META['HTTP_ACCEPT'] != 'application/json' and len(request.POST['password']) == 0:
+        if request.META['HTTP_ACCEPT'] != 'application/json' and request.POST.get('password') == '':
             # create a copy of the dict to make it mutable.
             request.POST = request.POST.copy()
-
             # remove the password field.
             del request.POST['password']
-
+        
+        if request.META['HTTP_ACCEPT'] != 'application/json' and request.POST.get('app_credentials_secret') == '':
+            request.POST = request.POST.copy()
+            del request.POST['app_credentials_secret']
+        
         # check if there were multiple security groups posted
         if len(request.POST.getlist("vm_security_groups")) > 1:
             # if there is a list more than 1 security group was selected
@@ -1725,7 +1752,7 @@ def update(request):
             if rc != 0:
                 config.db_close()
                 return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud update, "%s" failed - %s.' % (lno(MODID), fields['cloud_name'], msg))
-
+        
         if 'vm_image' in fields and fields['vm_image']:
             rc, msg = validate_by_filtered_table_entries(config, fields['vm_image'], 'vm_image', 'cloud_images', 'name', [['group_name', fields['group_name']], ['cloud_name', fields['cloud_name']]])
             if rc != 0:
@@ -1743,7 +1770,7 @@ def update(request):
             if rc != 0:
                 config.db_close()
                 return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud update, "%s" failed - %s.' % (lno(MODID), fields['cloud_name'], msg))
-
+        
         if 'vm_security_groups' in fields and fields['vm_security_groups']:
             rc, msg = validate_by_filtered_table_entries(config, fields['vm_security_groups'], 'vm_security_groups', 'cloud_security_groups', 'name', [['group_name', fields['group_name']], ['cloud_name', fields['cloud_name']]], allow_value_list=True)
             if rc != 0:
@@ -1755,7 +1782,7 @@ def update(request):
                 if not fields['authurl'].endswith('/'):
                     #no slash, add one
                     fields['authurl'] =  fields['authurl'] + '/'
-
+        
         # Validity check the specified metadata exclusions.
         if 'metadata_name' in fields:
             rc, msg = manage_group_metadata_verification(config, tables, fields['group_name'], fields['cloud_name'], fields['metadata_name']) 
@@ -1768,6 +1795,18 @@ def update(request):
         if rc == 0:
             if owner_id:
                 fields['ec2_owner_id'] = owner_id
+            if 'auth_type' in fields and fields['auth_type'] == 'app_creds':
+                rc, msg, app_cred_expiry = get_app_credentail_expiry({**fields, 'group_name': active_user.active_group}, config=config)
+                if rc == 0:
+                    current_time = time.time()
+                    if not app_cred_expiry or (app_cred_expiry - current_time)/86400 >= 8:
+                        fields['app_credentials_expiry'] = app_cred_expiry
+                    else:
+                        config.db_close()
+                        return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud update "%s::%s" failed - %s.' % (lno(MODID), fields['group_name'], fields['cloud_name'], 'Application Credential expires within a week'))
+                else:
+                    config.db_close()
+                    return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud update "%s::%s" failed - %s.' % (lno(MODID), fields['group_name'], fields['cloud_name'], msg))
         else:
             config.db_close()
             return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud update "%s::%s" failed - %s.' % (lno(MODID), fields['group_name'], fields['cloud_name'], msg))
@@ -1775,7 +1814,7 @@ def update(request):
         # update the cloud.
         table = 'csv2_clouds'
         cloud_updates = table_fields(fields, table, columns, 'update')
-        
+
         updates = len(cloud_updates)
         # updates will always contain group and cloud name so im going to upate the below it statement to >2 instead of >0.
         # If the CLI has a different functionality it may cause failure
@@ -1802,6 +1841,7 @@ def update(request):
             elif 'ram_ctl' in fields:
                 updates += kill_retire(config, active_user.active_group, fields['cloud_name'], 'control', [-1, fields['ram_ctl']], get_frame_info())
         except Exception as exc:
+            print("Error executing kill_retire:")
             print(exc)
 
         # Update the cloud's flavor exclusions.

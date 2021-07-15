@@ -334,6 +334,12 @@
   font-weight: bold;
 }
 
+.warn-style {
+  text-decoration: none;
+  color: #CD7300;
+  font-weight: bold;
+}
+
 .zero-style {
   color: grey;
 }

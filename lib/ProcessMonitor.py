@@ -84,14 +84,15 @@ class ProcessMonitor:
         return
 
     def del_process(self, process_id, dynamic=False):
-        proc = self.processes[process_id]
-        logging.info("Deleting process: %s" % process_id)
-        if self.is_alive(proc):
-            proc.join()
-        del self.processes[process_id]
+        proc = self.processes.get(process_id)
+        if proc:
+            logging.info("Deleting process: %s" % process_id)
+            #if self.is_alive(process_id):
+                #proc.join()
+            del self.processes[process_id]
         if dynamic:
             self.dynamic_process_ids.pop(process_id)
-        else:
+        else: 
             self.process_ids.pop(process_id)
             self.static_process_ids.pop(process_id)
         return
@@ -136,7 +137,7 @@ class ProcessMonitor:
         except Exception as ex:
             self.logging.exception(ex)
         if dynamic:
-            self.processes[process] = Process(target=dynamic_process_ids[process]["function"], args = (dynamic_process_ids[process]["args"],))
+            self.processes[process] = Process(target=self.dynamic_process_ids[process]["function"], args = (self.dynamic_process_ids[process]["args"],))
             self.processes[process].start()
         else:
             self.processes[process] = Process(target=self.process_ids[process])
@@ -169,8 +170,27 @@ class ProcessMonitor:
             exit(0)
         if stop:
             for proc in self.process_ids:
-                if self.is_alive(proc):
-                    logging.info("Stop set, terminating child: %s" % proc)
+                if isinstance(self.process_ids[proc], list):
+                    function = self.process_ids[proc][0]
+                    select = self.process_ids[proc][1]
+                    self.config.db_open()
+                    rows=[]
+                    rc, msg = self.config.db_execute(select)
+                    for row in self.config.db_cursor:
+                        rows.append(row)
+                    if rc == 0:
+                        for row in rows:
+                            target_group = row["group_name"]
+                            target_cloud = row["cloud_name"]
+                            proc_key = proc + "-" + target_group + "-" + target_cloud
+                            if proc_key in self.processes and self.is_alive(proc_key):
+                                logging.info("Stop dynamic set, terminating child: %s" % proc)
+                                self.processes[proc].terminate()
+                    else:
+                        self.logging.error("Failed to retrieve child targets from select statement: %s" % msg)
+                    self.config.db_close()
+                elif self.is_alive(proc):
+                    logging.info("Stop static set, terminating child: %s" % proc)
                     self.processes[proc].terminate()
 
         procs_to_remove = []
@@ -180,7 +200,8 @@ class ProcessMonitor:
                 if stop:
                     # child proc is dead, and stop flag set, don't restart and remove proc id
                     procs_to_remove.append(process)
-                    del self.processes[process]
+                    if process in self.processes:
+                        del self.processes[process]
                     continue
                 if process in self.processes:
                     logging.error("%s process died, restarting...", process)
@@ -216,10 +237,11 @@ class ProcessMonitor:
                         target_cloud = row["cloud_name"]
                         # check if process already in our list, if it is check if it's alive
                         proc_key = proc + "-" + target_group + "-" + target_cloud
-                        dynamic_procs_set.remove(proc_key)
+                        if proc_key in dynamic_procs_set:
+                            dynamic_procs_set.remove(proc_key)
                         if proc_key in self.processes:
                             #check if it's alive
-                            if not self.is_alive(proc_key):
+                            if not self.is_alive(proc_key) and not stop:
                                 #restart it
                                 logging.error("%s process died, restarting...", proc_key)
                                 self.config.update_service_catalog(host_id=self.config.local_host_id, error="%s process died, exit code: %s" % (proc_key, self.processes[proc_key].exitcode))
@@ -241,9 +263,10 @@ class ProcessMonitor:
         for proc in dynamic_procs_set:
             #join it
             self.del_process(proc, dynamic=True)
-
+        
         for proc in procs_to_remove:
-            self.process_ids.pop(proc)
+            if proc in self.process_ids:
+                self.process_ids.pop(proc)
 
 
     def _cleanup_event_pids(self, pid):

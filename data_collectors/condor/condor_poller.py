@@ -485,7 +485,11 @@ def job_poller():
                 logging.info("Polling condor host: %s" % condor_host)
                 try:
                     coll = htcondor.Collector(condor_host)
-                    scheddAd = coll.locate(htcondor.DaemonTypes.Schedd, condor_host)
+                    try:
+                        scheddAd = coll.locate(htcondor.DaemonTypes.Schedd, condor_host)
+                    except:
+                        #sometimes the name of the process doesnt match the name of the host but if we don't provide a name it will look for a local one
+                        scheddAd = coll.locate(htcondor.DaemonTypes.Schedd)
                     condor_session = htcondor.Schedd(scheddAd)
 
                 except Exception as exc:
@@ -817,7 +821,11 @@ def job_command_poller():
             for condor_host in condor_hosts_set: 
                 try:
                     coll = htcondor.Collector(condor_host)
-                    scheddAd = coll.locate(htcondor.DaemonTypes.Schedd, condor_host)
+                    try:
+                        scheddAd = coll.locate(htcondor.DaemonTypes.Schedd, condor_host)
+                    except:
+                        # Sometimes the name of the daemon does not match the name of the condor host but if we dont provide a name it will look for a local thread
+                        scheddAd = coll.locate(htcondor.DaemonTypes.Schedd)
                     condor_session = htcondor.Schedd(scheddAd)
                 except Exception as exc:
                     logging.warning("Failed to locate condor daemon, skipping: %s" % condor_host)

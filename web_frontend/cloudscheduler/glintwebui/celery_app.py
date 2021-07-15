@@ -63,9 +63,7 @@ def pull_request(self, tx_id):
     # else get the cloud row for the source and create a glance client and call download function
     else:
         cloud_row = _get_cloud(CLOUD, tx_row["target_group_name"], tx_row["target_cloud_name"], config)
-        os_session = glint_utils.get_openstack_session(cloud_row)
-        glance = glint_utils.get_glance_client(os_session, cloud_row["region"])
-        result_tuple = glint_utils.download_image(glance, tx_row["image_name"], tx_row["image_id"], tx_row["checksum"], config.categories["glintPoller.py"]["image_cache_dir"])
+        result_tuple = glint_utils.download_image(cloud_row, tx_row["image_name"], tx_row["image_id"], tx_row["checksum"], config.categories["glintPoller.py"]["image_cache_dir"])
         if result_tuple[0]:
             # successful download, update the cache and remove transaction
             cache_dict = {
@@ -145,10 +143,7 @@ def tx_request(self, tx_id):
         logger.info("Source image found in cache, beginning upload..")
         print("Source image found in cache, beginning upload..")
         cloud = _get_cloud(CLOUD, tx_row["target_group_name"], tx_row["target_cloud_name"], config)
-        os_session = glint_utils.get_openstack_session(cloud)
-        glance = glint_utils.get_glance_client(os_session, cloud["region"])
-        image_id = glint_utils.create_placeholder_image(glance, image["image_name"], image["disk_format"], image["container_format"])
-        uploaded_image = glint_utils.upload_image(glance, image_id, image["image_name"], config.categories["glintPoller.py"]["image_cache_dir"], tx_row["checksum"], image["disk_format"], image["container_format"])  
+        uploaded_image = glint_utils.upload_image(cloud, None, image["image_name"], config.categories["glintPoller.py"]["image_cache_dir"], tx_row["checksum"], image["disk_format"], image["container_format"])
     except Exception as exc:
         logger.error("Upload failed:")
         print("Upload failed:")
@@ -216,7 +211,7 @@ def _get_tx_row(table, tx_id, config):
 
 # returns row of cached image or None if not in cache
 def _check_get_img_cache(cache_table, image_name, image_checksum, config):
-    where_clause = "image_name='%s' and image_checksum='%s'" % (image_name, image_checksum)
+    where_clause = "image_name='%s' and checksum='%s'" % (image_name, image_checksum)
     rc, msg, rows = config.db_query(cache_table, where=where_clause)
     if len(rows) > 0:
         return rows[0]

@@ -9,6 +9,7 @@ write_files:
         GSI_DAEMON_CERT = /etc/grid-security/hostcert.pem
         GSI_DAEMON_KEY = /etc/grid-security/hostkey.pem
         CCB_ADDRESS = $(CONDOR_HOST_IP)
+        DAEMON_LIST = MASTER, STARTD
     owner: root:root
     permissions: '0644'
     path: /etc/condor/config.d/gsi

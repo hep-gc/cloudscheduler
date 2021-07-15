@@ -143,8 +143,7 @@ def new_keypair(request, group_name=None,):
             rc, qmsg, db_keypair_list = db_config.db_query(Keypairs, where=where_clause)
             if len(db_keypair_list)==0:
                 #no entry exists, its safe to create this keypair
-                logging.info("creating new keypair %s on cloud %s" % (key_name, cloud))
-
+                logger.info("creating new keypair %s on cloud %s" % (key_name, cloud))
                 #get grp resources obj
                 where_clause = "group_name='%s' and cloud_name='%s'" % (grp, cloud)
                 rc, msg, cloud_obj_list =  db_config.db_query(Group_Resources, where=where_clause)
@@ -242,7 +241,7 @@ def save_keypairs(request, group_name=None, message=None):
                                 logger.info(result)
                                 keypair_dict = {
                                     "group_name": group_name,
-                                    "cloud_name": cloud.cloud_name,
+                                    "cloud_name": cloud["cloud_name"],
                                     "fingerprint": fingerprint,
                                     "key_name": key_name
                                 }

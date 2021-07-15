@@ -46,11 +46,14 @@ select
 
     ifnull(cl.ram_max,0) as ram_quota,
     ifnull(vfr.ram,0) as ram_foreign,
-    ifnull(cc.ram_native,0)+ifnull(vfr.ram,0) as ram_native_foreign
+    ifnull(cc.ram_native,0)+ifnull(vfr.ram,0) as ram_native_foreign,
+    ifnull(cl.volume_gigs_max,0) as volume_gigs_max,
+    ifnull(cl.volume_gigs_used,0) as volume_gigs_used
 from (
     select
         cc.group_name,
         cc.cloud_name,
+        cc.app_credentials_expiry,
         sum(VMs) as VMs,
 
         sum(case when cc.poller_status='manual'       then VMs else 0 end) as VMs_manual,
@@ -80,6 +83,7 @@ from (
             region,
             flavor_id,
             poller_status,
+            app_credentials_expiry,
             sum(VMs) as VMs
         from (
             select
@@ -88,6 +92,7 @@ from (
                 'dummy' as region,
                 'dummy' as flavor_id,
                 'dummy' as poller_status,
+                app_credentials_expiry,
                 0 as VMs
             from csv2_clouds
             union all select
@@ -124,6 +129,7 @@ from (
                         end
                     end
                 end as poller_status,
+                NULL as app_credentials_expiry,
                 1 as VMs
             from csv2_vms
         ) as cv

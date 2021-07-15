@@ -3,27 +3,17 @@ OpenStack module - connector classes for OpenStack Clouds
 inherits from BaseCloud
 """
 import time
+from time import sleep
 import logging
-import novaclient.exceptions
-from novaclient import client as nvclient
-from cinderclient import client as cclient
-from glanceclient import client as glanceclient
-from keystoneauth1 import session
-from keystoneauth1.identity import v2
-from keystoneauth1.identity import v3
-from keystoneauth1.exceptions.connection import ConnectFailure
-from keystoneauth1.exceptions.catalog import EmptyCatalog
-from neutronclient.v2_0 import client as neuclient
-#from sqlalchemy import create_engine
-#from sqlalchemy.orm import Session
-#from sqlalchemy.ext.automap import automap_base
-
+import openstack
+import base64
 
 #import cloudscheduler.basecloud
 #import cloudscheduler.config as csconfig
 import json
 import basecloud
 import config as csconfig
+from cloudscheduler.lib.openstack_functions import MyServer, get_openstack_sess, get_nova_connection, get_glance_connection, get_neutron_connection, get_cinder_connection
 
 class OpenStackCloud(basecloud.BaseCloud):
 
@@ -55,6 +45,9 @@ class OpenStackCloud(basecloud.BaseCloud):
         self.userdomainname = resource.get("user_domain_name")
         self.projectdomainname = resource.get("project_domain_name")
         self.projectdomainid = resource.get("project_domain_id")
+        self.authtype = resource.get("auth_type")
+        self.appcredentials = resource.get("app_credentials")
+        self.appcredentialssecret = resource.get("app_credentials_secret")
         self.session = self._get_auth_version(self.authurl)
         if not self.session:
             raise Exception
@@ -70,6 +63,10 @@ class OpenStackCloud(basecloud.BaseCloud):
         self.keep_alive = resource.get("default_keep_alive")
         self.volume_info = resource.get("vm_boot_volume")
         self.flavor_cores = resource.get("flavor_cores")
+        self.vol_max = resource.get("volumes_max")
+        self.vol_used = resource.get("volumes_used")
+        self.vol_gigs_max = resource.get("volume_gigs_max")
+        self.vol_gigs_used = resource.get("volume_gigs_used")
 
     def vm_create(self, num=1, job=None, flavor=None, template_dict=None, image=None):
         """
@@ -90,18 +87,22 @@ class OpenStackCloud(basecloud.BaseCloud):
                                          template_dict=template_dict)
         self.log.debug("~!~!~Userdata~!~!~")
         self.log.debug(userdata)
-
+        
         nova = self._get_creds_nova()
         # Check For valid security groups
-
+        if nova is False:
+            self.config.update_service_catalog(provider='csmain', error='Failed to get openstack nova connection for cloud: %s' % (self.name), logger=self.log)
+            raise
 
         # Ensure keyname is valid
         if self.keyname:
             key_name = ""
             try:
-                if nova.keypairs.findall(name=self.keyname):
+                self_keyname = self.keyname or ''
+                config_keyname = csconfig.config.keyname or ''
+                if nova.find_keypair(name_or_id=self_keyname):
                     key_name = self.keyname
-                elif nova.keypairs.findall(name=csconfig.config.keyname):
+                elif nova.find_keypair(name_or_id=config_keyname):
                     key_name = csconfig.config.keyname
             except Exception as ex:
                 self.config.update_service_catalog(provider='csmain', error='Error finding keypair for group: %s, cloud: %s - %s' % (self.group, self.name, ex), logger=self.log)
@@ -124,8 +125,8 @@ class OpenStackCloud(basecloud.BaseCloud):
             else:
                 imageobj = self._find_image(glance, csconfig.config.default_image)
         except Exceptions as ex:
-            imageob = None
-
+            imageobj = None
+        
         if not imageobj:
             self.config.update_service_catalog(provider='csmain', error='Error finding image for group: %s, cloud: %s - %s' % (self.group, self.name, ex), logger=self.log)
             return -1
@@ -134,18 +135,17 @@ class OpenStackCloud(basecloud.BaseCloud):
         #flavor = flavor
         instancetype_dict = self._attr_list_to_dict(job.get("instance_type"))
         try:
-            #flavor = nova.flavors.find(name=flavor)
             if instancetype_dict and self.name in instancetype_dict:
-                flavorl = nova.flavors.find(name=instancetype_dict[self.name])
+                flavorl = nova.find_flavor(name_or_id=instancetype_dict[self.name])
             elif 'default' in instancetype_dict:
-                flavorl = nova.flavors.find(name=instancetype_dict['default'])
+                flavorl = nova.find_flavor(name_or_id=instancetype_dict['default'])
             elif flavor:
-                flavorl = nova.flavors.find(name=flavor.split(':')[1])
+                flavorl = nova.find_flavor(name_or_id=flavor.split(':')[1])
             elif self.default_flavor:
-                flavorl = nova.flavors.find(name=self.default_flavor)
+                flavorl = nova.find_flavor(name_or_id=self.default_flavor)
             else:
-                flavorl = nova.flavors.find(name=csconfig.config.default_instancetype)
-        except novaclient.exceptions.NotFound as ex:
+                flavorl = nova.find_flavor(name_or_id=csconfig.config.default_instancetype)
+        except openstack.exceptions.ResourceNotFound as ex:
             self.config.update_service_catalog(provider='csmain', error='Error finding flavor for group: %s, cloud: %s - %s' % (self.group, self.name, ex), logger=self.log)
 
         # Deal with network if needed
@@ -154,23 +154,25 @@ class OpenStackCloud(basecloud.BaseCloud):
         network_dict = self._attr_list_to_dict(job.get("network"))
         if network_dict and self.name in network_dict:
             if len(network_dict[self.name].split('-')) == 5:  # uuid
-                netid = [{'net-id': network_dict[self.name]}]
+                netid = [{'uuid': network_dict[self.name]}]
             else:
                 network = self._find_network(network_dict[self.name])
         elif self.default_network:
             if len(self.default_network.split('-')) == 5:  # uuid
-                netid = [{'net-id': self.default_network}]
+                netid = [{'uuid': self.default_network}]
             else:
                 network = self._find_network(self.default_network)
         elif csconfig.config.default_network:
             if len(csconfig.config.default_network.split('-')) == 5:  # uuid
-                netid = [{'net-id': csconfig.config.default_network}]
+                netid = [{'uuid': csconfig.config.default_network}]
             else:
                 network = self._find_network(csconfig.config.default_network)
         if network and not netid:
-            netid = [{'net-id': network.id}]
+            netid = [{'uuid': network.id}]
         hostname = self._generate_next_name()
         instance = None
+        
+        self.log.debug("netid %s" % netid)
 
         try:
             self.log.debug("Getting volume info..")
@@ -181,15 +183,21 @@ class OpenStackCloud(basecloud.BaseCloud):
             self.log.debug('Invalid or null volume for group: %s, cloud: %s - %s' % (self.group, self.name, ex))
             vol_info = None
 
+        instance = None
+        instances = None
         try:
             if vol_info is None:
                 # boot without a volume
                 self.log.debug("Booting without volume")
-                instance = nova.servers.create(name=hostname, image=imageobj,
-                                               flavor=flavorl, key_name=key_name,
-                                               availability_zone=None, nics=netid,
-                                               userdata=userdata,
-                                               security_groups=self.default_security_groups, max_count=num)
+                based_userdata = base64.b64encode(userdata)
+                format_userdata = based_userdata.decode('utf-8')
+                sec_groups = []
+                if self.default_security_groups:
+                    sec_groups = list(map(lambda x: {"name": x}, self.default_security_groups))
+                if key_name == '':
+                    instance = nova._create(MyServer, name=hostname, image_id=imageobj.id, flavor_id=flavorl.id, user_data=format_userdata, networks=netid, security_groups=sec_groups, max_count=num)
+                else:
+                    instance = nova._create(MyServer, name=hostname, image_id=imageobj.id, flavor_id=flavorl.id, key_name=key_name, user_data=format_userdata, networks=netid, security_groups=sec_groups, max_count=num)
             else:
                 instances = []
                 self.log.debug("Booting with volume")
@@ -207,26 +215,26 @@ class OpenStackCloud(basecloud.BaseCloud):
                     self.log.debug("creating boot volume")
                     cinder = self._get_creds_cinder()
                     bv_name = "vol-" + hostname
-                    cv = cinder.volumes.create(name=bv_name,
-                                               size=size,
-                                               imageRef=imageobj.id,
-                                               volume_type=volume_type)
+                    try:
+                        cv = cinder.create_volume(name=bv_name, size=size, image_id=imageobj.id, volume_type=volume_type, is_bootable=True)
+                    except Exception as exc:
+                        self.log.info("Failed to create new volume, endpoint error, or volume limit exceeded canceling remaining boot requests")
+                        self.log.debug(exc)
+                        break
                     while (cv.status != 'available'):
                         time.sleep(1)
-                        cv = cinder.volumes.get(cv.id)
-                    cinder.volumes.set_bootable(cv, True)
-                    bdm = {'vda': str(cv.id) + ':::1'}
+                        cv = cinder.get_volume(cv.id)
+                    bdm = [{'uuid': cv.id, 'source_type': 'volume', 'destination_type': 'volume', 'delete_on_termination': True, 'boot_index': 0}]
                     #append tuple with nova responce and hostname used
-                    instances.append((nova.servers.create(
-                                name=hostname,
-                                image=imageobj,
-                                flavor=flavorl,
-                                key_name=key_name,
-                                block_device_mapping=bdm,
-                                availability_zone=None,
-                                nics=netid,
-                                userdata=userdata,
-                                security_groups=self.default_security_groups), hostname))
+                    based_userdata = base64.b64encode(userdata)
+                    format_userdata = based_userdata.decode()
+                    sec_groups = []
+                    if self.default_security_groups:
+                        sec_groups = list(map(lambda x: {"name": x}, self.default_security_groups))
+                    if key_name == '':
+                        instances.append((nova.create_server(name=hostname, image_id=imageobj.id, flavor_id=flavorl.id, block_device_mapping=bdm, user_data=format_userdata, networks=netid, security_groups=sec_groups), hostname))
+                    else:
+                        instances.append((nova.create_server(name=hostname, image_id=imageobj.id, flavor_id=flavorl.id, key_name=key_name, block_device_mapping=bdm, user_data=format_userdata, networks=netid, security_groups=sec_groups), hostname))
                     hostname = self._generate_next_name()
 
 
@@ -241,16 +249,18 @@ class OpenStackCloud(basecloud.BaseCloud):
             vms = "csv2_vms"
             for _ in range(0, 3):
                 try:
-                    list_vms = nova.servers.list(search_opts={'name':hostname})
+                    list_vms = nova.servers(name=hostname)
                     break
-                except novaclient.exceptions.BadRequest as ex:
+                except Exception as ex:
                     self.log.warning("Bad Request caught, OpenStack db may not be updated yet, "
-                                     "retrying")
+                                     "retrying %s" % ex)
                     time.sleep(1)
 
             self.config.db_open()
             for vm in list_vms:
                 self.log.debug(vm)
+                found_flavor = nova.find_flavor(name_or_id=vm.flavor['original_name'])
+                vm_flavor_id = found_flavor.id
 
                 vm_dict = {
                     'group_name': self.group,
@@ -262,11 +272,11 @@ class OpenStackCloud(basecloud.BaseCloud):
                     'hostname': vm.name,
                     'vmid': vm.id,
                     'status': vm.status,
-                    'flavor_id': vm.flavor["id"],
+                    'flavor_id': vm_flavor_id,
                     'image_id': vm.image["id"],
                     'target_alias': job.get("target_alias"),
-                    'task': vm.__dict__.get("OS-EXT-STS:task_state"),
-                    'power_status': vm.__dict__.get("OS-EXT-STS:power_state"),
+                    'task': vm.to_dict().get('task_state'),
+                    'power_status': vm.to_dict().get('power_state'),
                     'last_updated': int(time.time()),
                     'keep_alive': self.keep_alive,
                     'start_time': int(time.time()),
@@ -280,15 +290,17 @@ class OpenStackCloud(basecloud.BaseCloud):
                 vms = "csv2_vms"
                 for _ in range(0, 3):
                     try:
-                        list_vms = nova.servers.list(search_opts={'name':i_hostname})
+                        list_vms = nova.servers(name=i_hostname)
                         break
-                    except novaclient.exceptions.BadRequest as ex:
+                    except Exception as ex:
                         self.log.warning("Bad Request caught, OpenStack db may not be updated yet, "
-                                         "retrying")
+                                         "retrying %s" % ex)
                         time.sleep(1)
 
                 for vm in list_vms:
                     self.log.debug(vm)
+                    found_flavor = nova.find_flavor(name_or_id=vm.flavor['original_name'])
+                    vm_flavor_id = found_flavor.id
 
                     vm_dict = {
                         'group_name': self.group,
@@ -300,11 +312,11 @@ class OpenStackCloud(basecloud.BaseCloud):
                         'hostname': vm.name,
                         'vmid': vm.id,
                         'status': vm.status,
-                        'flavor_id': vm.flavor["id"],
+                        'flavor_id': vm_flavor_id,
                         'image_id': vm.image["id"],
                         'target_alias': job.get("target_alias"),
-                        'task': vm.__dict__.get("OS-EXT-STS:task_state"),
-                        'power_status': vm.__dict__.get("OS-EXT-STS:power_state"),
+                        'task': vm.to_dict().get('task_state'),
+                        'power_status': vm.to_dict().get('power_state'),
                         'last_updated': int(time.time()),
                         'keep_alive': self.keep_alive,
                         'start_time': int(time.time()),
@@ -313,49 +325,53 @@ class OpenStackCloud(basecloud.BaseCloud):
                 self.config.db_commit()
 
             self.config.db_close()
-                
-    def _get_keystone_session_v2(self):
-        """
-        Gets a keystone session for version 2 keystone auth url.
-        :return: session object for keystone
-        """
-        auth = v2.Password(auth_url=self.authurl, username=self.username,
-                           password=self.password,
-                           tenant_name=self.project, )
-        sess = session.Session(auth=auth, verify=self.cacertificate)
-        return sess
+    
 
-    def _get_keystone_session_v3(self):
+    def _get_keystone_data_v2(self):
         """
-        Gets a keystone session for version 3 keystone auth url.
-        :return: keystone session object.
+        Format the data for keystone session for version 2
         """
-        auth = v3.Password(auth_url=self.authurl, username=self.username,
-                           password=self.password, project_name=self.project,
-                           project_domain_name=self.projectdomainname,
-                           user_domain_name=self.userdomainname,
-                           project_domain_id=self.projectdomainid)
-        sess = session.Session(auth=auth, verify=self.cacertificate)
-        return sess
+        return {"authurl": self.authurl, "username": self.username, "password": self.password, "project": self.project}
+
+    def  _get_keystone_data_v3(self):
+        """
+        Format the data for keystone session for version 3
+        """
+        return {"authurl": self.authurl, "username": self.username, "password": self.password, "project": self.project, "project_domain_name": self.projectdomainname, "user_domain_name": self.userdomainname, "project_domain_id": self.projectdomainid}
+
+    def _get_keystone_app_cred_data(self):
+        """
+        Format the data for keystone session using application credential
+        """
+        return {"authurl": self.authurl, "app_credentials": self.appcredentials, "app_credentials_secret": self.appcredentialssecret}
 
     def _get_creds_nova(self):
         """
-        Get a novaclient client object.
+        Get a novaclient client object by openstacksdk.
         :return: novaclient client.
         """
-        client = nvclient.Client("2.0", session=self.session, region_name=self.region, timeout=10,)
-        return client
+        try:
+            nova = get_nova_connection(self.session, self.region)
+        except Exception as e:
+            self.log.error("Cannot use nova on %s:%s" % (self.name, e))
+            raise e
+        return nova
 
     def _get_creds_neutron(self):
         """
         Get a neutron client.
         :return: neutron client.
         """
-        return neuclient.Client(session=self.session)
+        try:
+            neutron = get_neutron_connection(self.session, self.region)
+        except Exception as e:
+            self.log.error("Cannot use neutron on %s:%s" % (self.name, e))
+            raise e
+        return neutron
 
     def _get_creds_cinder(self):
         try:
-            cinder = cclient.Client("3", session=self.session, region_name=self.region, timeout=10)
+            cinder = get_cinder_connection(self.session, self.region)
         except Exception as e:
             self.log.error("Cannot use cinder on %s:%s" % (self.name, e))
             raise e
@@ -363,7 +379,7 @@ class OpenStackCloud(basecloud.BaseCloud):
 
     def _get_creds_glance(self):
         try:
-            glance = glanceclient.Client("2", session=self.session, region_name=self.region)
+            glance = get_glance_connection(self.session, self.region)
         except Exception as e:
             self.log.error("Cannot use glance on %s:%s" % (self.name, e))
             raise e
@@ -371,7 +387,7 @@ class OpenStackCloud(basecloud.BaseCloud):
 
     def _find_image(self, glance, image_name):
         try:
-            images = glance.images.list()
+            images = glance.images()
             for image in images:
                 if image.name == image_name:
                     return image
@@ -386,10 +402,10 @@ class OpenStackCloud(basecloud.BaseCloud):
         :param netname: name of network to look for.
         :return: network object.
         """
-        nova = self._get_creds_nova()
+        neutron = self._get_creds_neutron()
         network = None
         try:
-            network = nova.neutron.find_network(netname)
+            network = neutron.find_network(netname)
         except Exception as ex:
             self.config.update_service_catalog(provider='csmain', error='Error finding network for group: %s, cloud: %s - %s' % (self.group, self.name, ex), logger=self.log)
         return network
@@ -401,17 +417,72 @@ class OpenStackCloud(basecloud.BaseCloud):
         :return: a valid keystone session of correct version.
         """
         keystone_session = None
+        cloud_data = {}
         try:
-            authsplit = authurl.split('/')
-            version = int(float(authsplit[-1][1:])) if authsplit[-1]\
-                else int(float(authsplit[-2][1:]))
-            if version == 2:
-                keystone_session = self._get_keystone_session_v2()
-                self.log.debug("Using a v2 session for %s", self.name)
-            elif version == 3:
-                keystone_session = self._get_keystone_session_v3()
-                self.log.debug("Using a v3 session for %s", self.name)
+            if self.authtype and self.authtype == 'app_creds':
+               cloud_data = self._get_keystone_app_cred_data()
+            else:
+                authsplit = authurl.split('/')
+                version = int(float(authsplit[-1][1:])) if authsplit[-1] else int(float(authsplit[-2][1:]))
+                if version == 2:
+                    #self.log.debug("Using a v2 session for %s", self.name)
+                    cloud_data = self._get_keystone_data_v2()
+                elif version == 3:
+                    #self.log.debug("Using a v3 session for %s", self.name)
+                    cloud_data = self._get_keystone_data_v3()
+            keystone_session = get_openstack_sess(cloud_data, self.cacertificate)
         except ValueError as ex:
             self.log.exception("Error determining keystone version from auth url: %s", ex)
             keystone_session = None
         return keystone_session
+
+
+    def check_volume_limits(self, num_vms):
+        """
+        Determine if there is enough space//available volumes to boot num_vms
+        Return number of vms there is space for, if the vm does not require a volume
+        just return num_vms
+        """
+
+        # first check if there is actually a need for volumes
+        if self.volume_info is None:
+            return num_vms
+
+        adjusted_num_vms = num_vms
+
+        if self.vol_max - self.vol_used < adjusted_num_vms:
+            adjusted_num_vms = self.vol_max - self.vol_used
+            if adjusted_num_vms<=0:
+                self.log.info("Volume allocation fully in use, unable to boot")
+                return 0
+            else:
+                self.log.info("Not enough volumes to boot %s vms, reducing boot number to %s" % (num_vms, adjusted_num_vms))
+        remaining_gigs = self.vol_gigs_max - self.vol_gigs_used 
+
+        try:
+            vol_info = json.loads(self.volume_info)
+        except Exception as ex:
+            self.log.debug('Invalid or null volume for group: %s, cloud: %s - %s' % (self.group, self.name, ex))
+            vol_info = None
+        size_per_core = vol_info.get("GBs_per_core")
+        base_size = vol_info.get("GBs", 0)
+        if size_per_core:
+            size_per_vm = base_size + (size_per_core * self.flavor_cores)
+        else:
+            size_per_vm = base_size
+
+
+        total_gigs_requested = size_per_vm * adjusted_num_vms
+        num_adjusted = False
+        while(total_gigs_requested > remaining_gigs):
+            num_adjusted = True
+            adjusted_num_vms = adjusted_num_vms - 1
+            total_gigs_requested = total_gigs_requested - size_per_vm
+        if num_adjusted:
+            if adjusted_num_vms == 0:
+                logging.info("Not enough remaining volume space to boot any VMs")
+                return 0
+            logging.info("VMs to boot adjusted to: %s due to volume constraints" % adjusted_num_vms)
+
+        
+        return adjusted_num_vms

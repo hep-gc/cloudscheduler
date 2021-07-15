@@ -26,7 +26,6 @@ class Config:
 
         # show we are initializing.
         self.initialized = False
-
         # Calculate csv2 version
         self.version = self._calculate_version()
 
@@ -680,6 +679,8 @@ class Config:
             if logger:
                 logger.debug('Heartbeat for provider: %s, host ID: %s' % (provider, host_id))
 
+        if logger:
+            logger.debug("~~~~ UPDATED CATALOG ~~~~")
         if auto_close:
             self.db_close(commit=True)
         else:
@@ -722,6 +723,5 @@ class Config:
             else:
                 version = 'Version: %s + %d commits' % (tag, tag_ix)
         except Exception as exc:
-            print("Error Determining version")
-
+            print("Error Determining version", exc)
         return version

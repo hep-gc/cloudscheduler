@@ -1,9 +1,0 @@
-/var/log/cloudscheduler/timeseries.log {
-  weekly
-  su cloudscheduler cloudscheduler
-  notifempty
-  missingok
-  compress
-  copytruncate
-  create 0644 cloudscheduler cloudscheduler
-}

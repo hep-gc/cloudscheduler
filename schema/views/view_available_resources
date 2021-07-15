@@ -47,6 +47,10 @@ ifnull(fwd.ram_foreign,0) as ram_foreign,
 ifnull(ru.swap_used,0) as swap_used,
 fwd.flavor,
 fwd.flavor_id,
+fwd.volumes_max,
+fwd.volumes_used,
+fwd.volume_gigs_max,
+fwd.volume_gigs_used,
 
 case when ifnull(fwd.VMs_max,0)>ifnull(ru.VMs,0) and ifnull(fwd.cores_limit,0)>ifnull(ru.cores_used,0) and ifnull(fwd.ram_limit,0)>ifnull(ru.ram_used,0) then
     least((fwd.cores_limit-ifnull(ru.cores_used,0)) div fwd.flavor_cores, (fwd.ram_limit-ifnull(ru.ram_used,0)) div fwd.flavor_ram)
@@ -58,6 +62,9 @@ fwd.flavor_cores,
 fwd.flavor_disk,
 fwd.flavor_ram,
 fwd.flavor_swap,
+fwd.auth_type,
+fwd.app_credentials,
+fwd.app_credentials_secret,
 ifnull(fru.flavor_VMs,0) as flavor_VMs,
 ifnull(fru.flavor_starting,0) as flavor_starting,
 ifnull(fru.flavor_unregistered,0) as flavor_unregistered,
@@ -87,6 +94,10 @@ from (
             cg.htcondor_fqdn,
             cg.htcondor_container_hostname,
             cg.htcondor_other_submitters,
+            cl.volumes_max,
+            cl.volumes_used,
+            cl.volume_gigs_max,
+            cl.volume_gigs_used,
 
 
             case when ifnull(cc.vm_flavor,'')!='' then

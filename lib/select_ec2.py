@@ -17,7 +17,7 @@ def select_ec2_images(config, group_name, cloud_name):
 
     sql = ['select * from view_ec2_images where region="%s"' % region]
 
-    ec2_filter = qt(config.db_connection.execute('select * from ec2_image_filters where group_name="%s" and cloud_name="%s"' % (group_name, cloud_name)))
+    ec2_filter = qt(config.db_execute('select * from ec2_image_filters where group_name="%s" and cloud_name="%s"' % (group_name, cloud_name)))
     if len(ec2_filter) == 1:
         if ec2_filter[0]['owner_aliases']:
             sql.append(_get_ec2_equal('owner_alias', ec2_filter[0]['owner_aliases']))
@@ -59,7 +59,7 @@ def select_ec2_instance_types(config, group_name, cloud_name):
 
     sql = ['select * from view_ec2_instance_types where region="%s"' % region]
 
-    ec2_filter = qt(config.db_connection.execute('select * from ec2_instance_type_filters where group_name="%s" and cloud_name="%s"' % (group_name, cloud_name)))
+    ec2_filter = qt(config.db_execute('select * from ec2_instance_type_filters where group_name="%s" and cloud_name="%s"' % (group_name, cloud_name)))
     if len(ec2_filter) == 1:
         if ec2_filter[0]['families']:
             sql.append(_get_ec2_equal('instance_family', ec2_filter[0]['families']))
@@ -181,7 +181,7 @@ def _get_ec2_region_and_owner_id(config, group_name, cloud_name):
         close_db_on_exit = True
         config.db_open()
 
-    cloud = qt(config.db_connection.execute('select * from csv2_clouds where group_name="%s" and cloud_name="%s"' % (group_name, cloud_name)))
+    cloud = qt(config.db_execute('select * from csv2_clouds where group_name="%s" and cloud_name="%s"' % (group_name, cloud_name)))
 
     if len(cloud) != 1:
         if close_db_on_exit:

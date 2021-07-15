@@ -112,7 +112,7 @@ def main(args):
                 '-u%s' % gvar['db_config'].db_config['db_user'],
                 '-p%s' % gvar['db_config'].db_config['db_password'],
                 '-e',
-                'update csv2_configuration set config_value=true where category="ProcessMonitor" and config_key="pause";',
+                'update csv2_configuration set config_value="True" where category="ProcessMonitor" and config_key="pause";',
                 gvar['db_config'].db_config['db_name']
                 ],
             stdout=PIPE,
@@ -186,7 +186,7 @@ def main(args):
             '-u%s' % gvar['db_config'].db_config['db_user'],
             '-p%s' % gvar['db_config'].db_config['db_password'],
             '-e',
-            'update csv2_configuration set config_value=false where category="ProcessMonitor" and config_key="pause";',
+            'update csv2_configuration set config_value="False" where category="ProcessMonitor" and config_key="pause";',
             gvar['db_config'].db_config['db_name']
             ],
         stdout=PIPE,
