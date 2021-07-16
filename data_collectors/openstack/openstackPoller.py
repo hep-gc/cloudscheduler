@@ -31,7 +31,7 @@ from cloudscheduler.lib.poller_functions import \
     wait_cycle
 
 from cloudscheduler.lib.signal_functions import event_receiver_registration
-from cloudscheduler.lib.openstack_functions import get_openstack_sess, get_nova_connection, get_glance_connection, get_neutron_connection, get_cinder_connection, get_openstack_conn, convert_openstack_date_timezone
+from cloudscheduler.lib.openstack_functions import get_openstack_sess, get_nova_connection, get_neutron_connection, get_cinder_connection, get_openstack_conn, convert_openstack_date_timezone
 #import openstack
 
 '''
@@ -391,17 +391,21 @@ def image_poller():
                         continue
 
                     # Retrieve all images for this cloud.
-                    post_req_time = 0
                     pre_req_time = time.time() * 1000000 
-                    glance = get_glance_connection(sess, region=unique_cloud_dict[cloud]['cloud_obj']["region"])
+                    glance = get_openstack_conn(sess, region=unique_cloud_dict[cloud]['cloud_obj']["region"])
+                    conn_time = time.time() * 1000000
+                    conn_time_cost = int(conn_time - pre_req_time)
 
                     if glance is False:
                         logging.info("Openstack glance connection failed for %s, skipping this cloud..." % cloud_name)
                         continue
                     
                     try:
-                        image_list = glance.images()
+                        image_service = glance.image
+                        image_service_time = time.time() * 1000000
+                        image_list = image_service.images()
                         post_req_time = time.time() * 1000000
+                        image_time_cost = int(post_req_time - image_service_time)
                     except Exception as exc:
                         logging.error("Failed to retrieve image data for %s, skipping this cloud..." % cloud_name)
                         logging.error(exc)
@@ -429,9 +433,8 @@ def image_poller():
                         where_clause = "group_name='%s' and cloud_name='%s'" % (grp_nm, cld_nm)
                         rc, msg, cloud_rows = config.db_query(CLOUD, where=where_clause)
                         cloud_row = cloud_rows[0]
-                        #logging.debug("pre request time:%s   post request time:%s" % (post_req_time, pre_req_time))
-                        logging.info("pre request time:%s   post request time:%s" % (post_req_time, pre_req_time))
-                        cloud_row["communication_rt"] = int(post_req_time - pre_req_time)
+                        cloud_row["communication_rt"] = int(conn_time_cost + image_time_cost)
+                        logging.debug('cloud_tuple grp %s, cld %s, time diff %s' % (grp_nm, cld_nm, cloud_row["communication_rt"]))
                         try:
                             cld_update_dict = {
                                 "group_name": cloud_row["group_name"],
