@@ -1,0 +1,9 @@
+/var/log/cloudscheduler/condor_poller.log {
+  weekly
+  su root cloudscheduler
+  notifempty
+  missingok
+  compress
+  copytruncate
+  create 0644 condor condor
+}
