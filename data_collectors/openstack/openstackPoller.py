@@ -31,7 +31,7 @@ from cloudscheduler.lib.poller_functions import \
     wait_cycle
 
 from cloudscheduler.lib.signal_functions import event_receiver_registration
-from cloudscheduler.lib.openstack_functions import get_openstack_sess, get_nova_connection, get_glance_connection, get_neutron_connection, get_cinder_connection, get_openstack_conn, convert_openstack_date_timezone
+from cloudscheduler.lib.openstack_functions import get_openstack_sess, get_nova_connection, get_neutron_connection, get_cinder_connection, get_openstack_conn, convert_openstack_date_timezone
 #import openstack
 
 '''
@@ -139,7 +139,7 @@ def flavor_poller():
                 if not os.path.exists(PID_FILE):
                     logging.debug("Stop set, exiting...")
                     break
-
+                
                 signal.signal(signal.SIGINT, signal.SIG_IGN) 
 
                 abort_cycle = False
@@ -213,52 +213,58 @@ def flavor_poller():
 
                     # Process flavours for this cloud.
                     uncommitted_updates = 0
-                    for flavor in flav_list:
-                        if flavor.swap == "":
-                            swap = 0
-                        else:
-                            swap = flavor.swap
+                    try:
+                        for flavor in flav_list:
+                            if flavor.swap == "":
+                                swap = 0
+                            else:
+                                swap = flavor.swap
 
-                        if flavor.disk == "":
-                            disk = 0
-                        else:
-                            disk = flavor.disk
+                            if flavor.disk == "":
+                                disk = 0
+                            else:
+                                disk = flavor.disk
 
-                        for groups in unique_cloud_dict[cloud]['groups']:
-                            group_n = groups[0]
-                            cloud_n = groups[1]
+                            for groups in unique_cloud_dict[cloud]['groups']:
+                                group_n = groups[0]
+                                cloud_n = groups[1]
 
-                            flav_dict = {
-                                'group_name': group_n,
-                                'cloud_name': cloud_n,
-                                'name': flavor.name,
-                                'cloud_type': "openstack",
-                                'ram': flavor.ram,
-                                'vcpus': flavor.vcpus,
-                                'id': flavor.id,
-                                'swap': swap,
-                                'disk': disk,
-                                'ephemeral_disk': flavor.ephemeral,
-                                'is_public': flavor.to_dict().get('is_public'),
-                                'last_updated': new_poll_time
-                                }
+                                flav_dict = {
+                                    'group_name': group_n,
+                                    'cloud_name': cloud_n,
+                                    'name': flavor.name,
+                                    'cloud_type': "openstack",
+                                    'ram': flavor.ram,
+                                    'vcpus': flavor.vcpus,
+                                    'id': flavor.id,
+                                    'swap': swap,
+                                    'disk': disk,
+                                    'ephemeral_disk': flavor.ephemeral,
+                                    'is_public': flavor.to_dict().get('is_public'),
+                                    'last_updated': new_poll_time
+                                    }
 
-                            flav_dict, unmapped = map_attributes(src="os_flavors", dest="csv2", attr_dict=flav_dict, config=config)
-                            if unmapped:
-                                logging.error("Unmapped attributes found during mapping, discarding:")
-                                logging.error(unmapped)
+                                flav_dict, unmapped = map_attributes(src="os_flavors", dest="csv2", attr_dict=flav_dict, config=config)
+                                if unmapped:
+                                    logging.error("Unmapped attributes found during mapping, discarding:")
+                                    logging.error(unmapped)
 
-                            if inventory_test_and_set_item_hash(ikey_names, flav_dict, inventory, new_poll_time, debug_hash=(config.categories["openstackPoller.py"]["log_level"] < 20)):
-                                continue
+                                if inventory_test_and_set_item_hash(ikey_names, flav_dict, inventory, new_poll_time, debug_hash=(config.categories["openstackPoller.py"]["log_level"] < 20)):
+                                    continue
 
-                            try:
-                                config.db_merge(FLAVOR, flav_dict)
-                                uncommitted_updates += 1
-                            except Exception as exc:
-                                logging.exception("Failed to merge flavor entry for %s::%s::%s, aborting cycle..." % (group_n, cloud_n, flavor.name))
-                                logging.error(exc)
-                                abort_cycle = True
-                                break
+                                try:
+                                    config.db_merge(FLAVOR, flav_dict)
+                                    uncommitted_updates += 1
+                                except Exception as exc:
+                                    logging.exception("Failed to merge flavor entry for %s::%s::%s, aborting cycle..." % (group_n, cloud_n, flavor.name))
+                                    logging.error(exc)
+                                    abort_cycle = True
+                                    break
+                    except Exception as exc:
+                        logging.error("Error proccessing flavor_list for cloud %s" % cloud_name)
+                        logging.error(exc)
+                        logging.error("Skipping cloud...")
+                        continue
 
                     del nova
                     if abort_cycle:
@@ -391,17 +397,21 @@ def image_poller():
                         continue
 
                     # Retrieve all images for this cloud.
-                    post_req_time = 0
                     pre_req_time = time.time() * 1000000 
-                    glance = get_glance_connection(sess, region=unique_cloud_dict[cloud]['cloud_obj']["region"])
+                    glance = get_openstack_conn(sess, region=unique_cloud_dict[cloud]['cloud_obj']["region"])
+                    conn_time = time.time() * 1000000
+                    conn_time_cost = int(conn_time - pre_req_time)
 
                     if glance is False:
                         logging.info("Openstack glance connection failed for %s, skipping this cloud..." % cloud_name)
                         continue
                     
                     try:
-                        image_list = glance.images()
+                        image_service = glance.image
+                        image_service_time = time.time() * 1000000
+                        image_list = image_service.images()
                         post_req_time = time.time() * 1000000
+                        image_time_cost = int(post_req_time - image_service_time)
                     except Exception as exc:
                         logging.error("Failed to retrieve image data for %s, skipping this cloud..." % cloud_name)
                         logging.error(exc)
@@ -429,9 +439,8 @@ def image_poller():
                         where_clause = "group_name='%s' and cloud_name='%s'" % (grp_nm, cld_nm)
                         rc, msg, cloud_rows = config.db_query(CLOUD, where=where_clause)
                         cloud_row = cloud_rows[0]
-                        #logging.debug("pre request time:%s   post request time:%s" % (post_req_time, pre_req_time))
-                        logging.info("pre request time:%s   post request time:%s" % (post_req_time, pre_req_time))
-                        cloud_row["communication_rt"] = int(post_req_time - pre_req_time)
+                        cloud_row["communication_rt"] = int(conn_time_cost + image_time_cost)
+                        logging.debug('cloud_tuple grp %s, cld %s, time diff %s' % (grp_nm, cld_nm, cloud_row["communication_rt"]))
                         try:
                             cld_update_dict = {
                                 "group_name": cloud_row["group_name"],
@@ -494,7 +503,7 @@ def image_poller():
                                     abort_cycle = True
                                     break
                     except Exception as exc:
-                        logging.error("Error proccessing image_list for cloud %s" % unique_cloud_dict[cloud]['cloud_obj']["authurl"])
+                        logging.error("Error proccessing image_list for cloud %s" % cloud_name)
                         logging.error(exc)
                         logging.error("Skipping cloud...")
                         continue
@@ -674,31 +683,37 @@ def keypair_poller():
                         config.reset_cloud_error(grp_nm, cld_nm)
 
                     uncommitted_updates = 0
-                    for key in cloud_keys:
-                        fingerprint_list.append(key.fingerprint)
-                        for groups in unique_cloud_dict[cloud]['groups']:
-                            group_n = groups[0]
-                            cloud_n = groups[1]
-                            key_dict = {
-                                "cloud_name":  cloud_n,
-                                "group_name":  group_n,
-                                "key_name":    key.name,
-                                'cloud_type': "openstack",
-                                "fingerprint": key.fingerprint
-                            }
+                    try:
+                        for key in cloud_keys:
+                            fingerprint_list.append(key.fingerprint)
+                            for groups in unique_cloud_dict[cloud]['groups']:
+                                group_n = groups[0]
+                                cloud_n = groups[1]
+                                key_dict = {
+                                    "cloud_name":  cloud_n,
+                                    "group_name":  group_n,
+                                    "key_name":    key.name,
+                                    "cloud_type": "openstack",
+                                    "fingerprint": key.fingerprint
+                                }
                             
 
-                            if inventory_test_and_set_item_hash(ikey_names, key_dict, inventory, new_poll_time, debug_hash=(config.categories["openstackPoller.py"]["log_level"] < 20)):
-                                continue
+                                if inventory_test_and_set_item_hash(ikey_names, key_dict, inventory, new_poll_time, debug_hash=(config.categories["openstackPoller.py"]["log_level"] < 20)):
+                                    continue
 
-                            try:
-                                config.db_merge(KEYPAIR, key_dict)
-                                uncommitted_updates += 1
-                            except Exception as exc:
-                                logging.exception("Failed to merge keypair entry for %s::%s, aborting cycle..." % (cloud_n, key.name))
-                                logging.error(exc)
-                                abort_cycle = True
-                                break
+                                try:
+                                    config.db_merge(KEYPAIR, key_dict)
+                                    uncommitted_updates += 1
+                                except Exception as exc:
+                                    logging.exception("Failed to merge keypair entry for %s::%s, aborting cycle..." % (cloud_n, key.name))
+                                    logging.error(exc)
+                                    abort_cycle = True
+                                    break
+                    except Exception as exc:
+                        logging.error("Error proccessing key_list for cloud %s" % cloud_name)
+                        logging.error(exc)
+                        logging.error("Skipping cloud...")
+                        continue
 
                     del nova
                     if abort_cycle:
@@ -872,52 +887,58 @@ def limit_poller():
                         config.reset_cloud_error(grp_nm, cld_nm)
 
                     # Process limit list for the current cloud.
-                    for groups in unique_cloud_dict[cloud]['groups']:
-                        limits_dict = copy.deepcopy(shared_limits_dict)
-                        # remove unused attributes
-                        limits_dict.pop('id')
-                        limits_dict.pop('name')
-                        limits_dict.pop('location')
+                    try:
+                        for groups in unique_cloud_dict[cloud]['groups']:
+                            limits_dict = copy.deepcopy(shared_limits_dict)
+                            # remove unused attributes
+                            limits_dict.pop('id')
+                            limits_dict.pop('name')
+                            limits_dict.pop('location')
 
-                        group_n = groups[0]
-                        cloud_n = groups[1]                        
-                        # We need to make just a connection object to get information about volumes
-                        os_conn = get_openstack_conn(sess, region=unique_cloud_dict[cloud]['cloud_obj']["region"])
-                        try:
-                            vol_limits = os_conn.get_volume_limits().absolute
-                            vol_dict = {key:vol_limits[key] for key in ['maxTotalVolumes', 'totalVolumesUsed', 'maxTotalVolumeGigabytes', 'totalGigabytesUsed']}
-                            limits_dict = { **limits_dict, **vol_dict}
-                        except:
-                            #no volume info for this cloud
-                            logging.debug("No volume limits for %s::%s" % (group_n, cloud_n))
-
-
-                        limits_dict['group_name'] = group_n
-                        limits_dict['cloud_name'] = cloud_n
-                        limits_dict['last_updated'] = int(time.time())
-                        limits_dict, unmapped = map_attributes(src="os_limits", dest="csv2", attr_dict=limits_dict, config=config)
-                        if unmapped:
-                            logging.error("Unmapped attributes found during mapping, discarding:")
-                            logging.error(unmapped)
+                            group_n = groups[0]
+                            cloud_n = groups[1]                        
+                            # We need to make just a connection object to get information about volumes
+                            os_conn = get_openstack_conn(sess, region=unique_cloud_dict[cloud]['cloud_obj']["region"])
+                            try:
+                                vol_limits = os_conn.get_volume_limits().absolute
+                                vol_dict = {key:vol_limits[key] for key in ['maxTotalVolumes', 'totalVolumesUsed', 'maxTotalVolumeGigabytes', 'totalGigabytesUsed']}
+                                limits_dict = { **limits_dict, **vol_dict}
+                            except:
+                                #no volume info for this cloud
+                                logging.debug("No volume limits for %s::%s" % (group_n, cloud_n))
 
 
-                        if inventory_test_and_set_item_hash(ikey_names, limits_dict, inventory, new_poll_time, debug_hash=(config.categories["openstackPoller.py"]["log_level"] < 20)):
-                            continue
+                            limits_dict['group_name'] = group_n
+                            limits_dict['cloud_name'] = cloud_n
+                            limits_dict['last_updated'] = int(time.time())
+                            limits_dict, unmapped = map_attributes(src="os_limits", dest="csv2", attr_dict=limits_dict, config=config)
+                            if unmapped:
+                                logging.error("Unmapped attributes found during mapping, discarding:")
+                                logging.error(unmapped)
 
-                        for limit in limits_dict:
-                            if "-1" in str(limits_dict[limit]):
-                                limits_dict[limit] = config.categories["openstackPoller.py"]["no_limit_default"]
-                        limits_dict["cloud_type"] = "openstack"
 
-                        try:
-                            logging.debug("Updating grp:cld - %s:%s" % (group_n, cloud_n))
-                            config.db_merge(LIMIT, limits_dict)
-                            uncommitted_updates += 1
-                        except Exception as exc:
-                            logging.exception("Failed to merge limits for %s::%s, aborting cycle..." % (group_n, cloud_n))
-                            logging.error(exc)
-                            abort_cycle = True
-                            break
+                            if inventory_test_and_set_item_hash(ikey_names, limits_dict, inventory, new_poll_time, debug_hash=(config.categories["openstackPoller.py"]["log_level"] < 20)):
+                                continue
+
+                            for limit in limits_dict:
+                                if "-1" in str(limits_dict[limit]):
+                                    limits_dict[limit] = config.categories["openstackPoller.py"]["no_limit_default"]
+                            limits_dict["cloud_type"] = "openstack"
+
+                            try:
+                                logging.debug("Updating grp:cld - %s:%s" % (group_n, cloud_n))
+                                config.db_merge(LIMIT, limits_dict)
+                                uncommitted_updates += 1
+                            except Exception as exc:
+                                logging.exception("Failed to merge limits for %s::%s, aborting cycle..." % (group_n, cloud_n))
+                                logging.error(exc)
+                                abort_cycle = True
+                                break
+                    except Exception as exc:
+                        logging.error("Error proccessing limit_list for cloud %s" % cloud_name)
+                        logging.error(exc)
+                        logging.error("Skipping cloud...")
+                        continue
 
                     del nova
                     if abort_cycle:
@@ -1078,39 +1099,45 @@ def network_poller():
                         config.reset_cloud_error(grp_nm, cld_nm)
 
                     uncommitted_updates = 0
-                    for network in net_list:
-                        for groups in unique_cloud_dict[cloud]['groups']:
-                            group_n = groups[0]
-                            cloud_n = groups[1]
-                            network_dict = {
-                                'group_name': group_n,
-                                'cloud_name': cloud_n,
-                                'name': network['name'],
-                                'cloud_type': "openstack",
-                                'subnets': ''.join(network['subnet_ids']),
-                                'tenant_id': network['project_id'],
-                                'router:external': network['is_router_external'],
-                                'shared': network['is_shared'],
-                                'id': network['id'],
-                                'last_updated': int(time.time())
-                            }
+                    try:
+                        for network in net_list:
+                            for groups in unique_cloud_dict[cloud]['groups']:
+                                group_n = groups[0]
+                                cloud_n = groups[1]
+                                network_dict = {
+                                    'group_name': group_n,
+                                    'cloud_name': cloud_n,
+                                    'name': network['name'],
+                                    'cloud_type': "openstack",
+                                    'subnets': ''.join(network['subnet_ids']),
+                                    'tenant_id': network['project_id'],
+                                    'router:external': network['is_router_external'],
+                                    'shared': network['is_shared'],
+                                    'id': network['id'],
+                                    'last_updated': int(time.time())
+                                }
 
-                            network_dict, unmapped = map_attributes(src="os_networks", dest="csv2", attr_dict=network_dict, config=config)
-                            if unmapped:
-                                logging.error("Unmapped attributes found during mapping, discarding:")
-                                logging.error(unmapped)
+                                network_dict, unmapped = map_attributes(src="os_networks", dest="csv2", attr_dict=network_dict, config=config)
+                                if unmapped:
+                                    logging.error("Unmapped attributes found during mapping, discarding:")
+                                    logging.error(unmapped)
 
-                            if inventory_test_and_set_item_hash(ikey_names, network_dict, inventory, new_poll_time, debug_hash=(config.categories["openstackPoller.py"]["log_level"] < 20)):
-                                continue
+                                if inventory_test_and_set_item_hash(ikey_names, network_dict, inventory, new_poll_time, debug_hash=(config.categories["openstackPoller.py"]["log_level"] < 20)):
+                                    continue
 
-                            try:
-                                config.db_merge(NETWORK, network_dict)
-                                uncommitted_updates += 1
-                            except Exception as exc:
-                                logging.exception("Failed to merge network entry for %s::%s::%s, aborting cycle..." % (group_n, cloud_n, network['name']))
-                                logging.error(exc)
-                                abort_cycle = True
-                                break
+                                try:
+                                    config.db_merge(NETWORK, network_dict)
+                                    uncommitted_updates += 1
+                                except Exception as exc:
+                                     logging.exception("Failed to merge network entry for %s::%s::%s, aborting cycle..." % (group_n, cloud_n, network['name']))
+                                     logging.error(exc)
+                                     abort_cycle = True
+                                     break
+                    except Exception as exc:
+                        logging.error("Error proccessing network_list for cloud %s" % cloud_name)
+                        logging.error(exc)
+                        logging.error("Skipping cloud...")
+                        continue
 
                     del neutron
                     if abort_cycle:
@@ -1281,36 +1308,42 @@ def security_group_poller():
 
                     # Process security groups for this cloud.
                     uncommitted_updates = 0
-                    for sec_grp in sec_grp_list:
-                        for groups in unique_cloud_dict[cloud]['groups']:
-                            group_n = groups[0]
-                            cloud_n = groups[1]
+                    try:
+                        for sec_grp in sec_grp_list:
+                            for groups in unique_cloud_dict[cloud]['groups']:
+                                group_n = groups[0]
+                                cloud_n = groups[1]
 
-                            sec_grp_dict = {
-                                'group_name': group_n,
-                                'cloud_name': cloud_n,
-                                'name': sec_grp["name"],
-                                'cloud_type': "openstack",
-                                'id': sec_grp["id"],
-                                'last_updated': new_poll_time
-                                }
+                                sec_grp_dict = {
+                                    'group_name': group_n,
+                                    'cloud_name': cloud_n,
+                                    'name': sec_grp["name"],
+                                    'cloud_type': "openstack",
+                                    'id': sec_grp["id"],
+                                    'last_updated': new_poll_time
+                                    }
 
-                            flav_dict, unmapped = map_attributes(src="os_sec_grps", dest="csv2", attr_dict=sec_grp_dict, config=config)
-                            if unmapped:
-                                logging.error("Unmapped attributes found during mapping, discarding:")
-                                logging.error(unmapped)
+                                flav_dict, unmapped = map_attributes(src="os_sec_grps", dest="csv2", attr_dict=sec_grp_dict, config=config)
+                                if unmapped:
+                                    logging.error("Unmapped attributes found during mapping, discarding:")
+                                    logging.error(unmapped)
 
-                            if inventory_test_and_set_item_hash(ikey_names, sec_grp_dict, inventory, new_poll_time, debug_hash=(config.categories["openstackPoller.py"]["log_level"] < 20)):
-                                continue
+                                if inventory_test_and_set_item_hash(ikey_names, sec_grp_dict, inventory, new_poll_time, debug_hash=(config.categories["openstackPoller.py"]["log_level"] < 20)):
+                                    continue
 
-                            try:
-                                config.db_merge(SECURITY_GROUP, sec_grp_dict)
-                                uncommitted_updates += 1
-                            except Exception as exc:
-                                logging.exception("Failed to merge security group entry for %s::%s::%s, aborting cycle..." % (group_n, cloud_n, sec_grp.name))
-                                logging.error(exc)
-                                abort_cycle = True
-                                break
+                                try:
+                                    config.db_merge(SECURITY_GROUP, sec_grp_dict)
+                                    uncommitted_updates += 1
+                                except Exception as exc:
+                                    logging.exception("Failed to merge security group entry for %s::%s::%s, aborting cycle..." % (group_n, cloud_n, sec_grp.name))
+                                    logging.error(exc)
+                                    abort_cycle = True
+                                    break
+                    except Exception as exc:
+                        logging.error("Error proccessing security_group_list for cloud %s" % cloud_name)
+                        logging.error(exc)
+                        logging.error("Skipping cloud...")
+                        continue
 
                     del neu
                     if abort_cycle:
@@ -1523,126 +1556,132 @@ def vm_poller():
                 # We've decided to remove the variable "status_changed_time" since it was holding the exact same value as "last_updated"
                 # This is because we are only pushing updates to the csv2 database when the state of a vm is changed and thus it would be logically equivalent
                 uncommitted_updates = 0
-                for vm in vm_list:
-                #~~~~~~~~
-                # figure out if it is foreign to this group or not based on tokenized hostname:
-                # hostname example: testing--otter--2049--256153399971170-1
-                # tokenized:        group,   cloud, csv2_host_id, ?vm identifier?
-                #
-                # at the end some of the dictionary enteries might not have a previous database object
-                # due to emergent flavors and thus a new obj will need to be created
-                #~~~~~~~~
-                    try:
-                        host_tokens = vm.name.split("--")
-                        vm_group_name = host_tokens[0]
-                        vm_cloud_name = host_tokens[1]
-                        found_flavor = nova.find_flavor(name_or_id=vm.flavor['original_name'])
-                        vm_flavor_id = found_flavor.id
-                     
-                        if (host_tokens[0], host_tokens[1]) not in group_list:
-                            logging.debug("Group-Cloud combination doesn't match any in csv2, marking %s as foreign vm" % vm.name)
-                            logging.debug(group_list)
-                            if auth_url + "--" + vm_flavor_id in for_vm_dict:
-                                for_vm_dict[auth_url + "--" + vm_flavor_id]["count"] = for_vm_dict[auth_url + "--" + vm_flavor_id]["count"] + 1
-                            else:
-                                # no entry yet
-                                for_vm_dict[auth_url + "--" + vm_flavor_id]= {
-                                    'count': 1,
-                                    'region': cloud_obj["region"],
-                                    'project': cloud_obj["project"],
-                                    'authurl': cloud_obj["authurl"], 
-                                    'flavor_id': vm_flavor_id
-                                }
-                            continue
-                        elif int(host_tokens[2]) != int(config.categories["SQL"]["csv2_host_id"]):
-                            logging.debug("csv2 host id from host does not match (should be %s), marking %s as foreign vm" % (config.categories["SQL"]["csv2_host_id"], vm.name))
-                            if auth_url + "--" + vm_flavor_id in for_vm_dict:
-                                for_vm_dict[auth_url + "--" + vm_flavor_id]["count"] = for_vm_dict[auth_url + "--" + vm_flavor_id]["count"] + 1
-                            else:
-                                # no entry yet
-                                for_vm_dict[auth_url + "--" + vm_flavor_id]= {
-                                    'count': 1,
-                                    'region': cloud_obj["region"],
-                                    'project': cloud_obj["project"],
-                                    'authurl': cloud_obj["authurl"], 
-                                    'flavor_id': vm_flavor_id
-                                }
-
-                            #foreign vm
-                            continue
-                    except IndexError as exc:
-                        #not enough tokens, bad hostname or foreign vm
-                        logging.debug("Not enough tokens from hostname, bad hostname or foreign vm: %s" % vm.name)
-                        found_flavor = nova.find_flavor(name_or_id=vm.flavor['original_name'])
-                        if found_flavor is not None:
-                            vm_flavor_id = found_flavor.id
-                        else:
-                            vm_flavor_id = vm.flavor['original_name']
-                        if auth_url + "--" + vm_flavor_id in for_vm_dict:
-                            for_vm_dict[auth_url + "--" + vm_flavor_id]["count"] = for_vm_dict[auth_url + "--" + vm_flavor_id]["count"] + 1
-                        else:
-                            # no entry yet
-                            for_vm_dict[auth_url + "--" + vm_flavor_id]= {
-                                'count': 1,
-                                'region': cloud_obj["region"],
-                                'project': cloud_obj["project"],
-                                'authurl': cloud_obj["authurl"], 
-                                'flavor_id': vm_flavor_id
-                            }
-
-                        continue
-
-                    ip_addrs = []
-                    floating_ips = []
-                    for net in vm.addresses:
-                        for addr in vm.addresses[net]:
-                            if addr['OS-EXT-IPS:type'] == 'fixed':
-                                ip_addrs.append(addr['addr'])
-                            elif addr['OS-EXT-IPS:type'] == 'floating':
-                                floating_ips.append(addr['addr'])
-                    vm_dict = {
-                        'group_name': vm_group_name,
-                        'cloud_name': vm_cloud_name,
-                        "region": cloud_obj["region"],
-                        'auth_url': cloud_obj["authurl"],
-                        'project': cloud_obj["project"],
-                        'cloud_type': "openstack",
-                        'hostname': vm.name,
-                        'vmid': vm.id,
-                        'image_id': vm.image['id'],
-                        'status': vm.status,
-                        'flavor_id': vm_flavor_id,
-                        'task': vm.to_dict().get('task_state'),
-                        'power_state': vm.to_dict().get('power_state'),
-                        'vm_ips': str(ip_addrs),
-                        'vm_floating_ips': str(floating_ips),
-                        'last_updated': new_poll_time
-                    }
-
-                    vm_dict, unmapped = map_attributes(src="os_vms", dest="csv2", attr_dict=vm_dict, config=config)
-                    if unmapped:
-                        logging.error("unmapped attributes found during mapping, discarding:")
-                        logging.error(unmapped)
-
-                    if inventory_test_and_set_item_hash(ikey_names, vm_dict, inventory, new_poll_time, debug_hash=(config.categories["openstackPoller.py"]["log_level"] < 20)):
-                        continue
-
-                    try:
-                        config.db_merge(VM, vm_dict)
-                        uncommitted_updates += 1
-                    except Exception as exc:
-                        logging.exception("Failed to merge VM entry for %s::%s::%s, using group %s's credentials aborting cycle..." % (cloud_obj["authurl"], cloud_obj["project"], cloud_obj["region"], cloud_obj["group_name"]))
-                        logging.error(exc)
-                        abort_cycle = True
-                        break
-                    if uncommitted_updates >= config.categories["openstackPoller.py"]["batch_commit_size"]:
+                try:
+                    for vm in vm_list:
+                    #~~~~~~~~
+                    # figure out if it is foreign to this group or not based on tokenized hostname:
+                    # hostname example: testing--otter--2049--256153399971170-1
+                    # tokenized:        group,   cloud, csv2_host_id, ?vm identifier?
+                    #
+                    # at the end some of the dictionary enteries might not have a previous database object
+                    # due to emergent flavors and thus a new obj will need to be created
+                    #~~~~~~~~
                         try:
-                            config.db_commit()
-                            logging.debug("Comitted %s VMs" % uncommitted_updates)
-                            uncommitted_updates = 0
+                            host_tokens = vm.name.split("--")
+                            vm_group_name = host_tokens[0]
+                            vm_cloud_name = host_tokens[1]
+                            found_flavor = nova.find_flavor(name_or_id=vm.flavor['original_name'])
+                            vm_flavor_id = found_flavor.id
+                     
+                            if (host_tokens[0], host_tokens[1]) not in group_list:
+                                logging.debug("Group-Cloud combination doesn't match any in csv2, marking %s as foreign vm" % vm.name)
+                                logging.debug(group_list)
+                                if auth_url + "--" + vm_flavor_id in for_vm_dict:
+                                    for_vm_dict[auth_url + "--" + vm_flavor_id]["count"] = for_vm_dict[auth_url + "--" + vm_flavor_id]["count"] + 1
+                                else:
+                                    # no entry yet
+                                    for_vm_dict[auth_url + "--" + vm_flavor_id]= {
+                                        'count': 1,
+                                        'region': cloud_obj["region"],
+                                        'project': cloud_obj["project"],
+                                        'authurl': cloud_obj["authurl"], 
+                                        'flavor_id': vm_flavor_id
+                                    }
+                                continue
+                            elif int(host_tokens[2]) != int(config.categories["SQL"]["csv2_host_id"]):
+                                logging.debug("csv2 host id from host does not match (should be %s), marking %s as foreign vm" % (config.categories["SQL"]["csv2_host_id"], vm.name))
+                                if auth_url + "--" + vm_flavor_id in for_vm_dict:
+                                    for_vm_dict[auth_url + "--" + vm_flavor_id]["count"] = for_vm_dict[auth_url + "--" + vm_flavor_id]["count"] + 1
+                                else:
+                                    # no entry yet
+                                    for_vm_dict[auth_url + "--" + vm_flavor_id]= {
+                                        'count': 1,
+                                        'region': cloud_obj["region"],
+                                        'project': cloud_obj["project"],
+                                        'authurl': cloud_obj["authurl"], 
+                                        'flavor_id': vm_flavor_id
+                                    }
+
+                                #foreign vm
+                                continue
+                        except IndexError as exc:
+                            #not enough tokens, bad hostname or foreign vm
+                            logging.debug("Not enough tokens from hostname, bad hostname or foreign vm: %s" % vm.name)
+                            found_flavor = nova.find_flavor(name_or_id=vm.flavor['original_name'])
+                            if found_flavor is not None:
+                                vm_flavor_id = found_flavor.id
+                            else:
+                                vm_flavor_id = vm.flavor['original_name']
+                            if auth_url + "--" + vm_flavor_id in for_vm_dict:
+                                for_vm_dict[auth_url + "--" + vm_flavor_id]["count"] = for_vm_dict[auth_url + "--" + vm_flavor_id]["count"] + 1
+                            else:
+                                # no entry yet
+                                for_vm_dict[auth_url + "--" + vm_flavor_id]= {
+                                    'count': 1,
+                                    'region': cloud_obj["region"],
+                                    'project': cloud_obj["project"],
+                                    'authurl': cloud_obj["authurl"], 
+                                    'flavor_id': vm_flavor_id
+                                }
+
+                            continue
+
+                        ip_addrs = []
+                        floating_ips = []
+                        for net in vm.addresses:
+                            for addr in vm.addresses[net]:
+                                if addr['OS-EXT-IPS:type'] == 'fixed':
+                                    ip_addrs.append(addr['addr'])
+                                elif addr['OS-EXT-IPS:type'] == 'floating':
+                                    floating_ips.append(addr['addr'])
+                        vm_dict = {
+                            'group_name': vm_group_name,
+                            'cloud_name': vm_cloud_name,
+                            'region': cloud_obj["region"],
+                            'auth_url': cloud_obj["authurl"],
+                            'project': cloud_obj["project"],
+                            'cloud_type': "openstack",
+                            'hostname': vm.name,
+                            'vmid': vm.id,
+                            'image_id': vm.image['id'],
+                            'status': vm.status,
+                            'flavor_id': vm_flavor_id,
+                            'task': vm.to_dict().get('task_state'),
+                            'power_state': vm.to_dict().get('power_state'),
+                            'vm_ips': str(ip_addrs),
+                            'vm_floating_ips': str(floating_ips),
+                            'last_updated': new_poll_time
+                        }
+
+                        vm_dict, unmapped = map_attributes(src="os_vms", dest="csv2", attr_dict=vm_dict, config=config)
+                        if unmapped:
+                            logging.error("unmapped attributes found during mapping, discarding:")
+                            logging.error(unmapped)
+
+                        if inventory_test_and_set_item_hash(ikey_names, vm_dict, inventory, new_poll_time, debug_hash=(config.categories["openstackPoller.py"]["log_level"] < 20)):
+                            continue
+
+                        try:
+                            config.db_merge(VM, vm_dict)
+                            uncommitted_updates += 1
                         except Exception as exc:
-                            logging.error("Error during batch commit of VMs:")
+                            logging.exception("Failed to merge VM entry for %s::%s::%s, using group %s's credentials aborting cycle..." % (cloud_obj["authurl"], cloud_obj["project"], cloud_obj["region"], cloud_obj["group_name"]))
                             logging.error(exc)
+                            abort_cycle = True
+                            break
+                        if uncommitted_updates >= config.categories["openstackPoller.py"]["batch_commit_size"]:
+                            try:
+                                config.db_commit()
+                                logging.debug("Comitted %s VMs" % uncommitted_updates)
+                                uncommitted_updates = 0
+                            except Exception as exc:
+                                logging.error("Error during batch commit of VMs:")
+                                logging.error(exc)
+                except Exception as exc:
+                    logging.error("Error proccessing vm_list for cloud %s" % cloud_obj["cloud_name"])
+                    logging.error(exc)
+                    logging.error("Skipping cloud...")
+                    continue
 
                 del nova
                 if abort_cycle:
@@ -1868,65 +1907,71 @@ def volume_poller():
                     # We've decided to remove the variable "status_changed_time" since it was holding the exact same value as "last_updated"
                     # This is because we are only pushing updates to the csv2 database when the state of a vm is changed and thus it would be logically equivalent
                     uncommitted_updates = 0
-                    for volume in volume_list:
-                        try:
-                            if volume.name.startswith("vol-"):
-                                host_tokens_string = volume.name[4:]
-                            else:
-                                logging.debug("Volume name does not match csv2 nomenclature, marking %s as foreign vol" % volume.name)
-                                continue
-                            host_tokens = host_tokens_string.split("--")
-                            vol_group_name = host_tokens[0]
-                            vol_cloud_name = host_tokens[1]
-
-                            if (host_tokens[0], host_tokens[1]) not in group_list:
-                                logging.debug("Group-Cloud combination doesn't match any in csv2, marking %s as foreign vol" % volume.name)
-                                continue
-                            elif int(host_tokens[2]) != int(config.categories["SQL"]["csv2_host_id"]):
-                                logging.debug("csv2 host id from host does not match (should be %s), marking %s as foreign vol" % (config.categories["SQL"]["csv2_host_id"], volume.name))
-                                continue
-                        except IndexError as exc:
-                            #not enough tokens, bad hostname or foreign vm
-                            logging.debug("Not enough tokens from hostname, bad hostname or foreign volume: %s" % volume.name)
-                            continue
-                        
-                        if volume.created_at:
-                            datetimeObj = datetime.datetime.strptime(volume.created_at, '%Y-%m-%dT%H:%M:%S.%f')
-                            created_time = convert_openstack_date_timezone(datetimeObj)
-                        else:
-                            created_time = None
-                        
-                        vol_dict = {
-                            'group_name': vol_group_name,
-                            'cloud_name': vol_cloud_name,
-                            'id': volume.id,
-                            'name': volume.name,
-                            'size': volume.size,
-                            'volume_type': volume.volume_type,
-                            'status': volume.status,
-                            'cloud_type': "openstack",
-                            'created_at': created_time,
-                            'last_updated': new_poll_time
-                        }
-                        if inventory_test_and_set_item_hash(ikey_names, vol_dict, inventory, new_poll_time, debug_hash=(config.categories["openstackPoller.py"]["log_level"] < 20)):
-                            continue
-
-                        try:
-                            config.db_merge(VOLUME, vol_dict)
-                            uncommitted_updates += 1
-                        except Exception as exc:
-                            logging.exception("Failed to merge Volume entry for %s::%s::%s, using group %s's credentials aborting cycle..." % (cloud_obj["authurl"], cloud_obj["project"], cloud_obj["region"], cloud_obj["group_name"]))
-                            logging.error(exc)
-                            abort_cycle = True
-                            break
-                        if uncommitted_updates >= config.categories["openstackPoller.py"]["batch_commit_size"]:
+                    try:
+                        for volume in volume_list:
                             try:
-                                config.db_commit()
-                                logging.debug("Comitted %s Volumes" % uncommitted_updates)
-                                uncommitted_updates = 0
+                                if volume.name.startswith("vol-"):
+                                    host_tokens_string = volume.name[4:]
+                                else:
+                                    logging.debug("Volume name does not match csv2 nomenclature, marking %s as foreign vol" % volume.name)
+                                    continue
+                                host_tokens = host_tokens_string.split("--")
+                                vol_group_name = host_tokens[0]
+                                vol_cloud_name = host_tokens[1]
+
+                                if (host_tokens[0], host_tokens[1]) not in group_list:
+                                    logging.debug("Group-Cloud combination doesn't match any in csv2, marking %s as foreign vol" % volume.name)
+                                    continue
+                                elif int(host_tokens[2]) != int(config.categories["SQL"]["csv2_host_id"]):
+                                    logging.debug("csv2 host id from host does not match (should be %s), marking %s as foreign vol" % (config.categories["SQL"]["csv2_host_id"], volume.name))
+                                    continue
+                            except IndexError as exc:
+                                #not enough tokens, bad hostname or foreign vm
+                                logging.debug("Not enough tokens from hostname, bad hostname or foreign volume: %s" % volume.name)
+                                continue
+                        
+                            if volume.created_at:
+                                datetimeObj = datetime.datetime.strptime(volume.created_at, '%Y-%m-%dT%H:%M:%S.%f')
+                                created_time = convert_openstack_date_timezone(datetimeObj)
+                            else:
+                                created_time = None
+                        
+                            vol_dict = {
+                                'group_name': vol_group_name,
+                                'cloud_name': vol_cloud_name,
+                                'id': volume.id,
+                                'name': volume.name,
+                                'size': volume.size,
+                                'volume_type': volume.volume_type,
+                                'status': volume.status,
+                                'cloud_type': "openstack",
+                                'created_at': created_time,
+                                'last_updated': new_poll_time
+                            }
+                            if inventory_test_and_set_item_hash(ikey_names, vol_dict, inventory, new_poll_time, debug_hash=(config.categories["openstackPoller.py"]["log_level"] < 20)):
+                                continue
+
+                            try:
+                                config.db_merge(VOLUME, vol_dict)
+                                uncommitted_updates += 1
                             except Exception as exc:
-                                logging.error("Error during batch commit of Volumes:")
+                                logging.exception("Failed to merge Volume entry for %s::%s::%s, using group %s's credentials aborting cycle..." % (cloud_obj["authurl"], cloud_obj["project"], cloud_obj["region"], cloud_obj["group_name"]))
                                 logging.error(exc)
+                                abort_cycle = True
+                                break
+                            if uncommitted_updates >= config.categories["openstackPoller.py"]["batch_commit_size"]:
+                                try:
+                                    config.db_commit()
+                                    logging.debug("Comitted %s Volumes" % uncommitted_updates)
+                                    uncommitted_updates = 0
+                                except Exception as exc:
+                                    logging.error("Error during batch commit of Volumes:")
+                                    logging.error(exc)
+                    except Exception as exc:
+                        logging.error("Error proccessing volume_list for cloud %s" % cloud_name)
+                        logging.error(exc)
+                        logging.error("Skipping cloud...")
+                        continue
 
                     del cinder
                     if abort_cycle:
