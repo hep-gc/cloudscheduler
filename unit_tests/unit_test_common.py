@@ -698,9 +698,16 @@ def load_settings(web=False):
 
 def _prompt_for_web_credentials(credentials, server_user):
     credentials['web'] = {}
-    credentials['web']['firefox_profiles'] = [input('Location of a Firefox profile with the credentials for {}-wiu{} saved: '.format(server_user, i)) for i in range(1, 4)]
-    credentials['web']['max_wait'] = float(input('Maximum time in seconds that web interface pages may take to load (float): '))
+    credentials['web']['server_username'] = input("Username on the server vm you wish to address: ")
+    credentials['web']['server_port'] = int(input("Port number for the server vm: "))
+    credentials['web']['server_keypath'] = input("Full path to the private key used to access the server vm: ")
+    credentials['web']['keys_accessible'] = input("Does the cloud poller read the base user's keys? [True/False]: ")
+    credentials['web']['max_wait'] = float(input("Maximum time in seconds that web interface pages may take to load (float): "))
     credentials['web']['setup_required'] = True
+    if credentials['web']['keys_accessible'] == 'True':
+        credentials['web']['keys_accessible'] = True
+    else:
+        credentials['web']['keys_accessible'] = False
 
 def _requests(gvar, request, group=None, form_data=None, query_data=None, server_user=None, server_pw=None, html=False):
     """

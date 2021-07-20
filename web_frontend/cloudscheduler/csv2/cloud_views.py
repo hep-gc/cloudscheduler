@@ -1719,13 +1719,13 @@ def update(request):
     if request.method == 'POST':
 
         # if the password is blank, remove the password field.
-        if request.META['HTTP_ACCEPT'] != 'application/json' and len(request.POST['password']) == 0:
+        if request.META['HTTP_ACCEPT'] != 'application/json' and request.POST.get('password') == '':
             # create a copy of the dict to make it mutable.
             request.POST = request.POST.copy()
             # remove the password field.
             del request.POST['password']
         
-        if request.META['HTTP_ACCEPT'] != 'application/json' and len(request.POST['app_credentials_secret']) == 0:
+        if request.META['HTTP_ACCEPT'] != 'application/json' and request.POST.get('app_credentials_secret') == '':
             request.POST = request.POST.copy()
             del request.POST['app_credentials_secret']
         

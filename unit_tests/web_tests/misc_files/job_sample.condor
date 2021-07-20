@@ -1,0 +1,17 @@
+Universe   = vanilla
+Executable = job.sh
+dir           = (HOME)/logs
+# dir           = /var/tmp/apf-logs
+output        = $(dir)/$(Cluster).$(Process).out
+error         = $(dir)/$(Cluster).$(Process).err
+log           = $(dir)/$(Cluster).$(Process).log
+priority       = 10
+Requirements = group_name =?= "{user}-wig0" && TARGET.Arch == "x86_64"
+should_transfer_files = YES
+when_to_transfer_output = ON_EXIT
+request_cpus = 1
+request_memory = 1500
+request_disk = 20G
+RunAsOwner = False
+getenv = False
+queue 4

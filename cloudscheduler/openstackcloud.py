@@ -224,7 +224,7 @@ class OpenStackCloud(basecloud.BaseCloud):
                     while (cv.status != 'available'):
                         time.sleep(1)
                         cv = cinder.get_volume(cv.id)
-                    bdm = [{'uuid': cv.id, 'source_type': 'volume', 'destination_type': 'volume', 'delete_on_termination': True, 'boot_index': i}]
+                    bdm = [{'uuid': cv.id, 'source_type': 'volume', 'destination_type': 'volume', 'delete_on_termination': True, 'boot_index': 0}]
                     #append tuple with nova responce and hostname used
                     based_userdata = base64.b64encode(userdata)
                     format_userdata = based_userdata.decode()

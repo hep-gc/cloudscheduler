@@ -5,9 +5,9 @@
     public_mariadb: true
 
 - include_vars: "{{ addenda }}"
+- include_vars: "{{ inventory_instance }}-secrets.yaml"
 - include_vars: "csv2-default-vars.yaml"
 - include_vars: "{{ inventory_instance }}-vars.yaml"
-- include_vars: "{{ inventory_instance }}-secrets.yaml"
 
 - set_fact:
     favicon_colour: "{{ item.value }}"
@@ -29,13 +29,13 @@
 - import_tasks: perform_yum_updates.yaml
 - import_tasks: install_other_required_packages.yaml
 - import_tasks: install_python_pip.yaml
+- import_tasks: install_python3.yaml
 - import_tasks: letsencrypt.yaml
   when: (local_web is undefined) or (local_web == False)
 - import_tasks: create_localhost_cert.yaml
   when: 
   - local_web is defined
   - local_web == True
-- import_tasks: install_python3.yaml
 - import_tasks: configure_network.yaml
   when:
   - container is undefined or container != true
@@ -48,6 +48,7 @@
   when: (container is undefined) or (container == False)
 - import_tasks: configure_sudoers.yaml
   when: (container is undefined) or (container == False)
+- import_tasks: configure_swap_file.yaml
 - import_tasks: install_configure_MariaDB.yaml
 - import_tasks: create_mysqldb_csv2.yaml
 - include: install_configure_httpd.yaml
@@ -59,6 +60,7 @@
 - import_tasks: install_fetch_crl.yaml
 - import_tasks: install_EL7_HTCondor.yaml
 - import_tasks: install_configure_csv2.yaml
-- import_tasks: create_remote_condor_poller_installation_tarball.yaml
+- import_tasks: create_condor_poller_installation_tarball.yaml
+- import_tasks: install_and_start_condor_poller.yaml
 - import_tasks: install_configure_filebeat.yaml
 - import_tasks: install_influxdb.yaml
