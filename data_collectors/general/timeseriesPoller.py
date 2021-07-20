@@ -55,7 +55,10 @@ def timeseries_data_transfer():
             rc, msg, cloud_status = config.db_query("view_cloud_status")
             # This column list used to be generated via a sqlalchemy object, we may need to make a more specific database query to do the trick here
             # but for now we'll just take they keys of the resultant dictionary as the column names
-            column_list = list(cloud_status[0].keys())
+            if len(cloud_status) > 0:
+                column_list = list(cloud_status[0].keys())
+            else:
+                column_list = []
             rc, msg, job_status = config.db_query("view_job_status")
             
             job_column_list = [
@@ -147,7 +150,6 @@ def timeseries_data_transfer():
                     new_point = "{0}{4},group={1} value={2}i {3}".format(trace_name, group, _cast_int(line[key]), ts, '_total')
                     data_points.append(new_point)
 
-            # Include traces for aliases
             rc, msg, job_status_alias = config.db_query("view_job_status_by_target_alias")
             for line in job_status_alias:
                 group = line["group_name"]
@@ -156,7 +158,8 @@ def timeseries_data_transfer():
                     alias = "None"
 
                 for key in line:
-                    if key == "group_name" or key == "target_alias" or  key == "htcondor_fqdn" or key == "state" or key == "condor_days_left" or key == "worker_days_left" or key == "error_message":
+                    #this is a dirty way to do it but we dont want to plot the following fields, everything else should get a trace
+                    if key == "group_name" or key == "target_alias" or key == "htcondor_fqdn" or key == "state" or key == "condor_days_left" or key == "worker_days_left" or key == "error_message":
                         continue
                     if key == "Jobs":
                         trace_name = "jobs"
@@ -198,6 +201,8 @@ def timeseries_data_transfer():
                         'ram_native_foreign',
                         'slot_count',
                         'slot_core_count',
+                        'volume_gigs_max',
+                        'volume_gigs_used',
                         'slot_idle_core_count'
                     ]
                 })
@@ -213,7 +218,7 @@ def timeseries_data_transfer():
                         continue
                     new_point = "{0}{4},group={1} value={2}i {3}".format(measurement, group, int(cloud_total_list[measurement]), ts, '_total')
                     data_points.append(new_point)
-            
+
             # Get slot type counts details
             try:
                 rc, msg, slot_list = config.db_query("view_cloud_status_slot_detail")
@@ -235,7 +240,7 @@ def timeseries_data_transfer():
             rc, msg, job_details_list = config.db_query("view_condor_jobs_group_defaults_applied")
             if job_details_list:
                 job_details_list_totals = qt(job_details_list, keys={
-                    'primary': ['group_name', 'request_cpus'],
+                    'primary': ['group_name', 'cloud_name', 'request_cpus'],
                     'sum': [
                         'js_idle',
                         'js_running',
