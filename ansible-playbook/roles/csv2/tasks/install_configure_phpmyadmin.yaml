@@ -7,11 +7,6 @@
 #   {{ i_external_connection.0.ipv4 }}
 #   {{ phpMyAdmin_secret }}
 
-- set_fact:
-    install_phpMyAdmin_apache_group: apache
-  when:
-  - install_phpMyAdmin_apache_group is undefined
-
 - name: update ssl to listen on port 444
   lineinfile:
     path: /etc/httpd/conf.d/ssl.conf
@@ -29,14 +24,12 @@
   notify:
   - restart httpd
 
-- debug: msg="{{ install_phpMyAdmin_apache_group }}"
-
 - name: ensure correct permissions on configuration directory
   file:
     dest: /etc/phpMyAdmin
     state: directory
     owner: root
-    group: "{{ install_phpMyAdmin_apache_group }}"
+    group: apache
     mode: 0750
 
 - name: ensure correct permissions on php home directory
@@ -44,7 +37,7 @@
     dest: /var/lib/php
     state: directory
     owner: root
-    group: "{{ install_phpMyAdmin_apache_group }}"
+    group: apache
     mode: 0755
 
 - name: configure phMyAdmin server
@@ -52,7 +45,7 @@
     src: etc_phpMyAdmin_config.inc.php.j2
     dest: /etc/phpMyAdmin/config.inc.php
     owner: root
-    group: "{{ install_phpMyAdmin_apache_group }}"
+    group: apache
     mode: 0640
   notify:
   - restart httpd

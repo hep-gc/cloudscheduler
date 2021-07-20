@@ -4,10 +4,11 @@
   file:
     dest: "{{ item }}"
     state: directory
-    owner: root
-    group: root
+    owner: condor
+    group: condor
     mode: 0700
   with_items:
+  - "/usr/local/etc/certificates"
   - "/usr/local/etc/certificates/{{ ansible_fqdn }}"
   - "/usr/local/etc/certificates/{{ ansible_hostname }}-worker.{{ ansible_domain }}"
   when:
@@ -20,8 +21,8 @@
   copy:
     src: "{{ item.src }}"
     dest: "{{ item.dest }}"
-    owner: root
-    group: root
+    owner: condor
+    group: condor
     mode: 0400
   with_items:
   - {src: "{{ htcondor_cert }}", dest: "/usr/local/etc/certificates/{{ ansible_fqdn }}/cert.pem"}
@@ -36,8 +37,8 @@
   copy:
     src: "{{ item.src }}"
     dest: "{{ item.dest }}"
-    owner: root
-    group: root
+    owner: condor
+    group: condor
     mode: 0400
   with_items:
   - {src: "{{ htcondor_key }}", dest: "/usr/local/etc/certificates/{{ ansible_fqdn }}/privkey.pem"}
@@ -47,6 +48,15 @@
   - htcondor_key is defined
   - htcondor_worker_cert is defined
   - htcondor_worker_key is defined
+
+- set_fact:
+    certificate_users: []
+  when: certificate_users is undefined
+
+- set_fact:
+    certificate_users: "{{ certificate_users + [item] }}"
+  with_items: "{{ additional_certificate_users }}"
+  when: additional_certificate_users is defined
 
 - name: create user certificate directories
   file:
@@ -81,7 +91,7 @@
 - name: install bash script to update cert and key for certificate users
   template:
     src: usr_local_sbin_copy_certificates_to_users.j2
-    dest: /usr/local/sbin/copy_certificates_to_users
+    dest: /usr/local/sbin/copy_certificates_to_users.sh
     owner: root
     group: root
     mode: 0700
@@ -100,7 +110,7 @@
 
 - name: copy certificates to users
   command:
-    cmd: /usr/local/sbin/copy_certificates_to_users
+    cmd: /usr/local/sbin/copy_certificates_to_users.sh
   when:
   - certificate_users is defined
 

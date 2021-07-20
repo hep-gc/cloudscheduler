@@ -1,4 +1,5 @@
 *.pyc
+*.swp
 attribute_mapper.yaml
 csv2_web.yaml
 .idea
@@ -10,6 +11,10 @@ lib/schema_na.py
 python3/
 repository/condor_poller.tar.gz
 repository/index.html
+unit_tests/web_tests/misc_files/*
+!unit_tests/web_tests/misc_files/*.md
+!unit_tests/web_tests/misc_files/job_sample.condor
+!unit_tests/web_tests/misc_files/job_sample.sh
 web_frontend/cloudscheduler/csv2/static/ace-builds/
 web_frontend/cloudscheduler/csv2/static/plotly.js/
 web_frontend/cloudscheduler/cloudscheduler_web/settings.py

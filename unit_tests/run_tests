@@ -8,7 +8,7 @@ from re import sub
 from sys import argv
 from unit_test_common import initialize_csv2_request
 
-TEST_OBJECTS = ['alias', 'cli', 'cloud', 'db', 'group', 'job', 'server', 'user', 'vm']
+TEST_OBJECTS = ['alias', 'cli', 'cloud', 'db', 'group', 'job', 'server', 'user', 'vm', 'web']
 
 def get_test_list(ut_path):
     test_names = []
