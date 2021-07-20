@@ -201,9 +201,9 @@ def timeseries_data_transfer():
                         'ram_native_foreign',
                         'slot_count',
                         'slot_core_count',
+                        'slot_idle_core_count',
                         'volume_gigs_max',
-                        'volume_gigs_used',
-                        'slot_idle_core_count'
+                        'volume_gigs_used'
                     ]
                 })
                 cloud_total_list = cloud_status_list_totals[0]
