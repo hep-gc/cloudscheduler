@@ -240,7 +240,7 @@ def timeseries_data_transfer():
             rc, msg, job_details_list = config.db_query("view_condor_jobs_group_defaults_applied")
             if job_details_list:
                 job_details_list_totals = qt(job_details_list, keys={
-                    'primary': ['group_name', 'cloud_name', 'request_cpus'],
+                    'primary': ['group_name', 'request_cpus'],
                     'sum': [
                         'js_idle',
                         'js_running',
