@@ -1,0 +1,82 @@
+- name: fetch cloudscheduler remote templates
+  fetch:
+    src: "{{ item }}"
+    dest: /tmp/cloudscheduler/
+  with_items:
+  - '/opt/cloudscheduler/etc/cloudscheduler/condor_poller.yaml.j2.pfile'
+  - '/opt/cloudscheduler/repository/index.html.j2.pfile'
+
+- name: create condor_poller directory structure
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: root
+    group: root
+    mode: 0755
+  with_items:
+  - /opt/cloudscheduler/repository
+  - /tmp/gentgz/cloudscheduler/data_collectors/condor
+  - /tmp/gentgz/cloudscheduler/etc/cloudscheduler
+  - /tmp/gentgz/cloudscheduler/etc/init.d
+  - /tmp/gentgz/cloudscheduler/etc/systemd/system
+  - /tmp/gentgz/cloudscheduler/lib
+  - /tmp/gentgz/cloudscheduler/utilities
+
+- stat:
+    path: /tmp/gentgz/cloudscheduler/data_collectors/condor/cloudscheduler
+  register: sym
+
+- name: create cloudscheduler library link
+  command:
+    cmd: "ln -s ../../../cloudscheduler/ cloudscheduler"
+    chdir: /tmp/gentgz/cloudscheduler/data_collectors/condor
+  when: sym.stat.islnk is not defined
+
+- name: copy condor_poller files
+  copy:
+    remote_src: yes
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    owner: root
+    group: root
+    mode: "{{ item.mode }}"
+  with_items:
+  - {src: /opt/cloudscheduler/data_collectors/condor/condor_poller_na.py,           dest: /tmp/gentgz/cloudscheduler/data_collectors/condor/condor_poller_na.py,           mode: '0644'}
+  - {src: /opt/cloudscheduler/etc/init.d/csv2-condor-poller.pfile,                  dest: /tmp/gentgz/cloudscheduler/etc/init.d/csv2-condor-poller.pfile,                  mode: '0644'}
+  - {src: /opt/cloudscheduler/etc/systemd/system/csv2-condor-poller.service.pfile,  dest: /tmp/gentgz/cloudscheduler/etc/systemd/system/csv2-condor-poller.service.pfile,  mode: '0644'}
+  - {src: /opt/cloudscheduler/lib/attribute_mapper_na.py,                           dest: /tmp/gentgz/cloudscheduler/lib/attribute_mapper_na.py,                           mode: '0644'}
+  - {src: /opt/cloudscheduler/lib/db_config_na.py,                                  dest: /tmp/gentgz/cloudscheduler/lib/db_config_na.py,                                  mode: '0644'}
+  - {src: /opt/cloudscheduler/lib/fw_config_na.py,                                  dest: /tmp/gentgz/cloudscheduler/lib/fw_config_na.py,                                  mode: '0644'}
+  - {src: /opt/cloudscheduler/lib/poller_functions_na.py,                           dest: /tmp/gentgz/cloudscheduler/lib/poller_functions_na.py,                           mode: '0644'}
+  - {src: /opt/cloudscheduler/lib/ProcessMonitor_na.py,                             dest: /tmp/gentgz/cloudscheduler/lib/ProcessMonitor_na.py,                             mode: '0644'}
+  - {src: /opt/cloudscheduler/lib/log_tools.py,                                     dest: /tmp/gentgz/cloudscheduler/lib/log_tools.py,                                     mode: '0644'}
+  - {src: /opt/cloudscheduler/lib/schema_na.py,                                     dest: /tmp/gentgz/cloudscheduler/lib/schema_na.py,                                     mode: '0644'}
+  - {src: /opt/cloudscheduler/utilities/service_disable_condor_poller,              dest: /tmp/gentgz/cloudscheduler/utilities/service_disable_condor_poller,              mode: '0744'}
+  - {src: /opt/cloudscheduler/utilities/service_enable_condor_poller,               dest: /tmp/gentgz/cloudscheduler/utilities/service_enable_condor_poller,               mode: '0744'}
+
+- name: generate condor_poller configuration file
+  template:
+    src: "/tmp/cloudscheduler/{{ ansible_facts.fqdn }}/opt/cloudscheduler/etc/cloudscheduler/condor_poller.yaml.j2.pfile"
+    dest: /tmp/gentgz/cloudscheduler/etc/cloudscheduler/condor_poller.yaml
+    owner: condor
+    group: condor
+    mode: 0400
+
+- name: generate repository index.html
+  template:
+    src: "/tmp/cloudscheduler/{{ ansible_facts.fqdn }}/opt/cloudscheduler/repository/index.html.j2.pfile"
+    dest: /opt/cloudscheduler/repository/index.html
+    owner: root
+    group: root
+    mode: 0644
+
+- name: build the condor_poller tarball
+  command:
+    cmd: "tar -czvf /opt/cloudscheduler/repository/condor_poller.tar.gz cloudscheduler"
+    chdir: /tmp/gentgz
+
+- name: remove the temporary condor_poller gentgz directory
+  file:
+    path: /tmp/gentgz
+    state: absent
+

@@ -5,8 +5,8 @@
 #
 #   {{ i_internal_connection.0.ipv4 }}
 #   {{ i_internal_connection.0.ipv4fqdn }}
-#   {{ mariadb_root }}
-#   {{ mariadb_root_obsolete }}
+#   {{ database_user_passwords['root'] }}
+#   {{ database_user_passwords['change_from_old_root'] }}
 #
 #  and the following optional variables:
 #   {{ public_mariadb }}        - Anything other than "true" is treated as "false". 
@@ -80,7 +80,7 @@
   - container == True
 
 - name: secure mariadb database
-  script: expect-mariadb_secure_database "{{ mariadb_root }}" "{{ mariadb_root_obsolete }}" creates=/root/ansible_script_logs/expect-mariadb_secure_database.log
+  script: expect-mariadb_secure_database "{{ database_user_passwords['root'] }}" "{{ database_user_passwords['change_from_old_root'] }}" creates=/root/ansible_script_logs/expect-mariadb_secure_database.log
 
 - name: allow mariadb admin on internal subnet
-  script: bash-mariadb_allow_admin_on_internal_subnet "{{ i_internal_connection.0.ipv4fqdn }}" "{{ mariadb_root }}" creates=/root/ansible_script_logs/bash-mariadb_allow_admin_on_internal_subnet.log
+  script: bash-mariadb_allow_admin_on_internal_subnet "{{ i_internal_connection.0.ipv4fqdn }}" "{{ database_user_passwords['root'] }}" creates=/root/ansible_script_logs/bash-mariadb_allow_admin_on_internal_subnet.log
