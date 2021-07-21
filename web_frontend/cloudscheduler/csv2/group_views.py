@@ -327,7 +327,8 @@ def defaults(request, active_user=None, response_code=0, message=None):
     keypairs_list = []
     network_list = []
     security_groups_list = []
-
+    pre_rc = rc
+    
     # If User/Groups successfully set, retrieve group information.
     if user_groups_set:
         where_clause = "group_name='%s'" % active_user.active_group
@@ -375,6 +376,7 @@ def defaults(request, active_user=None, response_code=0, message=None):
             )
 
     # Render the page.
+    final_rc = rc if pre_rc == 0 else pre_rc
     context = {
             'active_user': active_user.username,
             'active_group': active_user.active_group,
@@ -386,7 +388,7 @@ def defaults(request, active_user=None, response_code=0, message=None):
             'keypairs_list': keypairs_list,
             'network_list': network_list,
             'security_groups_list': security_groups_list,
-            'response_code': rc,
+            'response_code': final_rc,
             'message': message,
             'is_superuser': active_user.is_superuser,
             'version': config.get_version()
