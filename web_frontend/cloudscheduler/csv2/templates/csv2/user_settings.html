@@ -21,7 +21,7 @@
 <body class="settings-nav" onpageshow="show_user('{{active_user}}')">
 {% spaceless %}
 
-<div class="main-div">
+<div class="main-div {% if is_superuser %}super-main-div{% endif %}">
     <div class="menu">
     {% for user in user_list %}
         <div id="{{user.username}}"> <a href="#{{user.username}}" class="menu-link">{{user.username}}</a>

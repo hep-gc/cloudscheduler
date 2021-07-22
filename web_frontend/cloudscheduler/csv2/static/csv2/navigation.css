@@ -128,5 +128,8 @@ select {
 
 .spacer{
   padding-left:20px;
+}
 
+#group {
+  width: 98;
 }

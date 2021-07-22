@@ -17,7 +17,7 @@
 
 
 <body class="status-nav" onload="set_state();">
-
+<div class="main-div {% if is_superuser %}super-main-div{% endif %}">
 
 {% if err_message is not None %}
     <p style="color:red;">{{err_message}}</p>
@@ -1053,6 +1053,7 @@
         <span>{{version}}</span>
     </div>
 </div>
+</div>
 
 <div id="vms-overlay" class="overlay">
     <div class="popup">
@@ -1060,7 +1061,6 @@
         <iframe id="vms-iframe" class="content" src=""></iframe>
     </div>
 </div>
-
 
 <!-- status js -->
 <script rel="preload" type="text/javascript" src="{% static "csv2/status.js" %}?{{version}}"></script>

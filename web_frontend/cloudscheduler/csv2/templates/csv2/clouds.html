@@ -163,7 +163,7 @@
 </head>
 <body class="clouds-nav" onpageshow="get_message(); set_location()">
 {% spaceless %}
-<div class="main-div">
+<div class="main-div {% if is_superuser %}super-main-div{% endif %}">
     <div class="menu">
     {% for cloud in cloud_list %}
         <div id="{{cloud.cloud_name}}">
@@ -183,7 +183,7 @@
 
                         <form name="{{cloud.cloud_name}}" action="/cloud/update/#{{cloud.cloud_name}}" method="post" autocomplete="nope">
                             {% csrf_token %}
-                            <table><tr><td>
+                            <table><tr><td class="tab-tables">
 
                                 <table>
                                     <input type="hidden" name="group" value="{{ cloud.group_name }}">
@@ -290,8 +290,9 @@
                                         {% else %}
                                             <td><div id="{{cloud.cloud_name}}-app_creds_expiry" style="{% if cloud.auth_type == 'userpass' %}visibility:collapse{% else %}visibility:inherit{% endif %};color:red">expired</div></td>
                                         {% endif %}
+                                        </tr>
                                     {% endif %}
-                                    </tr>
+                                    
 
                                     <tr class="highlight3"><td><label for="cacertificate">CA certificate</label></td>
                                     {% if cloud.cacertificate == None or cloud.cacertificate == "None" %}
@@ -307,8 +308,8 @@
                                     <td><input type="text" name="project_domain_name" value="{{cloud.project_domain_name}}" /></td></tr>
 
                                 </table>
-
-                            <td>    
+                            </td>
+                            <td class="tab-tables">    
 
                                 <table>
                                     {% if cloud.cloud_type == "openstack" %}
