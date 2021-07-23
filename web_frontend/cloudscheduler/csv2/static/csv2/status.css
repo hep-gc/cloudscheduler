@@ -136,6 +136,7 @@
 
 .status-table th {
   font-weight: bold;
+  text-align: center;
 }
 
 .status-table table {
