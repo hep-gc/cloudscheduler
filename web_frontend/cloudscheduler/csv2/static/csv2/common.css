@@ -131,21 +131,6 @@ input:read-only { color:grey; }
 /*       Dynamic position for page content - super user         */
 /*****************************************************************/
 
-@media only screen and (max-width: 647px) {
-  .super-main-div {
-    top: 182px !important;
-  }
-
-  .super-main-div .tab-content, .super-main-div .tab2-content, .super-main-div .menu-position {
-    top: 191px !important;
-  }
-
-  .super-section-div {
-    position: relative;
-    top: 120px;
-  }
-}
-
 @media only screen and (min-width: 647px) and (max-width: 1144px) {
   .super-main-div {
     top: 122px !important;

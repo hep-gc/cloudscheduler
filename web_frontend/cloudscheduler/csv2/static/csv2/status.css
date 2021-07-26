@@ -439,6 +439,10 @@ body.status-nav{
   overflow: auto;
 }
 
+body.status-nav .main-div {
+  overflow: unset;
+}
+
 .system-div {
   position: fixed;
   bottom: 0;

@@ -649,7 +649,19 @@ def delete(request):
         if rc != 0:
             config.db_close()
             return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud delete %s' % (lno(MODID), msg))
+        
+        # Check if still have vms on the cloud
+        VM = "csv2_vms"
+        where_clause = "group_name='%s' and cloud_name='%s'" % (fields['group_name'], fields['cloud_name'])
+        rc, msg, vm_rows = config.db_query(VM, where=where_clause)
 
+        if rc != 0:
+            config.db_close()
+            return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud delete "%s::%s" failed to check vms on it - %s.' % (lno(MODID), fields['group_name'], fields['cloud_name'], msg))
+        if len(vm_rows) > 0:
+            config.db_close()
+            return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud delete "%s::%s" failed - there are vms remaining on the cloud.' % (lno(MODID), fields['group_name'], fields['cloud_name']))
+        
         # For EC2 clouds, delete filters.
         rc, msg = ec2_filters(config, fields['group_name'], fields['cloud_name'])
         if rc != 0:
