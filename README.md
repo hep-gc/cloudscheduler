@@ -11,7 +11,8 @@ For installation, please follow the instructions ![here](ansible-playbook/README
 - Previous stable-2.7 - AMQP authentication and multi-host signalling.
 - Previous stable-2.8 - SQLalchemy Removal
 - Current stable-2.9 - Openstack application Credential Support and Openstack volume management.
-- stable-2.9.1 Focus: Bugfixes
+- stable-2.9.1 Focus: Bugfixes & slot accounting
+   - New process to double check vm slot accounting
    - #243 Audit/fix VM overlay
    - #301 Disabled clouds should have their numbers greyed out as to provide clarity for why they are missing from totals
    - #? Make boot volume text field bigger on clouds page so it is more readable  ----- increase the width to 200
