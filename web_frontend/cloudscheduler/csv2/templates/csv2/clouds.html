@@ -316,9 +316,9 @@
                                         <tr class="highlight3">
                                             <td><label for="vm_boot_volume">Boot Volume</label></td>
                                             {% if cloud.vm_boot_volume == None %}
-                                                <td><input type="text" name="vm_boot_volume" id="{{cloud.cloud_name}}-vm_boot_volume" title='null or {"GBs": n1, "GBs_per_core": n2}' value="null" /></td>
+                                                <td><textarea name="vm_boot_volume" id="{{cloud.cloud_name}}-vm_boot_volume" title='null or {"GBs": n1, "GBs_per_core": n2}' rows="3">null</textarea></td>
                                             {% else %}
-                                                <td><input type="text" name="vm_boot_volume" id="{{cloud.cloud_name}}-vm_boot_volume" title='null or {"GBs": n1, "GBs_per_core": n2}' value="{{cloud.vm_boot_volume}}" /></td>
+                                                <td><textarea name="vm_boot_volume" id="{{cloud.cloud_name}}-vm_boot_volume" title='null or {"GBs": n1, "GBs_per_core": n2}' rows="3">{{cloud.vm_boot_volume}}</textarea></td>
                                             {% endif %}
                                         </tr>
                                     {% endif %}
