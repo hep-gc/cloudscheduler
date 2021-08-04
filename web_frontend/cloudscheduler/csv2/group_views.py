@@ -676,8 +676,7 @@ def metadata_add(request):
         rc, msg, fields, tables, columns = validate_fields(config, request, [METADATA_KEYS, METADATA_ADD_KEYS], ['csv2_group_metadata'], active_user)
         if rc != 0:
             config.db_close()
-            return render(request, 'csv2/blank_msg.html', {'response_code': 1, 'message': '%s group metadata-add %s' % (lno(MODID), msg)})
-
+            return metadata_new(request, active_user, response_code=1, message='%s group metadata-add %s' % (lno(MODID), msg))
 
         # Add the group metadata file.
         table = 'csv2_group_metadata'
@@ -688,7 +687,7 @@ def metadata_add(request):
 
         else:
             config.db_close()
-            return render(request, 'csv2/blank_msg.html', {'response_code': 1, 'message': '%s group metadata-add "%s::%s" failed - %s.' % (lno(MODID), active_user.active_group, fields['metadata_name'], msg)})
+            return metadata_new(request, active_user, response_code=1, message='%s group metadata-add "%s::%s" failed - %s.' % (lno(MODID), active_user.active_group, fields['metadata_name'], msg))
 
 
     ### Bad request.
@@ -721,6 +720,9 @@ def metadata_delete(request):
         rc, msg, fields, tables, columns = validate_fields(config, request, [METADATA_KEYS], ['csv2_group_metadata', 'csv2_group_metadata_exclusions,n'], active_user)
         if rc != 0:
             config.db_close()
+            metadata_name = request.POST.get("metadata_name")
+            if metadata_name:
+                return metadata_fetch(request, response_code=1, message='%s group metadata-delete %s' % (lno(MODID), msg), metadata_name=metadata_name)
             return render(request, 'csv2/blank_msg.html', {'response_code': 1, 'message': '%s group metadata-delete %s' % (lno(MODID), msg)})
 
         # Delete the csv2_group_metadata_exclusions.
@@ -729,8 +731,7 @@ def metadata_delete(request):
         rc, msg = config.db_delete(table, where=where_clause)
         if rc != 0:
             config.db_close()
-            return render(request, 'csv2/blank_msg.html', {'response_code': 1, 'message': '%s delete group metadata exclusion for group=%s, metadata=%s failed - %s.' % (lno(MODID), fields['group_name'], fields['metadata_name'], msg)})
-
+            return metadata_fetch(request, response_code=1, message='%s delete group metadata exclusion for group=%s, metadata=%s failed - %s.' % (lno(MODID), fields['group_name'], fields['metadata_name'], msg), metadata_name=fields['metadata_name'])
 
 
         # Delete the group metadata file.
@@ -743,7 +744,7 @@ def metadata_delete(request):
 
         else:
             config.db_close()
-            return render(request, 'csv2/blank_msg.html', {'response_code': 1, 'message': '%s group metadata-delete "%s::%s" failed - %s.' % (lno(MODID), active_user.active_group, fields['metadata_name'], msg)})
+            return metadata_fetch(request, response_code=1, message='%s group metadata-delete "%s::%s" failed - %s.' % (lno(MODID), active_user.active_group, fields['metadata_name'], msg), metadata_name=fields['metadata_name'])
 
 
     ### Bad request.
@@ -851,7 +852,7 @@ def metadata_list(request):
 #-------------------------------------------------------------------------------
 @silkp(name="Group Metadata New")
 @requires_csrf_token
-def metadata_new(request):
+def metadata_new(request, active_user=None, response_code=0, message='new-group-metadata'):
 
     context = {}
 
@@ -859,14 +860,14 @@ def metadata_new(request):
     config.db_open()
 
     # Retrieve the active user, associated group list and optionally set the active group.
-    rc, msg, active_user = set_user_groups(config, request, super_user=False)
-    if rc != 0:
-        config.db_close()
-        return render(request, 'csv2/blank_msg.html', {'response_code': 1, 'message': '%s %s' % (lno(MODID), msg)})
+    if not active_user:
+        rc, msg, active_user = set_user_groups(config, request, super_user=False)
+        if rc != 0:
+            config.db_close()
+            return render(request, 'csv2/blank_msg.html', {'response_code': 1, 'message': '%s %s' % (lno(MODID), msg)})
 
     # Get mime type list:
     rc, msg, mime_types_list = config.db_query("csv2_mime_types")
-
 
     context = {
         'group_name': active_user.active_group,
@@ -876,8 +877,9 @@ def metadata_new(request):
         'metadata_mime_type': "",
         'metadata_name': "",
         'mime_types_list': mime_types_list,
-        'response_code': 0,
-        'message': "new-group-metadata",
+        'response_code': response_code,
+        'action_type': "new-group-metadata",
+        'message': message,
         'is_superuser': active_user.is_superuser,
         'version': config.get_version()
         }
@@ -952,6 +954,9 @@ def metadata_update(request):
         rc, msg, fields, tables, columns = validate_fields(config, request, [METADATA_KEYS], ['csv2_group_metadata'], active_user)
         if rc != 0:
             config.db_close()
+            metadata_name = request.POST.get("metadata_name")
+            if metadata_name:
+                return metadata_fetch(request, response_code=1, message='%s group metadata-update %s' % (lno(MODID), msg), metadata_name=metadata_name)
             return render(request, 'csv2/blank_msg.html', {'response_code': 1, 'message': '%s group metadata-update %s' % (lno(MODID), msg)})
 
         # Update the group metadata file.
@@ -959,7 +964,7 @@ def metadata_update(request):
         updates = table_fields(fields, table, columns, 'update')
         if len(updates) < 3: #updates always have to have the keys so (name & group) so unless there is 3 fields there is no update to do.
             config.db_close()
-            return render(request, 'csv2/blank_msg.html', {'response_code': 1, 'message': '%s group metadata-update "%s::%s" specified no fields to update and was ignored.' % (lno(MODID), active_user.active_group, fields['metadata_name'])})
+            return metadata_fetch(request, response_code=1, message='%s group metadata-update "%s::%s" specified no fields to update and was ignored.' % (lno(MODID), active_user.active_group, fields['metadata_name']), metadata_name=fields['metadata_name'])
 
         where_clause = 'group_name="%s" and metadata_name="%s"' % (active_user.active_group, fields['metadata_name'])
         rc, msg = config.db_update(table, updates, where=where_clause)
@@ -972,7 +977,7 @@ def metadata_update(request):
 
         else:
             config.db_close()
-            return render(request, 'csv2/blank_msg.html', {'response_code': 1, 'message': '%s group metadata-update "%s::%s" failed - %s.' % (lno(MODID), active_user.active_group, fields['metadata_name'], msg)})
+            return metadata_fetch(request, response_code=1, message='%s group metadata-update "%s::%s" failed - %s.' % (lno(MODID), active_user.active_group, fields['metadata_name'], msg), metadata_name=fields['metadata_name'])
 
     ### Bad request.
     else:

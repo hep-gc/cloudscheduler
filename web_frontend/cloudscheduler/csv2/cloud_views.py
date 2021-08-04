@@ -850,13 +850,16 @@ def metadata_add(request):
     rc, msg, active_user = set_user_groups(config, request, super_user=False)
     if rc != 0:
         config.db_close()
-        return cloud_list(request, active_user=active_user, response_code=1, message='%s %s' % (lno(MODID), msg))
+        return render(request, 'csv2/blank_msg.html', {'response_code': 1, 'message': '%s %s' % (lno(MODID), msg)})
 
     if request.method == 'POST':
         # Validate input fields.
         rc, msg, fields, tables, columns = validate_fields(config, request, [METADATA_KEYS], ['csv2_cloud_metadata', 'csv2_clouds'], active_user)
         if rc != 0:
             config.db_close()
+            cloud_name = request.POST.get("cloud_name")
+            if cloud_name:
+                return metadata_new(request, active_user, response_code=1, message='%s cloud metadata-add %s' % (lno(MODID), msg), cloud_name=cloud_name)
             return render(request, 'csv2/blank_msg.html', {'response_code': 1, 'message': '%s cloud metadata-add %s' % (lno(MODID), msg)})
 
         # Check cloud already exists.
@@ -871,7 +874,7 @@ def metadata_add(request):
 
         if not found:
             config.db_close()
-            return render(request, 'csv2/blank_msg.html', {'response_code': 1, 'message': '%s cloud metadata-add failed, cloud name "%s" does not exist.' % (lno(MODID), fields['cloud_name'])})
+            return metadata_new(request, active_user, response_code=1, message='%s cloud metadata-add failed, cloud name "%s" does not exist.' % (lno(MODID), fields['cloud_name']), cloud_name=fields['cloud_name'])
 
         # Add the cloud metadata file.
         table ='csv2_cloud_metadata'
@@ -892,7 +895,7 @@ def metadata_add(request):
 
         else:
             config.db_close()
-            return render(request, 'csv2/blank_msg.html', {'response_code': 1, 'message': '%s cloud metadata-add "%s::%s::%s" failed - %s.' % (lno(MODID), fields['group_name'], fields['cloud_name'], fields['metadata_name'], msg)})
+            return metadata_new(request, active_user, response_code=1, message='%s cloud metadata-add "%s::%s::%s" failed - %s.' % (lno(MODID), fields['group_name'], fields['cloud_name'], fields['metadata_name'], msg), cloud_name=fields['cloud_name'])
 
     ### Bad request.
     else:
@@ -967,6 +970,10 @@ def metadata_delete(request):
         rc, msg, fields, tables, columns = validate_fields(config, request, [METADATA_KEYS], ['csv2_cloud_metadata'], active_user)
         if rc != 0:
             config.db_close()
+            cloud_name = request.POST.get("cloud_name")
+            metadata_name = request.POST.get("metadata_name")
+            if cloud_name and metadata_name:
+                return metadata_fetch(request, response_code=1, message='%s cloud metadata-delete %s' % (lno(MODID), msg), metadata_name=metadata_name,cloud_name=cloud_name)
             return render(request, 'csv2/blank_msg.html', {'response_code': 1, 'message': '%s cloud metadata-delete %s' % (lno(MODID), msg)})
 
         # Delete the cloud metadata file.
@@ -1010,11 +1017,9 @@ def metadata_delete(request):
             config.db_close()
             return render(request, 'csv2/reload_parent.html', context)
 
-
-
         else:
             config.db_close()
-            return render(request, 'csv2/blank_msg.html', {'response_code': 1, 'message': '%s cloud metadata-delete "%s::%s::%s" failed - %s.' % (lno(MODID), fields['group_name'], fields['cloud_name'], fields['metadata_name'], msg)})
+            return metadata_fetch(request, response_code=1, message='%s cloud metadata-delete "%s::%s::%s" failed - %s.' % (lno(MODID), fields['group_name'], fields['cloud_name'], fields['metadata_name'], msg), metadata_name=fields['metadata_name'], cloud_name=fields['cloud_name'])
 
     ### Bad request.
     else:
@@ -1132,24 +1137,26 @@ def metadata_list(request):
 #-------------------------------------------------------------------------------
 @silkp(name="Cloud Metadata Fetch")
 @requires_csrf_token
-def metadata_new(request):
+def metadata_new(request, active_user=None, response_code=0, message='new-cloud-metadata', cloud_name=None):
 
     # open the database.
     config.db_open()
 
     # Retrieve the active user, associated group list and optionally set the active group.
-    rc, msg, active_user = set_user_groups(config, request, super_user=False)
-    if rc != 0:
-        config.db_close()
-        return render(request, 'csv2/blank_msg.html', {'response_code': 1, 'message': '%s %s' % (lno(MODID), msg)})
+    if active_user is None:
+        rc, msg, active_user = set_user_groups(config, request, super_user=False)
+        if rc != 0:
+            config.db_close()
+            return render(request, 'csv2/blank_msg.html', {'response_code': 1, 'message': '%s %s' % (lno(MODID), msg)})
 
     # Get mime type list:
     rc, msg, mime_types_list = config.db_query("csv2_mime_types")
     
     # Retrieve metadata file.
-    if 'cloud_name' in active_user.kwargs:
+    if cloud_name is None and 'cloud_name' in active_user.kwargs:
         cloud_name = active_user.kwargs['cloud_name']
     
+    if cloud_name:
         context = {
             'group_name': active_user.active_group,
             'cloud_name': cloud_name,
@@ -1159,8 +1166,9 @@ def metadata_new(request):
             'metadata_mime_type': "",
             'metadata_name': "",
             'mime_types_list': mime_types_list,
-            'response_code': 0,
-            'message': "new-cloud-metadata",
+            'response_code': response_code,
+            'action_type': "new-cloud-metadata",
+            'message': message,
             'is_superuser': active_user.is_superuser,
             'version': config.get_version()
             }
@@ -1239,13 +1247,17 @@ def metadata_update(request):
         rc, msg, fields, tables, columns = validate_fields(config, request, [METADATA_KEYS], ['csv2_cloud_metadata'], active_user)
         if rc != 0:
             config.db_close()
+            cloud_name = request.POST.get("cloud_name")
+            metadata_name = request.POST.get("metadata_name")
+            if cloud_name and metadata_name:
+                return metadata_fetch(request, response_code=1, message='%s cloud metadata-update %s' % (lno(MODID), msg), metadata_name=metadata_name, cloud_name=cloud_name)
             return render(request, 'csv2/blank_msg.html', {'response_code': 1, 'message': '%s cloud metadata-update %s' % (lno(MODID), msg)})
         
         table = 'csv2_cloud_metadata'
         fields_to_update = table_fields(fields, table, columns, 'update')
         if not fields_to_update:
             config.db_close()
-            return render(request, 'csv2/blank_msg.html', {'response_code': 1, 'message': '%s cloud-metadata-update must specify at least one field to update.' % lno(MODID)})
+            return metadata_fetch(request, response_code=1, message='%s cloud-metadata-update must specify at least one field to update.' % lno(MODID), metadata_name=fields['metadata_name'], cloud_name=fields['cloud_name'])
 
         # Update the cloud metadata file.
         where_clause = "group_name='%s' and cloud_name='%s' and metadata_name='%s'" % (fields['group_name'], fields['cloud_name'], fields['metadata_name'])
@@ -1256,7 +1268,7 @@ def metadata_update(request):
                 rc, msg, metadata_list = config.db_query(table, where=where_clause)
                 if rc==0 and len(metadata_list) != 1:
                     config.db_close()
-                    return render(request, 'csv2/blank_msg.html', {'response_code': 1, 'message': '%s cloud metadata-update could not retrieve metadata' % lno(MODID)})
+                    return metadata_fetch(request, response_code=1, message='%s cloud metadata-update could not retrieve metadata' % lno(MODID), metadata_name=fields['metadata_name'], cloud_name=fields['cloud_name'])
                 metadata = metadata_list[0]
             else:
                 metadata = fields['metadata']
@@ -1268,7 +1280,7 @@ def metadata_update(request):
             return metadata_fetch(request, response_code=0, message=message, metadata_name=fields['metadata_name'], cloud_name=fields['cloud_name'])
         else:
             config.db_close()
-            return render(request, 'csv2/blank_msg.html', {'response_code': 1, 'message': '%s cloud metadata-update "%s::%s::%s" failed - %s.' % (lno(MODID), fields['group_name'], fields['cloud_name'], fields['metadata_name'], msg)})
+            return metadata_fetch(request, response_code=1, message='%s cloud metadata-update "%s::%s::%s" failed - %s.' % (lno(MODID), fields['group_name'], fields['cloud_name'], fields['metadata_name'], msg), metadata_name=fields['metadata_name'], cloud_name=fields['cloud_name'])
 
     ### Bad request.
     else:
@@ -1787,6 +1799,7 @@ def update(request):
             if rc != 0:
                 config.db_close()
                 return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud update, "%s" failed - %s.' % (lno(MODID), fields['cloud_name'], msg))
+
         if 'cloud_type' in fields:
             if 'authurl' in fields and fields['cloud_type'] == 'openstack':
                 #check if url has a trailing slash
