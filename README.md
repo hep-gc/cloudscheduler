@@ -15,9 +15,9 @@ For installation, please follow the instructions ![here](ansible-playbook/README
    - New process to double check vm slot accounting
    - #243 Audit/fix VM overlay
    - #301 Disabled clouds should have their numbers greyed out as to provide clarity for why they are missing from totals
-   - #? Make boot volume text field bigger on clouds page so it is more readable  ----- increase the width to 200
-   - #318 Fix web part or server side code so that you can actually remove the last security group on clouds page
-   - #319 Fix Iframe recursion in metadata editor, view needs to return the editor on failed post ----- start
+   - #? Make boot volume text field bigger on clouds page so it is more readable  ----- done
+   - #318 Fix web part or server side code so that you can actually remove the last security group on clouds page ----- in progress
+   - #319 Fix Iframe recursion in metadata editor, view needs to return the editor on failed post ----- done
    - #325 Fix/update nav bar on image//keys page; update top margin to be dynamically set by the thickness of nav bar (ie narrow screen) ----- done
    - #328 Slot counts displayed incorrectly
    - #epic ticket #?? Add signal to kill retire command to kick pollers;
