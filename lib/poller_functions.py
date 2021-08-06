@@ -150,3 +150,10 @@ def inventory_test_and_set_item_hash(ikey_names, item_dict, inventory, poll_time
     inventory[ikey]['hash'] = new_hash
     return False
 
+def log_heartbeat_message(last_statement_time, poller_name):
+    cur_time = time.time()
+    if cur_time - last_statement_time > 300:
+        logging.info ("-- %s HEARTBEAT --" % poller_name)
+        return cur_time
+    else:
+        return last_statement_time
