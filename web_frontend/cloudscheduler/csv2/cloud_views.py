@@ -1738,9 +1738,8 @@ def update(request):
     if rc != 0:
         config.db_close()
         return cloud_list(request, active_user=active_user, response_code=1, message='%s %s' % (lno(MODID), msg))
-
+    
     if request.method == 'POST':
-
         # if the password is blank, remove the password field.
         if request.META['HTTP_ACCEPT'] != 'application/json' and request.POST.get('password') == '':
             # create a copy of the dict to make it mutable.
@@ -1751,12 +1750,14 @@ def update(request):
         if request.META['HTTP_ACCEPT'] != 'application/json' and request.POST.get('app_credentials_secret') == '':
             request.POST = request.POST.copy()
             del request.POST['app_credentials_secret']
-        
+       
         # check if there were multiple security groups posted
         if len(request.POST.getlist("vm_security_groups")) > 1:
             # if there is a list more than 1 security group was selected
             # so we must cast the list as a string to match the format that comes from CLI
             request.POST["vm_security_groups"] = ",".join([str(x) for x in request.POST.getlist("vm_security_groups")])
+        elif request.META['HTTP_ACCEPT'] != 'application/json' and not request.POST.get("vm_security_groups"):
+            request.POST["vm_security_groups"] = ""
 
         # Validate input fields.
         rc, msg, fields, tables, columns = validate_fields(config, request, [CLOUD_KEYS], ['csv2_clouds', 'csv2_cloud_flavor_exclusions', 'csv2_group_metadata', 'csv2_group_metadata_exclusions'], active_user)
