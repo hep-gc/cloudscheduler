@@ -209,6 +209,11 @@
   width: 40px;
 }
 
+meter.disabled-meter::-webkit-meter-optimum-value {
+  background: grey; /* Green */
+}
+
+
 /*****************************************************************/
 /*                    expanding row styling                      */
 /*****************************************************************/
@@ -331,7 +336,8 @@
 
 .disabled-style {
   text-decoration: none;
-  color: maroon;
+  /* color: maroon; */
+  color: grey;
   font-weight: bold;
 }
 
