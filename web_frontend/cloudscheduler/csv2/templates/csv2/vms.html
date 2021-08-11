@@ -85,7 +85,8 @@
             </td>
           </tr>
         </table>
-
+        
+        </div>
         <form method="post">
           {% csrf_token %}
           <input type="hidden" name="group" value="{{ vm_list.0.group_name }}">
@@ -106,7 +107,6 @@
               <button class="button greyed-button button-shadow kill-button" disabled>Kill VMs</button>
 
           {% endif %}
-        </div>
 
       <div class="vm-div">
 
@@ -136,7 +136,7 @@
                 {% else %}
                   <tr>
                 {% endif %}
-                  <td><input type="checkbox" name="vm_hosts.{{ forloop.counter }}" value={{vm.hostname}}></td>
+                  <td><input type="checkbox" name="vm_hosts.{{ forloop.counter }}" value={{vm.hostname}} /></td>
                   <td>{{vm.hostname}}</td>
                   <td>{{vm.flavor_name}}</td>
                   <td>{{vm.cores}}</td>
@@ -275,9 +275,6 @@
           selectAll.checked = allChecked;
         }
       }
-
-
-
 
       var tableElement = document.querySelector('table');
       tableElement.addEventListener('change', checkToggle);
