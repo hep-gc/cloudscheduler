@@ -308,7 +308,6 @@ def process_group_cloud_terminates(pair, config):
                     logging.info("%s : %s: VM still has active slots, skipping terminate on %s" % (group_name, cloud_name, resource["vmid"]))
                     continue
 
-
         # we need the relevent vm row to check if its in manual mode and if not, terminate and update termination status
         try:
             where_clause = "group_name='%s' and cloud_name='%s' and vmid='%s'" % (resource["group_name"], resource["cloud_name"], resource["vmid"])
@@ -320,7 +319,6 @@ def process_group_cloud_terminates(pair, config):
         if vm_row["manual_control"] == 1:
             logging.info("%s : %s: VM %s under manual control, skipping terminate..." % (group_name, cloud_name, resource["vmid"]))
             continue
-
 
         # Get session with hosting cloud.
         where_clause = "group_name='%s' and cloud_name='%s'" % (vm_row["group_name"], vm_row["cloud_name"])
@@ -937,6 +935,73 @@ def vm_termination(args_list):
         logging.exception("Command consumer while loop exception, process terminating...")
         logging.error(exc)
 
+
+def vm_slot_auditor():
+    """
+    vm slot count auditor function.
+    """
+    multiprocessing.current_process().name = "vm_slot_auditor"
+
+    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', ['csmain', 'GSI'], pool_size=25)
+    if not config: 
+        print("Problem loading config file.") 
+    MACHINES = "condor_machines"
+    VMS = "csv2_vms"
+
+    # Dictionary will follow the format:
+    # vm_name {
+    #     dynamic: n
+    #     partionlable: n
+    # }
+    slot_count_dict = {}
+    
+    # get list of all condor machines and build dictorinary representing slot count
+    # then cross reference dict against the database and update any relevent rows.
+    config.db_open()
+    while(True):
+        try:
+            slot_count_dict = {}
+            config.refresh()
+            rc, msg, machine_list = config.db_query(MACHINES, order_by="machine")
+            if rc != 0:
+                logging.error("Error retriving machine list: %s" % msg)
+            else:
+                #process data
+                for machine in machine_list:
+                    if machine["machine"] not in slot_count_dict.keys():
+                        slot_count_dict[machine["machine"]] = {
+                            "partitionable": 0,
+                            "dynamic": 0
+                        }
+                    if machine["slot_type"] == "Partitionable":
+                        slot_count_dict[machine["machine"]]["partitionable"] = slot_count_dict[machine["machine"]]["partitionable"] + 1
+                    
+                    if machine["slot_type"] == "Dyanmic":
+                        slot_count_dict[machine["machine"]]["dynamic"] = slot_count_dict[machine["machine"]]["dynamic"] + 1
+
+                # when updating the VM table we may need to match the hostname a little differently like the trigger does:
+                # where hostname=NEW.machine or hostname=substring_index(NEW.machine,'.',1)
+                
+                # loop thru the dictionary querying the vm row for each and update only if slot counts are wrong
+                for slot_count in slot_count_dict:
+                    where_clause = "hostname='%s' or hostname='%s'" % (slot_count, slot_count.split('.')[0])
+                    rc, msg, row = config.db_query(VMS, where=where_clause)
+                    # check that we got exactly 1 row, or print error message saying we are missing a vm entry or there is a duplicate
+                    if len(row) != 1:
+                        # Either more rows than expected or no row
+                        logging.error("Unable to find or isolate vm row with hostname: %s" % slot_clount)
+                        continue
+                    else:
+                        vm_row = row[0]
+                    logging.debug("VM row counts: dynamic:%s partitionable:%s" % (vm_row["htcondor_dynamic_slots"], vm_row["htcondor_partitionable_slots"]))
+                    logging.debug("machine audit counts: dynamic:%s partitionable:%s" % (slot_count_dict[slot_count]["dynamic"], slot_count_dict[slot_count]["partitionable"]))
+                    if vm_row["htcondor_dynamic_slots"] != slot_count_dict[slot_count]["dynamic"] or vm_row["htcondor_partitionable_slots"] != slot_count_dict[slot_count]["partitionable"]:
+                        logging.info("Slot count mismatch detected for %s" % slot_count)
+            time.sleep(30)
+        except Exception as exc:
+            logging.error("Exception retrieving or processing machine list:")
+            logging.exception(exc)
+
 #~~~~~~~~~~~~~~~~~
 
 def remove_orphaned_volumes(config):
@@ -1036,6 +1101,7 @@ if __name__ == '__main__':
         'idle_vms': check_view_idle_vms,
     #    'vm_termination': vm_termination,
         'vm_termination': [vm_termination, 'select distinct group_name,cloud_name from csv2_clouds;'],
+        'slot_auditor': vm_slot_auditor,
     }
 
     procMon = ProcessMonitor(
