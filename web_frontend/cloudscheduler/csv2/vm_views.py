@@ -15,6 +15,7 @@ from cloudscheduler.lib.view_utils import \
     render, \
     set_user_groups, \
     table_fields, \
+    get_target_cloud, \
     validate_fields
 from collections import defaultdict
 import bcrypt
@@ -22,7 +23,7 @@ import time
 
 from cloudscheduler.lib.schema import *
 from cloudscheduler.lib.log_tools import get_frame_info
-
+from cloudscheduler.lib.signal_functions import event_signal_send
 from cloudscheduler.lib.web_profiler import silk_profile as silkp
 
 # lno: VV - error code identifier.
@@ -267,6 +268,18 @@ def update(request):
 #                   return vm_list(request, selector, response_code=1, message='%s vm update (%s) failed - %s' % (lno(MODID), fields['vm_option'], msg))
 
         if count > 0:
+            cloud_type = None
+            if 'cloud_type' in fields:
+                cloud_type = fields['cloud_type']
+            elif 'cloud_name' in fields:
+                rc, msg, target_cloud = get_target_cloud(config, active_user.active_group, fields['cloud_name'])
+                if rc == 0:
+                    cloud_type = target_cloud['cloud_type']
+            if cloud_type == 'amazon':
+                event_signal_send(config, "update_csv2_clouds_amazon")
+            elif cloud_type == 'openstack':
+                event_signal_send(config, "update_csv2_clouds_openstack")
+            
             config.db_close(commit=True)
         else:
             config.db_close()
