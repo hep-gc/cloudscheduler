@@ -1013,7 +1013,7 @@ def vm_slot_auditor():
                         config.db_execute(sql)
                         config.db_commit()
             config.db_close()
-            time.sleep(30)
+            time.sleep(300)
         except Exception as exc:
             logging.error("Exception retrieving or processing machine list:")
             logging.exception(exc)
