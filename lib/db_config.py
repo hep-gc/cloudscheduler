@@ -619,9 +619,10 @@ class Config:
 
     def reset_cloud_error(self, group_name, cloud_name):
         rc, msg, cloud_list = self.db_query('csv2_clouds', select=['group_name', 'cloud_name', 'error_count'], where='group_name="%s" and cloud_name="%s"' % (group_name, cloud_name))
-        cloud_list[0]['error_count'] = 0
-        self.db_merge("csv2_clouds", cloud_list[0])
-        self.db_commit()
+        if len(cloud_list) > 0:
+            cloud_list[0]['error_count'] = 0
+            self.db_merge("csv2_clouds", cloud_list[0])
+            self.db_commit()
         return 1
 
 #-------------------------------------------------------------------------------
