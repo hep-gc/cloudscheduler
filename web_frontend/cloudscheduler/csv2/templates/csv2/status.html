@@ -822,7 +822,7 @@
                                                                 <td><b>Cores</b></td>
                                                             </tr>
                                                             {% for detail in flavor_slot_detail %}
-                                                                {% if detail.group_name == cloud.group_name and detail.cloud_name == cloud.cloud_name and detail.slot_type == summary.slot_type %}
+                                                                {% if detail.group_name == cloud.group_name and detail.cloud_name == cloud.cloud_name and detail.slot_type == summary.slot_type and detail.flavor == summary.flavor %}
 
                                                                 <tr class="slot-detail">
                                                                     <!--<td>{{detail.slot_type}}</td>-->

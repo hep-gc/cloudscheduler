@@ -1643,7 +1643,7 @@ def get_target_cloud(config, group_name, cloud_name):
     if len(cloud_list) == 1:
         return 0, None, cloud_list[0]
     else:
-        return 1, 'cloud %s::%s does not exist' % (group_name, cloud_name), None
+        return 1, 'cloud %s::%s does not exist: %s' % (group_name, cloud_name, msg), None
 
 #-------------------------------------------------------------------------------
 

@@ -16,6 +16,7 @@ from cloudscheduler.lib.ProcessMonitor import ProcessMonitor, terminate, check_p
 #from cloudscheduler.lib.signal_manager import register_signal_receiver
 from cloudscheduler.lib.view_utils import kill_retire
 from cloudscheduler.lib.log_tools import get_frame_info
+from cloudscheduler.lib.signal_functions import event_signal_send
 
 #from glintwebui.glint_utils import get_keypair, transfer_keypair, generate_tx_id, check_cache
 from glintwebui.glint_utils import generate_tx_id, check_cache
@@ -1729,7 +1730,6 @@ def vm_poller():
                     abort_cycle = True
                     break
 
-
             if abort_cycle:
                 config.db_rollback()
                 config.db_close()
@@ -1771,11 +1771,12 @@ def vm_poller():
             # Check on the core limits to see if any clouds need to be scaled down.
             logging.debug("checking for over-quota clouds")
             where_clause = "cloud_type='openstack'"
-            rc, msg, over_quota_clouds = config.db_query("view_vm_kill_retire_over_quota", where=where_clause)
+            rc, msg, over_quota_clouds = config.db_query("view_vm_kill_retire_over_quota", where=where_clause) 
             for cloud in over_quota_clouds:
                 kill_retire(config, cloud["group_name"], cloud["cloud_name"], "control", [cloud["cores"], cloud["ram"]], get_frame_info())
                 config.db_commit()
-
+            if len(over_quota_clouds) > 0: 
+                event_signal_send(config, "update_csv2_clouds_openstack")
 
             logging.debug("Completed VM poller cycle")
 
