@@ -957,32 +957,40 @@ def vm_slot_auditor():
     
     # get list of all condor machines and build dictorinary representing slot count
     # then cross reference dict against the database and update any relevent rows.
-    config.db_open()
     while(True):
         try:
+            config.db_open()
             slot_count_dict = {}
             config.refresh()
+            machine_list = []
             rc, msg, machine_list = config.db_query(MACHINES, order_by="machine")
             if rc != 0:
                 logging.error("Error retriving machine list: %s" % msg)
             else:
                 #process data
                 for machine in machine_list:
-                    if machine["machine"] not in slot_count_dict.keys():
-                        slot_count_dict[machine["machine"]] = {
+                    logging.debug("Processing machine:")
+                    logging.debug(machine)
+                    logging.debug("Slot type: %s" % machine["slot_type"])
+                    # we have to slice off anthing after a . otherwise the machine wont match the hostname
+                    machine_name = machine["machine"].split(".", 1)[0]
+                    if machine_name not in slot_count_dict.keys():
+                        slot_count_dict[machine_name] = {
                             "partitionable": 0,
                             "dynamic": 0
                         }
                     if machine["slot_type"] == "Partitionable":
-                        slot_count_dict[machine["machine"]]["partitionable"] = slot_count_dict[machine["machine"]]["partitionable"] + 1
+                        slot_count_dict[machine_name]["partitionable"] = slot_count_dict[machine_name]["partitionable"] + 1
                     
-                    if machine["slot_type"] == "Dyanmic":
-                        slot_count_dict[machine["machine"]]["dynamic"] = slot_count_dict[machine["machine"]]["dynamic"] + 1
+                    if machine["slot_type"] == "Dynamic":
+                        slot_count_dict[machine_name]["dynamic"] = slot_count_dict[machine_name]["dynamic"] + 1
 
                 # when updating the VM table we may need to match the hostname a little differently like the trigger does:
                 # where hostname=NEW.machine or hostname=substring_index(NEW.machine,'.',1)
                 
                 # loop thru the dictionary querying the vm row for each and update only if slot counts are wrong
+                logging.debug("SLOT COUNT DICT:")
+                logging.debug(slot_count_dict)
                 for slot_count in slot_count_dict:
                     where_clause = "hostname='%s' or hostname='%s'" % (slot_count, slot_count.split('.')[0])
                     rc, msg, row = config.db_query(VMS, where=where_clause)
@@ -990,13 +998,21 @@ def vm_slot_auditor():
                     if len(row) != 1:
                         # Either more rows than expected or no row
                         logging.error("Unable to find or isolate vm row with hostname: %s" % slot_clount)
+                        time.sleep(0.1)
                         continue
                     else:
                         vm_row = row[0]
+
                     logging.debug("VM row counts: dynamic:%s partitionable:%s" % (vm_row["htcondor_dynamic_slots"], vm_row["htcondor_partitionable_slots"]))
                     logging.debug("machine audit counts: dynamic:%s partitionable:%s" % (slot_count_dict[slot_count]["dynamic"], slot_count_dict[slot_count]["partitionable"]))
                     if vm_row["htcondor_dynamic_slots"] != slot_count_dict[slot_count]["dynamic"] or vm_row["htcondor_partitionable_slots"] != slot_count_dict[slot_count]["partitionable"]:
-                        logging.info("Slot count mismatch detected for %s" % slot_count)
+                        logging.info("Slot count mismatch detected for %s, updating vm row" % slot_count)
+                        sql = "update csv2_vms set htcondor_dynamic_slots=%s, htcondor_partitionable_slots=%s where group_name='%s' and cloud_name='%s' and vmid='%s'" % (slot_count_dict[slot_count]["dynamic"], slot_count_dict[slot_count]["partitionable"], vm_row["group_name"], vm_row["cloud_name"], vm_row["vmid"])
+                        logging.debug("update request:")
+                        logging.debug(sql)
+                        config.db_execute(sql)
+                        config.db_commit()
+            config.db_close()
             time.sleep(30)
         except Exception as exc:
             logging.error("Exception retrieving or processing machine list:")
