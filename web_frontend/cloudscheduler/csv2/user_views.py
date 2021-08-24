@@ -368,6 +368,7 @@ def settings(request, active_user=None, response_code=0, message=None):
     else:
         msg ='%s %s' % (lno(MODID), msg)
 
+    pre_rc = rc
     # Retrieve user settings.
     where_clause =  "username='%s'" % active_user.username
     rc, qmsg, _user_list_raw = config.db_query("csv2_user", where=where_clause)
@@ -376,13 +377,14 @@ def settings(request, active_user=None, response_code=0, message=None):
     # Close the database.
     config.db_close()
 
+    final_rc = rc if pre_rc == 0 else pre_rc
     # Render the page.
     context = {
             'active_user': active_user.username,
             'active_group': active_user.active_group,
             'user_groups': active_user.user_groups,
             'user_list': _user_list,
-            'response_code': rc,
+            'response_code': final_rc,
             'message': msg,
             'is_superuser': active_user.is_superuser,
             'version': config.get_version()
