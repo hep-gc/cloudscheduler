@@ -17,9 +17,18 @@ class TestWebStatusCommon(unittest.TestCase):
         cls.oversize = cls.gvar['oversize']
         cls.cloud_name = cls.gvar['user'] + '-wic1'
         cls.group_name = cls.gvar['user'] + '-wig0'
+        cls.user = cls.gvar['user'] + '-wiu2'
+        cls.alias = 'None'
 
     def setUp(self):
         self.page.get_homepage()
+        self.page.click_top_nav('Status')
+
+    def __setAliasView(self):
+        self.page.click_top_nav('User Settings')
+        self.page.click_side_button(self.user)
+        self.page.click_jobs_by_alias_checkbox()
+        self.page.click_update_user()
         self.page.click_top_nav('Status')
 
     def test_web_status_find(self):
@@ -58,54 +67,111 @@ class TestWebStatusCommon(unittest.TestCase):
         self.assertTrue(self.page.plot_open())
         self.page.click_close_plot()
 
-    def test_web_status_plot_open_jobs(self):
+    def test_web_status_plot_open_jobs_without_target_alias(self):
         # Opens the plot with a jobs box
         self.page.click_job_data_box(self.group_name, 'Jobs')
         self.assertTrue(self.page.plot_open())
-        self.assertTrue(self.page.plot_has_legend(self.group_name + ' jobs'))
+        self.assertTrue(self.page.plot_has_legend(self.group_name + ' jobs_total'))
         self.page.click_close_plot()
 
-    def test_web_status_plot_open_jobs_idle(self):
+    def test_web_status_plot_open_jobs_with_target_alias(self):
+        self.__setAliasView()
+        self.page.click_job_data_box(self.group_name, 'Jobs', self.alias)
+        self.assertTrue(self.page.plot_open())
+        self.assertTrue(self.page.plot_has_legend(self.group_name + ' ' + self.alias + ' jobs'))
+        self.page.click_close_plot()
+        # reset back to origin
+        self.__setAliasView()
+
+    def test_web_status_plot_open_jobs_idle_without_target_alias(self):
         # Opens the plot with an idle jobs box
         self.page.click_job_data_box(self.group_name, 'Idle')
         self.assertTrue(self.page.plot_open())
-        self.assertTrue(self.page.plot_has_legend(self.group_name + ' jobs_idle'))
+        self.assertTrue(self.page.plot_has_legend(self.group_name + ' jobs_idle_total'))
         self.page.click_close_plot()
 
-    def test_web_status_plot_open_jobs_running(self):
+    def test_web_status_plot_open_jobs_idle_with_target_alias(self):
+        self.__setAliasView()
+        self.page.click_job_data_box(self.group_name, 'Idle', self.alias)
+        self.assertTrue(self.page.plot_open())
+        self.assertTrue(self.page.plot_has_legend(self.group_name + ' ' + self.alias + ' jobs_idle'))
+        self.page.click_close_plot()
+        self.__setAliasView()
+
+    def test_web_status_plot_open_jobs_running_without_target_alias(self):
         # Opens the plot with a running jobs box
         self.page.click_job_data_box(self.group_name, 'Running')
         self.assertTrue(self.page.plot_open())
-        self.assertTrue(self.page.plot_has_legend(self.group_name + ' jobs_running'))
+        self.assertTrue(self.page.plot_has_legend(self.group_name + ' jobs_running_total'))
         self.page.click_close_plot()
 
-    def test_web_status_plot_open_jobs_completed(self):
+    def test_web_status_plot_open_jobs_running_with_target_alias(self):
+        self.__setAliasView()
+        self.page.click_job_data_box(self.group_name, 'Running', self.alias)
+        self.assertTrue(self.page.plot_open())
+        self.assertTrue(self.page.plot_has_legend(self.group_name + ' ' + self.alias + ' jobs_running'))
+        self.page.click_close_plot()
+        self.__setAliasView()
+
+    def test_web_status_plot_open_jobs_completed_without_target_alias(self):
         # Opens the plot with a completed jobs box
         self.page.click_job_data_box(self.group_name, 'Completed')
         self.assertTrue(self.page.plot_open())
-        self.assertTrue(self.page.plot_has_legend(self.group_name + ' jobs_completed'))
+        self.assertTrue(self.page.plot_has_legend(self.group_name + ' jobs_completed_total'))
         self.page.click_close_plot()
 
-    def test_web_status_plot_open_jobs_held(self):
+    def test_web_status_plot_open_jobs_completed_with_target_alias(self):
+        self.__setAliasView()
+        self.page.click_job_data_box(self.group_name, 'Completed', self.alias)
+        self.assertTrue(self.page.plot_open())
+        self.assertTrue(self.page.plot_has_legend(self.group_name + ' ' + self.alias + ' jobs_completed'))
+        self.page.click_close_plot()
+        self.__setAliasView()
+
+    def test_web_status_plot_open_jobs_held_without_target_alias(self):
         # Opens the plot with a held jobs box
         self.page.click_job_data_box(self.group_name, 'Held')
         self.assertTrue(self.page.plot_open())
-        self.assertTrue(self.page.plot_has_legend(self.group_name + ' jobs_held'))
+        self.assertTrue(self.page.plot_has_legend(self.group_name + ' jobs_held_total'))
         self.page.click_close_plot()
 
-    def test_web_status_plot_open_jobs_other(self):
+    def test_web_status_plot_open_jobs_held_with_target_alias(self):
+        self.__setAliasView()
+        self.page.click_job_data_box(self.group_name, 'Held', self.alias)
+        self.assertTrue(self.page.plot_open())
+        self.assertTrue(self.page.plot_has_legend(self.group_name + ' ' + self.alias + ' jobs_held'))
+        self.page.click_close_plot()
+        self.__setAliasView()
+
+    def test_web_status_plot_open_jobs_other_without_target_alias(self):
         # Opens the plot with an other jobs box
         self.page.click_job_data_box(self.group_name, 'Other')
         self.assertTrue(self.page.plot_open())
-        self.assertTrue(self.page.plot_has_legend(self.group_name + ' jobs_other'))
+        self.assertTrue(self.page.plot_has_legend(self.group_name + ' jobs_other_total'))
         self.page.click_close_plot()
 
-    def test_web_status_plot_open_jobs_foreign(self):
+    def test_web_status_plot_open_jobs_other_with_target_alias(self):
+        self.__setAliasView()
+        self.page.click_job_data_box(self.group_name, 'Other', self.alias)
+        self.assertTrue(self.page.plot_open())
+        self.assertTrue(self.page.plot_has_legend(self.group_name + ' ' + self.alias + ' jobs_other'))
+        self.page.click_close_plot()
+        self.__setAliasView()
+
+    def test_web_status_plot_open_jobs_foreign_without_target_alias(self):
         # Opens the plot with a foreign jobs box
         self.page.click_job_data_box(self.group_name, 'Foreign')
         self.assertTrue(self.page.plot_open())
-        self.assertTrue(self.page.plot_has_legend(self.group_name + ' jobs_foreign'))
+        self.assertTrue(self.page.plot_has_legend(self.group_name + ' jobs_foreign_total'))
         self.page.click_close_plot()
+
+    def test_web_status_plot_open_jobs_foreign_with_target_alias(self):
+        self.__setAliasView()
+        self.page.click_job_data_box(self.group_name, 'Foreign', self.alias)
+        self.assertTrue(self.page.plot_open())
+        self.assertTrue(self.page.plot_has_legend(self.group_name + ' ' + self.alias + ' jobs_foreign'))
+        self.page.click_close_plot()
+        self.__setAliasView()
 
     def test_web_status_plot_open_rt(self):
         # Opens the plot with an RT box

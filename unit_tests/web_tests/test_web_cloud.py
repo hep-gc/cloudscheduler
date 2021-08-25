@@ -212,6 +212,7 @@ class TestWebCloudCommon(unittest.TestCase):
         cloud_name = self.gvar['user'] + '-wic6'
         self.page.click_add_button()
         self.page.type_priority('1.5')
+        self.page.type_cloud_name(cloud_name)
         self.page.select_cloud_type('openstack')
         self.page.type_url(self.credentials['authurl'])
         self.page.type_region(self.credentials['region'])
@@ -230,6 +231,7 @@ class TestWebCloudCommon(unittest.TestCase):
         cloud_name = self.gvar['user'] + '-wic6'
         self.page.click_add_button()
         self.page.type_priority('invalid-web-test')
+        self.page.type_cloud_name(cloud_name)
         self.page.select_cloud_type('openstack')
         self.page.type_url(self.credentials['authurl'])
         self.page.type_region(self.credentials['region'])
@@ -248,6 +250,7 @@ class TestWebCloudCommon(unittest.TestCase):
         cloud_name = self.gvar['user'] + '-wic6'
         self.page.click_add_button()
         self.page.type_priority(str(self.oversize['int_11']))
+        self.page.type_cloud_name(cloud_name)
         self.page.select_cloud_type('openstack')
         self.page.type_url(self.credentials['authurl'])
         self.page.type_region(self.credentials['region'])
@@ -284,6 +287,7 @@ class TestWebCloudCommon(unittest.TestCase):
         cloud_name = self.gvar['user'] + '-wic6'
         self.page.click_add_button()
         self.page.type_priority('0')
+        self.page.type_cloud_name(cloud_name)
         self.page.select_cloud_type('openstack')
         self.page.type_url(self.oversize['varchar_128'])
         self.page.type_region(self.credentials['region'])
@@ -320,6 +324,7 @@ class TestWebCloudCommon(unittest.TestCase):
         cloud_name = self.gvar['user'] + '-wic6'
         self.page.click_add_button()
         self.page.type_priority('0')
+        self.page.type_cloud_name(cloud_name)
         self.page.select_cloud_type('openstack')
         self.page.type_url(self.credentials['authurl'])
         self.page.type_region(self.oversize['varchar_32'])
@@ -338,6 +343,7 @@ class TestWebCloudCommon(unittest.TestCase):
         cloud_name = self.gvar['user'] + '-wic6'
         self.page.click_add_button()
         self.page.type_priority('0')
+        self.page.type_cloud_name(cloud_name)
         self.page.select_cloud_type('openstack')
         self.page.type_url(self.credentials['authurl'])
         self.page.type_region(self.credentials['region'])
@@ -374,6 +380,7 @@ class TestWebCloudCommon(unittest.TestCase):
         cloud_name = self.gvar['user'] + '-wic6'
         self.page.click_add_button()
         self.page.type_priority('0')
+        self.page.type_cloud_name(cloud_name)
         self.page.select_cloud_type('openstack')
         self.page.type_url(self.credentials['authurl'])
         self.page.type_region(self.credentials['region'])
@@ -428,6 +435,7 @@ class TestWebCloudCommon(unittest.TestCase):
         cloud_name = self.gvar['user'] + '-wic6'
         self.page.click_add_button()
         self.page.type_priority('0')
+        self.page.type_cloud_name(cloud_name)
         self.page.select_cloud_type('openstack')
         self.page.type_url(self.credentials['authurl'])
         self.page.type_region(self.credentials['region'])
@@ -464,6 +472,7 @@ class TestWebCloudCommon(unittest.TestCase):
         cloud_name = self.gvar['user'] + '-wic6'
         self.page.click_add_button()
         self.page.type_priority('0')
+        self.page.type_cloud_name(cloud_name)
         self.page.select_cloud_type('openstack')
         self.page.type_url(self.credentials['authurl'])
         self.page.type_region(self.credentials['region'])
