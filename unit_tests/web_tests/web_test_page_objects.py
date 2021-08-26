@@ -106,15 +106,29 @@ class StatusPage(Page):
         super(StatusPage, self).__init__(driver, homepage)
         # There may be variables here in the future, currently unknown
 
+    def click_side_button(self, name):
+        wti.click_by_link_text(self.driver, name)
+        self.active_user = name
+
+    def click_update_user(self):
+        xpath = wtxs.form_input_by_value(self.active_user, 'Update user')
+        wti.click_by_xpath(self.driver, xpath)
+
+    def click_jobs_by_alias_checkbox(self):
+        xpath = wtxs.form_input_by_name_not_hidden(self.active_user, 'flag_jobs_by_target_alias')
+        wti.click_by_xpath(self.driver, xpath)
+
     def click_jobs_group_expand(self, group):
         xpath = wtxs.status_page_dropdown('1', group)
         wti.click_by_xpath(self.driver, xpath)
 
-    def click_job_data_box(self, group, state):
+    def click_job_data_box(self, group, state, alias=None):
         state_tag = '_' + state.lower()
         if state == 'Jobs':
             state_tag = ''
-        path = group + ' jobs' + state_tag
+        path = group + ' jobs' + state_tag + '_total'
+        if alias:
+            path = group + ' ' + alias + ' jobs' + state_tag
         xpath = wtxs.data_box(path)
         try:
             wti.click_by_xpath(self.driver, xpath)
@@ -539,7 +553,7 @@ class CloudsPage(Page):
         wti.fill_blank_by_xpath(self.driver, xpath, pdn)
 
     def type_boot_volume(self, boot_volume):
-        xpath = wtxs.form_input_by_name(self.active_cloud, 'vm_boot_volume')
+        xpath = wtxs.form_textarea_by_name(self.active_cloud, 'vm_boot_volume')
         wti.fill_blank_by_xpath(self.driver, xpath, boot_volume)
 
     def add_security_group(self, group):

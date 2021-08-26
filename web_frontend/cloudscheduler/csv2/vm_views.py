@@ -90,12 +90,12 @@ def foreign(request):
     global_view = active_user.kwargs['global_view']
 
     if global_view=='1':
-        rc, msg, foreign_list = config.db_query(view_foreign_flavors)
+        rc, msg, foreign_list = config.db_query("view_foreign_flavors")
 
     else:
         # Retrieve VM information.
         where_clause = "group_name='%s'" % active_user.active_group
-        rc, msg, foreign_list_raw = config.db_query(view_foreign_flavors, where=where_clause)
+        rc, msg, foreign_list_raw = config.db_query("view_foreign_flavors", where=where_clause)
         foreign_list = qt(foreign_list_raw, filter=qt_filter_get(['cloud_name'], active_user.kwargs))
 #   _vm_list = qt(config.db_connection.execute(s), filter=qt_filter_get(['cloud_name', 'poller_status', 'hostname'], selector.split('::'), aliases=ALIASES), convert={
 
