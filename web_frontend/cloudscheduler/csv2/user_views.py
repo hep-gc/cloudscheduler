@@ -198,9 +198,16 @@ def delete(request):
             config.db_close()
             return user_list(request, active_user=active_user, response_code=1, message='%s user delete, %s' % (lno(MODID), msg))
 
+        # Check if user exists
+        table = 'csv2_user'
+        where_clause = "username='%s'" % fields['username']
+        rc, msg, found_user_list = config.db_query(table, where=where_clause)
+        if not found_user_list or len(found_user_list) == 0: 
+            config.db_close()
+            return user_list(request, active_user=active_user, response_code=1, message='%s user group-delete "%s" failed - the request did not match any rows.' % (lno(MODID), fields['username'], msg))
+
         # Delete any user_groups for the user.
         table = 'csv2_user_groups'
-        where_clause = "username='%s'" % fields['username']
         rc, msg = config.db_delete(table, where=where_clause)
         if rc != 0:
             config.db_close()
@@ -434,6 +441,13 @@ def update(request):
         user_updates = check_convert_bytestrings(user_updates)
         if len(user_updates) > 0:
             where_clause = "username='%s'" % fields['username']
+            
+            # Check if user exists
+            rc, msg, found_user_list = config.db_query(table, where=where_clause)
+            if not found_user_list or len(found_user_list) == 0: 
+                config.db_close()
+                return user_list(request, active_user=active_user, response_code=1, message='%s user update failed - the request did not match any rows.' % lno(MODID))
+            
             rc, msg = config.db_update(table, user_updates, where=where_clause)
             if rc != 0:
                 config.db_close()

@@ -662,6 +662,14 @@ def delete(request):
             config.db_close()
             return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud delete "%s::%s" failed - there are vms remaining on the cloud.' % (lno(MODID), fields['group_name'], fields['cloud_name']))
         
+        # Check if cloud exists
+        table = 'csv2_clouds'
+        where_clause = "group_name='%s' and cloud_name='%s'" % (fields['group_name'], fields['cloud_name'])
+        rc, msg, found_cloud_list = config.db_query(table, where=where_clause)
+        if not found_cloud_list or len(found_cloud_list) == 0:
+            config.db_close()
+            return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud delete "%s::%s" failed - the request did not match any rows.' % (lno(MODID), fields['group_name'], fields['cloud_name']))
+        
         # For EC2 clouds, delete filters.
         rc, msg = ec2_filters(config, fields['group_name'], fields['cloud_name'])
         if rc != 0:
@@ -674,7 +682,6 @@ def delete(request):
             "group_name": fields['group_name'],
             "cloud_name": fields['cloud_name']
         }
-        where_clause = "group_name='%s' and cloud_name='%s'" % (fields['group_name'], fields['cloud_name'])
         rc, msg = config.db_delete(table, alias_dict, where=where_clause)
         if rc != 0:
             config.db_close()
@@ -983,6 +990,14 @@ def metadata_delete(request):
             "cloud_name": fields['cloud_name'],
             "metadata_name": fields['metadata_name'] 
         }
+        where_clause = "group_name='%s' and cloud_name='%s' and metadata_name='%s'" % (fields['group_name'], fields['cloud_name'], fields['metadata_name'])
+        
+        # Check if metadata file exists
+        rc, msg, found_metadata_list = config.db_query(table, where=where_clause)
+        if not found_metadata_list or len(found_metadata_list) == 0:
+            config.db_close()
+            return metadata_fetch(request, response_code=1, message='%s cloud metadata-delete "%s::%s::%s" failed - the request did not match any rows.' % (lno(MODID), fields['group_name'], fields['cloud_name'], fields['metadata_name']), metadata_name=fields['metadata_name'], cloud_name=fields['cloud_name'])
+
         rc, msg = config.db_delete(table, meta_dict)
         if rc == 0:
             config.db_close(commit=True)
@@ -1259,8 +1274,14 @@ def metadata_update(request):
             config.db_close()
             return metadata_fetch(request, response_code=1, message='%s cloud-metadata-update must specify at least one field to update.' % lno(MODID), metadata_name=fields['metadata_name'], cloud_name=fields['cloud_name'])
 
-        # Update the cloud metadata file.
+        # Check if metadata file exists
         where_clause = "group_name='%s' and cloud_name='%s' and metadata_name='%s'" % (fields['group_name'], fields['cloud_name'], fields['metadata_name'])
+        rc, msg, found_metadata_list = config.db_query(table, where=where_clause)
+        if not found_metadata_list or len(found_metadata_list) == 0:
+            config.db_close()
+            return metadata_fetch(request, response_code=1, message='%s cloud metadata-update "%s::%s::%s" failed - the request did not match any rows.' % (lno(MODID), fields['group_name'], fields['cloud_name'], fields['metadata_name']), metadata_name=fields['metadata_name'], cloud_name=fields['cloud_name'])
+        
+        # Update the cloud metadata file.
         rc, msg = config.db_update(table, fields_to_update, where=where_clause)
         if rc == 0:
             if not 'metadata' in fields.keys():
@@ -1845,6 +1866,13 @@ def update(request):
         # If the CLI has a different functionality it may cause failure
         if updates > 2:
             where_clause = "group_name='%s' and cloud_name='%s'" % (fields['group_name'], fields['cloud_name'])
+            
+            # Check if cloud exists
+            rc, msg, found_cloud_list = config.db_query(table, where=where_clause)
+            if not found_cloud_list or len(found_cloud_list) == 0:
+                config.db_close()
+                return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud update "%s::%s" failed - the request did not match any rows.' % (lno(MODID), fields['group_name'], fields['cloud_name']))
+            
             rc, msg = config.db_update(table, cloud_updates, where=where_clause)
             config.db_commit()
             if rc != 0:

@@ -455,9 +455,16 @@ def delete(request):
                         config.db_close()
                         return group_list(request, active_user=active_user, response_code=1, message='%s group metadata file delete "%s::%s" failed - %s.' % (lno(MODID), fields['group_name'], metadata_name, msg))
 
+        # Check if group exists
+        table = 'csv2_groups'
+        where_clause = "group_name='%s'" % fields['group_name']
+        rc, msg, found_group_list = config.db_query(table, where=where_clause)
+        if not found_group_list or len(found_group_list) == 0:
+            config.db_close()
+            return group_list(request, active_user=active_user, response_code=1, message='%s group resources delete "%s" failed - the request did not match any rows.' % (lno(MODID), fields['group_name'])        )
+
         # Delete the csv2_clouds.
         table = 'csv2_clouds'
-        where_clause = "group_name='%s'" % fields['group_name']
         rc, msg = config.db_delete(table, where=where_clause)
         if rc != 0:
             config.db_close()
@@ -725,6 +732,14 @@ def metadata_delete(request):
                 return metadata_fetch(request, response_code=1, message='%s group metadata-delete %s' % (lno(MODID), msg), metadata_name=metadata_name)
             return render(request, 'csv2/blank_msg.html', {'response_code': 1, 'message': '%s group metadata-delete %s' % (lno(MODID), msg)})
 
+        # Check if metadata file exists
+        table = 'csv2_group_metadata'
+        where_clause = "group_name='%s' and metadata_name='%s'" % (active_user.active_group, fields['metadata_name'])
+        rc, msg, found_metadata_list = config.db_query(table, where=where_clause)
+        if not found_metadata_list or len(found_metadata_list) == 0:
+            config.db_close()
+            return metadata_fetch(request, response_code=1, message='%s group metadata-delete "%s::%s" failed - the request did not match any rows.' % (lno(MODID), active_user.active_group, fields['metadata_name']), metadata_name=fields['metadata_name'])
+        
         # Delete the csv2_group_metadata_exclusions.
         table = 'csv2_group_metadata_exclusions'
         where_clause = "group_name='%s' and metadata_name='%s'" % (fields['group_name'], fields['metadata_name'])
@@ -732,7 +747,6 @@ def metadata_delete(request):
         if rc != 0:
             config.db_close()
             return metadata_fetch(request, response_code=1, message='%s delete group metadata exclusion for group=%s, metadata=%s failed - %s.' % (lno(MODID), fields['group_name'], fields['metadata_name'], msg), metadata_name=fields['metadata_name'])
-
 
         # Delete the group metadata file.
         table = 'csv2_group_metadata'
@@ -967,6 +981,13 @@ def metadata_update(request):
             return metadata_fetch(request, response_code=1, message='%s group metadata-update "%s::%s" specified no fields to update and was ignored.' % (lno(MODID), active_user.active_group, fields['metadata_name']), metadata_name=fields['metadata_name'])
 
         where_clause = 'group_name="%s" and metadata_name="%s"' % (active_user.active_group, fields['metadata_name'])
+        
+        # Check if metadata file exists
+        rc, msg, found_metadata_list = config.db_query(table, where=where_clause)
+        if not found_metadata_list or len(found_metadata_list) == 0:
+            config.db_close()
+            return metadata_fetch(request, response_code=1, message='%s group metadata-update "%s::%s" failed - the request did not match any rows.' % (lno(MODID), active_user.active_group, fields['metadata_name']), metadata_name=fields['metadata_name'])
+        
         rc, msg = config.db_update(table, updates, where=where_clause)
         if rc == 0:
             config.db_close(commit=True)
@@ -1055,6 +1076,13 @@ def update(request):
         # group_updates should always have the group name so it should have > 1 updates for there to actually be a change
         if len(group_updates) > 1:
             where_clause = 'group_name="%s"' % fields['group_name']
+            
+            # Check if group exists
+            rc, msg, found_group_list = config.db_query(table, where=where_clause)
+            if not found_group_list or len(found_group_list) == 0:
+                config.db_close()
+                return group_list(request, active_user=active_user, response_code=1, message='%s group update, "%s" failed - the request did not match any rows.' % (lno(MODID), fields['group_name']))
+            
             rc, msg = config.db_update(table, group_updates, where=where_clause)
             if rc != 0:
                 config.db_close()
