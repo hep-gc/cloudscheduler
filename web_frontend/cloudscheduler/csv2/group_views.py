@@ -817,11 +817,16 @@ def metadata_fetch(request, response_code=0, message=None, metadata_name=None):
                 config.db_close()
                 return render(request, 'csv2/meta_editor.html', context)
         
+        if rc == 0:
+            msg = message if message else 'group metadata_fetch, file "%s::%s" does not exist.' % (active_user.active_group, metadata_name)
+        else:
+            msg = message if message else 'group metadata_fetch, file "%s::%s" does not exist: %s.' % (active_user.active_group, metadata_name, msg)
         config.db_close()
-        return render(request, 'csv2/blank_msg.html', {'response_code': 1, 'message': 'group metadata_fetch, file "%s::%s" does not exist.' % (active_user.active_group, metadata_name)})
+        return render(request, 'csv2/blank_msg.html', {'response_code': 1, 'message': msg})
 
+    msg = message if message else 'group metadata_fetch, metadata file name omitted.'
     config.db_close()
-    return render(request, 'csv2/blank_msg.html', {'response_code': 1, 'message': 'group metadata_fetch, metadata file name omitted.'})
+    return render(request, 'csv2/blank_msg.html', {'response_code': 1, 'message': msg})
 
 #-------------------------------------------------------------------------------
 

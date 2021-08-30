@@ -65,7 +65,7 @@ def main(gvar):
 
     # 29
     execute_csv2_command(
-        gvar, 0, None, 'file "{}::{}::{}" successfully  updated.'.format(ut_id(gvar, 'clg1'), ut_id(gvar, 'clc2'), ut_id(gvar, 'clm2')),
+        gvar, 0, None, 'file "{}::{}::{}" successfully updated.'.format(ut_id(gvar, 'clg1'), ut_id(gvar, 'clc2'), ut_id(gvar, 'clm2')),
         ['cloud', 'metadata-update', '-cn', ut_id(gvar, 'clc2'), '-mn', ut_id(gvar, 'clm2'), '-me', 1, '-mmt', 'ucernvm-config', '-mp', 10, '-su', ut_id(gvar, 'clu3')]
     )
 

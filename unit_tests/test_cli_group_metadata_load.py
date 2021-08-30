@@ -32,7 +32,7 @@ def main(gvar):
             # 20
             'invalid-unit-test!': 'value specified for "metadata_name" must be all lowercase letters, digits, dashes, underscores, periods, and colons, and cannot contain more than one consecutive dash or start or end with a dash.',
             # 21
-            'metadata-name-that-is-too-long-for-the-database_________________________': 'Data too long for column \'metadata_name\' at row 1'
+            'metadata-name-that-is-too-long-for-the-database-test-metadata-name-too-long-error-case': 'Data too long for column \'metadata_name\' at row 1'
         }, 'mandatory': True},
         # 22 Omit `--file-path`.
         '--file-path': {'valid': METADATA_FILEPATH, 'test_cases': {

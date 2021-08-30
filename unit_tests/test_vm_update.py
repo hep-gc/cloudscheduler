@@ -23,7 +23,7 @@ def main(gvar):
         'vm_option': {'valid': 'retain', 'test_cases': {'invalid-unit-test': 'vm update value specified for "vm_option" must be one of the following options: [\'kill\', \'manctl\', \'retain\', \'retire\', \'sysctl\'].'}, 'mandatory': True},
         # 11 Give two vm_hosts.
         # 12
-        'vm_hosts': {'valid': 'invalid-unit-test', 'test_cases': {'': 'vm update parameter "vm_hosts" contains an empty string which is specifically disallowed.'}},
+        'vm_hosts': {'valid': 'invalid-unit-test', 'test_cases': {'': 'vm update value specified for "vm_hosts" must not be the empty string'}},
         # 13 Give two poller_statuses.
         # 14
         'poller_status': {'valid': 'idle', 'test_cases': {'invalid-unit-test': 'vm update value specified for "poller_status" must be one of the following options: [\'error\', \'idle\', \'manual\', \'native\', \'other\', \'retiring\', \'running\', \'starting\', \'unregistered\'].'}}

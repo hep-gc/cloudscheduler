@@ -1073,30 +1073,39 @@ def metadata_fetch(request, response_code=0, message=None, metadata_name=None, c
         metadata_name = active_user.kwargs['metadata_name']
 
     # Retrieve metadata file.
-    METADATA = "csv2_cloud_metadata"
-    where_clause = "group_name='%s' and cloud_name='%s' and metadata_name='%s'" % (active_user.active_group, cloud_name, metadata_name)
-    rc, msg, METADATAobj = config.db_query(METADATA, where=where_clause)
-    if METADATAobj:
-        for row in METADATAobj:
-            context = {
-                'group_name': row["group_name"],
-                'cloud_name': row["cloud_name"],
-                'metadata': row["metadata"],
-                'metadata_enabled': row["enabled"],
-                'metadata_priority': row["priority"],
-                'metadata_mime_type': row["mime_type"],
-                'metadata_name': row["metadata_name"],
-                'mime_types_list': mime_types_list,
-                'response_code': response_code,
-                'message': message,
-                'is_superuser': active_user.is_superuser,
-                'version': config.get_version()
-                }
-            config.db_close()
-            return render(request, 'csv2/meta_editor.html', context)
+    if metadata_name:
+        METADATA = "csv2_cloud_metadata"
+        where_clause = "group_name='%s' and cloud_name='%s' and metadata_name='%s'" % (active_user.active_group, cloud_name, metadata_name)
+        rc, msg, METADATAobj = config.db_query(METADATA, where=where_clause)
+        if METADATAobj:
+            for row in METADATAobj:
+                context = {
+                    'group_name': row["group_name"],
+                    'cloud_name': row["cloud_name"],
+                    'metadata': row["metadata"],
+                    'metadata_enabled': row["enabled"],
+                    'metadata_priority': row["priority"],
+                    'metadata_mime_type': row["mime_type"],
+                    'metadata_name': row["metadata_name"],
+                    'mime_types_list': mime_types_list,
+                    'response_code': response_code,
+                    'message': message,
+                    'is_superuser': active_user.is_superuser,
+                    'version': config.get_version()
+                    }
+                config.db_close()
+                return render(request, 'csv2/meta_editor.html', context)
 
+        if rc == 0:
+            msg = message if message else 'cloud metadata_fetch, file "%s::%s::%s" does not exist.' % (active_user.active_group, cloud_name, metadata_name)
+        else:
+            msg = message if message else 'cloud metadata_fetch, file "%s::%s::%s" does not exist: %s.' % (active_user.active_group, cloud_name, metadata_name, msg)
+        config.db_close()
+        return render(request, 'csv2/meta_editor.html', {'response_code': 1, 'message': msg})
+
+    msg = message if message else 'cloud metadata_fetch, received an invalid metadata file id "%s::%s::%s".' % (active_user.active_group, cloud_name, metadata_name)
     config.db_close()
-    return render(request, 'csv2/meta_editor.html', {'response_code': 1, 'message': 'cloud metadata_fetch, received an invalid metadata file id "%s::%s::%s".' % (active_user.active_group, cloud_name, metadata_name)})
+    return render(request, 'csv2/meta_editor.html', {'response_code': 1, 'message': msg})
 
 #-------------------------------------------------------------------------------
 

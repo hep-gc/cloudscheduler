@@ -31,7 +31,7 @@ def main(gvar):
             # 14
             'invalid-unit-test!': 'cloud metadata-add value specified for "cloud_name" must be all lowercase letters, digits, dashes, underscores, periods, and colons, and cannot contain more than one consecutive dash or start or end with a dash.',
             # 15
-            'invalid-unit-test': 'cloud name  "invalid-unit-test" does not exist.'
+            'invalid-unit-test': 'cloud name "invalid-unit-test" does not exist.'
         }, 'mandatory': True},
         # 16 Omit metadata_name.
         # 17 Give two metadata_names.
@@ -61,7 +61,7 @@ def main(gvar):
         '/cloud/metadata-add/', group=(ut_id(gvar, 'ctg1')),
         form_data={
             'cloud_name': ut_id(gvar, 'ctc2'),
-            'metadata_name': 'metadata-name-that-is-too-long-for-the-database_____________________',
+            'metadata_name': 'metadata-name-that-is-too-long-for-the-database-test-metadata-name-too-long-error-case',
             'metadata': 'invalid-unit-test'
         },
         server_user=ut_id(gvar, 'ctu1')

@@ -39,7 +39,7 @@ def main(gvar):
         # 17 Omit cloud_type.
         # 18 Give two cloud_types.
         # 19
-        'cloud_type': {'valid': 'local', 'test_cases': {'invalid-unit-test': 'cloud add value specified for "cloud_type" must be one of the following options: [\'amazon\', \'azure\', \'google\', \'local\', \'opennebula\', \'openstack\'].'}, 'mandatory': True},
+        'cloud_type': {'valid': 'local', 'test_cases': {'invalid-unit-test': 'cloud add value specified for "cloud_type" must be one of the following options: [\'amazon\', \'local\', \'openstack\'].'}, 'mandatory': True},
         # 20 Omit authurl.
         # 21 Give two authurls.
         # 22
