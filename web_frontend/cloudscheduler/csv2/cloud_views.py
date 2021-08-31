@@ -1279,7 +1279,7 @@ def metadata_update(request):
         
         table = 'csv2_cloud_metadata'
         fields_to_update = table_fields(fields, table, columns, 'update')
-        if not fields_to_update:
+        if len(fields_to_update) < 4:
             config.db_close()
             return metadata_fetch(request, response_code=1, message='%s cloud-metadata-update must specify at least one field to update.' % lno(MODID), metadata_name=fields['metadata_name'], cloud_name=fields['cloud_name'])
 

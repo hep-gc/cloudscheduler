@@ -1,605 +1,92 @@
-#cloud-config
-merge_type: 'list(append)+dict(recurse_array)+str()'
-write_files:
+#cloud-config                                                                                                                                                          
+merge_type: 'list(append)+dict(recurse_array)+str()'                                                                                                                
+#### DO NOT EDIT - CHANGES WILL BE OVER_WRITTEN ####  
+
+write_files:                                                                                                                                                        
+-   content: |                                                                                                                                                      
+        {{cs_cloud_type}}                                                                                                                                           
+    owner: root:root                                                                                                                                                
+    permissions: 0644
+    path: /var/lib/cloud_type
 -   content: |
-        #!/bin/bash -l
-        exec "$@"
+        {{cs_condor_host}}
     owner: root:root
-    permissions: '0755'
-    path: /usr/libexec/condor/jobwrapper.sh
--   content: |
-        VMType = "none"
-        CONDOR_HOST=condor.heprc.uvic.ca
-        SEC_DAEMON_AUTHENTICATION =
-        SEC_DAEMON_AUTHENTICATION_METHODS =
-        SEC_CLIENT_AUTHENTICATION_METHODS =
-        SEC_PASSWORD_FILE =
-        LOG=/var/log/condor
-        RUN=/var/run/condor
-        SPOOL=/var/lib/condor/spool
-        JAVA_BENCHMARK_TIME = 0
-        
-        HOSTALLOW_WRITE = $(IP_ADDRESS), $(FULL_HOSTNAME), $(CONDOR_HOST)
-        ALLOW_WRITE = $(IP_ADDRESS), $(FULL_HOSTNAME), $(CONDOR_HOST)
-        CCB_ADDRESS = $(CONDOR_HOST)
-        CCB_HEARTBEAT_INTERVAL = 180
-        TRUST_UID_DOMAIN = False
-        START = TRUE
+    permissions: 0644
+    path: /etc/condor/central_manager
+-   content: |                                                                                                                                                      
+        {{cs_cloud_name}}                                                                                                                                           
+    owner: root:root                                                                                                                                                
+    permissions: 0644                                                                                                                                               
+    path: /var/lib/cloud_name 
+-   content: |                                                                                                                                                      
+        # Local config for Cloud Scheduler
+
+        ## Set this to the group_name using this VM                                                                                                                 
+        cs_host_id = "{{cs_host_id}}"
+        group_name = "{{cs_group_name}}"                                                                                                                            
+        cloud_name = "{{cs_cloud_name}}"
+        flavor = "{{cs_flavor}}"
+        target_alias = "{{cs_cloud_alias}}"
+
+        ## Hostname of the central manager.                                                                                                                         
+        # Prefer value contextualized by Cloud Scheduler and then use central_manager
+        CS_HOST={{cs_host}}                                                                                                                                         
+        CS_HOST_IP={{cs_host_ip}}                                                                                                                                   
+        CONDOR_HOST={{cs_condor_host}}                                                                                                                              
+        CONDOR_HOST_IP={{cs_condor_host_ip}}
+        STARTD_ATTRS = COLLECTOR_HOST_STRING cs_host_id group_name cloud_name flavor target_alias  
+        ###### You should not need to make changes below here ########                                                                                              
+        HOSTALLOW_WRITE = $(IP_ADDRESS), $(FULL_HOSTNAME), $(CONDOR_HOST_IP), $(CS_HOST_IP)
+        ALLOW_WRITE = $(IP_ADDRESS), $(FULL_HOSTNAME), $(CONDOR_HOST_IP), $(CS_HOST_IP)
+        HOSTALLOW_ADMINISTRATOR = $(CONDOR_HOST_IP), $(CS_HOST_IP)
+        ALLOW_ADMINISTRATOR = $(CONDOR_HOST_IP), $(CS_HOST_IP)                                                                                                      
+        ALLOW_READ = *                                                                                                                                              
+        HOSTALLOW_READ = 
+
+        START = (Owner == "{{cs_user}}")
         DAEMON_LIST = MASTER, STARTD
-        MaxJobRetirementTime = 3600 * 24 * 2
-        SHUTDOWN_GRACEFUL_TIMEOUT = 3600 * 25 * 2
-        USER_JOB_WRAPPER = /usr/libexec/condor/jobwrapper.sh
+        SLOT_TYPE_1_PARTITIONABLE = True
+        SLOT_TYPE_1 = cpus=100%, ram=100%
         NUM_SLOTS = 1
         NUM_SLOTS_TYPE_1 = 1
-        SLOT_TYPE_1 = cpus=100%
-        SLOT_TYPE_1_PARTITIONABLE = True
-        SLOT1_1_USER = slot01
-        SLOT1_2_USER = slot02
-        SLOT1_3_USER = slot03
-        SLOT1_4_USER = slot04
-        SLOT1_5_USER = slot05
-        SLOT1_6_USER = slot06
-        SLOT1_7_USER = slot07
-        SLOT1_8_USER = slot08
-        SLOT1_9_USER = slot09
-        SLOT1_10_USER = slot10
-        SLOT1_11_USER = slot11
-        SLOT1_12_USER = slot12
-        SLOT1_13_USER = slot13
-        SLOT1_14_USER = slot14
-        SLOT1_15_USER = slot15
-        SLOT1_16_USER = slot16
-        SLOT1_17_USER = slot17
-        SLOT1_18_USER = slot18
-        SLOT1_19_USER = slot19
-        SLOT1_20_USER = slot20
-        SLOT1_21_USER = slot21
-        SLOT1_22_USER = slot22
-        SLOT1_23_USER = slot23
-        SLOT1_24_USER = slot24
-        SLOT1_25_USER = slot25
-        SLOT1_26_USER = slot26
-        SLOT1_27_USER = slot27
-        SLOT1_28_USER = slot28
-        SLOT1_29_USER = slot29
-        SLOT1_30_USER = slot30
-        SLOT1_31_USER = slot31
-        SLOT1_32_USER = slot32
-        DEDICATED_EXECUTE_ACCOUNT_REGEXP = slot[0-9]+
-        STARTER_ALLOW_RUNAS_OWNER = False
-        EXECUTE = /var/lib/condor/execute
-        GSI_DAEMON_DIRECTORY = /etc/grid-security
-        GSI_DAEMON_CERT = /etc/grid-security/hostcert.pem
-        GSI_DAEMON_KEY = /etc/grid-security/hostkey.pem
-        SUSPEND = False
-        CONTINUE = True
-        PREEMPT = False
-        KILL = False
-        STARTD_ATTRS = COLLECTOR_HOST_STRING VMType
-        HIGHPORT = 50000
-        LOWPORT = 40000
-        startd.POLLING_INTERVAL = 60
-        startd.UPDATE_INTERVAL = 180
-        startd.UPDATE_OFFSET = $RANDOM_INTEGER(0,180)
+
     owner: root:root
     permissions: '0644'
     path: /etc/condor/condor_config.local
--   content: |
-        #! /bin/sh
-        ##**************************************************************
-        ##**************************************************************
-        # chkconfig: 2345 98 10
-        # description: Condor HTC computing platform
-        ### BEGIN INIT INFO
-        # Provides:          condor
-        # Required-Start:    $network $local_fs
-        # Required-Stop:
-        # Should-Start:
-        # Default-Start:     2 3 4 5
-        # Default-Stop:      0 1 6
-        # Short-Description: Manage condor daemons
-        # Description: Condor HTC computing platform
-        ### END INIT INFO
-        EC2_METADATA=169.254.169.254
-        CENTRAL_MANAGER=`cat /etc/condor/central_manager 2>/dev/null`
-        START_REQUIREMENT=`cat /etc/condor/start_req_config 2>/dev/null`
-        CONDOR_CONFIG=/etc/condor/condor_config
-        CONDOR_CONFIG_VAL=/usr/bin/condor_config_val
-        CONDOR_CONFIG_LOCAL_MODIFS=/etc/condor/condor_config.local.modifications
-        IMAGE_METADATA=/.image.metadata
-        PIDFILE=
-        MAX_STOP_WAIT=30
-        PS=
-        CONDOR_LOG=
-        CONDOR_SBIN=
-        CONDOR_OFF=
-        CONDOR_RECONFIG=
-        CONDOR_MASTER=
-        echon() {
-            if [ "`echo -n`" = "-n" ]; then
-                echo "$@""\c"
-            else
-                echo -n "$@"
-            fi
-        }
-        fatal_error() {
-                echo "FATAL: $1"
-                exit 1
-        }
-        verify_executable() {
-            if [ ! \( -f "$1" -o -L "$1" \) ]; then
-                fatal_error "Required executable $1 does not exist."
-            fi
-            if [ -d "$1" ]; then
-                fatal_error "Required executable $1 is a directory instead of a file."
-            fi
-            if [ ! -x "$1" ]; then
-                fatal_error "Required executable $1 is not executable."
-            fi
-            return 0
-        }
-        verify_readable_directory() {
-            if [ ! -d "$1" ]; then
-                fatal_error "Required directory $1 does not exist, or is not a directory."
-            fi
-            if [ ! -r "$1" ]; then
-                fatal_error "Required executable $1 is not readable."
-            fi
-            return 0
-        }
-        get_condor_config_val() {
-            TMPVAL=`"$CONDOR_CONFIG_VAL" $1`
-            if [ "$TMPVAL" = "" ]; then
-                fatal_error "Unable to locate $1 in $CONDOR_CONFIG"
-            fi
-            echo "$TMPVAL"
-        }
-        init_condor_sbin() {
-            if [ "$CONDOR_SBIN" != "" ]; then
-                return 0;
-            fi
-            CONDOR_SBIN=`get_condor_config_val SBIN`
-            verify_readable_directory "$CONDOR_SBIN"
-            return 0;
-        }
-        init_condor_run() {
-            if [ "$CONDOR_RUN" != "" ]; then
-                return 0
-            fi
-            CONDOR_RUN=`get_condor_config_val RUN`
-            verify_readable_directory "$CONDOR_RUN"
-            return 0
-        }
-        init_condor_master() {
-            if [ "$CONDOR_MASTER" = "" ]; then
-                CONDOR_MASTER=`get_condor_config_val MASTER`
-            fi
-            verify_executable "$CONDOR_MASTER"
-            return 0
-        }
-        init_condor_reconfig() {
-            if [ "$CONDOR_RECONFIG" = "" ]; then
-                init_condor_sbin
-                CONDOR_RECONFIG="$CONDOR_SBIN/condor_reconfig"
-            fi
-            verify_executable "$CONDOR_RECONFIG"
-            return 0
-        }
-        init_condor_off() {
-            if [ "$CONDOR_OFF" = "" ]; then
-                init_condor_sbin
-                CONDOR_OFF="$CONDOR_SBIN/condor_off"
-            fi
-            verify_executable "$CONDOR_OFF"
-            return 0
-        }
-        init_ps() {
-            if [ "$PS" != "" ]; then
-                return 0;
-            fi
-            PS="/bin/ps -efwwww"
-            $PS > /dev/null 2>&1
-            if [ $? -eq 0 ]; then
-                return 0
-            fi
-            PS="/bin/ps auwx"
-            $PS > /dev/null 2>&1
-            if [ $? -eq 0 ]; then
-                return 0
-            fi
-            PS="/bin/ps -ef"
-            $PS > /dev/null 2>&1
-            if [ $? -eq 0 ]; then
-                return 0
-            fi
-            fatal_error "Could not determine how to call ps. Edit this script to explicitly set PS as documented there."
-        }
-        condor_pid() {
-            if [ ! -f "$PIDFILE" ]; then return 1; fi 
-            if [ ! -r "$PIDFILE" ]; then return 1; fi 
-            if [ ! -s "$PIDFILE" ]; then return 1; fi 
-            masterpid=`cat "$PIDFILE"`
-            if [ "$masterpid" = "" ]; then return 1; fi 
-                init_ps
-                foundpid=`$PS | grep condor_master | grep -v grep | awk '{print $2}' | grep "^$masterpid$"`
-            if [ "$foundpid" = "" ]; then return 1; fi 
-            echo "$masterpid"
-            return 0
-        }
-        wait_for_exit() {
-            max_wait=$2
-            sleep_time=$1
-            stop_duration=0
-            while [ "`condor_pid`" != "" -a $stop_duration -lt $max_wait ]; do
-                sleep $sleep_time
-                stop_duration=`expr $stop_duration + $sleep_time`
-            done
-            if [ "`condor_pid`" = "" ]; then
-                return 0
-            else
-                return 1
-            fi
-        }
-        replace_or_append() {
-            replace_this=$1
-            with_this=$2
-            on_this_file=$3
-            grep -e "^$replace_this[ =]" $on_this_file >/dev/null 2>&1
-            REPLACE=$?
-            if [ $REPLACE -eq 0 ]; then
-                sed -i "s/^$replace_this[ =].*/$with_this/" $on_this_file
-            else
-                echo $with_this >> $on_this_file
-            fi
-        }
-        set_central_manager() {
-            condor_host=$1
-            if [ "xxx" = "xxx${condor_host}" ]; then
-                echo "CENTRAL_MANAGER is undefined. Check /etc/condor/central_manager" >&1
-                exit 1
-            fi
-            local_file=`get_condor_config_val LOCAL_CONFIG_FILE`
-            replace_or_append "CONDOR_HOST" "CONDOR_HOST=$condor_host" $local_file
-        }
-        update_condor_local_config() {
-            if [ -f $CONDOR_CONFIG_LOCAL_MODIFS ]; then
-            local_file=`get_condor_config_val LOCAL_CONFIG_FILE`
-            echo "Applying modifications to ${local_file} ..."
-            while read LINE
-            do
-                variable=`echo ${LINE} | perl -pe 's/(\w*?) \s*? = \s* (.*)/\1/x'`
-                value=`echo ${LINE} | perl -pe 's/(\w*?) \s*? = \s* (.*)/\2/x'`
-                replace_or_append "${variable}" "${variable}=${value}" $local_file
-            done < $CONDOR_CONFIG_LOCAL_MODIFS
-            fi
-        }
-        setup_ccb() {
-            LOCAL_ADDRESS=`/sbin/ifconfig eth0 | grep "inet addr" | awk '{print $2}' | sed s/addr://`
-            EXTHOSTNAME=`curl -s http://$EC2_METADATA/latest/meta-data/public-hostname`
-            echo $LOCAL_ADDRESS $EXTHOSTNAME "# Added for Condor CCB" >> /etc/hosts
-        }
-        setup_ccb_azure() {
-            LOCAL_ADDRESS=`/sbin/ifconfig eth0 | grep "inet addr" | awk '{print $2}' | sed s/addr://`
-            EXTHOSTNAME=`hostname`
-            echo $LOCAL_ADDRESS $EXTHOSTNAME "# Added for Condor CCB" >> /etc/hosts
-        }
-        setup_vmtype() {
-            IMAGE_META_FILE=$1
-            if [ -f $IMAGE_META_FILE ]; then
-                VMTYPE=`cat $IMAGE_META_FILE | awk -F: '/^name:/ { print $2 }' | sed  's/[ \t]* //'`
-                if [ "xxx" != "xxx${VMTYPE}" ]; then
-                    local_file=`get_condor_config_val LOCAL_CONFIG_FILE`
-                    replace_or_append "VMType" "VMType= \"$VMTYPE\"" $local_file
-                fi
-                fi
-        }
-        setup_on_ec2() {
-            local_file=`get_condor_config_val LOCAL_CONFIG_FILE`
-            public_ip=`curl -m 10 -s http://$EC2_METADATA/latest/meta-data/public-ipv4`
-            test $public_ip != "0.0.0.0" > /dev/null 2>&1
-            HAS_PUBLIC_IP=$?
-            curl -m 10 -s http://$EC2_METADATA/ >/dev/null 2>&1
-            IS_EC2=$?
-            if [ $IS_EC2 -eq 0 ] ; then
-                if [ $HAS_PUBLIC_IP -eq 0 ] ; then
-                    EXTHOSTNAME=`curl -s http://$EC2_METADATA/latest/meta-data/public-hostname`
-                    VALID_HOST=$?
-                    if [ $VALID_HOST -eq 0 ] && [[ $EXTHOSTNAME != ??xml* ]] && [[ $EXTHOSTNAME != ?html* ]] ; then
-                        hostname $EXTHOSTNAME
-                        private_network_name=amazon-ec2-`curl -s http://$EC2_METADATA/latest/meta-data/placement/availability-zone`
-                        replace_or_append "PRIVATE_NETWORK_NAME" "PRIVATE_NETWORK_NAME=$private_network_name" $local_file
-                        tcp_forwarding_host=`curl -s http://$EC2_METADATA/latest/meta-data/public-ipv4`
-                        replace_or_append "TCP_FORWARDING_HOST" "TCP_FORWARDING_HOST=$tcp_forwarding_host" $local_file
-                        private_network_interface=`curl -s http://$EC2_METADATA/latest/meta-data/local-ipv4`
-                        replace_or_append "PRIVATE_NETWORK_INTERFACE" "PRIVATE_NETWORK_INTERFACE=$private_network_interface" $local_file
-                    fi
-                else
-                    EXTHOSTNAME=`curl -s http://$EC2_METADATA/latest/meta-data/public-hostname`
-                    VALID_ID=$?
-                    if [ $VALID_ID -eq 0 ] && [[ $EXTHOSTNAME != ??xml* ]] && [[ $EXTHOSTNAME != ?html* ]] ; then
-                        hostname $EXTHOSTNAME
-                        private_network_interface=`curl -s http://$EC2_METADATA/latest/meta-data/local-ipv4`
-                        replace_or_append "PRIVATE_NETWORK_INTERFACE" "PRIVATE_NETWORK_INTERFACE=$private_network_interface" $local_file
-                    fi
-                fi
-            fi
-        }
-        setup_on_gce() {
-            local_file=`get_condor_config_val LOCAL_CONFIG_FILE`
-            public_ip=`curl -m 10 -s http://metadata/computeMetadata/v1/instance/network-interfaces/0/access-configs/0/external-ip -H "Metadata-Flavor: Google"`
-            test $public_ip != "0.0.0.0" > /dev/null 2>&1
-            HAS_PUBLIC_IP=$?
-            curl -m 10 -s http://metadata/ >/dev/null 2>&1
-            IS_EC2=$?
-            if [ $IS_EC2 -eq 0 ] ; then
-                if [ $HAS_PUBLIC_IP -eq 0 ] ; then
-                    EXTHOSTNAME=`curl -s http://metadata/computeMetadata/v1/instance/hostname -H "Metadata-Flavor: Google"`
-                    VALID_HOST=$?
-                    if [ $VALID_HOST -eq 0 ] && [[ $EXTHOSTNAME != ??xml* ]] && [[ $EXTHOSTNAME != ?html* ]] ; then
-                        hostname $EXTHOSTNAME
-                        tcp_forwarding_host=`curl -s http://metadata/computeMetadata/v1/instance/network-interfaces/0/access-configs/0/external-ip -H "Metadata-Flavor: Google"`
-                        replace_or_append "TCP_FORWARDING_HOST" "TCP_FORWARDING_HOST=$tcp_forwarding_host" $local_file
-                        private_network_interface=`curl -s http://metadata/computeMetadata/v1/instance/network-interfaces/0/ip -H "Metadata-Flavor: Google"`
-                        replace_or_append "PRIVATE_NETWORK_INTERFACE" "PRIVATE_NETWORK_INTERFACE=$private_network_interface" $local_file
-                    fi
-                else
-                    EXTHOSTNAME=`curl -s http://metadata/computeMetadata/v1/instance/hostname -H "Metadata-Flavor: Google"`
-                    VALID_ID=$?
-                    if [ $VALID_ID -eq 0 ] && [[ $EXTHOSTNAME != ??xml* ]] && [[ $EXTHOSTNAME != ?html* ]] ; then
-                        hostname $EXTHOSTNAME
-                        private_network_interface=`curl -s http://metadata/computeMetadata/v1/instance/network-interfaces/0/ip -H "Metadata-Flavor: Google"`
-                        replace_or_append "PRIVATE_NETWORK_INTERFACE" "PRIVATE_NETWORK_INTERFACE=$private_network_interface" $local_file
-                    fi
-                fi
-            fi
-        }
-        setup_on_azure() {
-            local_file=`get_condor_config_val LOCAL_CONFIG_FILE`
-            tcp_forwarding_host=`grep PublicAddress /var/lib/waagent/SharedConfig.xml | awk '{print $7}' | awk -F ':' '{print $1}' | awk -F '"' '{print $2}'`
-            replace_or_append "TCP_FORWARDING_HOST" "TCP_FORWARDING_HOST=$tcp_forwarding_host" $local_file
-            private_network_interface=`/sbin/ifconfig eth0 | grep "inet addr" | awk '{print $2}' | sed s/addr://`
-            replace_or_append "PRIVATE_NETWORK_INTERFACE" "PRIVATE_NETWORK_INTERFACE=$private_network_interface" $local_file
-        }
-        set_hostkey_permissions () {
-            HOST_KEY=`get_condor_config_val GSI_DAEMON_KEY`
-            if [ -f $HOST_KEY ]; then
-            chmod 400 $HOST_KEY
-            else
-            echo "Grid certificate host key not found. $HOST_KEY"
-            fi
-        }
-        cleanup_ccb () {
-            sed -i '/# Added for Condor CCB/d' /etc/hosts
-        }
-        verify_execute () {
-            execute_dir=`get_condor_config_val EXECUTE`
-            if [ ! -d $execute_dir ]; then
-                mkdir -p $execute_dir
-            fi
-            execute_owner=`stat -c %U $execute_dir`
-            if [ "$execute_owner" != "condor" ]; then
-                chown condor:condor $execute_dir
-            fi
-            execute_rights=`stat -c %a $execute_dir`
-            if [ $execute_rights -ne 755 ]; then
-                chmod 755 $execute_dir
-            fi
-        }
-        start() {
-            set_hostkey_permissions
-            if [ -f "/var/lib/cloud_type" ]; then
-                cloud_type=`cat /var/lib/cloud_type`
-                case "$cloud_type" in
-                "Azure")
-                    setup_on_azure
-                    setup_ccb_azure
-                    ;;
-                "gce")
-                    setup_on_gce
-                    setup_ccb
-                    ;;
-                *)
-                    setup_on_ec2
-                    setup_ccb
-                esac
-            fi
-            set_central_manager $CENTRAL_MANAGER
-            setup_vmtype $IMAGE_METADATA
-            update_condor_local_config
-            verify_execute
-            init_condor_master
-            [ -d /var/lock/subsys ] || mkdir /var/lock/subsys
-            echon "Starting up Condor..."
-            "$CONDOR_MASTER" -pidfile "$PIDFILE"
-            RETVAL=$?
-            [ $RETVAL -eq 0 ] && touch /var/lock/subsys/condor;
-            echo "done."
-            return 0
-        }
-        xstop() {
-            cleanup_ccb
-            echon "Shutting down Condor (fast-shutdown mode)..."
-            master_pid=`condor_pid`
-            if [ "$master_pid" != "" ]; then
-                echon "using kill..."
-                kill -QUIT "$master_pid"
-            else
-                init_condor_off
-                echon "using condor_off..."
-                "$CONDOR_OFF" -fast -master | grep -v 'Sent "Kill-Daemon-Fast" command'
-                if [ $? -gt 0 ]; then
-                    echo "Failed to stop Condor (non-0 exit)."
-                    return 1
-                fi
-            fi
-            wait_for_exit 1 $MAX_STOP_WAIT
-            if [ $? -gt 0 ]; then
-                echo "Failed to stop Condor (timed out)."
-                return 1
-            fi
-            if [ -f "$PIDFILE" ]; then
-                rm "$PIDFILE"
-            fi
-            echo "done."
-            rm /var/lock/subsys/condor
-            return 0
-        }
-        reload() {
-            init_condor_reconfig
-            echon "Reloading Condor configuration..."
-            "$CONDOR_RECONFIG" | grep -v 'Sent "Reconfig" command to local master'
-            echo "done."
-            return 0
-        }
-        status() {
-            master_pid=`condor_pid`
-            if [ "$master_pid" != "" ]; then
-                echo "Condor is running (pid $master_pid)"
-                return 0
-            else
-                echo "Condor is not running"
-                return 3;
-            fi
-        }
-        INIT_COMMAND=$1
-        verify_executable "$CONDOR_CONFIG_VAL"
-        if [ "$CONDOR_CONFIG" != "" ]; then
-            export CONDOR_CONFIG
-        fi
-        if [ "$PIDFILE" = "" ]; then
-            init_condor_run
-            PIDFILE="$CONDOR_RUN/master.pid"
-        fi
-        case $INIT_COMMAND in
-        'start')
-            start
-            ;;
-        'stop')
-            xstop
-            ;;
-        'restart')
-            xstop
-            start
-            ;;
-        'try-restart')
-            if [ "`condor_pid`" = "" ]; then exit 0; fi 
-            xstop
-            start
-            ;;
-        'reload')
-            reload
-            ;;
-        'force-reload')
-            reload
-            ;;
-        'status')
-            status
-            ;;
-        *)
-            echo "Usage: $0 {start|stop|restart|try-restart|reload|force-reload|status}"
-            ;;
-        esac
-    owner: root:root
-    permissions: '0755'
-    path: /etc/init.d/condor
-groups:
-  - condor: [slot01,slot02,slot03,slot04,slot05,slot06,slot07,slot08,slot09,slot10,slot11,slot12,slot13,slot14,slot15,slot16]
-users:
-  - name: slot01
-    groups: condor
-    shell: /sbin/nologin
-  - name: slot02
-    groups: condor
-    shell: /sbin/nologin
-  - name: slot03
-    groups: condor
-    shell: /sbin/nologin
-  - name: slot04
-    groups: condor
-    shell: /sbin/nologin
-  - name: slot05
-    groups: condor
-    shell: /sbin/nologin
-  - name: slot06
-    groups: condor
-    shell: /sbin/nologin
-  - name: slot07
-    groups: condor
-    shell: /sbin/nologin
-  - name: slot08
-    groups: condor
-    shell: /sbin/nologin
-  - name: slot09
-    groups: condor
-    shell: /sbin/nologin
-  - name: slot10
-    groups: condor
-    shell: /sbin/nologin
-  - name: slot11
-    groups: condor
-    shell: /sbin/nologin
-  - name: slot12
-    groups: condor
-    shell: /sbin/nologin
-  - name: slot13
-    groups: condor
-    shell: /sbin/nologin
-  - name: slot14
-    groups: condor
-    shell: /sbin/nologin
-  - name: slot15
-    groups: condor
-    shell: /sbin/nologin
-  - name: slot16
-    groups: condor
-    shell: /sbin/nologin
-  - name: slot17
-    groups: condor
-    shell: /sbin/nologin
-  - name: slot18
-    groups: condor
-    shell: /sbin/nologin
-  - name: slot19
-    groups: condor
-    shell: /sbin/nologin
-  - name: slot20
-    groups: condor
-    shell: /sbin/nologin
-  - name: slot21
-    groups: condor
-    shell: /sbin/nologin
-  - name: slot22
-    groups: condor
-    shell: /sbin/nologin
-  - name: slot23
-    groups: condor
-    shell: /sbin/nologin
-  - name: slot24
-    groups: condor
-    shell: /sbin/nologin
-  - name: slot25
-    groups: condor
-    shell: /sbin/nologin
-  - name: slot26
-    groups: condor
-    shell: /sbin/nologin
-  - name: slot27
-    groups: condor
-    shell: /sbin/nologin
-  - name: slot28
-    groups: condor
-    shell: /sbin/nologin
-  - name: slot29
-    groups: condor
-    shell: /sbin/nologin
-  - name: slot30
-    groups: condor
-    shell: /sbin/nologin
-  - name: slot31
-    groups: condor
-    shell: /sbin/nologin
-  - name: slot32
-    groups: condor
-    shell: /sbin/nologin
-runcmd:
- - [ service, condor, start ]
+
+runcmd:                                                                                                                                                             
+- [ service, condor, restart ]              
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -91,16 +91,17 @@ def main(gvar):
     )
 
     # 29 Add metadata properly.
-    execute_csv2_request(
-        gvar, 0, None, 'cloud metadata file "{}::{}::{}" successfully added.'.format(ut_id(gvar, 'ctg1'), ut_id(gvar, 'ctc2'), ut_id(gvar, 'cty1')),
-        '/cloud/metadata-add/', group=(ut_id(gvar, 'ctg1')),
-        form_data={
-            'cloud_name': ut_id(gvar, 'ctc2'),
-            'metadata_name': ut_id(gvar, 'cty1'),
-            'metadata': 'unit-test: unit-test'
-        },
-        server_user=ut_id(gvar, 'ctu1')
-    )
+    # This has been commented out because the metadata file ut_id(gvar, 'cty1') has already been added during the setup process
+    #execute_csv2_request(
+    #    gvar, 0, None, 'cloud metadata file "{}::{}::{}" successfully added.'.format(ut_id(gvar, 'ctg1'), ut_id(gvar, 'ctc2'), ut_id(gvar, 'cty1')),
+    #    '/cloud/metadata-add/', group=(ut_id(gvar, 'ctg1')),
+    #    form_data={
+    #        'cloud_name': ut_id(gvar, 'ctc2'),
+    #        'metadata_name': ut_id(gvar, 'cty1'),
+    #        'metadata': 'unit-test: unit-test'
+    #    },
+    #    server_user=ut_id(gvar, 'ctu1')
+    #)
 
     # 30 Attempt to add the metadata added in 2 again.
     execute_csv2_request(
