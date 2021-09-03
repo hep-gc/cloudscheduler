@@ -43,7 +43,7 @@ def main(gvar):
     # 16
     execute_csv2_request(
         gvar, 0, None, "vm update, VMs killed: 0.",
-        '/vm/update/', group=ut_id(gvar, 'vtg1'), form_data={'vm_option': 'kill', 'vm_hosts': 'valid-unit-test-0,valid-unit-test-1'},
+        '/vm/update/', group=ut_id(gvar, 'vtg1'), form_data={'vm_option': 'kill', 'vm_hosts': ['valid-unit-test-0', 'valid-unit-test-1']},
         server_user=ut_id(gvar, 'vtu1')
     )
 
