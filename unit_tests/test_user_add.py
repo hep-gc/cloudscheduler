@@ -219,7 +219,7 @@ def main(gvar):
 
     # 27 Give empty passwords.
     execute_csv2_request(
-        gvar, 1, 'UV', 'user add, "invalid-unit-test" failed - (1364, "Field \'password\' doesn\'t have a default value").',
+        gvar, 1, 'UV', 'Field \'password\' doesn\'t have a default value.',
         '/user/add/', group=ut_id(gvar, 'utg1'), form_data={
             'username': 'invalid-unit-test',
             'password1': '',

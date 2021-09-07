@@ -44,7 +44,7 @@ def main(gvar):
 
     # 16 Attempt to delete a group that does not exist.
     execute_csv2_request(
-        gvar, 1, None, 'group delete "invalid-unit-test" failed - the request did not match any rows.',
+        gvar, 1, None, 'group resources delete "invalid-unit-test" failed - the request did not match any rows.',
         '/group/delete/', group=ut_id(gvar, 'gtg4'), form_data={'group_name': 'invalid-unit-test'},
         server_user=ut_id(gvar, 'gtu5')
     )

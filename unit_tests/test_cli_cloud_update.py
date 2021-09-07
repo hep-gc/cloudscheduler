@@ -26,7 +26,7 @@ def main(gvar):
             # 19
             'invalid-unit-test!': 'cloud update value specified for "cloud_name" must be all lowercase letters, digits, dashes, underscores, periods, and colons, and cannot contain more than one consecutive dash or start or end with a dash.',
             # 20 Specify a cloud that does not exist.
-            'invalid-unit-test': 'cloud update "{}::invalid-unit-test" failed - cloud "{}::invalid-unit-test" does not exist.'.format(ut_id(gvar, 'clg1'), ut_id(gvar, 'clg1'))
+            'invalid-unit-test': 'cloud update "{}::invalid-unit-test" failed - cloud {}::invalid-unit-test does not exist'.format(ut_id(gvar, 'clg1'), ut_id(gvar, 'clg1'))
         }, 'mandatory': True},
         # 21
         '--cloud-enabled': {'valid': 0, 'test_cases': {'invalid-unit-test': 'boolean value specified for "enabled" must be one of the following: true, false, yes, no, 1, or 0.'}},
