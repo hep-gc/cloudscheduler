@@ -163,7 +163,7 @@
 </head>
 <body class="clouds-nav" onpageshow="get_message(); set_location()">
 {% spaceless %}
-<div class="main-div">
+<div class="main-div {% if is_superuser %}super-main-div{% endif %}">
     <div class="menu">
     {% for cloud in cloud_list %}
         <div id="{{cloud.cloud_name}}">
@@ -183,7 +183,7 @@
 
                         <form name="{{cloud.cloud_name}}" action="/cloud/update/#{{cloud.cloud_name}}" method="post" autocomplete="nope">
                             {% csrf_token %}
-                            <table><tr><td>
+                            <table><tr><td class="tab-tables">
 
                                 <table>
                                     <input type="hidden" name="group" value="{{ cloud.group_name }}">
@@ -290,8 +290,9 @@
                                         {% else %}
                                             <td><div id="{{cloud.cloud_name}}-app_creds_expiry" style="{% if cloud.auth_type == 'userpass' %}visibility:collapse{% else %}visibility:inherit{% endif %};color:red">expired</div></td>
                                         {% endif %}
+                                        </tr>
                                     {% endif %}
-                                    </tr>
+                                    
 
                                     <tr class="highlight3"><td><label for="cacertificate">CA certificate</label></td>
                                     {% if cloud.cacertificate == None or cloud.cacertificate == "None" %}
@@ -307,17 +308,17 @@
                                     <td><input type="text" name="project_domain_name" value="{{cloud.project_domain_name}}" /></td></tr>
 
                                 </table>
-
-                            <td>    
+                            </td>
+                            <td class="tab-tables">    
 
                                 <table>
                                     {% if cloud.cloud_type == "openstack" %}
                                         <tr class="highlight3">
                                             <td><label for="vm_boot_volume">Boot Volume</label></td>
                                             {% if cloud.vm_boot_volume == None %}
-                                                <td><input type="text" name="vm_boot_volume" id="{{cloud.cloud_name}}-vm_boot_volume" title='null or {"GBs": n1, "GBs_per_core": n2}' value="null" /></td>
+                                                <td><textarea name="vm_boot_volume" id="{{cloud.cloud_name}}-vm_boot_volume" title='null or {"GBs": n1, "GBs_per_core": n2}' rows="5">null</textarea></td>
                                             {% else %}
-                                                <td><input type="text" name="vm_boot_volume" id="{{cloud.cloud_name}}-vm_boot_volume" title='null or {"GBs": n1, "GBs_per_core": n2}' value="{{cloud.vm_boot_volume}}" /></td>
+                                                <td><textarea name="vm_boot_volume" id="{{cloud.cloud_name}}-vm_boot_volume" title='null or {"GBs": n1, "GBs_per_core": n2}' rows="5">{{cloud.vm_boot_volume}}</textarea></td>
                                             {% endif %}
                                         </tr>
                                     {% endif %}

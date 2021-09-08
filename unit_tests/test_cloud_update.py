@@ -34,10 +34,10 @@ def main(gvar):
         'authurl': {'valid': gvar['cloud_credentials']['authurl'], 'test_cases': {'': 'parameter "authurl" contains an empty string which is specifically disallowed.'}},
         # 16 Give two usernames.
         # 17
-        'username': {'valid': gvar['cloud_credentials']['username'], 'test_cases': {'': 'parameter "username" contains an empty string which is specifically disallowed.'}},
+        'username': {'valid': gvar['cloud_credentials']['username'], 'test_cases': {'': 'insufficient credentials to establish openstack v3 session, check if missing any user/project info'}},
         # 18 Give two passwords.
         # 19
-        'password': {'valid': gvar['cloud_credentials']['password'], 'test_cases': {'': 'parameter "password" contains an empty string which is specifically disallowed.'}},
+        'password': {'valid': gvar['cloud_credentials']['password'], 'test_cases': {'': 'insufficient credentials to establish openstack v3 session, check if missing any user/project info'}},
         # 20 Give two projects.
         # 21
         'project': {'valid': gvar['cloud_credentials']['project'], 'test_cases': {'': 'parameter "project" contains an empty string which is specifically disallowed.'}},
@@ -46,7 +46,7 @@ def main(gvar):
         'region': {'valid': gvar['cloud_credentials']['region'], 'test_cases': {'': 'parameter "region" contains an empty string which is specifically disallowed.'}},
         # 24 Give two cloud_types.
         # 25
-        'cloud_type': {'valid': 'local', 'test_cases': {'invalid-unit-test': 'value specified for "cloud_type" must be one of the following options: [\'amazon\', \'azure\', \'google\', \'local\', \'opennebula\', \'openstack\'].'}},
+        'cloud_type': {'valid': 'local', 'test_cases': {'invalid-unit-test': 'value specified for "cloud_type" must be one of the following options: [\'amazon\', \'local\', \'openstack\'].'}},
         # 26 Give two enableds.
         # 27
         'enabled': {'valid': 0, 'test_cases': {'invalid-unit-test': 'boolean value specified for "enabled" must be one of the following: true, false, yes, no, 1, or 0.'}},

@@ -1437,7 +1437,7 @@ def validate_fields(config, request, fields, tables, active_user):
                 elif Formats[field] == 'lowerdash':
                     if value == '' and field not in AllowEmpty:
                         return 1, 'value specified for "%s" must not be the empty string.' % field, None, None, None
-                    if re.fullmatch("^(?!-)(?!.*--)[a-z0-9.:,-]*(?<!-)$", request.POST[field]):
+                    if re.fullmatch("^(?!-)(?!.*--)[a-z0-9.:-]*(?<!-)$", request.POST[field]):
                         value = request.POST[field]
                     else:
                         return 1, 'value specified for "%s" must be all lowercase letters, digits, dashes, underscores, periods, and colons, and cannot contain more than one consecutive dash or start or end with a dash.' % field, None, None, None
@@ -1643,7 +1643,7 @@ def get_target_cloud(config, group_name, cloud_name):
     if len(cloud_list) == 1:
         return 0, None, cloud_list[0]
     else:
-        return 1, 'cloud %s::%s does not exist' % (group_name, cloud_name), None
+        return 1, 'cloud %s::%s does not exist: %s' % (group_name, cloud_name, msg), None
 
 #-------------------------------------------------------------------------------
 

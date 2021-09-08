@@ -1,4 +1,8 @@
 
+{% block navbar %}
+    {% include "csv2/navigation_bar.html" %}
+{% endblock %}
+
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
 <style>
 	/* for image upload cloud picker widget */
@@ -21,11 +25,6 @@
 	}
 
 </style>
-
-{% block navbar %}
-   {% include "csv2/navigation_bar.html" %}
-{% endblock %}
-
 
 <head>
     {% load static %}
@@ -55,7 +54,7 @@
 
 
 <body style="position: absolute; top: 62px; padding-bottom: 129px; overflow: auto;" class="images-nav" onpageshow="set_location()">
-<div class="image upload">
+<div class="image upload section-div {% if is_superuser %}super-section-div{% endif %}">
 	<form method="post" action="/images/upload_image/{{group_name}}/" enctype="multipart/form-data">
 	{% csrf_token %}
 	<table style="width: 110%;">
@@ -120,7 +119,7 @@
         {% if response_code == 1 %} 
             <tr><td><b>Error: {{ message }}</b></td></tr>
         {% elif message is not None %} 
-            <tr><td><b>{{ message }}</b></td></tr>
+            <tr><td>{{ message }}</td></tr>
         {% endif %}
     </div>  
 </footer>

@@ -59,7 +59,8 @@ def manage_keys(request, group_name=None, message=None):
         "active_group": group_name,
         "message": message,
         "user_groups": user_groups,
-        "num_clouds": num_clouds
+        "num_clouds": num_clouds,
+        "is_superuser": user_obj.is_superuser
     }
     # need to create template
     db_config.db_close()

@@ -88,7 +88,7 @@ def main(gvar):
 
     # 27 Ensure that YAML formatting is not enforced on all metadata and that correct parameters are accepted.
     execute_csv2_request(
-        gvar, 0, None, 'cloud metadata file "{}::{}::{}" successfully  updated.'.format(ut_id(gvar, 'ctg1'), ut_id(gvar, 'ctc3'), ut_id(gvar, 'cty3')),
+        gvar, 0, None, 'cloud metadata file "{}::{}::{}" successfully updated.'.format(ut_id(gvar, 'ctg1'), ut_id(gvar, 'ctc3'), ut_id(gvar, 'cty3')),
         '/cloud/metadata-update/', group=ut_id(gvar, 'ctg1'),
         form_data={
             'cloud_name': ut_id(gvar, 'ctc3'),
@@ -103,7 +103,7 @@ def main(gvar):
 
     # 28 Give correct YAML metadata.
     execute_csv2_request(
-        gvar, 0, None, 'cloud metadata file "{}::{}::{}" successfully  updated.'.format(ut_id(gvar, 'ctg1'), ut_id(gvar, 'ctc3'), ut_id(gvar, 'cty3.yaml')),
+        gvar, 0, None, 'cloud metadata file "{}::{}::{}" successfully updated.'.format(ut_id(gvar, 'ctg1'), ut_id(gvar, 'ctc3'), ut_id(gvar, 'cty3.yaml')),
         '/cloud/metadata-update/', group=ut_id(gvar, 'ctg1'),
         form_data={
             'cloud_name': ut_id(gvar, 'ctc3'),

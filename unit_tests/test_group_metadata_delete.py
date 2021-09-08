@@ -19,7 +19,7 @@ def main(gvar):
         # 07 Give an invalid parameter.
         # 08 Give two metadata_names.
         # 09
-        'metadata_name': {'valid': ut_id(gvar, 'gty6'), 'test_cases': {'invalid-unit-test': '"{}::invalid-unit-test" failed - the request did not match any rows.'.format(ut_id(gvar, 'gtg5'))},'mandatory': True}
+        'metadata_name': {'valid': ut_id(gvar, 'gty6'), 'test_cases': {'invalid-unit-test': 'group metadata-delete "{}::invalid-unit-test" failed - the request did not match any rows.'.format(ut_id(gvar, 'gtg5'))},'mandatory': True}
     }
 
     parameters_requests(gvar, '/group/metadata-delete/', ut_id(gvar, 'gtg5'), ut_id(gvar, 'gtu5'), parameters)

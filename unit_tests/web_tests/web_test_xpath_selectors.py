@@ -7,6 +7,9 @@ def form_input_by_value(form, value):
 def form_input_by_name(form, name):
     return "//form[@name='" + form + "']//input[@name='" + name + "']"
 
+def form_textarea_by_name(form, name):
+    return "//form[@name='" + form + "']//textarea[@name='" + name + "']"
+
 def form_input_by_name_not_hidden(form, name):
     return "//form[@name='" + form + "']//input[@name='" + name + "' and not(@type='hidden')]"
 

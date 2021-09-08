@@ -39,7 +39,7 @@
 {% spaceless %}
 
 <!--https://www.w3.org/Style/Examples/007/target.en.html#tab1-->
-<div class="main-div">
+<div class="main-div {% if is_superuser %}super-main-div{% endif %}">
     <div class="menu">
         {% for group in group_list %}
         

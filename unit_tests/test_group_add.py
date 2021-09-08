@@ -136,7 +136,7 @@ def main(gvar):
 
     # 44
     execute_csv2_request(
-        gvar, 1, 'GV', '"{0}" failed - (1062, "Duplicate entry \'{0}\' for key \'PRIMARY\'").'.format(ut_id(gvar, 'gtg1')),
+        gvar, 1, 'GV', "Duplicate entry '{}' for key 'PRIMARY'.".format(ut_id(gvar, 'gtg1')),
         '/group/add/', group=ut_id(gvar, 'gtg4'), form_data={
             'group_name': ut_id(gvar, 'gtg1'),
             'htcondor_fqdn': gvar['fqdn']

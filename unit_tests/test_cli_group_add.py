@@ -43,7 +43,7 @@ def main(gvar):
             # 35
             'invalid-unit-test!': 'group add value specified for "group_name" must be all lowercase letters, digits, dashes, underscores, periods, and colons, and cannot contain more than one consecutive dash or start or end with a dash.',
             # 36
-            'group-name-that-is-too-long-for-the-database________________': 'Data too long for column \'group_name\' at row 1',
+            'group-name-that-is-too-long-for-the-database-test-group-name-too-long-error-case': 'Data too long for column \'group_name\' at row 1',
             # 37
             ut_id(gvar, 'clg2'): 'Duplicate entry \'{}\' for key \'PRIMARY\''.format(ut_id(gvar, 'clg2'))
         }, 'mandatory': True},

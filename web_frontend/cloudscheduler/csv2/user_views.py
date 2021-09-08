@@ -14,6 +14,7 @@ from cloudscheduler.lib.view_utils import \
     table_fields, \
     validate_fields, \
     check_convert_bytestrings
+import cloudscheduler.lib.schema as schema_na
 from collections import defaultdict
 import bcrypt
 
@@ -198,9 +199,16 @@ def delete(request):
             config.db_close()
             return user_list(request, active_user=active_user, response_code=1, message='%s user delete, %s' % (lno(MODID), msg))
 
+        # Check if user exists
+        table = 'csv2_user'
+        where_clause = "username='%s'" % fields['username']
+        rc, msg, found_user_list = config.db_query(table, where=where_clause)
+        if not found_user_list or len(found_user_list) == 0: 
+            config.db_close()
+            return user_list(request, active_user=active_user, response_code=1, message='%s user group-delete "%s" failed - the request did not match any rows.' % (lno(MODID), fields['username']))
+
         # Delete any user_groups for the user.
         table = 'csv2_user_groups'
-        where_clause = "username='%s'" % fields['username']
         rc, msg = config.db_delete(table, where=where_clause)
         if rc != 0:
             config.db_close()
@@ -368,6 +376,7 @@ def settings(request, active_user=None, response_code=0, message=None):
     else:
         msg ='%s %s' % (lno(MODID), msg)
 
+    pre_rc = rc
     # Retrieve user settings.
     where_clause =  "username='%s'" % active_user.username
     rc, qmsg, _user_list_raw = config.db_query("csv2_user", where=where_clause)
@@ -376,13 +385,14 @@ def settings(request, active_user=None, response_code=0, message=None):
     # Close the database.
     config.db_close()
 
+    final_rc = rc if pre_rc == 0 else pre_rc
     # Render the page.
     context = {
             'active_user': active_user.username,
             'active_group': active_user.active_group,
             'user_groups': active_user.user_groups,
             'user_list': _user_list,
-            'response_code': rc,
+            'response_code': final_rc,
             'message': msg,
             'is_superuser': active_user.is_superuser,
             'version': config.get_version()
@@ -430,8 +440,23 @@ def update(request):
         table = 'csv2_user'
         user_updates = table_fields(fields, table, columns, 'update')
         user_updates = check_convert_bytestrings(user_updates)
-        if len(user_updates) > 0:
+        
+        # Check if has any property to update other than username
+        update_flag = True
+        if len(user_updates) == 1:
+            key = list(user_updates.keys())[0]
+            if key in schema_na.schema[table]['keys']:
+                update_flag = False
+
+        if len(user_updates) > 0 and update_flag:
             where_clause = "username='%s'" % fields['username']
+            
+            # Check if user exists
+            rc, msg, found_user_list = config.db_query(table, where=where_clause)
+            if not found_user_list or len(found_user_list) == 0: 
+                config.db_close()
+                return user_list(request, active_user=active_user, response_code=1, message='%s user update failed - the request did not match any rows.' % lno(MODID))
+           
             rc, msg = config.db_update(table, user_updates, where=where_clause)
             if rc != 0:
                 config.db_close()

@@ -51,7 +51,7 @@ def main(gvar):
 
     # 11 Give a cloud_name / metadata_name combination that does not exist.
     execute_csv2_request(
-        gvar, 1, None, 'cloud metadata_fetch, received an invalid metadata file id "{}::invalid-unit-test::invalid-unit-test".'.format(ut_id(gvar, 'ctg1')),
+        gvar, 1, None, 'cloud metadata_fetch, file "{}::invalid-unit-test::invalid-unit-test" does not exist.'.format(ut_id(gvar, 'ctg1')),
         '/cloud/metadata-fetch/', group=ut_id(gvar, 'ctg1'), query_data={'cloud_name': 'invalid-unit-test', 'metadata_name': 'invalid-unit-test'},
         server_user=ut_id(gvar, 'ctu1')
     )

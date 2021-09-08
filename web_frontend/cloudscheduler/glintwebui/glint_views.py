@@ -721,7 +721,7 @@ def upload(request, group_name=None):
                 'active_user': active_user.username,
                 'active_group': active_user.active_group,
                 'user_groups': active_user.user_groups,
-                'response_code': rc,
+                'response_code': 1,
                 'message': msg,
                 'is_superuser': active_user.is_superuser,
                 'version': config.get_version()
@@ -768,7 +768,7 @@ def upload(request, group_name=None):
                 'active_user': active_user.username,
                 'active_group': active_user.active_group,
                 'user_groups': active_user.user_groups,
-                'response_code': rc,
+                'response_code': 1,
                 'message': msg,
                 'is_superuser': active_user.is_superuser,
                 'version': config.get_version()
@@ -795,7 +795,7 @@ def upload(request, group_name=None):
                 'active_user': active_user.username,
                 'active_group': active_user.active_group,
                 'user_groups': active_user.user_groups,
-                'response_code': rc,
+                'response_code': 1,
                 'message': msg,
                 'is_superuser': active_user.is_superuser,
                 'version': config.get_version()
@@ -954,7 +954,7 @@ def upload(request, group_name=None):
 
         if len(cloud_name_list) == 0:
             #if we have eliminated all the target clouds, return with error message
-            message = ("Upload failed to all target projects because the image name was already in use.")
+            msg = ("Upload failed to all target projects because the image name was already in use.")
             where_clause = "group_name='%s' and cloud_type='%s'" % (group_name, "openstack")
             cloud_list = config.db_query(CLOUDS, where=where_clause)
             context = {
@@ -967,7 +967,7 @@ def upload(request, group_name=None):
                 'active_user': active_user.username,
                 'active_group': active_user.active_group,
                 'user_groups': active_user.user_groups,
-                'response_code': rc,
+                'response_code': 1,
                 'message': msg,
                 'is_superuser': active_user.is_superuser,
                 'version': config.get_version()
@@ -1008,7 +1008,7 @@ def upload(request, group_name=None):
                 'active_user': active_user.username,
                 'active_group': active_user.active_group,
                 'user_groups': active_user.user_groups,
-                'response_code': rc,
+                'response_code': 1,
                 'message': msg,
                 'is_superuser': active_user.is_superuser,
                 'version': config.get_version()

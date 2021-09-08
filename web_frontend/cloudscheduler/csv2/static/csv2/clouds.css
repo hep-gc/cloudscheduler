@@ -1,0 +1,8 @@
+/*****************************************************************/
+/*                   clouds page input                           */
+/*****************************************************************/
+
+body.clouds-nav input[type="text"], body.clouds-nav input[type="password"], body.clouds-nav textarea[name="vm_boot_volume"] {
+  width: 200px;
+}
+

@@ -20,7 +20,8 @@ from cloudscheduler.lib.poller_functions import \
     inventory_get_item_hash_from_db_query_rows, \
     inventory_test_and_set_item_hash, \
     start_cycle, \
-    wait_cycle
+    wait_cycle, \
+    log_heartbeat_message
 from cloudscheduler.lib.ProcessMonitor import ProcessMonitor, check_pid, terminate
 
 import htcondor
@@ -413,6 +414,7 @@ def job_poller():
     GROUPS = "csv2_groups"
     USERS = "csv2_user_groups"
     ikey_names = ["global_job_id", "group_name", "htcondor_host_id"]
+    last_heartbeat_time = 0
 
 
     try:
@@ -426,7 +428,7 @@ def job_poller():
         #inventory = get_inventory_item_hash_from_database(config.db_engine, JOB, 'global_job_id', debug_hash=(config.categories["condor_poller.py"]["log_level"]<20), condor_host=config.local_host_id)
         while True:
             config.db_open()
-            logging.debug("Starting Cycle...")
+            last_heartbeat_time = log_heartbeat_message(last_heartbeat_time, "JOB POLLER")
             #
             # Setup - initialize condor and database objects and build user-group list
             #
@@ -792,11 +794,12 @@ def job_command_poller():
     cycle_start_time = 0
     new_poll_time = 0
     poll_time_history = [0,0,0,0]
+    last_heartbeat_time = 0
 
     try:
         while True:
             config.db_open()
-            logging.debug("Beginning command consumer cycle")
+            last_heartbeat_time = log_heartbeat_message(last_heartbeat_time, "JOB COMMAND POLLER")
             config.refresh()
 
             if not os.path.exists(PID_FILE):
@@ -919,6 +922,7 @@ def machine_poller():
     cycle_count = 0
     uncommitted_updates = 0
     failure_dict = {}
+    last_heartbeat_time = 0
 
     try:
         config.db_open()
@@ -931,6 +935,7 @@ def machine_poller():
         configure_fw(config, logging)
         config.db_close()
         while True:
+            last_heartbeat_time = log_heartbeat_message(last_heartbeat_time, "MACHINE POLLER")
             config.db_open()
             new_poll_time, cycle_start_time = start_cycle(new_poll_time, cycle_start_time)
 
@@ -1181,14 +1186,14 @@ def machine_command_poller(arg_list):
     new_poll_time = 0
     poll_time_history = [0,0,0,0]
 
-
     cycle_count = 0
+    last_heartbeat_time = 0
 
 
     try:
         while True:
             config.db_open()
-            logging.debug("Beginning command consumer cycle")
+            last_heartbeat_time = log_heartbeat_message(last_heartbeat_time, "MACHINE COMMAND POLLER")
             config.refresh()
 
             if not os.path.exists(PID_FILE):
@@ -1223,9 +1228,11 @@ def worker_gsi_poller():
     cycle_start_time = 0
     new_poll_time = 0
     poll_time_history = [0,0,0,0]
+    last_heartbeat_time = 0
 
     try:
         while True:
+            last_heartbeat_time = log_heartbeat_message(last_heartbeat_time, "WORKER GSI POLLER")
             config.db_open()
             new_poll_time, cycle_start_time = start_cycle(new_poll_time, cycle_start_time)
 
@@ -1314,11 +1321,13 @@ def condor_gsi_poller():
     cycle_start_time = 0
     new_poll_time = 0
     poll_time_history = [0,0,0,0]
+    last_heartbeat_time = 0
 
 
     try:
         while True:
             config.db_open()
+            last_heartbeat_time = log_heartbeat_message(last_heartbeat_time, "CONDOR GSI POLLER")
             new_poll_time, cycle_start_time = start_cycle(new_poll_time, cycle_start_time)
 
             config.refresh()

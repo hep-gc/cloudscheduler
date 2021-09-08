@@ -31,7 +31,7 @@ def main(gvar):
             # 14
             'invalid-unit-test!': 'group metadata-add value specified for "metadata_name" must be all lowercase letters, digits, dashes, underscores, periods, and colons, and cannot contain more than one consecutive dash or start or end with a dash.',
             # 15
-            'metadata-name-that-is-too-long-for-the-database_________________________': 'Data too long for column \'metadata_name\''
+            'metadata-name-that-is-too-long-for-the-database-test-metadata-name-too-long-error-case': 'Data too long for column \'metadata_name\''
         }, 'mandatory': True},
         # 16 Omit metadata.
         # 17 Give two metadata.

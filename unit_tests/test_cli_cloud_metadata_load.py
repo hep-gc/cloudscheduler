@@ -25,7 +25,7 @@ def main(gvar):
             # 16
             '': 'cloud metadata-add value specified for "cloud_name" must not be the empty string.',
             # 17
-            'invalid-unit-test': 'cloud name  "invalid-unit-test" does not exist.'
+            'invalid-unit-test': 'cloud name "invalid-unit-test" does not exist.'
         }, 'mandatory': True},
         # 18 Omit --metadata-name.
         '--metadata-name': {'valid': ut_id(gvar, 'clm2'), 'test_cases': {
@@ -40,7 +40,7 @@ def main(gvar):
             # 23
             'invalid-unit-test!': 'cloud metadata-add value specified for "metadata_name" must be all lowercase letters, digits, dashes, underscores, periods, and colons, and cannot contain more than one consecutive dash or start or end with a dash.',
             # 24
-            'metadata-name-that-is-too-long-for-the-database_______________________': 'Data too long for column \'metadata_name\''
+            'metadata-name-that-is-too-long-for-the-database-test-metadata-name-too-long-error-case': 'Data too long for column \'metadata_name\''
         }, 'mandatory': True},
         # 25 Omit --file-path.
         '--file-path': {'valid': METADATA_FILEPATH, 'test_cases': {

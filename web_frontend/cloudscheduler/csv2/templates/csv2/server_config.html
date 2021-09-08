@@ -32,7 +32,7 @@
 <body class="config-nav" onpageshow="set_location()">
 {% spaceless %}
 
-<div class="main-div">
+<div class="main-div {% if is_superuser %}super-main-div{% endif %}">
 
     <div class="menu">
 

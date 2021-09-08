@@ -34,7 +34,7 @@
 <body class="users-nav" onpageshow="set_location()">
 {% spaceless %}
 
-<div class="main-div">
+<div class="main-div {% if is_superuser %}super-main-div{% endif %}">
     <div class="menu">
     {% for user in user_list %}
         <div id="{{user.username}}" style="padding-top: 60px;margin-top: -60px;"> 

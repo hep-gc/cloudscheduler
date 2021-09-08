@@ -19,6 +19,7 @@ from cloudscheduler.lib.ec2_translations import get_ami_dictionary
 from cloudscheduler.lib.ProcessMonitor import ProcessMonitor, check_pid, terminate
 from cloudscheduler.lib.poller_functions import start_cycle, wait_cycle
 from cloudscheduler.lib.openstack_functions import get_openstack_sess, get_nova_connection, get_cinder_connection
+from cloudscheduler.lib.signal_functions import event_receiver_registration
 
 import openstackcloud
 import localhostcloud
@@ -308,7 +309,6 @@ def process_group_cloud_terminates(pair, config):
                     logging.info("%s : %s: VM still has active slots, skipping terminate on %s" % (group_name, cloud_name, resource["vmid"]))
                     continue
 
-
         # we need the relevent vm row to check if its in manual mode and if not, terminate and update termination status
         try:
             where_clause = "group_name='%s' and cloud_name='%s' and vmid='%s'" % (resource["group_name"], resource["cloud_name"], resource["vmid"])
@@ -320,7 +320,6 @@ def process_group_cloud_terminates(pair, config):
         if vm_row["manual_control"] == 1:
             logging.info("%s : %s: VM %s under manual control, skipping terminate..." % (group_name, cloud_name, resource["vmid"]))
             continue
-
 
         # Get session with hosting cloud.
         where_clause = "group_name='%s' and cloud_name='%s'" % (vm_row["group_name"], vm_row["cloud_name"])
@@ -896,10 +895,10 @@ def vm_termination(args_list):
     cycle_start_time = 0
     new_poll_time = 0
     poll_time_history = [0,0,0,0]
-
-
     cycle_count = 0
 
+    event_receiver_registration(config, "update_csv2_clouds_openstack")
+    event_receiver_registration(config, "update_csv2_clouds_amazon")
 
     try:
         config.db_open()
@@ -911,7 +910,7 @@ def vm_termination(args_list):
                 logging.debug("%s : %s: Stop set, exiting..."  % (target_group, target_cloud))
                 break
 
-#            signal.signal(signal.SIGINT, signal.SIG_IGN)
+            signal.signal(signal.SIGINT, signal.SIG_IGN)
             new_poll_time, cycle_start_time = start_cycle(new_poll_time, cycle_start_time)
        
             pair = {
@@ -927,15 +926,102 @@ def vm_termination(args_list):
                 logging.exception(exc)
 
             
-#            signal.signal(signal.SIGINT, config.signals['SIGINT'])
+            signal.signal(signal.SIGINT, config.signals['SIGINT'])
             if not os.path.exists(PID_FILE):
                 logging.info("%s : %s: Stop set, exiting..." % (target_group, target_cloud))
                 break
-            wait_cycle(cycle_start_time, poll_time_history, config.categories["condor_poller.py"]["sleep_interval_command"], config)
+            try:
+                wait_cycle(cycle_start_time, poll_time_history, config.categories["condor_poller.py"]["sleep_interval_command"], config)
+            except KeyboardInterrupt:
+                # sigint recieved, cancel the sleep and start the loop
+                continue
 
     except Exception as exc:
         logging.exception("Command consumer while loop exception, process terminating...")
         logging.error(exc)
+
+
+def vm_slot_auditor():
+    """
+    vm slot count auditor function.
+    """
+    multiprocessing.current_process().name = "vm_slot_auditor"
+
+    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', ['csmain', 'GSI'], pool_size=25)
+    if not config: 
+        print("Problem loading config file.") 
+    MACHINES = "condor_machines"
+    VMS = "csv2_vms"
+
+    # Dictionary will follow the format:
+    # vm_name {
+    #     dynamic: n
+    #     partionlable: n
+    # }
+    slot_count_dict = {}
+    
+    # get list of all condor machines and build dictorinary representing slot count
+    # then cross reference dict against the database and update any relevent rows.
+    while(True):
+        try:
+            config.db_open()
+            slot_count_dict = {}
+            config.refresh()
+            machine_list = []
+            rc, msg, machine_list = config.db_query(MACHINES, order_by="machine")
+            if rc != 0:
+                logging.error("Error retriving machine list: %s" % msg)
+            else:
+                #process data
+                for machine in machine_list:
+                    logging.debug("Processing machine:")
+                    logging.debug(machine)
+                    logging.debug("Slot type: %s" % machine["slot_type"])
+                    # we have to slice off anthing after a . otherwise the machine wont match the hostname
+                    machine_name = machine["machine"].split(".", 1)[0]
+                    if machine_name not in slot_count_dict.keys():
+                        slot_count_dict[machine_name] = {
+                            "partitionable": 0,
+                            "dynamic": 0
+                        }
+                    if machine["slot_type"] == "Partitionable":
+                        slot_count_dict[machine_name]["partitionable"] = slot_count_dict[machine_name]["partitionable"] + 1
+                    
+                    if machine["slot_type"] == "Dynamic":
+                        slot_count_dict[machine_name]["dynamic"] = slot_count_dict[machine_name]["dynamic"] + 1
+
+                # when updating the VM table we may need to match the hostname a little differently like the trigger does:
+                # where hostname=NEW.machine or hostname=substring_index(NEW.machine,'.',1)
+                
+                # loop thru the dictionary querying the vm row for each and update only if slot counts are wrong
+                logging.debug("SLOT COUNT DICT:")
+                logging.debug(slot_count_dict)
+                for slot_count in slot_count_dict:
+                    where_clause = "hostname='%s' or hostname='%s'" % (slot_count, slot_count.split('.')[0])
+                    rc, msg, row = config.db_query(VMS, where=where_clause)
+                    # check that we got exactly 1 row, or print error message saying we are missing a vm entry or there is a duplicate
+                    if len(row) != 1:
+                        # Either more rows than expected or no row
+                        logging.error("Unable to find or isolate vm row with hostname: %s" % slot_clount)
+                        time.sleep(0.1)
+                        continue
+                    else:
+                        vm_row = row[0]
+
+                    logging.debug("VM row counts: dynamic:%s partitionable:%s" % (vm_row["htcondor_dynamic_slots"], vm_row["htcondor_partitionable_slots"]))
+                    logging.debug("machine audit counts: dynamic:%s partitionable:%s" % (slot_count_dict[slot_count]["dynamic"], slot_count_dict[slot_count]["partitionable"]))
+                    if vm_row["htcondor_dynamic_slots"] != slot_count_dict[slot_count]["dynamic"] or vm_row["htcondor_partitionable_slots"] != slot_count_dict[slot_count]["partitionable"]:
+                        logging.info("Slot count mismatch detected for %s, updating vm row" % slot_count)
+                        sql = "update csv2_vms set htcondor_dynamic_slots=%s, htcondor_partitionable_slots=%s where group_name='%s' and cloud_name='%s' and vmid='%s'" % (slot_count_dict[slot_count]["dynamic"], slot_count_dict[slot_count]["partitionable"], vm_row["group_name"], vm_row["cloud_name"], vm_row["vmid"])
+                        logging.debug("update request:")
+                        logging.debug(sql)
+                        config.db_execute(sql)
+                        config.db_commit()
+            config.db_close()
+            time.sleep(300)
+        except Exception as exc:
+            logging.error("Exception retrieving or processing machine list:")
+            logging.exception(exc)
 
 #~~~~~~~~~~~~~~~~~
 
@@ -1036,6 +1122,7 @@ if __name__ == '__main__':
         'idle_vms': check_view_idle_vms,
     #    'vm_termination': vm_termination,
         'vm_termination': [vm_termination, 'select distinct group_name,cloud_name from csv2_clouds;'],
+        'slot_auditor': vm_slot_auditor,
     }
 
     procMon = ProcessMonitor(

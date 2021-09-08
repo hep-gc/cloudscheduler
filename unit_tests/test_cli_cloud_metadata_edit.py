@@ -23,14 +23,14 @@ def main(gvar):
             # 16
             '': 'cloud metadata_fetch, value specified for "cloud_name" must not be the empty string.',
             # 17
-            'invalid-unit-test': 'received an invalid metadata file id "{}::invalid-unit-test::{}".'.format(ut_id(gvar, 'clg1'), ut_id(gvar, 'clm2'))
+            'invalid-unit-test': 'file "{}::invalid-unit-test::{}" does not exist.'.format(ut_id(gvar, 'clg1'), ut_id(gvar, 'clm2'))
         }, 'mandatory': True},
         # 18 Omit --metadata-name.
         '--metadata-name': {'valid': ut_id(gvar, 'clm2'), 'test_cases': {
             # 19
             '': 'cloud metadata_fetch, value specified for "metadata_name" must not be the empty string.',
             # 20
-            'invalid-unit-test': 'received an invalid metadata file id "{}::{}::invalid-unit-test".'.format(ut_id(gvar, 'clg1'), ut_id(gvar, 'clc2'))
+            'invalid-unit-test': 'file "{}::{}::invalid-unit-test" does not exist.'.format(ut_id(gvar, 'clg1'), ut_id(gvar, 'clc2'))
         }, 'mandatory': True},
         # 21 Omit --text-editor.
         '--text-editor': {'valid': '{}/editscript5'.format(EDIT_SCRIPT_DIR), 'test_cases': {
@@ -57,7 +57,7 @@ def main(gvar):
     
     # 26
     execute_csv2_command(
-        gvar, 1, None, 'received an invalid metadata file id "{}::invalid-unit-test::invalid-unit-test".'.format(ut_id(gvar, 'clg1')),
+        gvar, 1, None, 'file "{}::invalid-unit-test::invalid-unit-test" does not exist.'.format(ut_id(gvar, 'clg1')),
         ['cloud', 'metadata-edit', '--cloud-name', 'invalid-unit-test', '--metadata-name', 'invalid-unit-test', '--text-editor', 'invalid-unit-test', '-su', ut_id(gvar, 'clu3')]
     )
 
@@ -92,13 +92,13 @@ def main(gvar):
 
     # 31 Known to fail if run twice without setup / cleanup in between.
     execute_csv2_command(
-        gvar, 0, None, 'successfully  updated.',
+        gvar, 0, None, 'successfully updated.',
         ['cloud', 'metadata-edit', '--cloud-name', ut_id(gvar, 'clc2'), '--metadata-name', ut_id(gvar, 'clm2'), '--text-editor', '{}/editscript6'.format(EDIT_SCRIPT_DIR), '-su', ut_id(gvar, 'clu3')]
     )
 
     # 32 Known to fail if run twice without setup / cleanup in between.
     execute_csv2_command(
-        gvar, 0, None, 'successfully  updated.',
+        gvar, 0, None, 'successfully updated.',
         ['cloud', 'metadata-edit', '--cloud-name', ut_id(gvar, 'clc2'), '--metadata-name', ut_id(gvar, 'clm2.yaml'), '--text-editor', '{}/editscript7'.format(EDIT_SCRIPT_DIR), '-su', ut_id(gvar, 'clu3')]
     )
 

@@ -16,6 +16,7 @@ from cloudscheduler.lib.view_utils import kill_retire
 from cloudscheduler.lib.log_tools import get_frame_info
 from cloudscheduler.lib.view_utils import qt, verify_cloud_credentials 
 from cloudscheduler.lib.html_tables_to_dictionary import get_html_tables
+from cloudscheduler.lib.signal_functions import event_signal_send
 
 from cloudscheduler.lib.poller_functions import \
     inventory_cleanup, \
@@ -2045,7 +2046,8 @@ def vm_poller():
             rc, msg, over_quota_clouds = config.db_query("view_vm_kill_retire_over_quota", where=where_clause)
             for cloud in over_quota_clouds:
                 kill_retire(config, cloud["group_name"], cloud["cloud_name"], "control", cloud["cores"], cloud["ram"], get_frame_info())
-
+            if len(over_quota_clouds) > 0:
+                event_signal_send(config, "update_csv2_clouds_amazon")
 
             logging.debug("Completed VM poller cycle")
             config.db_close()

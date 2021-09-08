@@ -136,6 +136,7 @@
 
 .status-table th {
   font-weight: bold;
+  text-align: center;
 }
 
 .status-table table {
@@ -207,6 +208,11 @@
 .ram-meter {
   width: 40px;
 }
+
+meter.disabled-meter::-webkit-meter-optimum-value {
+  background: grey; /* Green */
+}
+
 
 /*****************************************************************/
 /*                    expanding row styling                      */
@@ -330,7 +336,8 @@
 
 .disabled-style {
   text-decoration: none;
-  color: maroon;
+  /* color: maroon; */
+  color: grey;
   font-weight: bold;
 }
 
@@ -434,9 +441,12 @@
 
 body.status-nav{
   position: absolute;
-  top: 62px;
   padding-bottom: 129px;
   overflow: auto;
+}
+
+body.status-nav .main-div {
+  overflow: unset;
 }
 
 .system-div {

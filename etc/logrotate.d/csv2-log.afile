@@ -6,4 +6,7 @@
   compress
   copytruncate
   create 0644 cloudscheduler cloudscheduler
+  prerotate
+    bash -c "[[ ! $1 =~ condor_poller ]]"
+  endscript
 }

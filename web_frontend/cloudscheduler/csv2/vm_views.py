@@ -15,6 +15,7 @@ from cloudscheduler.lib.view_utils import \
     render, \
     set_user_groups, \
     table_fields, \
+    get_target_cloud, \
     validate_fields
 from collections import defaultdict
 import bcrypt
@@ -22,7 +23,7 @@ import time
 
 from cloudscheduler.lib.schema import *
 from cloudscheduler.lib.log_tools import get_frame_info
-
+from cloudscheduler.lib.signal_functions import event_signal_send
 from cloudscheduler.lib.web_profiler import silk_profile as silkp
 
 # lno: VV - error code identifier.
@@ -89,12 +90,12 @@ def foreign(request):
     global_view = active_user.kwargs['global_view']
 
     if global_view=='1':
-        rc, msg, foreign_list = config.db_query(view_foreign_flavors)
+        rc, msg, foreign_list = config.db_query("view_foreign_flavors")
 
     else:
         # Retrieve VM information.
         where_clause = "group_name='%s'" % active_user.active_group
-        rc, msg, foreign_list_raw = config.db_query(view_foreign_flavors, where=where_clause)
+        rc, msg, foreign_list_raw = config.db_query("view_foreign_flavors", where=where_clause)
         foreign_list = qt(foreign_list_raw, filter=qt_filter_get(['cloud_name'], active_user.kwargs))
 #   _vm_list = qt(config.db_connection.execute(s), filter=qt_filter_get(['cloud_name', 'poller_status', 'hostname'], selector.split('::'), aliases=ALIASES), convert={
 
@@ -267,6 +268,18 @@ def update(request):
 #                   return vm_list(request, selector, response_code=1, message='%s vm update (%s) failed - %s' % (lno(MODID), fields['vm_option'], msg))
 
         if count > 0:
+            cloud_type = None
+            if 'cloud_type' in fields:
+                cloud_type = fields['cloud_type']
+            elif 'cloud_name' in fields:
+                rc, msg, target_cloud = get_target_cloud(config, active_user.active_group, fields['cloud_name'])
+                if rc == 0:
+                    cloud_type = target_cloud['cloud_type']
+            if cloud_type == 'amazon':
+                event_signal_send(config, "update_csv2_clouds_amazon")
+            elif cloud_type == 'openstack':
+                event_signal_send(config, "update_csv2_clouds_openstack")
+            
             config.db_close(commit=True)
         else:
             config.db_close()

@@ -1,3 +1,7 @@
+{% block navbar %}
+    {% include "csv2/navigation_bar.html" %}
+{% endblock %}
+
 <head>
 <meta http-equiv="refresh" content="600">
 {% load static %}
@@ -54,11 +58,9 @@ SECTION > DIV + DIV {
 
 </style>
 </head>
-{% block navbar %}
-    {% include "csv2/navigation_bar.html" %}
-{% endblock %}
 
 <body class="keys-nav" onpageshow="show_cloud('{{current_cloud}}')">
+<div class="section-div {% if is_superuser %}super-section-div{% endif %}">
 <div class="page_body" style="padding-top:75px;padding-left:50px">
     <div id="page_header">
                  <input type="text" id="image_search" autofocus="autofocus" placeholder="Search by Key Name">
@@ -166,6 +168,7 @@ SECTION > DIV + DIV {
         {% endfor %}
     </table>
 </form></div>
+</div>
 </body>
 
 <script>

@@ -62,7 +62,7 @@
 
 
 <body style="position: absolute; top: 62px; padding-bottom: 129px; overflow: auto;" class="images-nav" onpageshow="set_location()">
-<div>
+<div class="section-div {% if is_superuser %}super-section-div{% endif %}">
 <div class="glinttoolbar" style="float:left; margin-bottom:5px;"">
     <table style="border:none"><tr>
         <td style="border:none"> <input type="text" id="image_search" onkeyup="image_search()" autofocus="autofocus" placeholder="Search by Image Name"> </td>
@@ -134,7 +134,7 @@ Error: {{img_tuple.1}}" onclick='clear_req("{{image_key}}", "{{img_tuple.3}}", "
         {% if response_code == 1 %}
             <tr><td><b>Error: {{ message }}</b></td></tr>
         {% elif message is not None %}
-            <tr><td><b>{{ message }}</b></td></tr>
+            <tr><td>{{ message }}</td></tr>
         {% endif %}
     </div>
 </footer>
