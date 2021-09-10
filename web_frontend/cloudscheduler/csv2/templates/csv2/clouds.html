@@ -30,7 +30,6 @@
     }
 
     function meta_fetch(cloudname , metaname) {
-
         var url='/cloud/metadata-fetch?{{active_group}}&cloud_name='+cloudname+'&metadata_name='+metaname
         var frame='editor-'+cloudname+'-'+metaname
 
@@ -491,7 +490,7 @@
 
                                 <div class="tab2">
                                     <input id="{{cloud.cloud_name}}-metadata-{{meta}}" type="radio" name="tabs2" onclick="meta_fetch('{{cloud.cloud_name}}', '{{meta}}')">
-                                    <label class="tab2-colour" for="{{cloud.cloud_name}}-metadata-{{meta}}">{{meta}}</label>
+                                    <label class="tab2-colour{% if not value|keyvalue:cloud.cloud_name|keyvalue:meta|keyvalue:'metadata_enabled' %} disabled-style{% endif %}" for="{{cloud.cloud_name}}-metadata-{{meta}}">{{meta}}</label>
                                     <div class="tab2-content">
 
                                         <iframe id="editor-{{cloud.cloud_name}}-{{meta}}"  src=""></iframe>

@@ -22,7 +22,8 @@ from cloudscheduler.lib.view_utils import \
     get_target_cloud, \
     verify_cloud_credentials, \
     get_app_credentail_expiry, \
-    retire_cloud_vms
+    retire_cloud_vms, \
+    get_file_checksum
 
 import bcrypt
 
@@ -774,6 +775,11 @@ def cloud_list(request, active_user=None, response_code=0, message=None):
                 },
             prune=['password', 'app_credentials_secret']    
             )
+
+    if active_user.active_group and metadata_dict.get(active_user.active_group):
+        curr_dict = metadata_dict[active_user.active_group]
+        for cloud in curr_dict:
+            metadata_dict[active_user.active_group][cloud] = dict(sorted(curr_dict[cloud].items(), key=lambda x:x[1].get('metadata_priority')))
     
     # Get the current time in epoch format
     for cloud in _cloud_list:
@@ -882,6 +888,9 @@ def metadata_add(request):
         if not found:
             config.db_close()
             return metadata_new(request, active_user, response_code=1, message='%s cloud metadata-add failed, cloud name "%s" does not exist.' % (lno(MODID), fields['cloud_name']), cloud_name=fields['cloud_name'])
+
+        if fields.get('metadata') or fields.get('metadata') == '':
+            fields['checksum'] = get_file_checksum(fields['metadata'].encode('utf-8'))
 
         # Add the cloud metadata file.
         table ='csv2_cloud_metadata'
@@ -1088,6 +1097,7 @@ def metadata_fetch(request, response_code=0, message=None, metadata_name=None, c
                     'metadata_mime_type': row["mime_type"],
                     'metadata_name': row["metadata_name"],
                     'mime_types_list': mime_types_list,
+                    'metadata_checksum': row['checksum'],
                     'response_code': response_code,
                     'message': message,
                     'is_superuser': active_user.is_superuser,
@@ -1277,6 +1287,9 @@ def metadata_update(request):
                 return metadata_fetch(request, response_code=1, message='%s cloud metadata-update %s' % (lno(MODID), msg), metadata_name=metadata_name, cloud_name=cloud_name)
             return render(request, 'csv2/blank_msg.html', {'response_code': 1, 'message': '%s cloud metadata-update %s' % (lno(MODID), msg)})
         
+        if fields.get('metadata') or fields.get('metadata') == '':
+            fields['checksum'] = get_file_checksum(fields['metadata'].encode('utf-8'))
+
         table = 'csv2_cloud_metadata'
         fields_to_update = table_fields(fields, table, columns, 'update')
         if len(fields_to_update) < 4:
