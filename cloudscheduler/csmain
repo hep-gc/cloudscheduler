@@ -1002,7 +1002,7 @@ def vm_slot_auditor():
                     # check that we got exactly 1 row, or print error message saying we are missing a vm entry or there is a duplicate
                     if len(row) != 1:
                         # Either more rows than expected or no row
-                        logging.error("Unable to find or isolate vm row with hostname: %s" % slot_clount)
+                        logging.error("Unable to find or isolate vm row with hostname: %s" % slot_count)
                         time.sleep(0.1)
                         continue
                     else:
