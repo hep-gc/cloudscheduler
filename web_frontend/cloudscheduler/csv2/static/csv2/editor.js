@@ -25,6 +25,31 @@ function createEditor(name) {
 }
 
 
+function hide_meta_checksum() {
+    var metatab = document.getElementById("meta-list-tab");
+    metatab.classList.remove("show-checksum");
+
+    document.querySelectorAll('.checksum-text').forEach((metatext)=> {
+        metatext.style.display = 'none';
+    })
+}
+
+function show_meta_checksum() {
+    var metatab = document.getElementById("meta-list-tab");
+    metatab.classList.add("show-checksum");
+            
+    document.querySelectorAll('.checksum-text').forEach((metatext)=> {
+        metatext.style.display = 'inline';
+    })
+}
+
+
+//setTimeout(function(){ 
+//  document.getElementById("message").innerHTML = "";
+//}, 5000);
+
+
 setTimeout(function(){ 
-  document.getElementById("message").innerHTML = "";
+  if (document.getElementsByClassName("success-msg")[0] && document.getElementsByClassName("success-msg")[0].innerHTML !== "")
+      document.getElementsByClassName("success-msg")[0].innerHTML = "";
 }, 5000);

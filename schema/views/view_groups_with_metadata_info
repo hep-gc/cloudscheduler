@@ -12,7 +12,8 @@ htcondor_other_submitters,
 metadata_name,
 enabled as metadata_enabled,
 priority as metadata_priority,
-mime_type as metadata_mime_type
+mime_type as metadata_mime_type,
+checksum as metadata_checksum
 
 from csv2_groups as cg
 left outer join csv2_group_metadata as cgm on cg.group_name=cgm.group_name

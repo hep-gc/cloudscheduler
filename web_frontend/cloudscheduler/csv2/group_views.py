@@ -16,7 +16,8 @@ from cloudscheduler.lib.view_utils import \
     set_user_groups, \
     table_fields, \
     validate_by_filtered_table_entries, \
-    validate_fields
+    validate_fields, \
+    get_file_checksum
 from collections import defaultdict
 import bcrypt
 
@@ -369,12 +370,16 @@ def defaults(request, active_user=None, response_code=0, message=None):
                     'metadata_name',
                     'metadata_enabled',
                     'metadata_priority',
-                    'metadata_mime_type'
+                    'metadata_mime_type',
+                    'metadata_checksum'
                     ]
                 },
             prune=['password']    
             )
-
+        if active_user.active_group and metadata_dict.get(active_user.active_group):
+            curr_dict = metadata_dict[active_user.active_group]
+            metadata_dict[active_user.active_group] = dict(sorted(curr_dict.items(), key=lambda x:x[1].get('metadata_priority')))
+   
     # Render the page.
     final_rc = rc if pre_rc == 0 else pre_rc
     context = {
@@ -684,6 +689,9 @@ def metadata_add(request):
         if rc != 0:
             config.db_close()
             return metadata_new(request, active_user, response_code=1, message='%s group metadata-add %s' % (lno(MODID), msg))
+        
+        if fields.get('metadata') or fields.get('metadata') == '':
+            fields['checksum'] = get_file_checksum(fields['metadata'].encode('utf-8'))
 
         # Add the group metadata file.
         table = 'csv2_group_metadata'
@@ -808,6 +816,7 @@ def metadata_fetch(request, response_code=0, message=None, metadata_name=None):
                     'metadata_mime_type': row["mime_type"],
                     'metadata_name': row["metadata_name"],
                     'mime_types_list': mime_types_list,
+                    'metadata_checksum': row["checksum"],
                     'response_code': response_code,
                     'message': message,
                     'is_superuser': active_user.is_superuser,
@@ -977,6 +986,9 @@ def metadata_update(request):
             if metadata_name:
                 return metadata_fetch(request, response_code=1, message='%s group metadata-update %s' % (lno(MODID), msg), metadata_name=metadata_name)
             return render(request, 'csv2/blank_msg.html', {'response_code': 1, 'message': '%s group metadata-update %s' % (lno(MODID), msg)})
+        
+        if fields.get('metadata') or fields.get('metadata') == '':
+            fields['checksum'] = get_file_checksum(fields['metadata'].encode('utf-8'))
 
         # Update the group metadata file.
         table = 'csv2_group_metadata'

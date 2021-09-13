@@ -10,7 +10,8 @@ vc.*,
 metadata_name,
 ccm.enabled as metadata_enabled,
 priority as metadata_priority,
-mime_type as metadata_mime_type
+mime_type as metadata_mime_type,
+checksum as metadata_checksum
 
 from view_clouds as vc
 left outer join csv2_cloud_metadata as ccm on
