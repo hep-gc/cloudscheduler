@@ -440,7 +440,7 @@ meter.disabled-meter::-webkit-meter-optimum-value {
 
 
 body.status-nav{
-  position: absolute;
+  /*position: absolute;*/
   padding-bottom: 129px;
   overflow: auto;
 }
@@ -507,7 +507,7 @@ body.status-nav .main-div {
 .refresh-button {
   position: fixed;
   right:10;
-  bottom: 10px;
+  bottom: 30px;
 }
 
 .stop-symbol {
@@ -532,6 +532,16 @@ body.status-nav .main-div {
   z-index:100;
   font-weight: bold;
   color: red;
+}
+
+.refresh-button a {
+  color: black;
+}
+
+.refresh-button .report-issue {
+  position: absolute;
+  right: 0px;
+  bottom: -20px;
 }
 
 /*****************************************************************/
