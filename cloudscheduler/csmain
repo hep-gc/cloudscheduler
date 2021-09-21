@@ -250,7 +250,7 @@ def check_view_idle_vms():
             for res in results:
                 vmids.append(res["vmid"])
             if vmids:
-                log.debug("Setting retire flag on %s VMs.", len(vmids))
+                log.info("Setting retire flag on %s VMs.", len(vmids))
                 vms = "csv2_vms"
                 where_clause = "vmid in ("
                 for id in vmids:
@@ -263,7 +263,7 @@ def check_view_idle_vms():
                     old_updater = row["updater"]
                     row["updater"] = get_frame_info() + ":r1"
                     config.db_merge(vms, row)
-                    log.debug("Set retire flag on %s, previous updater: %s",
+                    log.info("Set retire flag on %s, previous updater: %s",
                               row["hostname"], old_updater)
             config.db_close(commit=True)
         except TimeoutError as ex:
@@ -1002,7 +1002,7 @@ def vm_slot_auditor():
                     # check that we got exactly 1 row, or print error message saying we are missing a vm entry or there is a duplicate
                     if len(row) != 1:
                         # Either more rows than expected or no row
-                        logging.error("Unable to find or isolate vm row with hostname: %s" % slot_clount)
+                        logging.error("Unable to find or isolate vm row with hostname: %s" % slot_count)
                         time.sleep(0.1)
                         continue
                     else:
