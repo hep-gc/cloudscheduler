@@ -514,7 +514,7 @@ def add(request):
                 config.db_close()
                 return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud add, "%s" failed - %s.' % (lno(MODID), fields['cloud_name'], msg))
 
-        if 'vm_flavor' in fields and fields['vm_flavor']:
+        if 'vm_flavor' in fields and fields['vm_flavor'] and fields['vm_flavor'] != 'None':
             rc, msg = validate_by_filtered_table_entries(config, fields['vm_flavor'], 'vm_flavor', 'cloud_flavors', 'name', [['group_name', fields['group_name']], ['cloud_name', fields['cloud_name']]])
             if rc != 0:
                 config.db_close()
@@ -526,19 +526,22 @@ def add(request):
                 config.db_close()
                 return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud add, "%s" failed - %s.' % (lno(MODID), fields['cloud_name'], msg))
 
-        if 'vm_keyname' in fields and fields['vm_keyname']:
+        if 'vm_keyname' in fields and fields['vm_keyname'] and fields['vm_keyname'] != 'None':
             rc, msg = validate_by_filtered_table_entries(config, fields['vm_keyname'], 'vm_keyname', 'cloud_keypairs', 'key_name', [['group_name', fields['group_name']], ['cloud_name', fields['cloud_name']]])
             if rc != 0:
                 config.db_close()
                 return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud add, "%s" failed - %s.' % (lno(MODID), fields['cloud_name'], msg))
 
-        if 'vm_network' in fields and fields['vm_network']:
+        if 'vm_network' in fields and fields['vm_network'] and fields['vm_network'] != 'None':
             rc, msg = validate_by_filtered_table_entries(config, fields['vm_network'], 'vm_network', 'cloud_networks', 'name', [['group_name', fields['group_name']], ['cloud_name', fields['cloud_name']]])
             if rc != 0:
                 config.db_close()
                 return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud add, "%s" failed - %s.' % (lno(MODID), fields['cloud_name'], msg))
 
-        if 'vm_security_groups' in fields and fields['vm_security_groups']:
+        if 'vm_security_groups' in fields and fields['vm_security_groups'] and fields['vm_security_groups'] != 'None':
+            if 'None' in fields['vm_security_groups']:
+                config.db_close()
+                return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud update, "%s" failed - %s.' % (lno(MODID), fields['cloud_name'], 'Cannot have ignore group default with other security groups'))
             rc, msg = validate_by_filtered_table_entries(config, fields['vm_security_groups'], 'vm_security_groups', 'cloud_security_groups', 'name', [['group_name', fields['group_name']], ['cloud_name', fields['cloud_name']]], allow_value_list=True)
             if rc != 0:
                 config.db_close()
@@ -1134,13 +1137,13 @@ def metadata_fetch(request, response_code=0, message=None, metadata_name=None, c
                 return render(request, 'csv2/meta_editor.html', context)
 
         if rc == 0:
-            msg = message if message else 'cloud metadata_fetch, file "%s::%s::%s" does not exist.' % (active_user.active_group, cloud_name, metadata_name)
+            msg = message or 'cloud metadata_fetch, file "%s::%s::%s" does not exist.' % (active_user.active_group, cloud_name, metadata_name)
         else:
-            msg = message if message else 'cloud metadata_fetch, file "%s::%s::%s" does not exist: %s.' % (active_user.active_group, cloud_name, metadata_name, msg)
+            msg = message or 'cloud metadata_fetch, file "%s::%s::%s" does not exist: %s.' % (active_user.active_group, cloud_name, metadata_name, msg)
         config.db_close()
         return render(request, 'csv2/meta_editor.html', {'response_code': 1, 'message': msg})
 
-    msg = message if message else 'cloud metadata_fetch, received an invalid metadata file id "%s::%s::%s".' % (active_user.active_group, cloud_name, metadata_name)
+    msg = message or 'cloud metadata_fetch, received an invalid metadata file id "%s::%s::%s".' % (active_user.active_group, cloud_name, metadata_name)
     config.db_close()
     return render(request, 'csv2/meta_editor.html', {'response_code': 1, 'message': msg})
 
@@ -1841,7 +1844,7 @@ def update(request):
                 config.db_close()
                 return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud update, "%s" failed - %s.' % (lno(MODID), fields['cloud_name'], msg))
 
-        if 'vm_flavor' in fields and fields['vm_flavor']:
+        if 'vm_flavor' in fields and fields['vm_flavor'] and fields['vm_flavor'] != 'None':
             rc, msg = validate_by_filtered_table_entries(config, fields['vm_flavor'], 'vm_flavor', 'cloud_flavors', 'name', [['group_name', fields['group_name']], ['cloud_name', fields['cloud_name']]])
             if rc != 0:
                 config.db_close()
@@ -1853,19 +1856,22 @@ def update(request):
                 config.db_close()
                 return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud update, "%s" failed - %s.' % (lno(MODID), fields['cloud_name'], msg))
 
-        if 'vm_keyname' in fields and fields['vm_keyname']:
+        if 'vm_keyname' in fields and fields['vm_keyname'] and fields['vm_keyname'] != 'None':
             rc, msg = validate_by_filtered_table_entries(config, fields['vm_keyname'], 'vm_keyname', 'cloud_keypairs', 'key_name', [['group_name', fields['group_name']], ['cloud_name', fields['cloud_name']]])
             if rc != 0:
                 config.db_close()
                 return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud update, "%s" failed - %s.' % (lno(MODID), fields['cloud_name'], msg))
 
-        if 'vm_network' in fields and fields['vm_network']:
+        if 'vm_network' in fields and fields['vm_network'] and fields['vm_network'] != 'None':
             rc, msg = validate_by_filtered_table_entries(config, fields['vm_network'], 'vm_network', 'cloud_networks', 'name', [['group_name', fields['group_name']], ['cloud_name', fields['cloud_name']]])
             if rc != 0:
                 config.db_close()
                 return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud update, "%s" failed - %s.' % (lno(MODID), fields['cloud_name'], msg))
         
-        if 'vm_security_groups' in fields and fields['vm_security_groups']:
+        if 'vm_security_groups' in fields and fields['vm_security_groups'] and fields['vm_security_groups'] != 'None':
+            if 'None' in fields['vm_security_groups']:
+                config.db_close()
+                return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud update, "%s" failed - %s.' % (lno(MODID), fields['cloud_name'], 'Cannot have ignore group default other security groups'))
             rc, msg = validate_by_filtered_table_entries(config, fields['vm_security_groups'], 'vm_security_groups', 'cloud_security_groups', 'name', [['group_name', fields['group_name']], ['cloud_name', fields['cloud_name']]], allow_value_list=True)
             if rc != 0:
                 config.db_close()

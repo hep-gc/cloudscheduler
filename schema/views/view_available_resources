@@ -100,13 +100,17 @@ from (
             cl.volume_gigs_used,
 
 
-            case when ifnull(cc.vm_flavor,'')!='' then
-                concat(cc.cloud_name, ':', cc.vm_flavor)
+            case when ifnull(cc.vm_flavor,'')='None' then
+                null
             else
-                case when ifnull(cg.vm_flavor,'')!='' then
-                    concat(cc.cloud_name, ':', cg.vm_flavor)
+                case when ifnull(cc.vm_flavor,'')!='' then
+                    concat(cc.cloud_name, ':', cc.vm_flavor)
                 else
-                    null
+                    case when ifnull(cg.vm_flavor,'')!='' then
+                        concat(cc.cloud_name, ':', cg.vm_flavor)
+                    else
+                        null
+                    end
                 end
             end as default_flavor,
 
@@ -130,33 +134,45 @@ from (
                 end
             end as default_keep_alive,
 
-            case when ifnull(cc.vm_keyname,'')!='' then
-                cc.vm_keyname
+            case when ifnull(cc.vm_keyname,'')='None' then
+                null
             else
-                case when ifnull(cg.vm_keyname,'')!='' then
-                    cg.vm_keyname
+                case when ifnull(cc.vm_keyname,'')!='' then
+                    cc.vm_keyname
                 else
-                    null
+                    case when ifnull(cg.vm_keyname,'')!='' then
+                        cg.vm_keyname
+                    else
+                        null
+                    end
                 end
             end as default_keyname,
 
-            case when ifnull(cc.vm_network,'')!='' then
-                cc.vm_network
+            case when ifnull(cc.vm_network,'')='None' then
+                null
             else
-                case when ifnull(cg.vm_network,'')!='' then
-                    cg.vm_network
+                case when ifnull(cc.vm_network,'')!='' then
+                    cc.vm_network
                 else
-                    null
+                    case when ifnull(cg.vm_network,'')!='' then
+                        cg.vm_network
+                    else
+                        null
+                    end
                 end
             end as default_network,
 
-            case when ifnull(cc.vm_security_groups,'')!='' then
-                cc.vm_security_groups
+            case when ifnull(cc.vm_security_groups,'')='None' then
+                null
             else
-                case when ifnull(cg.vm_security_groups,'')!='' then
-                    cg.vm_security_groups
+                case when ifnull(cc.vm_security_groups,'')!='' then
+                    cc.vm_security_groups
                 else
-                    null
+                    case when ifnull(cg.vm_security_groups,'')!='' then
+                        cg.vm_security_groups
+                    else
+                        null
+                    end
                 end
             end as default_security_groups,
 
