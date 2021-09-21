@@ -577,7 +577,7 @@ def job_poller():
                         job_dict['Requirements'] = str(et2['Requirements'])
                         if "RequestMemory" in job_dict:
                             try:
-                                job_dict['RequestMemory'] = et2['RequestMemory'].eval()
+                                job_dict['RequestMemory'] = et2['RequestMemory']
                             except:
                                 #need to tighten this exception but basically if the memory isnt an expression this isn't going to work
                                 #it might be better to instead check the data type in the dictionary then base execution off that than to depends on error handling
