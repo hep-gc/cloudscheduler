@@ -709,8 +709,20 @@
                                     <tr class="extra-row expand-{{cloud.group_name}} total-row" id="expand-{{cloud.group_name}}-{{cloud.cloud_name}}">
                                 {% elif cloud.display == 99 %}
                                     <tr class="extra-row expand-{{cloud.group_name}} global-total-row" id="expand-{{cloud.group_name}}-{{cloud.cloud_name}}">
+                                {% elif cloud.enabled > 0 %}
+                                    {% if cloud.app_credentials_expiry and cloud.current_time %}
+                                        {% if cloud.app_credentials_expiry|sub:cloud.current_time|div:86400 > 14 %}
+                                            <tr class="extra-row expand-{{cloud.group_name}}" id="expand-{{cloud.group_name}}-{{cloud.cloud_name}}">
+                                        {% elif cloud.app_credentials_expiry|sub:cloud.current_time|div:86400 >= 8 %}
+                                            <tr class="extra-row expand-{{cloud.group_name}} warn-style" id="expand-{{cloud.group_name}}-{{cloud.cloud_name}}">
+                                        {% else %}
+                                            <tr class="extra-row expand-{{cloud.group_name}} disabled-style" id="expand-{{cloud.group_name}}-{{cloud.cloud_name}}">
+                                        {% endif %}
+                                     {% else %}
+                                         <tr class="extra-row expand-{{cloud.group_name}}" id="expand-{{cloud.group_name}}-{{cloud.cloud_name}}">
+                                     {% endif %}
                                 {% else %}
-                                    <tr class="extra-row expand-{{cloud.group_name}}" id="expand-{{cloud.group_name}}-{{cloud.cloud_name}}">
+                                     <tr class="extra-row expand-{{cloud.group_name}} disabled-style" id="expand-{{cloud.group_name}}-{{cloud.cloud_name}}">
                                 {% endif %}
 
 

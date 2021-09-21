@@ -130,7 +130,7 @@ input:read-only { color:grey; }
 /*****************************************************************/
 /*       Dynamic position for page content - super user         */
 /*****************************************************************/
-@media only screen and (max-width: 636px) {
+@media only screen and (max-width: 628px) {
   .super-main-div {
     top: 242px !important;
   }
@@ -145,7 +145,7 @@ input:read-only { color:grey; }
   }
 }
 
-@media only screen and (min-width: 636px) and (max-width: 656px) {
+@media only screen and (min-width: 628px) and (max-width: 656px) {
   .super-main-div {
     top: 182px !important;
   }
@@ -161,7 +161,7 @@ input:read-only { color:grey; }
 }
 
 
-@media only screen and (min-width: 656px) and (max-width: 1307px) {
+@media only screen and (min-width: 656px) and (max-width: 1308px) {
   .super-main-div {
     top: 122px !important;
   }
