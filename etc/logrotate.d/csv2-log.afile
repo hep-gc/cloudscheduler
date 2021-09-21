@@ -1,4 +1,8 @@
-/var/log/cloudscheduler/*.log {
+/var/log/cloudscheduler/csv2_web.log
+/var/log/cloudscheduler/ec2.log
+/var/log/cloudscheduler/main.log
+/var/log/cloudscheduler/openstack.log
+/var/log/cloudscheduler/timeseries.log {
   weekly
   su cloudscheduler cloudscheduler
   notifempty
@@ -6,7 +10,6 @@
   compress
   copytruncate
   create 0644 cloudscheduler cloudscheduler
-  prerotate
-    bash -c "[[ ! $1 =~ condor_poller ]]"
-  endscript
 }
+
+

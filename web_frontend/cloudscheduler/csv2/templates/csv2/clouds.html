@@ -19,7 +19,11 @@
 <script type="text/javascript">
 
     var visited = {};
-    var ec2_regions = {{ ec2_regions_list|safe }}
+    var ec2_regions = {{ ec2_regions_list|safe }};
+
+    function clear_message() {
+        if (document.getElementById("message").innerHTML !== "") document.getElementById("message").innerHTML = "";
+    }
 
     function get_message() {
         if (sessionStorage.getItem("message")){
@@ -30,9 +34,10 @@
     }
 
     function meta_fetch(cloudname , metaname) {
+        hide_meta_checksum();
 
-        var url='/cloud/metadata-fetch?{{active_group}}&cloud_name='+cloudname+'&metadata_name='+metaname
-        var frame='editor-'+cloudname+'-'+metaname
+        var url='/cloud/metadata-fetch?{{active_group}}&cloud_name='+cloudname+'&metadata_name='+metaname;
+        var frame='editor-'+cloudname+'-'+metaname;
 
         if (!visited[frame]){
             document.getElementById(frame).src=url;
@@ -41,8 +46,10 @@
     }
 
     function meta_add(cloudname) {
-        var url='/cloud/metadata-new?{{active_group}}&cloud_name='+cloudname
-        var frame='editor-'+cloudname+'-add'
+        hide_meta_checksum();
+
+        var url='/cloud/metadata-new?{{active_group}}&cloud_name='+cloudname;
+        var frame='editor-'+cloudname+'-add';
         document.getElementById(frame).src=url;
     }
 
@@ -54,22 +61,32 @@
 
 
     function save_location(cloud, tab){
-        sessionStorage.setItem("cloud", cloud);
-        sessionStorage.setItem("cloud_tab", tab);
+        if(cloud) sessionStorage.setItem("cloud", cloud);
+        if(tab) sessionStorage.setItem("cloud_tab", tab);
     }
 
-    function new_location(){ 
+    function new_location(){
         sessionStorage.setItem("cloud", document.getElementById("new_cloud").value);
         sessionStorage.setItem("cloud_tab", "settings");
     }
 
     function set_location(){
-        if(sessionStorage.getItem("cloud") && sessionStorage.getItem("cloud_tab")){
+        if (sessionStorage.getItem("cloud") && sessionStorage.getItem("cloud_tab")){
             tab = sessionStorage.getItem("cloud") + "-" + sessionStorage.getItem("cloud_tab");
-            document.getElementById(tab).checked = true;
-            document.location.hash = sessionStorage.getItem("cloud");
-        }
-        else{
+            if (document.getElementById(tab)) {
+                document.getElementById(tab).checked = true;
+                document.location.hash = sessionStorage.getItem("cloud");
+            } else if ({{response_code}} == 1){
+                document.location.hash = "add-cloud";
+            } else {
+                sessionStorage.setItem("cloud", "{{cloud_list.0.cloud_name}}");
+                document.location.hash = "{{cloud_list.0.cloud_name}}"
+                document.getElementById("{{cloud_list.0.cloud_name}}-settings").checked = true;
+            }
+        } else if ({{response_code}} == 1) {
+            document.location.hash = "add-cloud";
+        } else {
+            if(!sessionStorage.getItem("cloud")) sessionStorage.setItem("cloud", "{{cloud_list.0.cloud_name}}");
             document.location.hash = "{{cloud_list.0.cloud_name}}"
             document.getElementById("{{cloud_list.0.cloud_name}}-settings").checked = true;
         }
@@ -161,7 +178,7 @@
 <script rel="preload" type="text/javascript" src="{% static "csv2/editor.js" %}?{{version}}"></script>
 
 </head>
-<body class="clouds-nav" onpageshow="get_message(); set_location()">
+<body class="clouds-nav" onpageshow="get_message(); set_location()" onclick="clear_message()">
 {% spaceless %}
 <div class="main-div {% if is_superuser %}super-main-div{% endif %}">
     <div class="menu">
@@ -169,7 +186,7 @@
         <div id="{{cloud.cloud_name}}">
 
         <div class="menu2-div">
-            <a href="#{{cloud.cloud_name}}" class="menu2-link" onclick="save_location('{{cloud.cloud_name}}', 'settings'); check_target('{{cloud.cloud_name}}-settings')">{{cloud.cloud_name}}</a>
+            <a href="#{{cloud.cloud_name}}" class="menu2-link" onclick="save_location('{{cloud.cloud_name}}', 'settings'); check_target('{{cloud.cloud_name}}-settings'); check_target('{{cloud.cloud_name}}-hide')">{{cloud.cloud_name}}</a>
 
             <a href="#delete-{{cloud.cloud_name}}" class="delete-link">&minus;</a>
         </div>
@@ -328,6 +345,9 @@
                                             <section name="vm_security_groups">
                                                 <div>
                                                     <select id="leftValues-{{cloud.cloud_name}}" name="vm_security_groups" size="5" multiple>
+                                                    {% if "None" in cloud.vm_security_groups %}
+                                                        <option value="None" selected>Ignore group default</option>
+                                                    {% endif %}
                                                     {% for group in security_groups_list %}
                                                         {% if cloud.cloud_name == group.cloud_name %}
                                                             {% if group.name in cloud.vm_security_groups|split %}
@@ -343,15 +363,18 @@
                                                 </div>
                                                 <div>
                                                     <select id="rightValues-{{cloud.cloud_name}}" size="5" multiple>
-                                                    {% for group in security_groups_list %}
-                                                        {% if cloud.cloud_name == group.cloud_name %}
-                                                            {% if vm_security_groups is None %}
-                                                                <option>{{group.name}}</option>
-                                                            {% elif group.name not in cloud.vm_security_groups|split %}
-                                                                <option>{{group.name}}</option>
-                                                            {% endif %}
+                                                        {% if not cloud.vm_security_groups or "None" not in cloud.vm_security_groups %}
+                                                            <option value="None">Ignore group default</option>
                                                         {% endif %}
-                                                    {% endfor %}
+                                                        {% for group in security_groups_list %}
+                                                            {% if cloud.cloud_name == group.cloud_name %}
+                                                                {% if cloud.vm_security_groups is None %}
+                                                                    <option>{{group.name}}</option>
+                                                                {% elif group.name not in cloud.vm_security_groups|split %}
+                                                                    <option>{{group.name}}</option>
+                                                                {% endif %}
+                                                            {% endif %}
+                                                        {% endfor %}
                                                     </select>
                                                 </div>
                                             </section>
@@ -360,7 +383,8 @@
                                 
                                     <tr class="highlight3"><td><label for="vm_keyname">VM Keyname</label></td>
                                     <td><select name="vm_keyname" class="dropdown"/>
-                                    <option value=""></option>
+                                    <option value="">Use group default</option>
+                                    <option value="None" {% if cloud.vm_keyname == "None" %}selected{% endif %}>Ignore group default</option>
                                     {% for key in keypairs_list %}
                                         {% if key.cloud_name == cloud.cloud_name%}
                                             {% if key.key_name == cloud.vm_keyname %}
@@ -373,7 +397,8 @@
 
                                     <tr class="highlight3"><td><label for="vm_network">VM Network</label></td>
                                     <td><select name="vm_network" class="dropdown"/>
-                                    <option value=""></option>
+                                    <option value="">Use group default</option>
+                                    <option value="None" {% if cloud.vm_network == "None" %}selected{% endif %}>Ignore group default</option>
                                     {% for network in network_list %}
                                         {% if network.cloud_name == cloud.cloud_name%}
                                             {% if network.name == cloud.vm_network %}
@@ -411,7 +436,8 @@
 
                                     <tr class="highlight3"><td><label for="vm_flavor">VM Flavor</label></td>
                                     <td><select name="vm_flavor" class="dropdown"/>
-                                    <option value=""></option>
+                                    <option value="">Use group default</option>
+                                    <option value="None" {% if cloud.vm_flavor == "None" %}selected{% endif %}>Ignore group default</option>
                                     {% for flavor in flavor_list %}
                                         {% if flavor.cloud_name == cloud.cloud_name%}
                                             {% if flavor.name == cloud.vm_flavor %}
@@ -481,29 +507,31 @@
                 </div>
 
                 <div class="tab">
-                    <input id="{{cloud.cloud_name}}-metadata" type="radio" name="tabs" onclick="save_location('{{cloud.cloud_name}}', 'metadata'); check_target('{{cloud.cloud_name}}-hide')">
-                    <label class="tab-colour" for="{{cloud.cloud_name}}-metadata">Metadata</label>
-                    <div class="tab-content meta-div">
+                    <input id="{{cloud.cloud_name}}-metadata" type="radio" name="tabs" onclick="save_location('{{cloud.cloud_name}}', 'metadata'); check_target('{{cloud.cloud_name}}-hide')" />
+                    <label class="tab-colour" for="{{cloud.cloud_name}}-metadata" onclick="show_meta_checksum()">Metadata</label>
+                    <div class="tab-content meta-div show-checksum" id="meta-list-tab">
 
                         {% for key, value in metadata_dict.items %}
 
                             {% for meta in value|keyvalue:cloud.cloud_name %}
 
-                                <div class="tab2">
-                                    <input id="{{cloud.cloud_name}}-metadata-{{meta}}" type="radio" name="tabs2" onclick="meta_fetch('{{cloud.cloud_name}}', '{{meta}}')">
-                                    <label class="tab2-colour" for="{{cloud.cloud_name}}-metadata-{{meta}}">{{meta}}</label>
-                                    <div class="tab2-content">
-
-                                        <iframe id="editor-{{cloud.cloud_name}}-{{meta}}"  src=""></iframe>
-
+                                <div style="display: flex">
+                                    <div class="tab2 checksum-label">
+                                        <input id="{{cloud.cloud_name}}-metadata-{{meta}}" type="radio" name="tabs2" onclick="meta_fetch('{{cloud.cloud_name}}', '{{meta}}')" />
+                                        <label class="tab2-colour{% if not value|keyvalue:cloud.cloud_name|keyvalue:meta|keyvalue:'metadata_enabled' %} disabled-style{% endif %}" for="{{cloud.cloud_name}}-metadata-{{meta}}">{{meta}}</label>
+                                        <div class="tab2-content">
+                                            <iframe id="editor-{{cloud.cloud_name}}-{{meta}}"  src=""></iframe>
+                                        </div>
                                     </div>
-
-                                </div>
+                                    {% if value|keyvalue:cloud.cloud_name|keyvalue:meta|keyvalue:'metadata_checksum' %}
+                                        <label class="checksum-text" style="display: inline">MD5 Checksum: {{value|keyvalue:cloud.cloud_name|keyvalue:meta|keyvalue:'metadata_checksum'}}</label>
+                                    {% endif %}
+                                 </div>
 
                             {% endfor %}
                         {% endfor %}
 
-                        <div class="tab2">
+                        <div class="tab2 checksum-label">
                             <input id="{{cloud.cloud_name}}-metadata-add" type="radio" name="tabs2" onclick="meta_add('{{cloud.cloud_name}}')">
                             <label class="tab2-colour" for="{{cloud.cloud_name}}-metadata-add">+</label>
                             <div class="tab2-content">
@@ -610,7 +638,8 @@
 
         </div>
     {% endfor %}
-        <div id="add-cloud"> <a href="#add-cloud" class="menu-link add-link">&plus;</a>
+        <div id="add-cloud">
+            <a href="#add-cloud" class="menu-link add-link">&plus;</a>
             <div class="menu-target">
                 <form name="add_cloud" action="/cloud/add/" method="post" onsubmit="new_location()">
                     {% csrf_token %}
@@ -619,21 +648,19 @@
                             <input type="hidden" name="group" value="{{active_group}}">
 
                             <tr class="highlight3"><td><label for="cloud_name">Cloud name</label></td>
-                            <td><input type="text" name="cloud_name" id="new_cloud" value="" /></td></tr>
-
+                            <td><input type="text" name="cloud_name" id="new_cloud" value="{{cloud_add.cloud_name}}" /></td></tr>
 
                             <input type="hidden" name="enabled" value="0" />
-                            
                             <tr class="highlight3"><td><label for="enabled">Enabled</label></td>
-                            <td><input type="checkbox" name="enabled" value="1" /></td></tr>
+                            <td><input type="checkbox" name="enabled" value="1" {% if cloud_add.enabled %}checked{% endif %} /></td></tr>
 
                             <tr class="highlight3"><td><label for="priority">Priority</label></td>
-                            <td><input type="text" name="priority" title="Lower number is higher priority" value="0" /></td></tr>
+                            <td><input type="text" name="priority" title="Lower number is higher priority" value="{{cloud_add.priority}}" /></td></tr>
 
                             <tr class="highlight3"><td><label for="cloud_type">Cloud type</label></td>
                             <td><select name="cloud_type" class="dropdown" onchange='type_select(this.value, "add")'/>
                             {% for type in type_list %}
-                                {% if type.cloud_type == "openstack" %}
+                                {% if type.cloud_type == cloud_add.cloud_type %}
                                     <option value="{{ type.cloud_type }}" selected>{{ type.cloud_type }}</option>
                                 {% else %}
                                     <option value="{{ type.cloud_type }}">{{ type.cloud_type }}</option>
@@ -643,46 +670,46 @@
                             </td></tr>
                             <tr class="highlight3"><td><label for="priority">Auth Type</label></td>
                             <td><select name="auth_type" class="dropdown" onchange='auth_type_select(this.value, "add")'/>
-                                <option value="userpass" selected>Username & Password</option>
-                                <option value="app_creds">Application Credentials</option>
+                                <option value="userpass" {% if cloud_add.auth_type == 'userpass' %}selected{% endif %}>Username & Password</option>
+                                <option value="app_creds" {% if cloud_add.auth_type == 'app_creds' %}selected{% endif %}>Application Credentials</option>
                             </td></tr>
 
                             <tr class="highlight3"><td><label for="authurl">URL</label></td>
-                            <td><input type="text" name="authurl" id="add-authurl" value="" /></td></tr>
+                            <td><input type="text" name="authurl" id="add-authurl" value="{{cloud_add.authurl}}" /></td></tr>
                             
                             <tr class="highlight3"><td><label for="region">Region</label></td>
-                            <td id="add-region"><input type="text" name="region" value="" /></td></tr>
+                            <td id="add-region"><input type="text" name="region" value="{{cloud_add.region}}" /></td></tr>
 
                             <tr class="highlight3"><td><label for="project">Project</label></td>
-                            <td><input type="text" name="project" id="add-project" value="{{cloud.project}}" /></td></tr>
+                            <td><input type="text" name="project" id="add-project" value="{% if cloud.project %}{{cloud.project}}{% else %}{{cloud_add.project}}{% endif %}" /></td></tr>
                             
-                            <tr class="highlight3" id="add-username-row"><td><label for="username">Username</label></td>
-                            <td><input type="text" id="add-username" name="username" value="" /></td></tr>
+                            <tr class="highlight3" id="add-username-row" {% if cloud_add.auth_type == 'app_creds' %}style="visibility:collapse"{% endif %}><td><label for="username">Username</label></td>
+                            <td><input type="text" id="add-username" name="username" value="{{cloud_add.username}}" /></td></tr>
                             
-                            <tr class="highlight3" id="add-password-row"><td><label for="password">Password</label></td>
+                            <tr class="highlight3" id="add-password-row" {% if cloud_add.auth_type == 'app_creds' %}style="visibility:collapse"{% endif %}><td><label for="password">Password</label></td>
                             <td><input type="password" id="add-password" name="password" value="" /></td></tr>
                            
-                            <tr class="highlight3" id="add-userid-row" style="visibility:collapse"><td><label for="userid">User Id</label></td>
-                            <td><input type="text" name="userid" id="add-userid" value="" /></td></tr>
+                            <tr class="highlight3" id="add-userid-row" {% if cloud_add.auth_type == 'userpass' %}style="visibility:collapse"{% endif %}><td><label for="userid">User Id</label></td>
+                            <td><input type="text" name="userid" id="add-userid" value="{{cloud_add.userid}}" /></td></tr>
 
-                            <tr class="highlight3" id="add-app_creds-row" style="visibility:collapse"><td><label for="app_credentials">Application Credential Id</label></td>
-                            <td><input type="text" name="app_credentials" id="add-app_creds" value="" /></td></tr>
+                            <tr class="highlight3" id="add-app_creds-row" {% if cloud_add.auth_type == 'userpass' %}style="visibility:collapse"{% endif %}><td><label for="app_credentials">Application Credential Id</label></td>
+                            <td><input type="text" name="app_credentials" id="add-app_creds" value="{{cloud_add.app_credentials}}" /></td></tr>
 
-                            <tr class="highlight3" id="add-app_creds_secret-row" style="visibility:collapse"><td><label for="app_credentials_secret">Application Credential Secret</label></td>
+                            <tr class="highlight3" id="add-app_creds_secret-row" {% if cloud_add.auth_type == 'userpass' %}style="visibility:collapse"{% endif %}><td><label for="app_credentials_secret">Application Credential Secret</label></td>
                             <td><input type="password" name="app_credentials_secret" id="add-app_creds_secret" value="" /></td></tr>
                             
                             <tr class="highlight3"><td><label for="cacertificate">CA certificate</label></td>
                             {% if cloud.cacertificate == None or cloud.cacertificate == "None" %}
-                                <td><input type="text" name="cacertificate" value="" /></td></tr>
+                                <td><input type="text" name="cacertificate" value="{{cloud_add.cacertificate}}" /></td></tr>
                             {% else %}
                                 <td><input type="text" name="cacertificate" value="{{cloud.cacertificate}}" /></td></tr>
                             {% endif %}
 
                             <tr class="highlight3"><td><label for="user_domain_name">User domain name</label></td>
-                            <td><input type="text" name="user_domain_name" value="{{cloud.user_domain_name}}" /></td></tr>
+                            <td><input type="text" name="user_domain_name" value="{% if cloud.user_domain_name %}{{cloud.user_domain_name}}{% else %}{{cloud_add.user_domain_name}}{% endif %}" /></td></tr>
                             
                             <tr class="highlight3"><td><label for="project_domain_name">Project domain name</label></td>
-                            <td><input type="text" name="project_domain_name" value="{{cloud.project_domain_name}}" /></td></tr>
+                            <td><input type="text" name="project_domain_name" value="{% if cloud.project_domain_name %}{{cloud.project_domain_name}}{% else %}{{cloud_add.project_domain_name}}{% endif %}" /></td></tr>
 
 
 
@@ -716,7 +743,7 @@
     </div>
 </div>
 
-<div class="footer" id="message">
+<div class="footer{% if response_code == 0 %} success-msg{% endif %}" id="message">
     {% if response_code == 1 %}
         <tr><td><b>Error: {{ message }}</b></td></tr>
     {% elif message is not None %}

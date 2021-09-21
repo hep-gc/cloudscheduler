@@ -501,7 +501,7 @@ class Config:
 
             if column not in self.db_schema[table]['keys']:
                 value = self.__db_column_value__(table, column, column_dict[column], allow_nulls=True)
-                if value != None and value != "None":
+                if value != None: # and value != "None":
                     updates.append('`%s`=%s' % (column, value))
 
         rc, msg, where_clause = self.__db_get_where_clause__(table, column_dict, where)

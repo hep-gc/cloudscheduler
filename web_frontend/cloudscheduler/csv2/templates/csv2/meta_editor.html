@@ -72,7 +72,15 @@
                 {% endif %}
             {% endfor %}
             </td>
+
+            <input type="hidden" name="checksum" value="{{ metadata_checksum }}" />
+            {% if message != "new-cloud-metadata" and message != "new-group-metadata" and action_type != "new-cloud-metadata" and action_type != "new-group-metadata" and metadata_checksum and metadata_checksum != '' %}
+                <td><label for="checksum">Checksum:</label></td>
+                <td><label>{{ metadata_checksum }}</label></td>
+            {% endif %}
+            
             </tr>
+
     </table>
     <textarea name="metadata" id="meta-editor">{{ metadata }}</textarea>
 

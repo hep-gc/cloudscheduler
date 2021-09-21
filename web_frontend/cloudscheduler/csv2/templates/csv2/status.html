@@ -709,8 +709,20 @@
                                     <tr class="extra-row expand-{{cloud.group_name}} total-row" id="expand-{{cloud.group_name}}-{{cloud.cloud_name}}">
                                 {% elif cloud.display == 99 %}
                                     <tr class="extra-row expand-{{cloud.group_name}} global-total-row" id="expand-{{cloud.group_name}}-{{cloud.cloud_name}}">
+                                {% elif cloud.enabled > 0 %}
+                                    {% if cloud.app_credentials_expiry and cloud.current_time %}
+                                        {% if cloud.app_credentials_expiry|sub:cloud.current_time|div:86400 > 14 %}
+                                            <tr class="extra-row expand-{{cloud.group_name}}" id="expand-{{cloud.group_name}}-{{cloud.cloud_name}}">
+                                        {% elif cloud.app_credentials_expiry|sub:cloud.current_time|div:86400 >= 8 %}
+                                            <tr class="extra-row expand-{{cloud.group_name}} warn-style" id="expand-{{cloud.group_name}}-{{cloud.cloud_name}}">
+                                        {% else %}
+                                            <tr class="extra-row expand-{{cloud.group_name}} disabled-style" id="expand-{{cloud.group_name}}-{{cloud.cloud_name}}">
+                                        {% endif %}
+                                     {% else %}
+                                         <tr class="extra-row expand-{{cloud.group_name}}" id="expand-{{cloud.group_name}}-{{cloud.cloud_name}}">
+                                     {% endif %}
                                 {% else %}
-                                    <tr class="extra-row expand-{{cloud.group_name}}" id="expand-{{cloud.group_name}}-{{cloud.cloud_name}}">
+                                     <tr class="extra-row expand-{{cloud.group_name}} disabled-style" id="expand-{{cloud.group_name}}-{{cloud.cloud_name}}">
                                 {% endif %}
 
 
@@ -1095,8 +1107,10 @@
     <div class="refresh-button">
         <span id="CDTimer"></span>
         <span class="stop-symbol bigger" onClick="stop_refresh()">&#x270b;</span>
-        <span>{{version}}</span>
+        <span><a href="https://github.com/hep-gc/cloudscheduler/tree/stable-2.9.1" target="_blank" rel="noopener noreferrer">{{version}}</a></span>
+        <span class="report-issue"><a href="https://github.com/hep-gc/cloudscheduler/issues" target="_blank" rel="noopener noreferrer">Report Issues</a></span>
     </div>
+
 </div>
 </div>
 

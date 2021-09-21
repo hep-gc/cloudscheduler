@@ -3,6 +3,7 @@ from django.core.exceptions import PermissionDenied
 import time
 import boto3
 from datetime import datetime
+import hashlib
 
 from cloudscheduler.lib.schema import *
 from cloudscheduler.lib.openstack_functions import get_openstack_sess, get_openstack_api_version, get_keystone_connection, get_nova_connection
@@ -677,7 +678,7 @@ def qt(query, keys=None, prune=[], filter=None, convert=None):
                 ignore, secondary_dict_ptr = _qt(False, secondary_dict_ptr, cols, keys['secondary'][0])
             
             for col in cols:
-                if col in keys['secondary'] and cols[col]:
+                if col in keys['secondary'] and (cols[col] or cols[col] == 0):
                     secondary_dict_ptr[col] = cols[col]
             
             if add_row:
@@ -685,7 +686,6 @@ def qt(query, keys=None, prune=[], filter=None, convert=None):
                 for col in cols:
                     if col not in keys['secondary']:
                         new_row[col] = cols[col]
-
 
                 primary_list.append(new_row)
 
@@ -1951,3 +1951,8 @@ def retire_cloud_vms(config, group_name, cloud_name):
         vm["updater"]= get_frame_info() + ":r1"
         config.db_merge(VM, vm)
     config.db_commit()
+
+
+def get_file_checksum(content):
+    checksum = hashlib.md5(content).hexdigest()
+    return checksum
