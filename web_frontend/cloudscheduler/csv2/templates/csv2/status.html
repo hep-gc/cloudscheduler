@@ -34,7 +34,6 @@
         <div class="lds-roller" id="loader"><div></div><div></div><div></div><div></div><div></div>
         <div></div><div></div><div></div>
         </div>
-
     </div>
     <!--Range selection dropdown menu-->
     <div class="range-dropdown">
@@ -72,8 +71,8 @@
             </div>
         </div>
     </div>
-    <button id="close-plot" class="close-btn" onclick="TSPlot.hide()">Close Plot
-    </button>
+    <button id="close-plot" class="close-btn" onclick="TSPlot.hide()">Close Plot</button>
+    <button id="download-plot" class="download-plot-btn" onclick="downloadPlot()">&#11015;</button>
 </div>
 
 <!-- Status tables-->
@@ -1107,7 +1106,7 @@
     <div class="refresh-button">
         <span id="CDTimer"></span>
         <span class="stop-symbol bigger" onClick="stop_refresh()">&#x270b;</span>
-        <span><a href="https://github.com/hep-gc/cloudscheduler/tree/stable-2.9.1" target="_blank" rel="noopener noreferrer">{{version}}</a></span>
+        <span><a href="https://github.com/hep-gc/cloudscheduler/releases/latest" target="_blank" rel="noopener noreferrer">{{version}}</a></span>
         <span class="report-issue"><a href="https://github.com/hep-gc/cloudscheduler/issues" target="_blank" rel="noopener noreferrer">Report Issues</a></span>
     </div>
 

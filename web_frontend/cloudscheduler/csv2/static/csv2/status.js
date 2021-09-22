@@ -667,6 +667,10 @@ function updateTraces(newdata, index, global_total_list){
 }
 
 
+function downloadPlot(){
+    Plotly.downloadImage('plotly-TS', {format: 'png', width: 1200, height: 600, filename: 'newplot'});
+}
+
 /* Plot Object*/
 var TSPlot = {
     layout: {

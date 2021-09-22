@@ -14,7 +14,7 @@
 
 .close-btn {
   position: absolute;
-  right: 30px;
+  right: 64px;
   top: 10px;
   padding: 8px;
   line-height: 12px;
@@ -30,7 +30,7 @@
 
 .range-dropdown {
   position: absolute;
-  right: 125px;
+  right: 159px;
   top: 10px;
   border: none;
   font-weight: bold;
@@ -48,6 +48,23 @@
 }
 
 .range-btn:hover {
+  opacity: 1;
+}
+
+.download-plot-btn {
+  position: absolute;
+  right: 30px;
+  top: 10px;
+  padding: 8px;
+  line-height: 12px;
+  background-color: lightgrey;
+  border: none;
+  font-weight: bold;
+  color: black;
+  opacity: 0.5;
+}
+
+.download-plot-btn:hover {
   opacity: 1;
 }
 
