@@ -528,55 +528,55 @@
                                     {% if cloud.VMs == 0 %}
                                         <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} VMs{{cloud.tag}}" class="zero-style float-center plottable" oncontextmenu="javascript:return false;">0</td>
                                     {% else %}
-                                        <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} VMs{{cloud.tag}}" class="{% if cloud.enabled == 0 %}zero-style{% else %}more-style{% endif %} float-center plottable" oncontextmenu="javascript:native_list('?{{cloud.group_name}}&cloud_name={{cloud.cloud_name}}&poller_status=&hostname=');return false;">{{cloud.VMs}}</td>
+                                        <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} VMs{{cloud.tag}}" class="{% if cloud.enabled == 0 %}zero-style{% else %}more-style{% endif %} float-center plottable" oncontextmenu="javascript:native_list('?{% if cloud.group_name %}{{cloud.group_name}}{% else %}ALL{% endif %}&cloud_name={{cloud.cloud_name}}&poller_status=&hostname=');return false;">{{cloud.VMs}}</td>
                                     {% endif %}
 
                                     {% if cloud.VMs_starting == 0 %}
                                         <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} VMs_starting{{cloud.tag}}" class="zero-style float-center plottable" oncontextmenu="javascript:return false;">0</td>
                                     {% else %}
-                                        <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} VMs_starting{{cloud.tag}}" class="{% if cloud.enabled == 0 %}zero-style{% else %}more-style{% endif %} float-center plottable" oncontextmenu="javascript:native_list('?{{cloud.group_name}}&cloud_name={{cloud.cloud_name}}&poller_status=starting&hostname=');return false;">{{cloud.VMs_starting}}</td>
+                                        <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} VMs_starting{{cloud.tag}}" class="{% if cloud.enabled == 0 %}zero-style{% else %}more-style{% endif %} float-center plottable" oncontextmenu="javascript:native_list('?{% if cloud.group_name %}{{cloud.group_name}}{% else %}ALL{% endif %}&cloud_name={{cloud.cloud_name}}&poller_status=starting&hostname=');return false;">{{cloud.VMs_starting}}</td>
                                     {% endif %}
 
 
                                     {% if cloud.VMs_unregistered == 0 %}
                                         <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} VMs_unregistered{{cloud.tag}}" class="zero-style float-center plottable" oncontextmenu="javascript:return false;">0</td>
                                     {% else %}
-                                        <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} VMs_unregistered{{cloud.tag}}" class="{% if cloud.enabled == 0 %}zero-style{% else %}more-style{% endif %} float-center plottable" oncontextmenu="javascript:native_list('?{{cloud.group_name}}&cloud_name={{cloud.cloud_name}}&poller_status=unregistered&hostname=');return false;">{{cloud.VMs_unregistered}}</td>
+                                        <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} VMs_unregistered{{cloud.tag}}" class="{% if cloud.enabled == 0 %}zero-style{% else %}more-style{% endif %} float-center plottable" oncontextmenu="javascript:native_list('?{% if cloud.group_name %}{{cloud.group_name}}{% else %}ALL{% endif %}&cloud_name={{cloud.cloud_name}}&poller_status=unregistered&hostname=');return false;">{{cloud.VMs_unregistered}}</td>
                                     {% endif %}
 
 
                                     {% if cloud.VMs_idle == 0 %}
                                         <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} VMs_idle{{cloud.tag}}" class="zero-style float-center plottable" oncontextmenu="javascript:return false;">0</td>
                                     {% else %}
-                                        <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} VMs_idle{{cloud.tag}}" class="{% if cloud.enabled == 0 %}zero-style{% else %}more-style{% endif %} float-center plottable" oncontextmenu="javascript:native_list('?{{cloud.group_name}}&cloud_name={{cloud.cloud_name}}&poller_status=idle&hostname=');return false;">{{cloud.VMs_idle}}</td>
+                                        <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} VMs_idle{{cloud.tag}}" class="{% if cloud.enabled == 0 %}zero-style{% else %}more-style{% endif %} float-center plottable" oncontextmenu="javascript:native_list('?{% if cloud.group_name %}{{cloud.group_name}}{% else %}ALL{% endif %}&cloud_name={{cloud.cloud_name}}&poller_status=idle&hostname=');return false;">{{cloud.VMs_idle}}</td>
                                     {% endif %}
 
 
                                     {% if cloud.VMs_running == 0 %}
                                         <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} VMs_running{{cloud.tag}}" class="zero-style float-center plottable" oncontextmenu="javascript:return false;">0</td>
                                     {% else %}
-                                        <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} VMs_running{{cloud.tag}}" class="{% if cloud.enabled == 0 %}zero-style{% else %}more-style{% endif %} float-center plottable" oncontextmenu="javascript:native_list('?{{cloud.group_name}}&cloud_name={{cloud.cloud_name}}&poller_status=running&hostname=');return false;">{{cloud.VMs_running}}</td>
+                                        <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} VMs_running{{cloud.tag}}" class="{% if cloud.enabled == 0 %}zero-style{% else %}more-style{% endif %} float-center plottable" oncontextmenu="javascript:native_list('?{% if cloud.group_name %}{{cloud.group_name}}{% else %}ALL{% endif %}&cloud_name={{cloud.cloud_name}}&poller_status=running&hostname=');return false;">{{cloud.VMs_running}}</td>
                                     {% endif %}
 
 
                                     {% if cloud.VMs_retiring == 0 %}
                                         <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} VMs_retiring{{cloud.tag}}" class="zero-style float-center plottable" oncontextmenu="javascript:return false;">0</td>
                                     {% else %}
-                                        <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} VMs_retiring{{cloud.tag}}" class="{% if cloud.enabled == 0 %}zero-style{% else %}more-style{% endif %} float-center plottable" oncontextmenu="javascript:native_list('?{{cloud.group_name}}&cloud_name={{cloud.cloud_name}}&poller_status=retiring&hostname=');return false;">{{cloud.VMs_retiring}}</td>
+                                        <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} VMs_retiring{{cloud.tag}}" class="{% if cloud.enabled == 0 %}zero-style{% else %}more-style{% endif %} float-center plottable" oncontextmenu="javascript:native_list('?{% if cloud.group_name %}{{cloud.group_name}}{% else %}ALL{% endif %}&cloud_name={{cloud.cloud_name}}&poller_status=retiring&hostname=');return false;">{{cloud.VMs_retiring}}</td>
                                     {% endif %}
 
 
                                     {% if cloud.VMs_manual == 0 %}
                                         <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} VMs_manual{{cloud.tag}}" class="zero-style float-center plottable" oncontextmenu="javascript:return false;">0</td>
                                     {% else %}
-                                        <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} VMs_manual{{cloud.tag}}" class="{% if cloud.enabled == 0 %}zero-style{% else %}more-style{% endif %} float-center plottable" oncontextmenu="javascript:native_list('?{{cloud.group_name}}&cloud_name={{cloud.cloud_name}}&poller_status=manual&hostname=');return false;">{{cloud.VMs_manual}}</td>
+                                        <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} VMs_manual{{cloud.tag}}" class="{% if cloud.enabled == 0 %}zero-style{% else %}more-style{% endif %} float-center plottable" oncontextmenu="javascript:native_list('?{% if cloud.group_name %}{{cloud.group_name}}{% else %}ALL{% endif %}&cloud_name={{cloud.cloud_name}}&poller_status=manual&hostname=');return false;">{{cloud.VMs_manual}}</td>
                                     {% endif %}
 
 
                                     {% if cloud.VMs_in_error == 0 %}
                                         <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} VMs_in_error{{cloud.tag}}" class="zero-style float-center plottable" oncontextmenu="javascript:return false;">0</td>
                                     {% else %}
-                                        <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} VMs_in_error{{cloud.tag}}" class="{% if cloud.enabled == 0 %}zero-style{% else %}more-style{% endif %} float-center plottable" oncontextmenu="javascript:native_list('?{{cloud.group_name}}&cloud_name={{cloud.cloud_name}}&poller_status=error&hostname=');return false;">{{cloud.VMs_in_error}}</td>
+                                        <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} VMs_in_error{{cloud.tag}}" class="{% if cloud.enabled == 0 %}zero-style{% else %}more-style{% endif %} float-center plottable" oncontextmenu="javascript:native_list('?{% if cloud.group_name %}{{cloud.group_name}}{% else %}ALL{% endif %}&cloud_name={{cloud.cloud_name}}&poller_status=error&hostname=');return false;">{{cloud.VMs_in_error}}</td>
                                     {% endif %}
 
                                     <td class="col-spacer">&nbsp;</td>
@@ -755,49 +755,49 @@
 
                                     <td>
                                     {% if cloud.VMs > 0 %}
-                                        <a onclick="native_list('?{{cloud.group_name}}&cloud_name={{cloud.cloud_name}}&poller_status=&hostname=')" href="#vms-overlay">&#x2637;</a>
+                                        <a onclick="native_list('?{% if cloud.group_name %}{{cloud.group_name}}{% else %}ALL{% endif %}&cloud_name={{cloud.cloud_name}}&poller_status=&hostname=')" href="#vms-overlay">&#x2637;</a>
                                     {% endif %}
                                     </td>
 
                                     <td>
                                     {% if cloud.VMs_starting > 0 %}
-                                        <a onclick="native_list('?{{cloud.group_name}}&cloud_name={{cloud.cloud_name}}&poller_status=starting&hostname=')" href="#vms-overlay">&#x2637;</a>
+                                        <a onclick="native_list('?{% if cloud.group_name %}{{cloud.group_name}}{% else %}ALL{% endif %}&cloud_name={{cloud.cloud_name}}&poller_status=starting&hostname=')" href="#vms-overlay">&#x2637;</a>
                                     {% endif %}
                                     </td>
 
                                     <td>
                                     {% if cloud.VMs_unregistered > 0 %}
-                                        <a onclick="native_list('?{{cloud.group_name}}&cloud_name={{cloud.cloud_name}}&poller_status=unregistered&hostname=')" href="#vms-overlay">&#x2637;</a>
+                                        <a onclick="native_list('?{% if cloud.group_name %}{{cloud.group_name}}{% else %}ALL{% endif %}&cloud_name={{cloud.cloud_name}}&poller_status=unregistered&hostname=')" href="#vms-overlay">&#x2637;</a>
                                     {% endif %}
                                     </td>
 
                                     <td>
                                     {% if cloud.VMs_idle > 0 %}
-                                        <a onclick="native_list('?{{cloud.group_name}}&cloud_name={{cloud.cloud_name}}&poller_status=idle&hostname=')" href="#vms-overlay">&#x2637;</a>
+                                        <a onclick="native_list('?{% if cloud.group_name %}{{cloud.group_name}}{% else %}ALL{% endif %}&cloud_name={{cloud.cloud_name}}&poller_status=idle&hostname=')" href="#vms-overlay">&#x2637;</a>
                                     {% endif %}
                                     </td>
 
                                     <td>
                                     {% if cloud.VMs_running > 0 %}
-                                        <a onclick="native_list('?{{cloud.group_name}}&cloud_name={{cloud.cloud_name}}&poller_status=running&hostname=')" href="#vms-overlay">&#x2637;</a>
+                                        <a onclick="native_list('?{% if cloud.group_name %}{{cloud.group_name}}{% else %}ALL{% endif %}&cloud_name={{cloud.cloud_name}}&poller_status=running&hostname=')" href="#vms-overlay">&#x2637;</a>
                                     {% endif %}
                                     </td>
 
                                     <td>
                                     {% if cloud.VMs_retiring > 0 %}
-                                        <a onclick="native_list('?{{cloud.group_name}}&cloud_name={{cloud.cloud_name}}&poller_status=retiring&hostname=')" href="#vms-overlay">&#x2637;</a>
+                                        <a onclick="native_list('?{% if cloud.group_name %}{{cloud.group_name}}{% else %}ALL{% endif %}&cloud_name={{cloud.cloud_name}}&poller_status=retiring&hostname=')" href="#vms-overlay">&#x2637;</a>
                                     {% endif %}
                                     </td>
 
                                     <td>
                                     {% if cloud.VMs_manual > 0 %}
-                                        <a onclick="native_list('?{{cloud.group_name}}&cloud_name={{cloud.cloud_name}}&poller_status=manual&hostname=')" href="#vms-overlay">&#x2637;</a>
+                                        <a onclick="native_list('?{% if cloud.group_name %}{{cloud.group_name}}{% else %}ALL{% endif %}&cloud_name={{cloud.cloud_name}}&poller_status=manual&hostname=')" href="#vms-overlay">&#x2637;</a>
                                     {% endif %}
                                     </td>
 
                                     <td>
                                     {% if cloud.VMs_in_error > 0 %}
-                                        <a onclick="native_list('?{{cloud.group_name}}&cloud_name={{cloud.cloud_name}}&poller_status=error&hostname=')" href="#vms-overlay">&#x2637;</a>
+                                        <a onclick="native_list('?{% if cloud.group_name %}{{cloud.group_name}}{% else %}ALL{% endif %}&cloud_name={{cloud.cloud_name}}&poller_status=error&hostname=')" href="#vms-overlay">&#x2637;</a>
                                     {% endif %}
                                     </td>
 

@@ -161,7 +161,7 @@ input:read-only { color:grey; }
 }
 
 
-@media only screen and (min-width: 671px) and (max-width: 1308px) {
+@media only screen and (min-width: 671px) and (max-width: 1323px) {
   .super-main-div {
     top: 122px !important;
   }
