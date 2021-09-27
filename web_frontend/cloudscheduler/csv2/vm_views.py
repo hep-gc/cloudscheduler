@@ -89,22 +89,28 @@ def foreign(request):
 
     global_view = active_user.kwargs['global_view']
 
-    if global_view=='1':
-        rc, msg, foreign_list = config.db_query("view_foreign_flavors")
-
-    else:
-        # Retrieve VM information.
+    # Retrieve VM information
+    if global_view=='0':
+        # show foreign vms for a specific cloud
         where_clause = "group_name='%s'" % active_user.active_group
         rc, msg, foreign_list_raw = config.db_query("view_foreign_flavors", where=where_clause)
         foreign_list = qt(foreign_list_raw, filter=qt_filter_get(['cloud_name'], active_user.kwargs))
-#   _vm_list = qt(config.db_connection.execute(s), filter=qt_filter_get(['cloud_name', 'poller_status', 'hostname'], selector.split('::'), aliases=ALIASES), convert={
 
+    if global_view=='1':
+        # show foreign vms for enabled clouds in all groups
+        rc, msg, foreign_list_raw = config.db_query("view_foreign_flavors")
+        rc, msg, enabled_cloud_list = config.db_query("view_cloud_status", select=['group_name', 'cloud_name'], where="enabled=1")
+        foreign_list = list(filter(lambda x: {'group_name': x.get('group_name'), 'cloud_name': x.get('cloud_name')} in enabled_cloud_list, foreign_list_raw))
+
+    else:
+        # show foreign vms for enabled clouds in a specific group
+        where_clause = "group_name='%s'" % active_user.active_group
+        rc, msg, foreign_list_raw = config.db_query("view_foreign_flavors", where=where_clause)
+        where_clause = "group_name='%s' and enabled=1" % active_user.active_group
+        rc, msg, enabled_cloud_list = config.db_query("view_cloud_status", select=['cloud_name'], where=where_clause)
+        foreign_list = list(filter(lambda x: {'cloud_name': x.get('cloud_name')} in enabled_cloud_list, foreign_list_raw))
 
     config.db_close()
-
-    #if cloud_name in vm_name:
-
-
 
     # Render the page.
     context = {

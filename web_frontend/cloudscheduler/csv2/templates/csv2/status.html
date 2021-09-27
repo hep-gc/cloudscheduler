@@ -644,7 +644,7 @@
                                         {% if cloud.Foreign_VMs == 0 %}
                                             <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} Foreign_VMs{{cloud.tag}}" class="zero-style float-center plottable" oncontextmenu="javascript:return false;">0</td>
                                         {% else %}
-                                            <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} Foreign_VMs{{cloud.tag}}" class="{% if cloud.enabled == 0 %}zero-style{% else %}more-style{% endif %} float-center plottable" oncontextmenu="javascript:foreign_list('?{{cloud.group_name}}&cloud_name={{cloud.cloud_name}}&global_view=0');return false;">{{ cloud.Foreign_VMs }}</td>
+                                            <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} Foreign_VMs{{cloud.tag}}" class="{% if cloud.enabled == 0 %}zero-style{% else %}more-style{% endif %} float-center plottable" oncontextmenu="javascript:foreign_list('?{{cloud.group_name}}&cloud_name={{cloud.cloud_name}}&global_view={% if cloud.group_name and cloud.cloud_name %}0{% elif cloud.group_name and not cloud.cloud_name %}2{% else %}1{% endif %}');return false;">{{ cloud.Foreign_VMs }}</td>
                                         {% endif %}
 
 
@@ -941,7 +941,7 @@
 
                                         <td><!--Foreign VMs-->
                                             {% if cloud.Foreign_VMs > 0 %}
-                                                <a onclick="foreign_list('?{{cloud.group_name}}&cloud_name={{cloud.cloud_name}}&global_view=0')" href="#vms-overlay">&#x2630;</a>
+                                                <a onclick="foreign_list('?{{cloud.group_name}}&cloud_name={{cloud.cloud_name}}&global_view={% if cloud.group_name and cloud.cloud_name %}0{% elif cloud.group_name and not cloud.cloud_name %}2{% else %}1{% endif %}')" href="#vms-overlay">&#x2630;</a>
                                             {% endif %}
                                         </td>
                                         <td><!--Foreign Cores--></td>
