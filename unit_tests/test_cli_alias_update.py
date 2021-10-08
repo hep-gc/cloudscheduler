@@ -27,8 +27,8 @@ def main(gvar):
             'invalid-unit-test-': 'cloud alias update, value specified for "cloud_name" must be all lowercase letters, digits, dashes, underscores, periods, and colons, and cannot contain more than one consecutive dash or start or end with a dash.',
             # 20
             'invalid-unit-test!': 'cloud alias update, value specified for "cloud_name" must be all lowercase letters, digits, dashes, underscores, periods, and colons, and cannot contain more than one consecutive dash or start or end with a dash.',
-            # 21
-            'invalid,unit,test': 'cloud alias update, value specified for "cloud_name" must be all lowercase letters, digits, dashes, underscores, periods, and colons, and cannot contain more than one consecutive dash or start or end with a dash.',
+            # 21 Comma is used for a list of clouds, skip this test
+            #'invalid,unit,test': 'cloud alias update, value specified for "cloud_name" must be all lowercase letters, digits, dashes, underscores, periods, and colons, and cannot contain more than one consecutive dash or start or end with a dash.',
             # 22 Attempt to add a cloud that does not exist.
             'invalid-unit-test': 'cloud alias update, "{}" failed - specified value in list of values does not exist: cloud_name=invalid-unit-test, group_name={}.'.format(ut_id(gvar, 'cla2'), ut_id(gvar, 'clg1'))
         }, 'mandatory': True},
@@ -61,6 +61,12 @@ def main(gvar):
     execute_csv2_command(
         gvar, 0, None, 'cloud alias "{}.{}" successfully updated.'.format(ut_id(gvar, 'clg1'), ut_id(gvar, 'cla2')),
         ['alias', 'update', '--alias-name', ut_id(gvar, 'cla2'), '--cloud-name', ut_id(gvar, 'clc3'), '--cloud-option', 'add', '-su', ut_id(gvar, 'clu3')],
+    )
+
+    # 31 Explicitly add clc1 and clc3 to cla2.
+    execute_csv2_command(
+        gvar, 0, None, 'cloud alias "{}.{}" successfully updated.'.format(ut_id(gvar, 'clg1'), ut_id(gvar, 'cla2')),
+        ['alias', 'update', '--alias-name', ut_id(gvar, 'cla2'), '--cloud-name', '{},{}'.format(ut_id(gvar, 'clc3'), ut_id(gvar, 'clc1')), '--cloud-option', 'add', '-su', ut_id(gvar, 'clu3')],
     )
 
     # 32 Explicitly remove clc2 and clc3 from cla2, causing cla2 to be deleted.

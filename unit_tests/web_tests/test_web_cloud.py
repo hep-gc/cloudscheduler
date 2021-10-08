@@ -641,7 +641,7 @@ class TestWebCloudCommon(unittest.TestCase):
     def test_web_cloud_update_add_security_group(self):
         # Adds a cloud to a security group
         cloud_name = self.gvar['user'] + '-wic1'
-        security_group = 'csv2-sa'
+        security_group = 'ssh_only'
         self.page.click_side_button(cloud_name)
         self.page.add_security_group(security_group)
         self.page.click_update_cloud()
@@ -812,7 +812,7 @@ class TestWebCloudCommon(unittest.TestCase):
         # Changes a cloud's maximum number of cores by sliding the slider
         cloud_name = self.gvar['user'] + '-wic1'
         self.page.click_side_button(cloud_name)
-        self.page.slide_cores_slider(128)
+        self.page.slide_cores_slider(128, 16)
         self.page.click_update_cloud()
         wta.assertHasAttribute('cloud', cloud_name, 'cores_ctl', '128', group=self.gvar['base_group'], err=16)
 
@@ -871,7 +871,7 @@ class TestWebCloudCommon(unittest.TestCase):
         # Changes a cloud's maximum RAM by sliding the slider
         cloud_name = self.gvar['user'] + '-wic1'
         self.page.click_side_button(cloud_name)
-        self.page.slide_ram_slider(262144)
+        self.page.slide_ram_slider(262144, 48000)
         self.page.click_update_cloud()
         wta.assertHasAttribute('cloud', cloud_name, 'ram_ctl', '262144', group=self.gvar['base_group'], err=48000)
 

@@ -213,7 +213,7 @@ def setup_objects(objects=[], browser='firefox'):
         for i in range(1, 3):
             if subprocess.run(['cloudscheduler', 'my', 'settings', '-sri', '60','-sfv', 'true', '-s', gvar['user'] + '-wis' + str(i)], stdout=subprocess.DEVNULL).returncode != 0:
                 raise SetUpException("user update failed - check the server status and try again")
-            helpers.wait_for_openstack_poller(gvar['user'] + '-wic' + str(i), ['-vi', 'centos7-image', '-vn', 'private'], output=True)
+            helpers.wait_for_openstack_poller(gvar['user'] + '-wic' + str(i), ['-vi', 'CentOS-7-x86_64-GenericCloud-1907.qcow2c', '-vn', 'private'], output=True)
 
     if 'jobs' in objects:
         server_account = gvar['server_username'] + '@' + gvar['fqdn']

@@ -27,7 +27,7 @@ class TestWebSettingCommon(unittest.TestCase):
 
     def test_web_setting_update_password(self):
         # Updates the current user's password
-        password = self.gvar['user'] + '-password'
+        password = self.gvar['user'] + '-Password123'
         self.page.click_side_button(self.user)
         self.page.type_password(password)
         self.page.click_update_user()
