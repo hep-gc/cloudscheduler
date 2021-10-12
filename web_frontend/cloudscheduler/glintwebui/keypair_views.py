@@ -85,29 +85,41 @@ def upload_keypair(request, group_name=None):
         key_string = request.POST.get("key_string")
         grp = request.POST.get("group_name")
 
+        # Handle the case key name is too long
+        if key_name and len(key_name) > 64:
+            message = "Keypair name %s is too long, should have no more than 64 characters" % key_name
+            logger.error("Keypair name %s is too long, should have no more than 64 characters" % key_name)
+            db_config.db_close()
+            return manage_keys(request=request, group_name=grp, message=message)
+
         for cloud in cloud_name_list:
             where_clause = "group_name='%s' and cloud_name='%s'" % (grp, cloud)
             rc, qmsg, db_cloud_list = db_config.db_query(Group_Resources, where=where_clause)
             db_cloud = db_cloud_list[0]
+            logger.info("Start uploading keypair %s" % key_name)
             try:
                 new_key = create_keypair(key_name=key_name, key_string=key_string, cloud=db_cloud)
             except Exception as exc:
                 logger.error("Failed openstack request to make keypair")
                 logger.error(exc)
                 logger.error("%s is likely an invalid keystring" % key_string)
-                message = "unable to upload key: '%s' is likely an invalid keystring" % key_string
+                message = "unable to upload key: '%s' is likely an invalid keystring or already exists" % key_string
                 return manage_keys(request=request, group_name=grp, message=message)
 
             keypair_dict = {
                 "group_name": grp,
                 "cloud_name": cloud,
                 "fingerprint": new_key.fingerprint,
-                "key_name": key_name
+                "key_name": key_name,
+                "cloud_type": db_cloud.get('cloud_type')
             }
-            db_config.db_merge(Keypairs, keypair_dict)
+            rc, msg = db_config.db_merge(Keypairs, keypair_dict)
+            if rc != 0:
+                logger.error("Uploading keypair %s merge error: %s" % (key_name, msg))
 
             try:
                 db_config.db_commit()
+                logger.info("Keypair %s uploaded" % key_name)
             except Exception as exc:
                 logger.error(exc)
                 logger.error("Error committing database session after creating new key")
@@ -138,13 +150,20 @@ def new_keypair(request, group_name=None,):
         key_name = request.POST.get("key_name")
         grp = request.POST.get("group_name")
 
+        # Handle the case key name is too long
+        if key_name and len(key_name) > 64:
+            message = "Keypair name %s is too long, should have no more than 64 characters" % key_name
+            logger.error("Keypair name %s is too long, should have no more than 64 characters" % key_name)
+            db_config.db_close()
+            return manage_keys(request=request, group_name=grp, message=message)
+
         # Only check that needs to be made is if the key name is used on any of the target clouds
         for cloud in cloud_name_list:
             where_clause = "group_name='%s' and cloud_name='%s' and key_name='%s'" % (grp, cloud, key_name)
             rc, qmsg, db_keypair_list = db_config.db_query(Keypairs, where=where_clause)
             if len(db_keypair_list)==0:
                 #no entry exists, its safe to create this keypair
-                logger.info("creating new keypair %s on cloud %s" % (key_name, cloud))
+                logger.info("Creating new keypair %s on cloud %s" % (key_name, cloud))
                 #get grp resources obj
                 where_clause = "group_name='%s' and cloud_name='%s'" % (grp, cloud)
                 rc, msg, cloud_obj_list =  db_config.db_query(Group_Resources, where=where_clause)
@@ -155,15 +174,20 @@ def new_keypair(request, group_name=None,):
                 "group_name": grp,
                 "cloud_name": cloud,
                 "fingerprint": new_key.fingerprint,
-                "key_name": key_name
+                "key_name": key_name,
+                "cloud_type": cloud_obj.get('cloud_type')
                 }
-                db_config.db_merge(Keypairs, keypair_dict)
+
+                rc, msg = db_config.db_merge(Keypairs, keypair_dict)
+                if rc != 0:
+                    logger.error('Creating keypair %s merge error: %s' % (key_name, msg))
 
                 try:
                     db_config.db_commit()
+                    logger.info("keypair %s created" % key_name)
                 except Exception as exc:
-                    logger.error(exc)
                     logger.error("Error committing database session after creating new key")
+                    logger.error(exc)
                     logger.error("openstack and the database may be out of sync until next keypair poll cycle")
             else:
                 #keypair name exists on this cloud
@@ -229,24 +253,28 @@ def save_keypairs(request, group_name=None, message=None):
                         for src_keypair in src_keypairs:
                             try:
                                 # get group resources corresponding to that keypair
-                                logger.info("getting source cloud...")
+                                logger.info("Getting source cloud for transfer keypair %s..." % key_name)
                                 where_clause = "group_name='%s' and cloud_name='%s'" % (src_keypair["group_name"], src_keypair["cloud_name"])
                                 rc, qmsg, src_clouds = db_config.db_query(Group_Resources, where=where_clause)
                                 src_cloud = src_clouds[0]
                                 # download key from that group resources
-                                logger.info("getting source keypair openstack object...")
+                                logger.info("Getting source keypair openstack object...")
                                 os_keypair = get_keypair(keypair_key, src_cloud)
                                 # upload key to current "cloud"
                                 logger.info("transferring keypair...")
                                 result = transfer_keypair(os_keypair, cloud)
-                                logger.info(result)
                                 keypair_dict = {
                                     "group_name": group_name,
                                     "cloud_name": cloud["cloud_name"],
                                     "fingerprint": fingerprint,
-                                    "key_name": key_name
+                                    "key_name": key_name,
+                                    "cloud_type": cloud.get('cloud_type')
                                 }
-                                db_config.db_merge(Keypairs, keypair_dict)
+                                rc, msg = db_config.db_merge(Keypairs, keypair_dict)
+                                if rc != 0:
+                                    logger.error("Transfer keypair %s merge error: %s" % (key_name, msg))
+                                else:
+                                    logger.info("Finish transfer keypair %s" % key_name)
                                 # Transfer successful, break
                                 transfer_success = True
                                 break
