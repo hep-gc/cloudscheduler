@@ -819,11 +819,15 @@ def main():
                                         if num_vms_to_boot <= 0:
                                             # not enough volume space
                                             continue
-                                        boot_cloud.vm_create(num=int(num_vms_to_boot),
+                                        num_booted = boot_cloud.vm_create(num=int(num_vms_to_boot),
                                                    flavor=boot_flavor.get("flavor"),
                                                    job=idle_job,
                                                    template_dict=template_dict,
                                                    image=use_image)
+                                        log.debug('vm booted %s' % num_booted)
+                                        if num_booted <= 0:
+                                            # cloud boot vm failed due to timeout
+                                            continue
 
                                     elif current_cloud_type == 'amazon':
                                         if idle_job.get("image"):

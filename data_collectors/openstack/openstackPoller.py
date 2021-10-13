@@ -1646,6 +1646,18 @@ def vm_poller():
                                     ip_addrs.append(addr['addr'])
                                 elif addr['OS-EXT-IPS:type'] == 'floating':
                                     floating_ips.append(addr['addr'])
+                        
+                        additions = {}
+                        where_clause="group_name='%s' and cloud_name='%s' and hostname='%s'" % (vm_group_name, vm_cloud_name, vm.name)
+                        rc, msg, rows = config.db_query(VM, where=where_clause)
+                        if (not rows) or len(rows) == 0:
+                            where_clause = "group_name='%s'" % cloud_obj["group_name"]
+                            rc, msg, found_group = config.db_query("csv2_groups", where=where_clause)
+                            keep_alive = 0
+                            if found_group and len(found_group) > 0:
+                                keep_alive = found_group[0].get("vm_keep_alive")
+                            additions = {'start_time': int(time.time()), 'keep_alive': keep_alive}
+
                         vm_dict = {
                             'group_name': vm_group_name,
                             'cloud_name': vm_cloud_name,
@@ -1662,7 +1674,8 @@ def vm_poller():
                             'power_state': vm.to_dict().get('power_state'),
                             'vm_ips': str(ip_addrs),
                             'vm_floating_ips': str(floating_ips),
-                            'last_updated': new_poll_time
+                            'last_updated': new_poll_time,
+                            **additions
                         }
 
                         vm_dict, unmapped = map_attributes(src="os_vms", dest="csv2", attr_dict=vm_dict, config=config)

@@ -184,7 +184,6 @@ class OpenStackCloud(basecloud.BaseCloud):
             vol_info = None
 
         instance = None
-        instances = None
         try:
             if vol_info is None:
                 # boot without a volume
@@ -199,7 +198,6 @@ class OpenStackCloud(basecloud.BaseCloud):
                 else:
                     instance = nova._create(MyServer, name=hostname, image_id=imageobj.id, flavor_id=flavorl.id, key_name=key_name, user_data=format_userdata, networks=netid, security_groups=sec_groups, max_count=num)
             else:
-                instances = []
                 self.log.debug("Booting with volume")
                 for i in range(num):
                     # boot with a volume
@@ -216,11 +214,11 @@ class OpenStackCloud(basecloud.BaseCloud):
                     cinder = self._get_creds_cinder()
                     bv_name = "vol-" + hostname
                     try:
-                        cv = cinder.create_volume(name=bv_name, size=size, image_id=imageobj.id, volume_type=volume_type, is_bootable=True)
+                        cv = cinder.create_volume(name=bv_name, size=size, image_id=imageobj.id, volume_type=volume_type, is_bootable=True, timeout=180)
                     except Exception as exc:
                         self.log.info("Failed to create new volume, endpoint error, or volume limit exceeded canceling remaining boot requests")
                         self.log.debug(exc)
-                        break
+                        return 0
                     while (cv.status != 'available'):
                         time.sleep(1)
                         cv = cinder.get_volume(cv.id)
@@ -231,18 +229,59 @@ class OpenStackCloud(basecloud.BaseCloud):
                     sec_groups = []
                     if self.default_security_groups:
                         sec_groups = list(map(lambda x: {"name": x}, self.default_security_groups))
-                    if key_name == '':
-                        instances.append((nova.create_server(name=hostname, image_id=imageobj.id, flavor_id=flavorl.id, block_device_mapping=bdm, user_data=format_userdata, networks=netid, security_groups=sec_groups), hostname))
-                    else:
-                        instances.append((nova.create_server(name=hostname, image_id=imageobj.id, flavor_id=flavorl.id, key_name=key_name, block_device_mapping=bdm, user_data=format_userdata, networks=netid, security_groups=sec_groups), hostname))
+                    try:
+                        if key_name == '':
+                            nova.create_server(name=hostname, image_id=imageobj.id, flavor_id=flavorl.id, block_device_mapping=bdm, user_data=format_userdata, networks=netid, security_groups=sec_groups, wait=True, timeout=180)
+                        else:
+                            nova.create_server(name=hostname, image_id=imageobj.id, flavor_id=flavorl.id, key_name=key_name, block_device_mapping=bdm, user_data=format_userdata, networks=netid, security_groups=sec_groups, wait=True, timeout=180)
+                        
+                        self.config.db_open()
+                        vms = []
+                        for _ in range(0, 30):
+                            try:
+                                vms = nova.servers(name=hostname)
+                                break
+                            except Exception as ex:
+                                self.log.warning("Bad Request caught, OpenStack db may not be updated yet, retrying %s" % ex)
+                                time.sleep(1)
+                        
+                        for vm in vms:
+                            found_flavor = nova.find_flavor(name_or_id=vm.flavor['original_name'])
+                            vm_flavor_id = found_flavor.id
+                            vm_dict = {
+                                'group_name': self.group,
+                                'cloud_name': self.name,
+                                'region': self.region,
+                                'cloud_type': "openstack",
+                                'auth_url': self.authurl,
+                                'project': self.project,
+                                'hostname': vm.name,
+                                'vmid': vm.id,
+                                'status': vm.status,
+                                'flavor_id': vm_flavor_id,
+                                'image_id': vm.image["id"],
+                                'target_alias': job.get("target_alias"),
+                                'task': vm.to_dict().get('task_state'),
+                                'power_status': vm.to_dict().get('power_state'),
+                                'last_updated': int(time.time()),
+                                'keep_alive': self.keep_alive,
+                                'start_time': int(time.time())
+                            }
+                            self.config.db_merge('csv2_vms', vm_dict)
+                            self.config.db_commit()
+                        self.config.db_close()
+                    except Exception as exc:
+                        self.log.error("Failed to create new vm due to the timeout: %s" % exc)
+                        self.config.db_close()
+                        return 0
+                    
                     hostname = self._generate_next_name()
 
 
         except Exception as ex:
             self.config.update_service_catalog(provider='csmain', error='Error booting VM for group: %s, cloud: %s - %s' % (self.group, self.name, ex), logger=self.log)
             instance = None
-            instances = None
-            raise
+            return -1
 
         if instance:
             self.log.debug("Try to fetch with filter of hostname used")
@@ -283,49 +322,9 @@ class OpenStackCloud(basecloud.BaseCloud):
                 }
                 self.config.db_merge(vms, vm_dict)
             self.config.db_close(commit=True)
-        elif instances:
-            self.log.debug("Parse instances using block storage")
-            self.config.db_open()
-            for instance, i_hostname in instances:
-                vms = "csv2_vms"
-                for _ in range(0, 3):
-                    try:
-                        list_vms = nova.servers(name=i_hostname)
-                        break
-                    except Exception as ex:
-                        self.log.warning("Bad Request caught, OpenStack db may not be updated yet, "
-                                         "retrying %s" % ex)
-                        time.sleep(1)
+            
+        return num
 
-                for vm in list_vms:
-                    self.log.debug(vm)
-                    found_flavor = nova.find_flavor(name_or_id=vm.flavor['original_name'])
-                    vm_flavor_id = found_flavor.id
-
-                    vm_dict = {
-                        'group_name': self.group,
-                        'cloud_name': self.name,
-                        'region': self.region,
-                        'cloud_type': "openstack",
-                        'auth_url': self.authurl,
-                        'project': self.project,
-                        'hostname': vm.name,
-                        'vmid': vm.id,
-                        'status': vm.status,
-                        'flavor_id': vm_flavor_id,
-                        'image_id': vm.image["id"],
-                        'target_alias': job.get("target_alias"),
-                        'task': vm.to_dict().get('task_state'),
-                        'power_status': vm.to_dict().get('power_state'),
-                        'last_updated': int(time.time()),
-                        'keep_alive': self.keep_alive,
-                        'start_time': int(time.time()),
-                    }
-                    self.config.db_merge(vms, vm_dict)
-                self.config.db_commit()
-
-            self.config.db_close()
-    
 
     def _get_keystone_data_v2(self):
         """
