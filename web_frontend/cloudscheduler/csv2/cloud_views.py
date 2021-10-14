@@ -1877,6 +1877,9 @@ def update(request):
                 config.db_close()
                 return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud update, "%s" failed - %s.' % (lno(MODID), fields['cloud_name'], msg))
 
+        if 'vm_boot_volume' in fields and fields['vm_boot_volume'] is None:
+            fields['vm_boot_volume'] = ''
+
         if 'cloud_type' in fields:
             if 'authurl' in fields and fields['cloud_type'] == 'openstack':
                 #check if url has a trailing slash
