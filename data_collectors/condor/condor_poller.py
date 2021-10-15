@@ -463,20 +463,25 @@ def job_poller():
                     condor_host_groups[condor_central_manager].append(group["group_name"])
 
                 # build group_users dict
-                where_clause = "group_name='%s'" % group["group_name"]
-                rc, msg, users = config.db_query(USERS, where=where_clause)
                 htcondor_other_submitters = group["htcondor_other_submitters"]
-                if htcondor_other_submitters is not None:
-                    user_list = group["htcondor_other_submitters"].split(',')
+                if htcondor_other_submitters == 'ALL':
+                    rc, msg, users = config.db_query(USERS)
+                    for usr in users:
+                        user_list.append(usr["username"])
                 else:
-                    user_list = []
-                # need to append users from group defaultts (htcondor_supplementary_submitters) here
-                # alternatively we can just have 2 lists and check both wich would save on memory if there was a ton of users but cost cycles
-                for usr in users:
-                    user_list.append(usr["username"])
+                    where_clause = "group_name='%s'" % group["group_name"]
+                    rc, msg, users = config.db_query(USERS, where=where_clause)
+                    if htcondor_other_submitters is not None:
+                        user_list = group["htcondor_other_submitters"].split(',')
+                    else:
+                        user_list = []
+                    # need to append users from group defaultts (htcondor_supplementary_submitters) here
+                    # alternatively we can just have 2 lists and check both wich would save on memory if there was a ton of users but cost cycles
+                    for usr in users:
+                        user_list.append(usr["username"])
 
                 group_users[group["group_name"]] = user_list
-
+        
             uncommitted_updates = 0
             foreign_jobs = 0
             for condor_host in condor_hosts_set:
