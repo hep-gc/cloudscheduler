@@ -919,6 +919,9 @@ def metadata_add(request):
             config.db_close()
             return metadata_new(request, active_user, response_code=1, message='%s cloud metadata-add failed, cloud name "%s" does not exist.' % (lno(MODID), fields['cloud_name']), cloud_name=fields['cloud_name'])
 
+        if fields.get('metadata'):
+            fields['metadata'] = fields.get('metadata').replace('\\', '\\\\')
+        
         if fields.get('metadata') or fields.get('metadata') == '':
             fields['checksum'] = get_file_checksum(fields['metadata'].encode('utf-8'))
 
@@ -1316,6 +1319,9 @@ def metadata_update(request):
             if cloud_name and metadata_name:
                 return metadata_fetch(request, response_code=1, message='%s cloud metadata-update %s' % (lno(MODID), msg), metadata_name=metadata_name, cloud_name=cloud_name)
             return render(request, 'csv2/blank_msg.html', {'response_code': 1, 'message': '%s cloud metadata-update %s' % (lno(MODID), msg)})
+        
+        if fields.get('metadata'):
+            fields['metadata'] = fields.get('metadata').replace('\\', '\\\\')
         
         if fields.get('metadata') or fields.get('metadata') == '':
             fields['checksum'] = get_file_checksum(fields['metadata'].encode('utf-8'))
