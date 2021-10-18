@@ -691,7 +691,7 @@ def metadata_add(request):
             return metadata_new(request, active_user, response_code=1, message='%s group metadata-add %s' % (lno(MODID), msg))
         
         if fields.get('metadata'):
-            fields['metadata'] = fields.get('metadata').replace('\\', '\\\\')
+            fields['metadata'] = config.replace_backslash_content(fields.get('metadata'))
         
         if fields.get('metadata') or fields.get('metadata') == '':
             fields['checksum'] = get_file_checksum(fields['metadata'].encode('utf-8'))
@@ -992,7 +992,7 @@ def metadata_update(request):
             return render(request, 'csv2/blank_msg.html', {'response_code': 1, 'message': '%s group metadata-update %s' % (lno(MODID), msg)})
 
         if fields.get('metadata'):
-            fields['metadata'] = fields.get('metadata').replace('\\', '\\\\')
+            fields['metadata'] = config.replace_backslash_content(fields.get('metadata'))
 
         if fields.get('metadata') or fields.get('metadata') == '':
             fields['checksum'] = get_file_checksum(fields['metadata'].encode('utf-8'))

@@ -726,3 +726,8 @@ class Config:
         except Exception as exc:
             print("Error Determining version", exc)
         return version
+
+#-------------------------------------------------------------------------------
+
+    def replace_backslash_content(self, content):
+        return content.replace('\\', '\\\\')
