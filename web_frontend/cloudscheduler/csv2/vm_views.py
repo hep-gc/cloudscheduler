@@ -96,7 +96,7 @@ def foreign(request):
         rc, msg, foreign_list_raw = config.db_query("view_foreign_flavors", where=where_clause)
         foreign_list = qt(foreign_list_raw, filter=qt_filter_get(['cloud_name'], active_user.kwargs))
 
-    if global_view=='1':
+    elif global_view=='1':
         # show foreign vms for enabled clouds in all groups
         rc, msg, foreign_list_raw = config.db_query("view_foreign_flavors")
         rc, msg, enabled_cloud_list = config.db_query("view_cloud_status", select=['group_name', 'cloud_name'], where="enabled=1")
