@@ -481,7 +481,8 @@ def job_poller():
                         user_list.append(usr["username"])
 
                 group_users[group["group_name"]] = user_list
-        
+            
+            fail_commit = False
             uncommitted_updates = 0
             foreign_jobs = 0
             for condor_host in condor_hosts_set:
@@ -694,6 +695,16 @@ def job_poller():
                         abort_cycle = True
                         break
 
+                    try:
+                        config.db_commit()
+                    except Exception as exc:
+                        logging.error("Failed to commit new jobs, aborting cycle...")
+                        logging.error(exc)
+                        config.db_rollback()
+                        abort_cycle = True
+                        fail_commit = True
+                        break
+
                 if held_jobs > 0:
                     #hold all the jobs
                     logging.info("%s jobs held or to be held due to invalid user or group specifications." % held_jobs)
@@ -748,16 +759,12 @@ def job_poller():
                     break
 
             if uncommitted_updates > 0:
-                try:
-                    config.db_commit()
-                    logging.info("Job updates committed: %d" % uncommitted_updates)
-                except Exception as exc:
-                    logging.error("Failed to commit new jobs, aborting cycle...")
-                    logging.error(exc)
-                    config.db_rollback()
-                    signal.signal(signal.SIGINT, config.signals['SIGINT'])
-                    time.sleep(config.categories["condor_poller.py"]["sleep_interval_job"])
-                    continue
+                logging.info("Job updates committed: %d" % uncommitted_updates)
+            if fail_commit:
+                logging.info("Previous had failed commit")
+                signal.signal(signal.SIGINT, config.signals['SIGINT'])
+                time.sleep(config.categories["condor_poller.py"]["sleep_interval_job"])
+                continue
 
             if delete_cycle:
                 # Check for deletes
@@ -825,6 +832,7 @@ def job_command_poller():
                 else:
                     condor_hosts_set.add(group["htcondor_fqdn"])
 
+            fail_commit = False
             uncommitted_updates = 0
             for condor_host in condor_hosts_set: 
                 try:
@@ -856,21 +864,21 @@ def job_command_poller():
                         job["hold_job_reason"] = None
                         config.db_merge(JOB, job)
                         uncommitted_updates = uncommitted_updates + 1
-
-                        if uncommitted_updates >= config.categories['condor_poller.py']['batch_commit_size']:
-                            try:
-                                db_commit()
-                                uncommitted_updates = 0
-                            except Exception as exc:
-                                logging.error("Failed to commit batch of job changes, aborting cycle...")
-                                logging.error(exc)
-                                abort_cycle = True
-                                break
-
+                        
                     except Exception as exc:
                         logging.error("Failed to hold job, rebooting command poller...")
                         logging.error(exc)
                         exit(1)
+
+                    try:
+                        config.db_commit()
+                    except Exception as exc:
+                        logging.error("Failed to commit job changes, aborting cycle...")
+                        logging.error(exc)
+                        config.db_rollback()
+                        abort_cycle=True
+                        fail_commit = True
+                        break
 
                 if abort_cycle:
                     config.db_rollback()
@@ -878,15 +886,12 @@ def job_command_poller():
                     continue
 
             if uncommitted_updates > 0:
-                try:
-                    db_commit()
-                except Exception as exc:
-                    logging.error("Failed to commit job changes, aborting cycle...")
-                    logging.error(exc)
-                    del condor_session
-                    config.db_rollback()
-                    time.sleep(config.categories["condor_poller.py"]["sleep_interval_command"])
-                    continue
+                logging.info("Job command updates committed: %d" % uncommitted_updates)
+            if fail_commit:
+                logging.info("Previous had failed commit")
+                del condor_session
+                time.sleep(config.categories["condor_poller.py"]["sleep_interval_command"])
+                continue
 
             logging.debug("Completed command consumer cycle")
             signal.signal(signal.SIGINT, config.signals['SIGINT'])
@@ -1018,6 +1023,7 @@ def machine_poller():
                         logging.critical("More than 3 consecutive failed polls on host: %s, Configuration error or condor issues" % condor_host)
                     continue
 
+                fail_commit = False
                 abort_cycle = False
                 machine_errors = {}
                 uncommitted_updates = 0
@@ -1100,6 +1106,17 @@ def machine_poller():
                         logging.error(exc)
                         abort_cycle = True
                         break
+
+                    try:
+                        config.db_commit()
+                    except Exception as exc:
+                        logging.exception("Failed to commit machine updates, aborting cycle...")
+                        logging.error(exc)
+                        config.db_rollback()
+                        abort_cycle = True
+                        fail_commit = True
+                        break
+
                 if forgein_machines > 0:
                     logging.info("Ignored %s total forgein machines" % forgein_machines)
                     if "nogrp" in machine_errors:
@@ -1130,15 +1147,11 @@ def machine_poller():
                     break
 
             if uncommitted_updates > 0:
-                try:
-                    config.db_commit()
-                    logging.info("Machine updates committed: %d" % uncommitted_updates)
-                except Exception as exc:
-                    logging.exception("Failed to commit machine updates, aborting cycle...")
-                    logging.error(exc)
-                    config.db_rollback()
-                    time.sleep(config.categories["condor_poller.py"]["sleep_interval_machine"])
-                    continue
+                logging.info("Machine updates committed: %d" % uncommitted_updates)
+            if fail_commit:
+                logging.info("Previous had failed commit")
+                time.sleep(config.categories["condor_poller.py"]["sleep_interval_machine"])
+                continue
 
             if delete_cycle:
                 # Check for deletes
