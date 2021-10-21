@@ -1485,6 +1485,7 @@ def vm_poller():
 
             where_clause = "cloud_type='openstack'"
             rc, msg, cloud_list = config.db_query(CLOUD, where=where_clause)
+            where_clause="cloud_type='openstack' and start_time<='%s'" % (new_poll_time-config.categories["SQL"]["vm_come_alive"])
             rc, msg, unfiltered_rows = config.db_query(VM, where=where_clause)
             
             # build unique cloud list to only query a given cloud once per cycle
@@ -1771,7 +1772,7 @@ def vm_poller():
             # VMs have a different failure dict schema using group_name + auth_url instead of group_name + cloud_name
             #     failure_dict needs to be remapped before calling
             logging.debug("Expanding failure_dict: %s" % failure_dict)
-            where_clause="cloud_type='openstack' and start_time<='%s'" % (new_poll_time-config.categories["SQL"]["vm_come_alive"])
+            where_clause="cloud_type='openstack'"
             rc, qmsg, cloud_list = config.db_query(CLOUD, where=where_clause)
             new_f_dict = {}
             for cloud in cloud_list:
