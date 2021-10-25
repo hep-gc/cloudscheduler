@@ -504,7 +504,8 @@ schema = {
             "vm_security_groups": {"type": "str", "len": "128", "nulls": "YES"},
             "error_count": {"type": "int"},
             "error_time": {"type": "int"},
-            "machine_subprocess_pid": {"type": "int"}
+            "machine_subprocess_pid": {"type": "int"},
+            "freeze": {"type": "int"}
             }
         },
     "csv2_configuration": {

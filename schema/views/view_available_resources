@@ -226,6 +226,7 @@ from (
             gsi.config_key='cert_days_left_bad'
         where
             enabled=1 and
+            freeze=0 and
             communication_up > 0 and
             (cg.htcondor_gsi_dn is null or (cg.htcondor_gsi_eol-unix_timestamp()) div 86400>gsi.config_value) and
             (cw.worker_dn is null or (cw.worker_eol-unix_timestamp()) div 86400>gsi.config_value)

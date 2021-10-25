@@ -1728,6 +1728,11 @@ def vm_poller():
                 if abort_cycle:
                     break
 
+                where_clause = "group_name='%s' and cloud_name='%s'" % (cloud_obj["group_name"], cloud_obj["cloud_name"])
+                cloud_row = { "freeze": 0 }
+                config.db_update("csv2_clouds", cloud_row, where=where_clause)
+                config.db_commit()
+            
                 if uncommitted_updates > 0:
                     logging.info("VM updates committed: %d" % uncommitted_updates)
 

@@ -199,10 +199,14 @@ class OpenStackCloud(basecloud.BaseCloud):
                 except Exception as exc:
                     self.log.error("Failed to create new vms: %s" % exc)
 
-                vm_updated = self._update_vm_list(nova, hostname, job)
+                vm_updated = self._update_vm_list(nova, hostname, job, num)
                 if vm_updated:
                     return num
                 else:
+                    where_clause = "group_name='%s' and cloud_name='%s'" % (self.group, self.name)
+                    cloud_row = { "freeze": 1 }
+                    self.config.db_update("csv2_clouds", cloud_row, where=where_clause)
+                    self.config.db_commit()
                     return 0
 
             else:
@@ -245,8 +249,12 @@ class OpenStackCloud(basecloud.BaseCloud):
                     except Exception as exc:
                         self.log.error("Failed to create new vm with volume: %s" % exc)
                     
-                    vm_updated = self._update_vm_list(nova, hostname, job)
+                    vm_updated = self._update_vm_list(nova, hostname, job, num)
                     if not vm_updated:
+                        where_clause = "group_name='%s' and cloud_name='%s'" % (self.group, self.name)
+                        cloud_row = { "freeze": 1 }
+                        self.config.db_update("csv2_clouds", cloud_row, where=where_clause)
+                        self.config.db_commit()
                         return 0
                     hostname = self._generate_next_name()
                 return num
@@ -255,7 +263,7 @@ class OpenStackCloud(basecloud.BaseCloud):
             self.config.update_service_catalog(provider='csmain', error='Error booting VM for group: %s, cloud: %s - %s' % (self.group, self.name, ex), logger=self.log)
             raise
 
-    def _update_vm_list(self, nova, hostname, job):
+    def _update_vm_list(self, nova, hostname, job, num):
         self.log.debug("Try to fetch with filter of hostname used")
         list_vms = None
         for _ in range(0, 3):
@@ -266,14 +274,12 @@ class OpenStackCloud(basecloud.BaseCloud):
                 self.log.warning("Bad Request caught, OpenStack db may not be updated yet, retrying %s" % ex)
                 time.sleep(1)
 
-        if not list_vms:
-            self.log.error("Error finding VM for group: %s, cloud: %s" % (self.group, self.name))
-            return False
-
         try:
             self.config.db_open()
+            count = 0
             for vm in list_vms:
                 self.log.debug(vm)
+                count = count + 1
                 found_flavor = nova.find_flavor(name_or_id=vm.flavor['original_name'])
                 vm_flavor_id = found_flavor.id
 
@@ -298,6 +304,9 @@ class OpenStackCloud(basecloud.BaseCloud):
                 }
                 self.config.db_merge('csv2_vms', vm_dict)
             self.config.db_close(commit=True)
+            if count != num:
+                self.log.error("Error finding VM for group: %s, cloud: %s" % (self.group, self.name))
+                return False
         except Exception as exc:
             self.log.error("Error update VM for group: %s, cloud: %s : %s" % (self.group, self.name, exc))
             return False
