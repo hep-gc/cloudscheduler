@@ -140,5 +140,6 @@ from (
     ) as cs2
 where
     cores_native+cores_foreign>least(cores_softmax,cores_max) or
+    cores_native>cores_ctl or
     ram_native+ram_foreign>ram_max
 ;
