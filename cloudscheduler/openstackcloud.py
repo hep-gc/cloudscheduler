@@ -203,10 +203,11 @@ class OpenStackCloud(basecloud.BaseCloud):
                 if vm_updated:
                     return num
                 else:
+                    self.config.db_open()
                     where_clause = "group_name='%s' and cloud_name='%s'" % (self.group, self.name)
                     cloud_row = { "freeze": 1 }
                     self.config.db_update("csv2_clouds", cloud_row, where=where_clause)
-                    self.config.db_commit()
+                    self.config.db_close(commit=True)
                     return 0
 
             else:
@@ -251,10 +252,11 @@ class OpenStackCloud(basecloud.BaseCloud):
                     
                     vm_updated = self._update_vm_list(nova, hostname, job, num)
                     if not vm_updated:
+                        self.config.db_open()
                         where_clause = "group_name='%s' and cloud_name='%s'" % (self.group, self.name)
                         cloud_row = { "freeze": 1 }
                         self.config.db_update("csv2_clouds", cloud_row, where=where_clause)
-                        self.config.db_commit()
+                        self.config.db_close(commit=True)
                         return 0
                     hostname = self._generate_next_name()
                 return num
@@ -305,7 +307,7 @@ class OpenStackCloud(basecloud.BaseCloud):
                 self.config.db_merge('csv2_vms', vm_dict)
             self.config.db_close(commit=True)
             if count != num:
-                self.log.error("Error finding VM for group: %s, cloud: %s" % (self.group, self.name))
+                self.log.error("Error finding VM for group: %s, cloud: %s, found %s hostname %s" % (self.group, self.name, count, hostname))
                 return False
         except Exception as exc:
             self.log.error("Error update VM for group: %s, cloud: %s : %s" % (self.group, self.name, exc))
