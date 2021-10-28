@@ -281,7 +281,6 @@ class OpenStackCloud(basecloud.BaseCloud):
             count = 0
             for vm in list_vms:
                 self.log.debug(vm)
-                count = count + 1
                 found_flavor = nova.find_flavor(name_or_id=vm.flavor['original_name'])
                 vm_flavor_id = found_flavor.id
 
@@ -304,7 +303,9 @@ class OpenStackCloud(basecloud.BaseCloud):
                     'keep_alive': self.keep_alive,
                     'start_time': int(time.time())
                 }
-                self.config.db_merge('csv2_vms', vm_dict)
+                rc, msg = self.config.db_merge('csv2_vms', vm_dict)
+                if rc == 0:
+                    count = count + 1
             self.config.db_close(commit=True)
             if count != num:
                 self.log.error("Error finding VM for group: %s, cloud: %s, found %s hostname %s" % (self.group, self.name, count, hostname))

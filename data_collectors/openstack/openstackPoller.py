@@ -1734,7 +1734,7 @@ def vm_poller():
                 config.db_commit()
             
                 if uncommitted_updates > 0:
-                    logging.info("VM updates committed: %d" % uncommitted_updates)
+                    logging.info("VM updates committed: %d for cloud %s" % (uncommitted_updates, cloud_obj["cloud_name"]))
 
                 # proccess FVM dict
                 # check if any rows have a zero count and delete them, otherwise update with new count
