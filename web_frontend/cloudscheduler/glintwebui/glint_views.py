@@ -712,7 +712,7 @@ def upload(request, group_name=None):
     except Exception:
         # no file means it's not a POST or it's an upload by URL
         image_file = False
-
+    
     if request.method == 'POST' and image_file:
         logger.info("File to upload: %s" % image_file.name)
         if group_name is None:
@@ -1042,7 +1042,6 @@ def upload(request, group_name=None):
             config.db_close()
             return render(request, 'glintwebui/upload_image.html', context)
             
-
         http = urllib3.PoolManager()
         image_data = http.request('GET', img_url)
 
@@ -1207,6 +1206,8 @@ def upload(request, group_name=None):
         return render(request, 'glintwebui/upload_image.html', context)
     else:
         #render page to upload image
+        if request.META['HTTP_ACCEPT'] != 'application/json' and active_user and active_user.active_group:
+            group_name = active_user.active_group
         where_clause = "group_name='%s' and cloud_type='openstack'" % group_name
         rc, qmsg, cloud_list = config.db_query(CLOUDS, where=where_clause)
         context = {
