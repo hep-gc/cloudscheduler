@@ -137,10 +137,10 @@
                                 <td><select name="vm_keyname" class="dropdown"/>
                                 <option value=""></option>
                                 {% for key in keypairs_list %}
-                                    {% if key.key_name == group.vm_keyname %}
-                                        <option value="{{ key.key_name }}" selected>{{ key.key_name }}</option>
+                                    {% if key == group.vm_keyname %}
+                                        <option value="{{ key }}" selected>{{ key }}</option>
                                     {% else %}
-                                        <option value="{{ key.key_name }}">{{ key.key_name }}</option>
+                                        <option value="{{ key }}">{{ key }}</option>
                                     {% endif %}
                                 {% endfor %}
 
@@ -149,10 +149,10 @@
                                 <td><select name="vm_image" class="dropdown"/>
                                 <option value=""></option>
                                 {% for image in image_list %}
-                                    {% if image.name == group.vm_image %}
-                                        <option value="{{ image.name }}" selected>{{ image.name }}</option>
+                                    {% if image == group.vm_image %}
+                                        <option value="{{ image }}" selected>{{ image }}</option>
                                     {% else %}
-                                        <option value="{{ image.name }}">{{ image.name }}</option>
+                                        <option value="{{ image }}">{{ image }}</option>
                                     {% endif %}
                                 {% endfor %}
 
@@ -160,10 +160,10 @@
                                 <td><select name="vm_flavor" class="dropdown"/>
                                 <option value=""></option>
                                 {% for flavor in flavor_list %}
-                                    {% if flavor.name == group.vm_flavor %}
-                                        <option value="{{ flavor.name }}" selected>{{ flavor.name }}</option>
+                                    {% if flavor == group.vm_flavor %}
+                                        <option value="{{ flavor }}" selected>{{ flavor }}</option>
                                     {% else %}
-                                        <option value="{{ flavor.name }}">{{ flavor.name }}</option>
+                                        <option value="{{ flavor }}">{{ flavor }}</option>
                                     {% endif %}
                                 {% endfor %}
 
@@ -171,10 +171,10 @@
                                 <td><select name="vm_network" class="dropdown"/>
                                 <option value=""></option>
                                 {% for network in network_list %}
-                                    {% if network.name == group.vm_network %}
-                                        <option value="{{ network.name }}" selected>{{ network.name }}</option>
+                                    {% if network == group.vm_network %}
+                                        <option value="{{ network }}" selected>{{ network }}</option>
                                     {% else %}
-                                        <option value="{{ network.name }}">{{ network.name }}</option>
+                                        <option value="{{ network }}">{{ network }}</option>
                                     {% endif %}
                                 {% endfor %}
 
