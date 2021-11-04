@@ -933,14 +933,15 @@ def limit_poller():
                                 continue
 
                             for limit in limits_dict:
-                                #if "-1" in str(limits_dict[limit]):
-                                #    limits_dict[limit] = config.categories["openstackPoller.py"]["no_limit_default"]
+                                if "-1" in str(limits_dict[limit]):
+                                    limits_dict[limit] = config.categories["openstackPoller.py"]["no_limit_default"]
                                 # for the data colleced from clouds, it shouldn't have any negative values unless in some error cases, so set the negative value to 0
-                                try:
-                                    if int(limits_dict[limit]) < 0:
-                                        limits_dict[limit] = 0
-                                except:
-                                    continue
+                                else:
+                                    try:
+                                        if int(limits_dict[limit]) < 0:
+                                            limits_dict[limit] = 0
+                                    except:
+                                        continue
                             limits_dict["cloud_type"] = "openstack"
 
                             try:
