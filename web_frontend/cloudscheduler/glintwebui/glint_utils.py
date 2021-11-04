@@ -4,6 +4,7 @@ import logging
 import os
 import string
 import random
+import hashlib
 
 from cloudscheduler.lib.openstack_functions import get_openstack_sess, get_glance_connection
 
@@ -41,7 +42,7 @@ def upload_image(cloud, image_id, image_name, scratch_dir, image_checksum=None, 
         file_path = scratch_dir
         if image_checksum:
             file_path = scratch_dir + image_name + "---" + image_checksum
-        image = glance.upload_image(name=image_name, disk_format=disk_format, container_format=container_format, data=open(file_path, 'rb'))
+        image = glance.create_image(name=image_name, disk_format=disk_format, container_format=container_format, data=open(file_path, 'rb'))
         logging.info("Image upload complete")
         return glance.get_image(image.id)
     except Exception as exc:
@@ -62,8 +63,17 @@ def download_image(cloud, image_name, image_id, image_checksum, scratch_dir):
         if not os.path.exists(scratch_dir):
             os.makedirs(scratch_dir)
         file_path = scratch_dir + image_name + "---" + image_checksum
-        
-        glance.download_image(image_id, output=file_path)
+       
+        md5 = hashlib.md5()
+        with open(file_path, "wb") as local_image:
+            response = glance.download_image(image_id, stream=True)
+            for chunk in response.iter_content(chunk_size=409600000):
+                md5.update(chunk)
+                local_image.write(chunk)
+            if response.headers["Content-MD5"] != md5.hexdigest():
+                return (False, "Checksum mismatch in downloaded content")
+
+        #glance.download_image(image_id, output=file_path)
         img = glance.get_image(image_id)
  
         return (True, "Success", img.disk_format, img.container_format)
