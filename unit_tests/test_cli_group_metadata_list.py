@@ -42,7 +42,7 @@ def main(gvar):
 
     table_headers = {
         # 19 - 25
-        'Active Group/Metadata': ['Group', 'Metadata Filename', 'Enabled', 'Priority', 'MIME Type']
+        'Active Group/Metadata': ['Group', 'Metadata Filename', 'Enabled', 'Priority', 'MIME Type', 'Checksum']
     }
 
     table_commands(gvar, 'metadata', 'list', ut_id(gvar, 'clg1'), ut_id(gvar, 'clu3'), table_headers)

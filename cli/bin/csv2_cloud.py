@@ -665,6 +665,7 @@ def metadata_list(gvar):
             'enabled/Enabled',
             'priority/Priority',
             'mime_type/MIME Type',
+            'checksum/Checksum'
         ],
         title="Clouds/Metadata",
         )

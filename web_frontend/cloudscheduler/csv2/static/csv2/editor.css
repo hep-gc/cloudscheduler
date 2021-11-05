@@ -7,9 +7,6 @@
 	float: right;
 }
 
-
-
-
 .editor-footer {
   position: absolute;
   right: 0;
@@ -22,4 +19,24 @@
 
 input[type=number]{
     width: 100px;
-} 
+}
+
+/******************* metadata list ********************/
+.disabled-style {
+  color: grey;
+}
+
+.show-checksum {
+  width: 800px;
+}
+
+.checksum-label {
+  width: 180px;
+}
+
+.checksum-text {
+  font-weight: normal;
+  margin-top: 12px;
+}
+
+

@@ -51,10 +51,13 @@ html *
   padding-right: 20px;
 }
 
-.top-nav ul li:hover{
+.top-nav ul li:hover {
     background-color: dimgrey;
     color:white;
 }
+
+
+/*******************Don't think used anywhere************************/
 
 .nav-button {
   display:block;
@@ -64,9 +67,7 @@ html *
   text-decoration:none;
   padding-left: 20px;
   padding-right: 20px;
-
 }
-/*******************************************/
 
 ul.sub-menu{
     position:absolute;
@@ -130,6 +131,55 @@ select {
   padding-left:20px;
 }
 
+/********************** nav option width **************/
 #group {
   width: 98;
+}
+
+.top-nav .status-nav {
+  width: 40;
+}
+
+.top-nav .clouds-nav {
+  width: 42;
+}
+
+.top-nav .alias-nav {
+  width: 46;
+}
+
+.top-nav .defaults-nav {
+  width: 52;
+}
+
+.top-nav .images-nav {
+  width: 47;
+}
+
+.top-nav .keys-nav {
+  width: 42;
+}
+
+.top-nav .users-nav {
+  width: 37;
+}
+
+.top-nav .groups-nav {
+  width: 47;
+}
+
+.top-nav .config-nav {
+  width: 41;
+}
+
+.top-nav .settings-nav {
+  width: 86;
+}
+
+.top-nav .plugin-nav {
+  width: 109;
+}
+
+.top-nav .logout-nav {
+  width: 48;
 }

@@ -89,22 +89,28 @@ def foreign(request):
 
     global_view = active_user.kwargs['global_view']
 
-    if global_view=='1':
-        rc, msg, foreign_list = config.db_query("view_foreign_flavors")
-
-    else:
-        # Retrieve VM information.
+    # Retrieve VM information
+    if global_view=='0':
+        # show foreign vms for a specific cloud
         where_clause = "group_name='%s'" % active_user.active_group
         rc, msg, foreign_list_raw = config.db_query("view_foreign_flavors", where=where_clause)
         foreign_list = qt(foreign_list_raw, filter=qt_filter_get(['cloud_name'], active_user.kwargs))
-#   _vm_list = qt(config.db_connection.execute(s), filter=qt_filter_get(['cloud_name', 'poller_status', 'hostname'], selector.split('::'), aliases=ALIASES), convert={
 
+    elif global_view=='1':
+        # show foreign vms for enabled clouds in all groups
+        rc, msg, foreign_list_raw = config.db_query("view_foreign_flavors")
+        rc, msg, enabled_cloud_list = config.db_query("view_cloud_status", select=['group_name', 'cloud_name'], where="enabled=1")
+        foreign_list = list(filter(lambda x: {'group_name': x.get('group_name'), 'cloud_name': x.get('cloud_name')} in enabled_cloud_list, foreign_list_raw))
+
+    else:
+        # show foreign vms for enabled clouds in a specific group
+        where_clause = "group_name='%s'" % active_user.active_group
+        rc, msg, foreign_list_raw = config.db_query("view_foreign_flavors", where=where_clause)
+        where_clause = "group_name='%s' and enabled=1" % active_user.active_group
+        rc, msg, enabled_cloud_list = config.db_query("view_cloud_status", select=['cloud_name'], where=where_clause)
+        foreign_list = list(filter(lambda x: {'cloud_name': x.get('cloud_name')} in enabled_cloud_list, foreign_list_raw))
 
     config.db_close()
-
-    #if cloud_name in vm_name:
-
-
 
     # Render the page.
     context = {
@@ -146,9 +152,12 @@ def vm_list(request, args=None, response_code=0, message=None):
             return render(request, 'csv2/vms.html', {'response_code': 1, 'message': '%s vm list, %s' % (lno(MODID), msg)})
 
     # Retrieve VM information.
-    where_clause = "group_name='%s'" % active_user.active_group
-    rc, msg, vm_list_raw = config.db_query("view_vms", where=where_clause)
-
+    if active_user.active_group and active_user.active_group == 'ALL':
+        rc, msg, vm_list_raw = config.db_query("view_vms")
+    else:
+        where_clause = "group_name='%s'" % active_user.active_group
+        rc, msg, vm_list_raw = config.db_query("view_vms", where=where_clause)
+    
     _vm_list = qt(vm_list_raw, filter=qt_filter_get(['cloud_name', 'poller_status', 'hostname'], args, aliases=ALIASES), convert={
         'htcondor_slots_timestamp': 'datetime',
         'htcondor_startd_time': 'datetime',
@@ -159,6 +168,17 @@ def vm_list(request, args=None, response_code=0, message=None):
         'terminate_time': 'datetime'
         })
 
+    show_group = True
+    show_cloud = True
+    show_poller_status = True
+    if active_user.active_group and active_user.active_group == 'ALL':
+        show_group = False
+    if args and ('cloud_name' not in args or args.get('cloud_name') == ''):
+        show_cloud = False
+    if args and ('poller_status' not in args or args.get('poller_status') == ''):
+        show_poller_status = False
+
+
     config.db_close()
 
     # Render the page.
@@ -166,6 +186,7 @@ def vm_list(request, args=None, response_code=0, message=None):
             'active_user': active_user.username,
             'active_group': active_user.active_group,
             'user_groups': active_user.user_groups,
+            'form_inputs': {'group': show_group, 'cloud': show_cloud, 'poller_status': show_poller_status},
             'vm_list': _vm_list,
             'response_code': response_code,
             'message': message,
@@ -225,7 +246,7 @@ def update(request):
             config.db_close()
             return render(request, 'csv2/vms.html', {'response_code': 1, 'message': '%s vm update, option "%s" is invalid.' % (lno(MODID), fields['vm_option']), 'active_user': active_user.username, 'active_group': active_user.active_group, 'user_groups': active_user.user_groups})
 
-
+        
         # Retrieve VM information.
         if isinstance(fields['vm_hosts'], int):
             count = kill_retire(config, active_user.active_group, fields.get('cloud_name', default='-'), fields['vm_option'], fields['vm_hosts'], get_frame_info())
@@ -233,13 +254,19 @@ def update(request):
         else:
             count = 0
             if fields['vm_hosts'] == 'all':
-                where_clause = "group_name='%s'" % active_user.active_group
-                vm_list_raw = config.db_query("view_vms", where=where_clause)
+                if active_user.active_group and active_user.active_group == 'ALL':
+                    vm_list_raw = config.db_query("view_vms")
+                else:
+                    where_clause = "group_name='%s'" % active_user.active_group
+                    vm_list_raw = config.db_query("view_vms", where=where_clause)
                 _vm_list = qt(vm_list_raw, filter=qt_filter_get(['cloud_name', 'poller_status'], fields, aliases=ALIASES))
             else:
                 fields['hostname'] = fields['vm_hosts']
-                where_clause = "group_name='%s'" % active_user.active_group
-                rc, msg, vm_list_raw = config.db_query("view_vms", where=where_clause)
+                if active_user.active_group and active_user.active_group == 'ALL':
+                    rc, msg, vm_list_raw = config.db_query("view_vms")
+                else:
+                    where_clause = "group_name='%s'" % active_user.active_group
+                    rc, msg, vm_list_raw = config.db_query("view_vms", where=where_clause)
                 _vm_list = qt(vm_list_raw, filter=qt_filter_get(['cloud_name', 'hostname', 'poller_status'], fields, aliases=ALIASES))
 
             for vm in _vm_list:

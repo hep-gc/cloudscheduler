@@ -250,7 +250,7 @@ def check_view_idle_vms():
             for res in results:
                 vmids.append(res["vmid"])
             if vmids:
-                log.debug("Setting retire flag on %s VMs.", len(vmids))
+                log.info("Setting retire flag on %s VMs.", len(vmids))
                 vms = "csv2_vms"
                 where_clause = "vmid in ("
                 for id in vmids:
@@ -263,7 +263,7 @@ def check_view_idle_vms():
                     old_updater = row["updater"]
                     row["updater"] = get_frame_info() + ":r1"
                     config.db_merge(vms, row)
-                    log.debug("Set retire flag on %s, previous updater: %s",
+                    log.info("Set retire flag on %s, previous updater: %s",
                               row["hostname"], old_updater)
             config.db_close(commit=True)
         except TimeoutError as ex:
@@ -819,11 +819,15 @@ def main():
                                         if num_vms_to_boot <= 0:
                                             # not enough volume space
                                             continue
-                                        boot_cloud.vm_create(num=int(num_vms_to_boot),
+                                        num_booted = boot_cloud.vm_create(num=int(num_vms_to_boot),
                                                    flavor=boot_flavor.get("flavor"),
                                                    job=idle_job,
                                                    template_dict=template_dict,
                                                    image=use_image)
+                                        log.info('vm booted %s' % num_booted)
+                                        if num_booted <= 0:
+                                            # cloud boot vm failed due to timeout
+                                            continue
 
                                     elif current_cloud_type == 'amazon':
                                         if idle_job.get("image"):
@@ -968,6 +972,15 @@ def vm_slot_auditor():
             slot_count_dict = {}
             config.refresh()
             machine_list = []
+            #get vm list to compare against
+            where_clause = "htcondor_partitionable_slots > 0 or htcondor_dynamic_slots > 0"
+            vm_with_slots_list = []
+            rc, msg, vm_with_slots_rows = config.db_query(VMS, select=["hostname"], where=where_clause)
+            if rc != 0:
+                logging.error("Error retriving vm list, will not be able to correct slots for vms no longer in condor: %s" % msg)
+            else:
+                for vm in vm_with_slots_rows:
+                    vm_with_slots_list.append(vm["hostname"])
             rc, msg, machine_list = config.db_query(MACHINES, order_by="machine")
             if rc != 0:
                 logging.error("Error retriving machine list: %s" % msg)
@@ -979,6 +992,12 @@ def vm_slot_auditor():
                     logging.debug("Slot type: %s" % machine["slot_type"])
                     # we have to slice off anthing after a . otherwise the machine wont match the hostname
                     machine_name = machine["machine"].split(".", 1)[0]
+                    # pop this hostname from the vm with slots list so we know it doesn't fall into the case
+                    # where it has slots but is no longer in condor
+                    try:
+                        vm_with_slots_list.remove(machine_name)
+                    except ValueError:
+                        pass # some vms will have multiple machine entries so we may try to remove it several times
                     if machine_name not in slot_count_dict.keys():
                         slot_count_dict[machine_name] = {
                             "partitionable": 0,
@@ -1002,7 +1021,7 @@ def vm_slot_auditor():
                     # check that we got exactly 1 row, or print error message saying we are missing a vm entry or there is a duplicate
                     if len(row) != 1:
                         # Either more rows than expected or no row
-                        logging.error("Unable to find or isolate vm row with hostname: %s" % slot_clount)
+                        logging.error("Unable to find or isolate vm row with hostname: %s" % slot_count)
                         time.sleep(0.1)
                         continue
                     else:
@@ -1017,6 +1036,19 @@ def vm_slot_auditor():
                         logging.debug(sql)
                         config.db_execute(sql)
                         config.db_commit()
+                # if we get here the only remaining slot issue cases should be vms that are no longer registered in condor but still have a slot count in the vm table
+                if len(vm_with_slots_list) > 0:
+                    for vm_hostname in vm_with_slots_list:
+                        # we know these vms didnt have any machine entries and can have their slots set to zero
+                        logging.info("vm: %s found to have slot counts but no condor records, updating slots to zero" % vm_hostname)
+                        where_clause = "hostname='%s'" % vm_hostname
+                        vm_dict = {
+                            "htcondor_partitionable_slots": 0,
+                            "htcondor_dynamic_slots": 0
+                        }
+                        config.db_update(VMS, vm_dict, where_clause)
+                        config.db_commit()
+
             config.db_close()
             time.sleep(300)
         except Exception as exc:

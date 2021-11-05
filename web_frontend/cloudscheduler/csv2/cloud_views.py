@@ -22,7 +22,8 @@ from cloudscheduler.lib.view_utils import \
     get_target_cloud, \
     verify_cloud_credentials, \
     get_app_credentail_expiry, \
-    retire_cloud_vms
+    retire_cloud_vms, \
+    get_file_checksum
 
 import bcrypt
 
@@ -493,7 +494,6 @@ def add(request):
     # open the database.
     config.db_open()
 
-
     # Retrieve the active user, associated group list and optionally set the active group.
     rc, msg, active_user = set_user_groups(config, request, super_user=False)
     if rc != 0:
@@ -506,7 +506,7 @@ def add(request):
         rc, msg, fields, tables, columns = validate_fields(config, request, [CLOUD_KEYS, CLOUD_ADD_KEYS], ['csv2_clouds', 'csv2_cloud_flavor_exclusions', 'csv2_group_metadata', 'csv2_group_metadata_exclusions'], active_user)
         if rc != 0: 
             config.db_close()
-            return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud add %s' % (lno(MODID), msg))
+            return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud add %s' % (lno(MODID), msg), cloud_add_cache=request.POST)
 
         if 'flavor_name' in fields and fields['flavor_name']:
             rc, msg = validate_by_filtered_table_entries(config, fields['flavor_name'], 'flavor_name', 'cloud_flavors', 'name', [['group_name', fields['group_name']], ['cloud_name', fields['cloud_name']]], allow_value_list=True)
@@ -514,7 +514,7 @@ def add(request):
                 config.db_close()
                 return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud add, "%s" failed - %s.' % (lno(MODID), fields['cloud_name'], msg))
 
-        if 'vm_flavor' in fields and fields['vm_flavor']:
+        if 'vm_flavor' in fields and fields['vm_flavor'] and fields['vm_flavor'] != 'None':
             rc, msg = validate_by_filtered_table_entries(config, fields['vm_flavor'], 'vm_flavor', 'cloud_flavors', 'name', [['group_name', fields['group_name']], ['cloud_name', fields['cloud_name']]])
             if rc != 0:
                 config.db_close()
@@ -526,19 +526,22 @@ def add(request):
                 config.db_close()
                 return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud add, "%s" failed - %s.' % (lno(MODID), fields['cloud_name'], msg))
 
-        if 'vm_keyname' in fields and fields['vm_keyname']:
+        if 'vm_keyname' in fields and fields['vm_keyname'] and fields['vm_keyname'] != 'None':
             rc, msg = validate_by_filtered_table_entries(config, fields['vm_keyname'], 'vm_keyname', 'cloud_keypairs', 'key_name', [['group_name', fields['group_name']], ['cloud_name', fields['cloud_name']]])
             if rc != 0:
                 config.db_close()
                 return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud add, "%s" failed - %s.' % (lno(MODID), fields['cloud_name'], msg))
 
-        if 'vm_network' in fields and fields['vm_network']:
+        if 'vm_network' in fields and fields['vm_network'] and fields['vm_network'] != 'None':
             rc, msg = validate_by_filtered_table_entries(config, fields['vm_network'], 'vm_network', 'cloud_networks', 'name', [['group_name', fields['group_name']], ['cloud_name', fields['cloud_name']]])
             if rc != 0:
                 config.db_close()
                 return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud add, "%s" failed - %s.' % (lno(MODID), fields['cloud_name'], msg))
 
-        if 'vm_security_groups' in fields and fields['vm_security_groups']:
+        if 'vm_security_groups' in fields and fields['vm_security_groups'] and fields['vm_security_groups'] != 'None':
+            if 'None' in fields['vm_security_groups']:
+                config.db_close()
+                return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud update, "%s" failed - %s.' % (lno(MODID), fields['cloud_name'], 'Cannot have ignore group default with other security groups'))
             rc, msg = validate_by_filtered_table_entries(config, fields['vm_security_groups'], 'vm_security_groups', 'cloud_security_groups', 'name', [['group_name', fields['group_name']], ['cloud_name', fields['cloud_name']]], allow_value_list=True)
             if rc != 0:
                 config.db_close()
@@ -573,13 +576,13 @@ def add(request):
                         fields['app_credentials_expiry'] = app_cred_expiry
                     else:
                         config.db_close()
-                        return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud add "%s::%s" failed - %s.' % (lno(MODID), fields['group_name'], fields['cloud_name'], 'Application Credential expires within a week'))
+                        return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud add "%s::%s" failed - %s.' % (lno(MODID), fields['group_name'], fields['cloud_name'], 'Application Credential expires within a week'), cloud_add_cache=fields)
                 else:
                     config.db_close()
-                    return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud add "%s::%s" failed - %s.' % (lno(MODID), fields['group_name'], fields['cloud_name'], msg))
+                    return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud add "%s::%s" failed - %s.' % (lno(MODID), fields['group_name'], fields['cloud_name'], msg), cloud_add_cache=fields)
         else:
             config.db_close()
-            return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud add "%s::%s" failed - %s.' % (lno(MODID), fields['group_name'], fields['cloud_name'], msg))
+            return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud add "%s::%s" failed - %s.' % (lno(MODID), fields['group_name'], fields['cloud_name'], msg), cloud_add_cache=fields)
 
         # Add the cloud.
         table = 'csv2_clouds'
@@ -587,7 +590,7 @@ def add(request):
         rc, msg = config.db_insert(table, cloud_dict)
         if rc != 0:
             config.db_close()
-            return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud add "%s::%s" failed - %s.' % (lno(MODID), fields['group_name'], fields['cloud_name'], msg))
+            return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud add "%s::%s" failed - %s.' % (lno(MODID), fields['group_name'], fields['cloud_name'], msg), cloud_add_cache=fields)
 
         # Add the cloud's flavor exclusions.
         if 'flavor_name' in fields:
@@ -607,7 +610,7 @@ def add(request):
         rc, msg = ec2_filters(config, fields['group_name'], fields['cloud_name'], fields['cloud_type'])
         if rc != 0:
             config.db_close()
-            return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud add "%s::%s" failed - %s.' % (lno(MODID), fields['group_name'], fields['cloud_name'], msg))
+            return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud add "%s::%s" failed - %s.' % (lno(MODID), fields['group_name'], fields['cloud_name'], msg), cloud_add_cache=fields)
 
         #signal the pollers a new cloud has been added
         if fields['cloud_type'] == 'amazon':
@@ -718,13 +721,20 @@ def delete(request):
         return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud delete, invalid method "%s" specified.' % (lno(MODID), request.method))
 
 #-------------------------------------------------------------------------------
+def get_cloud_add_value(dict, key, default=''):
+    if dict and dict.get(key):
+        value = dict.get(key)
+        if key == 'enabled':
+            return int(value)
+        return value
+    return default
 
+#-------------------------------------------------------------------------------
 @silkp(name='Cloud List')
 @requires_csrf_token
-def cloud_list(request, active_user=None, response_code=0, message=None):
+def cloud_list(request, active_user=None, response_code=0, message=None, cloud_add_cache=None):
 
     cloud_list_path = '/cloud/list/'
-
     if request.path!=cloud_list_path and request.META['HTTP_ACCEPT'] == 'application/json':
         return render(request, 'csv2/clouds.html', {'response_code': response_code, 'message': message, 'active_user': active_user.username, 'active_group': active_user.active_group, 'user_groups': active_user.user_groups})
 
@@ -770,11 +780,17 @@ def cloud_list(request, active_user=None, response_code=0, message=None):
                     'metadata_enabled',
                     'metadata_priority',
                     'metadata_mime_type',
+                    'metadata_checksum'
                     ]
                 },
             prune=['password', 'app_credentials_secret']    
             )
-    
+
+    if active_user.active_group and metadata_dict.get(active_user.active_group):
+        curr_dict = metadata_dict[active_user.active_group]
+        for cloud in curr_dict:
+            metadata_dict[active_user.active_group][cloud] = dict(sorted(curr_dict[cloud].items(), key=lambda x:x[1].get('metadata_priority')))
+ 
     # Get the current time in epoch format
     for cloud in _cloud_list:
         cloud["current_time"] = time.time()
@@ -813,6 +829,25 @@ def cloud_list(request, active_user=None, response_code=0, message=None):
     else:
         current_cloud = ''
 
+    cloud_add = {
+        'app_credentials': get_cloud_add_value(cloud_add_cache, 'app_credentials'),
+        'app_credentials_secret': '',
+        'auth_type': get_cloud_add_value(cloud_add_cache, 'auth_type', 'userpass'),
+        'authurl': get_cloud_add_value(cloud_add_cache, 'authurl'),
+        'cacertificate': get_cloud_add_value(cloud_add_cache, 'cacertificate'),
+        'cloud_name': get_cloud_add_value(cloud_add_cache, 'cloud_name'),
+        'cloud_type': get_cloud_add_value(cloud_add_cache, 'cloud_type', 'openstack'), 
+        'enabled': get_cloud_add_value(cloud_add_cache, 'enabled', 0),
+        'password': '',
+        'priority': get_cloud_add_value(cloud_add_cache, 'priority', '0'),
+        'project': get_cloud_add_value(cloud_add_cache, 'project'),
+        'project_domain_name': get_cloud_add_value(cloud_add_cache, 'project_domain_name'),
+        'region': get_cloud_add_value(cloud_add_cache, 'region'),
+        'user_domain_name': get_cloud_add_value(cloud_add_cache, 'user_domain_name'),
+        'userid': get_cloud_add_value(cloud_add_cache, 'userid'),
+        'username': get_cloud_add_value(cloud_add_cache, 'username')
+    }
+
     # Render the page.
     context = {
             'active_user': active_user.username,
@@ -834,6 +869,7 @@ def cloud_list(request, active_user=None, response_code=0, message=None):
             'response_code': response_code,
             'message': message,
             'is_superuser': active_user.is_superuser,
+            'cloud_add': cloud_add,
             'version': config.get_version()
         }
 
@@ -882,6 +918,12 @@ def metadata_add(request):
         if not found:
             config.db_close()
             return metadata_new(request, active_user, response_code=1, message='%s cloud metadata-add failed, cloud name "%s" does not exist.' % (lno(MODID), fields['cloud_name']), cloud_name=fields['cloud_name'])
+
+        if fields.get('metadata'):
+            fields['metadata'] = config.replace_backslash_content(fields.get('metadata'))
+        
+        if fields.get('metadata') or fields.get('metadata') == '':
+            fields['checksum'] = get_file_checksum(fields['metadata'].encode('utf-8'))
 
         # Add the cloud metadata file.
         table ='csv2_cloud_metadata'
@@ -1088,6 +1130,7 @@ def metadata_fetch(request, response_code=0, message=None, metadata_name=None, c
                     'metadata_mime_type': row["mime_type"],
                     'metadata_name': row["metadata_name"],
                     'mime_types_list': mime_types_list,
+                    'metadata_checksum': row['checksum'],
                     'response_code': response_code,
                     'message': message,
                     'is_superuser': active_user.is_superuser,
@@ -1097,13 +1140,13 @@ def metadata_fetch(request, response_code=0, message=None, metadata_name=None, c
                 return render(request, 'csv2/meta_editor.html', context)
 
         if rc == 0:
-            msg = message if message else 'cloud metadata_fetch, file "%s::%s::%s" does not exist.' % (active_user.active_group, cloud_name, metadata_name)
+            msg = message or 'cloud metadata_fetch, file "%s::%s::%s" does not exist.' % (active_user.active_group, cloud_name, metadata_name)
         else:
-            msg = message if message else 'cloud metadata_fetch, file "%s::%s::%s" does not exist: %s.' % (active_user.active_group, cloud_name, metadata_name, msg)
+            msg = message or 'cloud metadata_fetch, file "%s::%s::%s" does not exist: %s.' % (active_user.active_group, cloud_name, metadata_name, msg)
         config.db_close()
         return render(request, 'csv2/meta_editor.html', {'response_code': 1, 'message': msg})
 
-    msg = message if message else 'cloud metadata_fetch, received an invalid metadata file id "%s::%s::%s".' % (active_user.active_group, cloud_name, metadata_name)
+    msg = message or 'cloud metadata_fetch, received an invalid metadata file id "%s::%s::%s".' % (active_user.active_group, cloud_name, metadata_name)
     config.db_close()
     return render(request, 'csv2/meta_editor.html', {'response_code': 1, 'message': msg})
 
@@ -1277,6 +1320,12 @@ def metadata_update(request):
                 return metadata_fetch(request, response_code=1, message='%s cloud metadata-update %s' % (lno(MODID), msg), metadata_name=metadata_name, cloud_name=cloud_name)
             return render(request, 'csv2/blank_msg.html', {'response_code': 1, 'message': '%s cloud metadata-update %s' % (lno(MODID), msg)})
         
+        if fields.get('metadata'):
+            fields['metadata'] = config.replace_backslash_content(fields.get('metadata'))
+        
+        if fields.get('metadata') or fields.get('metadata') == '':
+            fields['checksum'] = get_file_checksum(fields['metadata'].encode('utf-8'))
+
         table = 'csv2_cloud_metadata'
         fields_to_update = table_fields(fields, table, columns, 'update')
         if len(fields_to_update) < 4:
@@ -1801,7 +1850,7 @@ def update(request):
                 config.db_close()
                 return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud update, "%s" failed - %s.' % (lno(MODID), fields['cloud_name'], msg))
 
-        if 'vm_flavor' in fields and fields['vm_flavor']:
+        if 'vm_flavor' in fields and fields['vm_flavor'] and fields['vm_flavor'] != 'None':
             rc, msg = validate_by_filtered_table_entries(config, fields['vm_flavor'], 'vm_flavor', 'cloud_flavors', 'name', [['group_name', fields['group_name']], ['cloud_name', fields['cloud_name']]])
             if rc != 0:
                 config.db_close()
@@ -1813,23 +1862,29 @@ def update(request):
                 config.db_close()
                 return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud update, "%s" failed - %s.' % (lno(MODID), fields['cloud_name'], msg))
 
-        if 'vm_keyname' in fields and fields['vm_keyname']:
+        if 'vm_keyname' in fields and fields['vm_keyname'] and fields['vm_keyname'] != 'None':
             rc, msg = validate_by_filtered_table_entries(config, fields['vm_keyname'], 'vm_keyname', 'cloud_keypairs', 'key_name', [['group_name', fields['group_name']], ['cloud_name', fields['cloud_name']]])
             if rc != 0:
                 config.db_close()
                 return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud update, "%s" failed - %s.' % (lno(MODID), fields['cloud_name'], msg))
 
-        if 'vm_network' in fields and fields['vm_network']:
+        if 'vm_network' in fields and fields['vm_network'] and fields['vm_network'] != 'None':
             rc, msg = validate_by_filtered_table_entries(config, fields['vm_network'], 'vm_network', 'cloud_networks', 'name', [['group_name', fields['group_name']], ['cloud_name', fields['cloud_name']]])
             if rc != 0:
                 config.db_close()
                 return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud update, "%s" failed - %s.' % (lno(MODID), fields['cloud_name'], msg))
         
-        if 'vm_security_groups' in fields and fields['vm_security_groups']:
+        if 'vm_security_groups' in fields and fields['vm_security_groups'] and fields['vm_security_groups'] != 'None':
+            if 'None' in fields['vm_security_groups']:
+                config.db_close()
+                return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud update, "%s" failed - %s.' % (lno(MODID), fields['cloud_name'], 'Cannot have ignore group default other security groups'))
             rc, msg = validate_by_filtered_table_entries(config, fields['vm_security_groups'], 'vm_security_groups', 'cloud_security_groups', 'name', [['group_name', fields['group_name']], ['cloud_name', fields['cloud_name']]], allow_value_list=True)
             if rc != 0:
                 config.db_close()
                 return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud update, "%s" failed - %s.' % (lno(MODID), fields['cloud_name'], msg))
+
+        if 'vm_boot_volume' in fields and fields['vm_boot_volume'] is None:
+            fields['vm_boot_volume'] = ''
 
         if 'cloud_type' in fields:
             if 'authurl' in fields and fields['cloud_type'] == 'openstack':

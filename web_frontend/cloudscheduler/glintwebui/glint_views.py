@@ -4,6 +4,8 @@ import os
 import json
 import urllib3
 import datetime
+import magic
+import tarfile
 
 from django.conf import settings
 config = settings.CSV2_CONFIG
@@ -227,6 +229,41 @@ def _check_image(config, target_group, target_cloud, image_name, image_checksum)
     # If we get here we never found it in the image list or transaction list so we can go ahead with the xfer
     return True
     
+
+# Check uploaded image file type
+def _get_file_type(file_path):
+    IMAGE_DICT = {
+        "QEMU QCOW Image": "qcow2",
+        "ISO 9660 CD-ROM": "iso",
+        "x86 boot sector": "raw",
+        "VMware4 disk image": "vmdk",
+        "VirtualBox Disk Image": "vdi",
+        "POSIX tar archive": "ova"
+    }
+
+    TYPE_LIST = ["aki", "ami", "ari", "qcow2", "iso", "vmdk", "vdi", "ova"]
+
+    if file_path.split(".")[-1] in TYPE_LIST:
+        return file_path.split(".")[-1]
+    file_type = magic.from_file(file_path)
+    for type in IMAGE_DICT:
+        if type in file_type:
+            if IMAGE_DICT[type] == "ova":
+                tar_file_content = tarfile.open(file_path)
+                tar_ovf = False
+                tar_vmdk = False
+                for file in tar_file_content.getnames():
+                    if file and not tar_ovf and ".ovf" in file:
+                        tar_ovf = True
+                        if tar_ovf and tar_vmdk:
+                            return IMAGE_DICT[type]
+                    if file and not tar_vmdk and ".vmdk" in file:
+                        tar_vmdk = True
+                        if tar_ovf and tar_vmdk:
+                            return IMAGE_DICT[type]
+            else:
+                return IMAGE_DICT[type]
+
 
 #
 # Djnago View Functions
@@ -675,10 +712,9 @@ def upload(request, group_name=None):
     except Exception:
         # no file means it's not a POST or it's an upload by URL
         image_file = False
-
+    
     if request.method == 'POST' and image_file:
         logger.info("File to upload: %s" % image_file.name)
-
         if group_name is None:
             # need to figure out where to get group name
             group_name = active_user.active_group
@@ -739,11 +775,38 @@ def upload(request, group_name=None):
                 new_path = file_path + str(suffix)
             file_path = new_path
             
-
-        disk_format = request.POST.get('disk_format')
         with open(file_path, 'wb+') as destination:
             for chunk in image_file.chunks():
                 destination.write(chunk)
+        
+        disk_format = request.POST.get('disk_format')
+        if disk_format == '':
+            try:
+                disk_format = _get_file_type(file_path)
+            except Exception as exc:
+                logger.error("Failed to detect disk format: %s" % exc)
+        if disk_format == '':
+            logger.error("Unabled to detect the disk format for image %s" % image_file.name)
+            msg = "Unabled to detect the disk format for image: %s" % image_file.name
+            where_clause = "group_name='%s' and cloud_type='%s'" % (group_name, "openstack")
+            rc, qmsg, cloud_list = config.db_query(CLOUDS, where=where_clause)
+            context = {
+                'group_name': group_name,
+                'cloud_list': cloud_list,
+                'max_repos': len(cloud_list),
+                'redirect': "false",
+
+                #view agnostic data
+                'active_user': active_user.username,
+                'active_group': active_user.active_group,
+                'user_groups': active_user.user_groups,
+                'response_code': 1,
+                'message': msg,
+                'is_superuser': active_user.is_superuser,
+                'version': config.get_version()
+            }
+            config.db_close()
+            return render(request, 'glintwebui/upload_image.html', context)
 
         # Now we have a source file we need to upload it to one of the clouds to get a checksum so we can queue up transfer requests
         # get a cloud of of the list, first one is fine
@@ -776,10 +839,14 @@ def upload(request, group_name=None):
             config.db_close()
             return render(request, 'glintwebui/upload_image.html', context)
 
+        if disk_format == "ova":
+            disk_format = "vmdk"
+            container_format = "ova"
+        else:
+            container_format = "bare"
 
         logger.info("uploading image %s to cloud %s" % (image_file.name, target_cloud_name))
-
-        image = upload_image(target_cloud, None, image_file.name, file_path, disk_format=request.POST.get('disk_format'))
+        image = upload_image(target_cloud, None, image_file.name, file_path, disk_format=disk_format, container_format=container_format)
         if image is False:
             logger.error("Upload failed for image %s" % image_file.name)
             msg = "Upload failed for image: %s" % image_file.name
@@ -893,7 +960,7 @@ def upload(request, group_name=None):
                 tx_request.apply_async((tx_id,), queue='tx_requests')
 
         #return to project details page with message
-        msg="Uploads successfully queued, returning to images..."
+        msg="Upload successfully queued, returning to images..."
         where_clause = "group_name='%s' and cloud_type='%s'" % (group_name, "openstack")
         rc, qmsg, cloud_list = config.db_query(CLOUDS, where=where_clause)
         context = {
@@ -956,7 +1023,7 @@ def upload(request, group_name=None):
             #if we have eliminated all the target clouds, return with error message
             msg = ("Upload failed to all target projects because the image name was already in use.")
             where_clause = "group_name='%s' and cloud_type='%s'" % (group_name, "openstack")
-            cloud_list = config.db_query(CLOUDS, where=where_clause)
+            rc, qmsg, cloud_list = config.db_query(CLOUDS, where=where_clause)
             context = {
                 'group_name': group_name,
                 'cloud_list': cloud_list,
@@ -975,29 +1042,23 @@ def upload(request, group_name=None):
             config.db_close()
             return render(request, 'glintwebui/upload_image.html', context)
             
-
         http = urllib3.PoolManager()
         image_data = http.request('GET', img_url)
 
         with open(file_path, "wb") as image_file:
-            image_file.write(image_data.read())
+            image_file.write(image_data.data)
 
         disk_format = request.POST.get('disk_format')
-        
-        #Now we have a source file we need to upload it to one of the clouds to get a checksum so we can queue up transfer requests
-        # get a cloud of of the list, first one is fine
-        target_cloud_name = cloud_name_list[0]
-        # get the cloud row for this cloud
-        where_clause = "group_name='%s' and cloud_name='%s'" % (group_name, target_cloud_name)
-        rc, qmsg, target_cloud_list = config.db_query(CLOUDS, where=where_clause)
-        target_cloud = target_cloud_list[0]
-
-        image = upload_image(target_cloud, None, image_name, file_path, disk_format=request.POST.get('disk_format'))
-        if image is False:
-            logger.error("Upload failed for image %s" % image_name)
-            msg = "Upload failed for image: %s" % image_name
+        if disk_format == '':
+            try:
+                disk_format = _get_file_type(file_path)
+            except Exception as exc:
+                logger.error('Failed to detect disk format: %s' % exc)
+        if disk_format == '':
+            logger.error("Unabled to detect the disk format for image %s" % image_name)
+            msg = "Unabled to detect the disk format for image: %s, please select one" % image_name
             where_clause = "group_name='%s' and cloud_type='%s'" % (group_name, "openstack")
-            cloud_list = config.db_query(CLOUDS, where=where_clause)
+            rc, qmsg, cloud_list = config.db_query(CLOUDS, where=where_clause)
             context = {
                 'group_name': group_name,
                 'cloud_list': cloud_list,
@@ -1016,6 +1077,45 @@ def upload(request, group_name=None):
             config.db_close()
             return render(request, 'glintwebui/upload_image.html', context)
 
+        if disk_format == "ova":
+            disk_format = "vmdk"
+            container_format = "ova"
+        else:
+            container_format = "bare"
+
+        #Now we have a source file we need to upload it to one of the clouds to get a checksum so we can queue up transfer requests
+        # get a cloud of of the list, first one is fine
+        target_cloud_name = cloud_name_list[0]
+        # get the cloud row for this cloud
+        where_clause = "group_name='%s' and cloud_name='%s'" % (group_name, target_cloud_name)
+        rc, qmsg, target_cloud_list = config.db_query(CLOUDS, where=where_clause)
+        target_cloud = target_cloud_list[0]
+
+        image = upload_image(target_cloud, None, image_name, file_path, disk_format=disk_format, container_format=container_format)
+        if image is False:
+            logger.error("Upload failed for image %s" % image_name)
+            msg = "Upload failed for image: %s" % image_name
+            where_clause = "group_name='%s' and cloud_type='%s'" % (group_name, "openstack")
+            rc, qmsg, cloud_list = config.db_query(CLOUDS, where=where_clause)
+            context = {
+                'group_name': group_name,
+                'cloud_list': cloud_list,
+                'max_repos': len(cloud_list),
+                'redirect': "false",
+
+                #view agnostic data
+                'active_user': active_user.username,
+                'active_group': active_user.active_group,
+                'user_groups': active_user.user_groups,
+                'response_code': 1,
+                'message': msg,
+                'is_superuser': active_user.is_superuser,
+                'version': config.get_version()
+            }
+            config.db_close()
+            return render(request, 'glintwebui/upload_image.html', context)
+
+        logger.info("Upload result: %s" % image)
 
         # add it to the cloud_images table
         if image.size == "" or image.size is None:
@@ -1051,7 +1151,7 @@ def upload(request, group_name=None):
         os.rename(file_path, cache_path)
 
         cache_dict = {
-                "image_name": image_file.name,
+                "image_name": image_name,
                 "checksum": image.checksum,
                 "container_format": image.container_format,
                 "disk_format": image.disk_format
@@ -1073,7 +1173,7 @@ def upload(request, group_name=None):
                     "status":            "pending",
                     "target_group_name": group_name,
                     "target_cloud_name": cloud,
-                    "image_name":        image_file.name,
+                    "image_name":        image_name,
                     "image_id":          image.id,
                     "checksum":          image.checksum,
                     "requester":         active_user.username,
@@ -1084,6 +1184,7 @@ def upload(request, group_name=None):
                 tx_request.apply_async((tx_id,), queue='tx_requests')
 
         #return to project details page with message
+        msg = "Upload successfully queued, returning to images..."
         where_clause = "group_name='%s' and cloud_type='openstack'" % group_name
         rc, qmsg, cloud_list = config.db_query(CLOUDS, where=where_clause)
         context = {
@@ -1097,7 +1198,7 @@ def upload(request, group_name=None):
                 'active_group': active_user.active_group,
                 'user_groups': active_user.user_groups,
                 'response_code': rc,
-                'message': "Upload Successful: image %s uploaded to %s-%s" % (image.name, group_name, cloud_list),
+                'message': msg,
                 'is_superuser': active_user.is_superuser,
                 'version': config.get_version()
             }
@@ -1105,6 +1206,8 @@ def upload(request, group_name=None):
         return render(request, 'glintwebui/upload_image.html', context)
     else:
         #render page to upload image
+        if request.META['HTTP_ACCEPT'] != 'application/json' and active_user and active_user.active_group:
+            group_name = active_user.active_group
         where_clause = "group_name='%s' and cloud_type='openstack'" % group_name
         rc, qmsg, cloud_list = config.db_query(CLOUDS, where=where_clause)
         context = {
@@ -1172,6 +1275,7 @@ def download(request, group_name, image_key, args=None, response_code=0, message
         response['Content-Disposition'] = "attachment; filename={0}".format(image_name)
         response['Content-Length'] = os.path.getsize(image_path)
         config.db_close()
+        logger.info("Finish downloading image %s" % image_name)
         return response
 
 
@@ -1206,6 +1310,7 @@ def download(request, group_name, image_key, args=None, response_code=0, message
             response['Content-Disposition'] = "attachment; filename={0}".format(image_name)
             response['Content-Length'] = os.path.getsize(image_path)
             config.db_close()
+            logger.info("Finish downloading image %s" % image_name)
             return response
 
 

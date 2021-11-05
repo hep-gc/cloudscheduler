@@ -261,6 +261,15 @@ def flavor_poller():
                                     logging.error(exc)
                                     abort_cycle = True
                                     break
+
+                                try:
+                                    config.db_commit()
+                                except Exception as exc:
+                                    logging.exception("Failed to commit flavor updates for %s, aborting cycle..." % cloud_name)
+                                    logging.error(exc)
+                                    abort_cycle = True
+                                    break
+
                     except Exception as exc:
                         logging.error("Error proccessing flavor_list for cloud %s" % cloud_name)
                         logging.error(exc)
@@ -272,14 +281,7 @@ def flavor_poller():
                         break
 
                     if uncommitted_updates > 0:
-                        try:        
-                            config.db_commit()
-                            logging.info("Flavor updates committed: %d" % uncommitted_updates)
-                        except Exception as exc:
-                            logging.exception("Failed to commit flavor updates for %s, aborting cycle..." % cloud_name)
-                            logging.error(exc)
-                            abort_cycle = True
-                            break
+                        logging.info("Flavor updates committed: %d" % uncommitted_updates)
 
                 if abort_cycle:
                     time.sleep(config.categories["openstackPoller.py"]["sleep_interval_flavor"])
@@ -508,6 +510,15 @@ def image_poller():
                                     logging.error(exc)
                                     abort_cycle = True
                                     break
+
+                                try:
+                                    config.db_commit()
+                                except Exception as exc:
+                                    logging.exception("Failed to commit image updates for %s, aborting cycle..." % cloud_name)
+                                    logging.error(exc)
+                                    abort_cycle = True
+                                    break
+
                     except Exception as exc:
                         logging.error("Error proccessing image_list for cloud %s" % cloud_name)
                         logging.error(exc)
@@ -520,14 +531,7 @@ def image_poller():
                         break
 
                     if uncommitted_updates > 0:
-                        try:        
-                            config.db_commit()
-                            logging.info("Image updates committed: %d" % uncommitted_updates)
-                        except Exception as exc:
-                            logging.exception("Failed to commit image updates for %s, aborting cycle..." % cloud_name)
-                            logging.error(exc)
-                            abort_cycle = True
-                            break
+                        logging.info("Image updates committed: %d" % uncommitted_updates)
 
                 if abort_cycle:
                     time.sleep(config.categories["openstackPoller.py"]["sleep_interval_image"])
@@ -715,6 +719,15 @@ def keypair_poller():
                                     logging.error(exc)
                                     abort_cycle = True
                                     break
+
+                                try:
+                                    config.db_commit()
+                                except Exception as exc:
+                                    logging.error("Failed to commit new keypairs for %s, aborting cycle..."  % cloud_name)
+                                    logging.error(exc)
+                                    abort_cycle = True
+                                    break
+
                     except Exception as exc:
                         logging.error("Error proccessing key_list for cloud %s" % cloud_name)
                         logging.error(exc)
@@ -726,14 +739,7 @@ def keypair_poller():
                         break
 
                     if uncommitted_updates > 0:
-                        try:
-                            config.db_commit()
-                            logging.info("Keypair updates committed: %d" % uncommitted_updates)
-                        except Exception as exc:
-                            logging.error("Failed to commit new keypairs for %s, aborting cycle..."  % cloud_name)
-                            logging.error(exc)
-                            abort_cycle = True
-                            break
+                        logging.info("Keypair updates committed: %d" % uncommitted_updates)
 
                 if abort_cycle:
                     time.sleep(config.categories["openstackPoller.py"]["sleep_interval_keypair"])
@@ -929,6 +935,13 @@ def limit_poller():
                             for limit in limits_dict:
                                 if "-1" in str(limits_dict[limit]):
                                     limits_dict[limit] = config.categories["openstackPoller.py"]["no_limit_default"]
+                                # for the data colleced from clouds, it shouldn't have any negative values unless in some error cases, so set the negative value to 0
+                                else:
+                                    try:
+                                        if int(limits_dict[limit]) < 0:
+                                            limits_dict[limit] = 0
+                                    except:
+                                        continue
                             limits_dict["cloud_type"] = "openstack"
 
                             try:
@@ -940,6 +953,15 @@ def limit_poller():
                                 logging.error(exc)
                                 abort_cycle = True
                                 break
+
+                            try:
+                                config.db_commit()
+                            except Exception as exc:
+                                logging.error("Failed to commit new limits for %s, aborting cycle..."  % cloud_name)
+                                logging.error(exc)
+                                abort_cycle = True
+                                break
+
                     except Exception as exc:
                         logging.error("Error proccessing limit_list for cloud %s" % cloud_name)
                         logging.error(exc)
@@ -952,14 +974,8 @@ def limit_poller():
                         continue
 
                     if uncommitted_updates > 0:
-                        try:
-                            config.db_commit()
-                            logging.info("Limit updates committed: %d" % uncommitted_updates)
-                        except Exception as exc:
-                            logging.error("Failed to commit new limits for %s, aborting cycle..."  % cloud_name)
-                            logging.error(exc)
-                            abort_cycle = True
-                            break
+                        logging.info("Limit updates committed: %d" % uncommitted_updates)
+
                 # Expand failure dict for deletion schema (key needs to be grp+cloud)
                 where_clause = "cloud_type='openstack'"
                 rc, msg, cloud_list = config.db_query(CLOUD, where=where_clause)
@@ -1135,10 +1151,19 @@ def network_poller():
                                     config.db_merge(NETWORK, network_dict)
                                     uncommitted_updates += 1
                                 except Exception as exc:
-                                     logging.exception("Failed to merge network entry for %s::%s::%s, aborting cycle..." % (group_n, cloud_n, network['name']))
-                                     logging.error(exc)
-                                     abort_cycle = True
-                                     break
+                                    logging.exception("Failed to merge network entry for %s::%s::%s, aborting cycle..." % (group_n, cloud_n, network['name']))
+                                    logging.error(exc)
+                                    abort_cycle = True
+                                    break
+
+                                try:
+                                    config.db_commit()
+                                except Exception as exc:
+                                    logging.error("Failed to commit new networks for %s, aborting cycle..." %  cloud_name)
+                                    logging.error(exc)
+                                    abort_cycle = True
+                                    break
+
                     except Exception as exc:
                         logging.error("Error proccessing network_list for cloud %s" % cloud_name)
                         logging.error(exc)
@@ -1150,14 +1175,7 @@ def network_poller():
                         break
 
                     if uncommitted_updates > 0:
-                        try:
-                            config.db_commit()
-                            logging.info("Network updates committed: %d" % uncommitted_updates)
-                        except Exception as exc:
-                            logging.error("Failed to commit new networks for %s, aborting cycle..." %  cloud_name)
-                            logging.error(exc)
-                            abort_cycle = True
-                            break
+                        logging.info("Network updates committed: %d" % uncommitted_updates)
 
                 if abort_cycle:
                     config.db_rollback()
@@ -1345,6 +1363,15 @@ def security_group_poller():
                                     logging.error(exc)
                                     abort_cycle = True
                                     break
+
+                                try:
+                                    config.db_commit()
+                                except Exception as exc:
+                                    logging.exception("Failed to commit security group updates for %s, aborting cycle..." % cloud_name)
+                                    logging.error(exc)
+                                    abort_cycle = True
+                                    break
+
                     except Exception as exc:
                         logging.error("Error proccessing security_group_list for cloud %s" % cloud_name)
                         logging.error(exc)
@@ -1356,14 +1383,7 @@ def security_group_poller():
                         break
 
                     if uncommitted_updates > 0:
-                        try:        
-                            config.db_commit()
-                            logging.info("Security group updates committed: %d" % uncommitted_updates)
-                        except Exception as exc:
-                            logging.exception("Failed to commit security group updates for %s, aborting cycle..." % cloud_name)
-                            logging.error(exc)
-                            abort_cycle = True
-                            break
+                        logging.info("Security group updates committed: %d" % uncommitted_updates)
 
                 if abort_cycle:
                     config.db_close()
@@ -1466,7 +1486,9 @@ def vm_poller():
 
             where_clause = "cloud_type='openstack'"
             rc, msg, cloud_list = config.db_query(CLOUD, where=where_clause)
-
+            where_clause="cloud_type='openstack' and start_time<='%s'" % (new_poll_time-config.categories["SQL"]["vm_come_alive"])
+            rc, msg, unfiltered_rows = config.db_query(VM, where=where_clause)
+            
             # build unique cloud list to only query a given cloud once per cycle
             unique_cloud_dict = {}
             for cloud in cloud_list:
@@ -1640,6 +1662,18 @@ def vm_poller():
                                     ip_addrs.append(addr['addr'])
                                 elif addr['OS-EXT-IPS:type'] == 'floating':
                                     floating_ips.append(addr['addr'])
+                        
+                        additions = {}
+                        where_clause="group_name='%s' and cloud_name='%s' and hostname='%s'" % (vm_group_name, vm_cloud_name, vm.name)
+                        rc, msg, rows = config.db_query(VM, where=where_clause)
+                        if (not rows) or len(rows) == 0:
+                            where_clause = "group_name='%s'" % cloud_obj["group_name"]
+                            rc, msg, found_group = config.db_query("csv2_groups", where=where_clause)
+                            keep_alive = 0
+                            if found_group and len(found_group) > 0:
+                                keep_alive = found_group[0].get("vm_keep_alive")
+                            additions = {'start_time': int(time.time()), 'keep_alive': keep_alive}
+
                         vm_dict = {
                             'group_name': vm_group_name,
                             'cloud_name': vm_cloud_name,
@@ -1656,7 +1690,8 @@ def vm_poller():
                             'power_state': vm.to_dict().get('power_state'),
                             'vm_ips': str(ip_addrs),
                             'vm_floating_ips': str(floating_ips),
-                            'last_updated': new_poll_time
+                            'last_updated': new_poll_time,
+                            **additions
                         }
 
                         vm_dict, unmapped = map_attributes(src="os_vms", dest="csv2", attr_dict=vm_dict, config=config)
@@ -1675,14 +1710,15 @@ def vm_poller():
                             logging.error(exc)
                             abort_cycle = True
                             break
-                        if uncommitted_updates >= config.categories["openstackPoller.py"]["batch_commit_size"]:
-                            try:
-                                config.db_commit()
-                                logging.debug("Comitted %s VMs" % uncommitted_updates)
-                                uncommitted_updates = 0
-                            except Exception as exc:
-                                logging.error("Error during batch commit of VMs:")
-                                logging.error(exc)
+
+                        try:
+                            config.db_commit()
+                        except Exception as exc:
+                            logging.exception("Failed to commit VM updates for %s::%s:%s, using group %s's credentials aborting cycle..." % (cloud_obj["authurl"], cloud_obj["project"], cloud_obj["region"], cloud_obj["group_name"]))
+                            logging.error(exc)
+                            abort_cycle = True
+                            break
+
                 except Exception as exc:
                     logging.error("Error proccessing vm_list for cloud %s" % cloud_obj["cloud_name"])
                     logging.error(exc)
@@ -1693,17 +1729,18 @@ def vm_poller():
                 if abort_cycle:
                     break
 
+                for cloud_tuple in unique_cloud_dict[cloud]['groups']:
+                    grp_nm = cloud_tuple[0]
+                    cld_nm = cloud_tuple[1]
+                    where_clause = "group_name='%s' and cloud_name='%s'" % (grp_nm, cld_nm)
+                    cloud_row = { "freeze": 0 }
+                    config.db_update("csv2_clouds", cloud_row, where=where_clause)
+                    config.db_commit()
+                    logging.debug("reset freeze for cloud %s" % cld_nm)
+            
                 if uncommitted_updates > 0:
-                    try:        
-                        config.db_commit()
-                        logging.info("VM updates committed: %d" % uncommitted_updates)
-                    except Exception as exc:
-                        logging.exception("Failed to commit VM updates for %s::%s:%s, using group %s's credentials aborting cycle..." % (cloud_obj["authurl"], cloud_obj["project"], cloud_obj["region"], cloud_obj["group_name"]))
-                        logging.error(exc)
-                        abort_cycle = True
-                        break
-                if abort_cycle:
-                    break
+                    logging.info("VM updates committed: %d for cloud %s" % (uncommitted_updates, cloud_obj["cloud_name"]))
+
                 # proccess FVM dict
                 # check if any rows have a zero count and delete them, otherwise update with new count
                 for key in for_vm_dict:
@@ -1727,13 +1764,13 @@ def vm_poller():
                                 'cloud_type': "openstack"
                             }
                             config.db_merge(FVM, fvm_dict)
-                try:
-                    config.db_commit()
-                except Exception as exc:
-                    logging.exception("Failed to commit foreign VM updates, aborting cycle...")
-                    logging.error(exc)
-                    abort_cycle = True
-                    break
+                    try:
+                        config.db_commit()
+                    except Exception as exc:
+                        logging.exception("Failed to commit foreign VM updates, aborting cycle...")
+                        logging.error(exc)
+                        abort_cycle = True
+                        break
 
             if abort_cycle:
                 config.db_rollback()
@@ -1762,8 +1799,6 @@ def vm_poller():
                     config.db_commit()
 
             # since the new inventory function doesn't accept a failfure dict we need to screen the rows ourself
-            where_clause="cloud_type='openstack'"
-            rc, msg, unfiltered_rows = config.db_query(VM, where=where_clause)
             rows = []
             for row in unfiltered_rows:
                 if row['group_name'] + row['cloud_name'] in new_f_dict.keys():
@@ -1965,14 +2000,13 @@ def volume_poller():
                                 logging.error(exc)
                                 abort_cycle = True
                                 break
-                            if uncommitted_updates >= config.categories["openstackPoller.py"]["batch_commit_size"]:
-                                try:
-                                    config.db_commit()
-                                    logging.debug("Comitted %s Volumes" % uncommitted_updates)
-                                    uncommitted_updates = 0
-                                except Exception as exc:
-                                    logging.error("Error during batch commit of Volumes:")
-                                    logging.error(exc)
+
+                            try:
+                                config.db_commit()
+                            except Exception as exc:
+                                logging.error("Error during batch commit of Volumes:")
+                                logging.error(exc)
+
                     except Exception as exc:
                         logging.error("Error proccessing volume_list for cloud %s" % cloud_name)
                         logging.error(exc)
@@ -1985,14 +2019,8 @@ def volume_poller():
                         continue
 
                     if uncommitted_updates > 0:
-                        try:
-                            config.db_commit()
-                            logging.info("Volume updates committed: %d" % uncommitted_updates)
-                        except Exception as exc:
-                            logging.error("Failed to commit new volumes for %s, aborting cycle..."  % cloud_name)
-                            logging.error(exc)
-                            abort_cycle = True
-                            break
+                        logging.info("Volume updates committed: %d" % uncommitted_updates)
+
                 #~~~~~~~
                 # Expand failure dict for deletion schema (key needs to be grp+cloud)
                 where_clause = "cloud_type='openstack'"

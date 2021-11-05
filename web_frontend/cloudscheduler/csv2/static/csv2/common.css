@@ -97,7 +97,7 @@ input:read-only { color:grey; }
 /*       Dynamic position for page content - normal user         */
 /*****************************************************************/
 
-@media only screen and (max-width: 647px) {
+@media only screen and (max-width: 656px) {
   .main-div {
     top: 182px !important;
   }
@@ -112,7 +112,7 @@ input:read-only { color:grey; }
   }
 }
 
-@media only screen and (min-width: 647px) and (max-width: 888px) {
+@media only screen and (min-width: 656px) and (max-width: 1050px) {
   .main-div {
       top: 122px !important;
   }
@@ -130,8 +130,38 @@ input:read-only { color:grey; }
 /*****************************************************************/
 /*       Dynamic position for page content - super user         */
 /*****************************************************************/
+@media only screen and (max-width: 644px) {
+  .super-main-div {
+    top: 242px !important;
+  }
 
-@media only screen and (min-width: 647px) and (max-width: 1144px) {
+  .super-main-div .tab-content, .super-main-div .tab2-content, .super-main-div .menu-position {
+    top: 251px !important;
+  }
+
+  .super-section-div {
+    position: relative;
+    top: 182px;
+  }
+}
+
+@media only screen and (min-width: 644px) and (max-width: 671px) {
+  .super-main-div {
+    top: 182px !important;
+  }
+
+  .super-main-div .tab-content, .super-main-div .tab2-content, .super-main-div .menu-position {
+    top: 191px !important;
+  }
+
+  .super-section-div {
+    position: relative;
+    top: 122px;
+  }
+}
+
+
+@media only screen and (min-width: 671px) and (max-width: 1308px) {
   .super-main-div {
     top: 122px !important;
   }

@@ -592,13 +592,13 @@ class CloudsPage(Page):
         xpath = wtxs.form_input_by_name(self.active_cloud, 'cores_softmax')
         wti.fill_blank_by_xpath(self.driver, xpath, max)
 
-    def slide_cores_slider(self, value):
+    def slide_cores_slider(self, value, error):
         xpath = wtxs.form_input_by_name(self.active_cloud, 'cores_slider')
         slider = self.driver.find_element_by_xpath(xpath)
         wti.click_by_xpath(self.driver, xpath)
         offset = 1
         wti.slide_slider_by_xpath(self.driver, xpath, 2, 5)
-        while int(slider.get_attribute('value')) < value:
+        while int(slider.get_attribute('value')) < value - error:
             wti.slide_slider_by_xpath(self.driver, xpath, offset, 5)
             offset += 1
 
@@ -617,13 +617,13 @@ class CloudsPage(Page):
             for i in range(value, start):
                 element.send_keys(Keys.ARROW_DOWN)
 
-    def slide_ram_slider(self, value):
+    def slide_ram_slider(self, value, error):
         xpath = wtxs.form_input_by_name(self.active_cloud, 'ram_slider')
         slider = self.driver.find_element_by_xpath(xpath)
         wti.click_by_xpath(self.driver, xpath)
         offset = 1
         wti.slide_slider_by_xpath(self.driver, xpath, 2, 5)
-        while int(slider.get_attribute('value')) < value:
+        while int(slider.get_attribute('value')) < value - error:
             wti.slide_slider_by_xpath(self.driver, xpath, offset, 5)
             offset += 1
 

@@ -16,7 +16,8 @@ from cloudscheduler.lib.view_utils import \
     set_user_groups, \
     table_fields, \
     validate_by_filtered_table_entries, \
-    validate_fields
+    validate_fields, \
+    get_file_checksum
 from collections import defaultdict
 import bcrypt
 
@@ -343,16 +344,32 @@ def defaults(request, active_user=None, response_code=0, message=None):
 #       # And additional information for the web page.
 #       if request.META['HTTP_ACCEPT'] != 'application/json':
         # Get all the images in group:
-        rc, msg, image_list = config.db_query("cloud_images", where=where_clause)
+        rc, msg, src_image_list = config.db_query("cloud_images", where=where_clause)
+        image_list = []
+        for image in src_image_list:
+            if image.get("name") and image["name"] not in image_list:
+                image_list.append(image["name"])
 
         # Get all the flavors in group:
-        rc, msg, flavor_list = config.db_query("cloud_flavors", where=where_clause)
+        rc, msg, src_flavor_list = config.db_query("cloud_flavors", where=where_clause)
+        flavor_list = []
+        for flavor in src_flavor_list:
+            if flavor.get("name") and flavor["name"] not in flavor_list:
+                flavor_list.append(flavor["name"])   
 
         # Get all keynames in group:
-        rc, msg, keypairs_list = config.db_query("cloud_keypairs", where=where_clause)
+        rc, msg, src_keypairs_list = config.db_query("cloud_keypairs", where=where_clause)
+        keypairs_list = []
+        for key in src_keypairs_list:
+            if key.get("key_name") and key["key_name"] not in keypairs_list:
+                keypairs_list.append(key["key_name"])
 
         # Get all networks in group:
-        rc, msg, network_list = config.db_query("cloud_networks", where=where_clause)
+        rc, msg, src_network_list = config.db_query("cloud_networks", where=where_clause)
+        network_list = []
+        for network in src_network_list:
+            if network.get("name") and network["name"] not in network_list:
+                network_list.append(network["name"])
 
         # Get all security_groups in group:
         rc, msg, security_groups_list = config.db_query("cloud_security_groups", where=where_clause)
@@ -369,12 +386,16 @@ def defaults(request, active_user=None, response_code=0, message=None):
                     'metadata_name',
                     'metadata_enabled',
                     'metadata_priority',
-                    'metadata_mime_type'
+                    'metadata_mime_type',
+                    'metadata_checksum'
                     ]
                 },
             prune=['password']    
             )
-
+        if active_user.active_group and metadata_dict.get(active_user.active_group):
+            curr_dict = metadata_dict[active_user.active_group]
+            metadata_dict[active_user.active_group] = dict(sorted(curr_dict.items(), key=lambda x:x[1].get('metadata_priority')))
+  
     # Render the page.
     final_rc = rc if pre_rc == 0 else pre_rc
     context = {
@@ -684,6 +705,12 @@ def metadata_add(request):
         if rc != 0:
             config.db_close()
             return metadata_new(request, active_user, response_code=1, message='%s group metadata-add %s' % (lno(MODID), msg))
+        
+        if fields.get('metadata'):
+            fields['metadata'] = config.replace_backslash_content(fields.get('metadata'))
+        
+        if fields.get('metadata') or fields.get('metadata') == '':
+            fields['checksum'] = get_file_checksum(fields['metadata'].encode('utf-8'))
 
         # Add the group metadata file.
         table = 'csv2_group_metadata'
@@ -808,6 +835,7 @@ def metadata_fetch(request, response_code=0, message=None, metadata_name=None):
                     'metadata_mime_type': row["mime_type"],
                     'metadata_name': row["metadata_name"],
                     'mime_types_list': mime_types_list,
+                    'metadata_checksum': row["checksum"],
                     'response_code': response_code,
                     'message': message,
                     'is_superuser': active_user.is_superuser,
@@ -971,12 +999,19 @@ def metadata_update(request):
     if request.method == 'POST':
         # Validate input fields.
         rc, msg, fields, tables, columns = validate_fields(config, request, [METADATA_KEYS], ['csv2_group_metadata'], active_user)
+        
         if rc != 0:
             config.db_close()
             metadata_name = request.POST.get("metadata_name")
             if metadata_name:
                 return metadata_fetch(request, response_code=1, message='%s group metadata-update %s' % (lno(MODID), msg), metadata_name=metadata_name)
             return render(request, 'csv2/blank_msg.html', {'response_code': 1, 'message': '%s group metadata-update %s' % (lno(MODID), msg)})
+
+        if fields.get('metadata'):
+            fields['metadata'] = config.replace_backslash_content(fields.get('metadata'))
+
+        if fields.get('metadata') or fields.get('metadata') == '':
+            fields['checksum'] = get_file_checksum(fields['metadata'].encode('utf-8'))
 
         # Update the group metadata file.
         table = 'csv2_group_metadata'

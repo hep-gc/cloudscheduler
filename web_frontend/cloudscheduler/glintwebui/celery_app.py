@@ -128,7 +128,7 @@ def tx_request(self, tx_id):
             time.sleep(15)
             image = glint_utils.check_cache(config, tx_row["image_name"], tx_row["checksum"], tx_row["target_group_name"], tx_row["requester"], return_image=True) 
             sleep_itterations = sleep_itterations + 1
-            if sleep_itterations > 40:
+            if sleep_itterations > 200:
                 # we've waited 10 minutes for the download, put this transaction into error state and move on
                 logger.error("Wait time exceeded waiting for pull request on image: %s---%s" % (tx_row["image_name"], tx_row["checksum"]))
                 print("Wait time exceeded waiting for pull request on image: %s---%s" % (tx_row["image_name"], tx_row["checksum"]))

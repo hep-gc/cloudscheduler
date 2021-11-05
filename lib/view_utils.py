@@ -3,6 +3,7 @@ from django.core.exceptions import PermissionDenied
 import time
 import boto3
 from datetime import datetime
+import hashlib
 
 from cloudscheduler.lib.schema import *
 from cloudscheduler.lib.openstack_functions import get_openstack_sess, get_openstack_api_version, get_keystone_connection, get_nova_connection
@@ -677,7 +678,7 @@ def qt(query, keys=None, prune=[], filter=None, convert=None):
                 ignore, secondary_dict_ptr = _qt(False, secondary_dict_ptr, cols, keys['secondary'][0])
             
             for col in cols:
-                if col in keys['secondary'] and cols[col]:
+                if col in keys['secondary'] and (cols[col] or cols[col] == 0):
                     secondary_dict_ptr[col] = cols[col]
             
             if add_row:
@@ -685,7 +686,6 @@ def qt(query, keys=None, prune=[], filter=None, convert=None):
                 for col in cols:
                     if col not in keys['secondary']:
                         new_row[col] = cols[col]
-
 
                 primary_list.append(new_row)
 
@@ -1014,7 +1014,7 @@ def set_user_groups(config, request, super_user=True):
     else:
         new_active_user.active_group = new_active_user.user_groups[0]
     
-    if new_active_user.active_group not in new_active_user.user_groups:
+    if new_active_user.active_group not in new_active_user.user_groups and new_active_user.active_group != 'ALL':
 #       return 1,'cannot switch to invalid group "%s".' % new_active_user.active_group, new_active_user, new_active_user.user_groups
         return 1,'cannot switch to invalid group "%s".' % new_active_user.active_group, new_active_user
 
@@ -1437,7 +1437,7 @@ def validate_fields(config, request, fields, tables, active_user):
                 elif Formats[field] == 'lowerdash':
                     if value == '' and field not in AllowEmpty:
                         return 1, 'value specified for "%s" must not be the empty string.' % field, None, None, None
-                    if re.fullmatch("^(?!-)(?!.*--)[a-z0-9.:-]*(?<!-)$", request.POST[field]):
+                    if re.fullmatch("^(?!-)(?!.*--)[a-z0-9.:_-]*(?<!-)$", request.POST[field]):
                         value = request.POST[field]
                     else:
                         return 1, 'value specified for "%s" must be all lowercase letters, digits, dashes, underscores, periods, and colons, and cannot contain more than one consecutive dash or start or end with a dash.' % field, None, None, None
@@ -1951,3 +1951,8 @@ def retire_cloud_vms(config, group_name, cloud_name):
         vm["updater"]= get_frame_info() + ":r1"
         config.db_merge(VM, vm)
     config.db_commit()
+
+
+def get_file_checksum(content):
+    checksum = hashlib.md5(content).hexdigest()
+    return checksum

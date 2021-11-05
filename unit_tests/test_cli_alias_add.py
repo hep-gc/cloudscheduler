@@ -30,8 +30,8 @@ def main(gvar):
             'invalid-unit-test-': 'cloud alias add, value specified for "cloud_name" must be all lowercase letters, digits, dashes, underscores, periods, and colons, and cannot contain more than one consecutive dash or start or end with a dash.',
             # 33
             'invalid-unit-test!': 'cloud alias add, value specified for "cloud_name" must be all lowercase letters, digits, dashes, underscores, periods, and colons, and cannot contain more than one consecutive dash or start or end with a dash.',
-            # 34
-            'invalid,unit,test': 'cloud alias add, value specified for "cloud_name" must be all lowercase letters, digits, dashes, underscores, periods, and colons, and cannot contain more than one consecutive dash or start or end with a dash.',
+            # 34 Comma is used for a list of clouds, skip this test
+            #'invalid,unit,test': 'cloud alias add, value specified for "cloud_name" must be all lowercase letters, digits, dashes, underscores, periods, and colons, and cannot contain more than one consecutive dash or start or end with a dash.',
             # 35 Specify a cloud that does not exist.
             'invalid-unit-test': 'cloud alias add, "invalid-unit-test" failed - specified value in list of values does not exist: cloud_name=invalid-unit-test, group_name={}.'.format(ut_id(gvar, 'clg1'))
         }, 'mandatory': True},
@@ -55,6 +55,13 @@ def main(gvar):
         gvar, 0, None, 'cloud alias "{}.{}" successfully added.'.format(ut_id(gvar, 'clg1'), ut_id(gvar, 'cla3')),
         ['alias', 'add', '-g', ut_id(gvar, 'clg1'), '--alias-name', ut_id(gvar, 'cla3'), '--cloud-name', ut_id(gvar, 'clc2'), '-su', ut_id(gvar, 'clu3')],
     )
+
+    # 42 Create an alias has multiple clouds
+    execute_csv2_command(
+        gvar, 0, None, 'cloud alias "{}.{}" successfully added.'.format(ut_id(gvar, 'clg1'), ut_id(gvar, 'cla4')),
+        ['alias', 'add', '-g', ut_id(gvar, 'clg1'), '--alias-name', ut_id(gvar, 'cla4'), '--cloud-name', '{},{}'.format(ut_id(gvar, 'clc2'), ut_id(gvar, 'clc1')), '-su', ut_id(gvar, 'clu3')],
+    )
+
 
 if __name__ == "__main__":
     main(None)

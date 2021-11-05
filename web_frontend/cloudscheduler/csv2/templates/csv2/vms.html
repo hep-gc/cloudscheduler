@@ -89,8 +89,17 @@
         </div>
         <form method="post">
           {% csrf_token %}
-          <input type="hidden" name="group" value="{{ vm_list.0.group_name }}">
-
+          {% if form_inputs.group %}
+              <input type="hidden" name="group" value="{{ vm_list.0.group_name }}" />
+          {% else %}
+              <input type="hidden" name="group" value="ALL" />
+          {% endif %}
+          {% if form_inputs.cloud %}
+              <input type="hidden" name="cloud_name" value="{{ vm_list.0.cloud_name }}" />
+          {% endif %}
+          {% if form_inputs.poller_status %}
+              <input type="hidden" name="poller_status" value="{{ vm_list.0.poller_status}}" />
+          {% endif %}
 
           {% if "foreign" not in request.path %}
 

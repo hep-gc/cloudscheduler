@@ -11,6 +11,8 @@
 	<body>
 		{% if global_view == "1" %}
 			<h2>Resources unavailable to all cloudscheduler groups:</h2>
+                {% elif global_view == "2" %}
+                        <h2>Resources unavailable to group=<i>{{foreign_list.0.group_name}}</i>:</h2>
 		{% else %}
 			<h2>Resources unavailable to group=<i>{{foreign_list.0.group_name}}</i>, cloud=<i>{{foreign_list.0.cloud_name}}</i>:</h2>
 		{% endif %}
