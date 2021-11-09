@@ -1900,39 +1900,40 @@ def update(request):
                 config.db_close()
                 return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud update, "%s" failed - %s.' % (lno(MODID), fields['cloud_name'], msg))
 
-        # Verify cloud credentials.
-        rc, msg, owner_id = verify_cloud_credentials(config, {**fields, 'group_name': active_user.active_group})
-        if rc == 0:
-            if owner_id:
-                fields['ec2_owner_id'] = owner_id
-            if 'auth_type' in fields and fields['auth_type'] == 'app_creds':
-                rc, msg, app_cred_expiry = get_app_credentail_expiry({**fields, 'group_name': active_user.active_group}, config=config)
-                if rc == 0:
-                    current_time = time.time()
-                    if not app_cred_expiry or (app_cred_expiry - current_time)/86400 >= 8:
-                        fields['app_credentials_expiry'] = app_cred_expiry
+        table = 'csv2_clouds'
+        where_clause = "group_name='%s' and cloud_name='%s'" % (fields['group_name'], fields['cloud_name'])
+        rc, msg, found_cloud_list = config.db_query(table, where=where_clause)
+        if not (found_cloud_list and found_cloud_list[0] and found_cloud_list[0].get("enabled") == 1 and fields.get("enabled") == 0):
+            # Only case that won't verify cloud credential is when disable an enabled cloud, otherwise
+            # Verify cloud credentials.
+            rc, msg, owner_id = verify_cloud_credentials(config, {**fields, 'group_name': active_user.active_group})
+            if rc == 0:
+                if owner_id:
+                    fields['ec2_owner_id'] = owner_id
+                if 'auth_type' in fields and fields['auth_type'] == 'app_creds':
+                    rc, msg, app_cred_expiry = get_app_credentail_expiry({**fields, 'group_name': active_user.active_group}, config=config)
+                    if rc == 0:
+                        current_time = time.time()
+                        if not app_cred_expiry or (app_cred_expiry - current_time)/86400 >= 8:
+                            fields['app_credentials_expiry'] = app_cred_expiry
+                        else:
+                            config.db_close()
+                            return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud update "%s::%s" failed - %s.' % (lno(MODID), fields['group_name'], fields['cloud_name'], 'Application Credential expires within a week'))
                     else:
                         config.db_close()
-                        return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud update "%s::%s" failed - %s.' % (lno(MODID), fields['group_name'], fields['cloud_name'], 'Application Credential expires within a week'))
-                else:
-                    config.db_close()
-                    return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud update "%s::%s" failed - %s.' % (lno(MODID), fields['group_name'], fields['cloud_name'], msg))
-        else:
-            config.db_close()
-            return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud update "%s::%s" failed - %s.' % (lno(MODID), fields['group_name'], fields['cloud_name'], msg))
+                        return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud update "%s::%s" failed - %s.' % (lno(MODID), fields['group_name'], fields['cloud_name'], msg))
+            else:
+                config.db_close()
+                return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud update "%s::%s" failed - %s.' % (lno(MODID), fields['group_name'], fields['cloud_name'], msg))
 
         # update the cloud.
-        table = 'csv2_clouds'
         cloud_updates = table_fields(fields, table, columns, 'update')
 
         updates = len(cloud_updates)
         # updates will always contain group and cloud name so im going to upate the below it statement to >2 instead of >0.
         # If the CLI has a different functionality it may cause failure
         if updates > 2:
-            where_clause = "group_name='%s' and cloud_name='%s'" % (fields['group_name'], fields['cloud_name'])
-            
             # Check if cloud exists
-            rc, msg, found_cloud_list = config.db_query(table, where=where_clause)
             if not found_cloud_list or len(found_cloud_list) == 0:
                 config.db_close()
                 return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud update "%s::%s" failed - the request did not match any rows.' % (lno(MODID), fields['group_name'], fields['cloud_name']))
