@@ -391,7 +391,7 @@ def job_poller():
                       "JobPrio", "ClusterId", "ProcId", "User", "VMInstanceType", "VMNetwork",
                       "VMImage", "VMKeepAlive", "VMMaximumPrice", "VMUserData", "VMJobPerCore", "Owner",
                       "EnteredCurrentStatus", "QDate", "HoldReasonCode", "HoldReasonSubCode", 
-                      "LastRemoteHost", "TargetAlias"]
+                      "LastRemoteHost", "TargetAlias", "CpusProvisioned"]
     # Not in the list that seem to be always returned:
     # FileSystemDomian, MyType, ServerTime, TargetType
     cycle_start_time = 0
@@ -675,6 +675,13 @@ def job_poller():
                     except Exception as exc:
                         logging.debug("Request Cpus not set, setting minimum (1)")
                         job_dict["RequestCpus"] = 1
+
+                    try:
+                        # This is a fix specifically for dune which only submits pilot jobs that then pick up bigger jobs
+                        # the intention is to use the core count of the real job instead of the pilot
+                        job_dict["RequestCpus"] = job_dict["CpusProvisioned"]
+                    except:
+                        pass
 
 
                     job_dict = trim_keys(job_dict, job_attributes)
