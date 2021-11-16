@@ -1,5 +1,6 @@
 from django.template.defaulttags import register
 from django.template.defaultfilters import stringfilter
+from django.template.defaultfilters import filesizeformat
 from django import template
 
 register = template.Library()
@@ -19,3 +20,10 @@ def strip(value):
 def first_split(value, key):
     list = value.split(key)
     return list[0]
+
+@register.filter()
+@stringfilter
+def filesize_split(value, key):
+    list = value.split(key)
+    # format file size to human readable format
+    return filesizeformat(int(list[1]))

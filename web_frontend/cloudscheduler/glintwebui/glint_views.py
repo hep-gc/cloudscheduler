@@ -14,6 +14,7 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.views.decorators.csrf import requires_csrf_token
 from django.http import HttpResponse, StreamingHttpResponse
 from django.core.exceptions import PermissionDenied
+from django.template.defaultfilters import filesizeformat
 
 from .glint_utils import delete_image, check_cache, generate_tx_id, get_image, download_image, upload_image
 
@@ -110,6 +111,9 @@ def _trim_image_list(image_list, group, cloud=None):
         if image["group_name"] == group:
             if cloud is not None:
                 if image["cloud_name"] == cloud:
+                    if image.get("size"):
+                        # format image size to human readable format
+                        image["size"] = filesizeformat(int(image["size"]))
                     new_image_list.append(image)
             else:
                 new_image_list.append(image)
@@ -136,7 +140,7 @@ def _build_image_dict(image_list, transaction_list):
                 }
             }
             image_dict[image["name"] + "---" + image["checksum"]] = new_dict
-            image_dates[image["name"] + "---" + image["checksum"]] = image["created_at"]
+            image_dates[image["name"] + "---" + image["checksum"]] = image["created_at"] + "---" + str(image["size"])
         else:
             #image already exits, just need to add the cloud name dict for this entry
             image_dict[image["name"] + "---" + image["checksum"]][image["cloud_name"]] = {
@@ -304,8 +308,6 @@ def list(request, args=None, response_code=0, message=None):
     matrix = _build_image_matrix(image_dict, clouds)
     
     #build context and render matrix
-
-
 
     context = {
         #function specific data
@@ -1499,7 +1501,7 @@ def image_list(request):
     else:
         cloud= None
     
-    sql = "select rank() over (partition by rank order by group_name,cloud_name,name,created_at,checksum) as rank,group_name,cloud_name,name,created_at,checksum from (select 1 as rank,i.* from (select * from cloud_images) as i) as i where cloud_type='openstack';"
+    sql = "select rank() over (partition by rank order by group_name,cloud_name,name,created_at,checksum) as rank,group_name,cloud_name,name,created_at,checksum,size from (select 1 as rank,i.* from (select * from cloud_images) as i) as i where cloud_type='openstack';"
     config.db_execute(sql)
     image_list = []
     for row in config.db_cursor:
