@@ -1045,8 +1045,9 @@
 <!--<div>Icons made by <a href="https://www.flaticon.com/authors/those-icons" title="Those Icons">Those Icons</a> from <a href="https://www.flaticon.com/"              title="Flaticon">www.flaticon.com</a> is licensed by <a href="http://creativecommons.org/licenses/by/3.0/"              title="Creative Commons BY 3.0" target="_blank">CC 3.0 BY</a></div>-->
 
 <div class="system-div">
-    <table class="system-services" id="system-services">
-
+    {% if is_superuser %}
+        <table class="system-services" id="system-services">
+        
             <tr>
                 <th colspan="{{ service_status | length }}">CS system services</th>
                 <th class="col-spacer">&nbsp;</th>
@@ -1099,9 +1100,9 @@
                 <td>DISK</td>
             </tr>
 
-
         </tbody> 
-    </table>
+        </table>
+    {% endif %}
 
     <div class="refresh-button">
         <span id="CDTimer"></span>
