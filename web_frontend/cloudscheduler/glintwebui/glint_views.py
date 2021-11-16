@@ -1275,6 +1275,7 @@ def download(request, group_name, image_key, args=None, response_code=0, message
         response['Content-Disposition'] = "attachment; filename={0}".format(image_name)
         response['Content-Length'] = os.path.getsize(image_path)
         config.db_close()
+        logger.info("Finish downloading image %s" % image_name)
         return response
 
 
@@ -1309,6 +1310,7 @@ def download(request, group_name, image_key, args=None, response_code=0, message
             response['Content-Disposition'] = "attachment; filename={0}".format(image_name)
             response['Content-Length'] = os.path.getsize(image_path)
             config.db_close()
+            logger.info("Finish downloading image %s" % image_name)
             return response
 
 

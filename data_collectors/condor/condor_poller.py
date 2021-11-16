@@ -991,6 +991,7 @@ def machine_poller():
                     cloud_list.append(cloud["cloud_name"])
                 host_groups[group["group_name"]] = cloud_list
 
+            fail_commit = False
             for condor_host in condor_hosts_set:
                 logging.debug("Polling condor host: %s" % condor_host)
                 forgein_machines = 0

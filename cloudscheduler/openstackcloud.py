@@ -250,7 +250,7 @@ class OpenStackCloud(basecloud.BaseCloud):
                     except Exception as exc:
                         self.log.error("Failed to create new vm with volume: %s" % exc)
                     
-                    vm_updated = self._update_vm_list(nova, hostname, job, num)
+                    vm_updated = self._update_vm_list(nova, hostname, job, 1)
                     if not vm_updated:
                         self.config.db_open()
                         where_clause = "group_name='%s' and cloud_name='%s'" % (self.group, self.name)
