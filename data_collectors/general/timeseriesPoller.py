@@ -6,6 +6,7 @@ import sys
 import os
 import requests
 import signal
+import psutil
 
 from cloudscheduler.lib.view_utils import qt
 from cloudscheduler.lib.db_config import Config
@@ -115,6 +116,23 @@ def timeseries_data_transfer():
             for status in statuses:
                 new_point = "{0} value={1} {2}".format(status["alias"], status["plotable_state"], ts)
                 data_points.append(new_point)
+    
+            # Parse service resources data into line protocol for influxdb
+            load = round(100*( os.getloadavg()[0] / os.cpu_count() ),1)
+            new_point_load = "{0} value={1} {2}".format("load", load, ts)
+            data_points.append(new_point_load)
+
+            ram_used = round(psutil.virtual_memory().used/1000000000 , 1)
+            new_point_ram = "{0} value={1} {2}".format("ram_used", ram_used, ts)
+            data_points.append(new_point_ram)
+
+            swap_used = round(psutil.swap_memory().used/1000000000 , 1)
+            new_point_swap = "{0} value={1} {2}".format("swap_used", swap_used, ts)
+            data_points.append(new_point_swap)
+
+            disk_used = round(psutil.disk_usage('/').used/1000000000 , 1)
+            new_point_disk = "{0} value={1} {2}".format("disk_used", disk_used, ts)
+            data_points.append(new_point_disk)
             
             # Parse cloud status data into line protocol for influxdb
             for line in cloud_status:
