@@ -114,5 +114,34 @@ def main(gvar):
         ]
     )
 
+    # 35 Update app credentials
+    execute_csv2_command(
+        gvar, 0, None, 'cloud "{}::{}" successfully updated.'.format(ut_id(gvar, 'clg1'), ut_id(gvar, 'clc2')),
+        ['cloud', 'update',
+            '-cn', ut_id(gvar, 'clc2'),
+            '-cac', gvar['cloud_credentials']['app_credentials']
+        ]
+    )
+
+    # 35 Update app credentials
+    execute_csv2_command(
+        gvar, 0, None, 'cloud "{}::{}" successfully updated.'.format(ut_id(gvar, 'clg1'), ut_id(gvar, 'clc2')),
+        ['cloud', 'update',
+            '-cn', ut_id(gvar, 'clc2'),
+            '-cas', gvar['cloud_credentials']['app_credentials_secret']
+        ]
+    )
+
+    # 36 Update userid
+    execute_csv2_command(
+        gvar, 0, None, 'cloud "{}::{}" successfully updated.'.format(ut_id(gvar, 'clg1'), ut_id(gvar, 'clc2')),
+        ['cloud', 'update',
+            '-cn', ut_id(gvar, 'clc2'),
+            #'-cac', gvar['cloud_credentials']['app_credentials'],
+            #'-cas', gvar['cloud_credentials']['app_credentials_secret'],
+            '-ui', gvar['cloud_credentials']['userid']
+        ]
+    )
+
 if __name__ == "__main__":
     main(None)

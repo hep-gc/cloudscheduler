@@ -442,7 +442,9 @@ def parameters_commands(gvar, obj, action, group, server_user, parameters, requi
     # `-spw` added by execute_csv2_command.
     base_cmd = [obj, action, '-su', server_user, '-g', group]
     for name, details in parameters.items():
-        if details.get('mandatory'):
+        if details.get('mandatory') or name == "--cloud-user" or name == "--cloud-password":
+            # username and password are not mandatory paremeters after enabling app credentials
+            # but our tests still need username and pwd for authentication, so still add to the base command
             base_cmd.extend([name, details['valid']])
 
     if requires_confirmation:
@@ -459,11 +461,15 @@ def parameters_commands(gvar, obj, action, group, server_user, parameters, requi
             # Execute a command without the current parameter.
             # The message is usually 'the following mandatory parameters must be specified...', but not always (e.g. --text-editor in cli_cloud_metadata_edit).
             execute_csv2_command(gvar, 1, None, p_name, base_cmd.copy())
+        if p_name == "--cloud-user" or p_name == "--cloud-password":
+            p_index = base_cmd.index(p_name)
+            base_cmd.pop(p_index) # pop the key
+            base_cmd.pop(p_index) # pop the value
         # Give the parameter with invalid values.
         for value, message in p_details['test_cases'].items():
             execute_csv2_command(gvar, 1, None, message, base_cmd + [p_name, value])
         # Add the parameter back in if it was mandatory.
-        if p_details.get('mandatory'):
+        if p_details.get('mandatory') or p_name == "--cloud-user" or p_name == "--cloud-password":
             base_cmd.extend([p_name, p_details['valid']])
 
 def table_commands(gvar, obj, action, group, server_user, table_headers):
@@ -674,6 +680,9 @@ def load_settings(web=False):
         credentials['cloud_credentials']['password'] = getpass('Cloud password: ')
         credentials['cloud_credentials']['region'] = input('Cloud region: ')
         credentials['cloud_credentials']['project'] = input('Cloud project: ')
+        credentials['cloud_credentials']['app_credentials'] = input('Cloud application credential: ')
+        credentials['cloud_credentials']['app_credentials_secret'] = getpass('Cloud application credential secret: ')
+        credentials['cloud_credentials']['userid'] = input('Cloud userid: ')
         if web:
             _prompt_for_web_credentials(credentials, gvar['user_settings']['server-user'])
         # Create credentials file with read / write permissions for the current user and none for others.

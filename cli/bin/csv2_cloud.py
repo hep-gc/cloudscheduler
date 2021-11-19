@@ -22,6 +22,9 @@ KEY_MAP = {
     '-cPI': 'project_domain_id',
     '-cUD':  'user_domain_name',
     '-cUI': 'user_domain_id',
+    '-cac':  'app_credentials',
+    '-cas': 'app_credentials_secret',
+    '-ui': 'userid',
     '-g':   'group',
     '-ga':  'cacertificate',
     '-gme': 'metadata_name',
@@ -66,9 +69,9 @@ def add(gvar):
     Add a cloud to the active group.
     """
 
-    mandatory = ['-ca', '-cn', '-cP', '-cpw', '-cr', '-ct', '-cU']
+    mandatory = ['-ca', '-cn', '-cP', '-cr', '-ct']
     required = []
-    optional = ['-ce', '-cfe', '-cp', '-cPD', '-cPI', '-csp', '-cUD', '-cUI', '-g', '-ga', '-gme',  '-H', '-h', '-s', '-vbv', '-vc', '-vcs', '-vf', '-vi', '-vk', '-vka', '-vn', '-vr', '-vsg', '-v', '-x509', '-xA']
+    optional = ['-ce', '-cfe', '-cp', '-cPD', '-cPI', '-csp', '-cUD', '-cUI', '-cpw', '-cU', '-cac', '-cas', '-ui', '-g', '-ga', '-gme',  '-H', '-h', '-s', '-vbv', '-vc', '-vcs', '-vf', '-vi', '-vk', '-vka', '-vn', '-vr', '-vsg', '-v', '-x509', '-xA']
 
     if gvar['retrieve_options']:
         return mandatory + required + optional
@@ -80,6 +83,23 @@ def add(gvar):
         required,
         optional,
         key_map=KEY_MAP)
+
+    auth_type = None
+    if form_data.get('username') and form_data.get('password'):
+        auth_type = "userpass"
+    elif form_data.get('app_credentials') and form_data.get('app_credentials_secret'):
+        auth_type = "app_creds"
+    elif form_data.get('username') or form_data.get('password'):
+        auth_type = "userpass"
+    elif form_data.get('app_credentials') or form_data.get('app_credentials_secret'):
+        auth_type = "app_creds"
+
+    if auth_type == "app_creds":
+        form_data['auth_type'] = 'app_creds'
+        if not form_data.get('username'):
+            form_data['username'] = ''
+        if not form_data.get('password'):
+            form_data['password'] = ''
 
     # Create the cloud.
     response = requests(
@@ -445,7 +465,7 @@ def update(gvar):
 
     mandatory = ['-cn']
     required = []
-    optional = ['-ca', '-ce', '-cfe', '-cfo', '-cpw', '-cp', '-cP', '-cPD', '-cPI', '-cr', '-csp', '-ct', '-cU', '-cUD', '-cUI', '-g', '-ga', '-gme', '-gmo', '-H', '-h', '-s', '-vbv', '-vc', '-vcs', '-vf', '-vi', '-vk', '-vka', '-vn', '-vr', '-vsg', '-v', '-x509', '-xA']
+    optional = ['-ca', '-ce', '-cfe', '-cfo', '-cpw', '-cp', '-cP', '-cPD', '-cPI', '-cr', '-csp', '-ct', '-cU', '-cac', '-cas', '-ui', '-cUD', '-cUI', '-g', '-ga', '-gme', '-gmo', '-H', '-h', '-s', '-vbv', '-vc', '-vcs', '-vf', '-vi', '-vk', '-vka', '-vn', '-vr', '-vsg', '-v', '-x509', '-xA']
 
     if gvar['retrieve_options']:
         return mandatory + required + optional
@@ -461,6 +481,11 @@ def update(gvar):
     if len(form_data) < 2:
         print('Error: "%s cloud update" requires at least one option to modify.' % gvar['command_name'])
         exit(1)
+
+    if form_data.get('username') and form_data.get('password'):
+        form_data['auth_type'] = 'userpass' 
+    elif form_data.get('app_credentials') and form_data.get('app_credentials_secret'):
+        form_data['auth_type'] = 'app_creds'
 
     # Create the cloud.
     response = requests(
