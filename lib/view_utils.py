@@ -1956,3 +1956,41 @@ def retire_cloud_vms(config, group_name, cloud_name):
 def get_file_checksum(content):
     checksum = hashlib.md5(content).hexdigest()
     return checksum
+
+
+# Flush openstack and foreign vm data
+def clean_cloud_data(config, group_name, cloud_name):
+    tables = [
+        "cloud_flavors", 
+        "cloud_images", 
+        "cloud_keypairs", 
+        "cloud_limits", 
+        "cloud_networks", 
+        "cloud_security_groups", 
+        "cloud_volumes", 
+        "csv2_vms"
+    ]
+    message = ""
+
+    where_clause = "cloud_name='%s' and group_name='%s'" % (cloud_name, group_name)
+    for table in tables:
+        rc, msg = config.db_delete(table, where=where_clause)
+        if rc == 0:
+            config.db_commit()
+        else:
+            message = msg + ";" + message
+
+    rc, msg, clouds = config.db_query("csv2_clouds", where=where_clause)
+    if clouds and len(clouds) > 0:
+        where_clause = "authurl='%s' and region='%s' and project='%s'" % (clouds[0].get('authurl'), clouds[0].get('region'), clouds[0].get('project'))
+        rc, msg = config.db_delete('csv2_vms_foreign', where=where_clause)
+        if rc == 0:
+            config.db_commit()
+        else:
+            message = msg + ";" + message
+
+    if message == "":
+        return 0, None
+    else:
+        return 1, message
+

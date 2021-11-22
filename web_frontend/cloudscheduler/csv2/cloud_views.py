@@ -23,7 +23,8 @@ from cloudscheduler.lib.view_utils import \
     verify_cloud_credentials, \
     get_app_credentail_expiry, \
     retire_cloud_vms, \
-    get_file_checksum
+    get_file_checksum, \
+    clean_cloud_data
 
 import bcrypt
 
@@ -121,6 +122,8 @@ CLOUD_ADD_KEYS = {
         'app_credentials_secret',
         ]
     }
+
+CLOUD_IMPORTANT_KEYS = ['authurl', 'project', 'region', 'username', 'userid']
 
 METADATA_KEYS = {
     'auto_active_group': True,
@@ -1937,6 +1940,14 @@ def update(request):
                 config.db_close()
                 return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud update "%s::%s" failed - the request did not match any rows.' % (lno(MODID), fields['group_name'], fields['cloud_name']))
             
+            for key in CLOUD_IMPORTANT_KEYS:
+                if key in fields and found_cloud_list[0].get(key) != fields.get(key):
+                    print(fields['group_name'], fields['cloud_name'], key, "changed, cleaning cloud data")
+                    rc, msg = clean_cloud_data(config, fields['group_name'], fields['cloud_name'])
+                    if rc != 0:
+                        print("Error cleaning cloud data table:", msg)
+                    break
+            
             rc, msg = config.db_update(table, cloud_updates, where=where_clause)
             config.db_commit()
             if rc != 0:
@@ -1948,7 +1959,7 @@ def update(request):
             if fields['enabled'] == 0:
                 #call retire routine
                 retire_cloud_vms(config, fields['group_name'], fields['cloud_name'])
-
+     
         # If either the cores_ctl or the ram_ctl have been modified, call kill_retire to scale current usage.
         try:
             if 'cores_ctl' in fields and 'ram_ctl' in fields:
