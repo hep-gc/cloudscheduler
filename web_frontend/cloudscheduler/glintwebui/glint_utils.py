@@ -4,7 +4,7 @@ import logging
 import os
 import string
 import random
-import hashlib
+#import hashlib
 
 from cloudscheduler.lib.openstack_functions import get_openstack_sess, get_glance_connection
 
@@ -64,14 +64,14 @@ def download_image(cloud, image_name, image_id, image_checksum, scratch_dir):
             os.makedirs(scratch_dir)
         file_path = scratch_dir + image_name + "---" + image_checksum
        
-        md5 = hashlib.md5()
+        #md5 = hashlib.md5()
         with open(file_path, "wb") as local_image:
             response = glance.download_image(image_id, stream=True)
-            for chunk in response.iter_content(chunk_size=409600000):
-                md5.update(chunk)
+            for chunk in response.iter_content(chunk_size=512000):
+        #        md5.update(chunk)
                 local_image.write(chunk)
-            if response.headers["Content-MD5"] != md5.hexdigest():
-                return (False, "Checksum mismatch in downloaded content")
+        #    if response.headers["Content-MD5"] != md5.hexdigest():
+        #        return (False, "Checksum mismatch in downloaded content")
 
         #glance.download_image(image_id, output=file_path)
         img = glance.get_image(image_id)
@@ -211,5 +211,5 @@ def get_image(config, image_name, image_checksum, group_name, cloud_name=None):
 
 # at a length of 16 with a 92 symbol alphabet we have a N/16^92 chance of a collision, pretty darn unlikely
 def generate_tx_id(length=16):
-    return ''.join(random.choice(ALPHABET) for i in range(length)) 
+    return ''.join(random.choice(ALPHABET) for i in range(length)).replace('\\', '\\\\')
 
