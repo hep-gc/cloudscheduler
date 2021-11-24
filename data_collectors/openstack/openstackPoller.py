@@ -32,7 +32,7 @@ from cloudscheduler.lib.poller_functions import \
     wait_cycle
 
 from cloudscheduler.lib.signal_functions import event_receiver_registration
-from cloudscheduler.lib.openstack_functions import get_openstack_sess, get_nova_connection, get_neutron_connection, get_cinder_connection, get_openstack_conn, convert_openstack_date_timezone
+from cloudscheduler.lib.openstack_functions import MyServer, get_openstack_sess, get_nova_connection, get_neutron_connection, get_cinder_connection, get_openstack_conn, convert_openstack_date_timezone
 #import openstack
 
 '''
@@ -1673,6 +1673,16 @@ def vm_poller():
                             if found_group and len(found_group) > 0:
                                 keep_alive = found_group[0].get("vm_keep_alive")
                             additions = {'start_time': int(time.time()), 'keep_alive': keep_alive}
+                        
+                        vm_error = None
+                        if vm.status == "ERROR":
+                            try:
+                                s = nova._get(MyServer, vm.id)
+                                if s.fault and s.fault.get('message'):
+                                    vm_error = s.fault.get('message')
+                                    #logging.error("Found vm %s in error state: %s" % (vm.name, s.fault.get('message')))
+                            except Exception as exc:
+                                logging.error("Failed to get error message from vm %s: %s" % (vm.name, exc))
 
                         vm_dict = {
                             'group_name': vm_group_name,
@@ -1685,6 +1695,7 @@ def vm_poller():
                             'vmid': vm.id,
                             'image_id': vm.image['id'],
                             'status': vm.status,
+                            'vm_error': vm_error,
                             'flavor_id': vm_flavor_id,
                             'task': vm.to_dict().get('task_state'),
                             'power_state': vm.to_dict().get('power_state'),

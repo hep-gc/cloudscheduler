@@ -332,7 +332,7 @@ schema = {
             "q_date": {"type": "int"},
             "hold_reason_code": {"type": "int"},
             "hold_reason_subcode": {"type": "int"},
-            "last_remote_host": {"type": "str", "len": "64", "nulls": "YES"},
+            "last_remote_host": {"type": "str", "len": "128", "nulls": "YES"},
             "held_reason": {"type": "str", "len": "512", "nulls": "YES"},
             "hold_job_reason": {"type": "str", "len": "64", "nulls": "YES"}
             }
@@ -738,7 +738,8 @@ schema = {
             "terminate_time": {"type": "int"},
             "status_changed_time": {"type": "int"},
             "last_updated": {"type": "int"},
-            "updater": {"type": "str", "len": "128", "nulls": "YES"}
+            "updater": {"type": "str", "len": "128", "nulls": "YES"},
+            "vm_error": {"type": "str", "len": "256", "nulls": "YES"}
             }
         },
     "csv2_vms_foreign": {
@@ -1749,6 +1750,7 @@ schema = {
             "status_changed_time": {"type": "int"},
             "last_updated": {"type": "int"},
             "updater": {"type": "str", "len": "128", "nulls": "YES"},
+            "vm_error": {"type": "str", "len": "256", "nulls": "YES"},
             "flavor_name": {"type": "str", "len": "128", "nulls": "YES"},
             "condor_slots": {"type": "int"},
             "condor_slots_used": {"type": "int"},

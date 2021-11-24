@@ -1983,6 +1983,7 @@ def clean_cloud_data(config, group_name, cloud_name):
     rc, msg, clouds = config.db_query("csv2_clouds", where=where_clause)
     if clouds and len(clouds) > 0:
         where_clause = "authurl='%s' and region='%s' and project='%s'" % (clouds[0].get('authurl'), clouds[0].get('region'), clouds[0].get('project'))
+        # foreign vm table doesn't have group and cloud name, use authurl, region and project to select rows to delete
         rc, msg = config.db_delete('csv2_vms_foreign', where=where_clause)
         if rc == 0:
             config.db_commit()
