@@ -148,15 +148,18 @@ def flavor_poller():
 
                 # build unique cloud list to only query a given cloud once per cycle
                 unique_cloud_dict = {}
-                for cloud in cloud_list:
-                    if cloud["authurl"]+cloud["project"]+cloud["region"]+cloud["username"] not in unique_cloud_dict:
-                        unique_cloud_dict[cloud["authurl"]+cloud["project"]+cloud["region"]+cloud["username"]] = {
-                            'cloud_obj': cloud,
-                            'groups': [(cloud["group_name"], cloud["cloud_name"])]
-                        }
-                    else:
-                        unique_cloud_dict[cloud["authurl"]+cloud["project"]+cloud["region"]+cloud["username"]]['groups'].append((cloud["group_name"], cloud["cloud_name"]))
-
+                try:
+                    for cloud in cloud_list:
+                        if cloud["authurl"]+cloud["project"]+cloud["region"]+cloud["username"] not in unique_cloud_dict:
+                            unique_cloud_dict[cloud["authurl"]+cloud["project"]+cloud["region"]+cloud["username"]] = {
+                                'cloud_obj': cloud,
+                                'groups': [(cloud["group_name"], cloud["cloud_name"])]
+                            }
+                        else:
+                            unique_cloud_dict[cloud["authurl"]+cloud["project"]+cloud["region"]+cloud["username"]]['groups'].append((cloud["group_name"], cloud["cloud_name"]))
+                except Exception as exc:
+                    logging.error("Failed to read cloud list %s" % exc)
+                    continue
 
                 for cloud in unique_cloud_dict:
                     cloud_name = unique_cloud_dict[cloud]['cloud_obj']["authurl"]
@@ -1486,8 +1489,13 @@ def vm_poller():
 
             where_clause = "cloud_type='openstack'"
             rc, msg, cloud_list = config.db_query(CLOUD, where=where_clause)
-            where_clause="cloud_type='openstack' and start_time<='%s'" % (new_poll_time-config.categories["SQL"]["vm_come_alive"])
-            rc, msg, unfiltered_rows = config.db_query(VM, where=where_clause)
+            try:
+                where_clause="cloud_type='openstack' and start_time<='%s'" % (new_poll_time-config.categories["SQL"]["vm_come_alive"])
+                rc, msg, unfiltered_rows = config.db_query(VM, where=where_clause)
+            except Exception as exc:
+                logging.error("Failed to read vm come alive time: %s" % exc)
+                where_clause = "cloud_type='openstack'"
+                rc, msg, unfiltered_rows = config.db_query(VM, where=where_clause)
             
             # build unique cloud list to only query a given cloud once per cycle
             unique_cloud_dict = {}
@@ -1827,7 +1835,10 @@ def vm_poller():
                 kill_retire(config, cloud["group_name"], cloud["cloud_name"], "control", [cloud["cores"], cloud["ram"]], get_frame_info())
                 config.db_commit()
             if len(over_quota_clouds) > 0: 
-                event_signal_send(config, "update_csv2_clouds_openstack")
+                try:
+                    event_signal_send(config, "update_csv2_clouds_openstack")
+                except Exception as exc:
+                    logging.error("Error when sending signals after removing overquota vms: %s" % exc)
 
             logging.debug("Completed VM poller cycle")
 
