@@ -413,7 +413,7 @@
 
                                     <tr class="highlight3"><td><label for="vm_image">VM Image</label></td>
                                     <td><select name="vm_image" class="dropdown"/>
-                                    <option value=""></option>
+                                    <option value="">Use group default</option>
                                     {% for image in image_list %}
                                         {% if image.cloud_name == cloud.cloud_name%}
                                             {% if image.name == cloud.vm_image %}
