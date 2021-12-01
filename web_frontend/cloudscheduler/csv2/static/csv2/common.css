@@ -23,7 +23,7 @@
   background-color: lightcyan;
 }
 
-input:read-only { color:grey; }
+input:read-only:not([type=submit]) { color:grey; }
 
 
 /*****************************************************************/
