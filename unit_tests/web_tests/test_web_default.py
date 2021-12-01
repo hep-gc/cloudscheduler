@@ -20,7 +20,7 @@ class TestWebDefaultCommon(unittest.TestCase):
     def setUp(self):
         self.page.get_homepage()
         self.page.switch_default_group(self.group_name)
-        self.page.click_top_nav('Defaults')
+        self.page.click_top_nav('Group Config')
 
     def test_web_default_find(self):
         pass
