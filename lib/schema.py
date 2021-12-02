@@ -1625,10 +1625,10 @@ schema = {
             "authurl": {"type": "str", "len": "128", "nulls": "YES"},
             "region": {"type": "str", "len": "32", "nulls": "YES"},
             "project": {"type": "str", "len": "128", "nulls": "YES"},
-            "VMs": {"type": "int"},
-            "cores": {"type": "int"},
-            "disk": {"type": "int"},
             "ram": {"type": "int"},
+            "cores": {"type": "int"},
+            "VMs": {"type": "int"},
+            "disk": {"type": "int"},
             "swap": {"type": "int"}
             }
         },

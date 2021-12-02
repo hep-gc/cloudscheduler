@@ -3,17 +3,19 @@ select
     authurl,
     region,
     project,
+    ram_used as ram,
+    cores_used as cores,
     sum(ifnull(count,0)) as VMs,
-    sum(ifnull(cores,0)) as cores,
+    /* sum(ifnull(cores,0)) as cores_used_calculated, */
     sum(ifnull(disk,0)) as disk,
-    sum(ifnull(ram,0)) as ram,
+    /* sum(ifnull(ram,0)) as ram_used_calculated, */
     sum(ifnull(swap,0)) as swap
 from (    
     select
         tv.*,
-        count*cores as cores,
+        /* count*cores as cores, */
         count*disk as disk,
-        count*ram as ram,
+        /* count*ram as ram, */
         count*swap as swap
     from (
         select
@@ -21,20 +23,26 @@ from (
             region,
             project,
             flavor_id,
-            sum(count) as count
+            sum(count) as count,
+            ram_used,
+            cores_used
         from (
             select
                 authurl,
                 region,
                 project,
                 flavor_id,
-                count
+                count,
+                ram_used,
+                cores_used
             from (
                 select
                     cv.*,
                     cc.authurl,
                     cc.region,
-                    cc.project
+                    cc.project,
+                    cl.ram_used, 
+                    cl.cores_used
                 from (
                     select
                         group_name,
@@ -50,13 +58,18 @@ from (
                 left outer join csv2_clouds as cc on
                     cv.group_name=cc.group_name and
                     cv.cloud_name=cc.cloud_name
+                left outer join cloud_limits as cl on
+                    cl.group_name=cc.group_name and
+                    cl.cloud_name=cc.cloud_name
                 ) as cv
             union all select
                 authurl,
                 region,
                 project,
                 flavor_id,
-                count
+                count,
+                0 as ram_used,
+                0 as cores_used
             from csv2_vms_foreign as cvf
         ) as tv
         group by
@@ -72,9 +85,9 @@ from (
             region,
             project,
             id,
-            cores,
+            /* cores, */
             disk,
-            ram,
+            /* ram, */
             swap
         from cloud_flavors as cf
         left outer join csv2_clouds as cc on
