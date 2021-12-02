@@ -56,6 +56,7 @@ CREATE TABLE `csv2_vms` (
   `status_changed_time` int(11) DEFAULT NULL,
   `last_updated` int(11) NOT NULL,
   `updater` varchar(128) DEFAULT NULL,
+  `vm_error` varchar(256) DEFAULT NULL,
   PRIMARY KEY (`group_name`,`cloud_name`,`vmid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -69,4 +70,4 @@ CREATE TABLE `csv2_vms` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2021-10-14 11:26:29
+-- Dump completed on 2021-12-02 14:07:59
