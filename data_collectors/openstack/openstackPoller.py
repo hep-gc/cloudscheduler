@@ -1490,10 +1490,16 @@ def vm_poller():
             where_clause = "cloud_type='openstack'"
             rc, msg, cloud_list = config.db_query(CLOUD, where=where_clause)
             try:
-                where_clause="cloud_type='openstack' and start_time<='%s'" % (new_poll_time-config.categories["SQL"]["vm_come_alive"])
+                avg_cycle_length = 0
+                for poll_time in poll_time_history:
+                    avg_cycle_length = avg_cycle_length + poll_time
+                avg_cycle_length = avg_cycle_length/len(poll_time_history)
+                if avg_cycle_length < config.categories["openstackPoller.py"]["sleep_interval_vm"]:
+                    avg_cycle_length = config.categories["openstackPoller.py"]["sleep_interval_vm"]
+                where_clause="cloud_type='openstack' and start_time<='%s'" % (new_poll_time-2*avg_cycle_length)
                 rc, msg, unfiltered_rows = config.db_query(VM, where=where_clause)
             except Exception as exc:
-                logging.error("Failed to read vm come alive time: %s" % exc)
+                logging.error("Failed to read configuration: %s" % exc)
                 where_clause = "cloud_type='openstack'"
                 rc, msg, unfiltered_rows = config.db_query(VM, where=where_clause)
             
