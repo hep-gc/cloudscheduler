@@ -26,4 +26,7 @@ def first_split(value, key):
 def filesize_split(value, key):
     list = value.split(key)
     # format file size to human readable format
-    return filesizeformat(int(list[1]))
+    if len(list) > 1:
+        return filesizeformat(int(list[1]))
+    else:
+        return '-'
