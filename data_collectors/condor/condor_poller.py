@@ -808,6 +808,7 @@ def job_poller():
         logging.exception("Job Poller while loop exception, process terminating...")
         logging.error(exc)
         config.db_close()
+        config.db_connection_close()
 
 def job_command_poller():
     multiprocessing.current_process().name = "Job Command Poller"
@@ -865,7 +866,7 @@ def job_command_poller():
 
                 #Query database for any entries that have a command flag
                 abort_cycle = False
-                where_clause = "hold_job_reason is not NULL"
+                where_clause = "hold_job_reason is not NULL and htcondor_host_id='%s'" % config.local_host_id
                 rc, msg, job_rows = config.db_query(Job, where=where_clause)
                 for job in job_rows:
                     logging.info("Holding job %s, reason=%s" % (job["global_job_id"], job["hold_job_reason"]))
@@ -1196,6 +1197,7 @@ def machine_poller():
         logging.exception("Machine poller while loop exception, process terminating...")
         logging.error(exc)
         config.db_close()
+        config.db_connection_close()
 
 def machine_command_poller(arg_list):
     target_group =  arg_list[0]
@@ -1232,6 +1234,7 @@ def machine_command_poller(arg_list):
             if not os.path.exists(PID_FILE):
                 logging.debug("Stop set, exiting...")
                 config.db_close()
+                config.db_connection_close()
                 break
 
             signal.signal(signal.SIGINT, signal.SIG_IGN)
@@ -1244,6 +1247,7 @@ def machine_command_poller(arg_list):
             if not os.path.exists(PID_FILE):
                 logging.info("Stop set, exiting...")
                 config.db_close()
+                config.db_connection_close()
                 break
             config.db_close()
             wait_cycle(cycle_start_time, poll_time_history, config.categories["condor_poller.py"]["sleep_interval_command"], config)
@@ -1251,6 +1255,8 @@ def machine_command_poller(arg_list):
     except Exception as exc:
         logging.exception("Command consumer while loop exception, process terminating...")
         logging.error(exc)
+        config.db_close()
+        config.db_connection_close()
 
 def worker_gsi_poller():
     multiprocessing.current_process().name = "Worker GSI Poller"
@@ -1273,6 +1279,7 @@ def worker_gsi_poller():
             if not os.path.exists(PID_FILE):
                 logging.debug("Stop set, exiting...")
                 config.db_close()
+                config.db_connection_close()
                 break
 
             signal.signal(signal.SIGINT, signal.SIG_IGN)
@@ -1342,6 +1349,7 @@ def worker_gsi_poller():
         logging.exception("Worker GSI while loop exception, process terminating...")
         logging.error(exc)
         config.db_close()
+        config.db_connection_close()
 
 
 
@@ -1367,6 +1375,7 @@ def condor_gsi_poller():
             if not os.path.exists(PID_FILE):
                 logging.debug("Stop set, exiting...")
                 config.db_close()
+                config.db_connection_close()
                 break
             signal.signal(signal.SIGINT, signal.SIG_IGN)
 
@@ -1418,6 +1427,7 @@ def condor_gsi_poller():
         logging.exception("Condor GSI while loop exception, process terminating...")
         logging.error(exc)
         config.db_close()
+        config.db_connection_close()
 
 if __name__ == '__main__':
 
@@ -1458,7 +1468,9 @@ if __name__ == '__main__':
 
     except (SystemExit, KeyboardInterrupt):
         logging.error("Caught KeyboardInterrupt, shutting down threads and exiting...")
+        config.db_connection_close()
     except Exception as ex:
         logging.exception("Process Died: %s", ex)
+        config.db_connection_close()
 
     procMon.kill_join_all()
