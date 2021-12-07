@@ -288,6 +288,18 @@ class Config:
 
 #-------------------------------------------------------------------------------
 
+    def db_connection_close(self):
+        """
+        Close the database connection
+        """
+
+        if self.db_connection:
+            self.db_connection.close()
+
+        return self.__db_logging_return__(0, None)
+
+#-------------------------------------------------------------------------------
+
     def db_commit(self):
         """
         Commit updates.
