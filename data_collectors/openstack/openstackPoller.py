@@ -138,7 +138,7 @@ def flavor_poller():
                 config.refresh()
                 new_poll_time, cycle_start_time = start_cycle(new_poll_time, cycle_start_time)
                 if not os.path.exists(PID_FILE):
-                    logging.debug("Stop set, exiting...")
+                    logging.info("Falied to get pid file, stop set, exiting...")
                     break
                 
                 signal.signal(signal.SIGINT, signal.SIG_IGN) 
@@ -361,7 +361,7 @@ def image_poller():
                 config.db_open()
                 logging.debug("Beginning image poller cycle")
                 if not os.path.exists(PID_FILE):
-                    logging.debug("Stop set, exiting...")
+                    logging.info("Falied to get pid file, stop set, exiting...")
                     break
 
                 signal.signal(signal.SIGINT, signal.SIG_IGN)
@@ -621,7 +621,7 @@ def keypair_poller():
                 logging.debug("Beginning keypair poller cycle")
                 config.db_open()
                 if not os.path.exists(PID_FILE):
-                    logging.debug("Stop set, exiting...")
+                    logging.info("Falied to get pid file, stop set, exiting...")
                     break
 
                 signal.signal(signal.SIGINT, signal.SIG_IGN)
@@ -820,7 +820,7 @@ def limit_poller():
                 logging.debug("Beginning limit poller cycle")
                 config.db_open()
                 if not os.path.exists(PID_FILE):
-                    logging.debug("Stop set, exiting...")
+                    logging.info("Falied to get pid file, stop set, exiting...")
                     break
 
                 signal.signal(signal.SIGINT, signal.SIG_IGN)
@@ -1047,7 +1047,7 @@ def network_poller():
                 logging.debug("Beginning network poller cycle")
                 config.db_open()
                 if not os.path.exists(PID_FILE):
-                    logging.debug("Stop set, exiting...")
+                    logging.info("Falied to get pid file, stop set, exiting...")
                     break
 
                 signal.signal(signal.SIGINT, signal.SIG_IGN)
@@ -1256,7 +1256,7 @@ def security_group_poller():
                 logging.debug("Beginning security group poller cycle")
                 config.db_open()
                 if not os.path.exists(PID_FILE):
-                    logging.debug("Stop set, exiting...")
+                    logging.debug("Falied to get pid file, stop set, exiting...")
                     break
 
                 signal.signal(signal.SIGINT, signal.SIG_IGN)
@@ -1475,7 +1475,7 @@ def vm_poller():
             logging.debug("Beginning VM poller cycle")
 
             if not os.path.exists(PID_FILE):
-                logging.debug("Stop set, exiting...")
+                logging.info("Falied to get pid file, stop set, exiting...")
                 break
             config.db_open()
             signal.signal(signal.SIGINT, signal.SIG_IGN)
@@ -1899,7 +1899,7 @@ def volume_poller():
                 logging.debug("Beginning volume poller cycle")
                 config.db_open()
                 if not os.path.exists(PID_FILE):
-                    logging.debug("Stop set, exiting...")
+                    logging.info("Falied to get pid file, stop set, exiting...")
                     break
 
                 signal.signal(signal.SIGINT, signal.SIG_IGN)
@@ -2121,7 +2121,7 @@ def defaults_replication():
             config.db_open()
             config.refresh()
             if not os.path.exists(PID_FILE):
-                logging.debug("Stop set, exiting...")
+                logging.info("Falied to get pid file, stop set, exiting...")
                 break
 
             signal.signal(signal.SIGINT, signal.SIG_IGN)
