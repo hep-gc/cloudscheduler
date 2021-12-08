@@ -1470,401 +1470,407 @@ def vm_poller():
         inventory = inventory_get_item_hash_from_db_query_rows(ikey_names, rows)
         config.db_close()
         while True:
-            # This cycle should be reasonably fast such that the scheduler will always have the most
-            # up to date data during a given execution cycle.
-            logging.debug("Beginning VM poller cycle")
-
-            if not os.path.exists(PID_FILE):
-                logging.info("Falied to get pid file, stop set, exiting...")
-                break
-            config.db_open()
-            signal.signal(signal.SIGINT, signal.SIG_IGN)
-
-            new_poll_time, cycle_start_time = start_cycle(new_poll_time, cycle_start_time)
-            config.refresh()
-
-            # For each OpenStack cloud, retrieve and process VMs.
-            abort_cycle = False
-            rc, msg, group_list = config.db_query(GROUP)
-
-            where_clause = "cloud_type='openstack'"
-            rc, msg, cloud_list = config.db_query(CLOUD, where=where_clause)
             try:
-                avg_cycle_length = 0
-                for poll_time in poll_time_history:
-                    avg_cycle_length = avg_cycle_length + poll_time
-                avg_cycle_length = avg_cycle_length/len(poll_time_history)
-                if avg_cycle_length < config.categories["openstackPoller.py"]["sleep_interval_vm"]:
-                    avg_cycle_length = config.categories["openstackPoller.py"]["sleep_interval_vm"]
-                where_clause="cloud_type='openstack' and start_time<='%s'" % (new_poll_time-2*avg_cycle_length)
-                rc, msg, unfiltered_rows = config.db_query(VM, where=where_clause)
-            except Exception as exc:
-                logging.error("Failed to read configuration: %s" % exc)
+                # This cycle should be reasonably fast such that the scheduler will always have the most
+                # up to date data during a given execution cycle.
+                logging.debug("Beginning VM poller cycle")
+
+                if not os.path.exists(PID_FILE):
+                    logging.info("Falied to get pid file, stop set, exiting...")
+                    break
+                config.db_open()
+                signal.signal(signal.SIGINT, signal.SIG_IGN)
+
+                new_poll_time, cycle_start_time = start_cycle(new_poll_time, cycle_start_time)
+                config.refresh()
+
+                # For each OpenStack cloud, retrieve and process VMs.
+                abort_cycle = False
+                rc, msg, group_list = config.db_query(GROUP)
+
                 where_clause = "cloud_type='openstack'"
-                rc, msg, unfiltered_rows = config.db_query(VM, where=where_clause)
-            
-            # build unique cloud list to only query a given cloud once per cycle
-            unique_cloud_dict = {}
-            for cloud in cloud_list:
-                if cloud["authurl"]+cloud["project"]+cloud["region"]+cloud["username"] not in unique_cloud_dict:
-                    unique_cloud_dict[cloud["authurl"]+cloud["project"]+cloud["region"]+cloud["username"]] = {
-                        'cloud_obj': cloud,
-                        'groups': [(cloud["group_name"], cloud["cloud_name"])]
-                    }
-                else:
-                    unique_cloud_dict[cloud["authurl"]+cloud["project"]+cloud["region"]+cloud["username"]]['groups'].append((cloud["group_name"], cloud["cloud_name"]))
-
-            group_list = []
-            for cloud in unique_cloud_dict:
-                group_list = group_list +unique_cloud_dict[cloud]['groups']
-
-            for cloud in unique_cloud_dict:
-                auth_url = unique_cloud_dict[cloud]['cloud_obj']["authurl"]
-                cloud_obj = unique_cloud_dict[cloud]['cloud_obj']
-
-                where_clause = "authurl='%s' and region='%s' and project='%s'" % (cloud_obj["authurl"], cloud_obj["region"], cloud_obj["project"])
-                rc, msg, foreign_vm_list = config.db_query(FVM, where=where_clause)
-
-                #set foreign vm counts to zero as we will recalculate them as we go, any rows left at zero should be deleted
-                # dict[cloud+flavor]
-                for_vm_dict = {}
-                for for_vm in foreign_vm_list:
-                    fvm_dict = {
-                        "fvm_obj": for_vm,
-                        "count": 0,
-                        "region": cloud_obj["region"],
-                        "authurl": cloud_obj["authurl"],
-                        "project": cloud_obj["project"]
-                    }
-                    for_vm_dict[auth_url + "--" + for_vm["flavor_id"]] = fvm_dict
-
-                logging.debug("Polling VMs from cloud: %s" % auth_url)
-                sess = get_openstack_sess(cloud_obj, config.categories["openstackPoller.py"]["cacerts"])
-                if sess is False:
-                    logging.debug("Failed to establish session with %s::%s::%s, using group %s's credentials skipping this cloud..." % (cloud_obj["authurl"], cloud_obj["project"], cloud_obj["region"], cloud_obj["group_name"]))
-                    if auth_url + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"] not in failure_dict:
-                        failure_dict[auth_url + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"]] = 1
-                    else:
-                        failure_dict[auth_url + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"]] = failure_dict[auth_url + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"]] + 1
-                    if failure_dict[auth_url + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"]] > 3: #could be configurable
-                        logging.error("Failure threshhold limit reached for %s::%s::%s, using group %s's credentials, manual action required, skipping" % (cloud_obj["authurl"], cloud_obj["project"], cloud_obj["region"], cloud_obj["group_name"]))
-                    continue
-
-                # Retrieve VM list for this cloud.
-                nova = get_nova_connection(sess, region=cloud_obj["region"])
-
-                if nova is False:
-                    logging.info("Openstack nova connection failed for %s, skipping this cloud..." % cloud_obj["cloud_name"])
-                    continue
-
+                rc, msg, cloud_list = config.db_query(CLOUD, where=where_clause)
                 try:
-                    vm_list = nova.servers()
+                    avg_cycle_length = 0
+                    for poll_time in poll_time_history:
+                        avg_cycle_length = avg_cycle_length + poll_time
+                    avg_cycle_length = avg_cycle_length/len(poll_time_history)
+                    if avg_cycle_length < config.categories["openstackPoller.py"]["sleep_interval_vm"]:
+                        avg_cycle_length = config.categories["openstackPoller.py"]["sleep_interval_vm"]
+                    where_clause="cloud_type='openstack' and start_time<='%s'" % (new_poll_time-2*avg_cycle_length)
+                    rc, msg, unfiltered_rows = config.db_query(VM, where=where_clause)
                 except Exception as exc:
-                    logging.error("Failed to retrieve VM data for  %s::%s::%s, skipping this cloud..." % (cloud_obj["authurl"], cloud_obj["project"], cloud_obj["region"]))
-                    logging.error("Exception type: %s" % type(exc))
-                    logging.error(exc)
-                    if auth_url + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"] not in failure_dict:
-                        failure_dict[auth_url + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"]] = 1
-                    else:
-                        failure_dict[auth_url + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"]] = failure_dict[auth_url + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"]] + 1
-                    if failure_dict[auth_url + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"]] > 3: #should be configurable
-                        logging.error("Failure threshhold limit reached for %s::%s::%s, using group %s's crednetials manual action required, skipping" % (cloud_obj["authurl"], cloud_obj["project"], cloud_obj["region"], cloud_obj["group_name"]))
-                    continue
-
-                if vm_list is False:
-                    logging.info("No VMs defined for %s::%s:%s, skipping this cloud..." % (cloud_obj["authurl"], cloud_obj["project"], cloud_obj["region"]))
-                    del nova
-                    continue
-
-                # if we get here the connection to openstack has been succussful and we can remove the error status
-                failure_dict.pop(auth_url + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"], None)
-                #update network status
-                for cloud_tuple in unique_cloud_dict[cloud]['groups']:
-                    grp_nm = cloud_tuple[0]
-                    cld_nm = cloud_tuple[1]
-                    #where_clause = "group_name='%s' and cloud_name='%s'" % (grp_nm, cld_nm)
-                    #rc, msg, cloud_rows = config.db_query(CLOUD, where=where_clause)
-                    #cloud_row = cloud_rows[0]
-                    cloud_row = {
-                        "group_name": grp_nm,
-                        "cloud_name": cld_nm,
-                        "communication_up": 1
-                    }
-                    config.db_update(CLOUD, cloud_row)
-                    config.db_commit()
-                    
-
-                # Process VM list for this cloud.
-                # We've decided to remove the variable "status_changed_time" since it was holding the exact same value as "last_updated"
-                # This is because we are only pushing updates to the csv2 database when the state of a vm is changed and thus it would be logically equivalent
-                uncommitted_updates = 0
-                try:
-                    for vm in vm_list:
-                    #~~~~~~~~
-                    # figure out if it is foreign to this group or not based on tokenized hostname:
-                    # hostname example: testing--otter--2049--256153399971170-1
-                    # tokenized:        group,   cloud, csv2_host_id, ?vm identifier?
-                    #
-                    # at the end some of the dictionary enteries might not have a previous database object
-                    # due to emergent flavors and thus a new obj will need to be created
-                    #~~~~~~~~
-                        try:
-                            host_tokens = vm.name.split("--")
-                            vm_group_name = host_tokens[0]
-                            vm_cloud_name = host_tokens[1]
-                            found_flavor = nova.find_flavor(name_or_id=vm.flavor['original_name'])
-                            vm_flavor_id = found_flavor.id
-                     
-                            if (host_tokens[0], host_tokens[1]) not in group_list:
-                                logging.debug("Group-Cloud combination doesn't match any in csv2, marking %s as foreign vm" % vm.name)
-                                logging.debug(group_list)
-                                if auth_url + "--" + vm_flavor_id in for_vm_dict:
-                                    for_vm_dict[auth_url + "--" + vm_flavor_id]["count"] = for_vm_dict[auth_url + "--" + vm_flavor_id]["count"] + 1
-                                else:
-                                    # no entry yet
-                                    for_vm_dict[auth_url + "--" + vm_flavor_id]= {
-                                        'count': 1,
-                                        'region': cloud_obj["region"],
-                                        'project': cloud_obj["project"],
-                                        'authurl': cloud_obj["authurl"], 
-                                        'flavor_id': vm_flavor_id
-                                    }
-                                continue
-                            elif int(host_tokens[2]) != int(config.categories["SQL"]["csv2_host_id"]):
-                                logging.debug("csv2 host id from host does not match (should be %s), marking %s as foreign vm" % (config.categories["SQL"]["csv2_host_id"], vm.name))
-                                if auth_url + "--" + vm_flavor_id in for_vm_dict:
-                                    for_vm_dict[auth_url + "--" + vm_flavor_id]["count"] = for_vm_dict[auth_url + "--" + vm_flavor_id]["count"] + 1
-                                else:
-                                    # no entry yet
-                                    for_vm_dict[auth_url + "--" + vm_flavor_id]= {
-                                        'count': 1,
-                                        'region': cloud_obj["region"],
-                                        'project': cloud_obj["project"],
-                                        'authurl': cloud_obj["authurl"], 
-                                        'flavor_id': vm_flavor_id
-                                    }
-
-                                #foreign vm
-                                continue
-                        except IndexError as exc:
-                            #not enough tokens, bad hostname or foreign vm
-                            logging.debug("Not enough tokens from hostname, bad hostname or foreign vm: %s" % vm.name)
-                            found_flavor = nova.find_flavor(name_or_id=vm.flavor['original_name'])
-                            if found_flavor is not None:
-                                vm_flavor_id = found_flavor.id
-                            else:
-                                vm_flavor_id = vm.flavor['original_name']
-                            if auth_url + "--" + vm_flavor_id in for_vm_dict:
-                                for_vm_dict[auth_url + "--" + vm_flavor_id]["count"] = for_vm_dict[auth_url + "--" + vm_flavor_id]["count"] + 1
-                            else:
-                                # no entry yet
-                                for_vm_dict[auth_url + "--" + vm_flavor_id]= {
-                                    'count': 1,
-                                    'region': cloud_obj["region"],
-                                    'project': cloud_obj["project"],
-                                    'authurl': cloud_obj["authurl"], 
-                                    'flavor_id': vm_flavor_id
-                                }
-
-                            continue
-
-                        ip_addrs = []
-                        floating_ips = []
-                        for net in vm.addresses:
-                            for addr in vm.addresses[net]:
-                                if addr['OS-EXT-IPS:type'] == 'fixed':
-                                    ip_addrs.append(addr['addr'])
-                                elif addr['OS-EXT-IPS:type'] == 'floating':
-                                    floating_ips.append(addr['addr'])
-                        
-                        additions = {}
-                        where_clause="group_name='%s' and cloud_name='%s' and hostname='%s'" % (vm_group_name, vm_cloud_name, vm.name)
-                        rc, msg, rows = config.db_query(VM, where=where_clause)
-                        if (not rows) or len(rows) == 0:
-                            where_clause = "group_name='%s'" % cloud_obj["group_name"]
-                            rc, msg, found_group = config.db_query("csv2_groups", where=where_clause)
-                            keep_alive = 0
-                            if found_group and len(found_group) > 0:
-                                keep_alive = found_group[0].get("vm_keep_alive")
-                            additions = {'start_time': int(time.time()), 'keep_alive': keep_alive}
-                        
-                        vm_error = None
-                        if vm.status == "ERROR":
-                            try:
-                                s = nova._get(MyServer, vm.id)
-                                if s.fault and s.fault.get('message'):
-                                    vm_error = s.fault.get('message')
-                                    #logging.error("Found vm %s in error state: %s" % (vm.name, s.fault.get('message')))
-                            except Exception as exc:
-                                logging.error("Failed to get error message from vm %s: %s" % (vm.name, exc))
-
-                        vm_dict = {
-                            'group_name': vm_group_name,
-                            'cloud_name': vm_cloud_name,
-                            'region': cloud_obj["region"],
-                            'auth_url': cloud_obj["authurl"],
-                            'project': cloud_obj["project"],
-                            'cloud_type': "openstack",
-                            'hostname': vm.name,
-                            'vmid': vm.id,
-                            'image_id': vm.image['id'],
-                            'status': vm.status,
-                            'vm_error': vm_error,
-                            'flavor_id': vm_flavor_id,
-                            'task': vm.to_dict().get('task_state'),
-                            'power_state': vm.to_dict().get('power_state'),
-                            'vm_ips': str(ip_addrs),
-                            'vm_floating_ips': str(floating_ips),
-                            'last_updated': new_poll_time,
-                            **additions
+                    logging.error("Failed to read configuration: %s" % exc)
+                    where_clause = "cloud_type='openstack'"
+                    rc, msg, unfiltered_rows = config.db_query(VM, where=where_clause)
+                
+                # build unique cloud list to only query a given cloud once per cycle
+                unique_cloud_dict = {}
+                for cloud in cloud_list:
+                    if cloud["authurl"]+cloud["project"]+cloud["region"]+cloud["username"] not in unique_cloud_dict:
+                        unique_cloud_dict[cloud["authurl"]+cloud["project"]+cloud["region"]+cloud["username"]] = {
+                            'cloud_obj': cloud,
+                            'groups': [(cloud["group_name"], cloud["cloud_name"])]
                         }
+                    else:
+                        unique_cloud_dict[cloud["authurl"]+cloud["project"]+cloud["region"]+cloud["username"]]['groups'].append((cloud["group_name"], cloud["cloud_name"]))
 
-                        vm_dict, unmapped = map_attributes(src="os_vms", dest="csv2", attr_dict=vm_dict, config=config)
-                        if unmapped:
-                            logging.error("unmapped attributes found during mapping, discarding:")
-                            logging.error(unmapped)
+                group_list = []
+                for cloud in unique_cloud_dict:
+                    group_list = group_list +unique_cloud_dict[cloud]['groups']
 
-                        if inventory_test_and_set_item_hash(ikey_names, vm_dict, inventory, new_poll_time, debug_hash=(config.categories["openstackPoller.py"]["log_level"] < 20)):
-                            continue
+                for cloud in unique_cloud_dict:
+                    auth_url = unique_cloud_dict[cloud]['cloud_obj']["authurl"]
+                    cloud_obj = unique_cloud_dict[cloud]['cloud_obj']
 
-                        try:
-                            config.db_merge(VM, vm_dict)
-                            uncommitted_updates += 1
-                        except Exception as exc:
-                            logging.exception("Failed to merge VM entry for %s::%s::%s, using group %s's credentials aborting cycle..." % (cloud_obj["authurl"], cloud_obj["project"], cloud_obj["region"], cloud_obj["group_name"]))
-                            logging.error(exc)
-                            abort_cycle = True
-                            break
+                    where_clause = "authurl='%s' and region='%s' and project='%s'" % (cloud_obj["authurl"], cloud_obj["region"], cloud_obj["project"])
+                    rc, msg, foreign_vm_list = config.db_query(FVM, where=where_clause)
 
+                    #set foreign vm counts to zero as we will recalculate them as we go, any rows left at zero should be deleted
+                    # dict[cloud+flavor]
+                    for_vm_dict = {}
+                    for for_vm in foreign_vm_list:
+                        fvm_dict = {
+                            "fvm_obj": for_vm,
+                            "count": 0,
+                            "region": cloud_obj["region"],
+                            "authurl": cloud_obj["authurl"],
+                            "project": cloud_obj["project"]
+                        }
+                        for_vm_dict[auth_url + "--" + for_vm["flavor_id"]] = fvm_dict
+
+                    logging.debug("Polling VMs from cloud: %s" % auth_url)
+                    sess = get_openstack_sess(cloud_obj, config.categories["openstackPoller.py"]["cacerts"])
+                    if sess is False:
+                        logging.debug("Failed to establish session with %s::%s::%s, using group %s's credentials skipping this cloud..." % (cloud_obj["authurl"], cloud_obj["project"], cloud_obj["region"], cloud_obj["group_name"]))
+                        if auth_url + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"] not in failure_dict:
+                            failure_dict[auth_url + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"]] = 1
+                        else:
+                            failure_dict[auth_url + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"]] = failure_dict[auth_url + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"]] + 1
+                        if failure_dict[auth_url + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"]] > 3: #could be configurable
+                            logging.error("Failure threshhold limit reached for %s::%s::%s, using group %s's credentials, manual action required, skipping" % (cloud_obj["authurl"], cloud_obj["project"], cloud_obj["region"], cloud_obj["group_name"]))
+                        continue
+
+                    # Retrieve VM list for this cloud.
+                    nova = get_nova_connection(sess, region=cloud_obj["region"])
+
+                    if nova is False:
+                        logging.info("Openstack nova connection failed for %s, skipping this cloud..." % cloud_obj["cloud_name"])
+                        continue
+
+                    try:
+                        vm_list = nova.servers()
+                    except Exception as exc:
+                        logging.error("Failed to retrieve VM data for  %s::%s::%s, skipping this cloud..." % (cloud_obj["authurl"], cloud_obj["project"], cloud_obj["region"]))
+                        logging.error("Exception type: %s" % type(exc))
+                        logging.error(exc)
+                        if auth_url + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"] not in failure_dict:
+                            failure_dict[auth_url + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"]] = 1
+                        else:
+                            failure_dict[auth_url + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"]] = failure_dict[auth_url + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"]] + 1
+                        if failure_dict[auth_url + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"]] > 3: #should be configurable
+                            logging.error("Failure threshhold limit reached for %s::%s::%s, using group %s's crednetials manual action required, skipping" % (cloud_obj["authurl"], cloud_obj["project"], cloud_obj["region"], cloud_obj["group_name"]))
+                        continue
+
+                    if vm_list is False:
+                        logging.info("No VMs defined for %s::%s:%s, skipping this cloud..." % (cloud_obj["authurl"], cloud_obj["project"], cloud_obj["region"]))
+                        del nova
+                        continue
+
+                    # if we get here the connection to openstack has been succussful and we can remove the error status
+                    failure_dict.pop(auth_url + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"], None)
+                    #update network status
+                    for cloud_tuple in unique_cloud_dict[cloud]['groups']:
+                        grp_nm = cloud_tuple[0]
+                        cld_nm = cloud_tuple[1]
+                        #where_clause = "group_name='%s' and cloud_name='%s'" % (grp_nm, cld_nm)
+                        #rc, msg, cloud_rows = config.db_query(CLOUD, where=where_clause)
+                        #cloud_row = cloud_rows[0]
+                        cloud_row = {
+                            "group_name": grp_nm,
+                            "cloud_name": cld_nm,
+                            "communication_up": 1
+                        }
+                        config.db_update(CLOUD, cloud_row)
+                        config.db_commit()
+                        
+
+                    # Process VM list for this cloud.
+                    # We've decided to remove the variable "status_changed_time" since it was holding the exact same value as "last_updated"
+                    # This is because we are only pushing updates to the csv2 database when the state of a vm is changed and thus it would be logically equivalent
+                    uncommitted_updates = 0
+                    try:
+                        for vm in vm_list:
+                        #~~~~~~~~
+                        # figure out if it is foreign to this group or not based on tokenized hostname:
+                        # hostname example: testing--otter--2049--256153399971170-1
+                        # tokenized:        group,   cloud, csv2_host_id, ?vm identifier?
+                        #
+                        # at the end some of the dictionary enteries might not have a previous database object
+                        # due to emergent flavors and thus a new obj will need to be created
+                        #~~~~~~~~
+                            try:
+                                host_tokens = vm.name.split("--")
+                                vm_group_name = host_tokens[0]
+                                vm_cloud_name = host_tokens[1]
+                                found_flavor = nova.find_flavor(name_or_id=vm.flavor['original_name'])
+                                vm_flavor_id = found_flavor.id
+                        
+                                if (host_tokens[0], host_tokens[1]) not in group_list:
+                                    logging.debug("Group-Cloud combination doesn't match any in csv2, marking %s as foreign vm" % vm.name)
+                                    logging.debug(group_list)
+                                    if auth_url + "--" + vm_flavor_id in for_vm_dict:
+                                        for_vm_dict[auth_url + "--" + vm_flavor_id]["count"] = for_vm_dict[auth_url + "--" + vm_flavor_id]["count"] + 1
+                                    else:
+                                        # no entry yet
+                                        for_vm_dict[auth_url + "--" + vm_flavor_id]= {
+                                            'count': 1,
+                                            'region': cloud_obj["region"],
+                                            'project': cloud_obj["project"],
+                                            'authurl': cloud_obj["authurl"], 
+                                            'flavor_id': vm_flavor_id
+                                        }
+                                    continue
+                                elif int(host_tokens[2]) != int(config.categories["SQL"]["csv2_host_id"]):
+                                    logging.debug("csv2 host id from host does not match (should be %s), marking %s as foreign vm" % (config.categories["SQL"]["csv2_host_id"], vm.name))
+                                    if auth_url + "--" + vm_flavor_id in for_vm_dict:
+                                        for_vm_dict[auth_url + "--" + vm_flavor_id]["count"] = for_vm_dict[auth_url + "--" + vm_flavor_id]["count"] + 1
+                                    else:
+                                        # no entry yet
+                                        for_vm_dict[auth_url + "--" + vm_flavor_id]= {
+                                            'count': 1,
+                                            'region': cloud_obj["region"],
+                                            'project': cloud_obj["project"],
+                                            'authurl': cloud_obj["authurl"], 
+                                            'flavor_id': vm_flavor_id
+                                        }
+
+                                    #foreign vm
+                                    continue
+                            except IndexError as exc:
+                                #not enough tokens, bad hostname or foreign vm
+                                logging.debug("Not enough tokens from hostname, bad hostname or foreign vm: %s" % vm.name)
+                                found_flavor = nova.find_flavor(name_or_id=vm.flavor['original_name'])
+                                if found_flavor is not None:
+                                    vm_flavor_id = found_flavor.id
+                                else:
+                                    vm_flavor_id = vm.flavor['original_name']
+                                if auth_url + "--" + vm_flavor_id in for_vm_dict:
+                                    for_vm_dict[auth_url + "--" + vm_flavor_id]["count"] = for_vm_dict[auth_url + "--" + vm_flavor_id]["count"] + 1
+                                else:
+                                    # no entry yet
+                                    for_vm_dict[auth_url + "--" + vm_flavor_id]= {
+                                        'count': 1,
+                                        'region': cloud_obj["region"],
+                                        'project': cloud_obj["project"],
+                                        'authurl': cloud_obj["authurl"], 
+                                        'flavor_id': vm_flavor_id
+                                    }
+
+                                continue
+
+                            ip_addrs = []
+                            floating_ips = []
+                            for net in vm.addresses:
+                                for addr in vm.addresses[net]:
+                                    if addr['OS-EXT-IPS:type'] == 'fixed':
+                                        ip_addrs.append(addr['addr'])
+                                    elif addr['OS-EXT-IPS:type'] == 'floating':
+                                        floating_ips.append(addr['addr'])
+                            
+                            additions = {}
+                            where_clause="group_name='%s' and cloud_name='%s' and hostname='%s'" % (vm_group_name, vm_cloud_name, vm.name)
+                            rc, msg, rows = config.db_query(VM, where=where_clause)
+                            if (not rows) or len(rows) == 0:
+                                where_clause = "group_name='%s'" % cloud_obj["group_name"]
+                                rc, msg, found_group = config.db_query("csv2_groups", where=where_clause)
+                                keep_alive = 0
+                                if found_group and len(found_group) > 0:
+                                    keep_alive = found_group[0].get("vm_keep_alive")
+                                additions = {'start_time': int(time.time()), 'keep_alive': keep_alive}
+                            
+                            vm_error = None
+                            if vm.status == "ERROR":
+                                try:
+                                    s = nova._get(MyServer, vm.id)
+                                    if s.fault and s.fault.get('message'):
+                                        vm_error = s.fault.get('message')
+                                        #logging.error("Found vm %s in error state: %s" % (vm.name, s.fault.get('message')))
+                                except Exception as exc:
+                                    logging.error("Failed to get error message from vm %s: %s" % (vm.name, exc))
+
+                            vm_dict = {
+                                'group_name': vm_group_name,
+                                'cloud_name': vm_cloud_name,
+                                'region': cloud_obj["region"],
+                                'auth_url': cloud_obj["authurl"],
+                                'project': cloud_obj["project"],
+                                'cloud_type': "openstack",
+                                'hostname': vm.name,
+                                'vmid': vm.id,
+                                'image_id': vm.image['id'],
+                                'status': vm.status,
+                                'vm_error': vm_error,
+                                'flavor_id': vm_flavor_id,
+                                'task': vm.to_dict().get('task_state'),
+                                'power_state': vm.to_dict().get('power_state'),
+                                'vm_ips': str(ip_addrs),
+                                'vm_floating_ips': str(floating_ips),
+                                'last_updated': new_poll_time,
+                                **additions
+                            }
+
+                            vm_dict, unmapped = map_attributes(src="os_vms", dest="csv2", attr_dict=vm_dict, config=config)
+                            if unmapped:
+                                logging.error("unmapped attributes found during mapping, discarding:")
+                                logging.error(unmapped)
+
+                            if inventory_test_and_set_item_hash(ikey_names, vm_dict, inventory, new_poll_time, debug_hash=(config.categories["openstackPoller.py"]["log_level"] < 20)):
+                                continue
+
+                            try:
+                                config.db_merge(VM, vm_dict)
+                                uncommitted_updates += 1
+                            except Exception as exc:
+                                logging.exception("Failed to merge VM entry for %s::%s::%s, using group %s's credentials aborting cycle..." % (cloud_obj["authurl"], cloud_obj["project"], cloud_obj["region"], cloud_obj["group_name"]))
+                                logging.error(exc)
+                                abort_cycle = True
+                                break
+
+                            try:
+                                config.db_commit()
+                            except Exception as exc:
+                                logging.exception("Failed to commit VM updates for %s::%s:%s, using group %s's credentials aborting cycle..." % (cloud_obj["authurl"], cloud_obj["project"], cloud_obj["region"], cloud_obj["group_name"]))
+                                logging.error(exc)
+                                abort_cycle = True
+                                break
+
+                    except Exception as exc:
+                        logging.error("Error proccessing vm_list for cloud %s" % cloud_obj["cloud_name"])
+                        logging.error(exc)
+                        logging.error("Skipping cloud...")
+                        continue
+
+                    del nova
+                    if abort_cycle:
+                        break
+
+                    for cloud_tuple in unique_cloud_dict[cloud]['groups']:
+                        grp_nm = cloud_tuple[0]
+                        cld_nm = cloud_tuple[1]
+                        where_clause = "group_name='%s' and cloud_name='%s'" % (grp_nm, cld_nm)
+                        cloud_row = { "freeze": 0 }
+                        config.db_update("csv2_clouds", cloud_row, where=where_clause)
+                        config.db_commit()
+                        logging.debug("reset freeze for cloud %s" % cld_nm)
+                
+                    if uncommitted_updates > 0:
+                        logging.info("VM updates committed: %d for cloud %s" % (uncommitted_updates, cloud_obj["cloud_name"]))
+
+                    # proccess FVM dict
+                    # check if any rows have a zero count and delete them, otherwise update with new count
+                    for key in for_vm_dict:
+                        split_key = key.split("--")
+                        if for_vm_dict[key]['count'] == 0:
+                            # delete this row
+                            config.db_delete(FVM, for_vm_dict[key]['fvm_obj'])
+                        else:
+                            try:
+                                # if we get here there is at least 1 count of this flavor, though there may not be a database object yet
+                                for_vm_dict[key]['fvm_obj']["count"] = for_vm_dict[key]['count']
+                                config.db_merge(FVM, for_vm_dict[key]['fvm_obj'])
+                            except KeyError:
+                                # need to create new db obj for this entry
+                                fvm_dict = {
+                                    'authurl':    for_vm_dict[key]['authurl'],
+                                    'project':    for_vm_dict[key]['project'],
+                                    'region':     for_vm_dict[key]['region'],
+                                    'flavor_id':  for_vm_dict[key]['flavor_id'],
+                                    'count':      for_vm_dict[key]['count'],
+                                    'cloud_type': "openstack"
+                                }
+                                config.db_merge(FVM, fvm_dict)
                         try:
                             config.db_commit()
                         except Exception as exc:
-                            logging.exception("Failed to commit VM updates for %s::%s:%s, using group %s's credentials aborting cycle..." % (cloud_obj["authurl"], cloud_obj["project"], cloud_obj["region"], cloud_obj["group_name"]))
+                            logging.exception("Failed to commit foreign VM updates, aborting cycle...")
                             logging.error(exc)
                             abort_cycle = True
                             break
 
-                except Exception as exc:
-                    logging.error("Error proccessing vm_list for cloud %s" % cloud_obj["cloud_name"])
-                    logging.error(exc)
-                    logging.error("Skipping cloud...")
+                if abort_cycle:
+                    config.db_rollback()
+                    config.db_close()
+                    time.sleep(config.categories["openstackPoller.py"]["sleep_interval_vm"])
                     continue
 
-                del nova
-                if abort_cycle:
+                # Scan the OpenStack VMs in the database, removing each one that is not in the inventory.
+                # VMs have a different failure dict schema using group_name + auth_url instead of group_name + cloud_name
+                #     failure_dict needs to be remapped before calling
+                logging.debug("Expanding failure_dict: %s" % failure_dict)
+                where_clause="cloud_type='openstack'"
+                rc, qmsg, cloud_list = config.db_query(CLOUD, where=where_clause)
+                new_f_dict = {}
+                for cloud in cloud_list:
+                    key = cloud["authurl"] + cloud["project"] + cloud["region"] + cloud["username"]
+                    if key in failure_dict:
+                        new_f_dict[cloud["group_name"]+cloud["cloud_name"]] = 1
+                        # update cloud network status
+                        cloud_row = {
+                            "group_name": cloud["group_name"],
+                            "cloud_name": cloud["cloud_name"],
+                            "communication_up": 0
+                        }
+                        config.db_update(CLOUD, cloud_row)
+                        config.db_commit()
+
+                # since the new inventory function doesn't accept a failfure dict we need to screen the rows ourself
+                rows = []            
+                for row in unfiltered_rows:
+                    if row['group_name'] + row['cloud_name'] in new_f_dict.keys():
+                        continue
+                    else:
+                        rows.append(row)
+                inventory_obsolete_database_items_delete(ikey_names, rows, inventory, new_poll_time, config, VM)
+
+
+                # Check on the core limits to see if any clouds need to be scaled down.
+                logging.debug("checking for over-quota clouds")
+                where_clause = "cloud_type='openstack'"
+                rc, msg, over_quota_clouds = config.db_query("view_vm_kill_retire_over_quota", where=where_clause) 
+                for cloud in over_quota_clouds:
+                    logging.info("Remove overquota vms from %s::%s" % (cloud["group_name"], cloud["cloud_name"]))
+                    kill_retire(config, cloud["group_name"], cloud["cloud_name"], "control", [cloud["cores"], cloud["ram"]], get_frame_info())
+                    config.db_commit()
+                if len(over_quota_clouds) > 0: 
+                    try:
+                        logging.info("Finish removing overquota vms, send signal")
+                        event_signal_send(config, "update_csv2_clouds_openstack")
+                    except Exception as exc:
+                        logging.error("Error when sending signals after removing overquota vms: %s" % exc)
+
+                logging.debug("Completed VM poller cycle")
+
+                if not os.path.exists(PID_FILE):
+                    logging.info("Stop set, exiting...")
+                    config.db_close()
                     break
 
-                for cloud_tuple in unique_cloud_dict[cloud]['groups']:
-                    grp_nm = cloud_tuple[0]
-                    cld_nm = cloud_tuple[1]
-                    where_clause = "group_name='%s' and cloud_name='%s'" % (grp_nm, cld_nm)
-                    cloud_row = { "freeze": 0 }
-                    config.db_update("csv2_clouds", cloud_row, where=where_clause)
-                    config.db_commit()
-                    logging.debug("reset freeze for cloud %s" % cld_nm)
-            
-                if uncommitted_updates > 0:
-                    logging.info("VM updates committed: %d for cloud %s" % (uncommitted_updates, cloud_obj["cloud_name"]))
+                # Cleanup inventory, this function will clean up inventory entries for deleted clouds
+                inventory_cleanup(ikey_names, rows, inventory)
 
-                # proccess FVM dict
-                # check if any rows have a zero count and delete them, otherwise update with new count
-                for key in for_vm_dict:
-                    split_key = key.split("--")
-                    if for_vm_dict[key]['count'] == 0:
-                        # delete this row
-                        config.db_delete(FVM, for_vm_dict[key]['fvm_obj'])
-                    else:
-                        try:
-                            # if we get here there is at least 1 count of this flavor, though there may not be a database object yet
-                            for_vm_dict[key]['fvm_obj']["count"] = for_vm_dict[key]['count']
-                            config.db_merge(FVM, for_vm_dict[key]['fvm_obj'])
-                        except KeyError:
-                            # need to create new db obj for this entry
-                            fvm_dict = {
-                                'authurl':    for_vm_dict[key]['authurl'],
-                                'project':    for_vm_dict[key]['project'],
-                                'region':     for_vm_dict[key]['region'],
-                                'flavor_id':  for_vm_dict[key]['flavor_id'],
-                                'count':      for_vm_dict[key]['count'],
-                                'cloud_type': "openstack"
-                            }
-                            config.db_merge(FVM, fvm_dict)
-                    try:
-                        config.db_commit()
-                    except Exception as exc:
-                        logging.exception("Failed to commit foreign VM updates, aborting cycle...")
-                        logging.error(exc)
-                        abort_cycle = True
-                        break
-
-            if abort_cycle:
-                config.db_rollback()
+                signal.signal(signal.SIGINT, config.signals['SIGINT'])
                 config.db_close()
-                time.sleep(config.categories["openstackPoller.py"]["sleep_interval_vm"])
-                continue
 
-            # Scan the OpenStack VMs in the database, removing each one that is not in the inventory.
-            # VMs have a different failure dict schema using group_name + auth_url instead of group_name + cloud_name
-            #     failure_dict needs to be remapped before calling
-            logging.debug("Expanding failure_dict: %s" % failure_dict)
-            where_clause="cloud_type='openstack'"
-            rc, qmsg, cloud_list = config.db_query(CLOUD, where=where_clause)
-            new_f_dict = {}
-            for cloud in cloud_list:
-                key = cloud["authurl"] + cloud["project"] + cloud["region"] + cloud["username"]
-                if key in failure_dict:
-                    new_f_dict[cloud["group_name"]+cloud["cloud_name"]] = 1
-                    # update cloud network status
-                    cloud_row = {
-                        "group_name": cloud["group_name"],
-                        "cloud_name": cloud["cloud_name"],
-                        "communication_up": 0
-                    }
-                    config.db_update(CLOUD, cloud_row)
-                    config.db_commit()
-
-            # since the new inventory function doesn't accept a failfure dict we need to screen the rows ourself
-            rows = []            
-            for row in unfiltered_rows:
-                if row['group_name'] + row['cloud_name'] in new_f_dict.keys():
-                    continue
-                else:
-                    rows.append(row)
-            inventory_obsolete_database_items_delete(ikey_names, rows, inventory, new_poll_time, config, VM)
-
-
-            # Check on the core limits to see if any clouds need to be scaled down.
-            logging.debug("checking for over-quota clouds")
-            where_clause = "cloud_type='openstack'"
-            rc, msg, over_quota_clouds = config.db_query("view_vm_kill_retire_over_quota", where=where_clause) 
-            for cloud in over_quota_clouds:
-                logging.info("Remove overquota vms from %s::%s" % (cloud["group_name"], cloud["cloud_name"]))
-                kill_retire(config, cloud["group_name"], cloud["cloud_name"], "control", [cloud["cores"], cloud["ram"]], get_frame_info())
-                config.db_commit()
-            if len(over_quota_clouds) > 0: 
                 try:
-                    logging.info("Finish removing overquota vms, send signal")
-                    event_signal_send(config, "update_csv2_clouds_openstack")
-                except Exception as exc:
-                    logging.error("Error when sending signals after removing overquota vms: %s" % exc)
-
-            logging.debug("Completed VM poller cycle")
-
-            if not os.path.exists(PID_FILE):
-                logging.info("Stop set, exiting...")
-                config.db_close()
-                break
-
-            # Cleanup inventory, this function will clean up inventory entries for deleted clouds
-            inventory_cleanup(ikey_names, rows, inventory)
-
-            signal.signal(signal.SIGINT, config.signals['SIGINT'])
-            config.db_close()
-
-            try:
-                wait_cycle(cycle_start_time, poll_time_history, config.categories["openstackPoller.py"]["sleep_interval_vm"], config)
+                    wait_cycle(cycle_start_time, poll_time_history, config.categories["openstackPoller.py"]["sleep_interval_vm"], config)
+                except KeyboardInterrupt:
+                    # sigint recieved, cancel the sleep and start the loop
+                    continue
             except KeyboardInterrupt:
                 # sigint recieved, cancel the sleep and start the loop
+                logging.error("Recieved wake-up signal during regular execution, resetting and continuing")
+                config.db_close()
                 continue
 
     except Exception as exc:
