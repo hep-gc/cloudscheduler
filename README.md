@@ -40,6 +40,7 @@ For installation, please follow the instructions ![here](ansible-playbook/README
    - enable public status page
    - change installer routine to remove files from previous releases that are no longer needed
    - list of all supported csv2 variables and JDL options to boot a VM
+   - check on entries in the slow query log
 
 # Future Plans:
 ## Double checking
