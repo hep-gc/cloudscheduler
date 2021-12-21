@@ -37,6 +37,9 @@ For installation, please follow the instructions ![here](ansible-playbook/README
    - Halt external connections on the database while upgrade underway
    - Debug openstack vm poller sleep problem
    - If want to enable removal of cloud alias
+   - enable public status page
+   - change installer routine to remove files from previous releases that are no longer needed
+   - list of all supported csv2 variables and JDL options to boot a VM
 
 # Future Plans:
 ## Double checking
