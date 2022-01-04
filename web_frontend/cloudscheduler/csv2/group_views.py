@@ -461,8 +461,25 @@ def delete(request):
             config.db_close()
             return group_list(request, active_user=active_user, response_code=1, message='%s group delete %s' % (lno(MODID), msg))
 
-        # Delete any group metadata files for the group.
+        # Check if group exists
+        table = 'csv2_groups'
         where_clause = "group_name='%s'" % fields['group_name']
+        rc, msg, found_group_list = config.db_query(table, where=where_clause)
+        if not found_group_list or len(found_group_list) == 0:
+            config.db_close()
+            return group_list(request, active_user=active_user, response_code=1, message='%s group resources delete "%s" failed - the request did not match any rows.' % (lno(MODID), fields['group_name']))
+
+        # Check if still have vms in the group
+        VM = "csv2_vms"
+        rc, msg, vm_rows = config.db_query(VM, where=where_clause)
+        if rc != 0:
+            config.db_close()
+            return group_list(request, active_user=active_user, response_code=1, message='%s group resources delete "%s" failed to check vms on it.' % (lno(MODID), fields['group_name']))
+        if len(vm_rows) > 0:
+            config.db_close()
+            return group_list(request, active_user=active_user, response_code=1, message='%s group resources delete "%s" failed - there are vms remaining in the group.' % (lno(MODID), fields['group_name']))
+
+        # Delete any group metadata files for the group.
         rc, msg, _group_list = config.db_query("view_groups_with_metadata_names", where=where_clause)
         for row in _group_list:
             if row['group_name'] == fields['group_name'] and row['metadata_names']:
@@ -476,16 +493,9 @@ def delete(request):
                         config.db_close()
                         return group_list(request, active_user=active_user, response_code=1, message='%s group metadata file delete "%s::%s" failed - %s.' % (lno(MODID), fields['group_name'], metadata_name, msg))
 
-        # Check if group exists
-        table = 'csv2_groups'
-        where_clause = "group_name='%s'" % fields['group_name']
-        rc, msg, found_group_list = config.db_query(table, where=where_clause)
-        if not found_group_list or len(found_group_list) == 0:
-            config.db_close()
-            return group_list(request, active_user=active_user, response_code=1, message='%s group resources delete "%s" failed - the request did not match any rows.' % (lno(MODID), fields['group_name'])        )
-
         # Delete the csv2_clouds.
         table = 'csv2_clouds'
+        where_clause = "group_name='%s'" % fields['group_name']
         rc, msg = config.db_delete(table, where=where_clause)
         if rc != 0:
             config.db_close()
