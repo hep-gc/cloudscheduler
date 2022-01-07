@@ -124,3 +124,31 @@ def update(gvar):
     if response['message']:
         print(response['message'])
 
+def delete(gvar):
+    """
+    Delete an alias
+    """
+    mandatory = ['-an', '-g']
+    required = []
+    optional = ['-co', '-H', '-h', '-s', '-v', '-x509', '-xA']
+
+    if gvar['retrieve_options']:
+        return mandatory + required + optional
+
+    # Check for missing arguments or help required.
+    form_data = check_keys(
+        gvar,
+        mandatory,
+        required,
+        optional,
+        key_map=KEY_MAP)
+
+    # Delete the alias.
+    response = requests(
+        gvar,
+        '/alias/delete/',
+        form_data
+        )
+
+    if response['message']:
+        print(response['message'])

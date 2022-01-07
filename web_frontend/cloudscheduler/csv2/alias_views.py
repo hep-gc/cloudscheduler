@@ -55,6 +55,18 @@ LIST_KEYS = {
         },
     }
 
+CLOUD_ALIAS_DELETE_KEYS = {
+    'format': {
+        'alias_name':          'lowerdash',
+        'csrfmiddlewaretoken': 'ignore',
+        'group':               'ignore',
+    },
+    'mandatory': [
+        'alias_name',
+        'group'
+    ]
+} 
+
 #-------------------------------------------------------------------------------
 
 def manage_cloud_aliases(config, tables, group_name, alias_name, clouds, option=None, new_alias=True):
@@ -295,10 +307,74 @@ def update(request):
             return alias_list(request, active_user=active_user, response_code=0, message='cloud alias "%s.%s" successfully updated.' % (active_user.active_group, fields['alias_name']))
         else:
             config.db_close()
-            return alias_list(request, active_user=active_user, response_code=1, message='%s cloud alias group update "%s.%s" failed - %s.' % (lno(MODID), fields['group_name'], fields['alias_name'], msg))
+            return alias_list(request, active_user=active_user, response_code=1, message='%s cloud alias group update "%s.%s" failed - %s.' % (lno(MODID), active_user.active_group, fields['alias_name'], msg))
 
     ### Bad request.
     else:
         config.db_close()
         return alias_list(request, active_user=active_user, response_code=1, message='%s cloud alias update, invalid method "%s" specified.' % (lno(MODID), request.method))
 
+#-------------------------------------------------------------------------------
+@silkp(name="Alias Delete")
+def delete(request):
+    """
+    Delete a cloud alias.
+    """
+
+    # open the database.
+    config.db_open()
+
+    # Retrieve the active user, associated group list and optionally set the active group.
+    rc, msg, active_user = set_user_groups(config, request, super_user=False)
+    if rc != 0:
+        config.db_close()
+        return alias_list(request, active_user=active_user, response_code=1, message='%s %s' % (lno(MODID), msg))
+
+    if request.method == 'POST':
+        # Validate input fields
+        rc, msg, fields, tables, columns = validate_fields(config, request, [CLOUD_ALIAS_DELETE_KEYS], [], active_user)
+        if rc != 0:
+            config.db_close()
+            return alias_list(request, active_user=active_user, response_code=1, message='%s cloud alias delete, %s' % (lno(MODID), msg))
+        fields["group_name"] = active_user.active_group
+
+        # Check if alias exists
+        table ='csv2_cloud_aliases'
+        where_clause = "group_name='%s' and alias_name='%s'" % (fields['group_name'], fields['alias_name'])
+        rc, msg, found_alias_list = config.db_query(table, where=where_clause)
+        if not found_alias_list or len(found_alias_list) == 0:
+            config.db_close()
+            return alias_list(request, active_user=active_user, response_code=1, message='%s cloud alias "%s::%s" delete failed - the request did not match any rows' % (lno(MODID), fields['group_name'], fields['alias_name']))
+
+        # Check if still have jobs
+        table = "condor_jobs"
+        where_clause = "group_name='%s' and target_alias='%s'" % (fields['group_name'], fields['alias_name'])
+        rc, msg, found_jobs_list = config.db_query(table, where=where_clause)
+        if rc != 0:
+            config.db_close()
+            return alias_list(request, active_user=active_user, response_code=1, message='%s cloud alias "%s::%s" delete failed to check jobs on it' % (lno(MODID), fields['group_name'], fields['alias_name']))
+        if found_jobs_list and len(found_jobs_list) > 0:
+            config.db_close()
+            return alias_list(request, active_user=active_user, response_code=1, message='%s cloud alias "%s::%s" delete failed - there are jobs remaining for this alias' % (lno(MODID), fields['group_name'], fields['alias_name']))
+
+        # Delete the alias
+        table ='csv2_cloud_aliases'
+        where_clause = "group_name='%s' and alias_name='%s'" % (fields['group_name'], fields['alias_name'])
+        for row in found_alias_list:
+            alias_dict = {
+                "group_name": row['group_name'],
+                "alias_name": row['alias_name'],
+                "cloud_name": row['cloud_name']
+            }
+            rc, msg = config.db_delete(table, alias_dict, where=where_clause)
+            if rc != 0:
+                config.db_close()
+                return alias_list(request, active_user=active_user, response_code=1, message='%s cloud alias "%s::%s" delete failed - %s' % (lno(MODID), fields['group_name'], fields['alias_name'], msg))
+        
+        config.db_close(commit=True)
+        return alias_list(request, active_user=active_user, response_code=0, message='cloud alias "%s::%s" successfully deleted.' % (fields['group_name'], fields['alias_name']))
+
+    ### Bad request.
+    else:
+        config.db_close()
+        return alias_list(request, active_user=active_user, response_code=1, message='%s cloud alias delete, invalid method "%s" specified.' % (lno(MODID), request.method))

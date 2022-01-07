@@ -46,7 +46,11 @@
         
             <!--https://codepen.io/nathanlong/pen/mBrvn-->
             
-            <div id="{{alias.alias_name}}"> <a href="#{{alias.alias_name}}" class="menu-link" onclick="save_location('{{alias.alias_name}}')">{{alias.alias_name}}</a>
+            <div id="{{alias.alias_name}}">
+                <div class="menu2-div">
+                    <a href="#{{alias.alias_name}}" class="menu2-link" onclick="save_location('{{alias.alias_name}}')">{{alias.alias_name}}</a>
+                    <a href="#delete-{{alias.alias_name}}" class="delete-link">&minus;</a>
+                </div>
                 <div class="menu-target menu-position">
                 <form name="{{alias.alias_name}}" action="/alias/update/" method="post">
                 {% csrf_token %}
@@ -173,6 +177,7 @@
             <form name="{{alias.alias_name}}" action="/alias/delete/" method="post">
                 {% csrf_token %}
                 <input type="hidden" name="alias_name" id="" value="{{alias.alias_name}}" />
+                <input type="hidden" name="group" value="{{ active_group }}" />
                 <input type="submit" value="Delete alias: {{alias.alias_name}}" />
             </form>
         </div>

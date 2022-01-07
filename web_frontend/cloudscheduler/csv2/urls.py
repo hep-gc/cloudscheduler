@@ -22,6 +22,7 @@ urlpatterns = [
     path('alias/add/',                             alias_views.add),
     path('alias/list/',                            alias_views.alias_list),
     path('alias/update/',                          alias_views.update),
+    path('alias/delete/',                          alias_views.delete),
 
     path('cloud/add/',                             cloud_views.add),
     path('cloud/delete/',                          cloud_views.delete),

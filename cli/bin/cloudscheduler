@@ -55,6 +55,7 @@ def main(args):
                     'add':                                csv2_alias.add,
                     'list':                               csv2_alias.list,
                     'update':                             csv2_alias.update,
+                    'delete':                             csv2_alias.delete,
                     }
                 ],
             'cloud': [
