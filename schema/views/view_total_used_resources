@@ -3,8 +3,8 @@ select
     authurl,
     region,
     project,
-    sum(ifnull(ram_used,0)) as ram,
-    sum(ifnull(cores_used,0)) as cores,
+    ram_used as ram,
+    cores_used as cores,
     sum(ifnull(count,0)) as VMs,
     /* sum(ifnull(cores,0)) as cores_used_calculated, */
     sum(ifnull(disk,0)) as disk,
@@ -63,14 +63,34 @@ from (
                     cl.cloud_name=cc.cloud_name
                 ) as cv
             union all select
-                authurl,
-                region,
-                project,
-                flavor_id,
-                count,
-                0 as ram_used,
-                0 as cores_used
-            from csv2_vms_foreign as cvf
+                cvf.*,
+                cvl.ram_used,
+                cvl.cores_used
+            from (
+                select
+                    authurl,
+                    region,
+                    project,
+                    flavor_id,
+                    count
+                from csv2_vms_foreign
+            ) as cvf
+            left outer join (
+                select
+                    cc.authurl,
+                    cc.region,
+                    cc.project,
+                    ifnull(cl.ram_used,0) as ram_used,
+                    ifnull(cl.cores_used,0) as cores_used
+                from csv2_clouds as cc
+                left outer join cloud_limits as cl on
+                    cl.group_name=cc.group_name and
+                    cl.cloud_name=cc.cloud_name
+                group by cc.authurl, cc.region, cc.project
+            ) as cvl on
+                cvf.authurl=cvl.authurl and 
+                cvf.region=cvl.region and
+                cvf.project=cvl.project
         ) as tv
         group by
             authurl,
