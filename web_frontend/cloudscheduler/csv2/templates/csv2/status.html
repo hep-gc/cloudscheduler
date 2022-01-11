@@ -129,7 +129,7 @@
                     {% for group in job_status_list %}
                         {% if global_flag or not global_flag and group.group_name == active_group %}
                             <tr>
-                                <td class="group-name bold-style" onclick="toggle_id('expand-jobs-{{group.group_name}}')"><div class="float-left">{{group.group_name}}</div><div id="sym-expand-jobs-{{group.group_name}}" class="float-right">&#x25BE;</div></td>
+                                <td class="group-name bold-style" onclick="toggle_id('expand-jobs-{{group.group_name}}{% if jobs_by_target_alias_flag %}-{{group.target_alias}}{% endif %}')"><div class="float-left">{{group.group_name}}</div><div id="sym-expand-jobs-{{group.group_name}}{% if jobs_by_target_alias_flag %}-{{group.target_alias}}{% endif %}" class="float-right">&#x25BE;</div></td>
                                 
                                 {% if jobs_by_target_alias_flag %}
                                     <td class="bold-style"><div class="float-left">{{group.target_alias}}</div></td>
@@ -282,13 +282,13 @@
                             </tr>
 
                             <!-- Jobs expand row to show cores-->
-                            <tr class="extra-row" id="expand-jobs-{{group.group_name}}">
-                                <td onclick="toggle_id('expand-jobs-{{group.group_name}}')"></td>
+                            <tr class="extra-row" id="expand-jobs-{{group.group_name}}{% if jobs_by_target_alias_flag %}-{{group.target_alias}}{% endif %}">
+                                <td onclick="toggle_id('expand-jobs-{{group.group_name}}{% if jobs_by_target_alias_flag %}-{{group.target_alias}}{% endif %}')"></td>
                                 <td></td>
                                 <td colspan="5">
                                     <table class="job-extra-row">
                                         {% for job in job_totals_list %}
-                                            {% if job.group_name == group.group_name %}
+                                            {% if not jobs_by_target_alias_flag and job.group_name == group.group_name or jobs_by_target_alias_flag and job.group_name == group.group_name and job.target_alias == group.target_alias or jobs_by_target_alias_flag and job.group_name == group.group_name and job.target_alias == 'None' and not group.target_alias%}
                                                 <tr>
 
                                                 {% if jobs_by_target_alias_flag %}
@@ -296,37 +296,37 @@
                                                 {% endif %}
 
                                                 {% if job.js_idle != 0 %}
-                                                    <td data-path="{{job.group_name}} jobs_idle_{{job.request_cpus}}core" class="float-center plottable">{{ job.js_idle }}&#10005;{{ job.request_cpus }}c</td>
+                                                    <td data-path="{{job.group_name}}{% if jobs_by_target_alias_flag %} {{group.target_alias}} jobs_idle_{{job.request_cpus}}core{% else %} jobs_idle_{{job.request_cpus}}core_total{% endif %}" class="float-center plottable">{{ job.js_idle }}&#10005;{{ job.request_cpus }}c</td>
                                                 {% else %}
-                                                    <td data-path="{{job.group_name}} jobs_idle_{{job.request_cpus}}core" class="float-center plottable">&nbsp;</td> 
+                                                    <td data-path="{{job.group_name}}{% if jobs_by_target_alias_flag %} {{group.target_alias}} jobs_idle_{{job.request_cpus}}core{% else %} jobs_idle_{{job.request_cpus}}core_total{% endif %}" class="float-center plottable">&nbsp;</td> 
                                                     <!--<td class="zero-style" >{{ job.js_idle }}&#10005;{{ job.request_cpus }}c</td>-->
                                                 {% endif %}
 
                                                 {% if job.js_running != 0 %}
-                                                    <td data-path="{{job.group_name}} jobs_running_{{job.request_cpus}}core" class="float-center plottable">{{ job.js_running }}&#10005;{{ job.request_cpus }}c</td>
+                                                    <td data-path="{{job.group_name}}{% if jobs_by_target_alias_flag %} {{group.target_alias}} jobs_running_{{job.request_cpus}}core{% else %} jobs_running_{{job.request_cpus}}core_total{% endif %}" class="float-center plottable">{{ job.js_running }}&#10005;{{ job.request_cpus }}c</td>
                                                 {% else %}
-                                                    <td data-path="{{job.group_name}} jobs_running_{{job.request_cpus}}core" class="float-center plottable">&nbsp;</td>
+                                                    <td data-path="{{job.group_name}}{% if jobs_by_target_alias_flag %} {{group.target_alias}} jobs_running_{{job.request_cpus}}core{% else %} jobs_running_{{job.request_cpus}}core_total{% endif %}" class="float-center plottable">&nbsp;</td>
                                                     <!-- <td class="zero-style">{{ job.js_running }}&#10005;{{ job.request_cpus }}c</td> -->
                                                 {% endif %}
 
                                                 {% if job.js_completed != 0 %}
-                                                    <td data-path="{{job.group_name}} jobs_completed_{{job.request_cpus}}core" class="float-center plottable">{{ job.js_completed }}&#10005;{{ job.request_cpus }}c</td>
+                                                    <td data-path="{{job.group_name}}{% if jobs_by_target_alias_flag %} {{group.target_alias}} jobs_completed_{{job.request_cpus}}core{% else %} jobs_completed_{{job.request_cpus}}core_total{% endif %}" class="float-center plottable">{{ job.js_completed }}&#10005;{{ job.request_cpus }}c</td>
                                                 {% else %}
-                                                    <td data-path="{{job.group_name}} jobs_completed_{{job.request_cpus}}core" class="float-center plottable">&nbsp;</td>
+                                                    <td data-path="{{job.group_name}}{% if jobs_by_target_alias_flag %} {{group.target_alias}} jobs_completed_{{job.request_cpus}}core{% else %} jobs_completed_{{job.request_cpus}}core_total{% endif %}" class="float-center plottable">&nbsp;</td>
                                                     <!-- <td class="zero-style">{{ job.js_completed }}&#10005;{{ job.request_cpus }}c</td> -->
                                                 {% endif %}
 
                                                 {% if job.js_held != 0 %}
-                                                    <td data-path="{{job.group_name}} jobs_held_{{job.request_cpus}}core" class="float-center plottable">{{ job.js_held }}&#10005;{{ job.request_cpus }}c</td>
+                                                    <td data-path="{{job.group_name}}{% if jobs_by_target_alias_flag %} {{group.target_alias}} jobs_held_{{job.request_cpus}}core{% else %} jobs_held_{{job.request_cpus}}core_total{% endif %}" class="float-center plottable">{{ job.js_held }}&#10005;{{ job.request_cpus }}c</td>
                                                 {% else %}
-                                                    <td data-path="{{job.group_name}} jobs_held_{{job.request_cpus}}core" class="float-center plottable">&nbsp;</td>
+                                                    <td data-path="{{job.group_name}}{% if jobs_by_target_alias_flag %} {{group.target_alias}} jobs_held_{{job.request_cpus}}core{% else %} jobs_held_{{job.request_cpus}}core_total{% endif %}" class="float-center plottable">&nbsp;</td>
                                                     <!-- <td class="zero-style">{{ job.js_held }}&#10005;{{ job.request_cpus }}c</td> -->
                                                 {% endif %}
 
                                                 {% if job.js_other != 0 %}
-                                                    <td data-path="{{job.group_name}} jobs_other_{{job.request_cpus}}core" class="float-center plottable">{{ job.js_other }}&#10005;{{ job.request_cpus }}c</td>
+                                                    <td data-path="{{job.group_name}}{% if jobs_by_target_alias_flag %} {{group.target_alias}}{% endif %} jobs_other_{{job.request_cpus}}core" class="float-center plottable">{{ job.js_other }}&#10005;{{ job.request_cpus }}c</td>
                                                 {% else %}
-                                                    <td data-path="{{job.group_name}} jobs_other_{{job.request_cpus}}core" class="float-center plottable">&nbsp;</td>
+                                                    <td data-path="{{job.group_name}}{% if jobs_by_target_alias_flag %} {{group.target_alias}}{% endif %} jobs_other_{{job.request_cpus}}core" class="float-center plottable">&nbsp;</td>
                                                     <!-- <td class="zero-style">{{ job.js_other }}&#10005;{{ job.request_cpus }}c</td> -->
 
                                                 {% endif %}

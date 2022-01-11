@@ -1404,7 +1404,7 @@ def status(request, group_name=None):
         rc, msg, cloud_status_list = config.db_query("view_cloud_status", where=where_clause)
 
         rc, msg, job_cores_list = config.db_query("view_condor_jobs_group_defaults_applied", where=where_clause)
-    
+
     if len(cloud_status_list) < 1:
         cloud_total_list = []
         cloud_status_list_totals = []
@@ -1517,18 +1517,36 @@ def status(request, group_name=None):
 
         cloud_status_list.append(global_total_list.copy())
 
-
-    job_cores_list_totals = qt(job_cores_list, keys={
-        'primary': [
-            'group_name',
-            'request_cpus'
-        ],
-        'sum': [
-            'js_idle',
-            'js_running',
-            'js_completed',
-            'js_held',
-            'js_other'
+    if active_user.flag_jobs_by_target_alias:    
+        for row in job_cores_list:
+            if not row.get('target_alias'):
+                row['target_alias'] = 'None'
+        job_cores_list_totals = qt(job_cores_list, keys={
+            'primary': [
+                'group_name',
+                'target_alias',
+                'request_cpus',
+            ],
+            'sum': [
+                'js_idle',
+                'js_running',
+                'js_completed',
+                'js_held',
+                'js_other'
+            ]
+        })
+    else:
+        job_cores_list_totals = qt(job_cores_list, keys={
+            'primary': [
+                'group_name',
+                'request_cpus',
+            ],
+            'sum': [
+                'js_idle',
+                'js_running',
+                'js_completed',
+                'js_held',
+                'js_other'
             ]
         })
 
