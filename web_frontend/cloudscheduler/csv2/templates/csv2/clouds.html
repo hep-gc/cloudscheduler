@@ -289,7 +289,11 @@
                                     <tr class="highlight3" id="{{cloud.cloud_name}}-password-row" style="{% if cloud.auth_type == 'userpass' %}visibility:inherit{% else %}visibility:collapse{% endif %}"><td><label for="password">Password</label></td>
                                     <td><input type="password" name="password" id="{{cloud.cloud_name}}-password" placeholder="Update password" value="" autocomplete="new-password"/></td></tr>
 
-                                    <tr class="highlight3" id="{{cloud.cloud_name}}-userid-row" style="{% if cloud.auth_type == 'userpass' %}visibility:collapse{% else %}visibility:inherit{% endif %}"><td><label for="userid">User Id</label></td>
+                                    <tr class="highlight3" id="{{cloud.cloud_name}}-userid-row" style="{% if cloud.auth_type == 'userpass' %}visibility:collapse{% else %}visibility:inherit{% endif %}"><td><label for="userid">User Id
+                                        <div title="This is required for checking application credential eligibility" style="display:inline">
+                                            {% include "csv2/icon_question_circle.html" %}
+                                        </div>
+                                    </label></td>
                                     <td><input type="text" name="userid" id="{{cloud.cloud_name}}-userid" value="{{cloud.userid|default_if_none:''}}" /></td></tr>
 
                                     <tr class="highlight3" id="{{cloud.cloud_name}}-app_creds-row" style="{% if cloud.auth_type == 'userpass' %}visibility:collapse{% else %}visibility:inherit{% endif %}"><td><label for="app_credentials">Application Credential Id</label></td>
@@ -331,7 +335,11 @@
                                 <table>
                                     {% if cloud.cloud_type == "openstack" %}
                                         <tr class="highlight3">
-                                            <td><label for="vm_boot_volume">Boot Volume</label></td>
+                                            <td><label for="vm_boot_volume">Boot Volume
+                                                <div title="Enter a valid JSON string or null to unset" style="display:inline">
+                                                    {% include "csv2/icon_question_circle.html" %}
+                                                </div>
+                                            </label></td>
                                             {% if cloud.vm_boot_volume == None %}
                                                 <td><textarea name="vm_boot_volume" id="{{cloud.cloud_name}}-vm_boot_volume" title='null or {"GBs": n1, "GBs_per_core": n2}' rows="5">null</textarea></td>
                                             {% else %}
@@ -340,7 +348,11 @@
                                         </tr>
                                     {% endif %}
                                     
-                                    <tr class="highlight3"><td><label for="vm_security_groups">Security Group</label></td>
+                                    <tr class="highlight3"><td><label for="vm_security_groups">Security Group
+                                        <div title="Select one or more from the list, or leave it blank to use group level configs, or not use any by selecting ignore group default" style="display:inline">
+                                            {% include "csv2/icon_question_circle.html" %}
+                                        </div>
+                                    </label></td>
                                         <td>
                                             <section name="vm_security_groups">
                                                 <div>
@@ -386,7 +398,7 @@
                                     <option value="">Use group default</option>
                                     <option value="None" {% if cloud.vm_keyname == "None" %}selected{% endif %}>Ignore group default</option>
                                     {% for key in keypairs_list %}
-                                        {% if key.cloud_name == cloud.cloud_name%}
+                                        {% if key.cloud_name == cloud.cloud_name %}
                                             {% if key.key_name == cloud.vm_keyname %}
                                                 <option value="{{ key.key_name }}" selected>{{ key.key_name }}</option>
                                             {% else %}
@@ -395,12 +407,16 @@
                                         {% endif %}   
                                     {% endfor %}
 
-                                    <tr class="highlight3"><td><label for="vm_network">VM Network</label></td>
+                                    <tr class="highlight3"><td><label for="vm_network">VM Network
+                                        <div title="If there are multiple networks on the cloud, it is required to select one from the list or define one in the group config section" style="display:inline">
+                                            {% include "csv2/icon_question_circle.html" %}
+                                        </div>
+                                    </label></td>
                                     <td><select name="vm_network" class="dropdown"/>
                                     <option value="">Use group default</option>
                                     <option value="None" {% if cloud.vm_network == "None" %}selected{% endif %}>Ignore group default</option>
                                     {% for network in network_list %}
-                                        {% if network.cloud_name == cloud.cloud_name%}
+                                        {% if network.cloud_name == cloud.cloud_name %}
                                             {% if network.name == cloud.vm_network %}
                                                 <option value="{{ network.name }}" selected>{{ network.name }}</option>
                                             {% else %}
@@ -411,11 +427,15 @@
                                     </td></tr>
 
 
-                                    <tr class="highlight3"><td><label for="vm_image">VM Image</label></td>
+                                    <tr class="highlight3"><td><label for="vm_image">VM Image
+                                        <div title="This is a required field, select one from the list or define one in the group config section" style="display:inline">
+                                            {% include "csv2/icon_question_circle.html" %}
+                                        </div>
+                                    </label></td>
                                     <td><select name="vm_image" class="dropdown"/>
                                     <option value="">Use group default</option>
                                     {% for image in image_list %}
-                                        {% if image.cloud_name == cloud.cloud_name%}
+                                        {% if image.cloud_name == cloud.cloud_name %}
                                             {% if image.name == cloud.vm_image %}
                                                 <option value="{{ image.name }}" selected>{{ image.name }}</option>
                                             {% else %}
@@ -423,7 +443,6 @@
                                             {% endif %}
                                         {% endif %}
                                     {% endfor %}
-
                                     </td>                           
                                     {% if cloud.cloud_type == "amazon" %}
                                         <td id="{{cloud.cloud_name}}-image">                                    
@@ -434,12 +453,16 @@
                                     </td>
                                     </tr>
 
-                                    <tr class="highlight3"><td><label for="vm_flavor">VM Flavor</label></td>
+                                    <tr class="highlight3"><td><label for="vm_flavor">VM Flavor
+                                        <div title="Select one from the list or define one in the group config section, or unset to let the system pick the best fit one" style="display:inline">
+                                            {% include "csv2/icon_question_circle.html" %}
+                                        </div>
+                                    </label></td>
                                     <td><select name="vm_flavor" class="dropdown"/>
                                     <option value="">Use group default</option>
                                     <option value="None" {% if cloud.vm_flavor == "None" %}selected{% endif %}>Ignore group default</option>
                                     {% for flavor in flavor_list %}
-                                        {% if flavor.cloud_name == cloud.cloud_name%}
+                                        {% if flavor.cloud_name == cloud.cloud_name %}
                                             {% if flavor.name == cloud.vm_flavor %}
                                                 <option value="{{ flavor.name }}" selected>{{ flavor.name }}</option>
                                             {% else %}
