@@ -3,8 +3,8 @@ select
     authurl,
     region,
     project,
-    ram_used as ram,
-    cores_used as cores,
+    ifnull(ram_used, 0) as ram,
+    ifnull(cores_used, 0) as cores,
     sum(ifnull(count,0)) as VMs,
     /* sum(ifnull(cores,0)) as cores_used_calculated, */
     sum(ifnull(disk,0)) as disk,
