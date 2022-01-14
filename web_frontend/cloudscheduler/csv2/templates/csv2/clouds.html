@@ -211,10 +211,20 @@
 
                                     <tr class="highlight3"><td><label for="authurl">Enabled</label></td>
                                     <td>
-                                    {% if cloud.enabled == 1%}
+                                    {% if cloud.enabled == 1 %}
                                         <input type="checkbox" name="enabled" value="1" checked/>
                                     {% else %}
                                         <input type="checkbox" name="enabled" value="1" />
+                                    {% endif %}
+                                    </td></tr>
+
+                                    <input type="hidden" name="freeze" value="0" />
+                                    <tr class="highlight3"><td><label for="freeze">Paused</label></td>
+                                    <td>
+                                    {% if cloud.freeze == 2 %}
+                                        <input type="checkbox" name="freeze" value="1" checked/>
+                                    {% else %}
+                                        <input type="checkbox" name="freeze" value="1" />
                                     {% endif %}
                                     </td></tr>
 

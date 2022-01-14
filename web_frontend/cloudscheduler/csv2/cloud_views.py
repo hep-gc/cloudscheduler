@@ -59,6 +59,7 @@ CLOUD_KEYS = {
         'app_credentials_secret':               'ignore',
         'app_credentials_expiry':               'integer', #this may need to change to a date obj
         'enabled':                              'dboolean',
+        'freeze':                               'dboolean',
         'priority':                             'integer',
         'flavor_name':                          'ignore',
         'flavor_option':                        ['add', 'delete'],
@@ -1906,6 +1907,9 @@ def update(request):
 
         if 'vm_boot_volume' in fields and fields['vm_boot_volume'] is None:
             fields['vm_boot_volume'] = ''
+
+        if 'freeze' in fields and fields['freeze'] == 1:
+            fields['freeze'] = 2
 
         if 'cloud_type' in fields:
             if 'authurl' in fields and fields['cloud_type'] == 'openstack':

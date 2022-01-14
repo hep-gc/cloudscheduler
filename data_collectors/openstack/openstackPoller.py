@@ -1759,10 +1759,12 @@ def vm_poller():
                         grp_nm = cloud_tuple[0]
                         cld_nm = cloud_tuple[1]
                         where_clause = "group_name='%s' and cloud_name='%s'" % (grp_nm, cld_nm)
-                        cloud_row = { "freeze": 0 }
-                        config.db_update("csv2_clouds", cloud_row, where=where_clause)
-                        config.db_commit()
-                        logging.debug("reset freeze for cloud %s" % cld_nm)
+                        rc, msg, found_cloud_list = config.db_query(CLOUD, where=where_clause)
+                        if found_cloud_list and len(found_cloud_list) > 0 and found_cloud_list[0].get('freeze') == 1:
+                            cloud_row = { "freeze": 0 }
+                            config.db_update("csv2_clouds", cloud_row, where=where_clause)
+                            config.db_commit()
+                            logging.info("reset freeze for cloud %s" % cld_nm)
                 
                     if uncommitted_updates > 0:
                         logging.info("VM updates committed: %d for cloud %s" % (uncommitted_updates, cloud_obj["cloud_name"]))
@@ -1865,11 +1867,11 @@ def vm_poller():
                 try:
                     wait_cycle(cycle_start_time, poll_time_history, config.categories["openstackPoller.py"]["sleep_interval_vm"], config)
                 except KeyboardInterrupt:
-                    # sigint recieved, cancel the sleep and start the loop
+                    # sigint received, cancel the sleep and start the loop
                     continue
             except KeyboardInterrupt:
                 # sigint recieved, cancel the sleep and start the loop
-                logging.error("Recieved wake-up signal during regular execution, resetting and continuing")
+                logging.error("Received wake-up signal during regular execution, resetting and continuing")
                 config.db_close()
                 continue
 

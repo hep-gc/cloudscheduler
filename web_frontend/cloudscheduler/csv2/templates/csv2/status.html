@@ -494,17 +494,17 @@
                                 {% elif cloud.enabled > 0 %}
                                     {% if cloud.app_credentials_expiry and cloud.current_time %}
                                         {% if cloud.app_credentials_expiry|sub:cloud.current_time|div:86400 > 14 %}
-                                            <td class="bold-style" onclick="toggle_id('expand-{{cloud.group_name}}-{{cloud.cloud_name}}')"><div class="float-left">{{cloud.cloud_name}}</div>
+                                            <td class="bold-style" onclick="toggle_id('expand-{{cloud.group_name}}-{{cloud.cloud_name}}')"><div class="float-left">{{cloud.cloud_name}}{% if cloud.freeze %} &#x1F6AB;{% endif %}</div>
                                         {% elif cloud.app_credentials_expiry|sub:cloud.current_time|div:86400 >= 8 %}
-                                            <td class="warn-style" onclick="toggle_id('expand-{{cloud.group_name}}-{{cloud.cloud_name}}')"><div class="float-left">{{cloud.cloud_name}}</div>
+                                            <td class="warn-style" onclick="toggle_id('expand-{{cloud.group_name}}-{{cloud.cloud_name}}')"><div class="float-left">{{cloud.cloud_name}}{% if cloud.freeze %} &#x1F6AB;{% endif %}</div>
                                         {% else %}
-                                            <td class="disabled-style" onclick="toggle_id('expand-{{cloud.group_name}}-{{cloud.cloud_name}}')"><div class="float-left">{{cloud.cloud_name}}</div>
+                                            <td class="disabled-style" onclick="toggle_id('expand-{{cloud.group_name}}-{{cloud.cloud_name}}')"><div class="float-left">{{cloud.cloud_name}}{% if cloud.freeze %} &#x1F6AB;{% endif %}</div>
                                         {% endif %}
                                     {% else %}
-                                        <td class="bold-style" onclick="toggle_id('expand-{{cloud.group_name}}-{{cloud.cloud_name}}')"><div class="float-left">{{cloud.cloud_name}}</div>
+                                        <td class="bold-style" onclick="toggle_id('expand-{{cloud.group_name}}-{{cloud.cloud_name}}')"><div class="float-left">{{cloud.cloud_name}}{% if cloud.freeze %} &#x1F6AB;{% endif %}</div>
                                     {% endif %}
                                 {% else %}
-                                    <td class="disabled-style" onclick="toggle_id('expand-{{cloud.group_name}}-{{cloud.cloud_name}}')"><div class="float-left">{{cloud.cloud_name}}</div>
+                                    <td class="disabled-style" onclick="toggle_id('expand-{{cloud.group_name}}-{{cloud.cloud_name}}')"><div class="float-left">{{cloud.cloud_name}}{% if cloud.freeze %} &#x1F6AB;{% endif %}</div>
                                 {% endif %}
                                     <div id="sym-expand-{{cloud.group_name}}-{{cloud.cloud_name}}" class="float-right">&#x25BE;</div></td>
 
@@ -729,6 +729,10 @@
                                     <td onclick="toggle_id('expand-{{cloud.group_name}}-{{cloud.cloud_name}}')" style="text-align: left">
                                         {% if cloud.enabled == 0 %}
                                             Cloud disabled
+                                            <br />
+                                        {% endif %}
+                                        {% if cloud.freeze %}
+                                            Cloud paused
                                             <br />
                                         {% endif %}
                                         {% if cloud.app_credentials_expiry and cloud.current_time %}
