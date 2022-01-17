@@ -31,14 +31,14 @@ For installation, please follow the instructions ![here](ansible-playbook/README
    - #314 Retain form data on failed submission
    - #323 Add place to submit report//bug; add link to /repo/ for condor poller install, make version a link to the github tag
    - #?? update default work cert location in template file; change poller to ignore the rest of the process when finding condor cert if the condor variable is not set
-- Next stable-2.10.1
-   Fix:
+- Next stable-2.10.1  
+   Fix:  
    - #371 Debug openstack vm poller sleep problem 
    - #368 Fix job table dropdown content for target alias
    - #346 Fix view total used resources table to handle cloud unreachable case
    - #366 Disable removal of group when there are vms in it
-   - #370 Clean up condor gsi configs when not use gsi anymore
-   Feature:
+   - #370 Clean up condor gsi configs when not use gsi anymore  
+   Feature:  
    - #356 Add description for cloud config fields
    - #367 Enable removal of cloud alias
    - #369 Enable a cloud pause feature
