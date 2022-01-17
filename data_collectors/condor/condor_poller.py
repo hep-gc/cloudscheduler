@@ -1295,7 +1295,11 @@ def condor_gsi_poller():
                         logging.error('Condor host: "%s",  GSI (not configured) update failed, exception: %s' % (condor, ex))
 
             else:
-                logging.warning('Unable to retrieve certificate')
+                try:
+                    config.db_execute('update csv2_groups set htcondor_gsi_dn=NULL,htcondor_gsi_eol=0 where htcondor_fqdn="%s";' % condor) 
+                    logging.warning('Unable to retrieve certificate')
+                except Exception as ex:
+                    logging.error('Condor host: "%s" GSI unset failed, exception: %s' % (condor, ex))
 
             config.db_rollback()
 
