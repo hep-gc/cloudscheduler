@@ -1841,15 +1841,11 @@ def vm_poller():
                 where_clause = "cloud_type='openstack'"
                 rc, msg, over_quota_clouds = config.db_query("view_vm_kill_retire_over_quota", where=where_clause) 
                 for cloud in over_quota_clouds:
-                    logging.info("Remove overquota vms from %s::%s" % (cloud["group_name"], cloud["cloud_name"]))
+                    #logging.info("Remove overquota vms from %s::%s" % (cloud["group_name"], cloud["cloud_name"]))
                     kill_retire(config, cloud["group_name"], cloud["cloud_name"], "control", [cloud["cores"], cloud["ram"]], get_frame_info())
                     config.db_commit()
-                if len(over_quota_clouds) > 0: 
-                    try:
-                        logging.info("Finish removing overquota vms, send signal")
-                        event_signal_send(config, "update_csv2_clouds_openstack")
-                    except Exception as exc:
-                        logging.error("Error when sending signals after removing overquota vms: %s" % exc)
+                #if len(over_quota_clouds) > 0: 
+                #    event_signal_send(config, "update_csv2_clouds_openstack")
 
                 logging.debug("Completed VM poller cycle")
 
