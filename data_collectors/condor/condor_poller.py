@@ -464,10 +464,12 @@ def job_poller():
 
                 # build group_users dict
                 htcondor_other_submitters = group["htcondor_other_submitters"]
+                user_list = []
                 if htcondor_other_submitters == 'ALL':
-                    rc, msg, users = config.db_query(USERS)
-                    for usr in users:
-                        user_list.append(usr["username"])
+                    #rc, msg, users = config.db_query(USERS)
+                    #for usr in users:
+                    #    user_list.append(usr["username"])
+                    user_list = ["ALL"]
                 else:
                     where_clause = "group_name='%s'" % group["group_name"]
                     rc, msg, users = config.db_query(USERS, where=where_clause)
@@ -649,20 +651,21 @@ def job_poller():
                         continue
 
                     # check if user is valid for this group
-                    if job_dict['Owner'] not in group_users[job_dict['group_name']]:
-                        # this user isn''t registered with this group and thus cannot submit jobs to it
-                        logging.debug("User '%s' is not registered to submit jobs to %s, excluding as foreign job." % (job_dict['Owner'], job_dict['group_name']))
-                        foreign_jobs = foreign_jobs+1
-                        held_jobs = held_jobs + 1
-                        if job_dict["JobStatus"] != 5:
-                            held_job_ids.append(str(job_dict["ClusterId"]) +"."+ str(job_dict["ProcId"]))
-                        if "invalidusr" not in job_errors:
-                            job_errors["invalidusr"] = 1
-                            job_errors["invalidusrinfo"] = {"Invalid user: %s for group: %s" % (job_dict['Owner'], job_dict['group_name'])}
-                        else:
-                            job_errors["invalidusr"] = job_errors["invalidusr"] + 1
-                            job_errors["invalidusrinfo"].add("Invalid user: %s for group: %s" % (job_dict['Owner'], job_dict['group_name']))
-                        continue
+                    if group_users[job_dict['group_name']] and "ALL" not in group_users[job_dict['group_name']]:
+                        if job_dict['Owner'] not in group_users[job_dict['group_name']]:
+                            # this user isn''t registered with this group and thus cannot submit jobs to it
+                            logging.debug("User '%s' is not registered to submit jobs to %s, excluding as foreign job." % (job_dict['Owner'], job_dict['group_name']))
+                            foreign_jobs = foreign_jobs+1
+                            held_jobs = held_jobs + 1
+                            if job_dict["JobStatus"] != 5:
+                                held_job_ids.append(str(job_dict["ClusterId"]) +"."+ str(job_dict["ProcId"]))
+                            if "invalidusr" not in job_errors:
+                                job_errors["invalidusr"] = 1
+                                job_errors["invalidusrinfo"] = {"Invalid user: %s for group: %s" % (job_dict['Owner'], job_dict['group_name'])}
+                            else:
+                                job_errors["invalidusr"] = job_errors["invalidusr"] + 1
+                                job_errors["invalidusrinfo"].add("Invalid user: %s for group: %s" % (job_dict['Owner'], job_dict['group_name']))
+                            continue
 
                     # Some jobs have an expression for the request disk causing us to store a string
                     # this should resolve the expression or us an alternative if unable
