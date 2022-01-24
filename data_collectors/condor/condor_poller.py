@@ -464,6 +464,7 @@ def job_poller():
 
                 # build group_users dict
                 htcondor_other_submitters = group["htcondor_other_submitters"]
+                user_list = []
                 if htcondor_other_submitters == 'ALL':
                     rc, msg, users = config.db_query(USERS)
                     for usr in users:
