@@ -11,6 +11,7 @@ import pytz
 class MyServer(_server.Server):
     min_count = resource.Body('min_count')
     max_count = resource.Body('max_count')
+    fault = resource.Body('fault', type=dict)
 
 def get_openstack_appcredential_auth(cloud):
     try:

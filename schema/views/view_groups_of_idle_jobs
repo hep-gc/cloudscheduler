@@ -34,7 +34,7 @@ select
     completed,
     held,
     other,
-    group_concat(distinct flavor) as flavors
+    group_concat(distinct flavor order by cloud_priority) as flavors
 from (
     /* jbf - Jobs grouped by flavor */
     select
@@ -50,6 +50,7 @@ from (
         max_price,
         user_data,
         job_per_core,
+        cloud_priority,
         flavor,
         flavor_priority,
         min(request_cpus) as request_cpus_min,
@@ -75,6 +76,7 @@ from (
         select
             goj.*,
             var.flavor,
+            var.cloud_priority,
             row_number() over (partition by
                 group_name,
                 target_alias,

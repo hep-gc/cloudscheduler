@@ -55,6 +55,7 @@ def main(args):
                     'add':                                csv2_alias.add,
                     'list':                               csv2_alias.list,
                     'update':                             csv2_alias.update,
+                    'delete':                             csv2_alias.delete,
                     }
                 ],
             'cloud': [
@@ -199,6 +200,8 @@ def main(args):
             ('-cUD',  '--cloud-user-domain', True),
             ('-cUI',  '--cloud-user-domain-id', True),
             ('-cU',   '--cloud-user', True),
+            ('-cac',  '--cloud-app-credentials', True),
+            ('-cas',  '--cloud-app-credentials-secret', True),
             ('-ds',   '--default-server', False),   #### special case in _args() ###
             ('-f',    '--file-path', True),
             ('-F',    '--force', False),
@@ -264,6 +267,7 @@ def main(args):
             ('-SU',   '--super-user', True),
             ('-su',   '--server-user', True),
             ('-te',   '--text-editor', True),
+            ('-ui',   '--user-id', True),
             ('-ucn',  '--user-common-name', True),
             ('-un',   '--username', True),
             ('-uo',   '--user-option', True),

@@ -23,7 +23,8 @@ from cloudscheduler.lib.view_utils import \
     verify_cloud_credentials, \
     get_app_credentail_expiry, \
     retire_cloud_vms, \
-    get_file_checksum
+    get_file_checksum, \
+    clean_cloud_data
 
 import bcrypt
 
@@ -58,6 +59,7 @@ CLOUD_KEYS = {
         'app_credentials_secret':               'ignore',
         'app_credentials_expiry':               'integer', #this may need to change to a date obj
         'enabled':                              'dboolean',
+        'freeze':                               'dboolean',
         'priority':                             'integer',
         'flavor_name':                          'ignore',
         'flavor_option':                        ['add', 'delete'],
@@ -121,6 +123,8 @@ CLOUD_ADD_KEYS = {
         'app_credentials_secret',
         ]
     }
+
+CLOUD_IMPORTANT_KEYS = ['authurl', 'project', 'region', 'username', 'userid']
 
 METADATA_KEYS = {
     'auto_active_group': True,
@@ -1401,7 +1405,7 @@ def status(request, group_name=None):
         rc, msg, cloud_status_list = config.db_query("view_cloud_status", where=where_clause)
 
         rc, msg, job_cores_list = config.db_query("view_condor_jobs_group_defaults_applied", where=where_clause)
-    
+
     if len(cloud_status_list) < 1:
         cloud_total_list = []
         cloud_status_list_totals = []
@@ -1514,18 +1518,36 @@ def status(request, group_name=None):
 
         cloud_status_list.append(global_total_list.copy())
 
-
-    job_cores_list_totals = qt(job_cores_list, keys={
-        'primary': [
-            'group_name',
-            'request_cpus'
-        ],
-        'sum': [
-            'js_idle',
-            'js_running',
-            'js_completed',
-            'js_held',
-            'js_other'
+    if active_user.flag_jobs_by_target_alias:    
+        for row in job_cores_list:
+            if not row.get('target_alias'):
+                row['target_alias'] = 'None'
+        job_cores_list_totals = qt(job_cores_list, keys={
+            'primary': [
+                'group_name',
+                'target_alias',
+                'request_cpus',
+            ],
+            'sum': [
+                'js_idle',
+                'js_running',
+                'js_completed',
+                'js_held',
+                'js_other'
+            ]
+        })
+    else:
+        job_cores_list_totals = qt(job_cores_list, keys={
+            'primary': [
+                'group_name',
+                'request_cpus',
+            ],
+            'sum': [
+                'js_idle',
+                'js_running',
+                'js_completed',
+                'js_held',
+                'js_other'
             ]
         })
 
@@ -1886,6 +1908,9 @@ def update(request):
         if 'vm_boot_volume' in fields and fields['vm_boot_volume'] is None:
             fields['vm_boot_volume'] = ''
 
+        if 'freeze' in fields and fields['freeze'] == 1:
+            fields['freeze'] = 2
+
         if 'cloud_type' in fields:
             if 'authurl' in fields and fields['cloud_type'] == 'openstack':
                 #check if url has a trailing slash
@@ -1938,6 +1963,15 @@ def update(request):
                 config.db_close()
                 return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud update "%s::%s" failed - the request did not match any rows.' % (lno(MODID), fields['group_name'], fields['cloud_name']))
             
+            for key in CLOUD_IMPORTANT_KEYS:
+                if key in fields:
+                    if ((not found_cloud_list[0].get(key)) and (fields.get(key) and fields.get(key) != '')) or (found_cloud_list[0].get(key) and found_cloud_list[0].get(key) != fields.get(key)):
+                        print(fields['group_name'], fields['cloud_name'], key, "changed, cleaning cloud data, origin value", found_cloud_list[0].get(key), 'new value', fields.get(key))
+                        rc, msg = clean_cloud_data(config, fields['group_name'], fields['cloud_name'])
+                        if rc != 0:
+                            print("Error cleaning cloud data table:", msg)
+                        break
+            
             rc, msg = config.db_update(table, cloud_updates, where=where_clause)
             config.db_commit()
             if rc != 0:
@@ -1949,7 +1983,7 @@ def update(request):
             if fields['enabled'] == 0:
                 #call retire routine
                 retire_cloud_vms(config, fields['group_name'], fields['cloud_name'])
-
+     
         # If either the cores_ctl or the ram_ctl have been modified, call kill_retire to scale current usage.
         try:
             if 'cores_ctl' in fields and 'ram_ctl' in fields:

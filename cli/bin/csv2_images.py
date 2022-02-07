@@ -185,7 +185,7 @@ def list(gvar):
 
     # Print report. 
     show_active_user_groups(gvar, response)
-    
+
     show_table(
         gvar,   
         image_list,
@@ -196,6 +196,7 @@ def list(gvar):
             'name/Name/Image Info',
             'created_at/Creation Date/Image Info',
             'checksum/Checksum/Image Info',
+            'size/Size/Image Info'
         ],
 
         title="Images",

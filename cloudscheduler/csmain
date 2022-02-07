@@ -905,8 +905,9 @@ def vm_termination(args_list):
     event_receiver_registration(config, "update_csv2_clouds_amazon")
 
     try:
-        config.db_open()
+        #config.db_open()
         while True:
+            config.db_open()
             logging.debug("%s : %s: Beginning vm retire cycle" % (target_group, target_cloud))
             config.refresh()
 

@@ -19,7 +19,7 @@ class TestWebCloudCommon(unittest.TestCase):
 
     def setUp(self):
         self.page.get_homepage()
-        self.page.click_top_nav('Clouds')
+        self.page.click_top_nav('Cloud Config')
 
     def test_web_cloud_add(self):
         # Adds a standard cloud

@@ -6,6 +6,7 @@ import sys
 import os
 import requests
 import signal
+import psutil
 
 from cloudscheduler.lib.view_utils import qt
 from cloudscheduler.lib.db_config import Config
@@ -115,6 +116,23 @@ def timeseries_data_transfer():
             for status in statuses:
                 new_point = "{0} value={1} {2}".format(status["alias"], status["plotable_state"], ts)
                 data_points.append(new_point)
+    
+            # Parse service resources data into line protocol for influxdb
+            load = round(100*( os.getloadavg()[0] / os.cpu_count() ),1)
+            new_point_load = "{0} value={1} {2}".format("load", load, ts)
+            data_points.append(new_point_load)
+
+            ram_used = round(psutil.virtual_memory().used/1000000000 , 1)
+            new_point_ram = "{0} value={1} {2}".format("ram_used", ram_used, ts)
+            data_points.append(new_point_ram)
+
+            swap_used = round(psutil.swap_memory().used/1000000000 , 1)
+            new_point_swap = "{0} value={1} {2}".format("swap_used", swap_used, ts)
+            data_points.append(new_point_swap)
+
+            disk_used = round(psutil.disk_usage('/').used/1000000000 , 1)
+            new_point_disk = "{0} value={1} {2}".format("disk_used", disk_used, ts)
+            data_points.append(new_point_disk)
             
             # Parse cloud status data into line protocol for influxdb
             for line in cloud_status:
@@ -150,6 +168,7 @@ def timeseries_data_transfer():
                     new_point = "{0}{4},group={1} value={2}i {3}".format(trace_name, group, _cast_int(line[key]), ts, '_total')
                     data_points.append(new_point)
 
+            # Parse job status data on group alias
             rc, msg, job_status_alias = config.db_query("view_job_status_by_target_alias")
             for line in job_status_alias:
                 group = line["group_name"]
@@ -256,13 +275,41 @@ def timeseries_data_transfer():
                             if cnt < 2 or job_cores[job_state] == 0:
                                 cnt += 1
                                 continue
-                            new_point = "{0}{1}{2}{3},group={4} value={5}i {6}".format(job_column_list[cnt-1], "_", job_cores['request_cpus'], "core", job_cores['group_name'], int(job_cores[job_state]), ts) 
+                            new_point = "{0}{1}{2}{3}{7},group={4} value={5}i {6}".format(job_column_list[cnt-1], "_", job_cores['request_cpus'], "core", job_cores['group_name'], int(job_cores[job_state]), ts, '_total') 
                             data_points.append(new_point)
                             cnt += 1
                 except Exception as exc:
                     logging.error("Unable to process job core details... skipping... %s " % exc)
 
-
+            # Get job core details for job status on group alias
+            rc, msg, job_details_list_alias = config.db_query("view_condor_jobs_group_defaults_applied")
+            if job_details_list_alias:
+                for job in job_details_list_alias:
+                    if not job.get('target_alias'):
+                        job['target_alias'] = 'None'
+                job_details_list_alias_totals = qt(job_details_list_alias, keys={
+                    'primary': ['group_name', 'target_alias', 'request_cpus'],
+                    'sum': [
+                        'js_idle',
+                        'js_running',
+                        'js_completed',
+                        'js_held',
+                        'js_other'
+                    ]
+                })
+                try:
+                    for job_cores in job_details_list_alias_totals:
+                        cnt = 0
+                        for job_state in job_cores.keys():
+                            if cnt < 3 or job_cores[job_state] == 0:
+                                cnt += 1
+                                continue
+                            new_point = "{0}{1}{2}{3},cloud={7},group={4} value={5}i {6}".format(job_column_list[cnt-2], "_", job_cores['request_cpus'], "core", job_cores['group_name'], int(job_cores[job_state]), ts, job_cores['target_alias'])
+                            data_points.append(new_point)
+                            cnt += 1
+                except Exception as exc:
+                    logging.error("Unable to process job core alias details... skipping... %s " % exc)
+                    
             data_points = "\n".join(data_points)
 
             # POST HTTP request to influxdb

@@ -302,7 +302,8 @@ schema = {
         },
     "condor_jobs": {
         "keys": [
-            "global_job_id"
+            "global_job_id",
+            "htcondor_host_id"
             ],
         "columns": {
             "global_job_id": {"type": "str", "len": "128", "nulls": "NO"},
@@ -332,7 +333,7 @@ schema = {
             "q_date": {"type": "int"},
             "hold_reason_code": {"type": "int"},
             "hold_reason_subcode": {"type": "int"},
-            "last_remote_host": {"type": "str", "len": "64", "nulls": "YES"},
+            "last_remote_host": {"type": "str", "len": "128", "nulls": "YES"},
             "held_reason": {"type": "str", "len": "512", "nulls": "YES"},
             "hold_job_reason": {"type": "str", "len": "64", "nulls": "YES"}
             }
@@ -738,7 +739,8 @@ schema = {
             "terminate_time": {"type": "int"},
             "status_changed_time": {"type": "int"},
             "last_updated": {"type": "int"},
-            "updater": {"type": "str", "len": "128", "nulls": "YES"}
+            "updater": {"type": "str", "len": "128", "nulls": "YES"},
+            "vm_error": {"type": "str", "len": "256", "nulls": "YES"}
             }
         },
     "csv2_vms_foreign": {
@@ -1025,6 +1027,7 @@ schema = {
             "slot_idle_core_count": {"type": "int"},
             "Foreign_VMs": {"type": "int"},
             "enabled": {"type": "int"},
+            "freeze": {"type": "int"},
             "communication_up": {"type": "int"},
             "communication_rt": {"type": "int"},
             "cores_ctl": {"type": "int"},
@@ -1122,6 +1125,7 @@ schema = {
             "group_name": {"type": "str", "len": "32", "nulls": "NO"},
             "cloud_name": {"type": "str", "len": "32", "nulls": "NO"},
             "enabled": {"type": "int"},
+            "freeze": {"type": "int"},
             "cloud_priority": {"type": "int"},
             "spot_price": {"type": "float"},
             "vm_boot_volume": {"type": "str", "len": "64", "nulls": "YES"},
@@ -1191,6 +1195,7 @@ schema = {
             "group_name": {"type": "str", "len": "32", "nulls": "NO"},
             "cloud_name": {"type": "str", "len": "32", "nulls": "NO"},
             "enabled": {"type": "int"},
+            "freeze": {"type": "int"},
             "cloud_priority": {"type": "int"},
             "spot_price": {"type": "float"},
             "vm_boot_volume": {"type": "str", "len": "64", "nulls": "YES"},
@@ -1265,6 +1270,7 @@ schema = {
             "group_name": {"type": "str", "len": "32", "nulls": "NO"},
             "cloud_name": {"type": "str", "len": "32", "nulls": "NO"},
             "enabled": {"type": "int"},
+            "freeze": {"type": "int"},
             "cloud_priority": {"type": "int"},
             "spot_price": {"type": "float"},
             "vm_boot_volume": {"type": "str", "len": "64", "nulls": "YES"},
@@ -1624,10 +1630,10 @@ schema = {
             "authurl": {"type": "str", "len": "128", "nulls": "YES"},
             "region": {"type": "str", "len": "32", "nulls": "YES"},
             "project": {"type": "str", "len": "128", "nulls": "YES"},
-            "VMs": {"type": "int"},
-            "cores": {"type": "int"},
-            "disk": {"type": "int"},
             "ram": {"type": "int"},
+            "cores": {"type": "int"},
+            "VMs": {"type": "int"},
+            "disk": {"type": "int"},
             "swap": {"type": "int"}
             }
         },
@@ -1749,6 +1755,7 @@ schema = {
             "status_changed_time": {"type": "int"},
             "last_updated": {"type": "int"},
             "updater": {"type": "str", "len": "128", "nulls": "YES"},
+            "vm_error": {"type": "str", "len": "256", "nulls": "YES"},
             "flavor_name": {"type": "str", "len": "128", "nulls": "YES"},
             "condor_slots": {"type": "int"},
             "condor_slots_used": {"type": "int"},

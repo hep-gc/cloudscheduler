@@ -44,90 +44,126 @@ def main(gvar):
         # 40 Omit address.
         # 41
         '--cloud-address': {'valid': gvar['cloud_credentials']['authurl'], 'test_cases': {'': 'cloud add parameter "authurl" contains an empty string which is specifically disallowed.'}, 'mandatory': True},
-        # 42 Omit user.
+        # 42
+        '--cloud-user': {'valid': gvar['cloud_credentials']['username'], 'test_cases': {'': 'insufficient credentials to establish openstack v3 session, check if missing any user/project info'}},
         # 43
-        '--cloud-user': {'valid': gvar['cloud_credentials']['username'], 'test_cases': {'': 'cloud add parameter "username" contains an empty string which is specifically disallowed.'}, 'mandatory': True},
-        # 44 Omit password.
+        '--cloud-password': {'valid': gvar['cloud_credentials']['password'], 'test_cases': {'': 'insufficient credentials to establish openstack v3 session, check if missing any user/project info'}},
+        # 44 Omit project.
         # 45
-        '--cloud-password': {'valid': gvar['cloud_credentials']['password'], 'test_cases': {'': 'cloud add parameter "password" contains an empty string which is specifically disallowed.'}, 'mandatory': True},
-        # 46 Omit project.
-        # 47
         '--cloud-project': {'valid': gvar['cloud_credentials']['project'], 'test_cases': {'': 'cloud add parameter "project" contains an empty string which is specifically disallowed.'}, 'mandatory': True},
-        # 48 Omit region.
-        # 49
+        # 46 Omit region.
+        # 47
         '--cloud-region': {'valid': gvar['cloud_credentials']['region'], 'test_cases': {'': 'cloud add parameter "region" contains an empty string which is specifically disallowed.'}, 'mandatory': True},
-        # 50
+        # 48
         '--cloud-enabled': {'valid': 0, 'test_cases': {'invalid-unit-test': 'cloud add boolean value specified for "enabled" must be one of the following: true, false, yes, no, 1, or 0.'}},
-        # 51
+        # 49
         '--cloud-priority': {'valid': 0, 'test_cases': {'invalid-unit-test': 'cloud add value specified for "priority" must be an integer value.'}},
-        # 52
+        # 50
         '--cloud-spot-price': {'valid': 0.0, 'test_cases': {'invalid-unit-test': 'cloud add value specified for "spot_price" must be a floating point value.'}},
-        # 53
+        # 51
         '--group-metadata-exclusion': {'valid': '', 'test_cases': {'invalid-unit-test': 'cloud add, "invalid-unit-test" failed - specified metadata_name "invalid-unit-test" does not exist.'}},
         '--vm-boot-volume': {'valid': '{"GBs_per_core": 10}', 'test_cases': {
-            # 54
+            # 52
             'invalid-unit-test': 'cloud add value specified for "vm_boot_volume" must be a valid JSON string.',
-            # 55
+            # 53
             '{"invalid-unit-test": 0}': 'cloud add dictionary specified for "vm_boot_volume" contains the following undefined keys: [\'invalid-unit-test\']'}
         },
-        # 56
+        # 54
         '--vm-cores': {'valid': 0, 'test_cases': {'invalid-unit-test': 'cloud add value specified for "cores_ctl" must be an integer value.'}},
-        # 57
+        # 55
         '--vm-flavor': {'valid': '', 'test_cases': {'invalid-unit-test': 'cloud add, "invalid-unit-test" failed - specified item does not exist: vm_flavor=invalid-unit-test, group_name={}, cloud_name=invalid-unit-test.'.format(ut_id(gvar, 'clg1'))}},
-        # 58
+        # 56
         '--vm-image': {'valid': '', 'test_cases': {'invalid-unit-test': 'cloud add, "invalid-unit-test" failed - specified item does not exist: vm_image=invalid-unit-test, group_name={}, cloud_name=invalid-unit-test.'.format(ut_id(gvar, 'clg1'))}},
-        # 59
+        # 57
         '--vm-keep-alive': {'valid': 0, 'test_cases': {'invalid-unit-test': 'cloud add value specified for "vm_keep_alive" must be an integer value.'}},
-        # 60
+        # 58
         '--vm-keyname': {'valid': '', 'test_cases': {'invalid-unit-test': 'cloud add, "invalid-unit-test" failed - specified item does not exist: vm_keyname=invalid-unit-test, group_name={}, cloud_name=invalid-unit-test.'.format(ut_id(gvar, 'clg1'))}},
-        # 61
+        # 59
         '--vm-ram': {'valid': 0, 'test_cases': {'invalid-unit-test': 'cloud add value specified for "ram_ctl" must be an integer value.'}},
     }
 
     parameters_commands(gvar, 'cloud', 'add', ut_id(gvar, 'clg1'), ut_id(gvar, 'clu3'), parameters)
 
-    # 62
+    base_options = ['cloud', 'add', 
+        '-ca', gvar['cloud_credentials']['authurl'], 
+        '-cr', gvar['cloud_credentials']['region'], 
+        '-cP', gvar['cloud_credentials']['project'],
+        '-ct', 'local',
+        '-ce', 'yes',
+        '-gme', ut_id(gvar, 'clm2'),
+        '-su', ut_id(gvar, 'clu3')
+    ]
+
+    # 60 Omit username
+    execute_csv2_command(
+        gvar, 1, None, 'cloud add request did not contain mandatory parameter "username"',
+        base_options + ['-cn', ut_id(gvar, 'clc10'), '-cpw', gvar['cloud_credentials']['password']]    
+    )
+
+    # 61 Omit password
+    execute_csv2_command(
+        gvar, 1, None, 'cloud add request did not contain mandatory parameter "password"',
+        base_options + ['-cn', ut_id(gvar, 'clc10'), '-cU', gvar['cloud_credentials']['username']]
+    )
+
+    # 62 Omit app credentials
+    execute_csv2_command(
+        gvar, 1, None, 'Insufficient credentials to establish openstack session, check if missing any applicaion credentials info',
+        base_options + ['-cn', ut_id(gvar, 'clc10'), '-cas', gvar['cloud_credentials']['app_credentials_secret']]
+    )
+
+    # 63 Omit app credentials secret
+    execute_csv2_command(
+        gvar, 1, None, 'Insufficient credentials to establish openstack session, check if missing any applicaion credentials info',
+        base_options + ['-cn', ut_id(gvar, 'clc10'), '-cac', gvar['cloud_credentials']['app_credentials']]
+    )
+
+    # 64 Omit userid
+    execute_csv2_command(
+        gvar, 1, None, 'Failed to get expire date of app creds, insufficient credentials to establish openstack session, check if missing userid or application credentials info',
+        base_options + ['-cn', ut_id(gvar, 'clc10'), '-cac', gvar['cloud_credentials']['app_credentials'], '-cas', gvar['cloud_credentials']['app_credentials_secret']]
+    )
+
+    # 65
     execute_csv2_command(
         gvar, 1, None, 'The following command line arguments were invalid: metadata-mime-type',
         ['cloud', 'add', '-mmt', 'invalid-unit-test', '-g', ut_id(gvar, 'clg1'), '-su', ut_id(gvar, 'clu3')]
     )
 
-    # 63
+    # 66
     execute_csv2_command(
         gvar, 0, None, 'cloud "{}::{}" successfully added.'.format(ut_id(gvar, 'clg1'), ut_id(gvar, 'clc10')),
-        ['cloud', 'add',
+        base_options + [
             '-cn', ut_id(gvar, 'clc10'),
-            '-ca', gvar['cloud_credentials']['authurl'],
             '-cU', gvar['cloud_credentials']['username'],
             '-cpw', gvar['cloud_credentials']['password'],
-            '-cr', gvar['cloud_credentials']['region'],
-            '-cP', gvar['cloud_credentials']['project'],
-            '-ct', 'local',
-            '-ce', 'yes',
             '-vi', '',
             '-vf', '',
             '-vk', '',
             '-vka', '10',
             '-vn', '',
             '-csp', '10',
-            '-gme', ut_id(gvar, 'clm2'),
-            '-su', ut_id(gvar, 'clu3')
         ]
     )
 
-    # 64
+    # 67
     execute_csv2_command(
         gvar, 0, None, 'cloud "{}::{}" successfully added.'.format(ut_id(gvar, 'clg1'), ut_id(gvar, 'clc11')),
-        ['cloud', 'add',
+        base_options + [
             '-cn', ut_id(gvar, 'clc11'),
-            '-ca', gvar['cloud_credentials']['authurl'],
             '-cU', gvar['cloud_credentials']['username'],
             '-cpw', gvar['cloud_credentials']['password'],
-            '-cr', gvar['cloud_credentials']['region'],
-            '-cP', gvar['cloud_credentials']['project'],
-            '-ct', 'local',
-            '-gme', ut_id(gvar, 'clm2,clm2.yaml'),
-            '-su', ut_id(gvar, 'clu3')
+        ]
+    )
+
+    # 68 Successful add cloud with app credential
+    execute_csv2_command(
+        gvar, 0, None, 'cloud "{}::{}" successfully added.'.format(ut_id(gvar, 'clg1'), ut_id(gvar, 'clc2')),
+        base_options + [
+            '-cn', ut_id(gvar, 'clc12'), 
+            '-cac', gvar['cloud_credentials']['app_credentials'], 
+            '-cas', gvar['cloud_credentials']['app_credentials_secret'],
+            '-ui', gvar['cloud_credentials']['userid']
         ]
     )
 

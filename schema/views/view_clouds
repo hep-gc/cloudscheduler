@@ -35,6 +35,7 @@ from (
     cc.group_name,
     cc.cloud_name,
     cc.enabled,
+    cc.freeze,
     cc.priority as cloud_priority,
     cc.spot_price,
     cc.vm_boot_volume,

@@ -12,13 +12,16 @@ class TestWebStatusCommon(unittest.TestCase):
     """A class for the status tests that should be repeated in all iterations."""
 
     @classmethod
-    def setUpClass(cls):
+    def setUpClass(cls, user_type=''):
         cls.page = pages.StatusPage(cls.driver, cls.gvar['address'])
         cls.oversize = cls.gvar['oversize']
         cls.cloud_name = cls.gvar['user'] + '-wic1'
         cls.group_name = cls.gvar['user'] + '-wig0'
         cls.user = cls.gvar['user'] + '-wiu2'
         cls.alias = 'None'
+        cls.user_type = user_type
+        if user_type == 'regular':
+            cls.user = cls.gvar['user'] + '-wiu1'
 
     def setUp(self):
         self.page.get_homepage()
@@ -322,52 +325,73 @@ class TestWebStatusCommon(unittest.TestCase):
 
     def test_web_status_plot_open_main(self):
         # Opens the plot for the main poller
-        self.page.click_bottom_icon('main')
-        self.assertTrue(self.page.plot_open())
-        self.assertTrue(self.page.plot_has_legend('main'))
-        self.page.click_close_plot()
+        if self.user_type == 'regular':
+            pass
+        else:
+            self.page.click_bottom_icon('main')
+            self.assertTrue(self.page.plot_open())
+            self.assertTrue(self.page.plot_has_legend('main'))
+            self.page.click_close_plot()
 
     def test_web_status_plot_open_signals(self):
         # Opens the plot for the signal poller
-        self.page.click_bottom_icon('signals')
-        self.assertTrue(self.page.plot_open())
-        self.assertTrue(self.page.plot_has_legend('signals'))
-        self.page.click_close_plot()
+        if self.user_type == 'regular':
+            pass
+        else:
+            self.page.click_bottom_icon('signals')
+            self.assertTrue(self.page.plot_open())
+            self.assertTrue(self.page.plot_has_legend('signals'))
+            self.page.click_close_plot()
 
     def test_web_status_plot_open_timeseries(self):
         # Opens the plot for the timeseries poller
-        self.page.click_bottom_icon('timeseries')
-        self.assertTrue(self.page.plot_open())
-        self.assertTrue(self.page.plot_has_legend('timeseries'))
-        self.page.click_close_plot()
+        if self.user_type == 'regular':
+            pass
+        else:
+            self.page.click_bottom_icon('timeseries')
+            self.assertTrue(self.page.plot_open())
+            self.assertTrue(self.page.plot_has_legend('timeseries'))
+            self.page.click_close_plot()
 
     def test_web_status_plot_open_vmdata(self):
         # Opens the plot for the VM data poller
-        self.page.click_bottom_icon('VMdata')
-        self.assertTrue(self.page.plot_open())
-        self.assertTrue(self.page.plot_has_legend('VMdata'))
-        self.page.click_close_plot()
+        if self.user_type == 'regular':
+            pass
+        else:
+            self.page.click_bottom_icon('VMdata')
+            self.assertTrue(self.page.plot_open())
+            self.assertTrue(self.page.plot_has_legend('VMdata'))
+            self.page.click_close_plot()
 
     def test_web_status_plot_open_watch(self):
         # Opens the plot for the open watch poller
-        self.page.click_bottom_icon('watch')
-        self.assertTrue(self.page.plot_open())
-        self.assertTrue(self.page.plot_has_legend('watch'))
-        self.page.click_close_plot()
+        if self.user_type == 'regular':
+            pass
+        else:
+            self.page.click_bottom_icon('watch')
+            self.assertTrue(self.page.plot_open())
+            self.assertTrue(self.page.plot_has_legend('watch'))
+            self.page.click_close_plot()
 
     def test_web_status_plot_open_ec_two(self):
         # Opens the plot for the ec2 poller
-        self.page.click_bottom_icon('ec2')
-        self.assertTrue(self.page.plot_open())
-        self.assertTrue(self.page.plot_has_legend('ec2'))
-        self.page.click_close_plot()
+        if self.user_type == 'regular':
+            pass
+        else:
+            self.page.click_bottom_icon('ec2')
+            self.assertTrue(self.page.plot_open())
+            self.assertTrue(self.page.plot_has_legend('ec2'))
+            self.page.click_close_plot()
 
     def test_web_status_plot_open_openstack(self):
         # Opens the plot for the openstack poller
-        self.page.click_bottom_icon('openstack')
-        self.assertTrue(self.page.plot_open())
-        self.assertTrue(self.page.plot_has_legend('openstack'))
-        self.page.click_close_plot()
+        if self.user_type == 'regular':
+            pass
+        else:
+            self.page.click_bottom_icon('openstack')
+            self.assertTrue(self.page.plot_open())
+            self.assertTrue(self.page.plot_has_legend('openstack'))
+            self.page.click_close_plot()
 
     def test_web_status_plot_open_time_hours_one(self):
         # Sets the plot's time range to the last hour
@@ -673,7 +697,7 @@ class TestWebStatusRegularUserFirefox(TestWebStatusCommon):
     def setUpClass(cls):
         try:
             wtsc.setup(cls, 1, ['servers', 'status', 'jobs'], browser='firefox')
-            super(TestWebStatusRegularUserFirefox, cls).setUpClass()
+            super(TestWebStatusRegularUserFirefox, cls).setUpClass(user_type='regular')
             print("\nStatus Tests (Regular User):")
         except:
             print("Error in test setup")
@@ -699,7 +723,7 @@ class TestWebStatusRegularUserChromium(TestWebStatusCommon):
     def setUpClass(cls):
         try:
             wtsc.setup(cls, 1, ['servers', 'status', 'jobs'], browser='chromium')
-            super(TestWebStatusRegularUserChromium, cls).setUpClass()
+            super(TestWebStatusRegularUserChromium, cls).setUpClass(user_type='regular')
             print("\nStatus Tests (Chromium) (Regular User):")
         except:
             print("Error in test setup")
@@ -725,7 +749,7 @@ class TestWebStatusRegularUserOpera(TestWebStatusCommon):
     def setUpClass(cls):
         try:
             wtsc.setup(cls, 1, ['servers', 'status', 'jobs'], browser='opera')
-            super(TestWebStatusRegularUserOpera, cls).setUpClass()
+            super(TestWebStatusRegularUserOpera, cls).setUpClass(user_type='regular')
             print("\nStatus Tests (Opera) (Regular User):")
         except:
             print("Error in test setup")
@@ -751,7 +775,7 @@ class TestWebStatusRegularUserChrome(TestWebStatusCommon):
     def setUpClass(cls):
         try:
             wtsc.setup(cls, 1, ['servers', 'status', 'jobs'], browser='chrome')
-            super(TestWebStatusRegularUserChrome, cls).setUpClass()
+            super(TestWebStatusRegularUserChrome, cls).setUpClass(user_type='regular')
             print("\nStatus Tests (Chrome) (Regular User):")
         except:
             print("Error in test setup")

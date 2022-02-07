@@ -94,7 +94,7 @@ def main(gvar):
         gvar, 0, None, None,
         '/server/config/', group=ut_id(gvar, 'stg1'),
         expected_list='config_list', list_filter={'category': 'condor_poller.py', 'config_key': 'log_level'},
-        values={'config_type': 'int', 'config_value': '20'},
+        values={'config_type': 'int', 'config_value': '30'},
         server_user=ut_id(gvar, 'stu1')
     )
 

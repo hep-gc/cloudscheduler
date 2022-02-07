@@ -141,7 +141,7 @@ select {
 }
 
 .top-nav .clouds-nav {
-  width: 42;
+  width: 82;
 }
 
 .top-nav .alias-nav {
@@ -149,7 +149,7 @@ select {
 }
 
 .top-nav .defaults-nav {
-  width: 52;
+  width: 85;
 }
 
 .top-nav .images-nav {
@@ -157,7 +157,7 @@ select {
 }
 
 .top-nav .keys-nav {
-  width: 42;
+  width: 32;
 }
 
 .top-nav .users-nav {
@@ -169,7 +169,7 @@ select {
 }
 
 .top-nav .config-nav {
-  width: 41;
+  width: 93;
 }
 
 .top-nav .settings-nav {

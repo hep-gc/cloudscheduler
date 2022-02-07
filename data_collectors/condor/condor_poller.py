@@ -464,10 +464,12 @@ def job_poller():
 
                 # build group_users dict
                 htcondor_other_submitters = group["htcondor_other_submitters"]
+                user_list = []
                 if htcondor_other_submitters == 'ALL':
-                    rc, msg, users = config.db_query(USERS)
-                    for usr in users:
-                        user_list.append(usr["username"])
+                    #rc, msg, users = config.db_query(USERS)
+                    #for usr in users:
+                    #    user_list.append(usr["username"])
+                    user_list = ["ALL"]
                 else:
                     where_clause = "group_name='%s'" % group["group_name"]
                     rc, msg, users = config.db_query(USERS, where=where_clause)
@@ -649,20 +651,21 @@ def job_poller():
                         continue
 
                     # check if user is valid for this group
-                    if job_dict['Owner'] not in group_users[job_dict['group_name']]:
-                        # this user isn''t registered with this group and thus cannot submit jobs to it
-                        logging.debug("User '%s' is not registered to submit jobs to %s, excluding as foreign job." % (job_dict['Owner'], job_dict['group_name']))
-                        foreign_jobs = foreign_jobs+1
-                        held_jobs = held_jobs + 1
-                        if job_dict["JobStatus"] != 5:
-                            held_job_ids.append(str(job_dict["ClusterId"]) +"."+ str(job_dict["ProcId"]))
-                        if "invalidusr" not in job_errors:
-                            job_errors["invalidusr"] = 1
-                            job_errors["invalidusrinfo"] = {"Invalid user: %s for group: %s" % (job_dict['Owner'], job_dict['group_name'])}
-                        else:
-                            job_errors["invalidusr"] = job_errors["invalidusr"] + 1
-                            job_errors["invalidusrinfo"].add("Invalid user: %s for group: %s" % (job_dict['Owner'], job_dict['group_name']))
-                        continue
+                    if group_users[job_dict['group_name']] and "ALL" not in group_users[job_dict['group_name']]:
+                        if job_dict['Owner'] not in group_users[job_dict['group_name']]:
+                            # this user isn''t registered with this group and thus cannot submit jobs to it
+                            logging.debug("User '%s' is not registered to submit jobs to %s, excluding as foreign job." % (job_dict['Owner'], job_dict['group_name']))
+                            foreign_jobs = foreign_jobs+1
+                            held_jobs = held_jobs + 1
+                            if job_dict["JobStatus"] != 5:
+                                held_job_ids.append(str(job_dict["ClusterId"]) +"."+ str(job_dict["ProcId"]))
+                            if "invalidusr" not in job_errors:
+                                job_errors["invalidusr"] = 1
+                                job_errors["invalidusrinfo"] = {"Invalid user: %s for group: %s" % (job_dict['Owner'], job_dict['group_name'])}
+                            else:
+                                job_errors["invalidusr"] = job_errors["invalidusr"] + 1
+                                job_errors["invalidusrinfo"].add("Invalid user: %s for group: %s" % (job_dict['Owner'], job_dict['group_name']))
+                            continue
 
                     # Some jobs have an expression for the request disk causing us to store a string
                     # this should resolve the expression or us an alternative if unable
@@ -809,115 +812,6 @@ def job_poller():
         logging.error(exc)
         config.db_close()
 
-def job_command_poller():
-    multiprocessing.current_process().name = "Job Command Poller"
-
-    config = Config(sys.argv[1], ["condor_poller.py", "ProcessMonitor"], pool_size=3, signals=True)
-    PID_FILE = config.categories["ProcessMonitor"]["pid_path"] + os.path.basename(sys.argv[0])
-    Job = "condor_jobs"
-    GROUPS = "csv2_groups"
-
-    cycle_start_time = 0
-    new_poll_time = 0
-    poll_time_history = [0,0,0,0]
-    last_heartbeat_time = 0
-
-    try:
-        while True:
-            config.db_open()
-            last_heartbeat_time = log_heartbeat_message(last_heartbeat_time, "JOB COMMAND POLLER")
-            config.refresh()
-
-            if not os.path.exists(PID_FILE):
-                logging.debug("Stop set, exiting...")
-                break
-
-            signal.signal(signal.SIGINT, signal.SIG_IGN)
-
-            new_poll_time, cycle_start_time = start_cycle(new_poll_time, cycle_start_time)
-
-            where_clause = "htcondor_host_id='%s'" % config.local_host_id
-            rc, msg, groups = config.db_query(GROUPS, where=where_clause)
-            condor_hosts_set = set() # use a set here so we dont re-query same host if multiple groups have same host
-            for group in groups:
-                # for containers we will have to issue the commands directly to the container and not the condor fqdn so here it takes precedence 
-                if group.get("htcondor_container_hostname") is not None and group["htcondor_container_hostname"] != "":
-                    condor_hosts_set.add(group["htcondor_container_hostname"])
-                else:
-                    condor_hosts_set.add(group["htcondor_fqdn"])
-
-            fail_commit = False
-            uncommitted_updates = 0
-            for condor_host in condor_hosts_set: 
-                try:
-                    coll = htcondor.Collector(condor_host)
-                    try:
-                        scheddAd = coll.locate(htcondor.DaemonTypes.Schedd, condor_host)
-                    except:
-                        # Sometimes the name of the daemon does not match the name of the condor host but if we dont provide a name it will look for a local thread
-                        scheddAd = coll.locate(htcondor.DaemonTypes.Schedd)
-                    condor_session = htcondor.Schedd(scheddAd)
-                except Exception as exc:
-                    logging.warning("Failed to locate condor daemon, skipping: %s" % condor_host)
-                    logging.debug(exc)
-                    delete_cycle = False
-                    continue
-
-                #Query database for any entries that have a command flag
-                abort_cycle = False
-                where_clause = "hold_job_reason is not NULL"
-                rc, msg, job_rows = config.db_query(Job, where=where_clause)
-                for job in job_rows:
-                    logging.info("Holding job %s, reason=%s" % (job["global_job_id"], job["hold_job_reason"]))
-                    local_job_id = job["global_job_id"].split('#')[1]
-                    try:
-                        condor_session.edit([local_job_id,], "JobStatus", "5")
-                        condor_session.edit([local_job_id,], "HoldReason", '"%s"' % job["hold_job_reason"])
-
-                        job["job_status"] = 5
-                        job["hold_job_reason"] = None
-                        config.db_merge(JOB, job)
-                        uncommitted_updates = uncommitted_updates + 1
-                        
-                    except Exception as exc:
-                        logging.error("Failed to hold job, rebooting command poller...")
-                        logging.error(exc)
-                        exit(1)
-
-                    try:
-                        config.db_commit()
-                    except Exception as exc:
-                        logging.error("Failed to commit job changes, aborting cycle...")
-                        logging.error(exc)
-                        config.db_rollback()
-                        abort_cycle=True
-                        fail_commit = True
-                        break
-
-                if abort_cycle:
-                    config.db_rollback()
-                    wait_cycle(cycle_start_time, poll_time_history, config.categories["condor_poller.py"]["sleep_interval_command"], config)
-                    continue
-
-            if uncommitted_updates > 0:
-                logging.info("Job command updates committed: %d" % uncommitted_updates)
-            if fail_commit:
-                logging.info("Previous had failed commit")
-                del condor_session
-                time.sleep(config.categories["condor_poller.py"]["sleep_interval_command"])
-                continue
-
-            logging.debug("Completed command consumer cycle")
-            signal.signal(signal.SIGINT, config.signals['SIGINT'])
-            if not os.path.exists(PID_FILE):
-                logging.info("Stop set, exiting...")
-                break
-            wait_cycle(cycle_start_time, poll_time_history, config.categories["condor_poller.py"]["sleep_interval_command"], config)
-
-    except Exception as exc:
-        logging.exception("Job poller while loop exception, process terminating...")
-        logging.error(exc)
-        del condor_session
 
 def machine_poller():
     multiprocessing.current_process().name = "Machine Poller"
@@ -1251,6 +1145,7 @@ def machine_command_poller(arg_list):
     except Exception as exc:
         logging.exception("Command consumer while loop exception, process terminating...")
         logging.error(exc)
+        config.db_close()
 
 def worker_gsi_poller():
     multiprocessing.current_process().name = "Worker GSI Poller"
@@ -1403,7 +1298,11 @@ def condor_gsi_poller():
                         logging.error('Condor host: "%s",  GSI (not configured) update failed, exception: %s' % (condor, ex))
 
             else:
-                logging.warning('Unable to retrieve certificate')
+                try:
+                    config.db_execute('update csv2_groups set htcondor_gsi_dn=NULL,htcondor_gsi_eol=0 where htcondor_fqdn="%s";' % condor) 
+                    logging.warning('Unable to retrieve certificate')
+                except Exception as ex:
+                    logging.error('Condor host: "%s" GSI unset failed, exception: %s' % (condor, ex))
 
             config.db_rollback()
 
@@ -1422,7 +1321,6 @@ def condor_gsi_poller():
 if __name__ == '__main__':
 
     process_ids = {
-        'job_command':      job_command_poller,
         'job':              job_poller,
         'machine_command':  [machine_command_poller, 'select distinct cc.group_name, cloud_name from csv2_clouds as cc left outer join csv2_groups as cg on cc.group_name = cg.group_name where htcondor_fqdn = "%s";' % socket.gethostname()],
         'machine':          machine_poller,

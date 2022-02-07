@@ -6,3 +6,7 @@ body.clouds-nav input[type="text"], body.clouds-nav input[type="password"], body
   width: 200px;
 }
 
+.tab-content.exclusions-div {
+  width: 220px;
+}
+

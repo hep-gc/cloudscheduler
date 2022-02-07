@@ -156,6 +156,16 @@ def tx_request(self, tx_id):
         config.db_commit()
         config.db_close()
         return False
+
+    if not uploaded_image:
+        logger.error("Upload image returns false")
+        tx_row["status"] = "error"
+        tx_row["message"] = "Upload image returns false"
+        config.db_merge(IMG_TX, tx_row)
+        config.db_commit()
+        config.db_close()
+        return False
+
     logger.info("Image upload complete")
     print("Image upload complete")
     # add new image row

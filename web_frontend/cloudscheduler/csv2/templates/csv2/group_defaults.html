@@ -135,7 +135,7 @@
 
                                 <tr class="highlight3"><td><label for="vm_keyname">VM Keyname</label></td>
                                 <td><select name="vm_keyname" class="dropdown"/>
-                                <option value=""></option>
+                                <option value="">Auto detect</option>
                                 {% for key in keypairs_list %}
                                     {% if key == group.vm_keyname %}
                                         <option value="{{ key }}" selected>{{ key }}</option>
@@ -147,7 +147,7 @@
 
                                 <tr class="highlight3"><td><label for="vm_image">VM Image</label></td>
                                 <td><select name="vm_image" class="dropdown"/>
-                                <option value=""></option>
+                                <option value="">Auto detect</option>
                                 {% for image in image_list %}
                                     {% if image == group.vm_image %}
                                         <option value="{{ image }}" selected>{{ image }}</option>
@@ -158,7 +158,7 @@
 
                                 <tr class="highlight3"><td><label for="vm_flavor">VM Flavor</label></td>
                                 <td><select name="vm_flavor" class="dropdown"/>
-                                <option value=""></option>
+                                <option value="">Auto detect</option>
                                 {% for flavor in flavor_list %}
                                     {% if flavor == group.vm_flavor %}
                                         <option value="{{ flavor }}" selected>{{ flavor }}</option>
@@ -169,7 +169,7 @@
 
                                 <tr class="highlight3"><td><label for="vm_network">VM Network</label></td>
                                 <td><select name="vm_network" class="dropdown"/>
-                                <option value=""></option>
+                                <option value="">Auto detect</option>
                                 {% for network in network_list %}
                                     {% if network == group.vm_network %}
                                         <option value="{{ network }}" selected>{{ network }}</option>

@@ -28,9 +28,9 @@
                 </div>
             </li>
             <li><a class="status-nav" href="/cloud/status/?{{active_group}}">Status</a></li>
-            <li><a class="clouds-nav" href="/cloud/list/?{{active_group}}">Clouds</a></li>
+            <li><a class="clouds-nav" href="/cloud/list/?{{active_group}}">Cloud Config</a></li>
             <li><a class="alias-nav" href="/alias/list/?{{active_group}}">Aliases</a></li>
-            <li><a class="defaults-nav" href="/group/defaults/?{{active_group}}">Defaults</a></li>
+            <li><a class="defaults-nav" href="/group/defaults/?{{active_group}}">Group Config</a></li>
             <li><a class="images-nav" href="/images/?{{active_group}}">Images</a></li>
             <li><a class="keys-nav" href="/keypairs/?{{active_group}}">Keys</a></li>
         </div>
@@ -39,7 +39,7 @@
             {% if is_superuser %}
                 <li><a class="users-nav" href="/user/list/?{{active_group}}">Users</a></li>
                 <li><a class="groups-nav" href="/group/list/?{{active_group}}">Groups</a></li>
-                <li><a class="config-nav" href="/server/config/?{{active_group}}">Config</a></li>
+                <li><a class="config-nav" href="/server/config/?{{active_group}}">System Config</a></li>
             {% endif %}
             <li><a class="settings-nav" href="/user/settings/?{{active_group}}">User Settings</a></li>
             <li><a class="plugin-nav" href="/repo">HTCondor Plugin</a></li>
