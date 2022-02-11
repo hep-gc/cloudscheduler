@@ -255,10 +255,10 @@ def update(request):
             count = 0
             if fields['vm_hosts'] == 'all':
                 if active_user.active_group and active_user.active_group == 'ALL':
-                    vm_list_raw = config.db_query("view_vms")
+                    rc, msg, vm_list_raw = config.db_query("view_vms")
                 else:
                     where_clause = "group_name='%s'" % active_user.active_group
-                    vm_list_raw = config.db_query("view_vms", where=where_clause)
+                    rc, msg, vm_list_raw = config.db_query("view_vms", where=where_clause)
                 _vm_list = qt(vm_list_raw, filter=qt_filter_get(['cloud_name', 'poller_status'], fields, aliases=ALIASES))
             else:
                 fields['hostname'] = fields['vm_hosts']
