@@ -68,11 +68,13 @@ if __name__ == '__main__':
         'signal_test_receive': signal_test_receive,
         'signal_test_send': signal_test_send,
     }
+    watchdog_exemptions = ["signal_test_delivery", "signal_test_receive", "signal_test_send"]
 
     procMon = ProcessMonitor(
         config_params=[os.path.basename(sys.argv[0]), 'ProcessMonitor', 'signal_monitor'],
         pool_size=15,
-        process_ids=process_ids
+        process_ids=process_ids,
+        watchdog_exemption_list=watchdog_exemptions
         )
 
     config = procMon.get_config()

@@ -11,6 +11,7 @@ from cloudscheduler.lib.db_config import Config
 from cloudscheduler.lib.log_tools import get_frame_info
 from cloudscheduler.lib.ProcessMonitor import ProcessMonitor, check_pid, terminate
 from cloudscheduler.lib.poller_functions import wait_cycle, start_cycle
+from cloudscheduler.lib.watchdog_utils import watchdog_send_heartbeat
 
 def apel_accounting_cleanup():
     multiprocessing.current_process().name = "APEL Accounting Cleanup"
@@ -93,6 +94,7 @@ def vm_data_poller():
 
             signal.signal(signal.SIGINT, signal.SIG_IGN)
             new_poll_time, cycle_start_time = start_cycle(new_poll_time, cycle_start_time)
+            watchdog_send_heartbeat(config, os.getpid(), config.local_host_id)
 
             ssl_access_log_size = os.stat(config.categories[my_config_category]['ssl_access_log']).st_size
             if checkpoint > ssl_access_log_size:
@@ -176,9 +178,10 @@ if __name__ == '__main__':
         'apel_cleanup':   apel_accounting_cleanup,
         'vm_data':        vm_data_poller,
     }
+    watchdog_exemptions = [ "apel_accounting_cleanup",]
 
     my_config_category = os.path.basename(sys.argv[0])
-    procMon = ProcessMonitor(config_params=[my_config_category, "general", 'ProcessMonitor'], pool_size=4, process_ids=process_ids)
+    procMon = ProcessMonitor(config_params=[my_config_category, "general", 'ProcessMonitor'], pool_size=4, process_ids=process_ids, watchdog_exemption_list=watchdog_exemptions)
     config = procMon.get_config()
     logging = procMon.get_logging()
     version = config.get_version()

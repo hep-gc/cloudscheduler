@@ -759,6 +759,17 @@ schema = {
             "cloud_type": {"type": "str", "len": "32", "nulls": "YES"}
             }
         },
+    "csv2_watchdog": {
+        "keys": [
+            "pid",
+            "host_id"
+            ],
+        "columns": {
+            "pid": {"type": "int"},
+            "host_id": {"type": "str", "len": "64", "nulls": "NO"},
+            "last_heartbeat": {"type": "int"}
+            }
+        },
     "django_admin_log": {
         "keys": [
             "id"

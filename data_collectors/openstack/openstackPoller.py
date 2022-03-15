@@ -17,6 +17,7 @@ from cloudscheduler.lib.ProcessMonitor import ProcessMonitor, terminate, check_p
 from cloudscheduler.lib.view_utils import kill_retire
 from cloudscheduler.lib.log_tools import get_frame_info
 from cloudscheduler.lib.signal_functions import event_signal_send
+from cloudscheduler.lib.watchdog_utils import watchdog_send_heartbeat, watchdog_cleanup
 
 #from glintwebui.glint_utils import get_keypair, transfer_keypair, generate_tx_id, check_cache
 from glintwebui.glint_utils import generate_tx_id, check_cache
@@ -137,6 +138,7 @@ def flavor_poller():
                 config.db_open()
                 config.refresh()
                 new_poll_time, cycle_start_time = start_cycle(new_poll_time, cycle_start_time)
+                watchdog_send_heartbeat(config, os.getpid(), config.local_host_id)
                 if not os.path.exists(PID_FILE):
                     logging.info("Falied to get pid file, stop set, exiting...")
                     break
@@ -366,6 +368,7 @@ def image_poller():
 
                 signal.signal(signal.SIGINT, signal.SIG_IGN)
                 new_poll_time, cycle_start_time = start_cycle(new_poll_time, cycle_start_time)
+                watchdog_send_heartbeat(config, os.getpid(), config.local_host_id)
                 config.refresh()
 
                 abort_cycle = False
@@ -626,6 +629,7 @@ def keypair_poller():
 
                 signal.signal(signal.SIGINT, signal.SIG_IGN)
                 new_poll_time, cycle_start_time = start_cycle(new_poll_time, cycle_start_time)
+                watchdog_send_heartbeat(config, os.getpid(), config.local_host_id)
                 config.refresh()
 
                 abort_cycle = False
@@ -825,6 +829,7 @@ def limit_poller():
 
                 signal.signal(signal.SIGINT, signal.SIG_IGN)
                 new_poll_time, cycle_start_time = start_cycle(new_poll_time, cycle_start_time)
+                watchdog_send_heartbeat(config, os.getpid(), config.local_host_id)
                 config.refresh()
 
                 abort_cycle = False
@@ -1053,6 +1058,7 @@ def network_poller():
                 signal.signal(signal.SIGINT, signal.SIG_IGN)
 
                 new_poll_time, cycle_start_time = start_cycle(new_poll_time, cycle_start_time)
+                watchdog_send_heartbeat(config, os.getpid(), config.local_host_id)
                 config.refresh()
 
                 abort_cycle = False
@@ -1261,6 +1267,7 @@ def security_group_poller():
 
                 signal.signal(signal.SIGINT, signal.SIG_IGN)
                 new_poll_time, cycle_start_time = start_cycle(new_poll_time, cycle_start_time)
+                watchdog_send_heartbeat(config, os.getpid(), config.local_host_id)
                 config.refresh()
 
                 abort_cycle = False
@@ -1482,6 +1489,7 @@ def vm_poller():
                 signal.signal(signal.SIGINT, signal.SIG_IGN)
 
                 new_poll_time, cycle_start_time = start_cycle(new_poll_time, cycle_start_time)
+                watchdog_send_heartbeat(config, os.getpid(), config.local_host_id)
                 config.refresh()
 
                 # For each OpenStack cloud, retrieve and process VMs.
@@ -1908,6 +1916,7 @@ def volume_poller():
 
                 signal.signal(signal.SIGINT, signal.SIG_IGN)
                 new_poll_time, cycle_start_time = start_cycle(new_poll_time, cycle_start_time)
+                watchdog_send_heartbeat(config, os.getpid(), config.local_host_id)
                 config.refresh()
 
                 abort_cycle = False
@@ -2130,6 +2139,7 @@ def defaults_replication():
 
             signal.signal(signal.SIGINT, signal.SIG_IGN)
             new_poll_time, cycle_start_time = start_cycle(new_poll_time, cycle_start_time)
+            watchdog_cleanup(config)
 
             rc, msg, group_list = config.db_query(GROUPS)
             for group in group_list:
@@ -2293,9 +2303,10 @@ if __name__ == '__main__':
         'security_group_poller': security_group_poller,
         'volume':                volume_poller
     }
+    watchdog_exemptions = [ "defaults_replication",]
     db_categories = [os.path.basename(sys.argv[0]), "general", "signal_manager", "ProcessMonitor"]
 
-    procMon = ProcessMonitor(config_params=db_categories, pool_size=3, process_ids=process_ids)
+    procMon = ProcessMonitor(config_params=db_categories, pool_size=3, process_ids=process_ids, watchdog_exemption_list=watchdog_exemptions)
     config = procMon.get_config()
     logging = procMon.get_logging()
     version = config.get_version()

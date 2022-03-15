@@ -9,6 +9,7 @@ import os
 import sys
 
 from cloudscheduler.lib.db_config import Config
+from cloudscheduler.lib.watchdog_utils import watchdog_register_process, watchdog_cleanup, watchdog_check_process, watchdog_remove_process
 
 class ProcessMonitor:
     config = None
@@ -20,7 +21,7 @@ class ProcessMonitor:
     log_file = None
     log_level = None
 
-    def __init__(self, config_params, pool_size,  process_ids=None, config_file='/etc/cloudscheduler/cloudscheduler.yaml', log_file=None, log_level=None, log_key=None):
+    def __init__(self, config_params, pool_size,  process_ids=None, config_file='/etc/cloudscheduler/cloudscheduler.yaml', log_file=None, log_level=None, log_key=None, watchdog_exemption_list=None):
         self.config = Config(config_file, config_params, pool_size=pool_size)
         if log_file is None:
             if log_key is not None:
@@ -43,6 +44,7 @@ class ProcessMonitor:
             format='%(asctime)s - %(processName)-12s - %(process)d - %(levelname)s - %(message)s')
         self.logging = logging.getLogger()
         self.process_ids = process_ids
+        self.watchdog_exemption_list = watchdog_exemption_list
         for proc in process_ids:
             if isinstance(process_ids[proc], list):
                 # add dynamic process
@@ -105,6 +107,7 @@ class ProcessMonitor:
 
     def start_all(self):
         # start static_ids
+        self.config.db_open()
         for process in self.static_process_ids:
             if process not in self.processes or not self.processes[process].is_alive():
                 if process in self.processes:
@@ -113,6 +116,8 @@ class ProcessMonitor:
                     logging.info("Starting %s...", process)
                 self.processes[process] = Process(target=self.process_ids[process])
                 self.processes[process].start()
+                if(self.watchdog_exemption_list is None or (self.watchdog_exemption_list is not None and process not in self.watchdog_exemption_list)):
+                    watchdog_register_process(self.config, self.processes[process].pid, self.config.local_host_id)
 
         # start dynamic_ids
         for process in self.dynamic_process_ids:
@@ -124,6 +129,12 @@ class ProcessMonitor:
                 # key here should be function-group-cloud
                 self.processes[process] = Process(target=self.dynamic_process_ids[process]["function"], args = (self.dynamic_process_ids[process]["args"],))
                 self.processes[process].start()
+                logging.debug("Starting before registering %s" % process)
+                if(self.watchdog_exemption_list is None or (self.watchdog_exemption_list is not None and process.split('-')[0] not in self.watchdog_exemption_list)):
+                    logging.info("Registering %s" % self.processes[process].pid)
+                    watchdog_register_process(self.config, self.processes[process].pid, self.config.local_host_id)
+        self.config.db_commit()
+        self.config.db_close()
 
     def restart_process(self, process, dynamic=False):
         # Capture tail of log when process has to restart
@@ -143,6 +154,10 @@ class ProcessMonitor:
             self.processes[process] = Process(target=self.process_ids[process])
             self.processes[process].start()
 
+        if(self.watchdog_exemption_list is None or (self.watchdog_exemption_list is not None and process not in self.watchdog_exemption_list)):
+            watchdog_register_process(self.config, self.processes[process].pid, self.config.local_host_id)
+            self.config.db_commit()
+            
     def is_alive(self, process):
         return self.processes[process].is_alive()
 
@@ -185,6 +200,10 @@ class ProcessMonitor:
                             proc_key = proc + "-" + target_group + "-" + target_cloud
                             if proc_key in self.processes and self.is_alive(proc_key):
                                 logging.info("Stop dynamic set, terminating child: %s" % proc)
+                                #self.config.db_open()
+                                #watchdog_remove_process(self.config, self.processes[proc_key].pid, self.config.local_host_id)
+                                #self.config.db_commit()
+                                #self.config.db_close()
                                 self.processes[proc].terminate()
                     else:
                         self.logging.error("Failed to retrieve child targets from select statement: %s" % msg)
@@ -193,9 +212,19 @@ class ProcessMonitor:
                     logging.info("Stop static set, terminating child: %s" % proc)
                     self.processes[proc].terminate()
 
+
         procs_to_remove = []
         # handle static processes
+        self.config.db_open()
         for process in self.static_process_ids:
+            # first cosnsult watchdog, returns false if stuck detected
+            if(self.watchdog_exemption_list is None or (self.watchdog_exemption_list is not None and process not in self.watchdog_exemption_list)):
+                if(not watchdog_check_process(self.config, self.processes[process].pid, self.config.local_host_id)):
+                    #watchdog detected stuck process
+                    #terminate it
+                    logging.error("Watchdog detected stuck process: %s, restarting..." % process)
+                    self.processes[process].terminate()
+                    self.restart_process(process)
             if process not in self.processes or not self.is_alive(process):
                 if stop:
                     # child proc is dead, and stop flag set, don't restart and remove proc id
@@ -221,7 +250,6 @@ class ProcessMonitor:
         for proc in self.process_ids:
             #check if its a list
             if isinstance(self.process_ids[proc], list):
-                #TODO ADD STOP LOGIC
                 # add dynamic process
                 function = self.process_ids[proc][0]
                 select = self.process_ids[proc][1]
@@ -239,6 +267,16 @@ class ProcessMonitor:
                         proc_key = proc + "-" + target_group + "-" + target_cloud
                         if proc_key in dynamic_procs_set:
                             dynamic_procs_set.remove(proc_key)
+                        #check watchdog for stall first
+                        logging.debug("Checking to see if %s is in %s" % (proc, self.watchdog_exemption_list))
+                        if(self.watchdog_exemption_list is None or (self.watchdog_exemption_list is not None and proc not in self.watchdog_exemption_list)):
+                            logging.debug("Watchdog checking proc_key: %s pid: %s for process: %s" % (proc_key, self.processes[proc_key].pid, proc))
+                            if(not watchdog_check_process(self.config, self.processes[proc_key].pid, self.config.local_host_id)):
+                                #watchdog detected stuck process
+                                #terminate it
+                                logging.error("Watchdog detected stuck process: %s, restarting..." % proc_key)
+                                self.processes[proc_key].terminate()
+                                self.restart_process(proc_key, dynamic=True)
                         if proc_key in self.processes:
                             #check if it's alive
                             if not self.is_alive(proc_key) and not stop:
@@ -246,6 +284,14 @@ class ProcessMonitor:
                                 logging.error("%s process died, restarting...", proc_key)
                                 self.config.update_service_catalog(host_id=self.config.local_host_id, error="%s process died, exit code: %s" % (proc_key, self.processes[proc_key].exitcode))
                                 self.restart_process(proc_key, dynamic=True)
+                            elif not self.is_alive(proc_key) and stop:
+                                #don't restart it
+                                del self.dynamic_process_ids[proc_key]
+                            elif self.is_alive and stop:
+                                #terminate process and delete it
+                                self.processes[proc_key].terminate()
+                                del self.dynamic_process_ids[proc_key]
+
                         else:
                             #else create a new thread
                             dyna_proc = {
@@ -267,7 +313,7 @@ class ProcessMonitor:
         for proc in procs_to_remove:
             if proc in self.process_ids:
                 self.process_ids.pop(proc)
-
+        self.config.db_close()
 
     def _cleanup_event_pids(self, pid):
         path = self.config.categories["ProcessMonitor"]["signal_registry"]
@@ -277,15 +323,20 @@ class ProcessMonitor:
             if os.path.isfile(pid_path):
                 os.unlink(pid_path)
 
-
 def terminate(signal_num, frame):
-    try:
-        logging.info("Recieved signal %s, removing pid file." % signal_num)
-        pid_file = frame.f_globals["PID_FILE"]
-        os.unlink(pid_file)
-    except Exception as exc:
-        logging.debug("Failed to unlink pid file:")
-        logging.debug(exc)
+    if(multiprocessing.current_process().name == "MainProcess"):
+        try:
+            logging.info("Recieved signal %s, removing pid file." % signal_num)
+            pid_file = frame.f_globals["PID_FILE"]
+            os.unlink(pid_file)
+        except Exception as exc:
+            logging.info("Failed to unlink pid file:")
+            logging.info(exc)
+            #putting an exit here as it should terminate
+            exit(1)
+    else:
+       logging.info("Recieved signal %s, terminating child" % signal_num)
+       exit(0)
 
 #Returns false if pid exists, true if pid is gone
 def check_pid(pid_file):
