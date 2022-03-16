@@ -1128,9 +1128,6 @@ def machine_command_poller(arg_list):
             if pair["cloud_name"] == "otter-test":
                 loop_breaker = loop_breaker + 1
 
-            if loop_breaker > 2:
-                logging.critical("LOOP BREAKING (3hr sleep)")
-                time.sleep(3600*3)
             config.db_open()
             last_heartbeat_time = log_heartbeat_message(last_heartbeat_time, "MACHINE COMMAND POLLER")
             config.refresh()
