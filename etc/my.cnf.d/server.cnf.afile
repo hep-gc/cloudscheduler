@@ -12,6 +12,8 @@
 [mysqld]
 max_statement_time=60
 max_connections = 10000
+log-error = /var/log/mysql/error.log
+slow-query-log=/var/log/mysql/slow-query.log
 
 #
 # * Galera-related settings
