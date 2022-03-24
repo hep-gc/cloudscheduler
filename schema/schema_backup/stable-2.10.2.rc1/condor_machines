@@ -1,0 +1,111 @@
+-- MySQL dump 10.19  Distrib 10.3.32-MariaDB, for Linux (x86_64)
+--
+-- Host: localhost    Database: csv2
+-- ------------------------------------------------------
+-- Server version	10.3.32-MariaDB
+
+/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
+/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
+/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
+/*!40101 SET NAMES utf8mb4 */;
+/*!40103 SET @OLD_TIME_ZONE=@@TIME_ZONE */;
+/*!40103 SET TIME_ZONE='+00:00' */;
+/*!40014 SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0 */;
+/*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
+/*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
+/*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
+
+--
+-- Table structure for table `condor_machines`
+--
+
+DROP TABLE IF EXISTS `condor_machines`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `condor_machines` (
+  `name` varchar(128) NOT NULL,
+  `htcondor_host_id` bigint(20) NOT NULL DEFAULT 0,
+  `machine` varchar(256) DEFAULT NULL,
+  `group_name` varchar(32) DEFAULT NULL,
+  `cloud_name` varchar(32) DEFAULT NULL,
+  `condor_host` varchar(64) DEFAULT NULL,
+  `flavor` varchar(32) DEFAULT NULL,
+  `job_id` varchar(128) DEFAULT NULL,
+  `global_job_id` varchar(128) DEFAULT NULL,
+  `address` varchar(512) DEFAULT NULL,
+  `state` varchar(128) DEFAULT NULL,
+  `activity` varchar(128) DEFAULT NULL,
+  `vm_type` varchar(128) DEFAULT NULL,
+  `my_current_time` int(11) DEFAULT NULL,
+  `entered_current_state` int(11) DEFAULT NULL,
+  `start` varchar(128) DEFAULT NULL,
+  `remote_owner` varchar(128) DEFAULT NULL,
+  `total_disk` int(11) DEFAULT NULL,
+  `slot_type` varchar(128) DEFAULT NULL,
+  `slot_cpus` int(11) DEFAULT NULL,
+  `total_slots` int(11) DEFAULT NULL,
+  `idle_time` int(11) DEFAULT NULL,
+  `deprecated-retire_request_time` int(11) NOT NULL DEFAULT 0,
+  `deprecated-retired_time` int(11) NOT NULL DEFAULT 0,
+  PRIMARY KEY (`name`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+/*!40101 SET character_set_client = @saved_cs_client */;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8 */ ;
+/*!50003 SET character_set_results = utf8 */ ;
+/*!50003 SET collation_connection  = utf8_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES,ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50017 DEFINER=`csv2`@`localhost`*/ /*!50003 trigger trigger_add_htcondor_partition
+after insert on condor_machines
+for each row
+begin
+    if NEW.slot_type='Partitionable' then
+        update csv2_vms set htcondor_partitionable_slots=ifnull(htcondor_partitionable_slots,0)+1,htcondor_slots_timestamp=unix_timestamp() where hostname=NEW.machine or hostname=substring_index(NEW.machine,'.',1);
+    elseif NEW.slot_type='Dynamic' then
+        update csv2_vms set htcondor_dynamic_slots=ifnull(htcondor_dynamic_slots,0)+1,htcondor_slots_timestamp=unix_timestamp() where hostname=NEW.machine or hostname=substring_index(NEW.machine,'.',1);
+    end if;
+end */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8 */ ;
+/*!50003 SET character_set_results = utf8 */ ;
+/*!50003 SET collation_connection  = utf8_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES,ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50017 DEFINER=`csv2`@`localhost`*/ /*!50003 trigger trigger_del_htcondor_partition
+after delete on condor_machines
+for each row
+begin
+    if OLD.slot_type='Partitionable' then
+        update csv2_vms set htcondor_partitionable_slots=ifnull(htcondor_partitionable_slots-1,0),htcondor_slots_timestamp=unix_timestamp() where hostname=OLD.machine or hostname=substring_index(OLD.machine,'.',1);
+    elseif OLD.slot_type='Dynamic' then
+        update csv2_vms set htcondor_dynamic_slots=ifnull(htcondor_dynamic_slots-1,0),htcondor_slots_timestamp=unix_timestamp() where hostname=OLD.machine or hostname=substring_index(OLD.machine,'.',1);
+    end if;
+end */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
+
+/*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
+/*!40014 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS */;
+/*!40014 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS */;
+/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
+/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
+/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
+/*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
+
+-- Dump completed on 2022-01-19 11:13:03
