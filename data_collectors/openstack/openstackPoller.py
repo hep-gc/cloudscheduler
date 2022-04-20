@@ -412,6 +412,16 @@ def image_poller():
                     conn_time_cost = int(conn_time - pre_req_time)
 
                     if glance is False:
+                        for cloud_tuple in unique_cloud_dict[cloud]['groups']:
+                            grp_nm = cloud_tuple[0]
+                            cld_nm = cloud_tuple[1]
+                            if cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"] not in failure_dict:
+                                failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"]] = 1
+                            else:
+                                failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"]] = failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"]] + 1
+                            if failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"]] > 3: #should be configurable
+                                logging.error("Failure threshhold limit reached for %s, manual action required, reporting cloud error" % grp_nm+cld_nm)
+                                config.incr_cloud_error(grp_nm, cld_nm)
                         logging.info("Openstack glance connection failed for %s, skipping this cloud..." % cloud_name)
                         continue
                     
@@ -557,7 +567,9 @@ def image_poller():
                             "cloud_name": cloud["cloud_name"],
                             "communication_up": 0
                         }
+                        config.db_update(CLOUD, cloud_update_dict)
                         config.db_commit()
+                        logging.error("Communication down for %s:%s" % (grp_nm, cld_nm))
 
                 # Scan the OpenStack images in the database, removing each one that is not in the inventory.
                 logging.debug("Doing deletes, omitting failures: %s" % new_f_dict)
@@ -669,6 +681,17 @@ def keypair_poller():
                     nova = get_nova_connection(sess, region=unique_cloud_dict[cloud]['cloud_obj']["region"])
 
                     if nova is False:
+                        for cloud_tuple in unique_cloud_dict[cloud]['groups']:
+                            grp_nm = cloud_tuple[0]
+                            cld_nm = cloud_tuple[1]
+                            if cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"] not in failure_dict:
+                                failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"]] = 1
+                            else:
+                                failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"]] = failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"]] + 1
+                            if failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"]] > 3: #should be configurable
+                                logging.error("Failure threshhold limit reached for %s, manual action required, reporting cloud error" % grp_nm+cld_nm)
+                                config.incr_cloud_error(grp_nm, cld_nm)
+
                         logging.info("Openstack nova connection failed for %s, skipping this cloud..." % cloud_name)
                         continue
 
@@ -1833,6 +1856,7 @@ def vm_poller():
                         }
                         config.db_update(CLOUD, cloud_row)
                         config.db_commit()
+                        logging.error("Communication down for %s:%s" % (cloud["group_name"], cloud["cloud_name"]))
 
                 # since the new inventory function doesn't accept a failfure dict we need to screen the rows ourself
                 rows = []            
