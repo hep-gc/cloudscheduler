@@ -271,7 +271,14 @@ class ProcessMonitor:
                         logging.debug("Checking to see if %s is in %s" % (proc, self.watchdog_exemption_list))
                         if(self.watchdog_exemption_list is None or (self.watchdog_exemption_list is not None and proc not in self.watchdog_exemption_list)):
                             logging.debug("Watchdog checking proc_key: %s pid: %s for process: %s" % (proc_key, self.processes[proc_key].pid, proc))
-                            if(not watchdog_check_process(self.config, self.processes[proc_key].pid, self.config.local_host_id)):
+                            #If proc_key isn't in self.processes it's a new cloud and the thread should get started
+                            #
+                            if(proc_key not in self.processes):
+                                #start the new process
+                                logging.error("Detected new cloud, starting new sub process for %s" % proc_key)
+                                self.processes[process] = Process(target=self.dynamic_process_ids[process]["function"], args = (self.dynamic_process_ids[process]["args"],))
+                                self.processes[process].start()
+                            elif(not watchdog_check_process(self.config, self.processes[proc_key].pid, self.config.local_host_id)):
                                 #watchdog detected stuck process
                                 #terminate it
                                 logging.error("Watchdog detected stuck process: %s, restarting..." % proc_key)
