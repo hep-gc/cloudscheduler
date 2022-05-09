@@ -570,7 +570,8 @@ schema = {
             "vm_keep_alive": {"type": "int"},
             "vm_keyname": {"type": "str", "len": "64", "nulls": "YES"},
             "vm_network": {"type": "str", "len": "64", "nulls": "NO"},
-            "vm_security_groups": {"type": "str", "len": "128", "nulls": "YES"}
+            "vm_security_groups": {"type": "str", "len": "128", "nulls": "YES"},
+            "public_visibility": {"type": "int"}
             }
         },
     "csv2_image_cache": {

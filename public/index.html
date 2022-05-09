@@ -1,0 +1,3747 @@
+ 
+
+<head>
+        
+        
+        
+        <link rel="icon" href="https://csv2-dev.heprc.uvic.ca/static/img/favicon.ico">
+        <title id="title">Public csv2 page</title>
+
+        <input type='hidden' name='refresh_interval' value=0 />
+        <link rel="stylesheet" type="text/css" href="static/csv2/navigation.css">
+        <link rel="stylesheet" type="text/css" href="static/csv2/common.css">
+        <link rel="stylesheet" type="text/css" href="static/csv2/overlay.css">
+        <link rel="stylesheet" type="text/css" href="static/csv2/status.css">
+</head>
+
+<nav class="top-nav">
+    <ul style="background-color: #000000">
+        <div class="float-left">
+            <li class="spacer"> </li>
+            <li><a class="status-nav" style="width: 120">Public csv2 status</a></li>
+        </div>
+        <div class="float-right" style="color: white; text-decoration: underline;">
+            <span><a href="https://github.com/hep-gc/cloudscheduler/issues" target="_blank" rel="noopener noreferrer">Report Issues</a></span>
+        </div>
+        <div class="float-right" style="color: white;">
+            <span><a>|</a></span>
+        </div>
+        <div class="float-right" style="color: white; text-decoration: underline;">
+            <span><a href="https://github.com/hep-gc/cloudscheduler/releases/latest" target="_blank" rel="noopener noreferrer">Version: stable-2.10.1 + 10 commits</a></span>
+        </div>
+        <div class="float-left">
+            <span><a>Status last updated: May 09, 2022 at 15:00:11</a></span>
+        </div>
+    </ul>
+</nav>
+
+<body class="status-nav" onload="set_state();">
+<div class="main-div super-main-div">
+
+<!-- Status tables-->
+    <div class="status-div" id="status">
+
+        <div>
+            <!--
+            <input class="toggle-box" id="toggle-row" type="checkbox" onload="set_state()" onclick="toggle_state();"></input>
+            -->
+            <div class="status-table">
+                <!--
+                <div class="toggle-button">
+                    <label for="toggle-row">
+                        <span class="expand-symbol">&#x25BE;</span>
+                    </label>
+                </div>
+                -->
+                <table>
+                    <colgroup>
+                        
+                            <col class="clear" span="2" />
+                        
+                        <col class="total-row" span="1" />
+                    </colgroup>
+
+                    <tr class="header-row">
+                        <th class="group-name jobs-style">Group</th>
+
+                        
+                            <th class="jobs-style">Target Alias</th>
+                        
+
+                        <th class="jobs-style">Jobs</th>
+                        <th class="jobs-style">Idle</th>
+                        <th class="jobs-style">Running</th>
+                        <th class="jobs-style">Completed</th>
+                        <th class="jobs-style">Held</th>
+                        <th class="jobs-style">Other</th>
+
+                        <th class="col-spacer">&nbsp;</th>
+
+                        <th class="foreign-style">Foreign</th>
+
+                    </tr>
+
+                    
+                        
+                            <tr>
+                                <td class="group-name bold-style" onclick="toggle_id('expand-jobs-default-None')"><div class="float-left">default</div><div id="sym-expand-jobs-default-None" class="float-right">&#x25BE;</div></td>
+                                
+                                
+                                    <td class="bold-style"><div class="float-left">None</div></td>
+
+                                    
+                                        <td data-path="default None jobs" class="more-style float-center plottable">112</td>
+                                    
+
+                                    
+                                        <td tabindex="2" data-path="default None jobs_idle" class="more-style float-center plottable">94</td>
+                                    
+
+                                    
+                                        <td data-path="default None jobs_running" class="more-style float-center plottable">18</td>
+                                    
+
+                                    
+                                        <td data-path="default None jobs_completed" class="zero-style float-center plottable">0</td>
+                                    
+
+                                    
+                                        <td data-path="default None jobs_held" class="zero-style float-center plottable">0</td>
+                                    
+
+                                    
+                                        <td data-path="default None jobs_other" class="zero-style float-center plottable">0</td>
+                                    
+
+                                    <td class="col-spacer">&nbsp;</td>
+                                    
+                                    
+                                        <td data-path="default None jobs_foreign" class="more-style float-center plottable">28</td>
+                                    
+                                
+
+                            </tr>
+
+                            <!-- Jobs expand row to show cores-->
+                            <tr class="extra-row" id="expand-jobs-default-None">
+                                <td onclick="toggle_id('expand-jobs-default-None')"></td>
+                                <td></td>
+                                <td colspan="5">
+                                    <table class="job-extra-row">
+                                        
+                                            
+                                                <tr>
+
+                                                
+                                                    <td></td>
+                                                
+
+                                                
+                                                    <td data-path="default None jobs_idle_1core" class="float-center plottable">94&#10005;1c</td>
+                                                
+
+                                                
+                                                    <td data-path="default None jobs_running_1core" class="float-center plottable">18&#10005;1c</td>
+                                                
+
+                                                
+                                                    <td data-path="default None jobs_completed_1core" class="float-center plottable">&nbsp;</td>
+                                                    <!-- <td class="zero-style">0&#10005;1c</td> -->
+                                                
+
+                                                
+                                                    <td data-path="default None jobs_held_1core" class="float-center plottable">&nbsp;</td>
+                                                    <!-- <td class="zero-style">0&#10005;1c</td> -->
+                                                
+
+                                                
+                                                    <td data-path="default None jobs_other_1core" class="float-center plottable">&nbsp;</td>
+                                                    <!-- <td class="zero-style">0&#10005;1c</td> -->
+
+                                                
+
+                                                </tr>
+                                            
+                                        
+                                    </table>
+                                </td>
+
+                                <td class="col-spacer">&nbsp;</td>
+
+
+                                <td data-path="default jobs_condor_days_left" class="zero-style float-center">
+                                
+                                    </td>
+                                
+                                <td data-path="default jobs_worker_days_left" class="zero-style float-center">
+                                
+                                    </td>
+                                
+                            </tr>
+                        
+                    
+                        
+                            <tr>
+                                <td class="group-name bold-style" onclick="toggle_id('expand-jobs-test-group-None')"><div class="float-left">test-group</div><div id="sym-expand-jobs-test-group-None" class="float-right">&#x25BE;</div></td>
+                                
+                                
+                                    <td class="bold-style"><div class="float-left">None</div></td>
+
+                                    
+                                        <td data-path="test-group None jobs" class="zero-style float-center plottable">0</td>
+                                    
+
+                                    
+                                        <td tabindex="2" data-path="test-group None jobs_idle" class="zero-style float-center plottable">0</td>
+                                    
+
+                                    
+                                        <td data-path="test-group None jobs_running" class="zero-style float-center plottable">0</td>
+                                    
+
+                                    
+                                        <td data-path="test-group None jobs_completed" class="zero-style float-center plottable">0</td>
+                                    
+
+                                    
+                                        <td data-path="test-group None jobs_held" class="zero-style float-center plottable">0</td>
+                                    
+
+                                    
+                                        <td data-path="test-group None jobs_other" class="zero-style float-center plottable">0</td>
+                                    
+
+                                    <td class="col-spacer">&nbsp;</td>
+                                    
+                                    
+                                        <td data-path="test-group None jobs_foreign" class="zero-style float-center plottable">0</td>
+                                    
+                                
+
+                            </tr>
+
+                            <!-- Jobs expand row to show cores-->
+                            <tr class="extra-row" id="expand-jobs-test-group-None">
+                                <td onclick="toggle_id('expand-jobs-test-group-None')"></td>
+                                <td></td>
+                                <td colspan="5">
+                                    <table class="job-extra-row">
+                                        
+                                            
+                                        
+                                    </table>
+                                </td>
+
+                                <td class="col-spacer">&nbsp;</td>
+
+
+                                <td data-path="test-group jobs_condor_days_left" class="zero-style float-center">
+                                
+                                    </td>
+                                
+                                <td data-path="test-group jobs_worker_days_left" class="zero-style float-center">
+                                
+                                    </td>
+                                
+                            </tr>
+                        
+                    
+                        
+                            <tr>
+                                <td class="group-name bold-style" onclick="toggle_id('expand-jobs-test-yaml-None')"><div class="float-left">test-yaml</div><div id="sym-expand-jobs-test-yaml-None" class="float-right">&#x25BE;</div></td>
+                                
+                                
+                                    <td class="bold-style"><div class="float-left">None</div></td>
+
+                                    
+                                        <td data-path="test-yaml None jobs" class="zero-style float-center plottable">0</td>
+                                    
+
+                                    
+                                        <td tabindex="2" data-path="test-yaml None jobs_idle" class="zero-style float-center plottable">0</td>
+                                    
+
+                                    
+                                        <td data-path="test-yaml None jobs_running" class="zero-style float-center plottable">0</td>
+                                    
+
+                                    
+                                        <td data-path="test-yaml None jobs_completed" class="zero-style float-center plottable">0</td>
+                                    
+
+                                    
+                                        <td data-path="test-yaml None jobs_held" class="zero-style float-center plottable">0</td>
+                                    
+
+                                    
+                                        <td data-path="test-yaml None jobs_other" class="zero-style float-center plottable">0</td>
+                                    
+
+                                    <td class="col-spacer">&nbsp;</td>
+                                    
+                                    
+                                        <td data-path="test-yaml None jobs_foreign" class="more-style float-center plottable">28</td>
+                                    
+                                
+
+                            </tr>
+
+                            <!-- Jobs expand row to show cores-->
+                            <tr class="extra-row" id="expand-jobs-test-yaml-None">
+                                <td onclick="toggle_id('expand-jobs-test-yaml-None')"></td>
+                                <td></td>
+                                <td colspan="5">
+                                    <table class="job-extra-row">
+                                        
+                                            
+                                        
+                                    </table>
+                                </td>
+
+                                <td class="col-spacer">&nbsp;</td>
+
+
+                                <td data-path="test-yaml jobs_condor_days_left" class="zero-style float-center">
+                                
+                                    </td>
+                                
+                                <td data-path="test-yaml jobs_worker_days_left" class="zero-style float-center">
+                                
+                                    </td>
+                                
+                            </tr>
+                        
+                    
+
+                    <tr class="bottom-row">
+                        <td colspan="100"></td>
+                        <td class="extra-row">&nbsp;</td>
+                    </tr>
+
+                    </tbody>
+                </table>
+
+            </div>
+
+            <!--
+            https://codepen.io/istro/pen/daker 
+            https://codersblock.com/blog/checkbox-trickery-with-css/
+            -->
+
+            <br>
+            
+            
+            <div class="status-table">
+
+                <table>
+                  <colgroup>
+                    <col class="clear" span="1"/>
+                    <col class="grey" span="1"/>
+                    <col class="clear" span="2"/>
+                    <col class="total-row" span="1"/>
+                    <col class="clear" span="24"/>
+                  </colgroup>
+                    <tr class="header-row">
+                        <th class="group-name jobs-style">Group</th>
+                        <th class="name-style">Clouds</th>
+                        <th class="jobs-style">RT (μs)</th>
+                        <th class="col-spacer">&nbsp;</th>
+                        <th class="native-style">VMs</th>
+                        <th class="native-style">Starting</th>
+                        <th class="native-style">Unreg.</th>
+                        <th class="native-style">Idle</th>                
+                        <th class="native-style">Running</th>
+                        <th class="native-style">Retiring</th>
+                        <th class="native-style">Manual</th>
+                        <th class="native-style">Error</th>
+
+                        <th class="col-spacer">&nbsp;</th>
+
+                        <th class="native-style">Slots</th>
+                        <th class="native-style" colspan="2">
+                            <table>
+                                <tr>
+                                    <th colspan="2">Slot Cores</th>
+                                </tr>
+                                <tr>
+                                    <th>Busy</th>
+                                    <th>Idle</th>
+                                </tr>
+                            </table>
+                        </th>
+
+                        <th class="col-spacer">&nbsp;</th>
+
+                        <th class="native-style" colspan="2">
+                            <table>
+                                <tr>
+                                    <th colspan="2">Native Cores</th>
+                                </tr>
+                                <tr>
+                                    <th>Used</th>
+                                    <th>Limit</th>
+                                </tr>
+                            </table>
+                        </th>
+                        <th class="native-style">RAM</th>
+
+                        
+                            <th class="col-spacer">&nbsp;</th>
+                            
+                            <th class="foreign-style" colspan="3">
+                                <table>
+                                    <tr>
+                                        <th colspan="3">Foreign</th>
+                                    </tr>
+                                    <tr>
+                                        <th>VMs</th>
+                                        <th>Cores</th>
+                                        <th>RAM</th>
+                                    </tr>
+                                </table>
+                            </th>
+
+                            <th class="col-spacer">&nbsp;</th>
+
+                            <th class="total-style" colspan="4">
+                                <table>
+                                    <tr>
+                                        <th colspan="4">Global</th>
+                                    </tr>
+                                    <tr>
+                                        <th>VMs</th>
+                                        <th>Cores</th>
+                                        <th>RAM</th>
+                                        <th>Volume</th>
+                                    </tr>
+                                </table>
+                            </th>
+                        
+                    </tr>
+
+                    
+
+                    
+
+                        
+
+                                
+                                
+                                    <tr>
+                                
+
+                                
+                                    <td class="group-name bold-style" onclick="toggle_group('expand-default')"><div class="float-left">default</div><div id="sym-expand-default" class="float-right">&#x25BE;</div></td>
+                                
+
+                                
+                                    
+                                        <td class="bold-style" onclick="toggle_id('expand-default-arbutus')"><div class="float-left">arbutus</div>
+                                    
+                                
+                                    <div id="sym-expand-default-arbutus" class="float-right">&#x25BE;</div></td>
+
+
+
+                                    <td data-path="default arbutus communication_rt" class="float-center plottable" oncontextmenu="javascript:return false;">
+                                    
+                                        
+                                            3896
+                                        
+                                    
+                                    </td>
+
+
+
+                                    <td class="col-spacer">&nbsp;</td>
+
+
+                                    
+                                        <td data-path="default arbutus VMs" class="more-style float-center plottable" oncontextmenu="javascript:native_list('?default&cloud_name=arbutus&poller_status=&hostname=');return false;">1</td>
+                                    
+
+                                    
+                                        <td data-path="default arbutus VMs_starting" class="zero-style float-center plottable" oncontextmenu="javascript:return false;">0</td>
+                                    
+
+
+                                    
+                                        <td data-path="default arbutus VMs_unregistered" class="zero-style float-center plottable" oncontextmenu="javascript:return false;">0</td>
+                                    
+
+
+                                    
+                                        <td data-path="default arbutus VMs_idle" class="zero-style float-center plottable" oncontextmenu="javascript:return false;">0</td>
+                                    
+
+
+                                    
+                                        <td data-path="default arbutus VMs_running" class="more-style float-center plottable" oncontextmenu="javascript:native_list('?default&cloud_name=arbutus&poller_status=running&hostname=');return false;">1</td>
+                                    
+
+
+                                    
+                                        <td data-path="default arbutus VMs_retiring" class="zero-style float-center plottable" oncontextmenu="javascript:return false;">0</td>
+                                    
+
+
+                                    
+                                        <td data-path="default arbutus VMs_manual" class="zero-style float-center plottable" oncontextmenu="javascript:return false;">0</td>
+                                    
+
+
+                                    
+                                        <td data-path="default arbutus VMs_in_error" class="zero-style float-center plottable" oncontextmenu="javascript:return false;">0</td>
+                                    
+
+                                    <td class="col-spacer">&nbsp;</td>
+
+                                    
+                                        <td data-path="default arbutus slot_count" class="more-style float-center plottable">5</td>
+                                    
+
+
+                                    
+                                        <td data-path="default arbutus slot_core_count" class="more-style float-center plottable">5</td>
+                                    
+
+                                    
+                                        <td data-path="default arbutus slot_idle_core_count" class="more-style float-center plottable">3</td>
+                                    
+
+                                    <td class="col-spacer">&nbsp;</td>
+
+                                    
+                                        <td data-path="default arbutus cores_native" class="manual-style float-center plottable">8</td>
+                                    
+
+                                    
+                                        
+                                            <td data-path="default arbutus cores_limit" class="manual-style float-center plottable">8</td>
+                                        
+                                    
+                                    
+                                    <td data-path="default arbutus ram_native" class="float-center plottable">
+                                        
+                                            
+                                                <meter class="ram-meter " min="0" low="0" optimum="7680000.0" high="13824000.0" max="15360000" value="30720.0"></meter>
+                                            
+                                        
+                                    </td>
+
+
+                                    
+                                        <td class="col-spacer">&nbsp;</td>
+
+
+                                        
+                                            <td data-path="default arbutus Foreign_VMs" class="more-style float-center plottable" oncontextmenu="javascript:foreign_list('?default&cloud_name=arbutus&global_view=0');return false;">413</td>
+                                        
+
+
+
+                                        
+                                            <td data-path="default arbutus cores_foreign" class="more-style float-center plottable">3288</td>
+                                        
+
+                                        <td data-path="default arbutus ram_foreign" class="float-center plottable">
+                                            
+                                                
+                                                    <meter class="ram-meter " min="0" low="0" optimum="7680000.0" high="13824000.0" max="15360000" value="12633600.0"></meter>
+                                                
+                                            
+                                        </td>
+
+                                        <td class="col-spacer">&nbsp;</td>
+
+                                        
+                                            <td data-path="default arbutus VMs_native_foreign" class="more-style float-center plottable">414</td>
+                                        
+
+
+
+                                        
+                                            <td data-path="default arbutus cores_native_foreign" class="more-style float-center plottable">3296</td>
+                                        
+
+
+
+                                        <td data-path="default arbutus ram_native_foreign" class="float-center plottable">
+                                            
+                                                
+                                                    <meter class="ram-meter " min="0" low="0" optimum="7680000.0" high="13824000.0" max="15360000" value="12664320.0"></meter>
+                                                
+                                                                    
+                                        </td>
+
+                                        <td data-path="default arbutus volume_gigs_used" class="float-center plottable">
+                                        
+                                            <meter class="ram-meter " min="0" low="0" optimum="50000.0" high="90000.0" max="100000" value="28992"></meter>
+                                        
+                                        </td>
+                                    
+                                </tr>
+
+                                <!-- Cloud status expand row to show details-->
+                                
+                                    
+                                         <tr class="extra-row expand-default" id="expand-default-arbutus">
+                                     
+                                
+
+
+                                    <td onclick="toggle_group('expand-default')"></td>
+                                    <td onclick="toggle_id('expand-default-arbutus')" style="text-align: left">
+                                        
+                                        
+                                        
+                                    </td>
+
+                                    <td>
+                                    
+                                        
+                                    
+                                    </td>
+
+
+                                    <td class="col-spacer">&nbsp;</td>
+
+                                    <td>
+                                    </td>
+
+                                    <td>
+                                    </td>
+
+                                    <td>
+                                    </td>
+
+                                    <td>
+                                    </td>
+
+                                    <td>
+                                    </td>
+
+                                    <td>
+                                    </td>
+
+                                    <td>
+                                    </td>
+
+                                    <td>
+                                    </td>
+
+                                    <td class="col-spacer">&nbsp;</td>
+
+                                    <td colspan="3" class="slot-detail">  
+
+                                        <table>
+
+                                        
+                                            
+
+                                                
+
+                                                    <tr>
+                                                        <td colspan="5" class="float-left">Flavor: c8-30gb-186 (8) Busy: 5 Idle: 3 (37.5 %)</td>
+                                                    </tr>
+                                                    <tr><td colspan="5">&nbsp;</td></tr>
+
+                                                    
+                                                        
+
+                                                                                                    
+                                                            <tr>
+                                                                <td></td>
+                                                                <td colspan="4">1 core slot totals - slots: 5 cores: 5</td>
+                                                            </tr>
+                                                            <tr class="slot-detail">
+                                                                <td></td>
+                                                                <td></td>
+                                                                <td><b>ID</b></td>
+                                                                <td><b>Slots</b></td>
+                                                                <td><b>Cores</b></td>
+                                                            </tr>
+                                                            
+                                                                
+
+                                                                <tr class="slot-detail">
+                                                                    <!--<td>1</td>-->
+                                                                    <td></td>
+                                                                    <td></td>
+                                                                    <td>1_1</td>
+                                                                    <td>1</td>
+                                                                    <td>1</td>
+                                                                </tr>
+                                                                
+                                                            
+                                                                
+
+                                                                <tr class="slot-detail">
+                                                                    <!--<td>1</td>-->
+                                                                    <td></td>
+                                                                    <td></td>
+                                                                    <td>1_2</td>
+                                                                    <td>1</td>
+                                                                    <td>1</td>
+                                                                </tr>
+                                                                
+                                                            
+                                                                
+
+                                                                <tr class="slot-detail">
+                                                                    <!--<td>1</td>-->
+                                                                    <td></td>
+                                                                    <td></td>
+                                                                    <td>1_3</td>
+                                                                    <td>1</td>
+                                                                    <td>1</td>
+                                                                </tr>
+                                                                
+                                                            
+                                                                
+
+                                                                <tr class="slot-detail">
+                                                                    <!--<td>1</td>-->
+                                                                    <td></td>
+                                                                    <td></td>
+                                                                    <td>1_4</td>
+                                                                    <td>1</td>
+                                                                    <td>1</td>
+                                                                </tr>
+                                                                
+                                                            
+                                                                
+
+                                                                <tr class="slot-detail">
+                                                                    <!--<td>1</td>-->
+                                                                    <td></td>
+                                                                    <td></td>
+                                                                    <td>1_5</td>
+                                                                    <td>1</td>
+                                                                    <td>1</td>
+                                                                </tr>
+                                                                
+                                                            
+                                                                
+                                                            
+                                                                
+                                                            
+                                                                
+                                                            
+                                                                
+                                                            
+                                                                
+                                                            
+                                                                
+                                                            
+                                                            <tr><td colspan="4">&nbsp;</td></tr>
+                                                        
+
+                                                    
+                                                
+                                                        
+                                                
+                                                        
+                                                
+                                                        
+                                                
+
+                                                
+                                            
+
+                                                
+                                            
+
+                                                
+                                            
+
+                                                
+                                            
+                                        
+                                        
+
+
+
+                                        </table>
+                                    </td>
+
+                                    <td class="col-spacer">&nbsp;</td>
+
+                                    <td colspan="2">
+
+                                    
+                                        
+                                            <p>User limit</p>
+                                        
+                                    
+
+                                    </td>
+                                    <td>
+                                        
+                                            
+                                                0.0 / 14.6 TB
+                                            
+                                        
+                                    </td>
+
+                                    
+                                        <td class="col-spacer">&nbsp;</td>
+
+                                        <td><!--Foreign VMs-->
+                                        </td>
+                                        <td><!--Foreign Cores--></td>
+                                        <td>
+                                            
+                                                
+                                                    12.0 / 14.6 TB
+                                                
+                                            
+                                        </td>
+                                        <td class="col-spacer">&nbsp;</td>
+
+                                        <td>414 / 10000</td>
+
+
+                                        <td>3296 / 
+                                            
+                                                5000
+                                            
+                                        </td>                                 
+                                        <td>
+                                            
+                                                
+                                                    12.1 / 14.6 TB
+                                                
+                                            
+                                        </td>
+                                    
+                                </tr>
+
+
+                                
+
+
+                        
+                    
+                    
+
+                        
+
+                                
+                                
+                                    <tr>
+                                
+
+                                
+                                    <td class="group-name bold-style" onclick="toggle_group('expand-default')"></td>
+                                
+
+                                
+                                    
+                                        <td class="bold-style" onclick="toggle_id('expand-default-otter-test')"><div class="float-left">otter-test</div>
+                                    
+                                
+                                    <div id="sym-expand-default-otter-test" class="float-right">&#x25BE;</div></td>
+
+
+
+                                    <td data-path="default otter-test communication_rt" class="float-center plottable" oncontextmenu="javascript:return false;">
+                                    
+                                        
+                                            1559
+                                        
+                                    
+                                    </td>
+
+
+
+                                    <td class="col-spacer">&nbsp;</td>
+
+
+                                    
+                                        <td data-path="default otter-test VMs" class="more-style float-center plottable" oncontextmenu="javascript:native_list('?default&cloud_name=otter-test&poller_status=&hostname=');return false;">4</td>
+                                    
+
+                                    
+                                        <td data-path="default otter-test VMs_starting" class="zero-style float-center plottable" oncontextmenu="javascript:return false;">0</td>
+                                    
+
+
+                                    
+                                        <td data-path="default otter-test VMs_unregistered" class="zero-style float-center plottable" oncontextmenu="javascript:return false;">0</td>
+                                    
+
+
+                                    
+                                        <td data-path="default otter-test VMs_idle" class="zero-style float-center plottable" oncontextmenu="javascript:return false;">0</td>
+                                    
+
+
+                                    
+                                        <td data-path="default otter-test VMs_running" class="more-style float-center plottable" oncontextmenu="javascript:native_list('?default&cloud_name=otter-test&poller_status=running&hostname=');return false;">4</td>
+                                    
+
+
+                                    
+                                        <td data-path="default otter-test VMs_retiring" class="zero-style float-center plottable" oncontextmenu="javascript:return false;">0</td>
+                                    
+
+
+                                    
+                                        <td data-path="default otter-test VMs_manual" class="zero-style float-center plottable" oncontextmenu="javascript:return false;">0</td>
+                                    
+
+
+                                    
+                                        <td data-path="default otter-test VMs_in_error" class="zero-style float-center plottable" oncontextmenu="javascript:return false;">0</td>
+                                    
+
+                                    <td class="col-spacer">&nbsp;</td>
+
+                                    
+                                        <td data-path="default otter-test slot_count" class="more-style float-center plottable">4</td>
+                                    
+
+
+                                    
+                                        <td data-path="default otter-test slot_core_count" class="more-style float-center plottable">4</td>
+                                    
+
+                                    
+                                        <td data-path="default otter-test slot_idle_core_count" class="more-style float-center plottable">4</td>
+                                    
+
+                                    <td class="col-spacer">&nbsp;</td>
+
+                                    
+                                        <td data-path="default otter-test cores_native" class="manual-style float-center plottable">8</td>
+                                    
+
+                                    
+                                        
+                                            <td data-path="default otter-test cores_limit" class="manual-style float-center plottable">8</td>
+                                        
+                                    
+                                    
+                                    <td data-path="default otter-test ram_native" class="float-center plottable">
+                                        
+                                            
+                                                <meter class="ram-meter " min="0" low="0" optimum="807215.0" high="1452987.0" max="1614430" value="20480.0"></meter>
+                                            
+                                        
+                                    </td>
+
+
+                                    
+                                        <td class="col-spacer">&nbsp;</td>
+
+
+                                        
+                                            <td data-path="default otter-test Foreign_VMs" class="more-style float-center plottable" oncontextmenu="javascript:foreign_list('?default&cloud_name=otter-test&global_view=0');return false;">57</td>
+                                        
+
+
+
+                                        
+                                            <td data-path="default otter-test cores_foreign" class="more-style float-center plottable">398</td>
+                                        
+
+                                        <td data-path="default otter-test ram_foreign" class="float-center plottable">
+                                            
+                                                
+                                                    <meter class="ram-meter " min="0" low="0" optimum="807215.0" high="1452987.0" max="1614430" value="827904.0"></meter>
+                                                
+                                            
+                                        </td>
+
+                                        <td class="col-spacer">&nbsp;</td>
+
+                                        
+                                            <td data-path="default otter-test VMs_native_foreign" class="more-style float-center plottable">61</td>
+                                        
+
+
+
+                                        
+                                            <td data-path="default otter-test cores_native_foreign" class="more-style float-center plottable">406</td>
+                                        
+
+
+
+                                        <td data-path="default otter-test ram_native_foreign" class="float-center plottable">
+                                            
+                                                
+                                                    <meter class="ram-meter " min="0" low="0" optimum="807215.0" high="1452987.0" max="1614430" value="848384.0"></meter>
+                                                
+                                                                    
+                                        </td>
+
+                                        <td data-path="default otter-test volume_gigs_used" class="float-center plottable">
+                                        
+                                            <meter class="ram-meter" min="0" low="0" optimum="0" high="0" max="1" value="0"></meter>
+                                        
+                                        </td>
+                                    
+                                </tr>
+
+                                <!-- Cloud status expand row to show details-->
+                                
+                                    
+                                         <tr class="extra-row expand-default" id="expand-default-otter-test">
+                                     
+                                
+
+
+                                    <td onclick="toggle_group('expand-default')"></td>
+                                    <td onclick="toggle_id('expand-default-otter-test')" style="text-align: left">
+                                        
+                                        
+                                        
+                                    </td>
+
+                                    <td>
+                                    
+                                        
+                                    
+                                    </td>
+
+
+                                    <td class="col-spacer">&nbsp;</td>
+
+                                    <td>
+                                    </td>
+
+                                    <td>
+                                    </td>
+
+                                    <td>
+                                    </td>
+
+                                    <td>
+                                    </td>
+
+                                    <td>
+                                    </td>
+
+                                    <td>
+                                    </td>
+
+                                    <td>
+                                    </td>
+
+                                    <td>
+                                    </td>
+
+                                    <td class="col-spacer">&nbsp;</td>
+
+                                    <td colspan="3" class="slot-detail">  
+
+                                        <table>
+
+                                        
+                                            
+
+                                                
+                                            
+
+                                                
+
+                                                    <tr>
+                                                        <td colspan="5" class="float-left">Flavor: s2 (2) Busy: 4 Idle: 4 (50.0 %)</td>
+                                                    </tr>
+                                                    <tr><td colspan="5">&nbsp;</td></tr>
+
+                                                    
+                                                        
+                                                
+                                                        
+
+                                                                                                    
+                                                            <tr>
+                                                                <td></td>
+                                                                <td colspan="4">1 core slot totals - slots: 4 cores: 4</td>
+                                                            </tr>
+                                                            <tr class="slot-detail">
+                                                                <td></td>
+                                                                <td></td>
+                                                                <td><b>ID</b></td>
+                                                                <td><b>Slots</b></td>
+                                                                <td><b>Cores</b></td>
+                                                            </tr>
+                                                            
+                                                                
+                                                            
+                                                                
+                                                            
+                                                                
+                                                            
+                                                                
+                                                            
+                                                                
+                                                            
+                                                                
+
+                                                                <tr class="slot-detail">
+                                                                    <!--<td>1</td>-->
+                                                                    <td></td>
+                                                                    <td></td>
+                                                                    <td>1_1</td>
+                                                                    <td>4</td>
+                                                                    <td>4</td>
+                                                                </tr>
+                                                                
+                                                            
+                                                                
+                                                            
+                                                                
+                                                            
+                                                                
+                                                            
+                                                                
+                                                            
+                                                                
+                                                            
+                                                            <tr><td colspan="4">&nbsp;</td></tr>
+                                                        
+
+                                                    
+                                                
+                                                        
+                                                
+                                                        
+                                                
+
+                                                
+                                            
+
+                                                
+                                            
+
+                                                
+                                            
+                                        
+                                        
+
+
+
+                                        </table>
+                                    </td>
+
+                                    <td class="col-spacer">&nbsp;</td>
+
+                                    <td colspan="2">
+
+                                    
+                                        
+                                            <p>User limit</p>
+                                        
+                                    
+
+                                    </td>
+                                    <td>
+                                        
+                                            
+                                                0.0 / 1.5 TB
+                                            
+                                        
+                                    </td>
+
+                                    
+                                        <td class="col-spacer">&nbsp;</td>
+
+                                        <td><!--Foreign VMs-->
+                                        </td>
+                                        <td><!--Foreign Cores--></td>
+                                        <td>
+                                            
+                                                
+                                                    0.8 / 1.5 TB
+                                                
+                                            
+                                        </td>
+                                        <td class="col-spacer">&nbsp;</td>
+
+                                        <td>61 / 200</td>
+
+
+                                        <td>406 / 
+                                            
+                                                608
+                                            
+                                        </td>                                 
+                                        <td>
+                                            
+                                                
+                                                    0.8 / 1.5 TB
+                                                
+                                            
+                                        </td>
+                                    
+                                </tr>
+
+
+                                
+
+
+                        
+                    
+                    
+
+                        
+
+                                
+                                
+                                    <tr>
+                                
+
+                                
+                                    <td class="group-name bold-style" onclick="toggle_group('expand-default')"></td>
+                                
+
+                                
+                                    
+                                        <td class="bold-style" onclick="toggle_id('expand-default-test-chameleon')"><div class="float-left">test-chameleon</div>
+                                    
+                                
+                                    <div id="sym-expand-default-test-chameleon" class="float-right">&#x25BE;</div></td>
+
+
+
+                                    <td data-path="default test-chameleon communication_rt" class="float-center plottable" oncontextmenu="javascript:return false;">
+                                    
+                                        
+                                            23862
+                                        
+                                    
+                                    </td>
+
+
+
+                                    <td class="col-spacer">&nbsp;</td>
+
+
+                                    
+                                        <td data-path="default test-chameleon VMs" class="zero-style float-center plottable" oncontextmenu="javascript:return false;">0</td>
+                                    
+
+                                    
+                                        <td data-path="default test-chameleon VMs_starting" class="zero-style float-center plottable" oncontextmenu="javascript:return false;">0</td>
+                                    
+
+
+                                    
+                                        <td data-path="default test-chameleon VMs_unregistered" class="zero-style float-center plottable" oncontextmenu="javascript:return false;">0</td>
+                                    
+
+
+                                    
+                                        <td data-path="default test-chameleon VMs_idle" class="zero-style float-center plottable" oncontextmenu="javascript:return false;">0</td>
+                                    
+
+
+                                    
+                                        <td data-path="default test-chameleon VMs_running" class="zero-style float-center plottable" oncontextmenu="javascript:return false;">0</td>
+                                    
+
+
+                                    
+                                        <td data-path="default test-chameleon VMs_retiring" class="zero-style float-center plottable" oncontextmenu="javascript:return false;">0</td>
+                                    
+
+
+                                    
+                                        <td data-path="default test-chameleon VMs_manual" class="zero-style float-center plottable" oncontextmenu="javascript:return false;">0</td>
+                                    
+
+
+                                    
+                                        <td data-path="default test-chameleon VMs_in_error" class="zero-style float-center plottable" oncontextmenu="javascript:return false;">0</td>
+                                    
+
+                                    <td class="col-spacer">&nbsp;</td>
+
+                                    
+                                        <td data-path="default test-chameleon slot_count" class="more-style float-center plottable">7</td>
+                                    
+
+
+                                    
+                                        <td data-path="default test-chameleon slot_core_count" class="more-style float-center plottable">7</td>
+                                    
+
+                                    
+                                        <td data-path="default test-chameleon slot_idle_core_count" class="more-style float-center plottable">9</td>
+                                    
+
+                                    <td class="col-spacer">&nbsp;</td>
+
+                                    
+                                        <td data-path="default test-chameleon cores_native" class="zero-style float-center plottable">0</td>
+                                    
+
+                                    
+                                        <td data-path="default test-chameleon cores_limit" class="zero-style float-center plottable">0</td>
+                                    
+                                    
+                                    <td data-path="default test-chameleon ram_native" class="float-center plottable">
+                                        
+                                            
+                                                <meter class="ram-meter" min="0" low="0" optimum="0" high="0" max="1" value="0"></meter>
+                                            
+                                        
+                                    </td>
+
+
+                                    
+                                        <td class="col-spacer">&nbsp;</td>
+
+
+                                        
+                                            <td data-path="default test-chameleon Foreign_VMs" class="more-style float-center plottable" oncontextmenu="javascript:foreign_list('?default&cloud_name=test-chameleon&global_view=0');return false;">33</td>
+                                        
+
+
+
+                                        
+                                            <td data-path="default test-chameleon cores_foreign" class="zero-style float-center plottable">0</td>
+                                        
+
+                                        <td data-path="default test-chameleon ram_foreign" class="float-center plottable">
+                                            
+                                                
+                                                    <meter class="ram-meter" min="0" low="0" optimum="0" high="0" max="1" value="0"></meter>
+                                                
+                                            
+                                        </td>
+
+                                        <td class="col-spacer">&nbsp;</td>
+
+                                        
+                                            <td data-path="default test-chameleon VMs_native_foreign" class="more-style float-center plottable">33</td>
+                                        
+
+
+
+                                        
+                                            <td data-path="default test-chameleon cores_native_foreign" class="zero-style float-center plottable">0</td>
+                                        
+
+
+
+                                        <td data-path="default test-chameleon ram_native_foreign" class="float-center plottable">
+                                            
+                                                
+                                                    <meter class="ram-meter" min="0" low="0" optimum="0" high="0" max="1" value="0"></meter>
+                                                
+                                                                    
+                                        </td>
+
+                                        <td data-path="default test-chameleon volume_gigs_used" class="float-center plottable">
+                                        
+                                            <meter class="ram-meter" min="0" low="0" optimum="0" high="0" max="1" value="0"></meter>
+                                        
+                                        </td>
+                                    
+                                </tr>
+
+                                <!-- Cloud status expand row to show details-->
+                                
+                                    
+                                         <tr class="extra-row expand-default" id="expand-default-test-chameleon">
+                                     
+                                
+
+
+                                    <td onclick="toggle_group('expand-default')"></td>
+                                    <td onclick="toggle_id('expand-default-test-chameleon')" style="text-align: left">
+                                        
+                                        
+                                        
+                                    </td>
+
+                                    <td>
+                                    
+                                        
+                                    
+                                    </td>
+
+
+                                    <td class="col-spacer">&nbsp;</td>
+
+                                    <td>
+                                    </td>
+
+                                    <td>
+                                    </td>
+
+                                    <td>
+                                    </td>
+
+                                    <td>
+                                    </td>
+
+                                    <td>
+                                    </td>
+
+                                    <td>
+                                    </td>
+
+                                    <td>
+                                    </td>
+
+                                    <td>
+                                    </td>
+
+                                    <td class="col-spacer">&nbsp;</td>
+
+                                    <td colspan="3" class="slot-detail">  
+
+                                        <table>
+
+                                        
+                                            
+
+                                                
+                                            
+
+                                                
+                                            
+
+                                                
+
+                                                    <tr>
+                                                        <td colspan="5" class="float-left">Flavor: None Busy: 7 Idle: 9 (56.3 %)</td>
+                                                    </tr>
+                                                    <tr><td colspan="5">&nbsp;</td></tr>
+
+                                                    
+                                                        
+                                                
+                                                        
+                                                
+                                                        
+
+                                                                                                    
+                                                            <tr>
+                                                                <td></td>
+                                                                <td colspan="4">1 core slot totals - slots: 7 cores: 7</td>
+                                                            </tr>
+                                                            <tr class="slot-detail">
+                                                                <td></td>
+                                                                <td></td>
+                                                                <td><b>ID</b></td>
+                                                                <td><b>Slots</b></td>
+                                                                <td><b>Cores</b></td>
+                                                            </tr>
+                                                            
+                                                                
+                                                            
+                                                                
+                                                            
+                                                                
+                                                            
+                                                                
+                                                            
+                                                                
+                                                            
+                                                                
+                                                            
+                                                                
+
+                                                                <tr class="slot-detail">
+                                                                    <!--<td>1</td>-->
+                                                                    <td></td>
+                                                                    <td></td>
+                                                                    <td>1_1</td>
+                                                                    <td>2</td>
+                                                                    <td>2</td>
+                                                                </tr>
+                                                                
+                                                            
+                                                                
+
+                                                                <tr class="slot-detail">
+                                                                    <!--<td>1</td>-->
+                                                                    <td></td>
+                                                                    <td></td>
+                                                                    <td>1_2</td>
+                                                                    <td>2</td>
+                                                                    <td>2</td>
+                                                                </tr>
+                                                                
+                                                            
+                                                                
+
+                                                                <tr class="slot-detail">
+                                                                    <!--<td>1</td>-->
+                                                                    <td></td>
+                                                                    <td></td>
+                                                                    <td>1_3</td>
+                                                                    <td>2</td>
+                                                                    <td>2</td>
+                                                                </tr>
+                                                                
+                                                            
+                                                                
+
+                                                                <tr class="slot-detail">
+                                                                    <!--<td>1</td>-->
+                                                                    <td></td>
+                                                                    <td></td>
+                                                                    <td>1_4</td>
+                                                                    <td>1</td>
+                                                                    <td>1</td>
+                                                                </tr>
+                                                                
+                                                            
+                                                                
+                                                            
+                                                            <tr><td colspan="4">&nbsp;</td></tr>
+                                                        
+
+                                                    
+                                                
+                                                        
+                                                
+
+                                                
+                                            
+
+                                                
+                                            
+                                        
+                                        
+
+
+
+                                        </table>
+                                    </td>
+
+                                    <td class="col-spacer">&nbsp;</td>
+
+                                    <td colspan="2">
+
+                                    
+                                        
+                                            <p>User limit</p>
+                                        
+                                    
+
+                                    </td>
+                                    <td>
+                                        
+                                            
+                                                0.0 / 0.0 GB
+                                            
+                                        
+                                    </td>
+
+                                    
+                                        <td class="col-spacer">&nbsp;</td>
+
+                                        <td><!--Foreign VMs-->
+                                        </td>
+                                        <td><!--Foreign Cores--></td>
+                                        <td>
+                                            
+                                                
+                                                    0.0 / 0.0 GB
+                                                
+                                            
+                                        </td>
+                                        <td class="col-spacer">&nbsp;</td>
+
+                                        <td>33 / 0</td>
+
+
+                                        <td>0 / 
+                                            
+                                                0
+                                            
+                                        </td>                                 
+                                        <td>
+                                            
+                                                
+                                                    0.0 / 0.0 GB
+                                                
+                                            
+                                        </td>
+                                    
+                                </tr>
+
+
+                                
+
+
+                        
+                    
+                    
+
+                        
+
+                                
+                                
+                                    <tr>
+                                
+
+                                
+                                    <td class="group-name bold-style" onclick="toggle_group('expand-default')"></td>
+                                
+
+                                
+                                    
+                                        <td class="bold-style" onclick="toggle_id('expand-default-test-cloud-job')"><div class="float-left">test-cloud-job</div>
+                                    
+                                
+                                    <div id="sym-expand-default-test-cloud-job" class="float-right">&#x25BE;</div></td>
+
+
+
+                                    <td data-path="default test-cloud-job communication_rt" class="float-center plottable" oncontextmenu="javascript:return false;">
+                                    
+                                        
+                                            573
+                                        
+                                    
+                                    </td>
+
+
+
+                                    <td class="col-spacer">&nbsp;</td>
+
+
+                                    
+                                        <td data-path="default test-cloud-job VMs" class="more-style float-center plottable" oncontextmenu="javascript:native_list('?default&cloud_name=test-cloud-job&poller_status=&hostname=');return false;">2</td>
+                                    
+
+                                    
+                                        <td data-path="default test-cloud-job VMs_starting" class="zero-style float-center plottable" oncontextmenu="javascript:return false;">0</td>
+                                    
+
+
+                                    
+                                        <td data-path="default test-cloud-job VMs_unregistered" class="zero-style float-center plottable" oncontextmenu="javascript:return false;">0</td>
+                                    
+
+
+                                    
+                                        <td data-path="default test-cloud-job VMs_idle" class="zero-style float-center plottable" oncontextmenu="javascript:return false;">0</td>
+                                    
+
+
+                                    
+                                        <td data-path="default test-cloud-job VMs_running" class="more-style float-center plottable" oncontextmenu="javascript:native_list('?default&cloud_name=test-cloud-job&poller_status=running&hostname=');return false;">2</td>
+                                    
+
+
+                                    
+                                        <td data-path="default test-cloud-job VMs_retiring" class="zero-style float-center plottable" oncontextmenu="javascript:return false;">0</td>
+                                    
+
+
+                                    
+                                        <td data-path="default test-cloud-job VMs_manual" class="zero-style float-center plottable" oncontextmenu="javascript:return false;">0</td>
+                                    
+
+
+                                    
+                                        <td data-path="default test-cloud-job VMs_in_error" class="zero-style float-center plottable" oncontextmenu="javascript:return false;">0</td>
+                                    
+
+                                    <td class="col-spacer">&nbsp;</td>
+
+                                    
+                                        <td data-path="default test-cloud-job slot_count" class="more-style float-center plottable">2</td>
+                                    
+
+
+                                    
+                                        <td data-path="default test-cloud-job slot_core_count" class="more-style float-center plottable">2</td>
+                                    
+
+                                    
+                                        <td data-path="default test-cloud-job slot_idle_core_count" class="more-style float-center plottable">2</td>
+                                    
+
+                                    <td class="col-spacer">&nbsp;</td>
+
+                                    
+                                        <td data-path="default test-cloud-job cores_native" class="manual-style float-center plottable">4</td>
+                                    
+
+                                    
+                                        
+                                            <td data-path="default test-cloud-job cores_limit" class="manual-style float-center plottable">4</td>
+                                        
+                                    
+                                    
+                                    <td data-path="default test-cloud-job ram_native" class="float-center plottable">
+                                        
+                                            
+                                                <meter class="ram-meter " min="0" low="0" optimum="807215.0" high="1452987.0" max="1614430" value="10240.0"></meter>
+                                            
+                                        
+                                    </td>
+
+
+                                    
+                                        <td class="col-spacer">&nbsp;</td>
+
+
+                                        
+                                            <td data-path="default test-cloud-job Foreign_VMs" class="more-style float-center plottable" oncontextmenu="javascript:foreign_list('?default&cloud_name=test-cloud-job&global_view=0');return false;">59</td>
+                                        
+
+
+
+                                        
+                                            <td data-path="default test-cloud-job cores_foreign" class="more-style float-center plottable">402</td>
+                                        
+
+                                        <td data-path="default test-cloud-job ram_foreign" class="float-center plottable">
+                                            
+                                                
+                                                    <meter class="ram-meter " min="0" low="0" optimum="807215.0" high="1452987.0" max="1614430" value="838144.0"></meter>
+                                                
+                                            
+                                        </td>
+
+                                        <td class="col-spacer">&nbsp;</td>
+
+                                        
+                                            <td data-path="default test-cloud-job VMs_native_foreign" class="more-style float-center plottable">61</td>
+                                        
+
+
+
+                                        
+                                            <td data-path="default test-cloud-job cores_native_foreign" class="more-style float-center plottable">406</td>
+                                        
+
+
+
+                                        <td data-path="default test-cloud-job ram_native_foreign" class="float-center plottable">
+                                            
+                                                
+                                                    <meter class="ram-meter " min="0" low="0" optimum="807215.0" high="1452987.0" max="1614430" value="848384.0"></meter>
+                                                
+                                                                    
+                                        </td>
+
+                                        <td data-path="default test-cloud-job volume_gigs_used" class="float-center plottable">
+                                        
+                                            <meter class="ram-meter" min="0" low="0" optimum="0" high="0" max="1" value="0"></meter>
+                                        
+                                        </td>
+                                    
+                                </tr>
+
+                                <!-- Cloud status expand row to show details-->
+                                
+                                    
+                                         <tr class="extra-row expand-default" id="expand-default-test-cloud-job">
+                                     
+                                
+
+
+                                    <td onclick="toggle_group('expand-default')"></td>
+                                    <td onclick="toggle_id('expand-default-test-cloud-job')" style="text-align: left">
+                                        
+                                        
+                                        
+                                    </td>
+
+                                    <td>
+                                    
+                                        
+                                    
+                                    </td>
+
+
+                                    <td class="col-spacer">&nbsp;</td>
+
+                                    <td>
+                                    </td>
+
+                                    <td>
+                                    </td>
+
+                                    <td>
+                                    </td>
+
+                                    <td>
+                                    </td>
+
+                                    <td>
+                                    </td>
+
+                                    <td>
+                                    </td>
+
+                                    <td>
+                                    </td>
+
+                                    <td>
+                                    </td>
+
+                                    <td class="col-spacer">&nbsp;</td>
+
+                                    <td colspan="3" class="slot-detail">  
+
+                                        <table>
+
+                                        
+                                            
+
+                                                
+                                            
+
+                                                
+                                            
+
+                                                
+                                            
+
+                                                
+
+                                                    <tr>
+                                                        <td colspan="5" class="float-left">Flavor: s2 (2) Busy: 2 Idle: 2 (50.0 %)</td>
+                                                    </tr>
+                                                    <tr><td colspan="5">&nbsp;</td></tr>
+
+                                                    
+                                                        
+                                                
+                                                        
+                                                
+                                                        
+                                                
+                                                        
+
+                                                                                                    
+                                                            <tr>
+                                                                <td></td>
+                                                                <td colspan="4">1 core slot totals - slots: 2 cores: 2</td>
+                                                            </tr>
+                                                            <tr class="slot-detail">
+                                                                <td></td>
+                                                                <td></td>
+                                                                <td><b>ID</b></td>
+                                                                <td><b>Slots</b></td>
+                                                                <td><b>Cores</b></td>
+                                                            </tr>
+                                                            
+                                                                
+                                                            
+                                                                
+                                                            
+                                                                
+                                                            
+                                                                
+                                                            
+                                                                
+                                                            
+                                                                
+                                                            
+                                                                
+                                                            
+                                                                
+                                                            
+                                                                
+                                                            
+                                                                
+                                                            
+                                                                
+
+                                                                <tr class="slot-detail">
+                                                                    <!--<td>1</td>-->
+                                                                    <td></td>
+                                                                    <td></td>
+                                                                    <td>1_1</td>
+                                                                    <td>2</td>
+                                                                    <td>2</td>
+                                                                </tr>
+                                                                
+                                                            
+                                                            <tr><td colspan="4">&nbsp;</td></tr>
+                                                        
+
+                                                    
+                                                
+
+                                                
+                                            
+                                        
+                                        
+
+
+
+                                        </table>
+                                    </td>
+
+                                    <td class="col-spacer">&nbsp;</td>
+
+                                    <td colspan="2">
+
+                                    
+                                        
+                                            <p>User limit</p>
+                                        
+                                    
+
+                                    </td>
+                                    <td>
+                                        
+                                            
+                                                0.0 / 1.5 TB
+                                            
+                                        
+                                    </td>
+
+                                    
+                                        <td class="col-spacer">&nbsp;</td>
+
+                                        <td><!--Foreign VMs-->
+                                        </td>
+                                        <td><!--Foreign Cores--></td>
+                                        <td>
+                                            
+                                                
+                                                    0.8 / 1.5 TB
+                                                
+                                            
+                                        </td>
+                                        <td class="col-spacer">&nbsp;</td>
+
+                                        <td>61 / 200</td>
+
+
+                                        <td>406 / 
+                                            
+                                                608
+                                            
+                                        </td>                                 
+                                        <td>
+                                            
+                                                
+                                                    0.8 / 1.5 TB
+                                                
+                                            
+                                        </td>
+                                    
+                                </tr>
+
+
+                                
+
+
+                        
+                    
+                    
+
+                        
+
+                                
+                                
+                                    <tr>
+                                
+
+                                
+                                    <td class="group-name bold-style" onclick="toggle_group('expand-default')"></td>
+                                
+
+                                
+                                    <td class="disabled-style" onclick="toggle_id('expand-default-test-flavor')"><div class="float-left">test-flavor</div>
+                                
+                                    <div id="sym-expand-default-test-flavor" class="float-right">&#x25BE;</div></td>
+
+
+
+                                    <td data-path="default test-flavor communication_rt" class="float-center plottable" oncontextmenu="javascript:return false;">
+                                    
+                                        
+                                            23862
+                                        
+                                    
+                                    </td>
+
+
+
+                                    <td class="col-spacer">&nbsp;</td>
+
+
+                                    
+                                        <td data-path="default test-flavor VMs" class="zero-style float-center plottable" oncontextmenu="javascript:return false;">0</td>
+                                    
+
+                                    
+                                        <td data-path="default test-flavor VMs_starting" class="zero-style float-center plottable" oncontextmenu="javascript:return false;">0</td>
+                                    
+
+
+                                    
+                                        <td data-path="default test-flavor VMs_unregistered" class="zero-style float-center plottable" oncontextmenu="javascript:return false;">0</td>
+                                    
+
+
+                                    
+                                        <td data-path="default test-flavor VMs_idle" class="zero-style float-center plottable" oncontextmenu="javascript:return false;">0</td>
+                                    
+
+
+                                    
+                                        <td data-path="default test-flavor VMs_running" class="zero-style float-center plottable" oncontextmenu="javascript:return false;">0</td>
+                                    
+
+
+                                    
+                                        <td data-path="default test-flavor VMs_retiring" class="zero-style float-center plottable" oncontextmenu="javascript:return false;">0</td>
+                                    
+
+
+                                    
+                                        <td data-path="default test-flavor VMs_manual" class="zero-style float-center plottable" oncontextmenu="javascript:return false;">0</td>
+                                    
+
+
+                                    
+                                        <td data-path="default test-flavor VMs_in_error" class="zero-style float-center plottable" oncontextmenu="javascript:return false;">0</td>
+                                    
+
+                                    <td class="col-spacer">&nbsp;</td>
+
+                                    
+                                        <td data-path="default test-flavor slot_count" class="zero-style float-center plottable">0</td>
+                                    
+
+
+                                    
+                                        <td data-path="default test-flavor slot_core_count" class="zero-style float-center plottable">0</td>
+                                    
+
+                                    
+                                        <td data-path="default test-flavor slot_idle_core_count" class="zero-style float-center plottable">0</td>
+                                    
+
+                                    <td class="col-spacer">&nbsp;</td>
+
+                                    
+                                        <td data-path="default test-flavor cores_native" class="zero-style float-center plottable">0</td>
+                                    
+
+                                    
+                                        <td data-path="default test-flavor cores_limit" class="zero-style float-center plottable">0</td>
+                                    
+                                    
+                                    <td data-path="default test-flavor ram_native" class="float-center plottable">
+                                        
+                                            
+                                                <meter class="ram-meter" min="0" low="0" optimum="0" high="0" max="1" value="0"></meter>
+                                            
+                                        
+                                    </td>
+
+
+                                    
+                                        <td class="col-spacer">&nbsp;</td>
+
+
+                                        
+                                            <td data-path="default test-flavor Foreign_VMs" class="zero-style float-center plottable" oncontextmenu="javascript:foreign_list('?default&cloud_name=test-flavor&global_view=0');return false;">33</td>
+                                        
+
+
+
+                                        
+                                            <td data-path="default test-flavor cores_foreign" class="zero-style float-center plottable">0</td>
+                                        
+
+                                        <td data-path="default test-flavor ram_foreign" class="float-center plottable">
+                                            
+                                                
+                                                    <meter class="ram-meter" min="0" low="0" optimum="0" high="0" max="1" value="0"></meter>
+                                                
+                                            
+                                        </td>
+
+                                        <td class="col-spacer">&nbsp;</td>
+
+                                        
+                                            <td data-path="default test-flavor VMs_native_foreign" class="zero-style float-center plottable">33</td>
+                                        
+
+
+
+                                        
+                                            <td data-path="default test-flavor cores_native_foreign" class="zero-style float-center plottable">0</td>
+                                        
+
+
+
+                                        <td data-path="default test-flavor ram_native_foreign" class="float-center plottable">
+                                            
+                                                
+                                                    <meter class="ram-meter" min="0" low="0" optimum="0" high="0" max="1" value="0"></meter>
+                                                
+                                                                    
+                                        </td>
+
+                                        <td data-path="default test-flavor volume_gigs_used" class="float-center plottable">
+                                        
+                                            <meter class="ram-meter" min="0" low="0" optimum="0" high="0" max="1" value="0"></meter>
+                                        
+                                        </td>
+                                    
+                                </tr>
+
+                                <!-- Cloud status expand row to show details-->
+                                
+                                     <tr class="extra-row expand-default disabled-style" id="expand-default-test-flavor">
+                                
+
+
+                                    <td onclick="toggle_group('expand-default')"></td>
+                                    <td onclick="toggle_id('expand-default-test-flavor')" style="text-align: left">
+                                        
+                                            Cloud disabled
+                                            <br />
+                                        
+                                        
+                                        
+                                    </td>
+
+                                    <td>
+                                    
+                                        
+                                    
+                                    </td>
+
+
+                                    <td class="col-spacer">&nbsp;</td>
+
+                                    <td>
+                                    </td>
+
+                                    <td>
+                                    </td>
+
+                                    <td>
+                                    </td>
+
+                                    <td>
+                                    </td>
+
+                                    <td>
+                                    </td>
+
+                                    <td>
+                                    </td>
+
+                                    <td>
+                                    </td>
+
+                                    <td>
+                                    </td>
+
+                                    <td class="col-spacer">&nbsp;</td>
+
+                                    <td colspan="3" class="slot-detail">  
+
+                                        <table>
+
+                                        
+                                            
+
+                                                
+                                            
+
+                                                
+                                            
+
+                                                
+                                            
+
+                                                
+                                            
+                                        
+                                        
+
+
+
+                                        </table>
+                                    </td>
+
+                                    <td class="col-spacer">&nbsp;</td>
+
+                                    <td colspan="2">
+
+                                    
+                                        
+                                            <p>User limit</p>
+                                        
+                                    
+
+                                    </td>
+                                    <td>
+                                        
+                                            
+                                                0.0 / 0.0 GB
+                                            
+                                        
+                                    </td>
+
+                                    
+                                        <td class="col-spacer">&nbsp;</td>
+
+                                        <td><!--Foreign VMs-->
+                                        </td>
+                                        <td><!--Foreign Cores--></td>
+                                        <td>
+                                            
+                                                
+                                                    0.0 / 0.0 GB
+                                                
+                                            
+                                        </td>
+                                        <td class="col-spacer">&nbsp;</td>
+
+                                        <td>33 / 0</td>
+
+
+                                        <td>0 / 
+                                            
+                                                0
+                                            
+                                        </td>                                 
+                                        <td>
+                                            
+                                                
+                                                    0.0 / 0.0 GB
+                                                
+                                            
+                                        </td>
+                                    
+                                </tr>
+
+
+                                
+
+
+                        
+                    
+                    
+
+                        
+
+                                
+                                
+                                    <tr class="total-row">
+                                
+
+                                
+                                    <td class="group-name bold-style" onclick="toggle_group('expand-default')"></td>
+                                
+
+                                
+                                    <td class="bold-style" onclick="toggle_id('expand-default-')"><div class="float-left">Totals</div>
+                                
+                                    <div id="sym-expand-default-" class="float-right">&#x25BE;</div></td>
+
+
+
+                                    <td data-path="default  communication_rt_total" class="float-center plottable" oncontextmenu="javascript:return false;">
+                                    
+                                    </td>
+
+
+
+                                    <td class="col-spacer">&nbsp;</td>
+
+
+                                    
+                                        <td data-path="default  VMs_total" class="more-style float-center plottable" oncontextmenu="javascript:native_list('?default&cloud_name=&poller_status=&hostname=');return false;">7</td>
+                                    
+
+                                    
+                                        <td data-path="default  VMs_starting_total" class="zero-style float-center plottable" oncontextmenu="javascript:return false;">0</td>
+                                    
+
+
+                                    
+                                        <td data-path="default  VMs_unregistered_total" class="zero-style float-center plottable" oncontextmenu="javascript:return false;">0</td>
+                                    
+
+
+                                    
+                                        <td data-path="default  VMs_idle_total" class="zero-style float-center plottable" oncontextmenu="javascript:return false;">0</td>
+                                    
+
+
+                                    
+                                        <td data-path="default  VMs_running_total" class="more-style float-center plottable" oncontextmenu="javascript:native_list('?default&cloud_name=&poller_status=running&hostname=');return false;">7</td>
+                                    
+
+
+                                    
+                                        <td data-path="default  VMs_retiring_total" class="zero-style float-center plottable" oncontextmenu="javascript:return false;">0</td>
+                                    
+
+
+                                    
+                                        <td data-path="default  VMs_manual_total" class="zero-style float-center plottable" oncontextmenu="javascript:return false;">0</td>
+                                    
+
+
+                                    
+                                        <td data-path="default  VMs_in_error_total" class="zero-style float-center plottable" oncontextmenu="javascript:return false;">0</td>
+                                    
+
+                                    <td class="col-spacer">&nbsp;</td>
+
+                                    
+                                        <td data-path="default  slot_count_total" class="more-style float-center plottable">18</td>
+                                    
+
+
+                                    
+                                        <td data-path="default  slot_core_count_total" class="more-style float-center plottable">18</td>
+                                    
+
+                                    
+                                        <td data-path="default  slot_idle_core_count_total" class="more-style float-center plottable">18</td>
+                                    
+
+                                    <td class="col-spacer">&nbsp;</td>
+
+                                    
+                                        <td data-path="default  cores_native_total" class="manual-style float-center plottable">20</td>
+                                    
+
+                                    
+                                        
+                                            <td data-path="default  cores_limit_total" class="manual-style float-center plottable">20</td>
+                                        
+                                    
+                                    
+                                    <td data-path="default  ram_native_total" class="float-center plottable">
+                                        
+                                            
+                                                <meter class="ram-meter " min="0" low="0" optimum="9294430.0" high="16729974.0" max="18588860" value="61440.0"></meter>
+                                            
+                                        
+                                    </td>
+
+
+                                    
+                                        <td class="col-spacer">&nbsp;</td>
+
+
+                                        
+                                            <td data-path="default  Foreign_VMs_total" class="more-style float-center plottable" oncontextmenu="javascript:foreign_list('?default&cloud_name=&global_view=2');return false;">562</td>
+                                        
+
+
+
+                                        
+                                            <td data-path="default  cores_foreign_total" class="more-style float-center plottable">4088</td>
+                                        
+
+                                        <td data-path="default  ram_foreign_total" class="float-center plottable">
+                                            
+                                                
+                                                    <meter class="ram-meter " min="0" low="0" optimum="9294430.0" high="16729974.0" max="18588860" value="14299648.0"></meter>
+                                                
+                                            
+                                        </td>
+
+                                        <td class="col-spacer">&nbsp;</td>
+
+                                        
+                                            <td data-path="default  VMs_native_foreign_total" class="more-style float-center plottable">569</td>
+                                        
+
+
+
+                                        
+                                            <td data-path="default  cores_native_foreign_total" class="more-style float-center plottable">4108</td>
+                                        
+
+
+
+                                        <td data-path="default  ram_native_foreign_total" class="float-center plottable">
+                                            
+                                                
+                                                    <meter class="ram-meter " min="0" low="0" optimum="9294430.0" high="16729974.0" max="18588860" value="14361088.0"></meter>
+                                                
+                                                                    
+                                        </td>
+
+                                        <td data-path="default  volume_gigs_used_total" class="float-center plottable">
+                                        
+                                            <meter class="ram-meter " min="0" low="0" optimum="50000.0" high="90000.0" max="100000" value="28992"></meter>
+                                        
+                                        </td>
+                                    
+                                </tr>
+
+                                <!-- Cloud status expand row to show details-->
+                                
+                                    <tr class="extra-row expand-default total-row" id="expand-default-">
+                                
+
+
+                                    <td onclick="toggle_group('expand-default')"></td>
+                                    <td onclick="toggle_id('expand-default-')" style="text-align: left">
+                                        
+                                        
+                                        
+                                    </td>
+
+                                    <td>
+                                    
+                                    </td>
+
+
+                                    <td class="col-spacer">&nbsp;</td>
+
+                                    <td>
+                                    </td>
+
+                                    <td>
+                                    </td>
+
+                                    <td>
+                                    </td>
+
+                                    <td>
+                                    </td>
+
+                                    <td>
+                                    </td>
+
+                                    <td>
+                                    </td>
+
+                                    <td>
+                                    </td>
+
+                                    <td>
+                                    </td>
+
+                                    <td class="col-spacer">&nbsp;</td>
+
+                                    <td colspan="3" class="slot-detail">  
+
+                                        <table>
+
+                                        
+                                            
+
+                                                
+                                            
+
+                                                
+                                            
+
+                                                
+                                            
+
+                                                
+                                            
+                                        
+                                        
+
+
+
+                                        </table>
+                                    </td>
+
+                                    <td class="col-spacer">&nbsp;</td>
+
+                                    <td colspan="2">
+
+                                    
+
+                                    </td>
+                                    <td>
+                                        
+                                            
+                                                0.1 / 17.7 TB
+                                            
+                                        
+                                    </td>
+
+                                    
+                                        <td class="col-spacer">&nbsp;</td>
+
+                                        <td><!--Foreign VMs-->
+                                        </td>
+                                        <td><!--Foreign Cores--></td>
+                                        <td>
+                                            
+                                                
+                                                    13.6 / 17.7 TB
+                                                
+                                            
+                                        </td>
+                                        <td class="col-spacer">&nbsp;</td>
+
+                                        <td>569 / 10400</td>
+
+
+                                        <td>4108 / 
+                                            
+                                                6216
+                                            
+                                        </td>                                 
+                                        <td>
+                                            
+                                                
+                                                    13.7 / 17.7 TB
+                                                
+                                            
+                                        </td>
+                                    
+                                </tr>
+
+
+                                
+                                    <tr>
+                                        <td colspan="3" class="row-spacer">&nbsp;</td>
+                                        <td class="col-spacer">&nbsp;</td>
+                                        <td colspan="8" class="row-spacer">&nbsp;</td>
+                                        <td class="col-spacer">&nbsp;</td>
+                                        <td colspan="3" class="row-spacer">&nbsp;</td>
+                                        <td class="col-spacer">&nbsp;</td>
+                                        <td colspan="3" class="row-spacer">&nbsp;</td>
+                                        
+                                            <td class="col-spacer">&nbsp;</td>
+                                            <td colspan="3" class="row-spacer">&nbsp;</td>
+                                            <td class="col-spacer">&nbsp;</td>
+                                            <td colspan="3" class="row-spacer">&nbsp;</td>
+                                        
+                                    </tr>
+                                
+
+
+                        
+                    
+                    
+
+                        
+
+                                
+                                
+                                    <tr>
+                                
+
+                                
+                                    <td class="group-name bold-style" onclick="toggle_group('expand-test-yaml')"><div class="float-left">test-yaml</div><div id="sym-expand-test-yaml" class="float-right">&#x25BE;</div></td>
+                                
+
+                                
+                                    <td class="disabled-style" onclick="toggle_id('expand-test-yaml-test-chameleon-vol')"><div class="float-left">test-chameleon-vol</div>
+                                
+                                    <div id="sym-expand-test-yaml-test-chameleon-vol" class="float-right">&#x25BE;</div></td>
+
+
+
+                                    <td data-path="test-yaml test-chameleon-vol communication_rt" class="float-center plottable" oncontextmenu="javascript:return false;">
+                                    
+                                        
+                                            23862
+                                        
+                                    
+                                    </td>
+
+
+
+                                    <td class="col-spacer">&nbsp;</td>
+
+
+                                    
+                                        <td data-path="test-yaml test-chameleon-vol VMs" class="zero-style float-center plottable" oncontextmenu="javascript:return false;">0</td>
+                                    
+
+                                    
+                                        <td data-path="test-yaml test-chameleon-vol VMs_starting" class="zero-style float-center plottable" oncontextmenu="javascript:return false;">0</td>
+                                    
+
+
+                                    
+                                        <td data-path="test-yaml test-chameleon-vol VMs_unregistered" class="zero-style float-center plottable" oncontextmenu="javascript:return false;">0</td>
+                                    
+
+
+                                    
+                                        <td data-path="test-yaml test-chameleon-vol VMs_idle" class="zero-style float-center plottable" oncontextmenu="javascript:return false;">0</td>
+                                    
+
+
+                                    
+                                        <td data-path="test-yaml test-chameleon-vol VMs_running" class="zero-style float-center plottable" oncontextmenu="javascript:return false;">0</td>
+                                    
+
+
+                                    
+                                        <td data-path="test-yaml test-chameleon-vol VMs_retiring" class="zero-style float-center plottable" oncontextmenu="javascript:return false;">0</td>
+                                    
+
+
+                                    
+                                        <td data-path="test-yaml test-chameleon-vol VMs_manual" class="zero-style float-center plottable" oncontextmenu="javascript:return false;">0</td>
+                                    
+
+
+                                    
+                                        <td data-path="test-yaml test-chameleon-vol VMs_in_error" class="zero-style float-center plottable" oncontextmenu="javascript:return false;">0</td>
+                                    
+
+                                    <td class="col-spacer">&nbsp;</td>
+
+                                    
+                                        <td data-path="test-yaml test-chameleon-vol slot_count" class="zero-style float-center plottable">0</td>
+                                    
+
+
+                                    
+                                        <td data-path="test-yaml test-chameleon-vol slot_core_count" class="zero-style float-center plottable">0</td>
+                                    
+
+                                    
+                                        <td data-path="test-yaml test-chameleon-vol slot_idle_core_count" class="zero-style float-center plottable">0</td>
+                                    
+
+                                    <td class="col-spacer">&nbsp;</td>
+
+                                    
+                                        <td data-path="test-yaml test-chameleon-vol cores_native" class="zero-style float-center plottable">0</td>
+                                    
+
+                                    
+                                        <td data-path="test-yaml test-chameleon-vol cores_limit" class="zero-style float-center plottable">0</td>
+                                    
+                                    
+                                    <td data-path="test-yaml test-chameleon-vol ram_native" class="float-center plottable">
+                                        
+                                            
+                                                <meter class="ram-meter" min="0" low="0" optimum="0" high="0" max="1" value="0"></meter>
+                                            
+                                        
+                                    </td>
+
+
+                                    
+                                        <td class="col-spacer">&nbsp;</td>
+
+
+                                        
+                                            <td data-path="test-yaml test-chameleon-vol Foreign_VMs" class="zero-style float-center plottable" oncontextmenu="javascript:foreign_list('?test-yaml&cloud_name=test-chameleon-vol&global_view=0');return false;">33</td>
+                                        
+
+
+
+                                        
+                                            <td data-path="test-yaml test-chameleon-vol cores_foreign" class="zero-style float-center plottable">0</td>
+                                        
+
+                                        <td data-path="test-yaml test-chameleon-vol ram_foreign" class="float-center plottable">
+                                            
+                                                
+                                                    <meter class="ram-meter" min="0" low="0" optimum="0" high="0" max="1" value="0"></meter>
+                                                
+                                            
+                                        </td>
+
+                                        <td class="col-spacer">&nbsp;</td>
+
+                                        
+                                            <td data-path="test-yaml test-chameleon-vol VMs_native_foreign" class="zero-style float-center plottable">33</td>
+                                        
+
+
+
+                                        
+                                            <td data-path="test-yaml test-chameleon-vol cores_native_foreign" class="zero-style float-center plottable">0</td>
+                                        
+
+
+
+                                        <td data-path="test-yaml test-chameleon-vol ram_native_foreign" class="float-center plottable">
+                                            
+                                                
+                                                    <meter class="ram-meter" min="0" low="0" optimum="0" high="0" max="1" value="0"></meter>
+                                                
+                                                                    
+                                        </td>
+
+                                        <td data-path="test-yaml test-chameleon-vol volume_gigs_used" class="float-center plottable">
+                                        
+                                            <meter class="ram-meter" min="0" low="0" optimum="0" high="0" max="1" value="0"></meter>
+                                        
+                                        </td>
+                                    
+                                </tr>
+
+                                <!-- Cloud status expand row to show details-->
+                                
+                                     <tr class="extra-row expand-test-yaml disabled-style" id="expand-test-yaml-test-chameleon-vol">
+                                
+
+
+                                    <td onclick="toggle_group('expand-test-yaml')"></td>
+                                    <td onclick="toggle_id('expand-test-yaml-test-chameleon-vol')" style="text-align: left">
+                                        
+                                            Cloud disabled
+                                            <br />
+                                        
+                                        
+                                        
+                                    </td>
+
+                                    <td>
+                                    
+                                        
+                                    
+                                    </td>
+
+
+                                    <td class="col-spacer">&nbsp;</td>
+
+                                    <td>
+                                    </td>
+
+                                    <td>
+                                    </td>
+
+                                    <td>
+                                    </td>
+
+                                    <td>
+                                    </td>
+
+                                    <td>
+                                    </td>
+
+                                    <td>
+                                    </td>
+
+                                    <td>
+                                    </td>
+
+                                    <td>
+                                    </td>
+
+                                    <td class="col-spacer">&nbsp;</td>
+
+                                    <td colspan="3" class="slot-detail">  
+
+                                        <table>
+
+                                        
+                                            
+
+                                                
+                                            
+
+                                                
+                                            
+
+                                                
+                                            
+
+                                                
+                                            
+                                        
+                                        
+
+
+
+                                        </table>
+                                    </td>
+
+                                    <td class="col-spacer">&nbsp;</td>
+
+                                    <td colspan="2">
+
+                                    
+                                        
+                                            <p>User limit</p>
+                                        
+                                    
+
+                                    </td>
+                                    <td>
+                                        
+                                            
+                                                0.0 / 0.0 GB
+                                            
+                                        
+                                    </td>
+
+                                    
+                                        <td class="col-spacer">&nbsp;</td>
+
+                                        <td><!--Foreign VMs-->
+                                        </td>
+                                        <td><!--Foreign Cores--></td>
+                                        <td>
+                                            
+                                                
+                                                    0.0 / 0.0 GB
+                                                
+                                            
+                                        </td>
+                                        <td class="col-spacer">&nbsp;</td>
+
+                                        <td>33 / 0</td>
+
+
+                                        <td>0 / 
+                                            
+                                                0
+                                            
+                                        </td>                                 
+                                        <td>
+                                            
+                                                
+                                                    0.0 / 0.0 GB
+                                                
+                                            
+                                        </td>
+                                    
+                                </tr>
+
+
+                                
+
+
+                        
+                    
+                    
+
+                        
+
+                                
+                                
+                                    <tr>
+                                
+
+                                
+                                    <td class="group-name bold-style" onclick="toggle_group('expand-test-yaml')"></td>
+                                
+
+                                
+                                    
+                                        <td class="bold-style" onclick="toggle_id('expand-test-yaml-test-default')"><div class="float-left">test-default</div>
+                                    
+                                
+                                    <div id="sym-expand-test-yaml-test-default" class="float-right">&#x25BE;</div></td>
+
+
+
+                                    <td data-path="test-yaml test-default communication_rt" class="float-center plottable" oncontextmenu="javascript:return false;">
+                                    
+                                        
+                                            1139
+                                        
+                                    
+                                    </td>
+
+
+
+                                    <td class="col-spacer">&nbsp;</td>
+
+
+                                    
+                                        <td data-path="test-yaml test-default VMs" class="zero-style float-center plottable" oncontextmenu="javascript:return false;">0</td>
+                                    
+
+                                    
+                                        <td data-path="test-yaml test-default VMs_starting" class="zero-style float-center plottable" oncontextmenu="javascript:return false;">0</td>
+                                    
+
+
+                                    
+                                        <td data-path="test-yaml test-default VMs_unregistered" class="zero-style float-center plottable" oncontextmenu="javascript:return false;">0</td>
+                                    
+
+
+                                    
+                                        <td data-path="test-yaml test-default VMs_idle" class="zero-style float-center plottable" oncontextmenu="javascript:return false;">0</td>
+                                    
+
+
+                                    
+                                        <td data-path="test-yaml test-default VMs_running" class="zero-style float-center plottable" oncontextmenu="javascript:return false;">0</td>
+                                    
+
+
+                                    
+                                        <td data-path="test-yaml test-default VMs_retiring" class="zero-style float-center plottable" oncontextmenu="javascript:return false;">0</td>
+                                    
+
+
+                                    
+                                        <td data-path="test-yaml test-default VMs_manual" class="zero-style float-center plottable" oncontextmenu="javascript:return false;">0</td>
+                                    
+
+
+                                    
+                                        <td data-path="test-yaml test-default VMs_in_error" class="zero-style float-center plottable" oncontextmenu="javascript:return false;">0</td>
+                                    
+
+                                    <td class="col-spacer">&nbsp;</td>
+
+                                    
+                                        <td data-path="test-yaml test-default slot_count" class="zero-style float-center plottable">0</td>
+                                    
+
+
+                                    
+                                        <td data-path="test-yaml test-default slot_core_count" class="zero-style float-center plottable">0</td>
+                                    
+
+                                    
+                                        <td data-path="test-yaml test-default slot_idle_core_count" class="zero-style float-center plottable">0</td>
+                                    
+
+                                    <td class="col-spacer">&nbsp;</td>
+
+                                    
+                                        <td data-path="test-yaml test-default cores_native" class="zero-style float-center plottable">0</td>
+                                    
+
+                                    
+                                        
+                                            <td data-path="test-yaml test-default cores_limit" class="manual-style float-center plottable">8</td>
+                                        
+                                    
+                                    
+                                    <td data-path="test-yaml test-default ram_native" class="float-center plottable">
+                                        
+                                            
+                                                <meter class="ram-meter " min="0" low="0" optimum="807215.0" high="1452987.0" max="1614430" value="0.0"></meter>
+                                            
+                                        
+                                    </td>
+
+
+                                    
+                                        <td class="col-spacer">&nbsp;</td>
+
+
+                                        
+                                            <td data-path="test-yaml test-default Foreign_VMs" class="more-style float-center plottable" oncontextmenu="javascript:foreign_list('?test-yaml&cloud_name=test-default&global_view=0');return false;">61</td>
+                                        
+
+
+
+                                        
+                                            <td data-path="test-yaml test-default cores_foreign" class="more-style float-center plottable">406</td>
+                                        
+
+                                        <td data-path="test-yaml test-default ram_foreign" class="float-center plottable">
+                                            
+                                                
+                                                    <meter class="ram-meter " min="0" low="0" optimum="807215.0" high="1452987.0" max="1614430" value="848384.0"></meter>
+                                                
+                                            
+                                        </td>
+
+                                        <td class="col-spacer">&nbsp;</td>
+
+                                        
+                                            <td data-path="test-yaml test-default VMs_native_foreign" class="more-style float-center plottable">61</td>
+                                        
+
+
+
+                                        
+                                            <td data-path="test-yaml test-default cores_native_foreign" class="more-style float-center plottable">406</td>
+                                        
+
+
+
+                                        <td data-path="test-yaml test-default ram_native_foreign" class="float-center plottable">
+                                            
+                                                
+                                                    <meter class="ram-meter " min="0" low="0" optimum="807215.0" high="1452987.0" max="1614430" value="848384.0"></meter>
+                                                
+                                                                    
+                                        </td>
+
+                                        <td data-path="test-yaml test-default volume_gigs_used" class="float-center plottable">
+                                        
+                                            <meter class="ram-meter" min="0" low="0" optimum="0" high="0" max="1" value="0"></meter>
+                                        
+                                        </td>
+                                    
+                                </tr>
+
+                                <!-- Cloud status expand row to show details-->
+                                
+                                    
+                                         <tr class="extra-row expand-test-yaml" id="expand-test-yaml-test-default">
+                                     
+                                
+
+
+                                    <td onclick="toggle_group('expand-test-yaml')"></td>
+                                    <td onclick="toggle_id('expand-test-yaml-test-default')" style="text-align: left">
+                                        
+                                        
+                                        
+                                    </td>
+
+                                    <td>
+                                    
+                                        
+                                    
+                                    </td>
+
+
+                                    <td class="col-spacer">&nbsp;</td>
+
+                                    <td>
+                                    </td>
+
+                                    <td>
+                                    </td>
+
+                                    <td>
+                                    </td>
+
+                                    <td>
+                                    </td>
+
+                                    <td>
+                                    </td>
+
+                                    <td>
+                                    </td>
+
+                                    <td>
+                                    </td>
+
+                                    <td>
+                                    </td>
+
+                                    <td class="col-spacer">&nbsp;</td>
+
+                                    <td colspan="3" class="slot-detail">  
+
+                                        <table>
+
+                                        
+                                            
+
+                                                
+                                            
+
+                                                
+                                            
+
+                                                
+                                            
+
+                                                
+                                            
+                                        
+                                        
+
+
+
+                                        </table>
+                                    </td>
+
+                                    <td class="col-spacer">&nbsp;</td>
+
+                                    <td colspan="2">
+
+                                    
+                                        
+                                            <p>User limit</p>
+                                        
+                                    
+
+                                    </td>
+                                    <td>
+                                        
+                                            
+                                                0.0 / 1.5 TB
+                                            
+                                        
+                                    </td>
+
+                                    
+                                        <td class="col-spacer">&nbsp;</td>
+
+                                        <td><!--Foreign VMs-->
+                                        </td>
+                                        <td><!--Foreign Cores--></td>
+                                        <td>
+                                            
+                                                
+                                                    0.8 / 1.5 TB
+                                                
+                                            
+                                        </td>
+                                        <td class="col-spacer">&nbsp;</td>
+
+                                        <td>61 / 200</td>
+
+
+                                        <td>406 / 
+                                            
+                                                608
+                                            
+                                        </td>                                 
+                                        <td>
+                                            
+                                                
+                                                    0.8 / 1.5 TB
+                                                
+                                            
+                                        </td>
+                                    
+                                </tr>
+
+
+                                
+
+
+                        
+                    
+                    
+
+                        
+
+                                
+                                
+                                    <tr class="total-row">
+                                
+
+                                
+                                    <td class="group-name bold-style" onclick="toggle_group('expand-test-yaml')"></td>
+                                
+
+                                
+                                    <td class="bold-style" onclick="toggle_id('expand-test-yaml-')"><div class="float-left">Totals</div>
+                                
+                                    <div id="sym-expand-test-yaml-" class="float-right">&#x25BE;</div></td>
+
+
+
+                                    <td data-path="test-yaml  communication_rt_total" class="float-center plottable" oncontextmenu="javascript:return false;">
+                                    
+                                    </td>
+
+
+
+                                    <td class="col-spacer">&nbsp;</td>
+
+
+                                    
+                                        <td data-path="test-yaml  VMs_total" class="zero-style float-center plottable" oncontextmenu="javascript:return false;">0</td>
+                                    
+
+                                    
+                                        <td data-path="test-yaml  VMs_starting_total" class="zero-style float-center plottable" oncontextmenu="javascript:return false;">0</td>
+                                    
+
+
+                                    
+                                        <td data-path="test-yaml  VMs_unregistered_total" class="zero-style float-center plottable" oncontextmenu="javascript:return false;">0</td>
+                                    
+
+
+                                    
+                                        <td data-path="test-yaml  VMs_idle_total" class="zero-style float-center plottable" oncontextmenu="javascript:return false;">0</td>
+                                    
+
+
+                                    
+                                        <td data-path="test-yaml  VMs_running_total" class="zero-style float-center plottable" oncontextmenu="javascript:return false;">0</td>
+                                    
+
+
+                                    
+                                        <td data-path="test-yaml  VMs_retiring_total" class="zero-style float-center plottable" oncontextmenu="javascript:return false;">0</td>
+                                    
+
+
+                                    
+                                        <td data-path="test-yaml  VMs_manual_total" class="zero-style float-center plottable" oncontextmenu="javascript:return false;">0</td>
+                                    
+
+
+                                    
+                                        <td data-path="test-yaml  VMs_in_error_total" class="zero-style float-center plottable" oncontextmenu="javascript:return false;">0</td>
+                                    
+
+                                    <td class="col-spacer">&nbsp;</td>
+
+                                    
+                                        <td data-path="test-yaml  slot_count_total" class="zero-style float-center plottable">0</td>
+                                    
+
+
+                                    
+                                        <td data-path="test-yaml  slot_core_count_total" class="zero-style float-center plottable">0</td>
+                                    
+
+                                    
+                                        <td data-path="test-yaml  slot_idle_core_count_total" class="zero-style float-center plottable">0</td>
+                                    
+
+                                    <td class="col-spacer">&nbsp;</td>
+
+                                    
+                                        <td data-path="test-yaml  cores_native_total" class="zero-style float-center plottable">0</td>
+                                    
+
+                                    
+                                        
+                                            <td data-path="test-yaml  cores_limit_total" class="manual-style float-center plottable">8</td>
+                                        
+                                    
+                                    
+                                    <td data-path="test-yaml  ram_native_total" class="float-center plottable">
+                                        
+                                            
+                                                <meter class="ram-meter " min="0" low="0" optimum="807215.0" high="1452987.0" max="1614430" value="0.0"></meter>
+                                            
+                                        
+                                    </td>
+
+
+                                    
+                                        <td class="col-spacer">&nbsp;</td>
+
+
+                                        
+                                            <td data-path="test-yaml  Foreign_VMs_total" class="more-style float-center plottable" oncontextmenu="javascript:foreign_list('?test-yaml&cloud_name=&global_view=2');return false;">61</td>
+                                        
+
+
+
+                                        
+                                            <td data-path="test-yaml  cores_foreign_total" class="more-style float-center plottable">406</td>
+                                        
+
+                                        <td data-path="test-yaml  ram_foreign_total" class="float-center plottable">
+                                            
+                                                
+                                                    <meter class="ram-meter " min="0" low="0" optimum="807215.0" high="1452987.0" max="1614430" value="848384.0"></meter>
+                                                
+                                            
+                                        </td>
+
+                                        <td class="col-spacer">&nbsp;</td>
+
+                                        
+                                            <td data-path="test-yaml  VMs_native_foreign_total" class="more-style float-center plottable">61</td>
+                                        
+
+
+
+                                        
+                                            <td data-path="test-yaml  cores_native_foreign_total" class="more-style float-center plottable">406</td>
+                                        
+
+
+
+                                        <td data-path="test-yaml  ram_native_foreign_total" class="float-center plottable">
+                                            
+                                                
+                                                    <meter class="ram-meter " min="0" low="0" optimum="807215.0" high="1452987.0" max="1614430" value="848384.0"></meter>
+                                                
+                                                                    
+                                        </td>
+
+                                        <td data-path="test-yaml  volume_gigs_used_total" class="float-center plottable">
+                                        
+                                            <meter class="ram-meter" min="0" low="0" optimum="0" high="0" max="1" value="0"></meter>
+                                        
+                                        </td>
+                                    
+                                </tr>
+
+                                <!-- Cloud status expand row to show details-->
+                                
+                                    <tr class="extra-row expand-test-yaml total-row" id="expand-test-yaml-">
+                                
+
+
+                                    <td onclick="toggle_group('expand-test-yaml')"></td>
+                                    <td onclick="toggle_id('expand-test-yaml-')" style="text-align: left">
+                                        
+                                        
+                                        
+                                    </td>
+
+                                    <td>
+                                    
+                                    </td>
+
+
+                                    <td class="col-spacer">&nbsp;</td>
+
+                                    <td>
+                                    </td>
+
+                                    <td>
+                                    </td>
+
+                                    <td>
+                                    </td>
+
+                                    <td>
+                                    </td>
+
+                                    <td>
+                                    </td>
+
+                                    <td>
+                                    </td>
+
+                                    <td>
+                                    </td>
+
+                                    <td>
+                                    </td>
+
+                                    <td class="col-spacer">&nbsp;</td>
+
+                                    <td colspan="3" class="slot-detail">  
+
+                                        <table>
+
+                                        
+                                            
+
+                                                
+                                            
+
+                                                
+                                            
+
+                                                
+                                            
+
+                                                
+                                            
+                                        
+                                        
+
+
+
+                                        </table>
+                                    </td>
+
+                                    <td class="col-spacer">&nbsp;</td>
+
+                                    <td colspan="2">
+
+                                    
+
+                                    </td>
+                                    <td>
+                                        
+                                            
+                                                0.0 / 1.5 TB
+                                            
+                                        
+                                    </td>
+
+                                    
+                                        <td class="col-spacer">&nbsp;</td>
+
+                                        <td><!--Foreign VMs-->
+                                        </td>
+                                        <td><!--Foreign Cores--></td>
+                                        <td>
+                                            
+                                                
+                                                    0.8 / 1.5 TB
+                                                
+                                            
+                                        </td>
+                                        <td class="col-spacer">&nbsp;</td>
+
+                                        <td>61 / 200</td>
+
+
+                                        <td>406 / 
+                                            
+                                                608
+                                            
+                                        </td>                                 
+                                        <td>
+                                            
+                                                
+                                                    0.8 / 1.5 TB
+                                                
+                                            
+                                        </td>
+                                    
+                                </tr>
+
+
+                                
+                                    <tr>
+                                        <td colspan="3" class="row-spacer">&nbsp;</td>
+                                        <td class="col-spacer">&nbsp;</td>
+                                        <td colspan="8" class="row-spacer">&nbsp;</td>
+                                        <td class="col-spacer">&nbsp;</td>
+                                        <td colspan="3" class="row-spacer">&nbsp;</td>
+                                        <td class="col-spacer">&nbsp;</td>
+                                        <td colspan="3" class="row-spacer">&nbsp;</td>
+                                        
+                                            <td class="col-spacer">&nbsp;</td>
+                                            <td colspan="3" class="row-spacer">&nbsp;</td>
+                                            <td class="col-spacer">&nbsp;</td>
+                                            <td colspan="3" class="row-spacer">&nbsp;</td>
+                                        
+                                    </tr>
+                                
+
+
+                        
+                    
+                    
+
+                        
+
+                                
+                                
+                                    <tr class="global-total-row">
+                                
+
+                                
+                                    <td class="group-name bold-style" onclick="toggle_group('expand-')"></td>
+                                
+
+                                
+                                    <td class="bold-style" onclick="toggle_id('expand--')"><div class="float-left">Totals</div>
+                                
+                                    <div id="sym-expand--" class="float-right">&#x25BE;</div></td>
+
+
+
+                                    <td data-path="  communication_rt_total" class="float-center plottable" oncontextmenu="javascript:return false;">
+                                    
+                                    </td>
+
+
+
+                                    <td class="col-spacer">&nbsp;</td>
+
+
+                                    
+                                        <td data-path="  VMs_total" class="more-style float-center plottable" oncontextmenu="javascript:native_list('?ALL&cloud_name=&poller_status=&hostname=');return false;">7</td>
+                                    
+
+                                    
+                                        <td data-path="  VMs_starting_total" class="zero-style float-center plottable" oncontextmenu="javascript:return false;">0</td>
+                                    
+
+
+                                    
+                                        <td data-path="  VMs_unregistered_total" class="zero-style float-center plottable" oncontextmenu="javascript:return false;">0</td>
+                                    
+
+
+                                    
+                                        <td data-path="  VMs_idle_total" class="zero-style float-center plottable" oncontextmenu="javascript:return false;">0</td>
+                                    
+
+
+                                    
+                                        <td data-path="  VMs_running_total" class="more-style float-center plottable" oncontextmenu="javascript:native_list('?ALL&cloud_name=&poller_status=running&hostname=');return false;">7</td>
+                                    
+
+
+                                    
+                                        <td data-path="  VMs_retiring_total" class="zero-style float-center plottable" oncontextmenu="javascript:return false;">0</td>
+                                    
+
+
+                                    
+                                        <td data-path="  VMs_manual_total" class="zero-style float-center plottable" oncontextmenu="javascript:return false;">0</td>
+                                    
+
+
+                                    
+                                        <td data-path="  VMs_in_error_total" class="zero-style float-center plottable" oncontextmenu="javascript:return false;">0</td>
+                                    
+
+                                    <td class="col-spacer">&nbsp;</td>
+
+                                    
+                                        <td data-path="  slot_count_total" class="more-style float-center plottable">18</td>
+                                    
+
+
+                                    
+                                        <td data-path="  slot_core_count_total" class="more-style float-center plottable">18</td>
+                                    
+
+                                    
+                                        <td data-path="  slot_idle_core_count_total" class="more-style float-center plottable">18</td>
+                                    
+
+                                    <td class="col-spacer">&nbsp;</td>
+
+                                    
+                                        <td data-path="  cores_native_total" class="manual-style float-center plottable">20</td>
+                                    
+
+                                    
+                                        
+                                            <td data-path="  cores_limit_total" class="manual-style float-center plottable">28</td>
+                                        
+                                    
+                                    
+                                    <td data-path="  ram_native_total" class="float-center plottable">
+                                        
+                                            
+                                                <meter class="ram-meter " min="0" low="0" optimum="10101645.0" high="18182961.0" max="20203290" value="61440.0"></meter>
+                                            
+                                        
+                                    </td>
+
+
+                                    
+                                        <td class="col-spacer">&nbsp;</td>
+
+
+                                        
+                                            <td data-path="  Foreign_VMs_total" class="more-style float-center plottable" oncontextmenu="javascript:foreign_list('?&cloud_name=&global_view=1');return false;">623</td>
+                                        
+
+
+
+                                        
+                                            <td data-path="  cores_foreign_total" class="more-style float-center plottable">4494</td>
+                                        
+
+                                        <td data-path="  ram_foreign_total" class="float-center plottable">
+                                            
+                                                
+                                                    <meter class="ram-meter " min="0" low="0" optimum="10101645.0" high="18182961.0" max="20203290" value="15148032.0"></meter>
+                                                
+                                            
+                                        </td>
+
+                                        <td class="col-spacer">&nbsp;</td>
+
+                                        
+                                            <td data-path="  VMs_native_foreign_total" class="more-style float-center plottable">630</td>
+                                        
+
+
+
+                                        
+                                            <td data-path="  cores_native_foreign_total" class="more-style float-center plottable">4514</td>
+                                        
+
+
+
+                                        <td data-path="  ram_native_foreign_total" class="float-center plottable">
+                                            
+                                                
+                                                    <meter class="ram-meter " min="0" low="0" optimum="10101645.0" high="18182961.0" max="20203290" value="15209472.0"></meter>
+                                                
+                                                                    
+                                        </td>
+
+                                        <td data-path="  volume_gigs_used_total" class="float-center plottable">
+                                        
+                                            <meter class="ram-meter " min="0" low="0" optimum="50000.0" high="90000.0" max="100000" value="28992"></meter>
+                                        
+                                        </td>
+                                    
+                                </tr>
+
+                                <!-- Cloud status expand row to show details-->
+                                
+                                    <tr class="extra-row expand- global-total-row" id="expand--">
+                                
+
+
+                                    <td onclick="toggle_group('expand-')"></td>
+                                    <td onclick="toggle_id('expand--')" style="text-align: left">
+                                        
+                                        
+                                        
+                                    </td>
+
+                                    <td>
+                                    
+                                    </td>
+
+
+                                    <td class="col-spacer">&nbsp;</td>
+
+                                    <td>
+                                    </td>
+
+                                    <td>
+                                    </td>
+
+                                    <td>
+                                    </td>
+
+                                    <td>
+                                    </td>
+
+                                    <td>
+                                    </td>
+
+                                    <td>
+                                    </td>
+
+                                    <td>
+                                    </td>
+
+                                    <td>
+                                    </td>
+
+                                    <td class="col-spacer">&nbsp;</td>
+
+                                    <td colspan="3" class="slot-detail">  
+
+                                        <table>
+
+                                        
+                                            
+
+                                                
+                                            
+
+                                                
+                                            
+
+                                                
+                                            
+
+                                                
+                                            
+                                        
+                                        
+
+
+
+                                        </table>
+                                    </td>
+
+                                    <td class="col-spacer">&nbsp;</td>
+
+                                    <td colspan="2">
+
+                                    
+
+                                    </td>
+                                    <td>
+                                        
+                                            
+                                                0.1 / 19.3 TB
+                                            
+                                        
+                                    </td>
+
+                                    
+                                        <td class="col-spacer">&nbsp;</td>
+
+                                        <td><!--Foreign VMs-->
+                                        </td>
+                                        <td><!--Foreign Cores--></td>
+                                        <td>
+                                            
+                                                
+                                                    14.4 / 19.3 TB
+                                                
+                                            
+                                        </td>
+                                        <td class="col-spacer">&nbsp;</td>
+
+                                        <td>630 / 10600</td>
+
+
+                                        <td>4514 / 
+                                            
+                                                6824
+                                            
+                                        </td>                                 
+                                        <td>
+                                            
+                                                
+                                                    14.5 / 19.3 TB
+                                                
+                                            
+                                        </td>
+                                    
+                                </tr>
+
+
+                                
+
+
+                        
+                    
+                    
+
+                    
+                    <tr>
+                        <td colspan="3" class="row-spacer">&nbsp;</td>
+                        <td class="col-spacer">&nbsp;</td>
+                        <td colspan="8" class="row-spacer">&nbsp;</td>
+                        <td class="col-spacer">&nbsp;</td>
+                        <td colspan="3" class="row-spacer">&nbsp;</td>
+                        <td class="col-spacer">&nbsp;</td>
+                        <td colspan="3" class="row-spacer">&nbsp;</td>
+                        
+                            <td class="col-spacer">&nbsp;</td>
+                            <td colspan="3" class="row-spacer">&nbsp;</td>
+                            <td class="col-spacer">&nbsp;</td>
+                            <td colspan="3" class="row-spacer">&nbsp;</td>
+                        
+                    </tr>
+
+
+                    
+                        
+                        
+                            <!-- Get list of groups user is a part of -->
+                            <input type='hidden' name='groups_total' value=default />
+                        
+                            <!-- Get list of groups user is a part of -->
+                            <input type='hidden' name='groups_total' value=test-group />
+                        
+                            <!-- Get list of groups user is a part of -->
+                            <input type='hidden' name='groups_total' value=test-yaml />
+                        
+                        
+                    
+
+                        
+                     
+                    
+                    </tbody> 
+                </table>
+            </div>
+    </div>
+
+    <script rel="preload" type="text/javascript" src="static/csv2/status.js"></script>
+    <script rel="preload" type="text/javascript" src="static/plotly.js/dist/plotly.min.js"></script>
+
+</div>
+
+<!--<div>Icons made by <a href="https://www.flaticon.com/authors/those-icons" title="Those Icons">Those Icons</a> from <a href="https://www.flaticon.com/"              title="Flaticon">www.flaticon.com</a> is licensed by <a href="http://creativecommons.org/licenses/by/3.0/"              title="Creative Commons BY 3.0" target="_blank">CC 3.0 BY</a></div>-->
+
+</div>
+
+</body>
+</html>

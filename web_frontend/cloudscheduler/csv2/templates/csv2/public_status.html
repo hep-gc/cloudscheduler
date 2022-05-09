@@ -1,0 +1,926 @@
+{% load i18n %} 
+
+<head>
+        {% load static %}
+        {% load template_utils %}
+        {% load mathfilters %}
+        <link rel="icon" href="https://csv2-dev.heprc.uvic.ca/static/img/favicon.ico">
+        <title id="title">Public csv2 page</title>
+
+        <input type='hidden' name='refresh_interval' value={{status_refresh_interval}} />
+        <link rel="stylesheet" type="text/css" href="static/csv2/navigation.css">
+        <link rel="stylesheet" type="text/css" href="static/csv2/common.css">
+        <link rel="stylesheet" type="text/css" href="static/csv2/overlay.css">
+        <link rel="stylesheet" type="text/css" href="static/csv2/status.css">
+</head>
+
+<nav class="top-nav">
+    <ul style="background-color: #000000">
+        <div class="float-left">
+            <li class="spacer"> </li>
+            <li><a class="status-nav" style="width: 120">Public csv2 status</a></li>
+        </div>
+        <div class="float-right" style="color: white; text-decoration: underline;">
+            <span><a href="https://github.com/hep-gc/cloudscheduler/issues" target="_blank" rel="noopener noreferrer">Report Issues</a></span>
+        </div>
+        <div class="float-right" style="color: white;">
+            <span><a>|</a></span>
+        </div>
+        <div class="float-right" style="color: white; text-decoration: underline;">
+            <span><a href="https://github.com/hep-gc/cloudscheduler/releases/latest" target="_blank" rel="noopener noreferrer">{{version}}</a></span>
+        </div>
+        <div class="float-left">
+            <span><a>Status last updated: {{last_update}}</a></span>
+        </div>
+    </ul>
+</nav>
+
+<body class="status-nav" onload="set_state();">
+<div class="main-div {% if is_superuser %}super-main-div{% endif %}">
+
+<!-- Status tables-->
+    <div class="status-div" id="status">
+
+        <div>
+            <!--
+            <input class="toggle-box" id="toggle-row" type="checkbox" onload="set_state()" onclick="toggle_state();"></input>
+            -->
+            <div class="status-table">
+                <!--
+                <div class="toggle-button">
+                    <label for="toggle-row">
+                        <span class="expand-symbol">&#x25BE;</span>
+                    </label>
+                </div>
+                -->
+                <table>
+                    <colgroup>
+                        {% if jobs_by_target_alias_flag %}
+                            <col class="clear" span="2" />
+                        {% else %}
+                            <col class="clear" span="1" />
+                        {% endif %}
+                        <col class="total-row" span="1" />
+                    </colgroup>
+
+                    <tr class="header-row">
+                        <th class="group-name jobs-style">Group</th>
+
+                        {% if jobs_by_target_alias_flag %}
+                            <th class="jobs-style">Target Alias</th>
+                        {% endif %}
+
+                        <th class="jobs-style">Jobs</th>
+                        <th class="jobs-style">Idle</th>
+                        <th class="jobs-style">Running</th>
+                        <th class="jobs-style">Completed</th>
+                        <th class="jobs-style">Held</th>
+                        <th class="jobs-style">Other</th>
+
+                        <th class="col-spacer">&nbsp;</th>
+
+                        <th class="foreign-style">Foreign</th>
+
+                    </tr>
+
+                    {% for group in job_status_list %}
+                        {% if global_flag or not global_flag and group.group_name == active_group %}
+                            <tr>
+                                <td class="group-name bold-style" onclick="toggle_id('expand-jobs-{{group.group_name}}{% if jobs_by_target_alias_flag %}-{{group.target_alias}}{% endif %}')"><div class="float-left">{{group.group_name}}</div><div id="sym-expand-jobs-{{group.group_name}}{% if jobs_by_target_alias_flag %}-{{group.target_alias}}{% endif %}" class="float-right">&#x25BE;</div></td>
+                                
+                                {% if jobs_by_target_alias_flag %}
+                                    <td class="bold-style"><div class="float-left">{{group.target_alias}}</div></td>
+
+                                    {% if group.Jobs == 0 %}
+                                        <td data-path="{{group.group_name}} {{group.target_alias}} jobs" class="zero-style float-center plottable">0</td>
+                                    {% else %}
+                                        <td data-path="{{group.group_name}} {{group.target_alias}} jobs" class="more-style float-center plottable">{{group.Jobs}}</td>
+                                    {% endif %}
+
+                                    {% if group.Idle == 0 %}
+                                        <td tabindex="2" data-path="{{group.group_name}} {{group.target_alias}} jobs_idle" class="zero-style float-center plottable">0</td>
+                                    {% else %}
+                                        <td tabindex="2" data-path="{{group.group_name}} {{group.target_alias}} jobs_idle" class="more-style float-center plottable">{{group.Idle}}</td>
+                                    {% endif %}
+
+                                    {% if group.Running == 0 %}
+                                        <td data-path="{{group.group_name}} {{group.target_alias}} jobs_running" class="zero-style float-center plottable">0</td>
+                                    {% else %}
+                                        <td data-path="{{group.group_name}} {{group.target_alias}} jobs_running" class="more-style float-center plottable">{{group.Running}}</td>
+                                    {% endif %}
+
+                                    {% if group.Completed == 0 %}
+                                        <td data-path="{{group.group_name}} {{group.target_alias}} jobs_completed" class="zero-style float-center plottable">0</td>
+                                    {% else %}
+                                        <td data-path="{{group.group_name}} {{group.target_alias}} jobs_completed" class="more-style float-center plottable">{{group.Completed}}</td>
+                                    {% endif %}
+
+                                    {% if group.Held == 0 %}
+                                        <td data-path="{{group.group_name}} {{group.target_alias}} jobs_held" class="zero-style float-center plottable">0</td>
+                                    {% else %}
+                                        <td data-path="{{group.group_name}} {{group.target_alias}} jobs_held" class="more-style float-center plottable">{{group.Held}}</td>
+                                    {% endif %}
+
+                                    {% if group.Other == 0 %}
+                                        <td data-path="{{group.group_name}} {{group.target_alias}} jobs_other" class="zero-style float-center plottable">0</td>
+                                    {% else %}
+                                        <td data-path="{{group.group_name}} {{group.target_alias}} jobs_other" class="more-style float-center plottable">{{group.Other}}</td>
+                                    {% endif %}
+
+                                    <td class="col-spacer">&nbsp;</td>
+                                    
+                                    {% if group.foreign == 0 %}
+                                        <td data-path="{{group.group_name}} {{group.target_alias}} jobs_foreign" class="zero-style float-center plottable">0</td>
+                                    {% else %}
+                                        <td data-path="{{group.group_name}} {{group.target_alias}} jobs_foreign" class="more-style float-center plottable">{{group.foreign}}</td>
+                                    {% endif %}
+                                {% else %}
+                                    {% if group.Jobs == 0 %}
+                                        <td data-path="{{group.group_name}} jobs_total" class="zero-style float-center plottable">0</td>
+                                    {% else %}
+                                        <td data-path="{{group.group_name}} jobs_total" class="more-style float-center plottable">{{group.Jobs}}</td>
+                                    {% endif %}
+
+                                    {% if group.Idle == 0 %}
+                                        <td tabindex="2" data-path="{{group.group_name}} jobs_idle_total" class="zero-style float-center plottable">0</td>
+                                    {% else %}
+                                        <td tabindex="2" data-path="{{group.group_name}} jobs_idle_total" class="more-style float-center plottable">{{group.Idle}}</td>
+                                    {% endif %}
+
+                                    {% if group.Running == 0 %}
+                                        <td data-path="{{group.group_name}} jobs_running_total" class="zero-style float-center plottable">0</td>
+                                    {% else %}
+                                        <td data-path="{{group.group_name}} jobs_running_total" class="more-style float-center plottable">{{group.Running}}</td>
+                                    {% endif %}
+
+                                    {% if group.Completed == 0 %}
+                                        <td data-path="{{group.group_name}} jobs_completed_total" class="zero-style float-center plottable">0</td>
+                                    {% else %}
+                                        <td data-path="{{group.group_name}} jobs_completed_total" class="more-style float-center plottable">{{group.Completed}}</td>
+                                    {% endif %}
+
+                                    {% if group.Held == 0 %}
+                                        <td data-path="{{group.group_name}} jobs_held_total" class="zero-style float-center plottable">0</td>
+                                    {% else %}
+                                        <td data-path="{{group.group_name}} jobs_held_total" class="more-style float-center plottable">{{group.Held}}</td>
+                                    {% endif %}
+
+                                    {% if group.Other == 0 %}
+                                        <td data-path="{{group.group_name}} jobs_other_total" class="zero-style float-center plottable">0</td>
+                                    {% else %}
+                                        <td data-path="{{group.group_name}} jobs_other_total" class="more-style float-center plottable">{{group.Other}}</td>
+                                    {% endif %}
+
+                                    <td class="col-spacer">&nbsp;</td>
+                                    
+                                    {% if group.foreign == 0 %}
+                                        <td data-path="{{group.group_name}} jobs_foreign_total" class="zero-style float-center plottable">0</td>
+                                    {% else %}
+                                        <td data-path="{{group.group_name}} jobs_foreign_total" class="more-style float-center plottable">{{group.foreign}}</td>
+                                    {% endif %}
+
+                                {% endif %}
+
+                            </tr>
+
+                            <!-- Jobs expand row to show cores-->
+                            <tr class="extra-row" id="expand-jobs-{{group.group_name}}{% if jobs_by_target_alias_flag %}-{{group.target_alias}}{% endif %}">
+                                <td onclick="toggle_id('expand-jobs-{{group.group_name}}{% if jobs_by_target_alias_flag %}-{{group.target_alias}}{% endif %}')"></td>
+                                <td></td>
+                                <td colspan="5">
+                                    <table class="job-extra-row">
+                                        {% for job in job_totals_list %}
+                                            {% if not jobs_by_target_alias_flag and job.group_name == group.group_name or jobs_by_target_alias_flag and job.group_name == group.group_name and job.target_alias == group.target_alias or jobs_by_target_alias_flag and job.group_name == group.group_name and job.target_alias == 'None' and not group.target_alias%}
+                                                <tr>
+
+                                                {% if jobs_by_target_alias_flag %}
+                                                    <td></td>
+                                                {% endif %}
+
+                                                {% if job.js_idle != 0 %}
+                                                    <td data-path="{{job.group_name}}{% if jobs_by_target_alias_flag %} {{group.target_alias}} jobs_idle_{{job.request_cpus}}core{% else %} jobs_idle_{{job.request_cpus}}core_total{% endif %}" class="float-center plottable">{{ job.js_idle }}&#10005;{{ job.request_cpus }}c</td>
+                                                {% else %}
+                                                    <td data-path="{{job.group_name}}{% if jobs_by_target_alias_flag %} {{group.target_alias}} jobs_idle_{{job.request_cpus}}core{% else %} jobs_idle_{{job.request_cpus}}core_total{% endif %}" class="float-center plottable">&nbsp;</td> 
+                                                    <!--<td class="zero-style" >{{ job.js_idle }}&#10005;{{ job.request_cpus }}c</td>-->
+                                                {% endif %}
+
+                                                {% if job.js_running != 0 %}
+                                                    <td data-path="{{job.group_name}}{% if jobs_by_target_alias_flag %} {{group.target_alias}} jobs_running_{{job.request_cpus}}core{% else %} jobs_running_{{job.request_cpus}}core_total{% endif %}" class="float-center plottable">{{ job.js_running }}&#10005;{{ job.request_cpus }}c</td>
+                                                {% else %}
+                                                    <td data-path="{{job.group_name}}{% if jobs_by_target_alias_flag %} {{group.target_alias}} jobs_running_{{job.request_cpus}}core{% else %} jobs_running_{{job.request_cpus}}core_total{% endif %}" class="float-center plottable">&nbsp;</td>
+                                                    <!-- <td class="zero-style">{{ job.js_running }}&#10005;{{ job.request_cpus }}c</td> -->
+                                                {% endif %}
+
+                                                {% if job.js_completed != 0 %}
+                                                    <td data-path="{{job.group_name}}{% if jobs_by_target_alias_flag %} {{group.target_alias}} jobs_completed_{{job.request_cpus}}core{% else %} jobs_completed_{{job.request_cpus}}core_total{% endif %}" class="float-center plottable">{{ job.js_completed }}&#10005;{{ job.request_cpus }}c</td>
+                                                {% else %}
+                                                    <td data-path="{{job.group_name}}{% if jobs_by_target_alias_flag %} {{group.target_alias}} jobs_completed_{{job.request_cpus}}core{% else %} jobs_completed_{{job.request_cpus}}core_total{% endif %}" class="float-center plottable">&nbsp;</td>
+                                                    <!-- <td class="zero-style">{{ job.js_completed }}&#10005;{{ job.request_cpus }}c</td> -->
+                                                {% endif %}
+
+                                                {% if job.js_held != 0 %}
+                                                    <td data-path="{{job.group_name}}{% if jobs_by_target_alias_flag %} {{group.target_alias}} jobs_held_{{job.request_cpus}}core{% else %} jobs_held_{{job.request_cpus}}core_total{% endif %}" class="float-center plottable">{{ job.js_held }}&#10005;{{ job.request_cpus }}c</td>
+                                                {% else %}
+                                                    <td data-path="{{job.group_name}}{% if jobs_by_target_alias_flag %} {{group.target_alias}} jobs_held_{{job.request_cpus}}core{% else %} jobs_held_{{job.request_cpus}}core_total{% endif %}" class="float-center plottable">&nbsp;</td>
+                                                    <!-- <td class="zero-style">{{ job.js_held }}&#10005;{{ job.request_cpus }}c</td> -->
+                                                {% endif %}
+
+                                                {% if job.js_other != 0 %}
+                                                    <td data-path="{{job.group_name}}{% if jobs_by_target_alias_flag %} {{group.target_alias}}{% endif %} jobs_other_{{job.request_cpus}}core" class="float-center plottable">{{ job.js_other }}&#10005;{{ job.request_cpus }}c</td>
+                                                {% else %}
+                                                    <td data-path="{{job.group_name}}{% if jobs_by_target_alias_flag %} {{group.target_alias}}{% endif %} jobs_other_{{job.request_cpus}}core" class="float-center plottable">&nbsp;</td>
+                                                    <!-- <td class="zero-style">{{ job.js_other }}&#10005;{{ job.request_cpus }}c</td> -->
+
+                                                {% endif %}
+
+                                                </tr>
+                                            {% endif %}
+                                        {% endfor %}
+                                    </table>
+                                </td>
+
+                                <td class="col-spacer">&nbsp;</td>
+
+
+                                <td data-path="{{group.group_name}} jobs_condor_days_left" class="zero-style float-center">
+                                {% if group.condor_days_left %}
+                                    Days left:<br>{{group.condor_days_left}}
+                                {% else %}
+                                    </td>
+                                {% endif %}
+                                <td data-path="{{group.group_name}} jobs_worker_days_left" class="zero-style float-center">
+                                {% if group.worker_days_left %}
+                                    Days left:<br>{{group.worker_days_left}}
+                                {% else %}
+                                    </td>
+                                {% endif %}
+                            </tr>
+                        {% endif %}
+                    {% endfor %}
+
+                    <tr class="bottom-row">
+                        <td colspan="100"></td>
+                        <td class="extra-row">&nbsp;</td>
+                    </tr>
+
+                    </tbody>
+                </table>
+
+            </div>
+
+            <!--
+            https://codepen.io/istro/pen/daker 
+            https://codersblock.com/blog/checkbox-trickery-with-css/
+            -->
+
+            <br>
+            {% set VMstotal = 0 %}
+            {% set VMs_foreign_total = 0 %}
+            <div class="status-table">
+
+                <table>
+                  <colgroup>
+                    <col class="clear" span="1"/>
+                    <col class="grey" span="1"/>
+                    <col class="clear" span="2"/>
+                    <col class="total-row" span="1"/>
+                    <col class="clear" span="24"/>
+                  </colgroup>
+                    <tr class="header-row">
+                        <th class="group-name jobs-style">Group</th>
+                        <th class="name-style">Clouds</th>
+                        <th class="jobs-style">RT (μs)</th>
+                        <th class="col-spacer">&nbsp;</th>
+                        <th class="native-style">VMs</th>
+                        <th class="native-style">Starting</th>
+                        <th class="native-style">Unreg.</th>
+                        <th class="native-style">Idle</th>                
+                        <th class="native-style">Running</th>
+                        <th class="native-style">Retiring</th>
+                        <th class="native-style">Manual</th>
+                        <th class="native-style">Error</th>
+
+                        <th class="col-spacer">&nbsp;</th>
+
+                        <th class="native-style">Slots</th>
+                        <th class="native-style" colspan="2">
+                            <table>
+                                <tr>
+                                    <th colspan="2">Slot Cores</th>
+                                </tr>
+                                <tr>
+                                    <th>Busy</th>
+                                    <th>Idle</th>
+                                </tr>
+                            </table>
+                        </th>
+
+                        <th class="col-spacer">&nbsp;</th>
+
+                        <th class="native-style" colspan="2">
+                            <table>
+                                <tr>
+                                    <th colspan="2">Native Cores</th>
+                                </tr>
+                                <tr>
+                                    <th>Used</th>
+                                    <th>Limit</th>
+                                </tr>
+                            </table>
+                        </th>
+                        <th class="native-style">RAM</th>
+
+                        {% if foreign_global_vms_flag %}
+                            <th class="col-spacer">&nbsp;</th>
+                            
+                            <th class="foreign-style" colspan="3">
+                                <table>
+                                    <tr>
+                                        <th colspan="3">Foreign</th>
+                                    </tr>
+                                    <tr>
+                                        <th>VMs</th>
+                                        <th>Cores</th>
+                                        <th>RAM</th>
+                                    </tr>
+                                </table>
+                            </th>
+
+                            <th class="col-spacer">&nbsp;</th>
+
+                            <th class="total-style" colspan="4">
+                                <table>
+                                    <tr>
+                                        <th colspan="4">Global</th>
+                                    </tr>
+                                    <tr>
+                                        <th>VMs</th>
+                                        <th>Cores</th>
+                                        <th>RAM</th>
+                                        <th>Volume</th>
+                                    </tr>
+                                </table>
+                            </th>
+                        {% endif %}
+                    </tr>
+
+                    
+
+                    {% for cloud in cloud_status_list %}
+
+                        {% if global_flag or not global_flag and cloud.group_name == active_group%}
+
+                                
+                                {% if cloud.display == 9%}
+                                    <tr class="total-row">
+                                {% elif cloud.display == 99%}
+                                    <tr class="global-total-row">
+                                {% else %}
+                                    <tr>
+                                {% endif %}
+
+                                {% if cloud.display == 1%}
+                                    <td class="group-name bold-style" onclick="toggle_group('expand-{{cloud.group_name}}')"><div class="float-left">{{cloud.group_name}}</div><div id="sym-expand-{{cloud.group_name}}" class="float-right">&#x25BE;</div></td>
+                                {% else %}
+                                    <td class="group-name bold-style" onclick="toggle_group('expand-{{cloud.group_name}}')"></td>
+                                {% endif %}
+
+                                {% if cloud.display >= 9 %}
+                                    <td class="bold-style" onclick="toggle_id('expand-{{cloud.group_name}}-{{cloud.cloud_name}}')"><div class="float-left">Totals</div>
+                                {% elif cloud.enabled > 0 %}
+                                    {% if cloud.app_credentials_expiry and cloud.current_time %}
+                                        {% if cloud.app_credentials_expiry|sub:cloud.current_time|div:86400 > 14 %}
+                                            <td class="bold-style" onclick="toggle_id('expand-{{cloud.group_name}}-{{cloud.cloud_name}}')"><div class="float-left">{{cloud.cloud_name}}{% if cloud.freeze %} &#x1F6AB;{% endif %}</div>
+                                        {% elif cloud.app_credentials_expiry|sub:cloud.current_time|div:86400 >= 8 %}
+                                            <td class="warn-style" onclick="toggle_id('expand-{{cloud.group_name}}-{{cloud.cloud_name}}')"><div class="float-left">{{cloud.cloud_name}}{% if cloud.freeze %} &#x1F6AB;{% endif %}</div>
+                                        {% else %}
+                                            <td class="disabled-style" onclick="toggle_id('expand-{{cloud.group_name}}-{{cloud.cloud_name}}')"><div class="float-left">{{cloud.cloud_name}}{% if cloud.freeze %} &#x1F6AB;{% endif %}</div>
+                                        {% endif %}
+                                    {% else %}
+                                        <td class="bold-style" onclick="toggle_id('expand-{{cloud.group_name}}-{{cloud.cloud_name}}')"><div class="float-left">{{cloud.cloud_name}}{% if cloud.freeze %} &#x1F6AB;{% endif %}</div>
+                                    {% endif %}
+                                {% else %}
+                                    <td class="disabled-style" onclick="toggle_id('expand-{{cloud.group_name}}-{{cloud.cloud_name}}')"><div class="float-left">{{cloud.cloud_name}}{% if cloud.freeze %} &#x1F6AB;{% endif %}</div>
+                                {% endif %}
+                                    <div id="sym-expand-{{cloud.group_name}}-{{cloud.cloud_name}}" class="float-right">&#x25BE;</div></td>
+
+
+
+                                    <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} communication_rt{{cloud.tag}}" class="float-center plottable" oncontextmenu="javascript:return false;">
+                                    {% if cloud.display < 9 %}
+                                        {% if cloud.communication_up == 1 %}
+                                            {{cloud.communication_rt}}
+                                        {% else %}
+                                            &#x1F6AB;
+                                        {% endif %}
+                                    {% endif %}
+                                    </td>
+
+
+
+                                    <td class="col-spacer">&nbsp;</td>
+
+
+                                    {% if cloud.VMs == 0 %}
+                                        <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} VMs{{cloud.tag}}" class="zero-style float-center plottable" oncontextmenu="javascript:return false;">0</td>
+                                    {% else %}
+                                        <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} VMs{{cloud.tag}}" class="{% if cloud.enabled == 0 %}zero-style{% else %}more-style{% endif %} float-center plottable" oncontextmenu="javascript:native_list('?{% if cloud.group_name %}{{cloud.group_name}}{% else %}ALL{% endif %}&cloud_name={{cloud.cloud_name}}&poller_status=&hostname=');return false;">{{cloud.VMs}}</td>
+                                    {% endif %}
+
+                                    {% if cloud.VMs_starting == 0 %}
+                                        <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} VMs_starting{{cloud.tag}}" class="zero-style float-center plottable" oncontextmenu="javascript:return false;">0</td>
+                                    {% else %}
+                                        <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} VMs_starting{{cloud.tag}}" class="{% if cloud.enabled == 0 %}zero-style{% else %}more-style{% endif %} float-center plottable" oncontextmenu="javascript:native_list('?{% if cloud.group_name %}{{cloud.group_name}}{% else %}ALL{% endif %}&cloud_name={{cloud.cloud_name}}&poller_status=starting&hostname=');return false;">{{cloud.VMs_starting}}</td>
+                                    {% endif %}
+
+
+                                    {% if cloud.VMs_unregistered == 0 %}
+                                        <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} VMs_unregistered{{cloud.tag}}" class="zero-style float-center plottable" oncontextmenu="javascript:return false;">0</td>
+                                    {% else %}
+                                        <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} VMs_unregistered{{cloud.tag}}" class="{% if cloud.enabled == 0 %}zero-style{% else %}more-style{% endif %} float-center plottable" oncontextmenu="javascript:native_list('?{% if cloud.group_name %}{{cloud.group_name}}{% else %}ALL{% endif %}&cloud_name={{cloud.cloud_name}}&poller_status=unregistered&hostname=');return false;">{{cloud.VMs_unregistered}}</td>
+                                    {% endif %}
+
+
+                                    {% if cloud.VMs_idle == 0 %}
+                                        <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} VMs_idle{{cloud.tag}}" class="zero-style float-center plottable" oncontextmenu="javascript:return false;">0</td>
+                                    {% else %}
+                                        <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} VMs_idle{{cloud.tag}}" class="{% if cloud.enabled == 0 %}zero-style{% else %}more-style{% endif %} float-center plottable" oncontextmenu="javascript:native_list('?{% if cloud.group_name %}{{cloud.group_name}}{% else %}ALL{% endif %}&cloud_name={{cloud.cloud_name}}&poller_status=idle&hostname=');return false;">{{cloud.VMs_idle}}</td>
+                                    {% endif %}
+
+
+                                    {% if cloud.VMs_running == 0 %}
+                                        <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} VMs_running{{cloud.tag}}" class="zero-style float-center plottable" oncontextmenu="javascript:return false;">0</td>
+                                    {% else %}
+                                        <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} VMs_running{{cloud.tag}}" class="{% if cloud.enabled == 0 %}zero-style{% else %}more-style{% endif %} float-center plottable" oncontextmenu="javascript:native_list('?{% if cloud.group_name %}{{cloud.group_name}}{% else %}ALL{% endif %}&cloud_name={{cloud.cloud_name}}&poller_status=running&hostname=');return false;">{{cloud.VMs_running}}</td>
+                                    {% endif %}
+
+
+                                    {% if cloud.VMs_retiring == 0 %}
+                                        <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} VMs_retiring{{cloud.tag}}" class="zero-style float-center plottable" oncontextmenu="javascript:return false;">0</td>
+                                    {% else %}
+                                        <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} VMs_retiring{{cloud.tag}}" class="{% if cloud.enabled == 0 %}zero-style{% else %}more-style{% endif %} float-center plottable" oncontextmenu="javascript:native_list('?{% if cloud.group_name %}{{cloud.group_name}}{% else %}ALL{% endif %}&cloud_name={{cloud.cloud_name}}&poller_status=retiring&hostname=');return false;">{{cloud.VMs_retiring}}</td>
+                                    {% endif %}
+
+
+                                    {% if cloud.VMs_manual == 0 %}
+                                        <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} VMs_manual{{cloud.tag}}" class="zero-style float-center plottable" oncontextmenu="javascript:return false;">0</td>
+                                    {% else %}
+                                        <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} VMs_manual{{cloud.tag}}" class="{% if cloud.enabled == 0 %}zero-style{% else %}more-style{% endif %} float-center plottable" oncontextmenu="javascript:native_list('?{% if cloud.group_name %}{{cloud.group_name}}{% else %}ALL{% endif %}&cloud_name={{cloud.cloud_name}}&poller_status=manual&hostname=');return false;">{{cloud.VMs_manual}}</td>
+                                    {% endif %}
+
+
+                                    {% if cloud.VMs_in_error == 0 %}
+                                        <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} VMs_in_error{{cloud.tag}}" class="zero-style float-center plottable" oncontextmenu="javascript:return false;">0</td>
+                                    {% else %}
+                                        <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} VMs_in_error{{cloud.tag}}" class="{% if cloud.enabled == 0 %}zero-style{% else %}more-style{% endif %} float-center plottable" oncontextmenu="javascript:native_list('?{% if cloud.group_name %}{{cloud.group_name}}{% else %}ALL{% endif %}&cloud_name={{cloud.cloud_name}}&poller_status=error&hostname=');return false;">{{cloud.VMs_in_error}}</td>
+                                    {% endif %}
+
+                                    <td class="col-spacer">&nbsp;</td>
+
+                                    {% if cloud.slot_count == 0 %}
+                                        <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} slot_count{{cloud.tag}}" class="zero-style float-center plottable">0</td>
+                                    {% else %}
+                                        <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} slot_count{{cloud.tag}}" class="{% if cloud.enabled == 0 %}zero-style{% else %}more-style{% endif %} float-center plottable">{{cloud.slot_count}}</td>
+                                    {% endif %}
+
+
+                                    {% if cloud.slot_core_count == 0 %}
+                                        <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} slot_core_count{{cloud.tag}}" class="zero-style float-center plottable">0</td>
+                                    {% else %}
+                                        <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} slot_core_count{{cloud.tag}}" class="{% if cloud.enabled == 0 %}zero-style{% else %}more-style{% endif %} float-center plottable">{{cloud.slot_core_count}}</td>
+                                    {% endif %}
+
+                                    {% if cloud.slot_idle_core_count == 0 %}
+                                        <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} slot_idle_core_count{{cloud.tag}}" class="zero-style float-center plottable">0</td>
+                                    {% else %}
+                                        <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} slot_idle_core_count{{cloud.tag}}" class="{% if cloud.enabled == 0 %}zero-style{% else %}more-style{% endif %} float-center plottable">{{cloud.slot_idle_core_count}}</td>
+                                    {% endif %}
+
+                                    <td class="col-spacer">&nbsp;</td>
+
+                                    {% if cloud.cores_native == 0 %}
+                                        <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} cores_native{{cloud.tag}}" class="zero-style float-center plottable">0</td>
+                                    {% elif cloud.cores_ctl == -1 %}
+                                        <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} cores_native{{cloud.tag}}" class="{% if cloud.enabled == 0 %}zero-style{% else %}sysctl-style{% endif %} float-center plottable">{{cloud.cores_native}}</td>
+                                    {% else %}
+                                        <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} cores_native{{cloud.tag}}" class="{% if cloud.enabled == 0 %}zero-style{% else %}manual-style{% endif %} float-center plottable">{{cloud.cores_native}}</td>
+                                    {% endif %}
+
+                                    {% if cloud.cores_limit == 0 %}
+                                        <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} cores_limit{{cloud.tag}}" class="zero-style float-center plottable">0</td>
+                                    {% elif cloud.cores_ctl == -1 %}
+                                        {% if cloud.cores_limit >= 999999999 %}
+                                            <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} cores_limit{{cloud.tag}}" class="{% if cloud.enabled == 0 %}zero-style{% else %}sysctl-style{% endif %} float-center plottable">&#x221E;</td>
+                                        {% else %}
+                                            <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} cores_limit{{cloud.tag}}" class="{% if cloud.enabled == 0 %}zero-style{% else %}sysctl-style{% endif %} float-center plottable">{{cloud.cores_limit}}</td>
+                                        {% endif %}
+                                    {% else %}
+                                        {% if cloud.cores_limit >= 999999999 %}
+                                            <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} cores_limit{{cloud.tag}}" class="{% if cloud.enabled == 0 %}zero-style{% else %}sysctl-style{% endif %} float-center plottable">&#x221E;</td>
+                                        {% else %}
+                                            <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} cores_limit{{cloud.tag}}" class="{% if cloud.enabled == 0 %}zero-style{% else %}manual-style{% endif %} float-center plottable">{{cloud.cores_limit}}</td>
+                                        {% endif %}
+                                    {% endif %}
+                                    
+                                    <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} ram_native{{cloud.tag}}" class="float-center plottable">
+                                        {% with total=cloud.ram_quota %}
+                                            {% if total == 0 %}
+                                                <meter class="ram-meter" min="0" low="0" optimum="0" high="0" max="1" value="0"></meter>
+                                            {% else %}
+                                                <meter class="ram-meter {% if cloud.enabled == 0 %}disabled-meter{% endif %}" min="0" low="0" optimum="{{total|mul:0.5}}" high="{{total|mul:0.9}}" max="{{total}}" value="{{ cloud.ram_native }}"></meter>
+                                            {% endif %}
+                                        {% endwith %}
+                                    </td>
+
+
+                                    {% if foreign_global_vms_flag %}
+                                        <td class="col-spacer">&nbsp;</td>
+
+
+                                        {% if cloud.Foreign_VMs == 0 %}
+                                            <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} Foreign_VMs{{cloud.tag}}" class="zero-style float-center plottable" oncontextmenu="javascript:return false;">0</td>
+                                        {% else %}
+                                            <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} Foreign_VMs{{cloud.tag}}" class="{% if cloud.enabled == 0 %}zero-style{% else %}more-style{% endif %} float-center plottable" oncontextmenu="javascript:foreign_list('?{{cloud.group_name}}&cloud_name={{cloud.cloud_name}}&global_view={% if cloud.group_name and cloud.cloud_name %}0{% elif cloud.group_name and not cloud.cloud_name %}2{% else %}1{% endif %}');return false;">{{ cloud.Foreign_VMs }}</td>
+                                        {% endif %}
+
+
+
+                                        {% if cloud.cores_foreign == 0 %}
+                                            <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} cores_foreign{{cloud.tag}}" class="zero-style float-center plottable">0</td>
+                                        {% else %}
+                                            <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} cores_foreign{{cloud.tag}}" class="{% if cloud.enabled == 0 %}zero-style{% else %}more-style{% endif %} float-center plottable">{{ cloud.cores_foreign }}</td>
+                                        {% endif %}
+
+                                        <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} ram_foreign{{cloud.tag}}" class="float-center plottable">
+                                            {% with total=cloud.ram_quota %}
+                                                {% if total == 0 %}
+                                                    <meter class="ram-meter" min="0" low="0" optimum="0" high="0" max="1" value="0"></meter>
+                                                {% else %}
+                                                    <meter class="ram-meter {% if cloud.enabled == 0 %}disabled-meter{% endif %}" min="0" low="0" optimum="{{total|mul:0.5}}" high="{{total|mul:0.9}}" max="{{total}}" value="{{ cloud.ram_foreign }}"></meter>
+                                                {% endif %}
+                                            {% endwith %}
+                                        </td>
+
+                                        <td class="col-spacer">&nbsp;</td>
+
+                                        {% if cloud.VMs_native_foreign == 0 %}
+                                            <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} VMs_native_foreign{{cloud.tag}}" class="zero-style float-center plottable">0</td>
+                                        {% else %}
+                                            <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} VMs_native_foreign{{cloud.tag}}" class="{% if cloud.enabled == 0 %}zero-style{% else %}more-style{% endif %} float-center plottable">{{ cloud.VMs_native_foreign }}</td>
+                                        {% endif %}
+
+
+
+                                        {% if cloud.cores_native_foreign == 0 %}
+                                            <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} cores_native_foreign{{cloud.tag}}" class="zero-style float-center plottable">0</td>
+                                        {% else %}
+                                            <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} cores_native_foreign{{cloud.tag}}" class="{% if cloud.enabled == 0 %}zero-style{% else %}more-style{% endif %} float-center plottable">{{ cloud.cores_native_foreign }}</td>
+                                        {% endif %}
+
+
+
+                                        <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} ram_native_foreign{{cloud.tag}}" class="float-center plottable">
+                                            {% with total=cloud.ram_quota %}
+                                                {% if total == 0 %}
+                                                    <meter class="ram-meter" min="0" low="0" optimum="0" high="0" max="1" value="0"></meter>
+                                                {% else %}
+                                                    <meter class="ram-meter {% if cloud.enabled == 0 %}disabled-meter{% endif %}" min="0" low="0" optimum="{{total|mul:0.5}}" high="{{total|mul:0.9}}" max="{{total}}" value="{{ cloud.ram_native_foreign }}"></meter>
+                                                {% endif %}
+                                            {% endwith %}                        
+                                        </td>
+
+                                        <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} volume_gigs_used{{cloud.tag}}" class="float-center plottable">
+                                        {% if cloud.volume_gigs_max == 0 %}
+                                            <meter class="ram-meter" min="0" low="0" optimum="0" high="0" max="1" value="0"></meter>
+                                        {% else %}
+                                            <meter class="ram-meter {% if cloud.enabled == 0 %}disabled-meter{% endif %}" min="0" low="0" optimum="{{cloud.volume_gigs_max|mul:0.5}}" high="{{cloud.volume_gigs_max|mul:0.9}}" max="{{ cloud.volume_gigs_max }}" value="{{ cloud.volume_gigs_used }}"></meter>
+                                        {% endif %}
+                                        </td>
+                                    {% endif %}
+                                </tr>
+
+                                <!-- Cloud status expand row to show details-->
+                                {% if cloud.display == 9 %}
+                                    <tr class="extra-row expand-{{cloud.group_name}} total-row" id="expand-{{cloud.group_name}}-{{cloud.cloud_name}}">
+                                {% elif cloud.display == 99 %}
+                                    <tr class="extra-row expand-{{cloud.group_name}} global-total-row" id="expand-{{cloud.group_name}}-{{cloud.cloud_name}}">
+                                {% elif cloud.enabled > 0 %}
+                                    {% if cloud.app_credentials_expiry and cloud.current_time %}
+                                        {% if cloud.app_credentials_expiry|sub:cloud.current_time|div:86400 > 14 %}
+                                            <tr class="extra-row expand-{{cloud.group_name}}" id="expand-{{cloud.group_name}}-{{cloud.cloud_name}}">
+                                        {% elif cloud.app_credentials_expiry|sub:cloud.current_time|div:86400 >= 8 %}
+                                            <tr class="extra-row expand-{{cloud.group_name}} warn-style" id="expand-{{cloud.group_name}}-{{cloud.cloud_name}}">
+                                        {% else %}
+                                            <tr class="extra-row expand-{{cloud.group_name}} disabled-style" id="expand-{{cloud.group_name}}-{{cloud.cloud_name}}">
+                                        {% endif %}
+                                     {% else %}
+                                         <tr class="extra-row expand-{{cloud.group_name}}" id="expand-{{cloud.group_name}}-{{cloud.cloud_name}}">
+                                     {% endif %}
+                                {% else %}
+                                     <tr class="extra-row expand-{{cloud.group_name}} disabled-style" id="expand-{{cloud.group_name}}-{{cloud.cloud_name}}">
+                                {% endif %}
+
+
+                                    <td onclick="toggle_group('expand-{{cloud.group_name}}')"></td>
+                                    <td onclick="toggle_id('expand-{{cloud.group_name}}-{{cloud.cloud_name}}')" style="text-align: left">
+                                        {% if cloud.enabled == 0 %}
+                                            Cloud disabled
+                                            <br />
+                                        {% endif %}
+                                        {% if cloud.freeze %}
+                                            Cloud paused
+                                            <br />
+                                        {% endif %}
+                                        {% if cloud.app_credentials_expiry and cloud.current_time %}
+                                            {% if cloud.app_credentials_expiry|sub:cloud.current_time|div:86400 > 1 %}
+                                                Cloud application credential will expire in {{cloud.app_credentials_expiry|sub:cloud.current_time|intdiv:86400|floatformat:"0"}} days
+                                            {% elif cloud.app_credentials_expiry|sub:cloud.current_time|div:86400 > 0 %}
+                                                Cloud application credential will expire in {{cloud.app_credentials_expiry|sub:cloud.current_time|intdiv:3600|floatformat:"0"}} hours
+                                            {% else %}
+                                                Cloud application credential expired
+                                            {% endif %}
+                                        {% endif %}
+                                    </td>
+
+                                    <td>
+                                    {% if cloud.display < 9 %}
+                                        {% if cloud.communication_up == 0 %}
+                                            Network down
+                                        {% endif %}
+                                    {% endif %}
+                                    </td>
+
+
+                                    <td class="col-spacer">&nbsp;</td>
+
+                                    <td>
+                                    </td>
+
+                                    <td>
+                                    </td>
+
+                                    <td>
+                                    </td>
+
+                                    <td>
+                                    </td>
+
+                                    <td>
+                                    </td>
+
+                                    <td>
+                                    </td>
+
+                                    <td>
+                                    </td>
+
+                                    <td>
+                                    </td>
+
+                                    <td class="col-spacer">&nbsp;</td>
+
+                                    <td colspan="3" class="slot-detail">  
+
+                                        <table>
+
+                                        {% if slot_flavor_flag %}
+                                            {% for slot in flavor_slot_summary %}
+
+                                                {% if slot.group_name == cloud.group_name and slot.cloud_name == cloud.cloud_name %}
+
+                                                    <tr>
+                                                        <td colspan="5" class="float-left">Flavor: {{slot.flavor}} Busy: {{slot.busy}} Idle: {{slot.idle}} ({{slot.idle_percent}} %)</td>
+                                                    </tr>
+                                                    <tr><td colspan="5">&nbsp;</td></tr>
+
+                                                    {% for summary in flavor_slot_detail_summary %}
+                                                        {% if summary.group_name == cloud.group_name and summary.cloud_name == cloud.cloud_name and summary.flavor == slot.flavor %}
+
+                                                        {% if slot_detail_flag %}                                            
+                                                            <tr>
+                                                                <td></td>
+                                                                <td colspan="4">{{summary.slot_type}} core slot totals - slots: {{summary.slot_count}} cores: {{summary.core_count}}</td>
+                                                            </tr>
+                                                            <tr class="slot-detail">
+                                                                <td></td>
+                                                                <td></td>
+                                                                <td><b>ID</b></td>
+                                                                <td><b>Slots</b></td>
+                                                                <td><b>Cores</b></td>
+                                                            </tr>
+                                                            {% for detail in flavor_slot_detail %}
+                                                                {% if detail.group_name == cloud.group_name and detail.cloud_name == cloud.cloud_name and detail.slot_type == summary.slot_type and detail.flavor == summary.flavor %}
+
+                                                                <tr class="slot-detail">
+                                                                    <!--<td>{{detail.slot_type}}</td>-->
+                                                                    <td></td>
+                                                                    <td></td>
+                                                                    <td>{{detail.slot_id}}</td>
+                                                                    <td>{{detail.slot_count}}</td>
+                                                                    <td>{{detail.core_count}}</td>
+                                                                </tr>
+                                                                {% endif %}
+                                                            {% endfor %}
+                                                            <tr><td colspan="4">&nbsp;</td></tr>
+                                                        {% endif %}
+
+                                                    {% endif %}
+                                                {% endfor %}
+
+                                                {% endif %}
+                                            {% endfor %}
+                                        
+                                        {% else %}
+
+                                            {% for slot in slot_summary %}
+
+                                                {% if slot.group_name == cloud.group_name and slot.cloud_name == cloud.cloud_name %}
+
+                                                    <tr>
+                                                        <td colspan="5">Busy: {{slot.busy}} Idle: {{slot.idle}} ({{slot.idle_percent}} %)</td>
+                                                    </tr>
+                                                    <tr><td colspan="5">&nbsp;</td></tr>
+
+                                                    {% for summary in slot_detail_summary %}
+                                                        {% if summary.group_name == cloud.group_name and summary.cloud_name == cloud.cloud_name %}
+
+                                                        {% if slot_detail_flag %}                                            
+
+                                                            <tr>
+                                                                <td></td>
+                                                                <td colspan="4">{{summary.slot_type}} core slot totals - slots: {{summary.slot_count}} cores: {{summary.core_count}}</td>
+                                                            </tr>
+                                                            <tr class="slot-detail">
+                                                                <td></td>
+                                                                <td></td>
+                                                                <td><b>ID</b></td>
+                                                                <td><b>Slots</b></td>
+                                                                <td><b>Cores</b></td>
+                                                            </tr>
+                                                            {% for detail in slot_detail %}
+                                                                {% if detail.group_name == cloud.group_name and detail.cloud_name == cloud.cloud_name and detail.slot_type == summary.slot_type %}
+
+                                                                <tr class="slot-detail">
+                                                                    <!--<td>{{detail.slot_type}}</td>-->
+                                                                    <td></td>
+                                                                    <td></td>
+                                                                    <td>{{detail.slot_id}}</td>
+                                                                    <td>{{detail.slot_count}}</td>
+                                                                    <td>{{detail.core_count}}</td>
+                                                                </tr>
+                                                                {% endif %}
+                                                            {% endfor %}
+                                                            <tr><td colspan="4">&nbsp;</td></tr>
+                                                        {% endif %}
+
+                                                    {% endif %}
+                                                {% endfor %}
+
+                                                {% endif %}
+                                            {% endfor %}
+
+
+                                        {% endif %}
+
+
+
+                                        </table>
+                                    </td>
+
+                                    <td class="col-spacer">&nbsp;</td>
+
+                                    <td colspan="2">
+
+                                    {% if cloud.enabled < 9%}
+                                        {% if cloud.cores_ctl == -1 and cloud.cores_soft_quota == -1 %}
+                                            <p>Hard max</p>
+                                        {% elif cloud.cores_ctl == -1 and cloud.cores_soft_quota > -1 %}
+                                            <p>Soft max</p>
+                                        {% else%}
+                                            <p>User limit</p>
+                                        {% endif %}
+                                    {% endif %}
+
+                                    </td>
+                                    <td>
+                                        {% with ram=cloud.ram_native total=cloud.ram_quota %}
+                                            {% if cloud.ram_quota > 1048576 %}
+                                                {{ ram|div:1048576|floatformat:1}} / {{ total|div:1048576|floatformat:1 }} TB
+                                            {% else %}
+                                                {{ ram|div:1024|floatformat:1 }} / {{ total|div:1024|floatformat:1 }} GB
+                                            {% endif %}
+                                        {% endwith %}
+                                    </td>
+
+                                    {% if foreign_global_vms_flag %}
+                                        <td class="col-spacer">&nbsp;</td>
+
+                                        <td><!--Foreign VMs-->
+                                        </td>
+                                        <td><!--Foreign Cores--></td>
+                                        <td>
+                                            {% with ram=cloud.ram_foreign total=cloud.ram_quota %}
+                                                {% if cloud.ram_quota > 1048576 %}
+                                                    {{ ram|div:1048576|floatformat:1}} / {{ total|div:1048576|floatformat:1 }} TB
+                                                {% else %}
+                                                    {{ ram|div:1024|floatformat:1 }} / {{ total|div:1024|floatformat:1 }} GB
+                                                {% endif %}
+                                            {% endwith %}
+                                        </td>
+                                        <td class="col-spacer">&nbsp;</td>
+
+                                        <td>{{cloud.VMs_native_foreign}} / {{cloud.VMs_quota}}</td>
+
+
+                                        <td>{{cloud.cores_native_foreign}} / 
+                                            {% if cloud.cores_quota >= 999999999 %}
+                                                &#x221E;
+                                            {% else %}
+                                                {{cloud.cores_quota}}
+                                            {% endif %}
+                                        </td>                                 
+                                        <td>
+                                            {% with ram=cloud.ram_native_foreign total=cloud.ram_quota %}
+                                                {% if cloud.ram_quota > 1048576 %}
+                                                    {{ ram|div:1048576|floatformat:1}} / {{ total|div:1048576|floatformat:1 }} TB
+                                                {% else %}
+                                                    {{ ram|div:1024|floatformat:1 }} / {{ total|div:1024|floatformat:1 }} GB
+                                                {% endif %}
+                                            {% endwith %}
+                                        </td>
+                                    {% endif %}
+                                </tr>
+
+
+                                {% if cloud.display == 9 %}
+                                    <tr>
+                                        <td colspan="3" class="row-spacer">&nbsp;</td>
+                                        <td class="col-spacer">&nbsp;</td>
+                                        <td colspan="8" class="row-spacer">&nbsp;</td>
+                                        <td class="col-spacer">&nbsp;</td>
+                                        <td colspan="3" class="row-spacer">&nbsp;</td>
+                                        <td class="col-spacer">&nbsp;</td>
+                                        <td colspan="3" class="row-spacer">&nbsp;</td>
+                                        {% if foreign_global_vms_flag %}
+                                            <td class="col-spacer">&nbsp;</td>
+                                            <td colspan="3" class="row-spacer">&nbsp;</td>
+                                            <td class="col-spacer">&nbsp;</td>
+                                            <td colspan="3" class="row-spacer">&nbsp;</td>
+                                        {% endif %}
+                                    </tr>
+                                {% endif %}
+
+
+                        {% endif %}
+                    
+                    {% endfor %}
+
+                    
+                    <tr>
+                        <td colspan="3" class="row-spacer">&nbsp;</td>
+                        <td class="col-spacer">&nbsp;</td>
+                        <td colspan="8" class="row-spacer">&nbsp;</td>
+                        <td class="col-spacer">&nbsp;</td>
+                        <td colspan="3" class="row-spacer">&nbsp;</td>
+                        <td class="col-spacer">&nbsp;</td>
+                        <td colspan="3" class="row-spacer">&nbsp;</td>
+                        {% if foreign_global_vms_flag %}
+                            <td class="col-spacer">&nbsp;</td>
+                            <td colspan="3" class="row-spacer">&nbsp;</td>
+                            <td class="col-spacer">&nbsp;</td>
+                            <td colspan="3" class="row-spacer">&nbsp;</td>
+                        {% endif %}
+                    </tr>
+
+
+                    {% if not global_flag %}
+                        {% set group_total = cloud_total_list %}
+                        {% set group_name = cloud_total_list.group_name %}
+                    {% else %}
+                        {% set group_total = global_total_list %}
+                        {% for group in user_groups %}
+                            <!-- Get list of groups user is a part of -->
+                            <input type='hidden' name='groups_total' value={{group}} />
+                        {% endfor %}
+                        {% set group_name = "groups_total" %}
+                    {% endif %}
+
+                        
+                     
+                    
+                    </tbody> 
+                </table>
+            </div>
+    </div>
+
+    <script rel="preload" type="text/javascript" src="static/csv2/status.js"></script>
+    <script rel="preload" type="text/javascript" src="static/plotly.js/dist/plotly.min.js"></script>
+
+</div>
+
+<!--<div>Icons made by <a href="https://www.flaticon.com/authors/those-icons" title="Those Icons">Those Icons</a> from <a href="https://www.flaticon.com/"              title="Flaticon">www.flaticon.com</a> is licensed by <a href="http://creativecommons.org/licenses/by/3.0/"              title="Creative Commons BY 3.0" target="_blank">CC 3.0 BY</a></div>-->
+
+</div>
+
+</body>
+</html>
