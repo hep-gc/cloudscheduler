@@ -16,6 +16,14 @@
                 margin-left: 20px;
                 padding: 10px;
             }
+            .div_note {
+                background-color: 78c1e2;
+                margin-top: 10px;
+                margin-bottom: 10px;
+                margin-right: 40px;
+                margin-left: 20px;
+                padding: 10px;
+            }
         </style>
     </head>
     <body>
@@ -23,14 +31,27 @@
             <p>This web page provides additional CSV2 components for installation on remote hosts. Each component
             listed is configured to interact with this CSV2 host. The following downloads are available:
 
-            <h3>1. Condor Poller.</h1>
+            <h3>1. Condor Poller.</h3>
             <p>Each CSV2 instance can service one or more HTCondor job schedulers, each running on its' own 
             host and each with it's own instance of the CSV2 condor poller. It can be installed on HTCondor
-            hosts by running the following commands as root:
+            hosts either by running the following interactive installation script as root:
 
             <div class="div_inner">
                 cd /tmp <br>
-                wget <a href="https://{{ ansible_fqdn }}/repo/condor_poller.tar.gz">https://{{ ansible_fqdn }}/repo/condor_poller.tar.gz</a><br>
+                wget <a href="https://csv2-dev.heprc.uvic.ca/repo/condor_poller.tar.gz">https://csv2-dev.heprc.uvic.ca/repo/install_condor_poller.sh</a><br>
+                chmod +x install_condor_poller.sh<br>
+                ./install_condor_poller.sh
+            </div>
+
+            <div class="div_note">
+                Note that if you have a previous condor poller configuration file, the script will automatically create a backup of it. If you already have the condor key and certificate locations specified, the script will prompt you to keep them unchanged.
+            </div>
+
+           <em>or</em> by running the following commands manually as root (this will overwrite any previous configuration):
+
+            <div class="div_inner">
+                cd /tmp <br>
+                wget <a href="https://csv2-dev.heprc.uvic.ca/repo/condor_poller.tar.gz">https://csv2-dev.heprc.uvic.ca/repo/condor_poller.tar.gz</a><br>
                 tar -xzvf condor_poller.tar.gz<br>
                 rsync -av cloudscheduler /opt
             </div>
