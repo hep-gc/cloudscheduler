@@ -281,6 +281,18 @@ schema = {
             "last_updated": {"type": "int"}
             }
         },
+    "cloud_volume_types": {
+        "keys": [
+            "group_name",
+            "cloud_name",
+            "volume_type"
+            ],
+        "columns": {
+            "group_name": {"type": "str", "len": "32", "nulls": "NO"},
+            "cloud_name": {"type": "str", "len": "32", "nulls": "NO"},
+            "volume_type": {"type": "str", "len": "64", "nulls": "NO"}
+            }
+        },
     "cloud_volumes": {
         "keys": [
             "group_name",
