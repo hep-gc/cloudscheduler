@@ -997,7 +997,7 @@ def volume_type_poller():
                 config.db_close()
  
                 try:
-                    wait_cycle(cycle_start_time, poll_time_history, config.categories["openstackPoller.py"]["sleep_interval_limit"], config)
+                    wait_cycle(cycle_start_time, poll_time_history, config.categories["openstackPoller.py"]["sleep_interval_volume_type"], config)
                 except KeyboardInterrupt:
                     # sigint recieved, cancel the sleep and start the loop
                     continue

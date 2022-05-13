@@ -8,6 +8,7 @@ select
     htcondor_fqdn,
     htcondor_container_hostname,
     htcondor_other_submitters,
+    cg.public_visibility,
     group_concat(metadata_name order by metadata_name) as metadata_names
 from csv2_groups as cg
 left outer join csv2_group_metadata as cgm on

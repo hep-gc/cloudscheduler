@@ -6,6 +6,9 @@ import filecmp
 import os
 
 KEY_MAP = {
+    '-bvt': 'vm_boot_volume_type',
+    '-bvs': 'vm_boot_volume_size',
+    '-bvc': 'vm_boot_volume_per_core',
     '-ca':  'authurl',
     '-ce':  'enabled',
     '-cfe': 'flavor_name',
@@ -71,7 +74,7 @@ def add(gvar):
 
     mandatory = ['-ca', '-cn', '-cP', '-cr', '-ct']
     required = []
-    optional = ['-ce', '-cfe', '-cp', '-cPD', '-cPI', '-csp', '-cUD', '-cUI', '-cpw', '-cU', '-cac', '-cas', '-ui', '-g', '-ga', '-gme',  '-H', '-h', '-s', '-vbv', '-vc', '-vcs', '-vf', '-vi', '-vk', '-vka', '-vn', '-vr', '-vsg', '-v', '-x509', '-xA']
+    optional = ['-bvt', '-bvs', '-bvc', '-ce', '-cfe', '-cp', '-cPD', '-cPI', '-csp', '-cUD', '-cUI', '-cpw', '-cU', '-cac', '-cas', '-ui', '-g', '-ga', '-gme',  '-H', '-h', '-s', '-vbv', '-vc', '-vcs', '-vf', '-vi', '-vk', '-vka', '-vn', '-vr', '-vsg', '-v', '-x509', '-xA']
 
     if gvar['retrieve_options']:
         return mandatory + required + optional
@@ -465,7 +468,7 @@ def update(gvar):
 
     mandatory = ['-cn']
     required = []
-    optional = ['-ca', '-ce', '-cfe', '-cfo', '-cpw', '-cp', '-cP', '-cPD', '-cPI', '-cr', '-csp', '-ct', '-cU', '-cac', '-cas', '-ui', '-cUD', '-cUI', '-g', '-ga', '-gme', '-gmo', '-H', '-h', '-s', '-vbv', '-vc', '-vcs', '-vf', '-vi', '-vk', '-vka', '-vn', '-vr', '-vsg', '-v', '-x509', '-xA']
+    optional = ['-bvt', '-bvs', '-bvc', '-ca', '-ce', '-cfe', '-cfo', '-cpw', '-cp', '-cP', '-cPD', '-cPI', '-cr', '-csp', '-ct', '-cU', '-cac', '-cas', '-ui', '-cUD', '-cUI', '-g', '-ga', '-gme', '-gmo', '-H', '-h', '-s', '-vbv', '-vc', '-vcs', '-vf', '-vi', '-vk', '-vka', '-vn', '-vr', '-vsg', '-v', '-x509', '-xA']
 
     if gvar['retrieve_options']:
         return mandatory + required + optional

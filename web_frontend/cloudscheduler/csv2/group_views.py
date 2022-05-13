@@ -1154,6 +1154,9 @@ def update(request):
                 config.db_close()
                 return group_list(request, active_user=active_user, response_code=1, message='%s group update, "%s" failed - the request did not match any rows.' % (lno(MODID), fields['group_name']))
             
+            # Check if public visibility has changed
+            visibility_changed = (found_group_list[0]["public_visibility"] != fields["public_visibility"])
+
             rc, msg = config.db_update(table, group_updates, where=where_clause)
             if rc != 0:
                 config.db_close()
@@ -1183,7 +1186,12 @@ def update(request):
             # Commit the updates, configure firewall and return.
             config.db_commit()
             configure_fw(config)
+            
+            # Re-generate public status page
+            if visibility_changed: generate_static_page(config, interval_override=True)
+
             config.db_close()
+            
             return group_list(request, active_user=active_user, response_code=0, message='group "%s" successfully updated.' % (fields['group_name']))
         else:
             config.db_close()

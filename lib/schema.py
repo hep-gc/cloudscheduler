@@ -1539,6 +1539,7 @@ schema = {
             "htcondor_fqdn": {"type": "str", "len": "128", "nulls": "YES"},
             "htcondor_container_hostname": {"type": "str", "len": "128", "nulls": "YES"},
             "htcondor_other_submitters": {"type": "str", "len": "128", "nulls": "YES"},
+            "public_visibility": {"type": "int"},
             "metadata_names": {"type": "str", "nulls": "YES"}
             }
         },

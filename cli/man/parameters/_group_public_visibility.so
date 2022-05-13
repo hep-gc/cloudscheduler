@@ -1,0 +1,6 @@
+.TP
+\fB\-pub \fIoption\fR, \fB\-\-public\-visibility \fIoption\fR
+Sets whether the group's status is visible on the public status page.
+If this value is changed from the current value, the public status page is regenerated.
+The value for \fIoption\fR must be one of \fBtrue\fR, \fBfalse\fR, \fByes\fR, \fBno\fR, \fB1\fR, or \fB0\fR.
+Default: 0

@@ -27,6 +27,7 @@ KEY_MAP = {
     '-vk':   'vm_keyname',
     '-vn':   'vm_network',
     '-vsg':  'vm_security_groups',
+    '-pub':  'public_visibility',
     }
 
 def _filter_by_group_name_and_or_metadata_name(gvar, qs):
@@ -53,7 +54,7 @@ def add(gvar):
 
     mandatory = ['-gn']
     required = []
-    optional = ['-g', '-H', '-h', '-htcf', '-htch', '-htcu', '-jc', '-jd', '-jr', '-js', '-NV', '-ok', '-r', '-s', '-un', '-vf', '-vi', '-vka', '-vk', '-vn', '-vsg', '-v', '-x509', '-xA']
+    optional = ['-g', '-H', '-h', '-htcf', '-htch', '-htcu', '-jc', '-jd', '-jr', '-js', '-NV', '-ok', '-pub', '-r', '-s', '-un', '-vf', '-vi', '-vka', '-vk', '-vn', '-vsg', '-v', '-x509', '-xA']
 
 
     if gvar['retrieve_options']:
@@ -259,7 +260,7 @@ def list(gvar):
 
     # Retrieve data (possibly after changing the group).
     response = requests(gvar, '/group/list/')
-    
+
     if response['message']:
         print(response['message'])
 
@@ -277,6 +278,7 @@ def list(gvar):
             'htcondor_fqdn/FQDN/HTCondor',
             'htcondor_container_hostname/Container Hostname/HTCondor',
             'htcondor_other_submitters/Other Submitters/HTCondor',
+            'public_visibility/Public Visiblity',
             'metadata_names/Metadata Filenames',
             ],
         title="Groups",
@@ -289,7 +291,7 @@ def update(gvar):
 
     mandatory = ['-gn']
     required = []
-    optional = ['-g', '-H', '-h', '-htcf', '-htch', '-htcu', '-jc', '-jd', '-jr', '-js', '-NV', '-ok', '-r', '-s', '-un', '-uo', '-vf', '-vi', '-vka', '-vk', '-vn', '-vsg', '-v', '-x509', '-xA']
+    optional = ['-g', '-H', '-h', '-htcf', '-htch', '-htcu', '-jc', '-jd', '-jr', '-js', '-pub', '-NV', '-ok', '-r', '-s', '-un', '-uo', '-vf', '-vi', '-vka', '-vk', '-vn', '-vsg', '-v', '-x509', '-xA']
 
     if gvar['retrieve_options']:
         return mandatory + required + optional
