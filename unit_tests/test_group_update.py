@@ -46,12 +46,15 @@ def main(gvar):
         # 17
         'user_option': {'valid': 'add', 'test_cases': {'': 'value specified for "user_option" must be one of the following options: [\'add\', \'delete\'].'}},
         # 18 Give both username and username.1.
-        'username': {'valid': ut_id(gvar, 'gtu4'), 'test_cases': {}, 'array_field': True}
+        'username': {'valid': ut_id(gvar, 'gtu4'), 'test_cases': {}, 'array_field': True},
+        # 19
+        # 20
+        'public_visibility': {'valid': 0, 'test_cases' : {'invalid-unit-test' : 'group update boolean value specified for "public_visibility" must be one of the following: true, false, yes, no, 1, or 0.'}}
     }
 
     parameters_requests(gvar, '/group/update/', ut_id(gvar, 'gtg4'), ut_id(gvar, 'gtu5'), parameters)
 
-    # 19 Attempt to modify a group that does not exist.
+    # 21 Attempt to modify a group that does not exist.
     execute_csv2_request(
         gvar, 1, 'GV', 'the request did not match any rows.',
         '/group/update/', group=ut_id(gvar, 'gtg4'), form_data={
@@ -62,7 +65,7 @@ def main(gvar):
         server_user=ut_id(gvar, 'gtu5')
     )
 
-    # 20
+    # 22
     execute_csv2_request(
         gvar, 1, 'GV', 'group update, "{}" failed - user "{}" was specified twice.'.format(ut_id(gvar, 'gtg4'), ut_id(gvar, 'gtu4')),
         '/group/update/', group=ut_id(gvar, 'gtg4'),
@@ -74,32 +77,32 @@ def main(gvar):
         server_user=ut_id(gvar, 'gtu5')
     )
 
-    # 21
+    # 23
     execute_csv2_request(
         gvar, 1, 'GV', 'group update must specify at least one field to update.',
         '/group/update/', group=ut_id(gvar, 'gtg4'), form_data={'group_name': ut_id(gvar, 'gtg4')},
         server_user=ut_id(gvar, 'gtu5')
     )
 
-    # 22 Ensure that user_option by itself does not qualify as a field to update.
+    # 24 Ensure that user_option by itself does not qualify as a field to update.
     execute_csv2_request(
         gvar, 1, 'GV', 'group update must specify at least one field to update.',
         '/group/update/', group=ut_id(gvar, 'gtg4'), form_data={'group_name': ut_id(gvar, 'gtg4'), 'user_option': 'add'},
         server_user=ut_id(gvar, 'gtu5')
     )
 
-    # 23
+    # 25
     execute_csv2_request(
         gvar, 0, None, 'group "{}" successfully updated.'.format(ut_id(gvar, 'gtg4')),
         '/group/update/', group=ut_id(gvar, 'gtg4'), form_data={
             'group_name': ut_id(gvar, 'gtg4'),
             # The fqdn has this value already, but it still counts as updating.
-            'htcondor_fqdn': gvar['fqdn']
+            'htcondor_fqdn': gvar['fqdn'],
         },
         server_user=ut_id(gvar, 'gtu5')
     )
 
-    # 24
+    # 26
     execute_csv2_request(
         gvar, 1, 'GV', 'specified user "invalid-unit-test" does not exist.',
         '/group/update/', group=ut_id(gvar, 'gtg4'),
@@ -110,7 +113,7 @@ def main(gvar):
         server_user=ut_id(gvar, 'gtu5')
     )
 
-    # 25
+    # 27
     execute_csv2_request(
         gvar, 0, None, None,
         '/group/list/', group=ut_id(gvar, 'gtg4'),
@@ -119,7 +122,7 @@ def main(gvar):
         server_user=ut_id(gvar, 'gtu5')
     )
 
-    # 26
+    # 28
     execute_csv2_request(
         gvar, 0, None, 'group "{}" successfully updated.'.format(ut_id(gvar, 'gtg4')),
         '/group/update/', group=ut_id(gvar, 'gtg4'),
@@ -130,7 +133,7 @@ def main(gvar):
         server_user=ut_id(gvar, 'gtu5')
     )
 
-    # 27
+    # 29
     execute_csv2_request(
         gvar, 0, None, None,
         '/user/list/', group=ut_id(gvar, 'gtg4'),
@@ -139,7 +142,7 @@ def main(gvar):
         server_user=ut_id(gvar, 'gtu5')
     )
 
-    # 28 Remove gtu4 (and all others) from gtg4
+    # 30 Remove gtu4 (and all others) from gtg4
     execute_csv2_request(
         gvar, 0, None, 'group "{}" successfully updated.'.format(ut_id(gvar, 'gtg4')),
         '/group/update/', group=ut_id(gvar, 'gtg4'),
@@ -150,7 +153,7 @@ def main(gvar):
         server_user=ut_id(gvar, 'gtu5'), html=True
     )
 
-    # 29 Verify that gtu4 was actually removed from gtg4.
+    # 31 Verify that gtu4 was actually removed from gtg4.
     execute_csv2_request(
         gvar, 0, None, None,
         '/user/list/', group=ut_id(gvar, 'gtg5'),
@@ -159,7 +162,7 @@ def main(gvar):
         server_user=ut_id(gvar, 'gtu5')
     )
 
-    # 30
+    # 32
     execute_csv2_request(
         gvar, 0, None, 'group "{}" successfully updated.'.format(ut_id(gvar, 'gtg4')),
         '/group/update/', group=ut_id(gvar, 'gtg5'),
@@ -170,7 +173,7 @@ def main(gvar):
         server_user=ut_id(gvar, 'gtu5'), html=True
     )
 
-    # 31
+    # 33
     execute_csv2_request(
         gvar, 0, None, None,
         '/user/list/', group=ut_id(gvar, 'gtg5'),
@@ -179,7 +182,7 @@ def main(gvar):
         server_user=ut_id(gvar, 'gtu5')
     )
 
-    # 32
+    # 34
     execute_csv2_request(
         gvar, 0, None, 'group "{}" successfully updated.'.format(ut_id(gvar, 'gtg4')),
         '/group/update/', group=ut_id(gvar, 'gtg5'),
@@ -190,7 +193,29 @@ def main(gvar):
         server_user=ut_id(gvar, 'gtu5'), html=True
     )
 
-    # 33 Ensure that 27 actually replaced gtu4 with gtu5 in gtg4 (and gtu4 is therefore not in any groups).
+
+    # 35 Change public visibility
+    execute_csv2_request(
+        gvar, 0, None, 'group "{}" successfully updated.'.format(ut_id(gvar, 'gtg4')),
+        '/group/update/', group=ut_id(gvar, 'gtg5'),
+        form_data={
+            'group_name': ut_id(gvar, 'gtg4'),
+            'public_visibility': 1
+        },
+        server_user=ut_id(gvar, 'gtu5')
+    )
+
+    # 36 Verify that change was successful
+    execute_csv2_request(
+        gvar, 0, None, None,
+        '/group/list/', group=ut_id(gvar, 'gtg4'),
+        expected_list='group_list', list_filter={'group_name': ut_id(gvar, 'gtg4')},
+        values={'public_visibility': 1},
+        server_user=ut_id(gvar, 'gtu5')
+    )
+
+
+    # 37 Ensure that 27 actually replaced gtu4 with gtu5 in gtg4 (and gtu4 is therefore not in any groups).
     execute_csv2_request(
         gvar, 0, None, None,
         '/user/list/', group=ut_id(gvar, 'gtg5'),
@@ -199,7 +224,7 @@ def main(gvar):
         server_user=ut_id(gvar, 'gtu5')
     )
 
-    # 34 We want to check that 27 added gtu5 to gtg4, but if group_add has been run since the last setup, it will have added gtu5 to gtg1.
+    # 38 We want to check that 27 added gtu5 to gtg4, but if group_add has been run since the last setup, it will have added gtu5 to gtg1.
     # So we remove all users from gtg1, but ignore any error if gtg1 doesn't exist.
     execute_csv2_request(
         gvar, None, None, None,
@@ -211,7 +236,7 @@ def main(gvar):
         server_user=ut_id(gvar, 'gtu5'), html=True
     )
 
-    # 35 Now we can assume that gtu5 is in only gtg4 and gtg5.
+    # 39 Now we can assume that gtu5 is in only gtg4 and gtg5.
     execute_csv2_request(
         gvar, 0, None, None,
         '/user/list/', group=ut_id(gvar, 'gtg5'),
@@ -220,7 +245,7 @@ def main(gvar):
         server_user=ut_id(gvar, 'gtu5')
     )
 
-    # 36
+    # 40
     execute_csv2_request(
         gvar, 0, None, 'group "{}" successfully updated.'.format(ut_id(gvar, 'gtg4')),
         '/group/update/', group=ut_id(gvar, 'gtg5'),
@@ -232,7 +257,7 @@ def main(gvar):
         server_user=ut_id(gvar, 'gtu5'), html=True
     )
 
-    # 37
+    # 41
     execute_csv2_request(
         gvar, 0, None, None,
         '/user/list/', group=ut_id(gvar, 'gtg5'),
@@ -241,7 +266,7 @@ def main(gvar):
         server_user=ut_id(gvar, 'gtu5')
     )
 
-    # 38
+    # 42
     execute_csv2_request(
         gvar, 0, None, None,
         '/user/list/', group=ut_id(gvar, 'gtg5'),

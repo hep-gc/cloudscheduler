@@ -41,24 +41,26 @@ def main(gvar):
         # 26
         '--vm-cores': {'valid': 0, 'test_cases': {'invalid-unit-test':'value specified for "cores_ctl" must be an integer value.'}},
         # 27
-        '--vm-keep-alive': {'valid': 0, 'test_cases': {'invalid-unit-test': 'value specified for "vm_keep_alive" must be an integer value.'}}
+        '--vm-keep-alive': {'valid': 0, 'test_cases': {'invalid-unit-test': 'value specified for "vm_keep_alive" must be an integer value.'}},
+        # 28
+        '--boot-volume-type' : {'valid': 'None', 'test_cases' : {'invalid-unit-test': 'At least one of base size or size per core must be specified'}},
     }
 
     parameters_commands(gvar, 'cloud', 'update', ut_id(gvar, 'clg1'), ut_id(gvar, 'clu3'), parameters)
 
-    # 28
+    # 29
     execute_csv2_command(
         gvar, 1, None, 'The following command line arguments were invalid: metadata-mime-type',
         ['cloud', 'update', '-mmt', 'invalid-unit-test', '-g', ut_id(gvar, 'clg1'), '-su', ut_id(gvar, 'clu3')]
     )
 
-    # 29 Ensure that --group-metadata-option by itself does not qualify as a field to update.
+    # 30 Ensure that --group-metadata-option by itself does not qualify as a field to update.
     execute_csv2_command(
         gvar, 1, None, 'cloud update must specify at least one field to update.',
         ['cloud', 'update', '-cn', ut_id(gvar, 'clc2'), '-gmo', 'add', '-su', ut_id(gvar, 'clu3')]
     )
 
-    # 30 Ensure that non-existent metadata in a list are still caught.
+    # 31 Ensure that non-existent metadata in a list are still caught.
     execute_csv2_command(
         gvar, 1, 'CV', 'cloud update, "{}" failed - specified metadata_name "invalid-unit-test" does not exist.'.format(ut_id(gvar, 'clc2')),
         ['cloud', 'update',
@@ -69,7 +71,7 @@ def main(gvar):
         ]
     )
 
-    # 31
+    # 32
     execute_csv2_command(
         gvar, 0, None, 'cloud "{}::{}" successfully updated.'.format(ut_id(gvar, 'clg1'), ut_id(gvar, 'clc2')),
         ['cloud', 'update',
@@ -86,13 +88,13 @@ def main(gvar):
         ]
     )
 
-    # 32 Implicitly add metadata.
+    # 33 Implicitly add metadata.
     execute_csv2_command(
         gvar, 0, None, 'cloud "{}::{}" successfully updated.'.format(ut_id(gvar, 'clg1'), ut_id(gvar, 'clc2')),
         ['cloud', 'update', '-cn', ut_id(gvar, 'clc2'), '-gme', ut_id(gvar, 'clm2.yaml'), '-su', ut_id(gvar, 'clu3')]
     )
 
-    # 33 Explicitly delete metadata.
+    # 34 Explicitly delete metadata.
     execute_csv2_command(
         gvar, 0, None, 'cloud "{}::{}" successfully updated.'.format(ut_id(gvar, 'clg1'), ut_id(gvar, 'clc2')),
         ['cloud', 'update',
@@ -103,7 +105,7 @@ def main(gvar):
         ]
     )
 
-    # 34 Explicitly add metadata.
+    # 35 Explicitly add metadata.
     execute_csv2_command(
         gvar, 0, None, 'cloud "{}::{}" successfully updated.'.format(ut_id(gvar, 'clg1'), ut_id(gvar, 'clc2')),
         ['cloud', 'update',
@@ -114,7 +116,7 @@ def main(gvar):
         ]
     )
 
-    # 35 Update app credentials
+    # 36 Update app credentials
     execute_csv2_command(
         gvar, 0, None, 'cloud "{}::{}" successfully updated.'.format(ut_id(gvar, 'clg1'), ut_id(gvar, 'clc2')),
         ['cloud', 'update',
@@ -123,7 +125,7 @@ def main(gvar):
         ]
     )
 
-    # 35 Update app credentials
+    # 37 Update app credentials
     execute_csv2_command(
         gvar, 0, None, 'cloud "{}::{}" successfully updated.'.format(ut_id(gvar, 'clg1'), ut_id(gvar, 'clc2')),
         ['cloud', 'update',
@@ -132,7 +134,7 @@ def main(gvar):
         ]
     )
 
-    # 36 Update userid
+    # 38 Update userid
     execute_csv2_command(
         gvar, 0, None, 'cloud "{}::{}" successfully updated.'.format(ut_id(gvar, 'clg1'), ut_id(gvar, 'clc2')),
         ['cloud', 'update',
@@ -141,6 +143,30 @@ def main(gvar):
             #'-cas', gvar['cloud_credentials']['app_credentials_secret'],
             '-ui', gvar['cloud_credentials']['userid']
         ]
+    )
+
+    # 39
+    execute_csv2_command(
+        gvar, 1, None, 'specified item does not exist: vm_boot_volume_type=invalid-unit-test',
+        ['cloud', 'update',
+                '-cn', ut_id(gvar, 'clc2'),
+                '-bvt', 'invalid-unit-test', '-bvs', 20]
+    )
+    
+    # 40
+    execute_csv2_command(
+        gvar, 1, None, 'specified item does not exist: vm_boot_volume_type=invalid-unit-test',
+        ['cloud', 'update',
+                '-cn', ut_id(gvar, 'clc2'),
+                '-bvt', 'invalid-unit-test', '-bvc', 20]
+    )
+    
+    # 41
+    execute_csv2_command(
+        gvar, 0, None, 'cloud "{}::{}" successfully updated.'.format(ut_id(gvar, 'clg1'), ut_id(gvar, 'clc2')),
+        ['cloud', 'update',
+                '-cn', ut_id(gvar, 'clc2'),
+                '-bvt', 'None']
     )
 
 if __name__ == "__main__":

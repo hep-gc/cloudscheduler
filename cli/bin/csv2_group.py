@@ -85,7 +85,7 @@ def defaults(gvar):
 
     mandatory = []
     required = []
-    optional = ['-CSEP', '-CSV', '-g', '-H', '-h', '-htcf', '-htch', '-htcu', '-jc', '-jd', '-jr', '-js', '-NV', '-ok', '-r', '-s', '-V', '-VC', '-vf', '-vi', '-vka', '-vk', '-vn', '-vsg', '-w', '-v', '-x509', '-xA']
+    optional = ['-CSEP', '-CSV', '-g', '-H', '-h', '-htcf', '-htch', '-htcu', '-jc', '-jd', '-jr', '-js', '-NV', '-ok', '-pub', '-r', '-s', '-V', '-VC', '-vf', '-vi', '-vka', '-vk', '-vn', '-vsg', '-w', '-v', '-x509', '-xA']
 
     if gvar['retrieve_options']:
         return mandatory + required + optional
@@ -120,6 +120,7 @@ def defaults(gvar):
             'htcondor_fqdn/FQDN/HTCondor',
             'htcondor_container_hostname/Container Hostname/HTCondor',
             'htcondor_other_submitters/Other Submitters/HTCondor',
+            'public_visibility/Public Visibility',
             'vm_flavor/Flavor/VM',
             'vm_image/Image/VM',
             'vm_keep_alive/Keep Alive/VM',
@@ -278,7 +279,7 @@ def list(gvar):
             'htcondor_fqdn/FQDN/HTCondor',
             'htcondor_container_hostname/Container Hostname/HTCondor',
             'htcondor_other_submitters/Other Submitters/HTCondor',
-            'public_visibility/Public Visiblity',
+            'public_visibility/Public Visibility',
             'metadata_names/Metadata Filenames',
             ],
         title="Groups",

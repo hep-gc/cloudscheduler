@@ -310,9 +310,11 @@ def defaults(request, active_user=None, response_code=0, message=None):
             
             if rc == 0:
                 # Check if public visibility has changed
-                rc, msg, group_data = config.db_query("csv2_groups", where=f"group_name='{active_user.active_group}'")
-                if rc == 0: visibility_changed = (group_data[0]["public_visibility"] != fields["public_visibility"])
-                else:       visibility_changed = False
+                if "public_visibility" in fields:
+                    rc, msg, group_data = config.db_query("csv2_groups", where=f"group_name='{active_user.active_group}'")
+                    if rc == 0: visibility_changed = (group_data[0]["public_visibility"] != fields["public_visibility"])
+                    else:       visibility_changed = False
+                else: visibility_changed = False
                 
                 # Update the group defaults.
                 table = 'csv2_groups'
@@ -1142,6 +1144,7 @@ def update(request):
         table = 'csv2_groups'
         group_updates = table_fields(fields, table, columns, 'update')
 
+        
         # group_updates should always have the group name so it should have > 1 updates for there to actually be a change
         if len(group_updates) > 1:
             where_clause = 'group_name="%s"' % fields['group_name']
@@ -1153,10 +1156,10 @@ def update(request):
             if not found_group_list or len(found_group_list) == 0:
                 config.db_close()
                 return group_list(request, active_user=active_user, response_code=1, message='%s group update, "%s" failed - the request did not match any rows.' % (lno(MODID), fields['group_name']))
-            
-            # Check if public visibility has changed
-            visibility_changed = (found_group_list[0]["public_visibility"] != fields["public_visibility"])
 
+            # Check if public visibility has changed
+            visibility_changed = (found_group_list[0]["public_visibility"] != fields["public_visibility"]) if "public_visibility" in fields else False
+            
             rc, msg = config.db_update(table, group_updates, where=where_clause)
             if rc != 0:
                 config.db_close()
@@ -1165,6 +1168,8 @@ def update(request):
             if 'username' not in fields and request.META['HTTP_ACCEPT'] == 'application/json':
                 config.db_close()
                 return group_list(request, active_user=active_user, response_code=1, message='%s group update must specify at least one field to update.' % lno(MODID))
+            
+            visibility_changed = False
 
 
         # Update user groups.

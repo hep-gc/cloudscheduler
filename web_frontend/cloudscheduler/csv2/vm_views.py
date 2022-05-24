@@ -42,7 +42,7 @@ VM_KEYS = {
         'cloud_name':                                                   'ignore',
         'csrfmiddlewaretoken':                                          'ignore',
         'group':                                                        'ignore',
-        'vm_hosts':                                                     'lowerdash',
+        'vm_hosts':                                                     'lowerdashlist',
         },
     'array_fields': [
         'vm_hosts',
@@ -230,7 +230,7 @@ def update(request):
             table = 'csv2_vms'
             verb = 'retired'
         elif fields['vm_option'] == 'retain':
-            if fields['vm_hosts'].isnumeric():
+            if isinstance(fields['vm_hosts'], str) and fields['vm_hosts'].isnumeric():
                 verb = 'killed or retired'
             else:
                 config.db_close()

@@ -36,7 +36,7 @@ def main(gvar):
     execute_csv2_command(
         gvar, 0, None, 'Server: unit-test, Active User: {}, Active Group: {}'.format(ut_id(gvar, 'clu4'), ut_id(gvar, 'clg1')),
         ['group', 'list', '-NV'],
-        expected_list='Groups', expected_columns={'Group', 'HTCondor', 'FQDN', 'Container Hostname', 'Other Submitters', 'Metadata Filenames'}
+        expected_list='Groups', expected_columns={'Group', 'HTCondor', 'FQDN', 'Container Hostname', 'Other Submitters', 'Public Visibility', 'Metadata Filenames'}
     )
 
     # 19
@@ -53,7 +53,7 @@ def main(gvar):
 
     # 21
     execute_csv2_command(
-        gvar, 0, None, 'group list, 1. Groups: keys=group_name, columns=htcondor_fqdn,htcondor_container_hostname,htcondor_other_submitters,metadata_names',
+        gvar, 0, None, 'group list, 1. Groups: keys=group_name, columns=htcondor_fqdn,htcondor_container_hostname,htcondor_other_submitters,public_visibility,metadata_names',
         ['group', 'list', '-VC']
     )
 

@@ -29,6 +29,7 @@ def main(gvar):
             'cacertificate': None,
             'user_domain_name': 'Default',
             'project_domain_name': 'Default',
+            'vm_boot_volume_type': None
         },
         server_user=ut_id(gvar, 'ctu1')
     )

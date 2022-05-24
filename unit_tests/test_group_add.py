@@ -72,13 +72,16 @@ def main(gvar):
         'vm_network': {'valid': '', 'test_cases': {'invalid-unit-test': 'group add, "invalid-unit-test" failed - specified item does not exist: vm_network=invalid-unit-test, group_name=invalid-unit-test.'}},
         # 37 Give two vm_keynames.
         # 38
-        'vm_keyname': {'valid': '', 'test_cases': {'invalid-unit-test': 'group add, "invalid-unit-test" failed - specified item does not exist: vm_keyname=invalid-unit-test, group_name=invalid-unit-test.'}}
+        'vm_keyname': {'valid': '', 'test_cases': {'invalid-unit-test': 'group add, "invalid-unit-test" failed - specified item does not exist: vm_keyname=invalid-unit-test, group_name=invalid-unit-test.'}},
+        # 39
+        # 40
+        'public_visibility' : {'valid': 0, 'test_cases': {'invalid-unit-test': 'group add boolean value specified for "public_visibility" must be one of the following: true, false, yes, no, 1, or 0.'}}
     }
 
     parameters_requests(gvar, '/group/add/', ut_id(gvar, 'gtg4'), ut_id(gvar, 'gtu5'), parameters)
 
     # Parameter combinations that do not fit the above format.
-    # 39
+    # 41
     execute_csv2_request(
         gvar, 1, 'GV', 'request contained a rejected/bad parameter "job_scratch".',
         '/group/add/', group=ut_id(gvar, 'gtg4'), form_data={
@@ -89,7 +92,7 @@ def main(gvar):
         server_user=ut_id(gvar, 'gtu5')
     )
 
-    # 40
+    # 42
     execute_csv2_request(
         gvar, 1, 'GV', 'group add, "{}" failed - user "{}" was specified twice.'.format(ut_id(gvar, 'group-invalid-unit-test'), ut_id(gvar, 'gtu3')),
         '/group/add/', group=ut_id(gvar, 'gtg4'), form_data={
@@ -101,7 +104,7 @@ def main(gvar):
         server_user=ut_id(gvar, 'gtu5')
     )
 
-    # 41
+    # 43
     execute_csv2_request(
         gvar, 0, None, 'group "{}" successfully added.'.format(ut_id(gvar, 'gtg1')),
         '/group/add/', group=ut_id(gvar, 'gtg4'), form_data={
@@ -112,7 +115,7 @@ def main(gvar):
         server_user=ut_id(gvar, 'gtu5')
     )
 
-    # 42 Verify that 28 actually added a group.
+    # 44 Verify that 28 actually added a group.
     execute_csv2_request(
         gvar, 0, None, None,
         '/group/list/', group=ut_id(gvar, 'gtg1'),
@@ -126,7 +129,7 @@ def main(gvar):
         server_user=ut_id(gvar, 'gtu5')
     )
 
-    # 43 Verify that the user was updated correctly.
+    # 45 Verify that the user was updated correctly.
     execute_csv2_request(
         gvar, 0, None, None, '/user/list/', group=ut_id(gvar, 'gtg4'),
         expected_list='user_list', list_filter={'username': ut_id(gvar, 'gtu5')},
@@ -134,7 +137,7 @@ def main(gvar):
         server_user=ut_id(gvar, 'gtu5')
     )
 
-    # 44
+    # 46
     execute_csv2_request(
         gvar, 1, 'GV', "Duplicate entry '{}' for key 'PRIMARY'.".format(ut_id(gvar, 'gtg1')),
         '/group/add/', group=ut_id(gvar, 'gtg4'), form_data={
@@ -144,7 +147,7 @@ def main(gvar):
         server_user=ut_id(gvar, 'gtu5')
     )
 
-    # 45 Verify that users don't need to be given.
+    # 47 Verify that users don't need to be given.
     execute_csv2_request(
         gvar, 0, None, 'group "{}" successfully added.'.format(ut_id(gvar, 'gtg2')),
         '/group/add/', group=ut_id(gvar, 'gtg4'), form_data={
@@ -154,7 +157,7 @@ def main(gvar):
         server_user=ut_id(gvar, 'gtu5')
     )
 
-    # 46 Verify that 21 actually created a group
+    # 48 Verify that 21 actually created a group
     execute_csv2_request(
         gvar, 0, None, None,
         '/group/list/', group=ut_id(gvar, 'gtg4'),
@@ -163,12 +166,13 @@ def main(gvar):
             'htcondor_fqdn': gvar['fqdn'],
             'htcondor_container_hostname': None,
             'htcondor_other_submitters': None,
-            'metadata_names': 'default.yaml.j2'
+            'metadata_names': 'default.yaml.j2',
+            'public_visibility': 0,
         },
         server_user=ut_id(gvar, 'gtu5')
     )
 
-    # 47
+    # 49
     execute_csv2_request(
         gvar, 0, None, 'group "{}" successfully added.'.format(ut_id(gvar, 'gtg3')),
         '/group/add/', group=ut_id(gvar, 'gtg4'), form_data={
