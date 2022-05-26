@@ -52,6 +52,7 @@ STARTD_TYPE = htcondor.AdTypes.Startd
 #    .db_query('csv2_groups')
 #    .db_query('csv2_attribute_mapping')
 #    .db_query('csv2_user_groups')
+#    .db_query('csv2_watchdog')
 
 
 # condor likes to return extra keys not defined in the projection
