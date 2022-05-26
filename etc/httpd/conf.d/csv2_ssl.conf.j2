@@ -69,8 +69,10 @@ DBDExptime 300
          Options All Indexes FollowSymLinks
          #Order allow,deny
          Require all granted
-     </Directory>
+    </Directory>
 
+    # Redirect to public page by default
+    RedirectMatch ^/$ /public/
 
     # General setup for the virtual host, inherited from global configuration
     #DocumentRoot "/var/www/html"
