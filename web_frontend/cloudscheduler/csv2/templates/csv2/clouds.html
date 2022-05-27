@@ -346,8 +346,8 @@
                                     {% if cloud.cloud_type == "openstack" %}
                                     <script type="text/javascript">
                                         function update_volume_inputs(selection) {
-                                                vol_sz = document.getElementsByName("vm_boot_volume_size")[0];
-                                                vol_pc = document.getElementsByName("vm_boot_volume_per_core")[0];
+                                                vol_sz = document.getElementById("vm_boot_volume_size");
+                                                vol_pc = document.getElementById("vm_boot_volume_per_core");
                                                 if (selection.value == "None") {
                                                         vol_sz.disabled = true;
                                                         vol_sz.title = "Set boot volume type first";
@@ -384,14 +384,14 @@
                                                     {% include "csv2/icon_question_circle.html" %}
                                         </div>
                                     </label></td>
-                                    <td><input type="text" name="vm_boot_volume_size" value="{{ cloud.vm_boot_volume_size }}" {% if cloud.vm_boot_volume == None %} title="Set boot volume type first" disabled {% else %}title="Size in GBs" {% endif %}/></td></tr>
+                                    <td><input type="text" id="vm_boot_volume_size" name="vm_boot_volume_size" value="{{ cloud.vm_boot_volume_size }}" {% if cloud.vm_boot_volume == None %} title="Set boot volume type first" disabled {% else %}title="Size in GBs" {% endif %}/></td></tr>
 
                                     <tr class="highlight3"><td><label for="vm_boot_volume_per_core">Boot volume extra size per core
                                         <div title="Input non-negative integer (size in GBs) or leave blank." style="display:inline">
                                                     {% include "csv2/icon_question_circle.html" %}
                                         </div>
                                     </label></td>
-                                    <td><input type="text" name="vm_boot_volume_per_core" value="{{ cloud.vm_boot_volume_per_core }}"  {% if cloud.vm_boot_volume == None %} title="Set volume type first" disabled {% else %} title="Size in GBs" {% endif %}/></td></tr>
+                                    <td><input type="text" id="vm_boot_volume_per_core" name="vm_boot_volume_per_core" value="{{ cloud.vm_boot_volume_per_core }}"  {% if cloud.vm_boot_volume == None %} title="Set volume type first" disabled {% else %} title="Size in GBs" {% endif %}/></td></tr>
                                     
                                     {% endif %}
                                     

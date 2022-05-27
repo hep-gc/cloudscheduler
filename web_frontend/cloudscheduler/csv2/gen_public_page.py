@@ -18,6 +18,7 @@ from django.http.request import HttpRequest
 from cloudscheduler.lib.view_utils import qt, qt_filter_get
 from datetime import datetime
 import psutil
+import time
 
 min=60; MIN_REFRESH_INT=5*min # Enforce length of time between page generations
 INT_STORE = "/var/local/cloudscheduler/public_last_update.txt" # Where last generation is stored
@@ -52,8 +53,10 @@ def generate_static_page(config, dest=None, interval_override=False):
         public_groups = [group['group_name'] for group in public_groups]
         
         with open(dest, "wb") as file:
-                try:     html = status(config, public_groups).content
-                except:  html = "<pre>Failed to generate public page.</pre>"
+                try:    html = status(config, public_groups).content
+                except Exception as e:
+                        print("Error occured during public page generation:", e)
+                        html = "<pre>Failed to generate public page.</pre>".encode()
                 finally: file.write(html)
 
         with open(INT_STORE, 'w') as file:

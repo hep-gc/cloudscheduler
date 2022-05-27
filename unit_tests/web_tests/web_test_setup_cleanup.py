@@ -32,7 +32,7 @@ def setup(cls, profile, objects, browser='firefox'):
         cls.driver = webdriver.Chrome(options=options)
     elif browser == 'opera':
         cls.driver = webdriver.Opera()
-    cls.driver.get('https://' + cls.gvar['user'] + '-wiu' + str(profile) + ':' + cls.gvar['user_secret'] + '@' + cls.gvar['fqdn'])
+    cls.driver.get('https://' + cls.gvar['user'] + '-wiu' + str(profile) + ':' + cls.gvar['user_secret'] + '@' + cls.gvar['fqdn'] + "/cloud/status")
 
 def setup_objects(objects=[], browser='firefox'):
     print('\nUnittest setup:')

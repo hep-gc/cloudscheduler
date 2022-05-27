@@ -20,7 +20,7 @@ class Page(object):
 
     def __init__(self, driver, homepage):
         self.driver = driver
-        self.homepage = homepage
+        self.homepage = homepage + '/cloud/status/'
 
     def get_homepage(self):
         self.driver.get(self.homepage)
