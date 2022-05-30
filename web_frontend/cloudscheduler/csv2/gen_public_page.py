@@ -351,6 +351,7 @@ def status(config, public_groups, group_name=None):
             'process_monitor_pause': config.categories['ProcessMonitor']['pause'],
             'job_status_list': job_status_list,
             'job_totals_list': job_totals_list,
+            'public_group_number': len(public_groups),
             'service_status': service_status,
             'system_list' : system_list,
             #'slot_detail_list' : slot_detail_list,

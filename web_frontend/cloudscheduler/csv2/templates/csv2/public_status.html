@@ -44,6 +44,11 @@
 
 <!-- Status tables-->
     <div class="status-div" id="status">
+        {% if public_group_number == 0%}
+        <div style="background-color: orange; padding-bottom: 5px; padding-top: 5px; text-align: center; text; font-weight: bold">
+            <span>There are no public groups available to display.</span>
+        </div>
+        {% else %}
 
         <div>
             <!--
@@ -915,6 +920,7 @@
                     </tbody> 
                 </table>
             </div>
+        {% endif %}
     </div>
 
     <script rel="preload" type="text/javascript" src="static/csv2/status.js"></script>
