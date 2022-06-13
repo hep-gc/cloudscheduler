@@ -144,7 +144,6 @@ EOF
     chown cloudscheduler.cloudscheduler /var/log/cloudscheduler
     chmod 0775 /var/log/cloudscheduler
 
-
 ###
 ### 9.  Creates a python3 virtual environment.
 ###
@@ -154,11 +153,17 @@ EOF
             python3 -m venv /opt/cloudscheduler/python3
             source /opt/cloudscheduler/python3/bin/activate
             python3 -m pip install pip --upgrade
+        elif [ $python3 -lt 3007000 ]; then
+           python3 -m venv --without-pip /opt/cloudscheduler/python3
+           source /opt/cloudscheduler/python3/bin/activate
+           curl https://bootstrap.pypa.io/pip/3.6/get-pip.py | python3
         else
             python3 -m venv --without-pip /opt/cloudscheduler/python3
             source /opt/cloudscheduler/python3/bin/activate
             curl https://bootstrap.pypa.io/get-pip.py | python3
         fi
+    else
+        source /opt/cloudscheduler/python3/bin/activate
     fi
 
 
@@ -166,7 +171,7 @@ EOF
 ### 10. Checks/installs prerequisite pip modules.
 ###
     check_sw boto3 1.9.130
-    check_sw htcondor 8.9.2
+    check_sw htcondor 8.9.5
     check_sw mysql-connector 2.2.9
     check_sw psutil 5.4.6
     check_sw PyYAML 5.1.0
