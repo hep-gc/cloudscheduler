@@ -140,6 +140,7 @@ class TestWebGroupCommon(unittest.TestCase):
         self.page.click_side_button(group_name)
         self.page.click_delete_button()
         self.page.click_delete_modal()
+        self.assertTrue(self.page.modal_cleared())
         self.assertFalse(self.page.side_button_exists(group_name))
         wta.assertNotExists('group', group_name)
 

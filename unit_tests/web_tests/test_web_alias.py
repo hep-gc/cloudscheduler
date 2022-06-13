@@ -112,13 +112,12 @@ class TestWebAliasCommon(unittest.TestCase):
         self.assertTrue(self.page.error_message_displayed())
         wta.assertNotExists('alias', alias_name, self.gvar['base_group'])
 
-    @unittest.skip("Not working in production")
     def test_web_alias_delete(self):
         # Deletes an alias
         alias_name = self.gvar['user'] + '-wia3'
         self.page.click_side_button(alias_name)
-        self.page.click_cloud_checkbox(self.gvar['user'] + '-wic1')
-        self.page.click_update_alias()
+        self.page.click_delete_button()
+        self.page.click_delete_modal()
         self.assertFalse(self.page.side_button_exists(alias_name))
         wta.assertNotExists('alias', alias_name, self.gvar['base_group'])
 
