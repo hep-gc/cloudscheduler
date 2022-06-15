@@ -203,7 +203,7 @@ def setup_objects(objects=[], browser='firefox'):
         for i in range(1, keys_num+1):
             keys.append(gvar['user'] + '-wik' + str(i))
         for i in range(0, keys_num):
-            if subprocess.run(['openstack', 'keypair', 'create', '--private-key', '/home/centos/cloudscheduler/unit_tests/web_tests/misc_files/' + keys[i], keys[i]], stdout=subprocess.DEVNULL).returncode != 0:
+            if subprocess.run(['openstack', 'keypair', 'create', '--private-key', '~/cloudscheduler/unit_tests/web_tests/misc_files/' + keys[i], keys[i]], stdout=subprocess.DEVNULL).returncode != 0:
                 raise SetUpException("key add failed - check the server status and openstack status")
             print('keypair "' + keys[i] + '" successfully added.')
         keystring = gvar['user'] + '-wik1'

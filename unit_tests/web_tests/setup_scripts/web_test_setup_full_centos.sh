@@ -46,12 +46,9 @@ if [ "$firefox" = "y" ]; then
     fi
     geckodriver_path=`which geckodriver`
     if [ -z "$geckodriver_path" ]; then
-        geckodriver_tag=`curl https://github.com/mozilla/geckodriver/releases | grep "<a href=\"/mozilla/geckodriver/releases/tag/v[0-9]\.[0-9][0-9]\.[0-9]\">[0-9]\.[0-9][0-9]\.[0-9]</a>" | head -1`
-        pattern='(<.*>)(.*)(<.*>)'
-        [[ "$geckodriver_tag" =~ $pattern ]]
-        geckodriver_version="${BASH_REMATCH[2]}"
-        sudo wget https://github.com/mozilla/geckodriver/releases/download/v$geckodriver_version/geckodriver-v$geckodriver_version-linux64.tar.gz
-        sudo tar xvzf /usr/bin/geckodriver-v$geckodriver_version-linux64.tar.gz
+        tag_name=$(curl https://api.github.com/repos/mozilla/geckodriver/releases/latest | python3 -c "import sys, json; print(json.loads(next(sys.stdin))['tag_name'])")
+        sudo wget https://github.com/mozilla/geckodriver/releases/download/$tag_name/geckodriver-$tag_name-linux64.tar.gz
+        sudo tar xvzf /usr/bin/geckodriver-$tag_name-linux64.tar.gz
     fi
 fi
 
@@ -117,7 +114,7 @@ if [ -z "$openstack_path" ]; then
     sudo pip3 install python-openstackclient
 fi
 
-sudo ln -s /home/centos/cloudscheduler/cli/bin/cloudscheduler cloudscheduler
+sudo ln -s ~/cloudscheduler/cli/bin/cloudscheduler cloudscheduler
 echo 'Please save the following server settings as "unit-test":'
 cloudscheduler defaults set
 
