@@ -4,7 +4,7 @@ OLD_CFG=/opt/cloudscheduler/etc/cloudscheduler/condor_poller.yaml
 NEW_CFG=/tmp/cloudscheduler/etc/cloudscheduler/condor_poller.yaml
 
 cd /tmp
-wget --no-check-certificate https://csv2.heprc.uvic.ca/repo/condor_poller.tar.gz
+wget --no-check-certificate https://{{ ansible_fqdn }}.heprc.uvic.ca/repo/condor_poller.tar.gz
 tar -xzvf /tmp/condor_poller.tar.gz
 
 if [ -f "$OLD_CFG" ]; then
