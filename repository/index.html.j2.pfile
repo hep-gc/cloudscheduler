@@ -38,7 +38,7 @@
 
             <div class="div_inner">
                 cd /tmp <br>
-                wget <a href="https://{{ ansible_fqdn }}.heprc.uvic.ca/repo/install_condor_poller.sh">https://{{ ansible_fqdn }}.heprc.uvic.ca/repo/install_condor_poller.sh</a><br>
+                wget <a href="https://{{ inventory_hostname }}/repo/install_condor_poller.sh">https://{{ inventory_hostname }}/repo/install_condor_poller.sh</a><br>
                 chmod +x install_condor_poller.sh<br>
                 ./install_condor_poller.sh
             </div>
@@ -51,7 +51,7 @@
 
             <div class="div_inner">
                 cd /tmp <br>
-                wget <a href="https://{{ ansible_fqdn }}.heprc.uvic.ca/repo/condor_poller.tar.gz">https://{{ ansible_fqdn }}.heprc.uvic.ca/repo/condor_poller.tar.gz</a><br>
+                wget <a href="https://{{ inventory_hostname }}/repo/condor_poller.tar.gz">https://{{ inventory_hostname }}/repo/condor_poller.tar.gz</a><br>
                 tar -xzvf condor_poller.tar.gz<br>
                 rsync -av cloudscheduler /opt
             </div>
