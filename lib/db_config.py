@@ -422,6 +422,9 @@ class Config:
         Open and return a database connection.
         """
 
+        if not self.db_connection.is_connected():
+            self.db_connection.reconnect()
+        
         if not self.db_cursor:
             self.db_cursor = self.db_connection.cursor(buffered=True, dictionary=True)
 
