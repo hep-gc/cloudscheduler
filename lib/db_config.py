@@ -423,7 +423,7 @@ class Config:
         """
 
         if not self.db_connection.is_connected():
-            self.db_connection.reconnect()
+            self.db_connection.connect()
         
         if not self.db_cursor:
             self.db_cursor = self.db_connection.cursor(buffered=True, dictionary=True)
