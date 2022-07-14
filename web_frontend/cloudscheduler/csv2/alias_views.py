@@ -30,7 +30,7 @@ CLOUD_ALIAS_KEYS = {
     'auto_active_group': True,
     'format': {
         'alias_name':          'lowerdash',
-        'cloud_name':          'lowerdash',
+        'cloud_name':          'lowerdashlist',
         'cloud_option':        ['add', 'delete'],
         'csrfmiddlewaretoken': 'ignore',
         'group':               'ignore',

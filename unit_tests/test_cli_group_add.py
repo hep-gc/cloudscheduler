@@ -54,19 +54,21 @@ def main(gvar):
             'invalid-unit-test': 'specified user "invalid-unit-test" does not exist.',
             # 40
             ut_id(gvar, 'clu3,clu3'): 'group add, "{}" failed - user "{}" was specified twice.'.format(ut_id(gvar, 'clg10'), ut_id(gvar, 'clu3'))
-        }}
+        }},
+        # 41
+        '--public-visibility': {'valid' : 0, 'test_cases': {'invalid-test-case': 'group add boolean value specified for "public_visibility" must be one of the following: true, false, yes, no, 1, or 0.'}}
     }
 
     parameters_commands(gvar, 'group', 'add', ut_id(gvar, 'clg1'), ut_id(gvar, 'clu4'), parameters)
 
-    # 41
+    # 42
     execute_csv2_command(
         gvar, 1, None, 'the following mandatory parameters must be specified on the command line',
         # The `--server-user` is automatically inserted as clu4 by `execute_csv2_command()`.
         ['group', 'add', '--htcondor-fqdn', 'invalid-unit-test', '--username', 'invalid-unit-test']
     )
 
-    # 42
+    # 43
     execute_csv2_command(
         gvar, 0, None, 'group "{}" successfully added.'.format(ut_id(gvar, 'clg10')),
         ['group', 'add',
@@ -76,10 +78,11 @@ def main(gvar):
             '--vm-flavor', '',
             '--vm-image', '',
             '--vm-keyname', '',
-            '--vm-network', '']
+            '--vm-network', '',
+            '--public-visibility', 1]
     )
 
-    # 43 Ensure that clg10 was created.
+    # 44 Ensure that clg10 was created.
     execute_csv2_command(
         gvar, 0, None, 'Rows: 1',
         ['group', 'list', '-gn', ut_id(gvar, 'clg10')]

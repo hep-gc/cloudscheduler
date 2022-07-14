@@ -11,8 +11,8 @@ import psutil
 from cloudscheduler.lib.view_utils import qt
 from cloudscheduler.lib.db_config import Config
 from cloudscheduler.lib.ProcessMonitor import ProcessMonitor, terminate, check_pid
-
 from cloudscheduler.lib.poller_functions import start_cycle, wait_cycle
+from cloudscheduler.lib.watchdog_utils import watchdog_send_heartbeat
 
 
 def _cast_int(variable):
@@ -49,6 +49,7 @@ def timeseries_data_transfer():
             #DO ALL THE THINGS
             config.db_open()
             config.refresh()
+            watchdog_send_heartbeat(config, os.getpid(), config.local_host_id)
             
             rc, msg, statuses = config.db_query("view_service_status")
 

@@ -17,6 +17,7 @@ from cloudscheduler.lib.ProcessMonitor import ProcessMonitor, terminate, check_p
 from cloudscheduler.lib.view_utils import kill_retire
 from cloudscheduler.lib.log_tools import get_frame_info
 from cloudscheduler.lib.signal_functions import event_signal_send
+from cloudscheduler.lib.watchdog_utils import watchdog_send_heartbeat, watchdog_cleanup
 
 #from glintwebui.glint_utils import get_keypair, transfer_keypair, generate_tx_id, check_cache
 from glintwebui.glint_utils import generate_tx_id, check_cache
@@ -137,6 +138,7 @@ def flavor_poller():
                 config.db_open()
                 config.refresh()
                 new_poll_time, cycle_start_time = start_cycle(new_poll_time, cycle_start_time)
+                watchdog_send_heartbeat(config, os.getpid(), config.local_host_id)
                 if not os.path.exists(PID_FILE):
                     logging.info("Falied to get pid file, stop set, exiting...")
                     break
@@ -366,6 +368,7 @@ def image_poller():
 
                 signal.signal(signal.SIGINT, signal.SIG_IGN)
                 new_poll_time, cycle_start_time = start_cycle(new_poll_time, cycle_start_time)
+                watchdog_send_heartbeat(config, os.getpid(), config.local_host_id)
                 config.refresh()
 
                 abort_cycle = False
@@ -409,6 +412,16 @@ def image_poller():
                     conn_time_cost = int(conn_time - pre_req_time)
 
                     if glance is False:
+                        for cloud_tuple in unique_cloud_dict[cloud]['groups']:
+                            grp_nm = cloud_tuple[0]
+                            cld_nm = cloud_tuple[1]
+                            if cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"] not in failure_dict:
+                                failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"]] = 1
+                            else:
+                                failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"]] = failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"]] + 1
+                            if failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"]] > 3: #should be configurable
+                                logging.error("Failure threshhold limit reached for %s, manual action required, reporting cloud error" % grp_nm+cld_nm)
+                                config.incr_cloud_error(grp_nm, cld_nm)
                         logging.info("Openstack glance connection failed for %s, skipping this cloud..." % cloud_name)
                         continue
                     
@@ -554,7 +567,9 @@ def image_poller():
                             "cloud_name": cloud["cloud_name"],
                             "communication_up": 0
                         }
+                        config.db_update(CLOUD, cloud_update_dict)
                         config.db_commit()
+                        logging.error("Communication down for %s:%s" % (grp_nm, cld_nm))
 
                 # Scan the OpenStack images in the database, removing each one that is not in the inventory.
                 logging.debug("Doing deletes, omitting failures: %s" % new_f_dict)
@@ -626,6 +641,7 @@ def keypair_poller():
 
                 signal.signal(signal.SIGINT, signal.SIG_IGN)
                 new_poll_time, cycle_start_time = start_cycle(new_poll_time, cycle_start_time)
+                watchdog_send_heartbeat(config, os.getpid(), config.local_host_id)
                 config.refresh()
 
                 abort_cycle = False
@@ -665,6 +681,17 @@ def keypair_poller():
                     nova = get_nova_connection(sess, region=unique_cloud_dict[cloud]['cloud_obj']["region"])
 
                     if nova is False:
+                        for cloud_tuple in unique_cloud_dict[cloud]['groups']:
+                            grp_nm = cloud_tuple[0]
+                            cld_nm = cloud_tuple[1]
+                            if cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"] not in failure_dict:
+                                failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"]] = 1
+                            else:
+                                failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"]] = failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"]] + 1
+                            if failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"]] > 3: #should be configurable
+                                logging.error("Failure threshhold limit reached for %s, manual action required, reporting cloud error" % grp_nm+cld_nm)
+                                config.incr_cloud_error(grp_nm, cld_nm)
+
                         logging.info("Openstack nova connection failed for %s, skipping this cloud..." % cloud_name)
                         continue
 
@@ -797,6 +824,194 @@ def keypair_poller():
         logging.error(exc)
         config.db_close()
 
+def volume_type_poller():
+    multiprocessing.current_process().name = "Volume Type Poller"
+
+    TYPE = "cloud_volume_types"
+    ikey_names = ["group_name", "cloud_name", "volume_type"]
+
+    cycle_start_time = 0
+    new_poll_time = 0
+    poll_time_history = [0,0,0,0]
+    failure_dict = {}
+
+    config, PID_FILE = poller_setup()
+
+    try:
+        rc, msg, rows = config.db_query(TYPE)
+        inventory = inventory_get_item_hash_from_db_query_rows(ikey_names, rows)
+        config.db_close()
+        while True:
+            try:
+                logging.debug("Beginning volume type poller cycle")
+                config.db_open()
+                if not os.path.exists(PID_FILE):
+                    logging.info("Falied to get pid file, stop set, exiting...")
+                    break
+
+                signal.signal(signal.SIGINT, signal.SIG_IGN)
+                new_poll_time, cycle_start_time = start_cycle(new_poll_time, cycle_start_time)
+                watchdog_send_heartbeat(config, os.getpid(), config.local_host_id)
+                config.refresh()
+
+                abort_cycle = False
+                where_clause = "cloud_type='openstack'"
+                rc, msg, cloud_list = config.db_query(CLOUD, where=where_clause)
+                uncommitted_updates = 0
+
+                # build unique cloud list to only query a given cloud once per cycle
+                unique_cloud_dict = {}
+                for cloud in cloud_list:
+                    if cloud["authurl"]+cloud["project"]+cloud["region"]+cloud["username"] not in unique_cloud_dict:
+                        unique_cloud_dict[cloud["authurl"]+cloud["project"]+cloud["region"]+cloud["username"]] = {
+                            'cloud_obj': cloud,
+                            'groups': [(cloud["group_name"], cloud["cloud_name"])]
+                        }
+                    else:
+                        unique_cloud_dict[cloud["authurl"]+cloud["project"]+cloud["region"]+cloud["username"]]['groups'].append((cloud["group_name"], cloud["cloud_name"]))
+
+                logging.debug("Unique clouds dict: %s" % unique_cloud_dict.keys())
+
+                for cloud in unique_cloud_dict:
+                    cloud_name = unique_cloud_dict[cloud]['cloud_obj']["authurl"]
+                    cloud_obj = unique_cloud_dict[cloud]['cloud_obj']
+                    logging.debug("Processing limits from cloud - %s" % cloud_name)
+                    sess = get_openstack_sess(unique_cloud_dict[cloud]['cloud_obj'], config.categories["openstackPoller.py"]["cacerts"])
+                    if sess is False:
+                        logging.debug("Failed to establish session with %s, skipping this cloud..." % cloud_name)
+                        for cloud_tuple in unique_cloud_dict[cloud]['groups']:
+                            grp_nm = cloud_tuple[0]
+                            cld_nm = cloud_tuple[1]
+                            if cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"] not in failure_dict:
+                                failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"]] = 1
+                            else:
+                                failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"]] = failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"]] + 1
+                            if failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"]] > 3: #should be configurable
+                                logging.error("Failure threshhold limit reached for %s, manual action required, reporting cloud error" % grp_nm+cld_nm)
+                                config.incr_cloud_error(grp_nm, cld_nm)
+                        continue
+
+                    # Retrieve volume type list for the current cloud.
+                    cinder = get_cinder_connection(sess, region=unique_cloud_dict[cloud]['cloud_obj']["region"])
+
+                    if not cinder:
+                        logging.info("Openstack cinder connection failed for %s, skipping this cloud..." % cloud_name)
+                        continue
+
+                    try:
+                        shared_types = [entry.name for entry in cinder.types()]
+                    except Exception as exc:
+                        logging.error("Failed to retrieve volume types from cinder, skipping %s" %  cloud_name)
+                        logging.error(exc)
+                        for cloud_tuple in unique_cloud_dict[cloud]['groups']:
+                            grp_nm = cloud_tuple[0]
+                            cld_nm = cloud_tuple[1]
+                            if cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"] not in failure_dict:
+                                failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"]] = 1
+                            else:
+                                failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"]] = failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"]] + 1
+                            if failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"]] > 3: #should be configurable
+                                logging.error("Failure threshhold limit reached for %s, manual action required, reporting cloud error" % grp_nm+cld_nm)
+                                config.incr_cloud_error(grp_nm, cld_nm)
+                        continue
+
+                    if not shared_types:
+                        logging.info("No volumes types defined for %s, skipping this cloud..." % cloud_name)
+                        continue
+
+                    for cloud_tuple in unique_cloud_dict[cloud]['groups']:
+                        grp_nm = cloud_tuple[0]
+                        cld_nm = cloud_tuple[1]
+                        failure_dict.pop(cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"], None)
+                        config.reset_cloud_error(grp_nm, cld_nm)
+
+                    # Process volume type list for the current cloud.
+                    try:
+                        for group_n, cloud_n in unique_cloud_dict[cloud]['groups']:
+                            for volume_type in shared_types:
+                                row = {"group_name": group_n, "cloud_name": cloud_n, "volume_type": volume_type}
+                                
+                                if inventory_test_and_set_item_hash(ikey_names, row, inventory, new_poll_time, debug_hash=(config.categories["openstackPoller.py"]["log_level"] < 20)):
+                                    continue
+
+                                try:
+                                    logging.debug("Updating grp:cld - %s:%s" % (group_n, cloud_n))
+                                    config.db_insert(TYPE, row)
+                                    uncommitted_updates += 1
+                                except Exception as exc:
+                                    logging.exception("Failed to insert volume types for %s::%s, aborting cycle..." % (group_n, cloud_n))
+                                    logging.error(exc)
+                                    abort_cycle = True
+                                    break
+
+                            if uncommitted_updates > 0:
+                                try:
+                                    config.db_commit()
+                                except Exception as exc:
+                                    logging.error("Failed to commit new volume types for %s, aborting cycle..."  % cloud_name)
+                                    logging.error(exc)
+                                    abort_cycle = True
+                                    break
+
+                    except Exception as exc:
+                        logging.error("Error proccessing volume_types for cloud %s" % cloud_name)
+                        logging.error(exc)
+                        logging.error("Skipping cloud...")
+                        continue
+
+                    del cinder
+                    if abort_cycle:
+                        time.sleep(config.categories["openstackPoller.py"]["sleep_interval_limit"])
+                        continue
+
+                    if uncommitted_updates > 0:
+                        logging.info("Limit updates committed: %d" % uncommitted_updates)
+
+                # Expand failure dict for deletion schema (key needs to be grp+cloud)
+                where_clause = "cloud_type='openstack'"
+                rc, msg, cloud_list = config.db_query(CLOUD, where=where_clause)
+                new_f_dict = {}
+                for cloud in cloud_list:
+                    key = cloud["authurl"] + cloud["project"] + cloud["region"] + cloud["username"]
+                    if key in failure_dict:
+                        new_f_dict[cloud["group_name"]+cloud["cloud_name"]] = 1
+
+                # since the new inventory function doesn't accept a failure dict we need to screen the rows ourself
+                where_clause="cloud_type='openstack'"
+                rc, msg, unfiltered_rows = config.db_query(TYPE)
+                rows = []
+                for row in unfiltered_rows:
+                    if row['group_name'] + row['cloud_name'] in new_f_dict.keys():
+                        continue
+                    else:
+                        rows.append(row)
+                inventory_obsolete_database_items_delete(ikey_names, rows, inventory, new_poll_time, config, TYPE)
+
+                # Cleanup inventory, this function will clean up inventory entries for deleted clouds
+                inventory_cleanup(ikey_names, rows, inventory)
+
+                if not os.path.exists(PID_FILE):
+                    logging.info("Stop set, exiting...")
+                    break
+                signal.signal(signal.SIGINT, config.signals['SIGINT'])
+                config.db_close()
+ 
+                try:
+                    wait_cycle(cycle_start_time, poll_time_history, config.categories["openstackPoller.py"]["sleep_interval_volume_type"], config)
+                except KeyboardInterrupt:
+                    # sigint recieved, cancel the sleep and start the loop
+                    continue
+            except KeyboardInterrupt:
+                # sigint recieved, cancel the sleep and start the loop
+                logging.error("Recieved wake-up signal during regular execution, resetting and continuing")
+                config.db_close()
+                continue
+
+    except Exception as exc:
+        logging.exception("Volume type poller cycle while loop exception, process terminating...")
+        logging.error(exc)
+        config.db_close()
+
 def limit_poller():
     multiprocessing.current_process().name = "Limit Poller"
 
@@ -825,6 +1040,7 @@ def limit_poller():
 
                 signal.signal(signal.SIGINT, signal.SIG_IGN)
                 new_poll_time, cycle_start_time = start_cycle(new_poll_time, cycle_start_time)
+                watchdog_send_heartbeat(config, os.getpid(), config.local_host_id)
                 config.refresh()
 
                 abort_cycle = False
@@ -1053,6 +1269,7 @@ def network_poller():
                 signal.signal(signal.SIGINT, signal.SIG_IGN)
 
                 new_poll_time, cycle_start_time = start_cycle(new_poll_time, cycle_start_time)
+                watchdog_send_heartbeat(config, os.getpid(), config.local_host_id)
                 config.refresh()
 
                 abort_cycle = False
@@ -1261,6 +1478,7 @@ def security_group_poller():
 
                 signal.signal(signal.SIGINT, signal.SIG_IGN)
                 new_poll_time, cycle_start_time = start_cycle(new_poll_time, cycle_start_time)
+                watchdog_send_heartbeat(config, os.getpid(), config.local_host_id)
                 config.refresh()
 
                 abort_cycle = False
@@ -1482,6 +1700,7 @@ def vm_poller():
                 signal.signal(signal.SIGINT, signal.SIG_IGN)
 
                 new_poll_time, cycle_start_time = start_cycle(new_poll_time, cycle_start_time)
+                watchdog_send_heartbeat(config, os.getpid(), config.local_host_id)
                 config.refresh()
 
                 # For each OpenStack cloud, retrieve and process VMs.
@@ -1825,6 +2044,7 @@ def vm_poller():
                         }
                         config.db_update(CLOUD, cloud_row)
                         config.db_commit()
+                        logging.error("Communication down for %s:%s" % (cloud["group_name"], cloud["cloud_name"]))
 
                 # since the new inventory function doesn't accept a failfure dict we need to screen the rows ourself
                 rows = []            
@@ -1908,6 +2128,7 @@ def volume_poller():
 
                 signal.signal(signal.SIGINT, signal.SIG_IGN)
                 new_poll_time, cycle_start_time = start_cycle(new_poll_time, cycle_start_time)
+                watchdog_send_heartbeat(config, os.getpid(), config.local_host_id)
                 config.refresh()
 
                 abort_cycle = False
@@ -2130,6 +2351,7 @@ def defaults_replication():
 
             signal.signal(signal.SIGINT, signal.SIG_IGN)
             new_poll_time, cycle_start_time = start_cycle(new_poll_time, cycle_start_time)
+            watchdog_cleanup(config)
 
             rc, msg, group_list = config.db_query(GROUPS)
             for group in group_list:
@@ -2291,11 +2513,13 @@ if __name__ == '__main__':
         'network':               network_poller,
         'vm':                    vm_poller,
         'security_group_poller': security_group_poller,
-        'volume':                volume_poller
+        'volume':                volume_poller,
+        'volume_type':           volume_type_poller,
     }
+    watchdog_exemptions = [ "defaults_replication",]
     db_categories = [os.path.basename(sys.argv[0]), "general", "signal_manager", "ProcessMonitor"]
 
-    procMon = ProcessMonitor(config_params=db_categories, pool_size=3, process_ids=process_ids)
+    procMon = ProcessMonitor(config_params=db_categories, pool_size=3, process_ids=process_ids, watchdog_exemption_list=watchdog_exemptions)
     config = procMon.get_config()
     logging = procMon.get_logging()
     version = config.get_version()

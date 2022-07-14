@@ -230,7 +230,7 @@ class OpenStackCloud(basecloud.BaseCloud):
                         cv = cinder.create_volume(name=bv_name, size=size, image_id=imageobj.id, volume_type=volume_type, is_bootable=True, timeout=180)
                     except Exception as exc:
                         self.log.info("Failed to create new volume, endpoint error, or volume limit exceeded canceling remaining boot requests")
-                        self.log.debug(exc)
+                        self.log.info(exc)
                         return 0
                     while (cv.status != 'available'):
                         time.sleep(1)

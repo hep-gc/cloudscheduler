@@ -1,0 +1,5 @@
+.TP
+\fB\-bvc \fIsize\fR, \fB\-\-boot\-volume\-per-core \fIsize\fR
+Set volume extra size per core in GBs.
+Size must be a non-negative integer.
+Ignored if volume type is set to \fBNone\fR.

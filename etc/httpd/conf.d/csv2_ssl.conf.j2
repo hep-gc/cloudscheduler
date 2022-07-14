@@ -62,6 +62,17 @@ DBDExptime 300
         Require all granted 
     </Directory>
 
+     # Public status page
+     Alias /public/ /opt/cloudscheduler/public/
+     Alias /public /opt/cloudscheduler/public/
+     <Directory /opt/cloudscheduler/public/>
+         Options All Indexes FollowSymLinks
+         #Order allow,deny
+         Require all granted
+    </Directory>
+
+    # Redirect to public page by default
+    RedirectMatch ^/$ /public/
 
     # General setup for the virtual host, inherited from global configuration
     #DocumentRoot "/var/www/html"

@@ -82,6 +82,9 @@ def key_label(key_name):
 def delete_button(item_name, element_name):
     return "//div[@id='delete-" + item_name + "']//input[@value='Delete "+ element_name + "']"
 
+def alias_delete_button(item_name, element_name):
+    return "//div[@id='delete-" + item_name + "']//input[@value='Delete alias: "+ element_name + "']"
+
 def delete_cancel(item_name):
     return "//div[@id='delete-" + item_name + "']//a[@title='Close']"
 

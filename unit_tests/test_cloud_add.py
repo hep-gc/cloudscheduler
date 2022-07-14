@@ -39,7 +39,7 @@ def main(gvar):
         # 17 Omit cloud_type.
         # 18 Give two cloud_types.
         # 19
-        'cloud_type': {'valid': 'local', 'test_cases': {'invalid-unit-test': 'cloud add value specified for "cloud_type" must be one of the following options: [\'amazon\', \'local\', \'openstack\'].'}, 'mandatory': True},
+        'cloud_type': {'valid': 'openstack', 'test_cases': {'invalid-unit-test': 'cloud add value specified for "cloud_type" must be one of the following options: [\'amazon\', \'local\', \'openstack\'].'}, 'mandatory': True},
         # 20 Omit authurl.
         # 21 Give two authurls.
         # 22
@@ -47,11 +47,11 @@ def main(gvar):
         # 23 Omit username.
         # 24 Give two usernames.
         # 25
-        'username': {'valid': gvar['cloud_credentials']['username'], 'test_cases': {'': 'cloud add parameter "username" contains an empty string which is specifically disallowed.'}, 'mandatory': True},
+        'username': {'valid': gvar['cloud_credentials']['username'], 'test_cases': {'': 'failed - insufficient credentials to establish openstack v3 session, check if missing any user/project info'}, 'mandatory': True},
         # 26 Omit password.
         # 27 Give two passwords.
         # 28
-        'password': {'valid': gvar['cloud_credentials']['password'], 'test_cases': {'': 'cloud add parameter "password" contains an empty string which is specifically disallowed.'}, 'mandatory': True},
+        'password': {'valid': gvar['cloud_credentials']['password'], 'test_cases': {'': 'failed - insufficient credentials to establish openstack v3 session, check if missing any user/project info'}, 'mandatory': True},
         # 29 Omit project.
         # 30 Give two projects.
         # 31
@@ -89,13 +89,60 @@ def main(gvar):
         'vm_network': {'valid': '', 'test_cases': {'invalid-unit-test': 'cloud add, "invalid-unit-test" failed - specified item does not exist: vm_network=invalid-unit-test, group_name={}, cloud_name=invalid-unit-test.'.format(ut_id(gvar, 'ctg1'))}},
         # 53 Give two vm_keynames.
         # 54
-        'vm_keyname': {'valid': '', 'test_cases': {'invalid-unit-test': 'cloud add, "invalid-unit-test" failed - specified item does not exist: vm_keyname=invalid-unit-test, group_name={}, cloud_name=invalid-unit-test.'.format(ut_id(gvar, 'ctg1'))}}
+        'vm_keyname': {'valid': '', 'test_cases': {'invalid-unit-test': 'cloud add, "invalid-unit-test" failed - specified item does not exist: vm_keyname=invalid-unit-test, group_name={}, cloud_name=invalid-unit-test.'.format(ut_id(gvar, 'ctg1'))}},
+        # 55 Give two vm_boot_volume_types
+        # 56
+        'vm_boot_volume_type' : {'valid': 'None', 'test_cases' : {'invalid-unit-test': 'At least one of base size or size per core must be specified'}},
     }
 
     parameters_requests(gvar, '/cloud/add/', ut_id(gvar, 'ctg1'), ut_id(gvar, 'ctu1'), parameters)
-
+    
     # Parameter combinations that do not fit well into the above format.
-    # 55 Known to fail if run twice without setup or cleanup in between.
+    # 57
+    execute_csv2_request(
+        gvar, 1, None, 'specified item does not exist: vm_boot_volume_type=invalid-unit-test',
+        '/cloud/add/', group=ut_id(gvar, 'ctg1'), form_data={
+            'vm_boot_volume_type': 'invalid-unit-test',
+            'vm_boot_volume_size': 20,
+            'cloud_name': ut_id(gvar, 'ctc5'),
+            'cloud_type': 'openstack',
+            'priority': '31',
+            'cacertificate': None,
+            'user_domain_name': 'Default',
+            'project_domain_name': 'Default',
+            'enabled': 1,
+            'vm_keep_alive': -31,
+            'metadata_name': ut_id(gvar, 'cty1'),
+            'spot_price': 10,
+            'cores_softmax': -1,
+            **gvar['cloud_credentials']
+            },
+        server_user=ut_id(gvar, 'ctu1')
+    )
+    
+    # 58
+    execute_csv2_request(
+        gvar, 1, None, f'specified item does not exist: vm_boot_volume_type=invalid-unit-test',
+        '/cloud/add/', group=ut_id(gvar, 'ctg1'), form_data={
+            'vm_boot_volume_type': 'invalid-unit-test',
+            'vm_boot_volume_per_core': 10,
+            'cloud_name': ut_id(gvar, 'ctc5'),
+            'cloud_type': 'openstack',
+            'priority': '31',
+            'cacertificate': None,
+            'user_domain_name': 'Default',
+            'project_domain_name': 'Default',
+            'enabled': 1,
+            'vm_keep_alive': -31,
+            'metadata_name': ut_id(gvar, 'cty1'),
+            'spot_price': 10,
+            'cores_softmax': -1,
+            **gvar['cloud_credentials']
+            },
+        server_user=ut_id(gvar, 'ctu1')
+    )
+
+    # 59 Known to fail if run twice without setup or cleanup in between.
     execute_csv2_request(
         gvar, 0, None, 'cloud "{}::{}" successfully added.'.format(ut_id(gvar, 'ctg1'), ut_id(gvar, 'ctc5')),
         '/cloud/add/', group=ut_id(gvar, 'ctg1'), form_data={
@@ -115,7 +162,7 @@ def main(gvar):
         server_user=ut_id(gvar, 'ctu1')
     )
 
-    # 56 Ensure that 40 actually created a cloud.
+    # 60 Ensure that 40 actually created a cloud.
     execute_csv2_request(
         gvar, 0, None, None,
         '/cloud/list/', group=ut_id(gvar, 'ctg1'),
@@ -140,10 +187,11 @@ def main(gvar):
         server_user=ut_id(gvar, 'ctu1')
     )
 
-    # 57 Known to fail if run twice without setup or cleanup in between.
+    # 61 Known to fail if run twice without setup or cleanup in between.
     execute_csv2_request(
         gvar, 0, None, 'cloud "{}::{}" successfully added.'.format(ut_id(gvar, 'ctg1'), ut_id(gvar, 'ctc6')),
         '/cloud/add/', group=ut_id(gvar, 'ctg1'), form_data={
+            'vm_boot_volume_type': 'None',
             'cloud_name': ut_id(gvar, 'ctc6'),
             'cloud_type': 'openstack',
             'metadata_name.1': ut_id(gvar, 'cty1'),
@@ -154,7 +202,7 @@ def main(gvar):
         server_user=ut_id(gvar, 'ctu1')
     )
 
-    # 58 Ensure that 42 actually created a cloud.
+    # 62 Ensure that 42 actually created a cloud.
     execute_csv2_request(
         gvar, 0, None, None,
         '/cloud/list/', group=ut_id(gvar, 'ctg1'),

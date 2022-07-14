@@ -182,15 +182,23 @@
                                 <tr class="highlight3"><td><label for="vm_keep_alive">VM Keep Alive</label></td>
                                 <td><input type="text" name="vm_keep_alive" value="{{group.vm_keep_alive}}" /></td></tr>
 
-
+                                <tr class="highlight3"><td><label for="authurl">Visible to Public</label></td>
+                                <td>
+                                        <input type="hidden" name="public_visibility" value="0">
+                                    {% if group.public_visibility == 1 %}
+                                        <input type="checkbox" name="public_visibility" value="1" checked/>
+                                    {% else %}
+                                        <input type="checkbox" name="public_visibility" value="1" />
+                                    {% endif %}
+                                </td></tr>
+                                
                                 <tr>
                                     <td>
                                         <input type="submit" value="Update Group" />
                                     </td>
                                 </tr>
 
-                                
-                                
+
 
                             </table>
                             

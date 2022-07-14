@@ -53,6 +53,7 @@ def foreign(vm):
 def __inventory_get_hash__(ikey_names, item_dict, debug_hash=False): 
     hash_list = []
     hash_object = hashlib.new('md5')
+    new_hash=0 # If all attributes are primary keys, return a hash of zero
     for hash_item in sorted(item_dict):
         if hash_item in ikey_names:
             continue

@@ -1,0 +1,5 @@
+.TP
+\fB\-bvs \fIsize\fR, \fB\-\-boot\-volume\-size \fIsize\fR
+Set volume base size in GBs.
+Size must be a non-negative integer.
+Ignored if volume type is set to \fBNone\fR.

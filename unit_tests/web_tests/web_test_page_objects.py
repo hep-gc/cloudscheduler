@@ -20,7 +20,7 @@ class Page(object):
 
     def __init__(self, driver, homepage):
         self.driver = driver
-        self.homepage = homepage
+        self.homepage = homepage + '/cloud/status/'
 
     def get_homepage(self):
         self.driver.get(self.homepage)
@@ -827,6 +827,14 @@ class AliasesPage(Page):
         xpath = wtxs.form_submit_by_value(self.active_alias, 'Update')
         wti.click_by_xpath(self.driver, xpath)
 
+    def click_delete_button(self):
+        wti.click_by_link_text(self.driver, '−')
+
+    def click_delete_modal(self):
+        xpath = wtxs.alias_delete_button(self.active_alias, self.active_alias)
+        wti.click_by_xpath(self.driver, xpath)
+        self.active_alias = None
+
     def side_button_exists(self, name):
         sleep(2)
         try:
@@ -1418,6 +1426,14 @@ class GroupsPage(Page):
         except TimeoutException:
             return False
 
+    def modal_cleared(self):
+        try:
+            WebDriverWait(self.driver, 10).until(
+                EC.url_changes(self.driver.current_url))
+            return True
+        except TimeoutException:
+            return False
+    
     def box_checked(self, name):
         xpath = wtxs.form_input_by_value(self.active_group, name)
         try:

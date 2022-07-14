@@ -38,6 +38,7 @@ import psutil
 
 import requests
 import time
+import json
 import re
 
 from cloudscheduler.lib.web_profiler import silk_profile as silkp
@@ -70,7 +71,10 @@ CLOUD_KEYS = {
         'ram_ctl':                              'integer',
         'spot_price':                           'float',
 #       'vm_boot_volume':                       {"GBs": "integer", "options": {"per_core": "boolean"}},
-        'vm_boot_volume':                       {"min_pick": 1, "pick": {"GBs": "integer", "GBs_per_core": "integer", "volume_type": "string"}},
+#       'vm_boot_volume':                       {"min_pick": 1, "pick": {"GBs": "integer", "GBs_per_core": "integer", "volume_type": "string"}},
+        'vm_boot_volume_type':                  'ignore',
+        'vm_boot_volume_size':                  'ignore',
+        'vm_boot_volume_per_core':              'ignore',
         'vm_keep_alive':                        'integer',
 
         'cores_slider':                         'ignore',
@@ -111,8 +115,8 @@ CLOUD_ADD_KEYS = {
     'mandatory': [
         'authurl',
         'project',
-        'username',
-        'password',
+         'username',
+         'password',
         'region',
         'cloud_type',
         ],
@@ -557,7 +561,40 @@ def add(request):
             if rc != 0:
                 config.db_close()
                 return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud add, "%s" failed - %s.' % (lno(MODID), fields['cloud_name'], msg))
+        
+        if 'vm_boot_volume_type' in fields:
+            if fields['vm_boot_volume_type'] == "None":
+                fields['vm_boot_volume'] = ''
+            elif ('vm_boot_volume_size' in fields and fields['vm_boot_volume_size']) or ('vm_boot_volume_per_core' in fields and fields['vm_boot_volume_per_core']):
+               
+                # Validate volume type
+                
+                rc, msg = validate_by_filtered_table_entries(config, fields['vm_boot_volume_type'], 'vm_boot_volume_type', 'cloud_volume_types', 'volume_type', [['group_name', fields['group_name']], ['cloud_name', fields['cloud_name']]])
+                if rc != 0:
+                    config.db_close()
+                    return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud update, "%s" failed - %s.' % (lno(MODID), fields['cloud_name'], msg))
+                
+                # Combine json
 
+                vol_dict = { "volume_type" : fields['vm_boot_volume_type'] }
+
+                if 'vm_boot_volume_size' in fields and fields['vm_boot_volume_size']:
+                    if not fields['vm_boot_volume_size'].isdigit():
+                        config.db_close()
+                        return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud update, "%s" failed - %s.' % (lno(MODID), fields['cloud_name'], "Volume size must be a non-negative integer"))
+                    
+                    vol_dict["GBs"] = int(fields['vm_boot_volume_size'])
+                if 'vm_boot_volume_per_core' in fields and fields['vm_boot_volume_per_core']:
+                    if not fields['vm_boot_volume_per_core'].isdigit():
+                                config.db_close()
+                                return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud update, "%s" failed - %s.' % (lno(MODID), fields['cloud_name'], "Volume size must be a non-negative integer"))
+                    vol_dict["GBs_per_core"] = int(fields['vm_boot_volume_per_core'])
+                fields['vm_boot_volume'] = json.dumps(vol_dict)
+
+            else:
+                config.db_close()
+                return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud update, "%s" failed - %s.' % (lno(MODID), fields['cloud_name'], "At least one of base size or size per core must be specified")) 
+        
         if 'cloud_type' in fields:
             if fields['cloud_type'] == 'amazon':
                 fields['cores_softmax'] = config.categories['web_frontend']['default_softmax']
@@ -794,10 +831,22 @@ def cloud_list(request, active_user=None, response_code=0, message=None, cloud_a
         curr_dict = metadata_dict[active_user.active_group]
         for cloud in curr_dict:
             metadata_dict[active_user.active_group][cloud] = dict(sorted(curr_dict[cloud].items(), key=lambda x:x[1].get('metadata_priority')))
- 
-    # Get the current time in epoch format
+    
     for cloud in _cloud_list:
+        # Get the current time in epoch format
         cloud["current_time"] = time.time()
+        
+        # Load volume types
+        if cloud["vm_boot_volume"]:
+            volume_type_dict = json.loads(cloud["vm_boot_volume"])
+            cloud["vm_boot_volume_type"] = volume_type_dict["volume_type"]
+            cloud["vm_boot_volume_size"] = volume_type_dict["GBs"] if "GBs" in volume_type_dict else ""
+            cloud["vm_boot_volume_per_core"] = volume_type_dict["GBs_per_core"] if "GBs_per_core" in volume_type_dict else ""
+        else:
+            cloud["vm_boot_volume_type"] = None
+            cloud["vm_boot_volume_size"] = ''
+            cloud["vm_boot_volume_size"] = ''
+
     
     where_clause = "group_name='%s'" % active_user.active_group
     # Get all the images in group:
@@ -820,6 +869,9 @@ def cloud_list(request, active_user=None, response_code=0, message=None, cloud_a
 
     # Get the group default metadata list:
     rc, msg, group_metadata_dict = config.db_query("view_groups_with_metadata_info", where=where_clause)
+    
+    # Get all cloud volume types:
+    rc, msg, volume_type_list = config.db_query("cloud_volume_types", where=where_clause)
 
     # Retrieve the list of metadata exclusions:
     rc, msg, group_metadata_exclusion_list = config.db_query("csv2_group_metadata_exclusions", where=where_clause)
@@ -874,7 +926,8 @@ def cloud_list(request, active_user=None, response_code=0, message=None, cloud_a
             'message': message,
             'is_superuser': active_user.is_superuser,
             'cloud_add': cloud_add,
-            'version': config.get_version()
+            'version': config.get_version(),
+            'volume_type_list': volume_type_list,
         }
 
     config.db_close()
@@ -1905,8 +1958,39 @@ def update(request):
                 config.db_close()
                 return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud update, "%s" failed - %s.' % (lno(MODID), fields['cloud_name'], msg))
 
-        if 'vm_boot_volume' in fields and fields['vm_boot_volume'] is None:
-            fields['vm_boot_volume'] = ''
+        if 'vm_boot_volume_type' in fields:
+            if fields['vm_boot_volume_type'] == "None":
+                fields['vm_boot_volume'] = ''
+            elif ('vm_boot_volume_size' in fields and fields['vm_boot_volume_size']) or ('vm_boot_volume_per_core' in fields and fields['vm_boot_volume_per_core']):
+               
+               # Validate volume type
+                
+                rc, msg = validate_by_filtered_table_entries(config, fields['vm_boot_volume_type'], 'vm_boot_volume_type', 'cloud_volume_types', 'volume_type', [['group_name', fields['group_name']], ['cloud_name', fields['cloud_name']]])
+                if rc != 0:
+                    config.db_close()
+                    return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud update, "%s" failed - %s.' % (lno(MODID), fields['cloud_name'], msg))
+                
+                # Combine json
+
+                vol_dict = { "volume_type" : fields['vm_boot_volume_type'] }
+
+                if 'vm_boot_volume_size' in fields and fields['vm_boot_volume_size']:
+                    if not fields['vm_boot_volume_size'].isdigit():
+                        config.db_close()
+                        return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud update, "%s" failed - %s.' % (lno(MODID), fields['cloud_name'], "Volume size must be a non-negative integer"))
+                    
+                    vol_dict["GBs"] = int(fields['vm_boot_volume_size'])
+                if 'vm_boot_volume_per_core' in fields and fields['vm_boot_volume_per_core']:
+                    if not fields['vm_boot_volume_per_core'].isdigit():
+                                config.db_close()
+                                return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud update, "%s" failed - %s.' % (lno(MODID), fields['cloud_name'], "Volume size must be a non-negative integer"))
+                    vol_dict["GBs_per_core"] = int(fields['vm_boot_volume_per_core'])
+                fields['vm_boot_volume'] = json.dumps(vol_dict)
+
+            else:
+                config.db_close()
+                return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud update, "%s" failed - %s.' % (lno(MODID), fields['cloud_name'], "At least one of base size or size per core must be specified"))
+                
 
         if 'freeze' in fields and fields['freeze'] == 1:
             fields['freeze'] = 2

@@ -1,0 +1,6 @@
+.TP
+\fB\-bvt \fIvolume_type\fR, \fB\-\-boot\-volume\-type \fIvolume_type\fR
+Set boot volume type for the given cloud.
+Must be a valid volume type on the cloud or \fBNone\fR.
+If non-\fBNone\fR value is set, at at least one of volume base size or volume extra size per core must be set at the same time.
+Default: \fBNone\fR

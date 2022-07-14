@@ -281,6 +281,18 @@ schema = {
             "last_updated": {"type": "int"}
             }
         },
+    "cloud_volume_types": {
+        "keys": [
+            "group_name",
+            "cloud_name",
+            "volume_type"
+            ],
+        "columns": {
+            "group_name": {"type": "str", "len": "32", "nulls": "NO"},
+            "cloud_name": {"type": "str", "len": "32", "nulls": "NO"},
+            "volume_type": {"type": "str", "len": "64", "nulls": "NO"}
+            }
+        },
     "cloud_volumes": {
         "keys": [
             "group_name",
@@ -570,7 +582,8 @@ schema = {
             "vm_keep_alive": {"type": "int"},
             "vm_keyname": {"type": "str", "len": "64", "nulls": "YES"},
             "vm_network": {"type": "str", "len": "64", "nulls": "NO"},
-            "vm_security_groups": {"type": "str", "len": "128", "nulls": "YES"}
+            "vm_security_groups": {"type": "str", "len": "128", "nulls": "YES"},
+            "public_visibility": {"type": "int"}
             }
         },
     "csv2_image_cache": {
@@ -757,6 +770,17 @@ schema = {
             "flavor_id": {"type": "str", "len": "128", "nulls": "NO"},
             "count": {"type": "int"},
             "cloud_type": {"type": "str", "len": "32", "nulls": "YES"}
+            }
+        },
+    "csv2_watchdog": {
+        "keys": [
+            "pid",
+            "host_id"
+            ],
+        "columns": {
+            "pid": {"type": "int"},
+            "host_id": {"type": "str", "len": "64", "nulls": "NO"},
+            "last_heartbeat": {"type": "int"}
             }
         },
     "django_admin_log": {
@@ -1515,6 +1539,7 @@ schema = {
             "htcondor_fqdn": {"type": "str", "len": "128", "nulls": "YES"},
             "htcondor_container_hostname": {"type": "str", "len": "128", "nulls": "YES"},
             "htcondor_other_submitters": {"type": "str", "len": "128", "nulls": "YES"},
+            "public_visibility": {"type": "int"},
             "metadata_names": {"type": "str", "nulls": "YES"}
             }
         },

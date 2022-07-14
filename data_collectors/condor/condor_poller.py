@@ -23,6 +23,7 @@ from cloudscheduler.lib.poller_functions import \
     wait_cycle, \
     log_heartbeat_message
 from cloudscheduler.lib.ProcessMonitor import ProcessMonitor, check_pid, terminate
+from cloudscheduler.lib.watchdog_utils import watchdog_send_heartbeat
 
 import htcondor
 import classad
@@ -42,6 +43,8 @@ STARTD_TYPE = htcondor.AdTypes.Startd
 #    config.db_merge(csv2_clouds)
 #    config.db_merge(csv2_service_catalog)
 #    config.db_merge(csv2_configuration)
+#    config.db_merge(csv2_watchdog)
+#    config.db_update(csv2_watchdog)
 #    config.db_update(csv2_clouds)
 #    config.db_update('condor_worker_gsi')
 #    .db_query('condor_worker_gsi')
@@ -49,6 +52,7 @@ STARTD_TYPE = htcondor.AdTypes.Startd
 #    .db_query('csv2_groups')
 #    .db_query('csv2_attribute_mapping')
 #    .db_query('csv2_user_groups')
+#    .db_query('csv2_watchdog')
 
 
 # condor likes to return extra keys not defined in the projection
@@ -433,6 +437,7 @@ def job_poller():
             # Setup - initialize condor and database objects and build user-group list
             #
             new_poll_time, cycle_start_time = start_cycle(new_poll_time, cycle_start_time)
+            watchdog_send_heartbeat(config, os.getpid(), config.local_host_id)
             config.refresh()
 
             if not os.path.exists(PID_FILE):
@@ -856,6 +861,7 @@ def machine_poller():
             last_heartbeat_time = log_heartbeat_message(last_heartbeat_time, "MACHINE POLLER")
             config.db_open()
             new_poll_time, cycle_start_time = start_cycle(new_poll_time, cycle_start_time)
+            watchdog_send_heartbeat(config, os.getpid(), config.local_host_id)
 
             config.refresh()
             if not os.path.exists(PID_FILE):
@@ -1117,8 +1123,12 @@ def machine_command_poller(arg_list):
     last_heartbeat_time = 0
 
 
+    loop_breaker = 0
     try:
         while True:
+            if pair["cloud_name"] == "otter-test":
+                loop_breaker = loop_breaker + 1
+
             config.db_open()
             last_heartbeat_time = log_heartbeat_message(last_heartbeat_time, "MACHINE COMMAND POLLER")
             config.refresh()
@@ -1130,6 +1140,7 @@ def machine_command_poller(arg_list):
 
             signal.signal(signal.SIGINT, signal.SIG_IGN)
             new_poll_time, cycle_start_time = start_cycle(new_poll_time, cycle_start_time)
+            watchdog_send_heartbeat(config, os.getpid(), config.local_host_id)
             local_condor = socket.gethostname()
             
             process_group_cloud_commands(pair, local_condor, config)
@@ -1163,6 +1174,7 @@ def worker_gsi_poller():
             last_heartbeat_time = log_heartbeat_message(last_heartbeat_time, "WORKER GSI POLLER")
             config.db_open()
             new_poll_time, cycle_start_time = start_cycle(new_poll_time, cycle_start_time)
+            watchdog_send_heartbeat(config, os.getpid(), config.local_host_id)
 
             config.refresh()
             if not os.path.exists(PID_FILE):
@@ -1257,6 +1269,7 @@ def condor_gsi_poller():
             config.db_open()
             last_heartbeat_time = log_heartbeat_message(last_heartbeat_time, "CONDOR GSI POLLER")
             new_poll_time, cycle_start_time = start_cycle(new_poll_time, cycle_start_time)
+            watchdog_send_heartbeat(config, os.getpid(), config.local_host_id)
 
             config.refresh()
             if not os.path.exists(PID_FILE):
@@ -1329,9 +1342,10 @@ if __name__ == '__main__':
     }
 
     db_category_list = ["condor_poller.py", "ProcessMonitor", "general", "signal_manager"]
+    watchdog_exemptions = [ "condor_gsi", "worker_gsi"] 
 
     #procMon = ProcessMonitor(config_params=db_category_list, pool_size=3, process_ids=process_ids, config_file=sys.argv[1], log_file="/var/log/cloudscheduler/condor_poller.log", log_level=20)
-    procMon = ProcessMonitor(config_params=db_category_list, pool_size=3, process_ids=process_ids, config_file=sys.argv[1], log_key="condor_poller")
+    procMon = ProcessMonitor(config_params=db_category_list, pool_size=3, process_ids=process_ids, config_file=sys.argv[1], log_key="condor_poller", watchdog_exemption_list=watchdog_exemptions)
     config = procMon.get_config()
     logging = procMon.get_logging()
     version = config.get_version()

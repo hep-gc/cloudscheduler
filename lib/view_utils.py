@@ -1160,9 +1160,10 @@ def validate_fields(config, request, fields, tables, active_user):
     float                  - A floating point value.
     ignore                 - Ignore missing mandatory fields or fields for undefined columns.
     integer                - An integer value.
-    lower                  - Ensure that the input value consists only of lowercase letters, digits,
+    lowerdash              - Ensure that the input value consists only of lowercase letters, digits,
                              dashes, underscores, periods, and colons; does not contain '--'; and
                              does not start or end with a dash (or error).
+    lowerdashlist          - Lowerdash + comma (for array fields)
     metadata               - Identifies a pair of fields (eg. "xxx' and xxx_name) that contain ar
                              metadata string and a metadata filename. If the filename conforms to
                              pre-defined patterns (eg. ends with ".yaml"), the string will be 
@@ -1437,11 +1438,19 @@ def validate_fields(config, request, fields, tables, active_user):
                 elif Formats[field] == 'lowerdash':
                     if value == '' and field not in AllowEmpty:
                         return 1, 'value specified for "%s" must not be the empty string.' % field, None, None, None
-                    if re.fullmatch("^(?!-)(?!.*--)[a-z0-9.:,_-]*(?<!-)$", request.POST[field]):
+                    if re.fullmatch("^(?!-)(?!.*--)[a-z0-9.:_-]*(?<!-)$", request.POST[field]):
                         value = request.POST[field]
                     else:
                         return 1, 'value specified for "%s" must be all lowercase letters, digits, dashes, underscores, periods, and colons, and cannot contain more than one consecutive dash or start or end with a dash.' % field, None, None, None
 
+                elif Formats[field] == 'lowerdashlist':
+                    if value == '' and field not in AllowEmpty:
+                        return 1, 'value specified for "%s" must not be the empty string.' % field, None, None, None
+                    if re.fullmatch("^(?!-)(?!.*--)[a-z0-9.:,_-]*(?<!-)$", request.POST[field]):
+                        value = request.POST[field]
+                    else:
+                        return 1, 'value specified for "%s" must be all lowercase letters, digits, dashes, underscores, periods, and colons, and cannot contain more than one consecutive dash or start or end with a dash.' % field, None, None, None
+                
                 elif Formats[field] == 'lowercase':
                     if re.fullmatch("([a-z0-9_.,:]-?)*[a-z0-9_.,:]", request.POST[field]) or request.POST[field] == '':
                         value = request.POST[field]
