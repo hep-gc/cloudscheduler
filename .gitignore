@@ -9,6 +9,8 @@ git_reposave/
 lib/schema.py
 lib/schema_na.py
 python3/
+public/index.html
+repository/install_condor_poller.sh
 repository/condor_poller.tar.gz
 repository/index.html
 unit_tests/web_tests/misc_files/*
