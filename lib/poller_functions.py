@@ -160,5 +160,63 @@ def log_heartbeat_message(last_statement_time, poller_name):
         return last_statement_time
 
 
-def generate_unique_cloud_dict(config, cloud_table):
-    
+def generate_unique_cloud_dict(config, cloud_table, cloud_type):
+    rc, msg, cloud_list = config.db_query(cloud_table, where="cloud_type='%s'" % cloud_type)
+
+    # build unique cloud list to only query a given cloud once per cycle
+    unique_cloud_dict = {}
+    try:
+        for cloud in cloud_list:
+            if cloud["authurl"]+cloud["project"]+cloud["region"]+cloud["username"]+cloud["password"] not in unique_cloud_dict:
+                unique_cloud_dict[cloud["authurl"]+cloud["project"]+cloud["region"]+cloud["username"]+cloud["password"]] = {
+                    'cloud_obj': cloud,
+                    'groups': [(cloud["group_name"], cloud["cloud_name"])]
+                }
+            else:
+                unique_cloud_dict[cloud["authurl"]+cloud["project"]+cloud["region"]+cloud["username"]+cloud["password"]]['groups'].append((cloud["group_name"], cloud["cloud_name"]))
+    except Exception as exc:
+        logging.error("Failed to read cloud list: %s" % exc)
+        return False
+
+
+def process_cloud_failure(config, unique_cloud_dict, cloud_name, cloud_obj, failure_dict):
+    for cloud_tuple in unique_cloud_dict[cloud]['groups']:
+        grp_nm = cloud_tuple[0]
+        cld_nm = cloud_tuple[1]
+        if cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"] + cloud_obj["password"] not in failure_dict:
+            failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"] + cloud_obj["password"]] = 1
+        else:
+            failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"] + cloud_obj["password"]] = failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"] + cloud_obj["password"]] + 1
+        if failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"] + cloud_obj["password"]] > 3: #should be configurable
+            logging.error("Failure threshhold limit reached for %s, manual action required, reporting cloud error" % grp_nm+cld_nm)
+            config.incr_cloud_error(grp_nm, cld_nm)
+    return failure_dict
+
+
+def reset_cloud_error_dict(config, unique_cloud_dict, failure_dict, cloud_obj):
+    for cloud_tuple in unique_cloud_dict[cloud]['groups']:
+        grp_nm = cloud_tuple[0]
+        cld_nm = cloud_tuple[1]
+        failure_dict.pop(cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"] + cloud_obj["password"], None)
+        config.reset_cloud_error(grp_nm, cld_nm)
+    return failure_dict
+
+
+
+def expand_failure_dict(config, cloud_table, cloud_type, data_type, failure_dict):
+    rc, msg, cloud_list = config.db_query(CLOUD, where="cloud_type='%s'" % cloud_type)
+    new_f_dict = {}
+    for cloud in cloud_list:
+        key = cloud["authurl"] + cloud["project"] + cloud["region"] + cloud["username"]
+        if key in failure_dict:
+            new_f_dict[cloud["group_name"]+cloud["cloud_name"]] = 1
+
+    # since the new inventory function doesn't accept a failure dict we need to screen the rows ourselfs
+    rc, msg, unfiltered_rows = config.db_query(data_type, where="cloud_type='%s'" % cloud_type)
+    rows = []
+    for row in unfiltered_rows:
+        if row['group_name'] + row['cloud_name'] in new_f_dict.keys():
+            continue
+        else:
+            rows.append(row)
+    return rows
