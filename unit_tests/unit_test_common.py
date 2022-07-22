@@ -19,6 +19,17 @@ def _execute_selections(gvar, request, expected_text, expected_values):
         # print('%04d (%04d) %s Skipping: \'%s\', %s, %s' % (gvar['ut_count'][0], gvar['ut_count'][1], _caller(), request, repr(expected_text), expected_values))
         return False
    
+def xml_publish(gvar, passed, msg):
+    import re
+    from xml.sax.saxutils import escape
+    ansi_escape = re.compile(r'\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])')
+    
+    gvar['test_buffer'].append('\t\t<testcase name="{}_({})_{}">'.format(*gvar['ut_count'], _caller()))
+    msg = ansi_escape.sub('', msg)
+    if passed: gvar['test_buffer'].append(f'\t\t\t<system-out>{escape(msg)}</system-out>')
+    else:      gvar['test_buffer'].append(f'\t\t\t<failure>{escape(msg)}</failure>')
+    gvar['test_buffer'].append('\t\t</testcase>')
+
 def execute_csv2_command(gvar, expected_rc, expected_modid, expected_text, cmd, expected_list=None, expected_columns=None, timeout=None):
     '''
     Execute a Cloudscheduler CLI command using subprocess and print a message explaining whether the output of the command was as expected.
@@ -59,6 +70,9 @@ def execute_csv2_command(gvar, expected_rc, expected_modid, expected_text, cmd, 
         except subprocess.TimeoutExpired as err:
             stdout = err.stdout.decode()
             stderr = err.stderr.decode()
+            return_code = -1
+
+        if return_code == 1 and "EOFError: EOF when reading a line" in stderr:
             return_code = -1
 
         failed = False
@@ -107,19 +121,20 @@ def execute_csv2_command(gvar, expected_rc, expected_modid, expected_text, cmd, 
             gvar['ut_failed'] += 1
             if not gvar['hidden']:
                 # repr() is used because it puts quotes around strings *unless* they are None.
-                print('\n%04d (%04d) %s \033[91mFailed\033[0m: expected_rc=%s, expected_modid=%s, expected_text=%s, cmd=%s' % (gvar['ut_count'][0], gvar['ut_count'][1], _caller(), expected_rc, expected_modid, repr(expected_text), ' '.join((word if word else '\'\'' for word in cmd))))
-                print('\treturn code=%s' % return_code)
-                print('\tmodule ID=%s' % modid)
-                print('\tstdout=%s' % stdout)
-                print('\tstderr=%s' % stderr)
-                if list_error:
-                    print('List error: {}'.format(list_error))
-                print()
-
+                msg='\n%04d (%04d) %s \033[91mFailed\033[0m: expected_rc=%s, expected_modid=%s, expected_text=%s, cmd=%s' % (gvar['ut_count'][0], gvar['ut_count'][1], _caller(), expected_rc, expected_modid, repr(expected_text), ' '.join((word if word else '\'\'' for word in cmd))) + '\n' + \
+                    '\treturn code=%s' % return_code                   + '\n' + \
+                    '\tmodule ID=%s'   % modid                         + '\n' + \
+                    '\tstdout=%s'      % stdout                        + '\n' + \
+                    '\tstderr=%s'      % stderr                        + '\n' + \
+                    ('List error: {}'.format(list_error) + '\n' if list_error else '') + '\n'
+                print(msg)
+                if gvar['xml']: xml_publish(gvar, False, msg)
             return 1
         else:
             if not gvar['hidden']:
-                print('%04d (%04d) %s \033[92mOK\033[0m: expected_rc=%s, expected_modid=%s, expected_text=%s, cmd=%s' % (gvar['ut_count'][0], gvar['ut_count'][1], _caller(), expected_rc, expected_modid, repr(expected_text), ' '.join((word if word else '""' for word in cmd))))
+                msg='%04d (%04d) %s \033[92mOK\033[0m: expected_rc=%s, expected_modid=%s, expected_text=%s, cmd=%s' % (gvar['ut_count'][0], gvar['ut_count'][1], _caller(), expected_rc, expected_modid, repr(expected_text), ' '.join((word if word else '""' for word in cmd)))
+                print(msg)
+                if gvar['xml']: xml_publish(gvar, True, msg)
             return 0
     else:
         return 0
@@ -182,22 +197,26 @@ def execute_csv2_request(gvar, expected_rc, expected_modid, expected_text, reque
             gvar['ut_failed'] += 1
 
             if not gvar['hidden']:
-                print('\n%04d (%04d) %s \033[91mFailed\033[0m: expected_rc=%s, expected_modid=%s, expected_text=%s, request=\'%s\', group=%s, form_data=%s, query_data=%s' % (gvar['ut_count'][0], gvar['ut_count'][1], _caller(), expected_rc, expected_modid, repr(expected_text), request, group, form_data, query_data))
+                msg='\n%04d (%04d) %s \033[91mFailed\033[0m: expected_rc=%s, expected_modid=%s, expected_text=%s, request=\'%s\', group=%s, form_data=%s, query_data=%s' % (gvar['ut_count'][0], gvar['ut_count'][1], _caller(), expected_rc, expected_modid, repr(expected_text), request, group, form_data, query_data) + '\n'
                 if gvar['user_settings']['server-address'] in gvar['active_server_user_group'] and server_user in gvar['active_server_user_group'][gvar['user_settings']['server-address']]:
-                    print('    user=%s, group=%s' % (server_user, repr(gvar['active_server_user_group'][gvar['user_settings']['server-address']][server_user])))
+                    msg+='    user=%s, group=%s' % (server_user, repr(gvar['active_server_user_group'][gvar['user_settings']['server-address']][server_user])) + '\n'
                 else:
-                    print('    user=%s, group=\033[91mNone\033[0m' % server_user)
-                print('    response code=%s' % response['response_code'])
+                    msg+='    user=%s, group=\033[91mNone\033[0m' % server_user + '\n'
+                msg+=('    response code=%s' % response['response_code']) + '\n'
                 if response['response_code'] != 0:
-                    print('    module ID=%s' % modid)
-                print('    message=\'%s\'\n' % response['message'])
+                    msg+='    module ID=%s' % modid + '\n'
+                msg+='    message=\'%s\'\n' % response['message'] + '\n'
+                print(msg)
+                if gvar['xml']: xml_publish(gvar, False, msg)
             return 1
         elif expected_list:
             if expected_list not in response:
                 gvar['ut_failed'] += 1
                 if not gvar['hidden']:
-                    print('\n%04d (%04d) %s \033[91mFailed\033[0m: request=\'%s\', group=%s, expected_list=\'%s\', list_filter=%s, values=%s' % (gvar['ut_count'][0], gvar['ut_count'][1], _caller(), request, group, expected_list, list_filter, values))
-                    print('\tNo list \'%s\' in response. The message from the server was: \'%s\'\n' % (expected_list, response['message']))
+                    msg='\n%04d (%04d) %s \033[91mFailed\033[0m: request=\'%s\', group=%s, expected_list=\'%s\', list_filter=%s, values=%s' % (gvar['ut_count'][0], gvar['ut_count'][1], _caller(), request, group, expected_list, list_filter, values) + '\n' + \
+                        '\tNo list \'%s\' in response. The message from the server was: \'%s\'\n' % (expected_list, response['message'])
+                    print(msg)
+                    if gvar['xml']: xml_publish(gvar, False, msg)
                 return 1
             # expected_list in response
             elif list_filter and values:
@@ -218,7 +237,9 @@ def execute_csv2_request(gvar, expected_rc, expected_modid, expected_text, reque
                         mismatches_in_filtered_rows.append(mismatches)
                     else:
                         if not gvar['hidden']:
-                            print('%04d (%04d) %s \033[92mOK\033[0m: request=\'%s\', group=%s, form_data=%s, expected_list=%s, list_filter=%s' % (gvar['ut_count'][0], gvar['ut_count'][1], _caller(), request, group, form_data, expected_list, list_filter))
+                            msg='%04d (%04d) %s \033[92mOK\033[0m: request=\'%s\', group=%s, form_data=%s, expected_list=%s, list_filter=%s' % (gvar['ut_count'][0], gvar['ut_count'][1], _caller(), request, group, form_data, expected_list, list_filter)
+                            print(msg)
+                            if gvar['xml']: xml_publish(gvar, True, msg)
                         return 0
 
                 # At this point we know the test has failed.
@@ -226,33 +247,40 @@ def execute_csv2_request(gvar, expected_rc, expected_modid, expected_text, reque
                 # Found mismatched values.
                 if mismatches_in_filtered_rows:
                     if not gvar['hidden']:
-                        print('\n%04d (%04d) %s \033[91mRow Check\033[0m: request=\'%s\', group=%s, expected_list=\'%s\', list_filter=%s' % (gvar['ut_count'][0], gvar['ut_count'][1], _caller(), request, group, expected_list, list_filter))
-                        print('\t%s rows were accepted by the filter.' % len(mismatches_in_filtered_rows))
+                        msg='\n%04d (%04d) %s \033[91mRow Check\033[0m: request=\'%s\', group=%s, expected_list=\'%s\', list_filter=%s' % (gvar['ut_count'][0], gvar['ut_count'][1], _caller(), request, group, expected_list, list_filter) + '\n' + \
+                            '\t%s rows were accepted by the filter.' % len(mismatches_in_filtered_rows) + '\n'
                         for row_index, mismatches_in_row in enumerate(mismatches_in_filtered_rows):
-                            print('\tRow %s:' % (row_index + 1))
-                            print('\t\tActual values in response: %s' % filtered_rows[row_index])
+                            msg+='\tRow %s:' % (row_index + 1) + '\n' + \
+                                 '\t\tActual values in response: %s' % filtered_rows[row_index] + '\n'
                             for mismatch in mismatches_in_row:
                                 if len(mismatch) == 2:
-                                    print('\t\tFor the key %s: expected %s, but the key was not in the response.' % mismatch)
+                                    msg+='\t\tFor the key %s: expected %s, but the key was not in the response.' % mismatch + '\n'
                                 # len(mismatch) == 3
                                 else:
-                                    print('\t\tFor the key %s: expected %s, but got %s.' % mismatch)
-                    print()
+                                    msg+='\t\tFor the key %s: expected %s, but got %s.' % mismatch + '\n'
+                    print(msg + '\n')
+                    if gvar['xml']: xml_publish(gvar, False, msg)
                 # All rows were rejected by the filter.
                 else:
                     if not gvar['hidden']:
-                        print('\n%04d (%04d) %s \033[91mFailed\033[0m: request=\'%s\', group=%s, expected_list=%s, list_filter=%s' % (gvar['ut_count'][0], gvar['ut_count'][1], _caller(), request, group, expected_list, list_filter))
-                        print('\tFilter did not match any rows. The message from the server was: \'%s\'\n' % response['message'])
+                        msg='\n%04d (%04d) %s \033[91mFailed\033[0m: request=\'%s\', group=%s, expected_list=%s, list_filter=%s' % (gvar['ut_count'][0], gvar['ut_count'][1], _caller(), request, group, expected_list, list_filter) + '\n' + \
+                            '\tFilter did not match any rows. The message from the server was: \'%s\'\n' % response['message']
+                        print(msg)
+                        if gvar['xml']: xml_publish(gvar, False, msg)
                 return 1
 
             # expected_list in response, and at least one of list_filter and values was not provided.
             elif not gvar['hidden']:
-                print('%04d (%04d) %s \033[92mOK\033[0m: expected_rc=%s, expected_modid=%s, expected_text=%s, request=\'%s\', group=%s, form_data=%s' % (gvar['ut_count'][0], gvar['ut_count'][1], _caller(), expected_rc, expected_modid, repr(expected_text), request, group, form_data))
+                msg='%04d (%04d) %s \033[92mOK\033[0m: expected_rc=%s, expected_modid=%s, expected_text=%s, request=\'%s\', group=%s, form_data=%s' % (gvar['ut_count'][0], gvar['ut_count'][1], _caller(), expected_rc, expected_modid, repr(expected_text), request, group, form_data)
+                print(msg)
+                if gvar['xml']: xml_publish(gvar, True, msg)
                 return 0
 
         # not failed and not expected_list
         elif not gvar['hidden']:
-            print('%04d (%04d) %s \033[92mOK\033[0m: expected_rc=%s, expected_modid=%s, expected_text=%s, request=\'%s\', group=%s, form_data=%s' % (gvar['ut_count'][0], gvar['ut_count'][1], _caller(), expected_rc, expected_modid, repr(expected_text), request, group, form_data))
+            msg='%04d (%04d) %s \033[92mOK\033[0m: expected_rc=%s, expected_modid=%s, expected_text=%s, request=\'%s\', group=%s, form_data=%s' % (gvar['ut_count'][0], gvar['ut_count'][1], _caller(), expected_rc, expected_modid, repr(expected_text), request, group, form_data)
+            print(msg)
+            if gvar['xml']: xml_publish(gvar, True, msg)
             return 0
 
     # _execute_selections returned False.
