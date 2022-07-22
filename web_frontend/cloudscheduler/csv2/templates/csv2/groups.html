@@ -60,7 +60,7 @@
                 
 
                     <input type="hidden" name="group_name" value="{{group.group_name}}" />
-                    <table>
+                    <table id="ul-users-{{group.group_name}}">
                         
                         <tr class="highlight2">
                             <td>
@@ -69,19 +69,16 @@
                             <td>
                                 <input id="search-users-{{ group.group_name }}" type="text" placeholder="Username search.." onkeyup="search('users-{{ group.group_name }}')">
                             </td>
-                                <div id="ul-users-{{group.group_name}}" class="highlight2">
-                                    
 
-                                    {% for user in groups_per_user %}
-                                        {{ user.group_name }}
-                                        {% if group.group_name in user.user_groups %}
-                                            <tr><td></td><td class="highlight2"><input type="checkbox" name="username.{{ forloop.counter }}" value="{{ user.username }}" checked/>{{ user.username }}</input></td></tr>
-                                        {% else %}
-                                             <tr><td></td><td class="highlight2"><input type="checkbox" name="username.{{ forloop.counter }}" value="{{ user.username }}" />{{user.username }}</input></td></tr>
-                                        {% endif %}
-                                    {% endfor %}
+                                {% for user in groups_per_user %}
+                                    {{ user.group_name }}
+                                    {% if group.group_name in user.user_groups %}
+                                        <tr><td></td><td class="highlight2"><input type="checkbox" name="username.{{ forloop.counter }}" value="{{ user.username }}" checked/>{{ user.username }}</input></td></tr>
+                                    {% else %}
+                                         <tr><td></td><td class="highlight2"><input type="checkbox" name="username.{{ forloop.counter }}" value="{{ user.username }}" />{{user.username }}</input></td></tr>
+                                    {% endif %}
+                                {% endfor %}
 
-                                </div>
                             </td>
                         </tr>
                         <!--https://www.w3schools.com/howto/howto_js_filter_lists.asp-->
@@ -116,7 +113,7 @@
             <div class="menu-target menu-position">
                 <form name="add_group" action="/group/add/" method="post" onsubmit="new_location()">
                     {% csrf_token %}
-                    <table>
+                    <table id="ul-users-{{group.group_name}}">
                         <tr class="highlight1">
                             <td>
                                 <label for="group_name">Group name</label>
@@ -133,19 +130,16 @@
                             <td>
                                 <input id="search-users-{{ group.group_name }}" type="text" placeholder="Username search.." onkeyup="search('users-{{ group.group_name }}')">
                             </td>
-                                <div id="ul-users-{{group.group_name}}" class="highlight2">
-                                    
 
-                                    {% for user in groups_per_user %}
-                                        {{ user.group_name }}
-                                        {% if group.group_name in user.user_groups %}
-                                            <tr><td></td><td class="highlight2"><input type="checkbox" name="username.{{ forloop.counter }}" value="{{ user.username }}" checked/>{{ user.username }}</input></td></tr>
-                                        {% else %}
-                                             <tr><td></td><td class="highlight2"><input type="checkbox" name="username.{{ forloop.counter }}" value="{{ user.username }}" />{{user.username }}</input></td></tr>
-                                        {% endif %}
-                                    {% endfor %}
+                                {% for user in groups_per_user %}
+                                    {{ user.group_name }}
+                                    {% if group.group_name in user.user_groups %}
+                                        <tr><td></td><td class="highlight2"><input type="checkbox" name="username.{{ forloop.counter }}" value="{{ user.username }}" checked/>{{ user.username }}</input></td></tr>
+                                    {% else %}
+                                         <tr><td></td><td class="highlight2"><input type="checkbox" name="username.{{ forloop.counter }}" value="{{ user.username }}" />{{user.username }}</input></td></tr>
+                                    {% endif %}
+                                {% endfor %}
 
-                                </div>
                             </td>
                         </tr>
 
