@@ -89,8 +89,8 @@ class ProcessMonitor:
         proc = self.processes.get(process_id)
         if proc:
             logging.info("Deleting process: %s" % process_id)
-            #if self.is_alive(process_id):
-                #proc.join()
+            if self.is_alive(process_id):
+                proc.join()
             del self.processes[process_id]
         if dynamic:
             self.dynamic_process_ids.pop(process_id)
