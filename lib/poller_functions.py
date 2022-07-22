@@ -158,3 +158,7 @@ def log_heartbeat_message(last_statement_time, poller_name):
         return cur_time
     else:
         return last_statement_time
+
+
+def generate_unique_cloud_dict(config, cloud_table):
+    
