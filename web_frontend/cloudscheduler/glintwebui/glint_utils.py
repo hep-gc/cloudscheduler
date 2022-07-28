@@ -10,9 +10,7 @@ from cloudscheduler.lib.openstack_functions import get_openstack_sess, get_glanc
 
 from cloudscheduler.lib.db_config import Config
 config = Config('/etc/cloudscheduler/cloudscheduler.yaml', ['general', 'openstackPoller.py', 'web_frontend'], pool_size=2, max_overflow=10)
-ALPHABET = string.ascii_letters + string.digits + string.punctuation
-ALPHABET = ALPHABET.replace("'", "")
-ALPHABET = ALPHABET.replace('"', "")
+ALPHABET = string.ascii_letters + string.digits + "!#$%&()*+-<=>?@[]^_{|}~"
 
 # new glint api, maybe make this part of glint utils?
 
@@ -114,18 +112,16 @@ def get_checksum(glance, image_id):
 # Check image cache and queue up a pull request if target image is not present
 #
 def check_cache(config, image_name, image_checksum, group_name, user, target_image=None, return_image=False):
+    config.db_commit() # refresh the database connection
+    
     IMAGE_CACHE = "csv2_image_cache"
     if isinstance(user, str):
         username = user
     else:
         username = user.username
 
-    if image_checksum is not None:
-        where_clause = "image_name='%s' and checksum='%s'" % (image_name, image_checksum)
-        rc, qmsg, image = config.db_query(IMAGE_CACHE, where=where_clause)
-    else:
-        where_clause = "image_name='%s' and checksum='%s'" % (image_name, image_checksum)
-        rc, qmsg, image = config.db_query(IMAGE_CACHE, where=where_clause)
+    where_clause = "image_name='%s' and checksum='%s'" % (image_name, image_checksum)
+    rc, qmsg, image = config.db_query(IMAGE_CACHE, where=where_clause)
 
     if len(image) > 0:
         # we found something in the cache we can skip queueing a pull request
@@ -169,11 +165,15 @@ def check_cache(config, image_name, image_checksum, group_name, user, target_ima
             }
 
         PULL_REQ = "csv2_image_pull_requests"
-        # check if a pull request already exists for this image? or just let the workers sort it out?
-        config.db_merge(PULL_REQ, preq)
-        config.db_commit()
-        #pull_request.delay(tx_id = tx_id)
-        pull_request.apply_async((tx_id,), queue='pull_requests')
+        
+        # check if a pull request already exists for this image
+        where_clause = "image_name='%s' and checksum='%s'" % (image_name, target_image["checksum"])
+        rc, qmsg, prq = config.db_query(PULL_REQ, where=where_clause)
+        if len(prq) == 0:
+            config.db_merge(PULL_REQ, preq)
+            config.db_commit()
+            #pull_request.delay(tx_id = tx_id)
+            pull_request.apply_async((tx_id,), queue='pull_requests')
 
         if return_image:
             return None
@@ -209,7 +209,7 @@ def get_image(config, image_name, image_checksum, group_name, cloud_name=None):
             return False
 
 
-# at a length of 16 with a 92 symbol alphabet we have a N/16^92 chance of a collision, pretty darn unlikely
+# at a length of 16 with a 85 symbol alphabet we have a N/16^85 chance of a collision, pretty darn unlikely
 def generate_tx_id(length=16):
-    return ''.join(random.choice(ALPHABET) for i in range(length)).replace('\\', '\\\\')
+    return ''.join(random.choice(ALPHABET) for i in range(length))
 

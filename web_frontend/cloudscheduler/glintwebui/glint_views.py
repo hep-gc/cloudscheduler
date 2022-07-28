@@ -326,7 +326,7 @@ def list(request, args=None, response_code=0, message=None):
         'version': config.get_version()
     }
 
-
+    config.db_close()
     return render(request, 'glintwebui/images.html', context)
 
 
@@ -375,6 +375,7 @@ def transfer(request, args=None, response_code=0, message=None):
                     where_clause = "group_name='%s' and name='%s'" % (target_group, image_key)
                     rc, msg, image_candidates = config.db_query(IMAGES, where=where_clause)
                     if len(image_candidates) > 1:
+                        config.db_close()
                         #ambiguous image name, need a checksum
                         return HttpResponse(json.dumps({'response_code': 1, 'message': '%s %s' % (lno(MODID), "Ambigous image name, please remove duplicate names or provide a checksum")}))
                     else:
@@ -390,6 +391,7 @@ def transfer(request, args=None, response_code=0, message=None):
             # Double check that the request doesn't exist and that the image is really missing from that cloud
             # if so then check if the image is in the cache, if not queue pull request and finally queue a transfer request
             if not _check_image(config, target_group, target_cloud, image_name, image_checksum):
+                config.db_close()
                 # Image or request already exists, return  with message
                 return HttpResponse(json.dumps({'response_code': 1,  'message': '%s %s'  % (lno(MODID), 'Image request exists or image already on cloud')}))
 
@@ -398,6 +400,7 @@ def transfer(request, args=None, response_code=0, message=None):
             # if it was unable to find the image
             cache_result = check_cache(config, image_name, image_checksum, target_group, active_user)
             if cache_result is False:
+                config.db_close()
                 return HttpResponse(json.dumps({'response_code': 1, 'message': '%s %s' % (lno(MODID), "Could not find a source image...")}))
             target_image = get_image(config, image_name, image_checksum, target_group)
             tx_id = generate_tx_id()
@@ -434,6 +437,7 @@ def transfer(request, args=None, response_code=0, message=None):
             # Validate input fields.
             rc, msg, fields, tables, columns = validate_fields(config, request, [TRANSFER_KEYS], [], active_user)
             if rc !=0:
+                config.db_close()
                 # Invalid fields, return message
                 return HttpResponse(json.dumps({'response_code': rc, 'message': msg}))
 
@@ -448,6 +452,7 @@ def transfer(request, args=None, response_code=0, message=None):
                 image_index = int(image_index)-1
 
             if image_name is None and image_index is None:
+                config.db_close()
                 return HttpResponse(json.dumps({'response_code': 1, 'message': '%s %s' % (lno(MODID), "No image name or index, please supply at least one to identify target image")}))
 
             target_image=None
@@ -462,6 +467,7 @@ def transfer(request, args=None, response_code=0, message=None):
                 target_image = image_list[image_index]
                 if image_name is not None:
                     if str(target_image["name"]) != str(image_name):
+                        config.db_close()
                         return HttpResponse(json.dumps({'response_code': 1, 'message': '%s %s' % (lno(MODID), "Image name (%s) from index (%s) does not match supplied image name (%s) please check your request and try again." % (target_image["name"], image_index, image_name))}))
             else:
                 # we have at least an image name, lets build the where clause
@@ -478,8 +484,10 @@ def transfer(request, args=None, response_code=0, message=None):
                     image_list.append(row)
 
                 if len(image_list) > 1:
+                    config.db_close()
                     return HttpResponse(json.dumps({'response_code': 1, 'message': '%s %s' % (lno(MODID), "Unable to uniquely identify target image with given parameters, %s images matched." % len(image_list))}))
                 elif len(image_list) == 0:
+                    config.db_close()
                     return HttpResponse(json.dumps({'response_code': 1, 'message': '%s %s' % (lno(MODID), "No images matched sepcified parameters, please check your request and try again.")}))
                 else:
                     target_image = image_list[0]
@@ -516,6 +524,7 @@ def transfer(request, args=None, response_code=0, message=None):
                     'response_code': 1,
                     'message': message
                 }
+                config.db_close()
                 return HttpResponse(json.dumps(context))
 
                     
@@ -571,6 +580,7 @@ def delete(request, args=None, response_code=0, message=None):
                     rc, qmsg, image_candidates = config.db_query(IMAGES, where=where_clause)
                     if len(image_candidates) > 1:
                         #ambiguous image name, need a checksum
+                        config.db_close()
                         return HttpResponse(json.dumps({'response_code': 1, 'message': '%s %s' % (lno(MODID), "Ambigous image name, please remove duplicate names or provide a checksum")}))
                     else:
                         image_checksum = image_candidates[0]["checksum"]
@@ -597,6 +607,7 @@ def delete(request, args=None, response_code=0, message=None):
                 #return render(request, 'glintwebui/images.html', {'response_code': 0, 'message': '%s %s' % (lno(MODID), "Delete successful")})
                 return HttpResponse(json.dumps({'response_code':0 , 'message': '%s %s' % (lno(MODID), "Delete successful")}))
             else:
+                config.db_close()
                 #return render(request, 'glintwebui/images.html', {'response_code': 1, 'message': '%s %s: %s' % (lno(MODID), "Delete failed", result[1])})
                 return HttpResponse(json.dumps({'response_code': 1, 'message': '%s %s: %s' % (lno(MODID), "Delete failed...", result[1])}))
         else:
@@ -612,6 +623,7 @@ def delete(request, args=None, response_code=0, message=None):
             # Validate input fields.
             rc, msg, fields, tables, columns = validate_fields(config, request, [TRANSFER_KEYS], [], active_user)
             if rc !=0:
+                config.db_close()
                 # Invalid fields, return message
                 return HttpResponse(json.dumps({'response_code': rc, 'message': msg}))
 
@@ -626,6 +638,7 @@ def delete(request, args=None, response_code=0, message=None):
                 image_index = int(image_index)-1
 
             if image_name is None and image_index is None:
+                config.db_close()
                 return HttpResponse(json.dumps({'response_code': 1, 'message': '%s %s' % (lno(MODID), "No image name or index, please supply at least one to identify target image")}))
 
             target_image=None
@@ -640,9 +653,11 @@ def delete(request, args=None, response_code=0, message=None):
                 target_image = image_list[image_index]
                 if image_name is not None:
                     if str(target_image["name"]) != str(image_name):
+                        config.db_close()
                         return HttpResponse(json.dumps({'response_code': 1, 'message': '%s %s' % (lno(MODID), "Image name (%s) from index (%s) does not match supplied image name (%s) please check your request and try again." % (target_image["name"], image_index, image_name))}))
                 if cloud_name is not None:
                     if str(target_image["cloud_name"]) != str(cloud_name):
+                        config.db_close()
                         return HttpResponse(json.dumps({'response_code': 1, 'message': '%s %s' % (lno(MODID), "cloud name (%s) from index (%s) does not match supplied cloud name (%s) please check your request and try again." % (target_image["cloud_name"], image_index, cloud_name))}))
             else:
                 # we have at least an image name, lets build the where clause
@@ -657,8 +672,10 @@ def delete(request, args=None, response_code=0, message=None):
                 sql = "select * from cloud_images where %s" % where
                 rc, msg, image_list = config.db_query(IMAGES, where=where)
                 if len(image_list) > 1:
+                    config.db_close()
                     return HttpResponse(json.dumps({'response_code': 1, 'message': '%s %s' % (lno(MODID), "Unable to uniquely identify target image with given parameters, %s images matched." % len(image_list))}))
                 elif len(image_list) == 0:
+                    config.db_close()
                     return HttpResponse(json.dumps({'response_code': 1, 'message': '%s %s' % (lno(MODID), "No images matched sepcified parameters, please check your request and try again.")}))
                 else:
                     target_image = image_list[0]
@@ -674,7 +691,9 @@ def delete(request, args=None, response_code=0, message=None):
                 sql ="delete from cloud_images where group_name='%s' and cloud_name='%s' and id='%s';" % (target_image["group_name"], target_image["cloud_name"], target_image["id"])
                 try:
                     config.db_execute(sql)
+                    config.db_commit()
                 except Exction as exc:
+                    config.db_close()
                     context = {
                         "response_code": 1,
                         "message": "Failed to execute delete for image %s: %s" % (target_image["name"], exc)
@@ -685,12 +704,15 @@ def delete(request, args=None, response_code=0, message=None):
                     "response_code": 0,
                     "message": "Image %s deleted successfully" % target_image["name"]
                 }
+                config.db_close()
                 return HttpResponse(json.dumps(context))
             else:
+                config.db_close()
                 return HttpResponse(json.dumps({'response_code': 1, 'message': '%s %s: %s' % (lno(MODID), "Delete failed...", result[1])}))
 
     else:
         #Not a post request, render image page again
+        config.db_close()
         return None
 
 
@@ -1256,6 +1278,7 @@ def download(request, group_name, image_key, args=None, response_code=0, message
             where_clause = "group_name='%s' and name='%s'" % (group_name, image_key)
             rc, qmsg, image_candidates = config.db_query(IMAGES, where=where_clause)
             if len(image_candidates) > 1:
+                config.db_close()
                 return HttpResponse(json.dumps({'response_code': 1, 'message': '%s %s' % (lno(MODID), "Ambigous image name, please remove duplicate names or provide a checksum")}))
             else:
                 image_checksum = image_candidates[0]["checksum"]
@@ -1288,6 +1311,7 @@ def download(request, group_name, image_key, args=None, response_code=0, message
         rc, qmsg, image_candidates = config.db_query(IMAGES, where=where_clause)
         if len(image_candidates) == 0:
             # we didnt find a source
+            config.db_close()
             return False # report error
         else:
             src_image = image_candidates[0]
@@ -1320,8 +1344,10 @@ def download(request, group_name, image_key, args=None, response_code=0, message
             # Download failed for whatever reason, update message and return to images page
             # check result_tuple for error message
             logger.error("Failed to download the image %s" % result_tuple[1])
+            config.db_close()
             return None
 
+    config.db_close()
     return None
 
 
@@ -1357,6 +1383,7 @@ def retry(request, args=None, response_code=0, message=None):
                 where_clause = "group_name='%s' and name='%s'" % (target_group, image_key)
                 rc, qmsg, image_candidates = config.db_query(IMAGES, where=where_clause)
                 if len(image_candidates) > 1:
+                    config.db_close()
                     #ambiguous image name, need a checksum
                     return HttpResponse(json.dumps({'response_code': 1, 'message': '%s %s' % (lno(MODID), "Ambigous image name, please remove duplicate names or provide a checksum")}))
                 else:
@@ -1372,6 +1399,7 @@ def retry(request, args=None, response_code=0, message=None):
         rc, qmsg, image_tx = config.db_query(IMG_TX, where=where_clause)
         if len(image_tx)== 0:
             # no transaction found
+            config.db_close()
             logger.error("No transaction found for image:%s on group::cloud: %s::%s" % (image_name, target_group, target_cloud))
             return HttpResponse(json.dumps({'response_code': 1, 'message': "No transaction found for image:%s on group::cloud: %s::%s" % (image_name, target_group, target_cloud)}))
         elif len(image_tx) == 1:
@@ -1399,6 +1427,7 @@ def retry(request, args=None, response_code=0, message=None):
             return HttpResponse(json.dumps({'response_code': 0, 'message': 'Transfer re-queued..'}))
     else:
         #not a post
+        config.db_close()
         return None
 
 
@@ -1433,6 +1462,7 @@ def clear(request, args=None, response_code=0, message=None):
                 where_clause = "group_name='%s' and name='%s'" % (target_group, image_key)
                 rc, qmsg, image_candidates = config.db_query(IMAGES, where=where_clause)
                 if len(image_candidates) > 1:
+                    config.db_close()
                     #ambiguous image name, need a checksum
                     return HttpResponse(json.dumps({'response_code': 1, 'message': '%s %s' % (lno(MODID), "Ambigous image name, please remove duplicate names or provide a checksum")}))
                 else:
@@ -1448,6 +1478,7 @@ def clear(request, args=None, response_code=0, message=None):
         rc, qmsg, image_tx = config.db_query(IMG_TX, where=where_clause)
         if len(image_tx) == 0:
             # no transaction found
+            config.db_close()
             return HttpResponse(json.dumps({'response_code': 0, 'message': "No transaction found for image:%s on group::cloud: %s::%s" % (image_name, target_group, target_cloud)}))
         elif len(image_tx) == 1:
             #found the bugger, lets update the status to pending and queue a new transaction
@@ -1468,6 +1499,7 @@ def clear(request, args=None, response_code=0, message=None):
             return HttpResponse(json.dumps({'response_code': 0, 'message': 'Transaction removed'}))
     else:
         #not a post
+        config.db_close()
         return None
 
 
@@ -1489,6 +1521,7 @@ def image_list(request):
     rc, msg, fields, tables, columns = validate_fields(config, request, [LIST_KEYS], [], active_user)
     if rc !=0:
         # Invalid fields, return message
+        config.db_close()
         return HttpResponse(json.dumps({'response_code': rc, 'message': msg}))
 
     # Retrieve image info information.
