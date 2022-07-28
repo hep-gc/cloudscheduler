@@ -29,10 +29,13 @@ def main():
         'cleanup': True,
         'hidden': True,
         'run_all': True,
+        'xml': False,
+        'xml_path': None,
         'tests': [],
         'objects': []
     }
 
+    get_path = False
     if len(argv) > 1:
         for arg in argv[1:]:
             if arg in ('-h', '--help'):
@@ -44,12 +47,17 @@ def main():
                 for (_, name) in test_names:
                     print(name)
                 exit()
+            elif get_path:
+                user_options['xml_path'] = arg 
+                get_path = False
             elif arg in ('-ss', '--skip-setup'):
                 user_options['setup'] = False
             elif arg in ('-sc', '--skip-cleanup'):
                 user_options['cleanup'] = False
             elif arg in ('-v', '--verbose'):
                 user_options['hidden'] = False
+            elif arg in ('-x', '--output-xml'):
+                user_options['xml'] = get_path = True
             elif arg.startswith('['):
                 user_options['run_all_selection'] = arg[1:-1]
             else:
@@ -88,14 +96,22 @@ def main():
         user_options['objects'] = TEST_OBJECTS
 
     hidden_gvar = {}
+    hidden_gvar['xml'] = False
     initialize_csv2_request(hidden_gvar, hidden=user_options['hidden'])
 
     gvar = {}
+    gvar['xml'] = False 
     if 'run_all_selection' in user_options:
         initialize_csv2_request(gvar, selections=user_options['run_all_selection'])
     else:
         initialize_csv2_request(gvar)
 
+    if user_options['xml']:
+        gvar['xml_out'] = open(user_options['xml_path'], 'w')
+        gvar['xml_out'].write('<?xml version="1.0" encoding="UTF-8" ?>\n')
+        suite_name = ",".join(user_options['objects'])
+        gvar['xml_out'].write(f'<testsuites name="{suite_name}">\n')
+   
     for obj in user_options['objects']:
         if user_options['setup']:
             exec('import {}_requests_setup'.format(obj), globals(), locals())
@@ -103,6 +119,9 @@ def main():
             exec('{}_requests_setup.main(hidden_gvar)'.format(obj), globals(), locals())
         if hidden_gvar['ut_failed'] == 0:
             for ((f, n), s) in user_options['tests']:
+                var = gvar if s is None else s
+                var['test_buffer'] = [] 
+                var['xml'] = user_options['xml']
                 if s is None:
                     if n.startswith(obj):
                         exec('import {}'.format(f), globals(), locals())
@@ -114,6 +133,11 @@ def main():
                         exec('import {}'.format(f), globals(), locals())
                         print('\n*** Testing {} ***\n'.format(n))
                         exec('{}.main(s)'.format(f), globals(), locals())
+                if user_options['xml']:
+                    ntests, nfails, nskipped = var['ut_count'][0]-var['ut_skipped'], var['ut_skipped'], var['ut_failed']
+                    gvar['xml_out'].write(f'\t<testsuite name="{n}" tests="{ntests}" failures="{nfails}" skipped="{nskipped}">\n')
+                    for line in var['test_buffer']: gvar['xml_out'].write(line + '\n')
+                    gvar['xml_out'].write('\t</testsuite>\n')
         if user_options['cleanup']:
             exec('import {}_requests_cleanup'.format(obj))
             print('Cleaning up {} tests...'.format(obj))
@@ -121,7 +145,7 @@ def main():
         if hidden_gvar['ut_failed'] > 0:
             print('Error setting up or cleaning up tests. Run with -v flag to see output.')
             break
-            exit(hidden_gvar['ut_failed'])
+            
     if user_options['run_all']:
         print('Test run=%s, skipped=%s, failed=%s.' % (gvar['ut_count'][0]-gvar['ut_skipped'], gvar['ut_skipped'], gvar['ut_failed']))
         exit(gvar['ut_failed'])
@@ -130,7 +154,12 @@ def main():
     for ((_, n), s) in user_options['tests']:
         print('Test {} run={}, skipped={}, failed={}.'.format(n, s['ut_count'][0]-s['ut_skipped'], s['ut_skipped'], s['ut_failed']))
         total_failed += s['ut_failed']
-    exit(total_failed)
+    
+    if user_options['xml']:
+        gvar['xml_out'].write('</testsuites>')
+        gvar['xml_out'].close()
+
+    exit(total_failed + hidden_gvar['ut_failed'])
 
 if __name__ == '__main__':
     main()
