@@ -39,7 +39,7 @@ input:read-only:not([type=submit]) { color:grey; }
   height: 30px;
   background-color: #efefef;
   text-align: center;
-  z-index: -10;
+  z-index: 2;
 }
 
 /*****************************************************************/
