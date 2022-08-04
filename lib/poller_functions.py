@@ -177,6 +177,8 @@ def generate_unique_cloud_dict(config, cloud_table, cloud_type):
     except Exception as exc:
         logging.error("Failed to read cloud list: %s" % exc)
         return False
+    
+    return unique_cloud_dict
 
 
 def process_cloud_failure(config, unique_cloud_dict, cloud_name, cloud_obj, failure_dict):
@@ -193,7 +195,7 @@ def process_cloud_failure(config, unique_cloud_dict, cloud_name, cloud_obj, fail
     return failure_dict
 
 
-def reset_cloud_error_dict(config, unique_cloud_dict, failure_dict, cloud_obj):
+def reset_cloud_error_dict(config, unique_cloud_dict, failure_dict, cloud, cloud_obj):
     for cloud_tuple in unique_cloud_dict[cloud]['groups']:
         grp_nm = cloud_tuple[0]
         cld_nm = cloud_tuple[1]
@@ -204,7 +206,7 @@ def reset_cloud_error_dict(config, unique_cloud_dict, failure_dict, cloud_obj):
 
 
 def expand_failure_dict(config, cloud_table, cloud_type, data_type, failure_dict):
-    rc, msg, cloud_list = config.db_query(CLOUD, where="cloud_type='%s'" % cloud_type)
+    rc, msg, cloud_list = config.db_query(cloud_table, where="cloud_type='%s'" % cloud_type)
     new_f_dict = {}
     for cloud in cloud_list:
         key = cloud["authurl"] + cloud["project"] + cloud["region"] + cloud["username"]
