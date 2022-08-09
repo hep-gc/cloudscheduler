@@ -188,7 +188,7 @@ def flavor_poller():
                         logging.info("No flavors defined for %s, skipping this cloud..." % cloud_name)
                         continue
 
-                    failure_dict = reset_cloud_error_dict(config, unique_cloud_dict, failure_dict, cloud_obj)
+                    failure_dict = reset_cloud_error_dict(config, unique_cloud_dict, failure_dict, cloud, cloud_obj)
 
                     # Process flavours for this cloud.
                     uncommitted_updates = 0
@@ -267,7 +267,7 @@ def flavor_poller():
 
 
                 # Expand failure dict for deletion schema (key needs to be grp+cloud)
-                rows = expand_failure_dict(config, CLOUD, cloud_type, FLAVOR, failure_dict)
+                rows = expand_failure_dict(config, CLOUD, "openstack", FLAVOR, failure_dict)
                 inventory_obsolete_database_items_delete(ikey_names, rows, inventory, new_poll_time, config, FLAVOR)
 
 

@@ -62,7 +62,7 @@ class Config:
             database=db_config['db_name'],
             user=db_config['db_user'],
             password=db_config['db_password'],
-            autocommit=False
+            autocommit=True
             )
 
         if db_config_only:
