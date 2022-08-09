@@ -5,6 +5,7 @@ import time
 import sys
 import signal
 import os
+import shutil
 import datetime
 from pytz import timezone
 from dateutil import tz
@@ -1958,14 +1959,16 @@ def volume_poller():
 
 def defaults_replication():
     multiprocessing.current_process().name = "Defaults Replication"
-    db_category_list = [os.path.basename(sys.argv[0]), "general", "glintPoller.py" "signal_manager", "ProcessMonitor"]
+    db_category_list = [os.path.basename(sys.argv[0]), "general", "glintPoller.py", "signal_manager", "ProcessMonitor"]
     config = Config('/etc/cloudscheduler/cloudscheduler.yaml', db_category_list, pool_size=3, signals=True)
     PID_FILE = config.categories["ProcessMonitor"]["pid_path"] + os.path.basename(sys.argv[0])
     GROUPS = "csv2_groups"
     CLOUDS = "csv2_clouds"
     KEYPAIRS = "cloud_keypairs"
     IMAGES = "cloud_images"
+    IMAGE_CACHE = "csv2_image_cache"
     IMAGE_TX = "csv2_image_transactions"
+    IMAGE_PR = "csv2_image_pull_requests"
 
 
     cycle_start_time = 0
@@ -2115,7 +2118,79 @@ def defaults_replication():
                         logging.info("No default keypair for group %s, skipping keypair transfers for cloud %s" % (group["group_name"], cloud["cloud_name"]))
             
             config.db_commit()
+            
+            logging.debug("Beginning image cache cleanup")
 
+            # Clean up pull requests that have been completed (image is already in the cache or request is over than a month old)
+            where_clause = "((image_name, checksum) in (select image_name, checksum from csv2_image_cache)) " \
+                           "or (request_time < date_sub(now(), interval 1 month))" 
+            rc, msg, pr_to_clear = config.db_query(IMAGE_PR, where=where_clause)
+            
+            logging.debug("Pull requests marked for removal: " + str(pr_to_clear))
+            for pr in pr_to_clear: config.db_delete(IMAGE_PR, pr)
+
+            # Clean up transactions that have completed (image is already on the cloud or tx older than a month)
+            query = "select distinct ct.* " \
+                    "from cloud_images as ci join csv2_image_transactions as ct " \
+                        "on  ct.checksum          = ci.checksum "   \
+                        "and ct.image_name        = ci.name "       \
+                        "and ct.target_cloud_name = ci.cloud_name " \
+                        "and ct.target_group_name = ci.group_name " \
+                    "union distinct " \
+                    "select * from csv2_image_transactions " \
+                    "where (request_time < date_sub(now(), interval 1 month))"
+            rc, msg = config.db_execute(query)
+            tx_to_clear = [row for row in config.db_cursor]
+
+            logging.debug("Transactions marked for removal: "  + str(tx_to_clear))
+            for tx in tx_to_clear: config.db_delete(IMAGE_TX, tx)
+
+            # Check consistency if cache table and folder
+            cache_dir = config.categories["glintPoller.py"]["image_cache_dir"]
+            folder_contents = {f: cache_dir + f for f in os.listdir(cache_dir)}
+            folder_set = set(tuple(k.split("---")) for k in folder_contents)
+            
+            rc, msg, table_contents = config.db_query(IMAGE_CACHE)
+            table_set = set((entry['image_name'], entry['checksum']) for entry in table_contents)
+
+            # Remove from table (if not in folder)
+            table_filter = table_set - folder_set
+            if table_filter:
+                logging.debug("Removing entries from table not found in folder: " + str(table_filter))
+                for ent in table_contents:
+                    if (ent['image_name'], ent['checksum']) in table_filter:
+                        config.db_delete(IMAGE_CACHE, ent)
+            
+            # Remove from folder (if not in table)
+            folder_filter = folder_set - table_set
+            if folder_filter:
+                logging.debug("Removing entries from folder not found in table: " + str(folder_filter))
+                for name, checksum in folder_filter:
+                   os.unlink(folder_contents[f'{name}---{checksum}'])
+
+            # Remove from table and folder entries that are:
+            #  -- Not part of an active transaction
+            #  -- Were downloaded more than 30 days ago
+            
+            where_clause = "((image_name, checksum) not in (select image_name, checksum from csv2_image_transactions)) " \
+                           "and (downloaded < date_sub(now(), interval 1 month))"
+            rc, msg, entries_to_clear = config.db_query(IMAGE_CACHE, where=where_clause)
+            
+            logging.debug("Cached images marked for removal: " + str(entries_to_clear))
+            for entry in entries_to_clear: config.db_delete(IMAGE_CACHE, entry) # Remove entries from table
+
+            for entry in entries_to_clear: # Remove entries from cache directory
+                os.unlink(folder_contents[entry['image_name'] + "---" + entry['checksum']])
+            
+            config.db_commit()
+
+            d_total, d_used, _ = shutil.disk_usage(cache_dir)
+            d_usage = (d_used / d_total)
+            if d_usage > 0.8: # TODO: Make this threshold a setting
+                logging.warning(f"Filesystem containing image cache is {round(d_usage * 100, 2)}% full")
+            
+            logging.debug("Completed image cache cleanup")
+            
         except Exception as exc:
             logging.error("Exception during general operation:")
             logging.exception(exc)

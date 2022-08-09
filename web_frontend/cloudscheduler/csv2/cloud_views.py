@@ -845,7 +845,7 @@ def cloud_list(request, active_user=None, response_code=0, message=None, cloud_a
         else:
             cloud["vm_boot_volume_type"] = None
             cloud["vm_boot_volume_size"] = ''
-            cloud["vm_boot_volume_size"] = ''
+            cloud["vm_boot_volume_per_core"] = ''
 
     
     where_clause = "group_name='%s'" % active_user.active_group
