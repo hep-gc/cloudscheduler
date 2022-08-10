@@ -165,7 +165,7 @@ def flavor_poller():
                     logging.debug("Processing flavours from cloud - %s" % cloud_name)
                     sess = get_openstack_sess(unique_cloud_dict[cloud]['cloud_obj'], config.categories["openstackPoller.py"]["cacerts"])
                     if sess is False:
-                        failure_dict = process_cloud_failure(config, unique_cloud_dict, cloud_name, cloud_obj, failure_dict)
+                        failure_dict = process_cloud_failure(config, unique_cloud_dict, cloud, cloud_obj, failure_dict)
                         continue
 
                     # setup OpenStack api objects
@@ -181,7 +181,7 @@ def flavor_poller():
                     except Exception as exc:
                         logging.error("Failed to retrieve flavor data for %s, skipping this cloud..." % cloud_name)
                         logging.error(exc)
-                        failure_dict = process_cloud_failure(config, unique_cloud_dict, cloud_name, cloud_obj, failure_dict)
+                        failure_dict = process_cloud_failure(config, unique_cloud_dict, cloud, cloud_obj, failure_dict)
                         continue
 
                     if flav_list is False:
@@ -347,7 +347,7 @@ def image_poller():
                     sess = get_openstack_sess(unique_cloud_dict[cloud]['cloud_obj'], config.categories["openstackPoller.py"]["cacerts"])
                     if sess is False:
                         logging.debug("Failed to establish session with %s, skipping this cloud..." % cloud_name)
-                        failure_dict = process_cloud_failure(config, unique_cloud_dict, cloud_name, cloud_obj, failure_dict)
+                        failure_dict = process_cloud_failure(config, unique_cloud_dict, cloud, cloud_obj, failure_dict)
                         continue
 
                     # Retrieve all images for this cloud.
@@ -358,14 +358,14 @@ def image_poller():
 
                     if glance is False:
                         logging.info("Openstack glance connection failed for %s, skipping this cloud..." % cloud_name)
-                        failure_dict = process_cloud_failure(config, unique_cloud_dict, cloud_name, cloud_obj, failure_dict)
+                        failure_dict = process_cloud_failure(config, unique_cloud_dict, cloud, cloud_obj, failure_dict)
                         continue
                     
                     try:
                         image_service = glance.image
                     except Exception as exc:
                         logging.info("Openstack glance connection failed for %s, skipping this cloud..." % cloud_name)
-                        failure_dict = process_cloud_failure(config, unique_cloud_dict, cloud_name, cloud_obj, failure_dict)
+                        failure_dict = process_cloud_failure(config, unique_cloud_dict, cloud, cloud_obj, failure_dict)
                         continue
                     
                     try:
@@ -376,7 +376,7 @@ def image_poller():
                     except Exception as exc:
                         logging.error("Failed to retrieve image data for %s, skipping this cloud..." % cloud_name)
                         logging.error(exc)
-                        failure_dict = process_cloud_failure(config, unique_cloud_dict, cloud_name, cloud_obj, failure_dict)
+                        failure_dict = process_cloud_failure(config, unique_cloud_dict, cloud, cloud_obj, failure_dict)
                         continue
 
                     if image_list is False:
@@ -591,7 +591,7 @@ def keypair_poller():
                     sess = get_openstack_sess(unique_cloud_dict[cloud]['cloud_obj'], config.categories["openstackPoller.py"]["cacerts"])
                     if sess is False:
                         logging.debug("Failed to establish session with %s" % cloud_name)
-                        failure_dict = process_cloud_failure(config, unique_cloud_dict, cloud_name, cloud_obj, failure_dict)
+                        failure_dict = process_cloud_failure(config, unique_cloud_dict, cloud, cloud_obj, failure_dict)
                         continue
 
                     # setup openstack api objects
@@ -599,7 +599,7 @@ def keypair_poller():
 
                     if nova is False:
                         logging.info("Openstack nova connection failed for %s, skipping this cloud..." % cloud_name)
-                        failure_dict = process_cloud_failure(config, unique_cloud_dict, cloud_name, cloud_obj, failure_dict)
+                        failure_dict = process_cloud_failure(config, unique_cloud_dict, cloud, cloud_obj, failure_dict)
                         continue
 
                     #setup fingerprint list
@@ -611,7 +611,7 @@ def keypair_poller():
                     except Exception as exc:
                         logging.error("Failed to poll key pairs from nova, skipping %s" % cloud_name)
                         logging.error(exc)
-                        failure_dict = process_cloud_failure(config, unique_cloud_dict, cloud_name, cloud_obj, failure_dict)
+                        failure_dict = process_cloud_failure(config, unique_cloud_dict, cloud, cloud_obj, failure_dict)
                         continue
 
                     # cloud connection and data query successful, reset cloud error
@@ -753,7 +753,7 @@ def volume_type_poller():
                     sess = get_openstack_sess(unique_cloud_dict[cloud]['cloud_obj'], config.categories["openstackPoller.py"]["cacerts"])
                     if sess is False:
                         logging.debug("Failed to establish session with %s, skipping this cloud..." % cloud_name)
-                        failure_dict = process_cloud_failure(config, unique_cloud_dict, cloud_name, cloud_obj, failure_dict)
+                        failure_dict = process_cloud_failure(config, unique_cloud_dict, cloud, cloud_obj, failure_dict)
                         continue
 
                     # Retrieve volume type list for the current cloud.
@@ -761,7 +761,7 @@ def volume_type_poller():
 
                     if not cinder:
                         logging.info("Openstack cinder connection failed for %s, skipping this cloud..." % cloud_name)
-                        failure_dict = process_cloud_failure(config, unique_cloud_dict, cloud_name, cloud_obj, failure_dict)
+                        failure_dict = process_cloud_failure(config, unique_cloud_dict, cloud, cloud_obj, failure_dict)
                         continue
 
                     try:
@@ -769,7 +769,7 @@ def volume_type_poller():
                     except Exception as exc:
                         logging.error("Failed to retrieve volume types from cinder, skipping %s" %  cloud_name)
                         logging.error(exc)
-                        failure_dict = process_cloud_failure(config, unique_cloud_dict, cloud_name, cloud_obj, failure_dict)
+                        failure_dict = process_cloud_failure(config, unique_cloud_dict, cloud, cloud_obj, failure_dict)
                         continue
 
                     if not shared_types:
@@ -892,7 +892,7 @@ def limit_poller():
                     sess = get_openstack_sess(unique_cloud_dict[cloud]['cloud_obj'], config.categories["openstackPoller.py"]["cacerts"])
                     if sess is False:
                         logging.debug("Failed to establish session with %s, skipping this cloud..." % cloud_name)
-                        failure_dict = process_cloud_failure(config, unique_cloud_dict, cloud_name, cloud_obj, failure_dict)
+                        failure_dict = process_cloud_failure(config, unique_cloud_dict, cloud, cloud_obj, failure_dict)
                         continue
 
                     # Retrieve limit list for the current cloud.
@@ -900,7 +900,7 @@ def limit_poller():
 
                     if nova is False:
                         logging.info("Openstack nova connection failed for %s, skipping this cloud..." % cloud_name)
-                        failure_dict = process_cloud_failure(config, unique_cloud_dict, cloud_name, cloud_obj, failure_dict)
+                        failure_dict = process_cloud_failure(config, unique_cloud_dict, cloud, cloud_obj, failure_dict)
                         continue
 
                     shared_limits_dict = {}
@@ -911,7 +911,7 @@ def limit_poller():
                     except Exception as exc:
                         logging.error("Failed to retrieve limits from nova, skipping %s" %  cloud_name)
                         logging.error(exc)
-                        failure_dict = process_cloud_failure(config, unique_cloud_dict, cloud_name, cloud_obj, failure_dict)
+                        failure_dict = process_cloud_failure(config, unique_cloud_dict, cloud, cloud_obj, failure_dict)
                         continue
 
                     if shared_limits_dict is False:
@@ -920,6 +920,7 @@ def limit_poller():
 
                     failure_dict = reset_cloud_error_dict(config, unique_cloud_dict, failure_dict, cloud, cloud_obj)
 
+                    uncommitted_updates = 0
                     # Process limit list for the current cloud.
                     try:
                         for groups in unique_cloud_dict[cloud]['groups']:
@@ -1070,7 +1071,7 @@ def network_poller():
                     sess = get_openstack_sess(unique_cloud_dict[cloud]['cloud_obj'], config.categories["openstackPoller.py"]["cacerts"])
                     if sess is False:
                         logging.debug("Failed to establish session with %s, skipping this cloud..." % cloud_name)
-                        failure_dict = process_cloud_failure(config, unique_cloud_dict, cloud_name, cloud_obj, failure_dict)
+                        failure_dict = process_cloud_failure(config, unique_cloud_dict, cloud, cloud_obj, failure_dict)
                         continue
 
                     # Retrieve network list.
@@ -1078,7 +1079,7 @@ def network_poller():
 
                     if neutron is False:
                         logging.info("Openstack neutron connection failed for %s, skipping this cloud..." % cloud_name)
-                        failure_dict = process_cloud_failure(config, unique_cloud_dict, cloud_name, cloud_obj, failure_dict)
+                        failure_dict = process_cloud_failure(config, unique_cloud_dict, cloud, cloud_obj, failure_dict)
                         continue
                     
                     try:
@@ -1086,7 +1087,7 @@ def network_poller():
                     except Exception as exc:
                         logging.error("Failed to retrieve networks from neutron, skipping %s" %  cloud_name)
                         logging.error(exc)
-                        failure_dict = process_cloud_failure(config, unique_cloud_dict, cloud_name, cloud_obj, failure_dict)
+                        failure_dict = process_cloud_failure(config, unique_cloud_dict, cloud, cloud_obj, failure_dict)
                         continue
 
                     if net_list is False:
@@ -1231,7 +1232,7 @@ def security_group_poller():
                     sess = get_openstack_sess(unique_cloud_dict[cloud]['cloud_obj'], config.categories["openstackPoller.py"]["cacerts"])
                     if sess is False:
                         logging.debug("Failed to establish session with %s, skipping this cloud..." % cloud_name)
-                        failure_dict = process_cloud_failure(config, unique_cloud_dict, cloud_name, cloud_obj, failure_dict)
+                        failure_dict = process_cloud_failure(config, unique_cloud_dict, cloud, cloud_obj, failure_dict)
                         continue
 
                     # setup OpenStack api objects
@@ -1239,7 +1240,7 @@ def security_group_poller():
                     
                     if neu is False:
                         logging.info("Openstack neutron connection failed for %s, skipping this cloud..." % cloud_name)
-                        failure_dict = process_cloud_failure(config, unique_cloud_dict, cloud_name, cloud_obj, failure_dict)
+                        failure_dict = process_cloud_failure(config, unique_cloud_dict, cloud, cloud_obj, failure_dict)
                         continue
 
                     # Retrieve all flavours for this cloud.
@@ -1248,7 +1249,7 @@ def security_group_poller():
                     except Exception as exc:
                         logging.error("Failed to retrieve security groups for %s, skipping this cloud..." % cloud_name)
                         logging.error(exc)
-                        failure_dict = process_cloud_failure(config, unique_cloud_dict, cloud_name, cloud_obj, failure_dict)
+                        failure_dict = process_cloud_failure(config, unique_cloud_dict, cloud, cloud_obj, failure_dict)
                         continue
 
                     if sec_grp_list is False:
@@ -1440,7 +1441,7 @@ def vm_poller():
                     logging.debug("Polling VMs from cloud: %s" % auth_url)
                     sess = get_openstack_sess(cloud_obj, config.categories["openstackPoller.py"]["cacerts"])
                     if sess is False:
-                        failure_dict = process_cloud_failure(config, unique_cloud_dict, cloud_name, cloud_obj, failure_dict)
+                        failure_dict = process_cloud_failure(config, unique_cloud_dict, cloud, cloud_obj, failure_dict)
                         continue
 
                     # Retrieve VM list for this cloud.
@@ -1448,7 +1449,7 @@ def vm_poller():
 
                     if nova is False:
                         logging.info("Openstack nova connection failed for %s, skipping this cloud..." % cloud_obj["cloud_name"])
-                        failure_dict = process_cloud_failure(config, unique_cloud_dict, cloud_name, cloud_obj, failure_dict)
+                        failure_dict = process_cloud_failure(config, unique_cloud_dict, cloud, cloud_obj, failure_dict)
                         continue
 
                     try:
@@ -1457,7 +1458,7 @@ def vm_poller():
                         logging.error("Failed to retrieve VM data for  %s::%s::%s, skipping this cloud..." % (cloud_obj["authurl"], cloud_obj["project"], cloud_obj["region"]))
                         logging.error("Exception type: %s" % type(exc))
                         logging.error(exc)
-                        failure_dict = process_cloud_failure(config, unique_cloud_dict, cloud_name, cloud_obj, failure_dict)
+                        failure_dict = process_cloud_failure(config, unique_cloud_dict, cloud, cloud_obj, failure_dict)
                         continue
 
                     if vm_list is False:
@@ -1820,7 +1821,7 @@ def volume_poller():
                     sess = get_openstack_sess(unique_cloud_dict[cloud]['cloud_obj'], config.categories["openstackPoller.py"]["cacerts"])
                     if sess is False:
                         logging.debug("Failed to establish session with %s, skipping this cloud..." % cloud_name)
-                        failure_dict = process_cloud_failure(config, unique_cloud_dict, cloud_name, cloud_obj, failure_dict)
+                        failure_dict = process_cloud_failure(config, unique_cloud_dict, cloud, cloud_obj, failure_dict)
                         continue
 
                     # Retrieve volume list for the current cloud.
@@ -1828,7 +1829,7 @@ def volume_poller():
 
                     if cinder is False:
                         logging.info("Openstack cinder connection failed for %s, skipping this cloud..." % cloud_name)
-                        failure_dict = process_cloud_failure(config, unique_cloud_dict, cloud_name, cloud_obj, failure_dict)
+                        failure_dict = process_cloud_failure(config, unique_cloud_dict, cloud, cloud_obj, failure_dict)
                         continue
 
 
@@ -1838,7 +1839,7 @@ def volume_poller():
                         logging.error("Failed to retrieve VM data for  %s::%s::%s, skipping this cloud..." % (cloud_obj["authurl"], cloud_obj["project"], cloud_obj["region"]))
                         logging.error("Exception type: %s" % type(exc))
                         logging.error(exc)
-                        failure_dict = process_cloud_failure(config, unique_cloud_dict, cloud_name, cloud_obj, failure_dict)
+                        failure_dict = process_cloud_failure(config, unique_cloud_dict, cloud, cloud_obj, failure_dict)
 
                     if volume_list is False:
                         logging.info("No Volumes defined for %s::%s:%s, skipping this cloud..." % (cloud_obj["authurl"], cloud_obj["project"], cloud_obj["region"]))

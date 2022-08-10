@@ -181,7 +181,7 @@ def generate_unique_cloud_dict(config, cloud_table, cloud_type):
     return unique_cloud_dict
 
 
-def process_cloud_failure(config, unique_cloud_dict, cloud_name, cloud_obj, failure_dict):
+def process_cloud_failure(config, unique_cloud_dict, cloud, cloud_obj, failure_dict):
     for cloud_tuple in unique_cloud_dict[cloud]['groups']:
         grp_nm = cloud_tuple[0]
         cld_nm = cloud_tuple[1]
