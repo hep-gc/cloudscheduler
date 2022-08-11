@@ -156,7 +156,7 @@ def flavor_poller():
                 unique_cloud_dict = generate_unique_cloud_dict(config, CLOUD, "openstack")
                 if not unique_cloud_dict:
                     #failed to retrieve cloud list, it will return a dictionary or False
-                    continue
+                    unique_cloud_dict = {}
 
                 
                 for cloud in unique_cloud_dict:
@@ -338,7 +338,7 @@ def image_poller():
                     logging.error("Failed to retrieve cloud list... retrying")
                     # this block of code is dangerous since it will infinitly loop without sleep if we constantly fail to generate
                     # the unique cloud dict
-                    continue
+                    unique_cloud_dict = {}
 
                 for cloud in unique_cloud_dict:
                     cloud_obj = unique_cloud_dict[cloud]['cloud_obj']
@@ -582,7 +582,7 @@ def keypair_poller():
                     logging.error("Failed to retrieve cloud list... retrying")
                     # this block of code is dangerous since it will infinitly loop without sleep if we constantly fail to generate
                     # the unique cloud dict
-                    continue
+                    unique_cloud_dict = {}
 
                 for cloud in unique_cloud_dict:
                     cloud_name = unique_cloud_dict[cloud]['cloud_obj']["authurl"]
@@ -744,7 +744,7 @@ def volume_type_poller():
                     logging.error("Failed to retrieve cloud list... retrying")
                     # this block of code is dangerous since it will infinitly loop without sleep if we constantly fail to generate
                     # the unique cloud dict
-                    continue
+                    unique_cloud_dict = {}
 
                 for cloud in unique_cloud_dict:
                     cloud_name = unique_cloud_dict[cloud]['cloud_obj']["authurl"]
