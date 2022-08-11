@@ -2144,7 +2144,13 @@ def defaults_replication():
             # Check consistency if cache table and folder
             cache_dir = config.categories["glintPoller.py"]["image_cache_dir"]
             folder_contents = {f: cache_dir + f for f in os.listdir(cache_dir)}
-            folder_set = set(tuple(k.split("---")) for k in folder_contents)
+            folder_set = set()
+            for k in folder_contents:
+                if k.count("---") == 1:
+                    folder_set.add(tuple(k.split("---")))
+                else:
+                    logging.debug("Removing image with inconsistent filename from cache dir: " + k)
+                    os.unlink(folder_contents[k])
             
             rc, msg, table_contents = config.db_query(IMAGE_CACHE)
             table_set = set((entry['image_name'], entry['checksum']) for entry in table_contents)
