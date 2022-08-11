@@ -214,7 +214,10 @@ def expand_failure_dict(config, cloud_table, cloud_type, data_type, failure_dict
             new_f_dict[cloud["group_name"]+cloud["cloud_name"]] = 1
 
     # since the new inventory function doesn't accept a failure dict we need to screen the rows ourselfs
-    rc, msg, unfiltered_rows = config.db_query(data_type, where="cloud_type='%s'" % cloud_type)
+    if cloud_type is not None:
+        rc, msg, unfiltered_rows = config.db_query(data_type, where="cloud_type='%s'" % cloud_type)
+    else:
+        rc, msg, unfiltered_rows = config.db_query(data_type)
     rows = []
     for row in unfiltered_rows:
         if row['group_name'] + row['cloud_name'] in new_f_dict.keys():

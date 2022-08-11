@@ -156,6 +156,7 @@ def flavor_poller():
                 unique_cloud_dict = generate_unique_cloud_dict(config, CLOUD, "openstack")
                 if not unique_cloud_dict:
                     #failed to retrieve cloud list, it will return a dictionary or False
+                    logging.debug("Unable to retrieve any clouds for polling... ending cycle")
                     unique_cloud_dict = {}
 
                 
@@ -335,9 +336,7 @@ def image_poller():
                 unique_cloud_dict = generate_unique_cloud_dict(config, CLOUD, "openstack")
                 if not unique_cloud_dict:
                     #failed to retrieve cloud list, it will return a dictionary or False
-                    logging.error("Failed to retrieve cloud list... retrying")
-                    # this block of code is dangerous since it will infinitly loop without sleep if we constantly fail to generate
-                    # the unique cloud dict
+                    logging.debug("Unable to retrieve any clouds for polling... ending cycle")
                     unique_cloud_dict = {}
 
                 for cloud in unique_cloud_dict:
@@ -503,7 +502,7 @@ def image_poller():
                             "cloud_name": cloud["cloud_name"],
                             "communication_up": 0
                         }
-                        config.db_update(CLOUD, cloud_update_dict)
+                        config.db_update(CLOUD, cld_update_dict)
                         config.db_commit()
                         logging.error("Communication down for %s:%s" % (grp_nm, cld_nm))
 
@@ -579,9 +578,7 @@ def keypair_poller():
                 unique_cloud_dict = generate_unique_cloud_dict(config, CLOUD, "openstack")
                 if not unique_cloud_dict:
                     #failed to retrieve cloud list, it will return a dictionary or False
-                    logging.error("Failed to retrieve cloud list... retrying")
-                    # this block of code is dangerous since it will infinitly loop without sleep if we constantly fail to generate
-                    # the unique cloud dict
+                    logging.debug("Unable to retrieve any clouds for polling... ending cycle")
                     unique_cloud_dict = {}
 
                 for cloud in unique_cloud_dict:
@@ -741,9 +738,7 @@ def volume_type_poller():
                 unique_cloud_dict = generate_unique_cloud_dict(config, CLOUD, "openstack")
                 if not unique_cloud_dict:
                     #failed to retrieve cloud list, it will return a dictionary or False
-                    logging.error("Failed to retrieve cloud list... retrying")
-                    # this block of code is dangerous since it will infinitly loop without sleep if we constantly fail to generate
-                    # the unique cloud dict
+                    logging.debug("Unable to retrieve any clouds for polling... ending cycle")
                     unique_cloud_dict = {}
 
                 for cloud in unique_cloud_dict:
@@ -822,7 +817,7 @@ def volume_type_poller():
                         logging.info("Limit updates committed: %d" % uncommitted_updates)
 
 
-                ows = expand_failure_dict(config, CLOUD, "openstack", TYPE, failure_dict)
+                rows = expand_failure_dict(config, CLOUD, None, TYPE, failure_dict)
                 inventory_obsolete_database_items_delete(ikey_names, rows, inventory, new_poll_time, config, TYPE)
 
                 # Cleanup inventory, this function will clean up inventory entries for deleted clouds
