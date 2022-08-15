@@ -1,4 +1,4 @@
 SHELL=/bin/bash
 PATH=/bin:/usr/bin:/usr/local/bin:/sbin:/usr/sbin:/usr/local/sbin
 MAILTO=
-0 0 * * * cloudscheduler /opt/cloudscheduler/utilities/watch_csv2 --logrotate
+0 0 * * * systemctl status csv2-watch &>/dev/null && cloudscheduler /opt/cloudscheduler/utilities/watch_csv2 --logrotate
