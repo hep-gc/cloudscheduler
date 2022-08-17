@@ -115,6 +115,11 @@ if [ -z "$openstack_path" ]; then
 fi
 
 sudo ln -s ~/cloudscheduler/cli/bin/cloudscheduler cloudscheduler
+
+if [ "$1" = "skip" ]; then
+    exit 0
+fi
+
 echo 'Please save the following server settings as "unit-test":'
 cloudscheduler defaults set
 
