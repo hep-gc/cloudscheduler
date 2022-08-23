@@ -44,7 +44,7 @@ class TestWebKeyCommon(unittest.TestCase):
         self.page.type_key_name(key_name)
         self.page.add_upload_to_cloud(cloud_name)
         self.page.click_submit()
-        helpers.wait_for_openstack_poller(cloud_name, ['-vk', key_name], wait=20)
+        #helpers.wait_for_openstack_poller(cloud_name, ['-vk', key_name], wait=20)
         self.page.click_top_nav('Keys')
         self.assertFalse(self.page.key_exists(key_name))
 
@@ -72,7 +72,7 @@ class TestWebKeyCommon(unittest.TestCase):
         self.page.type_public_key(public_key)
         self.page.add_upload_to_cloud(cloud_name)
         self.page.click_submit()
-        helpers.wait_for_openstack_poller(cloud_name, ['-vk', key_name], wait=20)
+        #helpers.wait_for_openstack_poller(cloud_name, ['-vk', key_name], wait=20)
         self.page.click_top_nav('Keys')
         self.assertTrue(self.page.key_exists(key_name))
 
@@ -90,7 +90,7 @@ class TestWebKeyCommon(unittest.TestCase):
         self.page.type_public_key(public_key)
         self.page.add_upload_to_cloud(cloud_name)
         self.page.click_submit()
-        helpers.wait_for_openstack_poller(cloud_name, ['-vk', key_name], wait=20)
+        #helpers.wait_for_openstack_poller(cloud_name, ['-vk', key_name], wait=20)
         self.page.click_top_nav('Keys')
         self.assertFalse(self.page.key_exists(key_name))
 
@@ -241,7 +241,7 @@ class TestWebKeyRegularUserChrome(TestWebKeyCommon):
     def setUpClass(cls):
         try:
             wtsc.setup(cls, 1, ['keys'], browser='chrome')
-            super(TestWebKeySuperUserChrome, cls).setUpClass()
+            super(TestWebKeyRegularUserChrome, cls).setUpClass()
             print("\nKey Tests (Chrome) (Regular User):")
         except:
             print("Error in test setup")

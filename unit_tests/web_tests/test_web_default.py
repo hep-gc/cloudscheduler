@@ -625,6 +625,7 @@ class TestWebDefaultCommon(unittest.TestCase):
     def test_web_default_metadata_delete(self):
         # Deletes metadata from a group
         metadata_name = self.gvar['user'] + '-wim2.yaml'
+        self.page.click_top_nav('Group Config')
         self.page.click_side_button(self.group_name)
         self.page.click_side_tab('Metadata')
         self.page.click_metadata(metadata_name)

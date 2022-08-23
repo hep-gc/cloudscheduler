@@ -5,6 +5,7 @@ import unittest
 import sys
 from . import web_test_setup_cleanup as wtsc
 from . import web_test_assertions_v2 as wta
+from . import web_test_interactions as wti
 from . import web_test_page_objects as pages
 from . import web_test_helpers as helpers
 
@@ -28,9 +29,11 @@ class TestWebImageCommon(unittest.TestCase):
         self.page.type_image_file_path(helpers.misc_file_full_path(image_name))
         self.page.select_disk_format('Raw')
         self.page.add_upload_to_cloud(cloud_name)
-        self.page.click_upload()
+        with wti.wait_for_page_load(self.driver, timeout=300):
+            self.page.click_upload()
         self.page.click_top_nav('Images')
         self.assertTrue(self.page.image_exists(image_name))
+        
         wta.assertExists('image', image_name, group=self.gvar['base_group'], image_cloud=cloud_name)
 
     def test_web_image_upload_url(self):
@@ -42,7 +45,8 @@ class TestWebImageCommon(unittest.TestCase):
         self.page.type_image_url('http://elephant06.heprc.uvic.ca/' + image_name)
         self.page.select_disk_format('Raw')
         self.page.add_upload_to_cloud(cloud_name)
-        self.page.click_upload()
+        with wti.wait_for_page_load(self.driver, timeout=300):
+            self.page.click_upload()
         self.page.click_top_nav('Images')
         self.assertTrue(self.page.image_exists(image_name))
         wta.assertExists('image', image_name, group=self.gvar['base_group'], image_cloud=cloud_name)
@@ -55,7 +59,8 @@ class TestWebImageCommon(unittest.TestCase):
         self.page.type_image_file_path(helpers.misc_file_full_path(image_name))
         self.page.select_disk_format('Raw')
         self.page.add_upload_to_cloud(cloud_name)
-        self.page.click_cancel_upload()
+        with wti.wait_for_page_load(self.driver, timeout=200):
+            self.page.click_cancel_upload()
         self.page.click_top_nav('Images')
         self.assertFalse(self.page.image_exists(image_name))
         wta.assertNotExists('image', image_name, group=self.gvar['base_group'], image_cloud=cloud_name)
@@ -91,8 +96,9 @@ class TestWebImageCommon(unittest.TestCase):
         # Deletes an image from a cloud
         image_name = self.gvar['user'] + '-wii2.hdd'
         cloud_name = self.gvar['user'] + '-wic1'
-        self.page.click_cloud_button(image_name, cloud_name)
-        self.page.click_delete_ok()
+        with wti.wait_for_page_load(self.driver, timeout=300):
+            self.page.click_cloud_button(image_name, cloud_name)
+            self.page.click_delete_ok()
         self.page.click_top_nav('Images')
         self.assertTrue(self.page.image_is_disabled_in_cloud(image_name, cloud_name))
         wta.assertNotExists('image', image_name, group=self.gvar['base_group'], image_cloud=cloud_name)

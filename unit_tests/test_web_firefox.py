@@ -5,7 +5,7 @@ import web_tests.csv2_runner as csv2_runner
 def main(gvar):
     #setup to run tests
     runner = csv2_runner.Csv2TestRunner(verbosity=2, gvar=gvar)
-    suite = tests.test_test_suite()
+    suite = tests.firefox_test_suite()
     runner.run(suite)
     print()
 

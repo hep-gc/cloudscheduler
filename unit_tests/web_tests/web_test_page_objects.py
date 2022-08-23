@@ -49,8 +49,8 @@ class Page(object):
         alert = self.driver.switch_to.alert
         alert.dismiss()
 
-    def take_screenshot(self):
-        file_name = sys._getframe(1).f_code.co_name + '_screenshot.png'
+    def take_screenshot(self, extra=''):
+        file_name = sys._getframe(1).f_code.co_name + f'_screenshot{extra}.png'
         print(file_name)
         location = helpers.misc_file_full_path(file_name)
         self.driver.save_screenshot(location)
@@ -1104,7 +1104,7 @@ class ImagesPage(Page):
     def image_exists(self, image):
         xpath = wtxs.table_row_name('image_row', image)
         try:
-            WebDriverWait(self.driver, 10).until(
+            WebDriverWait(self.driver, 30).until(
                 EC.presence_of_element_located((By.XPATH, xpath)))
             elements = self.driver.find_elements_by_xpath(xpath)
             for element in elements:
@@ -1428,7 +1428,7 @@ class GroupsPage(Page):
 
     def modal_cleared(self):
         try:
-            WebDriverWait(self.driver, 10).until(
+            WebDriverWait(self.driver, 15).until(
                 EC.url_changes(self.driver.current_url))
             return True
         except TimeoutException:

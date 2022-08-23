@@ -37,7 +37,7 @@ class TestWebMiscCommon(unittest.TestCase):
     def tearDownClass(cls):
         wtsc.cleanup(cls)
 
-class TestWebMiscRegularUser(TestWebMiscCommon):
+class TestWebMiscRegularUserCommon(TestWebMiscCommon):
     """A class for the miscellaneous tests that should be done for regular users only."""
 
     def test_web_misc_no_header_group(self):
@@ -64,7 +64,7 @@ class TestWebMiscSuperUserFirefox(TestWebMiscCommon):
             super(TestWebMiscSuperUserFirefox, cls).tearDownClass()
             raise
 
-class TestWebMiscRegularUserFirefox(TestWebMiscRegularUser):
+class TestWebMiscRegularUserFirefox(TestWebMiscRegularUserCommon):
     """A class to test miscellaneous operations via the web interface, in Firefox, with a regular user."""
 
     @classmethod
@@ -94,7 +94,7 @@ class TestWebMiscSuperUserChromium(TestWebMiscCommon):
             super(TestWebMiscSuperUserChromium, cls).tearDownClass()
             raise
 
-class TestWebMiscRegularUserChromium(TestWebMiscRegularUser):
+class TestWebMiscRegularUserChromium(TestWebMiscRegularUserCommon):
     """A class to test miscellaneous operations via the web interface, in Chromium, with a regular user."""
 
     @classmethod
@@ -124,7 +124,7 @@ class TestWebMiscSuperUserOpera(TestWebMiscCommon):
             super(TestWebMiscSuperUserFirefox, cls).tearDownClass()
             raise
 
-class TestWebMiscRegularUserOpera(TestWebMiscRegularUser):
+class TestWebMiscRegularUserOpera(TestWebMiscRegularUserCommon):
     """A class to test miscellaneous operations via the web interface, in Opera, with a regular user."""
 
     @classmethod
@@ -154,7 +154,7 @@ class TestWebMiscSuperUserChrome(TestWebMiscCommon):
             super(TestWebMiscSuperUserChrome, cls).tearDownClass()
             raise
 
-class TestWebMiscRegularUserChrome(TestWebMiscRegularUser):
+class TestWebMiscRegularUserChrome(TestWebMiscRegularUserCommon):
     """A class to test miscellaneous operations via the web interface, in Chrome, with a regular user."""
 
     @classmethod

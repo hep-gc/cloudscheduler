@@ -373,6 +373,7 @@ class TestWebStatusCommon(unittest.TestCase):
             self.assertTrue(self.page.plot_has_legend('watch'))
             self.page.click_close_plot()
 
+    @unittest.skip("Ec2 status icon was removed")
     def test_web_status_plot_open_ec_two(self):
         # Opens the plot for the ec2 poller
         if self.user_type == 'regular':

@@ -12,6 +12,20 @@ from time import sleep
 
 default_timeout = 20
 
+class wait_for_page_load(object):
+    """
+    Context for waiting for a new page to be loaded upon the completion
+    of (some) actions. This works by checking for the staleness of an
+    element on the previous page. Largely based on:
+    https://www.cloudbees.com/blog/get-selenium-to-wait-for-page-load.
+    """
+    def __init__(self, browser, timeout=default_timeout):
+        self.browser, self.timeout = browser, timeout
+    def __enter__(self):
+        self.old_page = self.browser.find_element_by_tag_name('html')
+    def __exit__(self, *_):
+        WebDriverWait(self.browser, self.timeout).until(EC.staleness_of(self.old_page))
+
 def click_by_link_text(driver, text, timeout=default_timeout):
     WebDriverWait(driver, timeout).until(
         EC.element_to_be_clickable((By.LINK_TEXT, text)))
