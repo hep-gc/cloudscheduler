@@ -1,9 +1,0 @@
-- name: install and start the condor poller
-  shell: |
-    rm -rfv /tmp/cloudscheduler
-    cd /tmp
-    tar -xzf /opt/cloudscheduler/repository/condor_poller.tar.gz
-    rsync -av cloudscheduler /opt
-    /opt/cloudscheduler/utilities/service_disable_condor_poller
-    /opt/cloudscheduler/utilities/service_enable_condor_poller
-    rm -rfv /tmp/cloudscheduler

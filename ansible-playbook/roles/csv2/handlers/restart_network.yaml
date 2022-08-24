@@ -1,5 +1,0 @@
----
-# restart_network.yaml
-- name: restart network with service
-  service: name=network enabled=yes state=restarted
-  listen: restart network
