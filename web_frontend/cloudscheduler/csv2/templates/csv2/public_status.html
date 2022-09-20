@@ -975,6 +975,24 @@
 
         <!-- Plotly.js -->
     <script rel="preload" type="text/javascript" src="static/plotly.js/dist/plotly.min.js"></script>
+    <script type="text/javascript">
+        /*Add event listeners once page loads*/
+        initialize();
+        addEventListeners("range");
+        // Remove old traces
+        sessionStorage.removeItem("traces");
+
+        var TimerVal = refresh_interval;
+        var TimerSPan = document.getElementById("CDTimer");
+        set_refresh(refresh_interval*1000);
+        function CountDown(){
+        setTimeout( "CountDown()", 1000 );
+        TimerSPan.innerHTML=TimerVal;
+        if(TimerSwitch == 1){TimerVal=TimerVal-1;}
+        if (TimerVal<0) { TimerVal=0 }
+        } CountDown();
+    </script>
+
 
 </div>
 
