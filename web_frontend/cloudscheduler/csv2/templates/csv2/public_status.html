@@ -42,6 +42,54 @@
 <body class="status-nav" onload="set_state();">
 <div class="main-div {% if is_superuser %}super-main-div{% endif %}">
 
+<!-- plotting div -->
+<div class="plot-div" id="plot" style="display: none; width: 100%; height: 350px;">
+    <div id="plotly-TS" style="width: 100%; height: 340px;">
+        <!-- CSS loader-->
+        <div class="lds-roller" id="loader"><div></div><div></div><div></div><div></div><div></div>
+        <div></div><div></div><div></div>
+        </div>
+    </div>
+    <!--Range selection dropdown menu-->
+    <div class="range-dropdown">
+        <button id="range-select" class="range-btn" onclick="dropDown()">Last 1 hour<span class="space"></span>
+            <span class="caret"></span>
+        </button>
+        <div id="myDropdown" class="dropdown-content">
+            <div class="column minutes">
+                <a class="range first" data-from="5" data-to="0">Last 5 minutes</a>
+                <a class="range" data-from="15" data-to="0">Last 15 minutes</a>
+                <a class="range" data-from="30" data-to="0">Last 30 minutes</a>
+                <a class="range selected" data-from="60" data-to="0">Last 1 hour</a>
+                <a class="range" data-from="180" data-to="0">Last 3 hours</a>
+                <a class="range" data-from="360" data-to="0">Last 6 hours</a>
+                <a class="range" data-from="720" data-to="0">Last 12 hours</a>
+                <a class="range" data-from="1440" data-to="0">Last 24 hours</a>
+            </div>
+            <div class="column days">
+                <a class="range first" data-from="7" data-to="0">Last 7 days</a>
+                <a class="range" data-from="30" data-to="0">Last 30 days</a>
+                <a class="range" data-from="60" data-to="0">Last 60 days</a>
+                <a class="range" data-from="90" data-to="0">Last 90 days</a>
+                <a class="range" data-from="180" data-to="0">Last 6 months</a>
+                <a class="range" data-from="365" data-to="0">Last 1 year</a>
+                <a class="range" data-from="730" data-to="0">Last 2 years</a>
+                <a class="range" data-from="1825" data-to="0">Last 5 years</a>
+            </div>
+            <div class="column days">
+                <a class="range first" data-from="2" data-to="1">Yesterday</a>
+                <a class="range" data-from="3" data-to="2">Day before yesterday</a>
+                <a class="range" data-from="8" data-to="7">This day last week</a>
+                <a class="range" data-from="14" data-to="7">Previous week</a>
+                <a class="range" data-from="60" data-to="30">Previous month</a>
+                <a class="range" data-from="730" data-to="365">Previous year</a>
+            </div>
+        </div>
+    </div>
+    <button id="close-plot" class="close-btn" onclick="TSPlot.hide()">Close Plot</button>
+    <button id="download-plot" class="download-plot-btn" onclick="downloadPlot()">&#11015;</button>
+</div>
+
 <!-- Status tables-->
     <div class="status-div" id="status">
         {% if public_group_number == 0%}
@@ -924,6 +972,8 @@
     </div>
 
     <script rel="preload" type="text/javascript" src="static/csv2/status.js"></script>
+
+        <!-- Plotly.js -->
     <script rel="preload" type="text/javascript" src="static/plotly.js/dist/plotly.min.js"></script>
 
 </div>
