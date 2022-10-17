@@ -1,0 +1,58 @@
+1665979384476	geckodriver	INFO	Listening on 127.0.0.1:50036
+1665979384710	mozrunner::runner	INFO	Running command: "/usr/bin/firefox" "--marionette" "-no-remote" "-profile" "/tmp/rust_mozprofileeo88KT"
+Crash Annotation GraphicsCriticalError: |[0][GFX1-]: glxtest: libEGL initialize failed (t=1.4985) [GFX1-]: glxtest: libEGL initialize failed
+Crash Annotation GraphicsCriticalError: |[0][GFX1-]: glxtest: libEGL initialize failed (t=1.4985) |[1][GFX1-]: glxtest: GLX extension missing (t=1.49856) [GFX1-]: glxtest: GLX extension missing
+Crash Annotation GraphicsCriticalError: |[0][GFX1-]: glxtest: libEGL initialize failed (t=1.4985) |[1][GFX1-]: glxtest: GLX extension missing (t=1.49856) |[2][GFX1-]: glxtest: libEGL initialize failed (t=1.49857) [GFX1-]: glxtest: libEGL initialize failed
+1665979386247	Marionette	INFO	Marionette enabled
+console.warn: SearchSettings: "get: No settings file exists, new profile?" (new NotFoundError("Could not open the file at /tmp/rust_mozprofileeo88KT/search.json.mozlz4", (void 0)))
+1665979389004	Marionette	INFO	Listening on port 45199
+1665979389065	RemoteAgent	WARN	TLS certificate errors will be ignored for this session
+JavaScript error: resource://gre/modules/PartitioningExceptionListService.jsm, line 69: NS_ERROR_MALFORMED_URI: Component returned failure code: 0x804b000a (NS_ERROR_MALFORMED_URI) [nsIPartitioningExceptionListObserver.onExceptionListUpdate]
+JavaScript error: resource://gre/modules/XULStore.jsm, line 66: Error: Can't find profile directory.
+JavaScript error: resource://gre/modules/XULStore.jsm, line 66: Error: Can't find profile directory.
+1665980125644	Marionette	INFO	Stopped listening on port 45199
+JavaScript error: resource:///modules/Interactions.jsm, line 209: NS_ERROR_FAILURE: Component returned failure code: 0x80004005 (NS_ERROR_FAILURE) [nsIUserIdleService.removeIdleObserver]
+
+###!!! [Parent][RunMessage] Error: Channel closing: too late to send/recv, messages will be lost
+
+1665980265781	geckodriver	INFO	Listening on 127.0.0.1:32917
+1665980266872	mozrunner::runner	INFO	Running command: "/usr/bin/firefox" "--marionette" "-no-remote" "-profile" "/tmp/rust_mozprofile7qEcsz"
+Crash Annotation GraphicsCriticalError: |[0][GFX1-]: glxtest: libEGL initialize failed (t=1.6387) [GFX1-]: glxtest: libEGL initialize failed
+Crash Annotation GraphicsCriticalError: |[0][GFX1-]: glxtest: libEGL initialize failed (t=1.6387) |[1][GFX1-]: glxtest: GLX extension missing (t=1.63878) [GFX1-]: glxtest: GLX extension missing
+Crash Annotation GraphicsCriticalError: |[0][GFX1-]: glxtest: libEGL initialize failed (t=1.6387) |[1][GFX1-]: glxtest: GLX extension missing (t=1.63878) |[2][GFX1-]: glxtest: libEGL initialize failed (t=1.63881) [GFX1-]: glxtest: libEGL initialize failed
+1665980268545	Marionette	INFO	Marionette enabled
+console.warn: SearchSettings: "get: No settings file exists, new profile?" (new NotFoundError("Could not open the file at /tmp/rust_mozprofile7qEcsz/search.json.mozlz4", (void 0)))
+1665980270939	Marionette	INFO	Listening on port 46041
+1665980271053	RemoteAgent	WARN	TLS certificate errors will be ignored for this session
+JavaScript error: resource://gre/modules/PartitioningExceptionListService.jsm, line 69: NS_ERROR_MALFORMED_URI: Component returned failure code: 0x804b000a (NS_ERROR_MALFORMED_URI) [nsIPartitioningExceptionListObserver.onExceptionListUpdate]
+JavaScript error: resource://gre/modules/XULStore.jsm, line 66: Error: Can't find profile directory.
+JavaScript error: resource://gre/modules/XULStore.jsm, line 66: Error: Can't find profile directory.
+1665980985539	Marionette	INFO	Stopped listening on port 46041
+JavaScript error: resource:///modules/Interactions.jsm, line 209: NS_ERROR_FAILURE: Component returned failure code: 0x80004005 (NS_ERROR_FAILURE) [nsIUserIdleService.removeIdleObserver]
+1665983221772	geckodriver	INFO	Listening on 127.0.0.1:59748
+1665983221855	mozrunner::runner	INFO	Running command: "/usr/bin/firefox" "--marionette" "-no-remote" "-profile" "/tmp/rust_mozprofiledweDxo"
+Crash Annotation GraphicsCriticalError: |[0][GFX1-]: glxtest: libEGL initialize failed (t=1.53836) [GFX1-]: glxtest: libEGL initialize failed
+Crash Annotation GraphicsCriticalError: |[0][GFX1-]: glxtest: libEGL initialize failed (t=1.53836) |[1][GFX1-]: glxtest: GLX extension missing (t=1.53845) [GFX1-]: glxtest: GLX extension missing
+Crash Annotation GraphicsCriticalError: |[0][GFX1-]: glxtest: libEGL initialize failed (t=1.53836) |[1][GFX1-]: glxtest: GLX extension missing (t=1.53845) |[2][GFX1-]: glxtest: libEGL initialize failed (t=1.53846) [GFX1-]: glxtest: libEGL initialize failed
+1665983223426	Marionette	INFO	Marionette enabled
+console.warn: SearchSettings: "get: No settings file exists, new profile?" (new NotFoundError("Could not open the file at /tmp/rust_mozprofiledweDxo/search.json.mozlz4", (void 0)))
+1665983225829	Marionette	INFO	Listening on port 40275
+1665983225908	RemoteAgent	WARN	TLS certificate errors will be ignored for this session
+JavaScript error: resource://gre/modules/PartitioningExceptionListService.jsm, line 69: NS_ERROR_MALFORMED_URI: Component returned failure code: 0x804b000a (NS_ERROR_MALFORMED_URI) [nsIPartitioningExceptionListObserver.onExceptionListUpdate]
+1665983246180	Marionette	INFO	Stopped listening on port 40275
+JavaScript error: resource:///modules/Interactions.jsm, line 209: NS_ERROR_FAILURE: Component returned failure code: 0x80004005 (NS_ERROR_FAILURE) [nsIUserIdleService.removeIdleObserver]
+1665983376693	geckodriver	INFO	Listening on 127.0.0.1:43377
+1665983376779	mozrunner::runner	INFO	Running command: "/usr/bin/firefox" "--marionette" "-no-remote" "-profile" "/tmp/rust_mozprofilegji9MM"
+Crash Annotation GraphicsCriticalError: |[0][GFX1-]: glxtest: libEGL initialize failed (t=1.48211) [GFX1-]: glxtest: libEGL initialize failed
+Crash Annotation GraphicsCriticalError: |[0][GFX1-]: glxtest: libEGL initialize failed (t=1.48211) |[1][GFX1-]: glxtest: GLX extension missing (t=1.48216) [GFX1-]: glxtest: GLX extension missing
+Crash Annotation GraphicsCriticalError: |[0][GFX1-]: glxtest: libEGL initialize failed (t=1.48211) |[1][GFX1-]: glxtest: GLX extension missing (t=1.48216) |[2][GFX1-]: glxtest: libEGL initialize failed (t=1.48217) [GFX1-]: glxtest: libEGL initialize failed
+1665983378298	Marionette	INFO	Marionette enabled
+console.warn: SearchSettings: "get: No settings file exists, new profile?" (new NotFoundError("Could not open the file at /tmp/rust_mozprofilegji9MM/search.json.mozlz4", (void 0)))
+1665983380824	Marionette	INFO	Listening on port 44455
+1665983380933	RemoteAgent	WARN	TLS certificate errors will be ignored for this session
+JavaScript error: resource://gre/modules/PartitioningExceptionListService.jsm, line 69: NS_ERROR_MALFORMED_URI: Component returned failure code: 0x804b000a (NS_ERROR_MALFORMED_URI) [nsIPartitioningExceptionListObserver.onExceptionListUpdate]
+1665983433418	Marionette	INFO	Stopped listening on port 44455
+JavaScript error: resource:///modules/Interactions.jsm, line 209: NS_ERROR_FAILURE: Component returned failure code: 0x80004005 (NS_ERROR_FAILURE) [nsIUserIdleService.removeIdleObserver]
+
+###!!! [Parent][RunMessage] Error: Channel closing: too late to send/recv, messages will be lost
+
