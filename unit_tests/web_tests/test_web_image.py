@@ -244,3 +244,4 @@ if __name__ == "__main__":
               TestWebImageSuperUserChrome, TestWebImageRegularUserChrome ]
     suite = helpers.parse_command_line_arguments(sys.argv, tests, True)
     runner.run(suite)
+
