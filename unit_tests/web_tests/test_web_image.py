@@ -21,8 +21,6 @@ class TestWebImageCommon(unittest.TestCase):
         self.page.get_homepage()
         self.page.click_top_nav('Images')
 
-
-    @unittest.skip("Skip to save test time")
     def test_web_image_upload_filename(self):
         # Uploads an image to a cloud using a system file
         image_name = self.gvar['user'] + '-wii3.hdd'
@@ -48,9 +46,13 @@ class TestWebImageCommon(unittest.TestCase):
         self.assertTrue(is_no_conversion_checked)
         self.assertTrue(is_skip_sparsify_checked)
         self.assertTrue(is_no_compression_checked)
+
+    def test_web_image_upload_filename_ends_with_qcow2(self):
+        # Uploads an image to a cloud using a system file
+        pass
+
     # Cindy test the checkboxes-------------------------------------------------
 
-    @unittest.skip("Skip to save test time")
     def test_web_image_upload_url(self):
         # Uploads an image to a cloud using a URL
         image_name = 'test-os-image-raw.hdd'
@@ -66,7 +68,6 @@ class TestWebImageCommon(unittest.TestCase):
         self.assertTrue(self.page.image_exists(image_name))
         wta.assertExists('image', image_name, group=self.gvar['base_group'], image_cloud=cloud_name)
 
-    @unittest.skip("Skip to save test time")
     def test_web_image_upload_cancel(self):
         # Tries to upload an image to a cloud but clicks cancel
         image_name = self.gvar['user'] + '-wii4.hdd'
@@ -93,7 +94,6 @@ class TestWebImageCommon(unittest.TestCase):
         # Finds the images page
         pass
 
-    @unittest.skip("Skip to save test time")
     def test_web_image_download(self):
         # Clicks the image download link
         # Note that Selenium cannot test if files are downloaded
@@ -102,7 +102,6 @@ class TestWebImageCommon(unittest.TestCase):
         self.page.click_download_image(image_name)
         self.page.click_download_ok()
 
-    @unittest.skip("Skip to save test time")
     def test_web_image_download_cancel(self):
         # Tries to click the download link but clicks cancel
         image_name = self.gvar['user'] + '-wii1.hdd'
@@ -110,7 +109,6 @@ class TestWebImageCommon(unittest.TestCase):
         self.page.click_download_image(image_name)
         self.page.click_download_cancel()
 
-    @unittest.skip("Skip to save test time")
     def test_web_image_delete(self):
         # Deletes an image from a cloud
         image_name = self.gvar['user'] + '-wii2.hdd'
@@ -122,7 +120,6 @@ class TestWebImageCommon(unittest.TestCase):
         self.assertTrue(self.page.image_is_disabled_in_cloud(image_name, cloud_name))
         wta.assertNotExists('image', image_name, group=self.gvar['base_group'], image_cloud=cloud_name)
 
-    @unittest.skip("Skip to save test time")
     def test_web_image_delete_cancel(self):
         # Tries to delete an image from a cloud but clicks cancel
         image_name = self.gvar['user'] + '-wii1.hdd'
@@ -133,7 +130,6 @@ class TestWebImageCommon(unittest.TestCase):
         self.assertTrue(self.page.image_exists(image_name))
         wta.assertExists('image', image_name, group=self.gvar['base_group'], image_cloud=cloud_name)
 
-    @unittest.skip("Skip to save test time")
     def test_web_image_search(self):
         # Searches for an image
         non_matching_image = self.page.find_non_matching_image(self.gvar['user'])
