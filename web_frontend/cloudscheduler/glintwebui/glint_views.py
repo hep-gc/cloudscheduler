@@ -841,6 +841,7 @@ def upload(request, group_name=None):
             for chunk in image_file.chunks():
                 destination.write(chunk)
 
+        '''
         # added code -----------------------------------------------------
         no_conversion = bool(request.POST.get('operation0'))
         skip_sparsify = bool(request.POST.get('operation1'))
@@ -854,6 +855,7 @@ def upload(request, group_name=None):
                 image_file.name += '.compressed'
             image_file.name += '.qcow2'
         # added code -----------------------------------------------------
+        '''
 
         disk_format = request.POST.get('disk_format')
         if disk_format == '':
