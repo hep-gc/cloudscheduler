@@ -21,6 +21,7 @@ class TestWebImageCommon(unittest.TestCase):
         self.page.get_homepage()
         self.page.click_top_nav('Images')
 
+
     def test_web_image_upload_filename(self):
         # Uploads an image to a cloud using a system file
         image_name = self.gvar['user'] + '-wii3.hdd'
@@ -35,6 +36,18 @@ class TestWebImageCommon(unittest.TestCase):
         self.assertTrue(self.page.image_exists(image_name))
         
         wta.assertExists('image', image_name, group=self.gvar['base_group'], image_cloud=cloud_name)
+
+    # Cindy test the checkboxes-------------------------------------------------
+    def test_three_checkboxes(self):
+        self.page.click_upload_image()
+        is_no_conversion_checked = self.page.is_checkbox_selected("operation0")
+        is_skip_sparsify_checked = self.page.is_checkbox_selected("operation1")
+        is_no_compression_checked = self.page.is_checkbox_selected("operation2")
+
+        self.assertTrue(is_no_conversion_checked)
+        self.assertTrue(is_skip_sparsify_checked)
+        self.assertTrue(is_no_compression_checked)
+    # Cindy test the checkboxes-------------------------------------------------
 
     def test_web_image_upload_url(self):
         # Uploads an image to a cloud using a URL
