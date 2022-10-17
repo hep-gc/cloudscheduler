@@ -68,6 +68,14 @@
 			<td><input type="text" name="myfileurl">
 			<button onclick="toggleFileField()" type="button">From File</button></td>
 		</tr>
+
+		<tr>
+			<td><label for="select_operation">Select Operation:</label></td>
+			<td><input type="checkbox" id="operation0" name="operation0" value="operation0" checked> No Conversion </td>
+			<td><input type="checkbox" id="operation1" name="operation1" value="operation1" checked> Skip Sparsify </td>
+			<td><input type="checkbox" id="operation2" name="operation2" value="operation2" checked> No Compression </td>
+		</tr>
+
 		<tr>
 			<td><label for="disk_format">Disk Format:</label></td>
 			<td><select type="text" name="disk_format"/>
@@ -84,23 +92,6 @@
 				<option value="vhd">VHD - Virtual Hard Disk</option>
 				<option value="vmdk">VMDK - Virtual Machine Disk</option>
 			</select></td>
-		</tr>
-
-
-		<tr>
-			<td><label for="Select Operation">Select Operation:</label></td>
-			<td>
-				<input type="checkbox" id="operation0" name="operation0" value="operation0" checked>
-				<label for="operation0">No Conversion</label><br>
-			</td>
-			<td>
-				<input type="checkbox" id="operation1" name="operation1" value="operation1" checked>
-				<label for="operation1">Skip Sparsify</label><br>
-			</td>
-			<td>
-				<input type="checkbox" id="operation2" name="operation2" value="operation2" checked>
-				<label for="operation2">No Compression</label><br>
-			</td>
 		</tr>
 
 		<tr>
