@@ -69,12 +69,15 @@
 			<button onclick="toggleFileField()" type="button">From File</button></td>
 		</tr>
 
-		<tr>
-			<td><label for="select_operation">Select Operation:</label></td>
-			<td><input type="checkbox" id="operation0" name="operation0" value="operation0" checked> No Conversion </td>
-			<td><input type="checkbox" id="operation1" name="operation1" value="operation1" checked> Skip Sparsify </td>
-			<td><input type="checkbox" id="operation2" name="operation2" value="operation2" checked> No Compression </td>
+		<!--added ---------------------------------------------------------------------------------->
+		<tr id="Operation Selection">
+			<td><label for="operation">Select Operation: </label></td>
+
+			<td><input type="checkbox" id="operation0" name="operation0" value="No Conversion" checked> No Conversion </td>
+			<td><input type="checkbox" id="operation1" name="operation1" value="Skip Sparsify" checked> Skip Sparsify </td>
+			<td><input type="checkbox" id="operation2" name="operation2" value="No Compression" checked> No Compression </td>
 		</tr>
+		<!--added ---------------------------------------------------------------------------------->
 
 		<tr>
 			<td><label for="disk_format">Disk Format:</label></td>
