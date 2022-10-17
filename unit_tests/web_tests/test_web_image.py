@@ -48,26 +48,39 @@ class TestWebImageCommon(unittest.TestCase):
         self.assertTrue(is_skip_sparsify_checked)
         self.assertTrue(is_no_compression_checked)
 
-    @unittest.skip("skip to save time")
+    @unittest.skip("skip the qcow2 test")
     def test_web_image_upload_filename_ends_with_qcow2(self):
         # Uploads an image to a cloud using a system file
         image_name = self.gvar['user'] + '-wii4.hdd'
         cloud_name = self.gvar['user'] + '-wic2'
         self.page.click_upload_image()
+        self.page.type_image_file_path(helpers.misc_file_full_path(image_name))
+        print("Choose File - Successful")
 
         self.page.click_checkbox("operation0")
         self.assertFalse(self.page.is_checkbox_selected("operation0"))
-        print("successully unselect the No Conversion")
+        print("successfully unselect the No Conversion checkbox")
 
-        self.page.type_image_file_path(helpers.misc_file_full_path(image_name))
         self.page.add_upload_to_cloud(cloud_name)
-        with wti.wait_for_page_load(self.driver, timeout=300):
+
+        with wti.wait_for_page_load(self.driver, timeout=1000):
             self.page.click_upload()
+
         self.page.click_top_nav('Images')
-        self.assertTrue(self.page.image_exists(image_name))
+        print("Upload successfully, reopen images webpage")
 
-        wta.assertExists('image', image_name, group=self.gvar['base_group'], image_cloud=cloud_name)
+        self.assertTrue(self.page.image_exists(image_name+".qcow2"))
+        print(".hdd.qcow2 file exists")
+        # wta.assertExists('image', image_name, group=self.gvar['base_group'], image_cloud=cloud_name)
 
+        image_name = self.gvar['user'] + '-wii4.hdd.qcow2'
+        cloud_name = self.gvar['user'] + '-wic2'
+        with wti.wait_for_page_load(self.driver, timeout=300):
+            self.page.click_cloud_button(image_name, cloud_name)
+            self.page.click_delete_ok()
+
+        self.page.click_top_nav('Images')
+        self.assertTrue(self.page.image_is_disabled_in_cloud(image_name, cloud_name))
     # Cindy test the checkboxes-------------------------------------------------
 
     @unittest.skip("skip to save time")
