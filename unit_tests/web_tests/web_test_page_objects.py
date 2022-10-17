@@ -1114,6 +1114,18 @@ class ImagesPage(Page):
         except TimeoutException:
             return False
 
+    # Cindy Added ------------------------------------------------------------------------
+    def is_checkbox_selected(self, checkbox_id):
+        checkbox = self.driver.find_element_by_id(checkbox_id)
+        return checkbox.is_selected()
+
+    def click_checkbox(self, checkbox_id):
+        # wti.click_by_id(checkbox_id)
+        checkbox = self.driver.find_element_by_id(checkbox_id)
+        checkbox.click()
+        sleep(3)
+    # ------------------------------------------------------------------------------
+
     def image_is_public_in_cloud(self, image, cloud):
         sleep(5)
         xpath = wtxs.image_state_box_button(image, 'public')
