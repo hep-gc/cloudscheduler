@@ -115,7 +115,7 @@ class TestWebImageCommon(unittest.TestCase):
         print("\ntester-wii4.hdd.reorganized.compressed.qcow2 file exists, and should be deleted via csv2-dev after test manually")
         wta.assertExists('image', image_name+".reorganized.compressed.qcow2", group=self.gvar['base_group'], image_cloud=cloud_name)
 
-        '''
+
         image_name = self.gvar['user'] + '-wii4.hdd.qcow2'
         cloud_name = self.gvar['user'] + '-wic2'
         with wti.wait_for_page_load(self.driver, timeout=300):
@@ -124,7 +124,34 @@ class TestWebImageCommon(unittest.TestCase):
 
         self.page.click_top_nav('Images')
         self.assertTrue(self.page.image_is_disabled_in_cloud(image_name, cloud_name))
-        '''
+
+        image_name = self.gvar['user'] + '-wii4.hdd.compressed.qcow2'
+        cloud_name = self.gvar['user'] + '-wic2'
+        with wti.wait_for_page_load(self.driver, timeout=300):
+            self.page.click_cloud_button(image_name, cloud_name)
+            self.page.click_delete_ok()
+
+        self.page.click_top_nav('Images')
+        self.assertTrue(self.page.image_is_disabled_in_cloud(image_name, cloud_name))
+
+        image_name = self.gvar['user'] + '-wii4.hdd.reorganized.qcow2'
+        cloud_name = self.gvar['user'] + '-wic2'
+        with wti.wait_for_page_load(self.driver, timeout=300):
+            self.page.click_cloud_button(image_name, cloud_name)
+            self.page.click_delete_ok()
+
+        self.page.click_top_nav('Images')
+        self.assertTrue(self.page.image_is_disabled_in_cloud(image_name, cloud_name))
+
+        image_name = self.gvar['user'] + '-wii4.hdd.reorganized.compressed.qcow2'
+        cloud_name = self.gvar['user'] + '-wic2'
+        with wti.wait_for_page_load(self.driver, timeout=300):
+            self.page.click_cloud_button(image_name, cloud_name)
+            self.page.click_delete_ok()
+
+        self.page.click_top_nav('Images')
+        self.assertTrue(self.page.image_is_disabled_in_cloud(image_name, cloud_name))
+
     # Cindy test the checkboxes-------------------------------------------------
 
     @unittest.skip("skip to save time")
