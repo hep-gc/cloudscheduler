@@ -68,6 +68,7 @@ class TestWebImageCommon(unittest.TestCase):
         print("\ntester-wii4.hdd.qcow2 file exists, and should be deleted via csv2-dev after test manually")
         wta.assertExists('image', image_name+".qcow2", group=self.gvar['base_group'], image_cloud=cloud_name)
 
+        '''
         # test web image upload file_name ends with .compressed.qcow2-------------------------------
         self.page.click_upload_image()
         self.page.type_image_file_path(helpers.misc_file_full_path(image_name))
@@ -110,20 +111,21 @@ class TestWebImageCommon(unittest.TestCase):
         self.assertTrue(self.page.image_exists(image_name+".reorganized.compressed.qcow2"))
         print("\ntester-wii4.hdd.reorganized.compressed.qcow2 file exists, and should be deleted via csv2-dev after test manually")
         wta.assertExists('image', image_name+".reorganized.compressed.qcow2", group=self.gvar['base_group'], image_cloud=cloud_name)
-
+        '''
     #def test_delete_web_image_upload_filename_with_three_checkboxes(self):
         # delete web image upload file_name ends with .qcow2-------------------------
         self.page.click_top_nav('Images')
         image_name = self.gvar['user'] + '-wii4.hdd.qcow2'
         cloud_name = self.gvar['user'] + '-wic2'
-        with wti.wait_for_page_load(self.driver, timeout=300):
+        with wti.wait_for_page_load(self.driver, timeout=1000):
             self.page.click_cloud_button(image_name, cloud_name)
             self.page.click_delete_ok()
-
+        print("delete OK")
         self.page.click_top_nav('Images')
         self.assertTrue(self.page.image_is_disabled_in_cloud(image_name, cloud_name))
         print("Successfully delete .hdd.qcow2")
 
+        '''
         # delete web image upload file_name ends with .compressed.qcow2-------------------------
         self.page.click_top_nav('Images')
         image_name = self.gvar['user'] + '-wii4.hdd.compressed.qcow2'
@@ -156,7 +158,7 @@ class TestWebImageCommon(unittest.TestCase):
 
         self.page.click_top_nav('Images')
         self.assertTrue(self.page.image_is_disabled_in_cloud(image_name, cloud_name))
-
+        '''
     # Cindy test the checkboxes-------------------------------------------------
 
     @unittest.skip("skip to save time")
