@@ -782,9 +782,8 @@ def upload(request, group_name=None):
         cloud_name_list = request.POST.getlist('clouds')
 
         # ---------added------if the initial cloud_name_list is empty, return error message--
-        is_clouds_empty = len(cloud_name_list) == 0
-        if is_clouds_empty:
-            msg = "Upload failed for no target cloud is selected"
+        if len(cloud_name_list) == 0:
+            msg = "Upload failed because no target cloud is selected"
         # ---------added-----------------------------------------------------------------
 
         if len(cloud_name_list) == 1 and "," in cloud_name_list[0]:
@@ -1085,6 +1084,12 @@ def upload(request, group_name=None):
         where_clause = "name='%s' and group_name='%s'" % (image_name, group_name)
         rc, qmsg, image_list = config.db_query(IMAGES, where=where_clause)
         bad_clouds = []
+
+        # ---------added------if the initial cloud_name_list is empty, return error message--
+        if len(cloud_name_list) == 0:
+            msg = "Upload failed because no target cloud is selected"
+        # ---------added------if the initial cloud_name_list is empty, return error message--
+
         if len(image_list) > 0:
             # we've got some images by this name already lets see if any are in the target clouds
             for image in image_list:
