@@ -1124,6 +1124,22 @@ def upload(request, group_name=None):
         with open(file_path, "wb") as image_file:
             image_file.write(image_data.data)
 
+        '''
+        # added code in elif----------------------------------------------
+        with_conversion = bool(request.POST.get('operation0'))
+        virt_sparsify = bool(request.POST.get('operation1'))
+        with_compression = bool(request.POST.get('operation2'))
+
+        if with_conversion:
+            file_path = sparsify_convert_compress(file_path, virt_sparsify, with_compression)
+            if virt_sparsify:
+                image_file.name += '.reorganized'
+            if with_compression:
+                image_file.name += '.compressed'
+            image_file.name += '.qcow2'
+        # added code -----------------------------------------------------
+        '''
+
         disk_format = request.POST.get('disk_format')
         if disk_format == '':
             try:

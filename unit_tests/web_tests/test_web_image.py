@@ -113,6 +113,7 @@ class TestWebImageCommon(unittest.TestCase):
 
     #def test_delete_web_image_upload_filename_with_three_checkboxes(self):
         # delete web image upload file_name ends with .qcow2-------------------------
+        self.page.click_top_nav('Images')
         image_name = self.gvar['user'] + '-wii4.hdd.qcow2'
         cloud_name = self.gvar['user'] + '-wic2'
         with wti.wait_for_page_load(self.driver, timeout=300):
