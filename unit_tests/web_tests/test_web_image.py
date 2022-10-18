@@ -179,7 +179,7 @@ class TestWebImageCommon(unittest.TestCase):
         self.page.click_checkbox("operation2")
 
         self.page.add_upload_to_cloud(cloud_name)
-        with wti.wait_for_page_load(self.driver, timeout=300):
+        with wti.wait_for_page_load(self.driver, timeout=1000):
             self.page.click_upload()
         self.page.click_top_nav('Images')
 
