@@ -22,6 +22,7 @@ class TestWebImageCommon(unittest.TestCase):
         self.page.get_homepage()
         self.page.click_top_nav('Images')
 
+    @unittest.skip("skip to save time")
     def test_web_image_upload_filename(self):
         # Uploads an image to a cloud using a system file
         image_name = self.gvar['user'] + '-wii3.hdd'
@@ -38,6 +39,7 @@ class TestWebImageCommon(unittest.TestCase):
         wta.assertExists('image', image_name, group=self.gvar['base_group'], image_cloud=cloud_name)
 
     # Cindy test the checkboxes-------------------------------------------------
+    @unittest.skip("skip to save time")
     def test_three_checkboxes(self):
         self.page.click_upload_image()
         is_no_conversion_checked = self.page.is_checkbox_selected("operation0")
@@ -54,7 +56,6 @@ class TestWebImageCommon(unittest.TestCase):
         cloud_name = self.gvar['user'] + '-wic2'
         self.page.click_upload_image()
         self.page.type_image_file_path(helpers.misc_file_full_path(image_name))
-        print("Choose File - Successful")
 
         self.page.click_checkbox("operation0")
         self.assertTrue(self.page.is_checkbox_selected("operation0"))
@@ -72,7 +73,34 @@ class TestWebImageCommon(unittest.TestCase):
 
         self.assertTrue(self.page.image_exists(image_name+".qcow2"))
         print("tester-wii4.hdd.qcow2 file exists, and should be deleted via csv2-dev after test manually")
-        # wta.assertExists('image', image_name, group=self.gvar['base_group'], image_cloud=cloud_name)
+        wta.assertExists('image', image_name+".qcow2", group=self.gvar['base_group'], image_cloud=cloud_name)
+
+    def test_web_image_upload_filename_ends_with_compressed_qcow2(self):
+        # Uploads an image to a cloud using a system file
+        image_name = self.gvar['user'] + '-wii4.hdd'
+        cloud_name = self.gvar['user'] + '-wic2'
+        self.page.click_upload_image()
+        self.page.type_image_file_path(helpers.misc_file_full_path(image_name))
+
+        self.page.click_checkbox("operation0")
+        self.page.click_checkbox("operation2")
+        self.assertTrue(self.page.is_checkbox_selected("operation0"))
+        self.assertFalse(self.page.is_checkbox_selected("operation1"))
+        self.assertTrue(self.page.is_checkbox_selected("operation2"))
+        print("Three checkboxes work well - Successful")
+
+        self.page.add_upload_to_cloud(cloud_name)
+
+        with wti.wait_for_page_load(self.driver, timeout=1000):
+            self.page.click_upload()
+
+        self.page.click_top_nav('Images')
+        print("Upload successfully, reopen images webpage")
+
+        self.assertTrue(self.page.image_exists(image_name + ".compressed.qcow2"))
+        print("tester-wii4.hdd.compressed.qcow2 file exists, and should be deleted via csv2-dev after test manually")
+        wta.assertExists('image', image_name + ".compressed.qcow2", group=self.gvar['base_group'], image_cloud=cloud_name)
+
 
         '''
         image_name = self.gvar['user'] + '-wii4.hdd.qcow2'
@@ -84,6 +112,8 @@ class TestWebImageCommon(unittest.TestCase):
         self.page.click_top_nav('Images')
         self.assertTrue(self.page.image_is_disabled_in_cloud(image_name, cloud_name))
         '''
+
+
     # Cindy test the checkboxes-------------------------------------------------
 
     @unittest.skip("skip to save time")
