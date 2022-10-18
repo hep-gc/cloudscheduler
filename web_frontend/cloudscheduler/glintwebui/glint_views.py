@@ -841,20 +841,20 @@ def upload(request, group_name=None):
             for chunk in image_file.chunks():
                 destination.write(chunk)
 
-        '''
         # added code -----------------------------------------------------
-        no_conversion = bool(request.POST.get('operation0'))
-        skip_sparsify = bool(request.POST.get('operation1'))
-        no_compression = bool(request.POST.get('operation2'))
+        with_conversion = bool(request.POST.get('operation0'))
+        virt_sparsify = bool(request.POST.get('operation1'))
+        with_compression = bool(request.POST.get('operation2'))
 
-        if not no_conversion:
-            file_path = sparsify_convert_compress(file_path, skip_sparsify, no_compression)
-            if not skip_sparsify:
+        if with_conversion:
+            file_path = sparsify_convert_compress(file_path, virt_sparsify, with_compression)
+            if virt_sparsify:
                 image_file.name += '.reorganized'
-            if not no_compression:
+            if with_compression:
                 image_file.name += '.compressed'
             image_file.name += '.qcow2'
         # added code -----------------------------------------------------
+
         '''
         no_conversion = bool(request.POST.get('operation0'))
         skip_sparsify = bool(request.POST.get('operation1'))
@@ -867,7 +867,7 @@ def upload(request, group_name=None):
                 image_file.name += ".sparsified"
             if no_compression:
                 image_file.name += ".cmp"
-
+        '''
         disk_format = request.POST.get('disk_format')
         if disk_format == '':
             try:
