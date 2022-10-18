@@ -50,6 +50,7 @@ class TestWebImageCommon(unittest.TestCase):
         self.assertFalse(is_skip_sparsify_checked)
         self.assertFalse(is_no_compression_checked)
 
+    @unittest.skip("skip to save time")
     def test_web_image_upload_filename_with_conversion_checkbox(self):
         # Uploads an image to a cloud using a system file
         image_name = self.gvar['user'] + '-wii4.hdd'
@@ -77,6 +78,7 @@ class TestWebImageCommon(unittest.TestCase):
             self.page.click_delete_ok()
         print("tester-wii4.hdd.qcow2 file successfully deleted")
 
+    @unittest.skip("skip to save time")
     def test_web_image_upload_filename_with_conversion_compression_checkbox(self):
         # Uploads an image to a cloud using a system file
         image_name = self.gvar['user'] + '-wii4.hdd'
@@ -105,6 +107,7 @@ class TestWebImageCommon(unittest.TestCase):
             self.page.click_delete_ok()
         print("tester-wii4.hdd.compressed.qcow2 file successfully deleted")
 
+    @unittest.skip("skip to save time")
     def test_web_image_upload_filename_with_conversion_sparsify_checkbox(self):
         # Uploads an image to a cloud using a system file
         image_name = self.gvar['user'] + '-wii4.hdd'
@@ -133,6 +136,7 @@ class TestWebImageCommon(unittest.TestCase):
             self.page.click_delete_ok()
         print("tester-wii4.hdd.reorganized.qcow2 file successfully deleted")
 
+    @unittest.skip("skip to save time")
     def test_web_image_upload_filename_with_conversion_sparsify_compression_checkbox(self):
         # Uploads an image to a cloud using a system file
         image_name = self.gvar['user'] + '-wii4.hdd'
@@ -162,7 +166,6 @@ class TestWebImageCommon(unittest.TestCase):
             self.page.click_delete_ok()
         print("tester-wii4.hdd.reorganized.compressed.qcow2 file successfully deleted")
 
-    @unittest.skip("skip to save time")
     def test_web_image_upload_url_three_checkboxes(self):
         # Uploads an image to a cloud using a URL
         image_name = 'test-os-image-raw.hdd'
