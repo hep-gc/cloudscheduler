@@ -48,7 +48,6 @@ class TestWebImageCommon(unittest.TestCase):
         self.assertFalse(is_skip_sparsify_checked)
         self.assertFalse(is_no_compression_checked)
 
-    @unittest.skip("skip the qcow2 test")
     def test_web_image_upload_filename_ends_with_qcow2(self):
         # Uploads an image to a cloud using a system file
         image_name = self.gvar['user'] + '-wii4.hdd'
@@ -57,9 +56,11 @@ class TestWebImageCommon(unittest.TestCase):
         self.page.type_image_file_path(helpers.misc_file_full_path(image_name))
         print("Choose File - Successful")
 
-        # self.page.click_checkbox("operation0")
-        # self.assertFalse(self.page.is_checkbox_selected("operation0"))
-        # print("successfully unselect the No Conversion checkbox")
+        self.page.click_checkbox("operation0")
+        self.assertTrue(self.page.is_checkbox_selected("operation0"))
+        self.assertFalse(self.page.is_checkbox_selected("operation1"))
+        self.assertFalse(self.page.is_checkbox_selected("operation2"))
+        print("Three checkboxes work well - Successful")
 
         self.page.add_upload_to_cloud(cloud_name)
 
@@ -70,9 +71,10 @@ class TestWebImageCommon(unittest.TestCase):
         print("Upload successfully, reopen images webpage")
 
         self.assertTrue(self.page.image_exists(image_name+".qcow2"))
-        print(".hdd.qcow2 file exists")
+        print("tester-wii4.hdd.qcow2 file exists, and should be deleted via csv2-dev after test manually")
         # wta.assertExists('image', image_name, group=self.gvar['base_group'], image_cloud=cloud_name)
 
+        '''
         image_name = self.gvar['user'] + '-wii4.hdd.qcow2'
         cloud_name = self.gvar['user'] + '-wic2'
         with wti.wait_for_page_load(self.driver, timeout=300):
@@ -81,6 +83,7 @@ class TestWebImageCommon(unittest.TestCase):
 
         self.page.click_top_nav('Images')
         self.assertTrue(self.page.image_is_disabled_in_cloud(image_name, cloud_name))
+        '''
     # Cindy test the checkboxes-------------------------------------------------
 
     @unittest.skip("skip to save time")
