@@ -856,6 +856,17 @@ def upload(request, group_name=None):
             image_file.name += '.qcow2'
         # added code -----------------------------------------------------
         '''
+        no_conversion = bool(request.POST.get('operation0'))
+        skip_sparsify = bool(request.POST.get('operation1'))
+        no_compression = bool(request.POST.get('operation2'))
+
+        # no_conversion is True, checkbox is selected,
+        if no_conversion:
+            image_file.name += ".conv"
+            if skip_sparsify:
+                image_file.name += ".sparsified"
+            if no_compression:
+                image_file.name += ".cmp"
 
         disk_format = request.POST.get('disk_format')
         if disk_format == '':
