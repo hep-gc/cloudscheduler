@@ -223,7 +223,7 @@ def generate_tx_id(length=16):
     return ''.join(random.choice(ALPHABET) for i in range(length))
 
 
-def sparsify_convert_compress(src_file_path, skip_sparsify, skip_comp):
+def sparsify_convert_compress(src_file_path, virt_sparsify, with_compression):
     if os.path.exists(src_file_path):
         logging.info("process starts")
         added_cmd = ''
@@ -231,18 +231,18 @@ def sparsify_convert_compress(src_file_path, skip_sparsify, skip_comp):
         is_compressed = ''
         logging.info("No conversion checkbox is unselected")
 
-        if skip_sparsify == False:
+        if virt_sparsify:
             logging.info("Skip sparsify checkbox is unselected")
             is_sparsified = '.reorganized'
 
-            sub_command = "virt-sparsify --in-place %s" % (src_file_path)
+            sub_command = "virt-sparsify --in-place %s" % src_file_path
             output = os.popen(sub_command).read()
             # os.system(sub_command)
             logging.info("\n THE POPEN OUTPUT IS:\n" + output + "\nTHE POPEN OUTPUT ENDS\n")
 
             logging.info("reorganized successfully")
 
-        if not skip_comp:
+        if with_compression:
             logging.info("No compression checkbox is unselected")
             added_cmd = "-c"
             is_compressed = ".compressed"

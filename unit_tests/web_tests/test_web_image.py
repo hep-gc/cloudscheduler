@@ -44,9 +44,9 @@ class TestWebImageCommon(unittest.TestCase):
         is_skip_sparsify_checked = self.page.is_checkbox_selected("operation1")
         is_no_compression_checked = self.page.is_checkbox_selected("operation2")
 
-        self.assertTrue(is_no_conversion_checked)
-        self.assertTrue(is_skip_sparsify_checked)
-        self.assertTrue(is_no_compression_checked)
+        self.assertFalse(is_no_conversion_checked)
+        self.assertFalse(is_skip_sparsify_checked)
+        self.assertFalse(is_no_compression_checked)
 
     @unittest.skip("skip the qcow2 test")
     def test_web_image_upload_filename_ends_with_qcow2(self):
@@ -57,9 +57,9 @@ class TestWebImageCommon(unittest.TestCase):
         self.page.type_image_file_path(helpers.misc_file_full_path(image_name))
         print("Choose File - Successful")
 
-        self.page.click_checkbox("operation0")
-        self.assertFalse(self.page.is_checkbox_selected("operation0"))
-        print("successfully unselect the No Conversion checkbox")
+        # self.page.click_checkbox("operation0")
+        # self.assertFalse(self.page.is_checkbox_selected("operation0"))
+        # print("successfully unselect the No Conversion checkbox")
 
         self.page.add_upload_to_cloud(cloud_name)
 
