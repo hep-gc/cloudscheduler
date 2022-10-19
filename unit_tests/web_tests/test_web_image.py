@@ -188,7 +188,6 @@ class TestWebImageCommon(unittest.TestCase):
         wta.assertExists('image', image_name, group=self.gvar['base_group'], image_cloud=cloud_name)
         print("\ntest-os-image-raw.hdd.reorganized.compressed.qcow2 file successfully uploaded")
 
-        '''
         # delete web image upload file_name ends with .reorganized.compressed.qcow2-------------------------
         self.page.click_top_nav('Images')
         image_name = 'test-os-image-raw.hdd.reorganized.compressed.qcow2'
@@ -197,7 +196,6 @@ class TestWebImageCommon(unittest.TestCase):
             self.page.click_cloud_button(image_name, cloud_name)
             self.page.click_delete_ok()
         print("test-os-image-raw.hdd.reorganized.compressed.qcow2 file successfully deleted")
-        '''
     # Cindy test the checkboxes-------------------------------------------------
 
     def test_web_image_upload_url(self):
