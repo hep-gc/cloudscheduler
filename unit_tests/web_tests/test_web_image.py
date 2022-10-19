@@ -22,7 +22,6 @@ class TestWebImageCommon(unittest.TestCase):
         self.page.get_homepage()
         self.page.click_top_nav('Images')
 
-    @unittest.skip("skip to save time")
     def test_web_image_upload_filename(self):
         # Uploads an image to a cloud using a system file
         image_name = self.gvar['user'] + '-wii3.hdd'
