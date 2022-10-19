@@ -173,16 +173,17 @@ class TestWebImageCommon(unittest.TestCase):
         self.page.click_upload_image()
         self.page.click_from_url()
         self.page.type_image_url('http://elephant06.heprc.uvic.ca/' + image_name)
-
+        print("input the url")
         self.page.click_checkbox("operation0")
         self.page.click_checkbox("operation1")
         self.page.click_checkbox("operation2")
 
+        print("\n click three checkboxes")
         self.page.add_upload_to_cloud(cloud_name)
         with wti.wait_for_page_load(self.driver, timeout=1000):
             self.page.click_upload()
         self.page.click_top_nav('Images')
-
+        print("upload good")
         self.assertTrue(self.page.image_exists(image_name+".reorganized.compressed.qcow2"))
         wta.assertExists('image', image_name, group=self.gvar['base_group'], image_cloud=cloud_name)
         print("\ntest-os-image-raw.hdd.reorganized.compressed.qcow2 file successfully uploaded")
@@ -199,8 +200,6 @@ class TestWebImageCommon(unittest.TestCase):
         '''
     # Cindy test the checkboxes-------------------------------------------------
 
-
-    @unittest.skip("skip to save time")
     def test_web_image_upload_url(self):
         # Uploads an image to a cloud using a URL
         image_name = 'test-os-image-raw.hdd'
