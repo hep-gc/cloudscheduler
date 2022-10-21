@@ -852,23 +852,6 @@ def upload(request, group_name=None):
             image_file.name += '.qcow2'
 
         '''
-        if virt_sparsify:
-            image_file.name += '.reT'
-        if with_compression:
-            image_file.name += '.cmT'
-        '''
-        if not virt_sparsify:
-            image_file.name += '.reF'
-
-        if not with_compression:
-            image_file.name += '.cmF'
-
-        '''
-        if virt_sparsify or with_compression:
-            file_path, added_image_name = convert_sparsify_compress(file_path, virt_sparsify, with_compression)
-            image_file.name += added_image_name
-
-        
         if with_conversion:
             file_path = sparsify_convert_compress(file_path, virt_sparsify, with_compression)
             if virt_sparsify:
@@ -1155,26 +1138,16 @@ def upload(request, group_name=None):
             image_file.write(image_data.data)
 
         # added code in elif----------------------------------------------
-        '''
         virt_sparsify = bool(request.POST.get('operation1'))
         with_compression = bool(request.POST.get('operation2'))
 
-        if with_conversion:
-            file_path = sparsify_convert_compress(file_path, virt_sparsify, with_compression)
+        if virt_sparsify or with_compression:
+            file_path = convert_sparsify_compress(file_path, virt_sparsify, with_compression)
             if virt_sparsify:
                 image_name += '.reorganized'
             if with_compression:
                 image_name += '.compressed'
             image_name += '.qcow2'
-        
-
-        virt_sparsify = bool(request.POST.get('operation1'))
-        with_compression = bool(request.POST.get('operation2'))
-
-        if virt_sparsify or with_compression:
-            file_path, added_image_name = convert_sparsify_compress(file_path, virt_sparsify, with_compression)
-            image_name += added_image_name
-        '''
         # added code -----------------------------------------------------
 
         disk_format = request.POST.get('disk_format')
