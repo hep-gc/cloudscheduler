@@ -223,16 +223,15 @@ def generate_tx_id(length=16):
     return ''.join(random.choice(ALPHABET) for i in range(length))
 
 
-def sparsify_convert_compress(src_file_path, virt_sparsify, with_compression):
+def convert_sparsify_compress(src_file_path, virt_sparsify, with_compression):
     if os.path.exists(src_file_path):
         logging.info("process starts")
         added_cmd = ''
         is_sparsified = ''
         is_compressed = ''
-        logging.info("No conversion checkbox is unselected")
 
         if virt_sparsify:
-            logging.info("Skip sparsify checkbox is unselected")
+            logging.info("Skip sparsify checkbox is selected")
             is_sparsified = '.reorganized'
 
             sub_command = "virt-sparsify --in-place %s" % src_file_path
@@ -243,7 +242,7 @@ def sparsify_convert_compress(src_file_path, virt_sparsify, with_compression):
             logging.info("reorganized successfully")
 
         if with_compression:
-            logging.info("No compression checkbox is unselected")
+            logging.info("With compression checkbox is selected")
             added_cmd = "-c"
             is_compressed = ".compressed"
 
@@ -253,6 +252,7 @@ def sparsify_convert_compress(src_file_path, virt_sparsify, with_compression):
         os.system(sub_command)
         logging.info("process ends")
 
-        return dest_file_path
+        added_image_name = is_sparsified+is_compressed+".qcow2"
+        return dest_file_path, added_image_name
     else:
         logging.error('The specified file does NOT exist')

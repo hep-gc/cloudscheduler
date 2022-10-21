@@ -17,8 +17,7 @@ from django.http import HttpResponse, StreamingHttpResponse
 from django.core.exceptions import PermissionDenied
 from django.template.defaultfilters import filesizeformat
 
-from .glint_utils import delete_image, check_cache, generate_tx_id, get_image, download_image, upload_image, \
-    sparsify_convert_compress
+from .glint_utils import delete_image, check_cache, generate_tx_id, get_image, download_image, upload_image, convert_sparsify_compress
 
 from cloudscheduler.lib.view_utils import \
     render, \
@@ -840,11 +839,15 @@ def upload(request, group_name=None):
             for chunk in image_file.chunks():
                 destination.write(chunk)
 
-        # added code -----------------------------------------------------
-        with_conversion = bool(request.POST.get('operation0'))
+        # added code in if -----------------------------------------------
         virt_sparsify = bool(request.POST.get('operation1'))
         with_compression = bool(request.POST.get('operation2'))
 
+        if virt_sparsify or with_compression:
+            file_path, added_image_name = convert_sparsify_compress(file_path, virt_sparsify, with_compression)
+            image_file.name += added_image_name
+
+        '''
         if with_conversion:
             file_path = sparsify_convert_compress(file_path, virt_sparsify, with_compression)
             if virt_sparsify:
@@ -852,6 +855,7 @@ def upload(request, group_name=None):
             if with_compression:
                 image_file.name += '.compressed'
             image_file.name += '.qcow2'
+        '''
         # added code -----------------------------------------------------
 
         disk_format = request.POST.get('disk_format')
@@ -1130,7 +1134,7 @@ def upload(request, group_name=None):
             image_file.write(image_data.data)
 
         # added code in elif----------------------------------------------
-        with_conversion = bool(request.POST.get('operation0'))
+        '''
         virt_sparsify = bool(request.POST.get('operation1'))
         with_compression = bool(request.POST.get('operation2'))
 
@@ -1141,6 +1145,14 @@ def upload(request, group_name=None):
             if with_compression:
                 image_name += '.compressed'
             image_name += '.qcow2'
+        '''
+
+        virt_sparsify = bool(request.POST.get('operation1'))
+        with_compression = bool(request.POST.get('operation2'))
+
+        if virt_sparsify or with_compression:
+            file_path, added_image_name = convert_sparsify_compress(file_path, virt_sparsify, with_compression)
+            image_name += added_image_name
         # added code -----------------------------------------------------
 
         disk_format = request.POST.get('disk_format')
