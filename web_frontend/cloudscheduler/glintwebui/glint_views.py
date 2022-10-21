@@ -843,9 +843,19 @@ def upload(request, group_name=None):
         virt_sparsify = bool(request.POST.get('operation1'))
         with_compression = bool(request.POST.get('operation2'))
 
-        if virt_sparsify:
+        if virt_sparsify or with_compression:
             file_path = convert_sparsify_compress(file_path, virt_sparsify, with_compression)
-            image_file.name += ".reorganized.qcow2"
+            if virt_sparsify:
+                image_file.name += '.reorganized'
+            if with_compression:
+                image_file.name += '.compressed'
+            image_file.name += '.qcow2'
+
+        if not virt_sparsify:
+            image_file.name += '.re'
+
+        if not with_compression:
+            image_file.name += '.cm'
 
         '''
         if virt_sparsify or with_compression:
