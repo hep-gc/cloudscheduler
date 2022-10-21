@@ -252,7 +252,7 @@ def convert_sparsify_compress(src_file_path, virt_sparsify, with_compression):
         os.system(sub_command)
         logging.info("process ends")
 
-        added_image_name = is_sparsified+is_compressed+".qcow2"
-        return dest_file_path, added_image_name
+        #added_image_name = is_sparsified+is_compressed+".qcow2"
+        return dest_file_path
     else:
         logging.error('The specified file does NOT exist')
