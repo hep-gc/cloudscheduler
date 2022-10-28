@@ -4,6 +4,8 @@ import logging
 import os
 import string
 import random
+
+from cloudscheduler.data_collectors.openstack.glintwebui.glint_views import logger
 # import hashlib
 
 from cloudscheduler.lib.openstack_functions import get_openstack_sess, get_glance_connection
