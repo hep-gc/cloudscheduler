@@ -9,9 +9,9 @@ import random
 # import hashlib
 
 from cloudscheduler.lib.openstack_functions import get_openstack_sess, get_glance_connection
-
 from cloudscheduler.lib.db_config import Config
-from cloudscheduler.web_frontend.cloudscheduler.glintwebui.glint_views import logger
+
+logger = logging.getLogger('glint_utils')
 
 config = Config('/etc/cloudscheduler/cloudscheduler.yaml', ['general', 'openstackPoller.py', 'web_frontend'],
                 pool_size=2, max_overflow=10)
