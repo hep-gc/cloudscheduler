@@ -9,7 +9,6 @@ import random
 from cloudscheduler.lib.openstack_functions import get_openstack_sess, get_glance_connection
 
 from cloudscheduler.lib.db_config import Config
-logger = logging.getLogger('glintu2')
 
 config = Config('/etc/cloudscheduler/cloudscheduler.yaml', ['general', 'openstackPoller.py', 'web_frontend'],
                 pool_size=2, max_overflow=10)
