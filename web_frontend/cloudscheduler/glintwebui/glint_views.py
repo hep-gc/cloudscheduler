@@ -851,15 +851,6 @@ def upload(request, group_name=None):
                 image_file.name += '.compressed'
             image_file.name += '.qcow2'
 
-        '''
-        if with_conversion:
-            file_path = sparsify_convert_compress(file_path, virt_sparsify, with_compression)
-            if virt_sparsify:
-                image_file.name += '.reorganized'
-            if with_compression:
-                image_file.name += '.compressed'
-            image_file.name += '.qcow2'
-        '''
         # added code -----------------------------------------------------
 
         disk_format = request.POST.get('disk_format')
