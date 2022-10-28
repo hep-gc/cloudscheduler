@@ -9,7 +9,7 @@ import random
 from cloudscheduler.lib.openstack_functions import get_openstack_sess, get_glance_connection
 
 from cloudscheduler.lib.db_config import Config
-from original_glint_views import logger
+logger = logging.getLogger('glintu2')
 
 config = Config('/etc/cloudscheduler/cloudscheduler.yaml', ['general', 'openstackPoller.py', 'web_frontend'],
                 pool_size=2, max_overflow=10)
@@ -256,4 +256,4 @@ def convert_sparsify_compress(src_file_path, virt_sparsify, with_compression):
         #added_image_name = is_sparsified+is_compressed+".qcow2"
         return dest_file_path
     else:
-        logger.error('The specified file does NOT exist')
+        logging.error('The specified file does NOT exist')
