@@ -22,6 +22,7 @@ class TestWebImageCommon(unittest.TestCase):
         self.page.get_homepage()
         self.page.click_top_nav('Images')
 
+    @unittest.skip("Skip testing")
     def test_web_image_upload_filename(self):
         # Uploads an image to a cloud using a system file
         image_name = self.gvar['user'] + '-wii3.hdd'
@@ -37,6 +38,7 @@ class TestWebImageCommon(unittest.TestCase):
 
         wta.assertExists('image', image_name, group=self.gvar['base_group'], image_cloud=cloud_name)
 
+    @unittest.skip("Skip testing")
     def test_web_image_upload_url(self):
         # Uploads an image to a cloud using a URL
         image_name = 'test-os-image-raw.hdd'
@@ -54,18 +56,16 @@ class TestWebImageCommon(unittest.TestCase):
 
     # Cindy test the checkboxes-------------------------------------------------
     @unittest.skip("Skip testing")
-    def test_three_checkboxes(self):
+    def test_two_checkboxes(self):
         self.page.click_upload_image()
-        is_no_conversion_checked = self.page.is_checkbox_selected("operation0")
-        is_skip_sparsify_checked = self.page.is_checkbox_selected("operation1")
-        is_no_compression_checked = self.page.is_checkbox_selected("operation2")
+        virt_sparsify_checked = self.page.is_checkbox_selected("operation1")
+        with_compression_checked = self.page.is_checkbox_selected("operation2")
 
-        self.assertFalse(is_no_conversion_checked)
-        self.assertFalse(is_skip_sparsify_checked)
-        self.assertFalse(is_no_compression_checked)
+        self.assertFalse(virt_sparsify_checked)
+        self.assertFalse(with_compression_checked)
 
     @unittest.skip("Skip testing")
-    def test_web_image_upload_filename_with_conversion_checkbox(self):
+    def test_web_image_upload_filename_with_sparsify_checkbox(self):
         # Uploads an image to a cloud using a system file
         image_name = self.gvar['user'] + '-wii4.hdd'
         cloud_name = self.gvar['user'] + '-wic2'
@@ -73,7 +73,7 @@ class TestWebImageCommon(unittest.TestCase):
         # test web image upload file_name ends with .qcow2
         self.page.click_upload_image()
         self.page.type_image_file_path(helpers.misc_file_full_path(image_name))
-        self.page.click_checkbox("operation0")
+        self.page.click_checkbox("operation1")
         self.page.add_upload_to_cloud(cloud_name)
         with wti.wait_for_page_load(self.driver, timeout=1000):
             self.page.click_upload()
@@ -93,7 +93,7 @@ class TestWebImageCommon(unittest.TestCase):
         print("tester-wii4.hdd.qcow2 file successfully deleted")
 
     @unittest.skip("Skip testing")
-    def test_web_image_upload_filename_with_conversion_compression_checkbox(self):
+    def test_web_image_upload_filename_with_compression_checkbox(self):
         # Uploads an image to a cloud using a system file
         image_name = self.gvar['user'] + '-wii4.hdd'
         cloud_name = self.gvar['user'] + '-wic2'
@@ -101,7 +101,6 @@ class TestWebImageCommon(unittest.TestCase):
         # test web image upload file_name ends with .compressed.qcow2
         self.page.click_upload_image()
         self.page.type_image_file_path(helpers.misc_file_full_path(image_name))
-        self.page.click_checkbox("operation0")
         self.page.click_checkbox("operation2")
         self.page.add_upload_to_cloud(cloud_name)
         with wti.wait_for_page_load(self.driver, timeout=1000):
@@ -122,44 +121,14 @@ class TestWebImageCommon(unittest.TestCase):
         print("tester-wii4.hdd.compressed.qcow2 file successfully deleted")
 
     @unittest.skip("Skip testing")
-    def test_web_image_upload_filename_with_conversion_sparsify_checkbox(self):
+    def test_web_image_upload_filename_with_sparsify_compression_checkbox(self):
         # Uploads an image to a cloud using a system file
         image_name = self.gvar['user'] + '-wii4.hdd'
         cloud_name = self.gvar['user'] + '-wic2'
 
-        # test web image upload file_name ends with .reorganized.qcow2
+        # test web image upload file_name ends with .compressed.qcow2
         self.page.click_upload_image()
         self.page.type_image_file_path(helpers.misc_file_full_path(image_name))
-        self.page.click_checkbox("operation0")
-        self.page.click_checkbox("operation1")
-        self.page.add_upload_to_cloud(cloud_name)
-        with wti.wait_for_page_load(self.driver, timeout=1000):
-            self.page.click_upload()
-        self.page.click_top_nav('Images')
-
-        self.assertTrue(self.page.image_exists(image_name+".reorganized.qcow2"))
-        wta.assertExists('image', image_name+".reorganized.qcow2", group=self.gvar['base_group'], image_cloud=cloud_name)
-        print("\ntester-wii4.hdd.reorganized.qcow2 file successfully uploaded")
-
-        # delete web image upload file_name ends with .reorganized.qcow2
-        self.page.click_top_nav('Images')
-        image_name = self.gvar['user'] + '-wii4.hdd.reorganized.qcow2'
-        cloud_name = self.gvar['user'] + '-wic2'
-        with wti.wait_for_page_load(self.driver, timeout=1000):
-            self.page.click_cloud_button(image_name, cloud_name)
-            self.page.click_delete_ok()
-        print("tester-wii4.hdd.reorganized.qcow2 file successfully deleted")
-
-    @unittest.skip("Skip testing")
-    def test_web_image_upload_filename_with_conversion_sparsify_compression_checkbox(self):
-        # Uploads an image to a cloud using a system file
-        image_name = self.gvar['user'] + '-wii4.hdd'
-        cloud_name = self.gvar['user'] + '-wic2'
-
-        # test web image upload file_name ends with .reorganized.compressed.qcow2
-        self.page.click_upload_image()
-        self.page.type_image_file_path(helpers.misc_file_full_path(image_name))
-        self.page.click_checkbox("operation0")
         self.page.click_checkbox("operation1")
         self.page.click_checkbox("operation2")
         self.page.add_upload_to_cloud(cloud_name)
@@ -167,18 +136,18 @@ class TestWebImageCommon(unittest.TestCase):
             self.page.click_upload()
         self.page.click_top_nav('Images')
 
-        self.assertTrue(self.page.image_exists(image_name+".reorganized.compressed.qcow2"))
-        wta.assertExists('image', image_name+".reorganized.compressed.qcow2", group=self.gvar['base_group'], image_cloud=cloud_name)
-        print("\ntester-wii4.hdd.reorganized.compressed..qcow2 file successfully uploaded")
+        self.assertTrue(self.page.image_exists(image_name+".compressed.qcow2"))
+        wta.assertExists('image', image_name+".compressed.qcow2", group=self.gvar['base_group'], image_cloud=cloud_name)
+        print("\ntester-wii4.hdd.compressed.qcow2 file successfully uploaded")
 
-        # delete web image upload file_name ends with .reorganized.compressed.qcow2
+        # delete web image upload file_name ends with .compressed.qcow2
         self.page.click_top_nav('Images')
-        image_name = self.gvar['user'] + '-wii4.hdd.reorganized.compressed.qcow2'
+        image_name = self.gvar['user'] + '-wii4.hdd.compressed.qcow2'
         cloud_name = self.gvar['user'] + '-wic2'
         with wti.wait_for_page_load(self.driver, timeout=1000):
             self.page.click_cloud_button(image_name, cloud_name)
             self.page.click_delete_ok()
-        print("tester-wii4.hdd.reorganized.compressed.qcow2 file successfully deleted")
+        print("tester-wii4.hdd.compressed.qcow2 file successfully deleted")
 
     @unittest.skip("Skip testing")
     def test_web_image_upload_url_three_checkboxes(self):
@@ -189,7 +158,6 @@ class TestWebImageCommon(unittest.TestCase):
         self.page.click_from_url()
         self.page.type_image_url('http://elephant06.heprc.uvic.ca/' + image_name)
 
-        self.page.click_checkbox("operation0")
         self.page.click_checkbox("operation1")
         self.page.click_checkbox("operation2")
 
@@ -197,18 +165,18 @@ class TestWebImageCommon(unittest.TestCase):
         with wti.wait_for_page_load(self.driver, timeout=1000):
             self.page.click_upload()
         self.page.click_top_nav('Images')
-        self.assertTrue(self.page.image_exists(image_name+".reorganized.compressed.qcow2"))
+        self.assertTrue(self.page.image_exists(image_name+".compressed.qcow2"))
         wta.assertExists('image', image_name, group=self.gvar['base_group'], image_cloud=cloud_name)
-        print("\ntest-os-image-raw.hdd.reorganized.compressed.qcow2 file successfully uploaded")
+        print("\ntest-os-image-raw.hdd.compressed.qcow2 file successfully uploaded")
 
-        # delete web image upload file_name ends with .reorganized.compressed.qcow2
+        # delete web image upload file_name ends with .compressed.qcow2
         self.page.click_top_nav('Images')
-        image_name = 'test-os-image-raw.hdd.reorganized.compressed.qcow2'
+        image_name = 'test-os-image-raw.hdd.compressed.qcow2'
         cloud_name = self.gvar['user'] + '-wic2'
         with wti.wait_for_page_load(self.driver, timeout=1000):
             self.page.click_cloud_button(image_name, cloud_name)
             self.page.click_delete_ok()
-        print("test-os-image-raw.hdd.reorganized.compressed.qcow2 file successfully deleted")
+        print("test-os-image-raw.hdd.compressed.qcow2 file successfully deleted")
     # Cindy test the checkboxes-------------------------------------------------
 
     @unittest.skip("Skip testing")
