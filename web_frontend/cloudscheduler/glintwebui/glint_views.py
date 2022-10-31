@@ -842,13 +842,10 @@ def upload(request, group_name=None):
         # added code in if -----------------------------------------------
         virt_sparsify = bool(request.POST.get('operation1'))
         with_compression = bool(request.POST.get('operation2'))
-        add_msg = ""
-        if virt_sparsify or with_compression:
-            file_path, added_img_name = convert_sparsify_compress(file_path, virt_sparsify, with_compression)
-            image_file.name += added_img_name
 
-        if virt_sparsify and (".reorganized" not in added_img_name):
-            added_msg = "#Error in Virt-sparsify#"
+        if virt_sparsify or with_compression:
+            file_path, added_img_name, report_msg = convert_sparsify_compress(file_path, virt_sparsify, with_compression)
+            image_file.name += added_img_name
 
         # added code -----------------------------------------------------
 
@@ -1005,8 +1002,7 @@ def upload(request, group_name=None):
                 'active_group': active_user.active_group,
                 'user_groups': active_user.user_groups,
                 'response_code': rc,
-                'message': "Upload Successful: %s image %s uploaded to %s-%s" % (added_msg,
-                image.name, group_name, target_cloud_name),
+                'message': report_msg + "Upload Successful: image %s uploaded to %s-%s" % (image.name, group_name, target_cloud_name),
                 'is_superuser': active_user.is_superuser,
                 'version': config.get_version()
             }
