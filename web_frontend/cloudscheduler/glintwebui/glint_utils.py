@@ -5,7 +5,6 @@ import os
 import string
 import random
 
-
 # import hashlib
 
 from cloudscheduler.lib.openstack_functions import get_openstack_sess, get_glance_connection
@@ -210,7 +209,7 @@ def get_image(config, image_name, image_checksum, group_name, cloud_name=None):
         # getting a specific image
         logging.debug("Retrieving image %s" % image_name)
         where_clause = "group_name='%s' and cloud_name='%s' and name='%s' and checksum='%s'" % (
-        group_name, cloud_name, image_name, image_checksum)
+            group_name, cloud_name, image_name, image_checksum)
         rc, msg, image_candidates = config.db_query(IMAGES, where=where_clause)
         if len(image_candidates) > 0:
             return image_candidates[0]
@@ -226,24 +225,42 @@ def generate_tx_id(length=16):
 
 def convert_sparsify_compress(src_file_path, virt_sparsify, with_compression):
     if os.path.exists(src_file_path):
-        logging.info("process starts")
+        print("process starts")
         added_cmd = ''
         is_sparsified = ''
         is_compressed = ''
 
         if virt_sparsify:
-            logging.info("Virt sparsify checkbox is selected")
-            is_sparsified = '.reorganized'
+            print("Virt sparsify checkbox is selected")
 
+            # make a copy of original file
+            backup_copy_file_path = src_file_path + ".cp"
+            sub_command = "cp -p %s %s" % (src_file_path, backup_copy_file_path)
+            os.system(sub_command)
+
+            # virt-sparsify the source file and see if there's any error or warning
             sub_command = "virt-sparsify --in-place %s" % src_file_path
             output = os.popen(sub_command).read()
-            # os.system(sub_command)
-            logging.info("\n THE POPEN OUTPUT IS:\n" + output + "\nTHE POPEN OUTPUT ENDS\n")
+            print("\n THE POPEN OUTPUT IS:\n" + output + "\nTHE POPEN OUTPUT ENDS\n")
 
-            logging.info("reorganized successfully")
+            # if virt-sparsify goes well, delete the copy file to save some space
+            if "with no errors" in output:
+                print("reorganized successfully")
+                is_sparsified = '.reorganized'
+
+                sub_command = "rm %s" % backup_copy_file_path
+                os.system(sub_command)
+            # if there's any warning or error in virt-sparsify, make the copy file be the source file
+            else:
+                print("Warning or Error in virt-sparsify")
+                sub_command = "rm %s" % src_file_path
+                os.system(sub_command)
+
+                sub_command = "mv %s %s" % (backup_copy_file_path, src_file_path)
+                os.system(sub_command)
 
         if with_compression:
-            logging.info("With compression checkbox is selected")
+            print("With compression checkbox is selected")
             added_cmd = "-c"
             is_compressed = ".compressed"
 
@@ -251,9 +268,9 @@ def convert_sparsify_compress(src_file_path, virt_sparsify, with_compression):
         dest_file_path = src_file_path + is_sparsified + is_compressed + ".qcow2"
         sub_command = "qemu-img convert %s -O %s %s %s" % (added_cmd, output_format, src_file_path, dest_file_path)
         os.system(sub_command)
-        logging.info("process ends")
+        print("process ends")
 
-        added_img_name = is_sparsified+is_compressed+".qcow2"
+        added_img_name = is_sparsified + is_compressed + ".qcow2"
         return dest_file_path, added_img_name
     else:
         logging.error('The specified file does NOT exist')

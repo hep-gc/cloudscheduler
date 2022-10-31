@@ -846,13 +846,10 @@ def upload(request, group_name=None):
         if virt_sparsify or with_compression:
             file_path, added_img_name = convert_sparsify_compress(file_path, virt_sparsify, with_compression)
             image_file.name += added_img_name
-            '''
-            if virt_sparsify:
-                image_file.name += '.reorganized'
-            if with_compression:
-                image_file.name += '.compressed'
-            image_file.name += '.qcow2'
-            '''
+
+        if virt_sparsify and (".reorganized" not in added_img_name):
+            added_msg = "Warning or Error in Virt-sparsify"
+
         # added code -----------------------------------------------------
 
         disk_format = request.POST.get('disk_format')
