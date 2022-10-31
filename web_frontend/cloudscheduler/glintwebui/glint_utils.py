@@ -11,8 +11,6 @@ import random
 from cloudscheduler.lib.openstack_functions import get_openstack_sess, get_glance_connection
 from cloudscheduler.lib.db_config import Config
 
-logger = logging.getLogger('glint_utils')
-
 config = Config('/etc/cloudscheduler/cloudscheduler.yaml', ['general', 'openstackPoller.py', 'web_frontend'],
                 pool_size=2, max_overflow=10)
 ALPHABET = string.ascii_letters + string.digits + "!#$%&()*+-<=>?@[]^_{|}~"
@@ -228,24 +226,24 @@ def generate_tx_id(length=16):
 
 def convert_sparsify_compress(src_file_path, virt_sparsify, with_compression):
     if os.path.exists(src_file_path):
-        logger.info("process starts")
+        logging.info("process starts")
         added_cmd = ''
         is_sparsified = ''
         is_compressed = ''
 
         if virt_sparsify:
-            logger.info("Skip sparsify checkbox is selected")
+            logging.info("Virt sparsify checkbox is selected")
             is_sparsified = '.reorganized'
 
             sub_command = "virt-sparsify --in-place %s" % src_file_path
             output = os.popen(sub_command).read()
             # os.system(sub_command)
-            logger.info("\n THE POPEN OUTPUT IS:\n" + output + "\nTHE POPEN OUTPUT ENDS\n")
+            logging.info("\n THE POPEN OUTPUT IS:\n" + output + "\nTHE POPEN OUTPUT ENDS\n")
 
-            logger.info("reorganized successfully")
+            logging.info("reorganized successfully")
 
         if with_compression:
-            logger.info("With compression checkbox is selected")
+            logging.info("With compression checkbox is selected")
             added_cmd = "-c"
             is_compressed = ".compressed"
 
@@ -253,9 +251,9 @@ def convert_sparsify_compress(src_file_path, virt_sparsify, with_compression):
         dest_file_path = src_file_path + is_sparsified + is_compressed + ".qcow2"
         sub_command = "qemu-img convert %s -O %s %s %s" % (added_cmd, output_format, src_file_path, dest_file_path)
         os.system(sub_command)
-        logger.info("process ends")
+        logging.info("process ends")
 
-        #added_image_name = is_sparsified+is_compressed+".qcow2"
-        return dest_file_path
+        added_img_name = is_sparsified+is_compressed+".qcow2"
+        return dest_file_path, added_img_name
     else:
         logging.error('The specified file does NOT exist')
