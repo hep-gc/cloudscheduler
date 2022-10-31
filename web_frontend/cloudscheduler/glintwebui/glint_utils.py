@@ -229,6 +229,7 @@ def convert_sparsify_compress(src_file_path, virt_sparsify, with_compression):
         added_cmd = ''
         is_sparsified = ''
         is_compressed = ''
+        report_message = ''
 
         if virt_sparsify:
             print("Virt sparsify checkbox is selected")
@@ -239,24 +240,35 @@ def convert_sparsify_compress(src_file_path, virt_sparsify, with_compression):
             os.system(sub_command)
 
             # virt-sparsify the source file and see if there's any error or warning
-            sub_command = "virt-sparsify --in-place %s --ignore /dev/sda1" % src_file_path
+            sub_command = "virt-sparsify --in-place %s" % src_file_path
             output = os.popen(sub_command).read()
             print("\n THE POPEN OUTPUT IS:\n" + output + "\nTHE POPEN OUTPUT ENDS\n")
 
-            # if virt-sparsify goes well, delete the copy file to save some space
-            if "with no errors" in output:
-                print("reorganized successfully")
-                is_sparsified = '.reorganized'
-
-                sub_command = "rm %s" % backup_copy_file_path
-                os.system(sub_command)
-            # if there's any error in virt-sparsify, make the copy file be the source file
-            else:
-                print("Error in virt-sparsify")
+            # if there's any warning or error in virt-sparsify, make the copy file be the source file
+            if len(output) == 0 or "warning" in output:
+                print("Can't virt-sparsify")
                 sub_command = "rm %s" % src_file_path
                 os.system(sub_command)
 
                 sub_command = "mv %s %s" % (backup_copy_file_path, src_file_path)
+                os.system(sub_command)
+
+                # if there's error in virt-sparsify
+                if len(output) == 0:
+                    print("virt-sparsify: Error")
+                    report_message = "virt-sparsify: error: libguestfs error: discard cannot be enabled on this drive: " \
+                                     "qemu does not support discard for files in this disk format.\n"
+
+                # if there's warning in virt-sparsify
+                else:
+                    print("virt-sparsify: Warning")
+                    report_message = "virt-sparsify: warning: fstrim operation is not supported on /dev/sda1 (vfat).\n"
+            else:
+                # if virt-sparsify goes well, delete the copy file to save some space
+                print("virt-sparsify: successfully")
+                is_sparsified = '.reorganized'
+
+                sub_command = "rm %s" % backup_copy_file_path
                 os.system(sub_command)
 
         if with_compression:
@@ -271,6 +283,6 @@ def convert_sparsify_compress(src_file_path, virt_sparsify, with_compression):
         print("process ends")
 
         added_img_name = is_sparsified + is_compressed + ".qcow2"
-        return dest_file_path, added_img_name
+        return dest_file_path, added_img_name, report_message
     else:
         logging.error('The specified file does NOT exist')
