@@ -239,7 +239,7 @@ def convert_sparsify_compress(src_file_path, virt_sparsify, with_compression):
             os.system(sub_command)
 
             # virt-sparsify the source file and see if there's any error or warning
-            sub_command = "virt-sparsify --in-place %s" % src_file_path
+            sub_command = "virt-sparsify --in-place %s --ignore /dev/sda1" % src_file_path
             output = os.popen(sub_command).read()
             print("\n THE POPEN OUTPUT IS:\n" + output + "\nTHE POPEN OUTPUT ENDS\n")
 
