@@ -839,16 +839,6 @@ def upload(request, group_name=None):
             for chunk in image_file.chunks():
                 destination.write(chunk)
 
-        # added code in if -----------------------------------------------
-        virt_sparsify = bool(request.POST.get('operation1'))
-        with_compression = bool(request.POST.get('operation2'))
-
-        if virt_sparsify or with_compression:
-            file_path, added_img_name, report_msg = convert_sparsify_compress(file_path, virt_sparsify, with_compression)
-            image_file.name += added_img_name
-
-        # added code -----------------------------------------------------
-
         disk_format = request.POST.get('disk_format')
         if disk_format == '':
             try:
@@ -877,6 +867,21 @@ def upload(request, group_name=None):
             }
             config.db_close()
             return render(request, 'glintwebui/upload_image.html', context)
+
+
+        # added code in if -----------------------------------------------
+        virt_sparsify = bool(request.POST.get('operation1'))
+        with_compression = bool(request.POST.get('operation2'))
+        report_msg = ''
+
+        if virt_sparsify or with_compression:
+            if disk_format == 'qcow2' or disk_format == 'raw':
+                file_path, added_img_name, report_msg = convert_sparsify_compress(file_path, virt_sparsify, with_compression)
+                image_file.name += added_img_name
+            else:
+                report_msg = "Virt-Sparsify and Qemu Compression only work for RAW and QCOW2. "
+
+        # added code -----------------------------------------------------
 
         # Now we have a source file we need to upload it to one of the clouds to get a checksum so we can queue up transfer requests
         # get a cloud of of the list, first one is fine

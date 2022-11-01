@@ -280,6 +280,9 @@ def convert_sparsify_compress(src_file_path, virt_sparsify, with_compression):
         dest_file_path = src_file_path + is_sparsified + is_compressed + ".qcow2"
         sub_command = "qemu-img convert %s -O %s %s %s" % (added_cmd, output_format, src_file_path, dest_file_path)
         os.system(sub_command)
+
+        sub_command = "rm %s" % src_file_path
+        os.system(sub_command)
         print("process ends")
 
         added_img_name = is_sparsified + is_compressed + ".qcow2"
