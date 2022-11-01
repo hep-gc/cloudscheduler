@@ -71,20 +71,17 @@
 
 		<!--added ---------------------------------------------------------------------------------->
 		<tr id="Operation Selection">
-			<td><label for="operation">Select Operation: </label></td>
+			<td><label for="operation">Select Operation(Only for RAW AND QCOW2 file): </label></td>
 
 			<td><input title="Click to reorganize file and then convert it to qcow2" type="checkbox" id="operation1"  name="operation1" value="Virt Sparsify"> Virt Sparsify
-
 			<div title="Virt-sparsify is a tool which can make a virtual machine disk (or any disk image) sparse a.k.a. thin-provisioned. This means that free space within the disk image can be converted back to free space on the host." style="display:inline">
 				{% include "csv2/icon_question_circle.html" %}
-			</div>
-			</td>
+			</div></td>
 
 			<td><input title="Click to convert file to qcow2 and then compress it" type="checkbox" id="operation2" name="operation2" value="With Compression"> With Compression
 			<div title="-c command in qemu-img, indicates that target image must be compressed (qcow format only). It can handle all image formats supported by QEMU." style="display:inline">
 				{% include "csv2/icon_question_circle.html" %}
-			</div>
-			</td>
+			</div></td>
 
 		</tr>
 		<!--added ---------------------------------------------------------------------------------->

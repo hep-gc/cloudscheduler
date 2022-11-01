@@ -1002,7 +1002,7 @@ def upload(request, group_name=None):
                 'active_group': active_user.active_group,
                 'user_groups': active_user.user_groups,
                 'response_code': rc,
-                'message': report_msg + '\n' + "Upload Successful: image %s uploaded to %s-%s" % (image.name, group_name, target_cloud_name),
+                'message': report_msg + "Upload Successful: image %s uploaded to %s-%s" % (image.name, group_name, target_cloud_name),
                 'is_superuser': active_user.is_superuser,
                 'version': config.get_version()
             }
