@@ -1293,7 +1293,7 @@ def upload(request, group_name=None):
                 tx_request.apply_async((tx_id,), queue='tx_requests')
 
         # return to project details page with message
-        msg = "Upload successfully queued, returning to images..."
+        msg = report_msg + "Upload successfully queued, returning to images..."
         where_clause = "group_name='%s' and cloud_type='openstack'" % group_name
         rc, qmsg, cloud_list = config.db_query(CLOUDS, where=where_clause)
         context = {
