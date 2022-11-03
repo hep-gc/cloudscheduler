@@ -5,26 +5,31 @@
 
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
 <head>
-<style>
+	<style>
 	/* for image upload cloud picker widget */
 	SELECT, INPUT[type="text"] {
-	    width: 160px;
-	    box-sizing: border-box;
+		width: 160px;
+		box-sizing: border-box;
 	}
 	SECTION {
-	    padding: 8px;
-	    background-color: #f0f0f0;
-	    overflow: auto;
+		padding: 8px;
+		background-color: #f0f0f0;
+		overflow: auto;
 	}
 	SECTION > DIV {
-	    float: left;
-	    padding: 4px;
+		float: left;
+		padding: 4px;
 	}
 	SECTION > DIV + DIV {
-	    width: 40px;
-	    text-align: center;
+		width: 40px;
+		text-align: center;
 	}
-</style>
+	.checkbox2{
+		border: 1px solid black;
+		margin-right:0px;
+
+	}
+	</style>
 
 
     {% load static %}
@@ -69,7 +74,7 @@
 			<button onclick="toggleFileField()" type="button">From File</button></td>
 		</tr>
 
-		<div class="checkboxes">
+
 		<!--added ---------------------------------------------------------------------------------->
 		<tr id="Operation Selection">
 			<td><label for="operation">Select Operation: <br>(Only work effectively to RAW & QCOW2)</label></td>
@@ -79,11 +84,14 @@
 				{% include "csv2/icon_question_circle.html" %}
 			</div>
 
+
+			<div class="checkbox2">
 			<input title="Click to convert file to qcow2 and then compress it" type="checkbox" id="operation2" name="operation2" value="With Compression"> With Compression
 			<div title="-c command in qemu-img, indicates that target image must be compressed (qcow format only). It can handle all image formats supported by QEMU." style="display:inline">
 				{% include "csv2/icon_question_circle.html" %}
-			</div></td>
-		</div>
+			</div>
+			</div>
+			</td>
 
 		</tr>
 		<!--added ---------------------------------------------------------------------------------->
