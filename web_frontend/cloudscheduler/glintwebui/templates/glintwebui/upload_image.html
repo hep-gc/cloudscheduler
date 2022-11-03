@@ -73,17 +73,17 @@
 	{% csrf_token %}
 	<table id="uploadImages" style="width: 125%;">
 		<input type="hidden" name="group" value="{{group_name}}" />
+		<tr hidden="true" id="imagefromurl">
+			<td><label for="myfileurl">Image URL:</label></td>
+			<td><input type="text" name="myfileurl">
+			<button onclick="toggleFileField()" type="button">From File</button></td>
+		</tr>
+
 		<tr id="imagefromfile">
 			<td><label for="myfile">Image File:</label></td>
 
 			<td><input type="file" name="myfile">
 			<button onclick="toggleFileField()" type="button">From URL</button></td>
-		</tr>
-
-		<tr hidden="true" id="imagefromurl">
-			<td><label for="myfileurl">Image URL:</label></td>
-			<td><input type="text" name="myfileurl">
-			<button onclick="toggleFileField()" type="button">From File</button></td>
 		</tr>
 
 
