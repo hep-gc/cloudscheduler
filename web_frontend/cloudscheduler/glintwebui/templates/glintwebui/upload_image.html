@@ -31,7 +31,7 @@
 		border: 1px solid #ddd;
 		padding: 8px;
 	}
-	#uploadImages tr:nth-child(even){
+	#uploadImages tr:nth-child(odd){
 		background-color: #f2f2f2;
 	}
 
@@ -73,12 +73,13 @@
 	{% csrf_token %}
 	<table id="uploadImages" style="width: 125%;">
 		<input type="hidden" name="group" value="{{group_name}}" />
-                <tr id="imagefromfile">
+		<tr id="imagefromfile">
 			<td><label for="myfile">Image File:</label></td>
 
 			<td><input type="file" name="myfile">
 			<button onclick="toggleFileField()" type="button">From URL</button></td>
 		</tr>
+
 		<tr hidden="true" id="imagefromurl">
 			<td><label for="myfileurl">Image URL:</label></td>
 			<td><input type="text" name="myfileurl">
