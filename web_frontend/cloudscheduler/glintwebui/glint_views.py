@@ -839,16 +839,6 @@ def upload(request, group_name=None):
             for chunk in image_file.chunks():
                 destination.write(chunk)
 
-        # added code in if -----------------------------------------------
-        virt_sparsify = bool(request.POST.get('operation1'))
-        with_compression = bool(request.POST.get('operation2'))
-
-        if virt_sparsify or with_compression:
-            file_path, added_img_name, report_msg = convert_sparsify_compress(file_path, virt_sparsify, with_compression)
-            image_file.name += added_img_name
-
-        # added code -----------------------------------------------------
-
         disk_format = request.POST.get('disk_format')
         if disk_format == '':
             try:
@@ -877,6 +867,20 @@ def upload(request, group_name=None):
             }
             config.db_close()
             return render(request, 'glintwebui/upload_image.html', context)
+
+
+        # added code in if -----------------------------------------------
+        virt_sparsify = bool(request.POST.get('operation1'))
+        with_compression = bool(request.POST.get('operation2'))
+        report_msg = ''
+
+        if virt_sparsify or with_compression:
+            if disk_format == 'qcow2' or disk_format == 'raw':
+                file_path, added_img_name, report_msg = convert_sparsify_compress(file_path, virt_sparsify, with_compression)
+                image_file.name += added_img_name
+            else:
+                report_msg = "Virt-Sparsify and Qemu Compression only work for RAW and QCOW2. "
+        # added code -----------------------------------------------------
 
         # Now we have a source file we need to upload it to one of the clouds to get a checksum so we can queue up transfer requests
         # get a cloud of of the list, first one is fine
@@ -1002,7 +1006,7 @@ def upload(request, group_name=None):
                 'active_group': active_user.active_group,
                 'user_groups': active_user.user_groups,
                 'response_code': rc,
-                'message': report_msg + '\n' + "Upload Successful: image %s uploaded to %s-%s" % (image.name, group_name, target_cloud_name),
+                'message': report_msg + "Upload Successful: image %s uploaded to %s-%s" % (image.name, group_name, target_cloud_name),
                 'is_superuser': active_user.is_superuser,
                 'version': config.get_version()
             }
@@ -1123,19 +1127,6 @@ def upload(request, group_name=None):
         with open(file_path, "wb") as image_file:
             image_file.write(image_data.data)
 
-        # added code in elif----------------------------------------------
-        virt_sparsify = bool(request.POST.get('operation1'))
-        with_compression = bool(request.POST.get('operation2'))
-
-        if virt_sparsify or with_compression:
-            file_path = convert_sparsify_compress(file_path, virt_sparsify, with_compression)
-            if virt_sparsify:
-                image_name += '.reorganized'
-            if with_compression:
-                image_name += '.compressed'
-            image_name += '.qcow2'
-        # added code -----------------------------------------------------
-
         disk_format = request.POST.get('disk_format')
         if disk_format == '':
             try:
@@ -1170,6 +1161,21 @@ def upload(request, group_name=None):
             container_format = "ova"
         else:
             container_format = "bare"
+
+        # added code in elif -----------------------------------------------
+        virt_sparsify = bool(request.POST.get('operation1'))
+        with_compression = bool(request.POST.get('operation2'))
+        report_msg = ''
+
+        if virt_sparsify or with_compression:
+            if disk_format == 'qcow2' or disk_format == 'raw':
+                file_path, added_img_name, report_msg = convert_sparsify_compress(file_path, virt_sparsify, with_compression)
+                image_name += added_img_name
+            else:
+                report_msg = "Virt-Sparsify and Qemu Compression only work for RAW and QCOW2. The original file "
+
+        # added code -----------------------------------------------------
+
 
         # Now we have a source file we need to upload it to one of the clouds to get a checksum so we can queue up transfer requests
         # get a cloud of of the list, first one is fine
@@ -1273,7 +1279,7 @@ def upload(request, group_name=None):
                 tx_request.apply_async((tx_id,), queue='tx_requests')
 
         # return to project details page with message
-        msg = "Upload successfully queued, returning to images..."
+        msg = report_msg + "upload successfully queued, returning to images..."
         where_clause = "group_name='%s' and cloud_type='openstack'" % group_name
         rc, qmsg, cloud_list = config.db_query(CLOUDS, where=where_clause)
         context = {

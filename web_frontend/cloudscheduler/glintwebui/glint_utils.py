@@ -257,12 +257,12 @@ def convert_sparsify_compress(src_file_path, virt_sparsify, with_compression):
                 if len(output) == 0:
                     print("virt-sparsify: Error")
                     report_message = "virt-sparsify: error: libguestfs error: discard cannot be enabled on this drive: " \
-                                     "qemu does not support discard for files in this disk format.\n"
+                                     "qemu does not support discard for files in this disk format. "
 
                 # if there's warning in virt-sparsify
                 else:
                     print("virt-sparsify: Warning")
-                    report_message = "virt-sparsify: warning: fstrim operation is not supported on /dev/sda1 (vfat).\n"
+                    report_message = "virt-sparsify: warning: fstrim operation is not supported on /dev/sda1 (vfat). "
             else:
                 # if virt-sparsify goes well, delete the copy file to save some space
                 print("virt-sparsify: successfully")
@@ -279,6 +279,9 @@ def convert_sparsify_compress(src_file_path, virt_sparsify, with_compression):
         output_format = 'qcow2'
         dest_file_path = src_file_path + is_sparsified + is_compressed + ".qcow2"
         sub_command = "qemu-img convert %s -O %s %s %s" % (added_cmd, output_format, src_file_path, dest_file_path)
+        os.system(sub_command)
+
+        sub_command = "rm %s" % src_file_path
         os.system(sub_command)
         print("process ends")
 

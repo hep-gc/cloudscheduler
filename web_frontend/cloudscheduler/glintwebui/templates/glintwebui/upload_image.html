@@ -4,29 +4,44 @@
 {% endblock %}
 
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
-<style>
+<head>
+	<style>
 	/* for image upload cloud picker widget */
 	SELECT, INPUT[type="text"] {
-	    width: 160px;
-	    box-sizing: border-box;
+		width: 160px;
+		box-sizing: border-box;
 	}
 	SECTION {
-	    padding: 8px;
-	    background-color: #f0f0f0;
-	    overflow: auto;
+		padding: 8px;
+		background-color: #f0f0f0;
+		overflow: auto;
 	}
 	SECTION > DIV {
-	    float: left;
-	    padding: 4px;
+		float: left;
+		padding: 4px;
 	}
 	SECTION > DIV + DIV {
-	    width: 40px;
-	    text-align: center;
+		width: 40px;
+		text-align: center;
+	}
+	.checkbox2{
+		margin-right:0px;
+	}
+	#uploadImages td{
+		border: 1px solid #ddd;
+		padding: 8px;
+	}
+	#uploadImages tr:nth-child(odd){
+		background-color: #f2f2f2;
 	}
 
-</style>
+	#uploadImages tr:hover{
+		background-color: #ddd;
+	}
 
-<head>
+	</style>
+
+
     {% load static %}
     <link rel="stylesheet" type="text/css" href="{% static "csv2/common.css" %}?{{version}}">
     <link rel="stylesheet" type="text/css" href="{% static "csv2/menu.css" %}?{{version}}">
@@ -56,33 +71,37 @@
 <div class="image upload section-div {% if is_superuser %}super-section-div{% endif %}">
 	<form method="post" action="/images/upload_image/{{group_name}}/" enctype="multipart/form-data">
 	{% csrf_token %}
-	<table style="width: 110%;">
+	<table id="uploadImages" style="width: 125%;">
 		<input type="hidden" name="group" value="{{group_name}}" />
-                <tr id="imagefromfile">
-			<td><label for="myfile">Image File:</label></td>
-			<td><input type="file" name="myfile">
-			<button onclick="toggleFileField()" type="button">From URL</button></td>
-		</tr>
 		<tr hidden="true" id="imagefromurl">
 			<td><label for="myfileurl">Image URL:</label></td>
 			<td><input type="text" name="myfileurl">
 			<button onclick="toggleFileField()" type="button">From File</button></td>
 		</tr>
 
+		<tr id="imagefromfile">
+			<td><label for="myfile" style="font-weight: bold">Image File:</label></td>
+
+			<td><input type="file" name="myfile">
+			<button onclick="toggleFileField()" type="button">From URL</button></td>
+		</tr>
+
+
 		<!--added ---------------------------------------------------------------------------------->
-		<tr id="Operation Selection">
-			<td><label for="operation">Select Operation: </label></td>
+		<tr id="OperationSelection">
+			<td><label for="operation" style="font-weight: bold;">Select Operation: <br>(Only work effectively to RAW & QCOW2)</label></td>
 
 			<td><input title="Click to reorganize file and then convert it to qcow2" type="checkbox" id="operation1"  name="operation1" value="Virt Sparsify"> Virt Sparsify
-
 			<div title="Virt-sparsify is a tool which can make a virtual machine disk (or any disk image) sparse a.k.a. thin-provisioned. This means that free space within the disk image can be converted back to free space on the host." style="display:inline">
 				{% include "csv2/icon_question_circle.html" %}
 			</div>
-			</td>
 
-			<td><input title="Click to convert file to qcow2 and then compress it" type="checkbox" id="operation2" name="operation2" value="With Compression"> With Compression
+
+			<div class="checkbox2">
+			<input title="Click to convert file to qcow2 and then compress it" type="checkbox" id="operation2" name="operation2" value="With Compression"> With Compression
 			<div title="-c command in qemu-img, indicates that target image must be compressed (qcow format only). It can handle all image formats supported by QEMU." style="display:inline">
 				{% include "csv2/icon_question_circle.html" %}
+			</div>
 			</div>
 			</td>
 
@@ -90,7 +109,7 @@
 		<!--added ---------------------------------------------------------------------------------->
 
 		<tr>
-			<td><label for="disk_format">Disk Format:</label></td>
+			<td><label for="disk_format" style="font-weight: bold;">Disk Format:</label></td>
 			<td><select type="text" name="disk_format"/>
                                 <option value="" selected>Auto Detect</option>
 				<option value="aki">AKI - Amazon Kernel Image</option>
@@ -108,7 +127,7 @@
 		</tr>
 
 		<tr>
-			<td><label for="clouds">Upload to:</label></td>
+			<td><label for="clouds" style="font-weight: bold;">Upload to: <br> (Add target clouds to the left box)</label></td>
 			<td>
 				<section class="container">
 					<div>
