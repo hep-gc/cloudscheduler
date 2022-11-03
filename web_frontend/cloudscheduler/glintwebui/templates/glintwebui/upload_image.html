@@ -38,10 +38,7 @@
 	#uploadImages tr:hover{
 		background-color: #ddd;
 	}
-	#myfile, #operation, #disk_format{
-		font-size: 150%;
-		font-weight: bold;
-	}
+
 	</style>
 
 
@@ -83,7 +80,7 @@
 		</tr>
 
 		<tr id="imagefromfile">
-			<td><label for="myfile">Image File:</label></td>
+			<td><label for="myfile" style="font-size: 150%; font-weight: bold;">Image File:</label></td>
 
 			<td><input type="file" name="myfile">
 			<button onclick="toggleFileField()" type="button">From URL</button></td>
@@ -92,7 +89,7 @@
 
 		<!--added ---------------------------------------------------------------------------------->
 		<tr id="Operation Selection">
-			<td><label for="operation">Select Operation: <br>(Only work effectively to RAW & QCOW2)</label></td>
+			<td><label for="operation" style="font-size: 150%; font-weight: bold;">Select Operation: <br>(Only work effectively to RAW & QCOW2)</label></td>
 
 			<td><input title="Click to reorganize file and then convert it to qcow2" type="checkbox" id="operation1"  name="operation1" value="Virt Sparsify"> Virt Sparsify
 			<div title="Virt-sparsify is a tool which can make a virtual machine disk (or any disk image) sparse a.k.a. thin-provisioned. This means that free space within the disk image can be converted back to free space on the host." style="display:inline">
@@ -112,7 +109,7 @@
 		<!--added ---------------------------------------------------------------------------------->
 
 		<tr>
-			<td><label for="disk_format">Disk Format:</label></td>
+			<td><label for="disk_format" style="font-size: 150%; font-weight: bold;">Disk Format:</label></td>
 			<td><select type="text" name="disk_format"/>
                                 <option value="" selected>Auto Detect</option>
 				<option value="aki">AKI - Amazon Kernel Image</option>
