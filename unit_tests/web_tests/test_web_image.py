@@ -80,7 +80,7 @@ class TestWebImageCommon(unittest.TestCase):
         self.assertTrue(self.page.image_exists(image_name+".qcow2"))
         wta.assertExists('image', image_name+".qcow2", group=self.gvar['base_group'], image_cloud=cloud_name)
         print("\ntester-wii4.hdd.qcow2 file successfully uploaded")
-        '''
+
         # delete web image upload file_name ends with .qcow2
         self.page.click_top_nav('Images')
         image_name = self.gvar['user'] + '-wii4.hdd.qcow2'
@@ -89,9 +89,7 @@ class TestWebImageCommon(unittest.TestCase):
             self.page.click_cloud_button(image_name, cloud_name)
             self.page.click_delete_ok()
         print("tester-wii4.hdd.qcow2 file successfully deleted")
-        '''
 
-    @unittest.skip("Skip testing")
     def test_web_image_upload_filename_with_compression_checkbox(self):
         # Uploads an image to a cloud using a system file
         image_name = self.gvar['user'] + '-wii4.hdd'
@@ -119,7 +117,6 @@ class TestWebImageCommon(unittest.TestCase):
             self.page.click_delete_ok()
         print("tester-wii4.hdd.compressed.qcow2 file successfully deleted")
 
-    @unittest.skip("Skip testing")
     def test_web_image_upload_filename_with_sparsify_compression_checkbox(self):
         # Uploads an image to a cloud using a system file
         image_name = self.gvar['user'] + '-wii4.hdd'
@@ -148,7 +145,6 @@ class TestWebImageCommon(unittest.TestCase):
             self.page.click_delete_ok()
         print("tester-wii4.hdd.compressed.qcow2 file successfully deleted")
 
-    @unittest.skip("Skip testing")
     def test_web_image_upload_url_two_checkboxes(self):
         # Uploads an image to a cloud using a URL
         image_name = 'test-os-image-raw.hdd'
