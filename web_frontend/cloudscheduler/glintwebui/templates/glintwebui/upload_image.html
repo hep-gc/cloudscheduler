@@ -25,9 +25,18 @@
 		text-align: center;
 	}
 	.checkbox2{
-		border: 1px solid black;
 		margin-right:0px;
+	}
+	#uploadImages td{
+		border: 1px solid #ddd;
+		padding: 8px;
+	}
+	#uploadImages tr:nth-child(even){
+		background-color: #f2f2f2;
+	}
 
+	#uploadImages tr:hover{
+		background-color: #ddd;
 	}
 	</style>
 
@@ -61,7 +70,7 @@
 <div class="image upload section-div {% if is_superuser %}super-section-div{% endif %}">
 	<form method="post" action="/images/upload_image/{{group_name}}/" enctype="multipart/form-data">
 	{% csrf_token %}
-	<table style="width: 125%;">
+	<table id="uploadImages" style="width: 125%;">
 		<input type="hidden" name="group" value="{{group_name}}" />
                 <tr id="imagefromfile">
 			<td><label for="myfile">Image File:</label></td>
