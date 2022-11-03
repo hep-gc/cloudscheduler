@@ -57,7 +57,7 @@
 <div class="image upload section-div {% if is_superuser %}super-section-div{% endif %}">
 	<form method="post" action="/images/upload_image/{{group_name}}/" enctype="multipart/form-data">
 	{% csrf_token %}
-	<table style="width: 120%;">
+	<table style="width: 130%;">
 		<input type="hidden" name="group" value="{{group_name}}" />
                 <tr id="imagefromfile">
 			<td><label for="myfile">Image File:</label></td>
