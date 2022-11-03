@@ -4,6 +4,7 @@
 {% endblock %}
 
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+<head>
 <style>
 	/* for image upload cloud picker widget */
 	SELECT, INPUT[type="text"] {
@@ -23,11 +24,9 @@
 	    width: 40px;
 	    text-align: center;
 	}
-
-
 </style>
 
-<head>
+
     {% load static %}
     <link rel="stylesheet" type="text/css" href="{% static "csv2/common.css" %}?{{version}}">
     <link rel="stylesheet" type="text/css" href="{% static "csv2/menu.css" %}?{{version}}">
@@ -57,7 +56,7 @@
 <div class="image upload section-div {% if is_superuser %}super-section-div{% endif %}">
 	<form method="post" action="/images/upload_image/{{group_name}}/" enctype="multipart/form-data">
 	{% csrf_token %}
-	<table style="width: 130%;">
+	<table style="width: 125%;">
 		<input type="hidden" name="group" value="{{group_name}}" />
                 <tr id="imagefromfile">
 			<td><label for="myfile">Image File:</label></td>
@@ -70,6 +69,7 @@
 			<button onclick="toggleFileField()" type="button">From File</button></td>
 		</tr>
 
+		<div class="checkboxes">
 		<!--added ---------------------------------------------------------------------------------->
 		<tr id="Operation Selection">
 			<td><label for="operation">Select Operation: <br>(Only work effectively to RAW & QCOW2)</label></td>
@@ -83,6 +83,7 @@
 			<div title="-c command in qemu-img, indicates that target image must be compressed (qcow format only). It can handle all image formats supported by QEMU." style="display:inline">
 				{% include "csv2/icon_question_circle.html" %}
 			</div></td>
+		</div>
 
 		</tr>
 		<!--added ---------------------------------------------------------------------------------->
