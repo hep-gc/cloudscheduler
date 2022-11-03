@@ -80,7 +80,6 @@ class TestWebImageCommon(unittest.TestCase):
         self.assertTrue(self.page.image_exists(image_name+".qcow2"))
         wta.assertExists('image', image_name+".qcow2", group=self.gvar['base_group'], image_cloud=cloud_name)
         print("\ntester-wii4.hdd.qcow2 file successfully uploaded")
-
         '''
         # delete web image upload file_name ends with .qcow2
         self.page.click_top_nav('Images')
