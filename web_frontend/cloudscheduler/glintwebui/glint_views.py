@@ -1127,20 +1127,6 @@ def upload(request, group_name=None):
         with open(file_path, "wb") as image_file:
             image_file.write(image_data.data)
 
-        '''
-        # added code in elif----------------------------------------------
-        virt_sparsify = bool(request.POST.get('operation1'))
-        with_compression = bool(request.POST.get('operation2'))
-
-        if virt_sparsify or with_compression:
-            file_path = convert_sparsify_compress(file_path, virt_sparsify, with_compression)
-            if virt_sparsify:
-                image_name += '.reorganized'
-            if with_compression:
-                image_name += '.compressed'
-            image_name += '.qcow2'
-        # added code -----------------------------------------------------
-        '''
         disk_format = request.POST.get('disk_format')
         if disk_format == '':
             try:
