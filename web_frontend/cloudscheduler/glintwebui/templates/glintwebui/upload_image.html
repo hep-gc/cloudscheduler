@@ -38,6 +38,18 @@
 	#uploadImages tr:hover{
 		background-color: #ddd;
 	}
+	.button {
+		background-color: #4CAF50;
+		transition-duration: 0.4s;
+		cursor: pointer;
+		background-color: white;
+  		color: black;
+  		border: 2px solid #4CAF50;
+	}
+	.button:hover {
+		background-color: #4CAF50;
+		color: white;
+	}
 
 	</style>
 
@@ -76,14 +88,14 @@
 		<tr hidden="true" id="imagefromurl">
 			<td><label for="myfileurl">Image URL:</label></td>
 			<td><input type="text" name="myfileurl">
-			<button onclick="toggleFileField()" type="button">From File</button></td>
+			<button class="button" onclick="toggleFileField()" type="button">From File</button></td>
 		</tr>
 
 		<tr id="imagefromfile">
 			<td><label for="myfile">Image File:</label></td>
 
 			<td><input type="file" name="myfile">
-			<button onclick="toggleFileField()" type="button">From URL</button></td>
+			<button class="button" onclick="toggleFileField()" type="button">From URL</button></td>
 		</tr>
 
 
@@ -111,7 +123,7 @@
 		<tr>
 			<td><label for="disk_format">Disk Format:</label></td>
 			<td><select type="text" name="disk_format"/>
-                                <option value="" selected>Auto Detect</option>
+                                <option class="button" value="" selected>Auto Detect</option>
 				<option value="aki">AKI - Amazon Kernel Image</option>
 				<option value="ami">AMI - Amazon Machine Image</option>
 				<option value="ari">ARI - Amazon Ramdisk Image</option>
@@ -148,7 +160,7 @@
 			</td>
 		</tr>
 		
-		<tr><td/><td><a href="/images/?{{group_name}}"><input type="button" value="Cancel"/></a><button style="float:right" onclick='submit_upload()'>Upload</button></td></tr>
+		<tr><td/><td><a href="/images/?{{group_name}}"><input type="button" class="button" value="Cancel"/></a><button class="button" style="float:right" onclick='submit_upload()'>Upload</button></td></tr>
 	</table>
 	</form>
 
