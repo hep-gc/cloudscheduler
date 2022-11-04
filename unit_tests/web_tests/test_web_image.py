@@ -154,16 +154,13 @@ class TestWebImageCommon(unittest.TestCase):
 
         self.page.click_checkbox("operation1")
         self.page.click_checkbox("operation2")
-        print("click two checkboxes good")
 
         self.page.add_upload_to_cloud(cloud_name)
         with wti.wait_for_page_load(self.driver, timeout=1000):
             self.page.click_upload()
         self.page.click_top_nav('Images')
-        print("upload good")
 
         self.assertTrue(self.page.image_exists(image_name+".compressed.qcow2"))
-        print("file in webpage")
         wta.assertExists('image', image_name+".compressed.qcow2", group=self.gvar['base_group'], image_cloud=cloud_name)
         print("\ntest-os-image-raw.hdd.compressed.qcow2 file successfully uploaded")
 
