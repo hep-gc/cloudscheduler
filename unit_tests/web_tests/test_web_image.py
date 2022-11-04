@@ -165,7 +165,8 @@ class TestWebImageCommon(unittest.TestCase):
         print("upload good")
 
         self.assertTrue(self.page.image_exists(image_name+".compressed.qcow2"))
-        wta.assertExists('image', image_name, group=self.gvar['base_group'], image_cloud=cloud_name)
+        print("file in webpage")
+        wta.assertExists('image', image_name+".compressed.qcow2", group=self.gvar['base_group'], image_cloud=cloud_name)
         print("\ntest-os-image-raw.hdd.compressed.qcow2 file successfully uploaded")
 
         # delete web image upload file_name ends with .compressed.qcow2
