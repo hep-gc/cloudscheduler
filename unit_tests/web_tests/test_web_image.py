@@ -22,7 +22,6 @@ class TestWebImageCommon(unittest.TestCase):
         self.page.get_homepage()
         self.page.click_top_nav('Images')
 
-    @unittest.skip("Skip testing")
     def test_web_image_upload_filename(self):
         # Uploads an image to a cloud using a system file
         image_name = self.gvar['user'] + '-wii3.hdd'
@@ -38,7 +37,6 @@ class TestWebImageCommon(unittest.TestCase):
 
         wta.assertExists('image', image_name, group=self.gvar['base_group'], image_cloud=cloud_name)
 
-    @unittest.skip("Skip testing")
     def test_web_image_upload_url(self):
         # Uploads an image to a cloud using a URL
         image_name = 'test-os-image-raw.hdd'
@@ -179,7 +177,6 @@ class TestWebImageCommon(unittest.TestCase):
         print("test-os-image-raw.hdd.compressed.qcow2 file successfully deleted")
     # Cindy test the checkboxes-------------------------------------------------
 
-    @unittest.skip("Skip testing")
     def test_web_image_upload_cancel(self):
         # Tries to upload an image to a cloud but clicks cancel
         image_name = self.gvar['user'] + '-wii4.hdd'
