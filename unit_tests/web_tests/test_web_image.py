@@ -145,6 +145,7 @@ class TestWebImageCommon(unittest.TestCase):
             self.page.click_delete_ok()
         print("tester-wii4.hdd.compressed.qcow2 file successfully deleted")
 
+    @unittest.skip("Skip testing")
     def test_web_image_upload_url_two_checkboxes(self):
         # Uploads an image to a cloud using a URL
         image_name = 'test-os-image-raw.hdd'
