@@ -780,10 +780,9 @@ def upload(request, group_name=None):
         # before we save it locally let us check if it is already in the repos
         cloud_name_list = request.POST.getlist('clouds')
 
-        # ---------added------if the initial cloud_name_list is empty, return error message--
+        # ---------added------if the initial cloud_name_list is empty, return error message
         if len(cloud_name_list) == 0:
             msg = "Upload failed because no target cloud is selected"
-        # ---------added-----------------------------------------------------------------
 
         if len(cloud_name_list) == 1 and "," in cloud_name_list[0]:
             # could be a cli command packaged as a string,
@@ -868,8 +867,7 @@ def upload(request, group_name=None):
             config.db_close()
             return render(request, 'glintwebui/upload_image.html', context)
 
-
-        # added code in if -----------------------------------------------
+        # added code in if to do some operations to the source image file-------------------------
         virt_sparsify = bool(request.POST.get('operation1'))
         with_compression = bool(request.POST.get('operation2'))
         report_msg = ''
@@ -880,7 +878,6 @@ def upload(request, group_name=None):
                 image_file.name += added_img_name
             else:
                 report_msg = "Virt-Sparsify and Qemu Compression only work for RAW and QCOW2. "
-        # added code -----------------------------------------------------
 
         # Now we have a source file we need to upload it to one of the clouds to get a checksum so we can queue up transfer requests
         # get a cloud of of the list, first one is fine
@@ -1086,7 +1083,6 @@ def upload(request, group_name=None):
         # ---------added------if the initial cloud_name_list is empty, return error message--
         if len(cloud_name_list) == 0:
             msg = "Upload failed because no target cloud is selected"
-        # ---------added------if the initial cloud_name_list is empty, return error message--
 
         if len(image_list) > 0:
             # we've got some images by this name already lets see if any are in the target clouds
@@ -1162,7 +1158,7 @@ def upload(request, group_name=None):
         else:
             container_format = "bare"
 
-        # added code in elif -----------------------------------------------
+        # added code in elif to do some operations with source image ----------------------------
         virt_sparsify = bool(request.POST.get('operation1'))
         with_compression = bool(request.POST.get('operation2'))
         report_msg = ''
@@ -1173,9 +1169,6 @@ def upload(request, group_name=None):
                 image_name += added_img_name
             else:
                 report_msg = "Virt-Sparsify and Qemu Compression only work for RAW and QCOW2. The original file "
-
-        # added code -----------------------------------------------------
-
 
         # Now we have a source file we need to upload it to one of the clouds to get a checksum so we can queue up transfer requests
         # get a cloud of of the list, first one is fine

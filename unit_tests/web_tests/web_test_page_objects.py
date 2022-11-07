@@ -1114,7 +1114,7 @@ class ImagesPage(Page):
         except TimeoutException:
             return False
 
-    # Cindy Added ------------------------------------------------------------------------
+    # Added helper function of checkboxes operation--------------------------------
     def is_checkbox_selected(self, checkbox_id):
         checkbox = self.driver.find_element_by_id(checkbox_id)
         return checkbox.is_selected()
