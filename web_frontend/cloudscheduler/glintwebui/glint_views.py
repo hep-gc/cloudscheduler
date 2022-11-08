@@ -874,8 +874,9 @@ def upload(request, group_name=None):
 
         if virt_sparsify or with_compression:
             if disk_format == 'qcow2' or disk_format == 'raw':
-                file_path, added_img_name, report_msg = convert_sparsify_compress(file_path, virt_sparsify, with_compression)
-                image_file.name += added_img_name
+                file_path, report_msg = convert_sparsify_compress(file_path, virt_sparsify, with_compression)
+                if disk_format == 'raw':
+                    image_file.name += '.qcow2'
             else:
                 report_msg = "Virt-Sparsify and Qemu Compression only work for RAW and QCOW2. "
 
@@ -1165,8 +1166,9 @@ def upload(request, group_name=None):
 
         if virt_sparsify or with_compression:
             if disk_format == 'qcow2' or disk_format == 'raw':
-                file_path, added_img_name, report_msg = convert_sparsify_compress(file_path, virt_sparsify, with_compression)
-                image_name += added_img_name
+                file_path, report_msg = convert_sparsify_compress(file_path, virt_sparsify, with_compression)
+                if disk_format == 'raw':
+                    image_name += '.qcow2'
             else:
                 report_msg = "Virt-Sparsify and Qemu Compression only work for RAW and QCOW2. The original file "
 
