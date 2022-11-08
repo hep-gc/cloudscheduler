@@ -256,13 +256,13 @@ def convert_sparsify_compress(src_file_path, virt_sparsify, with_compression):
                 # if there's error in virt-sparsify
                 if len(output) == 0:
                     print("virt-sparsify: Error")
-                    # report_message = "virt-sparsify: error: libguestfs error: discard cannot be enabled on this drive: " \
-                    #                 "qemu does not support discard for files in this disk format. "
+                    report_message = "virt-sparsify: error: libguestfs error: discard cannot be enabled on this drive: " \
+                                     "qemu does not support discard for files in this disk format. "
 
                 # if there's warning in virt-sparsify
                 else:
                     print("virt-sparsify: Warning")
-                    # report_message = "virt-sparsify: warning: fstrim operation is not supported on /dev/sda1 (vfat). "
+                    report_message = "virt-sparsify: warning: fstrim operation is not supported on /dev/sda1 (vfat). "
             else:
                 # if virt-sparsify goes well, delete the copy file to save some space
                 print("virt-sparsify: successfully")
