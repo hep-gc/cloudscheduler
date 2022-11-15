@@ -98,7 +98,7 @@
                 <!-- img tuples have the following format: (status, message, visibility) where status' are missing, present, pending delete, pending transfer, error-->
                 {% for img_tuple in image_list %}
                     {% if img_tuple.0 == "missing" %}
-                        <td title="{{img_tuple.1}}" style="text-align:center" class="missing"><button onclick='transfer_req("{{image_key}}", "{{img_tuple.3}}", "{{active_group}}")'>O</button> </td>
+                        <td title="{{img_tuple.1}}" style="text-align:center" class="missing"><button title="Transfer image" onclick='transfer_req("{{image_key}}", "{{img_tuple.3}}", "{{active_group}}")'>O</button> </td>
                     {% elif img_tuple.0 == "present" %}
                         <!-- If image is here and the visibility is shared, we can't delete it so grey out the button -->
                         {% if img_tuple.2 == "public" %}

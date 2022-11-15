@@ -288,3 +288,5 @@ def convert_sparsify_compress(src_file_path, virt_sparsify, with_compression):
         return dest_file_path, report_message
     else:
         logging.error('The specified file does NOT exist')
+
+
