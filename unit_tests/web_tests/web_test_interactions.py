@@ -12,6 +12,7 @@ from time import sleep
 
 default_timeout = 20
 
+
 class wait_for_page_load(object):
     """
     Context for waiting for a new page to be loaded upon the completion
@@ -19,12 +20,16 @@ class wait_for_page_load(object):
     element on the previous page. Largely based on:
     https://www.cloudbees.com/blog/get-selenium-to-wait-for-page-load.
     """
+
     def __init__(self, browser, timeout=default_timeout):
         self.browser, self.timeout = browser, timeout
+
     def __enter__(self):
         self.old_page = self.browser.find_element_by_tag_name('html')
+
     def __exit__(self, *_):
         WebDriverWait(self.browser, self.timeout).until(EC.staleness_of(self.old_page))
+
 
 def click_by_link_text(driver, text, timeout=default_timeout):
     WebDriverWait(driver, timeout).until(
@@ -32,11 +37,13 @@ def click_by_link_text(driver, text, timeout=default_timeout):
     nav_button = driver.find_element_by_link_text(text)
     nav_button.click()
 
+
 def click_by_id(driver, id, timeout=default_timeout):
     WebDriverWait(driver, timeout).until(
         EC.element_to_be_clickable((By.ID, id)))
     button = driver.find_element_by_id(id)
     button.click()
+
 
 def click_by_name(driver, name, timeout=default_timeout):
     WebDriverWait(driver, timeout).until(
@@ -44,17 +51,20 @@ def click_by_name(driver, name, timeout=default_timeout):
     element = driver.find_element_by_name(name)
     element.click()
 
+
 def click_by_xpath(driver, xpath, timeout=default_timeout):
     WebDriverWait(driver, timeout).until(
         EC.presence_of_element_located((By.XPATH, xpath)))
     element = driver.find_element_by_xpath(xpath)
     element.click()
 
+
 def click_by_class_name(driver, class_name, timeout=default_timeout):
     WebDriverWait(driver, timeout).until(
         EC.presence_of_element_located((By.CLASS_NAME, class_name)))
     element = driver.find_element_by_class_name(class_name)
     element.click()
+
 
 def fill_blank_by_id(driver, id, text, timeout=default_timeout):
     WebDriverWait(driver, timeout).until(
@@ -67,6 +77,7 @@ def fill_blank_by_id(driver, id, text, timeout=default_timeout):
         for letter in text:
             form.send_keys(letter)
 
+
 def fill_blank_by_name(driver, name, text, timeout=default_timeout):
     WebDriverWait(driver, timeout).until(
         EC.element_to_be_clickable((By.NAME, name)))
@@ -78,6 +89,7 @@ def fill_blank_by_name(driver, name, text, timeout=default_timeout):
         for letter in text:
             form.send_keys(letter)
 
+
 def fill_blank_by_xpath(driver, xpath, text, timeout=default_timeout):
     WebDriverWait(driver, timeout).until(
         EC.element_to_be_clickable((By.XPATH, xpath)))
@@ -88,6 +100,7 @@ def fill_blank_by_xpath(driver, xpath, text, timeout=default_timeout):
         form.clear()
         for letter in text:
             form.send_keys(letter)
+
 
 def fill_blank_by_tag_name(driver, tag_name, text, timeout=default_timeout):
     # Note: only use this method when there is definitely only one element with
@@ -102,11 +115,13 @@ def fill_blank_by_tag_name(driver, tag_name, text, timeout=default_timeout):
         for letter in text:
             form.send_keys(letter)
 
+
 def select_option_by_id(driver, id, option, timeout=default_timeout):
     WebDriverWait(driver, timeout).until(
         EC.element_to_be_clickable((By.ID, id)))
     dropdown = Select(driver.find_element_by_id(id))
     dropdown.select_by_visible_text(option)
+
 
 def select_option_by_name(driver, name, option, timeout=default_timeout):
     WebDriverWait(driver, timeout).until(
@@ -114,11 +129,13 @@ def select_option_by_name(driver, name, option, timeout=default_timeout):
     dropdown = Select(driver.find_element_by_name(name))
     dropdown.select_by_visible_text(option)
 
+
 def select_option_by_xpath(driver, xpath, option, timeout=default_timeout):
     WebDriverWait(driver, timeout).until(
         EC.element_to_be_clickable((By.XPATH, xpath)))
     dropdown = Select(driver.find_element_by_xpath(xpath))
     dropdown.select_by_visible_text(option)
+
 
 def slide_slider_by_xpath(driver, xpath, offset, vertical_offset, timeout=default_timeout):
     WebDriverWait(driver, timeout).until(
@@ -127,12 +144,14 @@ def slide_slider_by_xpath(driver, xpath, offset, vertical_offset, timeout=defaul
     action = ActionChains(driver).move_to_element_with_offset(slider, offset, vertical_offset).click()
     action.perform()
 
+
 def right_click_by_xpath(driver, xpath, timeout=default_timeout):
     WebDriverWait(driver, timeout).until(
         EC.element_to_be_clickable((By.XPATH, xpath)))
     element = driver.find_element_by_xpath(xpath)
     action = ActionChains(driver).context_click(element)
     action.perform()
+
 
 def get_validation_message_by_name(driver, name, timeout=default_timeout):
     WebDriverWait(driver, timeout).until(

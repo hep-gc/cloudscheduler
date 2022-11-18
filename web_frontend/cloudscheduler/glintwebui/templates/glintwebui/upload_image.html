@@ -87,18 +87,17 @@
 		</tr>
 
 
-		<!--added checkboxes---------------------------------------------------------------->
 		<tr id="OperationSelection">
 			<td><label for="operation" style="font-weight: bold;">Select Operation: <br>(affects only RAW & QCOW2 images)</label></td>
 
-			<td><input title="Click to reorganize file and then convert it to qcow2" type="checkbox" id="operation1"  name="operation1" value="Virt Sparsify"> Virt Sparsify
+			<td><input title="Click to reorganize file and then convert it to qcow2" type="checkbox" id="reorganization"  name="reorganization" value="Virt Sparsify"> Virt Sparsify
 			<div title="Virt-sparsify is a tool which can convert the free space within a virtual machine disk (or any disk image) back to free space on the host." style="display:inline">
 				{% include "csv2/icon_question_circle.html" %}
 			</div>
 
 
 			<div class="checkbox2">
-			<input title="Click to convert file to qcow2 and then compress it" type="checkbox" id="operation2" name="operation2" value="With Compression"> With Compression
+			<input title="Click to convert file to qcow2 and then compress it" type="checkbox" id="compression" name="compression" value="With Compression"> With Compression
 			<div title="-c command in qemu-img, indicates that target image must be compressed (qcow format only). It can handle all image formats supported by QEMU." style="display:inline">
 				{% include "csv2/icon_question_circle.html" %}
 			</div>
