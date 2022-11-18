@@ -5,6 +5,7 @@ import unittest
 import sys
 from . import web_test_setup_cleanup as wtsc
 from . import web_test_assertions_v2 as wta
+from . import web_test_interactions as wti
 from . import web_test_page_objects as pages
 from . import web_test_helpers as helpers
 
@@ -586,7 +587,7 @@ class TestWebStatusCommon(unittest.TestCase):
         self.page.click_plot_legend_item(self.group_name + ' ' + self.cloud_name + ' VMs')
         self.assertFalse(self.page.plot_has_line())
         self.page.click_close_plot()
-    '''
+    
 
     def test_web_status_vm_overlay_open(self):
         # Clicks on the vm overlay
@@ -656,12 +657,20 @@ class TestWebStatusCommon(unittest.TestCase):
         self.page.click_vm_data_box(self.group_name, self.cloud_name, 'VMs', right_click=True)
         self.assertFalse(self.page.vm_overlay_column_is(3, 'Terminate', 0))
         self.page.click_vm_overlay_close()
+    '''
 
     def test_web_status_vm_overlay_filter_cores(self):
         self.page.wait_until_vms_not_zero(self.group_name, self.cloud_name, 3)
         print("wait_until_vms_not_zero is good")
         self.page.click_vm_data_box(self.group_name, self.cloud_name, 'VMs', right_click=True)
         print("right click_vm_data_box is good")
+
+        self.assertTrue(self.page.checkbox_selected("starting"))
+        print("starting checkbox is selected")
+
+        self.assertTrue(self.page.checkbox_selected("2"))
+        print("2 checkbox is selected")
+
         self.page.click_vm_filter_checkbox('2')
         print("click_vm_filter_checkbox 2 is good")
         self.page.click_vm_filter_checkbox('4')
