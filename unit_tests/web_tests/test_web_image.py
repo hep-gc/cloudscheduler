@@ -52,11 +52,10 @@ class TestWebImageCommon(unittest.TestCase):
         self.assertTrue(self.page.image_exists(image_name))
         wta.assertExists('image', image_name, group=self.gvar['base_group'], image_cloud=cloud_name)
 
-    # test the checkboxes-------------------------------------------------
     def test_two_checkboxes(self):
         self.page.click_upload_image()
-        virt_sparsify_checked = self.page.is_checkbox_selected("operation1")
-        with_compression_checked = self.page.is_checkbox_selected("operation2")
+        virt_sparsify_checked = self.page.is_checkbox_selected("reorganization")
+        with_compression_checked = self.page.is_checkbox_selected("compression")
 
         self.assertFalse(virt_sparsify_checked)
         self.assertFalse(with_compression_checked)
@@ -69,8 +68,8 @@ class TestWebImageCommon(unittest.TestCase):
         # uploading .hdd file by clicking two checkboxes
         self.page.click_upload_image()
         self.page.type_image_file_path(helpers.misc_file_full_path(image_name))
-        self.page.click_checkbox("operation1")
-        self.page.click_checkbox("operation2")
+        self.page.click_checkbox("reorganization")
+        self.page.click_checkbox("compression")
         self.page.add_upload_to_cloud(cloud_name)
         with wti.wait_for_page_load(self.driver, timeout=1000):
             self.page.click_upload()
@@ -91,32 +90,31 @@ class TestWebImageCommon(unittest.TestCase):
 
     def test_web_image_upload_url_two_checkboxes(self):
         # Uploads an image to a cloud using a URL
+        image_name = 'test-os-image-raw.hdd'
         cloud_name = self.gvar['user'] + '-wic2'
         self.page.click_upload_image()
         self.page.click_from_url()
-        self.page.type_image_url('http://cernvm.cern.ch/releases/production/cernvm4-micro-2020.07-1.hdd')
+        self.page.type_image_url('http://elephant06.heprc.uvic.ca/' + image_name)
 
-        self.page.click_checkbox("operation1")
-        self.page.click_checkbox("operation2")
+        self.page.click_checkbox("reorganization")
+        self.page.click_checkbox("compression")
 
         self.page.add_upload_to_cloud(cloud_name)
         with wti.wait_for_page_load(self.driver, timeout=1000):
             self.page.click_upload()
         self.page.click_top_nav('Images')
 
-        self.assertTrue(self.page.image_exists("cernvm4-micro-2020.07-1.hdd"))
-        wta.assertExists('image', "cernvm4-micro-2020.07-1.hdd", group=self.gvar['base_group'], image_cloud=cloud_name)
-        print("\ncernvm4-micro-2020.07-1.hdd file successfully uploaded")
+        self.assertTrue(self.page.image_exists(image_name))
+        wta.assertExists('image', image_name, group=self.gvar['base_group'], image_cloud=cloud_name)
+        print("\ntest-os-image-raw.hdd successfully uploaded")
 
         # delete web image upload file_name
         self.page.click_top_nav('Images')
-        image_name = 'cernvm4-micro-2020.07-1.hdd'
         cloud_name = self.gvar['user'] + '-wic2'
         with wti.wait_for_page_load(self.driver, timeout=1000):
             self.page.click_cloud_button(image_name, cloud_name)
             self.page.click_delete_ok()
-        print("cernvm4-micro-2020.07-1.hdd file successfully deleted")
-    # test the checkboxes-------------------------------------------------
+        print("\ntest-os-image-raw.hdd successfully deleted")
 
     def test_web_image_upload_cancel(self):
         # Tries to upload an image to a cloud but clicks cancel
