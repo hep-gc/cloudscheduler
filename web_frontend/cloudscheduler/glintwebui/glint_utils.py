@@ -225,15 +225,9 @@ def generate_tx_id(length=16):
 
 def convert_sparsify_compress(src_file_path, virt_sparsify, with_compression):
     if os.path.exists(src_file_path):
-        print("process starts")
         added_cmd = ''
-        is_sparsified = ''
-        is_compressed = ''
-        # report_message = ''
 
         if virt_sparsify:
-            print("Virt sparsify checkbox is selected")
-
             # make a copy of original file
             backup_copy_file_path = src_file_path + ".cp"
             sub_command = "cp -p %s %s" % (src_file_path, backup_copy_file_path)
@@ -242,51 +236,33 @@ def convert_sparsify_compress(src_file_path, virt_sparsify, with_compression):
             # virt-sparsify the source file and see if there's any error or warning
             sub_command = "virt-sparsify --in-place %s" % src_file_path
             output = os.popen(sub_command).read()
-            print("\n THE POPEN OUTPUT IS:\n" + output + "\nTHE POPEN OUTPUT ENDS\n")
+            logging.info("\n THE POPEN OUTPUT OF Virt-Sparsify IS:\n" + output + "\nTHE POPEN OUTPUT ENDS\n")
 
-            # if there's any warning or error in virt-sparsify, make the copy file be the source file
+            # if there's any error or warning in virt-sparsify, make the copy file be the source file
             if len(output) == 0 or "warning" in output:
-                print("Can't virt-sparsify")
                 sub_command = "rm %s" % src_file_path
                 os.system(sub_command)
 
                 sub_command = "mv %s %s" % (backup_copy_file_path, src_file_path)
                 os.system(sub_command)
-
-                # if there's error in virt-sparsify
+                '''
                 if len(output) == 0:
-                    print("virt-sparsify: Error")
-                    # report_message = "virt-sparsify: error: libguestfs error: discard cannot be enabled on this drive: " \
-                    #                  "qemu does not support discard for files in this disk format. "
-
-                # if there's warning in virt-sparsify
+                    logging.info("virt-sparsify: Error")  # if there's error in virt-sparsify
                 else:
-                    print("virt-sparsify: Warning")
-                    # report_message = "virt-sparsify: warning: fstrim operation is not supported on /dev/sda1 (vfat). "
+                    logging.info("virt-sparsify: Warning")  # if there's warning in virt-sparsify
+                '''
             else:
                 # if virt-sparsify goes well, delete the copy file to save some space
-                print("virt-sparsify: successfully")
-                is_sparsified = '.reorganized'
-
                 sub_command = "rm %s" % backup_copy_file_path
                 os.system(sub_command)
 
         if with_compression:
-            print("With compression checkbox is selected")
             added_cmd = "-c"
-            is_compressed = ".compressed"
 
         output_format = 'qcow2'
-        dest_file_path = src_file_path + is_sparsified + is_compressed + ".qcow2"
-        sub_command = "qemu-img convert %s -O %s %s %s" % (added_cmd, output_format, src_file_path, dest_file_path)
+        sub_command = "qemu-img convert %s -O %s %s %s" % (added_cmd, output_format, src_file_path, src_file_path)
         os.system(sub_command)
 
-        sub_command = "rm %s" % src_file_path
-        os.system(sub_command)
-        print("process ends")
-
-        return dest_file_path
+        return src_file_path
     else:
         logging.error('The specified file does NOT exist')
-
-

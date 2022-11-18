@@ -35,19 +35,16 @@ class TestWebStatusCommon(unittest.TestCase):
         self.page.click_update_user()
         self.page.click_top_nav('Status')
 
-    '''
     def test_web_status_find(self):
         # Finds the status page
         pass
 
-    @unittest.skip("skip to save some time")
     def test_web_status_expand_job_group(self):
         # Expands the by-group menu for jobs
         self.page.click_jobs_group_expand(self.group_name)
         self.assertTrue(self.page.job_group_expanded(self.group_name))
         self.page.click_jobs_group_expand(self.group_name)
 
-    @unittest.skip("skip to save some time")
     def test_web_status_expand_vm_group(self):
         # Expands the by-group menu for vms
         self.page.click_vms_group_expand(self.group_name)
@@ -55,14 +52,12 @@ class TestWebStatusCommon(unittest.TestCase):
         self.assertTrue(self.page.vm_cloud_expanded(self.group_name, self.gvar['user'] + '-wic2'))
         self.page.click_vms_group_expand(self.group_name)
 
-    @unittest.skip("skip to save some time")
     def test_web_status_expand_vm_cloud(self):
         # Expands the by-cloud menu for vms
         self.page.click_vms_cloud_expand(self.cloud_name)
         self.assertTrue(self.page.vm_cloud_expanded(self.group_name, self.cloud_name))
         self.page.click_vms_cloud_expand(self.cloud_name)
 
-    @unittest.skip("skip to save some time")
     def test_web_status_expand_vm_cloud_totals(self):
         # Expands the by0cloud menu for vm totals
         cloud_name = 'Totals'
@@ -70,14 +65,12 @@ class TestWebStatusCommon(unittest.TestCase):
         self.assertTrue(self.page.vm_cloud_expanded(self.group_name, cloud_name))
         self.page.click_vms_cloud_expand(cloud_name)
 
-    @unittest.skip("skip to save some time")
     def test_web_status_plot_open(self):
         # Opens the plot
         self.page.click_vm_data_box(self.group_name, self.cloud_name, 'VMs')
         self.assertTrue(self.page.plot_open())
         self.page.click_close_plot()
 
-    @unittest.skip("skip to save some time")
     def test_web_status_plot_open_jobs_without_target_alias(self):
         # Opens the plot with a jobs box
         self.page.click_job_data_box(self.group_name, 'Jobs')
@@ -85,7 +78,6 @@ class TestWebStatusCommon(unittest.TestCase):
         self.assertTrue(self.page.plot_has_legend(self.group_name + ' jobs_total'))
         self.page.click_close_plot()
 
-    @unittest.skip("skip to save some time")
     def test_web_status_plot_open_jobs_with_target_alias(self):
         self.__setAliasView()
         self.page.click_job_data_box(self.group_name, 'Jobs', self.alias)
@@ -95,7 +87,6 @@ class TestWebStatusCommon(unittest.TestCase):
         # reset back to origin
         self.__setAliasView()
 
-    @unittest.skip("skip to save some time")
     def test_web_status_plot_open_jobs_idle_without_target_alias(self):
         # Opens the plot with an idle jobs box
         self.page.click_job_data_box(self.group_name, 'Idle')
@@ -103,7 +94,6 @@ class TestWebStatusCommon(unittest.TestCase):
         self.assertTrue(self.page.plot_has_legend(self.group_name + ' jobs_idle_total'))
         self.page.click_close_plot()
 
-    @unittest.skip("skip to save some time")
     def test_web_status_plot_open_jobs_idle_with_target_alias(self):
         self.__setAliasView()
         self.page.click_job_data_box(self.group_name, 'Idle', self.alias)
@@ -112,7 +102,6 @@ class TestWebStatusCommon(unittest.TestCase):
         self.page.click_close_plot()
         self.__setAliasView()
 
-    @unittest.skip("skip to save some time")
     def test_web_status_plot_open_jobs_running_without_target_alias(self):
         # Opens the plot with a running jobs box
         self.page.click_job_data_box(self.group_name, 'Running')
@@ -120,7 +109,6 @@ class TestWebStatusCommon(unittest.TestCase):
         self.assertTrue(self.page.plot_has_legend(self.group_name + ' jobs_running_total'))
         self.page.click_close_plot()
 
-    @unittest.skip("skip to save some time")
     def test_web_status_plot_open_jobs_running_with_target_alias(self):
         self.__setAliasView()
         self.page.click_job_data_box(self.group_name, 'Running', self.alias)
@@ -129,7 +117,6 @@ class TestWebStatusCommon(unittest.TestCase):
         self.page.click_close_plot()
         self.__setAliasView()
 
-    @unittest.skip("skip to save some time")
     def test_web_status_plot_open_jobs_completed_without_target_alias(self):
         # Opens the plot with a completed jobs box
         self.page.click_job_data_box(self.group_name, 'Completed')
@@ -137,7 +124,6 @@ class TestWebStatusCommon(unittest.TestCase):
         self.assertTrue(self.page.plot_has_legend(self.group_name + ' jobs_completed_total'))
         self.page.click_close_plot()
 
-    @unittest.skip("skip to save some time")
     def test_web_status_plot_open_jobs_completed_with_target_alias(self):
         self.__setAliasView()
         self.page.click_job_data_box(self.group_name, 'Completed', self.alias)
@@ -146,7 +132,6 @@ class TestWebStatusCommon(unittest.TestCase):
         self.page.click_close_plot()
         self.__setAliasView()
 
-    @unittest.skip("skip to save some time")
     def test_web_status_plot_open_jobs_held_without_target_alias(self):
         # Opens the plot with a held jobs box
         self.page.click_job_data_box(self.group_name, 'Held')
@@ -154,7 +139,6 @@ class TestWebStatusCommon(unittest.TestCase):
         self.assertTrue(self.page.plot_has_legend(self.group_name + ' jobs_held_total'))
         self.page.click_close_plot()
 
-    @unittest.skip("skip to save some time")
     def test_web_status_plot_open_jobs_held_with_target_alias(self):
         self.__setAliasView()
         self.page.click_job_data_box(self.group_name, 'Held', self.alias)
@@ -163,7 +147,6 @@ class TestWebStatusCommon(unittest.TestCase):
         self.page.click_close_plot()
         self.__setAliasView()
 
-    @unittest.skip("skip to save some time")
     def test_web_status_plot_open_jobs_other_without_target_alias(self):
         # Opens the plot with an other jobs box
         self.page.click_job_data_box(self.group_name, 'Other')
@@ -171,7 +154,6 @@ class TestWebStatusCommon(unittest.TestCase):
         self.assertTrue(self.page.plot_has_legend(self.group_name + ' jobs_other_total'))
         self.page.click_close_plot()
 
-    @unittest.skip("skip to save some time")
     def test_web_status_plot_open_jobs_other_with_target_alias(self):
         self.__setAliasView()
         self.page.click_job_data_box(self.group_name, 'Other', self.alias)
@@ -180,7 +162,6 @@ class TestWebStatusCommon(unittest.TestCase):
         self.page.click_close_plot()
         self.__setAliasView()
 
-    @unittest.skip("skip to save some time")
     def test_web_status_plot_open_jobs_foreign_without_target_alias(self):
         # Opens the plot with a foreign jobs box
         self.page.click_job_data_box(self.group_name, 'Foreign')
@@ -188,7 +169,6 @@ class TestWebStatusCommon(unittest.TestCase):
         self.assertTrue(self.page.plot_has_legend(self.group_name + ' jobs_foreign_total'))
         self.page.click_close_plot()
 
-    @unittest.skip("skip to save some time")
     def test_web_status_plot_open_jobs_foreign_with_target_alias(self):
         self.__setAliasView()
         self.page.click_job_data_box(self.group_name, 'Foreign', self.alias)
@@ -197,7 +177,6 @@ class TestWebStatusCommon(unittest.TestCase):
         self.page.click_close_plot()
         self.__setAliasView()
 
-    @unittest.skip("skip to save some time")
     def test_web_status_plot_open_rt(self):
         # Opens the plot with an RT box
         self.page.click_rt_data_box(self.group_name, self.cloud_name)
@@ -205,7 +184,6 @@ class TestWebStatusCommon(unittest.TestCase):
         self.assertTrue(self.page.plot_has_legend(self.group_name + ' ' + self.cloud_name + ' communication_rt'))
         self.page.click_close_plot()
 
-    @unittest.skip("skip to save some time")
     def test_web_status_plot_open_vms(self):
         # Opens the plot with a VMs box
         self.page.click_vm_data_box(self.group_name, self.cloud_name, 'VMs')
@@ -213,7 +191,6 @@ class TestWebStatusCommon(unittest.TestCase):
         self.assertTrue(self.page.plot_has_legend(self.group_name + ' ' + self.cloud_name + ' VMs'))
         self.page.click_close_plot()
 
-    @unittest.skip("skip to save some time")
     def test_web_status_plot_open_vms_starting(self):
         # Opens the plot with a starting VMs box
         self.page.click_vm_data_box(self.group_name, self.cloud_name, 'Starting')
@@ -221,7 +198,6 @@ class TestWebStatusCommon(unittest.TestCase):
         self.assertTrue(self.page.plot_has_legend(self.group_name + ' ' + self.cloud_name + ' VMs_starting'))
         self.page.click_close_plot()
 
-    @unittest.skip("skip to save some time")
     def test_web_status_plot_open_vms_unregistered(self):
         # Opens the plot with an unregistered VMs box
         self.page.click_vm_data_box(self.group_name, self.cloud_name, 'Unregistered')
@@ -229,7 +205,6 @@ class TestWebStatusCommon(unittest.TestCase):
         self.assertTrue(self.page.plot_has_legend(self.group_name + ' ' + self.cloud_name + ' VMs_unregistered'))
         self.page.click_close_plot()
 
-    @unittest.skip("skip to save some time")
     def test_web_status_plot_open_vms_idle(self):
         # Opens the plot with an idle VMs box
         self.page.click_vm_data_box(self.group_name, self.cloud_name, 'Idle')
@@ -237,7 +212,6 @@ class TestWebStatusCommon(unittest.TestCase):
         self.assertTrue(self.page.plot_has_legend(self.group_name + ' ' + self.cloud_name + ' VMs_idle'))
         self.page.click_close_plot()
 
-    @unittest.skip("skip to save some time")
     def test_web_status_plot_open_vms_running(self):
         # Opens the plot with a running VMs box
         self.page.click_vm_data_box(self.group_name, self.cloud_name, 'Running')
@@ -657,35 +631,18 @@ class TestWebStatusCommon(unittest.TestCase):
         self.page.click_vm_data_box(self.group_name, self.cloud_name, 'VMs', right_click=True)
         self.assertFalse(self.page.vm_overlay_column_is(3, 'Terminate', 0))
         self.page.click_vm_overlay_close()
-    '''
 
     def test_web_status_vm_overlay_filter_cores(self):
         self.page.wait_until_vms_not_zero(self.group_name, self.cloud_name, 3)
-        print("wait_until_vms_not_zero is good")
         self.page.click_vm_data_box(self.group_name, self.cloud_name, 'VMs', right_click=True)
-        print("right click_vm_data_box is good")
-
-        self.assertTrue(self.page.checkbox_selected("starting"))
-        print("starting checkbox is selected")
-
-        self.assertTrue(self.page.checkbox_selected("2"))
-        print("2 checkbox is selected")
-
         self.page.click_vm_filter_checkbox('2')
-        print("click_vm_filter_checkbox 2 is good")
         self.page.click_vm_filter_checkbox('4')
-        print("click_vm_filter_checkbox 4 is good")
         self.page.click_vm_filter_checkbox('8')
-        print("click_vm_filter_checkbox 8 is good")
         rows = self.page.vm_overlay_rows()
-        print("vm_overlay_rows is good")
         self.assertNotEqual(rows, 0)
-        print("rows != 0")
         for i in range(1, rows+1):
             self.assertTrue(self.page.vm_overlay_column_is(i, 'Cores', 1))
-            print(i + "th iteration: vm_overlay_column_is good")
 
-    @unittest.skip("skip to save some time")
     def test_web_status_vm_overlay_filter_cores_none(self):
         self.page.wait_until_vms_not_zero(self.group_name, self.cloud_name, 3)
         self.page.click_vm_data_box(self.group_name, self.cloud_name, 'VMs', right_click=True)

@@ -472,10 +472,6 @@ class StatusPage(Page):
         element = self.driver.find_element_by_xpath(xpath)
         return element.text == str(data)
 
-    def checkbox_selected(self, checkbox_id):
-        checkbox = self.driver.find_element_by_id(checkbox_id)
-        return checkbox.is_selected()
-
 
 class CloudsPage(Page):
     """This is the page object class for the Clouds page."""
@@ -1119,7 +1115,6 @@ class ImagesPage(Page):
         except TimeoutException:
             return False
 
-    # Added helper function of checkboxes operation--------------------------------
     def is_checkbox_selected(self, checkbox_id):
         checkbox = self.driver.find_element_by_id(checkbox_id)
         return checkbox.is_selected()
