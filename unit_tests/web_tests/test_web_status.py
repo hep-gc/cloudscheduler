@@ -39,12 +39,14 @@ class TestWebStatusCommon(unittest.TestCase):
         # Finds the status page
         pass
 
+    '''
     def test_web_status_expand_job_group(self):
         # Expands the by-group menu for jobs
         self.page.click_jobs_group_expand(self.group_name)
         self.assertTrue(self.page.job_group_expanded(self.group_name))
         self.page.click_jobs_group_expand(self.group_name)
-
+    
+    
     def test_web_status_expand_vm_group(self):
         # Expands the by-group menu for vms
         self.page.click_vms_group_expand(self.group_name)
@@ -554,9 +556,10 @@ class TestWebStatusCommon(unittest.TestCase):
         self.assertTrue(self.page.first_time_on_plot_before_now_within(2, 'years', 62))
         self.assertTrue(self.page.last_time_on_plot_before_now_within(1, 'years', 62))
         self.page.click_close_plot()
-
+    '''
     def test_web_status_plot_hide_line(self):
         # Hides the line in the plot graph
+        print("in test_web_status_plot_hide_line function")
         self.page.click_vm_data_box(self.group_name, self.cloud_name, 'VMs')
         print("click_vm_data_box good")
         self.page.click_plot_legend_item(self.group_name + ' ' + self.cloud_name + ' VMs')
@@ -564,7 +567,7 @@ class TestWebStatusCommon(unittest.TestCase):
         self.assertFalse(self.page.plot_has_line())
         print("plot_has_line is True")
         self.page.click_close_plot()
-
+        print("test_web_status_plot_hide_line done")
 
     '''
     def test_web_status_vm_overlay_open(self):
