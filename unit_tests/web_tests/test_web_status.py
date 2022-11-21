@@ -39,7 +39,6 @@ class TestWebStatusCommon(unittest.TestCase):
         # Finds the status page
         pass
 
-    '''
     def test_web_status_expand_job_group(self):
         # Expands the by-group menu for jobs
         self.page.click_jobs_group_expand(self.group_name)
@@ -541,7 +540,6 @@ class TestWebStatusCommon(unittest.TestCase):
         self.assertTrue(self.page.last_time_on_plot_before_now_within(7, 'days', 24))
         self.page.click_close_plot()
 
-    '''
     def test_web_status_plot_open_time_previous_month(self):
         # Sets the plot's time range to the month before
         self.page.click_vm_data_box(self.group_name, self.cloud_name, 'VMs')
