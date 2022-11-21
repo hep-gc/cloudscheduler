@@ -558,11 +558,15 @@ class TestWebStatusCommon(unittest.TestCase):
     def test_web_status_plot_hide_line(self):
         # Hides the line in the plot graph
         self.page.click_vm_data_box(self.group_name, self.cloud_name, 'VMs')
+        print("click_vm_data_box good")
         self.page.click_plot_legend_item(self.group_name + ' ' + self.cloud_name + ' VMs')
+        print("click_plot_legend_item good")
         self.assertFalse(self.page.plot_has_line())
+        print("plot_has_line is True")
         self.page.click_close_plot()
-    
 
+
+    '''
     def test_web_status_vm_overlay_open(self):
         # Clicks on the vm overlay
         self.page.wait_until_vms_not_zero(self.group_name, self.cloud_name, 3)
@@ -676,7 +680,7 @@ class TestWebStatusCommon(unittest.TestCase):
         self.page.click_vm_filter_checkbox('Manual')
         self.assertEqual(self.page.vm_overlay_rows(), 0)
         self.page.click_vm_overlay_close()
-
+    '''
     @classmethod
     def tearDownClass(cls):
         wtsc.cleanup(cls)
