@@ -5,6 +5,7 @@ import unittest
 import sys
 from . import web_test_setup_cleanup as wtsc
 from . import web_test_assertions_v2 as wta
+from . import web_test_interactions as wti
 from . import web_test_page_objects as pages
 from . import web_test_helpers as helpers
 
@@ -560,6 +561,7 @@ class TestWebStatusCommon(unittest.TestCase):
         self.page.click_plot_legend_item(self.group_name + ' ' + self.cloud_name + ' VMs')
         self.assertFalse(self.page.plot_has_line())
         self.page.click_close_plot()
+    
 
     def test_web_status_vm_overlay_open(self):
         # Clicks on the vm overlay

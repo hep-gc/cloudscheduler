@@ -168,7 +168,7 @@ class StatusPage(Page):
             state_tag += '_total'
             path = 'VMs' + state_tag
         else:
-            path = group + ' ' +  cloud + ' VMs' + state_tag
+            path = group + ' ' + cloud + ' VMs' + state_tag
         xpath = wtxs.data_box(path)
         try:
             if right_click:
@@ -471,6 +471,7 @@ class StatusPage(Page):
             EC.presence_of_element_located((By.XPATH, xpath)))
         element = self.driver.find_element_by_xpath(xpath)
         return element.text == str(data)
+
 
 class CloudsPage(Page):
     """This is the page object class for the Clouds page."""
@@ -1113,6 +1114,16 @@ class ImagesPage(Page):
             return False
         except TimeoutException:
             return False
+
+    def is_checkbox_selected(self, checkbox_id):
+        checkbox = self.driver.find_element_by_id(checkbox_id)
+        return checkbox.is_selected()
+
+    def click_checkbox(self, checkbox_id):
+        # wti.click_by_id(checkbox_id)
+        checkbox = self.driver.find_element_by_id(checkbox_id)
+        checkbox.click()
+        sleep(3)
 
     def image_is_public_in_cloud(self, image, cloud):
         sleep(5)

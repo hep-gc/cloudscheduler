@@ -4,12 +4,14 @@ import logging
 import os
 import string
 import random
-#import hashlib
+
+# import hashlib
 
 from cloudscheduler.lib.openstack_functions import get_openstack_sess, get_glance_connection
-
 from cloudscheduler.lib.db_config import Config
-config = Config('/etc/cloudscheduler/cloudscheduler.yaml', ['general', 'openstackPoller.py', 'web_frontend'], pool_size=2, max_overflow=10)
+
+config = Config('/etc/cloudscheduler/cloudscheduler.yaml', ['general', 'openstackPoller.py', 'web_frontend'],
+                pool_size=2, max_overflow=10)
 ALPHABET = string.ascii_letters + string.digits + "!#$%&()*+-<=>?@[]^_{|}~"
 
 # new glint api, maybe make this part of glint utils?
@@ -24,9 +26,11 @@ def create_placeholder_image(glance, image_name, disk_format, container_format):
     return image.id
 """
 
+
 # Upload an image to repo, returns image id if successful
 # if there is no image_id it is a direct upload and no placeholder exists
-def upload_image(cloud, image_id, image_name, scratch_dir, image_checksum=None, disk_format=None, container_format="bare"):
+def upload_image(cloud, image_id, image_name, scratch_dir, image_checksum=None, disk_format=None,
+                 container_format="bare"):
     try:
         sess = get_openstack_sess(cloud, config.categories["openstackPoller.py"]["cacerts"])
         if sess is False:
@@ -36,20 +40,22 @@ def upload_image(cloud, image_id, image_name, scratch_dir, image_checksum=None, 
         if glance is False:
             logging.error("Failed to get openstack glance connection")
             return False
- 
+
         file_path = scratch_dir
         if image_checksum:
             file_path = scratch_dir + image_name + "---" + image_checksum
-        image = glance.create_image(name=image_name, disk_format=disk_format, container_format=container_format, data=open(file_path, 'rb'))
+        image = glance.create_image(name=image_name, disk_format=disk_format, container_format=container_format,
+                                    data=open(file_path, 'rb'))
         logging.info("Image upload complete")
         return glance.get_image(image.id)
     except Exception as exc:
         logging.error("Image upload failed: %s" % exc)
         return False
 
+
 # Download an image from the repo, returns True if successful or False if not
 def download_image(cloud, image_name, image_id, image_checksum, scratch_dir):
-    #open file then write to it
+    # open file then write to it
     try:
         sess = get_openstack_sess(cloud, config.categories["openstackPoller.py"]["cacerts"])
         if sess is False:
@@ -57,28 +63,29 @@ def download_image(cloud, image_name, image_id, image_checksum, scratch_dir):
         glance = get_glance_connection(sess, cloud["region"])
         if glance is False:
             return (False, "Failed to get openstack glance connection", "", "")
-        
+
         if not os.path.exists(scratch_dir):
             os.makedirs(scratch_dir)
         file_path = scratch_dir + image_name + "---" + image_checksum
-       
-        #md5 = hashlib.md5()
+
+        # md5 = hashlib.md5()
         with open(file_path, "wb") as local_image:
             response = glance.download_image(image_id, stream=True)
             for chunk in response.iter_content(chunk_size=512000):
-        #        md5.update(chunk)
+                #        md5.update(chunk)
                 local_image.write(chunk)
         #    if response.headers["Content-MD5"] != md5.hexdigest():
         #        return (False, "Checksum mismatch in downloaded content")
 
-        #glance.download_image(image_id, output=file_path)
+        # glance.download_image(image_id, output=file_path)
         img = glance.get_image(image_id)
- 
+
         return (True, "Success", img.disk_format, img.container_format)
     except Exception as exc:
         return (False, exc, "", "")
 
-#def delete_image(glance, image_id):
+
+# def delete_image(glance, image_id):
 def delete_image(cloud, image_id):
     try:
         sess = get_openstack_sess(cloud, config.categories["openstackPoller.py"]["cacerts"])
@@ -108,12 +115,13 @@ def get_checksum(glance, image_id):
     return image['checksum']
 """
 
+
 #
 # Check image cache and queue up a pull request if target image is not present
 #
 def check_cache(config, image_name, image_checksum, group_name, user, target_image=None, return_image=False):
-    config.db_commit() # refresh the database connection
-    
+    config.db_commit()  # refresh the database connection
+
     IMAGE_CACHE = "csv2_image_cache"
     if isinstance(user, str):
         username = user
@@ -139,8 +147,8 @@ def check_cache(config, image_name, image_checksum, group_name, user, target_ima
                 logging.info("Unable to find target image")
                 if return_image:
                     return None
-                return False #maybe raise an error here
-            tx_id =  generate_tx_id()
+                return False  # maybe raise an error here
+            tx_id = generate_tx_id()
             preq = {
                 "tx_id": tx_id,
                 "target_group_name": target_image["group_name"],
@@ -152,7 +160,7 @@ def check_cache(config, image_name, image_checksum, group_name, user, target_ima
                 "requester": username,
             }
         else:
-            tx_id =  generate_tx_id()
+            tx_id = generate_tx_id()
             preq = {
                 "tx_id": tx_id,
                 "target_group_name": target_image["group_name"],
@@ -165,14 +173,14 @@ def check_cache(config, image_name, image_checksum, group_name, user, target_ima
             }
 
         PULL_REQ = "csv2_image_pull_requests"
-        
+
         # check if a pull request already exists for this image
         where_clause = "image_name='%s' and checksum='%s'" % (image_name, target_image["checksum"])
         rc, qmsg, prq = config.db_query(PULL_REQ, where=where_clause)
         if len(prq) == 0:
             config.db_merge(PULL_REQ, preq)
             config.db_commit()
-            #pull_request.delay(tx_id = tx_id)
+            # pull_request.delay(tx_id = tx_id)
             pull_request.apply_async((tx_id,), queue='pull_requests')
 
         if return_image:
@@ -184,7 +192,7 @@ def check_cache(config, image_name, image_checksum, group_name, user, target_ima
 def get_image(config, image_name, image_checksum, group_name, cloud_name=None):
     IMAGES = "cloud_images"
     if cloud_name is None:
-        #getting a source image
+        # getting a source image
         logging.info("Looking for image %s, checksum: %s in group %s" % (image_name, image_checksum, group_name))
         if image_checksum is not None:
             where_clause = "group_name='%s' and name='%s' and checksum='%s'" % (group_name, image_name, image_checksum)
@@ -195,17 +203,18 @@ def get_image(config, image_name, image_checksum, group_name, cloud_name=None):
         if len(image_candidates) > 0:
             return image_candidates[0]
         else:
-            #No image that fits specs
+            # No image that fits specs
             return False
     else:
-        #getting a specific image
+        # getting a specific image
         logging.debug("Retrieving image %s" % image_name)
-        where_clause = "group_name='%s' and cloud_name='%s' and name='%s' and checksum='%s'" % (group_name, cloud_name, image_name, image_checksum)
+        where_clause = "group_name='%s' and cloud_name='%s' and name='%s' and checksum='%s'" % (
+            group_name, cloud_name, image_name, image_checksum)
         rc, msg, image_candidates = config.db_query(IMAGES, where=where_clause)
         if len(image_candidates) > 0:
             return image_candidates[0]
         else:
-            #No image that fits specs
+            # No image that fits specs
             return False
 
 
@@ -213,3 +222,47 @@ def get_image(config, image_name, image_checksum, group_name, cloud_name=None):
 def generate_tx_id(length=16):
     return ''.join(random.choice(ALPHABET) for i in range(length))
 
+
+def convert_sparsify_compress(src_file_path, virt_sparsify, with_compression):
+    if os.path.exists(src_file_path):
+        added_cmd = ''
+
+        if virt_sparsify:
+            # make a copy of original file
+            backup_copy_file_path = src_file_path + ".cp"
+            sub_command = "cp -p %s %s" % (src_file_path, backup_copy_file_path)
+            os.system(sub_command)
+
+            # virt-sparsify the source file and see if there's any error or warning
+            sub_command = "virt-sparsify --in-place %s" % src_file_path
+            output = os.popen(sub_command).read()
+            logging.info("\n THE POPEN OUTPUT OF Virt-Sparsify IS:\n" + output + "\nTHE POPEN OUTPUT ENDS\n")
+
+            # if there's any error or warning in virt-sparsify, make the copy file be the source file
+            if len(output) == 0 or "warning" in output:
+                sub_command = "rm %s" % src_file_path
+                os.system(sub_command)
+
+                sub_command = "mv %s %s" % (backup_copy_file_path, src_file_path)
+                os.system(sub_command)
+                '''
+                if len(output) == 0:
+                    logging.info("virt-sparsify: Error")  # if there's error in virt-sparsify
+                else:
+                    logging.info("virt-sparsify: Warning")  # if there's warning in virt-sparsify
+                '''
+            else:
+                # if virt-sparsify goes well, delete the copy file to save some space
+                sub_command = "rm %s" % backup_copy_file_path
+                os.system(sub_command)
+
+        if with_compression:
+            added_cmd = "-c"
+
+        output_format = 'qcow2'
+        sub_command = "qemu-img convert %s -O %s %s %s" % (added_cmd, output_format, src_file_path, src_file_path)
+        os.system(sub_command)
+
+        return src_file_path
+    else:
+        logging.error('The specified file does NOT exist')
