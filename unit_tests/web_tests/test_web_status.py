@@ -9,6 +9,7 @@ from . import web_test_interactions as wti
 from . import web_test_page_objects as pages
 from . import web_test_helpers as helpers
 
+
 class TestWebStatusCommon(unittest.TestCase):
     """A class for the status tests that should be repeated in all iterations."""
 
@@ -58,7 +59,6 @@ class TestWebStatusCommon(unittest.TestCase):
         self.assertTrue(self.page.vm_cloud_expanded(self.group_name, self.cloud_name))
         self.page.click_vms_cloud_expand(self.cloud_name)
 
-    '''
     def test_web_status_expand_vm_cloud_totals(self):
         # Expands the by0cloud menu for vm totals
         cloud_name = 'Totals'
@@ -539,7 +539,7 @@ class TestWebStatusCommon(unittest.TestCase):
         self.assertTrue(self.page.first_time_on_plot_before_now_within(14, 'days', 24))
         self.assertTrue(self.page.last_time_on_plot_before_now_within(7, 'days', 24))
         self.page.click_close_plot()
-    '''
+
     def test_web_status_plot_open_time_previous_month(self):
         # Sets the plot's time range to the month before
         self.page.click_vm_data_box(self.group_name, self.cloud_name, 'VMs')
@@ -568,7 +568,6 @@ class TestWebStatusCommon(unittest.TestCase):
         self.page.click_close_plot()
         print("test_web_status_plot_hide_line done")
 
-    '''
     def test_web_status_vm_overlay_open(self):
         # Clicks on the vm overlay
         self.page.wait_until_vms_not_zero(self.group_name, self.cloud_name, 3)
@@ -622,10 +621,11 @@ class TestWebStatusCommon(unittest.TestCase):
         self.page.click_vm_operation_button('Retire VMs')
         self.page.click_vm_overlay_close()
         self.page.click_vm_data_box(self.group_name, self.cloud_name, 'VMs', right_click=True)
-        self.assertFalse(self.page.vm_overlay_column_is(2, 'Retire', 0) and self.page.vm_overlay_column_is(2, 'Terminate', 0))
+        self.assertFalse(
+            self.page.vm_overlay_column_is(2, 'Retire', 0) and self.page.vm_overlay_column_is(2, 'Terminate', 0))
         self.page.click_vm_overlay_close()
         self.page.get_homepage()
-        #self.assertGreater(self.page.vms_in_state(self.group_name, self.cloud_name, 'Retiring'), 0)
+        # self.assertGreater(self.page.vms_in_state(self.group_name, self.cloud_name, 'Retiring'), 0)
 
     def test_web_status_vm_overlay_kill(self):
         self.page.wait_until_vms_not_zero(self.group_name, self.cloud_name, 3)
@@ -646,7 +646,7 @@ class TestWebStatusCommon(unittest.TestCase):
         self.page.click_vm_filter_checkbox('8')
         rows = self.page.vm_overlay_rows()
         self.assertNotEqual(rows, 0)
-        for i in range(1, rows+1):
+        for i in range(1, rows + 1):
             self.assertTrue(self.page.vm_overlay_column_is(i, 'Cores', 1))
 
     def test_web_status_vm_overlay_filter_cores_none(self):
@@ -667,7 +667,7 @@ class TestWebStatusCommon(unittest.TestCase):
         self.page.click_vm_filter_checkbox('Error')
         rows = self.page.vm_overlay_rows()
         self.assertNotEqual(rows, 0)
-        for i in range(1, rows+1):
+        for i in range(1, rows + 1):
             self.assertTrue(self.page.vm_overlay_column_is(i, 'Poller Status', 'unregistered'))
         self.page.click_vm_overlay_close()
 
@@ -682,13 +682,15 @@ class TestWebStatusCommon(unittest.TestCase):
         self.page.click_vm_filter_checkbox('Manual')
         self.assertEqual(self.page.vm_overlay_rows(), 0)
         self.page.click_vm_overlay_close()
-    '''
+
     @classmethod
     def tearDownClass(cls):
         wtsc.cleanup(cls)
 
+
 class TestWebStatusSuperUserFirefox(TestWebStatusCommon):
     """A class to test status operations via the web interface, in Firefox, with a super user."""
+
     @classmethod
     def setUpClass(cls):
         try:
@@ -699,9 +701,11 @@ class TestWebStatusSuperUserFirefox(TestWebStatusCommon):
             print("Error in test setup")
             super(TestWebStatusSuperUserFirefox, cls).tearDownClass()
             raise
-   
+
+
 class TestWebStatusRegularUserFirefox(TestWebStatusCommon):
     """A class to test status operations via the web interface, in Firefox, with a regular user."""
+
     @classmethod
     def setUpClass(cls):
         try:
@@ -713,8 +717,10 @@ class TestWebStatusRegularUserFirefox(TestWebStatusCommon):
             super(TestWebStatusRegularUserFirefox, cls).tearDownClass()
             raise
 
+
 class TestWebStatusSuperUserChromium(TestWebStatusCommon):
     """A class to test status operations via the web interface, in Chromium, with a super user."""
+
     @classmethod
     def setUpClass(cls):
         try:
@@ -725,9 +731,11 @@ class TestWebStatusSuperUserChromium(TestWebStatusCommon):
             print("Error in test setup")
             super(TestWebStatusSuperUserChromium, cls).tearDownClass()
             raise
-   
+
+
 class TestWebStatusRegularUserChromium(TestWebStatusCommon):
     """A class to test status operations via the web interface, in Chromium, with a regular user."""
+
     @classmethod
     def setUpClass(cls):
         try:
@@ -739,8 +747,10 @@ class TestWebStatusRegularUserChromium(TestWebStatusCommon):
             super(TestWebStatusRegularUserChromium, cls).tearDownClass()
             raise
 
+
 class TestWebStatusSuperUserOpera(TestWebStatusCommon):
     """A class to test status operations via the web interface, in Opera, with a super user."""
+
     @classmethod
     def setUpClass(cls):
         try:
@@ -751,9 +761,11 @@ class TestWebStatusSuperUserOpera(TestWebStatusCommon):
             print("Error in test setup")
             super(TestWebStatusSuperUserOpera, cls).tearDownClass()
             raise
-   
+
+
 class TestWebStatusRegularUserOpera(TestWebStatusCommon):
     """A class to test status operations via the web interface, in Opera, with a regular user."""
+
     @classmethod
     def setUpClass(cls):
         try:
@@ -765,8 +777,10 @@ class TestWebStatusRegularUserOpera(TestWebStatusCommon):
             super(TestWebStatusRegularUserOpera, cls).tearDownClass()
             raise
 
+
 class TestWebStatusSuperUserChrome(TestWebStatusCommon):
     """A class to test status operations via the web interface, in Chrome, with a super user."""
+
     @classmethod
     def setUpClass(cls):
         try:
@@ -777,9 +791,11 @@ class TestWebStatusSuperUserChrome(TestWebStatusCommon):
             print("Error in test setup")
             super(TestWebStatusSuperUserChrome, cls).tearDownClass()
             raise
-   
+
+
 class TestWebStatusRegularUserChrome(TestWebStatusCommon):
     """A class to test status operations via the web interface, in Chrome, with a regular user."""
+
     @classmethod
     def setUpClass(cls):
         try:
@@ -791,11 +807,12 @@ class TestWebStatusRegularUserChrome(TestWebStatusCommon):
             super(TestWebStatusRegularUserChrome, cls).tearDownClass()
             raise
 
+
 if __name__ == "__main__":
     runner = unittest.TextTestRunner(verbosity=2)
-    tests = [ TestWebStatusSuperUserFirefox, TestWebStatusRegularUserFirefox,
-              TestWebStatusSuperUserChromium, TestWebStatusRegularUserChromium,
-              TestWebStatusSuperUserOpera, TestWebStatusRegularUserOpera,
-              TestWebStatusSuperUserChrome, TestWebStatusRegularUserChrome ]
+    tests = [TestWebStatusSuperUserFirefox, TestWebStatusRegularUserFirefox,
+             TestWebStatusSuperUserChromium, TestWebStatusRegularUserChromium,
+             TestWebStatusSuperUserOpera, TestWebStatusRegularUserOpera,
+             TestWebStatusSuperUserChrome, TestWebStatusRegularUserChrome]
     suite = helpers.parse_command_line_arguments(sys.argv, tests, True)
     runner.run(suite)
