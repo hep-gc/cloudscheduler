@@ -558,15 +558,10 @@ class TestWebStatusCommon(unittest.TestCase):
 
     def test_web_status_plot_hide_line(self):
         # Hides the line in the plot graph
-        print("\n in test_web_status_plot_hide_line function\n")
         self.page.click_vm_data_box(self.group_name, self.cloud_name, 'VMs')
-        print("click_vm_data_box good")
         self.page.click_plot_legend_item(self.group_name + ' ' + self.cloud_name + ' VMs')
-        print("click_plot_legend_item good")
         self.assertFalse(self.page.plot_has_line())
-        print("plot_has_line is True")
         self.page.click_close_plot()
-        print("test_web_status_plot_hide_line done")
 
     def test_web_status_vm_overlay_open(self):
         # Clicks on the vm overlay
