@@ -217,17 +217,20 @@ function selectRange(range){
         var query = createQuery(traces[0].name, from, TSPlot.traces[0].x[0], true);
         /* Create string of queries for db*/
         for (var i = 1; i < traces.length; i++){
-            query += ';'
-            query += createQuery(traces[i].name, from, TSPlot.traces[0].x[0], true)
-        }
-        if(window.location.pathname == "/cloud/status/") var newpath = "plot";
-        else var newpath = "/cloud/status/plot";
-        const csrftoken = document.getElementsByName('csrfmiddlewaretoken')[0].value;
+            query += ';';
+            query += createQuery(traces[i].name, from, TSPlot.traces[0].x[0], true);
+        };
+        //if(window.location.pathname == "/cloud/status/") var newpath = "plot";
+        //else var newpath = "/cloud/status/plot";
+        var newpath = "https://csv2-dev2.heprc.uvic.ca:8086/query";
+        newpath += "?q=" + query + "&db=csv2_timeseries&epoch=ms&u=csv2_test_read&p=csv2_public";
+        //const csrftoken = document.getElementsByName('csrfmiddlewaretoken')[0].value;
         fetch(newpath,{
             method: 'POST',
-            headers: {'Accept': 'application/json', 'X-CSRFToken': csrftoken},
-            credentials: 'same-origin',
-            body: query,
+            //headers: {'Accept': 'application/json', 'X-CSRFToken': csrftoken},
+            headers: {'Accept': 'application/json', 'Content-Type':'application/json'},
+            //credentials: 'same-origin',
+            //body: query,
             }
         )
         .then(function(response){
@@ -442,21 +445,63 @@ function parseData(responsedata){
     return [newarrayx, newarrayy];
 }
 
+/* Function to convert characters in query to browser url format */
+function convertQueryToURL(query){
+    var newquery = "";
+    for (let i=0; i<query.length; i++){
+        switch(query[i]){
+            default:
+                newquery += query[i];
+                break;
+            case " ":
+                newquery += "%20";
+                break;
+            case '"':
+                newquery += "%22";
+                break;
+            case "-":
+                newquery += "%2D";
+                break;
+            case "'":
+                newquery += "%27";
+                break;
+            case "<":
+                newquery += "%3C";
+                break;
+            case "=":
+                newquery += "%3D";
+                break;
+            case ">":
+                newquery += "%3E";
+                break;
+        }
+    }
+    return newquery;
+}
 
 /* Fetch trace data from db and add to plot*/
 function getTraceData(trace, showing){
     trace.dataset.path = trace.dataset.path.replace("  ","groups_total ")
-    if(window.location.pathname == "/cloud/status/") var newpath = "plot";
-    else var newpath = "/cloud/status/plot";
+    //if(window.location.pathname == "/cloud/status/") var newpath = "plot";
+    //else if (window.location.pathname == "/public/") var newpath = "../plot";
+    //else var newpath = "/cloud/status/plot";
+    newpath = "https://csv2-dev2.heprc.uvic.ca:8086/query"
     var nullvalues = [];
     if(showing == true) query = createQuery(trace.dataset.path, TSPlot.traces[0].x[0], date, showing);
     else query = createQuery(trace.dataset.path, date-3600000, date, showing);
-    const csrftoken = document.getElementsByName('csrfmiddlewaretoken')[0].value;
+    //const csrftoken = document.getElementsByName('csrfmiddlewaretoken')[0].value;
+    //var params = "{'db':'csv2_timeseries', 'epoch': 'ms', 'q':'" + query + "', 'u':'csv2_test_read', 'p':'csv2_public'}"
+    console.log(query)
+    var newquery = convertQueryToURL(query)
+    console.log(newquery)
+    newpath += "?q=" + query + "&db=csv2_timeseries&epoch=ms&u=csv2_test_read&p=csv2_public"
+    console.log(newpath)
     fetch(newpath,{
         method: 'POST',
-        headers: {'Accept': 'application/json', 'X-CSRFToken': csrftoken},
-        credentials: 'same-origin',
-        body: query,
+        //headers: {'Accept': 'application/json', 'X-CSRFToken': csrftoken},
+        headers: {'Accept': 'application/json', 'Content-Type':'application/json'},
+        //credentials: 'same-origin',
+        //body: params,
         }
     )
     .then(function(response){
@@ -576,8 +621,9 @@ function refresh_plot() {
             query += ';'
             query += createQuery(traces[i].name, traces[i].x[traces[i].x.length-1], 0, true);
         }
-        if(window.location.pathname == "/cloud/status/") var newpath = "plot";
-        else var newpath = "/cloud/status/plot";
+        //if(window.location.pathname == "/cloud/status/") var newpath = "plot";
+        //else var newpath = "http://csv2-dev2.heprc.uvic.ca:8091";
+        newpath = "http://csv2-dev2.heprc.uvic.ca:8091"
         const csrftoken = document.getElementsByName('csrfmiddlewaretoken')[0].value;
         fetch(newpath,{
             method: 'POST',
