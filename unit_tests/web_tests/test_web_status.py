@@ -558,7 +558,9 @@ class TestWebStatusCommon(unittest.TestCase):
 
     def test_web_status_plot_hide_line(self):
         # Hides the line in the plot graph
+        print("in test_web_status_plot_hide_line function")
         self.page.click_vm_data_box(self.group_name, self.cloud_name, 'VMs')
+        print("click vm data box good")
         self.page.click_plot_legend_item(self.group_name + ' ' + self.cloud_name + ' VMs')
         self.assertFalse(self.page.plot_has_line())
         self.page.click_close_plot()
@@ -634,7 +636,6 @@ class TestWebStatusCommon(unittest.TestCase):
         self.page.click_vm_overlay_close()
 
     def test_web_status_vm_overlay_filter_cores(self):
-        print("fail case")
         self.page.wait_until_vms_not_zero(self.group_name, self.cloud_name, 3)
         self.page.click_vm_data_box(self.group_name, self.cloud_name, 'VMs', right_click=True)
         self.page.click_vm_filter_checkbox('2')
