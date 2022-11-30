@@ -36,6 +36,7 @@ class TestWebStatusCommon(unittest.TestCase):
         self.page.click_update_user()
         self.page.click_top_nav('Status')
 
+    '''
     def test_web_status_find(self):
         # Finds the status page
         pass
@@ -52,12 +53,13 @@ class TestWebStatusCommon(unittest.TestCase):
         self.assertTrue(self.page.vm_cloud_expanded(self.group_name, self.cloud_name))
         self.assertTrue(self.page.vm_cloud_expanded(self.group_name, self.gvar['user'] + '-wic2'))
         self.page.click_vms_group_expand(self.group_name)
-
+    '''
     def test_web_status_expand_vm_cloud(self):
         # Expands the by-cloud menu for vms
         self.page.click_vms_cloud_expand(self.cloud_name)
         self.assertTrue(self.page.vm_cloud_expanded(self.group_name, self.cloud_name))
         self.page.click_vms_cloud_expand(self.cloud_name)
+
 
     def test_web_status_expand_vm_cloud_totals(self):
         # Expands the by0cloud menu for vm totals
@@ -66,6 +68,7 @@ class TestWebStatusCommon(unittest.TestCase):
         self.assertTrue(self.page.vm_cloud_expanded(self.group_name, cloud_name))
         self.page.click_vms_cloud_expand(cloud_name)
 
+    '''
     def test_web_status_plot_open(self):
         # Opens the plot
         self.page.click_vm_data_box(self.group_name, self.cloud_name, 'VMs')
@@ -555,7 +558,7 @@ class TestWebStatusCommon(unittest.TestCase):
         self.assertTrue(self.page.first_time_on_plot_before_now_within(2, 'years', 62))
         self.assertTrue(self.page.last_time_on_plot_before_now_within(1, 'years', 62))
         self.page.click_close_plot()
-
+    '''
     def test_web_status_plot_hide_line(self):
         # Hides the line in the plot graph
         #self.page.click_vm_data_box(self.group_name, self.cloud_name, 'VMs')
@@ -569,6 +572,7 @@ class TestWebStatusCommon(unittest.TestCase):
         self.assertFalse(self.page.plot_has_line())
         self.page.click_close_plot()
 
+    '''
     def test_web_status_vm_overlay_open(self):
         # Clicks on the vm overlay
         self.page.wait_until_vms_not_zero(self.group_name, self.cloud_name, 3)
@@ -683,7 +687,7 @@ class TestWebStatusCommon(unittest.TestCase):
         self.page.click_vm_filter_checkbox('Manual')
         self.assertEqual(self.page.vm_overlay_rows(), 0)
         self.page.click_vm_overlay_close()
-
+    '''
     @classmethod
     def tearDownClass(cls):
         wtsc.cleanup(cls)
