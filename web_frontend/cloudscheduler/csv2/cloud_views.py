@@ -2,7 +2,7 @@ from django.conf import settings
 config = settings.CSV2_CONFIG
 
 from django.shortcuts import render, get_object_or_404, redirect
-from django.views.decorators.csrf import requires_csrf_token
+from django.views.decorators.csrf import requires_csrf_token, csrf_exempt
 from django.http import HttpResponse
 from django.http.response import JsonResponse
 from django.core.exceptions import PermissionDenied
@@ -1859,14 +1859,14 @@ def gen_slot_detail(slot_list):
 #-------------------------------------------------------------------------------
 
 @silkp(name="Cloud Plot")
-@requires_csrf_token
+@csrf_exempt
 def request_ts_data(request):
     """
     This function should receive a post request with a payload of an influxdb query
     to update the timeseries plot.
     """
 
-    params = {'db': 'csv2_timeseries','epoch': 'ms', 'q':request.body}
+    params = {'db': 'csv2_timeseries','epoch': 'ms', 'q':request.body, 'u':"csv2_test_read", 'p':"csv2_public"}
     url_string = 'http://localhost:8086/query'
     r = requests.get(url_string, params=params)
     # Check response status code

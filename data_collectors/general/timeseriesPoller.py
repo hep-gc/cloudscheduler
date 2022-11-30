@@ -102,8 +102,8 @@ def timeseries_data_transfer():
             groups = []
             # HTTP request args for influxdb
             # Specifying database and timestamp precision
-            params = {'db': 'csv2_timeseries','precision': 's'}
-            url_string = 'http://localhost:8086/write'
+            params = {'db': 'csv2_timeseries','precision': 's', 'u':config.influx["user"], 'p':config.influx["password"],'ssl':True}
+            url_string = 'https://csv2-dev2.heprc.uvic.ca:8086/write'
             
             # Parse service status data into line protocol for influxdb
             '''
