@@ -559,13 +559,7 @@ class TestWebStatusCommon(unittest.TestCase):
 
     def test_web_status_plot_hide_line(self):
         # Hides the line in the plot graph
-        #self.page.click_vm_data_box(self.group_name, self.cloud_name, 'VMs')
-
-        self.page.click_top_nav('Status')
-        print("click the top navigator Status")
         self.page.click_vm_data_box(self.group_name, self.cloud_name, 'VMs')
-        print("click vm data box")
-
         self.page.click_plot_legend_item(self.group_name + ' ' + self.cloud_name + ' VMs')
         self.assertFalse(self.page.plot_has_line())
         self.page.click_close_plot()
