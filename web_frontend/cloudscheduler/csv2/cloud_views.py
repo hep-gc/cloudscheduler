@@ -1866,7 +1866,7 @@ def request_ts_data(request):
     to update the timeseries plot.
     """
 
-    params = {'db': 'csv2_timeseries','epoch': 'ms', 'q':request.body, 'u':"csv2_test_read", 'p':"csv2_public"}
+    params = {'db': 'csv2_timeseries','epoch': 'ms', 'q':request.body, 'u':"csv2_read", 'p':"csv2_public"}
     url_string = 'http://localhost:8086/query'
     r = requests.get(url_string, params=params)
     # Check response status code

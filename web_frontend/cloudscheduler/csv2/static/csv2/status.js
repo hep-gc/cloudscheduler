@@ -223,7 +223,7 @@ function selectRange(range){
         //if(window.location.pathname == "/cloud/status/") var newpath = "plot";
         //else var newpath = "/cloud/status/plot";
         var newpath = "https://csv2-dev2.heprc.uvic.ca:8086/query";
-        newpath += "?q=" + query + "&db=csv2_timeseries&epoch=ms&u=csv2_test_read&p=csv2_public";
+        newpath += "?q=" + query + "&db=csv2_timeseries&epoch=ms&u=csv2_read&p=csv2_public";
         //const csrftoken = document.getElementsByName('csrfmiddlewaretoken')[0].value;
         fetch(newpath,{
             method: 'POST',
@@ -490,11 +490,11 @@ function getTraceData(trace, showing){
     if(showing == true) query = createQuery(trace.dataset.path, TSPlot.traces[0].x[0], date, showing);
     else query = createQuery(trace.dataset.path, date-3600000, date, showing);
     //const csrftoken = document.getElementsByName('csrfmiddlewaretoken')[0].value;
-    //var params = "{'db':'csv2_timeseries', 'epoch': 'ms', 'q':'" + query + "', 'u':'csv2_test_read', 'p':'csv2_public'}"
+    //var params = "{'db':'csv2_timeseries', 'epoch': 'ms', 'q':'" + query + "', 'u':'csv2_read', 'p':'csv2_public'}"
     console.log(query)
     var newquery = convertQueryToURL(query)
     console.log(newquery)
-    newpath += "?q=" + query + "&db=csv2_timeseries&epoch=ms&u=csv2_test_read&p=csv2_public"
+    newpath += "?q=" + query + "&db=csv2_timeseries&epoch=ms&u=csv2_read&p=csv2_public"
     console.log(newpath)
     fetch(newpath,{
         method: 'POST',
