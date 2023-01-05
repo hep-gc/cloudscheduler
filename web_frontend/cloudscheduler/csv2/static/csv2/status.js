@@ -482,15 +482,12 @@ function getTraceData(trace, showing){
     var current_url = window.location.href;
     const regex = /(.*\/\/[^\/]*)(\/.*)/;
     var root_url = current_url.split(regex)[1];
-    console.log(current_url.split(regex));
-    console.log(root_url);
     var newpath = root_url + ":8086/query";
     var nullvalues = [];
     if(showing == true) query = createQuery(trace.dataset.path, TSPlot.traces[0].x[0], date, showing);
     else query = createQuery(trace.dataset.path, date-3600000, date, showing);
     var newquery = convertQueryToURL(query)
     newpath += "?q=" + query + "&db=csv2_timeseries&epoch=ms&u=csv2_read&p=csv2_public"
-    console.log(newpath)
     fetch(newpath,{
         method: 'POST',
         headers: {'Accept': 'application/json', 'Content-Type':'application/json'},
