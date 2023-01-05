@@ -7,12 +7,15 @@ import os
 import requests
 import signal
 import psutil
+import socket
 
 from cloudscheduler.lib.view_utils import qt
 from cloudscheduler.lib.db_config import Config
 from cloudscheduler.lib.ProcessMonitor import ProcessMonitor, terminate, check_pid
 from cloudscheduler.lib.poller_functions import start_cycle, wait_cycle
 from cloudscheduler.lib.watchdog_utils import watchdog_send_heartbeat
+
+
 
 
 def _cast_int(variable):
@@ -36,6 +39,9 @@ def timeseries_data_transfer():
     cycle_start_time = 0
     new_poll_time = 0
     poll_time_history = [0,0,0,0]
+
+    host = socket.gethostname()
+    url_string = 'https://' + host + ':8086/write'
 
     while True:
         try:
@@ -103,7 +109,6 @@ def timeseries_data_transfer():
             # HTTP request args for influxdb
             # Specifying database and timestamp precision
             params = {'db': 'csv2_timeseries','precision': 's', 'u':config.influx["user"], 'p':config.influx["password"],'ssl':True}
-            url_string = 'https://csv2-dev2.heprc.uvic.ca:8086/write'
             
             # Parse service status data into line protocol for influxdb
             '''

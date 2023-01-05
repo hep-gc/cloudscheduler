@@ -220,17 +220,14 @@ function selectRange(range){
             query += ';';
             query += createQuery(traces[i].name, from, TSPlot.traces[0].x[0], true);
         };
-        //if(window.location.pathname == "/cloud/status/") var newpath = "plot";
-        //else var newpath = "/cloud/status/plot";
-        var newpath = "https://csv2-dev2.heprc.uvic.ca:8086/query";
+        var current_url = window.location.href;
+        const regex = /(.*\/\/[^\/]*)(\/.*)/;
+        var root_url = current_url.split(regex)[1];
+        var newpath = root_url + ":8086/query";
         newpath += "?q=" + query + "&db=csv2_timeseries&epoch=ms&u=csv2_read&p=csv2_public";
-        //const csrftoken = document.getElementsByName('csrfmiddlewaretoken')[0].value;
         fetch(newpath,{
             method: 'POST',
-            //headers: {'Accept': 'application/json', 'X-CSRFToken': csrftoken},
             headers: {'Accept': 'application/json', 'Content-Type':'application/json'},
-            //credentials: 'same-origin',
-            //body: query,
             }
         )
         .then(function(response){
@@ -482,26 +479,21 @@ function convertQueryToURL(query){
 /* Fetch trace data from db and add to plot*/
 function getTraceData(trace, showing){
     trace.dataset.path = trace.dataset.path.replace("  ","groups_total ")
-    //if(window.location.pathname == "/cloud/status/") var newpath = "plot";
-    //else if (window.location.pathname == "/public/") var newpath = "../plot";
-    //else var newpath = "/cloud/status/plot";
-    newpath = "https://csv2-dev2.heprc.uvic.ca:8086/query"
+    var current_url = window.location.href;
+    const regex = /(.*\/\/[^\/]*)(\/.*)/;
+    var root_url = current_url.split(regex)[1];
+    console.log(current_url.split(regex));
+    console.log(root_url);
+    var newpath = root_url + ":8086/query";
     var nullvalues = [];
     if(showing == true) query = createQuery(trace.dataset.path, TSPlot.traces[0].x[0], date, showing);
     else query = createQuery(trace.dataset.path, date-3600000, date, showing);
-    //const csrftoken = document.getElementsByName('csrfmiddlewaretoken')[0].value;
-    //var params = "{'db':'csv2_timeseries', 'epoch': 'ms', 'q':'" + query + "', 'u':'csv2_read', 'p':'csv2_public'}"
-    console.log(query)
     var newquery = convertQueryToURL(query)
-    console.log(newquery)
     newpath += "?q=" + query + "&db=csv2_timeseries&epoch=ms&u=csv2_read&p=csv2_public"
     console.log(newpath)
     fetch(newpath,{
         method: 'POST',
-        //headers: {'Accept': 'application/json', 'X-CSRFToken': csrftoken},
         headers: {'Accept': 'application/json', 'Content-Type':'application/json'},
-        //credentials: 'same-origin',
-        //body: params,
         }
     )
     .then(function(response){
@@ -621,9 +613,10 @@ function refresh_plot() {
             query += ';'
             query += createQuery(traces[i].name, traces[i].x[traces[i].x.length-1], 0, true);
         }
-        //if(window.location.pathname == "/cloud/status/") var newpath = "plot";
-        //else var newpath = "http://csv2-dev2.heprc.uvic.ca:8091";
-        newpath = "http://csv2-dev2.heprc.uvic.ca:8091"
+        var current_url = window.location.href;
+        const regex = /(.*\/\/[^\/]*)(\/.*)/;
+        var root_url = current_url.split(regex)[1];
+        var newpath = root_url + ":8086"; 
         const csrftoken = document.getElementsByName('csrfmiddlewaretoken')[0].value;
         fetch(newpath,{
             method: 'POST',
