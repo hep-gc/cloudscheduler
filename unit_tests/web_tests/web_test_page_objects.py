@@ -462,7 +462,7 @@ class StatusPage(Page):
             return 0
 
     def vm_overlay_column_is(self, row, column, data):
-        headings = ['checkbox', 'hostname', 'flavor', 'cores', 'poller status', 'partitionable slots', 'dynamic slots', 'retire', 'terminate', 'age', 'startd errors']
+        headings = ['checkbox', 'hostname', 'ip(s)', 'flavor', 'cores', 'poller status', 'partitionable slots', 'dynamic slots', 'retire', 'terminate', 'age', 'startd errors']
         column = column.lower()
         if column not in headings:
             return False
