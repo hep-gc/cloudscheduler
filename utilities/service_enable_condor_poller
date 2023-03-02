@@ -171,7 +171,7 @@ EOF
 ### 10. Checks/installs prerequisite pip modules.
 ###
     check_sw boto3 1.9.130
-    check_sw htcondor 8.9.5
+    check_sw htcondor 8.9.6
     check_sw mysql-connector 2.2.9
     check_sw psutil 5.4.6
     check_sw PyYAML 5.1.0
