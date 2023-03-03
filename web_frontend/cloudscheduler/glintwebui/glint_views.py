@@ -8,6 +8,7 @@ import magic
 import tarfile
 
 from django.conf import settings
+
 config = settings.CSV2_CONFIG
 
 from django.shortcuts import render, get_object_or_404, redirect
@@ -16,7 +17,8 @@ from django.http import HttpResponse, StreamingHttpResponse
 from django.core.exceptions import PermissionDenied
 from django.template.defaultfilters import filesizeformat
 
-from .glint_utils import delete_image, check_cache, generate_tx_id, get_image, download_image, upload_image
+from .glint_utils import delete_image, check_cache, generate_tx_id, get_image, download_image, upload_image, \
+    convert_sparsify_compress
 
 from cloudscheduler.lib.view_utils import \
     render, \
@@ -35,33 +37,34 @@ MODID = "IV"
 LIST_KEYS = {
     # Named argument formats (anything else is a string).
     'format': {
-        'csrfmiddlewaretoken':                        'ignore',
-        'group':                                      'ignore',
-        'group-name':                                 'ignore',
-        'group_name':                                 'ignore',
-        'cloud':                                      'ignore',
-        'cloud-name':                                 'ignore',
-        'cloud_name':                                 'ignore',
-        },      
-    }
+        'csrfmiddlewaretoken': 'ignore',
+        'group': 'ignore',
+        'group-name': 'ignore',
+        'group_name': 'ignore',
+        'cloud': 'ignore',
+        'cloud-name': 'ignore',
+        'cloud_name': 'ignore',
+    },
+}
 
 TRANSFER_KEYS = {
     # Named argument formats (anything else is a string).
     'format': {
-        'csrfmiddlewaretoken':                        'ignore',
-        'group':                                      'ignore',
-        'group-name':                                 'ignore',
-        'group_name':                                 'ignore',
-        'cloud':                                      'ignore',
-        'cloud-name':                                 'ignore',
-        'cloud_name':                                 'ignore',
-        'image_name':                                 'ignore',
-        'image_index':                                'ignore',
-        'image-index':                                'ignore',
-        'image_date':                                 'ignore',
-        'image_checksum':                             'ignore',
-        },      
-    }
+        'csrfmiddlewaretoken': 'ignore',
+        'group': 'ignore',
+        'group-name': 'ignore',
+        'group_name': 'ignore',
+        'cloud': 'ignore',
+        'cloud-name': 'ignore',
+        'cloud_name': 'ignore',
+        'image_name': 'ignore',
+        'image_index': 'ignore',
+        'image-index': 'ignore',
+        'image_date': 'ignore',
+        'image_checksum': 'ignore',
+    },
+}
+
 
 # This dictionary is set up for the initial processing so we dont accidentally overwrite images with the same name
 # after this dict has been generated it is again parsed into a dictionary of lists to make it easier to render in a django template
@@ -99,7 +102,7 @@ TRANSFER_KEYS = {
 #         elif image[cloud]['status'] == 'error':
 #              #render error message
 #         else:
-               # unknown state
+# unknown state
 #
 #         
 # Support Functions
@@ -119,6 +122,7 @@ def _trim_image_list(image_list, group, cloud=None):
                 new_image_list.append(image)
     return new_image_list
 
+
 def _build_image_dict(image_list, transaction_list):
     image_dict = {}
     image_dates = {}
@@ -127,7 +131,7 @@ def _build_image_dict(image_list, transaction_list):
             # We don't like images without a name, lets ignore it
             continue
         if image["name"] + "---" + image["checksum"] not in image_dict.keys():
-            #first time seeing this image, make a new entry
+            # first time seeing this image, make a new entry
             new_dict = {
                 "name": image["name"],
                 "checksum": image["checksum"],
@@ -142,7 +146,7 @@ def _build_image_dict(image_list, transaction_list):
             image_dict[image["name"] + "---" + image["checksum"]] = new_dict
             image_dates[image["name"] + "---" + image["checksum"]] = image["created_at"] + "---" + str(image["size"])
         else:
-            #image already exits, just need to add the cloud name dict for this entry
+            # image already exits, just need to add the cloud name dict for this entry
             image_dict[image["name"] + "---" + image["checksum"]][image["cloud_name"]] = {
                 "status": "present",
                 "visibility": image["visibility"],
@@ -153,12 +157,12 @@ def _build_image_dict(image_list, transaction_list):
     # now that we have a complete picture of the images in the database we need to add the transaction data for pending image transfers
     for tx in transaction_list:
         if tx["image_name"] + "---" + tx["checksum"] not in image_dict.keys():
-            # this shouldnt be possible since the image must exist to be transfered
+            # this shouldn't be possible since the image must exist to be transferred
             # only way you could end up here is if multiple deletes were queued on the same image or the image was deleted while this transaction was queued
             # ignore fore now
             continue
         else:
-            # update relevent cloud dict
+            # update relevant cloud dict
             if tx["target_cloud_name"] not in image_dict[tx["image_name"] + "---" + tx["checksum"]].keys():
                 # make a new dict for it, probably a transfer request, or an upload
                 image_dict[tx["image_name"] + "---" + tx["checksum"]][tx["target_cloud_name"]] = {
@@ -169,13 +173,13 @@ def _build_image_dict(image_list, transaction_list):
                 }
                 image_dates[tx["image_name"] + "---" + tx["checksum"]] = "-"
             else:
-                # the image exists already, probably the result of multiple queue'd transfers
+                # the image exists already, probably the result of multiple queued transfers
                 # we can probably ignore this case but may want to keep whatever status/message from the tx table
                 continue
     return image_dict, image_dates
 
 
-# The image matrix will be a dinctionary with each value being a list of tuples where the order of the tuples is the order of clouds:
+# The image matrix will be a dictionary with each value being a list of tuples where the order of the tuples is the order of clouds:
 # matrix[image_name+checksum] = ((status1, message1, visibility1),(status2, message2, visibility2)....(statusN, messageN, visibilityN))
 def _build_image_matrix(image_dict, cloud_list):
     image_matrix = {}
@@ -184,16 +188,14 @@ def _build_image_matrix(image_dict, cloud_list):
         row_list = []
         for cloud in cloud_list:
             if cloud["cloud_name"] in image_dict[image_key].keys():
-                #image is here
-                row_list.append((image_dict[image_key][cloud["cloud_name"]]["status"],image_dict[image_key][cloud["cloud_name"]]["message"],image_dict[image_key][cloud["cloud_name"]]["visibility"], cloud["cloud_name"]))
+                # image is here
+                row_list.append((image_dict[image_key][cloud["cloud_name"]]["status"], image_dict[image_key][cloud["cloud_name"]]["message"], image_dict[image_key][cloud["cloud_name"]]["visibility"], cloud["cloud_name"]))
             else:
-                #image is not here
-                row_list.append(("missing","","",cloud["cloud_name"]))
+                # image is not here
+                row_list.append(("missing", "", "", cloud["cloud_name"]))
         image_matrix[image_key] = row_list
 
-
     return image_matrix
-
 
 
 # Checks if the image already exists for target cloud, and if it doesnt it also checks that this
@@ -206,17 +208,16 @@ def _check_image(config, target_group, target_cloud, image_name, image_checksum)
     IMAGE_TX = "csv2_image_transactions"
 
     images = None
-    #Check target cloud for image
+    # Check target cloud for image
     if image_checksum is not None:
         where_clause = "cloud_name='%s' and group_name='%s' and name='%s' and checksum='%s'" % (target_cloud, target_group, image_name, image_checksum)
     else:
         where_clause = "cloud_name='%s' and group_name='%s' and name='%s'" % (target_cloud, target_group, image_name)
     rc, msg, images = config.db_query(IMAGES, where=where_clause)
     if len(images) != 0:
-        return False # found the image so we don't need to transfer it
+        return False  # found the image so we don't need to transfer it
 
-
-    #now we need to check if a transfer request exists
+    # now we need to check if a transfer request exists
     logger.debug("Checking for image: %s in queued transfer requests" % image_name)
     if image_checksum is not None:
         where_clause = "target_cloud_name='%s' and target_group_name='%s' and image_name='%s' and checksum='%s'" % (target_cloud, target_group, image_name, image_checksum)
@@ -226,13 +227,13 @@ def _check_image(config, target_group, target_cloud, image_name, image_checksum)
     if len(images) != 0:
         # there is a row, lets check the status and there might be multiple rows if no checksum was provided
         for image_trans in images:
-            if  "pending" in image_trans["status"] or "claimed" in image_trans["status"]:
+            if "pending" in image_trans["status"] or "claimed" in image_trans["status"]:
                 # Transfer already requested
                 return False
 
     # If we get here we never found it in the image list or transaction list so we can go ahead with the xfer
     return True
-    
+
 
 # Check uploaded image file type
 def _get_file_type(file_path):
@@ -288,7 +289,7 @@ def list(request, args=None, response_code=0, message=None):
     if rc != 0:
         config.db_close()
         return render(request, 'glintwebui/images.html', {'response_code': 1, 'message': '%s %s' % (lno(MODID), msg)})
-    msg=message
+    msg = message
 
     group = active_user.active_group
     where_clause = "group_name='%s' and cloud_type='%s'" % (group, "openstack")
@@ -297,26 +298,26 @@ def list(request, args=None, response_code=0, message=None):
     where_clause = "group_name='%s'" % group
     rc, qmsg, defaults_list = config.db_query(GROUPS, where=where_clause)
     defaults = defaults_list[0]
-    if defaults["vm_image"] is None or defaults["vm_image"]=="":
+    if defaults["vm_image"] is None or defaults["vm_image"] == "":
         default_image = None
-    else:   
+    else:
         default_image = defaults["vm_image"]
 
     where_clause = "target_group_name='%s'" % group
     rc, qmsg, pending_tx = config.db_query(IMAGE_TX, where=where_clause)
     image_dict, image_dates = _build_image_dict(images, pending_tx)
     matrix = _build_image_matrix(image_dict, clouds)
-    
-    #build context and render matrix
+
+    # build context and render matrix
 
     context = {
-        #function specific data
+        # function specific data
         'image_dict': matrix,
         'image_dates': image_dates,
         'cloud_list': clouds,
         'default_image': default_image,
 
-        #view agnostic data
+        # view agnostic data
         'active_user': active_user.username,
         'active_group': active_user.active_group,
         'user_groups': active_user.user_groups,
@@ -326,26 +327,23 @@ def list(request, args=None, response_code=0, message=None):
         'version': config.get_version()
     }
 
-
+    config.db_close()
     return render(request, 'glintwebui/images.html', context)
 
 
 @silkp(name="Image Transfer")
 @requires_csrf_token
 def transfer(request, args=None, response_code=0, message=None):
-
     config.db_open()
     # Retrieve the active user, associated group list and optionally set the active group.
     rc, msg, active_user = set_user_groups(config, request, super_user=False)
     if rc != 0:
         config.db_close()
-        return HttpResponse(json.dumps({'response_code': 1,  'message': '%s %s' % (lno(MODID), msg)}))
-
+        return HttpResponse(json.dumps({'response_code': 1, 'message': '%s %s' % (lno(MODID), msg)}))
 
     if request.method == 'POST':
         IMAGES = "cloud_images"
         IMAGE_TX = "csv2_image_transactions"
-
 
         # If it's a json payload its coming from javascript on the webfrontend else its a cli request
         post_data = None
@@ -375,7 +373,8 @@ def transfer(request, args=None, response_code=0, message=None):
                     where_clause = "group_name='%s' and name='%s'" % (target_group, image_key)
                     rc, msg, image_candidates = config.db_query(IMAGES, where=where_clause)
                     if len(image_candidates) > 1:
-                        #ambiguous image name, need a checksum
+                        config.db_close()
+                        # ambiguous image name, need a checksum
                         return HttpResponse(json.dumps({'response_code': 1, 'message': '%s %s' % (lno(MODID), "Ambigous image name, please remove duplicate names or provide a checksum")}))
                     else:
                         image_checksum = image_candidates[0].checksum
@@ -386,36 +385,37 @@ def transfer(request, args=None, response_code=0, message=None):
                 image_name = key_list[0]
                 image_checksum = key_list[1]
 
-
             # Double check that the request doesn't exist and that the image is really missing from that cloud
             # if so then check if the image is in the cache, if not queue pull request and finally queue a transfer request
             if not _check_image(config, target_group, target_cloud, image_name, image_checksum):
+                config.db_close()
                 # Image or request already exists, return  with message
-                return HttpResponse(json.dumps({'response_code': 1,  'message': '%s %s'  % (lno(MODID), 'Image request exists or image already on cloud')}))
+                return HttpResponse(json.dumps({'response_code': 1, 'message': '%s %s' % (lno(MODID), 'Image request exists or image already on cloud')}))
 
             # if we get here everything is golden and we can queue up tha transfer request, but first lets check if the image
             # is in the cache or we should queue up a pull request, check cache returns True if it is found/queued or false
             # if it was unable to find the image
             cache_result = check_cache(config, image_name, image_checksum, target_group, active_user)
             if cache_result is False:
+                config.db_close()
                 return HttpResponse(json.dumps({'response_code': 1, 'message': '%s %s' % (lno(MODID), "Could not find a source image...")}))
             target_image = get_image(config, image_name, image_checksum, target_group)
             tx_id = generate_tx_id()
             tx_req = {
-                "tx_id":             tx_id,
-                "status":            "pending",
+                "tx_id": tx_id,
+                "status": "pending",
                 "target_group_name": target_group,
                 "target_cloud_name": target_cloud,
-                "image_name":        image_name,
-                "image_id":          target_image["id"],
-                "checksum":          target_image["checksum"],
-                "requester":         active_user.username,
+                "image_name": image_name,
+                "image_id": target_image["id"],
+                "checksum": target_image["checksum"],
+                "requester": active_user.username,
             }
 
             config.db_merge(IMAGE_TX, tx_req)
             config.db_commit()
             config.db_close()
-            #tx_request.delay(tx_id = tx_id)
+            # tx_request.delay(tx_id = tx_id)
             logger.info("Transfer queued")
             tx_request.apply_async((tx_id,), queue='tx_requests')
             logger.info("Transfer image")
@@ -433,10 +433,10 @@ def transfer(request, args=None, response_code=0, message=None):
 
             # Validate input fields.
             rc, msg, fields, tables, columns = validate_fields(config, request, [TRANSFER_KEYS], [], active_user)
-            if rc !=0:
+            if rc != 0:
+                config.db_close()
                 # Invalid fields, return message
                 return HttpResponse(json.dumps({'response_code': rc, 'message': msg}))
-
 
             group_name = active_user.active_group
             target_cloud = fields.get("cloud_name")
@@ -445,29 +445,31 @@ def transfer(request, args=None, response_code=0, message=None):
             image_date = fields.get("image_date")
             image_index = fields.get("image_index")
             if image_index is not None:
-                image_index = int(image_index)-1
+                image_index = int(image_index) - 1
 
             if image_name is None and image_index is None:
+                config.db_close()
                 return HttpResponse(json.dumps({'response_code': 1, 'message': '%s %s' % (lno(MODID), "No image name or index, please supply at least one to identify target image")}))
 
-            target_image=None
+            target_image = None
 
             if image_index is not None:
-                #get target image by index
+                # get target image by index
                 sql = "select rank() over (partition by rank order by group_name,cloud_name,name,created_at,checksum) as rank,group_name,cloud_name,name,created_at,checksum,id from (select 1 as rank,i.* from (select * from cloud_images) as i) as i where cloud_type='openstack';"
-                rc, msg= config.db_execute(sql)
+                rc, msg = config.db_execute(sql)
                 image_list = []
                 for row in config.db_cursor:
                     image_list.append(row)
                 target_image = image_list[image_index]
                 if image_name is not None:
                     if str(target_image["name"]) != str(image_name):
+                        config.db_close()
                         return HttpResponse(json.dumps({'response_code': 1, 'message': '%s %s' % (lno(MODID), "Image name (%s) from index (%s) does not match supplied image name (%s) please check your request and try again." % (target_image["name"], image_index, image_name))}))
             else:
                 # we have at least an image name, lets build the where clause
                 where = "name='%s'" % image_name
                 if image_checksum is not None:
-                    where = where + " and checksum='%s'" % image_checksum 
+                    where = where + " and checksum='%s'" % image_checksum
                 if image_date is not None:
                     where = where + " and created_at like '%s'" % image_date
 
@@ -478,27 +480,29 @@ def transfer(request, args=None, response_code=0, message=None):
                     image_list.append(row)
 
                 if len(image_list) > 1:
+                    config.db_close()
                     return HttpResponse(json.dumps({'response_code': 1, 'message': '%s %s' % (lno(MODID), "Unable to uniquely identify target image with given parameters, %s images matched." % len(image_list))}))
                 elif len(image_list) == 0:
+                    config.db_close()
                     return HttpResponse(json.dumps({'response_code': 1, 'message': '%s %s' % (lno(MODID), "No images matched sepcified parameters, please check your request and try again.")}))
                 else:
                     target_image = image_list[0]
 
             # we have target image, create the transaction request
             # First check the cache for the image and create a pull request if it's abscent
-            check_cache(config, target_image["name"], target_image["checksum"], active_user.active_group, active_user, target_image)
+            check_cache(config, target_image["name"], target_image["checksum"], active_user.active_group, active_user,target_image)
             tx_id = generate_tx_id()
             try:
 
                 tx_req = {
-                    "tx_id":             tx_id,
-                    "status":            "pending",
+                    "tx_id": tx_id,
+                    "status": "pending",
                     "target_group_name": active_user.active_group,
                     "target_cloud_name": target_cloud,
-                    "image_name":        target_image["name"],
-                    "image_id":          target_image["id"],
-                    "checksum":          target_image["checksum"],
-                    "requester":         active_user.username,
+                    "image_name": target_image["name"],
+                    "image_id": target_image["id"],
+                    "checksum": target_image["checksum"],
+                    "requester": active_user.username,
                 }
                 config.db_merge(IMAGE_TX, tx_req)
                 config.db_commit()
@@ -516,13 +520,10 @@ def transfer(request, args=None, response_code=0, message=None):
                     'response_code': 1,
                     'message': message
                 }
+                config.db_close()
                 return HttpResponse(json.dumps(context))
-
-                    
-
-
     else:
-        #Not a post request, render image page again or do nothing
+        # Not a post request, render image page again or do nothing
         config.db_close()
         return None
 
@@ -537,11 +538,11 @@ def delete(request, args=None, response_code=0, message=None):
     rc, msg, active_user = set_user_groups(config, request, super_user=False)
     if rc != 0:
         config.db_close()
-        #return render(request, 'glintwebui/images.html', {'response_code': 1, 'message': '%s %s' % (lno(MODID), msg)})
+        # return render(request, 'glintwebui/images.html', {'response_code': 1, 'message': '%s %s' % (lno(MODID), msg)})
         return None
 
-    #Delete can be done right now without queing up a transaction since it is a fast call to openstack
-    #may want to use a timeout for openstack in case it's busy. How long would the user want to wait?
+    # Delete can be done right now without queing up a transaction since it is a fast call to openstack
+    # may want to use a timeout for openstack in case it's busy. How long would the user want to wait?
     if request.method == 'POST':
 
         # If it's a json payload its coming from javascript on the webfrontend else its a cli request
@@ -570,7 +571,8 @@ def delete(request, args=None, response_code=0, message=None):
                     where_clause = "group_name='%s' and name='%s'" % (target_group, image_key)
                     rc, qmsg, image_candidates = config.db_query(IMAGES, where=where_clause)
                     if len(image_candidates) > 1:
-                        #ambiguous image name, need a checksum
+                        # ambiguous image name, need a checksum
+                        config.db_close()
                         return HttpResponse(json.dumps({'response_code': 1, 'message': '%s %s' % (lno(MODID), "Ambigous image name, please remove duplicate names or provide a checksum")}))
                     else:
                         image_checksum = image_candidates[0]["checksum"]
@@ -581,23 +583,23 @@ def delete(request, args=None, response_code=0, message=None):
                 image_name = key_list[0]
                 image_checksum = key_list[1]
 
-
             logger.info("GETTING IMAGE: %s::%s::%s::%s" % (image_name, image_checksum, target_group, target_cloud))
             target_image = get_image(config, image_name, image_checksum, target_group, target_cloud)
             where_clause = "group_name='%s' and cloud_name='%s'" % (target_group, target_cloud)
-            rc, qmsg, cloud_list =  config.db_query(CLOUDS, where=where_clause)
+            rc, qmsg, cloud_list = config.db_query(CLOUDS, where=where_clause)
             cloud = cloud_list[0]
             result = delete_image(cloud, target_image["id"])
 
             if result[0] == 0:
-                #Remove image row
+                # Remove image row
                 config.db_delete(IMAGES, target_image)
                 config.db_commit()
                 config.db_close()
-                #return render(request, 'glintwebui/images.html', {'response_code': 0, 'message': '%s %s' % (lno(MODID), "Delete successful")})
-                return HttpResponse(json.dumps({'response_code':0 , 'message': '%s %s' % (lno(MODID), "Delete successful")}))
+                # return render(request, 'glintwebui/images.html', {'response_code': 0, 'message': '%s %s' % (lno(MODID), "Delete successful")})
+                return HttpResponse(json.dumps({'response_code': 0, 'message': '%s %s' % (lno(MODID), "Delete successful")}))
             else:
-                #return render(request, 'glintwebui/images.html', {'response_code': 1, 'message': '%s %s: %s' % (lno(MODID), "Delete failed", result[1])})
+                config.db_close()
+                # return render(request, 'glintwebui/images.html', {'response_code': 1, 'message': '%s %s: %s' % (lno(MODID), "Delete failed", result[1])})
                 return HttpResponse(json.dumps({'response_code': 1, 'message': '%s %s: %s' % (lno(MODID), "Delete failed...", result[1])}))
         else:
             # command line request
@@ -611,10 +613,10 @@ def delete(request, args=None, response_code=0, message=None):
 
             # Validate input fields.
             rc, msg, fields, tables, columns = validate_fields(config, request, [TRANSFER_KEYS], [], active_user)
-            if rc !=0:
+            if rc != 0:
+                config.db_close()
                 # Invalid fields, return message
                 return HttpResponse(json.dumps({'response_code': rc, 'message': msg}))
-
 
             group_name = active_user.active_group
             cloud_name = fields.get("cloud-name")
@@ -623,15 +625,16 @@ def delete(request, args=None, response_code=0, message=None):
             image_date = fields.get("image_date")
             image_index = fields.get("image-index")
             if image_index is not None:
-                image_index = int(image_index)-1
+                image_index = int(image_index) - 1
 
             if image_name is None and image_index is None:
+                config.db_close()
                 return HttpResponse(json.dumps({'response_code': 1, 'message': '%s %s' % (lno(MODID), "No image name or index, please supply at least one to identify target image")}))
 
-            target_image=None
+            target_image = None
 
             if image_index is not None:
-                #get target image by index
+                # get target image by index
                 sql = "select rank() over (partition by rank order by group_name,cloud_name,name,created_at,checksum) as rank,group_name,cloud_name,name,created_at,checksum,id from (select 1 as rank,i.* from (select * from cloud_images) as i) as i where cloud_type='openstack';"
                 rc, msg = config.db_execute(sql)
                 image_list = []
@@ -640,15 +643,17 @@ def delete(request, args=None, response_code=0, message=None):
                 target_image = image_list[image_index]
                 if image_name is not None:
                     if str(target_image["name"]) != str(image_name):
+                        config.db_close()
                         return HttpResponse(json.dumps({'response_code': 1, 'message': '%s %s' % (lno(MODID), "Image name (%s) from index (%s) does not match supplied image name (%s) please check your request and try again." % (target_image["name"], image_index, image_name))}))
                 if cloud_name is not None:
                     if str(target_image["cloud_name"]) != str(cloud_name):
+                        config.db_close()
                         return HttpResponse(json.dumps({'response_code': 1, 'message': '%s %s' % (lno(MODID), "cloud name (%s) from index (%s) does not match supplied cloud name (%s) please check your request and try again." % (target_image["cloud_name"], image_index, cloud_name))}))
             else:
                 # we have at least an image name, lets build the where clause
                 where = "name='%s'" % image_name
                 if image_checksum is not None:
-                    where = where + " and checksum='%s'" % image_checksum 
+                    where = where + " and checksum='%s'" % image_checksum
                 if image_date is not None:
                     where = where + " and created_at like '%s'" % image_date
                 if cloud_name is not None:
@@ -657,40 +662,47 @@ def delete(request, args=None, response_code=0, message=None):
                 sql = "select * from cloud_images where %s" % where
                 rc, msg, image_list = config.db_query(IMAGES, where=where)
                 if len(image_list) > 1:
+                    config.db_close()
                     return HttpResponse(json.dumps({'response_code': 1, 'message': '%s %s' % (lno(MODID), "Unable to uniquely identify target image with given parameters, %s images matched." % len(image_list))}))
                 elif len(image_list) == 0:
+                    config.db_close()
                     return HttpResponse(json.dumps({'response_code': 1, 'message': '%s %s' % (lno(MODID), "No images matched sepcified parameters, please check your request and try again.")}))
                 else:
                     target_image = image_list[0]
 
             # we have target image, lets delete it
             where_clause = "group_name='%s' and cloud_name='%s'" % (target_image["group_name"], target_image["cloud_name"])
-            rc, msg, cloud_list =  config.db_query(CLOUDS, where=where_clause)
+            rc, msg, cloud_list = config.db_query(CLOUDS, where=where_clause)
             cloud = cloud_list[0]
             result = delete_image(cloud, target_image["id"])
 
             if result[0] == 0:
                 # Successful delete, now delete it from csv2 database - build delete statement
-                sql ="delete from cloud_images where group_name='%s' and cloud_name='%s' and id='%s';" % (target_image["group_name"], target_image["cloud_name"], target_image["id"])
+                sql = "delete from cloud_images where group_name='%s' and cloud_name='%s' and id='%s';" % (target_image["group_name"], target_image["cloud_name"], target_image["id"])
                 try:
                     config.db_execute(sql)
-                except Exction as exc:
+                    config.db_commit()
+                except Exception as exc:
+                    config.db_close()
                     context = {
                         "response_code": 1,
                         "message": "Failed to execute delete for image %s: %s" % (target_image["name"], exc)
                     }
                     return HttpResponse(json.dumps(context))
-     
+
                 context = {
                     "response_code": 0,
                     "message": "Image %s deleted successfully" % target_image["name"]
                 }
+                config.db_close()
                 return HttpResponse(json.dumps(context))
             else:
+                config.db_close()
                 return HttpResponse(json.dumps({'response_code': 1, 'message': '%s %s: %s' % (lno(MODID), "Delete failed...", result[1])}))
 
     else:
-        #Not a post request, render image page again
+        # Not a post request, render image page again
+        config.db_close()
         return None
 
 
@@ -707,45 +719,50 @@ def upload(request, group_name=None):
     rc, qmsg, active_user = set_user_groups(config, request, super_user=False)
     if rc != 0:
         config.db_close()
-        #return render(request, 'glintwebui/images.html', {'response_code': 1, 'message': '%s %s' % (lno(MODID), msg)})
+        # return render(request, 'glintwebui/images.html', {'response_code': 1, 'message': '%s %s' % (lno(MODID), msg)})
         return None
     try:
         image_file = request.FILES['myfile']
     except Exception:
         # no file means it's not a POST or it's an upload by URL
         image_file = False
-    
+
     if request.method == 'POST' and image_file:
         logger.info("File to upload: %s" % image_file.name)
         if group_name is None:
             # need to figure out where to get group name
             group_name = active_user.active_group
 
-        #process image upload
+        # process image upload
         image_file = request.FILES['myfile']
-        file_path = config.categories["glintPoller.py"]["image_cache_dir"] + image_file.name # This file will have to be renamed with the checksum after uploading to a cloud
+        file_path = config.categories["glintPoller.py"]["image_cache_dir"] + image_file.name  # This file will have to be renamed with the checksum after uploading to a cloud
 
-        #before we save it locally let us check if it is already in the repos
+        # before we save it locally let us check if it is already in the repos
         cloud_name_list = request.POST.getlist('clouds')
-        if len(cloud_name_list)==1 and "," in cloud_name_list[0]:
+
+        # if the initial cloud_name_list is empty, return error message
+        if len(cloud_name_list) == 0:
+            msg = "Upload failed because no target cloud is selected"
+
+        if len(cloud_name_list) == 1 and "," in cloud_name_list[0]:
             # could be a cli command packaged as a string,
-            cloud_name_list = cloud_name_list[0].replace(" ", "").split(",") 
+            cloud_name_list = cloud_name_list[0].replace(" ", "").split(",")
 
         where_clause = "name='%s' and group_name='%s'" % (image_file.name, group_name)
         rc, qmsg, image_list = config.db_query(IMAGES, where=where_clause)
         bad_clouds = []
         if len(image_list) > 0:
-            #we've got some images by this name already lets see if any are in the target clouds
+            # we've got some images by this name already lets see if any are in the target clouds
             for image in image_list:
                 if image["cloud_name"] in cloud_name_list:
                     bad_clouds.append(image["cloud_name"])
         if len(bad_clouds) > 0:
             for cloud in bad_clouds:
                 if cloud in cloud_name_list: cloud_name_list.remove(cloud)
-            msg = ("Upload failed for one or more projects because the image name was already in use.")
+            msg = "Upload failed for one or more projects because the image name was already in use."
 
         if len(cloud_name_list) == 0:
-            #if we have eliminated all the target clouds, return with error message
+            # if we have eliminated all the target clouds, return with error message
             msg = "Upload failed to all target projects because the image name was already in use."
             where_clause = "group_name='%s' and cloud_type='%s'" % (group_name, "openstack")
             rc, qmsg, cloud_list = config.db_query(CLOUDS, where=where_clause)
@@ -755,7 +772,7 @@ def upload(request, group_name=None):
                 'max_repos': len(cloud_list),
                 'redirect': "false",
 
-                #view agnostic data
+                # view agnostic data
                 'active_user': active_user.username,
                 'active_group': active_user.active_group,
                 'user_groups': active_user.user_groups,
@@ -767,7 +784,7 @@ def upload(request, group_name=None):
             config.db_close()
             return render(request, 'glintwebui/upload_image.html', context)
 
-        #And finally before we save locally double check that file doesn't already exist
+        # And finally before we save locally double check that file doesn't already exist
         if os.path.exists(file_path):
             # Filename exists locally, lets add some random suffix and check again
             suffix = 1
@@ -776,11 +793,11 @@ def upload(request, group_name=None):
                 suffix = suffix + 1
                 new_path = file_path + str(suffix)
             file_path = new_path
-            
+
         with open(file_path, 'wb+') as destination:
             for chunk in image_file.chunks():
                 destination.write(chunk)
-        
+
         disk_format = request.POST.get('disk_format')
         if disk_format == '':
             try:
@@ -798,7 +815,7 @@ def upload(request, group_name=None):
                 'max_repos': len(cloud_list),
                 'redirect': "false",
 
-                #view agnostic data
+                # view agnostic data
                 'active_user': active_user.username,
                 'active_group': active_user.active_group,
                 'user_groups': active_user.user_groups,
@@ -809,6 +826,14 @@ def upload(request, group_name=None):
             }
             config.db_close()
             return render(request, 'glintwebui/upload_image.html', context)
+
+        # added code in if to reorganize or compress then convert the RAW/QCOW2 file
+        virt_sparsify = bool(request.POST.get('reorganization'))
+        with_compression = bool(request.POST.get('compression'))
+
+        if virt_sparsify or with_compression:
+            if disk_format == 'qcow2' or disk_format == 'raw':
+                file_path = convert_sparsify_compress(file_path, virt_sparsify, with_compression)
 
         # Now we have a source file we need to upload it to one of the clouds to get a checksum so we can queue up transfer requests
         # get a cloud of of the list, first one is fine
@@ -829,7 +854,7 @@ def upload(request, group_name=None):
                 'max_repos': len(cloud_list),
                 'redirect': "false",
 
-                #view agnostic data
+                # view agnostic data
                 'active_user': active_user.username,
                 'active_group': active_user.active_group,
                 'user_groups': active_user.user_groups,
@@ -848,7 +873,8 @@ def upload(request, group_name=None):
             container_format = "bare"
 
         logger.info("uploading image %s to cloud %s" % (image_file.name, target_cloud_name))
-        image = upload_image(target_cloud, None, image_file.name, file_path, disk_format=disk_format, container_format=container_format)
+        image = upload_image(target_cloud, None, image_file.name, file_path, disk_format=disk_format,
+                             container_format=container_format)
         if image is False:
             logger.error("Upload failed for image %s" % image_file.name)
             msg = "Upload failed for image: %s" % image_file.name
@@ -860,7 +886,7 @@ def upload(request, group_name=None):
                 'max_repos': len(cloud_list),
                 'redirect': "false",
 
-                #view agnostic data
+                # view agnostic data
                 'active_user': active_user.username,
                 'active_group': active_user.active_group,
                 'user_groups': active_user.user_groups,
@@ -903,21 +929,20 @@ def upload(request, group_name=None):
         config.db_merge(IMAGES, img_dict)
         config.db_commit()
 
-
         # now we have the os image object, lets rename the file and add it to out cache
         cache_path = config.categories["glintPoller.py"]["image_cache_dir"] + image_file.name + "---" + image.checksum
         os.rename(file_path, cache_path)
 
         cache_dict = {
-                "image_name": image_file.name,
-                "checksum": image.checksum,
-                "container_format": image.container_format,
-                "disk_format": image.disk_format
+            "image_name": image_file.name,
+            "checksum": image.checksum,
+            "container_format": image.container_format,
+            "disk_format": image.disk_format
         }
         config.db_merge(CACHE_IMAGES, cache_dict)
         config.db_commit()
 
-        #now we need to queue transfer requests for the remaining clouds
+        # now we need to queue transfer requests for the remaining clouds
         cloud_name_list.remove(target_cloud_name)
         if len(cloud_name_list) == 0:
             # we are done and can return successfully
@@ -929,7 +954,7 @@ def upload(request, group_name=None):
                 'max_repos': len(cloud_list),
                 'redirect': "true",
 
-                #view agnostic data
+                # view agnostic data
                 'active_user': active_user.username,
                 'active_group': active_user.active_group,
                 'user_groups': active_user.user_groups,
@@ -943,58 +968,57 @@ def upload(request, group_name=None):
 
         else:
             # loop over remaining clouds and queue transfers
-            logger.info("Queuing additonal uploads...")
+            logger.info("Queuing additional uploads...")
             for cloud in cloud_name_list:
                 tx_id = generate_tx_id()
                 tx_req = {
-                    "tx_id":             tx_id,
-                    "status":            "pending",
+                    "tx_id": tx_id,
+                    "status": "pending",
                     "target_group_name": group_name,
                     "target_cloud_name": cloud,
-                    "image_name":        image_file.name,
-                    "image_id":          image.id,
-                    "checksum":          image.checksum,
-                    "requester":         active_user.username,
+                    "image_name": image_file.name,
+                    "image_id": image.id,
+                    "checksum": image.checksum,
+                    "requester": active_user.username,
                 }
                 config.db_merge(IMAGE_TX, tx_req)
                 config.db_commit()
                 logger.info("Transfer id:%s queued" % tx_id)
                 tx_request.apply_async((tx_id,), queue='tx_requests')
 
-        #return to project details page with message
-        msg="Upload successfully queued, returning to images..."
+        # return to project details page with message
+        msg = "Upload successfully queued, returning to images..."
         where_clause = "group_name='%s' and cloud_type='%s'" % (group_name, "openstack")
         rc, qmsg, cloud_list = config.db_query(CLOUDS, where=where_clause)
         context = {
-                'group_name': group_name,
-                'cloud_list': cloud_list,
-                'max_repos': len(cloud_list),
-                'redirect': "true",
+            'group_name': group_name,
+            'cloud_list': cloud_list,
+            'max_repos': len(cloud_list),
+            'redirect': "true",
 
-                #view agnostic data
-                'active_user': active_user.username,
-                'active_group': active_user.active_group,
-                'user_groups': active_user.user_groups,
-                'response_code': rc,
-                'message': msg,
-                'is_superuser': active_user.is_superuser,
-                'version': config.get_version()
+            # view agnostic data
+            'active_user': active_user.username,
+            'active_group': active_user.active_group,
+            'user_groups': active_user.user_groups,
+            'response_code': rc,
+            'message': msg,
+            'is_superuser': active_user.is_superuser,
+            'version': config.get_version()
         }
         config.db_close()
         return render(request, 'glintwebui/upload_image.html', context)
 
     elif request.method == 'POST' and request.POST.get('myfileurl'):
         if group_name is None:
-
             logger.error("No group name, using user's default")
             group_name = active_user.active_group
 
-
-        #download the image
+        # download the image
         img_url = request.POST.get('myfileurl')
         image_name = img_url.rsplit("/", 1)[-1]
         logger.info("File to upload: %s" % image_name)
-        file_path = config.categories["glintPoller.py"]["image_cache_dir"] + image_name # This file will have to be renamed with the checksum after uploading to a cloud
+        # This file will have to be renamed with the checksum after uploading to a cloud
+        file_path = config.categories["glintPoller.py"]["image_cache_dir"] + image_name
 
         # check if a file with that name already exists
         if os.path.exists(file_path):
@@ -1006,24 +1030,29 @@ def upload(request, group_name=None):
                 new_path = file_path + str(suffix)
             file_path = new_path
 
-        #before we save it locally let us check if it is already in the repos
+        # before we save it locally let us check if it is already in the repos
         cloud_name_list = request.POST.getlist('clouds')
         where_clause = "name='%s' and group_name='%s'" % (image_name, group_name)
         rc, qmsg, image_list = config.db_query(IMAGES, where=where_clause)
         bad_clouds = []
+
+        # if the initial cloud_name_list is empty, return error message--
+        if len(cloud_name_list) == 0:
+            msg = "Upload failed because no target cloud is selected"
+
         if len(image_list) > 0:
-            #we've got some images by this name already lets see if any are in the target clouds
+            # we've got some images by this name already lets see if any are in the target clouds
             for image in image_list:
                 if image["cloud_name"] in cloud_name_list:
                     bad_clouds.append(image["cloud_name"])
         if len(bad_clouds) > 0:
             for cloud in bad_clouds:
                 cloud_name_list.remove(cloud)
-            msg = ("Upload failed for one or more projects because the image name was already in use.")
+            msg = "Upload failed for one or more projects because the image name was already in use."
 
         if len(cloud_name_list) == 0:
-            #if we have eliminated all the target clouds, return with error message
-            msg = ("Upload failed to all target projects because the image name was already in use.")
+            # if we have eliminated all the target clouds, return with error message
+            msg = "Upload failed to all target projects because the image name was already in use."
             where_clause = "group_name='%s' and cloud_type='%s'" % (group_name, "openstack")
             rc, qmsg, cloud_list = config.db_query(CLOUDS, where=where_clause)
             context = {
@@ -1032,7 +1061,7 @@ def upload(request, group_name=None):
                 'max_repos': len(cloud_list),
                 'redirect': "false",
 
-                #view agnostic data
+                # view agnostic data
                 'active_user': active_user.username,
                 'active_group': active_user.active_group,
                 'user_groups': active_user.user_groups,
@@ -1043,7 +1072,7 @@ def upload(request, group_name=None):
             }
             config.db_close()
             return render(request, 'glintwebui/upload_image.html', context)
-            
+
         http = urllib3.PoolManager()
         image_data = http.request('GET', img_url)
 
@@ -1067,7 +1096,7 @@ def upload(request, group_name=None):
                 'max_repos': len(cloud_list),
                 'redirect': "false",
 
-                #view agnostic data
+                # view agnostic data
                 'active_user': active_user.username,
                 'active_group': active_user.active_group,
                 'user_groups': active_user.user_groups,
@@ -1085,15 +1114,24 @@ def upload(request, group_name=None):
         else:
             container_format = "bare"
 
-        #Now we have a source file we need to upload it to one of the clouds to get a checksum so we can queue up transfer requests
-        # get a cloud of of the list, first one is fine
+        # added code in elif to reorganize or compress then convert the RAW/QCOW2 file
+        virt_sparsify = bool(request.POST.get('reorganization'))
+        with_compression = bool(request.POST.get('compression'))
+
+        if virt_sparsify or with_compression:
+            if disk_format == 'qcow2' or disk_format == 'raw':
+                file_path = convert_sparsify_compress(file_path, virt_sparsify, with_compression)
+
+        # Now we have a source file we need to upload it to one of the clouds to get a checksum so we can queue up transfer requests
+        # get a cloud of the list, first one is fine
         target_cloud_name = cloud_name_list[0]
         # get the cloud row for this cloud
         where_clause = "group_name='%s' and cloud_name='%s'" % (group_name, target_cloud_name)
         rc, qmsg, target_cloud_list = config.db_query(CLOUDS, where=where_clause)
         target_cloud = target_cloud_list[0]
 
-        image = upload_image(target_cloud, None, image_name, file_path, disk_format=disk_format, container_format=container_format)
+        image = upload_image(target_cloud, None, image_name, file_path, disk_format=disk_format,
+                             container_format=container_format)
         if image is False:
             logger.error("Upload failed for image %s" % image_name)
             msg = "Upload failed for image: %s" % image_name
@@ -1105,7 +1143,7 @@ def upload(request, group_name=None):
                 'max_repos': len(cloud_list),
                 'redirect': "false",
 
-                #view agnostic data
+                # view agnostic data
                 'active_user': active_user.username,
                 'active_group': active_user.active_group,
                 'user_groups': active_user.user_groups,
@@ -1153,15 +1191,15 @@ def upload(request, group_name=None):
         os.rename(file_path, cache_path)
 
         cache_dict = {
-                "image_name": image_name,
-                "checksum": image.checksum,
-                "container_format": image.container_format,
-                "disk_format": image.disk_format
+            "image_name": image_name,
+            "checksum": image.checksum,
+            "container_format": image.container_format,
+            "disk_format": image.disk_format
         }
         config.db_merge(CACHE_IMAGES, cache_dict)
         config.db_commit()
 
-        #now we need to queue transfer requests for the remaining clouds
+        # now we need to queue transfer requests for the remaining clouds
         cloud_name_list.remove(target_cloud_name)
         if len(cloud_name_list) == 0:
             # we are done and can return successfully
@@ -1171,43 +1209,43 @@ def upload(request, group_name=None):
             for cloud in cloud_name_list:
                 tx_id = generate_tx_id()
                 tx_req = {
-                    "tx_id":             tx_id,
-                    "status":            "pending",
+                    "tx_id": tx_id,
+                    "status": "pending",
                     "target_group_name": group_name,
                     "target_cloud_name": cloud,
-                    "image_name":        image_name,
-                    "image_id":          image.id,
-                    "checksum":          image.checksum,
-                    "requester":         active_user.username,
+                    "image_name": image_name,
+                    "image_id": image.id,
+                    "checksum": image.checksum,
+                    "requester": active_user.username,
                 }
                 config.db_merge(IMAGE_TX, tx_req)
                 config.db_commit()
                 logger.info("Transfer id:%s queued" % tx_id)
                 tx_request.apply_async((tx_id,), queue='tx_requests')
 
-        #return to project details page with message
-        msg = "Upload successfully queued, returning to images..."
+        # return to project details page with message
+        msg = "upload successfully queued, returning to images..."
         where_clause = "group_name='%s' and cloud_type='openstack'" % group_name
         rc, qmsg, cloud_list = config.db_query(CLOUDS, where=where_clause)
         context = {
-                'group_name': group_name,
-                'cloud_list': cloud_list,
-                'max_repos': len(cloud_list),
-                'redirect': "true",
+            'group_name': group_name,
+            'cloud_list': cloud_list,
+            'max_repos': len(cloud_list),
+            'redirect': "true",
 
-                #view agnostic data
-                'active_user': active_user.username,
-                'active_group': active_user.active_group,
-                'user_groups': active_user.user_groups,
-                'response_code': rc,
-                'message': msg,
-                'is_superuser': active_user.is_superuser,
-                'version': config.get_version()
-            }
+            # view agnostic data
+            'active_user': active_user.username,
+            'active_group': active_user.active_group,
+            'user_groups': active_user.user_groups,
+            'response_code': rc,
+            'message': msg,
+            'is_superuser': active_user.is_superuser,
+            'version': config.get_version()
+        }
         config.db_close()
         return render(request, 'glintwebui/upload_image.html', context)
     else:
-        #render page to upload image
+        # render page to upload image
         if request.META['HTTP_ACCEPT'] != 'application/json' and active_user and active_user.active_group:
             group_name = active_user.active_group
         where_clause = "group_name='%s' and cloud_type='openstack'" % group_name
@@ -1218,7 +1256,7 @@ def upload(request, group_name=None):
             'max_repos': len(cloud_list),
             'redirect': "false",
 
-            #view agnostic data
+            # view agnostic data
             'active_user': active_user.username,
             'active_group': active_user.active_group,
             'user_groups': active_user.user_groups,
@@ -1228,7 +1266,6 @@ def upload(request, group_name=None):
         }
         config.db_close()
         return render(request, 'glintwebui/upload_image.html', context)
-
 
 
 @silkp(name="Image Download")
@@ -1256,6 +1293,7 @@ def download(request, group_name, image_key, args=None, response_code=0, message
             where_clause = "group_name='%s' and name='%s'" % (group_name, image_key)
             rc, qmsg, image_candidates = config.db_query(IMAGES, where=where_clause)
             if len(image_candidates) > 1:
+                config.db_close()
                 return HttpResponse(json.dumps({'response_code': 1, 'message': '%s %s' % (lno(MODID), "Ambigous image name, please remove duplicate names or provide a checksum")}))
             else:
                 image_checksum = image_candidates[0]["checksum"]
@@ -1267,7 +1305,7 @@ def download(request, group_name, image_key, args=None, response_code=0, message
         image_checksum = key_list[1]
 
     logger.info("Downloading image %s" % image_name)
-    #if the image is not in the cache, download it and update the cache table
+    # if the image is not in the cache, download it and update the cache table
     where_clause = "image_name='%s' and checksum='%s'" % (image_name, image_checksum)
     rc, qmsg, cached_images = config.db_query(CACHE_IMAGES, where=where_clause)
     if len(cached_images) > 0:
@@ -1288,13 +1326,14 @@ def download(request, group_name, image_key, args=None, response_code=0, message
         rc, qmsg, image_candidates = config.db_query(IMAGES, where=where_clause)
         if len(image_candidates) == 0:
             # we didnt find a source
-            return False # report error
+            config.db_close()
+            return False  # report error
         else:
             src_image = image_candidates[0]
         where_clause = "group_name='%s' and cloud_name='%s'" % (group_name, src_image["cloud_name"])
         rc, qmsg, cloud_row_list = config.db_query(CLOUD, where=where_clause)
         cloud_row = cloud_row_list[0]
-        result_tuple = download_image(cloud_row, image_name, src_image["id"], image_checksum, config.categories["glintPoller.py"]["image_cache_dir"])
+        result_tuple = download_image(cloud_row, image_name, src_image["id"], image_checksum,config.categories["glintPoller.py"]["image_cache_dir"])
         if result_tuple[0]:
             # successful download, update the cache and remove transaction
             cache_dict = {
@@ -1314,16 +1353,15 @@ def download(request, group_name, image_key, args=None, response_code=0, message
             config.db_close()
             logger.info("Finish downloading image %s" % image_name)
             return response
-
-
         else:
             # Download failed for whatever reason, update message and return to images page
             # check result_tuple for error message
             logger.error("Failed to download the image %s" % result_tuple[1])
+            config.db_close()
             return None
 
+    config.db_close()
     return None
-
 
 
 @silkp(name="Retry Tansaction")
@@ -1357,7 +1395,8 @@ def retry(request, args=None, response_code=0, message=None):
                 where_clause = "group_name='%s' and name='%s'" % (target_group, image_key)
                 rc, qmsg, image_candidates = config.db_query(IMAGES, where=where_clause)
                 if len(image_candidates) > 1:
-                    #ambiguous image name, need a checksum
+                    config.db_close()
+                    # ambiguous image name, need a checksum
                     return HttpResponse(json.dumps({'response_code': 1, 'message': '%s %s' % (lno(MODID), "Ambigous image name, please remove duplicate names or provide a checksum")}))
                 else:
                     image_checksum = image_candidates[0]["checksum"]
@@ -1367,15 +1406,16 @@ def retry(request, args=None, response_code=0, message=None):
             # key is normal
             image_name = key_list[0]
             image_checksum = key_list[1]
-        
+
         where_clause = "image_name='%s' and checksum='%s' and target_cloud_name='%s' and target_group_name='%s'" % (image_name, image_checksum, target_cloud, target_group)
         rc, qmsg, image_tx = config.db_query(IMG_TX, where=where_clause)
-        if len(image_tx)== 0:
+        if len(image_tx) == 0:
             # no transaction found
+            config.db_close()
             logger.error("No transaction found for image:%s on group::cloud: %s::%s" % (image_name, target_group, target_cloud))
-            return HttpResponse(json.dumps({'response_code': 1, 'message': "No transaction found for image:%s on group::cloud: %s::%s" % (image_name, target_group, target_cloud)}))
+            return HttpResponse(json.dumps({'response_code': 1,'message': "No transaction found for image:%s on group::cloud: %s::%s" % (image_name, target_group, target_cloud)}))
         elif len(image_tx) == 1:
-            #found the bugger, lets update the status to pending and queue a new transaction
+            # found the bugger, lets update the status to pending and queue a new transaction
             redo_tx = image_tx[0]
             redo_tx["status"] = "pending"
             redo_tx["message"] = "Retrying..."
@@ -1386,7 +1426,7 @@ def retry(request, args=None, response_code=0, message=None):
             config.db_close()
             return HttpResponse(json.dumps({'response_code': 0, 'message': 'Transfer re-queued..'}))
         else:
-            #if we get here it means we have multiple identical transactions queue'd up so lets report the error and just take the first one
+            # if we get here it means we have multiple identical transactions queue'd up so lets report the error and just take the first one
             logger.warning("Multiple identical transactions found, there is probably a database issue or a problem with defaults replication")
             redo_tx = image_tx[0]
             redo_tx["status"] = "pending"
@@ -1398,7 +1438,8 @@ def retry(request, args=None, response_code=0, message=None):
             config.db_close()
             return HttpResponse(json.dumps({'response_code': 0, 'message': 'Transfer re-queued..'}))
     else:
-        #not a post
+        # not a post
+        config.db_close()
         return None
 
 
@@ -1433,7 +1474,8 @@ def clear(request, args=None, response_code=0, message=None):
                 where_clause = "group_name='%s' and name='%s'" % (target_group, image_key)
                 rc, qmsg, image_candidates = config.db_query(IMAGES, where=where_clause)
                 if len(image_candidates) > 1:
-                    #ambiguous image name, need a checksum
+                    config.db_close()
+                    # ambiguous image name, need a checksum
                     return HttpResponse(json.dumps({'response_code': 1, 'message': '%s %s' % (lno(MODID), "Ambigous image name, please remove duplicate names or provide a checksum")}))
                 else:
                     image_checksum = image_candidates[0]["checksum"]
@@ -1443,14 +1485,15 @@ def clear(request, args=None, response_code=0, message=None):
             # key is normal
             image_name = key_list[0]
             image_checksum = key_list[1]
-        
+
         where_clause = "image_name='%s' and checksum='%s' and target_cloud_name='%s' and target_group_name='%s'" % (image_name, image_checksum, target_cloud, target_group)
         rc, qmsg, image_tx = config.db_query(IMG_TX, where=where_clause)
         if len(image_tx) == 0:
             # no transaction found
+            config.db_close()
             return HttpResponse(json.dumps({'response_code': 0, 'message': "No transaction found for image:%s on group::cloud: %s::%s" % (image_name, target_group, target_cloud)}))
         elif len(image_tx) == 1:
-            #found the bugger, lets update the status to pending and queue a new transaction
+            # found the bugger, lets update the status to pending and queue a new transaction
             tx = image_tx[0]
             config.db_delete(IMG_TX, tx)
             config.db_commit()
@@ -1458,8 +1501,9 @@ def clear(request, args=None, response_code=0, message=None):
             config.db_close()
             return HttpResponse(json.dumps({'response_code': 0, 'message': 'Transaction removed'}))
         else:
-            #if we get here it means we have multiple identical transactions queue'd up so lets report how many we found and remove them 
-            logger.warning("Multiple identical transactions found (%s), there is probably a database issue or a problem with defaults replication" % len(image_tx))
+            # if we get here it means we have multiple identical transactions queue'd up so lets report how many we found and remove them
+            logger.warning(
+                "Multiple identical transactions found (%s), there is probably a database issue or a problem with defaults replication" % len(image_tx))
             tx = image_tx[0]
             config.db_delete(IMG_TX, tx)
             config.db_commit()
@@ -1467,16 +1511,16 @@ def clear(request, args=None, response_code=0, message=None):
             config.db_close()
             return HttpResponse(json.dumps({'response_code': 0, 'message': 'Transaction removed'}))
     else:
-        #not a post
+        # not a post
+        config.db_close()
         return None
 
 
 @silkp(name="CLI Image List")
 @requires_csrf_token
 def image_list(request):
-
     # open the database.
-    config.db_open() 
+    config.db_open()
 
     # Retrieve the active user, associated group list and optionally set the active group.
     rc, msg, active_user = set_user_groups(config, request, super_user=False)
@@ -1487,8 +1531,9 @@ def image_list(request):
 
     # Validate input fields.
     rc, msg, fields, tables, columns = validate_fields(config, request, [LIST_KEYS], [], active_user)
-    if rc !=0:
+    if rc != 0:
         # Invalid fields, return message
+        config.db_close()
         return HttpResponse(json.dumps({'response_code': rc, 'message': msg}))
 
     # Retrieve image info information.
@@ -1499,8 +1544,8 @@ def image_list(request):
     elif "cloud_name" in fields:
         cloud = fields["cloud_name"]
     else:
-        cloud= None
-    
+        cloud = None
+
     sql = "select rank() over (partition by rank order by group_name,cloud_name,name,created_at,checksum) as rank,group_name,cloud_name,name,created_at,checksum,size from (select 1 as rank,i.* from (select * from cloud_images) as i) as i where cloud_type='openstack';"
     config.db_execute(sql)
     image_list = []
@@ -1509,17 +1554,16 @@ def image_list(request):
     image_list = _trim_image_list(image_list, group, cloud)
 
     config.db_close()
-    
+
     # Render the page.
     context = {
-            'active_user': active_user.username,
-            'active_group': active_user.active_group,
-            'user_groups': active_user.user_groups,
-            'image_list': image_list,
-            'response_code': 0,
-            'message': None,
-            'version': config.get_version()
-        }       
+        'active_user': active_user.username,
+        'active_group': active_user.active_group,
+        'user_groups': active_user.user_groups,
+        'image_list': image_list,
+        'response_code': 0,
+        'message': None,
+        'version': config.get_version()
+    }
 
     return HttpResponse(json.dumps(context))
-

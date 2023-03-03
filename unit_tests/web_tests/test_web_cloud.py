@@ -5,6 +5,7 @@ import unittest
 import sys
 from . import web_test_setup_cleanup as wtsc
 from . import web_test_assertions_v2 as wta
+from . import web_test_interactions as wti
 from . import web_test_page_objects as pages
 from . import web_test_helpers as helpers
 
@@ -549,6 +550,7 @@ class TestWebCloudCommon(unittest.TestCase):
         self.assertTrue(self.page.error_message_displayed())
         wta.assertHasNotAttribute('cloud', cloud_name, 'cloud_priority', str(self.oversize['int_11']), group=self.gvar['base_group'])
 
+    @unittest.skip("Boot volume no longer json field")
     def test_web_cloud_update_boot_volume(self):
         # Changes a cloud's boot volume
         cloud_name = self.gvar['user'] + '-wic1'
@@ -558,6 +560,7 @@ class TestWebCloudCommon(unittest.TestCase):
         self.page.click_update_cloud()
         wta.assertHasAttribute('cloud', cloud_name, 'vm_boot_volume', boot_volume, group=self.gvar['base_group'])
 
+    @unittest.skip("Boot volume no longer json field")
     def test_web_cloud_update_boot_volume_invalid_string(self):
         # Tries to change a cloud's boot volume to an invalid string
         cloud_name = self.gvar['user'] + '-wic1'
@@ -568,6 +571,7 @@ class TestWebCloudCommon(unittest.TestCase):
         self.assertTrue(self.page.error_message_displayed())
         wta.assertHasNotAttribute('cloud', cloud_name, 'vm_boot_volume', boot_volume, group=self.gvar['base_group'])
 
+    @unittest.skip("Boot volume no longer json field")
     def test_web_cloud_update_boot_volume_empty_keypair(self):
         # Tries to change a cloud's boot volume to an invalid string
         cloud_name = self.gvar['user'] + '-wic1'
@@ -578,6 +582,7 @@ class TestWebCloudCommon(unittest.TestCase):
         self.assertTrue(self.page.error_message_displayed())
         wta.assertHasNotAttribute('cloud', cloud_name, 'vm_boot_volume', boot_volume, group=self.gvar['base_group'])
 
+    @unittest.skip("Boot volume no longer json field")
     def test_web_cloud_update_boot_volume_invalid_keypair(self):
         # Tries to change a cloud's boot volume to one with an invalid keypair
         cloud_name = self.gvar['user'] + '-wic1'
@@ -588,6 +593,7 @@ class TestWebCloudCommon(unittest.TestCase):
         self.assertTrue(self.page.error_message_displayed())
         wta.assertHasNotAttribute('cloud', cloud_name, 'vm_boot_volume', boot_volume, group=self.gvar['base_group'])
 
+    @unittest.skip("Boot volume is no longer a json field")
     def test_web_cloud_update_boot_volume_gbs_float(self):
         # Tries to change a cloud's boot volume to one with a float value for GBs
         cloud_name = self.gvar['user'] + '-wic1'
@@ -598,6 +604,7 @@ class TestWebCloudCommon(unittest.TestCase):
         self.assertTrue(self.page.error_message_displayed())
         wta.assertHasNotAttribute('cloud', cloud_name, 'vm_boot_volume', boot_volume, group=self.gvar['base_group'])
 
+    @unittest.skip("Boot volume is no longer a json field")
     def test_web_cloud_update_boot_volume_gbs_string(self):
         # Tries to change a cloud's boot volume to one with a string value for GBs
         cloud_name = self.gvar['user'] + '-wic1'
@@ -608,6 +615,7 @@ class TestWebCloudCommon(unittest.TestCase):
         self.assertTrue(self.page.error_message_displayed())
         wta.assertHasNotAttribute('cloud', cloud_name, 'vm_boot_volume', boot_volume, group=self.gvar['base_group'])
 
+    @unittest.skip("Boot volume is no longer a json field")
     def test_web_cloud_update_boot_volume_gbs_per_core_float(self):
         # Tries to change a cloud's boot volume to one with a float value for GBs_per_core
         cloud_name = self.gvar['user'] + '-wic1'
@@ -618,6 +626,7 @@ class TestWebCloudCommon(unittest.TestCase):
         self.assertTrue(self.page.error_message_displayed())
         wta.assertHasNotAttribute('cloud', cloud_name, 'vm_boot_volume', boot_volume, group=self.gvar['base_group'])
 
+    @unittest.skip("Boot volume is no a longer json field")
     def test_web_cloud_update_boot_volume_gbs_per_core_string(self):
         # Tries to change a cloud's boot volume to one with a string value for GBs_per_core
         cloud_name = self.gvar['user'] + '-wic1'
@@ -628,6 +637,7 @@ class TestWebCloudCommon(unittest.TestCase):
         self.assertTrue(self.page.error_message_displayed())
         wta.assertHasNotAttribute('cloud', cloud_name, 'vm_boot_volume', boot_volume, group=self.gvar['base_group'])
 
+    @unittest.skip("Boot volume is no a longer json field")
     def test_web_cloud_update_boot_volume_too_long(self):
         # Tries to change a cloud's boot volume to one that's too long for the database
         cloud_name = self.gvar['user'] + '-wic1'
@@ -898,7 +908,8 @@ class TestWebCloudCommon(unittest.TestCase):
         cloud_name = self.gvar['user'] + '-wic2'
         self.page.click_side_button(cloud_name)
         self.page.click_delete_button()
-        self.page.click_delete_modal()
+        with wti.wait_for_page_load(self.driver, timeout=200): 
+            self.page.click_delete_modal()
         self.assertFalse(self.page.side_button_exists(cloud_name))
         wta.assertNotExists('cloud', cloud_name, group=self.gvar['base_group'])
 

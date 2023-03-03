@@ -11,7 +11,7 @@ defaults
 
 frontend amqp_public
   option clitcpka
-  bind {{ i_external_connection.0.ipv4fqdn }}:{{ amqp_public_port }} ssl crt /etc/letsencrypt/live/{{ i_external_connection.0.ipv4fqdn }}/web_crt_key.pem
+  bind {{ i_service_connection.0.ipv4fqdn }}:{{ amqp_public_port }} ssl crt /etc/letsencrypt/live/{{ i_service_connection.0.ipv4fqdn }}/web_crt_key.pem
   default_backend amqp_internal
 
 backend amqp_internal

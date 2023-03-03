@@ -1,6 +1,10 @@
 #! /usr/bin/bash
 
-read -p 'Please enter your username on the version of cloudscheduler you wish to address: ' username
+if [ "$1" = "ci_install" ]; then
+    username="tester"
+else
+    read -p 'Please enter your username on the version of cloudscheduler you wish to address: ' username
+fi
 
 sudo yum -y install epel-release
 
@@ -115,6 +119,11 @@ if [ -z "$openstack_path" ]; then
 fi
 
 sudo ln -s ~/cloudscheduler/cli/bin/cloudscheduler cloudscheduler
+
+if [ "$1" = "ci_install" ]; then
+    exit 0
+fi
+
 echo 'Please save the following server settings as "unit-test":'
 cloudscheduler defaults set
 

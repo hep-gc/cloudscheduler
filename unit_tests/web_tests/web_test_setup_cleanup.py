@@ -15,26 +15,42 @@ import os
 def setup(cls, profile, objects, browser='firefox'):
     cls.gvar = setup_objects(objects, browser)
     if browser == 'firefox':
-        cls.driver = webdriver.Firefox()
+        options = webdriver.FirefoxOptions()
+
+        # options.add_argument('--headless') # TODO: add flag for this
+        
+        cls.driver = webdriver.Firefox(options=options)
     elif browser == 'chromium':
         options = webdriver.ChromeOptions()
         # This line prevents Chromedriver hanging (see here: https://
         # stackoverflow.com/questions/51959986/how-to-solve-selenium-
         # chromedriver-timed-out-receiving-message-from-renderer-exc)
+        
+        # options.add_argument('--headless')    
+
+        options.add_argument('--no-sandbox') # When running as root
         options.add_argument('--disable-gpu')
         options.add_argument('--start-maximized')
         options.binary_location = '/usr/bin/chromium-browser'
         cls.driver = webdriver.Chrome(options=options)
     elif browser == 'chrome':
         options = webdriver.ChromeOptions()
+        options.add_argument('--no-sandbox') # When running as root
+        options.add_argument('--disable-gpu')
         options.add_argument('--start-maximized')
         options.binary_location = '/usr/bin/google-chrome'
         cls.driver = webdriver.Chrome(options=options)
-    elif browser == 'opera':
-        cls.driver = webdriver.Opera()
+    elif browser == 'opera': 
+        options = webdriver.ChromeOptions()
+        options.add_argument('--no-sandbox') # When running as root
+        options.add_argument('--disable-gpu')
+        options.add_argument('--start-maximized')
+        options.binary_location = '/usr/bin/opera'
+        cls.driver = webdriver.Opera(options=options)
     cls.driver.get('https://' + cls.gvar['user'] + '-wiu' + str(profile) + ':' + cls.gvar['user_secret'] + '@' + cls.gvar['fqdn'] + "/cloud/status")
 
 def setup_objects(objects=[], browser='firefox'):
+    
     print('\nUnittest setup:')
 
     cleanup_objects()
@@ -112,7 +128,7 @@ def setup_objects(objects=[], browser='firefox'):
             raise SetUpException("cloud add failed - check the server status and openstack status")
     for i in range(0, clouds_num):
         if 'clouds' in objects or 'jobs' in objects:
-            helpers.wait_for_openstack_poller(clouds[i], ['-vsg', 'default', '-vf', 't1'], output=True)
+            helpers.wait_for_openstack_poller(clouds[i], ['-g', gvar['base_group'], '-vsg', 'default', '-vf', 't1'], output=True)
     if 'clouds' in objects:
         for i in range(1, 3):
             name = gvar['user'] + '-wim' + str(i) + '.yaml'
@@ -123,7 +139,7 @@ def setup_objects(objects=[], browser='firefox'):
             except FileExistsError:
                 pass
             filename = helpers.misc_file_full_path(name)
-            if subprocess.run(['cloudscheduler', 'cloud', 'metadata-load', '-cn', gvar['user'] + '-wic1', '-f', filename, '-mn', name]).returncode != 0:
+            if subprocess.run(['cloudscheduler', 'cloud', 'metadata-load', '-g', gvar['base_group'], '-cn', gvar['user'] + '-wic1', '-f', filename, '-mn', name]).returncode != 0:
                 raise SetUpException("metadata add failed - check the server status and try again")
 
     aliases_num = 0
@@ -177,10 +193,18 @@ def setup_objects(objects=[], browser='firefox'):
         images.append(gvar['user'] + '-wii' + str(i) + '.hdd')
     for i in range(0, images_num):
         filename = helpers.misc_file_full_path(images[i])
-        if subprocess.run(['cloudscheduler', 'image', 'upload', '-ip', 'file://' + filename, '-df', 'raw', '-cl', gvar['user'] + '-wic1', '-g', gvar['base_group'], '-s', 'unit-test']).returncode != 0:
-            raise SetUpException("image add failed - check the server status and openstack status")
+        # TODO: remove try block, this is only for testing image upload failiures when the image is on the cloud already
+        try:
+            retry_command(
+                lambda : subprocess.run(['cloudscheduler', 'image', 'upload', '-ip', 'file://' + filename, '-df', 'raw', '-cl', gvar['user'] + '-wic1', '-g', gvar['base_group'], '-s', 'unit-test']),
+                "image add failed - check the server status and openstack status",
+                10
+            )
+        except Exception as e:
+            print("NOTICE: image upload failed with error:", e)
+            pass # Try to move on
     if 'images' in objects:
-        helpers.wait_for_openstack_poller(gvar['user'] + '-wic1', ['-vi', gvar['user'] + '-wii1.hdd'], output=True)
+        helpers.wait_for_openstack_poller(gvar['user'] + '-wic1', ['-g', gvar['base_group'], '-vi', gvar['user'] + '-wii1.hdd'], output=True)
 
     #add servers
     if 'servers' in objects:
@@ -207,20 +231,23 @@ def setup_objects(objects=[], browser='firefox'):
                 raise SetUpException("key add failed - check the server status and openstack status")
             print('keypair "' + keys[i] + '" successfully added.')
         keystring = gvar['user'] + '-wik1'
-        helpers.wait_for_openstack_poller(gvar['user'] + '-wic1', ['-vk', keystring], output=True)
+        helpers.wait_for_openstack_poller(gvar['user'] + '-wic1', ['-g', gvar['base_group'], '-vk', keystring], output=True)
 
     if 'status' in objects:
         for i in range(1, 3):
             if subprocess.run(['cloudscheduler', 'my', 'settings', '-sri', '60','-sfv', 'true', '-s', gvar['user'] + '-wis' + str(i)], stdout=subprocess.DEVNULL).returncode != 0:
                 raise SetUpException("user update failed - check the server status and try again")
-            helpers.wait_for_openstack_poller(gvar['user'] + '-wic' + str(i), ['-vi', 'CentOS-7-x86_64-GenericCloud-1907.qcow2c', '-vn', 'private'], output=True)
+            helpers.wait_for_openstack_poller(gvar['user'] + '-wic' + str(i), ['-g', gvar['base_group'], '-vi', 'CentOS-7-x86_64-GenericCloud-1907.qcow2c', '-vn', 'private'], output=True)
 
     if 'jobs' in objects:
         server_account = gvar['server_username'] + '@' + gvar['fqdn']
         if subprocess.run(['cloudscheduler', 'group', 'update', '-htcu', gvar['server_username'], '-gn', gvar['base_group']]).returncode != 0:
-             raise SetUpException("group update failed - check the server status and try again")
-        if subprocess.run(['ssh', server_account, '-p', str(gvar['server_port']), '-i', gvar['server_keypath'], 'condor_submit job.condor']).returncode != 0:
-             raise SetUpException("ssh failed - check the ssh configuration and try again")
+            raise SetUpException("group update failed - check the server status and try again")
+        retry_command(
+            lambda : subprocess.run(['ssh', server_account, '-p', str(gvar['server_port']), '-i', gvar['server_keypath'], 'condor_submit job.condor']),
+            "ssh failed - check the ssh configuration and try again",
+            10,
+        )
 
     return gvar
 
@@ -231,7 +258,10 @@ def cleanup(cls, browser='firefox'):
         cls.driver.quit()
     cleanup_objects(browser)
 
-def cleanup_objects(browser='firefox'):
+def cleanup_objects(browser='firefox', interrupt=False):
+
+    if interrupt:
+        signal.signal(signal.SIGINT, signal.default_int_handler)
 
     gvar = load_settings(web=True)
     gvar['base_group'] = gvar['user'] + '-wig0'
@@ -253,8 +283,11 @@ def cleanup_objects(browser='firefox'):
 
     server_account = gvar['server_username'] + '@' + gvar['fqdn']
 
-    if subprocess.run(['ssh', server_account, '-p', str(gvar['server_port']), '-i', gvar['server_keypath'], 'condor_q -nobatch -format "%d." ClusterId -format "%d " ProcId -format "%s\n" cmd'], stdout=object_log).returncode != 0:
-        raise CleanUpException("ssh failed - check the ssh configuration and try again")
+    retry_command(
+        lambda: subprocess.run(['ssh', server_account, '-p', str(gvar['server_port']), '-i', gvar['server_keypath'], 'condor_q -nobatch -format "%d." ClusterId -format "%d " ProcId -format "%s\n" cmd'], stdout=object_log),
+        "ssh failed - check the ssh configuration and try again",
+        10
+    )
 
     object_log.close()
     object_log = open(logfile, mode='r')
@@ -265,8 +298,11 @@ def cleanup_objects(browser='firefox'):
         task = job[-1]
         task = task.split('/')
         if task[-1] == 'job.sh' and job[0] != 'Name' and gvar['server_username'] in task:
-            if subprocess.run(['ssh', server_account, '-p', str(gvar['server_port']), '-i', gvar['server_keypath'], 'condor_rm ' + job[0]]).returncode != 0:
-                raise CleanUpException("ssh failed - check the ssh configuration and try again")
+            retry_command(
+                lambda : subprocess.run(['ssh', server_account, '-p', str(gvar['server_port']), '-i', gvar['server_keypath'], 'condor_rm ' + job[0]]),
+                "ssh failed - check the ssh configuration and try again",
+                10
+            )
 
     object_log.close()
 
@@ -423,10 +459,39 @@ def delete_by_type(gvar, type_info, number, others=[]):
         if type_info[0] != 'image':
             flags.append('-Y')
         if object in object_list:
-            if subprocess.run(['cloudscheduler', type_info[0], 'delete', type_info[2], object,  *flags]).returncode != 0:
-                raise CleanUpException(type_info[0] + " delete failed - check the server configuration and try again")
+            #if type_info[0] == 'image':
+            #    print("NOTICE: Trying to delete image", object)
+            # TODO: This is temporary
+            
+            retry_command(
+                lambda : subprocess.run(['cloudscheduler', type_info[0], 'delete', type_info[2], object,  *flags], stdout = subprocess.PIPE),
+                type_info[0] + " delete failed - check the server configuration and try again",
+                20
+            )
+            
+            #if subprocess.run(['cloudscheduler', type_info[0], 'delete', type_info[2], object,  *flags]).returncode != 0:
+            #    raise CleanUpException(type_info[0] + " delete failed - check the server configuration and try again")
 
     object_log.close()
+
+def retry_command(subproc, error, cycles=1):
+    for attempt in range(cycles):
+        res = subproc()
+        
+        if res.stdout: print(res.stdout.decode(), end='')
+        if res.stderr: print(res.stderr.decode(), end='')
+        
+        if res.returncode == 0:
+            if attempt > 4:
+                print("NOTICE: Succeeded on attempt", attempt)
+            break
+        
+        sleep(10)
+
+    else:
+        raise CleanUpException(error)
+                
+        
 
 class SetUpException(Exception):
     def __init__(self, message=''):
@@ -448,4 +513,4 @@ def keyboard_interrupt_handler(signal, frame):
     # handler.
     raise BaseException
 
-signal.signal(signal.SIGINT, keyboard_interrupt_handler)
+signal.signal(signal.SIGINT, lambda : keyboard_interrupt_handler(interrupt=True))

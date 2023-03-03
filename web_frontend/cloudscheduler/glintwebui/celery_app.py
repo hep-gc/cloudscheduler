@@ -89,7 +89,7 @@ def pull_request(self, tx_id):
             config.db_close()
             return False
 
-
+    config.db_close()
     return None
 
 

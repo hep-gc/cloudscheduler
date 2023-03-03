@@ -49,8 +49,8 @@ class Page(object):
         alert = self.driver.switch_to.alert
         alert.dismiss()
 
-    def take_screenshot(self):
-        file_name = sys._getframe(1).f_code.co_name + '_screenshot.png'
+    def take_screenshot(self, extra=''):
+        file_name = sys._getframe(1).f_code.co_name + f'_screenshot{extra}.png'
         print(file_name)
         location = helpers.misc_file_full_path(file_name)
         self.driver.save_screenshot(location)
@@ -168,7 +168,7 @@ class StatusPage(Page):
             state_tag += '_total'
             path = 'VMs' + state_tag
         else:
-            path = group + ' ' +  cloud + ' VMs' + state_tag
+            path = group + ' ' + cloud + ' VMs' + state_tag
         xpath = wtxs.data_box(path)
         try:
             if right_click:
@@ -462,7 +462,7 @@ class StatusPage(Page):
             return 0
 
     def vm_overlay_column_is(self, row, column, data):
-        headings = ['checkbox', 'hostname', 'flavor', 'cores', 'poller status', 'partitionable slots', 'dynamic slots', 'retire', 'terminate', 'age', 'startd errors']
+        headings = ['checkbox', 'hostname', 'ip(s)', 'flavor', 'cores', 'poller status', 'partitionable slots', 'dynamic slots', 'retire', 'terminate', 'age', 'startd errors']
         column = column.lower()
         if column not in headings:
             return False
@@ -471,6 +471,7 @@ class StatusPage(Page):
             EC.presence_of_element_located((By.XPATH, xpath)))
         element = self.driver.find_element_by_xpath(xpath)
         return element.text == str(data)
+
 
 class CloudsPage(Page):
     """This is the page object class for the Clouds page."""
@@ -1104,7 +1105,7 @@ class ImagesPage(Page):
     def image_exists(self, image):
         xpath = wtxs.table_row_name('image_row', image)
         try:
-            WebDriverWait(self.driver, 10).until(
+            WebDriverWait(self.driver, 30).until(
                 EC.presence_of_element_located((By.XPATH, xpath)))
             elements = self.driver.find_elements_by_xpath(xpath)
             for element in elements:
@@ -1113,6 +1114,16 @@ class ImagesPage(Page):
             return False
         except TimeoutException:
             return False
+
+    def is_checkbox_selected(self, checkbox_id):
+        checkbox = self.driver.find_element_by_id(checkbox_id)
+        return checkbox.is_selected()
+
+    def click_checkbox(self, checkbox_id):
+        # wti.click_by_id(checkbox_id)
+        checkbox = self.driver.find_element_by_id(checkbox_id)
+        checkbox.click()
+        sleep(3)
 
     def image_is_public_in_cloud(self, image, cloud):
         sleep(5)
@@ -1428,7 +1439,7 @@ class GroupsPage(Page):
 
     def modal_cleared(self):
         try:
-            WebDriverWait(self.driver, 10).until(
+            WebDriverWait(self.driver, 15).until(
                 EC.url_changes(self.driver.current_url))
             return True
         except TimeoutException:

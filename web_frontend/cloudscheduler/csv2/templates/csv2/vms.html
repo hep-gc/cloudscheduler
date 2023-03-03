@@ -125,6 +125,7 @@
               <tr>
                 <th><input type="checkbox" id="select-all" onchange="selectAll();"/></th>
                 <th onclick="sortTable(1)">Hostname &#8597;</th>
+                <th onclick="sortTable(1)">IP(s) &#8597;</th>
                 <th onclick="sortTable(2)">Flavor &#8597;</th>
                 <th onclick="sortTable(3)">Cores &#8597;</th>
                 <th onclick="sortTable(4)">Poller Status &#8597;</th>
@@ -148,6 +149,11 @@
                 {% endif %}
                   <td><input type="checkbox" name="vm_hosts.{{ forloop.counter }}" value={{vm.hostname}} /></td>
                   <td>{{vm.hostname}}</td>
+                  <td>{{vm.vm_ips}}
+                  {% if vm.vm_floating_ips|length > 2 %}
+                      , {{vm.vm_floating_ips}}
+                  {% endif %}
+                  </td>
                   <td>{{vm.flavor_name}}</td>
                   <td>{{vm.cores}}</td>
                   <td>{{vm.poller_status}}</td>

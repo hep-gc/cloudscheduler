@@ -5,6 +5,7 @@ import time
 import sys
 import signal
 import os
+import shutil
 import datetime
 from pytz import timezone
 from dateutil import tz
@@ -30,7 +31,11 @@ from cloudscheduler.lib.poller_functions import \
     inventory_get_item_hash_from_db_query_rows, \
     inventory_test_and_set_item_hash, \
     start_cycle, \
-    wait_cycle
+    wait_cycle, \
+    generate_unique_cloud_dict, \
+    process_cloud_failure, \
+    reset_cloud_error_dict, \
+    expand_failure_dict
 
 from cloudscheduler.lib.signal_functions import event_receiver_registration
 from cloudscheduler.lib.openstack_functions import MyServer, get_openstack_sess, get_nova_connection, get_neutron_connection, get_cinder_connection, get_openstack_conn, convert_openstack_date_timezone
@@ -146,41 +151,23 @@ def flavor_poller():
                 signal.signal(signal.SIGINT, signal.SIG_IGN) 
 
                 abort_cycle = False
-                rc, msg, cloud_list = config.db_query(CLOUD, where="cloud_type='openstack'")
 
                 # build unique cloud list to only query a given cloud once per cycle
-                unique_cloud_dict = {}
-                try:
-                    for cloud in cloud_list:
-                        if cloud["authurl"]+cloud["project"]+cloud["region"]+cloud["username"] not in unique_cloud_dict:
-                            unique_cloud_dict[cloud["authurl"]+cloud["project"]+cloud["region"]+cloud["username"]] = {
-                                'cloud_obj': cloud,
-                                'groups': [(cloud["group_name"], cloud["cloud_name"])]
-                            }
-                        else:
-                            unique_cloud_dict[cloud["authurl"]+cloud["project"]+cloud["region"]+cloud["username"]]['groups'].append((cloud["group_name"], cloud["cloud_name"]))
-                except Exception as exc:
-                    logging.error("Failed to read cloud list %s" % exc)
-                    continue
+                unique_cloud_dict = generate_unique_cloud_dict(config, CLOUD, "openstack")
+                if not unique_cloud_dict:
+                    #failed to retrieve cloud list, it will return a dictionary or False
+                    logging.debug("Unable to retrieve any clouds for polling... ending cycle")
+                    unique_cloud_dict = {}
 
+                
                 for cloud in unique_cloud_dict:
                     cloud_name = unique_cloud_dict[cloud]['cloud_obj']["authurl"]
                     cloud_obj =  unique_cloud_dict[cloud]['cloud_obj']
                     logging.debug("Processing flavours from cloud - %s" % cloud_name)
                     sess = get_openstack_sess(unique_cloud_dict[cloud]['cloud_obj'], config.categories["openstackPoller.py"]["cacerts"])
                     if sess is False:
-                        logging.debug("Failed to establish session with %s, skipping this cloud..." % cloud_name)
-                        for cloud_tuple in unique_cloud_dict[cloud]['groups']:
-                            grp_nm = cloud_tuple[0]
-                            cld_nm = cloud_tuple[1]
-                            if cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"] not in failure_dict:
-                                failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"]] = 1
-                            else:
-                                failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"]] = failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"]] + 1
-                            if failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"]] > 3: #should be configurable
-                                logging.error("Failure threshhold limit reached for %s, manual action required, reporting cloud error" % grp_nm+cld_nm)
-                                config.incr_cloud_error(grp_nm, cld_nm)
-                            continue
+                        failure_dict = process_cloud_failure(config, unique_cloud_dict, cloud, cloud_obj, failure_dict)
+                        continue
 
                     # setup OpenStack api objects
                     nova = get_nova_connection(sess, region=unique_cloud_dict[cloud]['cloud_obj']["region"])
@@ -195,27 +182,14 @@ def flavor_poller():
                     except Exception as exc:
                         logging.error("Failed to retrieve flavor data for %s, skipping this cloud..." % cloud_name)
                         logging.error(exc)
-                        for cloud_tuple in unique_cloud_dict[cloud]['groups']:
-                            grp_nm = cloud_tuple[0]
-                            cld_nm = cloud_tuple[1]
-                            if cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"] not in failure_dict:
-                                failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"]] = 1
-                            else:
-                                failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"]] = failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"]] + 1
-                            if failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"]] > 3: #should be configurable
-                                logging.error("Failure threshhold limit reached for %s, manual action required, reporting cloud error" % grp_nm+cld_nm)
-                                config.incr_cloud_error(grp_nm, cld_nm)
+                        failure_dict = process_cloud_failure(config, unique_cloud_dict, cloud, cloud_obj, failure_dict)
                         continue
 
                     if flav_list is False:
                         logging.info("No flavors defined for %s, skipping this cloud..." % cloud_name)
                         continue
 
-                    for cloud_tuple in unique_cloud_dict[cloud]['groups']:
-                        grp_nm = cloud_tuple[0]
-                        cld_nm = cloud_tuple[1]
-                        failure_dict.pop(cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"], None)
-                        config.reset_cloud_error(grp_nm, cld_nm)
+                    failure_dict = reset_cloud_error_dict(config, unique_cloud_dict, failure_dict, cloud, cloud_obj)
 
                     # Process flavours for this cloud.
                     uncommitted_updates = 0
@@ -294,22 +268,7 @@ def flavor_poller():
 
 
                 # Expand failure dict for deletion schema (key needs to be grp+cloud)
-                rc, msg, cloud_list = config.db_query(CLOUD, where="cloud_type='openstack'")
-                new_f_dict = {}
-                for cloud in cloud_list:
-                    key = cloud["authurl"] + cloud["project"] + cloud["region"] + cloud["username"]
-                    if key in failure_dict:
-                        new_f_dict[cloud["group_name"]+cloud["cloud_name"]] = 1
-
-                # since the new inventory function doesn't accept a failfure dict we need to screen the rows ourself
-                where_clause="cloud_type='openstack'"
-                rc, msg, unfiltered_rows = config.db_query(FLAVOR, where=where_clause)
-                rows = []
-                for row in unfiltered_rows:
-                    if row['group_name'] + row['cloud_name'] in new_f_dict.keys():
-                        continue
-                    else:
-                        rows.append(row)
+                rows = expand_failure_dict(config, CLOUD, "openstack", FLAVOR, failure_dict)
                 inventory_obsolete_database_items_delete(ikey_names, rows, inventory, new_poll_time, config, FLAVOR)
 
 
@@ -373,18 +332,12 @@ def image_poller():
 
                 abort_cycle = False
                 where_clause = "cloud_type='openstack'"
-                rc, msg, cloud_list = config.db_query(CLOUD, where=where_clause)
-
                 # build unique cloud list to only query a given cloud once per cycle
-                unique_cloud_dict = {}
-                for cloud in cloud_list:
-                    if cloud["authurl"]+cloud["project"]+cloud["region"]+cloud["username"] not in unique_cloud_dict:
-                        unique_cloud_dict[cloud["authurl"]+cloud["project"]+cloud["region"]+cloud["username"]] = {
-                            'cloud_obj': cloud,
-                            'groups': [(cloud["group_name"], cloud["cloud_name"])]
-                        }
-                    else:
-                        unique_cloud_dict[cloud["authurl"]+cloud["project"]+cloud["region"]+cloud["username"]]['groups'].append((cloud["group_name"], cloud["cloud_name"]))
+                unique_cloud_dict = generate_unique_cloud_dict(config, CLOUD, "openstack")
+                if not unique_cloud_dict:
+                    #failed to retrieve cloud list, it will return a dictionary or False
+                    logging.debug("Unable to retrieve any clouds for polling... ending cycle")
+                    unique_cloud_dict = {}
 
                 for cloud in unique_cloud_dict:
                     cloud_obj = unique_cloud_dict[cloud]['cloud_obj']
@@ -393,16 +346,7 @@ def image_poller():
                     sess = get_openstack_sess(unique_cloud_dict[cloud]['cloud_obj'], config.categories["openstackPoller.py"]["cacerts"])
                     if sess is False:
                         logging.debug("Failed to establish session with %s, skipping this cloud..." % cloud_name)
-                        for cloud_tuple in unique_cloud_dict[cloud]['groups']:
-                            grp_nm = cloud_tuple[0]
-                            cld_nm = cloud_tuple[1]
-                            if cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"] not in failure_dict:
-                                failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"]] = 1
-                            else:
-                                failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"]] = failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"]] + 1
-                            if failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"]] > 3: #should be configurable
-                                logging.error("Failure threshhold limit reached for %s, manual action required, reporting cloud error" % grp_nm+cld_nm)
-                                config.incr_cloud_error(grp_nm, cld_nm)
+                        failure_dict = process_cloud_failure(config, unique_cloud_dict, cloud, cloud_obj, failure_dict)
                         continue
 
                     # Retrieve all images for this cloud.
@@ -412,23 +356,15 @@ def image_poller():
                     conn_time_cost = int(conn_time - pre_req_time)
 
                     if glance is False:
-                        for cloud_tuple in unique_cloud_dict[cloud]['groups']:
-                            grp_nm = cloud_tuple[0]
-                            cld_nm = cloud_tuple[1]
-                            if cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"] not in failure_dict:
-                                failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"]] = 1
-                            else:
-                                failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"]] = failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"]] + 1
-                            if failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"]] > 3: #should be configurable
-                                logging.error("Failure threshhold limit reached for %s, manual action required, reporting cloud error" % grp_nm+cld_nm)
-                                config.incr_cloud_error(grp_nm, cld_nm)
                         logging.info("Openstack glance connection failed for %s, skipping this cloud..." % cloud_name)
+                        failure_dict = process_cloud_failure(config, unique_cloud_dict, cloud, cloud_obj, failure_dict)
                         continue
                     
                     try:
                         image_service = glance.image
                     except Exception as exc:
                         logging.info("Openstack glance connection failed for %s, skipping this cloud..." % cloud_name)
+                        failure_dict = process_cloud_failure(config, unique_cloud_dict, cloud, cloud_obj, failure_dict)
                         continue
                     
                     try:
@@ -439,30 +375,27 @@ def image_poller():
                     except Exception as exc:
                         logging.error("Failed to retrieve image data for %s, skipping this cloud..." % cloud_name)
                         logging.error(exc)
-                        for cloud_tuple in unique_cloud_dict[cloud]['groups']:
-                            grp_nm = cloud_tuple[0] 
-                            cld_nm = cloud_tuple[1]
-                            if cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"] not in failure_dict:
-                                failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"]] = 1
-                            else:
-                                failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"]] = failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"]] + 1
-                            if failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"]] > 3: #should be configurable
-                                logging.error("Failure threshhold limit reached for %s, manual action required, reporting cloud error" % grp_nm+cld_nm)
-                                config.incr_cloud_error(grp_nm, cld_nm)
+                        failure_dict = process_cloud_failure(config, unique_cloud_dict, cloud, cloud_obj, failure_dict)
                         continue
 
                     if image_list is False:
                         logging.info("No images defined for %s, skipping this cloud..." %  cloud_name)
                         continue
 
+                    # we successfully contacted the cloud for data if we get here, reset cloud errors
+                    failure_dict = reset_cloud_error_dict(config, unique_cloud_dict, failure_dict, cloud, cloud_obj)
+
                     uncommitted_updates = 0
+
+                    # This code updates the communication_rt for a particular cloud- previous cloud errors were handled in this loop which was refactored
+                    # into reset_cloud_error_dict, this functionality may be optionally moved into that routine to be a little more efficient but a
+                    # double loop is probably fine for now.
                     for cloud_tuple in unique_cloud_dict[cloud]['groups']:
-                        grp_nm = cloud_tuple[0]
-                        cld_nm = cloud_tuple[1]
-                        failure_dict.pop(cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"], None)
-                        where_clause = "group_name='%s' and cloud_name='%s'" % (grp_nm, cld_nm)
-                        rc, msg, cloud_rows = config.db_query(CLOUD, where=where_clause)
                         try:
+                            grp_nm = cloud_tuple[0]
+                            cld_nm = cloud_tuple[1]
+                            where_clause = "group_name='%s' and cloud_name='%s'" % (grp_nm, cld_nm)
+                            rc, msg, cloud_rows = config.db_query(CLOUD, where=where_clause)
                             cloud_row = cloud_rows[0]
                             cloud_row["communication_rt"] = int(conn_time_cost + image_time_cost)
                             logging.debug('cloud_tuple grp %s, cld %s, time diff %s' % (grp_nm, cld_nm, cloud_row["communication_rt"]))
@@ -473,7 +406,6 @@ def image_poller():
                             }
                             config.db_merge(CLOUD, cld_update_dict)
                             uncommitted_updates += 1
-                            config.reset_cloud_error(grp_nm, cld_nm)
                         except Exception as exc:
                             logging.warning("Failed merge and commit an update for communication_rt on cloud row : %s" % cloud_row)
                             logging.warning(exc)
@@ -553,35 +485,30 @@ def image_poller():
                     time.sleep(config.categories["openstackPoller.py"]["sleep_interval_image"])
                     continue
                 config.db_commit()
-                # Expand failure dict for deletion schema (key needs to be grp+cloud)
+
+                
+                # this block of code used to expand the failure dict AND update the communication status
+                # however, the failure dict expansion was refactored to be agnostic between poller processes
+                # leaving this extra loop in here to deal with the communication. Again we've introduced a double
+                # loop which could optionally be moved into the expand_failure_dict but since this code is unique
+                # only to the image poller a double loop is probably fine
                 where_clause = "cloud_type='openstack'"
                 rc, msg, cloud_list = config.db_query(CLOUD, where=where_clause)
-                new_f_dict = {}
-                logging.debug("Proccessing failure, failure_dict: %s" % failure_dict)
                 for cloud in cloud_list:
-                    key = cloud["authurl"] + cloud["project"] + cloud["region"] + cloud["username"]
+                    key = cloud["authurl"] + cloud["project"] + cloud["region"] + cloud["username"] + cloud["password"]
                     if key in failure_dict:
-                        new_f_dict[cloud["group_name"]+cloud["cloud_name"]] = 1
                         cld_update_dict = {
                             "group_name": cloud["group_name"],
                             "cloud_name": cloud["cloud_name"],
                             "communication_up": 0
                         }
-                        config.db_update(CLOUD, cloud_update_dict)
+                        config.db_update(CLOUD, cld_update_dict)
                         config.db_commit()
                         logging.error("Communication down for %s:%s" % (grp_nm, cld_nm))
 
-                # Scan the OpenStack images in the database, removing each one that is not in the inventory.
-                logging.debug("Doing deletes, omitting failures: %s" % new_f_dict)
                 # since the new inventory function doesn't accept a failfure dict we need to screen the rows ourself
-                where_clause="cloud_type='openstack'"
-                rc, msg, unfiltered_rows = config.db_query(IMAGE, where=where_clause)
-                rows = []
-                for row in unfiltered_rows:
-                    if row['group_name'] + row['cloud_name'] in new_f_dict.keys():
-                        continue
-                    else:
-                        rows.append(row)
+                logging.debug("Proccessing failure, failure_dict: %s" % failure_dict)
+                rows = expand_failure_dict(config, CLOUD, "openstack", IMAGE, failure_dict)
                 inventory_obsolete_database_items_delete(ikey_names, rows, inventory, new_poll_time, config, IMAGE)
 
 
@@ -648,15 +575,11 @@ def keypair_poller():
                 where_clause = "cloud_type='openstack'"
                 rc, msg, cloud_list = config.db_query(CLOUD, where=where_clause)
                 # build unique cloud list to only query a given cloud once per cycle
-                unique_cloud_dict = {}
-                for cloud in cloud_list:
-                    if cloud["authurl"]+cloud["project"]+cloud["region"]+cloud["username"] not in unique_cloud_dict:
-                        unique_cloud_dict[cloud["authurl"]+cloud["project"]+cloud["region"]+cloud["username"]] = {
-                            'cloud_obj': cloud,
-                            'groups': [(cloud["group_name"], cloud["cloud_name"])]
-                        }
-                    else:
-                        unique_cloud_dict[cloud["authurl"]+cloud["project"]+cloud["region"]+cloud["username"]]['groups'].append((cloud["group_name"], cloud["cloud_name"]))
+                unique_cloud_dict = generate_unique_cloud_dict(config, CLOUD, "openstack")
+                if not unique_cloud_dict:
+                    #failed to retrieve cloud list, it will return a dictionary or False
+                    logging.debug("Unable to retrieve any clouds for polling... ending cycle")
+                    unique_cloud_dict = {}
 
                 for cloud in unique_cloud_dict:
                     cloud_name = unique_cloud_dict[cloud]['cloud_obj']["authurl"]
@@ -665,34 +588,15 @@ def keypair_poller():
                     sess = get_openstack_sess(unique_cloud_dict[cloud]['cloud_obj'], config.categories["openstackPoller.py"]["cacerts"])
                     if sess is False:
                         logging.debug("Failed to establish session with %s" % cloud_name)
-                        for cloud_tuple in unique_cloud_dict[cloud]['groups']:
-                            grp_nm = cloud_tuple[0]
-                            cld_nm = cloud_tuple[1]
-                            if cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"] not in failure_dict:
-                                failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"]] = 1
-                            else:
-                                failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"]] = failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"]] + 1
-                            if failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"]] > 3: #should be configurable
-                                logging.error("Failure threshhold limit reached for %s, manual action required, reporting cloud error" % grp_nm+cld_nm)
-                                config.incr_cloud_error(grp_nm, cld_nm)
+                        failure_dict = process_cloud_failure(config, unique_cloud_dict, cloud, cloud_obj, failure_dict)
                         continue
 
                     # setup openstack api objects
                     nova = get_nova_connection(sess, region=unique_cloud_dict[cloud]['cloud_obj']["region"])
 
                     if nova is False:
-                        for cloud_tuple in unique_cloud_dict[cloud]['groups']:
-                            grp_nm = cloud_tuple[0]
-                            cld_nm = cloud_tuple[1]
-                            if cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"] not in failure_dict:
-                                failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"]] = 1
-                            else:
-                                failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"]] = failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"]] + 1
-                            if failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"]] > 3: #should be configurable
-                                logging.error("Failure threshhold limit reached for %s, manual action required, reporting cloud error" % grp_nm+cld_nm)
-                                config.incr_cloud_error(grp_nm, cld_nm)
-
                         logging.info("Openstack nova connection failed for %s, skipping this cloud..." % cloud_name)
+                        failure_dict = process_cloud_failure(config, unique_cloud_dict, cloud, cloud_obj, failure_dict)
                         continue
 
                     #setup fingerprint list
@@ -704,23 +608,11 @@ def keypair_poller():
                     except Exception as exc:
                         logging.error("Failed to poll key pairs from nova, skipping %s" % cloud_name)
                         logging.error(exc)
-                        for cloud_tuple in unique_cloud_dict[cloud]['groups']:
-                            grp_nm = cloud_tuple[0]
-                            cld_nm = cloud_tuple[1]
-                            if cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"] not in failure_dict:
-                                failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"]] = 1
-                            else:
-                                failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"]] = failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"]] + 1
-                            if failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"]] > 3: #should be configurable
-                                logging.error("Failure threshhold limit reached for %s, manual action required, reporting cloud error" % grp_nm+cld_nm)
-                                config.incr_cloud_error(grp_nm, cld_nm)
+                        failure_dict = process_cloud_failure(config, unique_cloud_dict, cloud, cloud_obj, failure_dict)
                         continue
 
-                    for cloud_tuple in unique_cloud_dict[cloud]['groups']:
-                        grp_nm = cloud_tuple[0]
-                        cld_nm = cloud_tuple[1]
-                        failure_dict.pop(cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"], None)
-                        config.reset_cloud_error(grp_nm, cld_nm)
+                    # cloud connection and data query successful, reset cloud error
+                    failure_dict = reset_cloud_error_dict(config, unique_cloud_dict, failure_dict, cloud, cloud_obj)
 
                     uncommitted_updates = 0
                     try:
@@ -776,24 +668,7 @@ def keypair_poller():
                     continue
                 
                 # Expand failure dict for deletion schema (key needs to be grp+cloud)
-                where_clause = "cloud_type='openstack'"
-                rc, msg, cloud_list = config.db_query(CLOUD, where=where_clause)
-                new_f_dict = {}
-                for cloud in cloud_list:
-                    key = cloud["authurl"] + cloud["project"] + cloud["region"] + cloud["username"]
-                    if key in failure_dict:
-                        new_f_dict[cloud["group_name"]+cloud["cloud_name"]] = 1
-
-
-                # since the new inventory function doesn't accept a failfure dict we need to screen the rows ourself
-                where_clause="cloud_type='openstack'"
-                rc, msg, unfiltered_rows = config.db_query(KEYPAIR, where=where_clause)
-                rows = []
-                for row in unfiltered_rows:
-                    if row['group_name'] + row['cloud_name'] in new_f_dict.keys():
-                        continue
-                    else:
-                        rows.append(row)
+                rows = expand_failure_dict(config, CLOUD, "openstack", KEYPAIR, failure_dict)
                 inventory_obsolete_database_items_delete(ikey_names, rows, inventory, new_poll_time, config, KEYPAIR)
 
                 config.db_rollback()
@@ -860,17 +735,11 @@ def volume_type_poller():
                 uncommitted_updates = 0
 
                 # build unique cloud list to only query a given cloud once per cycle
-                unique_cloud_dict = {}
-                for cloud in cloud_list:
-                    if cloud["authurl"]+cloud["project"]+cloud["region"]+cloud["username"] not in unique_cloud_dict:
-                        unique_cloud_dict[cloud["authurl"]+cloud["project"]+cloud["region"]+cloud["username"]] = {
-                            'cloud_obj': cloud,
-                            'groups': [(cloud["group_name"], cloud["cloud_name"])]
-                        }
-                    else:
-                        unique_cloud_dict[cloud["authurl"]+cloud["project"]+cloud["region"]+cloud["username"]]['groups'].append((cloud["group_name"], cloud["cloud_name"]))
-
-                logging.debug("Unique clouds dict: %s" % unique_cloud_dict.keys())
+                unique_cloud_dict = generate_unique_cloud_dict(config, CLOUD, "openstack")
+                if not unique_cloud_dict:
+                    #failed to retrieve cloud list, it will return a dictionary or False
+                    logging.debug("Unable to retrieve any clouds for polling... ending cycle")
+                    unique_cloud_dict = {}
 
                 for cloud in unique_cloud_dict:
                     cloud_name = unique_cloud_dict[cloud]['cloud_obj']["authurl"]
@@ -879,16 +748,7 @@ def volume_type_poller():
                     sess = get_openstack_sess(unique_cloud_dict[cloud]['cloud_obj'], config.categories["openstackPoller.py"]["cacerts"])
                     if sess is False:
                         logging.debug("Failed to establish session with %s, skipping this cloud..." % cloud_name)
-                        for cloud_tuple in unique_cloud_dict[cloud]['groups']:
-                            grp_nm = cloud_tuple[0]
-                            cld_nm = cloud_tuple[1]
-                            if cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"] not in failure_dict:
-                                failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"]] = 1
-                            else:
-                                failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"]] = failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"]] + 1
-                            if failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"]] > 3: #should be configurable
-                                logging.error("Failure threshhold limit reached for %s, manual action required, reporting cloud error" % grp_nm+cld_nm)
-                                config.incr_cloud_error(grp_nm, cld_nm)
+                        failure_dict = process_cloud_failure(config, unique_cloud_dict, cloud, cloud_obj, failure_dict)
                         continue
 
                     # Retrieve volume type list for the current cloud.
@@ -896,6 +756,7 @@ def volume_type_poller():
 
                     if not cinder:
                         logging.info("Openstack cinder connection failed for %s, skipping this cloud..." % cloud_name)
+                        failure_dict = process_cloud_failure(config, unique_cloud_dict, cloud, cloud_obj, failure_dict)
                         continue
 
                     try:
@@ -903,27 +764,15 @@ def volume_type_poller():
                     except Exception as exc:
                         logging.error("Failed to retrieve volume types from cinder, skipping %s" %  cloud_name)
                         logging.error(exc)
-                        for cloud_tuple in unique_cloud_dict[cloud]['groups']:
-                            grp_nm = cloud_tuple[0]
-                            cld_nm = cloud_tuple[1]
-                            if cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"] not in failure_dict:
-                                failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"]] = 1
-                            else:
-                                failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"]] = failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"]] + 1
-                            if failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"]] > 3: #should be configurable
-                                logging.error("Failure threshhold limit reached for %s, manual action required, reporting cloud error" % grp_nm+cld_nm)
-                                config.incr_cloud_error(grp_nm, cld_nm)
+                        failure_dict = process_cloud_failure(config, unique_cloud_dict, cloud, cloud_obj, failure_dict)
                         continue
 
                     if not shared_types:
                         logging.info("No volumes types defined for %s, skipping this cloud..." % cloud_name)
                         continue
 
-                    for cloud_tuple in unique_cloud_dict[cloud]['groups']:
-                        grp_nm = cloud_tuple[0]
-                        cld_nm = cloud_tuple[1]
-                        failure_dict.pop(cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"], None)
-                        config.reset_cloud_error(grp_nm, cld_nm)
+                    # successfully retrieved data and made openstack connection
+                    failure_dict = reset_cloud_error_dict(config, unique_cloud_dict, failure_dict, cloud, cloud_obj)
 
                     # Process volume type list for the current cloud.
                     try:
@@ -967,24 +816,8 @@ def volume_type_poller():
                     if uncommitted_updates > 0:
                         logging.info("Limit updates committed: %d" % uncommitted_updates)
 
-                # Expand failure dict for deletion schema (key needs to be grp+cloud)
-                where_clause = "cloud_type='openstack'"
-                rc, msg, cloud_list = config.db_query(CLOUD, where=where_clause)
-                new_f_dict = {}
-                for cloud in cloud_list:
-                    key = cloud["authurl"] + cloud["project"] + cloud["region"] + cloud["username"]
-                    if key in failure_dict:
-                        new_f_dict[cloud["group_name"]+cloud["cloud_name"]] = 1
 
-                # since the new inventory function doesn't accept a failure dict we need to screen the rows ourself
-                where_clause="cloud_type='openstack'"
-                rc, msg, unfiltered_rows = config.db_query(TYPE)
-                rows = []
-                for row in unfiltered_rows:
-                    if row['group_name'] + row['cloud_name'] in new_f_dict.keys():
-                        continue
-                    else:
-                        rows.append(row)
+                rows = expand_failure_dict(config, CLOUD, None, TYPE, failure_dict)
                 inventory_obsolete_database_items_delete(ikey_names, rows, inventory, new_poll_time, config, TYPE)
 
                 # Cleanup inventory, this function will clean up inventory entries for deleted clouds
@@ -1044,21 +877,7 @@ def limit_poller():
                 config.refresh()
 
                 abort_cycle = False
-                where_clause = "cloud_type='openstack'"
-                rc, msg, cloud_list = config.db_query(CLOUD, where=where_clause)
-                uncommitted_updates = 0
-
-                # build unique cloud list to only query a given cloud once per cycle
-                unique_cloud_dict = {}
-                for cloud in cloud_list:
-                    if cloud["authurl"]+cloud["project"]+cloud["region"]+cloud["username"] not in unique_cloud_dict:
-                        unique_cloud_dict[cloud["authurl"]+cloud["project"]+cloud["region"]+cloud["username"]] = {
-                            'cloud_obj': cloud,
-                            'groups': [(cloud["group_name"], cloud["cloud_name"])]
-                        }
-                    else:
-                        unique_cloud_dict[cloud["authurl"]+cloud["project"]+cloud["region"]+cloud["username"]]['groups'].append((cloud["group_name"], cloud["cloud_name"]))
-
+                unique_cloud_dict = generate_unique_cloud_dict(config, CLOUD, "openstack")
                 logging.debug("Unique clouds dict: %s" % unique_cloud_dict.keys())
 
                 for cloud in unique_cloud_dict:
@@ -1068,16 +887,7 @@ def limit_poller():
                     sess = get_openstack_sess(unique_cloud_dict[cloud]['cloud_obj'], config.categories["openstackPoller.py"]["cacerts"])
                     if sess is False:
                         logging.debug("Failed to establish session with %s, skipping this cloud..." % cloud_name)
-                        for cloud_tuple in unique_cloud_dict[cloud]['groups']:
-                            grp_nm = cloud_tuple[0]
-                            cld_nm = cloud_tuple[1]
-                            if cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"] not in failure_dict:
-                                failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"]] = 1
-                            else:
-                                failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"]] = failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"]] + 1
-                            if failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"]] > 3: #should be configurable
-                                logging.error("Failure threshhold limit reached for %s, manual action required, reporting cloud error" % grp_nm+cld_nm)
-                                config.incr_cloud_error(grp_nm, cld_nm)
+                        failure_dict = process_cloud_failure(config, unique_cloud_dict, cloud, cloud_obj, failure_dict)
                         continue
 
                     # Retrieve limit list for the current cloud.
@@ -1085,6 +895,7 @@ def limit_poller():
 
                     if nova is False:
                         logging.info("Openstack nova connection failed for %s, skipping this cloud..." % cloud_name)
+                        failure_dict = process_cloud_failure(config, unique_cloud_dict, cloud, cloud_obj, failure_dict)
                         continue
 
                     shared_limits_dict = {}
@@ -1095,28 +906,16 @@ def limit_poller():
                     except Exception as exc:
                         logging.error("Failed to retrieve limits from nova, skipping %s" %  cloud_name)
                         logging.error(exc)
-                        for cloud_tuple in unique_cloud_dict[cloud]['groups']:
-                            grp_nm = cloud_tuple[0]
-                            cld_nm = cloud_tuple[1]
-                            if cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"] not in failure_dict:
-                                failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"]] = 1
-                            else:
-                                failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"]] = failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"]] + 1
-                            if failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"]] > 3: #should be configurable
-                                logging.error("Failure threshhold limit reached for %s, manual action required, reporting cloud error" % grp_nm+cld_nm)
-                                config.incr_cloud_error(grp_nm, cld_nm)
+                        failure_dict = process_cloud_failure(config, unique_cloud_dict, cloud, cloud_obj, failure_dict)
                         continue
 
                     if shared_limits_dict is False:
                         logging.info("No limits defined for %s, skipping this cloud..." % cloud_name)
                         continue
 
-                    for cloud_tuple in unique_cloud_dict[cloud]['groups']:
-                        grp_nm = cloud_tuple[0]
-                        cld_nm = cloud_tuple[1]
-                        failure_dict.pop(cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"], None)
-                        config.reset_cloud_error(grp_nm, cld_nm)
+                    failure_dict = reset_cloud_error_dict(config, unique_cloud_dict, failure_dict, cloud, cloud_obj)
 
+                    uncommitted_updates = 0
                     # Process limit list for the current cloud.
                     try:
                         for groups in unique_cloud_dict[cloud]['groups']:
@@ -1195,24 +994,7 @@ def limit_poller():
                     if uncommitted_updates > 0:
                         logging.info("Limit updates committed: %d" % uncommitted_updates)
 
-                # Expand failure dict for deletion schema (key needs to be grp+cloud)
-                where_clause = "cloud_type='openstack'"
-                rc, msg, cloud_list = config.db_query(CLOUD, where=where_clause)
-                new_f_dict = {}
-                for cloud in cloud_list:
-                    key = cloud["authurl"] + cloud["project"] + cloud["region"] + cloud["username"]
-                    if key in failure_dict:
-                        new_f_dict[cloud["group_name"]+cloud["cloud_name"]] = 1
-
-                # since the new inventory function doesn't accept a failfure dict we need to screen the rows ourself
-                where_clause="cloud_type='openstack'"
-                rc, msg, unfiltered_rows = config.db_query(LIMIT, where=where_clause)
-                rows = []
-                for row in unfiltered_rows:
-                    if row['group_name'] + row['cloud_name'] in new_f_dict.keys():
-                        continue
-                    else:
-                        rows.append(row)
+                rows = expand_failure_dict(config, CLOUD, "openstack", LIMIT, failure_dict)
                 inventory_obsolete_database_items_delete(ikey_names, rows, inventory, new_poll_time, config, LIMIT)
 
                 # Cleanup inventory, this function will clean up inventory entries for deleted clouds
@@ -1273,19 +1055,9 @@ def network_poller():
                 config.refresh()
 
                 abort_cycle = False
-                where_clause = "cloud_type='openstack'"
-                rc, msg, cloud_list = config.db_query(CLOUD, where=where_clause)
 
                 # build unique cloud list to only query a given cloud once per cycle
-                unique_cloud_dict = {}
-                for cloud in cloud_list:
-                    if cloud["authurl"]+cloud["project"]+cloud["region"]+cloud["username"] not in unique_cloud_dict:
-                        unique_cloud_dict[cloud["authurl"]+cloud["project"]+cloud["region"]+cloud["username"]] = {
-                            'cloud_obj': cloud,
-                            'groups': [(cloud["group_name"], cloud["cloud_name"])]
-                        }
-                    else:
-                        unique_cloud_dict[cloud["authurl"]+cloud["project"]+cloud["region"]+cloud["username"]]['groups'].append((cloud["group_name"], cloud["cloud_name"]))
+                unique_cloud_dict = generate_unique_cloud_dict(config, CLOUD, "openstack")
 
                 for cloud in unique_cloud_dict:
                     cloud_name = unique_cloud_dict[cloud]['cloud_obj']["authurl"]
@@ -1294,16 +1066,7 @@ def network_poller():
                     sess = get_openstack_sess(unique_cloud_dict[cloud]['cloud_obj'], config.categories["openstackPoller.py"]["cacerts"])
                     if sess is False:
                         logging.debug("Failed to establish session with %s, skipping this cloud..." % cloud_name)
-                        for cloud_tuple in unique_cloud_dict[cloud]['groups']:
-                            grp_nm = cloud_tuple[0]
-                            cld_nm = cloud_tuple[1]
-                            if cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"] not in failure_dict:
-                                failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"]] = 1
-                            else:
-                                failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"]] = failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"]] + 1
-                            if failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"]] > 3: #should be configurable
-                                logging.error("Failure threshhold limit reached for %s, manual action required, reporting cloud error" % grp_nm+cld_nm)
-                                config.incr_cloud_error(grp_nm, cld_nm)
+                        failure_dict = process_cloud_failure(config, unique_cloud_dict, cloud, cloud_obj, failure_dict)
                         continue
 
                     # Retrieve network list.
@@ -1311,6 +1074,7 @@ def network_poller():
 
                     if neutron is False:
                         logging.info("Openstack neutron connection failed for %s, skipping this cloud..." % cloud_name)
+                        failure_dict = process_cloud_failure(config, unique_cloud_dict, cloud, cloud_obj, failure_dict)
                         continue
                     
                     try:
@@ -1318,27 +1082,14 @@ def network_poller():
                     except Exception as exc:
                         logging.error("Failed to retrieve networks from neutron, skipping %s" %  cloud_name)
                         logging.error(exc)
-                        for cloud_tuple in unique_cloud_dict[cloud]['groups']:
-                            grp_nm = cloud_tuple[0]
-                            cld_nm = cloud_tuple[1]
-                            if cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"] not in failure_dict:
-                                failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"]] = 1
-                            else:
-                                failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"]] = failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"]] + 1
-                            if failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"]] > 3: #should be configurable
-                                logging.error("Failure threshhold limit reached for %s, manual action required, reporting cloud error" % grp_nm+cld_nm)
-                                config.incr_cloud_error(grp_nm, cld_nm)
+                        failure_dict = process_cloud_failure(config, unique_cloud_dict, cloud, cloud_obj, failure_dict)
                         continue
 
                     if net_list is False:
                         logging.info("No networks defined for %s, skipping this cloud..." % cloud_name)
                         continue
 
-                    for cloud_tuple in unique_cloud_dict[cloud]['groups']:
-                        grp_nm = cloud_tuple[0]
-                        cld_nm = cloud_tuple[1]
-                        failure_dict.pop(cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"], None)
-                        config.reset_cloud_error(grp_nm, cld_nm)
+                    failure_dict = reset_cloud_error_dict(config, unique_cloud_dict, failure_dict, cloud, cloud_obj)
 
                     uncommitted_updates = 0
                     try:
@@ -1402,23 +1153,7 @@ def network_poller():
                     time.sleep(config.categories["openstackPoller.py"]["sleep_interval_network"])
                     continue
                 # Expand failure dict for deletion schema (key needs to be grp+cloud)
-                where_clause = "cloud_type='openstack'"
-                rc, msg, cloud_list = config.db_query(CLOUD, where=where_clause)
-                new_f_dict = {}
-                for cloud in cloud_list:
-                    key = cloud["authurl"] + cloud["project"] + cloud["region"] + cloud["username"]
-                    if key in failure_dict:
-                        new_f_dict[cloud["group_name"]+cloud["cloud_name"]] = 1
-
-                # since the new inventory function doesn't accept a failfure dict we need to screen the rows ourself
-                where_clause="cloud_type='openstack'"
-                rc, msg, unfiltered_rows = config.db_query(NETWORK, where=where_clause)
-                rows = []
-                for row in unfiltered_rows:
-                    if row['group_name'] + row['cloud_name'] in new_f_dict.keys():
-                        continue
-                    else:
-                        rows.append(row)
+                rows = expand_failure_dict(config, CLOUD, "openstack", NETWORK, failure_dict)
                 inventory_obsolete_database_items_delete(ikey_names, rows, inventory, new_poll_time, config, NETWORK)
 
 
@@ -1482,20 +1217,8 @@ def security_group_poller():
                 config.refresh()
 
                 abort_cycle = False
-                where_clause = "cloud_type='openstack'"
-                rc, msg, cloud_list = config.db_query(CLOUD, where=where_clause)
-
-                # build unique cloud list to only query a given cloud once per cycle
-                unique_cloud_dict = {}
-                for cloud in cloud_list:
-                    if cloud["authurl"]+cloud["project"]+cloud["region"]+cloud["username"] not in unique_cloud_dict:
-                        unique_cloud_dict[cloud["authurl"]+cloud["project"]+cloud["region"]+cloud["username"]] = {
-                            'cloud_obj': cloud,
-                            'groups': [(cloud["group_name"], cloud["cloud_name"])]
-                        }
-                    else:
-                        unique_cloud_dict[cloud["authurl"]+cloud["project"]+cloud["region"]+cloud["username"]]['groups'].append((cloud["group_name"], cloud["cloud_name"]))
-
+                
+                unique_cloud_dict = generate_unique_cloud_dict(config, CLOUD, "openstack")
 
                 for cloud in unique_cloud_dict:
                     cloud_name = unique_cloud_dict[cloud]['cloud_obj']["authurl"]
@@ -1504,23 +1227,15 @@ def security_group_poller():
                     sess = get_openstack_sess(unique_cloud_dict[cloud]['cloud_obj'], config.categories["openstackPoller.py"]["cacerts"])
                     if sess is False:
                         logging.debug("Failed to establish session with %s, skipping this cloud..." % cloud_name)
-                        for cloud_tuple in unique_cloud_dict[cloud]['groups']:
-                            grp_nm = cloud_tuple[0]
-                            cld_nm = cloud_tuple[1]
-                            if cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"] not in failure_dict:
-                                failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"]] = 1
-                            else:
-                                failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"]] = failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"]] + 1
-                            if failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"]] > 3: #should be configurable
-                                logging.error("Failure threshhold limit reached for %s, manual action required, reporting cloud error" % grp_nm+cld_nm)
-                                config.incr_cloud_error(grp_nm, cld_nm)
-                            continue
+                        failure_dict = process_cloud_failure(config, unique_cloud_dict, cloud, cloud_obj, failure_dict)
+                        continue
 
                     # setup OpenStack api objects
                     neu = get_neutron_connection(sess, region=unique_cloud_dict[cloud]['cloud_obj']["region"])
                     
                     if neu is False:
                         logging.info("Openstack neutron connection failed for %s, skipping this cloud..." % cloud_name)
+                        failure_dict = process_cloud_failure(config, unique_cloud_dict, cloud, cloud_obj, failure_dict)
                         continue
 
                     # Retrieve all flavours for this cloud.
@@ -1529,27 +1244,14 @@ def security_group_poller():
                     except Exception as exc:
                         logging.error("Failed to retrieve security groups for %s, skipping this cloud..." % cloud_name)
                         logging.error(exc)
-                        for cloud_tuple in unique_cloud_dict[cloud]['groups']:
-                            grp_nm = cloud_tuple[0]
-                            cld_nm = cloud_tuple[1]
-                            if cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"] not in failure_dict:
-                                failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"]] = 1
-                            else:
-                                failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"]] = failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"]] + 1
-                            if failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"]] > 3: #should be configurable
-                                logging.error("Failure threshhold limit reached for %s, manual action required, reporting cloud error" % grp_nm+cld_nm)
-                                config.incr_cloud_error(grp_nm, cld_nm)
+                        failure_dict = process_cloud_failure(config, unique_cloud_dict, cloud, cloud_obj, failure_dict)
                         continue
 
                     if sec_grp_list is False:
                         logging.info("No security groups defined for %s, skipping this cloud..." % cloud_name)
                         continue
 
-                    for cloud_tuple in unique_cloud_dict[cloud]['groups']:
-                        grp_nm = cloud_tuple[0]
-                        cld_nm = cloud_tuple[1]
-                        failure_dict.pop(cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"], None)
-                        config.reset_cloud_error(grp_nm, cld_nm)
+                    failure_dict = reset_cloud_error_dict(config, unique_cloud_dict, failure_dict, cloud, cloud_obj)
 
                     # Process security groups for this cloud.
                     uncommitted_updates = 0
@@ -1611,23 +1313,7 @@ def security_group_poller():
                     time.sleep(config.categories["openstackPoller.py"]["sleep_interval_sec_grp"])
                     continue
                 # Expand failure dict for deletion schema (key needs to be grp+cloud)
-                where_clause = "cloud_type='openstack'"
-                rc, qmsg, cloud_list = config.db_query(CLOUD, where=where_clause)
-                new_f_dict = {}
-                for cloud in cloud_list:
-                    key = cloud["authurl"] + cloud["project"] + cloud["region"] + cloud["username"]
-                    if key in failure_dict:
-                        new_f_dict[cloud["group_name"]+cloud["cloud_name"]] = 1
-
-                # since the new inventory function doesn't accept a failfure dict we need to screen the rows ourself
-                where_clause="cloud_type='openstack'"
-                rc, msg, unfiltered_rows = config.db_query(SECURITY_GROUP, where=where_clause)
-                rows = []
-                for row in unfiltered_rows:
-                    if row['group_name'] + row['cloud_name'] in new_f_dict.keys():
-                        continue
-                    else:
-                        rows.append(row)
+                rows = expand_failure_dict(config, CLOUD, "openstack", SECURITY_GROUP, failure_dict)
                 inventory_obsolete_database_items_delete(ikey_names, rows, inventory, new_poll_time, config, SECURITY_GROUP)
 
 
@@ -1705,10 +1391,7 @@ def vm_poller():
 
                 # For each OpenStack cloud, retrieve and process VMs.
                 abort_cycle = False
-                rc, msg, group_list = config.db_query(GROUP)
-
-                where_clause = "cloud_type='openstack'"
-                rc, msg, cloud_list = config.db_query(CLOUD, where=where_clause)
+               
                 try:
                     avg_cycle_length = 0
                     for poll_time in poll_time_history:
@@ -1724,19 +1407,11 @@ def vm_poller():
                     rc, msg, unfiltered_rows = config.db_query(VM, where=where_clause)
                 
                 # build unique cloud list to only query a given cloud once per cycle
-                unique_cloud_dict = {}
-                for cloud in cloud_list:
-                    if cloud["authurl"]+cloud["project"]+cloud["region"]+cloud["username"] not in unique_cloud_dict:
-                        unique_cloud_dict[cloud["authurl"]+cloud["project"]+cloud["region"]+cloud["username"]] = {
-                            'cloud_obj': cloud,
-                            'groups': [(cloud["group_name"], cloud["cloud_name"])]
-                        }
-                    else:
-                        unique_cloud_dict[cloud["authurl"]+cloud["project"]+cloud["region"]+cloud["username"]]['groups'].append((cloud["group_name"], cloud["cloud_name"]))
+                unique_cloud_dict = generate_unique_cloud_dict(config, CLOUD, "openstack")
 
                 group_list = []
                 for cloud in unique_cloud_dict:
-                    group_list = group_list +unique_cloud_dict[cloud]['groups']
+                    group_list = group_list + unique_cloud_dict[cloud]['groups']
 
                 for cloud in unique_cloud_dict:
                     auth_url = unique_cloud_dict[cloud]['cloud_obj']["authurl"]
@@ -1761,13 +1436,7 @@ def vm_poller():
                     logging.debug("Polling VMs from cloud: %s" % auth_url)
                     sess = get_openstack_sess(cloud_obj, config.categories["openstackPoller.py"]["cacerts"])
                     if sess is False:
-                        logging.debug("Failed to establish session with %s::%s::%s, using group %s's credentials skipping this cloud..." % (cloud_obj["authurl"], cloud_obj["project"], cloud_obj["region"], cloud_obj["group_name"]))
-                        if auth_url + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"] not in failure_dict:
-                            failure_dict[auth_url + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"]] = 1
-                        else:
-                            failure_dict[auth_url + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"]] = failure_dict[auth_url + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"]] + 1
-                        if failure_dict[auth_url + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"]] > 3: #could be configurable
-                            logging.error("Failure threshhold limit reached for %s::%s::%s, using group %s's credentials, manual action required, skipping" % (cloud_obj["authurl"], cloud_obj["project"], cloud_obj["region"], cloud_obj["group_name"]))
+                        failure_dict = process_cloud_failure(config, unique_cloud_dict, cloud, cloud_obj, failure_dict)
                         continue
 
                     # Retrieve VM list for this cloud.
@@ -1775,6 +1444,7 @@ def vm_poller():
 
                     if nova is False:
                         logging.info("Openstack nova connection failed for %s, skipping this cloud..." % cloud_obj["cloud_name"])
+                        failure_dict = process_cloud_failure(config, unique_cloud_dict, cloud, cloud_obj, failure_dict)
                         continue
 
                     try:
@@ -1783,12 +1453,7 @@ def vm_poller():
                         logging.error("Failed to retrieve VM data for  %s::%s::%s, skipping this cloud..." % (cloud_obj["authurl"], cloud_obj["project"], cloud_obj["region"]))
                         logging.error("Exception type: %s" % type(exc))
                         logging.error(exc)
-                        if auth_url + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"] not in failure_dict:
-                            failure_dict[auth_url + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"]] = 1
-                        else:
-                            failure_dict[auth_url + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"]] = failure_dict[auth_url + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"]] + 1
-                        if failure_dict[auth_url + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"]] > 3: #should be configurable
-                            logging.error("Failure threshhold limit reached for %s::%s::%s, using group %s's crednetials manual action required, skipping" % (cloud_obj["authurl"], cloud_obj["project"], cloud_obj["region"], cloud_obj["group_name"]))
+                        failure_dict = process_cloud_failure(config, unique_cloud_dict, cloud, cloud_obj, failure_dict)
                         continue
 
                     if vm_list is False:
@@ -1797,7 +1462,7 @@ def vm_poller():
                         continue
 
                     # if we get here the connection to openstack has been succussful and we can remove the error status
-                    failure_dict.pop(auth_url + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"], None)
+                    failure_dict = reset_cloud_error_dict(config, unique_cloud_dict, failure_dict, cloud, cloud_obj)
                     #update network status
                     for cloud_tuple in unique_cloud_dict[cloud]['groups']:
                         grp_nm = cloud_tuple[0]
@@ -2137,15 +1802,7 @@ def volume_poller():
                 uncommitted_updates = 0
 
                 # build unique cloud list to only query a given cloud once per cycle
-                unique_cloud_dict = {}
-                for cloud in cloud_list:
-                    if cloud["authurl"]+cloud["project"]+cloud["region"]+cloud["username"] not in unique_cloud_dict:
-                        unique_cloud_dict[cloud["authurl"]+cloud["project"]+cloud["region"]+cloud["username"]] = {
-                            'cloud_obj': cloud,
-                            'groups': [(cloud["group_name"], cloud["cloud_name"])]
-                        }
-                    else:
-                        unique_cloud_dict[cloud["authurl"]+cloud["project"]+cloud["region"]+cloud["username"]]['groups'].append((cloud["group_name"], cloud["cloud_name"]))
+                unique_cloud_dict = generate_unique_cloud_dict(config, CLOUD, "openstack")
 
                 group_list = []
                 for cloud in unique_cloud_dict:
@@ -2159,16 +1816,7 @@ def volume_poller():
                     sess = get_openstack_sess(unique_cloud_dict[cloud]['cloud_obj'], config.categories["openstackPoller.py"]["cacerts"])
                     if sess is False:
                         logging.debug("Failed to establish session with %s, skipping this cloud..." % cloud_name)
-                        for cloud_tuple in unique_cloud_dict[cloud]['groups']:
-                            grp_nm = cloud_tuple[0]
-                            cld_nm = cloud_tuple[1]
-                            if cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"] not in failure_dict:
-                                failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"]] = 1
-                            else:
-                                failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"]] = failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"]] + 1
-                            if failure_dict[cloud_obj["authurl"] + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"]] > 3: #should be configurable
-                                logging.error("Failure threshhold limit reached for %s, manual action required, reporting cloud error" % grp_nm+cld_nm)
-                                config.incr_cloud_error(grp_nm, cld_nm)
+                        failure_dict = process_cloud_failure(config, unique_cloud_dict, cloud, cloud_obj, failure_dict)
                         continue
 
                     # Retrieve volume list for the current cloud.
@@ -2176,6 +1824,7 @@ def volume_poller():
 
                     if cinder is False:
                         logging.info("Openstack cinder connection failed for %s, skipping this cloud..." % cloud_name)
+                        failure_dict = process_cloud_failure(config, unique_cloud_dict, cloud, cloud_obj, failure_dict)
                         continue
 
 
@@ -2185,19 +1834,14 @@ def volume_poller():
                         logging.error("Failed to retrieve VM data for  %s::%s::%s, skipping this cloud..." % (cloud_obj["authurl"], cloud_obj["project"], cloud_obj["region"]))
                         logging.error("Exception type: %s" % type(exc))
                         logging.error(exc)
-                    if auth_url + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"] not in failure_dict:
-                        failure_dict[auth_url + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"]] = 1
-                    else:
-                        failure_dict[auth_url + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"]] = failure_dict[auth_url + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"]] + 1
-                    if failure_dict[auth_url + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"]] > 3: #should be configurable
-                        logging.error("Failure threshhold limit reached for %s::%s::%s, using group %s's crednetials manual action required, skipping" % (cloud_obj["authurl"], cloud_obj["project"], cloud_obj["region"], cloud_obj["group_name"]))
+                        failure_dict = process_cloud_failure(config, unique_cloud_dict, cloud, cloud_obj, failure_dict)
 
                     if volume_list is False:
                         logging.info("No Volumes defined for %s::%s:%s, skipping this cloud..." % (cloud_obj["authurl"], cloud_obj["project"], cloud_obj["region"]))
                         del nova
                         continue
 
-                    failure_dict.pop(auth_url + cloud_obj["project"] + cloud_obj["region"] + cloud_obj["username"], None)
+                    failure_dict = reset_cloud_error_dict(config, unique_cloud_dict, failure_dict, cloud, cloud_obj)
 
                     # Process Volume list for this cloud.
                     # We've decided to remove the variable "status_changed_time" since it was holding the exact same value as "last_updated"
@@ -2278,23 +1922,7 @@ def volume_poller():
 
                 #~~~~~~~
                 # Expand failure dict for deletion schema (key needs to be grp+cloud)
-                where_clause = "cloud_type='openstack'"
-                rc, msg, cloud_list = config.db_query(CLOUD, where=where_clause)
-                new_f_dict = {}
-                for cloud in cloud_list:
-                    key = cloud["authurl"] + cloud["project"] + cloud["region"] + cloud["username"]
-                    if key in failure_dict:
-                        new_f_dict[cloud["group_name"]+cloud["cloud_name"]] = 1
-
-                # since the new inventory function doesn't accept a failfure dict we need to screen the rows ourself
-                where_clause="cloud_type='openstack'"
-                rc, msg, unfiltered_rows = config.db_query(VOLUME, where=where_clause)
-                rows = []
-                for row in unfiltered_rows:
-                    if row['group_name'] + row['cloud_name'] in new_f_dict.keys():
-                        continue
-                    else:
-                        rows.append(row)
+                rows = expand_failure_dict(config, CLOUD, "openstack", VOLUME, failure_dict)
                 inventory_obsolete_database_items_delete(ikey_names, rows, inventory, new_poll_time, config, VOLUME)
 
                 # Cleanup inventory, this function will clean up inventory entries for deleted clouds
@@ -2327,14 +1955,16 @@ def volume_poller():
 
 def defaults_replication():
     multiprocessing.current_process().name = "Defaults Replication"
-    db_category_list = [os.path.basename(sys.argv[0]), "general", "glintPoller.py" "signal_manager", "ProcessMonitor"]
+    db_category_list = [os.path.basename(sys.argv[0]), "general", "glintPoller.py", "signal_manager", "ProcessMonitor"]
     config = Config('/etc/cloudscheduler/cloudscheduler.yaml', db_category_list, pool_size=3, signals=True)
     PID_FILE = config.categories["ProcessMonitor"]["pid_path"] + os.path.basename(sys.argv[0])
     GROUPS = "csv2_groups"
     CLOUDS = "csv2_clouds"
     KEYPAIRS = "cloud_keypairs"
     IMAGES = "cloud_images"
+    IMAGE_CACHE = "csv2_image_cache"
     IMAGE_TX = "csv2_image_transactions"
+    IMAGE_PR = "csv2_image_pull_requests"
 
 
     cycle_start_time = 0
@@ -2484,7 +2114,85 @@ def defaults_replication():
                         logging.info("No default keypair for group %s, skipping keypair transfers for cloud %s" % (group["group_name"], cloud["cloud_name"]))
             
             config.db_commit()
+            
+            logging.debug("Beginning image cache cleanup")
 
+            # Clean up pull requests that have been completed (image is already in the cache or request is over than a month old)
+            where_clause = "((image_name, checksum) in (select image_name, checksum from csv2_image_cache)) " \
+                           "or (request_time < date_sub(now(), interval 1 month))" 
+            rc, msg, pr_to_clear = config.db_query(IMAGE_PR, where=where_clause)
+            
+            logging.debug("Pull requests marked for removal: " + str(pr_to_clear))
+            for pr in pr_to_clear: config.db_delete(IMAGE_PR, pr)
+
+            # Clean up transactions that have completed (image is already on the cloud or tx older than a month)
+            query = "select distinct ct.* " \
+                    "from cloud_images as ci join csv2_image_transactions as ct " \
+                        "on  ct.checksum          = ci.checksum "   \
+                        "and ct.image_name        = ci.name "       \
+                        "and ct.target_cloud_name = ci.cloud_name " \
+                        "and ct.target_group_name = ci.group_name " \
+                    "union distinct " \
+                    "select * from csv2_image_transactions " \
+                    "where (request_time < date_sub(now(), interval 1 month))"
+            rc, msg = config.db_execute(query)
+            tx_to_clear = [row for row in config.db_cursor]
+
+            logging.debug("Transactions marked for removal: "  + str(tx_to_clear))
+            for tx in tx_to_clear: config.db_delete(IMAGE_TX, tx)
+
+            # Check consistency if cache table and folder
+            cache_dir = config.categories["glintPoller.py"]["image_cache_dir"]
+            folder_contents = {f: cache_dir + f for f in os.listdir(cache_dir)}
+            folder_set = set()
+            for k in folder_contents:
+                if k.count("---") == 1:
+                    folder_set.add(tuple(k.split("---")))
+                else:
+                    logging.debug("Removing image with inconsistent filename from cache dir: " + k)
+                    os.unlink(folder_contents[k])
+            
+            rc, msg, table_contents = config.db_query(IMAGE_CACHE)
+            table_set = set((entry['image_name'], entry['checksum']) for entry in table_contents)
+
+            # Remove from table (if not in folder)
+            table_filter = table_set - folder_set
+            if table_filter:
+                logging.debug("Removing entries from table not found in folder: " + str(table_filter))
+                for ent in table_contents:
+                    if (ent['image_name'], ent['checksum']) in table_filter:
+                        config.db_delete(IMAGE_CACHE, ent)
+            
+            # Remove from folder (if not in table)
+            folder_filter = folder_set - table_set
+            if folder_filter:
+                logging.debug("Removing entries from folder not found in table: " + str(folder_filter))
+                for name, checksum in folder_filter:
+                   os.unlink(folder_contents[f'{name}---{checksum}'])
+
+            # Remove from table and folder entries that are:
+            #  -- Not part of an active transaction
+            #  -- Were downloaded more than 30 days ago
+            
+            where_clause = "((image_name, checksum) not in (select image_name, checksum from csv2_image_transactions)) " \
+                           "and (downloaded < date_sub(now(), interval 1 month))"
+            rc, msg, entries_to_clear = config.db_query(IMAGE_CACHE, where=where_clause)
+            
+            logging.debug("Cached images marked for removal: " + str(entries_to_clear))
+            for entry in entries_to_clear: config.db_delete(IMAGE_CACHE, entry) # Remove entries from table
+
+            for entry in entries_to_clear: # Remove entries from cache directory
+                os.unlink(folder_contents[entry['image_name'] + "---" + entry['checksum']])
+            
+            config.db_commit()
+
+            d_total, d_used, _ = shutil.disk_usage(cache_dir)
+            d_usage = (d_used / d_total)
+            if d_usage > 0.8: # TODO: Make this threshold a setting
+                logging.warning(f"Filesystem containing image cache is {round(d_usage * 100, 2)}% full")
+            
+            logging.debug("Completed image cache cleanup")
+            
         except Exception as exc:
             logging.error("Exception during general operation:")
             logging.exception(exc)

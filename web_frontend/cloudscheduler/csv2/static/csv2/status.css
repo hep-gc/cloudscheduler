@@ -168,6 +168,7 @@
   border-top: 2px solid #ddd;
   position: relative;
   width: 80px;
+  z-index: 1;
 }
 
 .status-table .group-name {
@@ -211,15 +212,14 @@
 .status-table th:hover::after {
   content: "";
   position: absolute;
-  background-color: gainsboro;
-  opacity: 50%;
+  background-color: gray;
+  opacity: 62%;
   left: 0;
   top: -5000px;
   height: 10000px;
   width: 100%;
   z-index: -1;
 }
-
 
 .ram-meter {
   width: 40px;
