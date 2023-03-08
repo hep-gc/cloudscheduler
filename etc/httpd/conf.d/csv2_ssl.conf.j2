@@ -16,6 +16,13 @@ DBDKeep 8
 DBDMax 20
 DBDExptime 300
 
+<VirtualHost {{ csv2_host }}:80>
+ Redirect Permanent / https://{{csv2_host}}/
+</VirtualHost>
+ServerSignature Off
+ServerTokens Prod
+
+
 <VirtualHost {{ csv2_host }}:443>
     Servername {{ csv2_host }}
 
