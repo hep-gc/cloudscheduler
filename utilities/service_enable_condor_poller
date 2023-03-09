@@ -110,7 +110,7 @@ EOF
     headercheck=1
     #if [ $tv2 -eq 4 ]; then ls  /usr/include/python3.4m/Python.h &>/dev/null; headercheck=$?; fi
     #if [ $tv2 -eq 6 ]; then ls  /usr/include/python3.6m/Python.h &>/dev/null; headercheck=$?; fi
-    ls  /usr/include/python3.?m/Python.h &>/dev/null; headercheck=$?; fi
+    ls  /usr/include/python3.?m/Python.h &>/dev/null; headercheck=$?
     if [ $headercheck -ne 0 ]; then
        echo 'ERROR: You need to install python3 devel before we can proceed.'
        exit 1
