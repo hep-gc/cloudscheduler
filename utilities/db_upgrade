@@ -806,9 +806,9 @@ def map_csv2_configuration(gvar, fqdn):
             line = ""
             templine = fd.readline()
             
-            if ';' not in templine;
+            if ';' not in templine:
               line += templine
-            else
+            else:
               line += templine
               if len(line) < 1:
                 break
