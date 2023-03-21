@@ -6,8 +6,6 @@ import base64
 import logging
 
 import boto3
-#from sqlalchemy.orm import Session
-#from sqlalchemy.ext.automap import automap_base
 
 try:
     import basecloud
@@ -109,15 +107,19 @@ class EC2Cloud(basecloud.BaseCloud):
 #           base.prepare(engine, reflect=True)
 #           db_session = Session(engine)
 #           vms = base.classes.csv2_vms
-            vms = self.config.db_map.classes.csv2_vms
+            vms = "csv2_vms"
 #           EC2_STATUS = base.classes.ec2_instance_status_codes
-            EC2_STATUS = self.config.db_map.classes.ec2_instance_status_codes
+            EC2_STATUS = "ec2_instance_status_codes"
 
             self.config.db_open()
             ec2_status_dict = {}
-            ec2_status = self.config.db_session.query(EC2_STATUS)
+            rc, msg, ec2_status = self.config.db_query(EC2_STATUS)
+            if rc != 0:
+                # we may want more advanced error handling here if the query fails
+                # as is it will fail further on
+                logging.error(msg)
             for row in ec2_status:
-                ec2_status_dict[row.ec2_state] = row.csv2_state
+                ec2_status_dict[row["ec2_state"]] = row["csv2_state"]
 
             for vm in new_vm['Instances']:
                 hostname = vm['PublicDnsName'] if 'PublicDnsName' in vm \
@@ -141,24 +143,21 @@ class EC2Cloud(basecloud.BaseCloud):
                     'start_time': int(time.time()),
                 }
                 new_vm = vms(**vm_dict)
-                self.config.db_session.merge(new_vm)
+                self.config.db_merge(vms, new_vm)
             self.config.db_close(commit=True)
         elif 'SpotInstanceRequests' in new_vm:
 
-#           engine = self._get_db_engine()
-#           base = automap_base()
-#           base.prepare(engine, reflect=True)
-#           db_session = Session(engine)
-#           vms = base.classes.csv2_vms
-            vms = self.config.db_map.classes.csv2_vms
-#           EC2_STATUS = base.classes.ec2_instance_status_codes
-            EC2_STATUS = self.config.db_map.classes.ec2_instance_status_codes
+            vms = "csv2_vms"
+            EC2_STATUS = "ec2_instance_status_codes"
 
             self.config.db_open()
             ec2_status_dict = {}
-            ec2_status = self.config.db_session.query(EC2_STATUS)
+            rc, msg, ec2_status = self.config.db_query(EC2_STATUS)
+            if rc != 0:
+                # opportunity for more advanced error handling here, but things will fail further on
+                logging.error(msg)
             for row in ec2_status:
-                ec2_status_dict[row.ec2_state] = row.csv2_state
+                ec2_status_dict[row["ec2_state"]] = row["csv2_state"]
 
             for vm in new_vm['SpotInstanceRequests']:
                 self.log.debug(vm)
@@ -204,5 +203,5 @@ class EC2Cloud(basecloud.BaseCloud):
                     'start_time': int(time.time()),
                 }
                 new_vm = vms(**vm_dict)
-                self.config.db_session.merge(new_vm)
+                self.config.db_merge(vms, new_vm)
             self.config.db_close(commit=True)

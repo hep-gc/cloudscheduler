@@ -97,7 +97,7 @@ def images(request, message=None, response_code=0):
 
     # Retrieve EC2 image filters.
     where_clause = "group_name='%s' and cloud_name='%s'" % (active_user.active_group, active_user.kwargs['cloud_name'])
-    rc, msg, ec2_image_filters = cofnig.db_query("ec2_image_filters", where=where_clause)
+    rc, msg, ec2_image_filters = config.db_query("ec2_image_filters", where=where_clause)
     ec2_image_filters_json = json.dumps( ec2_image_filters );
 
     # Retrieve EC2 image filter options.

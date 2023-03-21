@@ -202,18 +202,18 @@ def ec2_filters(config, group_name, cloud_name, cloud_type=None):
     # Ensure EC2 filters exist for amazon clouds.
     if cloud_type == 'amazon':
         if not ec2_image_filter:
-            defaults = config.get_config_by_category('ec2_image_filter')
+            defaults = config.get_config_by_category('ec2_image_filters')
 
             table = 'ec2_image_filters'
             filter_dict = {
                 'group_name': group_name,
                 'cloud_name': cloud_name,
-                'architectures': defaults['ec2_image_filter']['architectures'],
-                'like': defaults['ec2_image_filter']['location_like'],
-                'not_like': defaults['ec2_image_filter']['location_not_like'],
-                'operating_systems': defaults['ec2_image_filter']['operating_systems'],
-                'owner_aliases': defaults['ec2_image_filter']['owner_aliases'],
-                'owner_ids': defaults['ec2_image_filter']['owner_ids']
+                'architectures': defaults['ec2_image_filters']['architectures'],
+                'like': defaults['ec2_image_filters']['location_like'],
+                'not_like': defaults['ec2_image_filters']['location_not_like'],
+                'operating_systems': defaults['ec2_image_filters']['operating_systems'],
+                'owner_aliases': defaults['ec2_image_filters']['owner_aliases'],
+                'owner_ids': defaults['ec2_image_filters']['owner_ids']
             }
             rc, msg = config.db_insert(table, filter_dict)
             if rc != 0:
@@ -228,13 +228,13 @@ def ec2_filters(config, group_name, cloud_name, cloud_type=None):
             filter_dict = {
                 'group_name': group_name,
                 'cloud_name': cloud_name,
-                'cores': defaults['ec2_instance_type_filter']['cores'],
-                'families': defaults['ec2_instance_type_filter']['families'],
-                'memory_max_gigabytes_per_core': defaults['ec2_instance_type_filter']['memory_max_gigabytes_per_core'],
-                'memory_min_gigabytes_per_core': defaults['ec2_instance_type_filter']['memory_min_gigabytes_per_core'],
-                'operating_systems': defaults['ec2_instance_type_filter']['operating_systems'],
-                'processors': defaults['ec2_instance_type_filter']['processors'],
-                'processor_manufacturers': defaults['ec2_instance_type_filter']['processor_manufacturers']
+                'cores': defaults['ec2_instance_type_filters']['cores'],
+                'families': defaults['ec2_instance_type_filters']['families'],
+                'memory_max_gigabytes_per_core': defaults['ec2_instance_type_filters']['memory_max_gigabytes_per_core'],
+                'memory_min_gigabytes_per_core': defaults['ec2_instance_type_filters']['memory_min_gigabytes_per_core'],
+                'operating_systems': defaults['ec2_instance_type_filters']['operating_systems'],
+                'processors': defaults['ec2_instance_type_filters']['processors'],
+                'processor_manufacturers': defaults['ec2_instance_type_filters']['processor_manufacturers']
             }
             rc, msg = config.db_insert(table, filter_dict)
             if rc != 0:

@@ -2,8 +2,6 @@
 Build and return SQL statements to select Amazon EC2 information.
 '''
 
-from cloudscheduler.lib.view_utils import qt
-
 #-------------------------------------------------------------------------------
 
 def select_ec2_images(config, group_name, cloud_name):
@@ -17,7 +15,13 @@ def select_ec2_images(config, group_name, cloud_name):
 
     sql = ['select * from view_ec2_images where region="%s"' % region]
 
-    ec2_filter = qt(config.db_execute('select * from ec2_image_filters where group_name="%s" and cloud_name="%s"' % (group_name, cloud_name)))
+    rc, msg = config.db_execute('select * from ec2_image_filters where group_name="%s" and cloud_name="%s"' % (group_name, cloud_name))
+    if rc !=0:
+        logging.error("error querying ec2 image filters for cloud %s--%s:" % (group_name, cloud_name))
+        logging.error(msg)
+    ec2_filter = []
+    for row in config.db_cursor:
+        ec2_filter.append(row)
     if len(ec2_filter) == 1:
         if ec2_filter[0]['owner_aliases']:
             sql.append(_get_ec2_equal('owner_alias', ec2_filter[0]['owner_aliases']))
@@ -59,7 +63,13 @@ def select_ec2_instance_types(config, group_name, cloud_name):
 
     sql = ['select * from view_ec2_instance_types where region="%s"' % region]
 
-    ec2_filter = qt(config.db_execute('select * from ec2_instance_type_filters where group_name="%s" and cloud_name="%s"' % (group_name, cloud_name)))
+    rc, msg = config.db_execute('select * from ec2_instance_type_filters where group_name="%s" and cloud_name="%s"' % (group_name, cloud_name))
+    if rc !=0:
+        logging.error("error querying ec2 instance type filters for %s--%s:" % (group_name, cloud_name))
+        logging.error(msg)
+    ec2_filter = []
+    for row in config.db_cursor:
+        ec2_filter.append(row)
     if len(ec2_filter) == 1:
         if ec2_filter[0]['families']:
             sql.append(_get_ec2_equal('instance_family', ec2_filter[0]['families']))
@@ -181,7 +191,13 @@ def _get_ec2_region_and_owner_id(config, group_name, cloud_name):
         close_db_on_exit = True
         config.db_open()
 
-    cloud = qt(config.db_execute('select * from csv2_clouds where group_name="%s" and cloud_name="%s"' % (group_name, cloud_name)))
+    rc, msg = config.db_execute('select * from csv2_clouds where group_name="%s" and cloud_name="%s"' % (group_name, cloud_name))
+    if rc!=0:
+        logging.error("error querying cloud %s--%s:" % (group_name, cloud_name))
+        logging.error(msg)
+    cloud = []
+    for row in config.db_cursor:
+        cloud.append(row)
 
     if len(cloud) != 1:
         if close_db_on_exit:
