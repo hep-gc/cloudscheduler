@@ -25,3 +25,10 @@ For installation, please follow the instructions ![here](ansible-playbook/README
 
    
 # Future Plans:
+- stable-2.11.0
+  - return of limited ec2 support
+  - #378 show all alias' on status page
+  - #379 Remove trailing form whitespace
+  - #382 Stop accidental update POST requests
+  - #384 Improve warnings for application & certificate expiary
+  - #390 Fix plotting issues when more than one VM trace are active
