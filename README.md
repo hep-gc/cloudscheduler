@@ -1,4 +1,4 @@
-# Cloud Scheduler version 2
+![csv2](/images/csv2_logo.png)
 
 A re-design and re-write of Cloud Scheduler in Python 3. Documentation for the new system may be found at
 [readthedocs](https://cloudscheduler.readthedocs.io).
