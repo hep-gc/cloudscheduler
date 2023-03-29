@@ -3,7 +3,7 @@
 A re-design and re-write of Cloud Scheduler in Python 3. Documentation for the new system may be found at
 [readthedocs](https://cloudscheduler.readthedocs.io).
 
-For installation, please follow the instructions ![here](ansible-playbook/README.md).
+For installation, please follow the instructions for our ansible-playbook ![here](https://github.com/hep-gc/uvic-heprc-ansible-playbooks/blob/master/roles/csv2/README.md).
 
 ## Road Map:
 - Previous stable-2.5 - Auto GSI and firewall configuration.
