@@ -9,7 +9,7 @@ For installation, please follow the instructions for our ansible-playbook ![here
 - stable-2.5 - Auto GSI and firewall configuration.
 - stable-2.6 - Glint integration, HTCondor GSI polling and accounting.
 - stable-2.7 - AMQP authentication and multi-host signalling.
-- [stable-2.8](releases/tag/stable-2.8.0) - SQLalchemy Removal
+- [stable-2.8](https://github.com/hep-gc/cloudscheduler/releases/tag/stable-2.8.0) - SQLalchemy Removal
 - stable-2.9 - Openstack application Credential Support and Openstack volume management.
 - stable-2.9.1 - Bugfixes & slot accounting
 - stable-2.9.2 - Web forum and QoL upgrades
