@@ -176,11 +176,22 @@ def timeseries_data_transfer():
 
             # Parse job status data on group alias
             rc, msg, job_status_alias = config.db_query("view_job_status_by_target_alias")
+            # we also need to get a complete list of the alias' so we can enter trace data for alias' that currently do not have jobs
+            rc, msg, full_alias_list = config.db_query("csv2_cloud_aliases")
+            # generate list of unique group-alias tuples
+            unique_aliases = []
+            for row in full_alias_list:
+                if (row["group_name"], row["alias_name"]) not in unique_aliases:
+                    unique_aliases.append((row["group_name"], row["alias_name"]))
             for line in job_status_alias:
                 group = line["group_name"]
                 alias = line["target_alias"]
                 if alias is None:
                     alias = "None"
+                else:
+                    # else it's one of the alias' and we can remove it from the unique list
+                    if (group, alias) in unique_aliases:
+                        unique_aliases.remove((group, alias))
 
                 for key in line:
                     #this is a dirty way to do it but we dont want to plot the following fields, everything else should get a trace
@@ -192,6 +203,14 @@ def timeseries_data_transfer():
                         trace_name = "jobs_" + key
                         trace_name = trace_name.lower()
                     new_point = "{0},cloud={4},group={1} value={2}i {3}".format(trace_name, group, _cast_int(line[key]), ts, alias)
+                    data_points.append(new_point)
+
+            #we've removed all of the alias' that had jobs so we need to add entries for the empty ones now
+            # an issue with this loop is that it doesn't have an accurate count for jobs_foreign which would need to be taken out of the None row in the above loop
+            alias_plots = ["jobs", "jobs_idle", "jobs_running", "jobs_completed", "jobs_held", "jobs_other", "jobs_foreign"]
+            for alias_tuple in unique_aliases:
+                for t_name in alias_plots:
+                    new_point = "{0},cloud={4},group={1} value={2}i {3}".format(t_name, alias_tuple[0], 0, ts, alias_tuple[1])
                     data_points.append(new_point)
 
             # Collect group totals
