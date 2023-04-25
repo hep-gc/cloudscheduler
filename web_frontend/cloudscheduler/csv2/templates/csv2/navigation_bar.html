@@ -12,21 +12,24 @@
 
 <nav class="top-nav">
     <ul>
-        <div class="float-left">
-            <li class="spacer"> </li>
-            <li>
+        <div style="float:inline-start;">
+                <a href="/cloud/status"><img src="{% static 'img/csv2_logo_inverse.png' %}" style="float:left;height:40px;width:auto;"></a>
                 <div align="center">
                     <select name="group" id="group"  onchange="location=this.value; sessionStorage.clear()">
                     {% for grp in user_groups %}
                         {% if grp == active_group %}
-                            <option value="?{{grp}}" selected>{{grp}}</option>
+                            <option value="?{{grp}}    v" selected>{{grp}}</option>
                         {% else %}
                             <option value="?{{grp}}">{{grp}}</option>
                         {% endif %}
                     {% endfor %}
                 </select>
                 </div>
-            </li>
+ 
+        </div>
+        <div class="float-left">
+            <li>
+           </li>
             <li><a class="status-nav" href="/cloud/status/?{{active_group}}">Status</a></li>
             <li><a class="clouds-nav" href="/cloud/list/?{{active_group}}">Cloud Config</a></li>
             <li><a class="alias-nav" href="/alias/list/?{{active_group}}">Aliases</a></li>
