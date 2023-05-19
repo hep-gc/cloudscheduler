@@ -805,29 +805,28 @@ def map_csv2_configuration(gvar, fqdn):
         while True:
             line = ""
             templine = fd.readline()
-            
+            if len(templine) < 1:
+                break
+
             if ';' not in templine:
               line += templine
             else:
               line += templine
-              if len(line) < 1:
-                break
-
-              words = line.split()
-              if len(words) > 2 and words[0] == 'INSERT' and words[1] == 'INTO':
-                ix = line.index('VALUES (') + 8
-                rows = line[ix:-3].split('),(')
-                for row in rows:
-                    cols = row[1:-1].split("','")
-                    if cols[0] not in gvar['csv2_configuration_values'][fqdn]:
-                        gvar['csv2_configuration_values'][fqdn][cols[0]] = {}
-                    
-                    if len(cols) > 3:
-                        gvar['csv2_configuration_values'][fqdn][cols[0]][cols[1]] = {'type': cols[2], 'value': cols[3]}
-                    else:
-                        gvar['csv2_configuration_values'][fqdn][cols[0]][cols[1]] = {'type': cols[2], 'value': None}
-
-                break
+              
+            words = line.split()
+            if len(words) > 2 and words[0] == 'INSERT' and words[1] == 'INTO':
+              ix = line.index('VALUES (') + 8
+              rows = line[ix:-3].split('),(')
+              for row in rows:
+                  cols = row[1:-1].split("','")
+                  if cols[0] not in gvar['csv2_configuration_values'][fqdn]:
+                      gvar['csv2_configuration_values'][fqdn][cols[0]] = {}
+                  
+                  if len(cols) > 3:
+                      gvar['csv2_configuration_values'][fqdn][cols[0]][cols[1]] = {'type': cols[2], 'value': cols[3]}
+                  else:
+                      gvar['csv2_configuration_values'][fqdn][cols[0]][cols[1]] = {'type': cols[2], 'value': None}
+                 break
         fd.close()
 
 #       for category in gvar['csv2_configuration_values'][fqdn]:
