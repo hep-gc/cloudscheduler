@@ -164,6 +164,9 @@ DATABASES = {
         'NAME': config.db_config['db_name'],
         'USER': config.db_config['db_user'],
         'PASSWORD': config.db_config['db_password'],
+        'OPTIONS': {
+            'charset': 'utf8mb4', 
+        }
     }
 }
 del config.db_config
