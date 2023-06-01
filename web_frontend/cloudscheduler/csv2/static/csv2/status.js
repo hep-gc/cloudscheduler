@@ -46,12 +46,10 @@ function set_refresh(time) {
     timer_id = setTimeout(function() {
 
         refresh_plot();
-        var csrftoken = document.getElementsByName('csrfmiddlewaretoken')[0].value;
 
         fetch(location.href,{   
             method: 'GET',
-            headers: {'Accept': 'text/html', 'X-CSRFToken': csrftoken},
-            credentials: 'same-origin',
+            headers: {'Accept': 'application/json', 'Content-Type':'application/json'},
         })  
         .then(function(response){
             /* Check response status code*/
@@ -225,8 +223,10 @@ function selectRange(range){
         var root_url = current_url.split(regex)[1];
         var newpath = root_url + ":8086/query";
         newpath += "?q=" + query + "&db=csv2_timeseries&epoch=ms&u=csv2_read&p=csv2_public";
+        newpath = encodeURI(newpath)
+        newpath = newpath.replace(';', '%3B')
         fetch(newpath,{
-            method: 'POST',
+            method: 'GET',
             headers: {'Accept': 'application/json', 'Content-Type':'application/json'},
             }
         )
@@ -486,10 +486,11 @@ function getTraceData(trace, showing){
     var nullvalues = [];
     if(showing == true) query = createQuery(trace.dataset.path, TSPlot.traces[0].x[0], date, showing);
     else query = createQuery(trace.dataset.path, date-3600000, date, showing);
-    var newquery = convertQueryToURL(query)
+    var newquery = encodeURI(query)
     newpath += "?q=" + query + "&db=csv2_timeseries&epoch=ms&u=csv2_read&p=csv2_public"
+    newpath = newpath.replace(';', '%3B')
     fetch(newpath,{
-        method: 'POST',
+        method: 'GET',
         headers: {'Accept': 'application/json', 'Content-Type':'application/json'},
         }
     )
@@ -613,13 +614,13 @@ function refresh_plot() {
         var current_url = window.location.href;
         const regex = /(.*\/\/[^\/]*)(\/.*)/;
         var root_url = current_url.split(regex)[1];
-        var newpath = root_url + ":8086"; 
-        const csrftoken = document.getElementsByName('csrfmiddlewaretoken')[0].value;
+        var newpath = root_url + ":8086/query"; 
+        newpath += "?q=" + query + "&db=csv2_timeseries&epoch=ms&u=csv2_read&p=csv2_public";
+        newpath = encodeURI(newpath)
+        newpath = newpath.replace(';', '%3B')
         fetch(newpath,{
-            method: 'POST',
-            headers: {'Accept': 'application/json', 'X-CSRFToken': csrftoken},
-            credentials: 'same-origin',
-            body: query,
+            method: 'GET',
+            headers: {'Accept': 'application/json', 'Content-Type':'application/json'},
             }
         )
         .then(function(response){

@@ -97,7 +97,7 @@ def images(request, message=None, response_code=0):
 
     # Retrieve EC2 image filters.
     where_clause = "group_name='%s' and cloud_name='%s'" % (active_user.active_group, active_user.kwargs['cloud_name'])
-    rc, msg, ec2_image_filters = cofnig.db_query("ec2_image_filters", where=where_clause)
+    rc, msg, ec2_image_filters = config.db_query("ec2_image_filters", where=where_clause)
     ec2_image_filters_json = json.dumps( ec2_image_filters );
 
     # Retrieve EC2 image filter options.
@@ -213,8 +213,11 @@ def instance_types(request, message=None, response_code=0):
             return render(request, 'csv2/ec2_instance_types.html', {'response_code': 1, 'message': '%s ec2 instance-types, %s' % (lno(MODID), msg)})
 
         # Update the user.
-        table = tables['ec2_instance_type_filters']
-        rc, msg = config.db_session_execute(table.update().where((table.c.group_name==active_user.active_group) & (table.c.cloud_name==fields['cloud_name'])).values(table_fields(fields, table, columns, 'update')))
+        table = 'ec2_instance_type_filters'
+        filter_updates = table_fields(fields, table, columns, 'update')
+        where_clause = "group_name='%s' and cloud_name='%s'" % (active_user.active_group, fields['cloud_name'])
+        #rc, msg = config.db_execute(table.update().where((table.c.group_name==active_user.active_group) & (table.c.cloud_name==fields['cloud_name'])).values(table_fields(fields, table, columns, 'update')))
+        rc, msg = config.db_update(table, filter_updates, where=where_clause)
         if rc != 0:
             config.db_close()
             return render(request, 'csv2/ec2_instance_types.html', {'response_code': 1, 'message': '%s ec2 instance-types, %s' % (lno(MODID), msg)})
@@ -242,19 +245,19 @@ def instance_types(request, message=None, response_code=0):
     rc, msg = config.db_execute('select distinct operating_system from view_ec2_instance_types order by operating_system')
     operating_systems = []
     for row in config.db_cursor:
-        families.append(row)
+        operating_systems.append(row)
     rc, msg = config.db_execute('select distinct processor from view_ec2_instance_types order by processor')
     processors = []
     for row in config.db_cursor:
-        families.append(row)
+        processors.append(row)
     rc, msg = config.db_execute('select distinct processor_manufacturer from view_ec2_instance_types order by processor_manufacturer')
     manufacturers = []
     for row in config.db_cursor:
-        families.append(row)
+        manufacturers.append(row)
     rc, msg = config.db_execute('select distinct cores from view_ec2_instance_types order by cores')
     cores = []
     for row in config.db_cursor:
-        families.append(row)
+        cores.append(row)
 
 
     families_list = []

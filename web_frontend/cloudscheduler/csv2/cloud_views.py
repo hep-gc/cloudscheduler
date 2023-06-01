@@ -40,6 +40,7 @@ import requests
 import time
 import json
 import re
+from copy import deepcopy
 
 from cloudscheduler.lib.web_profiler import silk_profile as silkp
 
@@ -202,18 +203,18 @@ def ec2_filters(config, group_name, cloud_name, cloud_type=None):
     # Ensure EC2 filters exist for amazon clouds.
     if cloud_type == 'amazon':
         if not ec2_image_filter:
-            defaults = config.get_config_by_category('ec2_image_filter')
+            defaults = config.get_config_by_category('ec2_image_filters')
 
             table = 'ec2_image_filters'
             filter_dict = {
                 'group_name': group_name,
                 'cloud_name': cloud_name,
-                'architectures': defaults['ec2_image_filter']['architectures'],
-                'like': defaults['ec2_image_filter']['location_like'],
-                'not_like': defaults['ec2_image_filter']['location_not_like'],
-                'operating_systems': defaults['ec2_image_filter']['operating_systems'],
-                'owner_aliases': defaults['ec2_image_filter']['owner_aliases'],
-                'owner_ids': defaults['ec2_image_filter']['owner_ids']
+                'architectures': defaults['ec2_image_filters']['architectures'],
+                'like': defaults['ec2_image_filters']['location_like'],
+                'not_like': defaults['ec2_image_filters']['location_not_like'],
+                'operating_systems': defaults['ec2_image_filters']['operating_systems'],
+                'owner_aliases': defaults['ec2_image_filters']['owner_aliases'],
+                'owner_ids': defaults['ec2_image_filters']['owner_ids']
             }
             rc, msg = config.db_insert(table, filter_dict)
             if rc != 0:
@@ -228,13 +229,13 @@ def ec2_filters(config, group_name, cloud_name, cloud_type=None):
             filter_dict = {
                 'group_name': group_name,
                 'cloud_name': cloud_name,
-                'cores': defaults['ec2_instance_type_filter']['cores'],
-                'families': defaults['ec2_instance_type_filter']['families'],
-                'memory_max_gigabytes_per_core': defaults['ec2_instance_type_filter']['memory_max_gigabytes_per_core'],
-                'memory_min_gigabytes_per_core': defaults['ec2_instance_type_filter']['memory_min_gigabytes_per_core'],
-                'operating_systems': defaults['ec2_instance_type_filter']['operating_systems'],
-                'processors': defaults['ec2_instance_type_filter']['processors'],
-                'processor_manufacturers': defaults['ec2_instance_type_filter']['processor_manufacturers']
+                'cores': defaults['ec2_instance_type_filters']['cores'],
+                'families': defaults['ec2_instance_type_filters']['families'],
+                'memory_max_gigabytes_per_core': defaults['ec2_instance_type_filters']['memory_max_gigabytes_per_core'],
+                'memory_min_gigabytes_per_core': defaults['ec2_instance_type_filters']['memory_min_gigabytes_per_core'],
+                'operating_systems': defaults['ec2_instance_type_filters']['operating_systems'],
+                'processors': defaults['ec2_instance_type_filters']['processors'],
+                'processor_manufacturers': defaults['ec2_instance_type_filters']['processor_manufacturers']
             }
             rc, msg = config.db_insert(table, filter_dict)
             if rc != 0:
@@ -1572,6 +1573,21 @@ def status(request, group_name=None):
         cloud_status_list.append(global_total_list.copy())
 
     if active_user.flag_jobs_by_target_alias:    
+        # the view will only produce entries for alias' that have idle or active jobs
+        # so we need to query the total list of alias' and add in the ones which were missed
+
+        # if global view enabled, get all, if not get just alias' for this cloud
+        if active_user.flag_global_status:
+            rc, msg, full_alias_list = config.db_query("csv2_cloud_aliases")
+        else:
+            where_clause = "group_name='%s'" % active_user.active_group
+            rc, msg, full_alias_list = config.db_query("csv2_cloud_aliases", where=where_clause)
+        # generate list of unique group-alias tuples
+        unique_aliases = []
+        for row in full_alias_list:
+            if (row["group_name"], row["alias_name"]) not in unique_aliases:
+               unique_aliases.append((row["group_name"], row["alias_name"]))
+
         for row in job_cores_list:
             if not row.get('target_alias'):
                 row['target_alias'] = 'None'
@@ -1589,6 +1605,27 @@ def status(request, group_name=None):
                 'js_other'
             ]
         })
+        try:
+            for row in job_cores_list_totals:
+                if (row["group_name"], row["target_alias"]) in unique_aliases:
+                    unique_aliases.remove((row["group_name"], row["target_alias"]))
+        except KeyError:
+            #print("No entries in job_core_list_totals, continuing ...")
+            pass
+        # we now have a list of tuples representing alias' whom have no active jobs so we need to initialize
+        # them so they are visable on the status page
+        for alias_tuple in unique_aliases:
+            empty_alias_dict = {
+                'group_name': alias_tuple[0],
+                'target_alias': alias_tuple[1],
+                'request_cpus': 0,
+                'js_idle': 0,
+                'js_running': 0,
+                'js_completed': 0,
+                'js_held': 0,
+                'js_other': 0
+            }
+            job_cores_list_totals.append(empty_alias_dict)
     else:
         job_cores_list_totals = qt(job_cores_list, keys={
             'primary': [
@@ -1741,14 +1778,38 @@ def status(request, group_name=None):
             table = "view_job_status"
         rc, msg, _job_status_list = config.db_query(table)
         job_status_list = qt(_job_status_list, filter=qt_filter_get(['group_name'], ["mygroups"], aliases=GROUP_ALIASES, and_or='or'))
-    else:    
-        if active_user.flag_jobs_by_target_alias:
-            table = "view_job_status_by_target_alias"
-        else:
-            table = "view_job_status"
-        where_clause = "group_name='%s'" % active_user.active_group
-        rc, msg, job_status_list = config.db_query(table, where=where_clause)
 
+        # at this stage we need to insert the aliases with no jobs or they won't be shown on the status page
+        # to achieve this we need to find the row representing the base group for each unrepresented alias
+        # copy the base values and then zero out the jobs rows
+    else:    
+         if active_user.flag_jobs_by_target_alias:
+             table = "view_job_status_by_target_alias"
+         else:
+             table = "view_job_status"
+         where_clause = "group_name='%s'" % active_user.active_group
+         rc, msg, job_status_list = config.db_query(table, where=where_clause)
+    if active_user.flag_jobs_by_target_alias:
+        new_rows = []
+        for alias_tuple in unique_aliases:
+            alias_grp = alias_tuple[0]
+            alias_nm = alias_tuple[1]
+            #find the unaliased group row
+            for row in job_status_list:
+                if row["group_name"] == alias_grp and row["target_alias"] == None:
+                    #copy the base row data
+                    new_row = deepcopy(row)
+                    new_row["Jobs"] = 0
+                    new_row["Idle"] = 0
+                    new_row["Running"] = 0
+                    new_row["Completed"] = 0
+                    new_row["Held"] = 0
+                    new_row["Other"] = 0
+                    new_row["target_alias"] = alias_nm
+                    new_rows.append(new_row)
+                    break # we break inner for loop here because we found the row we're interested in and can move on to the next alias
+        job_status_list = sorted((job_status_list + new_rows), key=lambda d: d["group_name"])
+ 
     # Get GSI configuration variables.
     gsi_config = config.get_config_by_category('GSI')
 

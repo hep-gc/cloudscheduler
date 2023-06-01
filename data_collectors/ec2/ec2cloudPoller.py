@@ -90,6 +90,9 @@ def check_instance_types(config):
 
     json_path = config.categories["ec2cloudPoller.py"]["region_flavor_file_location"]
     rc, msg, region_list = config.db_query(REGIONS)
+    if rc != 0:
+        logging.error("error querying region list:")
+        logging.error(msg)
 
     for region in region_list:
         region_path = json_path + "/" + region["region"] + "/instance_types.json"
@@ -168,6 +171,9 @@ def refresh_instance_types(config, file_path, region):
     # delete old entries then load the its dict into the table
     where_clause = "region='%s'" % region
     rc, msg, old_its = config.db_query(EC2_INSTANCE_TYPES, where=where_clause)
+    if rc != 0:
+         logging.error("error querying ec2 instance types:")
+         logging.error(msg)
     for it in old_its:
         config.db_delete(EC2_INSTANCE_TYPES, it)
     config.db_commit()
@@ -227,25 +233,43 @@ def ec2_filterer():
 
             where_clause = "cloud_type='amazon'"
             rc, msg, cloud_list = config.db_query(CLOUD, where=where_clause)
+            if rc != 0:
+                logging.error("error querying amazon cloud list:")
+                logging.error(msg)
 
             # Process Images and Instance types
             for cloud in cloud_list:
                 logging.info("PROCESSING CLOUD: %s:%s:%s" % (cloud["group_name"], cloud["cloud_name"], cloud["region"]))
                 uncommitted_updates = 0
                 rc, msg, filtered_images_query = select_ec2_images(config, cloud["group_name"], cloud["cloud_name"])
-                # check rc?
+                if rc != 0:
+                    logging.error("Error building filtered image query")
+                    logging.error(msg)
                 logging.debug("SQL: %s" % filtered_images_query)
-                filtered_images = qt(config.db_connection.execute(filtered_images_query))
+                rc, msg = config.db_execute(filtered_images_query)
+                if rc != 0:
+                    logging.error("error getting filtered image list:")
+                    logging.error(msg)
+                filtered_images = []
+                for row in config.db_cursor:
+                    filtered_images.append(row)
                 
                 rc, msg, filtered_flavors_query = select_ec2_instance_types(config, cloud["group_name"], cloud["cloud_name"])
-                #check rc?
+                if rc !=0:
+                    logging.error("error building filtered flavors query:")
+                    logging.error(msg)
                 logging.debug("SQL: %s" % filtered_flavors_query)
-                filtered_flavors = qt(config.db_connection.execute(filtered_flavors_query))
+                rc, msg = config.db_execute(filtered_flavors_query)
+                if rc !=0:
+                    logging.error("error querying filtered flavours:")
+                    logging.error(msg)
+                filtered_flavors = []
+                for row in config.db_cursor:
+                    filtered_flavors.append(row)
 
                 #deal with images
                 logging.debug("IMAGE DATA")
                 for image in filtered_images:
-                    logging.debug(image)
                     # FORMAT:
                     # {'region': 'us-east-1', 'id': 'ami-e53e239e', 'borrower_id': 'not_shared', 'owner_id': '013907871322', 'owner_alias': 'amazon', 'disk_format': 'ebs', 'size': 10, 'image_location': 'amazon/suse-sles-12-sp3-v20170907-ecs-hvm-ssd-x86_64', 'visibility': '1', 'name': 'suse-sles-12-sp3-v20170907-ecs-hvm-ssd-x86_64', 'description': 'SUSE Linux Enterprise Server 12 SP3 ECS Optimized (HVM, 64-bit, SSD-Backed)', 'last_updated': 1557253620, 'lower_location': 'amazon/suse-sles-12-sp3-v20170907-ecs-hvm-ssd-x86_64', 'opsys': 'linux', 'arch': '64bit'}
                     image_dict = {
@@ -484,14 +508,16 @@ def image_poller():
                         unique_cloud_dict[cloud["authurl"] + cloud["project"] + cloud["region"]]['groups'].append(
                             (cloud["group_name"], cloud["cloud_name"]))
                     try:
-                        where_clause = "group_name='%s and cloud_name='%s'" % (cloud["group_name"], cloud["cloud_name"])
+                        where_clause = "group_name='%s' and cloud_name='%s'" % (cloud["group_name"], cloud["cloud_name"])
                         rc, msg, filter_rows = config.db_query(EC2_IMAGE_FILTER, where=where_clause)
+                        logging.error(filter_rows)
                         filter_row = filter_rows[0]
                         if filter_row["owner_aliases"] is not None:
                             unique_cloud_dict[cloud["authurl"] + cloud["project"] + cloud["region"]]['filter_aliases'] += filter_row["owner_aliases"].split(',')
-                        if filter_row.owner_ids is not None:
+                        if filter_row["owner_ids"] is not None:
                             unique_cloud_dict[cloud["authurl"] + cloud["project"] + cloud["region"]]['filter_owner_ids'] += filter_row["owner_ids"].split(',')
-                    except:
+                    except Exception as ex:
+                        logging.error(ex)
                         logging.info("No filter row for cloud %s::%s" % (cloud["group_name"], cloud["cloud_name"]))
                         continue
 
@@ -519,9 +545,10 @@ def image_poller():
                     # infact since each cloud row can have its own filters it would be ideal to loop over each row instead of getting fancy with regional polling.
 
                     try:
-                        where_clause = "group_name='%s and cloud_name='%s'" % (cloud["group_name"], cloud["cloud_name"])
+                        where_clause = "group_name='%s' and cloud_name='%s'" % (cloud["group_name"], cloud["cloud_name"])
                         rc, msg, filter_rows = config.db_query(EC2_IMAGE_FILTER, where=where_clause)
                         filter_row = filter_rows[0]
+                        logging.debug("filter rows: %s" % filter_rows)
                         if "self" in filter_row["owner_aliases"]:
                             self_filter = True
                         if "shared" in filter_row["owner_aliases"]:
@@ -610,7 +637,7 @@ def image_poller():
                                 logging.error(image)
                                 continue
 
-                            img_dict, unmapped = map_attributes(src="ec2_images", dest="csv2", attr_dict=img_dict)
+                            img_dict, unmapped = map_attributes(src="ec2_images", dest="csv2", attr_dict=img_dict, config=config)
                             if unmapped:
                                 logging.debug("Unmapped attributes found during mapping, discarding:")
                                 logging.debug(unmapped)
@@ -658,11 +685,19 @@ def image_poller():
                         {'Name': 'image-type', 'Values':['machine']},
                         {'Name': 'state', 'Values':['available']},
                     ]
+                    logging.debug("Starting stats:")
+                    logging.debug("alias set: %s" % alias_filter_set)
+                    logging.debug("owner set: %s" % owner_id_filter_set)
+                    logging.debug("alias: %s" % alias_filter)
+                    logging.debug("owner: %s" % owner_id_filter)
                     try:
                         filters = base_filters
                         if len(alias_filter) > 0:
+                            logging.debug("alias filters")
                             filters.append({'Name': 'owner-alias', 'Values': alias_filter})
+                            logging.debug(filters)
                             image_list = client.describe_images(ExecutableUsers=user_list, Filters=filters)
+                            logging.debug(image_list)
                             amzn_images = amzn_images + image_list['Images']
                     except Exception as ex:
                         logging.error("Failed to retrieve image data for %s, skipping this cloud..." % cloud_name)
@@ -683,6 +718,7 @@ def image_poller():
                     try:
                         # check if there is owner_ids to filter on
                         filters = base_filters
+                        logging.debug("owner id filters: %s" % filters)
                         if len(owner_id_filter) > 0:
                             filters.append({'Name': 'owner-id', 'Values': owner_id_filter})
                             image_list = client.describe_images(ExecutableUsers=user_list, Filters=filters)
@@ -763,7 +799,7 @@ def image_poller():
                                 logging.error(image)
                                 continue
 
-                            img_dict, unmapped = map_attributes(src="ec2_images", dest="csv2", attr_dict=img_dict)
+                            img_dict, unmapped = map_attributes(src="ec2_images", dest="csv2", attr_dict=img_dict, config=config)
                             if unmapped:
                                 logging.debug("Unmapped attributes found during mapping, discarding:")
                                 logging.debug(unmapped)
@@ -1183,7 +1219,7 @@ def limit_poller():
                         limits_dict['cloud_name'] = cloud_n
                         limits_dict['cloud_type'] = 'amazon'
                         limits_dict['last_updated'] = int(time.time())
-                        limits_dict, unmapped = map_attributes(src="ec2_limits", dest="csv2", attr_dict=limits_dict)
+                        limits_dict, unmapped = map_attributes(src="ec2_limits", dest="csv2", attr_dict=limits_dict, config=config)
                         # Limit dict has a lot of require not null - set them all to -1 for now
                         limits_dict['server_meta_max'] = -1
                         limits_dict['personality_max'] = -1
@@ -1598,12 +1634,12 @@ def security_group_poller():
                                 'last_updated': new_poll_time
                             }
 
-                            flav_dict, unmapped = map_attributes(src="os_sec_grps", dest="csv2", attr_dict=sec_grp_dict)
+                            flav_dict, unmapped = map_attributes(src="os_sec_grps", dest="csv2", attr_dict=sec_grp_dict, config=config)
                             if unmapped:
                                 logging.debug("Unmapped attributes found during mapping, discarding:")
                                 logging.debug(unmapped)
 
-                            if inventory_test_and_set_item_hash(ikey_names, sec_grp_dict_dict, inventory, new_poll_time, debug_hash=(config.categories["ec2cloudPoller.py"]["log_level"] < 20)):
+                            if inventory_test_and_set_item_hash(ikey_names, sec_grp_dict, inventory, new_poll_time, debug_hash=(config.categories["ec2cloudPoller.py"]["log_level"] < 20)):
                                 continue
 
                             try:
@@ -1940,7 +1976,7 @@ def vm_poller():
                         if 'SpotInstanceRequestId' in vm and 'InstanceId' in vm:
                             vm_dict['instance_id'] = vm['InstanceId']
 
-                        vm_dict, unmapped = map_attributes(src="ec2_vms", dest="csv2", attr_dict=vm_dict)
+                        vm_dict, unmapped = map_attributes(src="ec2_vms", dest="csv2", attr_dict=vm_dict, config=config)
                         if unmapped:
                             logging.debug("unmapped attributes found during mapping, discarding:")
                             logging.debug(unmapped)
