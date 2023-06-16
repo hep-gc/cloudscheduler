@@ -7,6 +7,7 @@ select
     case when ifnull(htcondor_container_hostname,'')!='' then htcondor_container_hostname else htcondor_fqdn end as htcondor_fqdn,
     vmid,
     hostname,
+    name,
     htcondor_partitionable_slots as primary_slots,
     htcondor_dynamic_slots as dynamic_slots,
     retire,
@@ -19,7 +20,8 @@ left outer join csv2_groups as cg on
     cv.group_name=cg.group_name
 left outer join (
     select distinct
-        machine
+        machine,
+        name
     from condor_machines
     group by
         machine,

@@ -3,7 +3,7 @@ import time
 import signal
 import socket
 import logging
-from subprocess import Popen, PIPE
+import subprocess
 from multiprocessing import Process
 import os
 import re
@@ -138,14 +138,14 @@ def get_gsi_cert_subject_and_eol(cert):
         return 'unreadable', -999999
 
     if os.path.isfile(cert):
-        p1 = Popen([
+        p1 = subprocess.Popen([
             'openssl',
             'x509',
             '-noout',
             '-subject',
             '-in',
             cert
-            ], stdout=PIPE, stderr=PIPE)
+            ], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         stdout, stderr = p1.communicate()
 
         stdout = decode(stdout)
@@ -153,19 +153,19 @@ def get_gsi_cert_subject_and_eol(cert):
             words = decode(stdout).split()
             subject = words[1]
 
-            p1 = Popen([
+            p1 = subprocess.Popen([
                 'openssl',
                 'x509',
                 '-noout',
                 '-dates',
                 '-in',
                 cert
-                ], stdout=PIPE, stderr=PIPE)
+                ], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
-            p2 = Popen([
+            p2 = subprocess.Popen([
                 'awk',
                 '/notAfter=/ {print substr($0,10)}'
-                ], stdin=p1.stdout, stdout=PIPE, stderr=PIPE)
+                ], stdin=p1.stdout, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             stdout, stderr = p2.communicate()
 
             if p2.returncode == 0:
@@ -228,15 +228,15 @@ def zip_base64(path):
         return 'unreadable'
 
     if os.path.isfile(path):
-        p1 = Popen([
+        p1 = subprocess.Popen([
             'gzip',
             '-c',
             path
-            ], stdout=PIPE, stderr=PIPE)
+            ], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
-        p2 = Popen([
+        p2 = subprocess.Popen([
             'base64'
-            ], stdin=p1.stdout, stdout=PIPE, stderr=PIPE)
+            ], stdin=p1.stdout, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         stdout, stderr = p2.communicate()
 
         if p2.returncode == 0:
@@ -346,10 +346,22 @@ def process_group_cloud_commands(pair, condor_host, config):
                 #there was a condor error
                 logging.error("Unable to retrieve condor classad, skipping %s ..." % resource["machine"])
 
-            logging.info("Issuing DaemonsOffPeaceful to %s" % condor_classad)
-            master_result = htcondor.send_command(condor_classad, htcondor.DaemonCommands.DaemonsOffPeaceful)
-            logging.debug("Result: %s " % master_result)
-            
+            try:
+                logging.info("Issuing DaemonsOffPeaceful to %s" % condor_classad)
+                master_result = htcondor.send_command(condor_classad, htcondor.DaemonCommands.DaemonsOffPeaceful)
+                logging.debug("Result: %s " % master_result)
+            except Exception as exc:
+                # this should be tightened to catch exact errors coming from condor
+                # since the bindings method of retire seems to have failed lets issue a local system command
+                logging.info("failed to retire via condor bindings, attempting system command")
+                logging.debug("condor_drain -exit-on-completion %s" % resource["name"] ) 
+                cndr_drain = subprocess.run(["condor_drain", "-exit-on-completion", resource["name"]])
+                logging.debug("Command executed")
+                logging.debug(cndr_drain.stdout)
+                logging.debug(cndr_drain.stderr)
+                # the command below will throw an error if the condor_drain command fails but presently it fails when the machine is already draining
+                # and the output and error are empty to we cant distinguish between an error because it's already draining from any other without more commands
+                #cndr_drain.check_returncode() 
                 
             #get vm entry and update retire = 2
             where_clause = "group_name='%s' and cloud_name='%s' and vmid='%s'" % (resource["group_name"], resource["cloud_name"], resource["vmid"])
