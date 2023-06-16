@@ -1,8 +1,8 @@
--- MySQL dump 10.19  Distrib 10.3.36-MariaDB, for Linux (x86_64)
+-- MySQL dump 10.17  Distrib 10.3.21-MariaDB, for Linux (x86_64)
 --
 -- Host: localhost    Database: csv2
 -- ------------------------------------------------------
--- Server version	10.3.36-MariaDB
+-- Server version	10.3.21-MariaDB
 
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
@@ -16,29 +16,36 @@
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
 --
--- Table structure for table `django_session`
+-- Table structure for table `silk_request`
 --
 
-DROP TABLE IF EXISTS `django_session`;
+DROP TABLE IF EXISTS `silk_request`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
-CREATE TABLE `django_session` (
-  `session_key` varchar(40) NOT NULL,
-  `session_data` longtext NOT NULL,
-  `expire_date` datetime(6) NOT NULL,
-  PRIMARY KEY (`session_key`),
-  KEY `django_session_expire_date_a5c62663` (`expire_date`)
+CREATE TABLE `silk_request` (
+  `id` varchar(36) NOT NULL,
+  `path` varchar(190) NOT NULL,
+  `query_params` longtext NOT NULL,
+  `raw_body` longtext NOT NULL,
+  `body` longtext NOT NULL,
+  `method` varchar(10) NOT NULL,
+  `start_time` datetime(6) NOT NULL,
+  `view_name` varchar(190) DEFAULT NULL,
+  `end_time` datetime(6) DEFAULT NULL,
+  `time_taken` double DEFAULT NULL,
+  `encoded_headers` longtext NOT NULL,
+  `meta_time` double DEFAULT NULL,
+  `meta_num_queries` int(11) DEFAULT NULL,
+  `meta_time_spent_queries` double DEFAULT NULL,
+  `pyprofile` longtext NOT NULL,
+  `num_sql_queries` int(11) NOT NULL,
+  `prof_file` varchar(300) NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `silk_request_path_9f3d798e` (`path`),
+  KEY `silk_request_start_time_1300bc58` (`start_time`),
+  KEY `silk_request_view_name_68559f7b` (`view_name`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `django_session`
---
-
-LOCK TABLES `django_session` WRITE;
-/*!40000 ALTER TABLE `django_session` DISABLE KEYS */;
-/*!40000 ALTER TABLE `django_session` ENABLE KEYS */;
-UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
@@ -49,4 +56,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2022-08-26 12:17:56
+-- Dump completed on 2020-02-07 12:03:34

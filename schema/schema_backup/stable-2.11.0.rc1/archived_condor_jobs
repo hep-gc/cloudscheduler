@@ -16,29 +16,42 @@
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
 --
--- Table structure for table `django_session`
+-- Table structure for table `archived_condor_jobs`
 --
 
-DROP TABLE IF EXISTS `django_session`;
+DROP TABLE IF EXISTS `archived_condor_jobs`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
-CREATE TABLE `django_session` (
-  `session_key` varchar(40) NOT NULL,
-  `session_data` longtext NOT NULL,
-  `expire_date` datetime(6) NOT NULL,
-  PRIMARY KEY (`session_key`),
-  KEY `django_session_expire_date_a5c62663` (`expire_date`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+CREATE TABLE `archived_condor_jobs` (
+  `global_job_id` varchar(128) NOT NULL,
+  `group_name` varchar(128) DEFAULT NULL,
+  `target_clouds` text DEFAULT NULL,
+  `cloud_name` text DEFAULT NULL,
+  `job_status` int(11) DEFAULT NULL,
+  `request_cpus` int(11) NOT NULL,
+  `request_ram` int(11) DEFAULT NULL,
+  `request_disk` int(11) DEFAULT NULL,
+  `request_swap` int(11) DEFAULT NULL,
+  `request_scratch` int(11) DEFAULT NULL,
+  `requirements` varchar(512) DEFAULT NULL,
+  `job_priority` int(11) DEFAULT NULL,
+  `cluster_id` int(11) DEFAULT NULL,
+  `proc_id` int(11) NOT NULL,
+  `user` varchar(512) DEFAULT NULL,
+  `image` text DEFAULT NULL,
+  `instance_type` varchar(512) DEFAULT NULL,
+  `network` varchar(512) DEFAULT NULL,
+  `keep_alive` varchar(512) DEFAULT NULL,
+  `max_price` varchar(512) DEFAULT NULL,
+  `user_data` varchar(512) DEFAULT NULL,
+  `job_per_core` int(11) DEFAULT NULL,
+  `entered_current_status` int(11) DEFAULT NULL,
+  `q_date` int(11) DEFAULT NULL,
+  `hold_job_reason` varchar(64) DEFAULT NULL,
+  `held_reason` varchar(64) DEFAULT NULL,
+  PRIMARY KEY (`global_job_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `django_session`
---
-
-LOCK TABLES `django_session` WRITE;
-/*!40000 ALTER TABLE `django_session` DISABLE KEYS */;
-/*!40000 ALTER TABLE `django_session` ENABLE KEYS */;
-UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
@@ -49,4 +62,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2022-08-26 12:17:56
+-- Dump completed on 2022-08-19 13:05:45

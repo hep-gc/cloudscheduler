@@ -16,28 +16,29 @@
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
 --
--- Table structure for table `django_session`
+-- Table structure for table `csv2_service_providers`
 --
 
-DROP TABLE IF EXISTS `django_session`;
+DROP TABLE IF EXISTS `csv2_service_providers`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
-CREATE TABLE `django_session` (
-  `session_key` varchar(40) NOT NULL,
-  `session_data` longtext NOT NULL,
-  `expire_date` datetime(6) NOT NULL,
-  PRIMARY KEY (`session_key`),
-  KEY `django_session_expire_date_a5c62663` (`expire_date`)
+CREATE TABLE `csv2_service_providers` (
+  `provider` varchar(64) NOT NULL,
+  `service` varchar(64) NOT NULL,
+  `alias` varchar(16) DEFAULT NULL,
+  `alias_priority` int(11) NOT NULL DEFAULT 0,
+  PRIMARY KEY (`provider`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Dumping data for table `django_session`
+-- Dumping data for table `csv2_service_providers`
 --
 
-LOCK TABLES `django_session` WRITE;
-/*!40000 ALTER TABLE `django_session` DISABLE KEYS */;
-/*!40000 ALTER TABLE `django_session` ENABLE KEYS */;
+LOCK TABLES `csv2_service_providers` WRITE;
+/*!40000 ALTER TABLE `csv2_service_providers` DISABLE KEYS */;
+INSERT INTO `csv2_service_providers` VALUES ('condor_master','condor',NULL,0),('condor_poller.py','csv2-condor-poller',NULL,0),('csmain','csv2-main','main',1),('ec2cloudPoller.py','csv2-ec2','ec2',6),('openstackPoller.py','csv2-openstack','openstack',7),('signal_monitor','signal_monitor','signals',2),('timeseriesPoller.py','csv2-timeseries','timeseries',3),('vm_data_via_https.py','csv2-vm-data','VMdata',4),('watch_csv2','csv2-watch','watch',5);
+/*!40000 ALTER TABLE `csv2_service_providers` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
@@ -49,4 +50,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2022-08-26 12:17:56
+-- Dump completed on 2022-08-26 12:17:55

@@ -16,28 +16,26 @@
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
 --
--- Table structure for table `django_session`
+-- Table structure for table `ec2_image_well_known_owner_aliases`
 --
 
-DROP TABLE IF EXISTS `django_session`;
+DROP TABLE IF EXISTS `ec2_image_well_known_owner_aliases`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
-CREATE TABLE `django_session` (
-  `session_key` varchar(40) NOT NULL,
-  `session_data` longtext NOT NULL,
-  `expire_date` datetime(6) NOT NULL,
-  PRIMARY KEY (`session_key`),
-  KEY `django_session_expire_date_a5c62663` (`expire_date`)
+CREATE TABLE `ec2_image_well_known_owner_aliases` (
+  `alias` varchar(32) NOT NULL,
+  PRIMARY KEY (`alias`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Dumping data for table `django_session`
+-- Dumping data for table `ec2_image_well_known_owner_aliases`
 --
 
-LOCK TABLES `django_session` WRITE;
-/*!40000 ALTER TABLE `django_session` DISABLE KEYS */;
-/*!40000 ALTER TABLE `django_session` ENABLE KEYS */;
+LOCK TABLES `ec2_image_well_known_owner_aliases` WRITE;
+/*!40000 ALTER TABLE `ec2_image_well_known_owner_aliases` DISABLE KEYS */;
+INSERT INTO `ec2_image_well_known_owner_aliases` VALUES ('amazon'),('microsoft'),('self'),('shared');
+/*!40000 ALTER TABLE `ec2_image_well_known_owner_aliases` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
@@ -49,4 +47,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2022-08-26 12:17:56
+-- Dump completed on 2022-08-19 13:05:56
