@@ -1202,7 +1202,9 @@ def worker_gsi_poller():
             deleted = []
             condor = socket.gethostname()
             worker_cert = {}
-            if 'GSI_DAEMON_CERT' in htcondor.param:
+
+
+            if 'GSI_DAEMON_CERT' in htcondor.param or config.condor_poller["token_auth"]:
                 try:
                     worker_cert['subject'], worker_cert['eol'] = get_gsi_cert_subject_and_eol(config.condor_poller['condor_worker_cert'])
                     worker_cert['cert'] = zip_base64(config.condor_poller['condor_worker_cert'])
