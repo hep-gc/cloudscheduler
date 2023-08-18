@@ -1494,6 +1494,7 @@ def vm_poller():
                         # due to emergent flavors and thus a new obj will need to be created
                         #~~~~~~~~
                             try:
+                                logging.error(vm)
                                 host_tokens = vm.name.split("--")
                                 vm_group_name = host_tokens[0]
                                 vm_cloud_name = host_tokens[1]

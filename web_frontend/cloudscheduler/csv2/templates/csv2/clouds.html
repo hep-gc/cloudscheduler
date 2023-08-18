@@ -21,17 +21,18 @@
     var visited = {};
     var ec2_regions = {{ ec2_regions_list|safe }};
 
-    function clear_message() {
-        if (document.getElementById("message").innerHTML !== "") document.getElementById("message").innerHTML = "";
-    }
-
     function get_message() {
         if (sessionStorage.getItem("message")){
             document.getElementById("message").innerHTML = sessionStorage.getItem("message");
-            sessionStorage.setItem("response_code", "");
-            sessionStorage.setItem("message", "");
         }
     }
+
+    function clear_message() {
+        if (document.getElementById("message").innerHTML !== "") document.getElementById("message").innerHTML = "";
+           request.session.removeItem("rc");
+           request.session.removeItem("message");
+    }
+
 
     function meta_fetch(cloudname , metaname) {
         hide_meta_checksum();
@@ -194,7 +195,7 @@
 <script rel="preload" type="text/javascript" src="{% static "csv2/editor.js" %}?{{version}}"></script>
 
 </head>
-<body class="clouds-nav" onpageshow="get_message(); set_location()" onclick="clear_message()">
+<body class="clouds-nav" onpageshow="get_message(); set_location()" >
 {% spaceless %}
 <div class="main-div {% if is_superuser %}super-main-div{% endif %}">
     <div class="menu">
@@ -814,12 +815,14 @@
     </div>
 </div>
 
-<div class="footer{% if response_code == 0 %} success-msg{% endif %}" id="message">
-    {% if response_code == 1 %}
-        <tr><td><b>Error: {{ message }}</b></td></tr>
-    {% elif message is not None %}
-        <tr><td>{{ message }}</td></tr>
-    {% endif %}
+<div class="footer{% if request.session.rc == 0 %} success-msg{% endif %}" id="message" onclick="clear_message()>
+    {% for message in messages %}
+        {% if message.level == DEFAULT_MESSAGE_LEVELS.ERROR %}
+            <tr><td><b>Error: {{ message }} </b></td></tr>
+        {% else %}
+            <tr><td>{{ message }}/td></tr>
+        {% endif %}
+    {% endfor %}
 </div>
 
 

@@ -1,5 +1,3 @@
-
-
 {% block navbar %}
    {% include "csv2/navigation_bar.html" %}
 {% endblock %}
@@ -25,9 +23,14 @@
         function get_message() {
             if (sessionStorage.getItem("message")){
                 document.getElementById("message").innerHTML = sessionStorage.getItem("message");
-                sessionStorage.setItem("response_code", "");
-                sessionStorage.setItem("message", "");
             }
+        }
+        function clear_message() {
+            sessionStorage.removeItem("rc");
+            sessionStorage.removeItem("message");
+            localStorage.removeItem("rc");
+            localStorage.removeItem("message");
+            if (document.getElementById("message").innerHTML !== "") document.getElementById("message").innerHTML = "";
         }
 
         function meta_fetch(groupname , metaname) {
@@ -283,12 +286,14 @@
 
 </div>
 
-<div class="footer" id="message">
-    {% if response_code == 1 %}
+<div class="footer" id="message" onclick="clear_message()">
+    {% for message in messages %}
+    {% if message.level == DEFAULT_MESSAGE_LEVELS.ERROR %}
         <tr><td><b>Error: {{ message }}</b></td></tr>
-    {% elif message is not None %}
+    {% else %}
         <tr><td>{{ message }}</td></tr>
     {% endif %}
+    {% endfor %}
 </div>
 
 {% endspaceless %}
