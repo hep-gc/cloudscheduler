@@ -391,7 +391,8 @@ schema = {
             "worker_dn": {"type": "str", "len": "128", "nulls": "YES"},
             "worker_eol": {"type": "int"},
             "worker_cert": {"type": "str", "nulls": "YES"},
-            "worker_key": {"type": "str", "nulls": "YES"}
+            "worker_key": {"type": "str", "nulls": "YES"},
+            "auth_token": {"type": "str", "len": "128", "nulls": "YES"}
             }
         },
     "csv2_attribute_mapping": {
@@ -1370,6 +1371,7 @@ schema = {
             "htcondor_fqdn": {"type": "str", "len": "128", "nulls": "YES"},
             "vmid": {"type": "str", "len": "128", "nulls": "NO"},
             "hostname": {"type": "str", "len": "128", "nulls": "NO"},
+            "name": {"type": "str", "len": "128", "nulls": "YES"},
             "primary_slots": {"type": "int"},
             "dynamic_slots": {"type": "int"},
             "retire": {"type": "int"},
