@@ -298,19 +298,6 @@
 
                                 <td class="col-spacer">&nbsp;</td>
 
-
-                                <td data-path="{{group.group_name}} jobs_condor_days_left" class="zero-style float-center">
-                                {% if group.condor_days_left %}
-                                    Days left:<br>{{group.condor_days_left}}
-                                {% else %}
-                                    </td>
-                                {% endif %}
-                                <td data-path="{{group.group_name}} jobs_worker_days_left" class="zero-style float-center">
-                                {% if group.worker_days_left %}
-                                    Days left:<br>{{group.worker_days_left}}
-                                {% else %}
-                                    </td>
-                                {% endif %}
                             </tr>
                         {% endif %}
                     {% endfor %}
