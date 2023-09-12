@@ -36,6 +36,102 @@ window.onclick = function(event) {
     }
 }
 
+var statusTables = document.getElementsByClassName("status-table");
+
+// table one
+var tableOneHeaders = document.getElementsByClassName("header-row")[0];
+var tableOne = statusTables[0].getElementsByTagName("table")[0];
+var tableOneData = tableOne.getElementsByTagName("td");
+
+// table one initial dimensions
+var tableOneHeight = tableOne.clientHeight;
+var headerWidthOne = [];
+var dataWidthOne = [];
+computeDimensions(headerWidthOne, dataWidthOne, tableOneHeaders, tableOneData, 15)
+
+// table two
+var tableTwoHeaders = document.getElementsByClassName("header-row")[1];
+var tableTwo = statusTables[1].getElementsByTagName("table")[0];
+var tableTwoData = tableTwo.getElementsByTagName("td");
+
+// table two initial dimensions
+var tableTwoHeight = tableTwo.clientHeight;
+var headerWidthTwo = [];
+var dataWidthTwo = [];
+computeDimensions(headerWidthTwo, dataWidthTwo, tableTwoHeaders, tableTwoData, 29);
+computeStartEnd();
+
+
+window.onresize = function () {
+    // remove the sticky header to ensure correct inital dimensions
+    tableOneHeaders.classList.remove("sticky-top");
+    tableTwoHeaders.classList.remove("sticky-top");
+
+    tableOneHeight = tableOne.clientHeight;
+    tableTwoHeight = tableTwo.clientHeight;
+
+    // reset the dimensions and compute the current header location
+    computeDimensions(headerWidthOne = [], dataWidthOne = [], tableOneHeaders, tableOneData, 15);
+    computeDimensions(headerWidthTwo = [], dataWidthTwo = [], tableTwoHeaders, tableTwoData, 29);
+    computeStartEnd();
+}
+
+window.onscroll = function () {
+    computeStartEnd();
+}
+
+function computeStartEnd() {
+    // start when table hits nav bar, end when only one table row left
+    var startOne = 11;
+    var endOne = tableOneHeight - 91;
+
+    // start when table its nav bar, end when only one table row left
+    var startTwo = tableOne.clientHeight + 24;
+    var endTwo = startTwo + tableTwoHeight - 91;
+
+    stickyHeader(tableOneHeaders, tableOneData, startOne, endOne, headerWidthOne, dataWidthOne);
+    stickyHeader(tableTwoHeaders, tableTwoData, startTwo, endTwo, headerWidthTwo, dataWidthTwo);
+}
+
+/** computes the initial width of each column */
+function computeDimensions(headerWidth, dataWidth, headers, data, numColumns) {
+    for (var header of headers.getElementsByTagName("th")) {
+        headerWidth.push(window.getComputedStyle(header).getPropertyValue("width"));
+    }
+    
+    for (var i = 0; i < numColumns; i++) {
+        if (data[i]) {
+            dataWidth.push(window.getComputedStyle(data[i]).getPropertyValue("width"));
+        }
+    }
+}
+
+/** keeps the header on the screen while scrolling through the table */
+function stickyHeader(headers, data, tableStart, tableEnd, headerWidth, dataWidth) {
+    if (window.pageYOffset >= tableStart && window.pageYOffset <= tableEnd) {
+        // in the table, stick the table header
+        headers.classList.add("sticky-top");
+        headers.style.top = 60;
+
+        var header = headers.getElementsByTagName("th");
+        var subHeaders = 0;
+
+        // set the width of each column
+        for (var i = 0; i < header.length; i++) {
+            if (header[i].colSpan > 1) {
+                subHeaders++;
+            } else {
+                data[i-subHeaders].style.minWidth = dataWidth[i-subHeaders];
+            }
+            header[i].style.minWidth = headerWidth[i];
+            header[i].style.maxWidth = headerWidth[i];
+        }
+
+        return;
+    }
+    // not in table anymore, stop sticking the top
+    headers.classList.remove("sticky-top");
+}
 
 
 /* Refresh status table and system services display*/
@@ -72,7 +168,7 @@ function set_refresh(time) {
         .catch((error) => {
             console.warn(error);
             TimerVal = refresh_interval;
-            set_refresh(refresh_interval*1000);
+            //set_refresh(refresh_interval*1000);
         });
     },time);
     document.getElementById('vms-iframe').src='';

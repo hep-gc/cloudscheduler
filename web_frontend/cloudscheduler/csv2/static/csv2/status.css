@@ -298,6 +298,12 @@ meter.disabled-meter::-webkit-meter-optimum-value {
   border-top: 0px;
 }
 
+.header-row.sticky-top {
+  position: fixed;
+  top: 60px;
+  z-index: 2;
+}
+
 .bottom-row td {
   border-top: 2px solid #ddd;
   border-bottom: 0px;
