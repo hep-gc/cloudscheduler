@@ -1218,8 +1218,9 @@ def worker_gsi_poller():
                 except Exception as ex:
                     logging.info("Unable to find condor_worker_key from local configuration")
                     logging.info(ex)
-            if worker_cert:
+            if worker_cert or config.condor_poller["token_auth"]:
                 try:
+                    if worker_cert and config.condor_poller["token_auth"]:
                     new_cwg = {
                         "htcondor_fqdn": condor,
                         "htcondor_host_id": config.local_host_id,
@@ -1227,9 +1228,23 @@ def worker_gsi_poller():
                         "worker_eol":  worker_cert['eol'],
                         "worker_cert": worker_cert['cert'],
                         "worker_key": worker_cert['key']
+                        "auth_token": config.condor_poller["token_auth"]
                     }
+                    else if worker_cert and not config.condor_poller["token_auth"]:
+                        new_cwg = {
+                            "htcondor_fqdn": condor, 
+                            "htcondor_host_id": config.local_host_id,
+                            "worker_dn": worker_cert['subject'],
+                            "worker_eol":  worker_cert['eol'],
+                            "worker_cert": worker_cert['cert'],
+                            "worker_key": worker_cert['key']
+                        }
+                    else if not worker_cert and config.condor_poller["token_auth"]:
+                        "htcondor_fqdn": condor, 
+                        "htcondor_host_id": config.local_host_id,
+                        "auth_token": config.condor_poller["token_auth"]
+
                     rc, msg = config.db_merge('condor_worker_gsi', new_cwg)
-                    #rc, msg = config.db_execute('insert into condor_worker_gsi (htcondor_fqdn, htcondor_host_id, worker_dn, worker_eol, worker_cert, worker_key) values("%s",%d "%s", %d, "%s", "%s");' % (condor, config.local_host_id, if_null(worker_cert['subject']), worker_cert['eol'], if_null(worker_cert['cert']), if_null(worker_cert['key'])))
                     if rc == 1:
                         #insert failed, raise exception
                         raise(msg)
