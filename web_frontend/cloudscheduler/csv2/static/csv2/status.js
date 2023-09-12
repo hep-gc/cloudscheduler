@@ -168,7 +168,7 @@ function set_refresh(time) {
         .catch((error) => {
             console.warn(error);
             TimerVal = refresh_interval;
-            //set_refresh(refresh_interval*1000);
+            set_refresh(refresh_interval*1000);
         });
     },time);
     document.getElementById('vms-iframe').src='';
