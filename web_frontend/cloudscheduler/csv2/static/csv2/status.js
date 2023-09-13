@@ -37,6 +37,7 @@ window.onclick = function(event) {
 }
 
 var statusTables = document.getElementsByClassName("status-table");
+var navbar = document.getElementsByClassName("top-nav")[0];
 
 // table one
 var tableOneHeaders = document.getElementsByClassName("header-row")[0];
@@ -83,11 +84,10 @@ window.onscroll = function () {
 function computeStartEnd() {
     // start when table hits nav bar, end when only one table row left
     var startOne = 11;
-    var endOne = tableOneHeight - 91;
+    var endOne = tableOneHeight - navbar.clientHeight - 31;
 
-    // start when table its nav bar, end when only one table row left
     var startTwo = tableOne.clientHeight + 24;
-    var endTwo = startTwo + tableTwoHeight - 91;
+    var endTwo = startTwo + tableTwoHeight - navbar.clientHeight - 31;
 
     stickyHeader(tableOneHeaders, tableOneData, startOne, endOne, headerWidthOne, dataWidthOne);
     stickyHeader(tableTwoHeaders, tableTwoData, startTwo, endTwo, headerWidthTwo, dataWidthTwo);
@@ -111,7 +111,7 @@ function stickyHeader(headers, data, tableStart, tableEnd, headerWidth, dataWidt
     if (window.pageYOffset >= tableStart && window.pageYOffset <= tableEnd) {
         // in the table, stick the table header
         headers.classList.add("sticky-top");
-        headers.style.top = 60;
+        headers.style.top = navbar.clientHeight;
 
         var header = headers.getElementsByTagName("th");
         var subHeaders = 0;
