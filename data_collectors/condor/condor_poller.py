@@ -1221,16 +1221,16 @@ def worker_gsi_poller():
             if worker_cert or config.condor_poller["token_auth"]:
                 try:
                     if worker_cert and config.condor_poller["token_auth"]:
-                    new_cwg = {
-                        "htcondor_fqdn": condor,
-                        "htcondor_host_id": config.local_host_id,
-                        "worker_dn": worker_cert['subject'],
-                        "worker_eol":  worker_cert['eol'],
-                        "worker_cert": worker_cert['cert'],
-                        "worker_key": worker_cert['key']
-                        "auth_token": config.condor_poller["token_auth"]
-                    }
-                    else if worker_cert and not config.condor_poller["token_auth"]:
+                        new_cwg = {
+                            "htcondor_fqdn": condor,
+                            "htcondor_host_id": config.local_host_id,
+                            "worker_dn": worker_cert['subject'],
+                            "worker_eol":  worker_cert['eol'],
+                            "worker_cert": worker_cert['cert'],
+                            "worker_key": worker_cert['key'],
+                            "auth_token": zip_base64(config.condor_poller["token_path"])
+                        }
+                    elif worker_cert and not config.condor_poller["token_auth"]:
                         new_cwg = {
                             "htcondor_fqdn": condor, 
                             "htcondor_host_id": config.local_host_id,
@@ -1239,10 +1239,12 @@ def worker_gsi_poller():
                             "worker_cert": worker_cert['cert'],
                             "worker_key": worker_cert['key']
                         }
-                    else if not worker_cert and config.condor_poller["token_auth"]:
-                        "htcondor_fqdn": condor, 
-                        "htcondor_host_id": config.local_host_id,
-                        "auth_token": config.condor_poller["token_auth"]
+                    elif not worker_cert and config.condor_poller["token_auth"]:
+                        new_cwg = {
+                            "htcondor_fqdn": condor, 
+                            "htcondor_host_id": config.local_host_id,
+                            "auth_token": zip_base64(config.condor_poller["token_path"])
+                        }
 
                     rc, msg = config.db_merge('condor_worker_gsi', new_cwg)
                     if rc == 1:
@@ -1360,6 +1362,106 @@ def condor_gsi_poller():
         logging.error(exc)
         config.db_close()
 
+def alias_auditor():
+    multiprocessing.current_process().name = "VM Alias Auditor"
+
+    config = Config(sys.argv[1], ["condor_poller.py", 'ProcessMonitor'], pool_size=6, signals=True)
+    PID_FILE = config.categories["ProcessMonitor"]["pid_path"] + os.path.basename(sys.argv[0])
+
+    cycle_start_time = 0
+    new_poll_time = 0
+    poll_time_history = [0,0,0,0]
+    last_heartbeat_time = 0
+    #can probably be largely reduced in this poller since we only need enough info to check the alias and match it to the relevent VM
+    resource_attributes = ["Name", "Machine", "JobId", "GlobalJobId", "MyAddress", "State", \
+                           "Activity", "VMType", "MyCurrentTime", "EnteredCurrentState", "Cpus", \
+                           "Start", "RemoteOwner", "SlotType", "TotalSlots", "group_name", \
+                           "cloud_name", "cs_host_id", "condor_host", "flavor", "TotalDisk", "target_alias"]
+
+
+    VMS = "csv2_vms"
+    CLOUDS = "csv2_clouds"
+    GROUPS = "csv2_groups"
+
+
+    try:
+        while True:
+            config.db_open()
+            last_heartbeat_time = log_heartbeat_message(last_heartbeat_time, "VM Alias Auditor")
+            new_poll_time, cycle_start_time = start_cycle(new_poll_time, cycle_start_time)
+            watchdog_send_heartbeat(config, os.getpid(), config.local_host_id)
+
+            config.refresh()
+            if not os.path.exists(PID_FILE):
+                logging.debug("Stop set, exiting...")
+                config.db_close()
+                break
+            signal.signal(signal.SIGINT, signal.SIG_IGN)
+
+            # get VM list from database maybe just hostname and alias
+            # get condor classads
+            # check alias vs database entry
+            config.db_open()
+            #may want to restrict this query to have less fields for efficiency (should only need host and alias)
+            rc, msg, rows = config.db_query(VMS)
+
+            # it would be good to parse the vm results out into a hashed data structure (dictionary) for quick access doing the checks
+            vm_dict = {}
+            for vm in rows:
+                vm_dict[vm["hostname"]] = vm["target_alias"]
+                vm_dict[vm["hostname"] + "id"] = vm["vmid"]
+
+            where_clause = "htcondor_host_id='%s'" % config.local_host_id
+            rc, msg, groups = config.db_query(GROUPS, where=where_clause)
+            condor_hosts_set = set() # use a set here so we dont re-query same host if multiple groups have same host
+            for group in groups: 
+                if group.get("htcondor_container_hostname") is not None and group["htcondor_container_hostname"] != "":
+                    condor_hosts_set.add(group["htcondor_container_hostname"])
+                else:
+                    condor_hosts_set.add(group["htcondor_fqdn"])
+            for condor_host in condor_hosts_set:
+                condor_session = htcondor.Collector(condor_host)
+                # Retrieve machines.
+                try:
+                    condor_resources = condor_session.query(ad_type=htcondor.AdTypes.Startd, projection=resource_attributes)
+                except exception as exc:
+                    logging.error("unable to retrieve condor classads:")
+                    logging.error(exc)
+                for classad in condor_resources:
+                    condor_alias = classad["target_alias"]
+                    if condor_alias == "None":
+                        condor_alias = None
+                    try:
+                        csv2_alias = vm_dict[classad["Machine"]]
+                    except:
+                        # if we get here a VM is missing from the database but still exists in condor
+                        # we will skip any action here because we need to wait for the openstack poller to put the VM info back in
+                        logging.warning("VM detected in condor missing from csv2: %s   skipping alias update until machine exists in csv2..." % classad["Machine"])
+                        continue
+                    if condor_alias != csv2_alias:
+                        logging.info("alias mismatch detected: %s : %s" % (classad["target_alias"], vm_dict[classad["Machine"]]))
+                        split_host = classad["Machine"].split("--")
+                        vm_rw = {
+                            'group_name': split_host[0],
+                            'cloud_name': split_host[1],
+                            'target_alias': condor_alias,
+                            'vmid': vm_dict[classad["Machine"] + "id"]
+                        }
+                        config.db_merge(VMS, vm_rw)
+                        config.db_commit()
+
+                    else:
+                        logging.debug("no alias mismatch")
+
+            time.sleep(300)
+ 
+
+    except Exception as exc:
+        logging.exception("VM Alias Auditor while loop exception, process terminating...")
+        logging.error(exc)
+        config.db_close()
+
+
 if __name__ == '__main__':
 
     process_ids = {
@@ -1368,6 +1470,7 @@ if __name__ == '__main__':
         'machine':          machine_poller,
         'condor_gsi':       condor_gsi_poller,
         'worker_gsi':       worker_gsi_poller,
+        'alias_auditor':    alias_auditor,
     }
 
     db_category_list = ["condor_poller.py", "ProcessMonitor", "general", "signal_manager"]
