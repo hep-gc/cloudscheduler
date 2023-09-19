@@ -45,6 +45,7 @@ var tableOne = statusTables[0].getElementsByTagName("table")[0];
 var tableOneData = tableOne.getElementsByTagName("td");
 
 // table one initial dimensions
+var offsetOne = document.getElementsByClassName("main-div super-main-div")[0].offsetTop;
 var tableOneHeight = tableOne.clientHeight;
 var headerWidthOne = [];
 var dataWidthOne = [];
@@ -56,6 +57,7 @@ var tableTwo = statusTables[1].getElementsByTagName("table")[0];
 var tableTwoData = tableTwo.getElementsByTagName("td");
 
 // table two initial dimensions
+var offsetTwo = tableTwo.parentElement.offsetTop;
 var tableTwoHeight = tableTwo.clientHeight;
 var headerWidthTwo = [];
 var dataWidthTwo = [];
@@ -71,6 +73,9 @@ window.onresize = function () {
     tableOneHeight = tableOne.clientHeight;
     tableTwoHeight = tableTwo.clientHeight;
 
+    offsetOne = document.getElementsByClassName("main-div super-main-div")[0].offsetTop;
+    offsetTwo = tableTwo.parentElement.offsetTop;
+
     // reset the dimensions and compute the current header location
     computeDimensions(headerWidthOne = [], dataWidthOne = [], tableOneHeaders, tableOneData, 15);
     computeDimensions(headerWidthTwo = [], dataWidthTwo = [], tableTwoHeaders, tableTwoData, 29);
@@ -82,13 +87,13 @@ window.onscroll = function () {
 }
 
 function computeStartEnd() {
-    // start when table hits nav bar, end when only one table row left
-    var startOne = 11;
-    var endOne = tableOneHeight - navbar.clientHeight - 31;
+    // start when table hits nav bar, end when it hits the bottom
+    var startOne = offsetOne - navbar.clientHeight;
+    var endOne = tableOneHeight + startOne - navbar.clientHeight;
 
-    var startTwo = tableOne.clientHeight + 24;
-    var endTwo = startTwo + tableTwoHeight - navbar.clientHeight - 31;
-
+    var startTwo = offsetTwo + startOne;
+    var endTwo = offsetTwo + tableTwoHeight;
+    
     stickyHeader(tableOneHeaders, tableOneData, startOne, endOne, headerWidthOne, dataWidthOne);
     stickyHeader(tableTwoHeaders, tableTwoData, startTwo, endTwo, headerWidthTwo, dataWidthTwo);
 }
