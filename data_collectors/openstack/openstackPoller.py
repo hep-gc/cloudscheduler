@@ -504,7 +504,7 @@ def image_poller():
                         }
                         config.db_update(CLOUD, cld_update_dict)
                         config.db_commit()
-                        logging.error("Communication down for %s:%s" % (grp_nm, cld_nm))
+                        logging.error("Communication down for %s:%s" % (cloud["group_name"], cloud["cloud_name"]))
 
                 # since the new inventory function doesn't accept a failfure dict we need to screen the rows ourself
                 logging.debug("Proccessing failure, failure_dict: %s" % failure_dict)
