@@ -97,7 +97,7 @@
                 <input type="datetime-local" id="start-date" class="filter-input" onchange="validate()" required>
                 <a>End Date:</a>
                 <input type="datetime-local" id="end-date" class="filter-input" onchange="validate()" required>
-                <span id="date-error" class="date-error date-error--break-all"></span>
+                <span id="date-error" class="date-error"></span>
                 <button type="submit" id="apply-filter" class="filter">Apply</button></a>
             </form>
         </div>
@@ -981,6 +981,7 @@
         /*Add event listeners once page loads*/
         initialize();
         addEventListeners("range");
+        addEventListeners("filter");
         // Remove old traces
         sessionStorage.removeItem("traces");
         /*

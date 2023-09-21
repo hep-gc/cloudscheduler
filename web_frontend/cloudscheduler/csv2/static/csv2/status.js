@@ -445,7 +445,7 @@ function validate() {
     from = start.value ? Date.parse(start.value) : null;
     to = end.value ? Date.parse(end.value) : null;
 
-    checkDates(to, from)
+    checkDates(to, from);
 }
 
 /* error messages for filtered dates */
@@ -457,7 +457,7 @@ function checkDates(to, from) {
     else if (to && to > date + 60000)
         dateError.textContent = "End date must be less than or equal to current date";
     else if (to && from && from > to)
-        dateError.textContent = "Start date must be less than or equal to end date"
+        dateError.textContent = "Start date must be less than or equal to end date";
     else
         dateError.textContent = null;
     
