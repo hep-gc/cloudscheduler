@@ -271,7 +271,15 @@ function addEventListeners(className) {
                 }
                 if(!list) this.classList.toggle("plotted");
                 togglePlot(this);
-            }else selectRange(this);
+            } 
+            else if (className == 'filter') {
+                document.getElementById("filter-form").addEventListener('submit', function (event) {
+                    // prevent the page from refreshing on form submission
+                    event.preventDefault();
+                });
+                selectRangeFilter();
+            }
+            else selectRange(this);
         });
     }
 }
@@ -283,10 +291,48 @@ function dropDown(){
         document.getElementById("range-select").classList.add("selected");
     else document.getElementById("range-select").classList.remove("selected");
     document.getElementById("myDropdown").classList.toggle("show");
+    
+    // close custom filter dropdown if open
+    if (document.getElementById("myFilterDropdown").classList.contains("show")) {
+        document.getElementById("myFilterDropdown").classList.toggle("show");
+        document.getElementById("filter-select").classList.remove("selected");
+    }
 }
 
+/* custom date filter dropdown */
+function dropDownFilter() {
+    if (!document.getElementById("myFilterDropdown").classList.contains("show"))
+        document.getElementById("filter-select").classList.add("selected");
+    else
+        document.getElementById("filter-select").classList.remove("selected");
+    document.getElementById("myFilterDropdown").classList.toggle("show");
+}
 
-/* Change time range for plot based on user selection*/
+/* preprocess selected dates from custom filter */
+function selectRangeFilter() {
+    const start = document.getElementById("start-date");
+    const end = document.getElementById("end-date");
+
+    // missing a date value
+    if (!start.value || !end.value)
+        return;
+
+
+    var to = Date.parse(end.value);
+    var from = Date.parse(start.value);
+
+    // error with date input
+    if (checkDates(to, from))
+        return;
+    
+    // close the dropdown
+    document.getElementById("filter-select").classList.remove("selected");
+    document.getElementById("myFilterDropdown").classList.toggle("show");
+
+    createPlot(to, from);
+}
+
+/* preprocess selected time range  */
 function selectRange(range){
     const curr_range = document.getElementsByClassName("range-btn");
     curr_range[0].innerHTML = range.innerHTML+'<span class="space"></span><span class="caret"></span>';
@@ -305,6 +351,11 @@ function selectRange(range){
     to = to.getTime();
     from.setTime(date-(range.dataset.from*multiple));
     from = from.getTime();
+    createPlot(to, from)    
+}
+
+/* Change time range for plot based on user selection*/
+function createPlot(to, from) {
     /* Update traces with data from new range*/
     if((date-from) > 3600000 && !(TSPlot.traces[0].x[0] < from)){
         var traces = TSPlot.traces;
@@ -386,6 +437,32 @@ function selectRange(range){
     }
 }
 
+/* preprocess dates for error handling */
+function validate() {
+    const start = document.getElementById("start-date");
+    const end = document.getElementById("end-date");
+
+    from = start.value ? Date.parse(start.value) : null;
+    to = end.value ? Date.parse(end.value) : null;
+
+    checkDates(to, from)
+}
+
+/* error messages for filtered dates */
+function checkDates(to, from) {
+    const dateError = document.getElementById("date-error");
+    
+    if (from && from > date + 60000)
+        dateError.textContent = "Start date must be less than or equal to current date";
+    else if (to && to > date + 60000)
+        dateError.textContent = "End date must be less than or equal to current date";
+    else if (to && from && from > to)
+        dateError.textContent = "Start date must be less than or equal to end date"
+    else
+        dateError.textContent = null;
+    
+    return dateError.textContent;
+}
 
 /* Toggle plotted traces and initialize/show plot if not yet created*/
 function togglePlot(trace){
