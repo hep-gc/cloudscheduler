@@ -27,6 +27,12 @@ def manage_keys(request, group_name=None, message=None):
     if group_name is None:
         group_name = user_obj.active_group
 
+    group = None
+    if "group" in request.session:
+        group = request.session["group"]
+        del request.session["group"]
+    group_name = group if group else group_name
+    
     Group_Resources = "csv2_clouds"
     Keypairs = "cloud_keypairs"
 
@@ -126,6 +132,7 @@ def upload_keypair(request, group_name=None):
                 logger.error("openstack and the database may be out of sync until next keypair poll cycle")
 
         db_config.db_close()
+        request.session["group"] = request.POST["group"]
         return redirect("manage_keys")
     else:
         #not a post do nothing
@@ -196,6 +203,7 @@ def new_keypair(request, group_name=None,):
                 db_config.db_close()
                 return manage_keys(request=request, group_name=grp, message=message)
         db_config.db_close()
+        request.session["group"] = request.POST["group"]
         return redirect("manage_keys")
  
     else:
@@ -320,6 +328,7 @@ def save_keypairs(request, group_name=None, message=None):
             logger.error("Error setting up database objects or during general execution of save_keypairs")
 
         db_config.db_close()
+        request.session["group"] = request.POST["group"]
         return redirect("/keypairs/?%s" % group_name)
 
 

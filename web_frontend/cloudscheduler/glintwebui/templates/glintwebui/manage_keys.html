@@ -72,6 +72,7 @@ SECTION > DIV + DIV {
         <h2>Upload Key</h2>
         <form name="upload_key" action="/keypairs/add_key/" method="post">
             {% csrf_token %}
+            <input type="hidden" name="group" value="{{ active_group }}" />
             <table style="border-bottom:0">
                 <tr><td><label for="key_name">Key Name</label></td>
                 <td><input type="text" name="key_name" id="" value="" style="width:100%"/></td></tr>
@@ -108,6 +109,7 @@ SECTION > DIV + DIV {
         <h2>Create Key</h2>
         <form name="new_key" action="/keypairs/new_key/" method="post">
             {% csrf_token %}
+            <input type="hidden" name="group" value="{{ active_group }}" />
             <table style="border-bottom:0">
                 <tr><td><label for="key_name">Key Name</label></td>
                 <td><input type="text" name="key_name" id="" value="" style="width:100%"/></td></tr>
@@ -145,6 +147,7 @@ SECTION > DIV + DIV {
 <div class="image_matrix" style="float:left;padding-left:50px">
     <form id="keypair_form" name="keypair_form" action="/keypairs/save_keypairs/{{active_group}}/" method="post">
     {% csrf_token %}
+    <input type="hidden" name="group" value="{{ active_group }}" />
     <table>
         <tr>
             <th>Keys\Clouds</th>

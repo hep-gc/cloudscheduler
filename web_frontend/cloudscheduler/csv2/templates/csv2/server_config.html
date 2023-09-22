@@ -46,7 +46,7 @@
                 <form name="config" action="/server/config/" method="post">
                     {% csrf_token %}
                     <input type="hidden" name="category" value="{{category}}" />
-
+                    <input type="hidden" name="group" value="{{ active_group }}" />
                     <table>
 
                         {% for config in config_list %}
