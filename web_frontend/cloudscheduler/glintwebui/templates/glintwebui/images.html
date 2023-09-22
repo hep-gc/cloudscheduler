@@ -79,6 +79,7 @@
 
 <div class="image_matrix" style="clear:left; float:left">
     {% csrf_token %}
+    <input type="hidden" name="group" value="{{ active_group }}" />
     <table id="image_matrix">
         <!-- First make headers -->
         <tr class="header"> <th> IMAGES </th>

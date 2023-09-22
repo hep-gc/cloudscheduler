@@ -29,6 +29,7 @@
             <div class="menu-target menu-position">
                 <form name="{{user.username}}" action="/user/settings/" method="post">
                     {% csrf_token %}
+                    <input type="hidden" name="group" value="{{ active_group }}" />
                     <table>
 
                         <tr class="highlight1"><td><label for="password1">New Password</label></td>
