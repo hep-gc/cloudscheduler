@@ -594,7 +594,9 @@ def job_poller():
                 # Process job data & insert/update jobs in Database
                 abort_cycle = False
                 job_errors = {}
+                logging.debug(job_list)
                 for job_ad in job_list:
+                    logging.debug(job_ad)
                     job_dict = dict(job_ad)
                     if "Requirements" in job_dict:
                         ca1=classad.ClassAd(job_dict)
@@ -1204,7 +1206,8 @@ def worker_gsi_poller():
             worker_cert = {}
 
 
-            if 'GSI_DAEMON_CERT' in htcondor.param or config.condor_poller["token_auth"]:
+            #if 'GSI_DAEMON_CERT' in htcondor.param or config.condor_poller["token_auth"]:
+            if config.condor_poller['condor_worker_cert'] is not None and config.condor_poller['condor_worker_cert'] != "":
                 try:
                     worker_cert['subject'], worker_cert['eol'] = get_gsi_cert_subject_and_eol(config.condor_poller['condor_worker_cert'])
                     worker_cert['cert'] = zip_base64(config.condor_poller['condor_worker_cert'])
@@ -1218,6 +1221,7 @@ def worker_gsi_poller():
                 except Exception as ex:
                     logging.info("Unable to find condor_worker_key from local configuration")
                     logging.info(ex)
+            new_cwg = {}
             if worker_cert or config.condor_poller["token_auth"]:
                 try:
                     if worker_cert and config.condor_poller["token_auth"]:
@@ -1243,16 +1247,30 @@ def worker_gsi_poller():
                         new_cwg = {
                             "htcondor_fqdn": condor, 
                             "htcondor_host_id": config.local_host_id,
-                            "auth_token": zip_base64(config.condor_poller["token_path"])
+                            "auth_token": zip_base64(config.condor_poller["token_path"]),
+                            "worker_dn": "",
+                            "worker_eol": 0,
+                            "worker_cert": "",
+                            "worker_key": ""
                         }
-
-                    rc, msg = config.db_merge('condor_worker_gsi', new_cwg)
-                    if rc == 1:
-                        #insert failed, raise exception
-                        raise(msg)
+                    #check to see if db row exists
+                    where_clause = "htcondor_fqdn='%s'" % condor
+                    rc, msg, cwg_rows = config.db_query('condor_worker_gsi', where=where_clause)
+                    if len(cwg_rows) > 0:
+                        #row exists in db, do an update
+                        rc, msg = config.db_update('condor_worker_gsi', new_cwg)
+                        if rc == 1:
+                            logging.error(msg)
+                            raise(Exception(msg))
+                    else:
+                        #row does not exist in db, do an insert
+                        rc, msg = config.db_insert('condor_worker_gsi', new_cwg)
+                        if rc == 1:
+                            logging.error(msg)
+                            raise(Exception(msg))
                     config.db_commit()
 
-                    if worker_cert['subject']:
+                    if 'subject' in worker_cert:
                         logging.info('Condor host: "%s", condor_worker_gsi inserted.' % condor)
                     else:
                         logging.info('Condor host: "%s", condor_worker_gsi (not configured) inserted.' % condor)

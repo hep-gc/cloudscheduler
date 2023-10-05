@@ -392,7 +392,7 @@ schema = {
             "worker_eol": {"type": "int"},
             "worker_cert": {"type": "str", "nulls": "YES"},
             "worker_key": {"type": "str", "nulls": "YES"},
-            "auth_token": {"type": "str", "len": "128", "nulls": "YES"}
+            "auth_token": {"type": "str", "nulls": "YES"}
             }
         },
     "csv2_attribute_mapping": {
@@ -1018,7 +1018,8 @@ schema = {
             "flavor_manual": {"type": "int"},
             "updater": {"type": "str", "nulls": "YES"},
             "worker_cert": {"type": "str", "nulls": "NO"},
-            "worker_key": {"type": "str", "nulls": "NO"}
+            "worker_key": {"type": "str", "nulls": "NO"},
+            "auth_token": {"type": "str", "nulls": "NO"}
             }
         },
     "view_cloud_aliases": {

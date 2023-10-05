@@ -75,7 +75,8 @@ ifnull(fru.flavor_error,0) as flavor_error,
 ifnull(fru.flavor_manual,0) as flavor_manual,
 fru.updater,
 ifnull(fwd.worker_cert,"None") as worker_cert,
-ifnull(fwd.worker_key, "None") as worker_key
+ifnull(fwd.worker_key, "None") as worker_key,
+ifnull(fwd.auth_token, "None") as auth_token
 
 from (
     /* fwd - flavors with defaults */
@@ -207,7 +208,8 @@ from (
 
             vfr.ram as ram_foreign,
             cw.worker_cert,
-            cw.worker_key
+            cw.worker_key,
+            cw.auth_token
 
         from csv2_clouds as cc
         left outer join csv2_groups as cg on

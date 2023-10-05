@@ -788,6 +788,19 @@ def main():
                                 else:
                                     cloud_worker_key = None
 
+                                if boot_flavor.get("auth_token") is not None:
+                                    if boot_flavor.get("auth_token")[-1] == '\n':
+                                        condor_token = boot_flavor.get("auth_token")[:-1].replace('\n', '\n        ')
+                                    else:
+                                        try:
+                                            condor_token = boot_flavor.get("auth_token").decode().replace('\n', '\n        ')
+                                        except AttributeError:
+                                            condor_token = boot_flavor.get("auth_token").replace('\n', '\n        ')
+                                else:
+                                    condor_token = None
+
+                                logging.debug(boot_flavor)
+
                                 template_dict = {'cs_user': usertmp,
                                                  'cs_host': cs_host,
                                                  'cs_host_id': config.csv2_host_id,
@@ -801,7 +814,8 @@ def main():
                                                  'cs_condorworker_cert_days_to_end_of_life': config.categories['GSI']['cert_days_left_good'],
                                                  'cs_condorworker_optional_gsi_messages': config.categories['csmain']['condorworker_optional_gsi_msgs'],
                                                  'cs_condorworker_cert': cloud_worker_cert,
-                                                 'cs_condorworker_key': cloud_worker_key}
+                                                 'cs_condorworker_key': cloud_worker_key,
+                                                 'cs_condor_token': condor_token}
                                 ######## log.debug(template_dict)
 
                                 # Let's try to boot
