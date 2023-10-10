@@ -815,7 +815,15 @@ def map_csv2_configuration(gvar, fqdn):
               
               words = line.split()
               if len(words) > 2 and words[0] == 'INSERT' and words[1] == 'INTO':
-                ix = line.index('VALUES (') + 8
+                try:
+                    ix = line.index('VALUES (') + 8
+                except:
+                    line = line.replace("\n", " ")
+                    ix = line.index('VALUES') + 8
+                    while len(nextLine := fd.readline()) > 0 and nextLine[-2] != ';':
+                        line += nextLine
+                    line = line.replace("\n", "") + nextLine
+                    
                 rows = line[ix:-3].split('),(')
                 for row in rows:
                     cols = row[1:-1].split("','")
