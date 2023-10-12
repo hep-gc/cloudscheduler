@@ -1959,7 +1959,7 @@ def update(request):
 
     # open the database.
     config.db_open()
-
+    group = request.POST["group"] if "group" in request.POST else None
     # Retrieve the active user, associated group list and optionally set the active group.
     rc, msg, active_user = set_user_groups(config, request, super_user=False)
     if rc != 0:
@@ -1996,7 +1996,7 @@ def update(request):
             config.db_close()
             message = '%s cloud update %s' % (lno(MODID), msg)
             messages.error(request, message)
-            request.session["response"] = {"message": message, "response_code": 1, "group": request.POST["group"]}
+            request.session["response"] = {"message": message, "response_code": 1, "group": group}
             return redirect("/cloud/list/")
             #return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud update %s' % (lno(MODID), msg))
 
@@ -2006,7 +2006,7 @@ def update(request):
                 config.db_close()
                 message = '%s cloud update, "%s" failed - %s.' % (lno(MODID), fields['cloud_name'], msg)
                 messages.error(request, message)
-                request.session["response"] = {"message": message, "response_code": 1, "group": request.POST["group"]}
+                request.session["response"] = {"message": message, "response_code": 1, "group": group}
                 return redirect("/cloud/list/")
                 #return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud update, "%s" failed - %s.' % (lno(MODID), fields['cloud_name'], msg))
 
@@ -2016,7 +2016,7 @@ def update(request):
                 config.db_close()
                 message = '%s cloud update, "%s" failed - %s.' % (lno(MODID), fields['cloud_name'], msg)
                 messages.error(request, message)
-                request.session["response"] = {"message": message, "response_code": 1, "group": request.POST["group"]}
+                request.session["response"] = {"message": message, "response_code": 1, "group": group}
                 return redirect("/cloud/list/")
                 #return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud update, "%s" failed - %s.' % (lno(MODID), fields['cloud_name'], msg))
         
@@ -2026,7 +2026,7 @@ def update(request):
                 config.db_close()
                 message = '%s cloud update, "%s" failed - %s.' % (lno(MODID), fields['cloud_name'], msg)
                 messages.error(request, message)
-                request.session["response"] = {"message": message, "response_code": 1, "group": request.POST["group"]}
+                request.session["response"] = {"message": message, "response_code": 1, "group": group}
                 return redirect("/cloud/list/")
                 #return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud update, "%s" failed - %s.' % (lno(MODID), fields['cloud_name'], msg))
 
@@ -2036,7 +2036,7 @@ def update(request):
                 config.db_close()
                 message = '%s cloud update, "%s" failed - %s.' % (lno(MODID), fields['cloud_name'], msg)
                 messages.error(request, message)
-                request.session["response"] = {"message": message, "response_code": 1, "group": request.POST["group"]}
+                request.session["response"] = {"message": message, "response_code": 1, "group": group}
                 return redirect("/cloud/list/")
                 #return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud update, "%s" failed - %s.' % (lno(MODID), fields['cloud_name'], msg))
 
@@ -2046,7 +2046,7 @@ def update(request):
                 config.db_close()
                 message = '%s cloud update, "%s" failed - %s.' % (lno(MODID), fields['cloud_name'], msg)
                 messages.error(request, message)
-                request.session["response"] = {"message": message, "response_code": 1, "group": request.POST["group"]}
+                request.session["response"] = {"message": message, "response_code": 1, "group": group}
                 return redirect("/cloud/list/")
                 #return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud update, "%s" failed - %s.' % (lno(MODID), fields['cloud_name'], msg))
         
@@ -2055,7 +2055,7 @@ def update(request):
                 config.db_close()
                 message = '%s cloud update, "%s" failed - %s.' % (lno(MODID), fields['cloud_name'], 'Cannot have ignore group default other security groups')
                 messages.error(request, message)
-                request.session["response"] = {"message": message, "response_code": 1, "group": request.POST["group"]}
+                request.session["response"] = {"message": message, "response_code": 1, "group": group}
                 return redirect("/cloud/list/")
                 #return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud update, "%s" failed - %s.' % (lno(MODID), fields['cloud_name'], 'Cannot have ignore group default other security groups'))
             rc, msg = validate_by_filtered_table_entries(config, fields['vm_security_groups'], 'vm_security_groups', 'cloud_security_groups', 'name', [['group_name', fields['group_name']], ['cloud_name', fields['cloud_name']]], allow_value_list=True)
@@ -2063,7 +2063,7 @@ def update(request):
                 config.db_close()
                 message = '%s cloud update, "%s" failed - %s.' % (lno(MODID), fields['cloud_name'], msg)
                 messages.error(request, message)
-                request.session["response"] = {"message": message, "response_code": 1, "group": request.POST["group"]}
+                request.session["response"] = {"message": message, "response_code": 1, "group": group}
                 return redirect("/cloud/list/")
                 #return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud update, "%s" failed - %s.' % (lno(MODID), fields['cloud_name'], msg))
 
@@ -2079,7 +2079,7 @@ def update(request):
                     config.db_close()
                     message = '%s cloud update, "%s" failed - %s.' % (lno(MODID), fields['cloud_name'], msg)
                     messages.error(request, message)
-                    request.session["response"] = {"message": message, "response_code": 1, "group": request.POST["group"]}
+                    request.session["response"] = {"message": message, "response_code": 1, "group": group}
                     return redirect("/cloud/list/")
                     #return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud update, "%s" failed - %s.' % (lno(MODID), fields['cloud_name'], msg))
                 
@@ -2092,7 +2092,7 @@ def update(request):
                         config.db_close()
                         message = '%s cloud update, "%s" failed - %s.' % (lno(MODID), fields['cloud_name'], "Volume size must be a non-negative integer")
                         messages.error(request, message)
-                        request.session["response"] = {"message": message, "response_code": 1, "group": request.POST["group"]}
+                        request.session["response"] = {"message": message, "response_code": 1, "group": group}
                         return redirect("/cloud/list/")
                         #return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud update, "%s" failed - %s.' % (lno(MODID), fields['cloud_name'], "Volume size must be a non-negative integer"))
                     
@@ -2102,7 +2102,7 @@ def update(request):
                                 config.db_close()
                                 message = '%s cloud update, "%s" failed - %s.' % (lno(MODID), fields['cloud_name'], "Volume size must be a non-negative integer")
                                 messages.error(request, message)
-                                request.session["response"] = {"message": message, "response_code": 1, "group": request.POST["group"]}
+                                request.session["response"] = {"message": message, "response_code": 1, "group": group}
                                 return redirect("/cloud/list/")
                                 #return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud update, "%s" failed - %s.' % (lno(MODID), fields['cloud_name'], "Volume size must be a non-negative integer"))
                     vol_dict["GBs_per_core"] = int(fields['vm_boot_volume_per_core'])
@@ -2112,7 +2112,7 @@ def update(request):
                 config.db_close()
                 message = '%s cloud update, "%s" failed - %s.' % (lno(MODID), fields['cloud_name'], "At least one of base size or size per core must be specified")
                 messages.error(request, message)
-                request.session["response"] = {"message": message, "response_code": 1, "group": request.POST["group"]}
+                request.session["response"] = {"message": message, "response_code": 1, "group": group}
                 return redirect("/cloud/list/")
                 #return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud update, "%s" failed - %s.' % (lno(MODID), fields['cloud_name'], "At least one of base size or size per core must be specified"))
                 
@@ -2134,7 +2134,7 @@ def update(request):
                 config.db_close()
                 message = '%s cloud update, "%s" failed - %s.' % (lno(MODID), fields['cloud_name'], msg)
                 messages.error(request, message)
-                request.session["response"] = {"message": message, "response_code": 1, "group": request.POST["group"]}
+                request.session["response"] = {"message": message, "response_code": 1, "group": group}
                 return redirect("/cloud/list/")
                #return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud update, "%s" failed - %s.' % (lno(MODID), fields['cloud_name'], msg))
 
@@ -2158,21 +2158,21 @@ def update(request):
                             config.db_close()
                             message = '%s cloud update "%s::%s" failed - %s.' % (lno(MODID), fields['group_name'], fields['cloud_name'], 'Application Credential expires within a week')
                             messages.error(request, message)
-                            request.session["response"] = {"message": message, "response_code": 1, "group": request.POST["group"]}
+                            request.session["response"] = {"message": message, "response_code": 1, "group": group}
                             return redirect("/cloud/list/")
                             #return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud update "%s::%s" failed - %s.' % (lno(MODID), fields['group_name'], fields['cloud_name'], 'Application Credential expires within a week'))
                     else:
                         config.db_close()
                         message = '%s cloud update "%s::%s" failed - %s.' % (lno(MODID), fields['group_name'], fields['cloud_name'], msg)
                         messages.error(request, message)
-                        request.session["response"] = {"message": message, "response_code": 1, "group": request.POST["group"]}
+                        request.session["response"] = {"message": message, "response_code": 1, "group": group}
                         return redirect("/cloud/list/")
                         #return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud update "%s::%s" failed - %s.' % (lno(MODID), fields['group_name'], fields['cloud_name'], msg))
             else:
                 config.db_close()
                 message = '%s cloud update "%s::%s" failed - %s.' % (lno(MODID), fields['group_name'], fields['cloud_name'], msg)
                 messages.error(request, message)
-                request.session["response"] = {"message": message, "response_code": 1, "group": request.POST["group"]}
+                request.session["response"] = {"message": message, "response_code": 1, "group": group}
                 return redirect("/cloud/list/")
                 #return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud update "%s::%s" failed - %s.' % (lno(MODID), fields['group_name'], fields['cloud_name'], msg))
 
@@ -2188,7 +2188,7 @@ def update(request):
                 config.db_close()
                 message = '%s cloud update "%s::%s" failed - the request did not match any rows.' % (lno(MODID), fields['group_name'], fields['cloud_name'])
                 messages.error(request, message)
-                request.session["response"] = {"message": message, "response_code": 1, "group": request.POST["group"]}
+                request.session["response"] = {"message": message, "response_code": 1, "group": group}
 
                 return redirect("/cloud/list/")
                 #return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud update "%s::%s" failed - the request did not match any rows.' % (lno(MODID), fields['group_name'], fields['cloud_name']))
@@ -2208,7 +2208,7 @@ def update(request):
                 config.db_close()
                 message = '%s cloud update "%s::%s" failed - %s.' % (lno(MODID), fields['group_name'], fields['cloud_name'], msg)
                 messages.error(request, message)
-                request.session["response"] = {"message": message, "response_code": 1, "group": request.POST["group"]}
+                request.session["response"] = {"message": message, "response_code": 1, "group": group}
 
                 return redirect("/cloud/list/")
                 #return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud update "%s::%s" failed - %s.' % (lno(MODID), fields['group_name'], fields['cloud_name'], msg))
@@ -2251,7 +2251,7 @@ def update(request):
             config.db_close()
             message = '%s update cloud flavor exclusion for cloud "%s::%s::%s" failed - %s.' % (lno(MODID), fields['group_name'], fields['cloud_name'], fields['flavor_name'], msg)
             messages.error(request, message)
-            request.session["response"] = {"message": message, "response_code": 1, "group": request.POST["group"]}
+            request.session["response"] = {"message": message, "response_code": 1, "group": group}
             return redirect("/cloud/list/")
             #return cloud_list(request, active_user=active_user, response_code=1, message='%s update cloud flavor exclusion for cloud "%s::%s::%s" failed - %s.' % (lno(MODID), fields['group_name'], fields['cloud_name'], fields['flavor_name'], msg))
 
@@ -2275,7 +2275,7 @@ def update(request):
             config.db_close()
             message = '%s update group metadata exclusion for cloud "%s::%s::%s" failed - %s.' % (lno(MODID), request.method)
             messages.error(request, message)
-            request.session["response"] = {"message": message, "response_code": 1, "group": request.POST["group"]}
+            request.session["response"] = {"message": message, "response_code": 1, "group": group}
 
             return redirect("/cloud/list/")
             #return cloud_list(request, active_user=active_user, response_code=1, message='%s update group metadata exclusion for cloud "%s::%s::%s" failed - %s.' % (lno(MODID), request.method))
@@ -2290,7 +2290,7 @@ def update(request):
                     config.db_close()
                     message = '%s cloud update "%s::%s" failed - %s.' % (lno(MODID), fields['group_name'], fields['cloud_name'], msg)
                     messages.error(request, message)
-                    request.session["response"] = {"message": message, "response_code": 1, "group": request.POST["group"]}
+                    request.session["response"] = {"message": message, "response_code": 1, "group": group}
                     return redirect("/cloud/list/")
                     #return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud update "%s::%s" failed - %s.' % (lno(MODID), fields['group_name'], fields['cloud_name'], msg))
 
@@ -2317,13 +2317,13 @@ def update(request):
             message = '%s cloud update must specify at least one field to update.' % lno(MODID)
             messages.error(request, message)
             #return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud update must specify at least one field to update.' % lno(MODID))
-            request.session["response"] = {"message": message, "response_code": 1, "group": request.POST["group"]}
+            request.session["response"] = {"message": message, "response_code": 1, "group": group}
             return redirect("/cloud/list/")
 
         config.db_close()
         message = 'cloud "%s::%s" successfully updated.' % (fields['group_name'], fields['cloud_name'])
         messages.success(request, message)
-        request.session["response"] = {"message": message, "response_code": 0, "group": request.POST["group"]}
+        request.session["response"] = {"message": message, "response_code": 0, "group": group}
         return redirect("/cloud/list/")
         #return cloud_list(request, active_user=active_user, response_code=0, message='cloud "%s::%s" successfully updated.' % (fields['group_name'], fields['cloud_name']))
                     

@@ -172,14 +172,16 @@ def add(request):
     # open the database.
     config.db_open()
     config.refresh()
-
+    
+    group = request.POST["group"] if "group" in request.POST else None
+    
     # Retrieve the active user, associated group list and optionally set the active group.
     rc, msg, active_user = set_user_groups(config, request)
     if rc != 0:
         config.db_close()
         message = '%s %s' % (lno(MODID), msg)
         messages.error(request, message)
-        request.session["response"] = {"message": message, "response_code": 1, "group": request.POST["group"]}
+        request.session["response"] = {"message": message, "response_code": 1, "group": group}
         return redirect("/group/list/")
         #return group_list(request, active_user=active_user, response_code=1, message='%s %s' % (lno(MODID), msg))
 
@@ -191,7 +193,7 @@ def add(request):
             config.db_close()
             message = '%s group add %s' % (lno(MODID), msg)
             messages.error(request, message)
-            request.session["response"] = {"message": message, "response_code": 1, "group": request.POST["group"]}
+            request.session["response"] = {"message": message, "response_code": 1, "group": group}
             return redirect("/group/list/")
             #return group_list(request, active_user=active_user, response_code=1, message='%s group add %s' % (lno(MODID), msg))
 
@@ -201,7 +203,7 @@ def add(request):
                 config.db_close()
                 message = '%s group add, "%s" failed - %s.' % (lno(MODID), fields['group_name'], msg)
                 messages.error(request, message)
-                request.session["response"] = {"message": message, "response_code": 1, "group": request.POST["group"]}
+                request.session["response"] = {"message": message, "response_code": 1, "group": group}
                 return redirect("/group/list/")
                 #return group_list(request, active_user=active_user, response_code=1, message='%s group add, "%s" failed - %s.' % (lno(MODID), fields['group_name'], msg))
         if 'vm_image' in fields and fields['vm_image']:
@@ -210,7 +212,7 @@ def add(request):
                 config.db_close()
                 message = '%s group add, "%s" failed - %s.' % (lno(MODID), fields['group_name'], msg)
                 messages.error(request, message)
-                request.session["response"] = {"message": message, "response_code": 1, "group": request.POST["group"]}
+                request.session["response"] = {"message": message, "response_code": 1, "group": group}
                 return redirect("/group/list/")
                 #return group_list(request, active_user=active_user, response_code=1, message='%s group add, "%s" failed - %s.' % (lno(MODID), fields['group_name'], msg))
 
@@ -220,7 +222,7 @@ def add(request):
                 config.db_close()
                 message = '%s group add, "%s" failed - %s.' % (lno(MODID), fields['group_name'], msg)
                 messages.error(request, message)
-                request.session["response"] = {"message": message, "response_code": 1, "group": request.POST["group"]}
+                request.session["response"] = {"message": message, "response_code": 1, "group": group}
                 return redirect("/group/list/")
                 #return group_list(request, active_user=active_user, response_code=1, message='%s group add, "%s" failed - %s.' % (lno(MODID), fields['group_name'], msg))
 
@@ -230,7 +232,7 @@ def add(request):
                 config.db_close()
                 message = '%s group add, "%s" failed - %s.' % (lno(MODID), fields['group_name'], msg)
                 messages.error(request, message)
-                request.session["response"] = {"message": message, "response_code": 1, "group": request.POST["group"]}
+                request.session["response"] = {"message": message, "response_code": 1, "group": group}
                 return redirect("/group/list/")
                 #return group_list(request, active_user=active_user, response_code=1, message='%s group add, "%s" failed - %s.' % (lno(MODID), fields['group_name'], msg))
 
@@ -240,7 +242,7 @@ def add(request):
                 config.db_close()
                 message = '%s group add, "%s" failed - %s.' % (lno(MODID), fields['group_name'], msg)
                 messages.error(request, message)
-                request.session["response"] = {"message": message, "response_code": 1, "group": request.POST["group"]}
+                request.session["response"] = {"message": message, "response_code": 1, "group": group}
                 return redirect("/group/list/")
                 #return group_list(request, active_user=active_user, response_code=1, message='%s group add, "%s" failed - %s.' % (lno(MODID), fields['group_name'], msg))
 
@@ -251,7 +253,7 @@ def add(request):
                 config.db_close()
                 message = '%s group add, "%s" failed - %s.' % (lno(MODID), fields['group_name'], msg)
                 messages.error(request, message)
-                request.session["response"] = {"message": message, "response_code": 1, "group": request.POST["group"]}
+                request.session["response"] = {"message": message, "response_code": 1, "group": group}
                 return redirect("/group/list/")
                 #return group_list(request, active_user=active_user, response_code=1, message='%s group add, "%s" failed - %s.' % (lno(MODID), fields['group_name'], msg))
 
@@ -262,7 +264,7 @@ def add(request):
             config.db_close()
             message = '%s group add, "%s" failed - %s.' % (lno(MODID), fields['group_name'], msg)
             messages.error(request, message)
-            request.session["response"] = {"message": message, "response_code": 1, "group": request.POST["group"]}
+            request.session["response"] = {"message": message, "response_code": 1, "group": group}
             return redirect("/group/list/")
             #return group_list(request, active_user=active_user, response_code=1, message='%s group add "%s" failed - %s.' % (lno(MODID), fields['group_name'], msg))
 
@@ -273,7 +275,7 @@ def add(request):
                 config.db_close()
                 message = '%s group add, "%s" failed - %s.' % (lno(MODID), fields['group_name'], msg)
                 messages.error(request, message)
-                request.session["response"] = {"message": message, "response_code": 1, "group": request.POST["group"]}
+                request.session["response"] = {"message": message, "response_code": 1, "group": group}
                 return redirect("/group/list/")
                 #return group_list(request, active_user=active_user, response_code=1, message='%s group add "%s" failed - %s.' % (lno(MODID), fields['group_name'], msg))
 
@@ -297,7 +299,7 @@ def add(request):
             config.db_close()
             message = '%s group add, "%s" failed - %s.' % (lno(MODID), fields['group_name'], msg)
             messages.error(request, message)
-            request.session["response"] = {"message": message, "response_code": 1, "group": request.POST["group"]}
+            request.session["response"] = {"message": message, "response_code": 1, "group": group}
             return redirect("/group/list/")
             #return group_list(request, active_user=active_user, response_code=1, message='%s group add "%s" failed - %s.' % (lno(MODID), fields['group_name'], msg))
 
@@ -313,7 +315,7 @@ def add(request):
         config.db_close()
         message = '%s group add, invalid method "%s" specified.' % (lno(MODID), request.method)
         messages.error(request, message)
-        request.session["response"] = {"message": message, "response_code": 1, "group": request.POST["group"]}
+        request.session["response"] = {"message": message, "response_code": 1, "group": group}
         return redirect("/group/list/")
         #return group_list(request, active_user=active_user, response_code=1, message='%s group add, invalid method "%s" specified.' % (lno(MODID), request.method))
 
@@ -328,8 +330,7 @@ def defaults(request, active_user=None, response_code=0, message=None):
     print("Request (GV:Defaults):", request)
     
     # open the database.
-    config.db_open()
-
+    config.db_open()    
     # Retrieve the active user, associated group list and optionally set the active group.
     rc, msg, active_user = set_user_groups(config, request, super_user=False)
     if rc == 0:
@@ -342,7 +343,7 @@ def defaults(request, active_user=None, response_code=0, message=None):
                 config.db_close()
                 message = '%s default update/list %s' % (lno(MODID), msg)
                 messages.error(request, message)
-                request.session["response"] = {"message": message, "response_code": 1, "group": request.POST["group"]}
+                request.session["response"] = {"message": message, "response_code": 1, "group": request.POST["group"] if "group" in request.POST else None}
                 return redirect("/group/defaults/")
                 #return render(request, 'csv2/group_defaults.html', {'response_code': 1, 'message': '%s default update/list %s' % (lno(MODID), msg), 'active_user': active_user.username, 'active_group': active_user.active_group, 'user_groups': active_user.user_groups})
 
@@ -1165,13 +1166,15 @@ def update(request):
     config.db_open()
     config.refresh()
 
+    group = request.POST["group"] if "group" in request.POST else None
+
     # Retrieve the active user, associated group list and optionally set the active group.
     rc, msg, active_user = set_user_groups(config, request)
     if rc != 0:
         config.db_close()
         message =  '%s %s.' % (lno(MODID), msg)
         messages.error(request, message)
-        request.session["response"] = {"message": message, "response_code": 1, "group": request.POST["group"]}
+        request.session["response"] = {"message": message, "response_code": 1, "group": group}
         return redirect("/group/list/")
         #return group_list(request, active_user=active_user, response_code=1, message='%s %s' % (lno(MODID), msg))
 
@@ -1183,7 +1186,7 @@ def update(request):
             config.db_close()
             message = '%s group update %s' % (lno(MODID), msg)
             messages.error(request, message)
-            request.session["response"] = {"message": message, "response_code": 1, "group": request.POST["group"]}
+            request.session["response"] = {"message": message, "response_code": 1, "group": group}
             return redirect("/group/list/")
             #return group_list(request, active_user=active_user, response_code=1, message='%s group update %s' % (lno(MODID), msg))
 
@@ -1193,7 +1196,7 @@ def update(request):
                 config.db_close()
                 message = '%s group update, "%s" failed - %s.' % (lno(MODID), fields['group_name'], msg)
                 messages.error(request, message)
-                request.session["response"] = {"message": message, "response_code": 1, "group": request.POST["group"]}
+                request.session["response"] = {"message": message, "response_code": 1, "group": group}
                 return redirect("/group/list/")
                 #return group_list(request, active_user=active_user, response_code=1, message='%s group update, "%s" failed - %s.' % (lno(MODID), fields['group_name'], msg))
 
@@ -1203,7 +1206,7 @@ def update(request):
                 config.db_close()
                 message = '%s group update, "%s" failed - %s.' % (lno(MODID), fields['group_name'], msg)
                 messages.error(request, message)
-                request.session["response"] = {"message": message, "response_code": 1, "group": request.POST["group"]}
+                request.session["response"] = {"message": message, "response_code": 1, "group": group}
                 return redirect("/group/list/")
                 #return group_list(request, active_user=active_user, response_code=1, message='%s group update, "%s" failed - %s.' % (lno(MODID), fields['group_name'], msg))
 
@@ -1213,7 +1216,7 @@ def update(request):
                 config.db_close()
                 message = '%s group update, "%s" failed - %s.' % (lno(MODID), fields['group_name'], msg)
                 messages.error(request, message)
-                request.session["response"] = {"message": message, "response_code": 1, "group": request.POST["group"]}
+                request.session["response"] = {"message": message, "response_code": 1, "group": group}
                 return redirect("/group/list/")
                 #return group_list(request, active_user=active_user, response_code=1, message='%s group update, "%s" failed - %s.' % (lno(MODID), fields['group_name'], msg))
 
@@ -1223,7 +1226,7 @@ def update(request):
                 config.db_close()
                 message = '%s group update, "%s" failed - %s.' % (lno(MODID), fields['group_name'], msg)
                 messages.error(request, message)
-                request.session["response"] = {"message": message, "response_code": 1, "group": request.POST["group"]}
+                request.session["response"] = {"message": message, "response_code": 1, "group": group}
                 return redirect("/group/list/")
                 #return group_list(request, active_user=active_user, response_code=1, message='%s group update, "%s" failed - %s.' % (lno(MODID), fields['group_name'], msg))
 
@@ -1233,7 +1236,7 @@ def update(request):
                 config.db_close()
                 message = '%s group update, "%s" failed - %s.' % (lno(MODID), fields['group_name'], msg)
                 messages.error(request, message)
-                request.session["response"] = {"message": message, "response_code": 1, "group": request.POST["group"]}
+                request.session["response"] = {"message": message, "response_code": 1, "group": group}
                 return redirect("/group/list/")
                 #return group_list(request, active_user=active_user, response_code=1, message='%s group update, "%s" failed - %s.' % (lno(MODID), fields['group_name'], msg))
 
@@ -1244,7 +1247,7 @@ def update(request):
                 config.db_close()
                 message = '%s group update, "%s" failed - %s.' % (lno(MODID), fields['group_name'], msg)
                 messages.error(request, message)
-                request.session["response"] = {"message": message, "response_code": 1, "group": request.POST["group"]}
+                request.session["response"] = {"message": message, "response_code": 1, "group": group}
                 return redirect("/group/list/")
                 #return group_list(request, active_user=active_user, response_code=1, message='%s group update, "%s" failed - %s.' % (lno(MODID), fields['group_name'], msg))
 
@@ -1265,7 +1268,7 @@ def update(request):
                 config.db_close()
                 message = '%s group update, "%s" failed - the request did not match any rows.' % (lno(MODID), fields['group_name'])
                 messages.error(request, message)
-                request.session["response"] = {"message": message, "response_code": 1, "group": request.POST["group"]}
+                request.session["response"] = {"message": message, "response_code": 1, "group": group}
                 return redirect("/group/list/")
                 #return group_list(request, active_user=active_user, response_code=1, message='%s group update, "%s" failed - the request did not match any rows.' % (lno(MODID), fields['group_name']))
 
@@ -1277,7 +1280,7 @@ def update(request):
                 config.db_close()
                 message = '%s group update, "%s" failed - %s.' % (lno(MODID), fields['group_name'], msg)
                 messages.error(request, message)
-                request.session["response"] = {"message": message, "response_code": 1, "group": request.POST["group"]}
+                request.session["response"] = {"message": message, "response_code": 1, "group": group}
                 return redirect("/group/list/")
                 #return group_list(request, active_user=active_user, response_code=1, message='%s group update, "%s" failed - %s.' % (lno(MODID), fields['group_name'], msg))
         else:
@@ -1285,7 +1288,7 @@ def update(request):
                 config.db_close()
                 message = '%s group update must specify at least one field to update.' % lno(MODID)
                 messages.error(request, message)
-                request.session["response"] = {"message": message, "response_code": 1, "group": request.POST["group"]}
+                request.session["response"] = {"message": message, "response_code": 1, "group": group}
                 return redirect("/group/list/")
                 #return group_list(request, active_user=active_user, response_code=1, message='%s group update must specify at least one field to update.' % lno(MODID))
             
@@ -1318,14 +1321,14 @@ def update(request):
             config.db_close()
             message = 'group "%s" successfully updated.' % (fields['group_name'])
             messages.success(request, message)
-            request.session["response"] = {"message": message, "response_code": 0, "group": request.POST["group"]}
+            request.session["response"] = {"message": message, "response_code": 0, "group": group}
             return redirect("/group/list/")
             #return group_list(request, active_user=active_user, response_code=0, message='group "%s" successfully updated.' % (fields['group_name']))
         else:
             config.db_close()
             message = '%s group update "%s" failed - %s.' % (lno(MODID), fields['group_name'], msg)
             messages.error(request, message)
-            request.session["response"] = {"message": message, "response_code": 1, "group": request.POST["group"]}
+            request.session["response"] = {"message": message, "response_code": 1, "group": group}
             return redirect("/group/list/")
             #return group_list(request, active_user=active_user, response_code=1, message='%s group update "%s" failed - %s.' % (lno(MODID), fields['group_name'], msg))
 
@@ -1333,7 +1336,7 @@ def update(request):
     else:
         message = '%s group update, invalid method "%s" specified.' % (lno(MODID), request.method)
         messages.error(request, message)
-        request.session["response"] = {"message": message, "response_code": 1, "group": request.POST["group"]}
+        request.session["response"] = {"message": message, "response_code": 1, "group": group}
         return redirect("/group/list/")
         #return group_list(request, active_user=active_user, response_code=1, message='%s group update, invalid method "%s" specified.' % (lno(MODID), request.method))
 
