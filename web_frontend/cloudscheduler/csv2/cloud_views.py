@@ -1966,7 +1966,7 @@ def update(request):
         config.db_close()
         message = '%s %s' % (lno(MODID), msg)
         messages.error(request, message)
-        request.session["response"] = {"message": message, "response_code": 1, "group": request.POST["group"]}
+        request.session["response"] = {"message": message, "response_code": 1, "group": group}
         return redirect("/cloud/list/")
         #return cloud_list(request, active_user=active_user, response_code=1, message='%s %s' % (lno(MODID), msg))
     
