@@ -25,11 +25,11 @@ DROP TABLE IF EXISTS `condor_worker_gsi`;
 CREATE TABLE `condor_worker_gsi` (
   `htcondor_fqdn` varchar(128) NOT NULL,
   `htcondor_host_id` bigint(20) NOT NULL DEFAULT 0,
-  `worker_dn` varchar(128) DEFAULT NULL,
+  `worker_dn` varchar(256) DEFAULT NULL,
   `worker_eol` int(11) NOT NULL DEFAULT 0,
   `worker_cert` longtext DEFAULT NULL,
   `worker_key` longtext DEFAULT NULL,
-  `auth_token` varchar(128) DEFAULT NULL,
+  `auth_token` longtext DEFAULT NULL,
   PRIMARY KEY (`htcondor_fqdn`),
   UNIQUE KEY `htcondor_fqdn` (`htcondor_fqdn`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
