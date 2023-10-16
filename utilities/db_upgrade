@@ -820,8 +820,10 @@ def map_csv2_configuration(gvar, fqdn):
                 except:
                     line = line.replace("\n", " ")
                     ix = line.index('VALUES') + 8
-                    while len(nextLine := fd.readline()) > 0 and nextLine[-2] != ';':
+                    nextLine = fd.readline()
+                    while len(nextLine) > 0 and nextLine[-2] != ';':
                         line += nextLine
+                        nextLine = fd.readline()
                     line = line.replace("\n", "") + nextLine
                     
                 rows = line[ix:-3].split('),(')
