@@ -69,7 +69,7 @@ def execute_csv2_command(gvar, expected_rc, expected_modid, expected_text, cmd, 
             return_code = process.returncode
         except subprocess.TimeoutExpired as err:
             stdout = err.stdout.decode()
-            stderr = err.stderr.decode() if err.stderr is not None else ""
+            stderr = err.stderr.decode() if err.stderr else ""
             return_code = -1
 
         if return_code == 1 and "EOFError: EOF when reading a line" in stderr:
