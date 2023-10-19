@@ -58,7 +58,7 @@
                 {% csrf_token %}
                 
                 
-
+                    <input type="hidden" name="group" value="{{ active_group }}" />
                     <input type="hidden" name="group_name" value="{{group.group_name}}" />
                     <table id="ul-users-{{group.group_name}}">
                         
@@ -113,6 +113,8 @@
             <div class="menu-target menu-position">
                 <form name="add_group" action="/group/add/" method="post" onsubmit="new_location()">
                     {% csrf_token %}
+                    <input type="hidden" name="group" value="{{ active_group }}" />
+
                     <table id="ul-users-{{group.group_name}}">
                         <tr class="highlight1">
                             <td>
@@ -167,6 +169,7 @@
             <a href="#{{group.group_name}}" title="Close" class="close">X</a>
             <form name="{{group.group_name}}" action="/group/delete/" method="post">
                 {% csrf_token %}
+                <input type="hidden" name="group" value="{{ active_group }}" />
                 <input type="hidden" name="group_name" id="" value="{{group.group_name}}" />
                 <input type="submit" value="Delete {{group.group_name}}" />
             </form>

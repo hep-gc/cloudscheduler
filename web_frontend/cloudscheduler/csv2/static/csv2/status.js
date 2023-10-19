@@ -64,6 +64,17 @@ var dataWidthTwo = [];
 computeDimensions(headerWidthTwo, dataWidthTwo, tableTwoHeaders, tableTwoData, 29);
 computeStartEnd();
 
+var plot = document.getElementsByClassName("plot-div")[0];
+var plotState = plot.style.display;
+
+var observer = new MutationObserver(function () {
+    if (plot.style.display != plotState) {
+        plotState = plot.style.display;
+        computeStartEnd();
+    }
+});
+observer.observe(plot, {attributes: true});
+
 window.onresize = function () {
     // remove the sticky header to ensure correct inital dimensions
     tableOneHeaders.classList.remove("sticky-top");
@@ -86,12 +97,14 @@ window.onscroll = function () {
 }
 
 function computeStartEnd() {
+    plotHeight = plotState == "block" ? plot.clientHeight : 0;
+
     // start when table hits nav bar, end when it hits the bottom
-    var startOne = offsetOne - navbar.clientHeight;
+    var startOne = offsetOne + plotHeight - navbar.clientHeight;
     var endOne = tableOneHeight + startOne - navbar.clientHeight;
 
     var startTwo = offsetTwo + startOne;
-    var endTwo = offsetTwo + tableTwoHeight;
+    var endTwo = offsetTwo + tableTwoHeight + plotHeight;
     
     stickyHeader(tableOneHeaders, tableOneData, startOne, endOne, headerWidthOne, dataWidthOne);
     stickyHeader(tableTwoHeaders, tableTwoData, startTwo, endTwo, headerWidthTwo, dataWidthTwo);

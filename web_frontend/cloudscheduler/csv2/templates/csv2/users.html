@@ -52,6 +52,7 @@
                 <form name="{{user.username}}" action="/user/update/" method="post">
                     {% csrf_token %}
                     <table>
+                        <input type="hidden" name="group" value="{{ active_group }}" />
                         <input type="hidden" name="username" value="{{user.username}}" />
 
                         <!--<tr><td><label for="username">Username</label></td>
@@ -103,6 +104,7 @@
             <div class="menu-target menu-position">
                 <form name="add_user" action="/user/add/" method="post" onsubmit="new_location()">
                     {% csrf_token %}
+                    <input type="hidden" name="group" value="{{ active_group }}" />
                     <table>
                         <tr class="highlight1"><td><label for="username">Username</label></td>
                         <td><input type="text" name="username" id="new_user" value="" /></td></tr>
@@ -137,6 +139,7 @@
             <a href="#{{user.username}}" title="Close" class="close">X</a>
             <form name="{{user.username}}" action="/user/delete/" method="post">
                 {% csrf_token %}
+                <input type="hidden" name="group" value="{{ active_group }}" />
                 <input type="hidden" name="username" id="" value="{{user.username}}" />
                 <input type="submit" value="Delete {{user.username}}" />
             </form>
