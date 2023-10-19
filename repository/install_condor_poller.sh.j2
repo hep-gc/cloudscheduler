@@ -25,7 +25,7 @@ if [ -f "$OLD_CFG" ]; then
     OLD_TOKEN=$(sed -n 's/\s*token_path: //p' $OLD_CFG)
     NEW_TOKEN=$(sed -n 's/\s*token_path: //p' $NEW_CFG)
 
-    if [ $TOKEN_AUTH -a ! -z "$OLD_TOKEN" -a "$OLD_TOKEN" != "NEW_TOKEN" ] ; then
+    if [ "$TOKEN_AUTH" == "true" -a ! -z "$OLD_TOKEN" -a "$OLD_TOKEN" != "NEW_TOKEN" ] ; then
         read -p "Keep previous token location ($OLD_TOKEN) (y/n)? " choice
         case "$choice" in
           y|Y ) sed -i "s#$NEW_TOKEN#$OLD_TOKEN#g" $NEW_CFG;;
