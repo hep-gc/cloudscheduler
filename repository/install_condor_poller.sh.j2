@@ -21,6 +21,17 @@ if [ -f "$OLD_CFG" ]; then
         esac
     fi
 
+    TOKEN_AUTH=$(sed -n 's/\s*token_auth: //p' $OLD_CFG)
+    OLD_TOKEN=$(sed -n 's/\s*token_path: //p' $OLD_CFG)
+    NEW_TOKEN=$(sed -n 's/\s*token_path: //p' $NEW_CFG)
+
+    if [ $TOKEN_AUTH -a ! -z "$OLD_TOKEN" -a "$OLD_TOKEN" != "NEW_TOKEN" ] ; then
+        read -p "Keep previous token location ($OLD_TOKEN) (y/n)? " choice
+        case "$choice" in
+          y|Y ) sed -i "s#$NEW_TOKEN#$OLD_TOKEN#g" $NEW_CFG;;
+        esac
+    fi
+
     OLD_KEY=$(sed -n 's/\s*condor_worker_key: //p' $OLD_CFG)
     NEW_KEY=$(sed -n 's/\s*condor_worker_key: //p' $NEW_CFG)
 
