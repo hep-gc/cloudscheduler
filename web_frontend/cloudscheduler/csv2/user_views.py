@@ -3,6 +3,7 @@ config = settings.CSV2_CONFIG
 
 from django.core.exceptions import PermissionDenied
 from django.contrib.auth import update_session_auth_hash
+from django.contrib import messages
 
 from cloudscheduler.lib.view_utils import \
     lno, \
@@ -311,6 +312,12 @@ def user_list(request, active_user=None, response_code=0, message=None):
     else:
         current_user = ''
 
+    if message:
+        if response_code == 0:
+            messages.success(request, message)
+        else:
+            messages.error(request, message)
+
     # Render the page.
     context = {
             'active_user': active_user.username,
@@ -384,8 +391,14 @@ def settings(request, active_user=None, response_code=0, message=None):
 
     # Close the database.
     config.db_close()
-
     final_rc = rc if pre_rc == 0 else pre_rc
+    
+    if msg:
+        if final_rc == 0:
+            messages.success(request, msg)
+        else:
+            messages.error(request, msg)
+
     # Render the page.
     context = {
             'active_user': active_user.username,

@@ -69,7 +69,7 @@ def execute_csv2_command(gvar, expected_rc, expected_modid, expected_text, cmd, 
             return_code = process.returncode
         except subprocess.TimeoutExpired as err:
             stdout = err.stdout.decode()
-            stderr = err.stderr.decode()
+            stderr = err.stderr.decode() if err.stderr else ""
             return_code = -1
 
         if return_code == 1 and "EOFError: EOF when reading a line" in stderr:
@@ -908,16 +908,10 @@ def _requests_insert_controls(gvar, request, group, form_data, query_data, serve
         _function = py_requests.get
 
         if group:
-            if request[-1] == '/':
-                _request = '%s%s?%s' % (server_address, request[:-1], group)
-            else:
-                _request = '%s%s?%s' % (server_address, request, group)
+            _request = '%s%s?%s' % (server_address, request, group)
         else:    
             if server_address in gvar['active_server_user_group'] and server_user in gvar['active_server_user_group'][server_address]:
-                if request[-1] == '/':
-                    _request = '%s%s?%s' % (server_address, request[:-1], gvar['active_server_user_group'][server_address][server_user])
-                else:
-                    _request = '%s%s?%s' % (server_address, request, gvar['active_server_user_group'][server_address][server_user])
+                _request = '%s%s?%s' % (server_address, request, gvar['active_server_user_group'][server_address][server_user])
             else:
                 _request = '%s%s' % (server_address, request)
 
@@ -925,7 +919,7 @@ def _requests_insert_controls(gvar, request, group, form_data, query_data, serve
             query_list = ['%s=%s' % (key, query_data[key]) for key in query_data]
 
             if _request[-1] == '/':
-                _request = '%s?%s' % (_request[:-1], '&'.join(query_list))
+                _request = '%s?%s' % (_request, '&'.join(query_list))
             else:
                 _request = '%s&%s' % (_request, '&'.join(query_list))
          

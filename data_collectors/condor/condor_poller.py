@@ -1442,9 +1442,10 @@ def alias_auditor():
                 # Retrieve machines.
                 try:
                     condor_resources = condor_session.query(ad_type=htcondor.AdTypes.Startd, projection=resource_attributes)
-                except exception as exc:
+                except Exception as exc:
                     logging.error("unable to retrieve condor classads:")
                     logging.error(exc)
+                    break
                 for classad in condor_resources:
                     condor_alias = classad["target_alias"]
                     if condor_alias == "None":
