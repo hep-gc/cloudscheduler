@@ -86,6 +86,22 @@
             </div>
         </div>
     </div>
+    <!-- custom date filtering dropdown menu-->
+    <div class="filter-dropdown">
+        <button id="filter-select" class="filter-btn" onclick="dropDownFilter()">Custom Filter<span class="space"></span>
+            <span class="caret"></span>
+        </button>
+        <div id="myFilterDropdown" class="filter-content">
+            <form id="filter-form">
+                <a>Start Date:</a>
+                <input type="datetime-local" id="start-date" class="filter-input" onchange="validate()" required>
+                <a>End Date:</a>
+                <input type="datetime-local" id="end-date" class="filter-input" onchange="validate()" required>
+                <span id="date-error" class="date-error"></span>
+                <button type="submit" id="apply-filter" class="filter">Apply</button></a>
+            </form>
+        </div>
+    </div>
     <button id="close-plot" class="close-btn" onclick="TSPlot.hide()">Close Plot</button>
     <button id="download-plot" class="download-plot-btn" onclick="downloadPlot()">&#11015;</button>
 </div>
@@ -965,6 +981,7 @@
         /*Add event listeners once page loads*/
         initialize();
         addEventListeners("range");
+        addEventListeners("filter");
         // Remove old traces
         sessionStorage.removeItem("traces");
         /*
