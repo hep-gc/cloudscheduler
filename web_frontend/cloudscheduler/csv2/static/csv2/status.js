@@ -83,7 +83,7 @@ window.onresize = function () {
     tableOneHeight = tableOne.clientHeight;
     tableTwoHeight = tableTwo.clientHeight;
 
-    offsetOne = document.getElementsByClassName("main-div super-main-div")[0].offsetTop;
+    offsetOne = document.querySelector("div[class^='main-div']").offsetTop;
     offsetTwo = tableTwo.parentElement.offsetTop;
 
     // reset the dimensions and compute the current header location
