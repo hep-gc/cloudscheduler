@@ -45,7 +45,7 @@ var tableOne = statusTables[0].getElementsByTagName("table")[0];
 var tableOneData = tableOne.getElementsByTagName("td");
 
 // table one initial dimensions
-var offsetOne = document.getElementsByClassName("main-div super-main-div")[0].offsetTop;
+var offsetOne = document.querySelector("div[class^='main-div']").offsetTop;
 var tableOneHeight = tableOne.clientHeight;
 var headerWidthOne = [];
 var dataWidthOne = [];
