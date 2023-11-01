@@ -815,7 +815,7 @@
     </div>
 </div>
 
-<div class="footer{% if request.session.rc == 0 %} success-msg{% endif %}" id="message" onclick="clear_message()">
+<div class="footer" id="message" onclick="clear_message()">
     {% for message in messages %}
         {% if message.level == DEFAULT_MESSAGE_LEVELS.ERROR %}
             <tr><td><b>Error: {{ message }} </b></td></tr>
