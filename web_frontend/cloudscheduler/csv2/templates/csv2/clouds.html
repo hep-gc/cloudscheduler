@@ -25,6 +25,7 @@
         if (sessionStorage.getItem("message")){
             document.getElementById("message").innerHTML = sessionStorage.getItem("message");
         }
+        sessionStorage.removeItem("message");
     }
 
     function clear_message() {
