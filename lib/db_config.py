@@ -70,10 +70,6 @@ class Config:
             return
 
         self.db_schema = schema_na.schema
-        
-        if socket.gethostbyname(socket.gethostname()) == socket.gethostname():
-            logging.error("hostname cannot be localhost ip")
-            exit(1)
 
         #
         # Use the integer value of the public IPv4 address to create a unique instance IDs for the
@@ -592,6 +588,12 @@ class Config:
 
     def get_version(self):
         return self.version
+
+
+#-------------------------------------------------------------------------------
+
+    def is_hostname_localhost(self):
+        return socket.gethostname() == '127.0.0.1'
 
 
 #-------------------------------------------------------------------------------
