@@ -1500,7 +1500,12 @@ if __name__ == '__main__':
     config = procMon.get_config()
     logging = procMon.get_logging()
     version = config.get_version()
+    is_hostname_localhost = config.is_hostname_localhost()
 
+    if is_hostname_localhost:
+        logging.error("Hostname can not be localhost, exiting...")
+        exit(1)
+    
     PID_FILE = config.categories["ProcessMonitor"]["pid_path"] + os.path.basename(sys.argv[0])
     with open(PID_FILE, "w") as fd:
         fd.write(str(os.getpid()))
