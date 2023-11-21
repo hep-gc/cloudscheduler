@@ -49,20 +49,9 @@ EOF
 }
 
 ###
-### 1.  Ensure csv2-condor-poller is not already installed.
+### 1.  Ensure csv2-condor-poller is stopped
 ###
-    which systemctl 1>/dev/null 2>&1
-    systemctl=$?
-    if [ $systemctl -eq 1 ]; then
-        chkconfig csv2-condor-poller
-    else
-        systemctl enable csv2-condor-poller >/dev/null 2>&1
-    fi
-
-    if [ $? -eq 0 ]; then
-        echo 'Service csv2-condor-poller already enabled.'
-        exit 0
-    fi
+    /opt/cloudscheduler/utilities/service_disable_condor_poller
 
 ###
 ### 2.  Checks to see if we are running as root.
