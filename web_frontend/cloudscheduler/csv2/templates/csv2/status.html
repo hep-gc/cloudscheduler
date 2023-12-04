@@ -507,6 +507,8 @@
 
                                 {% if cloud.display >= 9 %}
                                     <td class="bold-style" onclick="toggle_id('expand-{{cloud.group_name}}-{{cloud.cloud_name}}')"><div class="float-left">Totals</div>
+                                    <div id="sym-expand-{{cloud.group_name}}-{{cloud.cloud_name}}" class="float-right">&#x25BE;</div></td>
+                                    
                                 {% elif cloud.enabled > 0 %}
                                     {% if cloud.app_credentials_expiry and cloud.current_time %}
                                         {% if cloud.app_credentials_expiry|sub:cloud.current_time|div:86400 > 14 %}
@@ -519,10 +521,11 @@
                                     {% else %}
                                         <td class="bold-style"><div class="float-left" style="cursor: pointer" onclick="window.location.href='/cloud/list/?{{cloud.group_name}}'">&#x2637; {{cloud.cloud_name}}{% if cloud.freeze %} &#x1F6AB;{% endif %}</div>
                                     {% endif %}
+                                    <div id="sym-expand-{{cloud.group_name}}-{{cloud.cloud_name}}" class="float-right" onclick="toggle_id('expand-{{cloud.group_name}}-{{cloud.cloud_name}}')">&#x25BE;</div></td>
                                 {% else %}
                                     <td class="disabled-style"><div class="float-left" style="cursor: pointer" onclick="window.location.href='/cloud/list/?{{cloud.group_name}}'">&#x2637; {{cloud.cloud_name}}{% if cloud.freeze %} &#x1F6AB;{% endif %}</div>
-                                {% endif %}
                                     <div id="sym-expand-{{cloud.group_name}}-{{cloud.cloud_name}}" class="float-right" onclick="toggle_id('expand-{{cloud.group_name}}-{{cloud.cloud_name}}')">&#x25BE;</div></td>
+                                {% endif %}
 
 
 
