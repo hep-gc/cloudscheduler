@@ -162,7 +162,7 @@ function set_refresh(time) {
 
         fetch(location.href,{   
             method: 'GET',
-            headers: {'Accept': 'application/json', 'Content-Type':'application/json'},
+            headers: {'Accept': 'text/html', 'Content-Type':'application/json'},
         })  
         .then(function(response){
             /* Check response status code*/
