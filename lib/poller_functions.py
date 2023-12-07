@@ -116,7 +116,8 @@ def inventory_cleanup(ikey_names, rows, inventory):
         logging.debug('inventory_cleanup: delete item "%s" from inventory, no matching group_name/cloud_name.' % json.loads(ikey))
 
 
-def inventory_get_item_hash_from_db_query_rows(ikey_names, rows, inventory={}):
+def inventory_get_item_hash_from_db_query_rows(ikey_names, rows):
+    inventory = {}
     for row in rows:
         ikey = __inventory_set_key__(ikey_names, row, inventory)
         inventory[ikey]['hash'] =  __inventory_get_hash__(ikey_names, row)
