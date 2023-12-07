@@ -99,6 +99,7 @@ def fill_attributes(old_dict, attributes, config, additional_attributes = []):
 
     return new_dict
 
+
 def if_null(val, col=None):
     if col:
         if val:
@@ -451,6 +452,7 @@ def job_poller():
         rc, msg, rows = config.db_query(JOB, where=where_clause)
         inventory = inventory_get_item_hash_from_db_query_rows(ikey_names, rows)
         config.db_close()
+
         #old inventory
         #inventory = get_inventory_item_hash_from_database(config.db_engine, JOB, 'global_job_id', debug_hash=(config.categories["condor_poller.py"]["log_level"]<20), condor_host=config.local_host_id)
         while True:
