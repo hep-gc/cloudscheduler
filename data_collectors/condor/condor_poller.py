@@ -417,7 +417,6 @@ def job_poller():
     inventory = {}
     delete_cycle = True
     cycle_count = 0
-    condor_inventory_built = False
     uncommitted_updates = 0
     failure_dict = {}
 
@@ -434,12 +433,6 @@ def job_poller():
 
 
     try:
-        config.db_open()
-        where_clause = "htcondor_host_id='%s'" % config.local_host_id
-        rc, msg, rows = config.db_query(JOB, where=where_clause)
-        inventory = inventory_get_item_hash_from_db_query_rows(ikey_names, rows)
-        config.db_close()
-
         #old inventory
         #inventory = get_inventory_item_hash_from_database(config.db_engine, JOB, 'global_job_id', debug_hash=(config.categories["condor_poller.py"]["log_level"]<20), condor_host=config.local_host_id)
         while True:
@@ -548,14 +541,6 @@ def job_poller():
                     elif fail_count > 1500:
                         logging.critical("Over 1500 failed polls on host: %s, Configuration error or condor issues" % (fail_count, condor_host))
                     continue
-
-
-                if not condor_inventory_built:
-                    # New version of inventory functions:
-                    where_clause = "htcondor_host_id='%s'" % config.local_host_id
-                    rc, msg, rows = config.db_query(JOB, where=where_clause)
-                    inventory_get_item_hash_from_db_query_rows(ikey_names, rows)
-                    condor_inventory_built = True
 
                 # Retrieve jobs.
                 
@@ -719,6 +704,10 @@ def job_poller():
                     # old inventory function
                     #if test_and_set_inventory_item_hash(inventory, job_dict["group_name"], "-", job_dict["global_job_id"], job_dict, new_poll_time, debug_hash=(config.categories["condor_poller.py"]["log_level"]<20)):
                     # New inventory function:
+                    where_clause = "htcondor_host_id='%s'" % config.local_host_id
+                    rc, msg, inventory_rows = config.db_query(JOB, select=job_dict.keys(), where=where_clause)
+                    
+                    inventory = inventory_get_item_hash_from_db_query_rows(ikey_names, inventory_rows, inventory)                  
                     if inventory_test_and_set_item_hash(ikey_names, job_dict, inventory, new_poll_time, debug_hash=(config.categories["condor_poller.py"]["log_level"]<20)):
                         continue
 
@@ -863,9 +852,6 @@ def machine_poller():
 
     try:
         config.db_open()
-        where_clause = "htcondor_host_id='%s'" % config.local_host_id
-        rc, msg, rows = config.db_query(RESOURCE, where=where_clause)
-        inventory = inventory_get_item_hash_from_db_query_rows(ikey_names, rows)
 
         # old inventory func
         #inventory = get_inventory_item_hash_from_database(config.db_engine, RESOURCE, 'name', debug_hash=(config.categories["condor_poller.py"]["log_level"]<20), condor_host=config.local_host_id)
@@ -1024,6 +1010,11 @@ def machine_poller():
                     # Check if this item has changed relative to the local cache, skip it if it's unchanged
                     # old inventory func
                     #if test_and_set_inventory_item_hash(inventory, r_dict["group_name"], r_dict["cloud_name"], r_dict["name"], r_dict, new_poll_time, debug_hash=(config.categories["condor_poller.py"]["log_level"]<20)):
+                    
+                    where_clause = "htcondor_host_id='%s'" % config.local_host_id
+                    rc, msg, rows = config.db_query(RESOURCE, select=r_dict.keys(), where=where_clause)
+                    
+                    inventory = inventory_get_item_hash_from_db_query_rows(ikey_names, rows, inventory)
                     if inventory_test_and_set_item_hash(ikey_names, r_dict, inventory, new_poll_time, debug_hash=(config.categories["condor_poller.py"]["log_level"]<20)):
                         continue
 

@@ -219,12 +219,16 @@ class ProcessMonitor:
         for process in self.static_process_ids:
             # first cosnsult watchdog, returns false if stuck detected
             if(self.watchdog_exemption_list is None or (self.watchdog_exemption_list is not None and process not in self.watchdog_exemption_list)):
-                if(not watchdog_check_process(self.config, self.processes[process].pid, self.config.local_host_id)):
-                    #watchdog detected stuck process
-                    #terminate it
-                    logging.error("Watchdog detected stuck process: %s, restarting..." % process)
-                    self.processes[process].terminate()
-                    self.restart_process(process)
+                try:
+                    if(not watchdog_check_process(self.config, self.processes[process].pid, self.config.local_host_id)):
+                        #watchdog detected stuck process
+                        #terminate it
+                        logging.error("Watchdog detected stuck process: %s, restarting..." % process)
+                        self.processes[process].terminate()
+                        self.restart_process(process)
+                except KeyError as err:
+                    logging.error("%s process died. exiting...", process)
+                    return
             if process not in self.processes or not self.is_alive(process):
                 if stop:
                     # child proc is dead, and stop flag set, don't restart and remove proc id
