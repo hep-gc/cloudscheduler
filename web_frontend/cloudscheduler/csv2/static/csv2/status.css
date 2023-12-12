@@ -45,6 +45,16 @@
   font-weight: bold;
   cursor: default;
 }
+
+.resolution-dropdown {
+  position: absolute;
+  right: 0px;
+  top: 0px;
+  border: none;
+  font-weight: bold;
+  cursor: default;
+}
+
 .range-btn {
   padding: 8px;
   line-height: 12px;
@@ -71,6 +81,64 @@
 
 .filter-btn:hover {
   opacity: 1;
+}
+
+.resolution-content {
+  display: none;
+  position: absolute;
+  right: 30px;
+  top: 38px;
+  background-color: #e8e8e8;
+  z-index: 1;
+}
+
+.resolution-content a {
+  color: rgba(0, 0, 0, .5);
+  text-decoration: none;
+  text-align: left;
+  font-weight: bold;
+  font-size: 8px;
+  padding-left: 4px;
+  padding-top: 8px;
+  background-color: rgba(211, 211, 211, 0);
+  display: block;
+}
+
+.resolution-content .selected {
+  color: rgba(0, 0, 0, 1);
+  background-color: rgba(211, 211, 211, 1);
+}
+
+.resolution-content button:hover {
+  color: rgba(0, 0, 0, 1);
+  background-color: rgba(211, 211, 211, 1);
+}
+
+.resolution-content input:hover {
+  color: rgba(0, 0, 0, 1);
+  background-color: rgba(211, 211, 211, 1);
+}
+
+.resolution-content input {
+  color: rgba(0, 0, 0, .5);
+  text-decoration: none;
+  font-size: 10px;
+  font-weight: bold;
+  padding: 4px 6px;
+  margin: 4px 6px;
+  background-color: rgba(211, 211, 211, 0);
+  display: block;
+}
+
+.resolution-content button {
+  color: rgba(0, 0, 0, .5);
+  text-decoration: none;
+  font-size: 10px;
+  font-weight: bold;
+  padding: 4px 6px;
+  margin-left: 128px;
+  background-color: rgba(211, 211, 211, 0);
+  display: block;
 }
 
 .download-plot-btn {

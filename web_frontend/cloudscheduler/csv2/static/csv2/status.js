@@ -291,6 +291,13 @@ function addEventListeners(className) {
                 });
                 selectRangeFilter();
             }
+            else if (className == 'resolution') {
+                document.getElementById("resolution-form").addEventListener('submit', function (event) {
+                    // prevent the page from refreshing on form submission
+                    event.preventDefault();
+                });
+                downloadPlot();
+            }
             else selectRange(this);
         });
     }
@@ -309,6 +316,12 @@ function dropDown(){
         document.getElementById("myFilterDropdown").classList.toggle("show");
         document.getElementById("filter-select").classList.remove("selected");
     }
+
+    // close the resolution dropdown if open
+    if (document.getElementById("myResolutionDropdown").classList.contains("show")) {
+        document.getElementById("myResolutionDropdown").classList.toggle("show");
+        document.getElementById("download-plot").classList.remove("selected");
+    }
 }
 
 /* custom date filter dropdown */
@@ -318,6 +331,27 @@ function dropDownFilter() {
     else
         document.getElementById("filter-select").classList.remove("selected");
     document.getElementById("myFilterDropdown").classList.toggle("show");
+    
+    // close the resolution dropdown if open
+    if (document.getElementById("myResolutionDropdown").classList.contains("show")) {
+        document.getElementById("myResolutionDropdown").classList.toggle("show");
+        document.getElementById("download-plot").classList.remove("selected");
+    }
+}
+
+function dropDownResolution() {
+    if (!document.getElementById("myResolutionDropdown").classList.contains("show"))
+        document.getElementById("download-plot").classList.add("selected");
+    else
+        document.getElementById("myResolutionDropdown").classList.remove("selected");
+    document.getElementById("myResolutionDropdown").classList.toggle("show");
+
+    // close custom filter dropdown if open
+    if (document.getElementById("myFilterDropdown").classList.contains("show")) {
+        document.getElementById("myFilterDropdown").classList.toggle("show");
+        document.getElementById("filter-select").classList.remove("selected");
+    }
+    
 }
 
 /* preprocess selected dates from custom filter */
@@ -474,6 +508,36 @@ function checkDates(to, from) {
         dateError.textContent = null;
     
     return dateError.textContent;
+}
+
+/** set the error messages for resolution */
+function validateResolution(width=false) {
+    const widthError = getResolutionError("width", width);
+    const heightError = getResolutionError("height");
+
+    // set the error 
+    const resolutionError = document.getElementById("resolution-error");
+    resolutionError.textContent = widthError ?? heightError;
+
+    return resolutionError.textContent;
+}
+
+/** return the error messages for resolution */
+function getResolutionError(metric, width=false) {
+    const metricValue = document.getElementById(`resolution-${metric}`).value;
+    
+    // width was input, set the height to be half of the width
+    if (width)
+        document.getElementById(`resolution-height`).value = Math.round(metricValue / 2);
+
+    // return error messages
+    if (metricValue < 1)
+        return `${metric} must be greater than 0`;
+    else if (Number(metricValue) != metricValue || metricValue % 1 != 0)
+        return `${metric} must be an integer`;
+    else
+        return null;
+
 }
 
 /* Toggle plotted traces and initialize/show plot if not yet created*/
@@ -894,8 +958,19 @@ function updateTraces(newdata, index, global_total_list){
 }
 
 
-function downloadPlot(){
-    Plotly.downloadImage('plotly-TS', {format: 'png', width: 1200, height: 600, filename: 'newplot'});
+function downloadPlot() {
+    // return if the values are not correct
+    if (validateResolution() || validateResolution())
+        return;
+
+    width = document.getElementById("resolution-width").value;
+    height = document.getElementById("resolution-height").value;
+
+    // close the dropdown
+    document.getElementById("download-plot").classList.remove("selected");
+    document.getElementById("myResolutionDropdown").classList.toggle("show");
+
+    Plotly.downloadImage('plotly-TS', {format: 'png', width: width, height: height, filename: 'newplot'});
 }
 
 /* Plot Object*/
