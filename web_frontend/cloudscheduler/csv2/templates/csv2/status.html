@@ -88,7 +88,19 @@
         </div>
     </div>
     <button id="close-plot" class="close-btn" onclick="TSPlot.hide()">Close Plot</button>
-    <button id="download-plot" class="download-plot-btn" onclick="downloadPlot()">&#11015;</button>
+    <div class="resolution-dropdown">
+        <button id="download-plot" class="download-plot-btn" onclick="dropDownResolution()">&#11015;</button>
+        <div id="myResolutionDropdown" class="resolution-content">
+            <form id="resolution-form"> 
+                <a>Width: </a>
+                <input type="number" step="1" id="resolution-width" class="resolution-input"  onchange="validateResolution(true)" value="800" required>
+                <a>Height: </a>
+                <input type="number" step="1" id="resolution-height" class="resolution-input" onchange="validateResolution()" value="400" required>
+                <span id="resolution-error" class="date-error"></span>
+                <button type="submit" id="select-resolution" class="resolution">Download</button>
+            </form>
+        </div>
+    </div>
 </div>
 
 <!-- Status tables-->
@@ -1154,6 +1166,7 @@
     initialize();
     addEventListeners("range");
     addEventListeners("filter");
+    addEventListeners("resolution");
     // Remove old traces
     sessionStorage.removeItem("traces");
 
