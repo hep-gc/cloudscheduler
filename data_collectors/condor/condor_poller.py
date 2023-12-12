@@ -86,6 +86,20 @@ def get_condor_dict(config, logging):
 
     return condor_dict
 
+
+def fill_attributes(old_dict, attributes, config, additional_attributes = []):
+    # create a dictionary and map its attributes
+    new_dict = old_dict.copy()
+    attributes_dict = {key: None for key in attributes}
+    attributes_dict, unmapped = map_attributes(src="condor", dest="csv2", attr_dict=attributes_dict, config=config)
+    
+    # fill missing attributes in filled_job_dict
+    all_keys = list(attributes_dict.keys()) + additional_attributes
+    new_dict.update({key: None for key in all_keys if key not in new_dict})
+
+    return new_dict
+
+
 def if_null(val, col=None):
     if col:
         if val:
@@ -417,7 +431,6 @@ def job_poller():
     inventory = {}
     delete_cycle = True
     cycle_count = 0
-    condor_inventory_built = False
     uncommitted_updates = 0
     failure_dict = {}
 
@@ -548,14 +561,6 @@ def job_poller():
                     elif fail_count > 1500:
                         logging.critical("Over 1500 failed polls on host: %s, Configuration error or condor issues" % (fail_count, condor_host))
                     continue
-
-
-                if not condor_inventory_built:
-                    # New version of inventory functions:
-                    where_clause = "htcondor_host_id='%s'" % config.local_host_id
-                    rc, msg, rows = config.db_query(JOB, where=where_clause)
-                    inventory_get_item_hash_from_db_query_rows(ikey_names, rows)
-                    condor_inventory_built = True
 
                 # Retrieve jobs.
                 
@@ -718,8 +723,12 @@ def job_poller():
                     # Check if this item has changed relative to the local cache, skip it if it's unchanged
                     # old inventory function
                     #if test_and_set_inventory_item_hash(inventory, job_dict["group_name"], "-", job_dict["global_job_id"], job_dict, new_poll_time, debug_hash=(config.categories["condor_poller.py"]["log_level"]<20)):
+                    
+                    # fill any missing keys in job_dict with None
+                    filled_job_dict = fill_attributes(job_dict, job_attributes, config, ["hold_job_reason", "target_alias"])
+
                     # New inventory function:
-                    if inventory_test_and_set_item_hash(ikey_names, job_dict, inventory, new_poll_time, debug_hash=(config.categories["condor_poller.py"]["log_level"]<20)):
+                    if inventory_test_and_set_item_hash(ikey_names, filled_job_dict, inventory, new_poll_time, debug_hash=(config.categories["condor_poller.py"]["log_level"]<20)):
                         continue
 
                     try:
@@ -1024,7 +1033,11 @@ def machine_poller():
                     # Check if this item has changed relative to the local cache, skip it if it's unchanged
                     # old inventory func
                     #if test_and_set_inventory_item_hash(inventory, r_dict["group_name"], r_dict["cloud_name"], r_dict["name"], r_dict, new_poll_time, debug_hash=(config.categories["condor_poller.py"]["log_level"]<20)):
-                    if inventory_test_and_set_item_hash(ikey_names, r_dict, inventory, new_poll_time, debug_hash=(config.categories["condor_poller.py"]["log_level"]<20)):
+
+                    # fill any missing keys in job_dict with None
+                    filled_r_dict = fill_attributes(r_dict, resource_attributes, config)
+
+                    if inventory_test_and_set_item_hash(ikey_names, filled_r_dict, inventory, new_poll_time, debug_hash=(config.categories["condor_poller.py"]["log_level"]<20)):
                         continue
 
                     try:
