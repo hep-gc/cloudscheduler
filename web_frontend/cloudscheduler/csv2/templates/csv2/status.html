@@ -312,6 +312,9 @@
                             <!-- Jobs expand row to show cores-->
                             <tr class="extra-row" id="expand-jobs-{{group.group_name}}{% if jobs_by_target_alias_flag %}-{{group.target_alias}}{% endif %}">
                                 <td onclick="toggle_id('expand-jobs-{{group.group_name}}{% if jobs_by_target_alias_flag %}-{{group.target_alias}}{% endif %}')"></td>
+                                {% if jobs_by_target_alias_flag %}
+                                    <td></td>
+                                {% endif %}
                                 <td></td>
                                 <td colspan="5">
                                     <table class="job-extra-row">
@@ -371,7 +374,6 @@
 
                                 <td class="col-spacer">&nbsp;</td>
 
-                                <td></td>
                                 <td></td>
                                 <td></td>
                                 <td data-path="{{group.group_name}} jobs_condor_days_left" class="zero-style float-center">
