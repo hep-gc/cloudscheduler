@@ -36,33 +36,21 @@ window.onclick = function(event) {
     }
 }
 
-var statusTables = document.getElementsByClassName("status-table");
-var navbar = document.getElementsByClassName("top-nav")[0];
+var statusTables; var navbar;
 
 // table one
-var tableOneHeaders = document.getElementsByClassName("header-row")[0];
-var tableOne = statusTables[0].getElementsByTagName("table")[0];
-var tableOneData = tableOne.getElementsByTagName("td");
+var tableOneHeaders, tableOne, tableOneData;
 
 // table one initial dimensions
-var offsetOne = document.querySelector("div[class^='main-div']").offsetTop;
-var tableOneHeight = tableOne.clientHeight;
-var headerWidthOne = [];
-var dataWidthOne = [];
-computeDimensions(headerWidthOne, dataWidthOne, tableOneHeaders, tableOneData, 15)
+var offsetOne, tableOneHeight, headerWidthOne, dataWidthOne;
 
 // table two
-var tableTwoHeaders = document.getElementsByClassName("header-row")[1];
-var tableTwo = statusTables[1].getElementsByTagName("table")[0];
-var tableTwoData = tableTwo.getElementsByTagName("td");
+var tableTwoHeaders, tableTwo, tableTwoData;
 
 // table two initial dimensions
-var offsetTwo = tableTwo.parentElement.offsetTop;
-var tableTwoHeight = tableTwo.clientHeight;
-var headerWidthTwo = [];
-var dataWidthTwo = [];
-computeDimensions(headerWidthTwo, dataWidthTwo, tableTwoHeaders, tableTwoData, 29);
-computeStartEnd();
+var offsetTwo, tableTwoHeight, headerWidthTwo, dataWidthTwo;
+
+computeValues();
 
 var plot = document.getElementsByClassName("plot-div")[0];
 var plotState = plot.style.display;
@@ -76,6 +64,49 @@ var observer = new MutationObserver(function () {
 observer.observe(plot, {attributes: true});
 
 window.onresize = function () {
+    recomputeHeaders();
+}
+
+window.onscroll = function () {
+    computeStartEnd();
+}
+
+/** computes the inital values of the tables */
+function computeValues() {
+    // computes the initial values for the sticky headers
+    statusTables = document.getElementsByClassName("status-table");
+    navbar = document.getElementsByClassName("top-nav")[0];
+
+    // table one
+    tableOneHeaders = document.getElementsByClassName("header-row")[0];
+    tableOne = statusTables[0].getElementsByTagName("table")[0];
+    tableOneData = tableOne.getElementsByTagName("td");
+
+    // table one initial dimensions
+    offsetOne = document.querySelector("div[class^='main-div']").offsetTop;
+    tableOneHeight = tableOne.clientHeight;
+    headerWidthOne = [];
+    dataWidthOne = [];
+    computeDimensions(headerWidthOne, dataWidthOne, tableOneHeaders, tableOneData, 15)
+
+    // table two
+    tableTwoHeaders = document.getElementsByClassName("header-row")[1];
+    tableTwo = statusTables[1].getElementsByTagName("table")[0];
+    tableTwoData = tableTwo.getElementsByTagName("td");
+
+    // table two initial dimensions
+    offsetTwo = tableTwo.parentElement.offsetTop;
+    tableTwoHeight = tableTwo.clientHeight;
+    headerWidthTwo = [];
+    dataWidthTwo = [];
+
+    computeDimensions(headerWidthOne, dataWidthOne, tableOneHeaders, tableOneData, 15)
+    computeDimensions(headerWidthTwo, dataWidthTwo, tableTwoHeaders, tableTwoData, 29);
+    computeStartEnd();
+}
+
+/** computes the location and height of the tables */
+function recomputeHeaders() {
     // remove the sticky header to ensure correct inital dimensions
     tableOneHeaders.classList.remove("sticky-top");
     tableTwoHeaders.classList.remove("sticky-top");
@@ -92,10 +123,7 @@ window.onresize = function () {
     computeStartEnd();
 }
 
-window.onscroll = function () {
-    computeStartEnd();
-}
-
+/** computes the starting and ending points for each table */
 function computeStartEnd() {
     plotHeight = plotState == "block" ? plot.clientHeight : 0;
 
@@ -221,6 +249,8 @@ function toggle_id(name){
         document.getElementById(name).style.display = "table-row"
         sessionStorage.setItem(name, 1);
     }
+
+    recomputeHeaders();
 }
 
 function toggle_group(name){
@@ -243,6 +273,8 @@ function toggle_group(name){
             sessionStorage.setItem(document.getElementsByClassName(name)[n].id, 1);
         }
     }
+
+    recomputeHeaders();
 }
 
 
@@ -265,6 +297,7 @@ function set_state(){
 /* Add event listeners*/
 function initialize(){
     addEventListeners("plottable");
+    computeValues();
 }
 
 
