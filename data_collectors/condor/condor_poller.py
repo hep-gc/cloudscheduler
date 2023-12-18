@@ -1229,10 +1229,11 @@ def worker_gsi_poller():
 
                 if worker_cert['eol']:
                     days_until_eol = (datetime.datetime(*time.gmtime(worker_cert['eol'])[:6]) - datetime.datetime(*time.gmtime()[:6])).days
-
+                    condor_poller_config = config.categories['condor_poller.py']
+                    
                     if days_until_eol <= config.get_config_by_category('GSI')['GSI']['cert_days_left_bad'] and \
-                        config.categories['condor_poller.py']['sleep_interval_worker_gsi'] > 60:
-                        config.categories['condor_poller.py']['sleep_interval_worker_gsi'] = 60
+                        condor_poller_config['sleep_interval_worker_gsi'] > condor_poller_config['sleep_interval_worker_expiring']:
+                        condor_poller_config['sleep_interval_worker_gsi'] = condor_poller_config['sleep_interval_worker_expiring']
                 
                 try:
                     worker_cert['key'] = zip_base64(config.condor_poller['condor_worker_key'])
@@ -1364,10 +1365,10 @@ def condor_gsi_poller():
             if condor_cert:
                 if condor_cert['eol']:
                     days_until_eol = (datetime.datetime(*time.gmtime(condor_cert['eol'])[:6]) - datetime.datetime(*time.gmtime()[:6])).days
-                    
+                    condor_poller_config = config.categories['condor_poller.py']
                     if days_until_eol <= config.get_config_by_category('GSI')['GSI']['cert_days_left_bad'] and \
-                        config.categories['condor_poller.py']['sleep_interval_condor_gsi'] > 60:
-                        config.categories['condor_poller.py']['sleep_interval_condor_gsi'] = 60
+                        condor_poller_config['sleep_interval_condor_gsi'] > condor_poller_config['sleep_interval_condor_expiring']:
+                        condor_poller_config['sleep_interval_condor_gsi'] = condor_poller_config['sleep_interval_condor_expiring']
                 
                 try:
                     config.db_execute('update csv2_groups set %s,htcondor_gsi_eol=%d where htcondor_fqdn="%s";' % (if_null(condor_cert['subject'], col='htcondor_gsi_dn'), condor_cert['eol'], condor))
