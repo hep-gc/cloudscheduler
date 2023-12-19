@@ -28,7 +28,7 @@ from cloudscheduler.lib.watchdog_utils import watchdog_send_heartbeat
 import htcondor
 import classad
 import boto3
-
+import datetime
 
 MASTER_TYPE = htcondor.AdTypes.Master
 STARTD_TYPE = htcondor.AdTypes.Startd
@@ -1227,6 +1227,14 @@ def worker_gsi_poller():
                 except:
                     logging.info("Unable to find condor_worker_cert from local configuration.")
 
+                if worker_cert['eol']:
+                    days_until_eol = (datetime.datetime(*time.gmtime(worker_cert['eol'])[:6]) - datetime.datetime(*time.gmtime()[:6])).days
+                    condor_poller_config = config.categories['condor_poller.py']
+                    
+                    if days_until_eol <= config.get_config_by_category('GSI')['GSI']['cert_days_left_bad'] and \
+                        condor_poller_config['sleep_interval_worker_gsi'] > condor_poller_config['sleep_interval_worker_expiring']:
+                        condor_poller_config['sleep_interval_worker_gsi'] = condor_poller_config['sleep_interval_worker_expiring']
+                
                 try:
                     worker_cert['key'] = zip_base64(config.condor_poller['condor_worker_key'])
                     if worker_cert['key'] == 'unreadable':
@@ -1353,8 +1361,15 @@ def condor_gsi_poller():
 
             if condor_hostcert:
                 condor_cert['subject'], condor_cert['eol'] = get_gsi_cert_subject_and_eol(condor_hostcert)
-            
+
             if condor_cert:
+                if condor_cert['eol']:
+                    days_until_eol = (datetime.datetime(*time.gmtime(condor_cert['eol'])[:6]) - datetime.datetime(*time.gmtime()[:6])).days
+                    condor_poller_config = config.categories['condor_poller.py']
+                    if days_until_eol <= config.get_config_by_category('GSI')['GSI']['cert_days_left_bad'] and \
+                        condor_poller_config['sleep_interval_condor_gsi'] > condor_poller_config['sleep_interval_condor_expiring']:
+                        condor_poller_config['sleep_interval_condor_gsi'] = condor_poller_config['sleep_interval_condor_expiring']
+                
                 try:
                     config.db_execute('update csv2_groups set %s,htcondor_gsi_eol=%d where htcondor_fqdn="%s";' % (if_null(condor_cert['subject'], col='htcondor_gsi_dn'), condor_cert['eol'], condor))
                     config.db_commit()
