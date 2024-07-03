@@ -173,7 +173,7 @@ EOF
 ###
     check_sw boto3 1.9.130
     #figure out a good version for htcondor depending on the installed condor server version
-    check_sw htcondor $(pip3 install htcondor== 2>&1 |sed 's/ /\n/g;s/,//g;s/)//g;'|grep $(condor_version |grep Version|cut -d" " -f2|cut -d "." -f1,2)|tail -n1)
+    check_sw htcondor $(pip3 install htcondor==0 2>&1 |sed 's/ /\n/g;s/,//g;s/)//g;'|grep $(condor_version |grep Version|cut -d" " -f2|cut -d "." -f1,2)|tail -n1)
     check_sw mysql-connector 2.2.9
     check_sw psutil 5.4.6
     check_sw PyYAML 5.1.0
