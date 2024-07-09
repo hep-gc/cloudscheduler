@@ -183,7 +183,7 @@ def get_gsi_cert_subject_and_eol(cert):
 
 def get_master_classad(session, machine, hostname):
     try:
-        if machine is not "":
+        if machine != "":
             condor_classad = session.query(MASTER_TYPE, 'Name=="%s"' % machine)[0]
         else:
             condor_classad = session.query(MASTER_TYPE, 'regexp("%s", Name, "i")' % hostname)[0]
