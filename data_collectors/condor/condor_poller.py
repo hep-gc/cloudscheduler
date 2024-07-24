@@ -1220,7 +1220,7 @@ def worker_gsi_poller():
 
 
             #if 'GSI_DAEMON_CERT' in htcondor.param or config.condor_poller["token_auth"]:
-            if config.condor_poller['condor_worker_cert'] is not None and config.condor_poller['condor_worker_cert'] != "":
+            if 'condor_worker_cert' in config.condor_poller and config.condor_poller['condor_worker_cert'] is not None and config.condor_poller['condor_worker_cert'] != "":
                 try:
                     worker_cert['subject'], worker_cert['eol'] = get_gsi_cert_subject_and_eol(config.condor_poller['condor_worker_cert'])
                     worker_cert['cert'] = zip_base64(config.condor_poller['condor_worker_cert'])
