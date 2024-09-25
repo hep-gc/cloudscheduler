@@ -1550,6 +1550,8 @@ if __name__ == '__main__':
             config.update_service_catalog()
             stop = check_pid(PID_FILE)
             procMon.check_processes(stop=stop)
+            if stop:
+                break
             time.sleep(config.categories["ProcessMonitor"]["sleep_interval_main_long"])
 
     except (SystemExit, KeyboardInterrupt):
