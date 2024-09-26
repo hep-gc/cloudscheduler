@@ -14,34 +14,83 @@
 ### 10. Checks/installs prerequisite pip modules.
 ### 11. Installs, enables, and starts csv2-condor-poller initd/systemd service.
 ###
+parse_version () {
+	#takes a package version string and returns a string of numbers
+	# "epoch v1 v2 v3 v4 ... " with any non-numeric versions discarded
+
+	#split into [epoch, everything else]
+	ver=(${1//!/ })
+	#if the array is length 1, set epoch to 0
+	if [ ${#ver[@]} -eq 1 ]; then
+		tempvar="0.$1"
+		ver=(${tempvar//./ })
+	else
+		epoch=${ver[0]}
+		tempvar="$epoch.${ver[1]}"
+		ver=(${tempvar//./ })
+	fi
+	# find first non-numeric element
+	index=0
+	for i in ${ver[@]}; do
+		if [[ $i =~ ^[0-9]+$ ]]; then
+			index=$(($index + 1))
+		else
+			break
+		fi
+	done
+	# delete non-numeric entries
+	length=${#ver[@]}
+	for ((i=$index;i<length;i++)); do
+		unset ver[$i]
+	done
+
+	#return string
+	echo "${ver[@]}"
+}
+
+is_a_newer_than_b () {
+	# compares if package a is newer than package b
+	# $1 = package a version string
+	# $2 = package b version string
+
+	newer=false
+	# get the version arrays
+	astr=$(parse_version $1)
+	A=(${astr// / })
+
+	bstr=$(parse_version $2)
+	B=(${bstr// / })
+	# get min length
+	min=${#A[@]}
+	if [ $min -gt ${#B[@]} ]; then
+		min=${#B[@]}
+	fi
+
+	#compare each number in min length until a difference is found
+	for ((i=0;i<$min;i++)); do
+		if [ ${A[$i]} -gt ${B[$i]} ]; then
+			newer=true
+			break
+		fi
+	done
+
+	echo $newer
+}
 check_sw () {
     # $1 - package
     # $2 - tested version
 
-    IFS=. read tv1 tv2 tv3 <<EOF
-$2
-EOF
-    TV=$(( ( ( ( $tv1 * 1000 ) + $tv2 ) * 1000 ) + $tv3 ))
-
+    TV=$2
     version=$(python3 -m pip show $1 | awk '/^Version/ {print $2}')
-    IFS=. read av1 av2 av3 <<EOF
-$version
-EOF
-
-    if [ "$av3" == "" ]; then
-        av3='0'
-    fi
-
+    AV=$version
     if [ "$version" == "" ]; then
         echo "Installing python package '$1', version '$2'."
         python3 -m pip install "$1==$2"
     else
-        AV=$(( ( ( ( $av1 * 1000 ) + $av2 ) * 1000 ) + $av3 ))
-
-        if [ $AV -gt $TV ]; then
+        if $(is_a_newer_than_b $AV $TV); then
            echo "Warning: The python package '$1', version '$version' is installed.  This is a later version than tested ($2)."
 
-        elif [ $AV -lt $TV ]; then
+        elif $(is_a_newer_than_b $TV $AV); then
             echo "The python package '$1' version '$version' is installed, updating package to tested vesion '$2'."
             python3 -m pip install "$1==$2" --upgrade 
         fi
