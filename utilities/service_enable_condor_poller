@@ -6,13 +6,14 @@
 ### 2.  Checks to see if we are running as root.
 ### 3.  Checks to see if we are installed correctly in /opt.
 ### 4.  Checks to see if python3 and header files are installed.
-### 5.  Create the cloudscheduler user and group.
-### 6.  Add the condor user to the cloudscheduler group.
-### 7.  Create the cloudscheduler run directory
-### 8.  Create the cloudscheduler logging directory.
-### 9.  Creates a python3 virtual environment.
-### 10. Checks/installs prerequisite pip modules.
-### 11. Installs, enables, and starts csv2-condor-poller initd/systemd service.
+### 5.  Checks to see if gcc is installed
+### 6.  Create the cloudscheduler user and group.
+### 7.  Add the condor user to the cloudscheduler group.
+### 8.  Create the cloudscheduler run directory
+### 9.  Create the cloudscheduler logging directory.
+### 10.  Creates a python3 virtual environment.
+### 11. Checks/installs prerequisite pip modules.
+### 12. Installs, enables, and starts csv2-condor-poller initd/systemd service.
 ###
 parse_version () {
 	#takes a package version string and returns a string of numbers
@@ -155,7 +156,17 @@ EOF
     fi
 
 ###
-### 5.  Create the cloudscheduler user and group.
+### 5.  Checks to see if gcc is installed (this is required to install some python packages)
+###
+    gcc_ver=$(gcc --version 2>/dev/null)
+    returncode=$?
+    if [ $returncode -ne 0 ]; then
+        echo 'ERROR: You need to install gcc before we can proceed.'
+        exit 1
+    fi
+
+###
+### 6.  Create the cloudscheduler user and group.
 ###
     id cloudscheduler >/dev/null 2>&1
     if [ $? -ne 0 ]; then
@@ -163,12 +174,12 @@ EOF
     fi
 
 ###
-### 6.  Add the condor user to the cloudscheduler group.
+### 7.  Add the condor user to the cloudscheduler group.
 ###
     usermod -a -G cloudscheduler condor
 
 ###
-### 7.  Create the cloudscheduler run directory
+### 8.  Create the cloudscheduler run directory
 ###
     mkdir -p /var/local/cloudscheduler/run
     chown cloudscheduler.cloudscheduler /var/local/cloudscheduler
@@ -177,14 +188,14 @@ EOF
     chmod 0775 /var/local/cloudscheduler/run
 
 ###
-### 8.  Create the cloudscheduler log directory.
+### 9.  Create the cloudscheduler log directory.
 ###
     mkdir -p /var/log/cloudscheduler
     chown cloudscheduler.cloudscheduler /var/log/cloudscheduler
     chmod 0775 /var/log/cloudscheduler
 
 ###
-### 9.  Creates a python3 virtual environment.
+### 10.  Creates a python3 virtual environment.
 ###
     stat /opt/cloudscheduler/python3 >/dev/null 2>&1
     if [ $? -ne 0 ]; then
@@ -207,7 +218,7 @@ EOF
 
 
 ###
-### 10. Checks/installs prerequisite pip modules.
+### 11. Checks/installs prerequisite pip modules.
 ###
     check_sw boto3 1.9.130
     #figure out a good version for htcondor depending on the installed condor server version
@@ -220,7 +231,7 @@ EOF
     check_sw python-novaclient 10.3.0
 
 ###
-### 11. Installs, enables, and starts csv2-condor-poller initd/systemd service.
+### 12. Installs, enables, and starts csv2-condor-poller initd/systemd service.
 ###
     if [ $systemctl -eq 1 ]; then
         cp /opt/cloudscheduler/etc/init.d/csv2-condor-poller.pfile /etc/init.d/csv2-condor-poller
