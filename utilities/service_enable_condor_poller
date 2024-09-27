@@ -74,6 +74,10 @@ is_a_newer_than_b () {
 			break
 		fi
 	done
+	# if the first $min entries in A and B are equal and A is longer, A is newer
+	if [ "$(printf "%s " "${A[@]:0:$min}")" == "$(printf "%s " "${B[@]:0:$min}")" ] && [ ${#A[@]} -gt $min ];then
+		newer=true
+	fi
 
 	echo $newer
 }
