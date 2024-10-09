@@ -71,7 +71,7 @@ class TestStatus(unittest.TestCase):
         for header in th_elems:
             # Some headers may have tables within them to position parent headers over children headers. We want the headers inside these subtables, but not the tables themselves.
             try:
-                header.find_element_by_tag_name('table')
+                header.find_element(By.TAG_NAME, 'table')
             except NoSuchElementException:
                 actual_headers.append(header.text)
         self.assertEqual(actual_headers, expected_headers)
