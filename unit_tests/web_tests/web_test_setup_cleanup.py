@@ -17,7 +17,7 @@ def setup(cls, profile, objects, browser='firefox'):
     if browser == 'firefox':
         options = webdriver.FirefoxOptions()
 
-        # options.add_argument('--headless') # TODO: add flag for this
+        options.add_argument('--headless') # TODO: add flag for this
         
         cls.driver = webdriver.Firefox(options=options)
     elif browser == 'chromium':
@@ -25,9 +25,8 @@ def setup(cls, profile, objects, browser='firefox'):
         # This line prevents Chromedriver hanging (see here: https://
         # stackoverflow.com/questions/51959986/how-to-solve-selenium-
         # chromedriver-timed-out-receiving-message-from-renderer-exc)
-        
-        # options.add_argument('--headless')    
 
+        options.add_argument('--headless')
         options.add_argument('--no-sandbox') # When running as root
         options.add_argument('--disable-gpu')
         options.add_argument('--start-maximized')
@@ -35,6 +34,8 @@ def setup(cls, profile, objects, browser='firefox'):
         cls.driver = webdriver.Chrome(options=options)
     elif browser == 'chrome':
         options = webdriver.ChromeOptions()
+
+        options.add_argument('--headless')
         options.add_argument('--no-sandbox') # When running as root
         options.add_argument('--disable-gpu')
         options.add_argument('--start-maximized')
@@ -42,11 +43,14 @@ def setup(cls, profile, objects, browser='firefox'):
         cls.driver = webdriver.Chrome(options=options)
     elif browser == 'opera': 
         options = webdriver.ChromeOptions()
+        
+        options.add_argument('--headless')    
         options.add_argument('--no-sandbox') # When running as root
         options.add_argument('--disable-gpu')
         options.add_argument('--start-maximized')
+        options.add_experimental_option('w3c', True)
         options.binary_location = '/usr/bin/opera'
-        cls.driver = webdriver.Opera(options=options)
+        cls.driver = webdriver.Chrome(options=options)
     cls.driver.get('https://' + cls.gvar['user'] + '-wiu' + str(profile) + ':' + cls.gvar['user_secret'] + '@' + cls.gvar['fqdn'] + "/cloud/status")
 
 def setup_objects(objects=[], browser='firefox'):
@@ -128,7 +132,7 @@ def setup_objects(objects=[], browser='firefox'):
             raise SetUpException("cloud add failed - check the server status and openstack status")
     for i in range(0, clouds_num):
         if 'clouds' in objects or 'jobs' in objects:
-            helpers.wait_for_openstack_poller(clouds[i], ['-g', gvar['base_group'], '-vsg', 'default', '-vf', 't1'], output=True)
+            helpers.wait_for_openstack_poller(clouds[i], ['-g', gvar['base_group'], '-vsg', 'default', '-vf', 'm1'], output=True)
     if 'clouds' in objects:
         for i in range(1, 3):
             name = gvar['user'] + '-wim' + str(i) + '.yaml'
