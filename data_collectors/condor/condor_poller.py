@@ -1560,3 +1560,4 @@ if __name__ == '__main__':
         logging.exception("Process Died: %s", ex)
 
     procMon.kill_join_all()
+    exit(0)
