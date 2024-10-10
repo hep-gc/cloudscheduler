@@ -2250,6 +2250,8 @@ if __name__ == '__main__':
             config.update_service_catalog()
             stop = check_pid(PID_FILE)
             procMon.check_processes(stop=stop)
+            if stop:
+                break
             time.sleep(config.categories["ProcessMonitor"]["sleep_interval_main_long"])
 
     except (SystemExit, KeyboardInterrupt):
@@ -2259,3 +2261,4 @@ if __name__ == '__main__':
         logging.exception("Process Died: %s", ex)
 
     procMon.kill_join_all()
+    exit(0)
