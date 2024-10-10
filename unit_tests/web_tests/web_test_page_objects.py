@@ -1095,7 +1095,7 @@ class ImagesPage(Page):
         alert.dismiss()
 
     def find_non_matching_image(self, pattern):
-        images = self.driver.find_elements_by_tag_name('b')
+        images = self.driver.find_elements(By.TAG_NAME, 'b')
         for image in images:
             text = image.text
             if pattern not in text:
@@ -1243,7 +1243,7 @@ class KeysPage(Page):
         wti.click_by_xpath(self.driver, xpath)
 
     def click_cloud_checkbox(self, key, cloud):
-        checkboxes = self.driver.find_elements_by_name(cloud)
+        checkboxes = self.driver.find_elements(By.NAME, cloud)
         cloud_checkbox = None
         for box in checkboxes:
             value = box.get_attribute('value')
@@ -1261,7 +1261,7 @@ class KeysPage(Page):
             return False
 
     def cloud_box_checked(self, key, cloud):
-        checkboxes = self.driver.find_elements_by_name(cloud)
+        checkboxes = self.driver.find_elements(By.NAME, cloud)
         cloud_checkbox = None
         for box in checkboxes:
             value = box.get_attribute('value')
@@ -1496,7 +1496,7 @@ class ConfigPage(Page):
 
     def get_value_delete_cycle_interval(self):
         xpath = wtxs.div_input_by_name(self.active_config, 'delete_cycle_interval')
-        element = self.driver.find_elemen(By.XPATH, xpath)
+        element = self.driver.find_element(By.XPATH, xpath)
         text = element.get_attribute('value')
         return text
 
