@@ -697,9 +697,9 @@ class TestWebCloudCommon(unittest.TestCase):
         # Changes a cloud's vm flavor
         cloud_name = self.gvar['user'] + '-wic1'
         self.page.click_side_button(cloud_name)
-        self.page.select_vm_flavor('s8')
+        self.page.select_vm_flavor('t4')
         self.page.click_update_cloud()
-        wta.assertHasAttribute('cloud', cloud_name, 'vm_flavor', 's8', group=self.gvar['base_group'])
+        wta.assertHasAttribute('cloud', cloud_name, 'vm_flavor', 't4', group=self.gvar['base_group'])
 
     def test_web_cloud_update_vm_keep_alive(self):
         # Changes a cloud's vm keep alive time
