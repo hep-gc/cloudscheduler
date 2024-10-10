@@ -94,7 +94,7 @@ class Page(object):
     def page_blank(self):
         sleep(1)
         xpath = wtxs.all()
-        elements = self.driver.find_elements_by_xpath(xpath)
+        elements = self.driver.find_elements(By.XPATH, xpath)
         if len(elements) <= 3:
             return True
         else:
@@ -395,7 +395,7 @@ class StatusPage(Page):
         xpath = wtxs.axis_data_point('xtick')
         WebDriverWait(self.driver, 20).until(
             EC.presence_of_element_located((By.XPATH, xpath)))
-        elements = self.driver.find_elements_by_xpath(xpath)
+        elements = self.driver.find_elements(By.XPATH, xpath)
         time_element = elements[-1]
         chart_time_time = helpers.parse_datetime(time_element.text)
         chart_time_date = None
@@ -456,7 +456,7 @@ class StatusPage(Page):
     def vm_overlay_rows(self):
         xpath = wtxs.vm_overlay_row()
         try:
-            elements = self.driver.find_elements_by_xpath(xpath)
+            elements = self.driver.find_elements(By.XPATH, xpath)
             return len(elements)
         except NoSuchElementException:
             return 0
@@ -1078,7 +1078,7 @@ class ImagesPage(Page):
 
     def click_cloud_button(self, image, cloud):
         xpath = wtxs.image_cloud_button(image)
-        buttons = self.driver.find_elements_by_xpath(xpath)
+        buttons = self.driver.find_elements(By.XPATH, xpath)
         cloud_button = None
         for button in buttons:
             text = button.get_attribute('onclick')
@@ -1107,7 +1107,7 @@ class ImagesPage(Page):
         try:
             WebDriverWait(self.driver, 30).until(
                 EC.presence_of_element_located((By.XPATH, xpath)))
-            elements = self.driver.find_elements_by_xpath(xpath)
+            elements = self.driver.find_elements(By.XPATH, xpath)
             for element in elements:
                 if element.is_displayed():
                     return True
@@ -1128,7 +1128,7 @@ class ImagesPage(Page):
     def image_is_public_in_cloud(self, image, cloud):
         sleep(5)
         xpath = wtxs.image_state_box_button(image, 'public')
-        elements = self.driver.find_elements_by_xpath(xpath)
+        elements = self.driver.find_elements(By.XPATH, xpath)
         button = None
         for element in elements:
             text = element.get_attribute('onclick')
@@ -1142,7 +1142,7 @@ class ImagesPage(Page):
     def image_is_private_in_cloud(self, image, cloud):
         sleep(5)
         xpath = wtxs.image_state_box_button(image, 'shared')
-        elements = self.driver.find_elements_by_xpath(xpath)
+        elements = self.driver.find_elements(By.XPATH, xpath)
         button = None
         for element in elements:
             text = element.get_attribute('onclick')
@@ -1156,7 +1156,7 @@ class ImagesPage(Page):
     def image_is_error_in_cloud(self, image, cloud):
         sleep(5)
         xpath = wtxs.image_state_box_button(image, 'error') # TODO: check this
-        elements = self.driver.find_elements_by_xpath(xpath)
+        elements = self.driver.find_elements(By.XPATH, xpath)
         button = None
         for element in elements:
             text = element.get_attribute('onclick')
@@ -1170,7 +1170,7 @@ class ImagesPage(Page):
     def image_is_disabled_in_cloud(self, image, cloud):
         sleep(5)
         xpath = wtxs.image_state_box_button(image, 'missing')
-        elements = self.driver.find_elements_by_xpath(xpath)
+        elements = self.driver.find_elements(By.XPATH, xpath)
         button = None
         for element in elements:
             text = element.get_attribute('onclick')
@@ -1496,7 +1496,7 @@ class ConfigPage(Page):
 
     def get_value_delete_cycle_interval(self):
         xpath = wtxs.div_input_by_name(self.active_config, 'delete_cycle_interval')
-        element = self.driver.find_element(By.XPATH, xpath)
+        element = self.driver.find_elemen(By.XPATH, xpath)
         text = element.get_attribute('value')
         return text
 
