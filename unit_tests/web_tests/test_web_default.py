@@ -263,9 +263,9 @@ class TestWebDefaultCommon(unittest.TestCase):
         # Updates a group's default vm flavor
         self.page.click_side_button(self.group_name)
         self.page.click_side_tab('Settings')
-        self.page.select_vm_flavor('s8')
+        self.page.select_vm_flavor('t4')
         self.page.click_update_group()
-        wta.assertHasAttribute('group', self.group_name, 'vm_flavor', 's8', group=self.group_name, defaults=True)
+        wta.assertHasAttribute('group', self.group_name, 'vm_flavor', 't4', group=self.group_name, defaults=True)
 
     def test_web_default_update_vm_network(self):
         # Updates a group's default vm network

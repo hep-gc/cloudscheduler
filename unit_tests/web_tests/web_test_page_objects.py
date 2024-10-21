@@ -94,7 +94,7 @@ class Page(object):
     def page_blank(self):
         sleep(1)
         xpath = wtxs.all()
-        elements = self.driver.find_elements_by_xpath(xpath)
+        elements = self.driver.find_elements(By.XPATH, xpath)
         if len(elements) <= 3:
             return True
         else:
@@ -323,7 +323,7 @@ class StatusPage(Page):
         else:
             path = group + ' ' +  cloud + ' VMs' + state_tag
         xpath = wtxs.data_box(path)
-        element = self.driver.find_element_by_xpath(xpath)
+        element = self.driver.find_element(By.XPATH, xpath)
         text = element.text
         return int(text)
 
@@ -346,7 +346,7 @@ class StatusPage(Page):
 
     def job_group_expanded(self, group):
         self.job_group_exists(group)
-        element = self.driver.find_element_by_id('expand-jobs-' + group.lower())
+        element = self.driver.find_element(By.ID, 'expand-jobs-' + group.lower())
         return element.is_displayed()
 
     def vm_group_expanded(self, group):
@@ -356,13 +356,13 @@ class StatusPage(Page):
                 EC.presence_of_element_located((By.XPATH, xpath)))
         except TimeoutException:
             return False
-        element = self.driver.find_element_by_xpath(xpath)
+        element = self.driver.find_element(By.XPATH, xpath)
         return element.is_displayed()
 
     def vm_cloud_expanded(self, group, cloud):
         if cloud == 'Totals':
             cloud = ''
-        element = self.driver.find_element_by_id('expand-' + group + '-' + cloud)
+        element = self.driver.find_element(By.ID, 'expand-' + group + '-' + cloud)
         return element.is_displayed()
 
     def foreign_global_vms_visible(self):
@@ -376,7 +376,7 @@ class StatusPage(Page):
              return False
 
     def plot_open(self):
-        element = self.driver.find_element_by_id('plot')
+        element = self.driver.find_element(By.ID, 'plot')
         return element.is_displayed()
 
     def first_time_on_plot_before_now_within(self, time, units, margin):
@@ -384,7 +384,7 @@ class StatusPage(Page):
         xpath = wtxs.axis_data_point('xtick')
         WebDriverWait(self.driver, 20).until(
             EC.presence_of_element_located((By.XPATH, xpath)))
-        element = self.driver.find_element_by_xpath(xpath)
+        element = self.driver.find_element(By.XPATH, xpath)
         chart_time = helpers.parse_datetime(element.text)
         test_time = helpers.time_before(time, units)
         margin_units = helpers.margin_units_from_units(units)
@@ -395,7 +395,7 @@ class StatusPage(Page):
         xpath = wtxs.axis_data_point('xtick')
         WebDriverWait(self.driver, 20).until(
             EC.presence_of_element_located((By.XPATH, xpath)))
-        elements = self.driver.find_elements_by_xpath(xpath)
+        elements = self.driver.find_elements(By.XPATH, xpath)
         time_element = elements[-1]
         chart_time_time = helpers.parse_datetime(time_element.text)
         chart_time_date = None
@@ -456,7 +456,7 @@ class StatusPage(Page):
     def vm_overlay_rows(self):
         xpath = wtxs.vm_overlay_row()
         try:
-            elements = self.driver.find_elements_by_xpath(xpath)
+            elements = self.driver.find_elements(By.XPATH, xpath)
             return len(elements)
         except NoSuchElementException:
             return 0
@@ -469,7 +469,7 @@ class StatusPage(Page):
         xpath = wtxs.vm_overlay_column_row(row, headings.index(column))
         WebDriverWait(self.driver, 10).until(
             EC.presence_of_element_located((By.XPATH, xpath)))
-        element = self.driver.find_element_by_xpath(xpath)
+        element = self.driver.find_element(By.XPATH, xpath)
         return element.text == str(data)
 
 
@@ -488,7 +488,7 @@ class CloudsPage(Page):
         self.active_metadata = None
 
     def click_add_cloud(self):
-        form = self.driver.find_element_by_id('new_cloud')
+        form = self.driver.find_element(By.ID, 'new_cloud')
         text = form.get_attribute('value')
         xpath = wtxs.form_submit_by_value('add_cloud', 'Add Cloud')
         wti.click_by_xpath(self.driver, xpath)
@@ -595,7 +595,7 @@ class CloudsPage(Page):
 
     def slide_cores_slider(self, value, error):
         xpath = wtxs.form_input_by_name(self.active_cloud, 'cores_slider')
-        slider = self.driver.find_element_by_xpath(xpath)
+        slider = self.driver.find_element(By.XPATH, xpath)
         wti.click_by_xpath(self.driver, xpath)
         offset = 1
         wti.slide_slider_by_xpath(self.driver, xpath, 2, 5)
@@ -609,7 +609,7 @@ class CloudsPage(Page):
 
     def increment_cores_by_arrows(self, value):
         xpath = wtxs.form_input_by_name(self.active_cloud, 'cores_ctl')
-        element = self.driver.find_element_by_xpath(xpath)
+        element = self.driver.find_element(By.XPATH, xpath)
         start = int(element.get_attribute('value'))
         if start < value:
             for i in range(start, value):
@@ -620,7 +620,7 @@ class CloudsPage(Page):
 
     def slide_ram_slider(self, value, error):
         xpath = wtxs.form_input_by_name(self.active_cloud, 'ram_slider')
-        slider = self.driver.find_element_by_xpath(xpath)
+        slider = self.driver.find_element(By.XPATH, xpath)
         wti.click_by_xpath(self.driver, xpath)
         offset = 1
         wti.slide_slider_by_xpath(self.driver, xpath, 2, 5)
@@ -634,7 +634,7 @@ class CloudsPage(Page):
 
     def increment_ram_by_arrows(self, value):
         xpath = wtxs.form_input_by_name(self.active_cloud, 'ram_ctl')
-        element = self.driver.find_element_by_xpath(xpath)
+        element = self.driver.find_element(By.XPATH, xpath)
         start = int(element.get_attribute('value'))
         if start < value:
             for i in range(start, value):
@@ -684,7 +684,7 @@ class CloudsPage(Page):
     def increment_metadata_priority_by_arrows(self, priority):
         WebDriverWait(self.driver, 20).until(
             EC.presence_of_element_located((By.NAME, 'priority')))
-        element = self.driver.find_element_by_name('priority')
+        element = self.driver.find_element(By.NAME, 'priority')
         start = int(element.get_attribute('value'))
         if start < priority:
             for i in range(start, priority):
@@ -700,7 +700,7 @@ class CloudsPage(Page):
         wti.fill_blank_by_tag_name(self.driver, 'textarea', metadata)
 
     def click_metadata_add(self):
-        form = self.driver.find_element_by_name('metadata_name')
+        form = self.driver.find_element(By.NAME, 'metadata_name')
         text = form.get_attribute('value')
         xpath = wtxs.form_input_by_value('metadata-form', 'Add')
         wti.click_by_xpath(self.driver, xpath)
@@ -942,7 +942,7 @@ class DefaultsPage(Page):
     def increment_metadata_priority_by_arrows(self, priority):
         WebDriverWait(self.driver, 20).until(
             EC.presence_of_element_located((By.NAME, 'priority')))
-        element = self.driver.find_element_by_name('priority')
+        element = self.driver.find_element(By.NAME, 'priority')
         start = int(element.get_attribute('value'))
         if start < priority:
             for i in range(start, priority):
@@ -958,7 +958,7 @@ class DefaultsPage(Page):
         wti.fill_blank_by_tag_name(self.driver, 'textarea', metadata)
 
     def click_metadata_add(self):
-        form = self.driver.find_element_by_name('metadata_name')
+        form = self.driver.find_element(By.NAME, 'metadata_name')
         text = form.get_attribute('value')
         xpath = wtxs.form_input_by_value('metadata-form', 'Add')
         wti.click_by_xpath(self.driver, xpath)
@@ -1039,7 +1039,7 @@ class ImagesPage(Page):
         # It will fail because of the Chrome typing workaround
         WebDriverWait(self.driver, 20).until(
             EC.presence_of_element_located((By.NAME, 'myfile')))
-        file_path_blank = self.driver.find_element_by_name('myfile')
+        file_path_blank = self.driver.find_element(By.NAME, 'myfile')
         file_path_blank.send_keys(path)
 
     def type_image_url(self, url):
@@ -1078,7 +1078,7 @@ class ImagesPage(Page):
 
     def click_cloud_button(self, image, cloud):
         xpath = wtxs.image_cloud_button(image)
-        buttons = self.driver.find_elements_by_xpath(xpath)
+        buttons = self.driver.find_elements(By.XPATH, xpath)
         cloud_button = None
         for button in buttons:
             text = button.get_attribute('onclick')
@@ -1095,7 +1095,7 @@ class ImagesPage(Page):
         alert.dismiss()
 
     def find_non_matching_image(self, pattern):
-        images = self.driver.find_elements_by_tag_name('b')
+        images = self.driver.find_elements(By.TAG_NAME, 'b')
         for image in images:
             text = image.text
             if pattern not in text:
@@ -1107,7 +1107,7 @@ class ImagesPage(Page):
         try:
             WebDriverWait(self.driver, 30).until(
                 EC.presence_of_element_located((By.XPATH, xpath)))
-            elements = self.driver.find_elements_by_xpath(xpath)
+            elements = self.driver.find_elements(By.XPATH, xpath)
             for element in elements:
                 if element.is_displayed():
                     return True
@@ -1116,19 +1116,19 @@ class ImagesPage(Page):
             return False
 
     def is_checkbox_selected(self, checkbox_id):
-        checkbox = self.driver.find_element_by_id(checkbox_id)
+        checkbox = self.driver.find_element(By.ID, checkbox_id)
         return checkbox.is_selected()
 
     def click_checkbox(self, checkbox_id):
         # wti.click_by_id(checkbox_id)
-        checkbox = self.driver.find_element_by_id(checkbox_id)
+        checkbox = self.driver.find_element(By.ID, checkbox_id)
         checkbox.click()
         sleep(3)
 
     def image_is_public_in_cloud(self, image, cloud):
         sleep(5)
         xpath = wtxs.image_state_box_button(image, 'public')
-        elements = self.driver.find_elements_by_xpath(xpath)
+        elements = self.driver.find_elements(By.XPATH, xpath)
         button = None
         for element in elements:
             text = element.get_attribute('onclick')
@@ -1142,7 +1142,7 @@ class ImagesPage(Page):
     def image_is_private_in_cloud(self, image, cloud):
         sleep(5)
         xpath = wtxs.image_state_box_button(image, 'shared')
-        elements = self.driver.find_elements_by_xpath(xpath)
+        elements = self.driver.find_elements(By.XPATH, xpath)
         button = None
         for element in elements:
             text = element.get_attribute('onclick')
@@ -1156,7 +1156,7 @@ class ImagesPage(Page):
     def image_is_error_in_cloud(self, image, cloud):
         sleep(5)
         xpath = wtxs.image_state_box_button(image, 'error') # TODO: check this
-        elements = self.driver.find_elements_by_xpath(xpath)
+        elements = self.driver.find_elements(By.XPATH, xpath)
         button = None
         for element in elements:
             text = element.get_attribute('onclick')
@@ -1170,7 +1170,7 @@ class ImagesPage(Page):
     def image_is_disabled_in_cloud(self, image, cloud):
         sleep(5)
         xpath = wtxs.image_state_box_button(image, 'missing')
-        elements = self.driver.find_elements_by_xpath(xpath)
+        elements = self.driver.find_elements(By.XPATH, xpath)
         button = None
         for element in elements:
             text = element.get_attribute('onclick')
@@ -1243,7 +1243,7 @@ class KeysPage(Page):
         wti.click_by_xpath(self.driver, xpath)
 
     def click_cloud_checkbox(self, key, cloud):
-        checkboxes = self.driver.find_elements_by_name(cloud)
+        checkboxes = self.driver.find_elements(By.NAME, cloud)
         cloud_checkbox = None
         for box in checkboxes:
             value = box.get_attribute('value')
@@ -1261,7 +1261,7 @@ class KeysPage(Page):
             return False
 
     def cloud_box_checked(self, key, cloud):
-        checkboxes = self.driver.find_elements_by_name(cloud)
+        checkboxes = self.driver.find_elements(By.NAME, cloud)
         cloud_checkbox = None
         for box in checkboxes:
             value = box.get_attribute('value')
@@ -1298,7 +1298,7 @@ class UsersPage(Page):
         self.active_user = 'add_user'
 
     def click_add_user(self):
-        form = self.driver.find_element_by_id('new_user')
+        form = self.driver.find_element(By.ID, 'new_user')
         text = form.get_attribute('value')
         xpath = wtxs.form_submit_by_value('add_user', 'Add user')
         wti.click_by_xpath(self.driver, xpath)
@@ -1388,7 +1388,7 @@ class GroupsPage(Page):
         self.active_group = 'add_group'
 
     def click_add_group(self):
-        form = self.driver.find_element_by_id('new_group')
+        form = self.driver.find_element(By.ID, 'new_group')
         text = form.get_attribute('value')
         xpath = wtxs.form_submit_by_value('add_group', 'Add Group')
         wti.click_by_xpath(self.driver, xpath)
@@ -1476,7 +1476,7 @@ class ConfigPage(Page):
 
     def get_value_batch_commit_size(self):
         xpath = wtxs.div_input_by_name(self.active_config, 'batch_commit_size')
-        element = self.driver.find_element_by_xpath(xpath)
+        element = self.driver.find_element(By.XPATH, xpath)
         value = element.get_attribute('value')
         return value
 
@@ -1486,7 +1486,7 @@ class ConfigPage(Page):
 
     def get_value_ca_certs(self):
         xpath = wtxs.div_input_by_name(self.active_config, 'cacerts')
-        element = self.driver.find_element_by_xpath(xpath)
+        element = self.driver.find_element(By.XPATH, xpath)
         value = element.get_attribute('value')
         return value
 
@@ -1496,7 +1496,7 @@ class ConfigPage(Page):
 
     def get_value_delete_cycle_interval(self):
         xpath = wtxs.div_input_by_name(self.active_config, 'delete_cycle_interval')
-        element = self.driver.find_element_by_xpath(xpath)
+        element = self.driver.find_element(By.XPATH, xpath)
         text = element.get_attribute('value')
         return text
 
@@ -1506,7 +1506,7 @@ class ConfigPage(Page):
 
     def get_value_log_file(self):
         xpath = wtxs.div_input_by_name(self.active_config, 'log_file')
-        element = self.driver.find_element_by_xpath(xpath)
+        element = self.driver.find_element(By.XPATH, xpath)
         value = element.get_attribute('value')
         return value
 
@@ -1517,7 +1517,7 @@ class ConfigPage(Page):
     def get_text_log_level(self):
         xpath = wtxs.div_select_by_name(self.active_config, 'log_level')
         xpath += "/option[@selected='']"
-        element = self.driver.find_element_by_xpath(xpath)
+        element = self.driver.find_element(By.XPATH, xpath)
         text = element.text
         return text
 
@@ -1527,7 +1527,7 @@ class ConfigPage(Page):
 
     def get_value_retire_interval(self):
         xpath = wtxs.div_input_by_name(self.active_config, 'retire_interval')
-        element = self.driver.find_element_by_xpath(xpath)
+        element = self.driver.find_element(By.XPATH, xpath)
         value = element.get_attribute('value')
         return value
 
@@ -1541,7 +1541,7 @@ class ConfigPage(Page):
 
     def get_value_sleep_interval_command(self):
         xpath = wtxs.div_input_by_name(self.active_config, 'sleep_interval_command')
-        element = self.driver.find_element_by_xpath(xpath)
+        element = self.driver.find_element(By.XPATH, xpath)
         value = element.get_attribute('value')
         return value
 
@@ -1551,7 +1551,7 @@ class ConfigPage(Page):
 
     def get_value_sleep_interval_condor_gsi(self):
         xpath = wtxs.div_input_by_name(self.active_config, 'sleep_interval_condor_gsi')
-        element = self.driver.find_element_by_xpath(xpath)
+        element = self.driver.find_element(By.XPATH, xpath)
         value = element.get_attribute('value')
         return value
 
@@ -1561,7 +1561,7 @@ class ConfigPage(Page):
 
     def get_value_sleep_interval_job(self):
         xpath = wtxs.div_input_by_name(self.active_config, 'sleep_interval_job')
-        element = self.driver.find_element_by_xpath(xpath)
+        element = self.driver.find_element(By.XPATH, xpath)
         value = element.get_attribute('value')
         return value
 
@@ -1571,7 +1571,7 @@ class ConfigPage(Page):
 
     def get_value_sleep_interval_machine(self):
         xpath = wtxs.div_input_by_name(self.active_config, 'sleep_interval_machine')
-        element = self.driver.find_element_by_xpath(xpath)
+        element = self.driver.find_element(By.XPATH, xpath)
         value = element.get_attribute('value')
         return value
 
@@ -1581,7 +1581,7 @@ class ConfigPage(Page):
 
     def get_value_sleep_interval_worker_gsi(self):
         xpath = wtxs.div_input_by_name(self.active_config, 'sleep_interval_worker_gsi')
-        element = self.driver.find_element_by_xpath(xpath)
+        element = self.driver.find_element(By.XPATH, xpath)
         value = element.get_attribute('value')
         return value
 
@@ -1639,7 +1639,7 @@ class SettingsPage(Page):
 
     def increment_status_refresh_by_arrows(self, refresh):
         xpath = wtxs.form_input_by_name_not_hidden(self.active_user, 'status_refresh_interval')
-        element = self.driver.find_element_by_xpath(xpath)
+        element = self.driver.find_element(By.XPATH, xpath)
         start = int(element.get_attribute('value'))
         if start < refresh:
             for i in range(start, refresh):

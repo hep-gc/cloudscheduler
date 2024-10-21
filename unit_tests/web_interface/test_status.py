@@ -37,10 +37,10 @@ class TestStatus(unittest.TestCase):
         except TimeoutException:
             self.fail('Expected the system table ({}) to have rows (<tr>), but did not find any.')
         self.assertEqual(len(system_rows), 3)
-        system_labels = [cell.text for cell in system_rows[2].find_elements_by_tag_name('td')]
+        system_labels = [cell.text for cell in system_rows[2].find_elements(By.TAG_NAME, 'td')]
         self.assertEqual(system_labels, EXPECTED_SYSTEM_LABELS)
         indicator_row = system_rows[1]
-        for cell in indicator_row.find_elements_by_tag_name('td')[-4:]:
+        for cell in indicator_row.find_elements(By.TAG_NAME, 'td')[-4:]:
             cell_wait = wait.WebDriverWait(cell, self.gvar['max_wait'])
             wc.assert_one(cell_wait, self.fail, (By.TAG_NAME, 'meter'))
 
@@ -71,7 +71,7 @@ class TestStatus(unittest.TestCase):
         for header in th_elems:
             # Some headers may have tables within them to position parent headers over children headers. We want the headers inside these subtables, but not the tables themselves.
             try:
-                header.find_element_by_tag_name('table')
+                header.find_element(By.TAG_NAME, 'table')
             except NoSuchElementException:
                 actual_headers.append(header.text)
         self.assertEqual(actual_headers, expected_headers)
