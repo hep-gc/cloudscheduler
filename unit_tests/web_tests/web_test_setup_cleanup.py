@@ -16,8 +16,7 @@ def setup(cls, profile, objects, browser='firefox'):
     cls.gvar = setup_objects(objects, browser)
     if browser == 'firefox':
         options = webdriver.FirefoxOptions()
-
-        options.add_argument('--headless') # TODO: add flag for this
+        options.add_argument('--headless')
         
         cls.driver = webdriver.Firefox(options=options)
     elif browser == 'chromium':
@@ -42,6 +41,8 @@ def setup(cls, profile, objects, browser='firefox'):
         options.binary_location = '/usr/bin/google-chrome'
         cls.driver = webdriver.Chrome(options=options)
     elif browser == 'opera': 
+        # Opera testing currently not functional
+        # setup_scripts/web_test_setup_full_alma9.sh needs a routine for installing a matching chrome-driver 
         options = webdriver.ChromeOptions()
         
         options.add_argument('--headless')    
@@ -51,6 +52,7 @@ def setup(cls, profile, objects, browser='firefox'):
         options.add_experimental_option('w3c', True)
         options.binary_location = '/usr/bin/opera'
         cls.driver = webdriver.Chrome(options=options)
+
     cls.driver.get('https://' + cls.gvar['user'] + '-wiu' + str(profile) + ':' + cls.gvar['user_secret'] + '@' + cls.gvar['fqdn'] + "/cloud/status")
 
 def setup_objects(objects=[], browser='firefox'):

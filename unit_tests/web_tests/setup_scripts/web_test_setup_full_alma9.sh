@@ -68,37 +68,14 @@ if [ "$chromium" = "y" ]; then
     fi
  fi
 
-read -p 'Install Opera? [y/n]: ' opera
-if [ "$opera" = "y" ]; then
-    unzip_path=`which unzip`
-    if [ -z "$unzip_path" ]; then
-        sudo yum -y install unzip
-    fi
-    opera_path=`which opera`
-    if [ -z "$opera_path" ]; then
-        # source for Opera installation: https://linuxconfig.org/how-to-install-opera-web-browser-on-linux
-        sudo rpm --import https://rpm.opera.com/rpmrepo.key
-        sudo tee /etc/yum.repos.d/opera.repo <<RPMREPO
-[opera]
-name=Opera packages
-type=rpm-md
-baseurl=https://rpm.opera.com/rpm
-gpgcheck=1
-gpgkey=https://rpm.opera.com/rpmrepo.key
-enabled=1
-RPMREPO
-        sudo yum -y install opera-stable
-    fi
-    operachromiumdriver_path=`which operadriver`
-    if [ -z "$operachromiumdriver_path" ]; then
-        sudo wget https://github.com/operasoftware/operachromiumdriver/releases/latest/download/operadriver_linux64.zip 
-       sudo unzip operadriver_linux64.zip
-       cd operadriver_linux64
-       sudo cp operadriver ..
-       cd ..
-       sudo chmod +x operadriver
-    fi
-fi
+# read -p 'Install Opera? [y/n]: ' opera
+# if [ "$opera" = "y" ]; then
+
+#     #install opera browser
+
+#     #install chromium driver for installed opera browser version
+
+# fi
 
 read -p 'Install Chrome? [y/n]: ' chrome
 if [ "$chrome" = "y" ]; then
