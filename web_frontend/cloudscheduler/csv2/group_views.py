@@ -18,8 +18,7 @@ from cloudscheduler.lib.view_utils import \
     table_fields, \
     validate_by_filtered_table_entries, \
     validate_fields, \
-    get_file_checksum, \
-    set_user_groups_on_delete
+    get_file_checksum
 from collections import defaultdict
 import bcrypt
 
@@ -660,13 +659,6 @@ def delete(request):
             config.db_close()
             return group_list(request, active_user=active_user, response_code=1, message='%s group flavors delete "%s" failed - %s.' % (lno(MODID), fields['group_name'], msg))
         
-        # Switch away from group being deleted
-        if fields['group_name'] == active_user.active_group:
-            rc, msg, active_user = set_user_groups_on_delete(config, request)
-            if rc != 0:
-                config.db_close()
-                return group_list(request, active_user=active_user, response_code=1, message='%s %s' % (lno(MODID), msg))
-
         # Delete the group.
         table = 'csv2_groups'
         rc, msg = config.db_delete(table, where=where_clause)
