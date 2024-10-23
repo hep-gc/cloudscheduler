@@ -425,11 +425,6 @@ def _requests(gvar, request, form_data={}, query_data={}):
         if x509:
             update_pid_defaults(gvar, server_address=gvar['user_settings']['server-address'], user=x509, group=response['active_group'])
         else:
-            print(f"active group:{response['active_group']}\nactive user:{response['active_user']}")
-            # if response['active_group'] == "g1":
-            #     if input() == "default":
-            #         response['active_group'] = "default"
-            #         response['active_user'] = "tester"
             update_pid_defaults(gvar, server_address=gvar['user_settings']['server-address'], user=response['active_user'], group=response['active_group'])
 
     if 'super_user' in response:
@@ -1209,9 +1204,7 @@ def sys_cmd(cmd, return_stdout_not_rc=True):
 
 #-------------------------------------------------------------------------------
 
-
-# IT will be necessary to check the current pid defaults and verify that they are referencing valid groups and users
-def update_pid_defaults(gvar, server=None, server_address=None, user=None, group=None, Deleted=None):
+def update_pid_defaults(gvar, server=None, server_address=None, user=None, group=None):
     """
     If the process defaults have changed, update and re-write the pid_file.
 
@@ -1221,17 +1214,13 @@ def update_pid_defaults(gvar, server=None, server_address=None, user=None, group
 
     updated = False
 
-    # INITIALIZE DEFAULTS ON NO PID FILE AND NO DEFAULTS
     if 'pid_defaults' not in gvar:
         gvar['pid_defaults'] = {'server': '-', 'server_addresses': {}}
         updated = True
 
-    #only used when a server command is passed 
-    # or when updating server from homedirectory/.csv2/default_server
     if server and gvar['pid_defaults']['server'] != server:
         gvar['pid_defaults']['server'] = server
         updated = True
-
 
     if server_address:
         if server_address not in gvar['pid_defaults']['server_addresses']:
@@ -1239,21 +1228,13 @@ def update_pid_defaults(gvar, server=None, server_address=None, user=None, group
             updated = True
 
         if user and group:
-            # if the user is not in server address dict
-            # or it is not user:group
             if user not in gvar['pid_defaults']['server_addresses'][server_address] or \
                 (user in gvar['pid_defaults']['server_addresses'][server_address] and gvar['pid_defaults']['server_addresses'][server_address][user] != group):
                 gvar['pid_defaults']['server_addresses'][server_address][user] = group
                 updated = True
-            #overwrite old active user/group
-            for u in gvar['pid_defaults']['server_addresses'][server_address]:
-                if u != user:
-                    del gvar['pid_defaults']['server_addresses'][server_address][u] 
-                    updated = True
 
     if updated and gvar['pid_file'] != '-':
         fd = open(gvar['pid_file'], 'w')
-        print(f"Writing to pid:\n{gvar['pid_defaults']}")
         fd.write(yaml.dump(gvar['pid_defaults']))
         fd.close()
 
