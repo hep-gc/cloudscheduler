@@ -18,7 +18,8 @@ from cloudscheduler.lib.view_utils import \
     table_fields, \
     validate_by_filtered_table_entries, \
     validate_fields, \
-    get_file_checksum
+    get_file_checksum, \
+    set_user_groups_delete
 from collections import defaultdict
 import bcrypt
 
@@ -664,6 +665,9 @@ def delete(request):
         rc, msg = config.db_delete(table, where=where_clause)
         if rc == 0:
             # Commit the deletions, configure firewall and return.
+            if fields['group_name'] == active_user.active_group:
+                rc2, msg2, active_user = set_user_groups_delete(config, request)
+                # active_user = None
             config.db_commit()
             configure_fw(config)
             config.db_close()
