@@ -658,7 +658,7 @@ def delete(request):
         if rc != 0:
             config.db_close()
             return group_list(request, active_user=active_user, response_code=1, message='%s group flavors delete "%s" failed - %s.' % (lno(MODID), fields['group_name'], msg))
-        
+
         # Delete the group.
         table = 'csv2_groups'
         rc, msg = config.db_delete(table, where=where_clause)

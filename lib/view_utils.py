@@ -953,7 +953,7 @@ def set_user_groups(config, request, super_user=True):
             rc, msg, csv2_user = config.db_query(table, where=where_clause)
 
             user = None
-            for user in csv2_user: #get the first user matching name, set all their parameters
+            for user in csv2_user:
                 self.username = user['username']
                 self.cert_cn = user['cert_cn']
                 self.is_superuser = user['is_superuser']
@@ -1003,7 +1003,7 @@ def set_user_groups(config, request, super_user=True):
     if super_user and not new_active_user.is_superuser:
         raise PermissionDenied
 
-    if len(new_active_user.user_groups) < 1: 
+    if len(new_active_user.user_groups) < 1:
 #       return 1,'user "%s" is not a member of any group.' % new_active_user.username, new_active_user, new_active_user.user_groups
         return 1,'user "%s" is not a member of any group.' % new_active_user.username, new_active_user
 
