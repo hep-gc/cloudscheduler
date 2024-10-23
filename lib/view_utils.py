@@ -953,7 +953,7 @@ def set_user_groups(config, request, super_user=True):
             rc, msg, csv2_user = config.db_query(table, where=where_clause)
 
             user = None
-            for user in csv2_user:
+            for user in csv2_user: #get the first user matching name, set all their parameters
                 self.username = user['username']
                 self.cert_cn = user['cert_cn']
                 self.is_superuser = user['is_superuser']
@@ -1003,7 +1003,7 @@ def set_user_groups(config, request, super_user=True):
     if super_user and not new_active_user.is_superuser:
         raise PermissionDenied
 
-    if len(new_active_user.user_groups) < 1:
+    if len(new_active_user.user_groups) < 1: #tester is a member of default so skip
 #       return 1,'user "%s" is not a member of any group.' % new_active_user.username, new_active_user, new_active_user.user_groups
         return 1,'user "%s" is not a member of any group.' % new_active_user.username, new_active_user
 
@@ -1013,7 +1013,7 @@ def set_user_groups(config, request, super_user=True):
         new_active_user.active_group = new_active_user.default_group
     else:
         new_active_user.active_group = new_active_user.user_groups[0]
-    
+
     if new_active_user.active_group not in new_active_user.user_groups and new_active_user.active_group != 'ALL':
 #       return 1,'cannot switch to invalid group "%s".' % new_active_user.active_group, new_active_user, new_active_user.user_groups
         return 1,'cannot switch to invalid group "%s".' % new_active_user.active_group, new_active_user
@@ -1022,7 +1022,88 @@ def set_user_groups(config, request, super_user=True):
     return 0, None, new_active_user
 
 #-------------------------------------------------------------------------------
+def set_user_groups_on_delete(config, request, super_user=True):
 
+    class active_user:
+        def __init__(self, config, request):
+            remote_user = request.META.get('REMOTE_USER')
+            table = "view_user_groups"
+
+            where_clause = "username='%s' or cert_cn='%s'" % (remote_user, remote_user)
+            rc, msg, csv2_user = config.db_query(table, where=where_clause)
+
+            user = None
+            for user in csv2_user: #get the first user matching name, set all their parameters
+                self.username = user['username']
+                self.cert_cn = user['cert_cn']
+                self.is_superuser = user['is_superuser']
+                self.join_date = user['join_date']
+                self.active_group = '-'
+                self.default_group = user['default_group']
+
+                if user['user_groups'] and len(user['user_groups']) > 0:
+                    self.user_groups = user['user_groups'].split(',')
+                else:
+                    self.user_groups = []
+
+                if user['available_groups'] and len(user['available_groups']) > 1:
+                    self.available_groups = user['available_groups'].split(',')
+                else:
+                    self.available_groups = []
+
+                self.flag_global_status = user['flag_global_status']
+                self.flag_jobs_by_target_alias = user['flag_jobs_by_target_alias']
+                self.flag_show_foreign_global_vms = user['flag_show_foreign_global_vms']
+                self.flag_show_slot_detail = user['flag_show_slot_detail']
+                self.flag_show_slot_flavors = user['flag_show_slot_flavors']
+                self.status_refresh_interval = user['status_refresh_interval']
+
+                self.args = []
+                self.kwargs = {}
+                break
+
+            if not user:
+                raise PermissionDenied
+
+            if request.method == 'GET':
+                for key_val in request.META.get('QUERY_STRING').split('&'):
+                    if len(key_val) > 0:
+                        words = key_val.split('=', 1)
+                        if len(words) > 1:
+                            self.kwargs[words[0].strip()] = words[1].strip()
+                        else:
+                            self.args.append(words[0].strip())
+
+            elif request.method == 'POST' and 'group' in request.POST:
+                self.args.append(request.POST['group'])
+               
+
+    new_active_user = active_user(config, request)
+
+    if super_user and not new_active_user.is_superuser:
+        raise PermissionDenied
+
+    if len(new_active_user.user_groups) < 1: #tester is a member of default so skip
+#       return 1,'user "%s" is not a member of any group.' % new_active_user.username, new_active_user, new_active_user.user_groups
+        return 1,'user "%s" is not a member of any group.' % new_active_user.username, new_active_user
+
+    if len(new_active_user.args) > 0:
+        new_active_user.active_group = new_active_user.args[0]
+    elif new_active_user.default_group and new_active_user.default_group in new_active_user.user_groups:
+        new_active_user.active_group = new_active_user.default_group
+    else:
+        new_active_user.active_group = new_active_user.user_groups[0]
+    #args:['g1'], groups: ['default', 'g0'], default: None
+    if new_active_user.default_group == None:
+        new_active_user.active_group = new_active_user.user_groups[0]
+
+    if new_active_user.active_group not in new_active_user.user_groups and new_active_user.active_group != 'ALL':
+#       return 1,'cannot switch to invalid group "%s".' % new_active_user.active_group, new_active_user, new_active_user.user_groups
+        return 1,'cannot switch to invalid group "%s". args:%s, groups: %s, default: %s' % (new_active_user.active_group, new_active_user.args, new_active_user.user_groups, new_active_user.default_group), new_active_user
+
+#   return 0, None, new_active_user, new_active_user.user_groups
+    return 0, None, new_active_user
+#-------------------------------------------------------------------------------
 def table_fields(Fields, Table, Columns, selection):
     """
     This function returns input fields for the specified table.
