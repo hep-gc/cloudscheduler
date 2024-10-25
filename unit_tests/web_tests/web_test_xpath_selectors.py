@@ -89,7 +89,7 @@ def delete_cancel(item_name):
     return "//div[@id='delete-" + item_name + "']//a[@title='Close']"
 
 def status_page_dropdown(index, name):
-    return "//div[@class='status-table'][" + index + "]//div[@class='float-left' and contains(text(), '" + name + "')]"
+    return "//div[@class='status-table'][" + index + "]//div[@class='float-left' and contains(text(), '" + name + "')]/../div[@class='float-right']"
 
 def legend_item(name):
     return "//*[local-name()='svg']//*[local-name()='text' and contains(text(), '" + name + "')]/../*[local-name()='rect']"
