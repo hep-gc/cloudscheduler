@@ -330,6 +330,8 @@ class ProcessMonitor:
         for proc in procs_to_remove:
             if proc in self.process_ids:
                 self.process_ids.pop(proc)
+            if proc in self.static_process_ids:
+                del self.static_process_ids[proc]   
         self.config.db_close()
 
     def _cleanup_event_pids(self, pid):
