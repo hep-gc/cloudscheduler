@@ -68,6 +68,19 @@ class Page(object):
         except TimeoutException:
             return False
 
+    def editor_error_message_displayed(self, message=None):
+        xpath = ""
+        if message:
+            xpath = wtxs.editor_specific_error_message(message)
+        else:
+            xpath = wtxs.editor_unspecified_error_message()
+        try:
+            WebDriverWait(self.driver, 10).until(
+                EC.presence_of_element_located((By.XPATH, xpath)))
+            return True
+        except TimeoutException:
+            return False
+
     def top_nav_exists(self, name):
         try:
             WebDriverWait(self.driver, 10).until(
@@ -966,6 +979,12 @@ class DefaultsPage(Page):
         if self.metadata_tab_exists(text):
             self.active_metadata = text
 
+    def editor_click_metadata_add(self):
+        form = self.driver.find_element(By.NAME, 'metadata_name')
+        text = form.get_attribute('value')
+        xpath = wtxs.editor_add_button()
+        wti.click_by_xpath(self.driver, xpath)
+
     def click_metadata_update(self):
         wti.click_by_id(self.driver, 'left')
         self.driver.switch_to.default_content()
@@ -1409,7 +1428,7 @@ class GroupsPage(Page):
 
     def type_in_search_bar(self, text):
         search_tag = ''
-        if self.active_group and self.active_group is not 'add_group':
+        if self.active_group and self.active_group != 'add_group':
             search_tag = self.active_group
         wti.fill_blank_by_id(self.driver, 'search-users-' + search_tag, text)
 

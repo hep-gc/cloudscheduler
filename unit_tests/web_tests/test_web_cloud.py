@@ -935,7 +935,6 @@ class TestWebCloudCommon(unittest.TestCase):
         self.assertTrue(self.page.metadata_tab_exists(metadata_name))
         wta.assertHasAttribute('cloud', cloud_name, 'metadata_names', metadata_name, group=self.gvar['base_group'])
 
-    @unittest.skip("Not working in production (issue 319)")
     def test_web_cloud_metadata_add_without_name(self):
         # Tries to add metadata to a cloud without a name
         cloud_name = self.gvar['user'] + '-wic1'
@@ -945,7 +944,6 @@ class TestWebCloudCommon(unittest.TestCase):
         self.page.click_metadata_add()
         self.assertTrue(self.page.error_message_displayed())
 
-    @unittest.skip("Not working in production (issue 319)")
     def test_web_cloud_metadata_add_name_with_symbols(self):
         # Tries to add metadata with symbols in its name
         cloud_name = self.gvar['user'] + '-wic1'
@@ -957,7 +955,6 @@ class TestWebCloudCommon(unittest.TestCase):
         self.assertTrue(self.page.error_message_displayed())
         wta.assertHasNotAttribute('cloud', cloud_name, 'metadata_names', metadata_name, group=self.gvar['base_group'])
 
-    @unittest.skip("Not working in production (issue 319)")
     def test_web_cloud_metadata_add_name_with_two_dashes(self):
         # Tries to add metadata with two dashes in its name
         cloud_name = self.gvar['user'] + '-wic1'
@@ -969,7 +966,6 @@ class TestWebCloudCommon(unittest.TestCase):
         self.assertTrue(self.page.error_message_displayed())
         wta.assertHasNotAttribute('cloud', cloud_name, 'metadata_names', metadata_name, group=self.gvar['base_group'])
 
-    @unittest.skip("Not working in production (issue 319)")
     def test_web_cloud_metadata_add_name_with_uppercase(self):
         # Tries to add metadata with uppercase letters in its name
         cloud_name = self.gvar['user'] + '-wic1'
@@ -981,7 +977,6 @@ class TestWebCloudCommon(unittest.TestCase):
         self.assertTrue(self.page.error_message_displayed())
         wta.assertHasNotAttribute('cloud', cloud_name, 'metadata_names', metadata_name, group=self.gvar['base_group'])
 
-    @unittest.skip("Not working in production (issue 319)")
     def test_web_cloud_metadata_add_name_with_starting_ending_dash(self):
         # Tries to add metadata with starting and ending dashes in its name
         cloud_name = self.gvar['user'] + '-wic1'
@@ -993,7 +988,6 @@ class TestWebCloudCommon(unittest.TestCase):
         self.assertTrue(self.page.error_message_displayed())
         wta.assertHasNotAttribute('cloud', cloud_name, 'metadata_names', metadata_name, group=self.gvar['base_group'])
 
-    @unittest.skip("Not working in production (issue 319)")
     def test_web_cloud_metadata_add_name_too_long(self):
         # Tries to add metadata with a name that's too long for the database
         cloud_name = self.gvar['user'] + '-wic1'

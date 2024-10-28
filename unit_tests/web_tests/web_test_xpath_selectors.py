@@ -4,6 +4,9 @@
 def form_input_by_value(form, value):
     return "//form[@name='" + form + "']//input[@value='" + value + "']"
 
+def editor_add_button():
+    return '//*[@class="metadata-fetch"]//input[@value="Add"]'
+
 def form_input_by_name(form, name):
     return "//form[@name='" + form + "']//input[@name='" + name + "']"
 
@@ -120,6 +123,12 @@ def vm_overlay_column_row(row, column):
 
 def unspecified_error_message():
     return "//div[@class='footer']/b"
+
+def editor_unspecified_error_message():
+    return "//div[@class='editor-footer']/b"
+
+def editor_specific_error_message(message):
+    return "//div[@class='editor-footer']/b[contains(text(), '" + message + "')]"
 
 def specific_error_message(message):
     return "//div[@class='footer']/b[contains(text(), '" + message + "')]"
