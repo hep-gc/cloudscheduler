@@ -25,5 +25,5 @@ def javascript_click_by_xpath(driver, xpath):
 def javascript_click_by_link_text(driver, text):
     WebDriverWait(driver, 20).until(
         EC.presence_of_element_located((By.LINK_TEXT, text)))
-    button = driver.find_element("link text", text)
+    button = driver.find_element(By.LINK_TEXT, text)
     javascript_click(driver, button)
