@@ -894,7 +894,7 @@ class TestWebCloudCommon(unittest.TestCase):
         wta.assertHasAttribute('cloud', cloud_name, 'ram_ctl', '4096', group=self.gvar['base_group'])
 
     @unittest.skip("Probably too slow to be worth running")
-    def test_web_cloud_update_ram_by_arrows(self):
+    def test_web_cloud_update_ram_by_arrows_too_big(self):
         # Tries to change a cloud's maximum RAM to an int that's too big for the database using the arrow keys
         cloud_name = self.gvar['user'] + '-wic1'
         self.page.click_side_button(cloud_name)
@@ -941,8 +941,8 @@ class TestWebCloudCommon(unittest.TestCase):
         self.page.click_side_button(cloud_name)
         self.page.click_metadata_new()
         self.page.type_metadata('sample_key: sample_value')
-        self.page.click_metadata_add()
-        self.assertTrue(self.page.error_message_displayed())
+        self.page.editor_click_metadata_add()
+        self.assertTrue(self.page.editor_error_message_displayed())
 
     def test_web_cloud_metadata_add_name_with_symbols(self):
         # Tries to add metadata with symbols in its name
@@ -951,8 +951,8 @@ class TestWebCloudCommon(unittest.TestCase):
         self.page.click_side_button(cloud_name)
         self.page.click_metadata_new()
         self.page.type_metadata_name(metadata_name)
-        self.page.click_metadata_add()
-        self.assertTrue(self.page.error_message_displayed())
+        self.page.editor_click_metadata_add()
+        self.assertTrue(self.page.editor_error_message_displayed())
         wta.assertHasNotAttribute('cloud', cloud_name, 'metadata_names', metadata_name, group=self.gvar['base_group'])
 
     def test_web_cloud_metadata_add_name_with_two_dashes(self):
@@ -962,8 +962,8 @@ class TestWebCloudCommon(unittest.TestCase):
         self.page.click_side_button(cloud_name)
         self.page.click_metadata_new()
         self.page.type_metadata_name(metadata_name)
-        self.page.click_metadata_add()
-        self.assertTrue(self.page.error_message_displayed())
+        self.page.editor_click_metadata_add()
+        self.assertTrue(self.page.editor_error_message_displayed())
         wta.assertHasNotAttribute('cloud', cloud_name, 'metadata_names', metadata_name, group=self.gvar['base_group'])
 
     def test_web_cloud_metadata_add_name_with_uppercase(self):
@@ -973,8 +973,8 @@ class TestWebCloudCommon(unittest.TestCase):
         self.page.click_side_button(cloud_name)
         self.page.click_metadata_new()
         self.page.type_metadata_name(metadata_name)
-        self.page.click_metadata_add()
-        self.assertTrue(self.page.error_message_displayed())
+        self.page.editor_click_metadata_add()
+        self.assertTrue(self.page.editor_error_message_displayed())
         wta.assertHasNotAttribute('cloud', cloud_name, 'metadata_names', metadata_name, group=self.gvar['base_group'])
 
     def test_web_cloud_metadata_add_name_with_starting_ending_dash(self):
@@ -984,8 +984,8 @@ class TestWebCloudCommon(unittest.TestCase):
         self.page.click_side_button(cloud_name)
         self.page.click_metadata_new()
         self.page.type_metadata_name(metadata_name)
-        self.page.click_metadata_add()
-        self.assertTrue(self.page.error_message_displayed())
+        self.page.editor_click_metadata_add()
+        self.assertTrue(self.page.editor_error_message_displayed())
         wta.assertHasNotAttribute('cloud', cloud_name, 'metadata_names', metadata_name, group=self.gvar['base_group'])
 
     def test_web_cloud_metadata_add_name_too_long(self):
@@ -996,8 +996,8 @@ class TestWebCloudCommon(unittest.TestCase):
         self.page.click_side_tab('Metadata')
         self.page.click_metadata_new()
         self.page.type_metadata_name(metadata_name)
-        self.page.click_metadata_add()
-        self.assertTrue(self.page.error_message_displayed())
+        self.page.editor_click_metadata_add()
+        self.assertTrue(self.page.editor_error_message_displayed())
         wta.assertHasNotAttribute('cloud', cloud_name, 'metadata_names', metadata_name, group=self.gvar['base_group'])
 
     def test_web_cloud_metadata_add_not_enabled(self):
@@ -1058,7 +1058,6 @@ class TestWebCloudCommon(unittest.TestCase):
         self.assertFalse(self.page.metadata_tab_exists(metadata_name))
         wta.assertHasNotAttribute('cloud', cloud_name, 'metadata_names', metadata_name, group=self.gvar['base_group'])
 
-    @unittest.skip("Not working in production (issue 319)")
     def test_web_cloud_metadata_add_different_priority_by_typing_too_big(self):
         # Tries to add metadata to a cloud with a priority that's too big for the database by typing it in the blank
         cloud_name = self.gvar['user'] + '-wic1'
@@ -1069,7 +1068,7 @@ class TestWebCloudCommon(unittest.TestCase):
         self.page.type_metadata_name(metadata_name)
         self.page.type_metadata_priority(str(self.oversize['int_11']))
         self.page.type_metadata('sample_key: sample_value')
-        self.page.click_metadata_add()
+        self.page.editor_click_metadata_add()
         self.assertTrue(self.page.metadata_priority_popup_exists())
         self.assertFalse(self.page.metadata_tab_exists(metadata_name))
         wta.assertHasNotAttribute('cloud', cloud_name, 'metadata_names', metadata_name, group=self.gvar['base_group'])
@@ -1180,7 +1179,7 @@ class TestWebCloudCommon(unittest.TestCase):
         self.assertTrue(self.page.metadata_priority_popup_exists())
         wta.assertHasNotAttribute('metadata', metadata_name, 'priority', 'invalid-web-test', group=self.gvar['base_group'], metadata_cloud=cloud_name)
 
-    @unittest.skip("Not working in production (issue 319)")
+    # @unittest.skip("Not working in production (issue 319)")
     def test_web_cloud_metadata_update_priority_by_typing_too_big(self):
         # Tries to change metadata priority to an int that's too big for the database by typing it in the blank
         cloud_name = self.gvar['user'] + '-wic1'

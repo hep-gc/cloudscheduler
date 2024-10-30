@@ -721,6 +721,13 @@ class CloudsPage(Page):
         if self.metadata_tab_exists(text):
             self.active_metadata = text
 
+    def editor_click_metadata_add(self):
+        # Clicks the add button for the ace js code editor on the cloud config page
+        form = self.driver.find_element(By.NAME, 'metadata_name')
+        text = form.get_attribute('value')
+        xpath = wtxs.editor_add_button()
+        wti.click_by_xpath(self.driver, xpath)
+
     def click_metadata_update(self):
         wti.click_by_id(self.driver, 'left')
         self.driver.switch_to.default_content()
@@ -980,6 +987,7 @@ class DefaultsPage(Page):
             self.active_metadata = text
 
     def editor_click_metadata_add(self):
+        # Clicks the add button for the ace js code editor on the defaults page
         form = self.driver.find_element(By.NAME, 'metadata_name')
         text = form.get_attribute('value')
         xpath = wtxs.editor_add_button()
