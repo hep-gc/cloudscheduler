@@ -494,6 +494,20 @@ class CloudsPage(Page):
         # sidebar.
         self.active_cloud = None
         self.active_metadata = None
+
+    def editor_error_message_displayed(self, message=None):
+        self.driver.switch_to.frame('editor-' + self.active_cloud + '-add')
+        xpath = ""
+        if message:
+            xpath = wtxs.editor_specific_error_message(message)
+        else:
+            xpath = wtxs.editor_unspecified_error_message()
+        try:
+            WebDriverWait(self.driver, 10).until(
+                EC.presence_of_element_located((By.XPATH, xpath)))
+            return True
+        except TimeoutException:
+            return False
     
     def click_add_button(self):
         wti.click_by_link_text(self.driver, '+')
@@ -727,6 +741,7 @@ class CloudsPage(Page):
         text = form.get_attribute('value')
         xpath = wtxs.editor_add_button()
         wti.click_by_xpath(self.driver, xpath)
+        self.driver.switch_to.default_content()
 
     def click_metadata_update(self):
         wti.click_by_id(self.driver, 'left')

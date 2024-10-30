@@ -939,6 +939,7 @@ class TestWebCloudCommon(unittest.TestCase):
         # Tries to add metadata to a cloud without a name
         cloud_name = self.gvar['user'] + '-wic1'
         self.page.click_side_button(cloud_name)
+        self.page.click_side_tab('Metadata')
         self.page.click_metadata_new()
         self.page.type_metadata('sample_key: sample_value')
         self.page.editor_click_metadata_add()
@@ -949,6 +950,7 @@ class TestWebCloudCommon(unittest.TestCase):
         cloud_name = self.gvar['user'] + '-wic1'
         metadata_name = 'inv@|id-web-te$t.yaml'
         self.page.click_side_button(cloud_name)
+        self.page.click_side_tab('Metadata')
         self.page.click_metadata_new()
         self.page.type_metadata_name(metadata_name)
         self.page.editor_click_metadata_add()
@@ -960,6 +962,7 @@ class TestWebCloudCommon(unittest.TestCase):
         cloud_name = self.gvar['user'] + '-wic1'
         metadata_name = 'invalid--web--test.yaml'
         self.page.click_side_button(cloud_name)
+        self.page.click_side_tab('Metadata')
         self.page.click_metadata_new()
         self.page.type_metadata_name(metadata_name)
         self.page.editor_click_metadata_add()
@@ -971,6 +974,7 @@ class TestWebCloudCommon(unittest.TestCase):
         cloud_name = self.gvar['user'] + '-wic1'
         metadata_name = 'INVALID-WEB-TEST.yaml'
         self.page.click_side_button(cloud_name)
+        self.page.click_side_tab('Metadata')
         self.page.click_metadata_new()
         self.page.type_metadata_name(metadata_name)
         self.page.editor_click_metadata_add()
@@ -982,6 +986,7 @@ class TestWebCloudCommon(unittest.TestCase):
         cloud_name = self.gvar['user'] + '-wic1'
         metadata_name = '-invalid-web-test-.yaml'
         self.page.click_side_button(cloud_name)
+        self.page.click_side_tab('Metadata')
         self.page.click_metadata_new()
         self.page.type_metadata_name(metadata_name)
         self.page.editor_click_metadata_add()
@@ -1069,7 +1074,7 @@ class TestWebCloudCommon(unittest.TestCase):
         self.page.type_metadata_priority(str(self.oversize['int_11']))
         self.page.type_metadata('sample_key: sample_value')
         self.page.editor_click_metadata_add()
-        self.assertTrue(self.page.metadata_priority_popup_exists())
+        self.assertTrue(self.page.editor_error_message_displayed())
         self.assertFalse(self.page.metadata_tab_exists(metadata_name))
         wta.assertHasNotAttribute('cloud', cloud_name, 'metadata_names', metadata_name, group=self.gvar['base_group'])
 
