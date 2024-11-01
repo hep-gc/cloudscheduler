@@ -144,6 +144,21 @@ def slide_slider_by_xpath(driver, xpath, offset, vertical_offset, timeout=defaul
     action = ActionChains(driver).move_to_element_with_offset(slider, offset, vertical_offset).click()
     action.perform()
 
+def slide_slider_by_xpath(driver, xpath, x_offset: int, y_offset: int, timeout=default_timeout):
+    """
+    Moves the mouse to the middle of a slider, holds down the primary click, drags by a specified amount, and then releases.
+    This method may not work if the slider can not always be dragged from the center of the element.
+    xpath: xpath of the slider.
+    x_offset: amount of px to move horizontally
+    y_offset: amount of px to move vertically
+    """
+    WebDriverWait(driver, timeout).until(
+        EC.element_to_be_clickable((By.XPATH, xpath))
+    )
+    slider = driver.find_element(By.XPATH, xpath)
+    action = ActionChains(driver).move_to_element(slider).click_and_hold(slider).move_by_offset(x_offset, y_offset).release()
+    action.perform()
+
 
 def right_click_by_xpath(driver, xpath, timeout=default_timeout):
     WebDriverWait(driver, timeout).until(

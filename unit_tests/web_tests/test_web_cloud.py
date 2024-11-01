@@ -818,13 +818,53 @@ class TestWebCloudCommon(unittest.TestCase):
         self.assertTrue(self.page.cores_popup_exists())
         wta.assertHasNotAttribute('cloud', cloud_name, 'cores_ctl', str(self.oversize['int_11']), group=self.gvar['base_group'])
 
-    def test_web_cloud_update_cores_by_slider(self):
+    def test_web_cloud_update_cores_by_slider_128(self):
         # Changes a cloud's maximum number of cores by sliding the slider
         cloud_name = self.gvar['user'] + '-wic1'
         self.page.click_side_button(cloud_name)
-        self.page.slide_cores_slider(128, 16)
+        self.page.slide_cores_slider(128)
         self.page.click_update_cloud()
         wta.assertHasAttribute('cloud', cloud_name, 'cores_ctl', '128', group=self.gvar['base_group'], err=16)
+
+    def test_web_cloud_update_cores_by_slider_50(self):
+        # Changes a cloud's maximum number of cores by sliding the slider
+        cloud_name = self.gvar['user'] + '-wic1'
+        self.page.click_side_button(cloud_name)
+        self.page.slide_cores_slider(50)
+        self.page.click_update_cloud()
+        wta.assertHasAttribute('cloud', cloud_name, 'cores_ctl', '50', group=self.gvar['base_group'], err=16)
+
+    def test_web_cloud_update_cores_by_slider_400(self):
+        # Changes a cloud's maximum number of cores by sliding the slider
+        cloud_name = self.gvar['user'] + '-wic1'
+        self.page.click_side_button(cloud_name)
+        self.page.slide_cores_slider(400)
+        self.page.click_update_cloud()
+        wta.assertHasAttribute('cloud', cloud_name, 'cores_ctl', '400', group=self.gvar['base_group'], err=16)
+
+    def test_web_cloud_update_cores_by_slider_middle(self):
+        # Changes a cloud's maximum number of cores by sliding the slider
+        cloud_name = self.gvar['user'] + '-wic1'
+        self.page.click_side_button(cloud_name)
+        self.page.slide_cores_slider(304)
+        self.page.click_update_cloud()
+        wta.assertHasAttribute('cloud', cloud_name, 'cores_ctl', '304', group=self.gvar['base_group'], err=16)
+
+    def test_web_cloud_update_cores_by_slider_max(self):
+        # Changes a cloud's maximum number of cores by sliding the slider
+        cloud_name = self.gvar['user'] + '-wic1'
+        self.page.click_side_button(cloud_name)
+        self.page.slide_cores_slider(608)
+        self.page.click_update_cloud()
+        wta.assertHasAttribute('cloud', cloud_name, 'cores_ctl', '608', group=self.gvar['base_group'], err=16)
+
+    def test_web_cloud_update_cores_by_slider_min(self):
+        # Changes a cloud's maximum number of cores by sliding the slider
+        cloud_name = self.gvar['user'] + '-wic1'
+        self.page.click_side_button(cloud_name)
+        self.page.slide_cores_slider(-1)
+        self.page.click_update_cloud()
+        wta.assertHasAttribute('cloud', cloud_name, 'cores_ctl', '-1', group=self.gvar['base_group'], err=16)
 
     def test_web_cloud_update_cores_by_arrows(self):
         # Changes a cloud's maximum number of cores using the arrow keys
@@ -877,13 +917,37 @@ class TestWebCloudCommon(unittest.TestCase):
         self.assertTrue(self.page.ram_popup_exists())
         wta.assertHasNotAttribute('cloud', cloud_name, 'ram_ctl', str(self.oversize['int_11']), group=self.gvar['base_group'])
 
-    def test_web_cloud_update_ram_by_slider(self):
+    def test_web_cloud_update_ram_by_slider_262144(self):
         # Changes a cloud's maximum RAM by sliding the slider
         cloud_name = self.gvar['user'] + '-wic1'
         self.page.click_side_button(cloud_name)
-        self.page.slide_ram_slider(262144, 48000)
+        self.page.slide_ram_slider(262144)
         self.page.click_update_cloud()
         wta.assertHasAttribute('cloud', cloud_name, 'ram_ctl', '262144', group=self.gvar['base_group'], err=48000)
+
+    def test_web_cloud_update_ram_by_slider_max(self):
+        # Changes a cloud's maximum RAM by sliding the slider
+        cloud_name = self.gvar['user'] + '-wic1'
+        self.page.click_side_button(cloud_name)
+        self.page.slide_ram_slider(1614430)
+        self.page.click_update_cloud()
+        wta.assertHasAttribute('cloud', cloud_name, 'ram_ctl', '1614430', group=self.gvar['base_group'], err=48000)
+
+    def test_web_cloud_update_ram_by_slider_min(self):
+        # Changes a cloud's maximum RAM by sliding the slider
+        cloud_name = self.gvar['user'] + '-wic1'
+        self.page.click_side_button(cloud_name)
+        self.page.slide_ram_slider(-1)
+        self.page.click_update_cloud()
+        wta.assertHasAttribute('cloud', cloud_name, 'ram_ctl', '-1', group=self.gvar['base_group'], err=48000)
+
+    def test_web_cloud_update_ram_by_slider_middle(self):
+        # Changes a cloud's maximum RAM by sliding the slider
+        cloud_name = self.gvar['user'] + '-wic1'
+        self.page.click_side_button(cloud_name)
+        self.page.slide_ram_slider(807215)
+        self.page.click_update_cloud()
+        wta.assertHasAttribute('cloud', cloud_name, 'ram_ctl', '807215', group=self.gvar['base_group'], err=48000)
 
     def test_web_cloud_update_ram_by_arrows(self):
         # Changes a cloud's maximum RAM using the arrow keys
@@ -1184,7 +1248,6 @@ class TestWebCloudCommon(unittest.TestCase):
         self.assertTrue(self.page.metadata_priority_popup_exists())
         wta.assertHasNotAttribute('metadata', metadata_name, 'priority', 'invalid-web-test', group=self.gvar['base_group'], metadata_cloud=cloud_name)
 
-    # @unittest.skip("Not working in production (issue 319)")
     def test_web_cloud_metadata_update_priority_by_typing_too_big(self):
         # Tries to change metadata priority to an int that's too big for the database by typing it in the blank
         cloud_name = self.gvar['user'] + '-wic1'

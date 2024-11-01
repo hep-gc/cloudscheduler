@@ -630,6 +630,19 @@ class CloudsPage(Page):
             wti.slide_slider_by_xpath(self.driver, xpath, offset, 5)
             offset += 1
 
+    def slide_cores_slider(self, value):
+        cores_slider_xpath = wtxs.form_input_by_name(self.active_cloud, 'cores_slider')
+        cores_slider = self.driver.find_element(By.XPATH, cores_slider_xpath)
+        cores_slider_width = float(cores_slider.size['width'])
+        #maybe vary this by browser
+        cores_slider_inner_width = cores_slider_width*0.90
+        cores_max = float(cores_slider.get_attribute('max'))
+        cores_min = float(cores_slider.get_attribute('min'))
+        cores_range_width = cores_max - cores_min
+        normalized_cores_ratio = (value - cores_min) / cores_range_width
+        slider_distance = (normalized_cores_ratio * cores_slider_inner_width) - (cores_slider_inner_width / 2) # distance from the middle to move the slider in px
+        wti.slide_slider_by_xpath(self.driver, cores_slider_xpath, int(slider_distance), 0)
+
     def type_cores(self, value):
         xpath = wtxs.form_input_by_name(self.active_cloud, 'cores_ctl')
         wti.fill_blank_by_xpath(self.driver, xpath, value)
@@ -654,6 +667,19 @@ class CloudsPage(Page):
         while int(slider.get_attribute('value')) < value - error:
             wti.slide_slider_by_xpath(self.driver, xpath, offset, 5)
             offset += 1
+
+    def slide_ram_slider(self, value):
+        ram_slider_xpath = wtxs.form_input_by_name(self.active_cloud, 'ram_slider')
+        ram_slider = self.driver.find_element(By.XPATH, ram_slider_xpath)
+        ram_slider_width = float(ram_slider.size['width'])
+        #maybe vary this by browser
+        ram_slider_inner_width = ram_slider_width*0.90
+        ram_max = float(ram_slider.get_attribute('max'))
+        ram_min = float(ram_slider.get_attribute('min'))
+        ram_range_width = ram_max - ram_min
+        normalized_ram_ratio = (value - ram_min) / ram_range_width
+        slider_distance = (normalized_ram_ratio * ram_slider_inner_width) - (ram_slider_inner_width / 2) # distance from the middle to move the slider in px
+        wti.slide_slider_by_xpath(self.driver, ram_slider_xpath, int(slider_distance), 0)
 
     def type_ram(self, value):
         xpath = wtxs.form_input_by_name(self.active_cloud, 'ram_ctl')
