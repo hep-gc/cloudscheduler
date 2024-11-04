@@ -4,6 +4,7 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import Select
 from selenium.webdriver.common.action_chains import ActionChains
 from time import sleep
+import selenium.webdriver.firefox.webdriver
 
 # This module contains a variety of interactions (mainly clicks and text fills)
 # that can be used to interact with a page. These functions wrap the wait to
@@ -144,6 +145,7 @@ def slide_slider_by_xpath(driver, xpath, offset, vertical_offset, timeout=defaul
     action = ActionChains(driver).move_to_element_with_offset(slider, offset, vertical_offset).click()
     action.perform()
 
+
 def slide_slider_by_xpath(driver, xpath, x_offset: int, y_offset: int, timeout=default_timeout):
     """
     Moves the mouse to the middle of a slider, holds down the primary click, drags by a specified amount, and then releases.
@@ -156,6 +158,14 @@ def slide_slider_by_xpath(driver, xpath, x_offset: int, y_offset: int, timeout=d
         EC.element_to_be_clickable((By.XPATH, xpath))
     )
     slider = driver.find_element(By.XPATH, xpath)
+
+    # move_to_element does not actually scroll to the element in firefox
+    # and will return a MoveTargetOutOfBoundsException if not explicitly
+    # scrolled to first
+    # see https://github.com/mozilla/geckodriver/issues/2078 for info
+    # check https://github.com/w3c/webdriver/issues/1005 to see if this has been resolved 
+    if isinstance(driver, selenium.webdriver.firefox.webdriver.WebDriver):
+        driver.execute_script("arguments[0].scrollIntoView();", slider) 
     action = ActionChains(driver).move_to_element(slider).click_and_hold(slider).move_by_offset(x_offset, y_offset).release()
     action.perform()
 
