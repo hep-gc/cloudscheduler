@@ -1223,7 +1223,8 @@ class TestWebCloudCommon(unittest.TestCase):
         self.page.type_metadata_priority('8')
         self.page.click_metadata_update()
         wta.assertHasAttribute('metadata', metadata_name, 'priority', '8', group=self.gvar['base_group'], metadata_cloud=cloud_name)
-
+    
+        
     def test_web_cloud_metadata_update_priority_by_typing_float(self):
         # Tries to change metadata priority to a float by typing it in the blank
         cloud_name = self.gvar['user'] + '-wic1'
@@ -1233,8 +1234,18 @@ class TestWebCloudCommon(unittest.TestCase):
         self.page.click_metadata(metadata_name)
         self.page.type_metadata_priority('8.5')
         self.page.click_metadata_update()
-        self.assertTrue(self.page.metadata_priority_popup_exists())
-        wta.assertHasNotAttribute('metadata', metadata_name, 'priority', '8.5', group=self.gvar['base_group'], metadata_cloud=cloud_name)
+        # fail if neither editor_footer error or popup blocking form submission trigger
+        popup, editor_error = None, None
+        try:
+            self.assertTrue(self.page.editor_error_message_displayed())
+        except AssertionError as err:
+            popup = err
+        try:
+            wta.assertHasNotAttribute('metadata', metadata_name, 'priority', '8.5', group=self.gvar['base_group'], metadata_cloud=cloud_name)
+        except AssertionError as err:
+            editor_error = err
+        if popup and editor_error:
+            raise AssertionError([popup, editor_error])
 
     def test_web_cloud_metadata_update_priority_by_typing_string(self):
         # Tries to change metadata priority to a string by typing it in the blank
@@ -1245,8 +1256,40 @@ class TestWebCloudCommon(unittest.TestCase):
         self.page.click_metadata(metadata_name)
         self.page.type_metadata_priority('invalid-web-test')
         self.page.click_metadata_update()
-        self.assertTrue(self.page.metadata_priority_popup_exists())
-        wta.assertHasNotAttribute('metadata', metadata_name, 'priority', 'invalid-web-test', group=self.gvar['base_group'], metadata_cloud=cloud_name)
+        # fail if neither editor_footer error or popup blocking form submission trigger
+        popup, editor_error = None, None
+        try:
+            self.assertTrue(self.page.editor_error_message_displayed())
+        except AssertionError as err:
+            popup = err
+        try:
+            wta.assertHasNotAttribute('metadata', metadata_name, 'priority', 'invalid-web-test', group=self.gvar['base_group'], metadata_cloud=cloud_name)
+        except AssertionError as err:
+            editor_error = err
+        if popup and editor_error:
+            raise AssertionError([popup, editor_error])
+        
+    def test_web_cloud_metadata_update_priority_by_typing_empty(self):
+        # Tries to change metadata priority to an empty string by typing it in the blank
+        cloud_name = self.gvar['user'] + '-wic1'
+        metadata_name = self.gvar['user'] + '-wim1.yaml'
+        self.page.click_side_button(cloud_name)
+        self.page.click_side_tab('Metadata')
+        self.page.click_metadata(metadata_name)
+        self.page.type_metadata_priority('')
+        self.page.click_metadata_update()
+        # fail if neither editor_footer error or popup blocking form submission trigger
+        popup, editor_error = None, None
+        try:
+            self.assertTrue(self.page.editor_error_message_displayed())
+        except AssertionError as err:
+            popup = err
+        try:
+            wta.assertHasNotAttribute('metadata', metadata_name, 'priority', 'invalid-web-test', group=self.gvar['base_group'], metadata_cloud=cloud_name)
+        except AssertionError as err:
+            editor_error = err
+        if popup and editor_error:
+            raise AssertionError([popup, editor_error])
 
     def test_web_cloud_metadata_update_priority_by_typing_too_big(self):
         # Tries to change metadata priority to an int that's too big for the database by typing it in the blank
@@ -1256,9 +1299,63 @@ class TestWebCloudCommon(unittest.TestCase):
         self.page.click_side_tab('Metadata')
         self.page.click_metadata(metadata_name)
         self.page.type_metadata_priority(str(self.oversize['int_11']))
-        #self.assertTrue(self.page.error_message_displayed())
-        self.assertTrue(self.page.metadata_priority_popup_exists())
-        wta.assertHasNotAttribute('metadata', metadata_name, 'priority', str(self.oversize['int_11']), group=self.gvar['base_group'], metadata_cloud=cloud_name)
+        self.page.click_metadata_update()
+        # fail if neither editor_footer error or popup blocking form submission trigger
+        popup, editor_error = None, None
+        try:
+            self.assertTrue(self.page.editor_error_message_displayed())
+        except AssertionError as err:
+            popup = err
+        try:
+            wta.assertHasNotAttribute('metadata', metadata_name, 'priority', str(self.oversize['int_11']), group=self.gvar['base_group'], metadata_cloud=cloud_name)
+        except AssertionError as err:
+            editor_error = err
+        if popup and editor_error:
+            raise AssertionError([popup, editor_error])
+
+    def test_web_cloud_metadata_update_priority_by_typing_float_in_valid_range(self):
+        # Tries to change metadata priority to an int that's the wrong type for the database by typing it in the blank
+        cloud_name = self.gvar['user'] + '-wic1'
+        metadata_name = self.gvar['user'] + '-wim1.yaml'
+        self.page.click_side_button(cloud_name)
+        self.page.click_side_tab('Metadata')
+        self.page.click_metadata(metadata_name)
+        self.page.type_metadata_priority("1.0")
+        self.page.click_metadata_update()
+        # fail if neither editor_footer error or popup blocking form submission trigger
+        popup, editor_error = None, None
+        try:
+            self.assertTrue(self.page.editor_error_message_displayed())
+        except AssertionError as err:
+            popup = err
+        try:
+            wta.assertHasNotAttribute('metadata', metadata_name, 'priority', '1.0', group=self.gvar['base_group'], metadata_cloud=cloud_name)
+        except AssertionError as err:
+            editor_error = err
+        if popup and editor_error:
+            raise AssertionError([popup, editor_error])
+
+    def test_web_cloud_metadata_update_priority_by_typing_too_low(self):
+        # Tries to change metadata priority to an int that's too low for the database by typing it in the blank
+        cloud_name = self.gvar['user'] + '-wic1'
+        metadata_name = self.gvar['user'] + '-wim1.yaml'
+        self.page.click_side_button(cloud_name)
+        self.page.click_side_tab('Metadata')
+        self.page.click_metadata(metadata_name)
+        self.page.type_metadata_priority('-2147483649')
+        self.page.click_metadata_update()
+        # fail if neither editor_footer error or popup blocking form submission trigger
+        popup, editor_error = None, None
+        try:
+            self.assertTrue(self.page.editor_error_message_displayed())
+        except AssertionError as err:
+            popup = err
+        try:
+            wta.assertHasNotAttribute('metadata', metadata_name, 'priority', '-2147483648', group=self.gvar['base_group'], metadata_cloud=cloud_name)
+        except AssertionError as err:
+            editor_error = err
+        if popup and editor_error:
+            raise AssertionError([popup, editor_error])
 
     def test_web_cloud_metadata_update_priority_by_arrow_keys(self):
         # Changes metadata priority using the arrow keys
