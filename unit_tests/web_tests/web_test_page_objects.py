@@ -495,8 +495,12 @@ class CloudsPage(Page):
         self.active_cloud = None
         self.active_metadata = None
 
-    def editor_error_message_displayed(self, message=None):
-        self.driver.switch_to.frame('editor-' + self.active_cloud + '-add')
+    def editor_error_message_displayed(self, cloud_name, metadata_name=None, message=None):
+        self.active_cloud = cloud_name
+        if metadata_name:
+            self.driver.switch_to.frame('editor-' + self.active_cloud + '-' + self.active_metadata)
+        else:
+            self.driver.switch_to.frame('editor-' + self.active_cloud + '-add')
         xpath = ""
         if message:
             xpath = wtxs.editor_specific_error_message(message)
@@ -505,8 +509,10 @@ class CloudsPage(Page):
         try:
             WebDriverWait(self.driver, 10).until(
                 EC.presence_of_element_located((By.XPATH, xpath)))
+            self.driver.switch_to.default_content()
             return True
         except TimeoutException:
+            self.driver.switch_to.default_content()
             return False
     
     def click_add_button(self):

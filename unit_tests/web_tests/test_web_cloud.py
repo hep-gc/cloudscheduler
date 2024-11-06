@@ -1007,7 +1007,7 @@ class TestWebCloudCommon(unittest.TestCase):
         self.page.click_metadata_new()
         self.page.type_metadata('sample_key: sample_value')
         self.page.editor_click_metadata_add()
-        self.assertTrue(self.page.editor_error_message_displayed())
+        self.assertTrue(self.page.editor_error_message_displayed(cloud_name))
 
     def test_web_cloud_metadata_add_name_with_symbols(self):
         # Tries to add metadata with symbols in its name
@@ -1018,7 +1018,7 @@ class TestWebCloudCommon(unittest.TestCase):
         self.page.click_metadata_new()
         self.page.type_metadata_name(metadata_name)
         self.page.editor_click_metadata_add()
-        self.assertTrue(self.page.editor_error_message_displayed())
+        self.assertTrue(self.page.editor_error_message_displayed(cloud_name))
         wta.assertHasNotAttribute('cloud', cloud_name, 'metadata_names', metadata_name, group=self.gvar['base_group'])
 
     def test_web_cloud_metadata_add_name_with_two_dashes(self):
@@ -1030,7 +1030,7 @@ class TestWebCloudCommon(unittest.TestCase):
         self.page.click_metadata_new()
         self.page.type_metadata_name(metadata_name)
         self.page.editor_click_metadata_add()
-        self.assertTrue(self.page.editor_error_message_displayed())
+        self.assertTrue(self.page.editor_error_message_displayed(cloud_name))
         wta.assertHasNotAttribute('cloud', cloud_name, 'metadata_names', metadata_name, group=self.gvar['base_group'])
 
     def test_web_cloud_metadata_add_name_with_uppercase(self):
@@ -1042,7 +1042,7 @@ class TestWebCloudCommon(unittest.TestCase):
         self.page.click_metadata_new()
         self.page.type_metadata_name(metadata_name)
         self.page.editor_click_metadata_add()
-        self.assertTrue(self.page.editor_error_message_displayed())
+        self.assertTrue(self.page.editor_error_message_displayed(cloud_name))
         wta.assertHasNotAttribute('cloud', cloud_name, 'metadata_names', metadata_name, group=self.gvar['base_group'])
 
     def test_web_cloud_metadata_add_name_with_starting_ending_dash(self):
@@ -1054,7 +1054,7 @@ class TestWebCloudCommon(unittest.TestCase):
         self.page.click_metadata_new()
         self.page.type_metadata_name(metadata_name)
         self.page.editor_click_metadata_add()
-        self.assertTrue(self.page.editor_error_message_displayed())
+        self.assertTrue(self.page.editor_error_message_displayed(cloud_name))
         wta.assertHasNotAttribute('cloud', cloud_name, 'metadata_names', metadata_name, group=self.gvar['base_group'])
 
     def test_web_cloud_metadata_add_name_too_long(self):
@@ -1066,7 +1066,7 @@ class TestWebCloudCommon(unittest.TestCase):
         self.page.click_metadata_new()
         self.page.type_metadata_name(metadata_name)
         self.page.editor_click_metadata_add()
-        self.assertTrue(self.page.editor_error_message_displayed())
+        self.assertTrue(self.page.editor_error_message_displayed(cloud_name))
         wta.assertHasNotAttribute('cloud', cloud_name, 'metadata_names', metadata_name, group=self.gvar['base_group'])
 
     def test_web_cloud_metadata_add_not_enabled(self):
@@ -1138,7 +1138,7 @@ class TestWebCloudCommon(unittest.TestCase):
         self.page.type_metadata_priority(str(self.oversize['int_11']))
         self.page.type_metadata('sample_key: sample_value')
         self.page.editor_click_metadata_add()
-        self.assertTrue(self.page.editor_error_message_displayed())
+        self.assertTrue(self.page.editor_error_message_displayed(cloud_name))
         self.assertFalse(self.page.metadata_tab_exists(metadata_name))
         wta.assertHasNotAttribute('cloud', cloud_name, 'metadata_names', metadata_name, group=self.gvar['base_group'])
 
@@ -1237,11 +1237,11 @@ class TestWebCloudCommon(unittest.TestCase):
         # fail if neither editor_footer error or popup blocking form submission trigger
         popup, editor_error = None, None
         try:
-            self.assertTrue(self.page.metadata_priority_popup_exists())
+            self.assertTrue(self.page.metadata_priority_popup_exists(), msg="Input validation popup not displayed")
         except AssertionError as err:
             popup = err
         try:
-            self.assertTrue(self.page.editor_error_message_displayed())
+            self.assertTrue(self.page.editor_error_message_displayed(cloud_name, metadata_name), msg="Editor area error message not displayed")
         except AssertionError as err:
             editor_error = err
         if popup and editor_error:
@@ -1260,11 +1260,11 @@ class TestWebCloudCommon(unittest.TestCase):
         # fail if neither editor_footer error or popup blocking form submission trigger
         popup, editor_error = None, None
         try:
-            self.assertTrue(self.page.metadata_priority_popup_exists())
+            self.assertTrue(self.page.metadata_priority_popup_exists(), msg="Input validation popup not displayed")
         except AssertionError as err:
             popup = err
         try:
-            self.assertTrue(self.page.editor_error_message_displayed())
+            self.assertTrue(self.page.editor_error_message_displayed(cloud_name, metadata_name), msg="Editor area error message not displayed")
         except AssertionError as err:
             editor_error = err
         if popup and editor_error:
@@ -1283,11 +1283,11 @@ class TestWebCloudCommon(unittest.TestCase):
         # fail if neither editor_footer error or popup blocking form submission trigger
         popup, editor_error = None, None
         try:
-            self.assertTrue(self.page.metadata_priority_popup_exists())
+            self.assertTrue(self.page.metadata_priority_popup_exists(), msg="Input validation popup not displayed")
         except AssertionError as err:
             popup = err
         try:
-            self.assertTrue(self.page.editor_error_message_displayed())
+            self.assertTrue(self.page.editor_error_message_displayed(cloud_name, metadata_name), msg="Editor area error message not displayed")
         except AssertionError as err:
             editor_error = err
         if popup and editor_error:
@@ -1306,11 +1306,11 @@ class TestWebCloudCommon(unittest.TestCase):
         # fail if neither editor_footer error or popup blocking form submission trigger
         popup, editor_error = None, None
         try:
-            self.assertTrue(self.page.metadata_priority_popup_exists())
+            self.assertTrue(self.page.metadata_priority_popup_exists(), msg="Input validation popup not displayed")
         except AssertionError as err:
             popup = err
         try:
-            self.assertTrue(self.page.editor_error_message_displayed())
+            self.assertTrue(self.page.editor_error_message_displayed(cloud_name, metadata_name), msg="Editor area error message not displayed")
         except AssertionError as err:
             editor_error = err
         if popup and editor_error:
@@ -1329,11 +1329,11 @@ class TestWebCloudCommon(unittest.TestCase):
         # fail if neither editor_footer error or popup blocking form submission trigger
         popup, editor_error = None, None
         try:
-            self.assertTrue(self.page.metadata_priority_popup_exists())
+            self.assertTrue(self.page.metadata_priority_popup_exists(), msg="Input validation popup not displayed")
         except AssertionError as err:
             popup = err
         try:
-            self.assertTrue(self.page.editor_error_message_displayed())
+            self.assertTrue(self.page.editor_error_message_displayed(cloud_name, metadata_name), msg="Editor area error message not displayed")
         except AssertionError as err:
             editor_error = err
         if popup and editor_error:
@@ -1352,11 +1352,11 @@ class TestWebCloudCommon(unittest.TestCase):
         # fail if neither editor_footer error or popup blocking form submission trigger
         popup, editor_error = None, None
         try:
-            self.assertTrue(self.page.metadata_priority_popup_exists())
+            self.assertTrue(self.page.metadata_priority_popup_exists(), msg="Input validation popup not displayed")
         except AssertionError as err:
             popup = err
         try:
-            self.assertTrue(self.page.editor_error_message_displayed())
+            self.assertTrue(self.page.editor_error_message_displayed(cloud_name, metadata_name), msg="Editor area error message not displayed")
         except AssertionError as err:
             editor_error = err
         if popup and editor_error:
