@@ -112,7 +112,7 @@ def assertHasAttribute(type, name, attribute, attribute_name, group=None, err=No
 
             object_file.close()
             if is_retry:
-                raise AssertionError()
+                raise AssertionError(f"Expected value {i} +/- {err} not in record: {record}")
             else:
                 sleep(sleep_time)
                 assertHasAttribute(type, name, attribute, attribute_name, group, err, metadata_cloud, defaults, name_field, settings, server, image_cloud, True)
@@ -139,7 +139,7 @@ def assertHasAttribute(type, name, attribute, attribute_name, group=None, err=No
                         return
             object_file.close()
             if is_retry:
-                raise AssertionError()
+                raise AssertionError(f"Expected {attribute_name} to be in {list}")
             else:
                 sleep(sleep_time)
                 assertHasAttribute(type, name, attribute, attribute_name, group, err, metadata_cloud, defaults, name_field, settings, server, image_cloud, True)

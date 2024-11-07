@@ -263,9 +263,9 @@ class TestWebDefaultCommon(unittest.TestCase):
         # Updates a group's default vm flavor
         self.page.click_side_button(self.group_name)
         self.page.click_side_tab('Settings')
-        self.page.select_vm_flavor('s8')
+        self.page.select_vm_flavor('t4')
         self.page.click_update_group()
-        wta.assertHasAttribute('group', self.group_name, 'vm_flavor', 's8', group=self.group_name, defaults=True)
+        wta.assertHasAttribute('group', self.group_name, 'vm_flavor', 't4', group=self.group_name, defaults=True)
 
     def test_web_default_update_vm_network(self):
         # Updates a group's default vm network
@@ -322,17 +322,15 @@ class TestWebDefaultCommon(unittest.TestCase):
         self.assertTrue(self.page.metadata_tab_exists(metadata_name))
         wta.assertExists('metadata', metadata_name, group=self.group_name)
 
-    @unittest.skip("Not working in production (issue 319)")
     def test_web_default_metadata_add_without_name(self):
         # Tries to add metadata to a group without a name
         self.page.click_side_button(self.group_name)
         self.page.click_side_tab('Metadata')
         self.page.click_metadata_new()
         self.page.type_metadata('sample_key: sample_value')
-        self.page.click_metadata_add()
-        self.assertTrue(self.page.error_message_displayed())
+        self.page.editor_click_metadata_add()
+        self.assertTrue(self.page.editor_error_message_displayed())
 
-    @unittest.skip("Not working in production (issue 319)")
     def test_web_default_metadata_add_name_with_symbols(self):
         # Tries to add metadata with symbols in its name
         metadata_name = 'inv@|id-web-te$t.yaml'
@@ -340,11 +338,10 @@ class TestWebDefaultCommon(unittest.TestCase):
         self.page.click_side_tab('Metadata')
         self.page.click_metadata_new()
         self.page.type_metadata_name(metadata_name)
-        self.page.click_metadata_add()
-        self.assertTrue(self.page.error_message_displayed())
+        self.page.editor_click_metadata_add()
+        self.assertTrue(self.page.editor_error_message_displayed())
         wta.assertNotExists('metadata', metadata_name, group=self.group_name)
 
-    @unittest.skip("Not working in production (issue 319)")
     def test_web_default_metadata_add_name_with_two_dashes(self):
         # Tries to add metadata with two dashes in its name
         metadata_name = 'invalid--web--test.yaml'
@@ -352,11 +349,10 @@ class TestWebDefaultCommon(unittest.TestCase):
         self.page.click_side_tab('Metadata')
         self.page.click_metadata_new()
         self.page.type_metadata_name(metadata_name)
-        self.page.click_metadata_add()
-        self.assertTrue(self.page.error_message_displayed())
+        self.page.editor_click_metadata_add()
+        self.assertTrue(self.page.editor_error_message_displayed())
         wta.assertNotExists('metadata', metadata_name, group=self.group_name)
 
-    @unittest.skip("Not working in production (issue 319)")
     def test_web_default_metadata_add_name_with_uppercase(self):
         # Tries to add metadata with uppercase letters in its name
         metadata_name = 'INVALID-WEB-TEST.yaml'
@@ -364,11 +360,10 @@ class TestWebDefaultCommon(unittest.TestCase):
         self.page.click_side_tab('Metadata')
         self.page.click_metadata_new()
         self.page.type_metadata_name(metadata_name)
-        self.page.click_metadata_add()
-        self.assertTrue(self.page.error_message_displayed())
+        self.page.editor_click_metadata_add()
+        self.assertTrue(self.page.editor_error_message_displayed())
         wta.assertNotExists('metadata', metadata_name, group=self.group_name)
 
-    @unittest.skip("Not working in production (issue 319)")
     def test_web_default_metadata_add_name_with_starting_ending_dash(self):
         # Tries to add metadata with starting and ending dashes in its name
         metadata_name = '-invalid-web-test-.yaml'
@@ -376,8 +371,8 @@ class TestWebDefaultCommon(unittest.TestCase):
         self.page.click_side_tab('Metadata')
         self.page.click_metadata_new()
         self.page.type_metadata_name(metadata_name)
-        self.page.click_metadata_add()
-        self.assertTrue(self.page.error_message_displayed())
+        self.page.editor_click_metadata_add()
+        self.assertTrue(self.page.editor_error_message_displayed())
         wta.assertNotExists('metadata', metadata_name, group=self.group_name)
 
     def test_web_default_metadata_add_name_too_long(self):
@@ -387,8 +382,8 @@ class TestWebDefaultCommon(unittest.TestCase):
         self.page.click_side_tab('Metadata')
         self.page.click_metadata_new()
         self.page.type_metadata_name(metadata_name)
-        self.page.click_metadata_add()
-        #self.assertTrue(self.page.error_message_displayed())
+        self.page.editor_click_metadata_add()
+        self.assertTrue(self.page.editor_error_message_displayed())
         wta.assertNotExists('metadata', metadata_name, group=self.group_name)
 
     def test_web_default_metadata_add_not_enabled(self):
