@@ -663,38 +663,15 @@ def delete(request):
             config.db_close()
             return group_list(request, active_user=active_user, response_code=1, message='%s group flavors delete "%s" failed - %s.' % (lno(MODID), fields['group_name'], msg))
 
-        # Delete the group from the user
-        # rc, msg = manage_user_groups(config, None, active_user.username, active_user.user_groups.remove(fields['group_name']), option='delete')
-        # if rc != 0:
-        #     config.close()
-        #     return group_list(request, active_user=active_user, response_code=1, message=f"{lno(MODID)} Failed to remove group {fields['group_name']} from user {active_user.username}, {msg}")
-        # if group being deleted is active_user.active_group
-        # we should switch away from the group
+        # if group being deleted is active_user.active_group switch away from the group
         if fields['group_name'] == active_user.active_group:
-            logger = logging.getLogger()
-            logger.setLevel(logging.INFO)
-            file_handler = logging.FileHandler('/opt/cloudscheduler/log.log')
-            file_handler.setLevel(logging.DEBUG)
-            logger.addHandler(file_handler)
-            logging.info(f"{fields['group_name']} being deleted is same as user's current active group:{active_user.active_group}") 
-            logging.info(f"fields: {fields}")
-            logging.info(f"active_user:{active_user}")
-            logging.info(f"active_group:{active_user.active_group}, \nuser_groups:{active_user.user_groups}, \navailable_groups:{active_user.available_groups}, \ndefault: {active_user.default_group}")
-            try:
-                # determine a suitable group to switch to
-                    # switch to default group if it is present and not being deleted
-                if active_user.default_group != None and active_user.default_group != active_user.active_group:
-                    logging.info(f"switching to default group: {active_user.default_group}")
-                    active_user.active_group = active_user.default_group
-                # switch to the first valid group in user_groups if there are any
-                elif len(active_user.user_groups) > 0:
-                    active_user.active_group = active_user.user_groups[0]
-                # there are no groups for this user, set the active group to the
-                # default constructor value
-                else:
-                    active_user.active_group = '-'
-            except Exception as err:
-                logging.info(f"error: {err}")
+            if active_user.default_group != None and active_user.default_group != active_user.active_group:
+                active_user.active_group = active_user.default_group
+            elif len(active_user.user_groups) > 0:
+                active_user.active_group = active_user.user_groups[0]
+            else:
+                active_user.active_group = '-'
+        
         # Delete the group.
         table = 'csv2_groups'
         rc, msg = config.db_delete(table, where=where_clause)
