@@ -18,8 +18,8 @@ from cloudscheduler.lib.view_utils import \
     table_fields, \
     validate_by_filtered_table_entries, \
     validate_fields, \
-    get_file_checksum, \
-    manage_user_groups
+    get_file_checksum
+
 from collections import defaultdict
 import bcrypt
 
@@ -29,8 +29,6 @@ import re
 from cloudscheduler.lib.web_profiler import silk_profile as silkp
 
 from csv2.gen_public_page import generate_static_page
-
-import logging
 
 # lno: GV - error code identifier.
 MODID= 'GV'
@@ -305,8 +303,7 @@ def add(request):
     ### Bad request.
     else:
         config.db_close()
-        message = '%s group add, invalid method "%s" specified.' % (lno(MODID), request.method) ###
-        # message = f"group add failed at {lno(MODID)}, invalid method {request.method} specified. Full request: {request.__dict__}"
+        message = '%s group add, invalid method "%s" specified.' % (lno(MODID), request.method)
         request.session["response"] = {"message": message, "response_code": 1, "group": group}
         return redirect("/group/list/")
         #return group_list(request, active_user=active_user, response_code=1, message='%s group add, invalid method "%s" specified.' % (lno(MODID), request.method))

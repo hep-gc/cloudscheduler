@@ -1014,7 +1014,6 @@ def set_user_groups(config, request, super_user=True):
     else:
         new_active_user.active_group = new_active_user.user_groups[0]
     if new_active_user.active_group not in new_active_user.user_groups and new_active_user.active_group != 'ALL':
-        # new_active_user.active_group = new_active_user.user_groups[0]
         return 1,'cannot switch to invalid group "%s".' % new_active_user.active_group, new_active_user
 
 #   return 0, None, new_active_user, new_active_user.user_groups
