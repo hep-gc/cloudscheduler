@@ -187,6 +187,15 @@ class TestWebGroupCommon(unittest.TestCase):
         self.assertFalse(self.page.box_checked(user_name))
         wta.assertHasNotAttribute('user', user_name, 'user_groups', group_name) 
 
+    def test_web_group_delete_users_last_group(self):
+        # deletes the last group of a test user
+        assert True
+
+    def test_web_group_delete_own_last_group(self):
+        # logs in as a user and attempts to delete its own only group
+        assert True
+    
+
     @classmethod
     def tearDownClass(cls):
         wtsc.cleanup(cls)
