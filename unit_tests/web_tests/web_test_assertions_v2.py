@@ -341,3 +341,42 @@ def names():
     }
 
     return names
+
+def assertNotAtURL(driver, 
+                     url:str, 
+                     components:list = ['scheme', 'netloc', 'path']
+                    ) -> AssertionError: 
+    '''
+    Raises an AssertionError if the url provided is the same as the
+    url for the current page up with the provided components
+    avaiable components: 
+        'scheme', 
+        'netloc', 
+        'path', 
+        'params',
+        'query',
+        'fragment'
+    e.g scheme://netloc/path;parameters?query#fragment
+    '''
+    from urllib.parse import urlparse
+    coms = [
+        'scheme', 
+        'netloc', 
+        'path',  
+        'params',
+        'query',
+        'fragment'
+    ]
+    current_url = urlparse(driver.current_url)
+    arg_url = urlparse(url)
+    for c in coms:
+        if c not in components:
+            current_url = current_url._replace(**{c:''})
+            arg_url = arg_url._replace(**{c:''})
+    
+    if current_url == arg_url:
+        raise AssertionError("Page not redirected." + 
+                            f" The current URL {driver.current_url} matches the" +
+                            f" supplied url {url} on {components}"
+                            )
+    

@@ -16,22 +16,17 @@ class TestWebNoGroupErrorPageCommon(unittest.TestCase):
         cls.page = pages.StatusPage(cls.driver, cls.gvar['address'])
 
     def setUp(self):
-        # need to log in as user with no group here
-        nogroup_user = {}
-        nogroup_user['username'] = None
-        nogroup_user['user_secret'] = None
-        # log out from tester
         self.page.get_homepage()
-        self.page.click_top_nav('Log out')
-        self.assertTrue(self.page.page_blank())
-        self.page.get_homepage_login(nogroup_user['username'], nogroup_user['user_secret'])
 
-    # all tests start logged out 
+    # all tests begin logged in as a user with no group
+    # tester-wiu1 for regular user tests 
+    # tester-wiu2 for super user tests
 
     def test_web_nogrouperrorpage_login_redirected(self):
         # Tests that when logging in as a user with no group, 
         # you do not land on the status page
-        assert True
+        status_url = f"https://{ self.gvar['fqdn'] }/cloud/status/"
+        wta.assertNotAtURL(self.driver, status_url)
 
     def test_web_nogrouperrorpage_login_page_content_present(self):
         # Tests whether the content of the no group error page is present
@@ -47,9 +42,9 @@ class TestWebNoGroupErrorPageSuperUserFirefox(TestWebNoGroupErrorPageCommon):
     @classmethod
     def setUpClass(cls):
         try:
-            wtsc.setup(cls, 2, ['clouds'], browser='firefox')
+            wtsc.setup(cls, 2, ['nogroups'], browser='firefox')
             super(TestWebNoGroupErrorPageSuperUserFirefox, cls).setUpClass()
-            print("\nPage Tests (Super User):")
+            print("\nNo Group Error Page Tests (Super User):")
         except:
             print("Error in test setup")
             super(TestWebNoGroupErrorPageSuperUserFirefox, cls).tearDownClass()
@@ -61,9 +56,9 @@ class TestWebNoGroupErrorPageRegularUserFirefox(TestWebNoGroupErrorPageCommon):
     @classmethod
     def setUpClass(cls):
         try:
-            wtsc.setup(cls, 1, ['clouds'], browser='firefox')
+            wtsc.setup(cls, 1, ['nogroups'], browser='firefox')
             super(TestWebNoGroupErrorPageRegularUserFirefox, cls).setUpClass()
-            print("\nPage Tests (Regular User):")
+            print("\nNo Group Error Page Tests (Regular User):")
         except:
             print("Error in test setup")
             super(TestWebNoGroupErrorPageRegularUserFirefox, cls).tearDownClass()
@@ -75,9 +70,9 @@ class TestWebNoGroupErrorPageSuperUserChromium(TestWebNoGroupErrorPageCommon):
     @classmethod
     def setUpClass(cls):
         try:
-            wtsc.setup(cls, 2, ['clouds'], browser='chromium')
+            wtsc.setup(cls, 2, ['nogroups'], browser='chromium')
             super(TestWebNoGroupErrorPageSuperUserChromium, cls).setUpClass()
-            print("\nPage Tests (Chromium) (Super User):")
+            print("\nNo Group Error Page Tests (Chromium) (Super User):")
         except:
             print("Error in test setup")
             super(TestWebNoGroupErrorPageSuperUserChromium, cls).tearDownClass()
@@ -89,9 +84,9 @@ class TestWebNoGroupErrorPageRegularUserChromium(TestWebNoGroupErrorPageCommon):
     @classmethod
     def setUpClass(cls):
         try:
-            wtsc.setup(cls, 1, ['clouds'], browser='chromium')
+            wtsc.setup(cls, 1, ['nogroups'], browser='chromium')
             super(TestWebNoGroupErrorPageRegularUserChromium, cls).setUpClass()
-            print("\nPage Tests (Chromium) (Regular User):")
+            print("\nNo Group Error Page Tests (Chromium) (Regular User):")
         except:
             print("Error in test setup")
             super(TestWebNoGroupErrorPageRegularUserChromium, cls).tearDownClass()
@@ -103,9 +98,9 @@ class TestWebNoGroupErrorPageSuperUserOpera(TestWebNoGroupErrorPageCommon):
     @classmethod
     def setUpClass(cls):
         try:
-            wtsc.setup(cls, 2, ['clouds'], browser='opera')
+            wtsc.setup(cls, 2, ['nogroups'], browser='opera')
             super(TestWebNoGroupErrorPageSuperUserOpera, cls).setUpClass()
-            print("\nPage Tests (Opera) (Super User):")
+            print("\nNo Group Error Page Tests (Opera) (Super User):")
         except:
             print("Error in test setup")
             super(TestWebNoGroupErrorPageSuperUserOpera, cls).tearDownClass()
@@ -117,9 +112,9 @@ class TestWebNoGroupErrorPageRegularUserOpera(TestWebNoGroupErrorPageCommon):
     @classmethod
     def setUpClass(cls):
         try:
-            wtsc.setup(cls, 1, ['clouds'], browser='opera')
+            wtsc.setup(cls, 1, ['nogroups'], browser='opera')
             super(TestWebNoGroupErrorPageRegularUserOpera, cls).setUpClass()
-            print("\nPage Tests (Opera) (Regular User):")
+            print("\nNo Group Error Page Tests (Opera) (Regular User):")
         except:
             print("Error in test setup")
             super(TestWebNoGroupErrorPageRegularUserOpera, cls).tearDownClass()
@@ -131,9 +126,9 @@ class TestWebNoGroupErrorPageSuperUserChrome(TestWebNoGroupErrorPageCommon):
     @classmethod
     def setUpClass(cls):
         try:
-            wtsc.setup(cls, 2, ['clouds', 'keys'], browser='chrome')
+            wtsc.setup(cls, 2, ['nogroups'], browser='chrome')
             super(TestWebNoGroupErrorPageSuperUserChrome, cls).setUpClass()
-            print("\nPage Tests (Chrome) (Super User):")
+            print("\nNo Group Error Page Tests (Chrome) (Super User):")
         except:
             print("Error in test setup")
             super(TestWebNoGroupErrorPageSuperUserChrome, cls).tearDownClass()
@@ -145,9 +140,9 @@ class TestWebNoGroupErrorPageRegularUserChrome(TestWebNoGroupErrorPageCommon):
     @classmethod
     def setUpClass(cls):
         try:
-            wtsc.setup(cls, 1, ['clouds', 'keys'], browser='chrome')
+            wtsc.setup(cls, 1, ['nogroups'], browser='chrome')
             super(TestWebNoGroupErrorPageRegularUserChrome, cls).setUpClass()
-            print("\nPage Tests (Chrome) (Regular User):")
+            print("\nNo Group Error Page Tests (Chrome) (Regular User):")
         except:
             print("Error in test setup")
             super(TestWebNoGroupErrorPageRegularUserChrome, cls).tearDownClass()

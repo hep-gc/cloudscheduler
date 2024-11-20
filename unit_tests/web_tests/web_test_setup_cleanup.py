@@ -119,7 +119,7 @@ def setup_objects(objects=[], browser='firefox'):
     if 'clouds' in objects:
         clouds_num = 2
     else:
-        clouds_num = 2
+        clouds_num = 0 # this could be 0 probably
     credentials = gvar['cloud_credentials']
     clouds = []
     cores = []
@@ -254,6 +254,12 @@ def setup_objects(objects=[], browser='firefox'):
             "ssh failed - check the ssh configuration and try again",
             10,
         )
+
+    # remove groups for testing groupless behaviour
+    for i in range(0, groups_num + 1):
+        if subprocess.run(['cloudscheduler', 'group', 'delete', '-gn', gvar['user'] + '-wig' + str(i), '-Y', '-s', 'unit-test']).returncode != 0:
+            raise SetUpException("group delete failed - check the server status and try again")
+
 
     return gvar
 
