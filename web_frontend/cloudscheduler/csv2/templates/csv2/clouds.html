@@ -19,7 +19,7 @@
 <script type="text/javascript">
 
     var visited = {};
-    var ec2_regions = {{ ec2_regions_list|safe }};
+    var ec2_regions = {{ ec2_regions_list|default:"{}"|safe }};
 
     function get_message() {
         if (sessionStorage.getItem("message")){
