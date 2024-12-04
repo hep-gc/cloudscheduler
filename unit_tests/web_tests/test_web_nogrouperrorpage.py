@@ -7,6 +7,8 @@ from . import web_test_setup_cleanup as wtsc
 from . import web_test_assertions_v2 as wta
 from . import web_test_page_objects as pages
 from . import web_test_helpers as helpers
+from time import sleep
+from selenium.webdriver.common.by import By
 
 class TestWebNoGroupErrorPageCommon(unittest.TestCase):
     """A class for the page tests that should be repeated in all iterations."""
@@ -23,14 +25,28 @@ class TestWebNoGroupErrorPageCommon(unittest.TestCase):
     # tester-wiu2 for super user tests
 
     def test_web_nogrouperrorpage_login_redirected(self):
-        # Tests that when logging in as a user with no group, 
-        # you do not land on the status page
+        # Tests that when logging in as a user with no group, you are redirected
+
+        # should be looking at error page
+        wta.assertAlertNotPresent(self.driver)
         status_url = f"https://{ self.gvar['fqdn'] }/cloud/status/"
+        sleep(6) 
+        # should be redirected to login by now
+        wta.assertAlertPresent(self.driver)
         wta.assertNotAtURL(self.driver, status_url)
 
-    def test_web_nogrouperrorpage_login_page_content_present(self):
+    def test_web_nogrouperrorpage_login_page_error_message_present(self):
         # Tests whether the content of the no group error page is present
-        assert True
+        self.assertTrue(self.page.error_message_displayed())
+
+    def test_web_nogrouperrorpage_login_page_content_present(self):
+        # tests if error_info and redirect_info messages are visible on the webpage
+        error_info = "The user you are attempting to log in as belongs to no valid groups."
+        redirect_info = "You will be redirected to log in again in 5 seconds..."
+        error_info_elements = self.driver.find_elements(By.XPATH, "//*[contains(text(),'" + error_info + "')]")
+        redirect_info_elements = self.driver.find_elements(By.XPATH, "//*[contains(text(),'" + redirect_info + "')]")
+        self.assertTrue(len(error_info_elements) == 1)
+        self.assertTrue(len(redirect_info_elements) == 1)
         
     @classmethod
     def tearDownClass(cls):
