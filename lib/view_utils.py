@@ -924,7 +924,12 @@ def render(request, template, context):
     if request.META['HTTP_ACCEPT'] == 'application/json':
         response = HttpResponse(json.dumps(context, cls=csv2Encoder), content_type='application/json')
     else:
-        response = django_render(request, template, context)
+        if context.get('active_group') == '-':
+            context['message'] = "The active user belongs to no groups"
+            context['response_code'] = 1
+            response = django_render(request, 'csv2/nogroup.html', context)
+        else: 
+            response = django_render(request, template, context)
     end_time = time.time()
     print("Render time: %f.5" % end_time)
     return response
@@ -1004,7 +1009,6 @@ def set_user_groups(config, request, super_user=True):
         raise PermissionDenied
 
     if len(new_active_user.user_groups) < 1:
-#       return 1,'user "%s" is not a member of any group.' % new_active_user.username, new_active_user, new_active_user.user_groups
         return 1,'user "%s" is not a member of any group.' % new_active_user.username, new_active_user
 
     if len(new_active_user.args) > 0 and new_active_user.args[0] in new_active_user.user_groups:
@@ -1014,10 +1018,8 @@ def set_user_groups(config, request, super_user=True):
     else:
         new_active_user.active_group = new_active_user.user_groups[0]
     if new_active_user.active_group not in new_active_user.user_groups and new_active_user.active_group != 'ALL':
-#       return 1,'cannot switch to invalid group "%s".' % new_active_user.active_group, new_active_user, new_active_user.user_groups
         return 1,'cannot switch to invalid group "%s".' % new_active_user.active_group, new_active_user
 
-#   return 0, None, new_active_user, new_active_user.user_groups
     return 0, None, new_active_user
 
 #-------------------------------------------------------------------------------
