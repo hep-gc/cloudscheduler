@@ -558,6 +558,10 @@ def delete(request):
             config.db_close()
             return group_list(request, active_user=active_user, response_code=1, message='%s group resources delete "%s" failed - there are vms remaining in the group.' % (lno(MODID), fields['group_name']))
 
+        # Check if this group is the last group that the active user belongs to
+        if fields['group_name'] in active_user.user_groups and len(active_user.user_groups) == 1:
+            return group_list(request, active_user=active_user, response_code=1, message='%s group resources delete "%s" failed - you cannot delete your own last group.' % (lno(MODID), fields['group_name']))
+
         # Delete any group metadata files for the group.
         rc, msg, _group_list = config.db_query("view_groups_with_metadata_names", where=where_clause)
         for row in _group_list:
