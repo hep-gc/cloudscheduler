@@ -11,15 +11,15 @@ def main(gvar):
     if not gvar['user_secret']:
         gvar['user_secret'] = generate_secret()
 
-    NO_GROUP_ERROR_MSG = "The current user is not in any group, contact your system administrator"
-    ATTEMPT_TO_DELETE_OWN_LAST_GROUP_MSG = "You cannot delete your own last group"
+    NO_GROUP_ERROR_MSG = "is not a member of any group."
+    ATTEMPT_TO_DELETE_OWN_LAST_GROUP_MSG = "you cannot delete your own last group"
     # 01 interaction for superuser with no groups
     execute_csv2_request(
         gvar, 
         1, 
         None, 
         NO_GROUP_ERROR_MSG,
-        '/user/list/',
+        '/cloud/status/',
         server_user=ut_id(gvar, 'ngu1')
     )
 
@@ -29,7 +29,7 @@ def main(gvar):
         1, 
         None, 
         NO_GROUP_ERROR_MSG,
-        '/user/list/',
+        '/cloud/status/',
         server_user=ut_id(gvar, 'ngu2')
     )
 
