@@ -2,6 +2,8 @@ import unittest
 import subprocess
 from time import sleep
 from . import web_test_helpers as helpers
+from selenium.common.exceptions import *
+
 
 logfile = helpers.misc_file_full_path('assert_v2_objects.txt')
 sleep_time = 2
@@ -342,10 +344,7 @@ def names():
 
     return names
 
-def assertNotAtURL(driver, 
-                     url:str, 
-                     components:list = ['scheme', 'netloc', 'path']
-                    ) -> AssertionError: 
+def assertNotAtURL(driver, url:str, components:list = ['scheme', 'netloc', 'path']) -> AssertionError:
     '''
     Raises an AssertionError if the url provided is the same as the
     url for the current page up with the provided components
@@ -379,4 +378,17 @@ def assertNotAtURL(driver,
                             f" The current URL {driver.current_url} matches the" +
                             f" supplied url {url} on {components}"
                             )
-    
+
+# the login prompt is an alert
+def assertAlertPresent(driver) -> AssertionError:
+    try:
+        driver.switch_to.alert
+    except NoAlertPresentException:
+        raise AssertionError("Expected alert to be shown but no alert is present")
+
+def assertAlertNotPresent(driver) -> AssertionError:
+    try:
+        driver.switch_to.alert
+        raise AssertionError("Expected no alert to be present but found alert")
+    except NoAlertPresentException:
+        pass

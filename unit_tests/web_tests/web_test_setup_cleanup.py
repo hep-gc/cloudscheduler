@@ -256,10 +256,10 @@ def setup_objects(objects=[], browser='firefox'):
         )
 
     # remove groups for testing groupless behaviour
-    for i in range(0, groups_num + 1):
-        if subprocess.run(['cloudscheduler', 'group', 'delete', '-gn', gvar['user'] + '-wig' + str(i), '-Y', '-s', 'unit-test']).returncode != 0:
-            raise SetUpException("group delete failed - check the server status and try again")
-
+    if 'nogroups' in objects:
+        for i in range(0, groups_num + 1):
+            if subprocess.run(['cloudscheduler', 'group', 'delete', '-gn', gvar['user'] + '-wig' + str(i), '-Y', '-s', 'unit-test']).returncode != 0:
+                raise SetUpException("group delete failed - check the server status and try again")
 
     return gvar
 
