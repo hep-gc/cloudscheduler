@@ -30,9 +30,6 @@ from cloudscheduler.lib.web_profiler import silk_profile as silkp
 
 from csv2.gen_public_page import generate_static_page
 
-import logging
-import json
-
 # lno: GV - error code identifier.
 MODID= 'GV'
 
@@ -1189,13 +1186,6 @@ def update(request):
     This function should recieve a post request with a payload of group configuration
     to update a given group.
     """
-    logger = logging.getLogger()
-    logger.setLevel(logging.INFO)
-    file_handler = logging.FileHandler('/opt/cloudscheduler/log.log')
-    file_handler.setLevel(logging.DEBUG)
-    logger.addHandler(file_handler)
-    logging.info(f"type: {type(request.__dict__)}")
-    # logging.info(f"request: {json.dumps(request.__dict__, sort_keys=True, indent=4)}")
     # open the database.
     config.db_open()    
     config.refresh()
@@ -1206,26 +1196,8 @@ def update(request):
     rc, msg, active_user = set_user_groups(config, request)
     if rc != 0:
         if (active_user.active_group == '-' or len(active_user.user_groups) < 1) and active_user.is_superuser:
-            # update default group so that active_user is a member
-            
-            # rc, msg, fields, tables, columns = validate_fields(config, request, [GROUP_KEYS], ['csv2_groups','csv2_user_groups', 'csv2_user,n'], active_user)
-            # table = 'csv2_groups'
-            # group_updates = table_fields(fields, table, columns, 'update')
-            # where_clause = 'group_name="%s"' % 'default'
-            
-            # #check if default group exists
-            # rc, msg, found_group_list = config.db_query(table, where=where_clause)
-            # if not found_group_list or len(found_group_list) == 0:
-            #     config.db_close()
-            #     message = '%s group update, "%s" failed - the request did not match any rows.' % (lno(MODID), 'default')
-            #     request.session["response"] = {"message": message, "response_code": 1, "group": group}
-            #     return redirect("/group/list/")
-            
-            # copy the request and massage it to make it a group update on default to add active_user
             pass
-
-
-        else: 
+        else:
             config.db_close()
             message =  '%s %s.' % (lno(MODID), msg)
             request.session["response"] = {"message": message, "response_code": 1, "group": group}
