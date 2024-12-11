@@ -924,10 +924,24 @@ def render(request, template, context):
     if request.META['HTTP_ACCEPT'] == 'application/json':
         response = HttpResponse(json.dumps(context, cls=csv2Encoder), content_type='application/json')
     else:
-        if context.get('active_group') == '-':
-            context['message'] = "The active user belongs to no groups"
-            context['response_code'] = 1
-            response = django_render(request, 'csv2/nogroup.html', context)
+        # catching groupless users here requires the following returned
+        # - active_group
+        # - is_superuser
+        if context.get('active_group') == '-' or context.get('active_group') == None:
+            # allow superusers to access settings but show error page for everything else
+            if (
+                template == 'csv2/groups.html'
+                or template == 'csv2/user_settings.html'
+                or template == 'csv2/server_config.html'
+                or template == 'csv2/users.html'
+                or template == 'csv2/index.html'
+                ) and context.get('is_superuser') == True:
+                context['response_code'] = 1
+                response = django_render(request, template, context)
+            else:
+                context['message'] = "The active user belongs to no groups"
+                context['response_code'] = 1
+                response = django_render(request, 'csv2/nogroup.html', context)
         else: 
             response = django_render(request, template, context)
     end_time = time.time()

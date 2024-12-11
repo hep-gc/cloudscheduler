@@ -30,6 +30,9 @@ from cloudscheduler.lib.web_profiler import silk_profile as silkp
 
 from csv2.gen_public_page import generate_static_page
 
+import logging
+import json
+
 # lno: GV - error code identifier.
 MODID= 'GV'
 
@@ -179,10 +182,14 @@ def add(request):
     # Retrieve the active user, associated group list and optionally set the active group.
     rc, msg, active_user = set_user_groups(config, request)
     if rc != 0:
-        config.db_close()
-        message = '%s %s' % (lno(MODID), msg)
-        request.session["response"] = {"message": message, "response_code": 1, "group": group}
-        return redirect("/group/list/")
+        # try to let superusers with no groups add a group
+        if (active_user.active_group == '-' or len(active_user.user_groups) < 1) and active_user.is_superuser:
+            pass
+        else:
+            config.db_close()
+            message = '%s %s' % (lno(MODID), msg)
+            request.session["response"] = {"message": message, "response_code": 1, "group": group}
+            return redirect("/group/list/")
         #return group_list(request, active_user=active_user, response_code=1, message='%s %s' % (lno(MODID), msg))
 
     if request.method == 'POST':
@@ -560,8 +567,12 @@ def delete(request):
             return group_list(request, active_user=active_user, response_code=1, message='%s group resources delete "%s" failed - there are vms remaining in the group.' % (lno(MODID), fields['group_name']))
 
         # Check if this group is the last group that the active user belongs to
-        if fields['group_name'] in active_user.user_groups and len(active_user.user_groups) == 1:
-            return group_list(request, active_user=active_user, response_code=1, message='%s group resources delete "%s" failed - you cannot delete your own last group.' % (lno(MODID), fields['group_name']))
+        # if fields['group_name'] in active_user.user_groups and len(active_user.user_groups) == 1:
+        #     return group_list(request, active_user=active_user, response_code=1, message='%s group resources delete "%s" failed - you cannot delete your own last group.' % (lno(MODID), fields['group_name']))
+
+        # Protect the default group
+        # if fields['group_name'] == 'default':
+        #     return group_list(request, active_user=active_user, response_code=1, message='%s group resources delete "%s" failed - you cannot delete the default group.' % (lno(MODID), fields['group_name']))
 
         # Delete any group metadata files for the group.
         rc, msg, _group_list = config.db_query("view_groups_with_metadata_names", where=where_clause)
@@ -699,6 +710,8 @@ def group_list(request, active_user=None, response_code=0, message=None):
 
     group_list_path = '/group/list/'
     
+    group_recovery = False
+
     group = None
     if "response" in request.session:
         response = request.session.get("response")
@@ -717,8 +730,11 @@ def group_list(request, active_user=None, response_code=0, message=None):
     if active_user is None:
         rc, msg, active_user = set_user_groups(config, request)
         if rc != 0:
-            config.db_close()
-            return render(request, 'csv2/groups.html', {'response_code': 1, 'message': '%s %s' % (lno(MODID), msg)})
+            if (active_user.active_group == '-' or len(active_user.user_groups) < 1) and active_user.is_superuser:
+                group_recovery = True
+            else:
+                config.db_close()
+                return render(request, 'csv2/groups.html', {'response_code': 1, 'message': '%s %s' % (lno(MODID), msg)})
 
     # Validate input fields (should be none).
     rc, msg, fields, tables, columns = validate_fields(config, request, [LIST_KEYS], [], active_user)
@@ -795,6 +811,8 @@ def group_list(request, active_user=None, response_code=0, message=None):
             'is_superuser': active_user.is_superuser,
             'version': config.get_version()
         }
+    if group_recovery:
+        context['message'] = "The active user belongs to no groups"
     config.db_close()
 
     return render(request, 'csv2/groups.html', context)
@@ -1171,9 +1189,15 @@ def update(request):
     This function should recieve a post request with a payload of group configuration
     to update a given group.
     """
-
+    logger = logging.getLogger()
+    logger.setLevel(logging.INFO)
+    file_handler = logging.FileHandler('/opt/cloudscheduler/log.log')
+    file_handler.setLevel(logging.DEBUG)
+    logger.addHandler(file_handler)
+    logging.info(f"type: {type(request.__dict__)}")
+    # logging.info(f"request: {json.dumps(request.__dict__, sort_keys=True, indent=4)}")
     # open the database.
-    config.db_open()
+    config.db_open()    
     config.refresh()
 
     group = request.POST["group"] if "group" in request.POST else None
@@ -1181,10 +1205,31 @@ def update(request):
     # Retrieve the active user, associated group list and optionally set the active group.
     rc, msg, active_user = set_user_groups(config, request)
     if rc != 0:
-        config.db_close()
-        message =  '%s %s.' % (lno(MODID), msg)
-        request.session["response"] = {"message": message, "response_code": 1, "group": group}
-        return redirect("/group/list/")
+        if (active_user.active_group == '-' or len(active_user.user_groups) < 1) and active_user.is_superuser:
+            # update default group so that active_user is a member
+            
+            # rc, msg, fields, tables, columns = validate_fields(config, request, [GROUP_KEYS], ['csv2_groups','csv2_user_groups', 'csv2_user,n'], active_user)
+            # table = 'csv2_groups'
+            # group_updates = table_fields(fields, table, columns, 'update')
+            # where_clause = 'group_name="%s"' % 'default'
+            
+            # #check if default group exists
+            # rc, msg, found_group_list = config.db_query(table, where=where_clause)
+            # if not found_group_list or len(found_group_list) == 0:
+            #     config.db_close()
+            #     message = '%s group update, "%s" failed - the request did not match any rows.' % (lno(MODID), 'default')
+            #     request.session["response"] = {"message": message, "response_code": 1, "group": group}
+            #     return redirect("/group/list/")
+            
+            # copy the request and massage it to make it a group update on default to add active_user
+            pass
+
+
+        else: 
+            config.db_close()
+            message =  '%s %s.' % (lno(MODID), msg)
+            request.session["response"] = {"message": message, "response_code": 1, "group": group}
+            return redirect("/group/list/")
         #return group_list(request, active_user=active_user, response_code=1, message='%s %s' % (lno(MODID), msg))
 
     if request.method == 'POST':

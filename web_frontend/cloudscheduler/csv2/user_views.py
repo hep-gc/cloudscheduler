@@ -240,10 +240,10 @@ def user_list(request, active_user=None, response_code=0, message=None):
     """
 
     user_list_path = '/user/list/'
+    group_recovery = False
 
     if request.path!=user_list_path and request.META['HTTP_ACCEPT'] == 'application/json':
         return render(request, 'csv2/users.html', {'response_code': response_code, 'message': message, 'active_user': active_user.username, 'active_group': active_user.active_group, 'user_groups': active_user.user_groups})
-
 
     # open the database.
     config.db_open()
@@ -251,14 +251,17 @@ def user_list(request, active_user=None, response_code=0, message=None):
     # Retrieve the active user, associated group list and optionally set the active group.
     rc, msg, active_user = set_user_groups(config, request)
     if rc != 0:
-        config.db_close()
-        return render(request, 'csv2/users.html', {'response_code': 1, 'message': '%s %s' % (lno(MODID), msg)})
+        if (active_user.active_group == '-' or len(active_user.user_groups) < 1) and active_user.is_superuser:
+                group_recovery = True
+        else:
+            config.db_close()
+            return render(request, 'csv2/users.html', {'response_code': 1, 'active_group': active_user.active_group, 'message': '%s %s' % (lno(MODID), msg)})
 
     # Validate input fields  when request path is /user/list/.
     rc, msg, fields, tables, columns = validate_fields(config, request, [LIST_KEYS], [], active_user)
     if rc != 0 and request.path==user_list_path:
         config.db_close()
-        return render(request, 'csv2/users.html', {'response_code': 1, 'message': '%s user list, %s' % (lno(MODID), msg)})
+        return render(request, 'csv2/users.html', {'response_code': 1, 'active_group': active_user.active_group, 'message': '%s user list, %s' % (lno(MODID), msg)})
 
     # Retrieve the user list but loose the passwords.
     rc, msg, user_list_raw = config.db_query("view_user_groups")
@@ -333,6 +336,8 @@ def user_list(request, active_user=None, response_code=0, message=None):
             'is_superuser': active_user.is_superuser,
             'version': config.get_version()
         }
+    if group_recovery:
+        context['message'] = "The active user belongs to no groups"
 
     config.db_close()
     return render(request, 'csv2/users.html', context)
@@ -348,14 +353,18 @@ def settings(request, active_user=None, response_code=0, message=None):
     # open the database.
     config.db_open()
     
+    group_recovery = False
     # Retrieve the active user, associated group list and optionally set the active group.
     if active_user is None:
         rc, msg, active_user = set_user_groups(config, request, super_user=False)
         if rc != 0:
-            config.db_close()
-            return render(request, 'csv2/user_settings.html', {'response_code': 1, 'message': '%s %s' % (lno(MODID), msg)})
+            if (active_user.active_group == '-' or len(active_user.user_groups) < 1) and active_user.is_superuser:
+                group_recovery = True
+            else:   
+                config.db_close()
+                return render(request, 'csv2/user_settings.html', {'response_code': 1, 'message': '%s %s' % (lno(MODID), msg)})
 
-    if rc == 0:
+    if rc == 0 or group_recovery:
         if request.method == 'POST':
             # Validate input fields.
             rc, msg, fields, tables, columns = validate_fields(config, request, [UNPRIVILEGED_USER_KEYS], ['csv2_user', 'django_session,n'], active_user)
@@ -410,7 +419,8 @@ def settings(request, active_user=None, response_code=0, message=None):
             'is_superuser': active_user.is_superuser,
             'version': config.get_version()
         }
-
+    if group_recovery:
+        context['message'] = "The active user belongs to no groups"
     return render(request, 'csv2/user_settings.html', context)
 
 #-------------------------------------------------------------------------------
@@ -427,8 +437,12 @@ def update(request):
     # Retrieve the active user, associated group list and optionally set the active group.
     rc, msg, active_user = set_user_groups(config, request)
     if rc != 0:
-        config.db_close()
-        return user_list(request, active_user=active_user, response_code=1, message='%s %s' % (lno(MODID), msg))
+        # try to let superusers with no group update their user
+        if (active_user.active_group == '-' or len(active_user.user_groups) < 1) and active_user.is_superuser:
+            pass
+        else:
+            config.db_close()
+            return user_list(request, active_user=active_user, response_code=1, message='%s %s' % (lno(MODID), msg))
 
     if request.method == 'POST':
         # Validate input fields.

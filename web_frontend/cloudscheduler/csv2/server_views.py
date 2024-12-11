@@ -35,10 +35,13 @@ def configuration(request):
 
     config.db_open()
     message = None
+    group_recovery = False
 
     # Retrieve the active user, associated group list and optionally set the active group.
     rc, msg, active_user = set_user_groups(config, request)
-    if rc == 0:
+    if (active_user.active_group == '-' or len(active_user.user_groups) < 1) and active_user.is_superuser:
+        group_recovery = True
+    if rc == 0 or group_recovery:
         if request.method == 'POST':
                 if 'category' in request.POST:
                     if 'config_key_values' in request.POST:

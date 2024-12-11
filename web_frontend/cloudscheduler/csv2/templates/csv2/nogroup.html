@@ -1,15 +1,14 @@
 <!DOCTYPE html>
-
+{% block navbar %}
+    {% include "csv2/navigation_bar.html" %}
+{% endblock %}
 <html>
     <head>
-        <meta http-equiv="refresh" content="5; url=/settings/log-out" />
+        <!-- <meta http-equiv="refresh" content="5; url=/settings/log-out" /> -->
         {% load template_utils %}
         {% load static %}
         <link rel="stylesheet" type="text/css" href="{% static "csv2/common.css" %}?{{version}}">
-        
-
         <script type="text/javascript">
-
             function get_message() {
                 if (sessionStorage.getItem("message")){
                     document.getElementById("message").innerHTML = sessionStorage.getItem("message");
@@ -23,15 +22,17 @@
                 request.session.removeItem("message");
             }
         </script>   
-
     </head>
-    <div>
-        <body onpageshow="get_message();" ></body>
+    
+    <body onpageshow="get_message();" ></body>
+        <div class="main-div">
             <h1>The user you are attempting to log in as belongs to no valid groups.</h1>
-            <p>You will be redirected to log in again in 5 seconds...</p>
-            <p>if you are not redirected automatically, <a href="/settings/log-out">click here</a></p>
-        </body>
-    </div>
+            <p>Contact your system administrator</p>
+            <!-- <p>You will be redirected to log in again in 5 seconds...</p> -->
+            <p>To log in as a different user, <a href="/settings/log-out">click here</a>.</p>
+        </div>
+    </body>
+    
     
     
     <div class="footer">
