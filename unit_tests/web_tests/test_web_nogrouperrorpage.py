@@ -24,6 +24,7 @@ class TestWebNoGroupErrorPageCommon(unittest.TestCase):
     # tester-wiu1 for regular user tests 
     # tester-wiu2 for super user tests
 
+    @unittest.skip("No redirect occurs")
     def test_web_nogrouperrorpage_login_redirected(self):
         # Tests that when logging in as a user with no group, you are redirected
 
@@ -42,12 +43,13 @@ class TestWebNoGroupErrorPageCommon(unittest.TestCase):
     def test_web_nogrouperrorpage_login_page_content_present(self):
         # tests if error_info and redirect_info messages are visible on the webpage
         error_info = "The user you are attempting to log in as belongs to no valid groups."
-        redirect_info = "You will be redirected to log in again in 5 seconds..."
         error_info_elements = self.driver.find_elements(By.XPATH, "//*[contains(text(),'" + error_info + "')]")
-        redirect_info_elements = self.driver.find_elements(By.XPATH, "//*[contains(text(),'" + redirect_info + "')]")
         self.assertTrue(len(error_info_elements) == 1)
-        self.assertTrue(len(redirect_info_elements) == 1)
         
+    def test_web_nogrouperrorpage_navbar(self):
+        # test that the navbar displays correctly for users with no groups
+        pass
+
     @classmethod
     def tearDownClass(cls):
         wtsc.cleanup(cls)

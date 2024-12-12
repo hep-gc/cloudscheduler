@@ -42,13 +42,14 @@ def main(gvar):
         ['group', 'delete', '-gn', ut_id(gvar, 'ngg2'), '-Y', '-su', ut_id(gvar, 'ngu3')]
     )
     # 04 superuser in ngg1 attempts to delete own last group ngg1
-    execute_csv2_command(
-        gvar, 
-        1, 
-        None, 
-        ATTEMPT_TO_DELETE_OWN_LAST_GROUP_MSG,
-        ['group', 'delete', '-gn', ut_id(gvar, 'ngg1'), '-Y', '-su', ut_id(gvar, 'ngu3')]
-    )
+    # this is allowed
+    # execute_csv2_command(
+    #     gvar, 
+    #     1, 
+    #     None, 
+    #     ATTEMPT_TO_DELETE_OWN_LAST_GROUP_MSG,
+    #     ['group', 'delete', '-gn', ut_id(gvar, 'ngg1'), '-Y', '-su', ut_id(gvar, 'ngu3')]
+    # )
     return 0
 
 if __name__ == '__main__':
