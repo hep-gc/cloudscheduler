@@ -1,3 +1,0 @@
-#!/bin/bash
-    source /opt/rh/rh-haproxy18/enable
-    /opt/rh/rh-haproxy18/root/sbin/haproxy $*
