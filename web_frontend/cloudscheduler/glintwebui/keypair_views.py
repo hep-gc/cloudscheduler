@@ -3,7 +3,7 @@ import logging
 from django.http import HttpResponse
 from django.http import StreamingHttpResponse
 from django.core.exceptions import PermissionDenied
-from django.shortcuts import render, redirect
+from django.shortcuts import redirect
 
 from .__version__ import version
 from django.conf import settings
@@ -12,9 +12,11 @@ from .keypair_utils import get_keypair, delete_keypair, transfer_keypair, \
                          create_keypair, create_new_keypair, getUser, verifyUser
 
 from cloudscheduler.lib.web_profiler import silk_profile as silkp
-from cloudscheduler.lib.view_utils import set_user_groups
+from cloudscheduler.lib.view_utils import set_user_groups, lno, render
 
 logger = logging.getLogger('glintv2')
+
+MODID = 'KV'
 
 # WEB VIEWS
 @silkp(name='Manage Keys')
@@ -23,6 +25,10 @@ def manage_keys(request, group_name=None, message=None):
     if not verifyUser(request, db_config):
         raise PermissionDenied
     rc, msg, user_obj = set_user_groups(db_config, request, False)
+    if rc != 0: 
+        db_config.db_close()
+        return render(request, 'glintwebui/manage_keys.html', {'response_code': 1, 'message': '%s %s' % (lno(MODID), msg), 'active_group': user_obj.active_group, 'is_superuser': user_obj.is_superuser})
+
     user_groups = user_obj.user_groups
     if group_name is None:
         group_name = user_obj.active_group

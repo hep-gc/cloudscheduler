@@ -175,13 +175,13 @@ def add(request):
     config.refresh()
     
     group = request.POST["group"] if "group" in request.POST else None
-    
+    group_recovery = False
     # Retrieve the active user, associated group list and optionally set the active group.
     rc, msg, active_user = set_user_groups(config, request)
     if rc != 0:
         # try to let superusers with no groups add a group
         if (active_user.active_group == '-' or len(active_user.user_groups) < 1) and active_user.is_superuser:
-            pass
+            group_recovery = True
         else:
             config.db_close()
             message = '%s %s' % (lno(MODID), msg)
@@ -297,7 +297,6 @@ def add(request):
             return redirect("/group/list/")
             #return group_list(request, active_user=active_user, response_code=1, message='%s group add "%s" failed - %s.' % (lno(MODID), fields['group_name'], msg))
 
-
         # Commit the updates, configure firewall and return.
         config.db_commit()
         configure_fw(config)
@@ -336,8 +335,8 @@ def defaults(request, active_user=None, response_code=0, message=None):
                 config.db_close()
                 message = '%s default update/list %s' % (lno(MODID), msg)
                 request.session["response"] = {"message": message, "response_code": 1, "group": request.POST["group"] if "group" in request.POST else None}
-                return redirect("/group/defaults/")
-                #return render(request, 'csv2/group_defaults.html', {'response_code': 1, 'message': '%s default update/list %s' % (lno(MODID), msg), 'active_user': active_user.username, 'active_group': active_user.active_group, 'user_groups': active_user.user_groups})
+                # return redirect("/group/defaults/")
+                return render(request, 'csv2/group_defaults.html', {'response_code': 1, 'message': '%s default update/list %s' % (lno(MODID), msg), 'active_group': active_user.active_group, 'is_superuser': active_user.is_superuser})
 
             if rc == 0 and ('vm_flavor' in fields) and (fields['vm_flavor']):
                 rc, msg = validate_by_filtered_table_entries(config, fields['vm_flavor'], 'vm_flavor', 'cloud_flavors', 'name', [['group_name', fields['group_name']]])

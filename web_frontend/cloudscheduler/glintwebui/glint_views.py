@@ -288,7 +288,7 @@ def list(request, args=None, response_code=0, message=None):
     rc, qmsg, active_user = set_user_groups(config, request, super_user=False)
     if rc != 0:
         config.db_close()
-        return render(request, 'glintwebui/images.html', {'response_code': 1, 'message': '%s %s' % (lno(MODID), msg)})
+        return render(request, 'glintwebui/images.html', {'response_code': 1, 'message': '%s %s' % (lno(MODID), qmsg), 'active_group': active_user.active_group, 'is_superuser': active_user.is_superuser})
     msg = message
 
     group = active_user.active_group

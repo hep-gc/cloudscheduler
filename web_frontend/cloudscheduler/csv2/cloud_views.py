@@ -797,7 +797,7 @@ def cloud_list(request, active_user=None, response_code=0, message=None, cloud_a
         rc, msg, active_user = set_user_groups(config, request, super_user=False)
         if rc != 0:
             config.db_close()
-            return render(request, 'csv2/clouds.html', {'response_code': 1, 'message': '%s %s' % (lno(MODID), msg)})
+            return render(request, 'csv2/clouds.html', {'response_code': 1, 'message': '%s %s' % (lno(MODID), msg), 'active_group': active_user.active_group, 'is_superuser': active_user.is_superuser})
     active_user.active_group = group if group else active_user.active_group
     
     # Validate input fields when request is for /cloud/list/.
@@ -1459,7 +1459,7 @@ def status(request, group_name=None):
     rc, msg, active_user = set_user_groups(config, request, super_user=False)
     if rc != 0:
         config.db_close()
-        return render(request, 'csv2/clouds.html', {'response_code': 1, 'message': '%s %s' % (lno(MODID), msg), 'active_user': active_user.username, 'active_group': active_user.active_group, 'user_groups': active_user.user_groups})
+        return render(request, 'csv2/clouds.html', {'response_code': 1, 'message': '%s %s' % (lno(MODID), msg), 'active_user': active_user.username, 'active_group': active_user.active_group, 'user_groups': active_user.user_groups, 'is_superuser': active_user.is_superuser})
 
     GROUP_ALIASES = {'group_name': {"mygroups": active_user.user_groups }}
     # get cloud status per group

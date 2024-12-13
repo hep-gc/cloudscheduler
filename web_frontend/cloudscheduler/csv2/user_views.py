@@ -358,7 +358,7 @@ def settings(request, active_user=None, response_code=0, message=None):
     if active_user is None:
         rc, msg, active_user = set_user_groups(config, request, super_user=False)
         if rc != 0:
-            if (active_user.active_group == '-' or len(active_user.user_groups) < 1) and active_user.is_superuser:
+            if (active_user.active_group == '-' or len(active_user.user_groups) < 1):
                 group_recovery = True
             else:   
                 config.db_close()

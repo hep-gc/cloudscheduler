@@ -929,14 +929,20 @@ def render(request, template, context):
         # - is_superuser
         if context.get('active_group') == '-' or context.get('active_group') == None:
             # allow superusers to access settings but show error page for everything else
-            if (
-                template == 'csv2/groups.html'
-                or template == 'csv2/user_settings.html'
-                or template == 'csv2/server_config.html'
-                or template == 'csv2/users.html'
-                or template == 'csv2/index.html'
-                ) and context.get('is_superuser') == True:
+            if context.get('is_superuser') == True and (
+            # settings superusers should be able to access without a group
+            template == 'csv2/groups.html'
+            or template == 'csv2/server_config.html'
+            or template == 'csv2/users.html'
+            or template == 'csv2/index.html'
+            ):
                 context['response_code'] = 1
+                response = django_render(request, template, context)
+            elif (
+            # settings anyone can access without a group
+            template == 'csv2/logout.html'
+            or template == 'csv2/user_settings.html'
+            ):
                 response = django_render(request, template, context)
             else:
                 context['message'] = "The active user belongs to no groups"

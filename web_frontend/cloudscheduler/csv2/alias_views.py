@@ -223,7 +223,7 @@ def alias_list(request, active_user=None, response_code=0, message=None):
         rc, msg, active_user = set_user_groups(config, request, super_user=False)
         if rc != 0:
             config.db_close()
-            return render(request, 'csv2/cloud_aliases.html', {'response_code': 1, 'message': '%s %s' % (lno(MODID), msg)})
+            return render(request, 'csv2/cloud_aliases.html', {'response_code': 1, 'message': '%s %s' % (lno(MODID), msg), 'active_group': active_user.active_group, 'is_superuser': active_user.is_superuser})
 
     # Validate input fields (should be none).
     rc, msg, fields, tables, columns = validate_fields(config, request, [LIST_KEYS], [], active_user)
