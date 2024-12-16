@@ -23,11 +23,6 @@ from cloudscheduler.lib.signal_functions import event_signal_send
 from cloudscheduler.lib.watchdog_utils import watchdog_send_heartbeat, watchdog_cleanup
 from cloudscheduler.lib.oracle_functions import *
 
-#from glintwebui.glint_utils import get_keypair, transfer_keypair, generate_tx_id, check_cache
-from glintwebui.glint_utils import generate_tx_id, check_cache
-from glintwebui.keypair_utils import get_keypair, transfer_keypair
-from glintwebui.celery_app import tx_request
-
 from cloudscheduler.lib.poller_functions import \
     inventory_cleanup, \
     inventory_obsolete_database_items_delete, \
