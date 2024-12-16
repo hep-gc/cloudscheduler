@@ -222,7 +222,7 @@ def flavor_poller():
 
 def image_poller():
     # Temporary, do properly
-    oracleConfig = oci.config.from_file()
+    #oracleConfig = oci.config.from_file()
     compartment_id = "ocid1.compartment.oc1..aaaaaaaaig7yftcjqel6qeaxph7gcdmirjqumxczmnquctnqxim7w66mz6aa"
 
     multiprocessing.current_process().name = "Image Poller"
@@ -266,6 +266,8 @@ def image_poller():
                     unique_cloud_dict = {}
 
                 for cloud in unique_cloud_dict:
+                    oracleConfig = loadOracleConfig(unique_cloud_dict[cloud]['cloud_obj']
+
                     cloud_obj = unique_cloud_dict[cloud]['cloud_obj']
                     cloud_name = unique_cloud_dict[cloud]['cloud_obj']["authurl"]
                     logging.info("Processing Images from cloud - %s" % cloud_name)
@@ -441,7 +443,7 @@ def image_poller():
 
 def limit_poller():
     # Temporary, do properly
-    oracleConfig = oci.config.from_file()
+    #oracleConfig = oci.config.from_file()
     compartment_id = "ocid1.compartment.oc1..aaaaaaaaig7yftcjqel6qeaxph7gcdmirjqumxczmnquctnqxim7w66mz6aa"
 
     multiprocessing.current_process().name = "Limit Poller"
@@ -622,7 +624,7 @@ def limit_poller():
 
 def network_poller():
     # Temporary, do properly
-    oracleConfig = oci.config.from_file()
+    #oracleConfig = oci.config.from_file()
     compartment_id = "ocid1.compartment.oc1..aaaaaaaaig7yftcjqel6qeaxph7gcdmirjqumxczmnquctnqxim7w66mz6aa"
 
     multiprocessing.current_process().name = "Network Poller"
@@ -662,6 +664,8 @@ def network_poller():
                 unique_cloud_dict = generate_unique_cloud_dict(config, CLOUD, "oracle")
 
                 for cloud in unique_cloud_dict:
+                    oracleConfig = loadOracleConfig(unique_cloud_dict[cloud]['cloud_obj']
+
                     cloud_name = unique_cloud_dict[cloud]['cloud_obj']["authurl"]
                     cloud_obj = unique_cloud_dict[cloud]['cloud_obj']
                     logging.debug("Processing networks from cloud - %s" % cloud_name)
@@ -776,7 +780,7 @@ def network_poller():
 
 def vm_poller():
     # Temporary, do properly
-    oracleConfig = oci.config.from_file()
+    #oracleConfig = oci.config.from_file()
     compartment_id = "ocid1.compartment.oc1..aaaaaaaaig7yftcjqel6qeaxph7gcdmirjqumxczmnquctnqxim7w66mz6aa"
 
     multiprocessing.current_process().name = "VM Poller"
@@ -844,6 +848,8 @@ def vm_poller():
                     group_list = group_list + unique_cloud_dict[cloud]['groups']
 
                 for cloud in unique_cloud_dict:
+                    oracleConfig = loadOracleConfig(unique_cloud_dict[cloud]['cloud_obj']
+
                     auth_url = unique_cloud_dict[cloud]['cloud_obj']["authurl"]
                     cloud_obj = unique_cloud_dict[cloud]['cloud_obj']
 
@@ -1176,7 +1182,7 @@ def vm_poller():
 
 def compartment_poller():
     # Temporary, do properly
-    oracleConfig = oci.config.from_file()
+    #oracleConfig = oci.config.from_file()
     # Root compartment (tenancy) OCID
     compartment_id = "ocid1.tenancy.oc1..aaaaaaaauoyqb55c4rrod776vzlvvn7kucvab5t3xiqubfda6wirqllgtohq"
 
@@ -1221,6 +1227,8 @@ def compartment_poller():
 
      
                 for cloud in unique_cloud_dict:
+                    oracleConfig = loadOracleConfig(unique_cloud_dict[cloud]['cloud_obj']
+
                     cloud_name = unique_cloud_dict[cloud]['cloud_obj']["authurl"]
                     cloud_obj =  unique_cloud_dict[cloud]['cloud_obj']
                     logging.debug("Processing compartments from cloud - %s" % cloud_name)
