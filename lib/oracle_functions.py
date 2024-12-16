@@ -15,7 +15,7 @@ def do_image_query(client, compid):
 
         pagelist.append(nextpage)
         imageresponse = client.list_images(compartment_id=compid, page = nextpage)
-            imagelist += imageresponse.data
+        imagelist += imageresponse.data
 
     return imagelist
 
@@ -136,6 +136,15 @@ def do_IP_query(computeclient, netclient, compid, instanceid):
         public_ip_list.append(vnicresponse.data.public_ip)
     
     return private_ip_list, public_ip_list
+
+def loadOracleConfig(clouddict):
+    oracleConfig = {}
+    oracleConfig["user_ocid"] = clouddict["user_ocid"]
+    oracleConfig["user_fingerprint"] = clouddict["user_fingerprint"]
+    oracleConfig["tenancy_ocid"] = clouddict["tenancy_ocid"]
+    oracleConfig["api_private_key"] = clouddict["api_private_key"]
+    oracleConfig["region"] = clouddict["region"]
+    return oracleConfig
 
 # This function will translate the flavours returned by the VM poller to the names used by the Flavour poller
 def translateFlavor(shape_config):
