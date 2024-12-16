@@ -1348,6 +1348,7 @@ if __name__ == '__main__':
         'vm':                    vm_poller,
         'compartment':           compartment_poller
     }
+    watchdog_exemptions = []
     db_categories = [os.path.basename(sys.argv[0]), "general", "signal_manager", "ProcessMonitor"]
 
     procMon = ProcessMonitor(config_params=db_categories, pool_size=3, process_ids=process_ids, watchdog_exemption_list=watchdog_exemptions)
