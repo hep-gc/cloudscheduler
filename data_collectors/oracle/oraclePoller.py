@@ -266,7 +266,7 @@ def image_poller():
                     unique_cloud_dict = {}
 
                 for cloud in unique_cloud_dict:
-                    oracleConfig = loadOracleConfig(unique_cloud_dict[cloud]['cloud_obj']
+                    oracleConfig = loadOracleConfig(unique_cloud_dict[cloud]['cloud_obj'])
 
                     cloud_obj = unique_cloud_dict[cloud]['cloud_obj']
                     cloud_name = unique_cloud_dict[cloud]['cloud_obj']["authurl"]
@@ -664,7 +664,7 @@ def network_poller():
                 unique_cloud_dict = generate_unique_cloud_dict(config, CLOUD, "oracle")
 
                 for cloud in unique_cloud_dict:
-                    oracleConfig = loadOracleConfig(unique_cloud_dict[cloud]['cloud_obj']
+                    oracleConfig = loadOracleConfig(unique_cloud_dict[cloud]['cloud_obj'])
 
                     cloud_name = unique_cloud_dict[cloud]['cloud_obj']["authurl"]
                     cloud_obj = unique_cloud_dict[cloud]['cloud_obj']
@@ -848,7 +848,7 @@ def vm_poller():
                     group_list = group_list + unique_cloud_dict[cloud]['groups']
 
                 for cloud in unique_cloud_dict:
-                    oracleConfig = loadOracleConfig(unique_cloud_dict[cloud]['cloud_obj']
+                    oracleConfig = loadOracleConfig(unique_cloud_dict[cloud]['cloud_obj'])
 
                     auth_url = unique_cloud_dict[cloud]['cloud_obj']["authurl"]
                     cloud_obj = unique_cloud_dict[cloud]['cloud_obj']
@@ -1227,7 +1227,7 @@ def compartment_poller():
 
      
                 for cloud in unique_cloud_dict:
-                    oracleConfig = loadOracleConfig(unique_cloud_dict[cloud]['cloud_obj']
+                    oracleConfig = loadOracleConfig(unique_cloud_dict[cloud]['cloud_obj'])
 
                     cloud_name = unique_cloud_dict[cloud]['cloud_obj']["authurl"]
                     cloud_obj =  unique_cloud_dict[cloud]['cloud_obj']
@@ -1267,7 +1267,7 @@ def compartment_poller():
                                 comp_dict = {
                                     'group_name': group_n,
                                     'cloud_name': cloud_n,
-                                    'name': comp["name"]
+                                    'name': comp["name"],
                                     'cloud_type': "oracle",
                                     'id': comp["ocid"],
                                     'last_updated': new_poll_time
