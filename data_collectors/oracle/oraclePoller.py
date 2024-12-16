@@ -133,11 +133,12 @@ def flavor_poller():
                                     'group_name': group_n,
                                     'cloud_name': cloud_n,
                                     'name': flavor,
+                                    'id': flavor,
                                     'cloud_type': "oracle",
-                                    'ram': flavor["ram"],
-                                    'vcpus': flavor["cores"],
+                                    'ram': flavors[flavor]["ram"],
+                                    'vcpus': flavors[flavor]["cores"],
                                     'swap': 0,
-                                    'disk': flavor["disk"],
+                                    'disk': flavors[flavor]["disk"],
                                     'last_updated': new_poll_time
                                     }
 
@@ -172,7 +173,6 @@ def flavor_poller():
                         logging.error("Skipping cloud...")
                         continue
 
-                    del core_client
                     if abort_cycle:
                         break
 
