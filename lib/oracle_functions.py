@@ -139,10 +139,10 @@ def do_IP_query(computeclient, netclient, compid, instanceid):
 
 def loadOracleConfig(clouddict):
     oracleConfig = {}
-    oracleConfig["user_ocid"] = clouddict["user_ocid"]
-    oracleConfig["user_fingerprint"] = clouddict["user_fingerprint"]
-    oracleConfig["tenancy_ocid"] = clouddict["tenancy_ocid"]
-    oracleConfig["api_private_key"] = clouddict["api_private_key"]
+    oracleConfig["user"] = clouddict["user_ocid"]
+    oracleConfig["key_content"] = clouddict["api_private_key"]
+    oracleConfig["fingerprint"] = clouddict["user_fingerprint"]
+    oracleConfig["tenancy"] = clouddict["tenancy_ocid"]
     oracleConfig["region"] = clouddict["region"]
     return oracleConfig
 
