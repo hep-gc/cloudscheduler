@@ -794,8 +794,8 @@ def vm_poller():
     failure_dict = {}
 
     config.db_open()
-    event_receiver_registration(config, "insert_csv2_clouds_oracle")
-    event_receiver_registration(config, "update_csv2_clouds_oracle")
+    #event_receiver_registration(config, "insert_csv2_clouds_oracle")
+    #event_receiver_registration(config, "update_csv2_clouds_oracle")
     
     try:
         where_clause = "cloud_type='oracle'"
@@ -1183,7 +1183,7 @@ def compartment_poller():
 
     multiprocessing.current_process().name = "Compartment Poller"
 
-    COMPARTMENT = "cloud_compartments"
+    COMPARTMENT = "oracle_compartments"
     ikey_names = ["group_name", "cloud_name", "id"]
 
     cycle_start_time = 0
@@ -1339,14 +1339,175 @@ def compartment_poller():
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+def AD_poller():
+    # Temporary, do properly
+    #oracleConfig = oci.config.from_file()
+    compartment_id = "ocid1.compartment.oc1..aaaaaaaaig7yftcjqel6qeaxph7gcdmirjqumxczmnquctnqxim7w66mz6aa"
+
+    multiprocessing.current_process().name = "Availability Domain Poller"
+
+    AvailabilityDomain = "oracle_availability_domains"
+    ikey_names = ["group_name", "cloud_name", "id"]
+
+    cycle_start_time = 0
+    new_poll_time = 0
+    poll_time_history = [0,0,0,0]
+    failure_dict = {}
+
+    config, PID_FILE = poller_setup()
+
+    try:
+        rc, msg, rows = config.db_query(AvailabilityDomain)
+        inventory = inventory_get_item_hash_from_db_query_rows(ikey_names, rows)
+        config.db_close()
+        while True:
+            try:
+                logging.debug("Beginning availability domain poller cycle")
+                config.db_open()
+                config.refresh()
+                new_poll_time, cycle_start_time = start_cycle(new_poll_time, cycle_start_time)
+                watchdog_send_heartbeat(config, os.getpid(), config.local_host_id)
+                if not os.path.exists(PID_FILE):
+                    logging.info("Falied to get pid file, stop set, exiting...")
+                    break
+
+                signal.signal(signal.SIGINT, signal.SIG_IGN)
+
+                abort_cycle = False
+
+                # build unique cloud list to only query a given cloud once per cycle
+                unique_cloud_dict = generate_unique_cloud_dict(config, CLOUD, "oracle")
+                if not unique_cloud_dict:
+                    #failed to retrieve cloud list, it will return a dictionary or False
+                    logging.debug("Unable to retrieve any clouds for polling... ending cycle")
+                    unique_cloud_dict = {}
+
+                for cloud in unique_cloud_dict:
+                    oracleConfig = loadOracleConfig(unique_cloud_dict[cloud]['cloud_obj'])
+
+                    cloud_name = unique_cloud_dict[cloud]['cloud_obj']["authurl"]
+                    cloud_obj =  unique_cloud_dict[cloud]['cloud_obj']
+                    logging.debug("Processing availability domains from cloud - %s" % cloud_name)
+
+                    try:
+                        AD_client = oci.identity.IdentityClient(oracleConfig)
+                    except Exception as exc:
+                        logging.error("Failed to initialize identity client on cloud %s (check Oracle config), skipping this cloud..." % cloud_name)
+                        logging.error(exc)
+                        failure_dict = process_cloud_failure(config, unique_cloud_dict, cloud, cloud_obj, failure_dict)
+                        continue
+
+                    # Retrieve all compartments
+                    try:
+                        AD_list = do_AD_query(AD_client, compartment_id)
+                    except Exception as exc:
+                        logging.error("Failed to retrieve availability domain data for %s, skipping this cloud..." % cloud_name)
+                        logging.error(exc)
+                        failure_dict = process_cloud_failure(config, unique_cloud_dict, cloud, cloud_obj, failure_dict)
+                        continue
+
+                    if AD_list == []:
+                        logging.info("No availability domains defined for %s, skipping this cloud..." % cloud_name)
+                        continue
+
+                    failure_dict = reset_cloud_error_dict(config, unique_cloud_dict, failure_dict, cloud, cloud_obj)
+
+                    # Process compartments for this cloud.
+                    uncommitted_updates = 0
+                    try:
+                        for AD in AD_list:
+                            for groups in unique_cloud_dict[cloud]['groups']:
+                                group_n = groups[0]
+                                cloud_n = groups[1]
+
+                                AD_dict = {
+                                    'group_name': group_n,
+                                    'cloud_name': cloud_n,
+                                    'name': AD.name,
+                                    'id': AD.id,
+                                    'last_updated': new_poll_time
+                                    }
+
+                                if inventory_test_and_set_item_hash(ikey_names, AD_dict, inventory, new_poll_time, debug_hash=(config.categories["oraclePoller.py"]["log_level"] < 20)):
+                                    continue
+
+                                try:
+                                    config.db_merge(AvailabilityDomain, AD_dict)
+                                    uncommitted_updates += 1
+                                except Exception as exc:
+                                    logging.exception("Failed to merge availability domain entry for %s::%s::%s, aborting cycle..." % (group_n, cloud_n, AD.name))
+                                    logging.error(exc)
+                                    abort_cycle = True
+                                    break
+
+                                try:
+                                    config.db_commit()
+                                except Exception as exc:
+                                    logging.exception("Failed to commit availability domain updates for %s, aborting cycle..." % cloud_name)
+                                    logging.error(exc)
+                                    abort_cycle = True
+                                    break
+
+                    except Exception as exc:
+                        logging.error("Error proccessing AD_list for cloud %s" % cloud_name)
+                        logging.error(exc)
+                        logging.error("Skipping cloud...")
+                        continue
+
+                    del AD_client
+                    if abort_cycle:
+                        break
+
+                    if uncommitted_updates > 0:
+                        logging.info("Availability domain updates committed: %d" % uncommitted_updates)
+
+                if abort_cycle:
+                    time.sleep(config.categories["oraclePoller.py"]["sleep_interval_AD"])
+                    continue
+
+
+                # Expand failure dict for deletion schema (key needs to be grp+cloud)
+                rows = expand_failure_dict(config, CLOUD, "oracle", AvailabilityDomain, failure_dict)
+                inventory_obsolete_database_items_delete(ikey_names, rows, inventory, new_poll_time, config, AD)
+
+
+                if not os.path.exists(PID_FILE):
+                    logging.info("Stop set, exiting...")
+                    break
+
+                # Cleanup inventory, this function will clean up inventory entries for deleted clouds
+                inventory_cleanup(ikey_names, rows, inventory)
+
+
+                signal.signal(signal.SIGINT, config.signals['SIGINT'])
+                config.db_close()
+                try:
+                    wait_cycle(cycle_start_time, poll_time_history, config.categories["oraclePoller.py"]["sleep_interval_AD"], config)
+                except KeyboardInterrupt:
+                    # sigint recieved, cancel the sleep and start the loop
+                    continue
+            except KeyboardInterrupt:
+                # sigint recieved, cancel the sleep and start the loop
+                logging.error("Recieved wake-up signal during regular execution, resetting and continuing")
+                config.db_close()
+                continue
+
+    except Exception as exc:
+        logging.exception("Availability domain poller cycle while loop exception, process terminating...")
+        logging.error(exc)
+        config.db_close()
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 if __name__ == '__main__':
     process_ids = {
         'flavor':                flavor_poller,
         'image':                 image_poller,
-        'limit':                 limit_poller,
+        #'limit':                 limit_poller,
         'network':               network_poller,
         'vm':                    vm_poller,
-        'compartment':           compartment_poller
+        'compartment':           compartment_poller,
+        'AD':                    AD_poller
     }
     watchdog_exemptions = []
     db_categories = [os.path.basename(sys.argv[0]), "general", "signal_manager", "ProcessMonitor"]
