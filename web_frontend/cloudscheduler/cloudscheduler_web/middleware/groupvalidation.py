@@ -8,10 +8,11 @@ config = settings.CSV2_CONFIG
 NOGROUP_ACCESSIBLE_PAGES = [
     '/settings/log-out/',
     '/settings/log-out',
-    # '/user/settings/',
-    # '/user/list',
-    # '/server/config/',
-    # '/group/list/'
+    '/user/settings/',
+    '/user/list',
+    '/server/config/',
+    '/group/list/',
+    '/user/list/',
 ]
 
 class GroupValidate:
@@ -43,8 +44,10 @@ class GroupValidate:
                 'is_superuser': active_user.is_superuser,
                 'version': config.get_version()
             } 
+            # show error page
             response = render(request, 'csv2/nogroup.html', context)
         else: 
+            # continue to view
             response = self.get_response(request)
 
         return response

@@ -1004,6 +1004,8 @@ def set_user_groups(config, request, super_user=True):
         raise PermissionDenied
 
     if len(new_active_user.user_groups) < 1:
+        if new_active_user.is_superuser:
+            return 0, None, new_active_user
 #       return 1,'user "%s" is not a member of any group.' % new_active_user.username, new_active_user, new_active_user.user_groups
         return 1,'user "%s" is not a member of any group.' % new_active_user.username, new_active_user
 

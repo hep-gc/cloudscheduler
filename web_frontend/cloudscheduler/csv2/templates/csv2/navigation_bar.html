@@ -42,15 +42,14 @@
             {% endif %}
         </div>
         <div class="float-right">
-            {% if active_group != '-' %}
-                {% if is_superuser %}
-                    <li><a class="users-nav" href="/user/list/?{{active_group}}">Users</a></li>
-                    <li><a class="groups-nav" href="/group/list/?{{active_group}}">Groups</a></li>
-                    <li><a class="config-nav" href="/server/config/?{{active_group}}">System Config</a></li>
-                {% endif %}
-                <li><a class="settings-nav" href="/user/settings/?{{active_group}}">User Settings</a></li>
-                <li><a class="plugin-nav" href="/repo">HTCondor Plugin</a></li>
+
+            {% if is_superuser %}
+                <li><a class="users-nav" href="/user/list/?{{active_group}}">Users</a></li>
+                <li><a class="groups-nav" href="/group/list/?{{active_group}}">Groups</a></li>
+                <li><a class="config-nav" href="/server/config/?{{active_group}}">System Config</a></li>
             {% endif %}
+            <li><a class="settings-nav" href="/user/settings/?{{active_group}}">User Settings</a></li>
+            <li><a class="plugin-nav" href="/repo">HTCondor Plugin</a></li>
             <li><a class="logout-nav" href="/settings/log-out">Log out</a></li>
 
             <li class="spacer"> </li>
