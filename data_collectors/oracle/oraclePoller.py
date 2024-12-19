@@ -1471,7 +1471,7 @@ def AD_poller():
 
 
                 # Expand failure dict for deletion schema (key needs to be grp+cloud)
-                rows = expand_failure_dict(config, CLOUD, "oracle", AvailabilityDomain, failure_dict)
+                rows = expand_failure_dict(config, CLOUD, None, AvailabilityDomain, failure_dict)
                 inventory_obsolete_database_items_delete(ikey_names, rows, inventory, new_poll_time, config, AD)
 
 

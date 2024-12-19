@@ -123,6 +123,15 @@
             document.getElementById(target_cloud+'-flavor').style.display = "block";
 
         }
+        else if(cloud_type=="oracle"){
+            // just in case we were set to amazon before we re-render the region
+            newRegionEl.innerHTML = '<input type="text" name="region" value=""/>';
+            oldRegionEl.parentNode.replaceChild(newRegionEl, oldRegionEl);
+
+            document.getElementById(target_cloud+'variable').style.visiblity = "collapse"; //or inherit
+
+
+        }
         else{
             newRegionEl.innerHTML = '<input type="text" name="region" value=""/>';
             oldRegionEl.parentNode.replaceChild(newRegionEl, oldRegionEl);
@@ -265,7 +274,7 @@
 
                                     <tr class="highlight3"><td><label for="authurl">URL</label></td>
                                     <td>
-                                    {% if cloud.cloud_type == "amazon" %}
+                                    {% if cloud.cloud_type == "amazon" or cloud.cloud_type == "oracle" %}
                                         <input type="text" name="authurl" id="{{cloud.cloud_name}}-authurl" value="{{cloud.authurl}}" readonly />
                                     {% else %}
                                         <input type="text" name="authurl" id="{{cloud.cloud_name}}-authurl" value="{{cloud.authurl}}" />
@@ -302,6 +311,11 @@
                                             <option value="app_creds" selected>Application Credentials</option>
                                         </td></tr>
                                     {% endif %}
+
+                                    <tr class="highlight3" id=""><td><label for="user_ocid">User OCID</label></td>
+                                    </tr>
+                                  
+
 
                                     <tr class="highlight3"><td><label for="project">Project</label></td>
                                     {% if cloud.cloud_type == "amazon" %}
