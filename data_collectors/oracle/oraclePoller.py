@@ -919,6 +919,9 @@ def vm_poller():
                         # due to emergent flavors and thus a new obj will need to be created
                         #~~~~~~~~
                             try:
+                                if vm.lifecycle_state == "STOPPING" or vm.lifecycle_state == "STOPPED" or vm.lifecycle_state == "TERMINATING" or vm.lifecycle_state == "TERMINATED":
+                                    continue
+
                                 host_tokens = vm.display_name.split("--")
                                 vm_group_name = host_tokens[0]
                                 vm_cloud_name = host_tokens[1]
@@ -959,7 +962,7 @@ def vm_poller():
                             except IndexError as exc:
                                 #not enough tokens, bad hostname or foreign vm
                                 logging.debug("Not enough tokens from hostname, bad hostname or foreign vm: %s" % vm.display_name)
-                                found_flavor = translateFlavor(vm.shape_config)
+                                found_flavor = translateFlavor(vm.shape, vm.shape_config)
                                 if found_flavor is not None:
                                     vm_flavor_id = found_flavor
                                 else:
@@ -1008,6 +1011,7 @@ def vm_poller():
                                 'cloud_type': "oracle",
                                 'hostname': vm.display_name,
                                 'vmid': vm.id,
+                                'status': translateStatus(vm.lifecycle_state),
                                 'image_id': vm.image_id,
                                 'flavor_id': vm_flavor_id,
                                 'vm_ips': str(ip_addrs),

@@ -417,6 +417,89 @@ def process_group_cloud_terminates(pair, config):
                 logging.error(exc)
                 continue
 
+        if cloud["cloud_type"] == "oracle":
+            oracleConfig = loadOracleConfig(cloud)
+         
+            if terminate_off:
+                logging.critical("%s : %s: Terminates disabled, normal operation would terminate %s" % (group_name, cloud_name, vm_row["hostname"]))
+                continue
+
+            # terminate the vm
+            client = oci.core.ComputeClient(oracleConfig)
+
+            try:
+                # may want to check for result here Returns: An instance of novaclient.base.TupleWithMeta so probably not that useful
+                vm_row["terminate"] = vm_row["terminate"] + 1
+                old_updater = vm_row["updater"]
+                vm_row["updater"] = str(get_frame_info() + ":t+")
+
+                try:
+                    client.terminate_instance(instance_id=vm_row["vmid"])
+                except oci.exceptions.ServiceError as ex:
+                    logging.error("%s : %s: VM not found on cloud, deleting vm entry %s" % (group_name, cloud_name, vm_row["vmid"]))
+                    config.db_delete(VM, vm_row)
+                    try:
+                        config.db_commit()
+                    except Exception as exc:
+                        logging.error("%s : %s: Failed to commit vm delete, aborting cycle..." % (group_name, cloud_name))
+                        logging.exception(exc)
+                        break
+                    continue #skip rest of logic since this vm is gone anywheres 
+                        
+
+                except Exception as exc:
+                    logging.error("%s : %s: Unable to delete vm, vm doesnt exist or openstack failure:" % (group_name, cloud_name))
+                    exc_type, exc_obj, exc_tb = sys.exc_info()
+                    logging.error(exc_type)
+                    logging.error(exc)
+                    continue
+                logging.info("%s : %s: VM Terminated(%s): %s primary slots: %s dynamic slots: %s, last updater: %s" % (group_name, cloud_name, vm_row["terminate"], vm_row["hostname"], vm_row["htcondor_partitionable_slots"], vm_row["htcondor_dynamic_slots"], old_updater))
+                config.db_merge(VM, vm_row)
+                # log here if terminate # /10 = remainder zero
+                if vm_row["terminate"] %10 == 0:
+                    logging.critical("%s : %s: %s failed terminates on %s user action required" % (group_name, cloud_name, vm_row["terminate"] - 1, vm_row["hostname"]))
+            except Exception as exc:
+                logging.error("%s : %s: Failed to terminate VM: %s, terminates issued: %s" % (group_name, cloud_name, vm_row["hostname"], vm_row["terminate"] - 1))
+                logging.error(exc)
+
+            # Now that the machine is terminated, we can speed up operations by invalidating the related classads
+            # double check that a condor_session exists
+            if 'condor_session' not in locals():
+                condor_session = get_condor_session()
+            if resource["machine"] is not None:
+                logging.info("%s : %s: Removing classads for machine %s" % (group_name, cloud_name, resource["machine"]))
+            else:
+                logging.info("%s : %s: Removing classads for machine %s" % (group_name, cloud_name, resource["hostname"]))
+            try:
+                master_classad = get_master_classad(condor_session, resource["machine"], resource["hostname"])
+                if not master_classad:
+                    # there was no matching classad
+                    logging.error("%s : %s: Classad not found for %s//%s" % (group_name, cloud_name, resource["machine"], resource["hostname"]))
+
+                master_result = invalidate_master_classad(condor_session, master_classad)
+                logging.debug("%s : %s: Invalidate master result: %s" % (group_name, cloud_name, master_result))
+                startd_classads = get_startd_classads(condor_session, resource["hostname"])
+                startd_result = invalidate_startd_classads(condor_session, startd_classads)
+                logging.debug("%s % %s: Invalidate startd result: %s" % (group_name, cloud_name, startd_result))
+
+
+                #if resource.machine is not None and resource.machine is not "":
+                #    condor_classad = condor_session.query(master_type, 'Name=="%s"' % resource["machine"])[0]
+                #else:
+                #    condor_classad = condor_session.query(master_type, 'regexp("%s", Name, "i")' % resource["hostname"])[0]
+                #master_list.append(condor_classad)
+
+                # this could be a list of adds if a machine has many slots
+                #condor_classads = condor_session.query(startd_type, 'Machine=="%s"' % resource["hostname"])
+                #for classad in condor_classads:
+                #    startd_list.append(classad)
+            #except IndexError as exc:
+            #    pass
+            except Exception as exc:
+                logging.error("%s : %s: Failed to get condor classads or issue invalidate:" % (group_name, cloud_name))
+                logging.error(exc)
+                continue
+
         elif cloud["cloud_type"] == "amazon":
             if terminate_off:
                 logging.critical("%s : %s: Terminates disabled, normal operation would terminate %s" % (group_name, cloud_name, vm_row["hostname"]))
@@ -861,6 +944,19 @@ def main():
                                                    template_dict=template_dict,
                                                    image=use_image)
 
+                                    if current_cloud_type == 'oracle':
+                                        boot_cloud = oraclecloud.OracleCloud(config, resource=boot_flavor, metadata=metadata[boot_flavor.get("group_name")][boot_flavor.get("cloud_name")]
+                                                 if metadata and boot_flavor.get("group_name") in metadata
+                                                 else [])
+                                        num_booted = boot_cloud.vm_create(num=int(num_vms_to_boot),
+                                                   flavor=boot_flavor.get("flavor"),
+                                                   job=idle_job,
+                                                   template_dict=template_dict,
+                                                   image=use_image)
+                                        log.info('vm booted %s' % num_booted)
+                                        if num_booted <= 0:
+                                            # cloud boot vm failed due to timeout
+                                            continue
 
                                     elif current_cloud_type == 'localhost':
                                         boot_cloud = localhostcloud.LocalHostCloud(config, resource=boot_flavor,

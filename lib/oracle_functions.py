@@ -146,5 +146,25 @@ def loadOracleConfig(clouddict):
     oracleConfig["region"] = clouddict["region"]
     return oracleConfig
 
-# This function will translate the flavours returned by the VM poller to the names used by the Flavour poller
-def translateFlavor(shape_config):
+# This function will translate the flavours returned by the VM poller to the names used by the flavour poller
+def translateFlavor(shape, shape_config):
+    flavor = "o" + int(shape_config["ocpus"])
+
+    if "amd" in shape:
+        flavor += "amd"
+    elif "intel" in shape:
+        flavor += "intel"
+    elif "arm" in shape:
+        flavor += "arm"
+
+    return flavor
+
+def translateStatus(status):
+    if status == "STARTING" or status == "PROVISIONING":
+        return "BUILD"
+    elif status == "RUNNING":
+        return "ACTIVE"
+    elif status == "ERROR":
+        return status
+    else:
+        return "ERROR"
