@@ -25,66 +25,6 @@ schema = {
             "tx": {"type": "int"}
             }
         },
-    "archived_condor_jobs": {
-        "keys": [
-            "global_job_id"
-            ],
-        "columns": {
-            "global_job_id": {"type": "str", "len": "128", "nulls": "NO"},
-            "group_name": {"type": "str", "len": "128", "nulls": "YES"},
-            "target_clouds": {"type": "str", "nulls": "YES"},
-            "cloud_name": {"type": "str", "nulls": "YES"},
-            "job_status": {"type": "int"},
-            "request_cpus": {"type": "int"},
-            "request_ram": {"type": "int"},
-            "request_disk": {"type": "int"},
-            "request_swap": {"type": "int"},
-            "request_scratch": {"type": "int"},
-            "requirements": {"type": "str", "len": "512", "nulls": "YES"},
-            "job_priority": {"type": "int"},
-            "cluster_id": {"type": "int"},
-            "proc_id": {"type": "int"},
-            "user": {"type": "str", "len": "512", "nulls": "YES"},
-            "image": {"type": "str", "nulls": "YES"},
-            "instance_type": {"type": "str", "len": "512", "nulls": "YES"},
-            "network": {"type": "str", "len": "512", "nulls": "YES"},
-            "keep_alive": {"type": "str", "len": "512", "nulls": "YES"},
-            "max_price": {"type": "str", "len": "512", "nulls": "YES"},
-            "user_data": {"type": "str", "len": "512", "nulls": "YES"},
-            "job_per_core": {"type": "int"},
-            "entered_current_status": {"type": "int"},
-            "q_date": {"type": "int"},
-            "hold_job_reason": {"type": "str", "len": "64", "nulls": "YES"},
-            "held_reason": {"type": "str", "len": "64", "nulls": "YES"}
-            }
-        },
-    "archived_condor_machines": {
-        "keys": [
-            "name"
-            ],
-        "columns": {
-            "name": {"type": "str", "len": "128", "nulls": "NO"},
-            "machine": {"type": "str", "len": "256", "nulls": "YES"},
-            "group_name": {"type": "str", "len": "32", "nulls": "YES"},
-            "condor_host": {"type": "str", "len": "64", "nulls": "YES"},
-            "flavor": {"type": "str", "len": "32", "nulls": "YES"},
-            "job_id": {"type": "str", "len": "128", "nulls": "YES"},
-            "global_job_id": {"type": "str", "len": "128", "nulls": "YES"},
-            "address": {"type": "str", "len": "512", "nulls": "YES"},
-            "state": {"type": "str", "len": "128", "nulls": "YES"},
-            "activity": {"type": "str", "len": "128", "nulls": "YES"},
-            "vm_type": {"type": "str", "len": "128", "nulls": "YES"},
-            "my_current_time": {"type": "int"},
-            "entered_current_state": {"type": "int"},
-            "start": {"type": "str", "len": "128", "nulls": "YES"},
-            "remote_owner": {"type": "str", "len": "128", "nulls": "YES"},
-            "slot_type": {"type": "str", "len": "128", "nulls": "YES"},
-            "total_slots": {"type": "int"},
-            "idle_time": {"type": "int"},
-            "retire_request_time": {"type": "int"},
-            "retired_time": {"type": "int"}
-            }
-        },
     "auth_group": {
         "keys": [
             "id"
@@ -388,7 +328,7 @@ schema = {
         "columns": {
             "htcondor_fqdn": {"type": "str", "len": "128", "nulls": "NO"},
             "htcondor_host_id": {"type": "int"},
-            "worker_dn": {"type": "str", "len": "128", "nulls": "YES"},
+            "worker_dn": {"type": "str", "len": "256", "nulls": "YES"},
             "worker_eol": {"type": "int"},
             "worker_cert": {"type": "str", "nulls": "YES"},
             "worker_key": {"type": "str", "nulls": "YES"},
@@ -492,6 +432,12 @@ schema = {
             "app_credentials": {"type": "str", "len": "128", "nulls": "YES"},
             "app_credentials_secret": {"type": "str", "len": "128", "nulls": "YES"},
             "app_credentials_expiry": {"type": "int"},
+            "user_ocid": {"type": "str", "len": "128", "nulls": "YES"},
+            "user_fingerprint": {"type": "str", "len": "64", "nulls": "YES"},
+            "tenancy_ocid": {"type": "str", "len": "128", "nulls": "YES"},
+            "api_private_key": {"type": "str", "len": "2048", "nulls": "YES"},
+            "oci_availability_domain": {"type": "int"},
+            "oci_compartment": {"type": "int"},
             "communication_up": {"type": "int"},
             "communication_rt": {"type": "int"},
             "server_meta_ctl": {"type": "int"},
@@ -929,6 +875,34 @@ schema = {
             "endpoint": {"type": "str", "len": "128", "nulls": "NO"}
             }
         },
+    "oracle_availability_domains": {
+        "keys": [
+            "group_name",
+            "cloud_name",
+            "id"
+            ],
+        "columns": {
+            "group_name": {"type": "str", "len": "32", "nulls": "NO"},
+            "cloud_name": {"type": "str", "len": "32", "nulls": "NO"},
+            "name": {"type": "str", "len": "64", "nulls": "NO"},
+            "id": {"type": "str", "len": "256", "nulls": "NO"}
+            }
+        },
+    "oracle_compartments": {
+        "keys": [
+            "group_name",
+            "cloud_name",
+            "id"
+            ],
+        "columns": {
+            "group_name": {"type": "str", "len": "32", "nulls": "NO"},
+            "cloud_name": {"type": "str", "len": "32", "nulls": "NO"},
+            "cloud_type": {"type": "str", "len": "32", "nulls": "NO"},
+            "id": {"type": "str", "len": "256", "nulls": "NO"},
+            "name": {"type": "str", "len": "32", "nulls": "NO"},
+            "last_updated": {"type": "int"}
+            }
+        },
     "view_active_resource_shortfall": {
         "keys": [
             ],
@@ -948,78 +922,6 @@ schema = {
             "unregistered": {"type": "int"},
             "idle": {"type": "int"},
             "running": {"type": "int"}
-            }
-        },
-    "view_available_resources": {
-        "keys": [
-            ],
-        "columns": {
-            "group_name": {"type": "str", "len": "32", "nulls": "NO"},
-            "cloud_name": {"type": "str", "len": "32", "nulls": "NO"},
-            "cloud_priority": {"type": "int"},
-            "region": {"type": "str", "len": "32", "nulls": "NO"},
-            "cloud_type": {"type": "str", "len": "64", "nulls": "NO"},
-            "htcondor_fqdn": {"type": "str", "len": "128", "nulls": "YES"},
-            "htcondor_container_hostname": {"type": "str", "len": "128", "nulls": "YES"},
-            "htcondor_other_submitters": {"type": "str", "len": "128", "nulls": "YES"},
-            "vm_boot_volume": {"type": "str", "len": "64", "nulls": "YES"},
-            "spot_price": {"type": "float"},
-            "authurl": {"type": "str", "len": "128", "nulls": "NO"},
-            "cacertificate": {"type": "str", "nulls": "YES"},
-            "project_domain_name": {"type": "str", "len": "20", "nulls": "NO"},
-            "project_domain_id": {"type": "str", "len": "64", "nulls": "NO"},
-            "project": {"type": "str", "len": "128", "nulls": "NO"},
-            "user_domain_name": {"type": "str", "len": "20", "nulls": "NO"},
-            "user_domain_id": {"type": "str", "len": "64", "nulls": "NO"},
-            "username": {"type": "str", "len": "32", "nulls": "NO"},
-            "password": {"type": "str", "nulls": "NO"},
-            "default_flavor": {"type": "str", "len": "97", "nulls": "YES"},
-            "default_image": {"type": "str", "len": "64", "nulls": "YES"},
-            "default_keep_alive": {"type": "int"},
-            "default_keyname": {"type": "str", "len": "64", "nulls": "YES"},
-            "default_network": {"type": "str", "len": "64", "nulls": "YES"},
-            "default_security_groups": {"type": "str", "len": "128", "nulls": "YES"},
-            "VMs": {"type": "int"},
-            "VMs_max": {"type": "int"},
-            "cores_ctl": {"type": "int"},
-            "cores_softmax": {"type": "int"},
-            "cores_limit": {"type": "int"},
-            "cores_max": {"type": "int"},
-            "cores_used": {"type": "int"},
-            "cores_foreign": {"type": "int"},
-            "disk_used": {"type": "int"},
-            "ram_ctl": {"type": "int"},
-            "ram_max": {"type": "int"},
-            "ram_limit": {"type": "float"},
-            "ram_used": {"type": "int"},
-            "ram_foreign": {"type": "float"},
-            "swap_used": {"type": "int"},
-            "flavor": {"type": "str", "len": "161", "nulls": "YES"},
-            "flavor_id": {"type": "str", "len": "128", "nulls": "NO"},
-            "volumes_max": {"type": "int"},
-            "volumes_used": {"type": "int"},
-            "volume_gigs_max": {"type": "int"},
-            "volume_gigs_used": {"type": "int"},
-            "flavor_slots": {"type": "int"},
-            "flavor_cores": {"type": "int"},
-            "flavor_disk": {"type": "int"},
-            "flavor_ram": {"type": "int"},
-            "flavor_swap": {"type": "int"},
-            "auth_type": {"type": "str", "len": "32", "nulls": "YES"},
-            "app_credentials": {"type": "str", "len": "128", "nulls": "YES"},
-            "app_credentials_secret": {"type": "str", "len": "128", "nulls": "YES"},
-            "flavor_VMs": {"type": "int"},
-            "flavor_starting": {"type": "int"},
-            "flavor_unregistered": {"type": "int"},
-            "flavor_idle": {"type": "int"},
-            "flavor_running": {"type": "int"},
-            "flavor_retiring": {"type": "int"},
-            "flavor_error": {"type": "int"},
-            "flavor_manual": {"type": "int"},
-            "updater": {"type": "str", "nulls": "YES"},
-            "worker_cert": {"type": "str", "nulls": "NO"},
-            "worker_key": {"type": "str", "nulls": "NO"},
-            "auth_token": {"type": "str", "nulls": "NO"}
             }
         },
     "view_cloud_aliases": {
@@ -1486,37 +1388,6 @@ schema = {
         "keys": [
             ],
         "columns": {
-            "group_name": {"type": "str", "len": "32", "nulls": "YES"},
-            "target_alias": {"type": "str", "len": "32", "nulls": "YES"},
-            "instance_type": {"type": "str", "len": "512", "nulls": "YES"},
-            "requirements": {"type": "str", "len": "512", "nulls": "YES"},
-            "job_priority": {"type": "int"},
-            "user": {"type": "str", "len": "512", "nulls": "YES"},
-            "image": {"type": "str", "nulls": "YES"},
-            "network": {"type": "str", "len": "512", "nulls": "YES"},
-            "keep_alive": {"type": "str", "len": "512", "nulls": "YES"},
-            "max_price": {"type": "str", "len": "512", "nulls": "YES"},
-            "user_data": {"type": "str", "len": "512", "nulls": "YES"},
-            "job_per_core": {"type": "int"},
-            "request_cpus_min": {"type": "int"},
-            "request_cpus_max": {"type": "int"},
-            "request_cpus_total": {"type": "int"},
-            "request_disk_min": {"type": "int"},
-            "request_disk_max": {"type": "int"},
-            "request_disk_total": {"type": "int"},
-            "request_ram_min": {"type": "int"},
-            "request_ram_max": {"type": "int"},
-            "request_ram_total": {"type": "int"},
-            "request_swap_min": {"type": "int"},
-            "request_swap_max": {"type": "int"},
-            "request_swap_total": {"type": "int"},
-            "queue_date": {"type": "int"},
-            "idle": {"type": "int"},
-            "running": {"type": "int"},
-            "completed": {"type": "int"},
-            "held": {"type": "int"},
-            "other": {"type": "int"},
-            "flavors": {"type": "str", "nulls": "YES"}
             }
         },
     "view_groups_with_metadata_info": {
