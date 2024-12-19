@@ -147,4 +147,14 @@ def loadOracleConfig(clouddict):
     return oracleConfig
 
 # This function will translate the flavours returned by the VM poller to the names used by the Flavour poller
-def translateFlavor(shape_config):
+#def translateFlavor(shape_config):
+
+def loadOracleConfig(clouddict):
+    oracleConfig = {}
+    oracleConfig["user"] = clouddict["user_ocid"]
+    oracleConfig["key_content"] = clouddict["api_private_key"]
+    oracleConfig["fingerprint"] = clouddict["user_fingerprint"]
+    oracleConfig["tenancy"] = clouddict["tenancy_ocid"]
+    oracleConfig["region"] = clouddict["region"]
+    return oracleConfig
+
