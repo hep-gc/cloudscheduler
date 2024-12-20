@@ -818,7 +818,7 @@ def vm_poller():
                 watchdog_send_heartbeat(config, os.getpid(), config.local_host_id)
                 config.refresh()
 
-                # For each OpenStack cloud, retrieve and process VMs.
+                # For each Oracle cloud, retrieve and process VMs.
                 abort_cycle = False
                
                 try:
@@ -925,7 +925,7 @@ def vm_poller():
                                 host_tokens = vm.display_name.split("--")
                                 vm_group_name = host_tokens[0]
                                 vm_cloud_name = host_tokens[1]
-                                found_flavor = translateFlavor(vm.shape_config)
+                                found_flavor = translateFlavor(vm.shape, vm.shape_config)
                                 vm_flavor_id = found_flavor
                         
                                 if (host_tokens[0], host_tokens[1]) not in group_list:
@@ -984,12 +984,12 @@ def vm_poller():
 
                             ip_addrs = []
                             floating_ips = []
-                            netclient = oci.core.VirtualNetworkClient(config)
+                            netclient = oci.core.VirtualNetworkClient(oracleConfig)
                             private_IP_list, public_IP_list = do_IP_query(vmclient, netclient, compartment_id, vm.id)
                             for addr in private_IP_list:
-                                ip_addrs.append(addr['addr'])
+                                ip_addrs.append(addr)
                             for addr in public_IP_list:
-                                floating_ips.append(addr['addr'])
+                                floating_ips.append(addr)
                             
                             additions = {}
                             where_clause="group_name='%s' and cloud_name='%s' and hostname='%s'" % (vm_group_name, vm_cloud_name, vm.display_name)
@@ -1051,7 +1051,7 @@ def vm_poller():
                         logging.error("Skipping cloud...")
                         continue
 
-                    del nova
+                    del vmclient
                     if abort_cycle:
                         break
 

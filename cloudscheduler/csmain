@@ -9,6 +9,7 @@ import logging
 import signal
 import socket
 import multiprocessing
+import oci
 from multiprocessing import Process
 from collections import defaultdict
 
@@ -19,12 +20,14 @@ from cloudscheduler.lib.ec2_translations import get_ami_dictionary
 from cloudscheduler.lib.ProcessMonitor import ProcessMonitor, check_pid, terminate
 from cloudscheduler.lib.poller_functions import start_cycle, wait_cycle
 from cloudscheduler.lib.openstack_functions import get_openstack_sess, get_nova_connection, get_cinder_connection
+from cloudscheduler.lib.oracle_functions import loadOracleConfig
 from cloudscheduler.lib.signal_functions import event_receiver_registration
 from cloudscheduler.lib.watchdog_utils import watchdog_cleanup, watchdog_send_heartbeat
 
 import openstackcloud
 import localhostcloud
 import ec2cloud
+import oraclecloud
 
 import htcondor
 import classad

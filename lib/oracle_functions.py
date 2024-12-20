@@ -148,7 +148,7 @@ def loadOracleConfig(clouddict):
 
 # This function will translate the flavours returned by the VM poller to the names used by the flavour poller
 def translateFlavor(shape, shape_config):
-    flavor = "o" + int(shape_config["ocpus"])
+    flavor = "o" + str(int(shape_config.ocpus))
 
     if "amd" in shape:
         flavor += "amd"
