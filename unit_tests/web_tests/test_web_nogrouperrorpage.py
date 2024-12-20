@@ -1,0 +1,189 @@
+if __name__ == "__main__":
+    __package__ = 'cloudscheduler.unit_tests.web_tests'
+
+import unittest
+import sys
+from . import web_test_setup_cleanup as wtsc
+from . import web_test_assertions_v2 as wta
+from . import web_test_page_objects as pages
+from . import web_test_helpers as helpers
+from . import web_test_xpath_selectors as wtxs
+from time import sleep
+from selenium.webdriver.common.by import By
+
+class TestWebNoGroupErrorPageCommon(unittest.TestCase):
+    """A class for the page tests that should be repeated in all iterations."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.page = pages.StatusPage(cls.driver, cls.gvar['address'])
+
+    def setUp(self):
+        self.page.get_homepage()
+
+    # all tests begin logged in as a user with no group
+    # tester-wiu1 for regular user tests 
+    # tester-wiu2 for super user tests
+
+    def test_web_nogrouperrorpage_login_page_error_message_present(self):
+        # Tests whether the content of the no group error page is present
+        self.assertTrue(self.page.error_message_displayed())
+
+    def test_web_nogrouperrorpage_login_page_content_present(self):
+        # tests if error_info is visible on the webpage
+        error_info = "The user you are logged in as belongs to no valid groups."
+        error_info_elements = self.driver.find_elements(By.XPATH, "//*[contains(text(),'" + error_info + "')]")
+        self.assertTrue(len(error_info_elements) == 1)
+        
+    def test_web_nogrouperrorpage_navbar(self):
+        # test that the navbar displays correctly for users with no groups
+        # the buttons on the left side (status, clouds, ...) should not be present
+        # the group dropdown should also not be present
+
+        # check that navbar is present
+        # navbar = self.driver.find_elements(By.XPATH, wtxs.navbar())
+        navbar = self.driver.find_elements(By.XPATH, "/html/body/nav")
+        self.assertTrue(len(navbar) != 0, "navbar not present on page")
+
+        # check that the left buttons are absent
+        left_button_xpaths = [
+            wtxs.nav_status_button,
+            wtxs.nav_cloud_config_button,
+            wtxs.nav_aliases_button,
+            wtxs.nav_group_config_button,
+            wtxs.nav_images_button,
+            wtxs.nav_keys_button
+        ]
+        for button in left_button_xpaths:
+            self.assertTrue(
+                len(self.driver.find_elements(By.XPATH, button)) == 0,
+                f"Button at xpath: {button} present on the no group error page when it should be absent."
+            )
+        
+        # assert the group dropdown menu is absent
+        self.assertTrue(len(self.driver.find_elements(By.XPATH, wtxs.nav_group_selector)) == 0, "group selector is present when it should be absent")
+
+    @classmethod
+    def tearDownClass(cls):
+        wtsc.cleanup(cls)
+
+class TestWebNoGroupErrorPageSuperUserFirefox(TestWebNoGroupErrorPageCommon):
+    """A class to test cloud operations via the web interface, in Firefox, with a super user."""
+
+    @classmethod
+    def setUpClass(cls):
+        try:
+            wtsc.setup(cls, 2, ['nogroups'], browser='firefox')
+            super(TestWebNoGroupErrorPageSuperUserFirefox, cls).setUpClass()
+            print("\nNo Group Error Page Tests (Super User):")
+        except:
+            print("Error in test setup")
+            super(TestWebNoGroupErrorPageSuperUserFirefox, cls).tearDownClass()
+            raise
+
+class TestWebNoGroupErrorPageRegularUserFirefox(TestWebNoGroupErrorPageCommon):
+    """A class to test cloud operations via the web interface, in Firefox, with a regular user."""
+
+    @classmethod
+    def setUpClass(cls):
+        try:
+            wtsc.setup(cls, 1, ['nogroups'], browser='firefox')
+            super(TestWebNoGroupErrorPageRegularUserFirefox, cls).setUpClass()
+            print("\nNo Group Error Page Tests (Regular User):")
+        except:
+            print("Error in test setup")
+            super(TestWebNoGroupErrorPageRegularUserFirefox, cls).tearDownClass()
+            raise
+
+class TestWebNoGroupErrorPageSuperUserChromium(TestWebNoGroupErrorPageCommon):
+    """A class to test cloud operations via the web interface, in Chromium, with a super user."""
+
+    @classmethod
+    def setUpClass(cls):
+        try:
+            wtsc.setup(cls, 2, ['nogroups'], browser='chromium')
+            super(TestWebNoGroupErrorPageSuperUserChromium, cls).setUpClass()
+            print("\nNo Group Error Page Tests (Chromium) (Super User):")
+        except:
+            print("Error in test setup")
+            super(TestWebNoGroupErrorPageSuperUserChromium, cls).tearDownClass()
+            raise
+
+class TestWebNoGroupErrorPageRegularUserChromium(TestWebNoGroupErrorPageCommon):
+    """A class to test cloud operations via the web interface, in Chromium, with a regular user."""
+
+    @classmethod
+    def setUpClass(cls):
+        try:
+            wtsc.setup(cls, 1, ['nogroups'], browser='chromium')
+            super(TestWebNoGroupErrorPageRegularUserChromium, cls).setUpClass()
+            print("\nNo Group Error Page Tests (Chromium) (Regular User):")
+        except:
+            print("Error in test setup")
+            super(TestWebNoGroupErrorPageRegularUserChromium, cls).tearDownClass()
+            raise
+
+class TestWebNoGroupErrorPageSuperUserOpera(TestWebNoGroupErrorPageCommon):
+    """A class to test cloud operations via the web interface, in Opera, with a super user."""
+
+    @classmethod
+    def setUpClass(cls):
+        try:
+            wtsc.setup(cls, 2, ['nogroups'], browser='opera')
+            super(TestWebNoGroupErrorPageSuperUserOpera, cls).setUpClass()
+            print("\nNo Group Error Page Tests (Opera) (Super User):")
+        except:
+            print("Error in test setup")
+            super(TestWebNoGroupErrorPageSuperUserOpera, cls).tearDownClass()
+            raise
+
+class TestWebNoGroupErrorPageRegularUserOpera(TestWebNoGroupErrorPageCommon):
+    """A class to test cloud operations via the web interface, in Opera, with a regular user."""
+
+    @classmethod
+    def setUpClass(cls):
+        try:
+            wtsc.setup(cls, 1, ['nogroups'], browser='opera')
+            super(TestWebNoGroupErrorPageRegularUserOpera, cls).setUpClass()
+            print("\nNo Group Error Page Tests (Opera) (Regular User):")
+        except:
+            print("Error in test setup")
+            super(TestWebNoGroupErrorPageRegularUserOpera, cls).tearDownClass()
+            raise
+
+class TestWebNoGroupErrorPageSuperUserChrome(TestWebNoGroupErrorPageCommon):
+    """A class to test cloud operations via the web interface, in Chrome, with a super user."""
+
+    @classmethod
+    def setUpClass(cls):
+        try:
+            wtsc.setup(cls, 2, ['nogroups'], browser='chrome')
+            super(TestWebNoGroupErrorPageSuperUserChrome, cls).setUpClass()
+            print("\nNo Group Error Page Tests (Chrome) (Super User):")
+        except:
+            print("Error in test setup")
+            super(TestWebNoGroupErrorPageSuperUserChrome, cls).tearDownClass()
+            raise
+
+class TestWebNoGroupErrorPageRegularUserChrome(TestWebNoGroupErrorPageCommon):
+    """A class to test cloud operations via the web interface, in Chrome, with a regular user."""
+
+    @classmethod
+    def setUpClass(cls):
+        try:
+            wtsc.setup(cls, 1, ['nogroups'], browser='chrome')
+            super(TestWebNoGroupErrorPageRegularUserChrome, cls).setUpClass()
+            print("\nNo Group Error Page Tests (Chrome) (Regular User):")
+        except:
+            print("Error in test setup")
+            super(TestWebNoGroupErrorPageRegularUserChrome, cls).tearDownClass()
+            raise
+
+if __name__ == "__main__":
+    runner = unittest.TextTestRunner(verbosity=2)
+    tests = [ TestWebNoGroupErrorPageSuperUserFirefox, TestWebNoGroupErrorPageRegularUserFirefox,
+              TestWebNoGroupErrorPageSuperUserChromium, TestWebNoGroupErrorPageRegularUserChromium,
+              TestWebNoGroupErrorPageSuperUserOpera, TestWebNoGroupErrorPageRegularUserOpera,
+              TestWebNoGroupErrorPageSuperUserChrome, TestWebNoGroupErrorPageRegularUserChrome ]
+    suite = helpers.parse_command_line_arguments(sys.argv, tests, True)
+    runner.run(suite)

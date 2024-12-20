@@ -187,6 +187,32 @@ class TestWebGroupCommon(unittest.TestCase):
         self.assertFalse(self.page.box_checked(user_name))
         wta.assertHasNotAttribute('user', user_name, 'user_groups', group_name) 
 
+    # This is pretty dangerous as if this test fails and the default group is deleted,
+    # everything else breaks and the default group needs to be put back in the db
+    @unittest.skip("Superusers are allowed to delete their own last group")
+    def test_web_group_delete_own_last_group(self):
+        # attempts to delete all of the logged in users groups
+        group1_name = 'default'
+        group2_name = self.gvar['user'] + '-wig0' 
+        self.page.click_top_nav('Groups')
+        # delete wig0
+        self.page.click_side_button(group2_name)
+        self.page.click_delete_button()
+        with wti.wait_for_page_load(self.driver, timeout=200):
+            self.page.click_delete_modal()
+        # wig0 should be deleted
+        self.assertFalse(self.page.side_button_exists(group2_name))
+        # try to delete default
+        self.page.click_top_nav('Groups')
+        self.page.click_side_button(group1_name)
+        self.page.click_delete_button()
+        with wti.wait_for_page_load(self.driver, timeout=200):
+            self.page.click_delete_modal()
+        self.assertTrue(self.page.side_button_exists(group1_name))
+        self.assertTrue(self.page.error_message_displayed("you cannot delete your own last group"))
+        wta.assertExists('group', group1_name)
+    
+
     @classmethod
     def tearDownClass(cls):
         wtsc.cleanup(cls)

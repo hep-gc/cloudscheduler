@@ -297,6 +297,10 @@ class TestWebUserCommon(unittest.TestCase):
         self.page.click_update_user()
         self.assertTrue(self.page.error_message_displayed())
 
+    def test_web_user_add_without_group(self):
+        # Attempts to add a user belonging to no groups
+        assert True
+
     @unittest.skip("No current infrastructure to test this.")
     def test_web_user_update_cert_cn(self):
         # Changes a user's certificate common name

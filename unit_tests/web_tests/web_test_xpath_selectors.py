@@ -141,3 +141,45 @@ def specific_glint_error_message(message):
 
 def error_page_message(message):
     return "//title[contains(text(), '" + message + "')]"
+
+def navbar():
+    return '//nav[contains(@class, "top-nav")]'
+
+def nav_status_button():
+    return navbar() + '//div[contains(@class, "float-left")]//li//a[contains(@class, "status-nav")]'
+
+def nav_cloud_config_button():
+    return navbar() + '//div[contains(@class, "float-left")]//li//a[contains(@class, "clouds-nav")]'
+
+def nav_aliases_button():
+    return navbar() + '//div[contains(@class, "float-left")]//li//a[contains(@class, "alias-nav")]'
+
+def nav_group_config_button():
+    return navbar() + '//div[contains(@class, "float-left")]//li//a[contains(@class, "defaults-nav")]'
+
+def nav_images_button():
+    return navbar() + '//div[contains(@class, "float-left")]//li//a[contains(@class, "images-nav")]'
+
+def nav_keys_button():
+    return navbar() + '//div[contains(@class, "float-left")]//li//a[contains(@class, "keys-nav")]'
+
+def nav_users_button():
+    return navbar() + '//div[contains(@class, "float-right")]//li//a[contains(@class, "users-nav")]'
+
+def nav_groups_button():
+    return navbar() + '//div[contains(@class, "float-right")]//li//a[contains(@class, "groups-nav")]'
+
+def nav_system_config_button():
+    return navbar() + '//div[contains(@class, "float-right")]//li//a[contains(@class, "config-nav")]'
+
+def nav_user_settings_button():
+    return navbar() + '//div[contains(@class, "float-right")]//li//a[contains(@class, "settings-nav")]'
+
+def nav_ht_condor_button():
+    return navbar() + '//div[contains(@class, "float-right")]//li//a[contains(@class, "plugin-nav")]'
+
+def nav_log_out_button():
+    return navbar() + '//div[contains(@class, "float-right")]//li//a[contains(@class, "logout-nav")]'
+
+def nav_group_selector():
+    return '//select[contains(@id, "group")]'
