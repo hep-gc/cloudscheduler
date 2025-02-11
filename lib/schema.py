@@ -393,7 +393,8 @@ schema = {
             "priority": {"type": "int"},
             "metadata": {"type": "str", "nulls": "NO"},
             "mime_type": {"type": "str", "len": "128", "nulls": "NO"},
-            "checksum": {"type": "str", "len": "32", "nulls": "YES"}
+            "checksum": {"type": "str", "len": "32", "nulls": "YES"},
+            "last_updated": {"type": "int"}
             }
         },
     "csv2_cloud_types": {
@@ -492,7 +493,8 @@ schema = {
             "priority": {"type": "int"},
             "metadata": {"type": "str", "nulls": "NO"},
             "mime_type": {"type": "str", "len": "128", "nulls": "NO"},
-            "checksum": {"type": "str", "len": "32", "nulls": "YES"}
+            "checksum": {"type": "str", "len": "32", "nulls": "YES"},
+            "last_updated": {"type": "int"}
             }
         },
     "csv2_group_metadata_exclusions": {
@@ -1146,6 +1148,12 @@ schema = {
             "app_credentials": {"type": "str", "len": "128", "nulls": "YES"},
             "app_credentials_secret": {"type": "str", "len": "128", "nulls": "YES"},
             "app_credentials_expiry": {"type": "int"},
+            "user_ocid": {"type": "str", "len": "128", "nulls": "YES"},
+            "user_fingerprint": {"type": "str", "len": "64", "nulls": "YES"},
+            "tenancy_ocid": {"type": "str", "len": "128", "nulls": "YES"},
+            "api_private_key": {"type": "str", "len": "2048", "nulls": "YES"},
+            "oci_availability_domain": {"type": "str", "len": "128", "nulls": "NO"},
+            "oci_compartment": {"type": "str", "len": "128", "nulls": "NO"},
             "cascading_vm_flavor": {"type": "str", "len": "64", "nulls": "YES"},
             "cascading_vm_image": {"type": "str", "len": "64", "nulls": "YES"},
             "cascading_vm_keep_alive": {"type": "int"},
@@ -1216,6 +1224,12 @@ schema = {
             "app_credentials": {"type": "str", "len": "128", "nulls": "YES"},
             "app_credentials_secret": {"type": "str", "len": "128", "nulls": "YES"},
             "app_credentials_expiry": {"type": "int"},
+            "user_ocid": {"type": "str", "len": "128", "nulls": "YES"},
+            "user_fingerprint": {"type": "str", "len": "64", "nulls": "YES"},
+            "tenancy_ocid": {"type": "str", "len": "128", "nulls": "YES"},
+            "api_private_key": {"type": "str", "len": "2048", "nulls": "YES"},
+            "oci_availability_domain": {"type": "str", "len": "128", "nulls": "NO"},
+            "oci_compartment": {"type": "str", "len": "128", "nulls": "NO"},
             "cascading_vm_flavor": {"type": "str", "len": "64", "nulls": "YES"},
             "cascading_vm_image": {"type": "str", "len": "64", "nulls": "YES"},
             "cascading_vm_keep_alive": {"type": "int"},
@@ -1291,6 +1305,12 @@ schema = {
             "app_credentials": {"type": "str", "len": "128", "nulls": "YES"},
             "app_credentials_secret": {"type": "str", "len": "128", "nulls": "YES"},
             "app_credentials_expiry": {"type": "int"},
+            "user_ocid": {"type": "str", "len": "128", "nulls": "YES"},
+            "user_fingerprint": {"type": "str", "len": "64", "nulls": "YES"},
+            "tenancy_ocid": {"type": "str", "len": "128", "nulls": "YES"},
+            "api_private_key": {"type": "str", "len": "2048", "nulls": "YES"},
+            "oci_availability_domain": {"type": "str", "len": "128", "nulls": "NO"},
+            "oci_compartment": {"type": "str", "len": "128", "nulls": "NO"},
             "cascading_vm_flavor": {"type": "str", "len": "64", "nulls": "YES"},
             "cascading_vm_image": {"type": "str", "len": "64", "nulls": "YES"},
             "cascading_vm_keep_alive": {"type": "int"},
