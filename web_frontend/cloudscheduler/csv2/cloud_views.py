@@ -25,7 +25,8 @@ from cloudscheduler.lib.view_utils import \
     get_app_credentail_expiry, \
     retire_cloud_vms, \
     get_file_checksum, \
-    clean_cloud_data
+    clean_cloud_data, \
+    isolate_private_key
 
 import bcrypt
 
@@ -61,6 +62,12 @@ CLOUD_KEYS = {
         'app_credentials':                      'ignore',
         'app_credentials_secret':               'ignore',
         'app_credentials_expiry':               'integer', #this may need to change to a date obj
+        'user_ocid':                            'ignore',
+        'user_fingerprint':                     'ignore',
+        'tenancy_ocid':                         'ignore',
+        'api_private_key':                      'ignore',
+        'oci_availability_domain':              'ignore',
+        'oci_compartment':                      'ignore',
         'enabled':                              'dboolean',
         'freeze':                               'dboolean',
         'priority':                             'integer',
@@ -112,6 +119,77 @@ CLOUD_KEYS = {
         'metadata_name',
         ]
     }
+ORACLE_CLOUD_KEYS = {
+    'auto_active_group': True,
+    # Named argument formats (anything else is a string).
+    'format': {
+        'cloud_name':                           'lowerdash',
+        'cloud_type':                           ('csv2_cloud_types', 'cloud_type'),
+        'auth_type':                            '', #may be converted to reference table like cloud_type
+        'userid':                               '',
+        'app_credentials':                      'ignore',
+        'app_credentials_secret':               'ignore',
+        'app_credentials_expiry':               'integer', #this may need to change to a date obj
+        'user_ocid':                            'ignore',
+        'user_fingerprint':                     'ignore',
+        'tenancy_ocid':                         'ignore',
+        'api_private_key':                      'ignore',
+        'oci_availability_domain':              'ignore',
+        'oci_compartment':                      'ignore',
+        'enabled':                              'dboolean',
+        'freeze':                               'dboolean',
+        'priority':                             'integer',
+        'flavor_name':                          'ignore',
+        'flavor_option':                        ['add', 'delete'],
+        'cores_ctl':                            'integer',
+        'cores_softmax':                        'integer',
+        'metadata_name':                        'ignore',
+        'metadata_option':                      ['add', 'delete'],
+        'ram_ctl':                              'integer',
+        'spot_price':                           'float',
+#       'vm_boot_volume':                       {"GBs": "integer", "options": {"per_core": "boolean"}},
+#       'vm_boot_volume':                       {"min_pick": 1, "pick": {"GBs": "integer", "GBs_per_core": "integer", "volume_type": "string"}},
+        'vm_boot_volume_type':                  'ignore',
+        'vm_boot_volume_size':                  'ignore',
+        'vm_boot_volume_per_core':              'ignore',
+        'vm_keep_alive':                        'integer',
+
+        'cores_slider':                         'ignore',
+        'csrfmiddlewaretoken':                  'ignore',
+        'group':                                'ignore',
+        'ram_slider':                           'ignore',
+
+        'server_meta_ctl':                      'reject',
+        'instances_ctl':                        'reject',
+        'personality_ctl':                      'reject',
+        'image_meta_ctl':                       'reject',
+        'personality_size_ctl':                 'reject',
+        'server_groups_ctl':                    'reject',
+        'security_group_rules_ctl':             'reject',
+        'keypairs_ctl':                         'reject',
+        'security_groups_ctl':                  'reject',
+        'server_group_members_ctl':             'reject',
+        'floating_ips_ctl':                     'reject',
+        },
+    'mandatory': [
+        'cloud_name',
+        ],
+    'not_empty': [
+        'user_ocid',
+        'user_fingerprint',
+        'tenancy_ocid',
+        'api_private_key',
+#        'username',
+#        'password',
+        'region',
+        ],
+    'array_fields': [
+        'flavor_name',
+        'group_name',
+        'metadata_name',
+        ]
+    }
+
 
 CLOUD_ADD_KEYS = {
     'mandatory': [
@@ -512,8 +590,40 @@ def add(request):
 
     if request.method == 'POST':
 
-        # Validate input fields.
-        rc, msg, fields, tables, columns = validate_fields(config, request, [CLOUD_KEYS, CLOUD_ADD_KEYS], ['csv2_clouds', 'csv2_cloud_flavor_exclusions', 'csv2_group_metadata', 'csv2_group_metadata_exclusions'], active_user)
+        cloud_type = request.POST["cloud_type"] if "cloud_type" in request.POST else None
+
+        if cloud_type == "oracle":
+            #oracle cloud
+            rc, msg, fields, tables, columns = validate_fields(config, request, [ORACLE_CLOUD_KEYS], ['csv2_clouds', 'csv2_cloud_flavor_exclusions', 'csv2_group_metadata', 'csv2_group_metadata_exclusions'], active_user)
+            if 'api_private_key' in request.FILES:
+                print("private key in reqest.FILES")
+                apk_file = request.FILES["api_private_key"]
+                # open and process content then assign to fields["api_private_key"]
+                rc, apk = isolate_private_key(apk_file)
+                print(apk)
+                if rc != 0:
+                    # bad key file
+                    config.db_close()
+                    msg = "invalid key file provided"
+                    message = '%s cloud update %s' % (lno(MODID), msg)
+                    request.session["response"] = {"message": message, "response_code": 1, "group": group}
+                    return redirect("/cloud/list/")
+                else:
+                    # key is of a valid format
+                    print(apk)
+                    fields["api_private_key"] = apk
+            else:
+				# bad key file
+                config.db_close()
+                msg = "no key file provided"
+                message = '%s cloud add %s' % (lno(MODID), msg)
+                request.session["response"] = {"message": message, "response_code": 1, "group": group}
+                return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud add, "%s" failed - %s.' % (lno(MODID), fields['cloud_name'], msg))
+
+
+        else:
+            # Validate input fields.
+            rc, msg, fields, tables, columns = validate_fields(config, request, [CLOUD_KEYS, CLOUD_ADD_KEYS], ['csv2_clouds', 'csv2_cloud_flavor_exclusions', 'csv2_group_metadata', 'csv2_group_metadata_exclusions'], active_user)
         if rc != 0: 
             config.db_close()
             return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud add %s' % (lno(MODID), msg), cloud_add_cache=request.POST)
@@ -890,6 +1000,12 @@ def cloud_list(request, active_user=None, response_code=0, message=None, cloud_a
     # Retrieve the list ec2 regions:
     rc, msg, ec2_regions_list = config.db_query("ec2_regions")
 
+    # Retrieve the list of oracle availability domains
+    rc, msg, oci_availability_domain_list = config.db_query("oracle_availability_domains")
+
+    # Retrieve the list of oracle compartments
+    rc, msg, oci_compartment_list = config.db_query("oracle_compartments")
+
     # Position the page.
     if len(_cloud_list) > 0:
         current_cloud = str(_cloud_list[0]['cloud_name'])
@@ -945,6 +1061,227 @@ def cloud_list(request, active_user=None, response_code=0, message=None, cloud_a
             'cloud_add': cloud_add,
             'version': config.get_version(),
             'volume_type_list': volume_type_list,
+            'oci_availability_domain_list': oci_availability_domain_list,
+            'oci_compartment_list': oci_compartment_list,
+        }
+
+    config.db_close()
+    return render(request, 'csv2/clouds.html', context)
+
+#-------------------------------------------------------------------------------
+
+@silkp(name='Cloud Metadata Add')
+@requires_csrf_token
+def metadata_add(request):
+    """
+    This function should recieve a post request with a payload of metadata configuration
+    to add to a given group/cloud.
+    """
+
+    # open the database.
+    config.db_open()
+
+    # Retrieve the active user, associated group list and optionally set the active group.
+    rc, msg, active_user = set_user_groups(config, request, super_user=False)
+    if rc != 0:
+        config.db_close()
+        return render(request, 'csv2/blank_msg.html', {'response_code': 1, 'message': '%s %s' % (lno(MODID), msg)})
+
+    if request.method == 'POST':
+        # Validate input fields.
+        rc, msg, fields, tables, columns = validate_fields(config, request, [METADATA_KEYS], ['csv2_cloud_metadata', 'csv2_clouds'], active_user)
+        if rc != 0:
+            config.db_close()
+            cloud_name = request.POST.get("cloud_name")
+            if cloud_name:
+                return metadata_new(request, active_user, response_code=1, message='%s cloud metadata-add %s' % (lno(MODID), msg), cloud_name=cloud_name)
+            return render(request, 'csv2/blank_msg.html', {'response_code': 1, 'message': '%s cloud metadata-add %s' % (lno(MODID), msg)})
+
+        # Check cloud already exists.
+        table = 'csv2_clouds'
+        where_clause = "group_name='%s'" % active_user.active_group
+        rc, msg, _cloud_list = config.db_query(table, where=where_clause)
+        found = False
+        for cloud in _cloud_list:
+            if active_user.active_group == cloud['group_name'] and fields['cloud_name'] == cloud['cloud_name']:
+                found = True
+                break
+
+        if not found:
+            config.db_close()
+            return metadata_new(request, active_user, response_code=1, message='%s cloud metadata-add failed, cloud name "%s" does not exist.' % (lno(MODID), fields['cloud_name']), cloud_name=fields['cloud_name'])
+
+        if fields.get('metadata'):
+            fields['metadata'] = config.replace_backslash_content(fields.get('metadata'))
+        
+        if fields.get('metadata') or fields.get('metadata') == '':
+            fields['checksum'] = get_file_checksum(fields['metadata'].encode('utf-8'))
+
+        # Add the cloud metadata file.
+        table ='csv2_cloud_metadata'
+        meta_dict = table_fields(fields, table, columns, 'insert')
+        rc, msg = config.db_insert(table, meta_dict)
+        if rc == 0:
+            config.db_close(commit=True)
+
+            message = 'cloud metadata file "%s::%s::%s" successfully added.' % (fields['group_name'], fields['cloud_name'], fields['metadata_name'])
+
+            context = {
+                'group_name': fields['group_name'],
+                'response_code': 0,
+                'message': message,
+            }
+            config.db_close()
+            return render(request, 'csv2/reload_parent.html', context)
+
+        else:
+            config.db_close()
+            return metadata_new(request, active_user, response_code=1, message='%s cloud metadata-add "%s::%s::%s" failed - %s.' % (lno(MODID), fields['group_name'], fields['cloud_name'], fields['metadata_name'], msg), cloud_name=fields['cloud_name'])
+
+    ### Bad request.
+    else:
+        config.db_close()
+        return render(request, 'csv2/blank_msg.html', {'response_code': 1, 'message': '%s cloud metadata_add, invalid method "%s" specified.' % (lno(MODID), request.method)})
+
+#-------------------------------------------------------------------------------
+
+@silkp(name="Cloud Metadata Add")
+@requires_csrf_token
+def metadata_collation(request):
+
+    # open the database.
+    config.db_open()
+
+    # Retrieve the active user, associated group list and optionally set the active group.
+    rc, msg, active_user = set_user_groups(config, request, super_user=False)
+    if rc != 0:
+        config.db_close()
+        return render(request, 'csv2/clouds_metadata_list.html', {'response_code': 1, 'message': '%s cloud metadata-list, %s' % (lno(MODID), msg)})
+
+    # Validate input fields (should be none).
+    rc, msg, fields, tables, columns = validate_fields(config, request, [METADATA_LIST_KEYS], [], active_user)
+    if rc != 0:
+        config.db_close()
+        return render(request, 'csv2/clouds_metadata_list.html', {'response_code': 1, 'message': '%s cloud metadata-list, %s' % (lno(MODID), msg)})
+
+    # Retrieve cloud/metadata information.
+    table = 'view_metadata_collation'
+    where_clause = "group_name='%s'" % active_user.active_group
+    rc, msg, cloud_metadata_list = config.db_query(table, where=where_clause)
+
+    config.db_close()
+
+    # Render the page.
+    context = {
+            'active_user': active_user.username,
+            'active_group': active_user.active_group,
+            'user_groups': active_user.user_groups,
+            'cloud_metadata_list': cloud_metadata_list,
+            'response_code': 0,
+            'message': None,
+            'is_superuser': active_user.is_superuser,
+            'version': config.get_version()
+        }
+
+    config.db_close()
+    return render(request, 'csv2/cloud_metadata_list.html', context)
+
+#-------------------------------------------------------------------------------
+
+@silkp(name='Cloud Metadata Delete')
+@requires_csrf_token
+def metadata_delete(request):
+    """
+    This function should recieve a post request with a payload of metadata configuration
+    to add to a given group/cloud.
+    """
+
+    # open the database.
+    config.db_open()
+
+    # Retrieve the active user, associated group list and optionally set the active group.
+    rc, msg, active_user = set_user_groups(config, request, super_user=False)
+    if rc != 0:
+        config.db_close()
+        return render(request, 'csv2/blank_msg.html', {'response_code': 1, 'message': '%s %s' % (lno(MODID), msg)})
+
+    if request.method == 'POST':
+
+        # Validate input fields.
+        rc, msg, fields, tables, columns = validate_fields(config, request, [METADATA_KEYS], ['csv2_cloud_metadata'], active_user)
+        if rc != 0:
+            config.db_close()
+            cloud_name = request.POST.get("cloud_name")
+            metadata_name = request.POST.get("metadata_name")
+            if cloud_name and metadata_name:
+                return metadata_fetch(request, response_code=1, message='%s cloud metadata-delete %s' % (lno(MODID), msg), metadata_name=metadata_name,cloud_name=cloud_name)
+            return render(request, 'csv2/blank_msg.html', {'response_code': 1, 'message': '%s cloud metadata-delete %s' % (lno(MODID), msg)})
+
+        # Delete the cloud metadata file.
+        table = 'csv2_cloud_metadata'
+        meta_dict = {
+            "group_name": fields['group_name'],
+            "cloud_name": fields['cloud_name'],
+            "metadata_name": fields['metadata_name'] 
+        }
+        where_clause = "group_name='%s' and cloud_name='%s' and metadata_name='%s'" % (fields['group_name'], fields['cloud_name'], fields['metadata_name'])
+        
+    # Position the page.
+    if len(_cloud_list) > 0:
+        current_cloud = str(_cloud_list[0]['cloud_name'])
+    else:
+        current_cloud = ''
+
+    if message:
+        if response_code == 0:
+            messages.success(request, message)
+        else:
+            messages.error(request, message)
+
+    cloud_add = {
+        'app_credentials': get_cloud_add_value(cloud_add_cache, 'app_credentials'),
+        'app_credentials_secret': '',
+        'auth_type': get_cloud_add_value(cloud_add_cache, 'auth_type', 'userpass'),
+        'authurl': get_cloud_add_value(cloud_add_cache, 'authurl'),
+        'cacertificate': get_cloud_add_value(cloud_add_cache, 'cacertificate'),
+        'cloud_name': get_cloud_add_value(cloud_add_cache, 'cloud_name'),
+        'cloud_type': get_cloud_add_value(cloud_add_cache, 'cloud_type', 'openstack'), 
+        'enabled': get_cloud_add_value(cloud_add_cache, 'enabled', 0),
+        'password': '',
+        'priority': get_cloud_add_value(cloud_add_cache, 'priority', '0'),
+        'project': get_cloud_add_value(cloud_add_cache, 'project'),
+        'project_domain_name': get_cloud_add_value(cloud_add_cache, 'project_domain_name'),
+        'region': get_cloud_add_value(cloud_add_cache, 'region'),
+        'user_domain_name': get_cloud_add_value(cloud_add_cache, 'user_domain_name'),
+        'userid': get_cloud_add_value(cloud_add_cache, 'userid'),
+        'username': get_cloud_add_value(cloud_add_cache, 'username')
+    }
+
+    # Render the page.
+    context = {
+            'active_user': active_user.username,
+            'active_group': active_user.active_group,
+            'user_groups': active_user.user_groups,
+            'cloud_list': _cloud_list,
+            'type_list': type_list,
+            'metadata_dict': metadata_dict,
+            'group_metadata_dict': group_metadata_dict,
+            'group_metadata_exclusion_list': group_metadata_exclusion_list,
+            'image_list': image_list,
+            'flavor_list': flavor_list,
+            'flavor_exclusion_list': flavor_exclusion_list,
+            'keypairs_list': keypairs_list,
+            'network_list': network_list,
+            'security_groups_list': security_groups_list,
+            'ec2_regions_list': ec2_regions_list,
+            'current_cloud': current_cloud,
+            'response_code': response_code,
+            'message': message,
+            'is_superuser': active_user.is_superuser,
+            'cloud_add': cloud_add,
+            'version': config.get_version(),
+            'volume_type_list': volume_type_list,
+            'oci_availability_domain_list': oci_availability_domain_list,
         }
 
     config.db_close()
@@ -1996,7 +2333,44 @@ def update(request):
             request.POST["vm_security_groups"] = ""
 
         # Validate input fields.
-        rc, msg, fields, tables, columns = validate_fields(config, request, [CLOUD_KEYS], ['csv2_clouds', 'csv2_cloud_flavor_exclusions', 'csv2_group_metadata', 'csv2_group_metadata_exclusions'], active_user)
+        cloud_type = request.POST["cloud_type"] if "cloud_type" in request.POST else None
+
+        if cloud_type == "oracle":
+            print("cloud type oracle")
+            rc, msg, fields, tables, columns = validate_fields(config, request, [ORACLE_CLOUD_KEYS], ['csv2_clouds', 'csv2_cloud_flavor_exclusions', 'csv2_group_metadata', 'csv2_group_metadata_exclusions'], active_user)
+            # check if a new api private key was uploaded, if it was set api_private_key in fields otherwise set it to the value from the database so we can verify the cloud credentials
+            if 'api_private_key' in request.FILES:
+                print("private key in reqest.FILES")
+                apk_file = request.FILES["api_private_key"]
+                # open and process content then assign to fields["api_private_key"]
+                rc, apk = isolate_private_key(apk_file)
+                print(apk)
+                if rc != 0:
+                    # bad key file
+                    config.db_close()
+                    msg = "invalid key file provided"
+                    message = '%s cloud update %s' % (lno(MODID), msg)
+                    request.session["response"] = {"message": message, "response_code": 1, "group": group}
+                    return redirect("/cloud/list/")
+                else:
+                    # key is of a valid format
+                    print(apk)
+                    fields["api_private_key"] = apk
+            else:
+                # get cloud row from database and collect the private key and store it in fields
+                where_clause = "group_name='%s' and cloud_name='%s'" % (fields['group_name'], fields['cloud_name'])
+                rc, msg, found_cloud_list = config.db_query("csv2_clouds", where=where_clause)
+                if rc != 0:
+                    # we have an error return with msg
+                    config.db_close()
+                    message = '%s cloud update %s' % (lno(MODID), msg)
+                    request.session["response"] = {"message": message, "response_code": 1, "group": group}
+                    return redirect("/cloud/list/")
+                else:
+                    #else we have the cloud and need to grab the apk_file from there:
+                    apk_file = found_cloud_list[0]["api_private_key"]
+        else:
+            rc, msg, fields, tables, columns = validate_fields(config, request, [CLOUD_KEYS], ['csv2_clouds', 'csv2_cloud_flavor_exclusions', 'csv2_group_metadata', 'csv2_group_metadata_exclusions'], active_user)
         if rc != 0:
             config.db_close()
             message = '%s cloud update %s' % (lno(MODID), msg)

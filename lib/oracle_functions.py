@@ -150,11 +150,11 @@ def loadOracleConfig(clouddict):
 def translateFlavor(shape, shape_config):
     flavor = "o" + str(int(shape_config.ocpus))
 
-    if "amd" in shape:
+    if "E5" in shape:
         flavor += "amd"
-    elif "intel" in shape:
+    elif "Standard3" in shape:
         flavor += "intel"
-    elif "arm" in shape:
+    elif "A1" in shape:
         flavor += "arm"
 
     return flavor

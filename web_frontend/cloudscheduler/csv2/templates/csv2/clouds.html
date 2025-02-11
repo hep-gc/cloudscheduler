@@ -225,7 +225,7 @@
                     <label class="tab-colour" for="{{cloud.cloud_name}}-settings">Settings</label>
                     <div class="tab-content">
 
-                        <form name="{{cloud.cloud_name}}" action="/cloud/update/#{{cloud.cloud_name}}" method="post" autocomplete="nope">
+                        <form name="{{cloud.cloud_name}}" action="/cloud/update/#{{cloud.cloud_name}}" method="post" autocomplete="nope" enctype="multipart/form-data"> 
                             {% csrf_token %}
                             <table><tr><td class="tab-tables">
 
@@ -312,10 +312,50 @@
                                         </td></tr>
                                     {% endif %}
 
-                                    <tr class="highlight3" id=""><td><label for="user_ocid">User OCID</label></td>
+                                    <tr class="highlight3" ><td><label for="user_ocid">User OCID</label></td>
+                                       <td><input type="text" name="user_ocid" id="{{cloud.cloud_name}}-user_ocid" value="{{cloud.user_ocid}}"/></td>
                                     </tr>
                                   
+                                    <tr class="highlight3"><td><label for="user_fingerprint">User Fingerprint</label></td>
+                                       <td><input type="text" name="user_fingerprint" id="{{cloud.cloud_name}}-user_fingerprint" value="{{cloud.user_fingerprint}}"/></td>
+                                    </tr>
 
+                                    <tr class="highlight3"><td><label for="tenancy_ocid">Tenancy OCID</label></td>
+                                       <td><input type="text" name="tenancy_ocid" id="{{cloud.cloud_name}}=tenancy_ocid" value="{{cloud.tenancy_ocid}}"/></td>
+                                    </tr>
+
+                                    <tr class="highlight3"><td><label for="api_private_key">API Private Key</label></td>
+                                       <td><input type="file" name="api_private_key" id="{{cloud.cloud_name}}-api_private_key" value="{{cloud.api_private_key}}"/></td>
+                                    </tr>
+
+                                    <tr class="highlight3"><td><label for="oci_availability_domain">OCI Availability Domain</label></td>
+                                        <td><select name="oci_availability_domain" class="dropdown"/>
+                                        <option value="">Use group default</option>
+                                        <option value="None" {% if cloud.oci_availability_domain == "None" %}selected{% endif %}>Ignore group default</option>
+                                        {% for domain in oci_availability_domain_list %}
+                                            {% if domain.cloud_name == cloud.cloud_name %}
+                                                {% if domain.name == cloud.oci_availability_domain %}
+                                                    <option value="{{ domain.name }}" selected>{{ domain.name }}</option>
+                                                {% else %}
+                                                    <option value="{{ domain.name }}">{{ domain.name }}</option>
+                                                {% endif %}
+                                            {% endif %}   
+                                        {% endfor %}
+                                    </tr>
+                                    <tr class="highlight3"><td><label for="oci_compartment">OCI Compartment</label></td>
+                                        <td><select name="oci_compartment" class="dropdown"/>
+                                        <option value="">Use group default</option>
+                                        <option value="None" {% if cloud.oci_availability_domain == "None" %}selected{% endif %}>Ignore group default</option>
+                                        {% for compartment in oci_compartment_list %}
+                                            {% if compartment.cloud_name == cloud.cloud_name %}
+                                                {% if compartment.name == cloud.oci_compartment %}
+                                                    <option value="{{ compartment.name }}" selected>{{ compartment.name }}</option>
+                                                {% else %}
+                                                    <option value="{{ compartment.name }}">{{ compartment.name }}</option>
+                                                {% endif %}
+                                            {% endif %}   
+                                        {% endfor %}
+                                    </tr>
 
                                     <tr class="highlight3"><td><label for="project">Project</label></td>
                                     {% if cloud.cloud_type == "amazon" %}
@@ -728,7 +768,7 @@
         <div id="add-cloud">
             <a href="#add-cloud" class="menu-link add-link">&plus;</a>
             <div class="menu-target">
-                <form name="add_cloud" action="/cloud/add/" method="post" onsubmit="new_location()">
+                <form name="add_cloud" action="/cloud/add/" method="post" onsubmit="new_location()" enctype="multipart/form-data">
                     {% csrf_token %}
                     <div class="menu-position">
                         <table>
@@ -763,7 +803,19 @@
 
                             <tr class="highlight3"><td><label for="authurl">URL</label></td>
                             <td><input type="text" name="authurl" id="add-authurl" value="{{cloud_add.authurl}}" /></td></tr>
+
+                            <tr class="highlight3"><td><label for="user_ocid">User OCID</label></td>
+                            <td id="add-user_ocid"><input type="text" name="user_ocid" value="{{cloud_add.user_ocid}}" /></td></tr>
+
+                            <tr class="highlight3"><td><label for="user_fingerprint">User fingerprint</label></td>
+                            <td id="add-user_fingerprint"><input type="text" name="user_fingerprint" value="{{cloud_add.user_fingerprint}}" /></td></tr>
+
+                            <tr class="highlight3"><td><label for="tenancy_ocid">Tenancy OCID</label></td>
+                            <td id="add-tenancy_ocid"><input type="text" name="tenancy_ocid" value="{{cloud_add.tenancy_ocid}}" /></td></tr>
                             
+                            <tr class="highlight3"><td><label for="api_private_key">API Private Key</label></td>
+                            <td id="add-api_private_key"><input type="file" name="api_private_key" value="{{cloud_add.api_private_key}}" /></td></tr>
+
                             <tr class="highlight3"><td><label for="region">Region</label></td>
                             <td id="add-region"><input type="text" name="region" value="{{cloud_add.region}}" /></td></tr>
 
