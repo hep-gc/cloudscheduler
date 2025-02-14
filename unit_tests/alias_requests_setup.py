@@ -1,6 +1,7 @@
 from unit_test_common import execute_csv2_request, initialize_csv2_request, ut_id, generate_secret
 from sys import argv
 import alias_requests_cleanup
+import time
 
 def main(gvar):
     if not gvar:
@@ -43,7 +44,8 @@ def main(gvar):
         '/group/add/', form_data={
             'group_name': ut_id(gvar, 'atg1'),
             'htcondor_fqdn': gvar['fqdn'],
-            'username.1': ut_id(gvar, 'atu1')
+            'username.1': ut_id(gvar, 'atu1'),
+            'last_updated': int(time.time())
         }
     )
 
