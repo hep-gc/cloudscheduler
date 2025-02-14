@@ -284,7 +284,8 @@ def add(request):
             "enabled": 1,
             "priority": 0,
             "metadata": filedata,
-            "mime_type": "cloud-config"
+            "mime_type": "cloud-config",
+            "last_updated": int(time.time())
         }
         rc, msg = config.db_insert(table, meta_dict)
         if rc != 0:

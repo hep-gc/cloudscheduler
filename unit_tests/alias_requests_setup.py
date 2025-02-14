@@ -44,8 +44,7 @@ def main(gvar):
         '/group/add/', form_data={
             'group_name': ut_id(gvar, 'atg1'),
             'htcondor_fqdn': gvar['fqdn'],
-            'username.1': ut_id(gvar, 'atu1'),
-            'last_updated': int(time.time())
+            'username.1': ut_id(gvar, 'atu1')
         }
     )
 
