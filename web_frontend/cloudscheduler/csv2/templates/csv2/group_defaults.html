@@ -35,7 +35,7 @@
         }
 
         function meta_fetch(groupname , metaname) {
-            hide_meta_checksum();
+            hide_meta_date();
 
             var url='/group/metadata-fetch?{{active_group}}&metadata_name='+metaname;
             var frame='editor-'+groupname+'-'+metaname;
@@ -47,7 +47,7 @@
         }
 
         function meta_add() {
-            hide_meta_checksum();
+            hide_meta_date();
 
             var url='/group/metadata-new?{{active_group}}';
             var frame='editor-add';
@@ -219,8 +219,8 @@
 
                 <div class="tab">
                     <input id="defaults-metadata" type="radio" name="tabs" onclick="save_location('metadata'); check_target('defaults-hide')">
-                    <label class="tab-colour" for="defaults-metadata" onclick="show_meta_checksum()">Metadata</label>
-                    <div class="tab-content meta-div show-checksum" id="meta-list-tab">
+                    <label class="tab-colour" for="defaults-metadata" onclick="show_meta_date()">Metadata</label>
+                    <div class="tab-content meta-div show-date" id="meta-list-tab">
 
 
                         {% for key, value in metadata_dict.items %}
@@ -231,7 +231,7 @@
                                     {% for meta, meta_value in value.items %}
 
                                         <div style="display: flex">
-                                            <div class="tab2 checksum-label">
+                                            <div class="tab2 date-label">
                                                 <input id="metadata-{{meta}}" type="radio" name="tabs2" onclick="meta_fetch('{{group.group_name}}', '{{meta}}')">
                                                 <label class="tab2-colour{% if not meta_value.metadata_enabled %} disabled-style{% endif %}" for="metadata-{{meta}}">{{meta}}</label>
                                                 <div class="tab2-content">
@@ -239,7 +239,7 @@
                                                 </div>
                                             </div>
                                             {% if meta_value.metadata_checksum %}
-                                                <label class="checksum-text" style="display: inline">MD5 Checksum: {{meta_value.metadata_checksum}}</label>
+                                                <label class="date-text" style="display: inline">Last Updated: {{meta_value.metadata_updated}}</label>
                                             {% endif %}
                                         </div>
 
@@ -255,7 +255,7 @@
                         {% endfor %}
 
 
-                        <div class="tab2 checksum-label">
+                        <div class="tab2 date-label">
                             <input id="metadata-add" type="radio" name="tabs2" onclick="meta_add()">
                             <label class="tab2-colour" for="metadata-add">+</label>
                             <div class="tab2-content">

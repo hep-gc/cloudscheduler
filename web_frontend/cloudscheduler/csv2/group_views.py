@@ -6,6 +6,7 @@ from django.views.decorators.csrf import requires_csrf_token
 from django.http import HttpResponse
 from django.core.exceptions import PermissionDenied
 from django.contrib import messages
+import time
 
 from cloudscheduler.lib.fw_config import configure_fw 
 from cloudscheduler.lib.view_utils import \
@@ -450,11 +451,19 @@ def defaults(request, active_user=None, response_code=0, message=None):
                     'metadata_enabled',
                     'metadata_priority',
                     'metadata_mime_type',
-                    'metadata_checksum'
+                    'metadata_checksum',
+                    'metadata_updated'
                     ]
                 },
             prune=['password']    
             )
+        for x, metadata in metadata_dict.items():
+            for y, obj in metadata.items():
+                for z in obj:
+                    print(obj[z])
+                    if z == 'metadata_updated':
+                        temp = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(obj[z]))
+                        obj[z] = temp
         if active_user.active_group and metadata_dict.get(active_user.active_group):
             curr_dict = metadata_dict[active_user.active_group]
             metadata_dict[active_user.active_group] = dict(sorted(curr_dict.items(), key=lambda x:x[1].get('metadata_priority')))
@@ -820,6 +829,7 @@ def metadata_add(request):
             config.db_close()
             return metadata_new(request, active_user, response_code=1, message='%s group metadata-add %s' % (lno(MODID), msg))
         
+        fields['last_updated']= int(time.time())
         if fields.get('metadata'):
             fields['metadata'] = config.replace_backslash_content(fields.get('metadata'))
         
@@ -950,6 +960,7 @@ def metadata_fetch(request, response_code=0, message=None, metadata_name=None):
                     'metadata_name': row["metadata_name"],
                     'mime_types_list': mime_types_list,
                     'metadata_checksum': row["checksum"],
+                    'metadata_updated': time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(row['last_updated'])),
                     'response_code': response_code,
                     'message': message,
                     'is_superuser': active_user.is_superuser,
@@ -1037,6 +1048,7 @@ def metadata_new(request, active_user=None, response_code=0, message='new-group-
         'metadata_priority': 0,
         'metadata_mime_type': "",
         'metadata_name': "",
+        'metadata_updated': time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(time.time())),
         'mime_types_list': mime_types_list,
         'response_code': response_code,
         'action_type': "new-group-metadata",
@@ -1113,7 +1125,7 @@ def metadata_update(request):
     if request.method == 'POST':
         # Validate input fields.
         rc, msg, fields, tables, columns = validate_fields(config, request, [METADATA_KEYS], ['csv2_group_metadata'], active_user)
-        
+
         if rc != 0:
             config.db_close()
             metadata_name = request.POST.get("metadata_name")
@@ -1121,6 +1133,7 @@ def metadata_update(request):
                 return metadata_fetch(request, response_code=1, message='%s group metadata-update %s' % (lno(MODID), msg), metadata_name=metadata_name)
             return render(request, 'csv2/blank_msg.html', {'response_code': 1, 'message': '%s group metadata-update %s' % (lno(MODID), msg)})
 
+        fields['last_updated'] = int(time.time())
         if fields.get('metadata'):
             fields['metadata'] = config.replace_backslash_content(fields.get('metadata'))
 

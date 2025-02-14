@@ -7,6 +7,7 @@ from django.http import HttpResponse
 from django.http.response import JsonResponse
 from django.core.exceptions import PermissionDenied
 from django.contrib import messages
+import time
 
 from cloudscheduler.lib.view_utils import \
     diff_lists, \
@@ -945,12 +946,19 @@ def cloud_list(request, active_user=None, response_code=0, message=None, cloud_a
                     'metadata_enabled',
                     'metadata_priority',
                     'metadata_mime_type',
-                    'metadata_checksum'
+                    'metadata_checksum',
+                    'metadata_updated'
                     ]
                 },
             prune=['password', 'app_credentials_secret']    
             )
-
+        for x, metadata in metadata_dict.items():
+            for y, obj in metadata.items():
+                for z in obj:
+                    for item in obj[z]:
+                        if item == 'metadata_updated':
+                            temp = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(obj[z][item]))
+                            obj[z][item] = temp
     if active_user.active_group and metadata_dict.get(active_user.active_group):
         curr_dict = metadata_dict[active_user.active_group]
         for cloud in curr_dict:
@@ -1099,7 +1107,8 @@ def metadata_add(request):
             if cloud_name:
                 return metadata_new(request, active_user, response_code=1, message='%s cloud metadata-add %s' % (lno(MODID), msg), cloud_name=cloud_name)
             return render(request, 'csv2/blank_msg.html', {'response_code': 1, 'message': '%s cloud metadata-add %s' % (lno(MODID), msg)})
-
+        
+        fields['last_updated'] = int(time.time())
         # Check cloud already exists.
         table = 'csv2_clouds'
         where_clause = "group_name='%s'" % active_user.active_group
@@ -1324,6 +1333,7 @@ def metadata_fetch(request, response_code=0, message=None, metadata_name=None, c
                     'metadata_priority': row["priority"],
                     'metadata_mime_type': row["mime_type"],
                     'metadata_name': row["metadata_name"],
+                    'metadata_updated': time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(row['last_updated'])),
                     'mime_types_list': mime_types_list,
                     'metadata_checksum': row['checksum'],
                     'response_code': response_code,
@@ -1427,6 +1437,7 @@ def metadata_new(request, active_user=None, response_code=0, message='new-cloud-
             'metadata_priority': 0,
             'metadata_mime_type': "",
             'metadata_name': "",
+            'metadata_updated': time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(time.time())),
             'mime_types_list': mime_types_list,
             'response_code': response_code,
             'action_type': "new-cloud-metadata",
@@ -1515,6 +1526,7 @@ def metadata_update(request):
                 return metadata_fetch(request, response_code=1, message='%s cloud metadata-update %s' % (lno(MODID), msg), metadata_name=metadata_name, cloud_name=cloud_name)
             return render(request, 'csv2/blank_msg.html', {'response_code': 1, 'message': '%s cloud metadata-update %s' % (lno(MODID), msg)})
         
+        fields['last_updated'] = int(time.time())
         if fields.get('metadata'):
             fields['metadata'] = config.replace_backslash_content(fields.get('metadata'))
         

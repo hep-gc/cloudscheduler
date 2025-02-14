@@ -25,20 +25,20 @@ function createEditor(name) {
 }
 
 
-function hide_meta_checksum() {
+function hide_meta_date() {
     var metatab = document.getElementById("meta-list-tab");
-    metatab.classList.remove("show-checksum");
+    metatab.classList.remove("show-date");
 
-    document.querySelectorAll('.checksum-text').forEach((metatext)=> {
+    document.querySelectorAll('.date-text').forEach((metatext)=> {
         metatext.style.display = 'none';
     })
 }
 
-function show_meta_checksum() {
+function show_meta_date() {
     var metatab = document.getElementById("meta-list-tab");
-    metatab.classList.add("show-checksum");
+    metatab.classList.add("show-date");
             
-    document.querySelectorAll('.checksum-text').forEach((metatext)=> {
+    document.querySelectorAll('.date-text').forEach((metatext)=> {
         metatext.style.display = 'inline';
     })
 }

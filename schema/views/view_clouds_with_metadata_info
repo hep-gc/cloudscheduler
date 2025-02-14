@@ -11,7 +11,8 @@ metadata_name,
 ccm.enabled as metadata_enabled,
 priority as metadata_priority,
 mime_type as metadata_mime_type,
-checksum as metadata_checksum
+checksum as metadata_checksum,
+last_updated as metadata_updated
 
 from view_clouds as vc
 left outer join csv2_cloud_metadata as ccm on
