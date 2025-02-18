@@ -1134,7 +1134,6 @@ def metadata_update(request):
                 return metadata_fetch(request, response_code=1, message='%s group metadata-update %s' % (lno(MODID), msg), metadata_name=metadata_name)
             return render(request, 'csv2/blank_msg.html', {'response_code': 1, 'message': '%s group metadata-update %s' % (lno(MODID), msg)})
 
-        fields['last_updated'] = int(time.time())
         if fields.get('metadata'):
             fields['metadata'] = config.replace_backslash_content(fields.get('metadata'))
 
@@ -1149,6 +1148,9 @@ def metadata_update(request):
             return metadata_fetch(request, response_code=1, message='%s group metadata-update "%s::%s" specified no fields to update and was ignored.' % (lno(MODID), active_user.active_group, fields['metadata_name']), metadata_name=fields['metadata_name'])
 
         where_clause = 'group_name="%s" and metadata_name="%s"' % (active_user.active_group, fields['metadata_name'])
+        
+        fields['last_updated'] = int(time.time())
+        updates = table_fields(fields, table, columns, 'update')
         
         # Check if metadata file exists
         rc, msg, found_metadata_list = config.db_query(table, where=where_clause)

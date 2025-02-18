@@ -1526,7 +1526,7 @@ def metadata_update(request):
                 return metadata_fetch(request, response_code=1, message='%s cloud metadata-update %s' % (lno(MODID), msg), metadata_name=metadata_name, cloud_name=cloud_name)
             return render(request, 'csv2/blank_msg.html', {'response_code': 1, 'message': '%s cloud metadata-update %s' % (lno(MODID), msg)})
         
-        fields['last_updated'] = int(time.time())
+
         if fields.get('metadata'):
             fields['metadata'] = config.replace_backslash_content(fields.get('metadata'))
         
@@ -1538,6 +1538,9 @@ def metadata_update(request):
         if len(fields_to_update) < 4:
             config.db_close()
             return metadata_fetch(request, response_code=1, message='%s cloud-metadata-update must specify at least one field to update.' % lno(MODID), metadata_name=fields['metadata_name'], cloud_name=fields['cloud_name'])
+
+        fields['last_updated'] = int(time.time())
+        fields_to_update = table_fields(fields, table, columns, 'update')
 
         # Check if metadata file exists
         where_clause = "group_name='%s' and cloud_name='%s' and metadata_name='%s'" % (fields['group_name'], fields['cloud_name'], fields['metadata_name'])
