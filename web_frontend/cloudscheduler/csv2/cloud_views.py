@@ -178,7 +178,7 @@ ORACLE_CLOUD_KEYS = {
         'user_ocid',
         'user_fingerprint',
         'tenancy_ocid',
-        'api_private_key',
+#        'api_private_key', #this is not included because if there is a key already in the database it will use that if the field is empty
 #        'username',
 #        'password',
         'region',
@@ -596,11 +596,9 @@ def add(request):
             #oracle cloud
             rc, msg, fields, tables, columns = validate_fields(config, request, [ORACLE_CLOUD_KEYS], ['csv2_clouds', 'csv2_cloud_flavor_exclusions', 'csv2_group_metadata', 'csv2_group_metadata_exclusions'], active_user)
             if 'api_private_key' in request.FILES:
-                print("private key in reqest.FILES")
                 apk_file = request.FILES["api_private_key"]
                 # open and process content then assign to fields["api_private_key"]
                 rc, apk = isolate_private_key(apk_file)
-                print(apk)
                 if rc != 0:
                     # bad key file
                     config.db_close()
@@ -610,7 +608,6 @@ def add(request):
                     return redirect("/cloud/list/")
                 else:
                     # key is of a valid format
-                    print(apk)
                     fields["api_private_key"] = apk
             else:
 				# bad key file
@@ -2336,15 +2333,17 @@ def update(request):
         cloud_type = request.POST["cloud_type"] if "cloud_type" in request.POST else None
 
         if cloud_type == "oracle":
-            print("cloud type oracle")
             rc, msg, fields, tables, columns = validate_fields(config, request, [ORACLE_CLOUD_KEYS], ['csv2_clouds', 'csv2_cloud_flavor_exclusions', 'csv2_group_metadata', 'csv2_group_metadata_exclusions'], active_user)
+            if rc != 0:
+                config.db_close()
+                message = '%s cloud update %s' % (lno(MODID), msg)
+                request.session["response"] = {"message": message, "response_code": 1, "group": group}
+                return redirect("/cloud/list/")
             # check if a new api private key was uploaded, if it was set api_private_key in fields otherwise set it to the value from the database so we can verify the cloud credentials
             if 'api_private_key' in request.FILES:
-                print("private key in reqest.FILES")
                 apk_file = request.FILES["api_private_key"]
                 # open and process content then assign to fields["api_private_key"]
                 rc, apk = isolate_private_key(apk_file)
-                print(apk)
                 if rc != 0:
                     # bad key file
                     config.db_close()
@@ -2354,11 +2353,10 @@ def update(request):
                     return redirect("/cloud/list/")
                 else:
                     # key is of a valid format
-                    print(apk)
                     fields["api_private_key"] = apk
             else:
                 # get cloud row from database and collect the private key and store it in fields
-                where_clause = "group_name='%s' and cloud_name='%s'" % (fields['group_name'], fields['cloud_name'])
+                where_clause = "group_name='%s' and cloud_name='%s'" % (group, request.POST.get('cloud_name'))
                 rc, msg, found_cloud_list = config.db_query("csv2_clouds", where=where_clause)
                 if rc != 0:
                     # we have an error return with msg
@@ -2368,7 +2366,8 @@ def update(request):
                     return redirect("/cloud/list/")
                 else:
                     #else we have the cloud and need to grab the apk_file from there:
-                    apk_file = found_cloud_list[0]["api_private_key"]
+                    apk = found_cloud_list[0]["api_private_key"]
+                    fields["api_private_key"] = apk
         else:
             rc, msg, fields, tables, columns = validate_fields(config, request, [CLOUD_KEYS], ['csv2_clouds', 'csv2_cloud_flavor_exclusions', 'csv2_group_metadata', 'csv2_group_metadata_exclusions'], active_user)
         if rc != 0:

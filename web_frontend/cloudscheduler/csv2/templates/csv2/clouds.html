@@ -123,15 +123,6 @@
             document.getElementById(target_cloud+'-flavor').style.display = "block";
 
         }
-        else if(cloud_type=="oracle"){
-            // just in case we were set to amazon before we re-render the region
-            newRegionEl.innerHTML = '<input type="text" name="region" value=""/>';
-            oldRegionEl.parentNode.replaceChild(newRegionEl, oldRegionEl);
-
-            document.getElementById(target_cloud+'variable').style.visiblity = "collapse"; //or inherit
-
-
-        }
         else{
             newRegionEl.innerHTML = '<input type="text" name="region" value=""/>';
             oldRegionEl.parentNode.replaceChild(newRegionEl, oldRegionEl);
