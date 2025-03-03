@@ -34,8 +34,8 @@ def main(args):
     gvar['temp_dir'] = mkdtemp()
     
     gvar['backup_dir'] = '%s/schema/schema_backup/%s' % ('/'.join(gvar['path_info'][:gvar['ix']+1]), socket.getfqdn())
-    if not os.path.isdir(gvar['backup_dir']):
-         os.makedirs(gvar['backup_dir'], 0o755)
+    if not os.path.isdir(gvar['backup_dir']) and not os.path.islink(gvar['backup_dir']):
+         os.makedirs(gvar['backup_dir'], 0o777)
          
     gvar['config_file_path'] = '%s/etc/schema_backup.conf' % '/'.join(gvar['path_info'][:gvar['ix']+1])
     if os.path.isfile(gvar['config_file_path']):
@@ -48,8 +48,8 @@ def main(args):
     if 'csv2_backup_dir' in gvar['schema_config'] and gvar['schema_config']['csv2_backup_dir'] and gvar['schema_config']['csv2_backup_dir'] != 'default':
         gvar['backup_dir'] = '%s/%s' % (gvar['schema_config']['csv2_backup_dir'], socket.getfqdn())
 
-    if not os.path.exists(gvar['backup_dir']):
-        os.makedirs(gvar['backup_dir'], 0o644)
+    if not os.path.exists(gvar['backup_dir']) and not os.path.islink(gvar['backup_dir']):
+        os.makedirs(gvar['backup_dir'], 0o777)
 
     if 'user_data_backup_dir' in gvar['schema_config']:
         gvar['user_data_backup_dir'] = '%s/%s' % (gvar['schema_config']['user_data_backup_dir'], datetime.datetime.now().strftime('%Y%m%d%H%M%S'))
@@ -161,7 +161,7 @@ def main(args):
     if 'user_data_backup_dir' in gvar and 'local' in gvar['schema_config'] and len(gvar['schema_config']['local']) > 0:
         print('\ncsv2 schema-backup starting local backups...')
 
-        os.makedirs(gvar['user_data_backup_dir'], 0o640)
+        os.makedirs(gvar['user_data_backup_dir'], 0o777)
 
         try:
             os.unlink('%s/latest' % gvar['schema_config']['user_data_backup_dir'])

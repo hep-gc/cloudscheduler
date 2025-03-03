@@ -595,6 +595,9 @@ def add(request):
         if cloud_type == "oracle":
             #oracle cloud
             rc, msg, fields, tables, columns = validate_fields(config, request, [ORACLE_CLOUD_KEYS], ['csv2_clouds', 'csv2_cloud_flavor_exclusions', 'csv2_group_metadata', 'csv2_group_metadata_exclusions'], active_user)
+            if rc != 0:
+                config.db_close()
+                return cloud_list(request, active_user=active_user, response_code=1, message='%s %s' % (lno(MODID), msg))
             if 'api_private_key' in request.FILES:
                 apk_file = request.FILES["api_private_key"]
                 # open and process content then assign to fields["api_private_key"]
