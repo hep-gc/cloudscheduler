@@ -28,7 +28,7 @@ CREATE TABLE `oracle_compartments` (
   `cloud_name` varchar(32) NOT NULL,
   `cloud_type` varchar(32) NOT NULL,
   `id` varchar(256) NOT NULL,
-  `name` varchar(128) NOT NULL,
+  `name` varchar(256) NOT NULL,
   `last_updated` int(11) NOT NULL,
   PRIMARY KEY (`group_name`,`cloud_name`,`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;

@@ -901,7 +901,7 @@ schema = {
             "cloud_name": {"type": "str", "len": "32", "nulls": "NO"},
             "cloud_type": {"type": "str", "len": "32", "nulls": "NO"},
             "id": {"type": "str", "len": "256", "nulls": "NO"},
-            "name": {"type": "str", "len": "128", "nulls": "NO"},
+            "name": {"type": "str", "len": "256", "nulls": "NO"},
             "last_updated": {"type": "int"}
             }
         },
