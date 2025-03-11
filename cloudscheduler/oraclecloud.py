@@ -171,7 +171,7 @@ class OracleCloud(basecloud.BaseCloud):
                 if "amd" in flavor:
                     shape = "VM.Standard.E5.Flex"
                 elif "intel" in flavor:
-                    shape = "VM.Standard.E3.Flex"
+                    shape = "VM.Standard3.Flex"
                 elif "arm" in flavor:
                     shape = "VM.Standard.A1.Flex"
                 else:

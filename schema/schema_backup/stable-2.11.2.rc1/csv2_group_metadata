@@ -31,7 +31,7 @@ CREATE TABLE `csv2_group_metadata` (
   `metadata` text NOT NULL,
   `mime_type` varchar(128) NOT NULL DEFAULT 'cloud-config',
   `checksum` varchar(32) DEFAULT NULL,
-  `last_updated` int(11) NOT NULL,
+  `last_updated` int(11) DEFAULT NULL,
   PRIMARY KEY (`group_name`,`metadata_name`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
