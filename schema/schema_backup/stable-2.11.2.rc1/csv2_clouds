@@ -69,7 +69,7 @@ CREATE TABLE `csv2_clouds` (
   `cores_ctl` int(11) NOT NULL DEFAULT -1,
   `cores_softmax` int(11) NOT NULL DEFAULT -1,
   `spot_price` float NOT NULL DEFAULT -1,
-  `vm_boot_volume` varchar(64) DEFAULT NULL,
+  `vm_boot_volume` varchar(256) DEFAULT NULL,
   `vm_flavor` varchar(64) NOT NULL DEFAULT '',
   `vm_image` varchar(64) NOT NULL DEFAULT '',
   `vm_keep_alive` int(11) NOT NULL DEFAULT -1,
