@@ -947,7 +947,7 @@ def main():
                                                    template_dict=template_dict,
                                                    image=use_image)
 
-                                    if current_cloud_type == 'oracle':
+                                    elif current_cloud_type == 'oracle':
                                         boot_cloud = oraclecloud.OracleCloud(config, resource=boot_flavor, metadata=metadata[boot_flavor.get("group_name")][boot_flavor.get("cloud_name")]
                                                  if metadata and boot_flavor.get("group_name") in metadata
                                                  else [])
@@ -973,6 +973,7 @@ def main():
                                                    image=use_image)
                                     else:
                                         log.warning('Boot request for invalid cloud type "%s", ignoring.' % current_cloud_type)
+                                        log.warning(type(current_cloud_type))
 
                                     ####### log.debug('done booting on cloud %s', boot_flavor.get("cloud_name"))
                                     available_resources_update(used_resources, boot_flavor, num_vms_to_boot)
