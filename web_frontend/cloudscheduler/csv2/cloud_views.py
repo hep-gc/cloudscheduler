@@ -1109,7 +1109,6 @@ def metadata_add(request):
                 return metadata_new(request, active_user, response_code=1, message='%s cloud metadata-add %s' % (lno(MODID), msg), cloud_name=cloud_name)
             return render(request, 'csv2/blank_msg.html', {'response_code': 1, 'message': '%s cloud metadata-add %s' % (lno(MODID), msg)})
         
-        
         if fields.get('metadata') or fields.get('metadata') == '':
             fields['checksum'] = get_file_checksum(fields['metadata'].encode('utf-8'))
 
