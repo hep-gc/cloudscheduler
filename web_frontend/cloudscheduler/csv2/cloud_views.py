@@ -1109,6 +1109,24 @@ def metadata_add(request):
                 return metadata_new(request, active_user, response_code=1, message='%s cloud metadata-add %s' % (lno(MODID), msg), cloud_name=cloud_name)
             return render(request, 'csv2/blank_msg.html', {'response_code': 1, 'message': '%s cloud metadata-add %s' % (lno(MODID), msg)})
         
+        fields['last_updated'] = int(time.time())
+        # Check cloud already exists.
+        table = 'csv2_clouds'
+        where_clause = "group_name='%s'" % active_user.active_group
+        rc, msg, _cloud_list = config.db_query(table, where=where_clause)
+        found = False
+        for cloud in _cloud_list:
+            if active_user.active_group == cloud['group_name'] and fields['cloud_name'] == cloud['cloud_name']:
+                found = True
+                break
+
+        if not found:
+            config.db_close()
+            return metadata_new(request, active_user, response_code=1, message='%s cloud metadata-add failed, cloud name "%s" does not exist.' % (lno(MODID), fields['cloud_name']), cloud_name=fields['cloud_name'])
+
+        if fields.get('metadata'):
+            fields['metadata'] = config.replace_backslash_content(fields.get('metadata'))
+        
         if fields.get('metadata') or fields.get('metadata') == '':
             fields['checksum'] = get_file_checksum(fields['metadata'].encode('utf-8'))
 
