@@ -949,19 +949,10 @@ def cloud_list(request, active_user=None, response_code=0, message=None, cloud_a
                     'metadata_mime_type',
                     'metadata_checksum',
                     'metadata_updated'
-                    'metadata_checksum',
-                    'metadata_updated'
                     ]
                 },
             prune=['password', 'app_credentials_secret']    
             )
-        for x, metadata in metadata_dict.items():
-            for y, obj in metadata.items():
-                for z in obj:
-                    for item in obj[z]:
-                        if item == 'metadata_updated':
-                            temp = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(obj[z][item]))
-                            obj[z][item] = temp
         for x, metadata in metadata_dict.items():
             for y, obj in metadata.items():
                 for z in obj:
@@ -1344,7 +1335,6 @@ def metadata_fetch(request, response_code=0, message=None, metadata_name=None, c
                     'metadata_mime_type': row["mime_type"],
                     'metadata_name': row["metadata_name"],
                     'metadata_updated': time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(row['last_updated'])),
-                    'metadata_updated': time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(row['last_updated'])),
                     'mime_types_list': mime_types_list,
                     'metadata_checksum': row['checksum'],
                     'response_code': response_code,
@@ -1448,7 +1438,6 @@ def metadata_new(request, active_user=None, response_code=0, message='new-cloud-
             'metadata_priority': 0,
             'metadata_mime_type': "",
             'metadata_name': "",
-            'metadata_updated': time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(time.time())),
             'metadata_updated': time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(time.time())),
             'mime_types_list': mime_types_list,
             'response_code': response_code,
