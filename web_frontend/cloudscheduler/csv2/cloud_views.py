@@ -1109,7 +1109,6 @@ def metadata_add(request):
                 return metadata_new(request, active_user, response_code=1, message='%s cloud metadata-add %s' % (lno(MODID), msg), cloud_name=cloud_name)
             return render(request, 'csv2/blank_msg.html', {'response_code': 1, 'message': '%s cloud metadata-add %s' % (lno(MODID), msg)})
         
-        fields['last_updated'] = int(time.time())
         # Check cloud already exists.
         table = 'csv2_clouds'
         where_clause = "group_name='%s'" % active_user.active_group
