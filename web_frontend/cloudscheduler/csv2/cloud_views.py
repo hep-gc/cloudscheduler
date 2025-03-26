@@ -1527,7 +1527,6 @@ def metadata_update(request):
                 return metadata_fetch(request, response_code=1, message='%s cloud metadata-update %s' % (lno(MODID), msg), metadata_name=metadata_name, cloud_name=cloud_name)
             return render(request, 'csv2/blank_msg.html', {'response_code': 1, 'message': '%s cloud metadata-update %s' % (lno(MODID), msg)})
         
-        fields['last_updated'] = int(time.time())
         if fields.get('metadata'):
             fields['metadata'] = config.replace_backslash_content(fields.get('metadata'))
         
