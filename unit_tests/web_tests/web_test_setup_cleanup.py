@@ -317,7 +317,7 @@ def cleanup_objects(browser='firefox', interrupt=False):
     except FileExistsError:
         object_log = open(logfile, mode='w')
 
-    subprocess.run(['nova', 'list', '--name', gvar['base_group'] + '--' + gvar['user'] + '-wic.*'], stdout=object_log, stderr=subprocess.STDOUT)
+    subprocess.run(['openstack', 'server', 'list', '--name', gvar['base_group'] + '--' + gvar['user'] + '-wic.*'], stdout=object_log, stderr=subprocess.STDOUT)
 
     object_log.close()
     object_log = open(logfile, mode='r')
@@ -331,7 +331,7 @@ def cleanup_objects(browser='firefox', interrupt=False):
         except IndexError:
             continue
         if not name == '' and not name[0] == '-' and not name == 'Name':
-            subprocess.run(['nova', 'delete', name])
+            subprocess.run(['openstack', 'server', 'delete', name])
 
     object_log.close()
    
