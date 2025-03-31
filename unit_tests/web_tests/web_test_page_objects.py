@@ -199,7 +199,7 @@ class StatusPage(Page):
                 wti.click_by_xpath(self.driver, xpath)
         if not right_click:
             WebDriverWait(self.driver, 20).until(
-                EC.presence_of_element_located((By.CLASS_NAME, 'plot-container')))
+                EC.presence_of_element_located((By.CLASS_NAME, 'plot-container plotly')))
 
     def click_slot_data_box(self, group, cloud, state):
         state_tag = '_' + state.lower()
