@@ -710,6 +710,9 @@ def add(request):
         if 'cloud_type' in fields:
             if fields['cloud_type'] == 'amazon':
                 fields['cores_softmax'] = config.categories['web_frontend']['default_softmax']
+            elif fields['cloud_type'] == 'oracle':
+                fields["auth_url"] = "oracle"
+                fields['cores_softmax'] = config.categories['web_frontend']['default_softmax']
             elif 'authurl' in fields and fields['cloud_type'] == 'openstack':
                 #check if url has a trailing slash
                 if not fields['authurl'].endswith('/'):
