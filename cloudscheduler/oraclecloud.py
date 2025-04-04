@@ -185,7 +185,7 @@ class OracleCloud(basecloud.BaseCloud):
                                         compartment_id = compartment.get("id"), shape = shape, 
                                         subnet_id = network.get("id"), source_details = source_details, 
                                         shape_config = shape_config, display_name = hostname,
-                                        metadata = {"ssh_authorized_keys": "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCYXWmLJwriXVW9c/m/K/zpwhWSeuxq73RNFvir/bFyPKiqScZxlTOEMxJKOQoEHpcXKVV7A2KDIOZ7gn8K0eglb66GtjPOr15BQZ45lYzKx6MX95gWGrkRd8LHAHzyji+jDl23aAw+g3NcvUwrVTsLZqmgKudqNeo4bQQVv1+cVU7hY28Bl+chEc8WTbNA8ajABo72kndnujn8GXnE/+QciWzAu4Pc2+OJk6qdZd5mGITgFYkPwuS222Eix4sNf1oSyxYUxpGbo7NV5GkoYirOmmH523XVjZO7yy5MjLAaKVDHn1Cc5IIidq1r/W7ueybLKbUDO5miKV63uKBVNgXx HEPrc shared key (20171006)", "user_data": format_userdata})
+                                        metadata = {"user_data": format_userdata})
 
                 self.log.debug("Instance metadata")
                 self.log.debug(launch_instance_details.metadata)

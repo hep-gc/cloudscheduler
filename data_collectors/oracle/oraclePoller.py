@@ -216,9 +216,6 @@ def flavor_poller():
         config.db_close()
 
 def image_poller():
-    # Temporary, do properly
-    #oracleConfig = oci.config.from_file()
-    compartment_id = "ocid1.compartment.oc1..aaaaaaaaig7yftcjqel6qeaxph7gcdmirjqumxczmnquctnqxim7w66mz6aa"
 
     multiprocessing.current_process().name = "Image Poller"
 
@@ -278,7 +275,7 @@ def image_poller():
                     pre_req_time = time.time() * 1000000 
                     image_list = []
                     try:
-                        image_list = do_image_query(imageclient, compartment_id)
+                        image_list = do_image_query(imageclient, cloud_obj["oci_compartment"])
                         post_req_time = time.time() * 1000000
                     except Exception as exc:
                         logging.error("Failed to retrieve image data for %s, skipping this cloud..." % cloud_name)
@@ -437,9 +434,6 @@ def image_poller():
         config.db_close()
 
 def limit_poller():
-    # Temporary, do properly
-    #oracleConfig = oci.config.from_file()
-    compartment_id = "ocid1.compartment.oc1..aaaaaaaaig7yftcjqel6qeaxph7gcdmirjqumxczmnquctnqxim7w66mz6aa"
 
     multiprocessing.current_process().name = "Limit Poller"
 
@@ -618,9 +612,6 @@ def limit_poller():
         config.db_close()
 
 def network_poller():
-    # Temporary, do properly
-    #oracleConfig = oci.config.from_file()
-    compartment_id = "ocid1.compartment.oc1..aaaaaaaaig7yftcjqel6qeaxph7gcdmirjqumxczmnquctnqxim7w66mz6aa"
 
     multiprocessing.current_process().name = "Network Poller"
 
@@ -672,7 +663,7 @@ def network_poller():
                         continue
 
                     try:
-                        net_list = do_subnet_query(netclient, compartment_id)
+                        net_list = do_subnet_query(netclient, cloud_obj["oci_compartment"])
                     except Exception as exc:
                         logging.error("Failed to retrieve network list, skipping %s" %  cloud_name)
                         logging.error(exc)
@@ -774,9 +765,6 @@ def network_poller():
         config.db_close()
 
 def vm_poller():
-    # Temporary, do properly
-    #oracleConfig = oci.config.from_file()
-    compartment_id = "ocid1.compartment.oc1..aaaaaaaaig7yftcjqel6qeaxph7gcdmirjqumxczmnquctnqxim7w66mz6aa"
 
     multiprocessing.current_process().name = "VM Poller"
 
@@ -873,7 +861,7 @@ def vm_poller():
                         continue
 
                     try:
-                        vm_list = do_instance_query(vmclient, compartment_id)
+                        vm_list = do_instance_query(vmclient, cloud_obj["oci_compartment"])
                     except Exception as exc:
                         logging.error("Failed to retrieve VM data for  %s::%s::%s, skipping this cloud..." % (cloud_obj["authurl"], cloud_obj["project"], cloud_obj["region"]))
                         logging.error("Exception type: %s" % type(exc))
@@ -985,7 +973,7 @@ def vm_poller():
                             ip_addrs = []
                             floating_ips = []
                             netclient = oci.core.VirtualNetworkClient(oracleConfig)
-                            private_IP_list, public_IP_list = do_IP_query(vmclient, netclient, compartment_id, vm.id)
+                            private_IP_list, public_IP_list = do_IP_query(vmclient, netclient, cloud_obj["oci_compartment"], vm.id)
                             for addr in private_IP_list:
                                 ip_addrs.append(addr)
                             for addr in public_IP_list:
@@ -1180,10 +1168,6 @@ def vm_poller():
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 def compartment_poller():
-    # Temporary, do properly
-    #oracleConfig = oci.config.from_file()
-    # Root compartment (tenancy) OCID
-    compartment_id = "ocid1.tenancy.oc1..aaaaaaaauoyqb55c4rrod776vzlvvn7kucvab5t3xiqubfda6wirqllgtohq"
 
     multiprocessing.current_process().name = "Compartment Poller"
 
@@ -1242,7 +1226,7 @@ def compartment_poller():
 
                     # Retrieve all compartments
                     try:
-                        comp_list = do_compartment_query(comp_client, compartment_id)
+                        comp_list = do_compartment_query(comp_client, cloud_obj["oci_compartment"])
                     except Exception as exc:
                         logging.error("Failed to retrieve compartment data for %s, skipping this cloud..." % cloud_name)
                         logging.error(exc)
@@ -1344,9 +1328,6 @@ def compartment_poller():
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 def AD_poller():
-    # Temporary, do properly
-    #oracleConfig = oci.config.from_file()
-    compartment_id = "ocid1.compartment.oc1..aaaaaaaaig7yftcjqel6qeaxph7gcdmirjqumxczmnquctnqxim7w66mz6aa"
 
     multiprocessing.current_process().name = "Availability Domain Poller"
 
@@ -1403,7 +1384,7 @@ def AD_poller():
 
                     # Retrieve all compartments
                     try:
-                        AD_list = do_AD_query(AD_client, compartment_id)
+                        AD_list = do_AD_query(AD_client, cloud_obj["oci_compartment"])
                     except Exception as exc:
                         logging.error("Failed to retrieve availability domain data for %s, skipping this cloud..." % cloud_name)
                         logging.error(exc)
