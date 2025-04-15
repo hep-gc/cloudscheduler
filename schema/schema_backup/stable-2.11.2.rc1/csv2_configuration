@@ -147,7 +147,7 @@ INSERT INTO `csv2_configuration` VALUES
 ('oraclePoller.py','sleep_interval_network','int','300'),
 ('oraclePoller.py','sleep_interval_security_group','int','300'),
 ('oraclePoller.py','sleep_interval_vm','int','60'),
-('ProcessMonitor','pause','bool','True'),
+('ProcessMonitor','pause','bool','False'),
 ('ProcessMonitor','pid_path','str','/var/local/cloudscheduler/run/'),
 ('ProcessMonitor','sleep_interval_main_long','int','10'),
 ('ProcessMonitor','sleep_interval_main_short','int','1'),
