@@ -461,7 +461,6 @@ def defaults(request, active_user=None, response_code=0, message=None):
         for x, metadata in metadata_dict.items():
             for y, obj in metadata.items():
                 for z in obj:
-                    print(obj[z])
                     if z == 'metadata_updated':
                         temp = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(obj[z]))
                         obj[z] = temp

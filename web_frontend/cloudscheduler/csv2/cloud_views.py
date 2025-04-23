@@ -8,7 +8,6 @@ from django.http.response import JsonResponse
 from django.core.exceptions import PermissionDenied
 from django.contrib import messages
 import time
-import time
 
 from cloudscheduler.lib.view_utils import \
     diff_lists, \
@@ -956,10 +955,8 @@ def cloud_list(request, active_user=None, response_code=0, message=None, cloud_a
         for x, metadata in metadata_dict.items():
             for y, obj in metadata.items():
                 for z in obj:
-                    for item in obj[z]:
-                        if item == 'metadata_updated':
-                            temp = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(obj[z][item]))
-                            obj[z][item] = temp
+                    temp = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(obj[z]['metadata_updated']))
+                    obj[z]['metadata_updated'] = temp
     if active_user.active_group and metadata_dict.get(active_user.active_group):
         curr_dict = metadata_dict[active_user.active_group]
         for cloud in curr_dict:
@@ -1533,14 +1530,13 @@ def metadata_update(request):
         if fields.get('metadata') or fields.get('metadata') == '':
             fields['checksum'] = get_file_checksum(fields['metadata'].encode('utf-8'))
 
+        fields['last_updated'] = int(time.time())
         table = 'csv2_cloud_metadata'
         fields_to_update = table_fields(fields, table, columns, 'update')
-        if len(fields_to_update) < 4:
+        if len(fields_to_update) < 5:
             config.db_close()
             return metadata_fetch(request, response_code=1, message='%s cloud-metadata-update must specify at least one field to update.' % lno(MODID), metadata_name=fields['metadata_name'], cloud_name=fields['cloud_name'])
 
-        fields['last_updated'] = int(time.time())
-        fields_to_update = table_fields(fields, table, columns, 'update')
 
         # Check if metadata file exists
         where_clause = "group_name='%s' and cloud_name='%s' and metadata_name='%s'" % (fields['group_name'], fields['cloud_name'], fields['metadata_name'])
