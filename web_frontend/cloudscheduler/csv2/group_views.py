@@ -1139,17 +1139,16 @@ def metadata_update(request):
         if fields.get('metadata') or fields.get('metadata') == '':
             fields['checksum'] = get_file_checksum(fields['metadata'].encode('utf-8'))
 
+        fields['last_updated'] = int(time.time())
         # Update the group metadata file.
         table = 'csv2_group_metadata'
         updates = table_fields(fields, table, columns, 'update')
-        if len(updates) < 3: #updates always have to have the keys so (name & group) so unless there is 3 fields there is no update to do.
+        if len(updates) < 4: #updates always have to have the keys so (name & group) so unless there is 3 fields there is no update to do.
             config.db_close()
             return metadata_fetch(request, response_code=1, message='%s group metadata-update "%s::%s" specified no fields to update and was ignored.' % (lno(MODID), active_user.active_group, fields['metadata_name']), metadata_name=fields['metadata_name'])
 
         where_clause = 'group_name="%s" and metadata_name="%s"' % (active_user.active_group, fields['metadata_name'])
         
-        fields['last_updated'] = int(time.time())
-        updates = table_fields(fields, table, columns, 'update')
         
         # Check if metadata file exists
         rc, msg, found_metadata_list = config.db_query(table, where=where_clause)
