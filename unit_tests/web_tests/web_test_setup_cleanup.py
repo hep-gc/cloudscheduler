@@ -196,7 +196,7 @@ def setup_objects(objects=[], browser='firefox'):
         images_num = 0
     images = []
     for i in range(1, images_num+1):
-        images.append(gvar['user'] + '-wii' + str(i) + '.iso')
+        images.append(gvar['user'] + '-wii' + str(i) + '.hdd')
     for i in range(0, images_num):
         filename = helpers.misc_file_full_path(images[i])
         # TODO: remove try block, this is only for testing image upload failiures when the image is on the cloud already
@@ -210,7 +210,7 @@ def setup_objects(objects=[], browser='firefox'):
             print("NOTICE: image upload failed with error:", e)
             pass # Try to move on
     if 'images' in objects:
-        helpers.wait_for_openstack_poller(gvar['user'] + '-wic1', ['-g', gvar['base_group'], '-vi', gvar['user'] + '-wii1.iso'], output=True)
+        helpers.wait_for_openstack_poller(gvar['user'] + '-wic1', ['-g', gvar['base_group'], '-vi', gvar['user'] + '-wii1.hdd'], output=True)
 
     #add servers
     if 'servers' in objects:
@@ -331,7 +331,7 @@ def cleanup_objects(browser='firefox', interrupt=False):
         except IndexError:
             continue
         if not name == '' and not name[0] == '-' and not name == 'Name':
-            subprocess.run(['openstack', 'server', 'delete', name], stderr=subprocess.STDOUT)
+            subprocess.run(['openstack', 'server', 'delete', name])
 
     object_log.close()
    
@@ -449,7 +449,7 @@ def delete_by_type(gvar, type_info, number, others=[]):
     if type_info[0] == 'metadata':
         add = '.yaml'
     if type_info[0] == 'image':
-        add = '.iso'
+        add = '.hdd'
 
     for name in others:
         objects.append(name + add)

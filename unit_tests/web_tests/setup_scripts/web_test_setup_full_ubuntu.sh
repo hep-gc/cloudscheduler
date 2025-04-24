@@ -26,11 +26,11 @@ if [ -z "$wget_path" ]; then
     sudo apt-get -y install wget
 fi
 
-wget https://repo.almalinux.org/almalinux/9.5/isos/x86_64/AlmaLinux-9.5-x86_64-minimal.iso -O ~/cloudscheduler/unit_tests/web_tests/misc_files/$username-wii1.iso
+wget http://cernvm.cern.ch/releases/production/cernvm4-micro-2020.07-1.hdd -O ~/cloudscheduler/unit_tests/web_tests/misc_files/$username-wii1.hdd
 cd ~/cloudscheduler/unit_tests/web_tests/misc_files
-cp $username-wii1.iso $username-wii2.iso
-cp $username-wii1.iso $username-wii3.iso
-cp $username-wii1.iso $username-wii4.iso
+cp $username-wii1.hdd $username-wii2.hdd
+cp $username-wii1.hdd $username-wii3.hdd
+cp $username-wii1.hdd $username-wii4.hdd
 
 ssh-keygen -f ~/cloudscheduler/unit_tests/web_tests/misc_files/$username-wik3 -N ''
 
