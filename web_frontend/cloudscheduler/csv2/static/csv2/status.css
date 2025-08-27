@@ -30,8 +30,26 @@
 
 .range-dropdown {
   position: absolute;
-  right: 159px;
+  right: 289px;
   top: 10px;
+  border: none;
+  font-weight: bold;
+  cursor: default;
+}
+
+.filter-dropdown {
+  position: absolute;
+  right: 158px;
+  top: 10px;
+  border: none;
+  font-weight: bold;
+  cursor: default;
+}
+
+.resolution-dropdown {
+  position: absolute;
+  right: 0px;
+  top: 0px;
   border: none;
   font-weight: bold;
   cursor: default;
@@ -49,6 +67,78 @@
 
 .range-btn:hover {
   opacity: 1;
+}
+
+.filter-btn {
+  padding: 8px;
+  line-height: 12px;
+  background-color: lightgrey;
+  border: none;
+  font-weight: bold;
+  color: black;
+  opacity: 0.5;
+}
+
+.filter-btn:hover {
+  opacity: 1;
+}
+
+.resolution-content {
+  display: none;
+  position: absolute;
+  right: 30px;
+  top: 38px;
+  background-color: #e8e8e8;
+  z-index: 1;
+}
+
+.resolution-content a {
+  color: rgba(0, 0, 0, .5);
+  text-decoration: none;
+  text-align: left;
+  font-weight: bold;
+  font-size: 8px;
+  padding-left: 4px;
+  padding-top: 8px;
+  background-color: rgba(211, 211, 211, 0);
+  display: block;
+}
+
+.resolution-content .selected {
+  color: rgba(0, 0, 0, 1);
+  background-color: rgba(211, 211, 211, 1);
+}
+
+.resolution-content button:hover {
+  color: rgba(0, 0, 0, 1);
+  background-color: rgba(211, 211, 211, 1);
+}
+
+.resolution-content input:hover {
+  color: rgba(0, 0, 0, 1);
+  background-color: rgba(211, 211, 211, 1);
+}
+
+.resolution-content input {
+  color: rgba(0, 0, 0, .5);
+  text-decoration: none;
+  font-size: 10px;
+  font-weight: bold;
+  padding: 4px 6px;
+  margin: 4px 6px;
+  background-color: rgba(211, 211, 211, 0);
+  display: block;
+}
+
+.resolution-content button {
+  color: rgba(0, 0, 0, .5);
+  text-decoration: none;
+  font-size: 10px;
+  font-weight: bold;
+  padding: 4px 6px;
+  margin-left: 128px;
+  background-color: rgba(211, 211, 211, 0);
+  display: block;
 }
 
 .download-plot-btn {
@@ -79,6 +169,69 @@
 
 .space{
   padding: 2px;
+}
+
+.filter-content {
+  display: none;
+  position: absolute;
+  right: 0px;
+  background-color: #e8e8e8;
+  z-index: 1;
+}
+
+.filter-content a {
+  color: rgba(0, 0, 0, .5);
+  text-decoration: none;
+  text-align: Left;
+  font-size: 8px;
+  padding-left: 4px;
+  padding-top: 8px;
+  background-color: rgba(211, 211, 211, 0);
+  display: block;
+}
+
+.filter-content button:hover {
+  color: rgba(0, 0, 0, 1);
+  background-color: rgba(211, 211, 211, 1);
+}
+
+.filter-content input:hover {
+  color: rgba(0, 0, 0, 1);
+  background-color: rgba(211, 211, 211, 1);
+}
+
+.filter-content input {
+  color: rgba(0, 0, 0, .5);
+  text-decoration: none;
+  font-size: 10px;
+  font-weight: bold;
+  padding: 4px 6px;
+  margin: 4px 6px;
+  background-color: rgba(211, 211, 211, 0);
+  display: block;
+}
+
+.filter-content button {
+  color: rgba(0, 0, 0, .5);
+  text-decoration: none;
+  font-size: 10px;
+  font-weight: bold;
+  padding: 4px 6px;
+  margin-left: 162px;
+  background-color: rgba(211, 211, 211, 0);
+  display: block;
+}
+
+.filter-content .selected {
+  color: rgba(0, 0, 0, 1);
+  background-color: rgba(211, 211, 211, 1);
+}
+
+.date-error {
+  color: red;
+  font-size: 0.75rem !important;
+  padding: 5px;
+  display: block;
 }
 
 .dropdown-content {
@@ -296,6 +449,12 @@ meter.disabled-meter::-webkit-meter-optimum-value {
 
 .header-row th {
   border-top: 0px;
+}
+
+.header-row.sticky-top {
+  position: fixed;
+  top: 60px;
+  z-index: 2;
 }
 
 .bottom-row td {

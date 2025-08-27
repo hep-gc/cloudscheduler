@@ -24,12 +24,12 @@ html *
   top: 0px;
   margin: 0px 0;
   background-color: black;
-  z-index: 2;
+  z-index: 3;
 }
 
 .logo {
   margin: 0px 0;
-  background-color: black:
+  background-color: black;
   z-index: 2;
 
 }

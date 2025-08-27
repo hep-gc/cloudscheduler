@@ -46,7 +46,7 @@ def main(gvar):
         'region': {'valid': gvar['cloud_credentials']['region'], 'test_cases': {'': 'parameter "region" contains an empty string which is specifically disallowed.'}},
         # 24 Give two cloud_types.
         # 25
-        'cloud_type': {'valid': 'local', 'test_cases': {'invalid-unit-test': 'value specified for "cloud_type" must be one of the following options: [\'amazon\', \'local\', \'openstack\'].'}},
+        'cloud_type': {'valid': 'local', 'test_cases': {'invalid-unit-test': 'value specified for "cloud_type" must be one of the following options: [\'amazon\', \'local\', \'openstack\', \'oracle\'].'}},
         # 26 Give two enableds.
         # 27
         'enabled': {'valid': 0, 'test_cases': {'invalid-unit-test': 'boolean value specified for "enabled" must be one of the following: true, false, yes, no, 1, or 0.'}},

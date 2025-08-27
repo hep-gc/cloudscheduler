@@ -4,10 +4,13 @@ import time
 import boto3
 from datetime import datetime
 import hashlib
+import oci
+import re
 
 from cloudscheduler.lib.schema import *
 from cloudscheduler.lib.openstack_functions import get_openstack_sess, get_openstack_api_version, get_keystone_connection, get_nova_connection
 from cloudscheduler.lib.log_tools import get_frame_info
+from cloudscheduler.lib.oracle_functions import loadOracleConfig
 
 import keystoneclient.v2_0.client as v2c
 import keystoneclient.v3.client as v3c
@@ -1013,9 +1016,7 @@ def set_user_groups(config, request, super_user=True):
         new_active_user.active_group = new_active_user.default_group
     else:
         new_active_user.active_group = new_active_user.user_groups[0]
-    
     if new_active_user.active_group not in new_active_user.user_groups and new_active_user.active_group != 'ALL':
-#       return 1,'cannot switch to invalid group "%s".' % new_active_user.active_group, new_active_user, new_active_user.user_groups
         return 1,'cannot switch to invalid group "%s".' % new_active_user.active_group, new_active_user
 
 #   return 0, None, new_active_user, new_active_user.user_groups
@@ -1638,6 +1639,16 @@ def verify_cloud_credentials(config, cloud):
         else:
             rc, msg, session = get_openstack_session(config, cloud, target_cloud=target_cloud)
         return rc, msg, None
+    elif cloud_type == 'oracle':
+        oracleConfig = loadOracleConfig(cloud)
+        try:
+            oracle_client = oci.core.ComputeClient(oracleConfig)
+            return 0, "", None
+        except Exception as exc:
+            print(cloud)
+            print(oracleConfig)
+            print(exc)
+            return 1, "Unable to create oracle client with provided credentials: %s" % exc, None
 
     else:
        return 1, 'unsupported cloud_type', None
@@ -2003,4 +2014,17 @@ def clean_cloud_data(config, group_name, cloud_name):
         return 0, None
     else:
         return 1, message
-
+#--------------------------------------------------------
+def isolate_private_key(key_file):
+    print("Key file:")
+    print(key_file)
+    sanatized_key = ""
+    file = key_file.read().decode('utf-8')
+    file = "\n".join(file.splitlines())
+    pattern = r"-+BEGIN PRIVATE KEY-+[^\r]*-+END PRIVATE KEY-+"
+    sanatized_key = re.match(pattern, file)
+    if len(sanatized_key.group(0)) > 0:
+        sanatized_key = sanatized_key.group(0)
+    print("sanatized key: %s" % sanatized_key)
+    return 0, sanatized_key
+    #return 1, "Unable to process key file: %s" % key_file

@@ -1,0 +1,62 @@
+o1intel: 
+  cores: 1
+  ram: 5
+  disk: 50
+  type: intel
+o2intel: 
+  cores: 2
+  ram: 9
+  disk: 100
+  type: intel
+o4intel: 
+  cores: 4
+  ram: 17
+  disk: 150
+  type: intel
+o8intel: 
+  cores: 8
+  ram: 33
+  disk: 200
+  type: intel
+
+o1amd: 
+  cores: 1
+  ram: 5
+  disk: 50
+  type: amd
+o2amd: 
+  cores: 2
+  ram: 9
+  disk: 100
+  type: amd
+o4amd: 
+  cores: 4
+  ram: 17
+  disk: 150
+  type: amd
+o8amd: 
+  cores: 8
+  ram: 33
+  disk: 200
+  type: amd
+
+o1arm: 
+  cores: 1
+  ram: 5
+  disk: 50
+  type: arm
+o2arm: 
+  cores: 2
+  ram: 9
+  disk: 100
+  type: arm
+o4arm: 
+  cores: 4
+  ram: 17
+  disk: 150
+  type: arm
+o8arm: 
+  cores: 8
+  ram: 33
+  disk: 200
+  type: arm

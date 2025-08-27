@@ -16,8 +16,7 @@ def setup(cls, profile, objects, browser='firefox'):
     cls.gvar = setup_objects(objects, browser)
     if browser == 'firefox':
         options = webdriver.FirefoxOptions()
-
-        # options.add_argument('--headless') # TODO: add flag for this
+        options.add_argument('--headless')
         
         cls.driver = webdriver.Firefox(options=options)
     elif browser == 'chromium':
@@ -25,9 +24,8 @@ def setup(cls, profile, objects, browser='firefox'):
         # This line prevents Chromedriver hanging (see here: https://
         # stackoverflow.com/questions/51959986/how-to-solve-selenium-
         # chromedriver-timed-out-receiving-message-from-renderer-exc)
-        
-        # options.add_argument('--headless')    
 
+        options.add_argument('--headless')
         options.add_argument('--no-sandbox') # When running as root
         options.add_argument('--disable-gpu')
         options.add_argument('--start-maximized')
@@ -35,18 +33,26 @@ def setup(cls, profile, objects, browser='firefox'):
         cls.driver = webdriver.Chrome(options=options)
     elif browser == 'chrome':
         options = webdriver.ChromeOptions()
+
+        options.add_argument('--headless')
         options.add_argument('--no-sandbox') # When running as root
         options.add_argument('--disable-gpu')
         options.add_argument('--start-maximized')
         options.binary_location = '/usr/bin/google-chrome'
         cls.driver = webdriver.Chrome(options=options)
     elif browser == 'opera': 
+        # Opera testing currently not functional
+        # setup_scripts/web_test_setup_full_alma9.sh needs a routine for installing a matching chrome-driver 
         options = webdriver.ChromeOptions()
+        
+        options.add_argument('--headless')    
         options.add_argument('--no-sandbox') # When running as root
         options.add_argument('--disable-gpu')
         options.add_argument('--start-maximized')
+        options.add_experimental_option('w3c', True)
         options.binary_location = '/usr/bin/opera'
-        cls.driver = webdriver.Opera(options=options)
+        cls.driver = webdriver.Chrome(options=options)
+
     cls.driver.get('https://' + cls.gvar['user'] + '-wiu' + str(profile) + ':' + cls.gvar['user_secret'] + '@' + cls.gvar['fqdn'] + "/cloud/status")
 
 def setup_objects(objects=[], browser='firefox'):
@@ -128,7 +134,7 @@ def setup_objects(objects=[], browser='firefox'):
             raise SetUpException("cloud add failed - check the server status and openstack status")
     for i in range(0, clouds_num):
         if 'clouds' in objects or 'jobs' in objects:
-            helpers.wait_for_openstack_poller(clouds[i], ['-g', gvar['base_group'], '-vsg', 'default', '-vf', 't1'], output=True)
+            helpers.wait_for_openstack_poller(clouds[i], ['-g', gvar['base_group'], '-vsg', 'default', '-vf', 'm1'], output=True)
     if 'clouds' in objects:
         for i in range(1, 3):
             name = gvar['user'] + '-wim' + str(i) + '.yaml'
@@ -237,7 +243,7 @@ def setup_objects(objects=[], browser='firefox'):
         for i in range(1, 3):
             if subprocess.run(['cloudscheduler', 'my', 'settings', '-sri', '60','-sfv', 'true', '-s', gvar['user'] + '-wis' + str(i)], stdout=subprocess.DEVNULL).returncode != 0:
                 raise SetUpException("user update failed - check the server status and try again")
-            helpers.wait_for_openstack_poller(gvar['user'] + '-wic' + str(i), ['-g', gvar['base_group'], '-vi', 'CentOS-7-x86_64-GenericCloud-1907.qcow2c', '-vn', 'private'], output=True)
+            helpers.wait_for_openstack_poller(gvar['user'] + '-wic' + str(i), ['-g', gvar['base_group'], '-vi', 'AlmaLinux9-grid', '-vn', 'private', '-vk', 'ci-server'], output=True)
 
     if 'jobs' in objects:
         server_account = gvar['server_username'] + '@' + gvar['fqdn']
@@ -311,7 +317,7 @@ def cleanup_objects(browser='firefox', interrupt=False):
     except FileExistsError:
         object_log = open(logfile, mode='w')
 
-    subprocess.run(['nova', 'list', '--name', gvar['base_group'] + '--' + gvar['user'] + '-wic.*'], stdout=object_log, stderr=subprocess.STDOUT)
+    subprocess.run(['openstack', 'server', 'list', '--name', gvar['base_group'] + '--' + gvar['user'] + '-wic.*'], stdout=object_log, stderr=subprocess.STDOUT)
 
     object_log.close()
     object_log = open(logfile, mode='r')
@@ -325,7 +331,7 @@ def cleanup_objects(browser='firefox', interrupt=False):
         except IndexError:
             continue
         if not name == '' and not name[0] == '-' and not name == 'Name':
-            subprocess.run(['nova', 'delete', name])
+            subprocess.run(['openstack', 'server', 'delete', name])
 
     object_log.close()
    

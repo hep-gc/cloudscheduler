@@ -5,6 +5,7 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.views.decorators.csrf import requires_csrf_token
 from django.http import HttpResponse
 from django.core.exceptions import PermissionDenied
+from django.contrib import messages
 
 #from cloudscheduler.lib.schema import * 
 from cloudscheduler.lib.view_utils import \
@@ -149,8 +150,10 @@ def configuration(request):
 
     if message and message[:2] == 'SV':
         response_code = 1
+        messages.error(request, message)
     else:
         response_code = 0
+        messages.success(request, message)
 
     rc, msg, config_list = config.db_query("csv2_configuration")
     config_categories = list({v['category']:v for v in config_list})

@@ -219,12 +219,16 @@ class ProcessMonitor:
         for process in self.static_process_ids:
             # first cosnsult watchdog, returns false if stuck detected
             if(self.watchdog_exemption_list is None or (self.watchdog_exemption_list is not None and process not in self.watchdog_exemption_list)):
-                if(not watchdog_check_process(self.config, self.processes[process].pid, self.config.local_host_id)):
-                    #watchdog detected stuck process
-                    #terminate it
-                    logging.error("Watchdog detected stuck process: %s, restarting..." % process)
-                    self.processes[process].terminate()
-                    self.restart_process(process)
+                try:
+                    if(not watchdog_check_process(self.config, self.processes[process].pid, self.config.local_host_id)):
+                        #watchdog detected stuck process
+                        #terminate it
+                        logging.error("Watchdog detected stuck process: %s, restarting..." % process)
+                        self.processes[process].terminate()
+                        self.restart_process(process)
+                except KeyError as err:
+                    logging.error("%s process died. exiting...", process)
+                    return
             if process not in self.processes or not self.is_alive(process):
                 if stop:
                     # child proc is dead, and stop flag set, don't restart and remove proc id
@@ -247,13 +251,13 @@ class ProcessMonitor:
         # handle dynamic processes
         dynamic_procs = self.dynamic_process_ids.keys()
         dynamic_procs_set = set(dynamic_procs)
+        self.config.db_open()
         for proc in self.process_ids:
             #check if its a list
             if isinstance(self.process_ids[proc], list):
                 # add dynamic process
                 function = self.process_ids[proc][0]
                 select = self.process_ids[proc][1]
-                self.config.db_open()
                 rows=[]
                 rc, msg = self.config.db_execute(select)
                 for row in self.config.db_cursor:
@@ -326,6 +330,8 @@ class ProcessMonitor:
         for proc in procs_to_remove:
             if proc in self.process_ids:
                 self.process_ids.pop(proc)
+            if proc in self.static_process_ids:
+                del self.static_process_ids[proc]   
         self.config.db_close()
 
     def _cleanup_event_pids(self, pid):

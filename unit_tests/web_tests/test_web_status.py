@@ -562,7 +562,6 @@ class TestWebStatusCommon(unittest.TestCase):
         self.assertFalse(self.page.plot_has_line())
         self.page.click_close_plot()
     
-
     def test_web_status_vm_overlay_open(self):
         # Clicks on the vm overlay
         self.page.wait_until_vms_not_zero(self.group_name, self.cloud_name, 3)

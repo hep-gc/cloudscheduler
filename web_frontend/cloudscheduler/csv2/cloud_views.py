@@ -6,6 +6,8 @@ from django.views.decorators.csrf import requires_csrf_token, csrf_exempt
 from django.http import HttpResponse
 from django.http.response import JsonResponse
 from django.core.exceptions import PermissionDenied
+from django.contrib import messages
+import time
 
 from cloudscheduler.lib.view_utils import \
     diff_lists, \
@@ -24,7 +26,8 @@ from cloudscheduler.lib.view_utils import \
     get_app_credentail_expiry, \
     retire_cloud_vms, \
     get_file_checksum, \
-    clean_cloud_data
+    clean_cloud_data, \
+    isolate_private_key
 
 import bcrypt
 
@@ -60,6 +63,12 @@ CLOUD_KEYS = {
         'app_credentials':                      'ignore',
         'app_credentials_secret':               'ignore',
         'app_credentials_expiry':               'integer', #this may need to change to a date obj
+        'user_ocid':                            'ignore',
+        'user_fingerprint':                     'ignore',
+        'tenancy_ocid':                         'ignore',
+        'api_private_key':                      'ignore',
+        'oci_availability_domain':              'ignore',
+        'oci_compartment':                      'ignore',
         'enabled':                              'dboolean',
         'freeze':                               'dboolean',
         'priority':                             'integer',
@@ -111,6 +120,77 @@ CLOUD_KEYS = {
         'metadata_name',
         ]
     }
+ORACLE_CLOUD_KEYS = {
+    'auto_active_group': True,
+    # Named argument formats (anything else is a string).
+    'format': {
+        'cloud_name':                           'lowerdash',
+        'cloud_type':                           ('csv2_cloud_types', 'cloud_type'),
+        'auth_type':                            '', #may be converted to reference table like cloud_type
+        'userid':                               '',
+        'app_credentials':                      'ignore',
+        'app_credentials_secret':               'ignore',
+        'app_credentials_expiry':               'integer', #this may need to change to a date obj
+        'user_ocid':                            'ignore',
+        'user_fingerprint':                     'ignore',
+        'tenancy_ocid':                         'ignore',
+        'api_private_key':                      'ignore',
+        'oci_availability_domain':              'ignore',
+        'oci_compartment':                      'ignore',
+        'enabled':                              'dboolean',
+        'freeze':                               'dboolean',
+        'priority':                             'integer',
+        'flavor_name':                          'ignore',
+        'flavor_option':                        ['add', 'delete'],
+        'cores_ctl':                            'integer',
+        'cores_softmax':                        'integer',
+        'metadata_name':                        'ignore',
+        'metadata_option':                      ['add', 'delete'],
+        'ram_ctl':                              'integer',
+        'spot_price':                           'float',
+#       'vm_boot_volume':                       {"GBs": "integer", "options": {"per_core": "boolean"}},
+#       'vm_boot_volume':                       {"min_pick": 1, "pick": {"GBs": "integer", "GBs_per_core": "integer", "volume_type": "string"}},
+        'vm_boot_volume_type':                  'ignore',
+        'vm_boot_volume_size':                  'ignore',
+        'vm_boot_volume_per_core':              'ignore',
+        'vm_keep_alive':                        'integer',
+
+        'cores_slider':                         'ignore',
+        'csrfmiddlewaretoken':                  'ignore',
+        'group':                                'ignore',
+        'ram_slider':                           'ignore',
+
+        'server_meta_ctl':                      'reject',
+        'instances_ctl':                        'reject',
+        'personality_ctl':                      'reject',
+        'image_meta_ctl':                       'reject',
+        'personality_size_ctl':                 'reject',
+        'server_groups_ctl':                    'reject',
+        'security_group_rules_ctl':             'reject',
+        'keypairs_ctl':                         'reject',
+        'security_groups_ctl':                  'reject',
+        'server_group_members_ctl':             'reject',
+        'floating_ips_ctl':                     'reject',
+        },
+    'mandatory': [
+        'cloud_name',
+        ],
+    'not_empty': [
+        'user_ocid',
+        'user_fingerprint',
+        'tenancy_ocid',
+#        'api_private_key', #this is not included because if there is a key already in the database it will use that if the field is empty
+#        'username',
+#        'password',
+        'region',
+        ],
+    'array_fields': [
+        'flavor_name',
+        'group_name',
+        'metadata_name',
+        ]
+    }
+
 
 CLOUD_ADD_KEYS = {
     'mandatory': [
@@ -511,8 +591,40 @@ def add(request):
 
     if request.method == 'POST':
 
-        # Validate input fields.
-        rc, msg, fields, tables, columns = validate_fields(config, request, [CLOUD_KEYS, CLOUD_ADD_KEYS], ['csv2_clouds', 'csv2_cloud_flavor_exclusions', 'csv2_group_metadata', 'csv2_group_metadata_exclusions'], active_user)
+        cloud_type = request.POST["cloud_type"] if "cloud_type" in request.POST else None
+
+        if cloud_type == "oracle":
+            #oracle cloud
+            rc, msg, fields, tables, columns = validate_fields(config, request, [ORACLE_CLOUD_KEYS], ['csv2_clouds', 'csv2_cloud_flavor_exclusions', 'csv2_group_metadata', 'csv2_group_metadata_exclusions'], active_user)
+            if rc != 0:
+                config.db_close()
+                return cloud_list(request, active_user=active_user, response_code=1, message='%s %s' % (lno(MODID), msg))
+            if 'api_private_key' in request.FILES:
+                apk_file = request.FILES["api_private_key"]
+                # open and process content then assign to fields["api_private_key"]
+                rc, apk = isolate_private_key(apk_file)
+                if rc != 0:
+                    # bad key file
+                    config.db_close()
+                    msg = "invalid key file provided"
+                    message = '%s cloud update %s' % (lno(MODID), msg)
+                    request.session["response"] = {"message": message, "response_code": 1, "group": group}
+                    return redirect("/cloud/list/")
+                else:
+                    # key is of a valid format
+                    fields["api_private_key"] = apk
+            else:
+				# bad key file
+                config.db_close()
+                msg = "no key file provided"
+                message = '%s cloud add %s' % (lno(MODID), msg)
+                request.session["response"] = {"message": message, "response_code": 1, "group": group}
+                return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud add, "%s" failed - %s.' % (lno(MODID), fields['cloud_name'], msg))
+
+
+        else:
+            # Validate input fields.
+            rc, msg, fields, tables, columns = validate_fields(config, request, [CLOUD_KEYS, CLOUD_ADD_KEYS], ['csv2_clouds', 'csv2_cloud_flavor_exclusions', 'csv2_group_metadata', 'csv2_group_metadata_exclusions'], active_user)
         if rc != 0: 
             config.db_close()
             return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud add %s' % (lno(MODID), msg), cloud_add_cache=request.POST)
@@ -598,6 +710,9 @@ def add(request):
         
         if 'cloud_type' in fields:
             if fields['cloud_type'] == 'amazon':
+                fields['cores_softmax'] = config.categories['web_frontend']['default_softmax']
+            elif fields['cloud_type'] == 'oracle':
+                fields["auth_url"] = "oracle"
                 fields['cores_softmax'] = config.categories['web_frontend']['default_softmax']
             elif 'authurl' in fields and fields['cloud_type'] == 'openstack':
                 #check if url has a trailing slash
@@ -776,6 +891,14 @@ def get_cloud_add_value(dict, key, default=''):
 @requires_csrf_token
 def cloud_list(request, active_user=None, response_code=0, message=None, cloud_add_cache=None):
 
+    group = None
+    if "response" in request.session:
+        response = request.session.get("response")
+        message = response["message"]
+        response_code = response["response_code"]
+        group = response["group"]
+        del request.session["response"]
+    
     cloud_list_path = '/cloud/list/'
     if request.path!=cloud_list_path and request.META['HTTP_ACCEPT'] == 'application/json':
         return render(request, 'csv2/clouds.html', {'response_code': response_code, 'message': message, 'active_user': active_user.username, 'active_group': active_user.active_group, 'user_groups': active_user.user_groups})
@@ -789,7 +912,8 @@ def cloud_list(request, active_user=None, response_code=0, message=None, cloud_a
         if rc != 0:
             config.db_close()
             return render(request, 'csv2/clouds.html', {'response_code': 1, 'message': '%s %s' % (lno(MODID), msg)})
-
+    active_user.active_group = group if group else active_user.active_group
+    
     # Validate input fields when request is for /cloud/list/.
     rc, msg, fields, tables, columns = validate_fields(config, request, [LIST_KEYS], [], active_user)
     if rc != 0 and request.path==cloud_list_path:
@@ -822,12 +946,17 @@ def cloud_list(request, active_user=None, response_code=0, message=None, cloud_a
                     'metadata_enabled',
                     'metadata_priority',
                     'metadata_mime_type',
-                    'metadata_checksum'
+                    'metadata_checksum',
+                    'metadata_updated'
                     ]
                 },
             prune=['password', 'app_credentials_secret']    
             )
-
+        for x, metadata in metadata_dict.items():
+            for y, obj in metadata.items():
+                for z in obj:
+                    temp = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(obj[z]['metadata_updated']))
+                    obj[z]['metadata_updated'] = temp
     if active_user.active_group and metadata_dict.get(active_user.active_group):
         curr_dict = metadata_dict[active_user.active_group]
         for cloud in curr_dict:
@@ -880,11 +1009,23 @@ def cloud_list(request, active_user=None, response_code=0, message=None, cloud_a
     # Retrieve the list ec2 regions:
     rc, msg, ec2_regions_list = config.db_query("ec2_regions")
 
+    # Retrieve the list of oracle availability domains
+    rc, msg, oci_availability_domain_list = config.db_query("oracle_availability_domains", where=where_clause)
+
+    # Retrieve the list of oracle compartments
+    rc, msg, oci_compartment_list = config.db_query("oracle_compartments", where=where_clause)
+
     # Position the page.
     if len(_cloud_list) > 0:
         current_cloud = str(_cloud_list[0]['cloud_name'])
     else:
         current_cloud = ''
+
+    if message:
+        if response_code == 0:
+            messages.success(request, message)
+        else:
+            messages.error(request, message)
 
     cloud_add = {
         'app_credentials': get_cloud_add_value(cloud_add_cache, 'app_credentials'),
@@ -929,6 +1070,8 @@ def cloud_list(request, active_user=None, response_code=0, message=None, cloud_a
             'cloud_add': cloud_add,
             'version': config.get_version(),
             'volume_type_list': volume_type_list,
+            'oci_availability_domain_list': oci_availability_domain_list,
+            'oci_compartment_list': oci_compartment_list,
         }
 
     config.db_close()
@@ -962,7 +1105,8 @@ def metadata_add(request):
             if cloud_name:
                 return metadata_new(request, active_user, response_code=1, message='%s cloud metadata-add %s' % (lno(MODID), msg), cloud_name=cloud_name)
             return render(request, 'csv2/blank_msg.html', {'response_code': 1, 'message': '%s cloud metadata-add %s' % (lno(MODID), msg)})
-
+        
+        fields['last_updated'] = int(time.time())
         # Check cloud already exists.
         table = 'csv2_clouds'
         where_clause = "group_name='%s'" % active_user.active_group
@@ -1187,6 +1331,7 @@ def metadata_fetch(request, response_code=0, message=None, metadata_name=None, c
                     'metadata_priority': row["priority"],
                     'metadata_mime_type': row["mime_type"],
                     'metadata_name': row["metadata_name"],
+                    'metadata_updated': time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(row['last_updated'])),
                     'mime_types_list': mime_types_list,
                     'metadata_checksum': row['checksum'],
                     'response_code': response_code,
@@ -1290,6 +1435,7 @@ def metadata_new(request, active_user=None, response_code=0, message='new-cloud-
             'metadata_priority': 0,
             'metadata_mime_type': "",
             'metadata_name': "",
+            'metadata_updated': time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(time.time())),
             'mime_types_list': mime_types_list,
             'response_code': response_code,
             'action_type': "new-cloud-metadata",
@@ -1384,11 +1530,13 @@ def metadata_update(request):
         if fields.get('metadata') or fields.get('metadata') == '':
             fields['checksum'] = get_file_checksum(fields['metadata'].encode('utf-8'))
 
+        fields['last_updated'] = int(time.time())
         table = 'csv2_cloud_metadata'
         fields_to_update = table_fields(fields, table, columns, 'update')
-        if len(fields_to_update) < 4:
+        if len(fields_to_update) < 5:
             config.db_close()
             return metadata_fetch(request, response_code=1, message='%s cloud-metadata-update must specify at least one field to update.' % lno(MODID), metadata_name=fields['metadata_name'], cloud_name=fields['cloud_name'])
+
 
         # Check if metadata file exists
         where_clause = "group_name='%s' and cloud_name='%s' and metadata_name='%s'" % (fields['group_name'], fields['cloud_name'], fields['metadata_name'])
@@ -1949,12 +2097,15 @@ def update(request):
 
     # open the database.
     config.db_open()
-
+    group = request.POST["group"] if "group" in request.POST else None
     # Retrieve the active user, associated group list and optionally set the active group.
     rc, msg, active_user = set_user_groups(config, request, super_user=False)
     if rc != 0:
         config.db_close()
-        return cloud_list(request, active_user=active_user, response_code=1, message='%s %s' % (lno(MODID), msg))
+        message = '%s %s' % (lno(MODID), msg)
+        request.session["response"] = {"message": message, "response_code": 1, "group": group}
+        return redirect("/cloud/list/")
+        #return cloud_list(request, active_user=active_user, response_code=1, message='%s %s' % (lno(MODID), msg))
     
     if request.method == 'POST':
         # if the password is blank, remove the password field.
@@ -1977,49 +2128,112 @@ def update(request):
             request.POST["vm_security_groups"] = ""
 
         # Validate input fields.
-        rc, msg, fields, tables, columns = validate_fields(config, request, [CLOUD_KEYS], ['csv2_clouds', 'csv2_cloud_flavor_exclusions', 'csv2_group_metadata', 'csv2_group_metadata_exclusions'], active_user)
+        cloud_type = request.POST["cloud_type"] if "cloud_type" in request.POST else None
+
+        if cloud_type == "oracle":
+            rc, msg, fields, tables, columns = validate_fields(config, request, [ORACLE_CLOUD_KEYS], ['csv2_clouds', 'csv2_cloud_flavor_exclusions', 'csv2_group_metadata', 'csv2_group_metadata_exclusions'], active_user)
+            if rc != 0:
+                config.db_close()
+                message = '%s cloud update %s' % (lno(MODID), msg)
+                request.session["response"] = {"message": message, "response_code": 1, "group": group}
+                return redirect("/cloud/list/")
+            # check if a new api private key was uploaded, if it was set api_private_key in fields otherwise set it to the value from the database so we can verify the cloud credentials
+            if 'api_private_key' in request.FILES:
+                apk_file = request.FILES["api_private_key"]
+                # open and process content then assign to fields["api_private_key"]
+                rc, apk = isolate_private_key(apk_file)
+                if rc != 0:
+                    # bad key file
+                    config.db_close()
+                    msg = "invalid key file provided"
+                    message = '%s cloud update %s' % (lno(MODID), msg)
+                    request.session["response"] = {"message": message, "response_code": 1, "group": group}
+                    return redirect("/cloud/list/")
+                else:
+                    # key is of a valid format
+                    fields["api_private_key"] = apk
+            else:
+                # get cloud row from database and collect the private key and store it in fields
+                where_clause = "group_name='%s' and cloud_name='%s'" % (group, request.POST.get('cloud_name'))
+                rc, msg, found_cloud_list = config.db_query("csv2_clouds", where=where_clause)
+                if rc != 0:
+                    # we have an error return with msg
+                    config.db_close()
+                    message = '%s cloud update %s' % (lno(MODID), msg)
+                    request.session["response"] = {"message": message, "response_code": 1, "group": group}
+                    return redirect("/cloud/list/")
+                else:
+                    #else we have the cloud and need to grab the apk_file from there:
+                    apk = found_cloud_list[0]["api_private_key"]
+                    fields["api_private_key"] = apk
+        else:
+            rc, msg, fields, tables, columns = validate_fields(config, request, [CLOUD_KEYS], ['csv2_clouds', 'csv2_cloud_flavor_exclusions', 'csv2_group_metadata', 'csv2_group_metadata_exclusions'], active_user)
         if rc != 0:
             config.db_close()
-            return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud update %s' % (lno(MODID), msg))
+            message = '%s cloud update %s' % (lno(MODID), msg)
+            request.session["response"] = {"message": message, "response_code": 1, "group": group}
+            return redirect("/cloud/list/")
+            #return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud update %s' % (lno(MODID), msg))
 
         if 'flavor_name' in fields and fields['flavor_name']:
             rc, msg = validate_by_filtered_table_entries(config, fields['flavor_name'], 'flavor_name', 'cloud_flavors', 'name', [['group_name', fields['group_name']], ['cloud_name', fields['cloud_name']]], allow_value_list=True)
             if rc != 0:
                 config.db_close()
-                return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud update, "%s" failed - %s.' % (lno(MODID), fields['cloud_name'], msg))
+                message = '%s cloud update, "%s" failed - %s.' % (lno(MODID), fields['cloud_name'], msg)
+                request.session["response"] = {"message": message, "response_code": 1, "group": group}
+                return redirect("/cloud/list/")
+                #return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud update, "%s" failed - %s.' % (lno(MODID), fields['cloud_name'], msg))
 
         if 'vm_flavor' in fields and fields['vm_flavor'] and fields['vm_flavor'] != 'None':
             rc, msg = validate_by_filtered_table_entries(config, fields['vm_flavor'], 'vm_flavor', 'cloud_flavors', 'name', [['group_name', fields['group_name']], ['cloud_name', fields['cloud_name']]])
             if rc != 0:
                 config.db_close()
-                return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud update, "%s" failed - %s.' % (lno(MODID), fields['cloud_name'], msg))
+                message = '%s cloud update, "%s" failed - %s.' % (lno(MODID), fields['cloud_name'], msg)
+                request.session["response"] = {"message": message, "response_code": 1, "group": group}
+                return redirect("/cloud/list/")
+                #return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud update, "%s" failed - %s.' % (lno(MODID), fields['cloud_name'], msg))
         
         if 'vm_image' in fields and fields['vm_image']:
             rc, msg = validate_by_filtered_table_entries(config, fields['vm_image'], 'vm_image', 'cloud_images', 'name', [['group_name', fields['group_name']], ['cloud_name', fields['cloud_name']]])
             if rc != 0:
                 config.db_close()
-                return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud update, "%s" failed - %s.' % (lno(MODID), fields['cloud_name'], msg))
+                message = '%s cloud update, "%s" failed - %s.' % (lno(MODID), fields['cloud_name'], msg)
+                request.session["response"] = {"message": message, "response_code": 1, "group": group}
+                return redirect("/cloud/list/")
+                #return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud update, "%s" failed - %s.' % (lno(MODID), fields['cloud_name'], msg))
 
         if 'vm_keyname' in fields and fields['vm_keyname'] and fields['vm_keyname'] != 'None':
             rc, msg = validate_by_filtered_table_entries(config, fields['vm_keyname'], 'vm_keyname', 'cloud_keypairs', 'key_name', [['group_name', fields['group_name']], ['cloud_name', fields['cloud_name']]])
             if rc != 0:
                 config.db_close()
-                return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud update, "%s" failed - %s.' % (lno(MODID), fields['cloud_name'], msg))
+                message = '%s cloud update, "%s" failed - %s.' % (lno(MODID), fields['cloud_name'], msg)
+                request.session["response"] = {"message": message, "response_code": 1, "group": group}
+                return redirect("/cloud/list/")
+                #return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud update, "%s" failed - %s.' % (lno(MODID), fields['cloud_name'], msg))
 
         if 'vm_network' in fields and fields['vm_network'] and fields['vm_network'] != 'None':
             rc, msg = validate_by_filtered_table_entries(config, fields['vm_network'], 'vm_network', 'cloud_networks', 'name', [['group_name', fields['group_name']], ['cloud_name', fields['cloud_name']]])
             if rc != 0:
                 config.db_close()
-                return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud update, "%s" failed - %s.' % (lno(MODID), fields['cloud_name'], msg))
+                message = '%s cloud update, "%s" failed - %s.' % (lno(MODID), fields['cloud_name'], msg)
+                request.session["response"] = {"message": message, "response_code": 1, "group": group}
+                return redirect("/cloud/list/")
+                #return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud update, "%s" failed - %s.' % (lno(MODID), fields['cloud_name'], msg))
         
         if 'vm_security_groups' in fields and fields['vm_security_groups'] and fields['vm_security_groups'] != 'None':
             if 'None' in fields['vm_security_groups']:
                 config.db_close()
-                return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud update, "%s" failed - %s.' % (lno(MODID), fields['cloud_name'], 'Cannot have ignore group default other security groups'))
+                message = '%s cloud update, "%s" failed - %s.' % (lno(MODID), fields['cloud_name'], 'Cannot have ignore group default other security groups')
+                request.session["response"] = {"message": message, "response_code": 1, "group": group}
+                return redirect("/cloud/list/")
+                #return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud update, "%s" failed - %s.' % (lno(MODID), fields['cloud_name'], 'Cannot have ignore group default other security groups'))
             rc, msg = validate_by_filtered_table_entries(config, fields['vm_security_groups'], 'vm_security_groups', 'cloud_security_groups', 'name', [['group_name', fields['group_name']], ['cloud_name', fields['cloud_name']]], allow_value_list=True)
             if rc != 0:
                 config.db_close()
-                return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud update, "%s" failed - %s.' % (lno(MODID), fields['cloud_name'], msg))
+                message = '%s cloud update, "%s" failed - %s.' % (lno(MODID), fields['cloud_name'], msg)
+                request.session["response"] = {"message": message, "response_code": 1, "group": group}
+                return redirect("/cloud/list/")
+                #return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud update, "%s" failed - %s.' % (lno(MODID), fields['cloud_name'], msg))
 
         if 'vm_boot_volume_type' in fields:
             if fields['vm_boot_volume_type'] == "None":
@@ -2031,7 +2245,10 @@ def update(request):
                 rc, msg = validate_by_filtered_table_entries(config, fields['vm_boot_volume_type'], 'vm_boot_volume_type', 'cloud_volume_types', 'volume_type', [['group_name', fields['group_name']], ['cloud_name', fields['cloud_name']]])
                 if rc != 0:
                     config.db_close()
-                    return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud update, "%s" failed - %s.' % (lno(MODID), fields['cloud_name'], msg))
+                    message = '%s cloud update, "%s" failed - %s.' % (lno(MODID), fields['cloud_name'], msg)
+                    request.session["response"] = {"message": message, "response_code": 1, "group": group}
+                    return redirect("/cloud/list/")
+                    #return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud update, "%s" failed - %s.' % (lno(MODID), fields['cloud_name'], msg))
                 
                 # Combine json
 
@@ -2040,19 +2257,28 @@ def update(request):
                 if 'vm_boot_volume_size' in fields and fields['vm_boot_volume_size']:
                     if not fields['vm_boot_volume_size'].isdigit():
                         config.db_close()
-                        return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud update, "%s" failed - %s.' % (lno(MODID), fields['cloud_name'], "Volume size must be a non-negative integer"))
+                        message = '%s cloud update, "%s" failed - %s.' % (lno(MODID), fields['cloud_name'], "Volume size must be a non-negative integer")
+                        request.session["response"] = {"message": message, "response_code": 1, "group": group}
+                        return redirect("/cloud/list/")
+                        #return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud update, "%s" failed - %s.' % (lno(MODID), fields['cloud_name'], "Volume size must be a non-negative integer"))
                     
                     vol_dict["GBs"] = int(fields['vm_boot_volume_size'])
                 if 'vm_boot_volume_per_core' in fields and fields['vm_boot_volume_per_core']:
                     if not fields['vm_boot_volume_per_core'].isdigit():
                                 config.db_close()
-                                return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud update, "%s" failed - %s.' % (lno(MODID), fields['cloud_name'], "Volume size must be a non-negative integer"))
+                                message = '%s cloud update, "%s" failed - %s.' % (lno(MODID), fields['cloud_name'], "Volume size must be a non-negative integer")
+                                request.session["response"] = {"message": message, "response_code": 1, "group": group}
+                                return redirect("/cloud/list/")
+                                #return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud update, "%s" failed - %s.' % (lno(MODID), fields['cloud_name'], "Volume size must be a non-negative integer"))
                     vol_dict["GBs_per_core"] = int(fields['vm_boot_volume_per_core'])
                 fields['vm_boot_volume'] = json.dumps(vol_dict)
 
             else:
                 config.db_close()
-                return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud update, "%s" failed - %s.' % (lno(MODID), fields['cloud_name'], "At least one of base size or size per core must be specified"))
+                message = '%s cloud update, "%s" failed - %s.' % (lno(MODID), fields['cloud_name'], "At least one of base size or size per core must be specified")
+                request.session["response"] = {"message": message, "response_code": 1, "group": group}
+                return redirect("/cloud/list/")
+                #return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud update, "%s" failed - %s.' % (lno(MODID), fields['cloud_name'], "At least one of base size or size per core must be specified"))
                 
 
         if 'freeze' in fields and fields['freeze'] == 1:
@@ -2070,7 +2296,10 @@ def update(request):
             rc, msg = manage_group_metadata_verification(config, tables, fields['group_name'], fields['cloud_name'], fields['metadata_name']) 
             if rc != 0:
                 config.db_close()
-                return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud update, "%s" failed - %s.' % (lno(MODID), fields['cloud_name'], msg))
+                message = '%s cloud update, "%s" failed - %s.' % (lno(MODID), fields['cloud_name'], msg)
+                request.session["response"] = {"message": message, "response_code": 1, "group": group}
+                return redirect("/cloud/list/")
+               #return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud update, "%s" failed - %s.' % (lno(MODID), fields['cloud_name'], msg))
 
         table = 'csv2_clouds'
         where_clause = "group_name='%s' and cloud_name='%s'" % (fields['group_name'], fields['cloud_name'])
@@ -2090,13 +2319,22 @@ def update(request):
                             fields['app_credentials_expiry'] = app_cred_expiry
                         else:
                             config.db_close()
-                            return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud update "%s::%s" failed - %s.' % (lno(MODID), fields['group_name'], fields['cloud_name'], 'Application Credential expires within a week'))
+                            message = '%s cloud update "%s::%s" failed - %s.' % (lno(MODID), fields['group_name'], fields['cloud_name'], 'Application Credential expires within a week')
+                            request.session["response"] = {"message": message, "response_code": 1, "group": group}
+                            return redirect("/cloud/list/")
+                            #return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud update "%s::%s" failed - %s.' % (lno(MODID), fields['group_name'], fields['cloud_name'], 'Application Credential expires within a week'))
                     else:
                         config.db_close()
-                        return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud update "%s::%s" failed - %s.' % (lno(MODID), fields['group_name'], fields['cloud_name'], msg))
+                        message = '%s cloud update "%s::%s" failed - %s.' % (lno(MODID), fields['group_name'], fields['cloud_name'], msg)
+                        request.session["response"] = {"message": message, "response_code": 1, "group": group}
+                        return redirect("/cloud/list/")
+                        #return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud update "%s::%s" failed - %s.' % (lno(MODID), fields['group_name'], fields['cloud_name'], msg))
             else:
                 config.db_close()
-                return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud update "%s::%s" failed - %s.' % (lno(MODID), fields['group_name'], fields['cloud_name'], msg))
+                message = '%s cloud update "%s::%s" failed - %s.' % (lno(MODID), fields['group_name'], fields['cloud_name'], msg)
+                request.session["response"] = {"message": message, "response_code": 1, "group": group}
+                return redirect("/cloud/list/")
+                #return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud update "%s::%s" failed - %s.' % (lno(MODID), fields['group_name'], fields['cloud_name'], msg))
 
         # update the cloud.
         cloud_updates = table_fields(fields, table, columns, 'update')
@@ -2108,7 +2346,11 @@ def update(request):
             # Check if cloud exists
             if not found_cloud_list or len(found_cloud_list) == 0:
                 config.db_close()
-                return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud update "%s::%s" failed - the request did not match any rows.' % (lno(MODID), fields['group_name'], fields['cloud_name']))
+                message = '%s cloud update "%s::%s" failed - the request did not match any rows.' % (lno(MODID), fields['group_name'], fields['cloud_name'])
+                request.session["response"] = {"message": message, "response_code": 1, "group": group}
+
+                return redirect("/cloud/list/")
+                #return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud update "%s::%s" failed - the request did not match any rows.' % (lno(MODID), fields['group_name'], fields['cloud_name']))
             
             for key in CLOUD_IMPORTANT_KEYS:
                 if key in fields:
@@ -2123,7 +2365,11 @@ def update(request):
             config.db_commit()
             if rc != 0:
                 config.db_close()
-                return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud update "%s::%s" failed - %s.' % (lno(MODID), fields['group_name'], fields['cloud_name'], msg))
+                message = '%s cloud update "%s::%s" failed - %s.' % (lno(MODID), fields['group_name'], fields['cloud_name'], msg)
+                request.session["response"] = {"message": message, "response_code": 1, "group": group}
+
+                return redirect("/cloud/list/")
+                #return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud update "%s::%s" failed - %s.' % (lno(MODID), fields['group_name'], fields['cloud_name'], msg))
 
         # if the cloud is disabled call routine to retire all vms
         if 'enabled' in fields:
@@ -2161,7 +2407,10 @@ def update(request):
 
         if rc != 0:
             config.db_close()
-            return cloud_list(request, active_user=active_user, response_code=1, message='%s update cloud flavor exclusion for cloud "%s::%s::%s" failed - %s.' % (lno(MODID), fields['group_name'], fields['cloud_name'], fields['flavor_name'], msg))
+            message = '%s update cloud flavor exclusion for cloud "%s::%s::%s" failed - %s.' % (lno(MODID), fields['group_name'], fields['cloud_name'], fields['flavor_name'], msg)
+            request.session["response"] = {"message": message, "response_code": 1, "group": group}
+            return redirect("/cloud/list/")
+            #return cloud_list(request, active_user=active_user, response_code=1, message='%s update cloud flavor exclusion for cloud "%s::%s::%s" failed - %s.' % (lno(MODID), fields['group_name'], fields['cloud_name'], fields['flavor_name'], msg))
 
         # Update the cloud's group metadata exclusions.
         if request.META['HTTP_ACCEPT'] == 'application/json':
@@ -2181,7 +2430,11 @@ def update(request):
 
         if rc != 0:
             config.db_close()
-            return cloud_list(request, active_user=active_user, response_code=1, message='%s update group metadata exclusion for cloud "%s::%s::%s" failed - %s.' % (lno(MODID), request.method))
+            message = '%s update group metadata exclusion for cloud "%s::%s::%s" failed - %s.' % (lno(MODID), request.method)
+            request.session["response"] = {"message": message, "response_code": 1, "group": group}
+
+            return redirect("/cloud/list/")
+            #return cloud_list(request, active_user=active_user, response_code=1, message='%s update group metadata exclusion for cloud "%s::%s::%s" failed - %s.' % (lno(MODID), request.method))
 
         # For EC2 clouds, add default filters.
         if 'cloud_type' in fields:
@@ -2191,7 +2444,10 @@ def update(request):
                     updates += 1
                 else:
                     config.db_close()
-                    return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud update "%s::%s" failed - %s.' % (lno(MODID), fields['group_name'], fields['cloud_name'], msg))
+                    message = '%s cloud update "%s::%s" failed - %s.' % (lno(MODID), fields['group_name'], fields['cloud_name'], msg)
+                    request.session["response"] = {"message": message, "response_code": 1, "group": group}
+                    return redirect("/cloud/list/")
+                    #return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud update "%s::%s" failed - %s.' % (lno(MODID), fields['group_name'], fields['cloud_name'], msg))
 
         config.db_commit()
         # updates must always contain at least the keys so if there isnt more than 2 there is nothing to actually update
@@ -2213,12 +2469,19 @@ def update(request):
         else:
             act_usr = active_user.username
             config.db_close()
-            return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud update must specify at least one field to update.' % lno(MODID))
+            message = '%s cloud update must specify at least one field to update.' % lno(MODID)
+            #return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud update must specify at least one field to update.' % lno(MODID))
+            request.session["response"] = {"message": message, "response_code": 1, "group": group}
+            return redirect("/cloud/list/")
 
         config.db_close()
-        return cloud_list(request, active_user=active_user, response_code=0, message='cloud "%s::%s" successfully updated.' % (fields['group_name'], fields['cloud_name']))
+        message = 'cloud "%s::%s" successfully updated.' % (fields['group_name'], fields['cloud_name'])
+        request.session["response"] = {"message": message, "response_code": 0, "group": group}
+        return redirect("/cloud/list/")
+        #return cloud_list(request, active_user=active_user, response_code=0, message='cloud "%s::%s" successfully updated.' % (fields['group_name'], fields['cloud_name']))
                     
     ### Bad request.
     else:
         config.db_close()
+        request.session["message"] = '%s cloud update, invalid method "%s" specified.' % (lno(MODID), request.method)
         return cloud_list(request, active_user=active_user, response_code=1, message='%s cloud update, invalid method "%s" specified.' % (lno(MODID), request.method))

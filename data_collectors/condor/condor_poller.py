@@ -3,7 +3,7 @@ import time
 import signal
 import socket
 import logging
-from subprocess import Popen, PIPE
+import subprocess
 from multiprocessing import Process
 import os
 import re
@@ -28,7 +28,7 @@ from cloudscheduler.lib.watchdog_utils import watchdog_send_heartbeat
 import htcondor
 import classad
 import boto3
-
+import datetime
 
 MASTER_TYPE = htcondor.AdTypes.Master
 STARTD_TYPE = htcondor.AdTypes.Startd
@@ -86,6 +86,20 @@ def get_condor_dict(config, logging):
 
     return condor_dict
 
+
+def fill_attributes(old_dict, attributes, config, additional_attributes = []):
+    # create a dictionary and map its attributes
+    new_dict = old_dict.copy()
+    attributes_dict = {key: None for key in attributes}
+    attributes_dict, unmapped = map_attributes(src="condor", dest="csv2", attr_dict=attributes_dict, config=config)
+    
+    # fill missing attributes in filled_job_dict
+    all_keys = list(attributes_dict.keys()) + additional_attributes
+    new_dict.update({key: None for key in all_keys if key not in new_dict})
+
+    return new_dict
+
+
 def if_null(val, col=None):
     if col:
         if val:
@@ -138,14 +152,14 @@ def get_gsi_cert_subject_and_eol(cert):
         return 'unreadable', -999999
 
     if os.path.isfile(cert):
-        p1 = Popen([
+        p1 = subprocess.Popen([
             'openssl',
             'x509',
             '-noout',
             '-subject',
             '-in',
             cert
-            ], stdout=PIPE, stderr=PIPE)
+            ], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         stdout, stderr = p1.communicate()
 
         stdout = decode(stdout)
@@ -153,19 +167,19 @@ def get_gsi_cert_subject_and_eol(cert):
             words = decode(stdout).split()
             subject = words[1]
 
-            p1 = Popen([
+            p1 = subprocess.Popen([
                 'openssl',
                 'x509',
                 '-noout',
                 '-dates',
                 '-in',
                 cert
-                ], stdout=PIPE, stderr=PIPE)
+                ], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
-            p2 = Popen([
+            p2 = subprocess.Popen([
                 'awk',
                 '/notAfter=/ {print substr($0,10)}'
-                ], stdin=p1.stdout, stdout=PIPE, stderr=PIPE)
+                ], stdin=p1.stdout, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             stdout, stderr = p2.communicate()
 
             if p2.returncode == 0:
@@ -183,7 +197,7 @@ def get_gsi_cert_subject_and_eol(cert):
 
 def get_master_classad(session, machine, hostname):
     try:
-        if machine is not "":
+        if machine != "":
             condor_classad = session.query(MASTER_TYPE, 'Name=="%s"' % machine)[0]
         else:
             condor_classad = session.query(MASTER_TYPE, 'regexp("%s", Name, "i")' % hostname)[0]
@@ -228,15 +242,15 @@ def zip_base64(path):
         return 'unreadable'
 
     if os.path.isfile(path):
-        p1 = Popen([
+        p1 = subprocess.Popen([
             'gzip',
             '-c',
             path
-            ], stdout=PIPE, stderr=PIPE)
+            ], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
-        p2 = Popen([
+        p2 = subprocess.Popen([
             'base64'
-            ], stdin=p1.stdout, stdout=PIPE, stderr=PIPE)
+            ], stdin=p1.stdout, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         stdout, stderr = p2.communicate()
 
         if p2.returncode == 0:
@@ -346,10 +360,22 @@ def process_group_cloud_commands(pair, condor_host, config):
                 #there was a condor error
                 logging.error("Unable to retrieve condor classad, skipping %s ..." % resource["machine"])
 
-            logging.info("Issuing DaemonsOffPeaceful to %s" % condor_classad)
-            master_result = htcondor.send_command(condor_classad, htcondor.DaemonCommands.DaemonsOffPeaceful)
-            logging.debug("Result: %s " % master_result)
-            
+            try:
+                logging.info("Issuing DaemonsOffPeaceful to %s" % condor_classad)
+                master_result = htcondor.send_command(condor_classad, htcondor.DaemonCommands.DaemonsOffPeaceful)
+                logging.debug("Result: %s " % master_result)
+            except Exception as exc:
+                # this should be tightened to catch exact errors coming from condor
+                # since the bindings method of retire seems to have failed lets issue a local system command
+                logging.info("failed to retire via condor bindings, attempting system command")
+                logging.debug("condor_drain -exit-on-completion %s" % resource["name"] ) 
+                cndr_drain = subprocess.run(["condor_drain", "-exit-on-completion", resource["name"]])
+                logging.debug("Command executed")
+                logging.debug(cndr_drain.stdout)
+                logging.debug(cndr_drain.stderr)
+                # the command below will throw an error if the condor_drain command fails but presently it fails when the machine is already draining
+                # and the output and error are empty to we cant distinguish between an error because it's already draining from any other without more commands
+                #cndr_drain.check_returncode() 
                 
             #get vm entry and update retire = 2
             where_clause = "group_name='%s' and cloud_name='%s' and vmid='%s'" % (resource["group_name"], resource["cloud_name"], resource["vmid"])
@@ -405,7 +431,6 @@ def job_poller():
     inventory = {}
     delete_cycle = True
     cycle_count = 0
-    condor_inventory_built = False
     uncommitted_updates = 0
     failure_dict = {}
 
@@ -537,14 +562,6 @@ def job_poller():
                         logging.critical("Over 1500 failed polls on host: %s, Configuration error or condor issues" % (fail_count, condor_host))
                     continue
 
-
-                if not condor_inventory_built:
-                    # New version of inventory functions:
-                    where_clause = "htcondor_host_id='%s'" % config.local_host_id
-                    rc, msg, rows = config.db_query(JOB, where=where_clause)
-                    inventory_get_item_hash_from_db_query_rows(ikey_names, rows)
-                    condor_inventory_built = True
-
                 # Retrieve jobs.
                 
                 logging.debug("getting job list from condor")
@@ -582,7 +599,9 @@ def job_poller():
                 # Process job data & insert/update jobs in Database
                 abort_cycle = False
                 job_errors = {}
+                logging.debug(job_list)
                 for job_ad in job_list:
+                    logging.debug(job_ad)
                     job_dict = dict(job_ad)
                     if "Requirements" in job_dict:
                         ca1=classad.ClassAd(job_dict)
@@ -704,8 +723,12 @@ def job_poller():
                     # Check if this item has changed relative to the local cache, skip it if it's unchanged
                     # old inventory function
                     #if test_and_set_inventory_item_hash(inventory, job_dict["group_name"], "-", job_dict["global_job_id"], job_dict, new_poll_time, debug_hash=(config.categories["condor_poller.py"]["log_level"]<20)):
+                    
+                    # fill any missing keys in job_dict with None
+                    filled_job_dict = fill_attributes(job_dict, job_attributes, config, ["hold_job_reason", "target_alias"])
+
                     # New inventory function:
-                    if inventory_test_and_set_item_hash(ikey_names, job_dict, inventory, new_poll_time, debug_hash=(config.categories["condor_poller.py"]["log_level"]<20)):
+                    if inventory_test_and_set_item_hash(ikey_names, filled_job_dict, inventory, new_poll_time, debug_hash=(config.categories["condor_poller.py"]["log_level"]<20)):
                         continue
 
                     try:
@@ -1010,7 +1033,11 @@ def machine_poller():
                     # Check if this item has changed relative to the local cache, skip it if it's unchanged
                     # old inventory func
                     #if test_and_set_inventory_item_hash(inventory, r_dict["group_name"], r_dict["cloud_name"], r_dict["name"], r_dict, new_poll_time, debug_hash=(config.categories["condor_poller.py"]["log_level"]<20)):
-                    if inventory_test_and_set_item_hash(ikey_names, r_dict, inventory, new_poll_time, debug_hash=(config.categories["condor_poller.py"]["log_level"]<20)):
+
+                    # fill any missing keys in job_dict with None
+                    filled_r_dict = fill_attributes(r_dict, resource_attributes, config)
+
+                    if inventory_test_and_set_item_hash(ikey_names, filled_r_dict, inventory, new_poll_time, debug_hash=(config.categories["condor_poller.py"]["log_level"]<20)):
                         continue
 
                     try:
@@ -1190,13 +1217,24 @@ def worker_gsi_poller():
             deleted = []
             condor = socket.gethostname()
             worker_cert = {}
-            if 'GSI_DAEMON_CERT' in htcondor.param:
+
+
+            #if 'GSI_DAEMON_CERT' in htcondor.param or config.condor_poller["token_auth"]:
+            if 'condor_worker_cert' in config.condor_poller and config.condor_poller['condor_worker_cert'] is not None and config.condor_poller['condor_worker_cert'] != "":
                 try:
                     worker_cert['subject'], worker_cert['eol'] = get_gsi_cert_subject_and_eol(config.condor_poller['condor_worker_cert'])
                     worker_cert['cert'] = zip_base64(config.condor_poller['condor_worker_cert'])
                 except:
                     logging.info("Unable to find condor_worker_cert from local configuration.")
 
+                if worker_cert['eol']:
+                    days_until_eol = (datetime.datetime(*time.gmtime(worker_cert['eol'])[:6]) - datetime.datetime(*time.gmtime()[:6])).days
+                    condor_poller_config = config.categories['condor_poller.py']
+                    
+                    if days_until_eol <= config.get_config_by_category('GSI')['GSI']['cert_days_left_bad'] and \
+                        condor_poller_config['sleep_interval_worker_gsi'] > condor_poller_config['sleep_interval_worker_expiring']:
+                        condor_poller_config['sleep_interval_worker_gsi'] = condor_poller_config['sleep_interval_worker_expiring']
+                
                 try:
                     worker_cert['key'] = zip_base64(config.condor_poller['condor_worker_key'])
                     if worker_cert['key'] == 'unreadable':
@@ -1204,24 +1242,56 @@ def worker_gsi_poller():
                 except Exception as ex:
                     logging.info("Unable to find condor_worker_key from local configuration")
                     logging.info(ex)
-            if worker_cert:
+            new_cwg = {}
+            if worker_cert or config.condor_poller["token_auth"]:
                 try:
-                    new_cwg = {
-                        "htcondor_fqdn": condor,
-                        "htcondor_host_id": config.local_host_id,
-                        "worker_dn": worker_cert['subject'],
-                        "worker_eol":  worker_cert['eol'],
-                        "worker_cert": worker_cert['cert'],
-                        "worker_key": worker_cert['key']
-                    }
-                    rc, msg = config.db_merge('condor_worker_gsi', new_cwg)
-                    #rc, msg = config.db_execute('insert into condor_worker_gsi (htcondor_fqdn, htcondor_host_id, worker_dn, worker_eol, worker_cert, worker_key) values("%s",%d "%s", %d, "%s", "%s");' % (condor, config.local_host_id, if_null(worker_cert['subject']), worker_cert['eol'], if_null(worker_cert['cert']), if_null(worker_cert['key'])))
-                    if rc == 1:
-                        #insert failed, raise exception
-                        raise(msg)
+                    if worker_cert and config.condor_poller["token_auth"]:
+                        new_cwg = {
+                            "htcondor_fqdn": condor,
+                            "htcondor_host_id": config.local_host_id,
+                            "worker_dn": worker_cert['subject'],
+                            "worker_eol":  worker_cert['eol'],
+                            "worker_cert": worker_cert['cert'],
+                            "worker_key": worker_cert['key'],
+                            "auth_token": zip_base64(config.condor_poller["token_path"])
+                        }
+                    elif worker_cert and not config.condor_poller["token_auth"]:
+                        new_cwg = {
+                            "htcondor_fqdn": condor, 
+                            "htcondor_host_id": config.local_host_id,
+                            "worker_dn": worker_cert['subject'],
+                            "worker_eol":  worker_cert['eol'],
+                            "worker_cert": worker_cert['cert'],
+                            "worker_key": worker_cert['key']
+                        }
+                    elif not worker_cert and config.condor_poller["token_auth"]:
+                        new_cwg = {
+                            "htcondor_fqdn": condor, 
+                            "htcondor_host_id": config.local_host_id,
+                            "auth_token": zip_base64(config.condor_poller["token_path"]),
+                            "worker_dn": "",
+                            "worker_eol": 0,
+                            "worker_cert": "",
+                            "worker_key": ""
+                        }
+                    #check to see if db row exists
+                    where_clause = "htcondor_fqdn='%s'" % condor
+                    rc, msg, cwg_rows = config.db_query('condor_worker_gsi', where=where_clause)
+                    if len(cwg_rows) > 0:
+                        #row exists in db, do an update
+                        rc, msg = config.db_update('condor_worker_gsi', new_cwg)
+                        if rc == 1:
+                            logging.error(msg)
+                            raise(Exception(msg))
+                    else:
+                        #row does not exist in db, do an insert
+                        rc, msg = config.db_insert('condor_worker_gsi', new_cwg)
+                        if rc == 1:
+                            logging.error(msg)
+                            raise(Exception(msg))
                     config.db_commit()
 
-                    if worker_cert['subject']:
+                    if 'subject' in worker_cert:
                         logging.info('Condor host: "%s", condor_worker_gsi inserted.' % condor)
                     else:
                         logging.info('Condor host: "%s", condor_worker_gsi (not configured) inserted.' % condor)
@@ -1291,8 +1361,15 @@ def condor_gsi_poller():
 
             if condor_hostcert:
                 condor_cert['subject'], condor_cert['eol'] = get_gsi_cert_subject_and_eol(condor_hostcert)
-            
+
             if condor_cert:
+                if condor_cert['eol']:
+                    days_until_eol = (datetime.datetime(*time.gmtime(condor_cert['eol'])[:6]) - datetime.datetime(*time.gmtime()[:6])).days
+                    condor_poller_config = config.categories['condor_poller.py']
+                    if days_until_eol <= config.get_config_by_category('GSI')['GSI']['cert_days_left_bad'] and \
+                        condor_poller_config['sleep_interval_condor_gsi'] > condor_poller_config['sleep_interval_condor_expiring']:
+                        condor_poller_config['sleep_interval_condor_gsi'] = condor_poller_config['sleep_interval_condor_expiring']
+                
                 try:
                     config.db_execute('update csv2_groups set %s,htcondor_gsi_eol=%d where htcondor_fqdn="%s";' % (if_null(condor_cert['subject'], col='htcondor_gsi_dn'), condor_cert['eol'], condor))
                     config.db_commit()
@@ -1331,6 +1408,107 @@ def condor_gsi_poller():
         logging.error(exc)
         config.db_close()
 
+def alias_auditor():
+    multiprocessing.current_process().name = "VM Alias Auditor"
+
+    config = Config(sys.argv[1], ["condor_poller.py", 'ProcessMonitor'], pool_size=6, signals=True)
+    PID_FILE = config.categories["ProcessMonitor"]["pid_path"] + os.path.basename(sys.argv[0])
+
+    cycle_start_time = 0
+    new_poll_time = 0
+    poll_time_history = [0,0,0,0]
+    last_heartbeat_time = 0
+    #can probably be largely reduced in this poller since we only need enough info to check the alias and match it to the relevent VM
+    resource_attributes = ["Name", "Machine", "JobId", "GlobalJobId", "MyAddress", "State", \
+                           "Activity", "VMType", "MyCurrentTime", "EnteredCurrentState", "Cpus", \
+                           "Start", "RemoteOwner", "SlotType", "TotalSlots", "group_name", \
+                           "cloud_name", "cs_host_id", "condor_host", "flavor", "TotalDisk", "target_alias"]
+
+
+    VMS = "csv2_vms"
+    CLOUDS = "csv2_clouds"
+    GROUPS = "csv2_groups"
+
+
+    try:
+        while True:
+            config.db_open()
+            last_heartbeat_time = log_heartbeat_message(last_heartbeat_time, "VM Alias Auditor")
+            new_poll_time, cycle_start_time = start_cycle(new_poll_time, cycle_start_time)
+            watchdog_send_heartbeat(config, os.getpid(), config.local_host_id)
+
+            config.refresh()
+            if not os.path.exists(PID_FILE):
+                logging.debug("Stop set, exiting...")
+                config.db_close()
+                break
+            signal.signal(signal.SIGINT, signal.SIG_IGN)
+
+            # get VM list from database maybe just hostname and alias
+            # get condor classads
+            # check alias vs database entry
+            config.db_open()
+            #may want to restrict this query to have less fields for efficiency (should only need host and alias)
+            rc, msg, rows = config.db_query(VMS)
+
+            # it would be good to parse the vm results out into a hashed data structure (dictionary) for quick access doing the checks
+            vm_dict = {}
+            for vm in rows:
+                vm_dict[vm["hostname"]] = vm["target_alias"]
+                vm_dict[vm["hostname"] + "id"] = vm["vmid"]
+
+            where_clause = "htcondor_host_id='%s'" % config.local_host_id
+            rc, msg, groups = config.db_query(GROUPS, where=where_clause)
+            condor_hosts_set = set() # use a set here so we dont re-query same host if multiple groups have same host
+            for group in groups: 
+                if group.get("htcondor_container_hostname") is not None and group["htcondor_container_hostname"] != "":
+                    condor_hosts_set.add(group["htcondor_container_hostname"])
+                else:
+                    condor_hosts_set.add(group["htcondor_fqdn"])
+            for condor_host in condor_hosts_set:
+                condor_session = htcondor.Collector(condor_host)
+                # Retrieve machines.
+                try:
+                    condor_resources = condor_session.query(ad_type=htcondor.AdTypes.Startd, projection=resource_attributes)
+                except Exception as exc:
+                    logging.error("unable to retrieve condor classads:")
+                    logging.error(exc)
+                    break
+                for classad in condor_resources:
+                    condor_alias = classad["target_alias"]
+                    if condor_alias == "None":
+                        condor_alias = None
+                    try:
+                        csv2_alias = vm_dict[classad["Machine"]]
+                    except:
+                        # if we get here a VM is missing from the database but still exists in condor
+                        # we will skip any action here because we need to wait for the openstack poller to put the VM info back in
+                        logging.warning("VM detected in condor missing from csv2: %s   skipping alias update until machine exists in csv2..." % classad["Machine"])
+                        continue
+                    if condor_alias != csv2_alias:
+                        logging.info("alias mismatch detected: %s : %s" % (classad["target_alias"], vm_dict[classad["Machine"]]))
+                        split_host = classad["Machine"].split("--")
+                        vm_rw = {
+                            'group_name': split_host[0],
+                            'cloud_name': split_host[1],
+                            'target_alias': condor_alias,
+                            'vmid': vm_dict[classad["Machine"] + "id"]
+                        }
+                        config.db_merge(VMS, vm_rw)
+                        config.db_commit()
+
+                    else:
+                        logging.debug("no alias mismatch")
+
+            time.sleep(300)
+ 
+
+    except Exception as exc:
+        logging.exception("VM Alias Auditor while loop exception, process terminating...")
+        logging.error(exc)
+        config.db_close()
+
+
 if __name__ == '__main__':
 
     process_ids = {
@@ -1339,6 +1517,7 @@ if __name__ == '__main__':
         'machine':          machine_poller,
         'condor_gsi':       condor_gsi_poller,
         'worker_gsi':       worker_gsi_poller,
+        'alias_auditor':    alias_auditor,
     }
 
     db_category_list = ["condor_poller.py", "ProcessMonitor", "general", "signal_manager"]
@@ -1349,7 +1528,12 @@ if __name__ == '__main__':
     config = procMon.get_config()
     logging = procMon.get_logging()
     version = config.get_version()
+    is_hostname_localhost = config.is_hostname_localhost()
 
+    if is_hostname_localhost:
+        logging.error("Hostname can not be localhost, exiting...")
+        exit(1)
+    
     PID_FILE = config.categories["ProcessMonitor"]["pid_path"] + os.path.basename(sys.argv[0])
     with open(PID_FILE, "w") as fd:
         fd.write(str(os.getpid()))
@@ -1366,6 +1550,8 @@ if __name__ == '__main__':
             config.update_service_catalog()
             stop = check_pid(PID_FILE)
             procMon.check_processes(stop=stop)
+            if stop:
+                break
             time.sleep(config.categories["ProcessMonitor"]["sleep_interval_main_long"])
 
     except (SystemExit, KeyboardInterrupt):
@@ -1374,3 +1560,4 @@ if __name__ == '__main__':
         logging.exception("Process Died: %s", ex)
 
     procMon.kill_join_all()
+    exit(0)

@@ -29,6 +29,7 @@
             <div class="menu-target menu-position">
                 <form name="{{user.username}}" action="/user/settings/" method="post">
                     {% csrf_token %}
+                    <input type="hidden" name="group" value="{{ active_group }}" />
                     <table>
 
                         <tr class="highlight1"><td><label for="password1">New Password</label></td>
@@ -126,14 +127,16 @@
 
 </div>
 
-
-<div class="footer"
-    {% if response_code == 1 %}
+<div class="footer" id="message" onclick="clear_message()">
+    {% for message in messages %}
+    {% if message.level == DEFAULT_MESSAGE_LEVELS.ERROR %}
         <tr><td><b>Error: {{ message }}</b></td></tr>
-    {% elif message is not None %}
+    {% else %} 
         <tr><td>{{ message }}</td></tr>
     {% endif %}
+    {% endfor %}
 </div>
+
 
 {% endspaceless %}
 </body>

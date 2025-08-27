@@ -21,20 +21,22 @@
     var visited = {};
     var ec2_regions = {{ ec2_regions_list|safe }};
 
-    function clear_message() {
-        if (document.getElementById("message").innerHTML !== "") document.getElementById("message").innerHTML = "";
-    }
-
     function get_message() {
         if (sessionStorage.getItem("message")){
             document.getElementById("message").innerHTML = sessionStorage.getItem("message");
-            sessionStorage.setItem("response_code", "");
-            sessionStorage.setItem("message", "");
         }
+        sessionStorage.removeItem("message");
     }
 
+    function clear_message() {
+        if (document.getElementById("message").innerHTML !== "") document.getElementById("message").innerHTML = "";
+           request.session.removeItem("rc");
+           request.session.removeItem("message");
+    }
+
+
     function meta_fetch(cloudname , metaname) {
-        hide_meta_checksum();
+        hide_meta_date();
 
         var url='/cloud/metadata-fetch?{{active_group}}&cloud_name='+cloudname+'&metadata_name='+metaname;
         var frame='editor-'+cloudname+'-'+metaname;
@@ -46,7 +48,7 @@
     }
 
     function meta_add(cloudname) {
-        hide_meta_checksum();
+        hide_meta_date();
 
         var url='/cloud/metadata-new?{{active_group}}&cloud_name='+cloudname;
         var frame='editor-'+cloudname+'-add';
@@ -194,7 +196,7 @@
 <script rel="preload" type="text/javascript" src="{% static "csv2/editor.js" %}?{{version}}"></script>
 
 </head>
-<body class="clouds-nav" onpageshow="get_message(); set_location()" onclick="clear_message()">
+<body class="clouds-nav" onpageshow="get_message(); set_location()" >
 {% spaceless %}
 <div class="main-div {% if is_superuser %}super-main-div{% endif %}">
     <div class="menu">
@@ -214,12 +216,12 @@
                     <label class="tab-colour" for="{{cloud.cloud_name}}-settings">Settings</label>
                     <div class="tab-content">
 
-                        <form name="{{cloud.cloud_name}}" action="/cloud/update/#{{cloud.cloud_name}}" method="post" autocomplete="nope">
+                        <form name="{{cloud.cloud_name}}" action="/cloud/update/#{{cloud.cloud_name}}" method="post" autocomplete="nope" enctype="multipart/form-data"> 
                             {% csrf_token %}
                             <table><tr><td class="tab-tables">
 
                                 <table>
-                                    <input type="hidden" name="group" value="{{ cloud.group_name }}">
+                                    <input type="hidden" name="group" value="{{ cloud.group_name }}" />
                                     <input type="hidden" name="cloud_name" value="{{cloud.cloud_name}}" />
 
 
@@ -263,7 +265,7 @@
 
                                     <tr class="highlight3"><td><label for="authurl">URL</label></td>
                                     <td>
-                                    {% if cloud.cloud_type == "amazon" %}
+                                    {% if cloud.cloud_type == "amazon" or cloud.cloud_type == "oracle" %}
                                         <input type="text" name="authurl" id="{{cloud.cloud_name}}-authurl" value="{{cloud.authurl}}" readonly />
                                     {% else %}
                                         <input type="text" name="authurl" id="{{cloud.cloud_name}}-authurl" value="{{cloud.authurl}}" />
@@ -300,6 +302,51 @@
                                             <option value="app_creds" selected>Application Credentials</option>
                                         </td></tr>
                                     {% endif %}
+
+                                    <tr class="highlight3" ><td><label for="user_ocid">User OCID</label></td>
+                                       <td><input type="text" name="user_ocid" id="{{cloud.cloud_name}}-user_ocid" value="{{cloud.user_ocid}}"/></td>
+                                    </tr>
+                                  
+                                    <tr class="highlight3"><td><label for="user_fingerprint">User Fingerprint</label></td>
+                                       <td><input type="text" name="user_fingerprint" id="{{cloud.cloud_name}}-user_fingerprint" value="{{cloud.user_fingerprint}}"/></td>
+                                    </tr>
+
+                                    <tr class="highlight3"><td><label for="tenancy_ocid">Tenancy OCID</label></td>
+                                       <td><input type="text" name="tenancy_ocid" id="{{cloud.cloud_name}}=tenancy_ocid" value="{{cloud.tenancy_ocid}}"/></td>
+                                    </tr>
+
+                                    <tr class="highlight3"><td><label for="api_private_key">API Private Key</label></td>
+                                       <td><input type="file" name="api_private_key" id="{{cloud.cloud_name}}-api_private_key" value="{{cloud.api_private_key}}"/></td>
+                                    </tr>
+
+                                    <tr class="highlight3"><td><label for="oci_availability_domain">OCI Availability Domain</label></td>
+                                        <td><select name="oci_availability_domain" class="dropdown"/>
+                                        <option value="">Use group default</option>
+                                        <option value="None" {% if cloud.oci_availability_domain == "None" %}selected{% endif %}>Ignore group default</option>
+                                        {% for domain in oci_availability_domain_list %}
+                                            {% if domain.cloud_name == cloud.cloud_name %}
+                                                {% if domain.name == cloud.oci_availability_domain %}
+                                                    <option value="{{ domain.name }}" selected>{{ domain.name }}</option>
+                                                {% else %}
+                                                    <option value="{{ domain.name }}">{{ domain.name }}</option>
+                                                {% endif %}
+                                            {% endif %}   
+                                        {% endfor %}
+                                    </tr>
+                                    <tr class="highlight3"><td><label for="oci_compartment">OCI Compartment</label></td>
+                                        <td><select name="oci_compartment" class="dropdown"/>
+                                        <option value="">Use group default</option>
+                                        <option value="None" {% if cloud.oci_availability_domain == "None" %}selected{% endif %}>Ignore group default</option>
+                                        {% for compartment in oci_compartment_list %}
+                                            {% if compartment.cloud_name == cloud.cloud_name %}
+                                                {% if compartment.name == cloud.oci_compartment %}
+                                                    <option value="{{ compartment.name }}" selected>{{ compartment.name }}</option>
+                                                {% else %}
+                                                    <option value="{{ compartment.name }}">{{ compartment.name }}</option>
+                                                {% endif %}
+                                            {% endif %}   
+                                        {% endfor %}
+                                    </tr>
 
                                     <tr class="highlight3"><td><label for="project">Project</label></td>
                                     {% if cloud.cloud_type == "amazon" %}
@@ -579,15 +626,15 @@
 
                 <div class="tab">
                     <input id="{{cloud.cloud_name}}-metadata" type="radio" name="tabs" onclick="save_location('{{cloud.cloud_name}}', 'metadata'); check_target('{{cloud.cloud_name}}-hide')" />
-                    <label class="tab-colour" for="{{cloud.cloud_name}}-metadata" onclick="show_meta_checksum()">Metadata</label>
-                    <div class="tab-content meta-div show-checksum" id="meta-list-tab">
+                    <label class="tab-colour" for="{{cloud.cloud_name}}-metadata" onclick="show_meta_date()">Metadata</label>
+                    <div class="tab-content meta-div show-date" id="meta-list-tab">
 
                         {% for key, value in metadata_dict.items %}
 
                             {% for meta in value|keyvalue:cloud.cloud_name %}
 
                                 <div style="display: flex">
-                                    <div class="tab2 checksum-label">
+                                    <div class="tab2 date-label">
                                         <input id="{{cloud.cloud_name}}-metadata-{{meta}}" type="radio" name="tabs2" onclick="meta_fetch('{{cloud.cloud_name}}', '{{meta}}')" />
                                         <label class="tab2-colour{% if not value|keyvalue:cloud.cloud_name|keyvalue:meta|keyvalue:'metadata_enabled' %} disabled-style{% endif %}" for="{{cloud.cloud_name}}-metadata-{{meta}}">{{meta}}</label>
                                         <div class="tab2-content">
@@ -595,14 +642,14 @@
                                         </div>
                                     </div>
                                     {% if value|keyvalue:cloud.cloud_name|keyvalue:meta|keyvalue:'metadata_checksum' %}
-                                        <label class="checksum-text" style="display: inline">MD5 Checksum: {{value|keyvalue:cloud.cloud_name|keyvalue:meta|keyvalue:'metadata_checksum'}}</label>
+                                        <label class="date-text" style="display: inline">Last Updated: {{value|keyvalue:cloud.cloud_name|keyvalue:meta|keyvalue:'metadata_updated'}}</label>
                                     {% endif %}
                                  </div>
 
                             {% endfor %}
                         {% endfor %}
 
-                        <div class="tab2 checksum-label">
+                        <div class="tab2 date-label">
                             <input id="{{cloud.cloud_name}}-metadata-add" type="radio" name="tabs2" onclick="meta_add('{{cloud.cloud_name}}')">
                             <label class="tab2-colour" for="{{cloud.cloud_name}}-metadata-add">+</label>
                             <div class="tab2-content">
@@ -712,7 +759,7 @@
         <div id="add-cloud">
             <a href="#add-cloud" class="menu-link add-link">&plus;</a>
             <div class="menu-target">
-                <form name="add_cloud" action="/cloud/add/" method="post" onsubmit="new_location()">
+                <form name="add_cloud" action="/cloud/add/" method="post" onsubmit="new_location()" enctype="multipart/form-data">
                     {% csrf_token %}
                     <div class="menu-position">
                         <table>
@@ -747,7 +794,19 @@
 
                             <tr class="highlight3"><td><label for="authurl">URL</label></td>
                             <td><input type="text" name="authurl" id="add-authurl" value="{{cloud_add.authurl}}" /></td></tr>
+
+                            <tr class="highlight3"><td><label for="user_ocid">User OCID</label></td>
+                            <td id="add-user_ocid"><input type="text" name="user_ocid" value="{{cloud_add.user_ocid}}" /></td></tr>
+
+                            <tr class="highlight3"><td><label for="user_fingerprint">User fingerprint</label></td>
+                            <td id="add-user_fingerprint"><input type="text" name="user_fingerprint" value="{{cloud_add.user_fingerprint}}" /></td></tr>
+
+                            <tr class="highlight3"><td><label for="tenancy_ocid">Tenancy OCID</label></td>
+                            <td id="add-tenancy_ocid"><input type="text" name="tenancy_ocid" value="{{cloud_add.tenancy_ocid}}" /></td></tr>
                             
+                            <tr class="highlight3"><td><label for="api_private_key">API Private Key</label></td>
+                            <td id="add-api_private_key"><input type="file" name="api_private_key" value="{{cloud_add.api_private_key}}" /></td></tr>
+
                             <tr class="highlight3"><td><label for="region">Region</label></td>
                             <td id="add-region"><input type="text" name="region" value="{{cloud_add.region}}" /></td></tr>
 
@@ -814,12 +873,14 @@
     </div>
 </div>
 
-<div class="footer{% if response_code == 0 %} success-msg{% endif %}" id="message">
-    {% if response_code == 1 %}
-        <tr><td><b>Error: {{ message }}</b></td></tr>
-    {% elif message is not None %}
-        <tr><td>{{ message }}</td></tr>
-    {% endif %}
+<div class="footer" id="message" onclick="clear_message()">
+    {% for message in messages %}
+        {% if message.level == DEFAULT_MESSAGE_LEVELS.ERROR %}
+            <tr><td><b>Error: {{ message }} </b></td></tr>
+        {% else %}
+            <tr><td>{{ message }}</td></tr>
+        {% endif %}
+    {% endfor %}
 </div>
 
 

@@ -5,6 +5,8 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.views.decorators.csrf import requires_csrf_token
 from django.http import HttpResponse
 from django.core.exceptions import PermissionDenied
+from django.contrib import messages
+import time
 
 from cloudscheduler.lib.fw_config import configure_fw 
 from cloudscheduler.lib.view_utils import \
@@ -18,6 +20,7 @@ from cloudscheduler.lib.view_utils import \
     validate_by_filtered_table_entries, \
     validate_fields, \
     get_file_checksum
+
 from collections import defaultdict
 import bcrypt
 
@@ -171,12 +174,17 @@ def add(request):
     # open the database.
     config.db_open()
     config.refresh()
-
+    
+    group = request.POST["group"] if "group" in request.POST else None
+    
     # Retrieve the active user, associated group list and optionally set the active group.
     rc, msg, active_user = set_user_groups(config, request)
     if rc != 0:
         config.db_close()
-        return group_list(request, active_user=active_user, response_code=1, message='%s %s' % (lno(MODID), msg))
+        message = '%s %s' % (lno(MODID), msg)
+        request.session["response"] = {"message": message, "response_code": 1, "group": group}
+        return redirect("/group/list/")
+        #return group_list(request, active_user=active_user, response_code=1, message='%s %s' % (lno(MODID), msg))
 
     if request.method == 'POST':
         
@@ -184,57 +192,84 @@ def add(request):
         rc, msg, fields, tables, columns = validate_fields(config, request, [GROUP_KEYS, GROUP_ADD_KEYS], ['csv2_groups', 'csv2_user_groups', 'csv2_user,n', 'csv2_group_metadata,n'], active_user)
         if rc != 0:
             config.db_close()
-            return group_list(request, active_user=active_user, response_code=1, message='%s group add %s' % (lno(MODID), msg))
+            message = '%s group add %s' % (lno(MODID), msg)
+            request.session["response"] = {"message": message, "response_code": 1, "group": group}
+            return redirect("/group/list/")
+            #return group_list(request, active_user=active_user, response_code=1, message='%s group add %s' % (lno(MODID), msg))
 
         if 'vm_flavor' in fields and fields['vm_flavor']:
             rc, msg = validate_by_filtered_table_entries(config, fields['vm_flavor'], 'vm_flavor', 'cloud_flavors', 'name', [['group_name', fields['group_name']]])
             if rc != 0:
                 config.db_close()
-                return group_list(request, active_user=active_user, response_code=1, message='%s group add, "%s" failed - %s.' % (lno(MODID), fields['group_name'], msg))
+                message = '%s group add, "%s" failed - %s.' % (lno(MODID), fields['group_name'], msg)
+                request.session["response"] = {"message": message, "response_code": 1, "group": group}
+                return redirect("/group/list/")
+                #return group_list(request, active_user=active_user, response_code=1, message='%s group add, "%s" failed - %s.' % (lno(MODID), fields['group_name'], msg))
         if 'vm_image' in fields and fields['vm_image']:
             rc, msg = validate_by_filtered_table_entries(config, fields['vm_image'], 'vm_image', 'cloud_images', 'name', [['group_name', fields['group_name']]])
             if rc != 0:
                 config.db_close()
-                return group_list(request, active_user=active_user, response_code=1, message='%s group add, "%s" failed - %s.' % (lno(MODID), fields['group_name'], msg))
+                message = '%s group add, "%s" failed - %s.' % (lno(MODID), fields['group_name'], msg)
+                request.session["response"] = {"message": message, "response_code": 1, "group": group}
+                return redirect("/group/list/")
+                #return group_list(request, active_user=active_user, response_code=1, message='%s group add, "%s" failed - %s.' % (lno(MODID), fields['group_name'], msg))
 
         if 'vm_keyname' in fields and fields['vm_keyname']:
             rc, msg = validate_by_filtered_table_entries(config, fields['vm_keyname'], 'vm_keyname', 'cloud_keypairs', 'key_name', [['group_name', fields['group_name']]])
             if rc != 0:
                 config.db_close()
-                return group_list(request, active_user=active_user, response_code=1, message='%s group add, "%s" failed - %s.' % (lno(MODID), fields['group_name'], msg))
+                message = '%s group add, "%s" failed - %s.' % (lno(MODID), fields['group_name'], msg)
+                request.session["response"] = {"message": message, "response_code": 1, "group": group}
+                return redirect("/group/list/")
+                #return group_list(request, active_user=active_user, response_code=1, message='%s group add, "%s" failed - %s.' % (lno(MODID), fields['group_name'], msg))
 
         if 'vm_network' in fields and fields['vm_network']:
             rc, msg = validate_by_filtered_table_entries(config, fields['vm_network'], 'vm_network', 'cloud_networks', 'name', [['group_name', fields['group_name']]])
             if rc != 0:
                 config.db_close()
-                return group_list(request, active_user=active_user, response_code=1, message='%s group add, "%s" failed - %s.' % (lno(MODID), fields['group_name'], msg))
+                message = '%s group add, "%s" failed - %s.' % (lno(MODID), fields['group_name'], msg)
+                request.session["response"] = {"message": message, "response_code": 1, "group": group}
+                return redirect("/group/list/")
+                #return group_list(request, active_user=active_user, response_code=1, message='%s group add, "%s" failed - %s.' % (lno(MODID), fields['group_name'], msg))
 
         if 'vm_security_groups' in fields and fields['vm_security_groups']:
             rc, msg = validate_by_filtered_table_entries(config, fields['vm_security_groups'], 'vm_security_groups', 'cloud_security_groups', 'name', [['group_name', fields['group_name']]], allow_value_list=True)
             if rc != 0:
                 config.db_close()
-                return group_list(request, active_user=active_user, response_code=1, message='%s group add, "%s" failed - %s.' % (lno(MODID), fields['group_name'], msg))
+                message = '%s group add, "%s" failed - %s.' % (lno(MODID), fields['group_name'], msg)
+                request.session["response"] = {"message": message, "response_code": 1, "group": group}
+                return redirect("/group/list/")
+                #return group_list(request, active_user=active_user, response_code=1, message='%s group add, "%s" failed - %s.' % (lno(MODID), fields['group_name'], msg))
 
         # Validity check the specified users.
         if 'username' in fields:
             rc, msg = manage_user_group_verification(config, tables, fields['username'], None) 
             if rc != 0:
                 config.db_close()
-                return group_list(request, active_user=active_user, response_code=1, message='%s group add, "%s" failed - %s.' % (lno(MODID), fields['group_name'], msg))
+                message = '%s group add, "%s" failed - %s.' % (lno(MODID), fields['group_name'], msg)
+                request.session["response"] = {"message": message, "response_code": 1, "group": group}
+                return redirect("/group/list/")
+                #return group_list(request, active_user=active_user, response_code=1, message='%s group add, "%s" failed - %s.' % (lno(MODID), fields['group_name'], msg))
 
         # Add the group.
         table = 'csv2_groups'
         rc, msg = config.db_insert(table, table_fields(fields, table, columns, 'insert'))
         if rc != 0:
             config.db_close()
-            return group_list(request, active_user=active_user, response_code=1, message='%s group add "%s" failed - %s.' % (lno(MODID), fields['group_name'], msg))
+            message = '%s group add, "%s" failed - %s.' % (lno(MODID), fields['group_name'], msg)
+            request.session["response"] = {"message": message, "response_code": 1, "group": group}
+            return redirect("/group/list/")
+            #return group_list(request, active_user=active_user, response_code=1, message='%s group add "%s" failed - %s.' % (lno(MODID), fields['group_name'], msg))
 
         # Add user_groups.
         if 'username' in fields:
             rc, msg = manage_group_users(config, tables, fields['group_name'], fields['username'])
             if rc != 0:
                 config.db_close()
-                return group_list(request, active_user=active_user, response_code=1, message='%s group add "%s" failed - %s.' % (lno(MODID), fields['group_name'], msg))
+                message = '%s group add, "%s" failed - %s.' % (lno(MODID), fields['group_name'], msg)
+                request.session["response"] = {"message": message, "response_code": 1, "group": group}
+                return redirect("/group/list/")
+                #return group_list(request, active_user=active_user, response_code=1, message='%s group add "%s" failed - %s.' % (lno(MODID), fields['group_name'], msg))
 
 
         # Add the default metadata file.
@@ -249,12 +284,16 @@ def add(request):
             "enabled": 1,
             "priority": 0,
             "metadata": filedata,
-            "mime_type": "cloud-config"
+            "mime_type": "cloud-config",
+            "last_updated": int(time.time())
         }
         rc, msg = config.db_insert(table, meta_dict)
         if rc != 0:
             config.db_close()
-            return group_list(request, active_user=active_user, response_code=1, message='%s group add "%s" failed - %s.' % (lno(MODID), fields['group_name'], msg))
+            message = '%s group add, "%s" failed - %s.' % (lno(MODID), fields['group_name'], msg)
+            request.session["response"] = {"message": message, "response_code": 1, "group": group}
+            return redirect("/group/list/")
+            #return group_list(request, active_user=active_user, response_code=1, message='%s group add "%s" failed - %s.' % (lno(MODID), fields['group_name'], msg))
 
 
         # Commit the updates, configure firewall and return.
@@ -266,7 +305,10 @@ def add(request):
     ### Bad request.
     else:
         config.db_close()
-        return group_list(request, active_user=active_user, response_code=1, message='%s group add, invalid method "%s" specified.' % (lno(MODID), request.method))
+        message = '%s group add, invalid method "%s" specified.' % (lno(MODID), request.method)
+        request.session["response"] = {"message": message, "response_code": 1, "group": group}
+        return redirect("/group/list/")
+        #return group_list(request, active_user=active_user, response_code=1, message='%s group add, invalid method "%s" specified.' % (lno(MODID), request.method))
 
 #-------------------------------------------------------------------------------
 
@@ -279,8 +321,7 @@ def defaults(request, active_user=None, response_code=0, message=None):
     print("Request (GV:Defaults):", request)
     
     # open the database.
-    config.db_open()
-
+    config.db_open()    
     # Retrieve the active user, associated group list and optionally set the active group.
     rc, msg, active_user = set_user_groups(config, request, super_user=False)
     if rc == 0:
@@ -291,7 +332,10 @@ def defaults(request, active_user=None, response_code=0, message=None):
             rc, msg, fields, tables, columns = validate_fields(config, request, [UNPRIVILEGED_GROUP_KEYS], ['csv2_groups'], active_user)
             if rc != 0:
                 config.db_close()
-                return render(request, 'csv2/group_defaults.html', {'response_code': 1, 'message': '%s default update/list %s' % (lno(MODID), msg), 'active_user': active_user.username, 'active_group': active_user.active_group, 'user_groups': active_user.user_groups})
+                message = '%s default update/list %s' % (lno(MODID), msg)
+                request.session["response"] = {"message": message, "response_code": 1, "group": request.POST["group"] if "group" in request.POST else None}
+                return redirect("/group/defaults/")
+                #return render(request, 'csv2/group_defaults.html', {'response_code': 1, 'message': '%s default update/list %s' % (lno(MODID), msg), 'active_user': active_user.username, 'active_group': active_user.active_group, 'user_groups': active_user.user_groups})
 
             if rc == 0 and ('vm_flavor' in fields) and (fields['vm_flavor']):
                 rc, msg = validate_by_filtered_table_entries(config, fields['vm_flavor'], 'vm_flavor', 'cloud_flavors', 'name', [['group_name', fields['group_name']]])
@@ -408,20 +452,43 @@ def defaults(request, active_user=None, response_code=0, message=None):
                     'metadata_enabled',
                     'metadata_priority',
                     'metadata_mime_type',
-                    'metadata_checksum'
+                    'metadata_checksum',
+                    'metadata_updated'
                     ]
                 },
             prune=['password']    
             )
+        for x, metadata in metadata_dict.items():
+            for y, obj in metadata.items():
+                for z in obj:
+                    if z == 'metadata_updated':
+                        temp = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(obj[z]))
+                        obj[z] = temp
         if active_user.active_group and metadata_dict.get(active_user.active_group):
             curr_dict = metadata_dict[active_user.active_group]
             metadata_dict[active_user.active_group] = dict(sorted(curr_dict.items(), key=lambda x:x[1].get('metadata_priority')))
   
-    # Render the page.
+    group = None
+    if "response" in request.session:
+        response = request.session.get("response")
+        message = response["message"]
+        rc = response["response_code"]
+        group = response["group"]
+        del request.session["response"]
+        
+    active_group = group if group else active_user.active_group
     final_rc = rc if pre_rc == 0 else pre_rc
+
+    if message:
+        if final_rc == 0:
+            messages.info(request, message)
+        else:
+            messages.error(request, message)
+
+    # Render the page.
     context = {
             'active_user': active_user.username,
-            'active_group': active_user.active_group,
+            'active_group': active_group,
             'user_groups': active_user.user_groups,
             'defaults_list': defaults_list,
             'image_list': image_list,
@@ -437,6 +504,7 @@ def defaults(request, active_user=None, response_code=0, message=None):
         }
 
     config.db_close()
+
     return render(request, 'csv2/group_defaults.html', context)
 
 
@@ -601,6 +669,15 @@ def delete(request):
             config.db_close()
             return group_list(request, active_user=active_user, response_code=1, message='%s group flavors delete "%s" failed - %s.' % (lno(MODID), fields['group_name'], msg))
 
+        # if group being deleted is active_user.active_group switch away from the group
+        if fields['group_name'] == active_user.active_group:
+            if active_user.default_group != None and active_user.default_group != active_user.active_group:
+                active_user.active_group = active_user.default_group
+            elif len(active_user.user_groups) > 0:
+                active_user.active_group = active_user.user_groups[0]
+            else:
+                active_user.active_group = '-'
+        
         # Delete the group.
         table = 'csv2_groups'
         rc, msg = config.db_delete(table, where=where_clause)
@@ -626,7 +703,15 @@ def delete(request):
 def group_list(request, active_user=None, response_code=0, message=None):
 
     group_list_path = '/group/list/'
-
+    
+    group = None
+    if "response" in request.session:
+        response = request.session.get("response")
+        message = response["message"]
+        response_code = response["response_code"]
+        group = response["group"]
+        del request.session["response"]
+        
     if request.path!=group_list_path and request.META['HTTP_ACCEPT'] == 'application/json':
         return render(request, 'csv2/clouds.html', {'response_code': response_code, 'message': message, 'active_user': active_user.username, 'active_group': active_user.active_group, 'user_groups': active_user.user_groups})
 
@@ -693,10 +778,17 @@ def group_list(request, active_user=None, response_code=0, message=None):
     else:
         current_group = ''
 
+    if message:
+        if response_code == 0:
+            messages.success(request, message)
+        else:
+            messages.error(request, message)
+    
+    active_group = group if group else active_user.active_group
     # Render the page.
     context = {
             'active_user': active_user.username,
-            'active_group': active_user.active_group,
+            'active_group': active_group,
             'user_groups': active_user.user_groups,
             'group_defaults': group_defaults,
             'group_list': _group_list,
@@ -737,6 +829,7 @@ def metadata_add(request):
             config.db_close()
             return metadata_new(request, active_user, response_code=1, message='%s group metadata-add %s' % (lno(MODID), msg))
         
+        fields['last_updated']= int(time.time())
         if fields.get('metadata'):
             fields['metadata'] = config.replace_backslash_content(fields.get('metadata'))
         
@@ -867,6 +960,7 @@ def metadata_fetch(request, response_code=0, message=None, metadata_name=None):
                     'metadata_name': row["metadata_name"],
                     'mime_types_list': mime_types_list,
                     'metadata_checksum': row["checksum"],
+                    'metadata_updated': time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(row['last_updated'])),
                     'response_code': response_code,
                     'message': message,
                     'is_superuser': active_user.is_superuser,
@@ -954,6 +1048,7 @@ def metadata_new(request, active_user=None, response_code=0, message='new-group-
         'metadata_priority': 0,
         'metadata_mime_type': "",
         'metadata_name': "",
+        'metadata_updated': time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(time.time())),
         'mime_types_list': mime_types_list,
         'response_code': response_code,
         'action_type': "new-group-metadata",
@@ -1030,7 +1125,7 @@ def metadata_update(request):
     if request.method == 'POST':
         # Validate input fields.
         rc, msg, fields, tables, columns = validate_fields(config, request, [METADATA_KEYS], ['csv2_group_metadata'], active_user)
-        
+
         if rc != 0:
             config.db_close()
             metadata_name = request.POST.get("metadata_name")
@@ -1044,14 +1139,16 @@ def metadata_update(request):
         if fields.get('metadata') or fields.get('metadata') == '':
             fields['checksum'] = get_file_checksum(fields['metadata'].encode('utf-8'))
 
+        fields['last_updated'] = int(time.time())
         # Update the group metadata file.
         table = 'csv2_group_metadata'
         updates = table_fields(fields, table, columns, 'update')
-        if len(updates) < 3: #updates always have to have the keys so (name & group) so unless there is 3 fields there is no update to do.
+        if len(updates) < 4: #updates always have to have the keys so (name & group) so unless there is 3 fields there is no update to do.
             config.db_close()
             return metadata_fetch(request, response_code=1, message='%s group metadata-update "%s::%s" specified no fields to update and was ignored.' % (lno(MODID), active_user.active_group, fields['metadata_name']), metadata_name=fields['metadata_name'])
 
         where_clause = 'group_name="%s" and metadata_name="%s"' % (active_user.active_group, fields['metadata_name'])
+        
         
         # Check if metadata file exists
         rc, msg, found_metadata_list = config.db_query(table, where=where_clause)
@@ -1089,11 +1186,16 @@ def update(request):
     config.db_open()
     config.refresh()
 
+    group = request.POST["group"] if "group" in request.POST else None
+
     # Retrieve the active user, associated group list and optionally set the active group.
     rc, msg, active_user = set_user_groups(config, request)
     if rc != 0:
         config.db_close()
-        return group_list(request, active_user=active_user, response_code=1, message='%s %s' % (lno(MODID), msg))
+        message =  '%s %s.' % (lno(MODID), msg)
+        request.session["response"] = {"message": message, "response_code": 1, "group": group}
+        return redirect("/group/list/")
+        #return group_list(request, active_user=active_user, response_code=1, message='%s %s' % (lno(MODID), msg))
 
     if request.method == 'POST':
 
@@ -1101,44 +1203,65 @@ def update(request):
         rc, msg, fields, tables, columns = validate_fields(config, request, [GROUP_KEYS], ['csv2_groups','csv2_user_groups', 'csv2_user,n'], active_user)
         if rc != 0:
             config.db_close()
-            return group_list(request, active_user=active_user, response_code=1, message='%s group update %s' % (lno(MODID), msg))
+            message = '%s group update %s' % (lno(MODID), msg)
+            request.session["response"] = {"message": message, "response_code": 1, "group": group}
+            return redirect("/group/list/")
+            #return group_list(request, active_user=active_user, response_code=1, message='%s group update %s' % (lno(MODID), msg))
 
         if 'vm_flavor' in fields and fields['vm_flavor']:
             rc, msg = validate_by_filtered_table_entries(config, fields['vm_flavor'], 'vm_flavor', 'cloud_flavors', 'name', [['group_name', fields['group_name']]])
             if rc != 0:
                 config.db_close()
-                return group_list(request, active_user=active_user, response_code=1, message='%s group update, "%s" failed - %s.' % (lno(MODID), fields['group_name'], msg))
+                message = '%s group update, "%s" failed - %s.' % (lno(MODID), fields['group_name'], msg)
+                request.session["response"] = {"message": message, "response_code": 1, "group": group}
+                return redirect("/group/list/")
+                #return group_list(request, active_user=active_user, response_code=1, message='%s group update, "%s" failed - %s.' % (lno(MODID), fields['group_name'], msg))
 
         if 'vm_image' in fields and fields['vm_image']:
             rc, msg = validate_by_filtered_table_entries(config, fields['vm_image'], 'vm_image', 'cloud_images', 'name', [['group_name', fields['group_name']]])
             if rc != 0:
                 config.db_close()
-                return group_list(request, active_user=active_user, response_code=1, message='%s group update, "%s" failed - %s.' % (lno(MODID), fields['group_name'], msg))
+                message = '%s group update, "%s" failed - %s.' % (lno(MODID), fields['group_name'], msg)
+                request.session["response"] = {"message": message, "response_code": 1, "group": group}
+                return redirect("/group/list/")
+                #return group_list(request, active_user=active_user, response_code=1, message='%s group update, "%s" failed - %s.' % (lno(MODID), fields['group_name'], msg))
 
         if 'vm_keyname' in fields and fields['vm_keyname']:
             rc, msg = validate_by_filtered_table_entries(config, fields['vm_keyname'], 'vm_keyname', 'cloud_keypairs', 'key_name', [['group_name', fields['group_name']]])
             if rc != 0:
                 config.db_close()
-                return group_list(request, active_user=active_user, response_code=1, message='%s group update, "%s" failed - %s.' % (lno(MODID), fields['group_name'], msg))
+                message = '%s group update, "%s" failed - %s.' % (lno(MODID), fields['group_name'], msg)
+                request.session["response"] = {"message": message, "response_code": 1, "group": group}
+                return redirect("/group/list/")
+                #return group_list(request, active_user=active_user, response_code=1, message='%s group update, "%s" failed - %s.' % (lno(MODID), fields['group_name'], msg))
 
         if 'vm_network' in fields and fields['vm_network']:
             rc, msg = validate_by_filtered_table_entries(config, fields['vm_network'], 'vm_network', 'cloud_networks', 'name', [['group_name', fields['group_name']]])
             if rc != 0:
                 config.db_close()
-                return group_list(request, active_user=active_user, response_code=1, message='%s group update, "%s" failed - %s.' % (lno(MODID), fields['group_name'], msg))
+                message = '%s group update, "%s" failed - %s.' % (lno(MODID), fields['group_name'], msg)
+                request.session["response"] = {"message": message, "response_code": 1, "group": group}
+                return redirect("/group/list/")
+                #return group_list(request, active_user=active_user, response_code=1, message='%s group update, "%s" failed - %s.' % (lno(MODID), fields['group_name'], msg))
 
         if 'vm_security_groups' in fields and fields['vm_security_groups']:
             rc, msg = validate_by_filtered_table_entries(config, fields['vm_security_groups'], 'vm_security_groups', 'cloud_security_groups', 'name', [['group_name', fields['group_name']]], allow_value_list=True)
             if rc != 0:
                 config.db_close()
-                return group_list(request, active_user=active_user, response_code=1, message='%s group update, "%s" failed - %s.' % (lno(MODID), fields['group_name'], msg))
+                message = '%s group update, "%s" failed - %s.' % (lno(MODID), fields['group_name'], msg)
+                request.session["response"] = {"message": message, "response_code": 1, "group": group}
+                return redirect("/group/list/")
+                #return group_list(request, active_user=active_user, response_code=1, message='%s group update, "%s" failed - %s.' % (lno(MODID), fields['group_name'], msg))
 
         # Validity check the specified users.
         if 'username' in fields:
             rc, msg = manage_user_group_verification(config, tables, fields['username'], None) 
             if rc != 0:
                 config.db_close()
-                return group_list(request, active_user=active_user, response_code=1, message='%s group update, "%s" failed - %s.' % (lno(MODID), fields['group_name'], msg))
+                message = '%s group update, "%s" failed - %s.' % (lno(MODID), fields['group_name'], msg)
+                request.session["response"] = {"message": message, "response_code": 1, "group": group}
+                return redirect("/group/list/")
+                #return group_list(request, active_user=active_user, response_code=1, message='%s group update, "%s" failed - %s.' % (lno(MODID), fields['group_name'], msg))
 
         # Update the group.
         table = 'csv2_groups'
@@ -1155,7 +1278,10 @@ def update(request):
 
             if not found_group_list or len(found_group_list) == 0:
                 config.db_close()
-                return group_list(request, active_user=active_user, response_code=1, message='%s group update, "%s" failed - the request did not match any rows.' % (lno(MODID), fields['group_name']))
+                message = '%s group update, "%s" failed - the request did not match any rows.' % (lno(MODID), fields['group_name'])
+                request.session["response"] = {"message": message, "response_code": 1, "group": group}
+                return redirect("/group/list/")
+                #return group_list(request, active_user=active_user, response_code=1, message='%s group update, "%s" failed - the request did not match any rows.' % (lno(MODID), fields['group_name']))
 
             # Check if public visibility has changed
             visibility_changed = (found_group_list[0]["public_visibility"] != fields["public_visibility"]) if "public_visibility" in fields else False
@@ -1163,11 +1289,17 @@ def update(request):
             rc, msg = config.db_update(table, group_updates, where=where_clause)
             if rc != 0:
                 config.db_close()
-                return group_list(request, active_user=active_user, response_code=1, message='%s group update, "%s" failed - %s.' % (lno(MODID), fields['group_name'], msg))
+                message = '%s group update, "%s" failed - %s.' % (lno(MODID), fields['group_name'], msg)
+                request.session["response"] = {"message": message, "response_code": 1, "group": group}
+                return redirect("/group/list/")
+                #return group_list(request, active_user=active_user, response_code=1, message='%s group update, "%s" failed - %s.' % (lno(MODID), fields['group_name'], msg))
         else:
             if 'username' not in fields and request.META['HTTP_ACCEPT'] == 'application/json':
                 config.db_close()
-                return group_list(request, active_user=active_user, response_code=1, message='%s group update must specify at least one field to update.' % lno(MODID))
+                message = '%s group update must specify at least one field to update.' % lno(MODID)
+                request.session["response"] = {"message": message, "response_code": 1, "group": group}
+                return redirect("/group/list/")
+                #return group_list(request, active_user=active_user, response_code=1, message='%s group update must specify at least one field to update.' % lno(MODID))
             
             visibility_changed = False
 
@@ -1196,13 +1328,21 @@ def update(request):
             if visibility_changed: generate_static_page(config, interval_override=True)
 
             config.db_close()
-            
-            return group_list(request, active_user=active_user, response_code=0, message='group "%s" successfully updated.' % (fields['group_name']))
+            message = 'group "%s" successfully updated.' % (fields['group_name'])
+            request.session["response"] = {"message": message, "response_code": 0, "group": group}
+            return redirect("/group/list/")
+            #return group_list(request, active_user=active_user, response_code=0, message='group "%s" successfully updated.' % (fields['group_name']))
         else:
             config.db_close()
-            return group_list(request, active_user=active_user, response_code=1, message='%s group update "%s" failed - %s.' % (lno(MODID), fields['group_name'], msg))
+            message = '%s group update "%s" failed - %s.' % (lno(MODID), fields['group_name'], msg)
+            request.session["response"] = {"message": message, "response_code": 1, "group": group}
+            return redirect("/group/list/")
+            #return group_list(request, active_user=active_user, response_code=1, message='%s group update "%s" failed - %s.' % (lno(MODID), fields['group_name'], msg))
 
     ### Bad request.
     else:
-        return group_list(request, active_user=active_user, response_code=1, message='%s group update, invalid method "%s" specified.' % (lno(MODID), request.method))
+        message = '%s group update, invalid method "%s" specified.' % (lno(MODID), request.method)
+        request.session["response"] = {"message": message, "response_code": 1, "group": group}
+        return redirect("/group/list/")
+        #return group_list(request, active_user=active_user, response_code=1, message='%s group update, invalid method "%s" specified.' % (lno(MODID), request.method))
 

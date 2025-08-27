@@ -86,8 +86,36 @@
             </div>
         </div>
     </div>
+    <!-- custom date filtering dropdown menu-->
+    <div class="filter-dropdown">
+        <button id="filter-select" class="filter-btn" onclick="dropDownFilter()">Custom Filter<span class="space"></span>
+            <span class="caret"></span>
+        </button>
+        <div id="myFilterDropdown" class="filter-content">
+            <form id="filter-form">
+                <a>Start Date:</a>
+                <input type="datetime-local" id="start-date" class="filter-input" onchange="validate()" required>
+                <a>End Date:</a>
+                <input type="datetime-local" id="end-date" class="filter-input" onchange="validate()" required>
+                <span id="date-error" class="date-error"></span>
+                <button type="submit" id="apply-filter" class="filter">Apply</button></a>
+            </form>
+        </div>
+    </div>
     <button id="close-plot" class="close-btn" onclick="TSPlot.hide()">Close Plot</button>
-    <button id="download-plot" class="download-plot-btn" onclick="downloadPlot()">&#11015;</button>
+    <div class="resolution-dropdown">
+        <button id="download-plot" class="download-plot-btn" onclick="dropDownResolution()">&#11015;</button>
+        <div id="myResolutionDropdown" class="resolution-content">
+            <form id="resolution-form"> 
+                <a>Width: </a>
+                <input type="number" step="1" id="resolution-width" class="resolution-input"  onchange="validateResolution(true)" value="800" required>
+                <a>Height: </a>
+                <input type="number" step="1" id="resolution-height" class="resolution-input" onchange="validateResolution()" value="400" required>
+                <span id="resolution-error" class="date-error"></span>
+                <button type="submit" id="select-resolution" class="resolution">Download</button>
+            </form>
+        </div>
+    </div>
 </div>
 
 <!-- Status tables-->
@@ -297,20 +325,6 @@
                                 </td>
 
                                 <td class="col-spacer">&nbsp;</td>
-
-
-                                <td data-path="{{group.group_name}} jobs_condor_days_left" class="zero-style float-center">
-                                {% if group.condor_days_left %}
-                                    Days left:<br>{{group.condor_days_left}}
-                                {% else %}
-                                    </td>
-                                {% endif %}
-                                <td data-path="{{group.group_name}} jobs_worker_days_left" class="zero-style float-center">
-                                {% if group.worker_days_left %}
-                                    Days left:<br>{{group.worker_days_left}}
-                                {% else %}
-                                    </td>
-                                {% endif %}
                             </tr>
                         {% endif %}
                     {% endfor %}
@@ -979,18 +993,22 @@
         /*Add event listeners once page loads*/
         initialize();
         addEventListeners("range");
+        addEventListeners("filter");
+        addEventListeners("resolution");
         // Remove old traces
         sessionStorage.removeItem("traces");
-
+        /*
         var TimerVal = refresh_interval;
         var TimerSPan = document.getElementById("CDTimer");
         set_refresh(refresh_interval*1000);
+
         function CountDown(){
         setTimeout( "CountDown()", 1000 );
         TimerSPan.innerHTML=TimerVal;
         if(TimerSwitch == 1){TimerVal=TimerVal-1;}
         if (TimerVal<0) { TimerVal=0 }
         } CountDown();
+        */
     </script>
 
 

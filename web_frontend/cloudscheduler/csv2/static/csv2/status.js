@@ -36,6 +36,147 @@ window.onclick = function(event) {
     }
 }
 
+var statusTables; var navbar;
+
+// table one
+var tableOneHeaders, tableOne, tableOneData;
+
+// table one initial dimensions
+var offsetOne, tableOneHeight, headerWidthOne, dataWidthOne;
+
+// table two
+var tableTwoHeaders, tableTwo, tableTwoData;
+
+// table two initial dimensions
+var offsetTwo, tableTwoHeight, headerWidthTwo, dataWidthTwo;
+
+computeValues();
+
+var plot = document.getElementsByClassName("plot-div")[0];
+var plotState = plot.style.display;
+
+var observer = new MutationObserver(function () {
+    if (plot.style.display != plotState) {
+        plotState = plot.style.display;
+        computeStartEnd();
+    }
+});
+observer.observe(plot, {attributes: true});
+
+window.onresize = function () {
+    recomputeHeaders();
+}
+
+window.onscroll = function () {
+    computeStartEnd();
+}
+
+/** computes the inital values of the tables */
+function computeValues() {
+    // computes the initial values for the sticky headers
+    statusTables = document.getElementsByClassName("status-table");
+    navbar = document.getElementsByClassName("top-nav")[0];
+
+    // table one
+    tableOneHeaders = document.getElementsByClassName("header-row")[0];
+    tableOne = statusTables[0].getElementsByTagName("table")[0];
+    tableOneData = tableOne.getElementsByTagName("td");
+
+    // table one initial dimensions
+    offsetOne = document.querySelector("div[class^='main-div']").offsetTop;
+    tableOneHeight = tableOne.clientHeight;
+    headerWidthOne = [];
+    dataWidthOne = [];
+    computeDimensions(headerWidthOne, dataWidthOne, tableOneHeaders, tableOneData, 15)
+
+    // table two
+    tableTwoHeaders = document.getElementsByClassName("header-row")[1];
+    tableTwo = statusTables[1].getElementsByTagName("table")[0];
+    tableTwoData = tableTwo.getElementsByTagName("td");
+
+    // table two initial dimensions
+    offsetTwo = tableTwo.parentElement.offsetTop;
+    tableTwoHeight = tableTwo.clientHeight;
+    headerWidthTwo = [];
+    dataWidthTwo = [];
+
+    computeDimensions(headerWidthOne, dataWidthOne, tableOneHeaders, tableOneData, 15)
+    computeDimensions(headerWidthTwo, dataWidthTwo, tableTwoHeaders, tableTwoData, 29);
+    computeStartEnd();
+}
+
+/** computes the location and height of the tables */
+function recomputeHeaders() {
+    // remove the sticky header to ensure correct inital dimensions
+    tableOneHeaders.classList.remove("sticky-top");
+    tableTwoHeaders.classList.remove("sticky-top");
+
+    tableOneHeight = tableOne.clientHeight;
+    tableTwoHeight = tableTwo.clientHeight;
+
+    offsetOne = document.querySelector("div[class^='main-div']").offsetTop;
+    offsetTwo = tableTwo.parentElement.offsetTop;
+
+    // reset the dimensions and compute the current header location
+    computeDimensions(headerWidthOne = [], dataWidthOne = [], tableOneHeaders, tableOneData, 15);
+    computeDimensions(headerWidthTwo = [], dataWidthTwo = [], tableTwoHeaders, tableTwoData, 29);
+    computeStartEnd();
+}
+
+/** computes the starting and ending points for each table */
+function computeStartEnd() {
+    plotHeight = plotState == "block" ? plot.clientHeight : 0;
+
+    // start when table hits nav bar, end when it hits the bottom
+    var startOne = offsetOne + plotHeight - navbar.clientHeight;
+    var endOne = tableOneHeight + startOne - navbar.clientHeight;
+
+    var startTwo = offsetTwo + startOne;
+    var endTwo = offsetTwo + tableTwoHeight + plotHeight;
+    
+    stickyHeader(tableOneHeaders, tableOneData, startOne, endOne, headerWidthOne, dataWidthOne);
+    stickyHeader(tableTwoHeaders, tableTwoData, startTwo, endTwo, headerWidthTwo, dataWidthTwo);
+}
+
+/** computes the initial width of each column */
+function computeDimensions(headerWidth, dataWidth, headers, data, numColumns) {
+    for (var header of headers.getElementsByTagName("th")) {
+        headerWidth.push(window.getComputedStyle(header).getPropertyValue("width"));
+    }
+    
+    for (var i = 0; i < numColumns; i++) {
+        if (data[i]) {
+            dataWidth.push(window.getComputedStyle(data[i]).getPropertyValue("width"));
+        }
+    }
+}
+
+/** keeps the header on the screen while scrolling through the table */
+function stickyHeader(headers, data, tableStart, tableEnd, headerWidth, dataWidth) {
+    if (window.pageYOffset >= tableStart && window.pageYOffset <= tableEnd) {
+        // in the table, stick the table header
+        headers.classList.add("sticky-top");
+        headers.style.top = navbar.clientHeight;
+
+        var header = headers.getElementsByTagName("th");
+        var subHeaders = 0;
+
+        // set the width of each column
+        for (var i = 0; i < header.length; i++) {
+            if (header[i].colSpan > 1) {
+                subHeaders++;
+            } else {
+                data[i-subHeaders].style.minWidth = dataWidth[i-subHeaders];
+            }
+            header[i].style.minWidth = headerWidth[i];
+            header[i].style.maxWidth = headerWidth[i];
+        }
+
+        return;
+    }
+    // not in table anymore, stop sticking the top
+    headers.classList.remove("sticky-top");
+}
 
 
 /* Refresh status table and system services display*/
@@ -49,7 +190,7 @@ function set_refresh(time) {
 
         fetch(location.href,{   
             method: 'GET',
-            headers: {'Accept': 'application/json', 'Content-Type':'application/json'},
+            headers: {'Accept': 'text/html', 'Content-Type':'application/json'},
         })  
         .then(function(response){
             /* Check response status code*/
@@ -108,6 +249,8 @@ function toggle_id(name){
         document.getElementById(name).style.display = "table-row"
         sessionStorage.setItem(name, 1);
     }
+
+    recomputeHeaders();
 }
 
 function toggle_group(name){
@@ -130,6 +273,8 @@ function toggle_group(name){
             sessionStorage.setItem(document.getElementsByClassName(name)[n].id, 1);
         }
     }
+
+    recomputeHeaders();
 }
 
 
@@ -152,6 +297,7 @@ function set_state(){
 /* Add event listeners*/
 function initialize(){
     addEventListeners("plottable");
+    computeValues();
 }
 
 
@@ -170,7 +316,22 @@ function addEventListeners(className) {
                 }
                 if(!list) this.classList.toggle("plotted");
                 togglePlot(this);
-            }else selectRange(this);
+            } 
+            else if (className == 'filter') {
+                document.getElementById("filter-form").addEventListener('submit', function (event) {
+                    // prevent the page from refreshing on form submission
+                    event.preventDefault();
+                });
+                selectRangeFilter();
+            }
+            else if (className == 'resolution') {
+                document.getElementById("resolution-form").addEventListener('submit', function (event) {
+                    // prevent the page from refreshing on form submission
+                    event.preventDefault();
+                });
+                downloadPlot();
+            }
+            else selectRange(this);
         });
     }
 }
@@ -182,10 +343,75 @@ function dropDown(){
         document.getElementById("range-select").classList.add("selected");
     else document.getElementById("range-select").classList.remove("selected");
     document.getElementById("myDropdown").classList.toggle("show");
+    
+    // close custom filter dropdown if open
+    if (document.getElementById("myFilterDropdown").classList.contains("show")) {
+        document.getElementById("myFilterDropdown").classList.toggle("show");
+        document.getElementById("filter-select").classList.remove("selected");
+    }
+
+    // close the resolution dropdown if open
+    if (document.getElementById("myResolutionDropdown").classList.contains("show")) {
+        document.getElementById("myResolutionDropdown").classList.toggle("show");
+        document.getElementById("download-plot").classList.remove("selected");
+    }
 }
 
+/* custom date filter dropdown */
+function dropDownFilter() {
+    if (!document.getElementById("myFilterDropdown").classList.contains("show"))
+        document.getElementById("filter-select").classList.add("selected");
+    else
+        document.getElementById("filter-select").classList.remove("selected");
+    document.getElementById("myFilterDropdown").classList.toggle("show");
+    
+    // close the resolution dropdown if open
+    if (document.getElementById("myResolutionDropdown").classList.contains("show")) {
+        document.getElementById("myResolutionDropdown").classList.toggle("show");
+        document.getElementById("download-plot").classList.remove("selected");
+    }
+}
 
-/* Change time range for plot based on user selection*/
+function dropDownResolution() {
+    if (!document.getElementById("myResolutionDropdown").classList.contains("show"))
+        document.getElementById("download-plot").classList.add("selected");
+    else
+        document.getElementById("myResolutionDropdown").classList.remove("selected");
+    document.getElementById("myResolutionDropdown").classList.toggle("show");
+
+    // close custom filter dropdown if open
+    if (document.getElementById("myFilterDropdown").classList.contains("show")) {
+        document.getElementById("myFilterDropdown").classList.toggle("show");
+        document.getElementById("filter-select").classList.remove("selected");
+    }
+    
+}
+
+/* preprocess selected dates from custom filter */
+function selectRangeFilter() {
+    const start = document.getElementById("start-date");
+    const end = document.getElementById("end-date");
+
+    // missing a date value
+    if (!start.value || !end.value)
+        return;
+
+
+    var to = Date.parse(end.value);
+    var from = Date.parse(start.value);
+
+    // error with date input
+    if (checkDates(to, from))
+        return;
+    
+    // close the dropdown
+    document.getElementById("filter-select").classList.remove("selected");
+    document.getElementById("myFilterDropdown").classList.toggle("show");
+
+    createPlot(to, from);
+}
+
+/* preprocess selected time range  */
 function selectRange(range){
     const curr_range = document.getElementsByClassName("range-btn");
     curr_range[0].innerHTML = range.innerHTML+'<span class="space"></span><span class="caret"></span>';
@@ -204,6 +430,11 @@ function selectRange(range){
     to = to.getTime();
     from.setTime(date-(range.dataset.from*multiple));
     from = from.getTime();
+    createPlot(to, from)    
+}
+
+/* Change time range for plot based on user selection*/
+function createPlot(to, from) {
     /* Update traces with data from new range*/
     if((date-from) > 3600000 && !(TSPlot.traces[0].x[0] < from)){
         var traces = TSPlot.traces;
@@ -285,6 +516,62 @@ function selectRange(range){
     }
 }
 
+/* preprocess dates for error handling */
+function validate() {
+    const start = document.getElementById("start-date");
+    const end = document.getElementById("end-date");
+
+    from = start.value ? Date.parse(start.value) : null;
+    to = end.value ? Date.parse(end.value) : null;
+
+    checkDates(to, from);
+}
+
+/* error messages for filtered dates */
+function checkDates(to, from) {
+    const dateError = document.getElementById("date-error");
+    
+    if (from && from > date + 60000)
+        dateError.textContent = "Start date must be less than or equal to current date";
+    else if (to && to > date + 60000)
+        dateError.textContent = "End date must be less than or equal to current date";
+    else if (to && from && from > to)
+        dateError.textContent = "Start date must be less than or equal to end date";
+    else
+        dateError.textContent = null;
+    
+    return dateError.textContent;
+}
+
+/** set the error messages for resolution */
+function validateResolution(width=false) {
+    const widthError = getResolutionError("width", width);
+    const heightError = getResolutionError("height");
+
+    // set the error 
+    const resolutionError = document.getElementById("resolution-error");
+    resolutionError.textContent = widthError ?? heightError;
+
+    return resolutionError.textContent;
+}
+
+/** return the error messages for resolution */
+function getResolutionError(metric, width=false) {
+    const metricValue = document.getElementById(`resolution-${metric}`).value;
+    
+    // width was input, set the height to be half of the width
+    if (width)
+        document.getElementById(`resolution-height`).value = Math.round(metricValue / 2);
+
+    // return error messages
+    if (metricValue < 1)
+        return `${metric} must be greater than 0`;
+    else if (Number(metricValue) != metricValue || metricValue % 1 != 0)
+        return `${metric} must be an integer`;
+    else
+        return null;
+
+}
 
 /* Toggle plotted traces and initialize/show plot if not yet created*/
 function togglePlot(trace){
@@ -704,8 +991,19 @@ function updateTraces(newdata, index, global_total_list){
 }
 
 
-function downloadPlot(){
-    Plotly.downloadImage('plotly-TS', {format: 'png', width: 1200, height: 600, filename: 'newplot'});
+function downloadPlot() {
+    // return if the values are not correct
+    if (validateResolution() || validateResolution())
+        return;
+
+    width = document.getElementById("resolution-width").value;
+    height = document.getElementById("resolution-height").value;
+
+    // close the dropdown
+    document.getElementById("download-plot").classList.remove("selected");
+    document.getElementById("myResolutionDropdown").classList.toggle("show");
+
+    Plotly.downloadImage('plotly-TS', {format: 'png', width: width, height: height, filename: 'newplot'});
 }
 
 /* Plot Object*/

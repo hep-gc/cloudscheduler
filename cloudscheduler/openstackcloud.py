@@ -193,10 +193,11 @@ class OpenStackCloud(basecloud.BaseCloud):
                     sec_groups = list(map(lambda x: {"name": x}, self.default_security_groups))
                 try:
                     if key_name == '':
-                        nova._create(MyServer, name=hostname, image_id=imageobj.id, flavor_id=flavorl.id, user_data=format_userdata, networks=netid, security_groups=sec_groups, max_count=num)
+                        new_vm = nova._create(MyServer, name=hostname, image_id=imageobj.id, flavor_id=flavorl.id, user_data=format_userdata, networks=netid, security_groups=sec_groups, max_count=num)
                     else:
-                        nova._create(MyServer, name=hostname, image_id=imageobj.id, flavor_id=flavorl.id, key_name=key_name, user_data=format_userdata, networks=netid, security_groups=sec_groups, max_count=num)
+                        new_vm = nova._create(MyServer, name=hostname, image_id=imageobj.id, flavor_id=flavorl.id, key_name=key_name, user_data=format_userdata, networks=netid, security_groups=sec_groups, max_count=num)
                 except Exception as exc:
+                    self.log.error(exc)
                     self.log.error("Failed to create new vms: %s" % exc)
 
                 vm_updated = self._update_vm_list(nova, hostname, job, num)

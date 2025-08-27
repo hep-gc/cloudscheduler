@@ -653,16 +653,10 @@ def _requests_insert_controls(gvar, request, form_data, query_data, server_addre
         _function = py_requests.get
 
         if 'group' in gvar['command_args']:
-            if request[-1] == '/':
-                _request = '%s%s?%s' % (server_address, request[:-1], gvar['user_settings']['group'])
-            else:
-                _request = '%s%s?%s' % (server_address, request, gvar['user_settings']['group'])
+            _request = '%s%s?%s' % (server_address, request, gvar['user_settings']['group'])
         else:
             if server_address in gvar['pid_defaults']['server_addresses'] and server_user in gvar['pid_defaults']['server_addresses'][server_address]:
-                if request[-1] == '/':
-                    _request = '%s%s?%s' % (server_address, request[:-1], gvar['pid_defaults']['server_addresses'][server_address][server_user])
-                else:
-                    _request = '%s%s?%s' % (server_address, request, gvar['pid_defaults']['server_addresses'][server_address][server_user])
+                _request = '%s%s?%s' % (server_address, request, gvar['pid_defaults']['server_addresses'][server_address][server_user])
             else:
                 _request = '%s%s' % (server_address, request)
 
@@ -672,7 +666,7 @@ def _requests_insert_controls(gvar, request, form_data, query_data, server_addre
                 query_list.append('%s=%s' % (key, query_data[key]))
 
             if _request[-1] == '/':
-               _request = '%s?%s' % (_request[:-1], '&'.join(query_list))
+               _request = '%s?%s' % (_request, '&'.join(query_list))
             else:
                _request = '%s&%s' % (_request, '&'.join(query_list))
         

@@ -22,7 +22,8 @@ def main(gvar):
         '/group/add/', form_data={
             'group_name': ut_id(gvar, 'dtg1'),
             'htcondor_fqdn': gvar['fqdn'],
-            'username.1': gvar['user_settings']['server-user']
+            'username.1': gvar['user_settings']['server-user'],
+            'htcondor_other_submitters': 'condor'
         }
     )
 

@@ -71,8 +71,36 @@
             </div>
         </div>
     </div>
+    <!-- custom date filtering dropdown menu-->
+    <div class="filter-dropdown">
+        <button id="filter-select" class="filter-btn" onclick="dropDownFilter()">Custom Filter<span class="space"></span>
+            <span class="caret"></span>
+        </button>
+        <div id="myFilterDropdown" class="filter-content">
+            <form id="filter-form">
+                <a>Start Date:</a>
+                <input type="datetime-local" id="start-date" class="filter-input" onchange="validate()" required>
+                <a>End Date:</a>
+                <input type="datetime-local" id="end-date" class="filter-input" onchange="validate()" required>
+                <span id="date-error" class="date-error"></span>
+                <button type="submit" id="apply-filter" class="filter">Apply</button></a>
+            </form>
+        </div>
+    </div>
     <button id="close-plot" class="close-btn" onclick="TSPlot.hide()">Close Plot</button>
-    <button id="download-plot" class="download-plot-btn" onclick="downloadPlot()">&#11015;</button>
+    <div class="resolution-dropdown">
+        <button id="download-plot" class="download-plot-btn" onclick="dropDownResolution()">&#11015;</button>
+        <div id="myResolutionDropdown" class="resolution-content">
+            <form id="resolution-form"> 
+                <a>Width: </a>
+                <input type="number" step="1" id="resolution-width" class="resolution-input"  onchange="validateResolution(true)" value="800" required>
+                <a>Height: </a>
+                <input type="number" step="1" id="resolution-height" class="resolution-input" onchange="validateResolution()" value="400" required>
+                <span id="resolution-error" class="date-error"></span>
+                <button type="submit" id="select-resolution" class="resolution">Download</button>
+            </form>
+        </div>
+    </div>
 </div>
 
 <!-- Status tables-->
@@ -284,6 +312,9 @@
                             <!-- Jobs expand row to show cores-->
                             <tr class="extra-row" id="expand-jobs-{{group.group_name}}{% if jobs_by_target_alias_flag %}-{{group.target_alias}}{% endif %}">
                                 <td onclick="toggle_id('expand-jobs-{{group.group_name}}{% if jobs_by_target_alias_flag %}-{{group.target_alias}}{% endif %}')"></td>
+                                {% if jobs_by_target_alias_flag %}
+                                    <td></td>
+                                {% endif %}
                                 <td></td>
                                 <td colspan="5">
                                     <table class="job-extra-row">
@@ -343,7 +374,6 @@
 
                                 <td class="col-spacer">&nbsp;</td>
 
-                                <td></td>
                                 <td></td>
                                 <td></td>
                                 <td data-path="{{group.group_name}} jobs_condor_days_left" class="zero-style float-center">
@@ -491,22 +521,25 @@
 
                                 {% if cloud.display >= 9 %}
                                     <td class="bold-style" onclick="toggle_id('expand-{{cloud.group_name}}-{{cloud.cloud_name}}')"><div class="float-left">Totals</div>
+                                    <div id="sym-expand-{{cloud.group_name}}-{{cloud.cloud_name}}" class="float-right">&#x25BE;</div></td>
+                                    
                                 {% elif cloud.enabled > 0 %}
                                     {% if cloud.app_credentials_expiry and cloud.current_time %}
                                         {% if cloud.app_credentials_expiry|sub:cloud.current_time|div:86400 > 14 %}
-                                            <td class="bold-style" onclick="toggle_id('expand-{{cloud.group_name}}-{{cloud.cloud_name}}')"><div class="float-left">{{cloud.cloud_name}}{% if cloud.freeze %} &#x1F6AB;{% endif %}</div>
+                                            <td class="bold-style"><div class="float-left" style="cursor: pointer" onclick="window.location.href='/cloud/list/?{{cloud.group_name}}'">&#x2637; {{cloud.cloud_name}}{% if cloud.freeze %} &#x1F6AB;{% endif %}</div>
                                         {% elif cloud.app_credentials_expiry|sub:cloud.current_time|div:86400 >= 8 %}
-                                            <td class="warn-style" onclick="toggle_id('expand-{{cloud.group_name}}-{{cloud.cloud_name}}')"><div class="float-left">{{cloud.cloud_name}}{% if cloud.freeze %} &#x1F6AB;{% endif %}</div>
+                                            <td class="warn-style"><div class="float-left" style="cursor: pointer" onclick="window.location.href='/cloud/list/?{{cloud.group_name}}'">&#x2637; {{cloud.cloud_name}}{% if cloud.freeze %} &#x1F6AB;{% endif %}</div>
                                         {% else %}
-                                            <td class="disabled-style" onclick="toggle_id('expand-{{cloud.group_name}}-{{cloud.cloud_name}}')"><div class="float-left">{{cloud.cloud_name}}{% if cloud.freeze %} &#x1F6AB;{% endif %}</div>
+                                            <td class="disabled-style"><div class="float-left" style="cursor: pointer" onclick="window.location.href='/cloud/list/?{{cloud.group_name}}'">&#x2637; {{cloud.cloud_name}}{% if cloud.freeze %} &#x1F6AB;{% endif %}</div>
                                         {% endif %}
                                     {% else %}
-                                        <td class="bold-style" onclick="toggle_id('expand-{{cloud.group_name}}-{{cloud.cloud_name}}')"><div class="float-left">{{cloud.cloud_name}}{% if cloud.freeze %} &#x1F6AB;{% endif %}</div>
+                                        <td class="bold-style"><div class="float-left" style="cursor: pointer" onclick="window.location.href='/cloud/list/?{{cloud.group_name}}'">&#x2637; {{cloud.cloud_name}}{% if cloud.freeze %} &#x1F6AB;{% endif %}</div>
                                     {% endif %}
+                                    <div id="sym-expand-{{cloud.group_name}}-{{cloud.cloud_name}}" class="float-right" onclick="toggle_id('expand-{{cloud.group_name}}-{{cloud.cloud_name}}')">&#x25BE;</div></td>
                                 {% else %}
-                                    <td class="disabled-style" onclick="toggle_id('expand-{{cloud.group_name}}-{{cloud.cloud_name}}')"><div class="float-left">{{cloud.cloud_name}}{% if cloud.freeze %} &#x1F6AB;{% endif %}</div>
+                                    <td class="disabled-style"><div class="float-left" style="cursor: pointer" onclick="window.location.href='/cloud/list/?{{cloud.group_name}}'">&#x2637; {{cloud.cloud_name}}{% if cloud.freeze %} &#x1F6AB;{% endif %}</div>
+                                    <div id="sym-expand-{{cloud.group_name}}-{{cloud.cloud_name}}" class="float-right" onclick="toggle_id('expand-{{cloud.group_name}}-{{cloud.cloud_name}}')">&#x25BE;</div></td>
                                 {% endif %}
-                                    <div id="sym-expand-{{cloud.group_name}}-{{cloud.cloud_name}}" class="float-right">&#x25BE;</div></td>
 
 
 
@@ -1134,6 +1167,8 @@
     /*Add event listeners once page loads*/
     initialize();
     addEventListeners("range");
+    addEventListeners("filter");
+    addEventListeners("resolution");
     // Remove old traces
     sessionStorage.removeItem("traces");
 

@@ -15,16 +15,17 @@ Including another URLconf
 """
 
 from django.conf import settings
-from django.conf.urls import url, include
+from django.conf.urls import include
+from django.urls import re_path
 from django.contrib import admin
 
 urlpatterns = [
-    url(r'^admin/', admin.site.urls),
-    url(r'^', include('csv2.urls')),
-    url(r'^images/', include('glintwebui.image_urls')),
-    url(r'^keypairs/', include('glintwebui.keypair_urls')),
+    re_path(r'^admin/', admin.site.urls),
+    re_path(r'^', include('csv2.urls')),
+    re_path(r'^images/', include('glintwebui.image_urls')),
+    re_path(r'^keypairs/', include('glintwebui.keypair_urls')),
 ]
 
 if settings.CSV2_CONFIG.categories["web_frontend"]["enable_profiling"]:
-    urlpatterns += [url(r'^silk/', include('silk.urls', namespace='silk'))]
+    urlpatterns += [re_path(r'^silk/', include('silk.urls', namespace='silk'))]
 

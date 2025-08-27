@@ -50,6 +50,12 @@ from (
     cc.app_credentials,
     cc.app_credentials_secret,
     cc.app_credentials_expiry,
+    cc.user_ocid,
+    cc.user_fingerprint,
+    cc.tenancy_ocid,
+    cc.api_private_key,
+    cc.oci_availability_domain,
+    cc.oci_compartment,
 
     case when ifnull(cc.vm_flavor,'')='' then
         case when ifnull(cg.vm_flavor,'')='' then
