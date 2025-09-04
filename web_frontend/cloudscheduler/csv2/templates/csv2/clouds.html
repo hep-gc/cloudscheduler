@@ -36,7 +36,7 @@
 
 
     function meta_fetch(cloudname , metaname) {
-        hide_meta_checksum();
+        hide_meta_date();
 
         var url='/cloud/metadata-fetch?{{active_group}}&cloud_name='+cloudname+'&metadata_name='+metaname;
         var frame='editor-'+cloudname+'-'+metaname;
@@ -48,7 +48,7 @@
     }
 
     function meta_add(cloudname) {
-        hide_meta_checksum();
+        hide_meta_date();
 
         var url='/cloud/metadata-new?{{active_group}}&cloud_name='+cloudname;
         var frame='editor-'+cloudname+'-add';
@@ -677,15 +677,15 @@
 
                 <div class="tab">
                     <input id="{{cloud.cloud_name}}-metadata" type="radio" name="tabs" onclick="save_location('{{cloud.cloud_name}}', 'metadata'); check_target('{{cloud.cloud_name}}-hide')" />
-                    <label class="tab-colour" for="{{cloud.cloud_name}}-metadata" onclick="show_meta_checksum()">Metadata</label>
-                    <div class="tab-content meta-div show-checksum" id="meta-list-tab">
+                    <label class="tab-colour" for="{{cloud.cloud_name}}-metadata" onclick="show_meta_date()">Metadata</label>
+                    <div class="tab-content meta-div show-date" id="meta-list-tab">
 
                         {% for key, value in metadata_dict.items %}
 
                             {% for meta in value|keyvalue:cloud.cloud_name %}
 
                                 <div style="display: flex">
-                                    <div class="tab2 checksum-label">
+                                    <div class="tab2 date-label">
                                         <input id="{{cloud.cloud_name}}-metadata-{{meta}}" type="radio" name="tabs2" onclick="meta_fetch('{{cloud.cloud_name}}', '{{meta}}')" />
                                         <label class="tab2-colour{% if not value|keyvalue:cloud.cloud_name|keyvalue:meta|keyvalue:'metadata_enabled' %} disabled-style{% endif %}" for="{{cloud.cloud_name}}-metadata-{{meta}}">{{meta}}</label>
                                         <div class="tab2-content">
@@ -693,14 +693,14 @@
                                         </div>
                                     </div>
                                     {% if value|keyvalue:cloud.cloud_name|keyvalue:meta|keyvalue:'metadata_checksum' %}
-                                        <label class="checksum-text" style="display: inline">MD5 Checksum: {{value|keyvalue:cloud.cloud_name|keyvalue:meta|keyvalue:'metadata_checksum'}}</label>
+                                        <label class="date-text" style="display: inline">Last Updated: {{value|keyvalue:cloud.cloud_name|keyvalue:meta|keyvalue:'metadata_updated'}}</label>
                                     {% endif %}
                                  </div>
 
                             {% endfor %}
                         {% endfor %}
 
-                        <div class="tab2 checksum-label">
+                        <div class="tab2 date-label">
                             <input id="{{cloud.cloud_name}}-metadata-add" type="radio" name="tabs2" onclick="meta_add('{{cloud.cloud_name}}')">
                             <label class="tab2-colour" for="{{cloud.cloud_name}}-metadata-add">+</label>
                             <div class="tab2-content">

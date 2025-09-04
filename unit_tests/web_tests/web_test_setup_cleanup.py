@@ -243,7 +243,7 @@ def setup_objects(objects=[], browser='firefox'):
         for i in range(1, 3):
             if subprocess.run(['cloudscheduler', 'my', 'settings', '-sri', '60','-sfv', 'true', '-s', gvar['user'] + '-wis' + str(i)], stdout=subprocess.DEVNULL).returncode != 0:
                 raise SetUpException("user update failed - check the server status and try again")
-            helpers.wait_for_openstack_poller(gvar['user'] + '-wic' + str(i), ['-g', gvar['base_group'], '-vi', 'CentOS-7-x86_64-GenericCloud-1907.qcow2c', '-vn', 'private'], output=True)
+            helpers.wait_for_openstack_poller(gvar['user'] + '-wic' + str(i), ['-g', gvar['base_group'], '-vi', 'AlmaLinux9-grid', '-vn', 'private', '-vk', 'ci-server'], output=True)
 
     if 'jobs' in objects:
         server_account = gvar['server_username'] + '@' + gvar['fqdn']
@@ -317,7 +317,7 @@ def cleanup_objects(browser='firefox', interrupt=False):
     except FileExistsError:
         object_log = open(logfile, mode='w')
 
-    subprocess.run(['nova', 'list', '--name', gvar['base_group'] + '--' + gvar['user'] + '-wic.*'], stdout=object_log, stderr=subprocess.STDOUT)
+    subprocess.run(['openstack', 'server', 'list', '--name', gvar['base_group'] + '--' + gvar['user'] + '-wic.*'], stdout=object_log, stderr=subprocess.STDOUT)
 
     object_log.close()
     object_log = open(logfile, mode='r')
@@ -331,7 +331,7 @@ def cleanup_objects(browser='firefox', interrupt=False):
         except IndexError:
             continue
         if not name == '' and not name[0] == '-' and not name == 'Name':
-            subprocess.run(['nova', 'delete', name])
+            subprocess.run(['openstack', 'server', 'delete', name])
 
     object_log.close()
    

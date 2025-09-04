@@ -39,7 +39,7 @@ def main(gvar):
         }, 'mandatory': True},
         # 37 Omit type.
         # 38
-        '--cloud-type': {'valid': 'openstack', 'test_cases': {'invalid-unit-test': 'cloud add value specified for "cloud_type" must be one of the following options: [\'amazon\', \'local\', \'openstack\'].'}, 'mandatory': True},
+        '--cloud-type': {'valid': 'openstack', 'test_cases': {'invalid-unit-test': 'cloud add value specified for "cloud_type" must be one of the following options: [\'amazon\', \'local\', \'openstack\', \'oracle\'].'}, 'mandatory': True},
         # 39 Omit address.
         # 40
         '--cloud-address': {'valid': gvar['cloud_credentials']['authurl'], 'test_cases': {'': 'cloud add parameter "authurl" contains an empty string which is specifically disallowed.'}, 'mandatory': True},
