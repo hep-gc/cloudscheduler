@@ -329,7 +329,7 @@ def defaults(request, active_user=None, response_code=0, message=None):
         message = None
         if request.method == 'POST':
 
-            #verify fqdn
+            #validate fqdn
             fields = request.POST or request.GET
             submitted_fqdn = fields.get('htcondor_fqdn')
             rc2, msg2, found_group_list = config.db_query("csv2_groups",where=f"group_name='default'")
@@ -349,17 +349,25 @@ def defaults(request, active_user=None, response_code=0, message=None):
                     rc2, msg2, found_group_list = config.db_query("csv2_vms",where=f"group_name='default'")
                     current_hostname = found_group_list[0].get('hostname')
                     hostnameid = (current_hostname.split("--"))[2]
+
                     if current_host_id:
                         for table in tables_with_host_id:
                             rc, msg, found_rows = config.db_query(table,where=f"htcondor_host_id={current_host_id}")
                             if hostnameid == current_hostname:
                                 config.db_close()
-                                request.session["response"] = {"message": "Group update failed - Found FQDN in active VMs.","response_code": 1,"group": fields.get('group_name')}
+                                request.session["response"] = {"message": "Group update failed - host_id found in hostname.","response_code": 1,"group": fields.get('group_name')}
                                 return redirect("/group/defaults/")
                             if (rc == 0 and found_rows): 
                                 config.db_close()
-                                request.session["response"] = {"message": "Group update failed - Found FQDN in active jobs","response_code": 1,"group": fields.get('group_name')}
+                                request.session["response"] = {"message": "Group update failed - host_id found in active jobs","response_code": 1,"group": fields.get('group_name')}
                                 return redirect("/group/defaults/")
+
+
+                    rc2, msg2, found_rows = config.db_query("csv2_sevice_catalog",where=f"host_id={current_host_id}")
+                    if rc2 == 0 and found_rows:
+                        config.db_close()
+                        request.session["response"] = {"message": "Group update failed - host_id found in service catalog.","response_code": 1,"group": fields.get("group_name"),}
+                        return redirect("/group/defaults/")
 
 
 
