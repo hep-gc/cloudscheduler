@@ -328,6 +328,41 @@ def defaults(request, active_user=None, response_code=0, message=None):
         user_groups_set = True
         message = None
         if request.method == 'POST':
+
+            #verify fqdn
+            fields = request.POST or request.GET
+            submitted_fqdn = fields.get('htcondor_fqdn')
+            rc2, msg2, found_group_list = config.db_query("csv2_groups",where=f"group_name='default'")
+
+            current_fqdn = None
+            if rc2 == 0 and found_group_list:
+                current_fqdn = found_group_list[0].get('htcondor_fqdn')
+
+            if submitted_fqdn and current_fqdn:
+                if submitted_fqdn.strip().lower() != current_fqdn.strip().lower():
+                    
+                    tables_with_host_id = ['condor_jobs', 'condor_machines', 'condor_worker_gsi']
+                    current_host_id = None
+
+                    
+                    current_host_id = found_group_list[0].get('htcondor_host_id')
+                    rc2, msg2, found_group_list = config.db_query("csv2_vms",where=f"group_name='default'")
+                    current_hostname = found_group_list[0].get('hostname')
+                    hostnameid = (current_hostname.split("--"))[2]
+                    if current_host_id:
+                        for table in tables_with_host_id:
+                            rc, msg, found_rows = config.db_query(table,where=f"htcondor_host_id={current_host_id}")
+                            if hostnameid == current_hostname:
+                                config.db_close()
+                                request.session["response"] = {"message": "Group update failed - Found FQDN in active VMs.","response_code": 1,"group": fields.get('group_name')}
+                                return redirect("/group/defaults/")
+                            if (rc == 0 and found_rows): 
+                                config.db_close()
+                                request.session["response"] = {"message": "Group update failed - Found FQDN in active jobs","response_code": 1,"group": fields.get('group_name')}
+                                return redirect("/group/defaults/")
+
+
+
             # Validate input fields.
             rc, msg, fields, tables, columns = validate_fields(config, request, [UNPRIVILEGED_GROUP_KEYS], ['csv2_groups'], active_user)
             if rc != 0:
