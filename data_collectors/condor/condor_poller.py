@@ -1186,6 +1186,7 @@ def machine_command_poller(arg_list):
         config.db_close()
 
 def worker_gsi_poller():
+
     multiprocessing.current_process().name = "Worker GSI Poller"
 
     config = Config(sys.argv[1], ["condor_poller.py", 'ProcessMonitor'], pool_size=6, signals=True)
@@ -1195,6 +1196,18 @@ def worker_gsi_poller():
     new_poll_time = 0
     poll_time_history = [0,0,0,0]
     last_heartbeat_time = 0
+
+    try:
+        htcondor_version = htcondor.version()
+        match = re.search(r'\$CondorVersion:\s+(\d+)', htcondor_version)
+        if match:
+            major_version = int(match.group(1))
+            if major_version >= 9:
+                logging.info("Skipping GSI certificate check. HTCondor 9.x or later detected. GSI authentication deprecated")
+                return 
+
+    except:
+        logging.debug("Could not check HTCondor version, starting  GSI certificate check")
 
     try:
         while True:
@@ -1323,6 +1336,7 @@ def worker_gsi_poller():
 
 
 def condor_gsi_poller():
+    
     multiprocessing.current_process().name = "Condor GSI Poller"
 
     config = Config(sys.argv[1], ["condor_poller.py", 'ProcessMonitor'], pool_size=6, signals=True)
@@ -1332,6 +1346,18 @@ def condor_gsi_poller():
     new_poll_time = 0
     poll_time_history = [0,0,0,0]
     last_heartbeat_time = 0
+
+    try:
+        htcondor_version = htcondor.version()
+        match = re.search(r'\$CondorVersion:\s+(\d+)', htcondor_version)
+        if match:
+            major_version = int(match.group(1))
+            if major_version >= 9:
+                logging.info("Skipping GSI certificate check. HTCondor 9.x or later detected. GSI authentication deprecated")
+                return 
+
+    except:
+        logging.debug("Could not check HTCondor version, starting  GSI certificate check")
 
 
     try:
