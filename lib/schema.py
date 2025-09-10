@@ -456,7 +456,7 @@ schema = {
             "cores_ctl": {"type": "int"},
             "cores_softmax": {"type": "int"},
             "spot_price": {"type": "float"},
-            "vm_boot_volume": {"type": "str", "len": "64", "nulls": "YES"},
+            "vm_boot_volume": {"type": "str", "len": "256", "nulls": "YES"},
             "vm_flavor": {"type": "str", "len": "64", "nulls": "NO"},
             "vm_image": {"type": "str", "len": "64", "nulls": "NO"},
             "vm_keep_alive": {"type": "int"},
@@ -938,7 +938,7 @@ schema = {
             "htcondor_fqdn": {"type": "str", "len": "128", "nulls": "YES"},
             "htcondor_container_hostname": {"type": "str", "len": "128", "nulls": "YES"},
             "htcondor_other_submitters": {"type": "str", "len": "128", "nulls": "YES"},
-            "vm_boot_volume": {"type": "str", "len": "64", "nulls": "YES"},
+            "vm_boot_volume": {"type": "str", "len": "256", "nulls": "YES"},
             "spot_price": {"type": "float"},
             "authurl": {"type": "str", "len": "128", "nulls": "NO"},
             "cacertificate": {"type": "str", "nulls": "YES"},
@@ -1136,7 +1136,7 @@ schema = {
             "freeze": {"type": "int"},
             "cloud_priority": {"type": "int"},
             "spot_price": {"type": "float"},
-            "vm_boot_volume": {"type": "str", "len": "64", "nulls": "YES"},
+            "vm_boot_volume": {"type": "str", "len": "256", "nulls": "YES"},
             "vm_flavor": {"type": "str", "len": "64", "nulls": "NO"},
             "vm_image": {"type": "str", "len": "64", "nulls": "NO"},
             "vm_keep_alive": {"type": "int"},
@@ -1212,7 +1212,7 @@ schema = {
             "freeze": {"type": "int"},
             "cloud_priority": {"type": "int"},
             "spot_price": {"type": "float"},
-            "vm_boot_volume": {"type": "str", "len": "64", "nulls": "YES"},
+            "vm_boot_volume": {"type": "str", "len": "256", "nulls": "YES"},
             "vm_flavor": {"type": "str", "len": "64", "nulls": "NO"},
             "vm_image": {"type": "str", "len": "64", "nulls": "NO"},
             "vm_keep_alive": {"type": "int"},
@@ -1294,7 +1294,7 @@ schema = {
             "freeze": {"type": "int"},
             "cloud_priority": {"type": "int"},
             "spot_price": {"type": "float"},
-            "vm_boot_volume": {"type": "str", "len": "64", "nulls": "YES"},
+            "vm_boot_volume": {"type": "str", "len": "256", "nulls": "YES"},
             "vm_flavor": {"type": "str", "len": "64", "nulls": "NO"},
             "vm_image": {"type": "str", "len": "64", "nulls": "NO"},
             "vm_keep_alive": {"type": "int"},
@@ -1651,6 +1651,15 @@ schema = {
             "state": {"type": "str", "len": "4", "nulls": "YES"},
             "plotable_state": {"type": "str", "len": "1", "nulls": "YES"},
             "error_message": {"type": "str", "len": "512", "nulls": "YES"}
+            }
+        },
+    "view_starting_vms": {
+        "keys": [
+            ],
+        "columns": {
+            "group_name": {"type": "str", "len": "32", "nulls": "NO"},
+            "cloud_name": {"type": "str", "len": "32", "nulls": "NO"},
+            "starting_vms": {"type": "int"}
             }
         },
     "view_total_used_resources": {
