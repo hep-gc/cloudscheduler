@@ -183,15 +183,6 @@ view_clouds:
             Synopsis:
                 User specified secret key to be used during authentication.
                 
-        cacertificate:
-            Format: String
-            Synopsis:
-                An optional, user supplied certificate authority (CA) certificate bundle used to authenticate
-                the cloud's SSL certificate. By default, the system CA bundle is used. However,
-                if the cloud is using certificates not supported by the system CA bundle, this parameter
-                is required and should point to a CA bundle file, readable by the cloudscheduler
-                user and supporting the cloud's certificate.
-                
         region:
             Format: String(20)
             Synopsis:
