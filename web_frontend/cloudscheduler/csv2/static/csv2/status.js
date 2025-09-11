@@ -225,6 +225,14 @@ function stop_refresh() {
     window.stop();
 }
 
+function toggle_refresh() {
+    if (TimerSwitch === 1) {
+        stop_refresh();
+    } else {
+        set_refresh(refresh_interval * 1000);
+    }
+}
+
 function native_list(url) {
     stop_refresh();
     document.getElementById('vms-iframe').src='/vm/list/'+url;
