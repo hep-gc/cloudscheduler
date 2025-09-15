@@ -532,7 +532,8 @@ schema = {
             "vm_keyname": {"type": "str", "len": "64", "nulls": "YES"},
             "vm_network": {"type": "str", "len": "64", "nulls": "NO"},
             "vm_security_groups": {"type": "str", "len": "128", "nulls": "YES"},
-            "public_visibility": {"type": "int"}
+            "public_visibility": {"type": "int"},
+            "enabled": {"type": "int"}
             }
         },
     "csv2_image_cache": {
@@ -1659,7 +1660,8 @@ schema = {
         "columns": {
             "group_name": {"type": "str", "len": "32", "nulls": "NO"},
             "cloud_name": {"type": "str", "len": "32", "nulls": "NO"},
-            "starting_vms": {"type": "int"}
+            "starting_vms": {"type": "int"},
+            "enabled": {"type": "int"}
             }
         },
     "view_total_used_resources": {

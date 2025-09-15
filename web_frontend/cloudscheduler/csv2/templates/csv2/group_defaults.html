@@ -108,7 +108,13 @@
                             <input type="hidden" name="group" value="{{group.group_name}}" />
                             <table>
 
-
+				<tr class="highlight3"><td><label for="authurl">Enabled</label></td>
+                                    <td>
+                                    {% if group.enabled == 1 %}
+                                        <input type="checkbox" name="enabled" value="1" checked/>
+                                    {% else %}
+                                        <input type="checkbox" name="enabled" value="1" />
+                                    {% endif %}</td></tr>
 
                                 <tr class="highlight3"><td><label for="htcondor_fqdn">HTCondor FQDN</label></td>
                                 <td><input type="text" name="htcondor_fqdn" value="{{group.htcondor_fqdn}}" /></td></tr>

@@ -285,6 +285,34 @@ def _exit(signal_num, frame):
     exit(0)
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+def get_groups_with_inactive_pollers(config, timeout_seconds=10):
+    current_time = int(time.time())
+    cutoff_time = current_time - timeout_seconds
+
+    inactive_groups = set()
+
+    where_clause = f"provider='condor_poller.py' AND last_updated < {cutoff_time}"
+    rc, msg, stale_pollers = config.db_query("csv2_service_catalog", where="provider='condor_poller.py'")
+
+
+    if rc == 0:
+        for poller in stale_pollers:
+            groups_for_host = get_groups_for_host(config, poller['host_id'])
+            inactive_groups.update(groups_for_host)
+
+            minutes_stale = (current_time - poller['last_updated']) / 60
+            logging.warning("Condor poller on host %s stale for %.1f minutes, skipping groups: %s", poller['host_id'], minutes_stale, groups_for_host)
+
+    return inactive_groups
+
+
+def get_groups_for_host(config, host_id):
+    rc, msg, groups = config.db_query("csv2_vms",select=["DISTINCT group_name"],where=f"host_id='{host_id}'")
+    return [g['group_name'] for g in groups] if rc == 0 else []
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 def process_group_cloud_terminates(pair, config):
     group_name = pair["group_name"]
     cloud_name = pair["cloud_name"]
@@ -556,83 +584,6 @@ def process_group_cloud_terminates(pair, config):
     logging.debug("%s : %s: Commands complete" % (group_name, cloud_name))
     return
 
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-def get_groups_with_inactive_pollers(config, timeout_seconds=10):
-    current_time = int(time.time())
-    cutoff_time = current_time - timeout_seconds
-    inactive_groups = []
-
-    where_clause = f"provider='condor_poller.py' and last_updated < {cutoff_time}"
-    rc, msg, stale_pollers = config.db_query("csv2_service_catalog", where=where_clause)
-
-    if rc == 0:
-        for poller in stale_pollers:
-            groups_for_host = get_groups_name(config, poller['host_id'])
-            inactive_groups.extend(groups_for_host)
-            minutes_stale = (current_time - poller['last_updated']) / 60
-            logging.warning("condor poller on host %s stale for %.2f minutes, skipping groups: %s", poller['host_id'], minutes_stale, groups_for_host)
-    return inactive_groups
-
-def get_disabled_groups_with_active_pollers(config, timeout_seconds=10):
-    current_time = int(time.time())
-    cutoff_time = current_time - timeout_seconds
-
-    active_groups = []
-
-    where_clause = f"provider='condor_poller.py' and last_updated > {cutoff_time}"
-    rc, msg, active_pollers = config.db_query("csv2_service_catalog", where=where_clause)
-    if rc == 0:
-        for poller in active_pollers:
-            log.info(poller)
-            groups_for_host = get_groups_name(config, poller['host_id'])
-            active_groups.extend(groups_for_host)
-    disabled_active_groups = []
-    for group in active_groups:
-        where_clause = f"group_name='{group}'"
-        rc, msg, group_records = config.db_query("csv2_groups", select=["enabled"], where=where_clause)
-     
-        if rc == 0 and group_records:
-            if group_records[0]['enabled'] == 0:
-                disabled_active_groups.append(group)
-    return disabled_active_groups
-
-def get_groups_name(config, host_id):
-    where_clause = f"htcondor_host_id"
-    rc, msg, groups = config.db_query("csv2_groups", select=["group_name"],  where=where_clause)
-    group_list =[]
-
-    if rc==0:
-        for g in groups:
-            group_list.append(g['group_name'])
- 
-    return group_list
-
-def disable_groups(config, inactive_groups):
-    for group in inactive_groups:
-        where_clause = f"group_name='{group}'"
-        rc, msg = config.db_update("csv2_groups", {'enabled': 0}, where=where_clause)
-        
-        if rc == 0:
-            logging.warning("disabled %s group due to inactive condor poller", group)
-        else:
-            logging.error("failed to disable  %s group: %s", group, msg)
-    
-    config.db_commit()
-
-def enable_groups(config, active_groups):
-    for group in active_groups:
-        where_clause = f"group_name='{group}'"
-        rc, msg = config.db_update("csv2_groups", {'enabled': 1}, where=where_clause)
-        
-        if rc == 0:
-            logging.warning("enabled %s group due to active condor poller", group)
-        else:
-            logging.error("failed to enable  %s group: %s", group, msg)
-
-    config.db_commit()
-
-
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Main functions
@@ -700,13 +651,11 @@ def main():
             }
         )
 
-        inactive_groups = get_groups_with_inactive_pollers(config)
+        inactive_groups = get_groups_with_inactive_pollers(config,config.categories['csmain'].get('condor_poller_timeout'))
+
         if inactive_groups:
-            disable_groups(config, inactive_groups)
-     
-        active_groups = get_disabled_groups_with_active_pollers(config)
-        if active_groups:
-            enable_groups(config, active_groups)
+            log.info("Groups with inactive condor pollers (will skip VM provisioning): %s",list(inactive_groups))
+
 
         try:
             # Booting up new VMs to fill in any free space on available clouds related to idle queued jobs
@@ -722,7 +671,6 @@ def main():
                     'list_duplicates': True,
                 }
             )
-
             list_groups_with_idle_jobs = sorted(idle_job_groups.keys())
             list_groups_with_idle_jobs_len = len(list_groups_with_idle_jobs)
             if list_groups_with_idle_jobs_len > 0:
@@ -741,13 +689,9 @@ def main():
             cloud_prio = None 
             if list_groups_with_idle_jobs_len > 0:
                 for job_group in list_groups_with_idle_jobs[list_groups_with_idle_jobs_ix:] + list_groups_with_idle_jobs[:list_groups_with_idle_jobs_ix]:
-                    
-                    where_clause = f"group_name='{job_group}'"
-                    rc, msg, group_info = config.db_query("csv2_groups", select=["enabled"], where=where_clause)
-                    if (rc==0 and group_info[0]['enabled'] == 0) or job_group in inactive_groups:
-                        log.info("skipping provisioning for group %s due to inactive condor poller", job_group)
-                        continue
-
+                   # if job_group in inactive_groups:
+                    #    log.info("Skipping VM provisioning for group %s - condor poller inactive", job_group)
+                     #   continue
 #               for job_group in idle_job_groups:
                     ####### log.debug("Proccessing group: %s" % job_group)
                     booted_for_group = False
