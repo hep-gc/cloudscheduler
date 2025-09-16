@@ -1522,16 +1522,17 @@ if __name__ == '__main__':
     db_category_list = ["condor_poller.py", "ProcessMonitor", "general", "signal_manager"]
     watchdog_exemptions = [ "condor_gsi", "worker_gsi"] 
 
-    
     is_deprecated=False
     try:
         htcondor_version = htcondor.version()
         match = re.search(r'\$CondorVersion:\s+(\d+)', htcondor_version)
+        
         if match:
             major_version = int(match.group(1))
             if major_version >= 9:
                 del process_ids['condor_gsi'] 
                 del process_ids['worker_gsi']
+                
                 watchdog_exemptions = []
                 is_deprecated=True
     except:
@@ -1552,9 +1553,10 @@ if __name__ == '__main__':
 
             config.db_execute('update csv2_groups set htcondor_gsi_dn=NULL,htcondor_gsi_eol=0 where htcondor_fqdn="%s";' % condor)
             config.db_execute('update condor_worker_gsi set worker_dn="",worker_eol=0,worker_cert="",worker_key="" where htcondor_fqdn="%s";' % condor)
+            
             config.db_commit()
-            logging.info("GSI database entries cleared for HTCondor 9+")
             config.db_close()
+            logging.info("GSI database entries cleared")
         except:
             logging.error("failed to clear GSI database entries")
             config.db_rollback()
@@ -1563,6 +1565,7 @@ if __name__ == '__main__':
     if is_hostname_localhost:
         logging.error("Hostname can not be localhost, exiting...")
         exit(1)
+        
     PID_FILE = config.categories["ProcessMonitor"]["pid_path"] + os.path.basename(sys.argv[0])
     with open(PID_FILE, "w") as fd:
         fd.write(str(os.getpid()))
