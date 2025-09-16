@@ -6,7 +6,7 @@ create or replace view view_starting_vms as
         v.group_name,
         v.cloud_name,
         count(*) as starting_vms,
-	g.enabled
+	g.freeze
     from csv2_vms v 
     join 
         csv2_groups g on v.group_name = g.group_name

@@ -107,13 +107,13 @@
 
                             <input type="hidden" name="group" value="{{group.group_name}}" />
                             <table>
-
-				<tr class="highlight3"><td><label for="authurl">Enabled</label></td>
+				<input type="hidden" name="freeze" value="0" />
+				<tr class="highlight3"><td><label for="freeze">Paused</label></td>
                                     <td>
-                                    {% if group.enabled == 1 %}
-                                        <input type="checkbox" name="enabled" value="1" checked/>
+                                        {% if group.freeze == 2 or group.freeze == 1 %}
+					<input type="checkbox" name="freeze" value="1" checked/>
                                     {% else %}
-                                        <input type="checkbox" name="enabled" value="1" />
+                                        <input type="checkbox" name="freeze" value="1" />
                                     {% endif %}</td></tr>
 
                                 <tr class="highlight3"><td><label for="htcondor_fqdn">HTCondor FQDN</label></td>

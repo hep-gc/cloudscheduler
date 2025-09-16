@@ -574,7 +574,7 @@ def get_groups_with_inactive_pollers(config, timeout_seconds=10):
             logging.warning("condor poller on host %s stale for %.2f minutes, skipping groups: %s", poller['host_id'], minutes_stale, groups_for_host)
     return inactive_groups
 
-def get_disabled_groups_with_active_pollers(config, timeout_seconds=10):
+def get_frozen_groups_with_active_pollers(config, timeout_seconds=10):
     current_time = int(time.time())
     cutoff_time = current_time - timeout_seconds
 
@@ -587,15 +587,15 @@ def get_disabled_groups_with_active_pollers(config, timeout_seconds=10):
             log.info(poller)
             groups_for_host = get_groups_name(config, poller['host_id'])
             active_groups.extend(groups_for_host)
-    disabled_active_groups = []
+    frozen_active_groups = []
     for group in active_groups:
         where_clause = f"group_name='{group}'"
-        rc, msg, group_records = config.db_query("csv2_groups", select=["enabled"], where=where_clause)
+        rc, msg, group_records = config.db_query("csv2_groups", select=["freeze"], where=where_clause)
      
         if rc == 0 and group_records:
-            if group_records[0]['enabled'] == 0:
-                disabled_active_groups.append(group)
-    return disabled_active_groups
+            if group_records[0]['freeze'] == 1:
+                frozen_active_groups.append(group)
+    return frozen_active_groups
 
 def get_groups_name(config, host_id):
     where_clause = f"htcondor_host_id"
@@ -608,27 +608,27 @@ def get_groups_name(config, host_id):
  
     return group_list
 
-def disable_groups(config, inactive_groups):
+def freeze_groups(config, inactive_groups):
     for group in inactive_groups:
         where_clause = f"group_name='{group}'"
-        rc, msg = config.db_update("csv2_groups", {'enabled': 0}, where=where_clause)
+        rc, msg = config.db_update("csv2_groups", {'freeze': 1}, where=where_clause)
         
         if rc == 0:
-            logging.warning("disabled %s group due to inactive condor poller", group)
+            logging.warning("freeze %s group due to inactive condor poller", group)
         else:
-            logging.error("failed to disable  %s group: %s", group, msg)
+            logging.error("failed to freeze  %s group: %s", group, msg)
     
     config.db_commit()
 
-def enable_groups(config, active_groups):
+def unfreeze_groups(config, active_groups):
     for group in active_groups:
         where_clause = f"group_name='{group}'"
-        rc, msg = config.db_update("csv2_groups", {'enabled': 1}, where=where_clause)
+        rc, msg = config.db_update("csv2_groups", {'freeze': 0}, where=where_clause)
         
         if rc == 0:
-            logging.warning("enabled %s group due to active condor poller", group)
+            logging.warning("unfroze %s group due to active condor poller", group)
         else:
-            logging.error("failed to enable  %s group: %s", group, msg)
+            logging.error("failed to unfreeze  %s group: %s", group, msg)
 
     config.db_commit()
 
@@ -702,11 +702,11 @@ def main():
 
         inactive_groups = get_groups_with_inactive_pollers(config)
         if inactive_groups:
-            disable_groups(config, inactive_groups)
+            freeze_groups(config, inactive_groups)
      
-        active_groups = get_disabled_groups_with_active_pollers(config)
+        active_groups = get_frozen_groups_with_active_pollers(config)
         if active_groups:
-            enable_groups(config, active_groups)
+            unfreeze_groups(config, active_groups)
 
         try:
             # Booting up new VMs to fill in any free space on available clouds related to idle queued jobs
@@ -743,8 +743,8 @@ def main():
                 for job_group in list_groups_with_idle_jobs[list_groups_with_idle_jobs_ix:] + list_groups_with_idle_jobs[:list_groups_with_idle_jobs_ix]:
                     
                     where_clause = f"group_name='{job_group}'"
-                    rc, msg, group_info = config.db_query("csv2_groups", select=["enabled"], where=where_clause)
-                    if (rc==0 and group_info[0]['enabled'] == 0) or job_group in inactive_groups:
+                    rc, msg, group_info = config.db_query("csv2_groups", select=["freeze"], where=where_clause)
+                    if (rc==0 and group_info[0]['freeze'] == 2) or (rc==0 and group_info[0]['freeze'] == 1):
                         log.info("skipping provisioning for group %s due to inactive condor poller", job_group)
                         continue
 
