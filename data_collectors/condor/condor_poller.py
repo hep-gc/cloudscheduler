@@ -1186,7 +1186,6 @@ def machine_command_poller(arg_list):
         config.db_close()
 
 def worker_gsi_poller():
-
     multiprocessing.current_process().name = "Worker GSI Poller"
 
     config = Config(sys.argv[1], ["condor_poller.py", 'ProcessMonitor'], pool_size=6, signals=True)
@@ -1324,7 +1323,6 @@ def worker_gsi_poller():
 
 
 def condor_gsi_poller():
-    
     multiprocessing.current_process().name = "Condor GSI Poller"
 
     config = Config(sys.argv[1], ["condor_poller.py", 'ProcessMonitor'], pool_size=6, signals=True)
