@@ -1333,7 +1333,6 @@ def condor_gsi_poller():
     poll_time_history = [0,0,0,0]
     last_heartbeat_time = 0
 
-
     try:
         while True:
             config.db_open()
@@ -1523,17 +1522,50 @@ if __name__ == '__main__':
     db_category_list = ["condor_poller.py", "ProcessMonitor", "general", "signal_manager"]
     watchdog_exemptions = [ "condor_gsi", "worker_gsi"] 
 
+    is_deprecated=False
+    try:
+        htcondor_version = htcondor.version()
+        match = re.search(r'\$CondorVersion:\s+(\d+)', htcondor_version)
+        
+        if match:
+            major_version = int(match.group(1))
+            if major_version >= 9:
+                del process_ids['condor_gsi'] 
+                del process_ids['worker_gsi']
+                
+                watchdog_exemptions = []
+                is_deprecated=True
+    except:
+        pass
+
     #procMon = ProcessMonitor(config_params=db_category_list, pool_size=3, process_ids=process_ids, config_file=sys.argv[1], log_file="/var/log/cloudscheduler/condor_poller.log", log_level=20)
     procMon = ProcessMonitor(config_params=db_category_list, pool_size=3, process_ids=process_ids, config_file=sys.argv[1], log_key="condor_poller", watchdog_exemption_list=watchdog_exemptions)
     config = procMon.get_config()
     logging = procMon.get_logging()
     version = config.get_version()
     is_hostname_localhost = config.is_hostname_localhost()
+    
+    if is_deprecated:
+        logging.info("Skipping GSI certificate check. HTCondor 9.x or later detected. GSI authentication deprecated")
+        try:
+            config.db_open()
+            condor = socket.gethostname()
+
+            config.db_execute('update csv2_groups set htcondor_gsi_dn=NULL,htcondor_gsi_eol=0 where htcondor_fqdn="%s";' % condor)
+            config.db_execute('update condor_worker_gsi set worker_dn="",worker_eol=0,worker_cert="",worker_key="" where htcondor_fqdn="%s";' % condor)
+            
+            config.db_commit()
+            config.db_close()
+            logging.info("GSI database entries cleared")
+        except:
+            logging.error("failed to clear GSI database entries")
+            config.db_rollback()
+            config.db_close()
 
     if is_hostname_localhost:
         logging.error("Hostname can not be localhost, exiting...")
         exit(1)
-    
+        
     PID_FILE = config.categories["ProcessMonitor"]["pid_path"] + os.path.basename(sys.argv[0])
     with open(PID_FILE, "w") as fd:
         fd.write(str(os.getpid()))
