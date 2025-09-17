@@ -237,6 +237,11 @@ function foreign_list(url) {
     window.location.href = "#vms-overlay";
 }
 
+function condor_machines_list(url) {
+       stop_refresh();
+       document.getElementById('vms-iframe').src='/vm/machines/'+url;
+       window.location.href = "#vms-overlay";
+   }
 function toggle_id(name){
 
     if(document.getElementById(name).style.display == "table-row"){

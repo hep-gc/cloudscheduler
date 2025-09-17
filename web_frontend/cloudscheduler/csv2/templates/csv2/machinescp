@@ -1,0 +1,82 @@
+<html>
+        <head>
+        {% load static %}
+
+        <link rel="stylesheet" type="text/css" href="{% static "csv2/common.css" %}?{{version}}">
+        <link rel="stylesheet" type="text/css" href="{% static "csv2/vms.css" %}?{{version}}">
+
+        </head>
+
+
+        <body>
+		Condor Machines for group=<i>{{ active_group }}</i>
+		{% if machines_list.0.cloud_name %}, 
+			cloud=<i>{{ machines_list.0.cloud_name }}</i>
+		{% else %}
+			, cloud=<i>None</i>
+		{% endif %}:
+
+                <div class=vm-table>
+                        <table>
+                                <tr class="title-row">
+					<th>Name</th>
+					<th>HostID</th>
+					<th>Machine</th>
+					<th>Group</th>
+                    			<th>Cloud</th>
+                 			<th>Condor Host</th>
+                  			<th>Flavor</th>
+                    			<th>JobID</th>
+					<th>GlobalJobID</th>
+					<th>Address</th>
+                    			<th>State</th>
+                    			<th>Activity</th>
+                    			<th>VMType</th>
+                    			<th>CurTime</th>
+                    			<th>EnteredCurTime</th>
+                    			<th>Start</th>
+					<th>Remoteowner</th>
+                    			<th>Total Disk</th>
+					<th>SlotType</th>
+					<th>SlotCPUs</th>
+                    			<th>TotalSlots</th>
+					<th>IdleTime</th>
+                		</tr>
+                                {% for vm in foreign_list %}
+
+
+                                <tr>
+					<td>{{m.name}}</td>
+					<td>{{m.htcondor_host_id}}</td>
+					<td>{{m.machine}}</td>
+                                        <td>{{m.group_name}}</td>	
+					<td>{{m.cloud_name}}</td>
+					<td>{{m.condor_host}}</td>
+					<td>{{m.flavor}}</td>
+                                        <td>{{m.job_id}}</td>
+                                        <td>{{m.global_job_id}}</td>
+					<td>{{m.address}}</td>
+					<td>{{m.state}}</td>
+					<td>{{m.activity}}</td>
+					<td>{{m.vm_type}}</td>
+					<td>{{m.my_current_time}}</td>
+					<td>{{m.entered_current_time}}</td>
+					<td>{{m.start}}</td>
+					<td>{{m.remote_owner}}</td>
+					<td>{{m.total_disk}}</td>
+					<td>{{m.slot_type}}</td>
+					<td>{{m.slot_cpus}}</td>
+					<td>{{m.idle_time}}</td>
+				</tr>
+                                {% endfor %}
+                        </table>
+                </div>
+
+        </body>
+</html>
+~                                                                                                                                     
+~                                                                                                                                     
+~                                                                                                                                     
+~                                                                                                                                     
+~                                                                                                                                     
+~                               

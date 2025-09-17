@@ -198,6 +198,52 @@ def vm_list(request, args=None, response_code=0, message=None):
 
 #-------------------------------------------------------------------------------
 
+@silkp(name="Machines")
+@requires_csrf_token
+def machines(request):
+
+    # open the database.
+    config.db_open()
+
+    # Retrieve the active user, associated group list and optionally set the active group.
+    rc, msg, active_user = set_user_groups(config, request, super_user=False)
+    if rc != 0:
+        config.db_close()
+        return render(request, 'csv2/machines.html', {'response_code': 1, 'message': '%s %s' % (lno(MODID), msg)})
+
+    # Validate input fields (should be none).
+    rc, msg, fields, tables, columns = validate_fields(config, request, [LIST_KEYS], [], active_user)
+    if rc != 0:
+        config.db_close()
+        return render(request, 'csv2/machines.html', {'response_code': 1, 'message': '%s machines list, %s' % (lno(MODID), msg)})
+
+    # Retrieve condor machines information
+    if active_user.active_group and active_user.active_group == 'ALL':
+        rc, msg, machines_list_raw = config.db_query("condor_machines")
+    else:
+        where_clause = "group_name='%s'" % active_user.active_group
+        rc, msg, machines_list_raw = config.db_query("condor_machines", where=where_clause)
+    args=active_user.kwargs
+    machines_list = qt(machines_list_raw, filter=qt_filter_get(['cloud_name'], args, aliases=ALIASES))
+
+    config.db_close()
+
+    # Render the page.
+    context = {
+            'active_user': active_user.username,
+            'active_group': active_user.active_group,
+            'user_groups': active_user.user_groups,
+            'machines_list': machines_list,
+            'response_code': 0,
+            'message': None,
+            'is_superuser': active_user.is_superuser,
+            'version': config.get_version()
+        }
+
+    return render(request, 'csv2/machines.html', context)
+
+#-------------------------------------------------------------------------------
+
 @silkp(name="VM Update")
 @requires_csrf_token
 def update(request):
