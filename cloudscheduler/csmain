@@ -1240,7 +1240,7 @@ def remove_orphaned_volumes(config):
                             rc, msg, clouds = config.db_query(CLOUD, where=where_clause)
                             cloud=clouds[0]
                             region = cloud["region"] if cloud.get("region") else None
-                            sess = get_openstack_sess(cloud, verify)
+                            sess = get_openstack_sess(cloud)
                             if sess is False:
                                 logging.error("Failed to establish session with %s, skipping this cloud..." % cloud_name)
                                 continue
