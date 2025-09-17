@@ -452,9 +452,8 @@ function createPlot(to, from) {
         var current_url = window.location.href;
         const regex = /(.*\/\/[^\/]*)(\/.*)/;
         var root_url = current_url.split(regex)[1];
-        var newpath = root_url + ":8086/query";
-        newpath += "?q=" + query + "&db=csv2_timeseries&epoch=ms&u=csv2_read&p=csv2_public";
-        newpath = encodeURI(newpath)
+        var newpath = root_url + ":8086/query"; 
+	newpath += "?q=" + encodeURIComponent(query) + "&db=csv2_timeseries&epoch=ms&u=csv2_read&p=csv2_public";
         newpath = newpath.replace(';', '%3B')
         fetch(newpath,{
             method: 'GET',
