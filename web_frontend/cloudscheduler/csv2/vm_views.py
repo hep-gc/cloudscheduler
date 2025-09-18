@@ -38,7 +38,7 @@ VM_KEYS = {
     'format': {
         'poller_status':                                                ['native', 'idle', 'starting', 'manual', 'error', 'unregistered', 'retiring', 'running', 'other'],
         'vm_option':                                                    ['kill', 'retain', 'retire', 'manctl', 'sysctl'],
-
+        'activity':                                                     ['Busy', 'Idle'], 
         'cloud_name':                                                   'ignore',
         'csrfmiddlewaretoken':                                          'ignore',
         'group':                                                        'ignore',
@@ -224,7 +224,11 @@ def machines(request):
         where_clause = "group_name='%s'" % active_user.active_group
         rc, msg, machines_list_raw = config.db_query("condor_machines", where=where_clause)
     args=active_user.kwargs
-    machines_list = qt(machines_list_raw, filter=qt_filter_get(['cloud_name'], args, aliases=ALIASES))
+    machines_list = qt(machines_list_raw, filter=qt_filter_get(['cloud_name', 'activity'], args, aliases=ALIASES))
+    
+    show_activity = True
+    if args and ('activity' not in args or args.get('activity') == ''):
+        show_activity = False
 
     config.db_close()
 
@@ -233,6 +237,7 @@ def machines(request):
             'active_user': active_user.username,
             'active_group': active_user.active_group,
             'user_groups': active_user.user_groups,
+            'form_inputs': {'activity': show_activity},
             'machines_list': machines_list,
             'response_code': 0,
             'message': None,

@@ -22,7 +22,6 @@
                                 <tr class="title-row">
 					<th>Name</th>
 					<th>HostID</th>
-					<th>Machine</th>
 					<th>Group</th>
                     			<th>Cloud</th>
                  			<th>CSV2Host</th>
@@ -30,9 +29,7 @@
                     			<th>JobID</th>
                     			<th>State</th>
                     			<th>Activity</th>
-                    			<th>CurTime</th>
                     			<th>Start</th>
-					<th>Remoteowner</th>
                     			<th>Total Disk</th>
 					<th>SlotType</th>
 					<th>SlotCPUs</th>
@@ -45,7 +42,6 @@
                                 <tr>
 					<td>{{vm.name}}</td>
 					<td>{{vm.htcondor_host_id}}</td>
-					<td>{{vm.machine}}</td>
                                         <td>{{vm.group_name}}</td>	
 					<td>{{vm.cloud_name}}</td>
 					<td>{{vm.condor_host}}</td>
@@ -53,12 +49,11 @@
                                         <td>{{vm.job_id}}</td>
 					<td>{{vm.state}}</td>
 					<td>{{vm.activity}}</td>
-					<td>{{vm.my_current_time}}</td>
 					<td>{{vm.start}}</td>
-					<td>{{vm.remote_owner}}</td>
 					<td>{{vm.total_disk}}</td>
 					<td>{{vm.slot_type}}</td>
 					<td>{{vm.slot_cpus}}</td>
+					<td>{{vm.total_slots}}</td>
 					<td>{{vm.idle_time}}</td>
 				</tr>
                                 {% endfor %}
