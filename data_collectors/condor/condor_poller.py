@@ -448,7 +448,7 @@ def process_group_cloud_commands(pair, condor_host, config):
         config.db_rollback()
         return
 
-    #JOB TERMINATION:
+    # JOB TERMINATION:
     # Query database for jobs to be terminated.
     where_clause = "terminate>=1 and group_name='%s' and cloud_name='%s'" % (group_name, cloud_name)
     logging.debug("Query where clause: %s" % where_clause)
@@ -484,11 +484,10 @@ def process_group_cloud_commands(pair, condor_host, config):
             master_result = htcondor.send_command(condor_classad, htcondor.DaemonCommands.DaemonsOff)
             logging.debug("Machine kill Result: %s" % master_result)
             
-        except Exception as exc:
-            logging.info("Failed to kill machine")
-            
+        except Exception:
+            continue
     except Exception as exc:
-        logging.error("Failed to kill machine %s: %s, aborting cycle..." % (machine["name"], exc))
+        logging.error("Failed to kill job %s: %s, aborting cycle..." % (machine["name"], exc))
         continue
 
     logging.debug("Commands complete...")
