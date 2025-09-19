@@ -1,0 +1,143 @@
+[root@elephant190 cloudscheduler]# cat web_frontend/cloudscheduler/csv2/static/csv2/machines.css 
+:root {
+  --header_background_color: #4CAF50;
+  --alternate_row_background_color: #F2F2F2;
+}
+
+
+
+.title-row {
+  background-color: whitesmoke;
+  color: black;
+  font-style: bold;
+  padding: 0px;
+}
+
+.box-row {
+  background-color: whitesmoke;
+  color: white;
+  padding: 0px;
+}
+
+.machine-div {
+  position: relative;
+  display: block;
+
+  width: 100%;
+  top: 10px;
+  bottom: 30px;
+
+  overflow-y: visible;
+  overflow-x: visible;
+}
+
+.filter-div {  
+  display: inline-block;
+}
+
+.machine-buttons {
+  display: inline-block;
+}
+
+.button {
+  border: none;
+  cursor: pointer;
+
+  font-size: 14px;
+  font-weight: bold;
+  padding: 4px 4px;
+  text-align: center;
+  text-decoration: none;
+
+}
+
+/*
+.button-shadow:hover {
+  box-shadow: 0 17px 6px 0 rgba(0,0,0,0.2) inset;
+}
+*/
+.greyed-button {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.retire-button {
+  background-color: orange;
+  color: white;
+}
+
+.kill-button {
+  background-color: red;
+  color: black;
+}
+
+.manual-button {
+  background-color: green;
+  color: white;
+
+}
+
+.system-button {
+  background-color: blue;
+  color: white;
+
+}
+
+.machine-table {
+  position: absolute;
+  left: 0px;
+  display: block;
+}
+
+.machine-table table {
+  overflow-x: scroll;
+  padding-bottom: 1px;
+  table-layout: fixed;
+}
+
+.machine-table th, td {
+  border: 1px solid white;
+  padding: 5px;
+}
+
+/*
+.machine-table thead {
+  display: block;
+  margin-left:12px; 
+  width: 1670px;
+}
+*/
+.machine-table th {
+  background-color: powderblue;
+  color: black;
+  cursor: pointer;
+  font-size: 16px;
+  text-align: center;
+}
+/*
+.machine-table tbody {
+  direction: rtl;
+  display: block;
+  height: 94%;
+  overflow-y: scroll;
+  width: 1680px;
+}
+*/
+.machine-table tr:nth-child(even) {
+  background-color: var(--alternate_row_background_color);
+}
+
+.machine-table td {
+  text-align: center;
+}
+
+.machine-retired td {
+  background-color: orange !important;
+  color: white !important;
+}
+
+.machine-terminated td {
+  background-color: red !important;
+  color: white !important;
+}[root@elephant190 cloudscheduler]# 
+

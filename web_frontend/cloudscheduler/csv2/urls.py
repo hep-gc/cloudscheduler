@@ -74,5 +74,5 @@ urlpatterns = [
     path('vm/list/',                               vm_views.vm_list),
     path('vm/update/',                             vm_views.update),
     path('vm/machines/',                           vm_views.machines),
-
+    path('vm/machines/update/',                    vm_views.machines_update),
 ]

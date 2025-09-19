@@ -1,259 +1,284 @@
 <html>
-        <head>
+
+<head>
         {% load static %}
 
         <link rel="stylesheet" type="text/css" href="{% static "csv2/common.css" %}?{{version}}">
-        <link rel="stylesheet" type="text/css" href="{% static "csv2/vms.css" %}?{{version}}">
+        <link rel="stylesheet" type="text/css" href="{% static "csv2/machines.css" %}?{{version}}">
 
-        </head>
-
-
-        <body>
-		Condor Machines for group=<i>{{ active_group }}</i>
-                {% if machines_list.0.cloud_name %},
-                        cloud=<i>{{ machines_list.0.cloud_name }}</i>
-                {% else %}
-                        , cloud=<i>None</i>
-                {% endif %}:
+</head>
 
 
-                <div class=vm-table>
-			<table id="machinesTable">
+<body>
+        Condor Machines for group=<i>{{ active_group }}</i>
+        {% if machines_list.0.cloud_name %},
+        cloud=<i>{{ machines_list.0.cloud_name }}</i>
+        {% else %}
+        , cloud=<i>None</i>
+        {% endif %}:
+
+        <form method="post">
+                {% csrf_token %}
+                {% if response_code == 1 %}
+                <div
+                        style="padding: 10px; margin: 10px 0; background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb;">
+                        <b>Error: {{ message }}</b>
+                </div>
+                {% elif message is not None %}
+                <div
+                        style="padding: 10px; margin: 10px 0; background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb;">
+                        {{ message }}
+                </div>
+                {% endif %}
+
+                {% if form_inputs.activity %}
+                <input type="hidden" name="activity" value="{{ machines_list.0.activity }}" />
+                {% endif %}
+
+                <button class="button retire-button" type="submit" formaction="/vm/machines/update/" name="machine_option"
+                        value="retire">Retire Machines</button>
+                <div class=machine-table>
+                        <table id="machinesTable">
                                 <tr class="title-row">
-					<th><input type="checkbox" id="select-all" onchange="selectAll();"/></th>
-					<th onClick="sortTable(1)">Name &#8597;</th>
-					<th onClick="sortTableNum(2)">HostID &#8597;</th>
-					<th onClick="sortTable(3)">Group &#8597;</th>
-                    			<th onClick="sortTable(4)">Cloud &#8597;</th>
-                 			<th onClick="sortTableNum(5)">CSV2Host &#8597;</th>
-                  			<th onClick="sortTable(6)">Flavor &#8597;</th>
-                    			<th onClick="sortTable(7)">JobID &#8597;</th>
-                    			<th onClick="sortTable(8)">State &#8597;</th>
-                    			<th onClick="sortTable(9)">Activity &#8597;</th>
-                    			<th onClick="sortTable(10)">Start &#8597;</th>
-                    			<th onClick="sortTableNum(11)">TotalDisk &#8597;</th>
-					<th onClick="sortTable(12)">SlotType &#8597;</th>
-					<th onClick="sortTableNum(13)">SlotCPUs &#8597;</th>
-                    			<th onClick="sortTableNum(14)">TotalSlots &#8597;</th>
-					<th onClick="sortTableNum(15)">IdleTime &#8597;</th>
-                		</tr>
-                                {% for vm in machines_list %}
-
-
+                                        <th><input type="checkbox" id="select-all" onchange="selectAll();" /></th>
+                                        <th onClick="sortTable(1)">Name &#8597;</th>
+                                        <th onClick="sortTableNum(2)">HostID &#8597;</th>
+                                        <th onClick="sortTable(3)">Group &#8597;</th>
+                                        <th onClick="sortTable(4)">Cloud &#8597;</th>
+                                        <th onClick="sortTableNum(5)">CSV2 Host &#8597;</th>
+                                        <th onClick="sortTable(6)">Flavor &#8597;</th>
+                                        <th onClick="sortTable(7)">JobID &#8597;</th>
+                                        <th onClick="sortTable(8)">State &#8597;</th>
+                                        <th onClick="sortTable(9)">Activity &#8597;</th>
+                                        <th onClick="sortTable(10)">Start &#8597;</th>
+                                        <th onClick="sortTableNum(11)">Total Disk &#8597;</th>
+                                        <th onClick="sortTable(12)">Slot Type &#8597;</th>
+                                        <th onClick="sortTableNum(13)">Slot CPUs &#8597;</th>
+                                        <th onClick="sortTableNum(14)">Total Slots &#8597;</th>
+                                        <th onClick="sortTableNum(15)">Idle Time &#8597;</th>
+                                </tr>
+                                {% for machine in machines_list %}
+                                {% if machine.retire >= 1 %}
+                                <tr class="machine-retired" title="Machine queued to retire">
+                                        {% else %}
                                 <tr>
-					<td><input type="checkbox" name="vm_hosts.{{ forloop.counter }}" value={{vm.hostname}} /></td>
-					<td>{{vm.name}}</td>
-					<td>{{vm.htcondor_host_id}}</td>
-                                        <td>{{vm.group_name}}</td>	
-					<td>{{vm.cloud_name}}</td>
-					<td>{{vm.condor_host}}</td>
-					<td>{{vm.flavor}}</td>
-                                        <td>{{vm.job_id}}</td>
-					<td>{{vm.state}}</td>
-					<td>{{vm.activity}}</td>
-					<td>{{vm.start}}</td>
-					<td>{{vm.total_disk}}</td>
-					<td>{{vm.slot_type}}</td>
-					<td>{{vm.slot_cpus}}</td>
-					<td>{{vm.total_slots}}</td>
-					<td>{{vm.idle_time}}</td>
-				</tr>
+                                        {% endif %}
+                                        <td><input type="checkbox" name="machine_hosts.{{ forloop.counter }}"
+                                                        value={{machine.name}}></td>
+                                        <td>{{machine.name}}</td>
+                                        <td>{{machine.htcondor_host_id}}</td>
+                                        <td>{{machine.group_name}}</td>
+                                        <td>{{machine.cloud_name}}</td>
+                                        <td>{{machine.condor_host}}</td>
+                                        <td>{{machine.flavor}}</td>
+                                        <td>{{machine.job_id}}</td>
+                                        <td>{{machine.state}}</td>
+                                        <td>{{machine.activity}}</td>
+                                        <td>{{machine.start}}</td>
+                                        <td>{{machine.total_disk}}</td>
+                                        <td>{{machine.slot_type}}</td>
+                                        <td>{{machine.slot_cpus}}</td>
+                                        <td>{{machine.total_slots}}</td>
+                                        <td>{{machine.idle_time}}</td>
+                                </tr>
                                 {% endfor %}
                         </table>
                 </div>
-    <script type="text/javascript">
+                <div class="footer">
+                        {% if response_code == 1 %}
+                        <tr>
+                                <td><b>Error: {{ message }}</b></td>
+                        </tr>
+                        {% elif message is not None %}
+                        <tr>
+                                <td>{{ message }}</td>
+                        </tr>
+                        {% endif %}
+                </div>
+                <script type="text/javascript">
 
 
- // For the "select all checkbox"
-      function selectAll() {
+                        // For the "select all checkbox"
+                        function selectAll() {
 
-        // Declare variables 
-        var table, tr, td, i, j, check;
+                                // Declare variables 
+                                var table, tr, td, i, j, check;
 
-        table = document.getElementById("machinesTable");
-        tr = table.getElementsByTagName("tr");
+                                table = document.getElementById("machinesTable");
+                                tr = table.getElementsByTagName("tr");
 
-        box = document.getElementById("select-all");
+                                box = document.getElementById("select-all");
 
-        // Loop through all table rows and find those that match the search query
-        if (box.checked){
-          for (i = 0; i < tr.length; i++) {
-            check = tr[i].getElementsByTagName("input");
-            if( check[0].disabled == false) {
+                                // Loop through all table rows and find those that match the search query
+                                if (box.checked) {
+                                        for (i = 0; i < tr.length; i++) {
+                                                check = tr[i].getElementsByTagName("input");
+                                                if (check[0].disabled == false) {
 
-              for(j=0;j<check.length;j++)
-              {
-                if(check[j].type=='checkbox')
-                {
-                 check[j].checked=true;
-                }
-              }
-            }
-          }
-        }
-        else{
-          for (i = 0; i < tr.length; i++) {
-            check = tr[i].getElementsByTagName("input");
-            if( check[0].disabled == false) {
+                                                        for (j = 0; j < check.length; j++) {
+                                                                if (check[j].type == 'checkbox') {
+                                                                        check[j].checked = true;
+                                                                }
+                                                        }
+                                                }
+                                        }
+                                }
+                                else {
+                                        for (i = 0; i < tr.length; i++) {
+                                                check = tr[i].getElementsByTagName("input");
+                                                if (check[0].disabled == false) {
 
-              for(j=0;j<check.length;j++)
-              {
-                if(check[j].type=='checkbox')
-                {
-                 check[j].checked=false;
-                }
-              }
-            }
-          }
-        }
-      }
+                                                        for (j = 0; j < check.length; j++) {
+                                                                if (check[j].type == 'checkbox') {
+                                                                        check[j].checked = false;
+                                                                }
+                                                        }
+                                                }
+                                        }
+                                }
+                        }
 
 
-      // For the "select all checkbox"
-      function checkToggle(event) {
-        var changed = event.target,
-          selectAll = document.getElementById('select-all'),
-          checkboxes = Array.prototype.slice.call(
-            this.querySelectorAll('input[type=checkbox]')
-          ).filter(function(check) {
-            return check !== selectAll;
-          });
-        if (changed === selectAll) {
-          checkboxes.forEach(function(check) {
-            check.checked = selectAll.checked;
-          });
-        } else {
-          var allChecked = checkboxes.filter(function(check) {
-            return check.checked;
-          }).length === checkboxes.length;
-          selectAll.checked = allChecked;
-        }
-      }
+                        // For the "select all checkbox"
+                        function checkToggle(event) {
+                                var changed = event.target,
+                                        selectAll = document.getElementById('select-all'),
+                                        checkboxes = Array.prototype.slice.call(
+                                                this.querySelectorAll('input[type=checkbox]')
+                                        ).filter(function (check) {
+                                                return check !== selectAll;
+                                        });
+                                if (changed === selectAll) {
+                                        checkboxes.forEach(function (check) {
+                                                check.checked = selectAll.checked;
+                                        });
+                                } else {
+                                        var allChecked = checkboxes.filter(function (check) {
+                                                return check.checked;
+                                        }).length === checkboxes.length;
+                                        selectAll.checked = allChecked;
+                                }
+                        }
 
-      var tableElement = document.querySelector('table');
-      tableElement.addEventListener('change', checkToggle);
+                        var tableElement = document.querySelector('table');
+                        tableElement.addEventListener('change', checkToggle);
 
-      // To sort by clicking the headers
-      function sortTable(n) {
-        var table, rows, switching, i, x, y, shouldSwitch, dir, switchcount = 0;
-        table = document.getElementById("machinesTable");
-        switching = true;
-        // Set the sorting direction to ascending:
-        dir = "asc";
-        /* Make a loop that will continue until
-        no switching has been done: */
-        while (switching) {
-          // Start by saying: no switching is done:
-          switching = false;
-          rows = table.getElementsByTagName("TR");
-          /* Loop through all table rows (except the
-          first, which contains table headers): */
-          for (i = 1; i < (rows.length - 1); i++) {
-            // Start by saying there should be no switching:
-            shouldSwitch = false;
-            /* Get the two elements you want to compare,
-            one from current row and one from the next: */
-            x = rows[i].getElementsByTagName("TD")[n];
-            y = rows[i + 1].getElementsByTagName("TD")[n];
-            /* Check if the two rows should switch place,
-            based on the direction, asc or desc: */
-            if (dir == "asc") {
-              if (x.innerHTML.toLowerCase() > y.innerHTML.toLowerCase()) {
-                // If so, mark as a switch and break the loop:
-                shouldSwitch = true;
-                break;
-              }
-            } else if (dir == "desc") {
-              if (x.innerHTML.toLowerCase() < y.innerHTML.toLowerCase()) {
-                // If so, mark as a switch and break the loop:
-                shouldSwitch = true;
-                break;
-              }
-            }
-          }
-          if (shouldSwitch) {
-            /* If a switch has been marked, make the switch
-            and mark that a switch has been done: */
-            rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
-            switching = true;
-            // Each time a switch is done, increase this count by 1:
-            switchcount ++;
-          } else {
-            /* If no switching has been done AND the direction is "asc",
-            set the direction to "desc" and run the while loop again. */
-            if (switchcount == 0 && dir == "asc") {
-              dir = "desc";
-              switching = true;
-            }
-          }
-        }
-      }
+                        // To sort by clicking the headers
+                        function sortTable(n) {
+                                var table, rows, switching, i, x, y, shouldSwitch, dir, switchcount = 0;
+                                table = document.getElementById("machinesTable");
+                                switching = true;
+                                // Set the sorting direction to ascending:
+                                dir = "asc";
+                                /* Make a loop that will continue until
+                                no switching has been done: */
+                                while (switching) {
+                                        // Start by saying: no switching is done:
+                                        switching = false;
+                                        rows = table.getElementsByTagName("TR");
+                                        /* Loop through all table rows (except the
+                                        first, which contains table headers): */
+                                        for (i = 1; i < (rows.length - 1); i++) {
+                                                // Start by saying there should be no switching:
+                                                shouldSwitch = false;
+                                                /* Get the two elements you want to compare,
+                                                one from current row and one from the next: */
+                                                x = rows[i].getElementsByTagName("TD")[n];
+                                                y = rows[i + 1].getElementsByTagName("TD")[n];
+                                                /* Check if the two rows should switch place,
+                                                based on the direction, asc or desc: */
+                                                if (dir == "asc") {
+                                                        if (x.innerHTML.toLowerCase() > y.innerHTML.toLowerCase()) {
+                                                                // If so, mark as a switch and break the loop:
+                                                                shouldSwitch = true;
+                                                                break;
+                                                        }
+                                                } else if (dir == "desc") {
+                                                        if (x.innerHTML.toLowerCase() < y.innerHTML.toLowerCase()) {
+                                                                // If so, mark as a switch and break the loop:
+                                                                shouldSwitch = true;
+                                                                break;
+                                                        }
+                                                }
+                                        }
+                                        if (shouldSwitch) {
+                                                /* If a switch has been marked, make the switch
+                                                and mark that a switch has been done: */
+                                                rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
+                                                switching = true;
+                                                // Each time a switch is done, increase this count by 1:
+                                                switchcount++;
+                                        } else {
+                                                /* If no switching has been done AND the direction is "asc",
+                                                set the direction to "desc" and run the while loop again. */
+                                                if (switchcount == 0 && dir == "asc") {
+                                                        dir = "desc";
+                                                        switching = true;
+                                                }
+                                        }
+                                }
+                        }
 
-      // To sort by clicking the headers
-      function sortTableNum(n) {
-        var table, rows, switching, i, x, y, shouldSwitch, dir, switchcount = 0;
-        table = document.getElementById("machinesTable");
-        switching = true;
-        // Set the sorting direction to ascending:
-        dir = "asc";
-        /* Make a loop that will continue until
-        no switching has been done: */
-        while (switching) {
-          // Start by saying: no switching is done:
-          switching = false;
-          rows = table.getElementsByTagName("TR");
-          /* Loop through all table rows (except the
-          first, which contains table headers): */
-          for (i = 1; i < (rows.length - 1); i++) {
-            // Start by saying there should be no switching:
-            shouldSwitch = false;
-            /* Get the two elements you want to compare,
-            one from current row and one from the next: */
-            x = rows[i].getElementsByTagName("TD")[n];
-            y = rows[i + 1].getElementsByTagName("TD")[n];
-            x_num = parseInt(x.innerHTML, 10)
-            y_num = parseInt(y.innerHTML, 10)
-            /* Check if the two rows should switch place,
-            based on the direction, asc or desc: */
-            if (dir == "asc") {
-              if (x_num > y_num) {
-                // If so, mark as a switch and break the loop:
-                shouldSwitch = true;
-                break;
-              }
-            } else if (dir == "desc") {
-              if (x_num < y_num) {
-                // If so, mark as a switch and break the loop:
-                shouldSwitch = true;
-                break;
-              }
-            }
-          }
-          if (shouldSwitch) {
-            /* If a switch has been marked, make the switch
-            and mark that a switch has been done: */
-            rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
-            switching = true;
-            // Each time a switch is done, increase this count by 1:
-            switchcount ++;
-          } else {
-            /* If no switching has been done AND the direction is "asc",
-            set the direction to "desc" and run the while loop again. */
-            if (switchcount == 0 && dir == "asc") {
-              dir = "desc";
-              switching = true;
-            }
-          }
-        }
-      }
+                        // To sort by clicking the headers
+                        function sortTableNum(n) {
+                                var table, rows, switching, i, x, y, shouldSwitch, dir, switchcount = 0;
+                                table = document.getElementById("machinesTable");
+                                switching = true;
+                                // Set the sorting direction to ascending:
+                                dir = "asc";
+                                /* Make a loop that will continue until
+                                no switching has been done: */
+                                while (switching) {
+                                        // Start by saying: no switching is done:
+                                        switching = false;
+                                        rows = table.getElementsByTagName("TR");
+                                        /* Loop through all table rows (except the
+                                        first, which contains table headers): */
+                                        for (i = 1; i < (rows.length - 1); i++) {
+                                                // Start by saying there should be no switching:
+                                                shouldSwitch = false;
+                                                /* Get the two elements you want to compare,
+                                                one from current row and one from the next: */
+                                                x = rows[i].getElementsByTagName("TD")[n];
+                                                y = rows[i + 1].getElementsByTagName("TD")[n];
+                                                x_num = parseInt(x.innerHTML, 10)
+                                                y_num = parseInt(y.innerHTML, 10)
+                                                /* Check if the two rows should switch place,
+                                                based on the direction, asc or desc: */
+                                                if (dir == "asc") {
+                                                        if (x_num > y_num) {
+                                                                // If so, mark as a switch and break the loop:
+                                                                shouldSwitch = true;
+                                                                break;
+                                                        }
+                                                } else if (dir == "desc") {
+                                                        if (x_num < y_num) {
+                                                                // If so, mark as a switch and break the loop:
+                                                                shouldSwitch = true;
+                                                                break;
+                                                        }
+                                                }
+                                        }
+                                        if (shouldSwitch) {
+                                                /* If a switch has been marked, make the switch
+                                                and mark that a switch has been done: */
+                                                rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
+                                                switching = true;
+                                                // Each time a switch is done, increase this count by 1:
+                                                switchcount++;
+                                        } else {
+                                                /* If no switching has been done AND the direction is "asc",
+                                                set the direction to "desc" and run the while loop again. */
+                                                if (switchcount == 0 && dir == "asc") {
+                                                        dir = "desc";
+                                                        switching = true;
+                                                }
+                                        }
+                                }
+                        }
 
 
-    </script>
-        </body>
+                </script>
+</body>
+
 </html>
-~                                                                                                                                     
-~                                                                                                                      
-~                                                                                                                                     
-~                                                                                                                                     
-~                                                                                                                                     
-~                       

@@ -268,6 +268,7 @@ def process_group_cloud_commands(pair, condor_host, config):
 
     VM = "csv2_vms"
     CLOUD = "csv2_clouds"
+    MACHINE = "condor_machines"
 
     retire_off = config.categories["condor_poller.py"]["retire_off"]
     retire_interval = config.categories["condor_poller.py"]["retire_interval"]
@@ -398,13 +399,55 @@ def process_group_cloud_commands(pair, condor_host, config):
             logging.debug(condor_host)
             continue
 
-    try:
-        config.db_commit()
-    except Exception as exc:
-        logging.exception("Failed to commit retire machine, aborting cycle...")
-        logging.error(exc)
-        config.db_rollback()
-        return
+    # MACHINE RETIREMENT:
+    # Query database for machines to be retired.
+    where_clause = "retire>=1 and group_name='%s' and cloud_name='%s'" % (group_name, cloud_name)
+    logging.debug("Machine retirement query where clause: %s" % where_clause)
+    
+    rc, msg, machines_list = config.db_query(MACHINE, where=where_clause)
+    logging.debug("Query returned %s actionable machines..." % len(machines_list))
+    for machine in machines_list:
+        # Skip if retires are disabled
+        if retire_off:
+            logging.critical("Retires disabled, normal operation would retire %s" % machine["name"])
+            continue
+            
+        logging.info("Retiring machine %s " % (machine["name"]))
+        
+        try:
+            condor_session = get_condor_session()
+            
+            try:
+                if machine["machine"] and len(machine["machine"]) > 0:
+                    condor_classad = condor_session.query(master_type, 'Name=="%s"' % machine["machine"])[0]
+                else:
+                    # Use the hostid to find the master
+                    if "@" in machine["name"]:
+                        machine_name = machine["name"].split("@")[1]
+                    else:
+                        machine_name = machine["name"]
+                    condor_classad = condor_session.query(master_type, 'regexp("%s", Name, "i")' % machine_name)[0]
+            except Exception as exc:
+                logging.error("Unable to retrieve condor classad for %s, skipping..." % machine["name"])
+                logging.debug(exc)
+                continue
+                
+            try:
+                logging.info("Issuing DaemonsOffPeaceful to machine %s" % machine["name"])
+                master_result = htcondor.send_command(condor_classad, htcondor.DaemonCommands.DaemonsOffPeaceful)
+                logging.debug("Machine retirement result: %s " % master_result)
+            except Exception as exc:
+                logging.info("Failed to retire machine via condor bindings, attempting system command")
+                machine_name = machine["name"].split("@")[1] if "@" in machine["name"] else machine["name"]
+                logging.debug("condor_drain -exit-on-completion %s" % machine_name)
+                cndr_drain = subprocess.run(["condor_drain", "-exit-on-completion", machine_name])
+                logging.debug("Machine drain command executed")
+                logging.debug(cndr_drain.stdout)
+                logging.debug(cndr_drain.stderr)
+            
+        except Exception as exc:
+            logging.error("Failed to retire machine %s: %s" % (machine["name"], exc))
+            continue
 
     logging.debug("Commands complete...")
     return
