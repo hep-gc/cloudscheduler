@@ -1,15 +1,16 @@
 <html>
 
-<head>
+	<head>
         {% load static %}
 
         <link rel="stylesheet" type="text/css" href="{% static "csv2/common.css" %}?{{version}}">
         <link rel="stylesheet" type="text/css" href="{% static "csv2/machines.css" %}?{{version}}">
 
-</head>
+	<!-- <meta http-equiv="refresh" content="30"> -->
+	</head>
 
 
-<body>
+	<body>	
         Condor Machines for group=<i>{{ active_group }}</i>
         {% if machines_list.0.cloud_name %},
         cloud=<i>{{ machines_list.0.cloud_name }}</i>
@@ -19,62 +20,57 @@
 
         <form method="post">
                 {% csrf_token %}
-                {% if response_code == 1 %}
-                <div
-                        style="padding: 10px; margin: 10px 0; background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb;">
-                        <b>Error: {{ message }}</b>
-                </div>
-                {% elif message is not None %}
-                <div
-                        style="padding: 10px; margin: 10px 0; background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb;">
-                        {{ message }}
-                </div>
-                {% endif %}
-
+		{% if form_inputs.group %}
+              	<input type="hidden" name="group" value="{{ machines_list.0.group_name }}" />
+         	{% else %}
+              	<input type="hidden" name="group" value="ALL" />
+          	{% endif %}
                 {% if form_inputs.activity %}
-                <input type="hidden" name="activity" value="{{ machines_list.0.activity }}" />
+		<input type="hidden" name="activity" value="{{ machines_list.0.activity }}" />
                 {% endif %}
+		{% if form_inputs.cloud_name %}
+    		<input type="hidden" name="cloud_name" value="{{ machines_list.0.cloud_name }}" />
+    		{% endif %}
 
-                <button class="button retire-button" type="submit" formaction="/vm/machines/update/" name="machine_option"
-                        value="retire">Retire Machines</button>
-                <div class=machine-table>
+                <button class="button retire-button" type="submit" formaction="/vm/machines/update/" name="machine_option"value="retire">Retire Machines</button>
+		<button class="button kill-button" type="submit" formaction="/vm/machines/update/" name="machine_option"value="kill">Kill Machines</button>
+                <div class="machine-div">
+		<div class=machine-table>
                         <table id="machinesTable">
                                 <tr class="title-row">
                                         <th><input type="checkbox" id="select-all" onchange="selectAll();" /></th>
                                         <th onClick="sortTable(1)">Name &#8597;</th>
-                                        <th onClick="sortTableNum(2)">HostID &#8597;</th>
-                                        <th onClick="sortTable(3)">Group &#8597;</th>
-                                        <th onClick="sortTable(4)">Cloud &#8597;</th>
-                                        <th onClick="sortTableNum(5)">CSV2 Host &#8597;</th>
-                                        <th onClick="sortTable(6)">Flavor &#8597;</th>
-                                        <th onClick="sortTable(7)">JobID &#8597;</th>
-                                        <th onClick="sortTable(8)">State &#8597;</th>
-                                        <th onClick="sortTable(9)">Activity &#8597;</th>
-                                        <th onClick="sortTable(10)">Start &#8597;</th>
-                                        <th onClick="sortTableNum(11)">Total Disk &#8597;</th>
-                                        <th onClick="sortTable(12)">Slot Type &#8597;</th>
-                                        <th onClick="sortTableNum(13)">Slot CPUs &#8597;</th>
-                                        <th onClick="sortTableNum(14)">Total Slots &#8597;</th>
-                                        <th onClick="sortTableNum(15)">Idle Time &#8597;</th>
+                                        <th onClick="sortTable(2)">Group &#8597;</th>
+                                        <th onClick="sortTable(3)">Cloud &#8597;</th>
+                                        <th onClick="sortTable(4)">Flavor &#8597;</th>
+                                        <th onClick="sortTable(5)">Job ID &#8597;</th>
+                                        <th onClick="sortTable(6)">State &#8597;</th>
+                                        <th onClick="sortTable(7)">Activity &#8597;</th>
+                                        <th onClick="sortTableNum(8)">Total Disk &#8597;</th>
+                                        <th onClick="sortTable(9)">Slot Type &#8597;</th>
+                                        <th onClick="sortTableNum(10)">Slot CPUs &#8597;</th>
+                                        <th onClick="sortTableNum(11)">Total Slots &#8597;</th>
+                                        <th onClick="sortTableNum(12)">Idle Time &#8597;</th>
                                 </tr>
+
                                 {% for machine in machines_list %}
-                                {% if machine.retire >= 1 %}
+                                {% if machine.terminate > 0 %}
+				<tr class="machine-terminated" title="Machine queued for termination">
+				{% elif machine.retire > 0 %}
                                 <tr class="machine-retired" title="Machine queued to retire">
                                         {% else %}
                                 <tr>
                                         {% endif %}
+
                                         <td><input type="checkbox" name="machine_hosts.{{ forloop.counter }}"
                                                         value={{machine.name}}></td>
                                         <td>{{machine.name}}</td>
-                                        <td>{{machine.htcondor_host_id}}</td>
                                         <td>{{machine.group_name}}</td>
                                         <td>{{machine.cloud_name}}</td>
-                                        <td>{{machine.condor_host}}</td>
                                         <td>{{machine.flavor}}</td>
                                         <td>{{machine.job_id}}</td>
                                         <td>{{machine.state}}</td>
                                         <td>{{machine.activity}}</td>
-                                        <td>{{machine.start}}</td>
                                         <td>{{machine.total_disk}}</td>
                                         <td>{{machine.slot_type}}</td>
                                         <td>{{machine.slot_cpus}}</td>

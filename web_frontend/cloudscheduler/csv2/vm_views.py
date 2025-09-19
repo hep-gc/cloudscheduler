@@ -63,7 +63,7 @@ LIST_KEYS = {
 MACHINE_KEYS = {
     'auto_active_group': True,
     'format': {
-        'machine_option':                                               ['native','retire'],
+        'machine_option':                                               ['native','retire', 'kill'],
         'activity':                                                     ['Busy', 'Idle'], 
         'cloud_name':                                                   'ignore',
         'csrfmiddlewaretoken':                                          'ignore',
@@ -253,7 +253,16 @@ def machines(request, args = None, response_code=0, message=None):
     show_activity = True
     if args and ('activity' not in args or args.get('activity') == ''):
         show_activity = False
+    
+    show_group= True
+    if args and ('group_name' not in args or args.get('group_name') == ''):
+        show_group = False
 
+    show_cloud = True
+    if args and ('cloud_name' not in args or args.get('cloud_name') == ''):
+        show_cloud = False
+
+    
     config.db_close()
 
     # Render the page.
@@ -261,8 +270,9 @@ def machines(request, args = None, response_code=0, message=None):
             'active_user': active_user.username,
             'active_group': active_user.active_group,
             'user_groups': active_user.user_groups,
-            'form_inputs': {'activity': show_activity},
+            'form_inputs': {'activity': show_activity, 'group':show_group, 'cloud_name':show_cloud},
             'machines_list': machines_list,
+            'current_activity_filter': args.get('activity', ''), 
             'response_code': response_code,
             'message': message,
             'is_superuser': active_user.is_superuser,
@@ -421,21 +431,23 @@ def machines_update(request):
         return render(request, 'csv2/machines.html', {'response_code': 1, 'message': '%s %s' % (lno(MODID), msg), 'active_user': active_user.username, 'active_group': active_user.active_group, 'user_groups': active_user.user_groups})
 
     if request.method == 'POST':
-    # Validate input fields.
+        # Validate input fields.
         rc, msg, fields, tables, columns = validate_fields(
-        config, request, [MACHINE_KEYS, MACHINE_MANDATORY_KEYS], ['condor_machines,n'], active_user
-    )
+        config, request, [MACHINE_KEYS, MACHINE_MANDATORY_KEYS], ['condor_machines,n'], active_user)
         if rc != 0:
             config.db_close()
             return render(request, 'csv2/machines.html', {'response_code': 1, 'message': '%s machine update %s' % (lno(MODID), msg), 'active_user': active_user.username, 'active_group': active_user.active_group, 'user_groups': active_user.user_groups})
-
+        table = 'condor_machines'
+        count =0
         if fields['machine_option'] == 'retire':
-            table = 'condor_machines'
             verb = 'retired'
-            count = 0
-            # Process selected machines from checkboxes (machine_hosts contains the selected machine names)
+        elif fields['machine_option'] == 'kill':
+            verb = 'killed'
+        else:
+            config.db_close()
+            return render(request, 'csv2/machines.html', {'response_code': 1, 'message': '%s machines update failed - invalid option "%s".' % (lno(MODID), fields['machine_option']),'active_user': active_user.username,'active_group': active_user.active_group,'user_groups': active_user.user_group})
+        if verb: 
             if fields['machine_hosts'] == 'all':
-                # Retire all machines for the group/cloud
                 if active_user.active_group and active_user.active_group == 'ALL':
                     rc, msg, machines_list_raw = config.db_query("condor_machines")
                 else:
@@ -450,7 +462,7 @@ def machines_update(request):
                 else:
                     selected_machines = [fields['machine_hosts']]
                 
-                # Get machine details for selected machines
+                # Retrieve machine information.
                 for machine_name in selected_machines:
                     where_clause = "name='%s'" % machine_name
                     if active_user.active_group and active_user.active_group != 'ALL':
@@ -462,7 +474,13 @@ def machines_update(request):
 
             # Update selected machines
             for machine in machines_list:
-                machine_dict = {'retire': 1}
+                if fields['machine_option'] == 'retire':
+                    machine_dict = {'retire': 1, 'updater': get_frame_info()}
+                elif fields['machine_option'] == 'kill':
+                    machine_dict = {'terminate': 1, 'updater': get_frame_info() + ':kill'}
+                else:
+                    continue
+
                 where_clause = "name='%s'" % machine['name']
                 rc, msg = config.db_update(table, machine_dict, where=where_clause)
                 
@@ -470,43 +488,24 @@ def machines_update(request):
                     count += 1
                 else:
                     config.db_close()
-                    return render(request, 'csv2/machines.html', {
-                        'response_code': 1,
-                        'message': '%s machine retire failed - %s' % (lno(MODID), msg),
-                        'active_user': active_user.username,
-                        'active_group': active_user.active_group,
-                        'user_groups': active_user.user_groups
-                    })
+                    return render(request, 'csv2/machines.html', {'response_code': 1,'message': '%s machine retire failed - %s' % (lno(MODID), msg),'active_user': active_user.username,'active_group': active_user.active_group,'user_groups': active_user.user_groups})
+            
             args = {}
             if 'cloud_name' in fields:
                 args['cloud_name'] = fields['cloud_name']
+
             if 'activity' in fields:
                 args['activity'] = fields['activity']
-            
-            # Return to machines page with success message
+            elif request.POST.get('activity'):
+                args['activity'] = request.POST.get('activity')
+
+            # Return success message.
             if count > 0:
                 config.db_close(commit=True)
             else:
                 config.db_close()
             return machines(request, args, response_code=0, message='Machines retired: %s.' % count)
-
-        else:
-            config.db_close()
-            return render(request, 'csv2/machines.html', {
-                'response_code': 1,
-                'message': '%s machines update, unsupported option "%s".' % (lno(MODID), fields['machine_option']),
-                'active_user': active_user.username,
-                'active_group': active_user.active_group,
-                'user_groups': active_user.user_groups
-            })
-
+    ###Bad request.
     else:
-        # Bad request method
         config.db_close()
-        return render(request, 'csv2/machines.html', {
-            'response_code': 1,
-            'message': '%s machines update, invalid method "%s" specified.' % (lno(MODID), request.method),
-            'active_user': active_user.username,
-            'active_group': active_user.active_group,
-            'user_groups': active_user.user_groups
-        })
+        return render(request, 'csv2/machines.html', {'response_code': 1,'message': '%s machines update, invalid method "%s" specified.' % (lno(MODID), request.method),'active_user': active_user.username, 'active_group': active_user.active_group,'user_groups': active_user.user_groups})

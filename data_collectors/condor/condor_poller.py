@@ -402,12 +402,12 @@ def process_group_cloud_commands(pair, condor_host, config):
     # MACHINE RETIREMENT:
     # Query database for machines to be retired.
     where_clause = "retire>=1 and group_name='%s' and cloud_name='%s'" % (group_name, cloud_name)
-    logging.debug("Machine retirement query where clause: %s" % where_clause)
+    logging.debug("Query where clause: %s" % where_clause)
     
     rc, msg, machines_list = config.db_query(MACHINE, where=where_clause)
     logging.debug("Query returned %s actionable machines..." % len(machines_list))
     for machine in machines_list:
-        # Skip if retires are disabled
+
         if retire_off:
             logging.critical("Retires disabled, normal operation would retire %s" % machine["name"])
             continue
@@ -416,38 +416,80 @@ def process_group_cloud_commands(pair, condor_host, config):
         
         try:
             condor_session = get_condor_session()
-            
-            try:
-                if machine["machine"] and len(machine["machine"]) > 0:
-                    condor_classad = condor_session.query(master_type, 'Name=="%s"' % machine["machine"])[0]
-                else:
-                    # Use the hostid to find the master
-                    if "@" in machine["name"]:
-                        machine_name = machine["name"].split("@")[1]
-                    else:
-                        machine_name = machine["name"]
-                    condor_classad = condor_session.query(master_type, 'regexp("%s", Name, "i")' % machine_name)[0]
-            except Exception as exc:
-                logging.error("Unable to retrieve condor classad for %s, skipping..." % machine["name"])
-                logging.debug(exc)
-                continue
-                
+            if machine["machine"] and len(machine["machine"]) > 0:
+                condor_classad = condor_session.query(master_type, 'Name=="%s"' % machine["machine"])[0]
+            else:
+                condor_classad = condor_session.query(master_type, 'regexp("%s", Name, "i")' % machine["hostname"])[0]
+
+            if not condor_classad or condor_classad == -1:
+                #there was a condor error
+                logging.error("Unable to retrieve condor classad, skipping %s ..." % machine["machine"])
+ 
             try:
                 logging.info("Issuing DaemonsOffPeaceful to machine %s" % machine["name"])
                 master_result = htcondor.send_command(condor_classad, htcondor.DaemonCommands.DaemonsOffPeaceful)
-                logging.debug("Machine retirement result: %s " % master_result)
+                logging.debug("Result: %s " % master_result)
             except Exception as exc:
                 logging.info("Failed to retire machine via condor bindings, attempting system command")
-                machine_name = machine["name"].split("@")[1] if "@" in machine["name"] else machine["name"]
                 logging.debug("condor_drain -exit-on-completion %s" % machine_name)
                 cndr_drain = subprocess.run(["condor_drain", "-exit-on-completion", machine_name])
-                logging.debug("Machine drain command executed")
+                logging.debug("Command executed")
                 logging.debug(cndr_drain.stdout)
                 logging.debug(cndr_drain.stderr)
             
         except Exception as exc:
             logging.error("Failed to retire machine %s: %s" % (machine["name"], exc))
             continue
+    try:
+        config.db_commit()
+    except Exception as exc:
+        logging.exception("Failed to commit retire machine, aborting cycle...")
+        logging.error(exc)
+        config.db_rollback()
+        return
+
+    #JOB TERMINATION:
+    # Query database for jobs to be terminated.
+    where_clause = "terminate>=1 and group_name='%s' and cloud_name='%s'" % (group_name, cloud_name)
+    logging.debug("Query where clause: %s" % where_clause)
+
+    rc, msg, machines_kill_list = config.db_query(MACHINE, where=where_clause)
+    logging.debug("Query returned %s machines to kill..." % len(machines_kill_list))
+
+    for machine in machines_kill_list:
+        logging.info("Killing machine %s" % machine["name"])
+        try:
+            condor_session = get_condor_session()
+            if machine["machine"] and len(machine["machine"]) > 0:
+                condor_classad = condor_session.query(master_type, 'Name=="%s"' % machine["machine"])[0]
+            else:
+                condor_classad = condor_session.query(master_type, 'regexp("%s", Name, "i")' % machine["hostname"])[0]
+
+            if not condor_classad or condor_classad == -1:
+                #there was a condor error
+                logging.error("Unable to retrieve condor classad, skipping %s ..." % machine["machine"])
+
+            try:
+                if machine["job_id"] and machine["global_job_id"]:
+                    logging.info("Cancelling job %s on slot %s" % (machine["global_job_id"], machine["name"]))
+                    try:
+                        schedd_session = htcondor.Schedd()
+                        result = schedd_session.act(htcondor.JobAction.Remove, [machine["global_job_id"]])
+                        logging.debug("Removal result: %s" % result)
+                    except Exception as job_exc:
+                        logging.warning("Failed to remove job: %s" % job_exc)
+                        logging.debug("condor_rm %s" % machine["global_job_id"])
+           
+            logging.info("Issuing DaemonsOff to machine %s" % machine["name"])
+            master_result = htcondor.send_command(condor_classad, htcondor.DaemonCommands.DaemonsOff)
+            logging.debug("Machine kill Result: %s" % master_result)
+            
+        except Exception as exc:
+            logging.info("Failed to kill machine")
+            
+    except Exception as exc:
+        logging.error("Failed to kill machine %s: %s, aborting cycle..." % (machine["name"], exc))
+        continue
 
     logging.debug("Commands complete...")
     return

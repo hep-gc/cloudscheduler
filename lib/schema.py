@@ -319,7 +319,8 @@ schema = {
             "idle_time": {"type": "int"},
             "deprecated-retire_request_time": {"type": "int"},
             "deprecated-retired_time": {"type": "int"},
-            "retire": {"type": "int"}
+            "retire": {"type": "int"},
+            "terminate": {"type": "int"}
             }
         },
     "condor_worker_gsi": {
