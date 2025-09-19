@@ -457,7 +457,7 @@ def process_group_cloud_commands(pair, condor_host, config):
     logging.debug("Query returned %s machines to kill..." % len(machines_kill_list))
 
     for machine in machines_kill_list:
-        logging.info("Killing machine %s" % machine["name"])
+        logging.info("Killing job %s" % machine["name"])
         try:
             condor_session = get_condor_session()
             if machine["machine"] and len(machine["machine"]) > 0:
@@ -482,7 +482,7 @@ def process_group_cloud_commands(pair, condor_host, config):
            
             logging.info("Issuing DaemonsOff to machine %s" % machine["name"])
             master_result = htcondor.send_command(condor_classad, htcondor.DaemonCommands.DaemonsOff)
-            logging.debug("Machine kill Result: %s" % master_result)
+            logging.debug("Job kill Result: %s" % master_result)
             
         except Exception:
             continue
