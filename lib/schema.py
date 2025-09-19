@@ -320,7 +320,9 @@ schema = {
             "deprecated-retire_request_time": {"type": "int"},
             "deprecated-retired_time": {"type": "int"},
             "retire": {"type": "int"},
-            "terminate": {"type": "int"}
+            "terminate": {"type": "int"},
+            "LoadAvg": {"type": "float"},
+            "Memory": {"type": "int"}
             }
         },
     "condor_worker_gsi": {

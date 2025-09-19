@@ -47,6 +47,8 @@
                                         <th onClick="sortTable(6)">State &#8597;</th>
                                         <th onClick="sortTable(7)">Activity &#8597;</th>
                                         <th onClick="sortTableNum(8)">Total Disk &#8597;</th>
+					<th onClick="sortTableNum(11)">Total Memory &#8597;</th>
+                                        <th onClick="sortTableNum(11)">Load Average &#8597;</th>
                                         <th onClick="sortTable(9)">Slot Type &#8597;</th>
                                         <th onClick="sortTableNum(10)">Slot CPUs &#8597;</th>
                                         <th onClick="sortTableNum(11)">Total Slots &#8597;</th>
@@ -72,6 +74,8 @@
                                         <td>{{machine.state}}</td>
                                         <td>{{machine.activity}}</td>
                                         <td>{{machine.total_disk}}</td>
+					<td>{{machine.Memory}}</td>
+                                        <td>{{machine.LoadAvg}}</td>
                                         <td>{{machine.slot_type}}</td>
                                         <td>{{machine.slot_cpus}}</td>
                                         <td>{{machine.total_slots}}</td>

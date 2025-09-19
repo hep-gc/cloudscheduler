@@ -478,20 +478,19 @@ def process_group_cloud_commands(pair, condor_host, config):
                         logging.debug("Removal result: %s" % result)
                     except Exception as job_exc:
                         logging.warning("Failed to remove job: %s" % job_exc)
-                        logging.debug("condor_rm %s" % machine["global_job_id"])
-           
-            logging.info("Issuing DaemonsOff to machine %s" % machine["name"])
-            master_result = htcondor.send_command(condor_classad, htcondor.DaemonCommands.DaemonsOff)
-            logging.debug("Job kill Result: %s" % master_result)
+                        logging.debug("condor_rm %s" % machine["global_job_id"]) 
+                        logging.info("Issuing DaemonsOff to machine %s" % machine["name"])
+                        master_result = htcondor.send_command(condor_classad, htcondor.DaemonCommands.DaemonsOff)
+                        logging.debug("Job kill Result: %s" % master_result)
             
-        except Exception:
+            except Exception:
+                continue
+        except Exception as exc:
+            logging.error("Failed to kill job %s: %s, aborting cycle..." % (machine["name"], exc))
             continue
-    except Exception as exc:
-        logging.error("Failed to kill job %s: %s, aborting cycle..." % (machine["name"], exc))
-        continue
 
-    logging.debug("Commands complete...")
-    return
+        logging.debug("Commands complete...")
+        return
 
 
 
@@ -930,7 +929,7 @@ def machine_poller():
     resource_attributes = ["Name", "Machine", "JobId", "GlobalJobId", "MyAddress", "State", \
                            "Activity", "VMType", "MyCurrentTime", "EnteredCurrentState", "Cpus", \
                            "Start", "RemoteOwner", "SlotType", "TotalSlots", "group_name", \
-                           "cloud_name", "cs_host_id", "condor_host", "flavor", "TotalDisk"]
+                           "cloud_name", "cs_host_id", "condor_host", "flavor", "TotalDisk", "Memory","LoadAvg"]
 
     config = Config(sys.argv[1], ["condor_poller.py", "SQL", "ProcessMonitor"], pool_size=3, signals=True)
     PID_FILE = config.categories["ProcessMonitor"]["pid_path"] + os.path.basename(sys.argv[0])
