@@ -56,8 +56,8 @@ LIST_KEYS = {
     'format': {
         'csrfmiddlewaretoken':                                          'ignore',
         'group':                                                        'ignore',
-        'job_status':                                                   [0,1,2,4],
-        'group_name':                                                   'ignore'
+        'group_name':                                                   'group',
+        'job_status':                                                   [0,1,2,4]
 
         },
     }
@@ -402,4 +402,3 @@ def update(request):
         config.db_close()
         return render(request, 'csv2/vms.html', {'response_code': 1, 'message': '%s vm update, invalid method "%s" specified.' % (lno(MODID), request.method), 'active_user': active_user.username, 'active_group': active_user.active_group, 'user_groups': active_user.user_groups})
 #       return vm_list(request, selector, response_code=1, message='%s vm update, invalid method "%s" specified.' % (lno(MODID), request.method))
-
