@@ -6,7 +6,6 @@ from django.views.decorators.csrf import requires_csrf_token
 from django.http import HttpResponse
 from django.core.exceptions import PermissionDenied
 
-
 from cloudscheduler.lib.view_utils import \
     kill_retire, \
     lno, \
@@ -244,7 +243,18 @@ def jobs(request, args = None, response_code=0, message=None):
     show_group= True
     if args and ('group_name' not in args or args.get('group_name') == ''):
         show_group = False
-    print(active_user)
+
+    for job in jobs_list:
+        if 'q_date' in job and job['q_date']:
+            job['q_date_formatted'] = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(job['q_date']))
+        else:
+            job['q_date_formatted'] = ''
+        
+        if 'entered_current_status' in job and job['entered_current_status']:
+            job['entered_current_status_formatted'] = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(job['entered_current_status']))
+        else:
+            job['entered_current_status_formatted'] = ''
+
     config.db_close()
 
     # Render the page.
