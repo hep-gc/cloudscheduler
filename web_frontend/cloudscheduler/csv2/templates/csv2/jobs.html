@@ -1,0 +1,216 @@
+<html>
+
+	<head>
+        {% load static %}
+
+        <link rel="stylesheet" type="text/css" href="{% static "csv2/common.css" %}?{{version}}">
+        <link rel="stylesheet" type="text/css" href="{% static "csv2/jobs.css" %}?{{version}}">
+
+	<!-- <meta http-equiv="refresh" content="30"> -->
+	</head>
+
+
+	<body>	
+                <div class="job-div">
+		<div class=job-table>
+                        <table id="jobsTable">
+                                <tr class="title-row">
+					<th onClick="sortTable(0)">Global Job ID &#8597;</th>
+					<th onClick="sortTableNum(1)">Host ID &#8597;</th>
+					<th onClick="sortTable(2)">Group &#8597;</th>
+					<th onClick="sortTable(3)">Target Clouds &#8597;</th>
+					<th onClick="sortTable(4)">Target Alias &#8597;</th>
+					<th onClick="sortTableNum(5)">Job Status &#8597;</th>
+					<th onClick="sortTableNum(6)">CPUs &#8597;</th>
+					<th onClick="sortTableNum(7)">RAM (MB) &#8597;</th>
+					<th onClick="sortTableNum(8)">Disk (MB) &#8597;</th>
+					<th onClick="sortTableNum(9)">Swap (MB) &#8597;</th>
+					<th onClick="sortTableNum(10)">Scratch (MB) &#8597;</th>
+					<th onClick="sortTable(11)">Requirements &#8597;</th>
+					<th onClick="sortTableNum(12)">Priority &#8597;</th>
+					<th onClick="sortTableNum(13)">Cluster ID &#8597;</th>
+					<th onClick="sortTableNum(14)">Proc ID &#8597;</th>
+					<th onClick="sortTable(15)">User &#8597;</th>
+					<th onClick="sortTable(16)">Image &#8597;</th>
+					<th onClick="sortTable(17)">Instance Type &#8597;</th>
+					<th onClick="sortTable(18)">Network &#8597;</th>
+					<th onClick="sortTable(19)">Keep Alive &#8597;</th>
+					<th onClick="sortTable(20)">Max Price &#8597;</th>
+					<th onClick="sortTable(21)">User Data &#8597;</th>
+					<th onClick="sortTableNum(22)">Job/Core &#8597;</th>
+					<th onClick="sortTableNum(23)">Entered Status &#8597;</th>
+					<th onClick="sortTableNum(24)">Queue Date &#8597;</th>
+					<th onClick="sortTableNum(25)">Hold Code &#8597;</th>
+					<th onClick="sortTableNum(26)">Hold Subcode &#8597;</th>
+					<th onClick="sortTable(27)">Last Remote Host &#8597;</th>
+					<th onClick="sortTable(28)">Held Reason &#8597;</th>
+					<th onClick="sortTable(29)">Hold Job Reason &#8597;</th>
+                                </tr>
+				                                {% for job in jobs_list %}
+				<tr>
+                                        <td>{{job.global_job_id}}</td>
+                                        <td>{{job.htcondor_host_id}}</td>
+                                        <td>{{job.group_name}}</td>
+                                        <td>{{job.target_clouds}}</td>
+                                        <td>{{job.target_alias}}</td>
+                                        <td>{{job.job_status}}</td>
+                                        <td>{{job.request_cpus}}</td>
+                                        <td>{{job.request_ram}}</td>
+					<td>{{job.request_disk}}</td>
+				        <td>{{job.request_swap}}</td>
+                                        <td>{{job.request_scratch}}</td>
+                                        <td>{{job.requirements}}</td>
+                                        <td>{{job.job_priority}}</td>
+					<td>{{job.cluster_id}}</td>
+					<td>{{job.proc_id}}</td>
+					<td>{{job.user}}</td>
+					<td>{{job.image}}</td>
+					<td>{{job.instance_type}}</td>
+					<td>{{job.network}}</td>
+					<td>{{job.keep_alive}}</td>
+					<td>{{job.max_price}}</td>
+					<td>{{job.user_data}}</td>
+					<td>{{job.job_per_core}}</td>
+					<td>{{job.entered_current_status}}</td>
+					<td>{{job.q_date}}</td>
+					<td>{{job.hold_reason_code}}</td>
+					<td>{{job.hold_reason_subcode}}</td>
+					<td>{{job.last_remote_host}}</td>
+					<td>{{job.held_reason}}</td>
+					<td>{{job.hold_job_reason}}</td>
+                                </tr>
+                                {% endfor %}
+                        </table>
+                </div>
+                <div class="footer">
+                        {% if response_code == 1 %}
+                        <tr>
+                                <td><b>Error: {{ message }}</b></td>
+                        </tr>
+                        {% elif message is not None %}
+                        <tr>
+                                <td>{{ message }}</td>
+                        </tr>
+                        {% endif %}
+                </div>
+                <script type="text/javascript">
+
+                        // To sort by clicking the headers
+                        function sortTable(n) {
+                                var table, rows, switching, i, x, y, shouldSwitch, dir, switchcount = 0;
+                                table = document.getElementById("jobsTable");
+                                switching = true;
+                                // Set the sorting direction to ascending:
+                                dir = "asc";
+                                /* Make a loop that will continue until
+                                no switching has been done: */
+                                while (switching) {
+                                        // Start by saying: no switching is done:
+                                        switching = false;
+                                        rows = table.getElementsByTagName("TR");
+                                        /* Loop through all table rows (except the
+                                        first, which contains table headers): */
+                                        for (i = 1; i < (rows.length - 1); i++) {
+                                                // Start by saying there should be no switching:
+                                                shouldSwitch = false;
+                                                /* Get the two elements you want to compare,
+                                                one from current row and one from the next: */
+                                                x = rows[i].getElementsByTagName("TD")[n];
+                                                y = rows[i + 1].getElementsByTagName("TD")[n];
+                                                /* Check if the two rows should switch place,
+                                                based on the direction, asc or desc: */
+                                                if (dir == "asc") {
+                                                        if (x.innerHTML.toLowerCase() > y.innerHTML.toLowerCase()) {
+                                                                // If so, mark as a switch and break the loop:
+                                                                shouldSwitch = true;
+                                                                break;
+                                                        }
+                                                } else if (dir == "desc") {
+                                                        if (x.innerHTML.toLowerCase() < y.innerHTML.toLowerCase()) {
+                                                                // If so, mark as a switch and break the loop:
+                                                                shouldSwitch = true;
+                                                                break;
+                                                        }
+                                                }
+                                        }
+                                        if (shouldSwitch) {
+                                                /* If a switch has been marked, make the switch
+                                                and mark that a switch has been done: */
+                                                rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
+                                                switching = true;
+                                                // Each time a switch is done, increase this count by 1:
+                                                switchcount++;
+                                        } else {
+                                                /* If no switching has been done AND the direction is "asc",
+                                                set the direction to "desc" and run the while loop again. */
+                                                if (switchcount == 0 && dir == "asc") {
+                                                        dir = "desc";
+                                                        switching = true;
+                                                }
+                                        }
+                                }
+                        }
+
+                        // To sort by clicking the headers
+                        function sortTableNum(n) {
+                                var table, rows, switching, i, x, y, shouldSwitch, dir, switchcount = 0;
+                                table = document.getElementById("jobsTable");
+                                switching = true;
+                                // Set the sorting direction to ascending:
+                                dir = "asc";
+                                /* Make a loop that will continue until
+                                no switching has been done: */
+                                while (switching) {
+                                        // Start by saying: no switching is done:
+                                        switching = false;
+                                        rows = table.getElementsByTagName("TR");
+                                        /* Loop through all table rows (except the
+                                        first, which contains table headers): */
+                                        for (i = 1; i < (rows.length - 1); i++) {
+                                                // Start by saying there should be no switching:
+                                                shouldSwitch = false;
+                                                /* Get the two elements you want to compare,
+                                                one from current row and one from the next: */
+                                                x = rows[i].getElementsByTagName("TD")[n];
+                                                y = rows[i + 1].getElementsByTagName("TD")[n];
+                                                x_num = parseInt(x.innerHTML, 10)
+                                                y_num = parseInt(y.innerHTML, 10)
+                                                /* Check if the two rows should switch place,
+                                                based on the direction, asc or desc: */
+                                                if (dir == "asc") {
+                                                        if (x_num > y_num) {
+                                                                // If so, mark as a switch and break the loop:
+                                                                shouldSwitch = true;
+                                                                break;
+                                                        }
+                                                } else if (dir == "desc") {
+                                                        if (x_num < y_num) {
+                                                                // If so, mark as a switch and break the loop:
+                                                                shouldSwitch = true;
+                                                                break;
+                                                        }
+                                                }
+                                        }
+                                        if (shouldSwitch) {
+                                                /* If a switch has been marked, make the switch
+                                                and mark that a switch has been done: */
+                                                rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
+                                                switching = true;
+                                                // Each time a switch is done, increase this count by 1:
+                                                switchcount++;
+                                        } else {
+                                                /* If no switching has been done AND the direction is "asc",
+                                                set the direction to "desc" and run the while loop again. */
+                                                if (switchcount == 0 && dir == "asc") {
+                                                        dir = "desc";
+                                                        switching = true;
+                                                }
+                                        }
+                                }
+                        }
+
+
+                </script>
+</body>
+
+</html>

@@ -165,31 +165,31 @@
                                     {% if group.Jobs == 0 %}
                                         <td data-path="{{group.group_name}} {{group.target_alias}} jobs" class="zero-style float-center plottable">0</td>
                                     {% else %}
-                                        <td data-path="{{group.group_name}} {{group.target_alias}} jobs" class="more-style float-center plottable">{{group.Jobs}}</td>
+				        <td data-path="{{group.group_name}} {{group.target_alias}} jobs" class="more-style float-center plottable" oncontextmenu="javascript:condor_jobs_list('?group_name={{group.group_name}}&target_alias={{group.target_alias}}');return false;">{{group.Jobs}}</td>
                                     {% endif %}
 
                                     {% if group.Idle == 0 %}
                                         <td tabindex="2" data-path="{{group.group_name}} {{group.target_alias}} jobs_idle" class="zero-style float-center plottable">0</td>
                                     {% else %}
-                                        <td tabindex="2" data-path="{{group.group_name}} {{group.target_alias}} jobs_idle" class="more-style float-center plottable">{{group.Idle}}</td>
-                                    {% endif %}
+                                        <td tabindex="2" data-path="{{group.group_name}} {{group.target_alias}} jobs_idle" class="more-style float-center plottable" oncontextmenu="javascript:condor_jobs_list('?group_name={{group.group_name}}&target_alias={{group.target_alias}}&job_status=1');return false;">{{group.Idle}}</td>
+				    {% endif %}
 
                                     {% if group.Running == 0 %}
                                         <td data-path="{{group.group_name}} {{group.target_alias}} jobs_running" class="zero-style float-center plottable">0</td>
                                     {% else %}
-                                        <td data-path="{{group.group_name}} {{group.target_alias}} jobs_running" class="more-style float-center plottable">{{group.Running}}</td>
+				        <td data-path="{{group.group_name}} {{group.target_alias}} jobs_running" class="more-style float-center plottable" oncontextmenu="javascript:condor_jobs_list('?group_name={{group.group_name}}&target_alias={{group.target_alias}}&job_status=2');return false;">{{group.Running}}</td>
                                     {% endif %}
 
                                     {% if group.Completed == 0 %}
                                         <td data-path="{{group.group_name}} {{group.target_alias}} jobs_completed" class="zero-style float-center plottable">0</td>
                                     {% else %}
-                                        <td data-path="{{group.group_name}} {{group.target_alias}} jobs_completed" class="more-style float-center plottable">{{group.Completed}}</td>
+				        <td data-path="{{group.group_name}} {{group.target_alias}} jobs_completed" class="more-style float-center plottable" oncontextmenu="javascript:condor_jobs_list('?group_name={{group.group_name}}&target_alias={{group.target_alias}}&job_status=4');return false;">{{group.Completed}}</td>
                                     {% endif %}
 
                                     {% if group.Held == 0 %}
                                         <td data-path="{{group.group_name}} {{group.target_alias}} jobs_held" class="zero-style float-center plottable">0</td>
                                     {% else %}
-                                        <td data-path="{{group.group_name}} {{group.target_alias}} jobs_held" class="more-style float-center plottable">{{group.Held}}</td>
+				        <td data-path="{{group.group_name}} {{group.target_alias}} jobs_held" class="more-style float-center plottable" oncontextmenu="javascript:condor_jobs_list('?group_name={{group.group_name}}&target_alias={{group.target_alias}}&job_status=5');return false;">{{group.Held}}</td>
                                     {% endif %}
 
                                     {% if group.Other == 0 %}
@@ -1143,7 +1143,7 @@
 
     <div class="refresh-button">
         <span id="CDTimer"></span>
-        <span class="stop-symbol bigger" onClick="toggle_refresh()">&#x270b;</span>
+        <span class="stop-symbol bigger" onClick="stop_refresh()">&#x270b;</span>
         <span><a href="https://github.com/hep-gc/cloudscheduler/releases/latest" target="_blank" rel="noopener noreferrer">{{version}}</a></span>
         <span class="report-issue"><a href="https://github.com/hep-gc/cloudscheduler/issues" target="_blank" rel="noopener noreferrer">Report Issues</a></span>
     </div>
