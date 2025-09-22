@@ -407,11 +407,9 @@ def process_group_cloud_commands(pair, condor_host, config):
     rc, msg, machines_list = config.db_query(MACHINE, where=where_clause)
     logging.debug("Query returned %s actionable machines..." % len(machines_list))
     for machine in machines_list:
-
         if retire_off:
             logging.critical("Retires disabled, normal operation would retire %s" % machine["name"])
             continue
-            
         logging.info("Retiring machine %s " % (machine["name"]))
         
         try:
@@ -436,10 +434,10 @@ def process_group_cloud_commands(pair, condor_host, config):
                 logging.debug("Command executed")
                 logging.debug(cndr_drain.stdout)
                 logging.debug(cndr_drain.stderr)
-            
         except Exception as exc:
             logging.error("Failed to retire machine %s: %s" % (machine["name"], exc))
             continue
+
     try:
         config.db_commit()
     except Exception as exc:
@@ -454,8 +452,7 @@ def process_group_cloud_commands(pair, condor_host, config):
     logging.debug("Query where clause: %s" % where_clause)
 
     rc, msg, machines_kill_list = config.db_query(MACHINE, where=where_clause)
-    logging.debug("Query returned %s machines to kill..." % len(machines_kill_list))
-
+    logging.debug("Query returned %s actionable machines..." % len(machines_kill_list))
     for machine in machines_kill_list:
         logging.info("Killing job %s" % machine["name"])
         try:
@@ -482,16 +479,14 @@ def process_group_cloud_commands(pair, condor_host, config):
                         logging.info("Issuing DaemonsOff to machine %s" % machine["name"])
                         master_result = htcondor.send_command(condor_classad, htcondor.DaemonCommands.DaemonsOff)
                         logging.debug("Job kill Result: %s" % master_result)
-            
             except Exception:
                 continue
         except Exception as exc:
-            logging.error("Failed to kill job %s: %s, aborting cycle..." % (machine["name"], exc))
+            logging.error("Failed to kill job, aborting cycle...")
             continue
 
         logging.debug("Commands complete...")
         return
-
 
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

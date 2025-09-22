@@ -437,9 +437,9 @@ def machines_update(request):
         if rc != 0:
             config.db_close()
             return render(request, 'csv2/machines.html', {'response_code': 1, 'message': '%s machine update %s' % (lno(MODID), msg), 'active_user': active_user.username, 'active_group': active_user.active_group, 'user_groups': active_user.user_groups})
+        
         table = 'condor_machines'
         count =0
-
         if fields['machine_option'] == 'retire':
             verb = 'retired'
         elif fields['machine_option'] == 'kill':
@@ -457,7 +457,6 @@ def machines_update(request):
                     rc, msg, machines_list_raw = config.db_query("condor_machines", where=where_clause)
                 machines_list = qt(machines_list_raw, filter=qt_filter_get(['cloud_name', 'activity'], fields, aliases=ALIASES))
             else:
-                # Retire only selected machines
                 machines_list = []
                 if isinstance(fields['machine_hosts'], list):
                     selected_machines = fields['machine_hosts']
@@ -483,8 +482,7 @@ def machines_update(request):
                     continue
 
                 where_clause = "name='%s'" % machine['name']
-                rc, msg = config.db_update(table, machine_dict, where=where_clause)
-                
+                rc, msg = config.db_update(table, machine_dict, where=where_clause) 
                 if rc == 0:
                     count += 1
                 else:
@@ -492,10 +490,8 @@ def machines_update(request):
                     return render(request, 'csv2/machines.html', {'response_code': 1,'message': '%s machine update failed - %s' % (lno(MODID), msg),'active_user': active_user.username,'active_group': active_user.active_group,'user_groups': active_user.user_groups})
             
             args = {}
-
             if 'cloud_name' in fields:
                 args['cloud_name'] = fields['cloud_name']
-
             if 'activity' in fields:
                 args['activity'] = fields['activity']
             elif request.POST.get('activity'):
@@ -503,6 +499,7 @@ def machines_update(request):
 
             config.db_close()
             return machines(request, args, response_code=0, message='Machines updated, machines: %s.' % count)
+        
     ###Bad request.
     else:
         config.db_close()
