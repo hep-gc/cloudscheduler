@@ -220,7 +220,7 @@ def vm_list(request, args=None, response_code=0, message=None):
 
 #-------------------------------------------------------------------------------
 
-@silkp(name="Machines")
+@silkp(name="Machine List")
 @requires_csrf_token
 def machines(request, args = None, response_code=0, message=None):
 
