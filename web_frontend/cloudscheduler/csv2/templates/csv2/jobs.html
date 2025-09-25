@@ -10,35 +10,40 @@
 	</head>
 
 
-	<body>	
+	<body>
+		<h2>Jobs for group=<i>{{ jobs_list.0.group_name }}</i>
+                {% if jobs_list.0.user %}
+			, user=<i>{{ jobs_list.0.user }}</i>:</h2>
+                {% else %}
+			, user=<i>None</i>:</h2>
+                {% endif %}
+
                 <div class="job-div">
 		<div class=job-table>
                         <table id="jobsTable">
                                 <tr class="title-row">
 					<th onClick="sortTableNum(0)">Host ID &#8597;</th>
-					<th onClick="sortTable(1)">Group Name &#8597;</th>
-					<th onClick="sortTable(2)">Target Clouds &#8597;</th>
-					<th onClick="sortTable(3)">Target Alias &#8597;</th>
-					<th onClick="sortTableNum(4)">Job Status &#8597;</th>
-					<th onClick="sortTableNum(5)">Request CPUs &#8597;</th>
-					<th onClick="sortTableNum(6)">Request RAM  &#8597;</th>
-					<th onClick="sortTableNum(7)">Request Disk &#8597;</th>
-					<th onClick="sortTableNum(8)">Request Swap  &#8597;</th>
-					<th onClick="sortTableNum(9)">Request Scratch &#8597;</th>
-					<th onClick="sortTableNum(10)">Job Priority &#8597;</th>
-					<th onClick="sortTableNum(11)">Job ID &#8597;</th>
-					<th onClick="sortTable(12)">User &#8597;</th>
-					<th onClick="sortTable(13)">Image &#8597;</th>
-					<th onClick="sortTable(14)">Instance Type &#8597;</th>
-					<th onClick="sortTable(15)">Network &#8597;</th>
-					<th onClick="sortTable(16)">Keep Alive &#8597;</th>
-					<th onClick="sortTable(17)">Max Price &#8597;</th>
-					<th onClick="sortTable(18)">User Data &#8597;</th>
-					<th onClick="sortTableNum(19)">Job per Core &#8597;</th>
-					<th onClick="sortTableNum(20)">Entered Current Status &#8597;</th>
-					<th onClick="sortTableNum(21)">Queue Date &#8597;</th>
-					<th onClick="sortTable(22)">Held Reason &#8597;</th>
-					<th onClick="sortTable(23)">Hold Job Reason &#8597;</th>
+					<th onClick="sortTable(1)">Target Clouds &#8597;</th>
+					<th onClick="sortTable(2)">Target Alias &#8597;</th>
+					<th onClick="sortTableNum(3)">Job Status &#8597;</th>
+					<th onClick="sortTableNum(4)">Request CPUs &#8597;</th>
+					<th onClick="sortTableNum(5)">Request RAM  &#8597;</th>
+					<th onClick="sortTableNum(6)">Request Disk &#8597;</th>
+					<th onClick="sortTableNum(7)">Request Swap  &#8597;</th>
+					<th onClick="sortTableNum(8)">Request Scratch &#8597;</th>
+					<th onClick="sortTableNum(9)">Job Priority &#8597;</th>
+					<th onClick="sortTableNum(10)">Job ID &#8597;</th>
+					<th onClick="sortTable(11)">Image &#8597;</th>
+					<th onClick="sortTable(12)">Instance Type &#8597;</th>
+					<th onClick="sortTable(13)">Network &#8597;</th>
+					<th onClick="sortTable(14)">Keep Alive &#8597;</th>
+					<th onClick="sortTable(15)">Max Price &#8597;</th>
+					<th onClick="sortTable(16)">User Data &#8597;</th>
+					<th onClick="sortTableNum(17)">Job per Core &#8597;</th>
+					<th onClick="sortTableNum(18)">Entered Current Status &#8597;</th>
+					<th onClick="sortTableNum(19)">Queue Date &#8597;</th>
+					<th onClick="sortTable(20)">Held Reason &#8597;</th>
+					<th onClick="sortTable(21)">Hold Job Reason &#8597;</th>
                                 </tr>
 				        {% for job in jobs_list %}
 					{% if job.job_status == 3 or job.job_status == 7  %}
@@ -47,7 +52,6 @@
 					<tr>
 					{% endif %}
 					<td>{{job.htcondor_host_id}}</td>
-                                        <td>{{job.group_name}}</td>
                                         <td>{{job.target_clouds}}</td>
                                         <td>{{job.target_alias}}</td>
                                         <td>{{job.job_status}}</td>
@@ -58,7 +62,6 @@
                                         <td>{{job.request_scratch}}</td>
                                         <td>{{job.job_priority}}</td>
 					<td> {{job.cluster_id}}.{{job.proc_id}}</td>
-					<td>{{job.user}}</td>
 					<td>{{job.image}}</td>
 					<td>{{job.instance_type}}</td>
 					<td>{{job.network}}</td>
