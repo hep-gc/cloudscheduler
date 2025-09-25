@@ -425,8 +425,8 @@ def settings_update(request):
         config.db_commit()
         config.db_close()
 
-        return redirect('/vm/settings/?msg=success'
-                )
+        return redirect('/vm/settings/?msg=success')
+        
     ###Bad request.
     else:
         config.db_close()
