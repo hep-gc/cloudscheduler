@@ -58,7 +58,6 @@ SETTING_KEYS = {
         'service_option':                                               ['show','hide'],
         'csrfmiddlewaretoken':                                          'ignore', 
         'service_alias':                                                'ignore'
-
         },
     'array_fields': [
         'service_alias',
@@ -66,9 +65,7 @@ SETTING_KEYS = {
     'not_empty': [
         'service_alias',
         ],
-
 }
-
 
 SETTING_MANDATORY_KEYS = {
     'mandatory': [
@@ -378,8 +375,6 @@ def update(request):
         config.db_close()
         return render(request, 'csv2/vms.html', {'response_code': 1, 'message': '%s vm update, invalid method "%s" specified.' % (lno(MODID), request.method), 'active_user': active_user.username, 'active_group': active_user.active_group, 'user_groups': active_user.user_groups})
 #       return vm_list(request, selector, response_code=1, message='%s vm update, invalid method "%s" specified.' % (lno(MODID), request.method))
-
-
 
 #-------------------------------------------------------------------------------
 
