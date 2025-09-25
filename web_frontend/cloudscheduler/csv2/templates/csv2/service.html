@@ -1,0 +1,241 @@
+<html>
+
+	<head>
+        {% load static %}
+
+        <link rel="stylesheet" type="text/css" href="{% static "csv2/common.css" %}?{{version}}">
+        <link rel="stylesheet" type="text/css" href="{% static "csv2/service.css" %}?{{version}}">
+
+	<!-- <meta http-equiv="refresh" content="30"> -->
+	</head>
+
+
+	<body>	
+        <form method="post">
+                {% csrf_token %}
+
+                <button class="button show-button" type="submit" formaction="/vm/settings/update/" name="service_option"value="show">Show Service</button>
+		<button class="button hide-button" type="submit" formaction="/vm/settings/update/" name="service_option"value="hide">Hide Service</button>
+                <div class="setting-div">
+		<div class=setting-table>
+                        <table id="settingsTable">
+                                <tr class="title-row">
+                                        <th><input type="checkbox" id="select-all" onchange="selectAll();" /></th>
+                                        <th onClick="sortTable(1)">Service &#8597;</th>
+                                        <th onClick="sortTable(2)">Visibility Status &#8597;</th>
+                                </tr>
+
+                                {% for setting in service_list %}
+				      {% if setting.show_status ==  0 %}
+				    	<tr class="setting-hide" title="Service set as Hidden">
+				      {% elif  setting.show_status ==  1 %}
+					<tr class="setting-show" title="Service set as Visible">
+				      {% else %}
+					<tr>
+			 	      {% endif %}
+
+					<td><input type="checkbox" name="service_alias.{{ forloop.counter }}" value="{{setting.alias}}"></td>
+					<td>{{setting.alias}}</td>
+					<td>{{setting.show_status}}</td>
+				    </tr>
+                    {% endfor %}
+			</table>
+                </div>
+                <div class="footer">
+                        {% if response_code == 1 %}
+                        <tr>
+                                <td><b>Error: {{ message }}</b></td>
+                        </tr>
+                        {% elif message is not None %}
+                        <tr>
+                                <td>{{ message }}</td>
+                        </tr>
+                        {% endif %}
+                </div>
+                <script type="text/javascript">
+
+
+                        // For the "select all checkbox"
+                        function selectAll() {
+
+                                // Declare variables 
+                                var table, tr, td, i, j, check;
+
+                                table = document.getElementById("settingsTable");
+                                tr = table.getElementsByTagName("tr");
+
+                                box = document.getElementById("select-all");
+
+                                // Loop through all table rows and find those that match the search query
+                                if (box.checked) {
+                                        for (i = 0; i < tr.length; i++) {
+                                                check = tr[i].getElementsByTagName("input");
+                                                if (check[0].disabled == false) {
+
+                                                        for (j = 0; j < check.length; j++) {
+                                                                if (check[j].type == 'checkbox') {
+                                                                        check[j].checked = true;
+                                                                }
+                                                        }
+                                                }
+                                        }
+                                }
+                                else {
+                                        for (i = 0; i < tr.length; i++) {
+                                                check = tr[i].getElementsByTagName("input");
+                                                if (check[0].disabled == false) {
+
+                                                        for (j = 0; j < check.length; j++) {
+                                                                if (check[j].type == 'checkbox') {
+                                                                        check[j].checked = false;
+                                                                }
+                                                        }
+                                                }
+                                        }
+                                }
+                        }
+
+
+                        // For the "select all checkbox"
+                        function checkToggle(event) {
+                                var changed = event.target,
+                                        selectAll = document.getElementById('select-all'),
+                                        checkboxes = Array.prototype.slice.call(
+                                                this.querySelectorAll('input[type=checkbox]')
+                                        ).filter(function (check) {
+                                                return check !== selectAll;
+                                        });
+                                if (changed === selectAll) {
+                                        checkboxes.forEach(function (check) {
+                                                check.checked = selectAll.checked;
+                                        });
+                                } else {
+                                        var allChecked = checkboxes.filter(function (check) {
+                                                return check.checked;
+                                        }).length === checkboxes.length;
+                                        selectAll.checked = allChecked;
+                                }
+                        }
+
+                        var tableElement = document.querySelector('table');
+                        tableElement.addEventListener('change', checkToggle);
+
+                        // To sort by clicking the headers
+                        function sortTable(n) {
+                                var table, rows, switching, i, x, y, shouldSwitch, dir, switchcount = 0;
+                                table = document.getElementById("settingsTable");
+                                switching = true;
+                                // Set the sorting direction to ascending:
+                                dir = "asc";
+                                /* Make a loop that will continue until
+                                no switching has been done: */
+                                while (switching) {
+                                        // Start by saying: no switching is done:
+                                        switching = false;
+                                        rows = table.getElementsByTagName("TR");
+                                        /* Loop through all table rows (except the
+                                        first, which contains table headers): */
+                                        for (i = 1; i < (rows.length - 1); i++) {
+                                                // Start by saying there should be no switching:
+                                                shouldSwitch = false;
+                                                /* Get the two elements you want to compare,
+                                                one from current row and one from the next: */
+                                                x = rows[i].getElementsByTagName("TD")[n];
+                                                y = rows[i + 1].getElementsByTagName("TD")[n];
+                                                /* Check if the two rows should switch place,
+                                                based on the direction, asc or desc: */
+                                                if (dir == "asc") {
+                                                        if (x.innerHTML.toLowerCase() > y.innerHTML.toLowerCase()) {
+                                                                // If so, mark as a switch and break the loop:
+                                                                shouldSwitch = true;
+                                                                break;
+                                                        }
+                                                } else if (dir == "desc") {
+                                                        if (x.innerHTML.toLowerCase() < y.innerHTML.toLowerCase()) {
+                                                                // If so, mark as a switch and break the loop:
+                                                                shouldSwitch = true;
+                                                                break;
+                                                        }
+                                                }
+                                        }
+                                        if (shouldSwitch) {
+                                                /* If a switch has been marked, make the switch
+                                                and mark that a switch has been done: */
+                                                rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
+                                                switching = true;
+                                                // Each time a switch is done, increase this count by 1:
+                                                switchcount++;
+                                        } else {
+                                                /* If no switching has been done AND the direction is "asc",
+                                                set the direction to "desc" and run the while loop again. */
+                                                if (switchcount == 0 && dir == "asc") {
+                                                        dir = "desc";
+                                                        switching = true;
+                                                }
+                                        }
+                                }
+                        }
+
+                        // To sort by clicking the headers
+                        function sortTableNum(n) {
+                                var table, rows, switching, i, x, y, shouldSwitch, dir, switchcount = 0;
+                                table = document.getElementById("settingsTable");
+                                switching = true;
+                                // Set the sorting direction to ascending:
+                                dir = "asc";
+                                /* Make a loop that will continue until
+                                no switching has been done: */
+                                while (switching) {
+                                        // Start by saying: no switching is done:
+                                        switching = false;
+                                        rows = table.getElementsByTagName("TR");
+                                        /* Loop through all table rows (except the
+                                        first, which contains table headers): */
+                                        for (i = 1; i < (rows.length - 1); i++) {
+                                                // Start by saying there should be no switching:
+                                                shouldSwitch = false;
+                                                /* Get the two elements you want to compare,
+                                                one from current row and one from the next: */
+                                                x = rows[i].getElementsByTagName("TD")[n];
+                                                y = rows[i + 1].getElementsByTagName("TD")[n];
+                                                x_num = parseInt(x.innerHTML, 10)
+                                                y_num = parseInt(y.innerHTML, 10)
+                                                /* Check if the two rows should switch place,
+                                                based on the direction, asc or desc: */
+                                                if (dir == "asc") {
+                                                        if (x_num > y_num) {
+                                                                // If so, mark as a switch and break the loop:
+                                                                shouldSwitch = true;
+                                                                break;
+                                                        }
+                                                } else if (dir == "desc") {
+                                                        if (x_num < y_num) {
+                                                                // If so, mark as a switch and break the loop:
+                                                                shouldSwitch = true;
+                                                                break;
+                                                        }
+                                                }
+                                        }
+                                        if (shouldSwitch) {
+                                                /* If a switch has been marked, make the switch
+                                                and mark that a switch has been done: */
+                                                rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
+                                                switching = true;
+                                                // Each time a switch is done, increase this count by 1:
+                                                switchcount++;
+                                        } else {
+                                                /* If no switching has been done AND the direction is "asc",
+                                                set the direction to "desc" and run the while loop again. */
+                                                if (switchcount == 0 && dir == "asc") {
+                                                        dir = "desc";
+                                                        switching = true;
+                                                }
+                                        }
+                                }
+                        }
+
+
+                </script>
+</body>
+
+</html>

@@ -56,9 +56,8 @@ SETTING_KEYS = {
     'auto_active_group': True,
     'format': {
         'service_option':                                               ['show','hide'],
-        'csrfmiddlewaretoken':                                          'ignore', 
-        'service_alias':                                                'ignore'
-
+   'csrfmiddlewaretoken': 'ignore', 
+    'service_alias':                                                     'lowerdashlist',
         },
     'array_fields': [
         'service_alias',
@@ -232,12 +231,6 @@ def settings_list(request, response_code=0, message=None):
     rc, msg, service_list = config.db_query("view_service_status")
     
     config.db_close()
-    
-    if request.GET.get('msg') == 'success':
-        message = 'Update Success'
-    elif request.GET.get('msg') == 'error':
-        message = 'Update Failed'
-        response_code = 1
 
     # Render the page.
     context = {
@@ -409,29 +402,38 @@ def settings_update(request):
 
         table = 'csv2_service_providers'
         count =0
-        if 'service_alias' not in fields or not fields['service_alias']:
-            config.db_close()
-            return settings_list(request, response_code=1, message='No services selected.')
-        
-        service_aliases = fields.get('service_alias')
-        if isinstance(service_aliases, str):
-            service_aliases = [service_aliases]
-
         if fields['service_option'] == 'show':
-            machine_dict = {'visible': 1, 'updater': get_frame_info()}
+            verb = 'visible'
         elif fields['service_option'] == 'hide':
-            machine_dict = {'visible': 0, 'updater': get_frame_info()}
+            verb = 'hidden'
         else:
-            return settings_list(request, response_code=1, message='Update Failed') 
-       
-        for service_alias in service_aliases:     
-            where_clause = "alias='%s'" % service_alias
-            rc, msg = config.db_update(table, machine_dict, where=where_clause)
-        config.db_commit()
-        config.db_close()
+            config.db_close()
+            return settings_list(request, response_code=1, message='Update Failed')
+        if verb:
+            if 'service_alias' not in fields or not fields['service_alias']:
+                config.db_close()
+                return settings_list(request, response_code=1, message='No services selected.')
+            service_aliases = fields.get('service_alias', [])
+            
+            if isinstance(service_aliases, str):
+                service_aliases = [service_aliases]
+            elif not isinstance(service_aliases, list):
+                service_aliases = list(service_aliases)
+            
+            for service_alias in service_aliases:
+                if fields['service_option'] == 'show':
+                    machine_dict = {'visible': 1, 'updater': get_frame_info()}
+                elif fields['service_option'] == 'hide':
+                    machine_dict = {'visible': 0, 'updater': get_frame_info()}
+                else:
+                    continue
+                
+                where_clause = "alias='%s'" % service_alias
+                rc, msg = config.db_update(table, machine_dict, where=where_clause)
+            
+            config.db_close(commit=True)
 
-        return redirect('/vm/settings/?msg=success'
-                )
+            return settings_list(request, response_code=0, message='Update Success')
     ###Bad request.
     else:
         config.db_close()

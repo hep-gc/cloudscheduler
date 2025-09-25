@@ -245,6 +245,12 @@ function foreign_list(url) {
     window.location.href = "#vms-overlay";
 }
 
+function settings_list() {
+    stop_refresh();
+    document.getElementById('settings-iframe').src='/vm/settings/';
+    window.location.href = "#settings-overlay";
+}
+
 function toggle_id(name){
 
     if(document.getElementById(name).style.display == "table-row"){

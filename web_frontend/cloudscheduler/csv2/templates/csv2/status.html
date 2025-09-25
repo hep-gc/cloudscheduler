@@ -1086,7 +1086,16 @@
         <table class="system-services" id="system-services">
         
             <tr>
-                <th colspan="{{ service_status | length }}">CS system services</th>
+                <th colspan="{{ service_status | length }}">CS system services
+		<div class="settings-button">
+		{% if is_superuser %}
+		    <a class="settings-symbol" onclick="settings_list()" href="#settings-overlay">&#x2699;</a>
+		{% else %}
+		    <span class="settings-symbol disabled">&#x2699;</span>
+		{% endif %}
+		</div>
+		</th>
+
                 <th class="col-spacer">&nbsp;</th>
                 <th colspan="4">CS system resources</th>
             </tr>
@@ -1139,11 +1148,11 @@
 
         </tbody> 
         </table>
-    {% endif %}
+   	{% endif %}
 
     <div class="refresh-button">
         <span id="CDTimer"></span>
-        <span class="stop-symbol bigger" onClick="toggle_refresh()">&#x270b;</span>
+        <span class="stop-symbol bigger" onClick="stop_refresh()">&#x270b;</span>
         <span><a href="https://github.com/hep-gc/cloudscheduler/releases/latest" target="_blank" rel="noopener noreferrer">{{version}}</a></span>
         <span class="report-issue"><a href="https://github.com/hep-gc/cloudscheduler/issues" target="_blank" rel="noopener noreferrer">Report Issues</a></span>
     </div>
@@ -1155,6 +1164,13 @@
     <div class="popup">
         <a class="close" id="timer-count" onclick="set_refresh(refresh_interval*1000)" href="#">&times;</a>
         <iframe id="vms-iframe" class="content" src=""></iframe>
+    </div>
+</div>
+
+<div id="settings-overlay" class="settings_overlay">
+    <div class="settings_popup">
+	 <a class="close" id="vms-close-btn" onclick="close_and_refresh()" href="#">&times;</a>
+        <iframe id="settings-iframe" class="content" src=""></iframe>
     </div>
 </div>
 

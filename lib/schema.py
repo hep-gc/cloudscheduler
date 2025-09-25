@@ -318,7 +318,11 @@ schema = {
             "total_slots": {"type": "int"},
             "idle_time": {"type": "int"},
             "deprecated-retire_request_time": {"type": "int"},
-            "deprecated-retired_time": {"type": "int"}
+            "deprecated-retired_time": {"type": "int"},
+            "retire": {"type": "int"},
+            "terminate": {"type": "int"},
+            "LoadAvg": {"type": "float"},
+            "Memory": {"type": "int"}
             }
         },
     "condor_worker_gsi": {
@@ -532,7 +536,8 @@ schema = {
             "vm_keyname": {"type": "str", "len": "64", "nulls": "YES"},
             "vm_network": {"type": "str", "len": "64", "nulls": "NO"},
             "vm_security_groups": {"type": "str", "len": "128", "nulls": "YES"},
-            "public_visibility": {"type": "int"}
+            "public_visibility": {"type": "int"},
+            "freeze": {"type": "int"}
             }
         },
     "csv2_image_cache": {
@@ -612,7 +617,8 @@ schema = {
             "provider": {"type": "str", "len": "64", "nulls": "NO"},
             "service": {"type": "str", "len": "64", "nulls": "NO"},
             "alias": {"type": "str", "len": "16", "nulls": "YES"},
-            "alias_priority": {"type": "int"}
+            "alias_priority": {"type": "int"},
+            "visible": {"type": "int"}
             }
         },
     "csv2_signal_log": {
@@ -1650,7 +1656,8 @@ schema = {
             "alias": {"type": "str", "len": "16", "nulls": "YES"},
             "state": {"type": "str", "len": "4", "nulls": "YES"},
             "plotable_state": {"type": "str", "len": "1", "nulls": "YES"},
-            "error_message": {"type": "str", "len": "512", "nulls": "YES"}
+            "error_message": {"type": "str", "len": "512", "nulls": "YES"},
+            "show_status": {"type": "int"}
             }
         },
     "view_starting_vms": {
@@ -1659,7 +1666,8 @@ schema = {
         "columns": {
             "group_name": {"type": "str", "len": "32", "nulls": "NO"},
             "cloud_name": {"type": "str", "len": "32", "nulls": "NO"},
-            "starting_vms": {"type": "int"}
+            "starting_vms": {"type": "int"},
+            "freeze": {"type": "int"}
             }
         },
     "view_total_used_resources": {
