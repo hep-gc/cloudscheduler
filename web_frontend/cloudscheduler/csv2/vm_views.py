@@ -272,7 +272,6 @@ def machines(request, args = None, response_code=0, message=None):
             'user_groups': active_user.user_groups,
             'form_inputs': {'activity': show_activity, 'group':show_group, 'cloud_name':show_cloud},
             'machines_list': machines_list,
-            'current_activity_filter': args.get('activity', ''), 
             'response_code': response_code,
             'message': message,
             'is_superuser': active_user.is_superuser,

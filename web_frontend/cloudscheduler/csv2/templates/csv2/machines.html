@@ -11,13 +11,70 @@
 
 
 	<body>	
-        Condor Machines for group=<i>{{ active_group }}</i>
-        {% if machines_list.0.cloud_name %},
-        cloud=<i>{{ machines_list.0.cloud_name }}</i>
-        {% else %}
-        , cloud=<i>None</i>
-        {% endif %}:
 
+<!-- {% if err_message is not None %}
+        <p style="color:red;">{{err_message}}</p>
+    {% endif %}
+    {% if message is not None %}
+        <p style="color:green;">{{message}}</p>
+    {% endif %} -->
+
+    <!-- <div class="main-div"> -->
+      <div class="filter-div">
+
+      <!--<input type="text" id="myInput" onkeyup="filterTable()" placeholder="Search for names..">-->
+
+
+        <table>
+          <tr class="title-row">
+            <th>Busy</th>
+            <th>Idle</th>
+            <th>Partionable</th>       
+	    <th>Dynamic</th>         
+            <th colspan="4">
+              <table>
+                <tr>Slot CPUs</tr>
+                <tr>
+                  <th>1</th>
+                  <th>2</th>
+                  <th>4</th>
+                  <th>8</th>
+                </tr>
+              </table>
+            </th>
+          </tr>
+          <tr class="box-row">
+            <!--<td>
+              <input type="checkbox" id="all states" onchange="filterAll();"/>
+            </td>-->
+	  <td>
+                <input type="checkbox" id="Busy" onchange="filterTable('Busy', 7);" checked/>
+            </td>
+            <td>
+                <input type="checkbox" id="Idle" onchange="filterTable('Idle', 7);" checked/>
+            </td>
+            <td>
+                <input type="checkbox" id="Partitionable" onchange="filterTable('Partitionable', 11);" checked/>
+            </td>
+            <td>
+                <input type="checkbox" id="Dynamic" onchange="filterTable('Dynamic', 11);" checked/>
+            </td>
+            <td>
+                <input type="checkbox" id="1" onchange="filterTable('1', 12);" checked/>
+            </td>
+            <td>
+                <input type="checkbox" id="2" onchange="filterTable('2', 12);" checked/>
+            </td>
+            <td>
+                <input type="checkbox" id="4" onchange="filterTable('4', 12);" checked/>
+            </td>
+            <td>
+                <input type="checkbox" id="8" onchange="filterTable('8', 12);" checked/>
+            </td>
+          </tr>
+        </table>
+        
+        </div>	
         <form method="post">
                 {% csrf_token %}
 		{% if form_inputs.group %}
@@ -87,17 +144,57 @@
                 <div class="footer">
                         {% if response_code == 1 %}
                         <tr>
-                                <td><b>Error: {{ message }}</b></td>
+                          <td><b>Error: {{ message }}</b></td>
                         </tr>
                         {% elif message is not None %}
                         <tr>
-                                <td>{{ message }}</td>
+                          <td>{{ message }}</td>
                         </tr>
                         {% endif %}
                 </div>
                 <script type="text/javascript">
 
+			
 
+			 function filterTable(filter, col) {
+
+			// Declare variables 
+			var checkBox, table, tr, td, i, txtValue;
+
+			checkBox = document.getElementById(filter);
+
+			table = document.getElementById("machinesTable");
+			tr = table.getElementsByTagName("tr");
+
+
+			// Loop through all table rows and find those that match the search query
+			if (checkBox.checked == true){
+			  for (i = 0; i < tr.length; i++) {
+			    td = tr[i].getElementsByTagName("td")[col];
+			    if (td) {
+			      txtValue = td.textContent || td.innerText;
+			      if (txtValue == filter) {
+				tr[i].style.display = "table-row";
+				tr[i].getElementsByTagName("input")[0].disabled = false;
+
+			      }
+			    }
+			  }
+			}
+			else{
+			  for (i = 0; i < tr.length; i++) {
+			    td = tr[i].getElementsByTagName("td")[col];
+			    if (td) {
+			      txtValue = td.textContent || td.innerText;
+			      if (txtValue == filter) {
+				tr[i].style.display = "none";
+				tr[i].getElementsByTagName("input")[0].disabled = true;
+
+			      } 
+			    }
+			  }
+			}
+		      }
                         // For the "select all checkbox"
                         function selectAll() {
 
