@@ -19,9 +19,9 @@
                 {% endif %}
 
                 <div class="job-div">
-		<div class=job-table>
-                        <table id="jobsTable">
-                                <tr class="title-row">
+				<div class=job-table>
+                    <table id="jobsTable">
+                    <tr class="title-row">
 					<th onClick="sortTableNum(0)">Host ID &#8597;</th>
 					<th onClick="sortTable(1)">Target Clouds &#8597;</th>
 					<th onClick="sortTable(2)">Target Alias &#8597;</th>
@@ -44,23 +44,24 @@
 					<th onClick="sortTable(19)">Queue Date &#8597;</th>
 					<th onClick="sortTable(20)">Held Reason &#8597;</th>
 					<th onClick="sortTable(21)">Hold Job Reason &#8597;</th>
-                                </tr>
-				        {% for job in jobs_list %}
+                    </tr>
+						
+				    {% for job in jobs_list %}
 					{% if job.job_status == 3 or job.job_status == 7  %}
 					<tr class="job-terminated" title="Job queued for termination">
 					{% else %}
 					<tr>
 					{% endif %}
 					<td>{{job.htcondor_host_id}}</td>
-                                        <td>{{job.target_clouds}}</td>
-                                        <td>{{job.target_alias}}</td>
-                                        <td>{{job.job_status}}</td>
-                                        <td>{{job.request_cpus}}</td>
-                                        <td>{{job.request_ram}}</td>
+                    <td>{{job.target_clouds}}</td>
+                    <td>{{job.target_alias}}</td>
+                    <td>{{job.job_status}}</td>
+                    <td>{{job.request_cpus}}</td>
+                    <td>{{job.request_ram}}</td>
 					<td>{{job.request_disk}}</td>
-				        <td>{{job.request_swap}}</td>
-                                        <td>{{job.request_scratch}}</td>
-                                        <td>{{job.job_priority}}</td>
+				    <td>{{job.request_swap}}</td>
+                    <td>{{job.request_scratch}}</td>
+                    <td>{{job.job_priority}}</td>
 					<td> {{job.cluster_id}}.{{job.proc_id}}</td>
 					<td>{{job.image}}</td>
 					<td>{{job.instance_type}}</td>
@@ -73,9 +74,9 @@
 					<td>{{job.q_date_formatted}}</td>
 					<td>{{job.held_reason}}</td>
 					<td>{{job.hold_job_reason}}</td>
-                                </tr>
-                                {% endfor %}
-                        </table>
+                    </tr>
+                    {% endfor %}
+                    </table>
                 </div>
                 <div class="footer">
                         {% if response_code == 1 %}
