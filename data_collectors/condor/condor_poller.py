@@ -360,7 +360,7 @@ def process_group_cloud_commands(pair, condor_host, config):
             if not condor_classad or condor_classad == -1:
                 #there was a condor error
                 logging.error("Unable to retrieve condor classad, skipping %s ..." % resource["machine"])
-
+                continue
             try:
                 logging.info("Issuing DaemonsOffPeaceful to %s" % condor_classad)
                 master_result = htcondor.send_command(condor_classad, htcondor.DaemonCommands.DaemonsOffPeaceful)
