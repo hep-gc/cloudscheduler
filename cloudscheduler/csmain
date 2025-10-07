@@ -844,37 +844,53 @@ def main():
                                 # Looks like we need more VMs, we should have the flavor slots available from the view_available resources row.
                                 # Before we boot anything lets check resrouce contention
                                 try:
-                                    where_clause = "authurl='%s'" % boot_flavor.get("authurl")
-                                    rc, msg, resource = config.db_query("view_resource_contention", where=where_clause)
+                                    where_clause = "group_name='%s' and cloud_name='%s'" % (boot_flavor.get("group_name"), boot_flavor.get("cloud_name"))
+                                    rc, msg, resource = config.db_query("view_starting_vms", where=where_clause)
                                 except:
                                      resource = []
 
                                 if len(resource) < 1:
-                                    resource = [{
-                                        "authurl":boot_flavor.get("authurl"),
-                                        "VMs": 0,
-                                        "starting": 0,
-                                        "unregistered": 0,
-                                        "idle": 0,
-                                        "running": 0,
-                                        "retiring": 0,
-                                        "manual": 0,
-                                        "error": 0
-                                    }]
-
-                                    log.debug('No active vms for group=%s, cloud=%s, authurl=%s, assuming no contention).',
+                                    # no vms in starting state we're good to continue
+                                    pass
+                                elif resource[0].get("starting_vms") >= config.categories['csmain']['new_VMs_throttle']:
+                                    log.info(
+                                        'Resource contention: group=%s, cloud=%s, starting vms=%s, trying next flavor or moving on to next job group.',
                                         boot_flavor.get("group_name"),
                                         boot_flavor.get("cloud_name"),
-                                        boot_flavor.get("authurl"))
-
-                                if resource[0]["starting"] + resource[0]["unregistered"] >= config.categories['csmain']['new_VMs_throttle']:
-                                    log.info('Resource contention: group=%s, cloud=%s, resource=%s, starting=%s, unregistered=%s, trying next flavor or moving on to next job group.',
-                                        boot_flavor.get("group_name"),
-                                        boot_flavor.get("cloud_name"),
-                                        resource[0]["authurl"],
-                                        resource[0]["starting"],
-                                        resource[0]["unregistered"])
+                                        resource[0].get("starting_vms")
+                                        )
                                     continue
+
+                                     
+
+
+
+#                                if len(resource) < 1:
+#                                    resource = [{
+#                                        "authurl":boot_flavor.get("authurl"),
+#                                        "VMs": 0,
+#                                        "starting": 0,
+#                                        "unregistered": 0,
+#                                        "idle": 0,
+#                                        "running": 0,
+#                                        "retiring": 0,
+#                                        "manual": 0,
+#                                        "error": 0
+#                                    }]
+#
+#                                    log.debug('No active vms for group=%s, cloud=%s, authurl=%s, assuming no contention).',
+#                                        boot_flavor.get("group_name"),
+#                                        boot_flavor.get("cloud_name"),
+#                                        boot_flavor.get("authurl"))
+#
+#                                if resource[0]["starting"] + resource[0]["unregistered"] >= config.categories['csmain']['new_VMs_throttle']:
+#                                    log.info('Resource contention: group=%s, cloud=%s, resource=%s, starting=%s, unregistered=%s, trying next flavor or moving on to next job group.',
+#                                        boot_flavor.get("group_name"),
+#                                        boot_flavor.get("cloud_name"),
+#                                        resource[0]["authurl"],
+#                                        resource[0]["starting"],
+#                                        resource[0]["unregistered"])
+#                                    continue
 
 #                               if idle_job.get("cloud_name") in cloud_booted_on:
 #                                   log.debug("Already booted VMs on %s, skipping to next resource..." % boot_flavor.get("cloud_name"))
@@ -1319,6 +1335,7 @@ def remove_orphaned_volumes(config):
                             rc, msg, clouds = config.db_query(CLOUD, where=where_clause)
                             cloud=clouds[0]
                             region = cloud["region"] if cloud.get("region") else None
+                            verify = cloud["cacertificate"] if cloud.get("cacertificate") else None
                             sess = get_openstack_sess(cloud, verify)
                             if sess is False:
                                 logging.error("Failed to establish session with %s, skipping this cloud..." % cloud_name)
