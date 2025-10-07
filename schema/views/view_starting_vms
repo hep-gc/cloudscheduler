@@ -3,17 +3,14 @@ create or replace view view_t0 as
 */
 create or replace view view_starting_vms as
     select
-        v.group_name,
-        v.cloud_name,
-        count(*) as starting_vms,
-	g.freeze
-    from csv2_vms v 
-    join 
-        csv2_groups g on v.group_name = g.group_name
+        group_name,
+        cloud_name,
+        count(*) as starting_vms
+    from csv2_vms
     where
-        v.status="BUILD" or
-        (v.status="ACTIVE" and v.htcondor_partitionable_slots is null)
+        status="BUILD" or
+        (status="ACTIVE" and htcondor_partitionable_slots is null)
     group by
-        v. group_name,
-        v.cloud_name
+        group_name,
+        cloud_name
 ;
