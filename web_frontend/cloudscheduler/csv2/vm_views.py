@@ -57,7 +57,7 @@ LIST_KEYS = {
         'csrfmiddlewaretoken':                                          'ignore',
         'group':                                                        'ignore',
         'group_name':                                                   'group',
-        'job_status':                                                   [0,1,2,4]
+        'job_status':                                                   [0,1,2,4,5]
 
         },
     }
@@ -245,6 +245,20 @@ def jobs(request, args = None, response_code=0, message=None):
         show_group = False
 
     for job in jobs_list:
+        if 'job_status' in job and job['job_status']:
+            if job['job_status'] == 0:
+                job['job_status'] = 'Unexpanded'
+            elif job['job_status'] == 1:
+                job['job_status'] = 'Idle'
+            elif job['job_status'] == 2:
+                job['job_status'] = 'Running'
+            elif job['job_status'] == 3:
+                job['job_status'] = 'Removed'
+            elif job['job_status'] == 4:
+            	job['job_status'] = 'Completed'
+            elif job['job_status'] == 5:
+            	job['job_status'] = 'Held'                
+
         if 'q_date' in job and job['q_date']:
             job['q_date_formatted'] = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(job['q_date']))
         else:
