@@ -1564,6 +1564,7 @@ schema = {
             "job_alive": {"type": "str", "len": "128", "nulls": "YES"},
             "error_delay": {"type": "str", "len": "128", "nulls": "YES"},
             "keep_alive": {"type": "int"},
+            "freeze": {"type": "int"},
             "vmid": {"type": "str", "len": "128", "nulls": "NO"},
             "hostname": {"type": "str", "len": "128", "nulls": "NO"},
             "primary_slots": {"type": "int"},
