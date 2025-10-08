@@ -17,6 +17,7 @@ from (
                 120
             end
         end as keep_alive,
+	cg.freeze,
         vmid,
         hostname,
         htcondor_partitionable_slots as primary_slots,

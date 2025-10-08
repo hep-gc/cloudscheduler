@@ -251,6 +251,8 @@ def check_view_idle_vms():
         try:
             where_clause = "retire=0 and terminate=0"
             rc, msg, results = config.db_query("view_idle_vms", where=where_clause)
+            log.info("XXXXXXXXXXXXXXXXX")
+            log.info(results)
             vmids = []
             for res in results:
                 vmids.append(res["vmid"])
