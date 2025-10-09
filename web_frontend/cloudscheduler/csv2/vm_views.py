@@ -235,7 +235,14 @@ def settings_list(request, response_code=0, message=None):
     elif request.GET.get('msg') == 'error':
         message = 'Update Failed'
         response_code = 1
-
+    
+    for service in service_list:
+        if service['state'] == 'up':
+            service['state'] = 'Active'
+        elif service['state'] == 'down':
+            service['state'] = 'Not Running'
+        else:
+            service['state'] = 'ERROR'
     # Render the page.
     context = {
             'service_list': service_list,

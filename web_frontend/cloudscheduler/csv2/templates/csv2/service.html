@@ -11,32 +11,21 @@
 
 
 	<body>	
-        <form method="post">
+		<form method="post">
                 {% csrf_token %}
 
-                <button class="button show-button" type="submit" formaction="/vm/settings/update/" name="service_option"value="show">Show Service</button>
-		<button class="button hide-button" type="submit" formaction="/vm/settings/update/" name="service_option"value="hide">Hide Service</button>
                 <div class="setting-div">
-		<div class=setting-table>
+		<div class="setting-table">
                         <table id="settingsTable">
                                 <tr class="title-row">
-                                        <th><input type="checkbox" id="select-all" onchange="selectAll();" /></th>
+					<th></th>
                                         <th onClick="sortTable(1)">Service &#8597;</th>
-                                        <th onClick="sortTable(2)">Visibility Status &#8597;</th>
+                                        <th onClick="sortTable(2)">State &#8597;</th>
                                 </tr>
-
                                 {% for setting in service_list %}
-				      {% if setting.show_status ==  0 %}
-				    	<tr class="setting-hide" title="Service set as Hidden">
-				      {% elif  setting.show_status ==  1 %}
-					<tr class="setting-show" title="Service set as Visible">
-				      {% else %}
-					<tr>
-			 	      {% endif %}
-
-					<td><input type="checkbox" name="service_alias.{{ forloop.counter }}" value="{{setting.alias}}"></td>
+					<td><input type="checkbox" name="service_alias" value="{{setting.alias}}" {% if setting.show_status == 1 %}checked{% endif %}></td>
 					<td>{{setting.alias}}</td>
-					<td>{{setting.show_status}}</td>
+					<td>{{setting.state}}</td>
 				    </tr>
                     {% endfor %}
 			</table>
@@ -52,73 +41,30 @@
                         </tr>
                         {% endif %}
                 </div>
-                <script type="text/javascript">
+          <script type="text/javascript">
 
+		document.querySelectorAll('input[type="checkbox"]').forEach(function(checkbox) {
+		    checkbox.addEventListener('change', function() { 
+			const form = this.closest('form');
+			document.querySelectorAll('.temp-input').forEach(el => el.remove());	
+				const actionInput = document.createElement('input'); 
+				actionInput.type = 'hidden';
+				actionInput.name = 'service_option'; 
+				actionInput.value = this.checked ? 'show' : 'hide'; 
+				actionInput.classList.add('temp-input'); 
+				form.appendChild(actionInput);
 
-                        // For the "select all checkbox"
-                        function selectAll() {
+				const input = document.createElement('input');
+				input.type = 'hidden';
+				input.name = 'service_alias';
+				input.value = this.value;
+				input.classList.add('temp-input');
+				form.appendChild(input);
 
-                                // Declare variables 
-                                var table, tr, td, i, j, check;
-
-                                table = document.getElementById("settingsTable");
-                                tr = table.getElementsByTagName("tr");
-
-                                box = document.getElementById("select-all");
-
-                                // Loop through all table rows and find those that match the search query
-                                if (box.checked) {
-                                        for (i = 0; i < tr.length; i++) {
-                                                check = tr[i].getElementsByTagName("input");
-                                                if (check[0].disabled == false) {
-
-                                                        for (j = 0; j < check.length; j++) {
-                                                                if (check[j].type == 'checkbox') {
-                                                                        check[j].checked = true;
-                                                                }
-                                                        }
-                                                }
-                                        }
-                                }
-                                else {
-                                        for (i = 0; i < tr.length; i++) {
-                                                check = tr[i].getElementsByTagName("input");
-                                                if (check[0].disabled == false) {
-
-                                                        for (j = 0; j < check.length; j++) {
-                                                                if (check[j].type == 'checkbox') {
-                                                                        check[j].checked = false;
-                                                                }
-                                                        }
-                                                }
-                                        }
-                                }
-                        }
-
-
-                        // For the "select all checkbox"
-                        function checkToggle(event) {
-                                var changed = event.target,
-                                        selectAll = document.getElementById('select-all'),
-                                        checkboxes = Array.prototype.slice.call(
-                                                this.querySelectorAll('input[type=checkbox]')
-                                        ).filter(function (check) {
-                                                return check !== selectAll;
-                                        });
-                                if (changed === selectAll) {
-                                        checkboxes.forEach(function (check) {
-                                                check.checked = selectAll.checked;
-                                        });
-                                } else {
-                                        var allChecked = checkboxes.filter(function (check) {
-                                                return check.checked;
-                                        }).length === checkboxes.length;
-                                        selectAll.checked = allChecked;
-                                }
-                        }
-
-                        var tableElement = document.querySelector('table');
-                        tableElement.addEventListener('change', checkToggle);
+			form.action = '/vm/settings/update/';
+			form.submit();
+		    });
+		});
 
                         // To sort by clicking the headers
                         function sortTable(n) {
@@ -239,3 +185,4 @@
 </body>
 
 </html>
+
