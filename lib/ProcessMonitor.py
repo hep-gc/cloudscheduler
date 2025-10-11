@@ -138,15 +138,34 @@ class ProcessMonitor:
 
     def restart_process(self, process, dynamic=False):
         # Capture tail of log when process has to restart
+        crash_log_content = None
+        crash_log_path = None
         try:
-            proc = subprocess.Popen(['tail', '-n', '50', self.config.categories[os.path.basename(sys.argv[0])]["log_file"]], stdout=subprocess.PIPE)
+            proc = subprocess.Popen(['tail', '-n', '50', self.log_file], stdout=subprocess.PIPE)
             lines = proc.stdout.readlines()
+            crash_log_content = b''.join(lines).decode('utf-8', errors='ignore')
+
             timestamp = str(datetime.date.today())
-            with open(''.join([self.log_file, '-crash-', timestamp]), 'wb') as f:
+            crash_log_path = ''.join([self.log_file, '-crash-', timestamp])
+            with open(crash_log_path, 'wb') as f:
                 for line in lines:
                     f.write(line)
         except Exception as ex:
             self.logging.exception(ex)
+
+        if crash_log_content:
+            try:
+                update_dict = {
+                    'error_log': crash_log_content,
+                    'last_error': int(time.time())
+                }
+                where_clause = "provider='%s' and host_id='%s'" % (os.path.basename(sys.argv[0]), self.config.local_host_id
+                )
+                rc, msg = self.config.db_update('csv2_service_catalog', update_dict, where=where_clause)
+                if rc != 0:
+                    self.logging.error("Failed to update error_log: %s" % msg)
+            except Exception as ex:
+                self.logging.exception("Failed to store crash log in database: %s" % ex)
         if dynamic:
             self.processes[process] = Process(target=self.dynamic_process_ids[process]["function"], args = (self.dynamic_process_ids[process]["args"],))
             self.processes[process].start()
@@ -156,7 +175,6 @@ class ProcessMonitor:
 
         if(self.watchdog_exemption_list is None or (self.watchdog_exemption_list is not None and process not in self.watchdog_exemption_list)):
             watchdog_register_process(self.config, self.processes[process].pid, self.config.local_host_id)
-            self.config.db_commit()
             
     def is_alive(self, process):
         return self.processes[process].is_alive()

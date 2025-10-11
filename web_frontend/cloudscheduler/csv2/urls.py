@@ -76,5 +76,7 @@ urlpatterns = [
     
     path('vm/settings/',                           vm_views.settings_list),
     path('vm/settings/update/',                    vm_views.settings_update),
+    
+    path('vm/error/',                              vm_views.error_list),
 
 ]

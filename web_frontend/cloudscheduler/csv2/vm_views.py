@@ -86,7 +86,7 @@ MANDATORY_KEYS = {
         'vm_hosts',
         'vm_option',
         ]
-    }
+        }
 #-------------------------------------------------------------------------------
 
 @silkp(name="Foreign List")
@@ -147,6 +147,7 @@ def foreign(request):
         }
 
     return render(request, 'csv2/foreign.html', context)
+				# Convert float to int
 
 #-------------------------------------------------------------------------------
 
@@ -214,7 +215,6 @@ def vm_list(request, args=None, response_code=0, message=None):
             'is_superuser': active_user.is_superuser,
             'version': config.get_version()
         }
-
     return render(request, 'csv2/vms.html', context)
 
 #-------------------------------------------------------------------------------
@@ -250,8 +250,63 @@ def settings_list(request, response_code=0, message=None):
             'message': message,
 
         }
-
     return render(request, 'csv2/service.html', context)
+
+#-------------------------------------------------------------------------------
+
+@silkp(name="Error List")
+@requires_csrf_token
+def error_list(request, response_code=0, message=None):
+    # open the database.
+    config.db_open()
+    alias = request.GET.get('alias', None) 
+    rc, msg, provider_list = config.db_query("csv2_service_providers",select=['provider'],where="alias='%s'" % alias)
+
+    provider = provider_list[0]['provider']
+
+    # Retrieve service information.
+    where_clause = "provider='%s' and error_log IS NOT NULL" % provider
+    
+    rc, msg, error_list = config.db_query("csv2_service_catalog",select=['provider', 'host_id', 'last_error', 'error_message', 'error_log'],where=where_clause)
+    rc, msg, service_list = config.db_query("view_service_status", where= "alias='%s'" %alias)
+    config.db_close()
+    
+    error_log= ''
+    last_error = None
+    
+    if error_list:
+        error = error_list[0]
+        error_log=error.get('error_log')
+        ts = error.get('last_error')
+        if ts:
+            try:
+                ts = float(ts)
+                last_error = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(ts))
+            except:
+                last_error = ''
+
+    state = ''
+    if service_list:
+        state = service_list[0]['state']
+        if state == 'up':
+            state = 'Active'
+        elif state == 'down':
+            state = 'Not Running'
+        else:
+            state = 'ERROR'
+
+    # Render the page.
+    context = {
+            'error_list': error_list,
+            'alias': alias,
+            'error_log': error_log,
+            'state': state,
+            'last_error': last_error,
+            'response_code': response_code,
+            'message': message,
+        }
+    return render(request, 'csv2/error.html', context)
+
 
 #-------------------------------------------------------------------------------
 

@@ -1,0 +1,43 @@
+<html>
+
+	<head>
+        {% load static %}
+
+        <link rel="stylesheet" type="text/css" href="{% static "csv2/common.css" %}?{{version}}">
+        <link rel="stylesheet" type="text/css" href="{% static "csv2/error.css" %}?{{version}}">
+
+	<!-- <meta http-equiv="refresh" content="30"> -->
+	</head>
+	<body>	
+	    <div class="error-div">
+                <h2>
+    		Service=<i>{{ alias }}</i>,
+    		State=<i>{{ state}}</i>,
+    		Last Error=<i>{{ last_error}}</i>
+		</h2>
+
+		<div class="error-table">
+		    <table id="errorsTable">
+			<tr class="title-row">
+			    <th>Error Log</th>
+			</tr>
+			<tr>
+			    <td>{{ error_log }}</td>
+			</tr>
+		    </table>
+		</div>
+		<div class="footer">
+		    {% if response_code == 1 %}
+		    <tr>
+			<td><b>Error: {{ message }}</b></td>
+		    </tr>
+		    {% elif message is not None %}
+		    <tr>
+			<td>{{ message }}</td>
+		    </tr>
+		    {% endif %}
+		</div>
+	    </div>
+	</body>
+
+</html>
