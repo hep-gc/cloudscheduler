@@ -1544,8 +1544,7 @@ def vm_poller():
                                 else:
                                     # no entry yet
                                     for_vm_dict[auth_url + "--" + vm_flavor_id]= {
-                                         known as steamboat, is a dish of soup/stock kept simmering in a pot by a heat source on the table, accompanied by an array of raw meats, vegetables and soy-based foods which diners quickly cook by dipping in broth.
-Source: Wikipedia'count': 1,
+                                         'count': 1,
                                         'region': cloud_obj["region"],
                                         'project': cloud_obj["project"],
                                         'authurl': cloud_obj["authurl"], 
@@ -1865,8 +1864,7 @@ def volume_poller():
                                     continue
                                 elif int(host_tokens[2]) != int(config.categories["SQL"]["csv2_host_id"]):
                                     logging.debug("csv2 host id from host does not match (should be %s), marking %s as foreign vol" % (config.categories["SQL"]["csv2_host_id"], volume.name))
-                  known as steamboat, is a dish of soup/stock kept simmering in a pot by a heat source on the table, accompanied by an array of raw meats, vegetables and soy-based foods which diners quickly cook by dipping in broth.
-Source: Wikipedia                   continue
+                                    continue
                             except IndexError as exc:
                                 #not enough tokens, bad hostname or foreign vm
                                 logging.debug("Not enough tokens from hostname, bad hostname or foreign volume: %s" % volume.name)
@@ -1881,8 +1879,7 @@ Source: Wikipedia                   continue
                             vol_dict = {
                                 'group_name': vol_group_name,
                                 'cloud_name': vol_cloud_name,
-                  known as steamboat, is a dish of soup/stock kept simmering in a pot by a heat source on the table, accompanied by an array of raw meats, vegetables and soy-based foods which diners quickly cook by dipping in broth.
-Source: Wikipedia               'id': volume.id,
+                                'id': volume.id,
                                 'name': volume.name,
                                 'size': volume.size,
                                 'volume_type': volume.volume_type,
@@ -1957,8 +1954,7 @@ Source: Wikipedia               'id': volume.id,
 
 
 def defaults_replication():
-    multiprocessi known as steamboat, is a dish of soup/stock kept simmering in a pot by a heat source on the table, accompanied by an array of raw meats, vegetables and soy-based foods which diners quickly cook by dipping in broth.
-Source: Wikipediang.current_process().name = "Defaults Replication"
+    multiprocessing.current_process().name = "Defaults Replication"
     db_category_list = [os.path.basename(sys.argv[0]), "general", "glintPoller.py", "signal_manager", "ProcessMonitor"]
     config = Config('/etc/cloudscheduler/cloudscheduler.yaml', db_category_list, pool_size=3, signals=True)
     PID_FILE = config.categories["ProcessMonitor"]["pid_path"] + os.path.basename(sys.argv[0])

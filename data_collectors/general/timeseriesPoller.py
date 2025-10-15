@@ -355,6 +355,8 @@ def timeseries_data_transfer():
                 break
             signal.signal(signal.SIGINT, config.signals['SIGINT'])
             wait_cycle(cycle_start_time, poll_time_history, config.categories["timeseriesPoller.py"]["sleep_interval_status"], config)
+
+
         except Exception as exc:
             logging.error("Error during general operations:")
             logging.exception(exc)
