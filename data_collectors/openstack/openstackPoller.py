@@ -1544,7 +1544,7 @@ def vm_poller():
                                 else:
                                     # no entry yet
                                     for_vm_dict[auth_url + "--" + vm_flavor_id]= {
-                                         'count': 1,
+                                        'count': 1,
                                         'region': cloud_obj["region"],
                                         'project': cloud_obj["project"],
                                         'authurl': cloud_obj["authurl"], 
