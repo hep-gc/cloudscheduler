@@ -260,7 +260,6 @@ function error_list(alias){
     stop_refresh();
     document.getElementById('vms-iframe').src='/vm/error/?alias=' + alias;
     window.location.href = "#vms-overlay";
-
 }
 
 function toggle_id(name){
