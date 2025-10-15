@@ -276,7 +276,8 @@ def error_list(request, response_code=0, message=None):
     
     if error_list:
         error = error_list[0]
-        error_log=error.get('error_log')
+        error_log_raw = error.get('error_log', '')
+        error_log = error_log_raw.replace('\\n', '<br>').replace('\n', '<br>')
         ts = error.get('last_error')
         if ts:
             try:

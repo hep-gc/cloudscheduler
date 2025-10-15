@@ -606,7 +606,8 @@ schema = {
             "last_updated": {"type": "float"},
             "last_error": {"type": "float"},
             "error_message": {"type": "str", "len": "512", "nulls": "YES"},
-            "counter": {"type": "int"}
+            "counter": {"type": "int"},
+            "error_log": {"type": "str", "nulls": "YES"}
             }
         },
     "csv2_service_providers": {
@@ -1564,6 +1565,7 @@ schema = {
             "job_alive": {"type": "str", "len": "128", "nulls": "YES"},
             "error_delay": {"type": "str", "len": "128", "nulls": "YES"},
             "keep_alive": {"type": "int"},
+            "freeze": {"type": "int"},
             "vmid": {"type": "str", "len": "128", "nulls": "NO"},
             "hostname": {"type": "str", "len": "128", "nulls": "NO"},
             "primary_slots": {"type": "int"},
@@ -1666,8 +1668,7 @@ schema = {
         "columns": {
             "group_name": {"type": "str", "len": "32", "nulls": "NO"},
             "cloud_name": {"type": "str", "len": "32", "nulls": "NO"},
-            "starting_vms": {"type": "int"},
-            "freeze": {"type": "int"}
+            "starting_vms": {"type": "int"}
             }
         },
     "view_total_used_resources": {

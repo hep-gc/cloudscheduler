@@ -143,17 +143,16 @@ class ProcessMonitor:
             lines = proc.stdout.readlines()
             timestamp = str(datetime.date.today())
             
+            logging.info("XXXXXXXXXXXXXXXXX")
+            logging.info(process)
             alias = process.split(" ")[0].lower().strip()
-            rcp, msgp, catalog_provider_data =  self.config.db_query("csv2_service_providers", where ="alias='%s'"%alias)
-            catalog_provider =catalog_provider_data[0]["provider"]
-            
-            error_log_text = ' '.join([line.decode('utf-8', errors='replace') for line in lines]).strip('\\')
-            if error_log_text and catalog_provider:
-                try:
-                    rcl, msgl = self.config.db_update("csv2_service_catalog", {"error_log":error_log_text}, where="provider='%s'"%catalog_provider)
-                except Exception as ex:
-                    self.logging.exception(ex)
-
+            logging.info(alias)
+            rcp, msgp, provider_data =  self.config.db_query("csv2_service_providers", where ="alias='%s'"%process)
+            provider = provider_data[0]['provider']
+            logging.info(provider)
+            rcl, msgl, error_log = self.config.db_update("csv2_service_catalog", {"error_log":lines}, where="provider='%s'" %provider)
+            if rcl == 0:
+                self.config.db_commit()
             with open(''.join([self.log_file, '-crash-', timestamp]), 'wb') as f:
                 for line in lines:
                     f.write(line)
