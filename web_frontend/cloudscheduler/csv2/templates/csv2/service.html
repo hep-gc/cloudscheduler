@@ -43,28 +43,28 @@
                 </div>
           <script type="text/javascript">
 
-		document.querySelectorAll('input[type="checkbox"]').forEach(function(checkbox) {
-		    checkbox.addEventListener('change', function() { 
-			const form = this.closest('form');
-			document.querySelectorAll('.temp-input').forEach(el => el.remove());	
-				const actionInput = document.createElement('input'); 
-				actionInput.type = 'hidden';
-				actionInput.name = 'service_option'; 
-				actionInput.value = this.checked ? 'show' : 'hide'; 
-				actionInput.classList.add('temp-input'); 
-				form.appendChild(actionInput);
-
-				const input = document.createElement('input');
-				input.type = 'hidden';
-				input.name = 'service_alias';
-				input.value = this.value;
-				input.classList.add('temp-input');
-				form.appendChild(input);
-
-			form.action = '/vm/settings/update/';
-			form.submit();
-		    });
-		});
+						document.querySelectorAll('input[type="checkbox"]').forEach(function(checkbox) {
+							checkbox.addEventListener('change', function() { 
+							const form = this.closest('form');
+							document.querySelectorAll('.temp-input').forEach(el => el.remove());	
+								const actionInput = document.createElement('input'); 
+								actionInput.type = 'hidden';
+								actionInput.name = 'service_option'; 
+								actionInput.value = this.checked ? 'show' : 'hide'; 
+								actionInput.classList.add('temp-input'); 
+								form.appendChild(actionInput);
+				
+								const input = document.createElement('input');
+								input.type = 'hidden';
+								input.name = 'service_alias';
+								input.value = this.value;
+								input.classList.add('temp-input');
+								form.appendChild(input);
+				
+							form.action = '/vm/settings/update/';
+							form.submit();
+						    });
+						});
 
                         // To sort by clicking the headers
                         function sortTable(n) {
