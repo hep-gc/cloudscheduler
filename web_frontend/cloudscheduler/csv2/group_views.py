@@ -31,8 +31,6 @@ from cloudscheduler.lib.web_profiler import silk_profile as silkp
 
 from csv2.gen_public_page import generate_static_page
 
-from crccheck.crc import Crc32
-
 # lno: GV - error code identifier.
 MODID= 'GV'
 
@@ -343,9 +341,6 @@ def defaults(request, active_user=None, response_code=0, message=None):
             submitted_fqdn = fields.get('htcondor_fqdn')
 
             rc2, msg2, found_group_list = config.db_query("csv2_groups",where=f"group_name='%s'"%fields.get('group_name'))
-            checksum_host_id =Crc32.calc(submitted_fqdn.encode("utf-8")) 
-        
-            fields["htcondor_host_id"]= checksum_host_id
             current_fqdn = None
             if rc2 == 0 and found_group_list:
                 current_fqdn = found_group_list[0].get('htcondor_fqdn')
