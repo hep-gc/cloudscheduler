@@ -31,6 +31,8 @@ from cloudscheduler.lib.web_profiler import silk_profile as silkp
 
 from csv2.gen_public_page import generate_static_page
 
+from crccheck.crc import Crc32
+
 # lno: GV - error code identifier.
 MODID= 'GV'
 
@@ -328,16 +330,25 @@ def defaults(request, active_user=None, response_code=0, message=None):
         user_groups_set = True
         message = None
         if request.method == 'POST':
+            # Validate input fields.
+            rc, msg, fields, tables, columns = validate_fields(config, request, [UNPRIVILEGED_GROUP_KEYS], ['csv2_groups'], active_user)
+            if rc != 0:
+                config.db_close()
+                message = '%s default update/list %s' % (lno(MODID), msg)
+                request.session["response"] = {"message": message, "response_code": 1, "group": request.POST["group"] if "group" in request.POST else None}
+                return redirect("/group/defaults/")
+                #return render(request, 'csv2/group_defaults.html', {'response_code': 1, 'message': '%s default update/list %s' % (lno(MODID), msg), 'active_user': active_user.username, 'active_group': active_user.active_group, 'user_groups': active_user.user_groups})
 
-            #validate fqdn
-            fields = request.POST or request.GET
+			#validate_fqdn
             submitted_fqdn = fields.get('htcondor_fqdn')
-            rc2, msg2, found_group_list = config.db_query("csv2_groups",where=f"group_name='default'")
 
+            rc2, msg2, found_group_list = config.db_query("csv2_groups",where=f"group_name='%s'"%fields.get('group_name'))
+            checksum_host_id =Crc32.calc(submitted_fqdn.encode("utf-8")) 
+        
+            fields["htcondor_host_id"]= checksum_host_id
             current_fqdn = None
             if rc2 == 0 and found_group_list:
                 current_fqdn = found_group_list[0].get('htcondor_fqdn')
-
             if submitted_fqdn and current_fqdn:
                 if submitted_fqdn.strip().lower() != current_fqdn.strip().lower():
                     
@@ -346,8 +357,11 @@ def defaults(request, active_user=None, response_code=0, message=None):
 
                     
                     current_host_id = found_group_list[0].get('htcondor_host_id')
-                    rc2, msg2, found_group_list = config.db_query("csv2_vms",where=f"group_name='default'")
+                    rc2, msg2, found_group_list = config.db_query("csv2_vms",where=f"group_name='%s'"%fields.get('group_name'))
+                   
                     current_hostname = found_group_list[0].get('hostname')
+                    if rc== 0:
+                        current_hostname = found_group_list[0].get('hostname')
                     hostnameid = (current_hostname.split("--"))[2]
 
                     if current_host_id:
@@ -368,17 +382,6 @@ def defaults(request, active_user=None, response_code=0, message=None):
                         config.db_close()
                         request.session["response"] = {"message": "Group update failed - host_id found in service catalog.","response_code": 1,"group": fields.get("group_name"),}
                         return redirect("/group/defaults/")
-
-
-
-            # Validate input fields.
-            rc, msg, fields, tables, columns = validate_fields(config, request, [UNPRIVILEGED_GROUP_KEYS], ['csv2_groups'], active_user)
-            if rc != 0:
-                config.db_close()
-                message = '%s default update/list %s' % (lno(MODID), msg)
-                request.session["response"] = {"message": message, "response_code": 1, "group": request.POST["group"] if "group" in request.POST else None}
-                return redirect("/group/defaults/")
-                #return render(request, 'csv2/group_defaults.html', {'response_code': 1, 'message': '%s default update/list %s' % (lno(MODID), msg), 'active_user': active_user.username, 'active_group': active_user.active_group, 'user_groups': active_user.user_groups})
 
             if rc == 0 and ('vm_flavor' in fields) and (fields['vm_flavor']):
                 rc, msg = validate_by_filtered_table_entries(config, fields['vm_flavor'], 'vm_flavor', 'cloud_flavors', 'name', [['group_name', fields['group_name']]])
@@ -403,6 +406,7 @@ def defaults(request, active_user=None, response_code=0, message=None):
                     else:       visibility_changed = False
                 else: visibility_changed = False
                 
+
                 # Update the group defaults.
                 table = 'csv2_groups'
                 where_clause = "group_name='%s'" % active_user.active_group

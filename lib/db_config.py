@@ -18,6 +18,8 @@ from inspect import stack
 
 import mysql.connector
 
+from crccheck.crc import Crc32
+
 class Config:
     def __init__(self, db_yaml, categories, db_config_dict=False, db_config_only=False, pool_size=5, max_overflow=0, signals=False):
         """
@@ -75,12 +77,11 @@ class Config:
         # Use the integer value of the public IPv4 address to create a unique instance IDs for the
         # CSV2 host (db_host) and the local host.
         #
-        if db_config['db_host'] == 'localhost':
-            self.csv2_host_id = int(ipaddress.IPv4Address(socket.gethostbyname(socket.gethostname())))
-        else:
-            self.csv2_host_id = int(ipaddress.IPv4Address(socket.gethostbyname(db_config['db_host'])))
 
-        self.local_host_id = int(ipaddress.IPv4Address(socket.gethostbyname(socket.gethostname())))
+        self.local_hostname_fqdn = socket.getfqdn()
+        self.local_host_id = int(Crc32.calc(self.local_hostname_fqdn.encode("utf-8")))
+        self.csv2_host_id = int(Crc32.calc(self.local_hostname_fqdn.encode("utf-8")))
+
 
         self.db_open()
         if self.local_host_id == self.csv2_host_id:
@@ -563,26 +564,7 @@ class Config:
 #-------------------------------------------------------------------------------
 
     def get_host_id_by_fqdn(self, fqdn):
-        return int(ipaddress.IPv4Address(socket.gethostbyname(fqdn)))
-
-
-#-------------------------------------------------------------------------------
-
-    def get_host_id_by_ip_or_tag(self, tag):
-        return int(ipaddress.IPv4Address(tag.replace('-', '.')))
-
-
-#-------------------------------------------------------------------------------
-
-    def get_host_ip_by_host_id(self, host_id):
-        return str(ipaddress.IPv4Address(host_id))
-
-
-#-------------------------------------------------------------------------------
-
-    def get_host_tag_by_host_id(self, host_id):
-        return str(ipaddress.IPv4Address(host_id)).replace('.', '-')
-
+        return int(Crc32.calc(fqdn.encode("utf-8")))
 
 #-------------------------------------------------------------------------------
 
