@@ -15,8 +15,6 @@ from cloudscheduler.lib.oracle_functions import loadOracleConfig
 import keystoneclient.v2_0.client as v2c
 import keystoneclient.v3.client as v3c
 
-from crccheck.crc import Crc32
-
 '''
 UTILITY FUNCTIONS
 '''
@@ -1413,7 +1411,7 @@ def validate_fields(config, request, fields, tables, active_user):
                         try:
                             current_hostname = socket.gethostbyname(value)
                             if len(words) > 1:
-                                Fields[words[1]] = int(Crc32.calc(value.encode("utf-8")))
+                                Fields[words[1]] = int(ipaddress.IPv4Address(current_hostname))
                         except Exception as exc:
                             return 1, 'The value specified for %s (%s) is not a valid FQDN.' % (field, value), None, None, None
 
