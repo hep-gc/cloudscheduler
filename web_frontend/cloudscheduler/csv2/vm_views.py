@@ -147,7 +147,6 @@ def foreign(request):
         }
 
     return render(request, 'csv2/foreign.html', context)
-				# Convert float to int
 
 #-------------------------------------------------------------------------------
 
