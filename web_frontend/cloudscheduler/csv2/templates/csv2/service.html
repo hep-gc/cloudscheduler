@@ -30,17 +30,6 @@
                     {% endfor %}
 			</table>
                 </div>
-                <div class="footer">
-                        {% if response_code == 1 %}
-                        <tr>
-                                <td><b>Error: {{ message }}</b></td>
-                        </tr>
-                        {% elif message is not None %}
-                        <tr>
-                                <td>{{ message }}</td>
-                        </tr>
-                        {% endif %}
-                </div>
           <script type="text/javascript">
 
 			document.querySelectorAll('input[type="checkbox"]').forEach(checkbox => { 
