@@ -33,17 +33,11 @@
 					<th onClick="sortTableNum(8)">Request Swap  &#8597;</th>
 					<th onClick="sortTableNum(9)">Request Scratch &#8597;</th>
 					<th onClick="sortTableNum(10)">Job Priority &#8597;</th>
-					<th onClick="sortTable(11)">Image &#8597;</th>
-					<th onClick="sortTable(12)">Instance Type &#8597;</th>
-					<th onClick="sortTable(13)">Network &#8597;</th>
-					<th onClick="sortTable(14)">Keep Alive &#8597;</th>
-					<th onClick="sortTable(15)">Max Price &#8597;</th>
-					<th onClick="sortTable(16)">User Data &#8597;</th>
-					<th onClick="sortTableNum(17)">Job per Core &#8597;</th>
-					<th onClick="sortTable(18)">Entered Current Status &#8597;</th>
-					<th onClick="sortTable(19)">Queue Date &#8597;</th>
-					<th onClick="sortTable(20)">Held Reason &#8597;</th>
-					<th onClick="sortTable(21)">Hold Job Reason &#8597;</th>
+					<th onClick="sortTableNum(11)">Job per Core &#8597;</th>
+					<th onClick="sortTable(12)">Entered Current Status &#8597;</th>
+					<th onClick="sortTable(13)">Queue Date &#8597;</th>
+					<th onClick="sortTable(14)">Held Reason &#8597;</th>
+					<th onClick="sortTable(15)">Hold Job Reason &#8597;</th>
                     </tr>
 						
 				    {% for job in jobs_list %}
@@ -63,12 +57,6 @@
 				    <td>{{job.request_swap}}</td>
                     <td>{{job.request_scratch}}</td>
                     <td>{{job.job_priority}}</td>
-					<td>{{job.image}}</td>
-					<td>{{job.instance_type}}</td>
-					<td>{{job.network}}</td>
-					<td>{{job.keep_alive}}</td>
-					<td>{{job.max_price}}</td>
-					<td>{{job.user_data}}</td>
 					<td>{{job.job_per_core}}</td>
 					<td>{{job.entered_current_status_formatted}}</td>
 					<td>{{job.q_date_formatted}}</td>
