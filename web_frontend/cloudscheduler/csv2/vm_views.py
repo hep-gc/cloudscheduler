@@ -484,6 +484,10 @@ def machines_update(request):
                 rc, msg = config.db_update(table, machine_dict, where=where_clause) 
                 if rc == 0:
                     count += 1
+                    where_clause = "hostname='%s'" % machine['machine']
+                    rc, msg = config.db_update(table_csv2, machine_dict, where=where_clause)
+                    if rc == 0:
+                        count += 1
                 else:
                     config.db_close()
                     return render(request, 'csv2/machines.html', {'response_code': 1,'message': '%s machine update failed - %s' % (lno(MODID), msg),'active_user': active_user.username,'active_group': active_user.active_group,'user_groups': active_user.user_groups})
