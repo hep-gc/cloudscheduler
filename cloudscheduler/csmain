@@ -152,7 +152,8 @@ def cleanup_stale_service_catalog(config):
         }
 
         for table, col in tables.items():
-            rc, msg, stale_entries = config.db_query(table)
+            where_clause = "UNIX_TIMESTAMP(last_updated) < %s" % stale_time
+            rc, msg, stale_entries = config.db_query(table, where=where_clause)
             logging.info(stale_entries)
             if rc != 0:
                 continue
