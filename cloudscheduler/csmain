@@ -160,7 +160,7 @@ def cleanup_stale_service_catalog(config):
                 logging.info(entry)
                 host_id = entry.get(col)
                 if host_id and host_id not in active_ids:
-                    config.db_execute("DELETE FROM %s WHERE %s = %s" % (table, col, host_id))
+                    config.db_execute("delete from %s where %s = %s" % (table, col, host_id))
 
     except Exception as exc:
         logging.error("Service catalog cleanup failed:%s" %exc)
