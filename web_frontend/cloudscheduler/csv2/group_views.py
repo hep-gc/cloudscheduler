@@ -343,10 +343,10 @@ def defaults(request, active_user=None, response_code=0, message=None):
             submitted_fqdn = fields.get('htcondor_fqdn')
 
             rc2, msg2, found_group_list = config.db_query("csv2_groups",where=f"group_name='%s'"%fields.get('group_name'))
-			
-			submitted_fqdn = fields.get('htcondor_fqdn')
-			if submitted_fqdn:
-				fields['htcondor_host_id'] = int(Crc32.calc(submitted_fqdn.encode("utf-8")))
+	                
+            submitted_fqdn = fields.get('htcondor_fqdn')
+            if submitted_fqdn:
+                fields['htcondor_host_id'] = int(Crc32.calc(submitted_fqdn.encode("utf-8")))
 				
             current_fqdn = None
             if rc2 == 0 and found_group_list:
