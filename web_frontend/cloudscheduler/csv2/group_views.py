@@ -31,6 +31,8 @@ from cloudscheduler.lib.web_profiler import silk_profile as silkp
 
 from csv2.gen_public_page import generate_static_page
 
+from crccheck.crc import Crc32
+
 # lno: GV - error code identifier.
 MODID= 'GV'
 
