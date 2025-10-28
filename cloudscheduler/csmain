@@ -160,12 +160,13 @@ def cleanup_stale_service_catalog(config):
             logging.info(stale_entries)
             if rc != 0:
                 continue
+            where_list = []
             for entry in stale_entries:
-                logging.info(entry)
                 host_id = entry.get(col)
-                if host_id and host_id not in active_ids:
-                    config.db_execute("delete from %s where %s = %s" % (table, col, host_id))
-
+                where_list.append("%s = %s" % (col, str(host_id)))
+            if where_list:
+                config.db_execute("delete from %s where %s" % (table, (' or '.join(where_list))))             
+                        
     except Exception as exc:
         logging.error("Service catalog cleanup failed:%s" %exc)
 
