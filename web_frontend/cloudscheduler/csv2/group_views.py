@@ -339,51 +339,10 @@ def defaults(request, active_user=None, response_code=0, message=None):
                 return redirect("/group/defaults/")
                 #return render(request, 'csv2/group_defaults.html', {'response_code': 1, 'message': '%s default update/list %s' % (lno(MODID), msg), 'active_user': active_user.username, 'active_group': active_user.active_group, 'user_groups': active_user.user_groups})
 
-			#validate_fqdn
-            submitted_fqdn = fields.get('htcondor_fqdn')
-
-            rc2, msg2, found_group_list = config.db_query("csv2_groups",where=f"group_name='%s'"%fields.get('group_name'))
-	                
+			#update host_id                 
             submitted_fqdn = fields.get('htcondor_fqdn')
             if submitted_fqdn:
                 fields['htcondor_host_id'] = int(Crc32.calc(submitted_fqdn.encode("utf-8")))
-				
-            current_fqdn = None
-            if rc2 == 0 and found_group_list:
-                current_fqdn = found_group_list[0].get('htcondor_fqdn')
-            if submitted_fqdn and current_fqdn:
-                if submitted_fqdn.strip().lower() != current_fqdn.strip().lower():
-                    
-                    tables_with_host_id = ['condor_jobs', 'condor_machines', 'condor_worker_gsi']
-                    current_host_id = None
-
-                    
-                    current_host_id = found_group_list[0].get('htcondor_host_id')
-                    rc2, msg2, found_group_list = config.db_query("csv2_vms",where=f"group_name='%s'"%fields.get('group_name'))
-                   
-                    current_hostname = found_group_list[0].get('hostname')
-                    if rc== 0:
-                        current_hostname = found_group_list[0].get('hostname')
-                    hostnameid = (current_hostname.split("--"))[2]
-
-                    if current_host_id:
-                        for table in tables_with_host_id:
-                            rc, msg, found_rows = config.db_query(table,where=f"htcondor_host_id={current_host_id}")
-                            if hostnameid == current_hostname:
-                                config.db_close()
-                                request.session["response"] = {"message": "Group update failed - host_id found in hostname.","response_code": 1,"group": fields.get('group_name')}
-                                return redirect("/group/defaults/")
-                            if (rc == 0 and found_rows): 
-                                config.db_close()
-                                request.session["response"] = {"message": "Group update failed - host_id found in active jobs","response_code": 1,"group": fields.get('group_name')}
-                                return redirect("/group/defaults/")
-
-
-                    rc2, msg2, found_rows = config.db_query("csv2_sevice_catalog",where=f"host_id={current_host_id}")
-                    if rc2 == 0 and found_rows:
-                        config.db_close()
-                        request.session["response"] = {"message": "Group update failed - host_id found in service catalog.","response_code": 1,"group": fields.get("group_name"),}
-                        return redirect("/group/defaults/")
 
             if rc == 0 and ('vm_flavor' in fields) and (fields['vm_flavor']):
                 rc, msg = validate_by_filtered_table_entries(config, fields['vm_flavor'], 'vm_flavor', 'cloud_flavors', 'name', [['group_name', fields['group_name']]])
