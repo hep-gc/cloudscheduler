@@ -13,10 +13,11 @@
 	<body>
 		<h2>Jobs for group=<i>{{ jobs_list.0.group_name }}</i>
                 {% if jobs_list.0.user %}
-			, user=<i>{{ jobs_list.0.user }}</i>:</h2>
+                        , user=<i>{{ jobs_list.0.user }}</i>
                 {% else %}
-			, user=<i>None</i>:</h2>
+                        , user=<i>None</i>
                 {% endif %}
+                , fqdn = <i> {{fqdn}} </i>:</h2>
 
                 <div class="job-div">
 				<div class=job-table>
