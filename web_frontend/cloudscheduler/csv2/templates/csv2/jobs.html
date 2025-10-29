@@ -23,21 +23,20 @@
                     <table id="jobsTable">
                     <tr class="title-row">
 					<th onClick="sortTableNum(0)">Job ID &#8597;</th>			    
-					<th onClick="sortTableNum(1)">Host ID &#8597;</th>
-					<th onClick="sortTable(2)">Target Clouds &#8597;</th>
-					<th onClick="sortTable(3)">Target Alias &#8597;</th>
-					<th onClick="sortTableNum(4)">Job Status &#8597;</th>
-					<th onClick="sortTableNum(5)">Request CPUs &#8597;</th>
-					<th onClick="sortTableNum(6)">Request RAM  &#8597;</th>
-					<th onClick="sortTableNum(7)">Request Disk &#8597;</th>
-					<th onClick="sortTableNum(8)">Request Swap  &#8597;</th>
-					<th onClick="sortTableNum(9)">Request Scratch &#8597;</th>
-					<th onClick="sortTableNum(10)">Job Priority &#8597;</th>
-					<th onClick="sortTableNum(11)">Job per Core &#8597;</th>
-					<th onClick="sortTable(12)">Entered Current Status &#8597;</th>
-					<th onClick="sortTable(13)">Queue Date &#8597;</th>
-					<th onClick="sortTable(14)">Held Reason &#8597;</th>
-					<th onClick="sortTable(15)">Hold Job Reason &#8597;</th>
+					<th onClick="sortTable(1)">Target Clouds &#8597;</th>
+					<th onClick="sortTable(2)">Target Alias &#8597;</th>
+					<th onClick="sortTableNum(3)">Job Status &#8597;</th>
+					<th onClick="sortTableNum(4)">Request CPUs &#8597;</th>
+					<th onClick="sortTableNum(5)">Request RAM  &#8597;</th>
+					<th onClick="sortTableNum(6)">Request Disk &#8597;</th>
+					<th onClick="sortTableNum(7)">Request Swap  &#8597;</th>
+					<th onClick="sortTableNum(8)">Request Scratch &#8597;</th>
+					<th onClick="sortTableNum(9)">Job Priority &#8597;</th>
+					<th onClick="sortTableNum(10)">Job per Core &#8597;</th>
+					<th onClick="sortTable(11)">Entered Current Status &#8597;</th>
+					<th onClick="sortTable(12)">Queue Date &#8597;</th>
+					<th onClick="sortTable(13)">Held Reason &#8597;</th>
+					<th onClick="sortTable(14)">Hold Job Reason &#8597;</th>
                     </tr>
 						
 				    {% for job in jobs_list %}
@@ -47,7 +46,6 @@
 					<tr>
 					{% endif %}
 					<td> {{job.cluster_id}}.{{job.proc_id}}</td>					
-					<td>{{job.htcondor_host_id}}</td>
                     <td>{{job.target_clouds}}</td>
                     <td>{{job.target_alias}}</td>
                     <td>{{job.job_status}}</td>
