@@ -129,7 +129,7 @@ from (
             from (
                 /* gocj - Groups of condor jobs */
                 select
-                    group_name,
+                    condor_jobs.group_name,
                     target_alias,
                     instance_type,
                     job_status,
@@ -153,8 +153,10 @@ from (
                     end as queue_date,
                     count(1) as count
                 from condor_jobs
+		join csv2_groups on condor_jobs.group_name = csv2_groups.group_name
+                where csv2_groups.freeze not in (1, 2)
                 group by
-                    group_name,
+		    condor_jobs.group_name,
                     target_alias,
                     job_status,
                     requirements,
