@@ -249,13 +249,10 @@ def check_view_idle_vms():
         watchdog_send_heartbeat(config, os.getpid(), config.local_host_id)
         log.debug("-------------------check_view_idle_vms-------------------")
         try:
-            where_clause = "retire=0 and terminate=0"
+            where_clause = "retire=0 and terminate=0 and freeze=0"
             rc, msg, results = config.db_query("view_idle_vms", where=where_clause)
             vmids = []
             for res in results:
-                if len(results)>0 and res['freeze']== 1:
-                    log.info(f"Skipped retire on frozen {res['hostname']}")
-                    continue
                 vmids.append(res["vmid"])
             if vmids:
                 log.info("Setting retire flag on %s VMs.", len(vmids))
