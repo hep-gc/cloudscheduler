@@ -1,0 +1,71 @@
+/*M!999999\- enable the sandbox mode */ 
+-- MariaDB dump 10.19  Distrib 10.11.10-MariaDB, for Linux (x86_64)
+--
+-- Host: localhost    Database: csv2
+-- ------------------------------------------------------
+-- Server version	10.11.10-MariaDB
+
+/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
+/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
+/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
+/*!40101 SET NAMES utf8mb4 */;
+/*!40103 SET @OLD_TIME_ZONE=@@TIME_ZONE */;
+/*!40103 SET TIME_ZONE='+00:00' */;
+/*!40014 SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0 */;
+/*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
+/*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
+/*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
+
+--
+-- Table structure for table `django_session`
+--
+
+DROP TABLE IF EXISTS `django_session`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `django_session` (
+  `session_key` varchar(40) NOT NULL,
+  `session_data` longtext NOT NULL,
+  `expire_date` datetime(6) NOT NULL,
+  PRIMARY KEY (`session_key`),
+  KEY `django_session_expire_date_a5c62663` (`expire_date`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `django_session`
+--
+
+LOCK TABLES `django_session` WRITE;
+/*!40000 ALTER TABLE `django_session` DISABLE KEYS */;
+INSERT INTO `django_session` VALUES
+('4co4dxpec3109zkxx4k1qb3m4ik2y2qq','.eJxVjEEOgjAQRe_StWlaGMrUpUcwcU2m06mgkSa0rIx3FxIWuv3vv_dWA611HNYiyzBFdVbWojr9roH4KfOO4oPme9ac57pMQe8XfdCir_LKVW6bcTmEv8pIZdwSnfMBUtMCMZAzAQKwYeo776hBciItGk4ewPvUk0EIPiLb1EaHCUV9voj7Opw:1tgU0k:PMnLasihkPOxePpXY6G8CQJDl9RgfNuZWvFETf4zEMU','2025-02-21 19:27:34.232577'),
+('59xhazm0jgf0rm058csmmfggo4lmkwtc','.eJxVjEEOwiAQRe_C2hAoUwouPYKJazIMg1QjTUq7Mt7dNulCt__9994i4LqUsDaew5jEWWhtxel3jUhPrjtKD6z3SdJUl3mMcr_IgzZ55de08G0zLofwVynYypborY-QOwNIgFZFiECKcOi9xc6hZTZOUfYA3ucBlYPokyOdTbIuOxafL4e_Opo:1tXlFi:xPncYf0-iVHZrMmoC7p2VYQl6woguVbOYAac8MbxWp0','2025-01-28 18:02:58.881083'),
+('7t3pfn9hkn6knndsjke6xjtmrw8cau0f','.eJxVjDsOwjAQBe_iGll2vHG8lBwBiTpar9c4IBwpnwpxdxIpBbRv3sxb9bQupV9nmfohqbOytlWn3zUSP6XuKD2o3kfNY12mIer9og8666u8xkVum3E5hL9KoblsidZjhNw4IAbyJkIENkxdi56aQF7EBcMZARBzRyZAxBTYZpd8yEHU5wuHITqZ:1tMDEN:2GwOhlRCg6lK1kVCJERgJvHfbDV-NAxlVe4izqQaf8I','2024-12-27 21:29:51.936255'),
+('8pq62shtefnz946ohz4la0r58i1fx4x2','.eJxVjDsOwjAQBe_iGll2svGHkiMgUUfr9RoHRCzFToW4O4mUAto3b-YtRlxbHtfKyzhFcRZaW3H6XQPSk-cdxQfO9yKpzG2Zgtwv8qBVXvlVGt8243IIf5WMNW-JwfgAqesBCdCoAAFIEdrBG-wcGubeKUoewPtkUTkIPjrSqY_GJcfi8wWIXTqb:1tNF6W:Uv2iE_iDdBwf1mUHINtcXlihIIRTNBbuk4oEybsot6M','2024-12-30 17:42:00.497080'),
+('aousyqvgdaevk7r4yjr1gdf8n07oebgu','.eJxVjEEOgjAQRe_StWlaGMrUpUcwcU2m06mgkSa0rIx3FxIWuv3vv_dWA611HNYiyzBFdVbWojr9roH4KfOO4oPme9ac57pMQe8XfdCir_LKVW6bcTmEv8pIZdwSnfMBUtMCMZAzAQKwYeo776hBciItGk4ewPvUk0EIPiLb1EaHCUV9voj7Opw:1tgU0k:PMnLasihkPOxePpXY6G8CQJDl9RgfNuZWvFETf4zEMU','2025-02-21 19:27:34.475323'),
+('cfl19g4g8gcwvktlw60r82u53aqbqqs6','.eJxVjDsOwjAQBe_iGll2svGHkiMgUUfr9RoHRCzFToW4O4mUAto3b-YtRlxbHtfKyzhFcRZaW3H6XQPSk-cdxQfO9yKpzG2Zgtwv8qBVXvlVGt8243IIf5WMNW-JwfgAqesBCdCoAAFIEdrBG-wcGubeKUoewPtkUTkIPjrSqY_GJcfi8wWIXTqb:1tZwN0:Y4YhWf-QOqlYukNIJArj-hWYwBJT3D9g57PeRFK-JuY','2025-02-03 18:19:30.056075'),
+('eon3r3ur6nrvoobwknj1l6vghz1m568b','.eJxVjEEOwiAQRe_C2hAoUwouPYKJazIMg1QjTUq7Mt7dNulCt__9994i4LqUsDaew5jEWWhtxel3jUhPrjtKD6z3SdJUl3mMcr_IgzZ55de08G0zLofwVynYypborY-QOwNIgFZFiECKcOi9xc6hZTZOUfYA3ucBlYPokyOdTbIuOxafL4e_Opo:1tf6dN:uYJUV8k9yrqhsGRs4RdzNDVpW3nADxWrRNyGG9c50ew','2025-02-18 00:17:45.353036'),
+('es85hzwxin8bzxvs1zy4zsewwxg9u5pu','.eJxVjEEOwiAQRe_C2hAoUwouPYKJazIMg1QjTUq7Mt7dNulCt__9994i4LqUsDaew5jEWWhtxel3jUhPrjtKD6z3SdJUl3mMcr_IgzZ55de08G0zLofwVynYypborY-QOwNIgFZFiECKcOi9xc6hZTZOUfYA3ucBlYPokyOdTbIuOxafL4e_Opo:1thvhs:EgD8Qo9WFEs1KfoyPc8T1mwLkZ6agBqlruKAdKn2C-I','2025-02-25 19:14:04.468679'),
+('hz0tvn9kcz926d9ajigd6sbiuekt5owa','.eJxVjDsOwjAQBe_iGll2svGHkiMgUUfr9RoHRCzFToW4O4mUAto3b-YtRlxbHtfKyzhFcRZaW3H6XQPSk-cdxQfO9yKpzG2Zgtwv8qBVXvlVGt8243IIf5WMNW-JwfgAqesBCdCoAAFIEdrBG-wcGubeKUoewPtkUTkIPjrSqY_GJcfi8wWIXTqb:1tOSb8:JnpCHa-u9nM553m-ZTWzJi5KjWNj4HwbrDCFXRXSe28','2025-01-03 02:18:38.288852'),
+('kmg3kdonsnfl669x7wf5r7mkumuzfvyg','.eJxVjEEOwiAQRe_C2hAoUwouPYKJazIMg1QjTUq7Mt7dNulCt__9994i4LqUsDaew5jEWWhtxel3jUhPrjtKD6z3SdJUl3mMcr_IgzZ55de08G0zLofwVynYypborY-QOwNIgFZFiECKcOi9xc6hZTZOUfYA3ucBlYPokyOdTbIuOxafL4e_Opo:1tVdCO:9r50nOOLtdPxR8MP1crBWF6yWospB2VzgI3QHXJIrZg','2025-01-22 21:02:44.518568'),
+('lg48xejszaj3vpjeytnqysakna8ec1bx','.eJxVjEEOwiAQRe_C2hAoUwouPYKJazIMg1QjTUq7Mt7dNulCt__9994i4LqUsDaew5jEWWhtxel3jUhPrjtKD6z3SdJUl3mMcr_IgzZ55de08G0zLofwVynYypborY-QOwNIgFZFiECKcOi9xc6hZTZOUfYA3ucBlYPokyOdTbIuOxafL4e_Opo:1taiRy:S7IUgBS_X0UEKz0iFyQWHjHRJF7LG1RfJQa83p_23QY','2025-02-05 21:39:50.181267'),
+('muga9tp5768dykx3iyiweb5fm8q7st5c','.eJxVjDsOwjAQBe_iGll2svGHkiMgUUfr9RoHRCzFToW4O4mUAto3b-YtRlxbHtfKyzhFcRZaW3H6XQPSk-cdxQfO9yKpzG2Zgtwv8qBVXvlVGt8243IIf5WMNW-JwfgAqesBCdCoAAFIEdrBG-wcGubeKUoewPtkUTkIPjrSqY_GJcfi8wWIXTqb:1tY98a:xvvyvdn-buL3dRWLxrhZdnxitsaLKRxKENkuABQF5GI','2025-01-29 19:33:12.986771'),
+('re6sbzvafj3o92okwl2clzwe9ggfarkn','.eJxVjEEOwiAQRe_C2hAoUwouPYKJazIMg1QjTUq7Mt7dNulCt__9994i4LqUsDaew5jEWWhtxel3jUhPrjtKD6z3SdJUl3mMcr_IgzZ55de08G0zLofwVynYypborY-QOwNIgFZFiECKcOi9xc6hZTZOUfYA3ucBlYPokyOdTbIuOxafL4e_Opo:1tMFQA:N3UrjEOsf2f_wtCMuqtZz2v96Sy2iqNTi1RbFZVX1m0','2024-12-27 23:50:10.322188'),
+('rublno5gp892kuetrt9lr7ge8a15goqr','.eJxVjEEOwiAQRe_C2hAoUwouPYKJazIMg1QjTUq7Mt7dNulCt__9994i4LqUsDaew5jEWWhtxel3jUhPrjtKD6z3SdJUl3mMcr_IgzZ55de08G0zLofwVynYypborY-QOwNIgFZFiECKcOi9xc6hZTZOUfYA3ucBlYPokyOdTbIuOxafL4e_Opo:1tOME1:52OSTw1e7G3Qj9uiNfLQHXpqE_RPGURUc4AD8xRDULI','2025-01-02 19:30:21.886877'),
+('x9bra41i2kufrnedc6u48jpyt5n1w6hl','.eJxVjEEOgjAQRe_StWlaGMrUpUcwcU2m06mgkSa0rIx3FxIWuv3vv_dWA611HNYiyzBFdVbWojr9roH4KfOO4oPme9ac57pMQe8XfdCir_LKVW6bcTmEv8pIZdwSnfMBUtMCMZAzAQKwYeo776hBciItGk4ewPvUk0EIPiLb1EaHCUV9voj7Opw:1thagN:5SFi6QGDGLBqGeRRdDRCnH_Ogoau-sBEkwRSW5fPhzQ','2025-02-24 20:47:07.699915'),
+('xssc4l69cmszisbo1soi440b6fzqijua','.eJxVjEEOwiAQRe_C2hAoUwouPYKJazIMg1QjTUq7Mt7dNulCt__9994i4LqUsDaew5jEWWhtxel3jUhPrjtKD6z3SdJUl3mMcr_IgzZ55de08G0zLofwVynYypborY-QOwNIgFZFiECKcOi9xc6hZTZOUfYA3ucBlYPokyOdTbIuOxafL4e_Opo:1tOgWR:LAq76efEinMDIM1w4EEmTx3oJOFo0PQJ6arCz2mgcoU','2025-01-03 17:10:43.890602'),
+('y74cp08fhqe6k3otrqc455n67fus3r7i','.eJxVjDsOwjAQBe_iGll2vHG8lBwBiTpar9c4IBwpnwpxdxIpBbRv3sxb9bQupV9nmfohqbOytlWn3zUSP6XuKD2o3kfNY12mIer9og8666u8xkVum3E5hL9KoblsidZjhNw4IAbyJkIENkxdi56aQF7EBcMZARBzRyZAxBTYZpd8yEHU5wuHITqZ:1tMDEe:y2J73XO1kbSKC0K5n7rUTM1HHsoQUOM5VN5dKYTM4cU','2024-12-27 21:30:08.041756');
+/*!40000 ALTER TABLE `django_session` ENABLE KEYS */;
+UNLOCK TABLES;
+/*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
+
+/*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
+/*!40014 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS */;
+/*!40014 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS */;
+/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
+/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
+/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
+/*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
+
+-- Dump completed on 2025-02-11 14:52:50
