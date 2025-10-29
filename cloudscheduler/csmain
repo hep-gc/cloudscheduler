@@ -611,7 +611,6 @@ def get_frozen_groups_with_active_pollers(config):
     rc, msg, active_pollers = config.db_query("csv2_service_catalog", where=where_clause)
     if rc == 0:
         for poller in active_pollers:
-            log.info(poller)
             groups_for_host = get_groups_name(config, poller['host_id'])
             active_groups.extend(groups_for_host)
     frozen_active_groups = []
