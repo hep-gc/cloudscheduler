@@ -561,7 +561,19 @@ def process_group_cloud_terminates(pair, config):
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-def get_groups_with_inactive_pollers(config, timeout_seconds=10):
+def get_groups_with_inactive_pollers(config):
+    try:
+        timeout_seconds = int(config.categories['condor_poller.py'].get('group_timeout_seconds', 300))
+    except ValueError:
+        timeout_seconds = 300
+        logging.warning("invalid 'service_cleanup_timeout,' using default: %ss." %timeout_seconds)
+
+    if timeout_seconds > 600:
+        logging.warning("'group_timeout_seconds' of %ss exceeds max of 600s, capped to 600s.", timeout_seconds)
+    timeout_seconds = 600
+    elif timeout_seconds < 1:
+        timeout_seconds = 1
+
     current_time = int(time.time())
     cutoff_time = current_time - timeout_seconds
     inactive_groups = []
@@ -577,7 +589,19 @@ def get_groups_with_inactive_pollers(config, timeout_seconds=10):
             logging.warning("condor poller on host %s stale for %.2f minutes, skipping groups: %s", poller['host_id'], minutes_stale, groups_for_host)
     return inactive_groups
 
-def get_frozen_groups_with_active_pollers(config, timeout_seconds=10):
+def get_frozen_groups_with_active_pollers(config):
+    try:
+        timeout_seconds = int(config.categories['condor_poller.py'].get('group_timeout_seconds', 300))
+    except ValueError:
+        timeout_seconds = 300
+        logging.warning("invalid 'service_cleanup_timeout,' using default: %ss." %timeout_seconds)
+
+    if timeout_seconds > 600:
+        logging.warning("'group_timeout_seconds' of %ss exceeds max of 600s, capped to 600s.", timeout_seconds)
+    timeout_seconds = 600
+    elif timeout_seconds < 1:
+        timeout_seconds = 1
+
     current_time = int(time.time())
     cutoff_time = current_time - timeout_seconds
 
