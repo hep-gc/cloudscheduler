@@ -228,11 +228,11 @@ def jobs(request, args = None, response_code=0, message=None):
                 config.db_close()
                 return render(request, 'csv2/jobs.html', {'response_code': 1, 'message': '%s jobs list, %s' % (lno(MODID), msg)})
 
-    # Retrieve condor jobs information
+  # Retrieve condor jobs information
     if active_user.active_group and active_user.active_group == 'ALL':
         rc, msg, jobs_list_raw = config.db_query("condor_jobs")
     else:
-        group = active_user.active_group.lower() 
+        group = active_user.active_group.lower()
         where_clause = "group_name='%s'" % active_group
         rc, msg, jobs_list_raw = config.db_query("condor_jobs", where=where_clause)
     jobs_list = qt(jobs_list_raw, filter=qt_filter_get(['job_status'], args, aliases=ALIASES))
@@ -243,6 +243,14 @@ def jobs(request, args = None, response_code=0, message=None):
     show_group= True
     if args and ('group_name' not in args or args.get('group_name') == ''):
         show_group = False
+   
+    try:
+        where_clause = "group_name = '%s'" % jobs_list[0]['group_name']
+        rc, msg, fqdn_list = config.db_query("csv2_groups", select = ['htcondor_fqdn'], where = where_clause)
+        if rc ==0:
+            fqdn = fqdn_list[0]['htcondor_fqdn']
+    except:
+        fqdn = None
 
     for job in jobs_list:
         if 'job_status' in job and job['job_status']:
@@ -255,15 +263,15 @@ def jobs(request, args = None, response_code=0, message=None):
             elif job['job_status'] == 3:
                 job['job_status'] = 'Removed'
             elif job['job_status'] == 4:
-            	job['job_status'] = 'Completed'
+                job['job_status'] = 'Completed'
             elif job['job_status'] == 5:
-            	job['job_status'] = 'Held'                
+                job['job_status'] = 'Held'
 
         if 'q_date' in job and job['q_date']:
             job['q_date_formatted'] = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(job['q_date']))
         else:
             job['q_date_formatted'] = ''
-        
+
         if 'entered_current_status' in job and job['entered_current_status']:
             job['entered_current_status_formatted'] = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(job['entered_current_status']))
         else:
@@ -282,7 +290,8 @@ def jobs(request, args = None, response_code=0, message=None):
             'response_code': response_code,
             'message': message,
             'is_superuser': active_user.is_superuser,
-            'version': config.get_version()
+            'version': config.get_version(),
+            'fqdn' : fqdn
         }
 
     return render(request, 'csv2/jobs.html', context)
