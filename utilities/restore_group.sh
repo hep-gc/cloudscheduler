@@ -6,7 +6,7 @@
 ### 2.  Inserts 'default' group to csv2_user_groups along with any superusers from the csv2_user table
 
 mysql csv2 -e "
-insert into csv2_groups (group_name) values ('default');
+insert ignore into csv2_groups (group_name) values ('default');
 insert into csv2_user_groups (username, group_name)
 select username, 'default'
 from csv2_user
