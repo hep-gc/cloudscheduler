@@ -29,7 +29,7 @@ from (
             case when ifnull(terminate,0)>0 then 1 else 0 end as killed,
             case when ifnull(retire,0)>0 then 1 else 0 end as retired,
             case when my_current_time is null then
-                9999999999
+                1
             else
                 my_current_time - entered_current_state
             end as priority
