@@ -253,6 +253,9 @@ def check_view_idle_vms():
             rc, msg, results = config.db_query("view_idle_vms", where=where_clause)
             vmids = []
             for res in results:
+                if len(results)>0 and res['freeze']== 1:
+                    log.info(f"Skipped retire on frozen {res['hostname']}")
+                    continue
                 vmids.append(res["vmid"])
             if vmids:
                 log.info("Setting retire flag on %s VMs.", len(vmids))
