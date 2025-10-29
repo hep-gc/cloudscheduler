@@ -1,4 +1,9 @@
 #!/bin/bash
+###
+### This utility must be run as root. It performs the following:
+###
+### 1.  Adds a 'default' group to csv2_groups table
+### 2.  Inserts 'default' group to csv2_user_groups along with any superusers from the csv2_user table
 
 mysql csv2 -e "
 insert into csv2_groups (group_name) values ('default');
