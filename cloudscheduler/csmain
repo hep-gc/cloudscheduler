@@ -744,13 +744,6 @@ def main():
             cloud_prio = None 
             if list_groups_with_idle_jobs_len > 0:
                 for job_group in list_groups_with_idle_jobs[list_groups_with_idle_jobs_ix:] + list_groups_with_idle_jobs[:list_groups_with_idle_jobs_ix]:
-                    
-                    where_clause = f"group_name='{job_group}'"
-                    rc, msg, group_info = config.db_query("csv2_groups", select=["freeze"], where=where_clause)
-                    if (rc==0 and group_info[0]['freeze'] == 2) or (rc==0 and group_info[0]['freeze'] == 1):
-                        log.info("skipping provisioning for group %s due to inactive condor poller", job_group)
-                        continue
-
 #               for job_group in idle_job_groups:
                     ####### log.debug("Proccessing group: %s" % job_group)
                     booted_for_group = False
