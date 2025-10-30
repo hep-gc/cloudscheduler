@@ -343,7 +343,7 @@ def defaults(request, active_user=None, response_code=0, message=None):
 			#update host_id                 
             submitted_fqdn = fields.get('htcondor_fqdn')
             if submitted_fqdn:
-				submitted_host_id = int(Crc32.calc(submitted_fqdn.encode("utf-8")))
+			    submitted_host_id = int(Crc32.calc(submitted_fqdn.encode("utf-8")))
                 fields['htcondor_host_id'] = submitted_host_id
                 rc, msg, current_group = config.db_query("csv2_groups", where="group_name='%s'" % active_user.active_group)
                 if rc == 0 and current_group:
