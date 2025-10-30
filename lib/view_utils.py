@@ -119,7 +119,7 @@ def cleanup_stale_service_catalog(config, cleanup_timeout = None):
             if rc != 0:
                 continue
             where_list = []
-            for entry in stale_entries:
+            for entry in stale_entries not in active_ids:
                 host_id = entry.get(col)
                 where_list.append("%s = %s" % (col, str(host_id)))
             if where_list:
