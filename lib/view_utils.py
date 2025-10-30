@@ -119,9 +119,10 @@ def cleanup_stale_service_catalog(config, cleanup_timeout = None):
             if rc != 0:
                 continue
             where_list = []
-            for entry in stale_entries not in active_ids:
+            for entry in stale_entries:
                 host_id = entry.get(col)
-                where_list.append("%s = %s" % (col, str(host_id)))
+                if host_id not in active_ids:
+                    where_list.append("%s = %s" % (col, str(host_id)))
             if where_list:
                 config.db_execute("delete from %s where %s" % (table, (' or '.join(where_list))))
     except Exception as exc:
