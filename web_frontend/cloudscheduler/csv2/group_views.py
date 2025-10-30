@@ -19,7 +19,8 @@ from cloudscheduler.lib.view_utils import \
     table_fields, \
     validate_by_filtered_table_entries, \
     validate_fields, \
-    get_file_checksum
+    get_file_checksum, \
+    cleanup_stale_service_catalog
 
 from collections import defaultdict
 import bcrypt
@@ -343,6 +344,13 @@ def defaults(request, active_user=None, response_code=0, message=None):
             submitted_fqdn = fields.get('htcondor_fqdn')
             if submitted_fqdn:
                 fields['htcondor_host_id'] = int(Crc32.calc(submitted_fqdn.encode("utf-8")))
+                rc, msg, current_group = config.db_query("csv2_groups", where="group_name='%s'" % active_user.active_group)
+                if rc == 0 and current_group:
+                    current_fqdn = current_group[0].get('htcondor_fqdn')
+
+                    if current_fqdn and current_fqdn != submitted_fqdn:
+                        cleanup_stale_service_catalog(config, 1)
+                        config.db_commit()
 
             if rc == 0 and ('vm_flavor' in fields) and (fields['vm_flavor']):
                 rc, msg = validate_by_filtered_table_entries(config, fields['vm_flavor'], 'vm_flavor', 'cloud_flavors', 'name', [['group_name', fields['group_name']]])
