@@ -11,7 +11,11 @@
 
 
 	<body>
-		<h2>Jobs for group=<i>{{ jobs_list.0.group_name }}</i>
+		<h2>    {% if form_inputs.group_name %}
+                        Jobs for group=<i>{{ jobs_list.0.group_name  }}</i>
+                {% else %}
+                        Jobs for group=<i>None</i>
+                {% endif %}
                 {% if jobs_list.0.user %}
                         , user=<i>{{ jobs_list.0.user }}</i>
                 {% else %}
