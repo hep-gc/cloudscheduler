@@ -18,7 +18,7 @@
   padding: 0px;
 }
 
-.vm-div {
+.job-div {
   position: relative;
   display: block;
 
@@ -34,7 +34,7 @@
   display: inline-block;
 }
 
-.vm-buttons {
+.job-buttons {
   display: inline-block;
 }
 
@@ -82,31 +82,31 @@
 
 }
 
-.vm-table {
+.job-table {
   position: absolute;
   left: 0px;
   display: block;
 }
 
-.vm-table table {
+.job-table table {
   overflow-x: scroll;
   padding-bottom: 1px;
   table-layout: fixed;
 }
 
-.vm-table th, td {
+.job-table th, td {
   border: 1px solid white;
   padding: 5px;
 }
 
 /*
-.vm-table thead {
+.job-table thead {
   display: block;
   margin-left:12px; 
   width: 1670px;
 }
 */
-.vm-table th {
+.job-table th {
   background-color: powderblue;
   color: black;
   cursor: pointer;
@@ -114,7 +114,7 @@
   text-align: center;
 }
 /*
-.vm-table tbody {
+.job-table tbody {
   direction: rtl;
   display: block;
   height: 94%;
@@ -122,21 +122,20 @@
   width: 1680px;
 }
 */
-.vm-table tr:nth-child(even) {
+.job-table tr:nth-child(even) {
   background-color: var(--alternate_row_background_color);
 }
 
-.vm-table td {
+.job-table td {
   text-align: center;
 }
 
-.vm-retired td {
+.job-retired td {
   background-color: orange !important;
   color: white !important;
 }
 
-.vm-terminated td {
+.job-terminated td {
   background-color: red !important;
   color: white !important;
 }
-
