@@ -112,10 +112,11 @@ def cleanup_stale_service_catalog(config, cleanup_timeout = None):
 
         for table, col in tables.items():
             if table == 'csv2_service_catalog':
-                where_clause = "UNIX_TIMESTAMP(last_updated) < %s and provider ='condor_poller.py'" % stale_time
+                where_clause = "last_updated < %s and provider ='condor_poller.py'" % stale_time
+                rc, msg, stale_entries = config.db_query(table, where=where_clause)
             else:
-                where_clause = "UNIX_TIMESTAMP(last_updated) < %s" % stale_time
-            rc, msg, stale_entries = config.db_query(table, where=where_clause)
+                rc, msg, stale_entries = config.db_query(table)
+
             if rc != 0:
                 continue
             where_list = []
