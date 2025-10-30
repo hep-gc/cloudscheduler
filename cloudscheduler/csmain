@@ -14,7 +14,7 @@ from multiprocessing import Process
 from collections import defaultdict
 
 from cloudscheduler.lib.db_config import Config
-from cloudscheduler.lib.view_utils import qt, retire_cloud_vms
+from cloudscheduler.lib.view_utils import qt, retire_cloud_vms, cleanup_stale_service_catalog
 from cloudscheduler.lib.log_tools import get_frame_info
 from cloudscheduler.lib.ec2_translations import get_ami_dictionary
 from cloudscheduler.lib.ProcessMonitor import ProcessMonitor, check_pid, terminate
@@ -124,51 +124,6 @@ def available_resources_initialize(config):
             ))
 
     return used_resources
-
-def cleanup_stale_service_catalog(config):
-    try:
-        rc, msg, groups = config.db_query('csv2_groups')
-        if rc != 0:
-            return
-
-        active_ids = set()
-        for group in groups:
-            if group.get('htcondor_host_id'):
-                active_ids.add(group['htcondor_host_id'])
-
-        try:
-            cleanup_timeout = int(config.categories['csmain'].get('service_cleanup_timeout', 300))
-        except ValueError:
-            cleanup_timeout = 300
-            logging.warning("invalid 'service_cleanup_timeout,' using default: %ss." %cleanup_timeout)
-
-        stale_time = int(time.time()) - cleanup_timeout
-
-        tables = {
-            'csv2_service_catalog': 'host_id',
-            'condor_jobs': 'htcondor_host_id',
-            'condor_machines': 'htcondor_host_id',
-            'condor_worker_gsi': 'htcondor_host_id'
-        }
-
-        for table, col in tables.items():
-            if table == 'csv2_service_catalog':
-                where_clause = "UNIX_TIMESTAMP(last_updated) < %s and 'condor_poller.py'" % stale_time
-            else:
-                where_clause = "UNIX_TIMESTAMP(last_updated) < %s" % stale_time
-            rc, msg, stale_entries = config.db_query(table, where=where_clause)
-            logging.info(stale_entries)
-            if rc != 0:
-                continue
-            where_list = []
-            for entry in stale_entries:
-                host_id = entry.get(col)
-                where_list.append("%s = %s" % (col, str(host_id)))
-            if where_list:
-                config.db_execute("delete from %s where %s" % (table, (' or '.join(where_list))))             
-                        
-    except Exception as exc:
-        logging.error("Service catalog cleanup failed:%s" %exc)
 
 def available_resources_query(used_resources, available_resource):
     def set_default(ctl, default_value):
