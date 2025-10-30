@@ -84,6 +84,51 @@ def cskv(key_values, opt='dict'):
 
 #-------------------------------------------------------------------------------
 
+def cleanup_stale_service_catalog(config, cleanup_timeout = None):
+    try:
+        rc, msg, groups = config.db_query('csv2_groups')
+        if rc != 0:
+            return
+
+        active_ids = set()
+        for group in groups:
+            if group.get('htcondor_host_id'):
+                active_ids.add(group['htcondor_host_id'])
+
+        if cleanup_timeout is None:
+            try:
+                cleanup_timeout = int(config.categories['csmain'].get('service_cleanup_timeout', 300))
+            except ValueError:
+                cleanup_timeout = 300
+
+        stale_time = int(time.time()) - cleanup_timeout
+
+        tables = {
+            'csv2_service_catalog': 'host_id',
+            'condor_jobs': 'htcondor_host_id',
+            'condor_machines': 'htcondor_host_id',
+            'condor_worker_gsi': 'htcondor_host_id'
+        }
+
+        for table, col in tables.items():
+            if table == 'csv2_service_catalog':
+                where_clause = "UNIX_TIMESTAMP(last_updated) < %s and 'condor_poller.py'" % stale_time
+            else:
+                where_clause = "UNIX_TIMESTAMP(last_updated) < %s" % stale_time
+            rc, msg, stale_entries = config.db_query(table, where=where_clause)
+            if rc != 0:
+                continue
+            where_list = []
+            for entry in stale_entries:
+                host_id = entry.get(col)
+                where_list.append("%s = %s" % (col, str(host_id)))
+            if where_list:
+                config.db_execute("delete from %s where %s" % (table, (' or '.join(where_list))))
+    except Exception as exc:
+        pass
+
+#-------------------------------------------------------------------------------
+
 def diff_lists(list1,list2, option=None):
     """
     if option equal 'and', return a list of items which are in both list1
