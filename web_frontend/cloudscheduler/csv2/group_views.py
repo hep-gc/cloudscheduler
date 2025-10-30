@@ -350,7 +350,7 @@ def defaults(request, active_user=None, response_code=0, message=None):
                     current_host_id = current_group[0].get('htcondor_host_id')
 
                     if current_host_id and current_host_id != submitted_host_id:
-                        cleanup_stale_service_catalog(config, 1)
+                        cleanup_stale_service_catalog(config, 0)
                         config.db_commit()
 
             if rc == 0 and ('vm_flavor' in fields) and (fields['vm_flavor']):
