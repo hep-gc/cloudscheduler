@@ -291,7 +291,8 @@ def jobs(request, args = None, response_code=0, message=None):
             'message': message,
             'is_superuser': active_user.is_superuser,
             'version': config.get_version(),
-            'fqdn' : fqdn
+            'fqdn' : fqdn,
+            'group_name' :request_group
         }
 
     return render(request, 'csv2/jobs.html', context)
