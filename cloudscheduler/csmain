@@ -621,7 +621,7 @@ def get_frozen_groups_with_active_pollers(config):
     return frozen_active_groups
 
 def get_groups_name(config, host_id):
-    where_clause = f"htcondor_host_id"
+    where_clause = f"htcondor_host_id ={host_id}"
     rc, msg, groups = config.db_query("csv2_groups", select=["group_name"],  where=where_clause)
     group_list =[]
 
