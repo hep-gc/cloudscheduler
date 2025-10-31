@@ -1457,7 +1457,6 @@ def validate_fields(config, request, fields, tables, active_user):
                             Fields[words[1]] = 0
                     else:
                         try:
-                            current_hostname = socket.gethostbyname(value)
                             if len(words) > 1:
                                 Fields[words[1]] = int(Crc32.calc(value.encode("utf-8")))
                         except Exception as exc:
