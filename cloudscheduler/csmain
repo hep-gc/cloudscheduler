@@ -667,7 +667,7 @@ def main():
     """
     multiprocessing.current_process().name = "csmain"
 
-    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', ['csmain', 'GSI'], pool_size=25)
+    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', ['csmain', 'GSI', 'condor_poller.py'], pool_size=25)
     if not config:
         print("Problem loading config file.")
     log = logging.getLogger(__name__)
