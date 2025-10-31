@@ -1032,7 +1032,7 @@ def cloud_list(request, active_user=None, response_code=0, message=None, cloud_a
         'app_credentials_secret': '',
         'auth_type': get_cloud_add_value(cloud_add_cache, 'auth_type', 'userpass'),
         'authurl': get_cloud_add_value(cloud_add_cache, 'authurl'),
-        'cacertificate': get_cloud_add_value(cloud_add_cache, 'cacertificate'),
+       
         'cloud_name': get_cloud_add_value(cloud_add_cache, 'cloud_name'),
         'cloud_type': get_cloud_add_value(cloud_add_cache, 'cloud_type', 'openstack'), 
         'enabled': get_cloud_add_value(cloud_add_cache, 'enabled', 0),
