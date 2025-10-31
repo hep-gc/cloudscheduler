@@ -567,7 +567,7 @@ def get_groups_with_inactive_pollers(config):
 
     if timeout_seconds > 600:
         logging.warning("'group_timeout_seconds' of %ss exceeds max of 600s, capped to 600s.", timeout_seconds)
-    timeout_seconds = 600
+        timeout_seconds = 600
     elif timeout_seconds < 1:
         timeout_seconds = 1
 
@@ -595,7 +595,7 @@ def get_frozen_groups_with_active_pollers(config):
 
     if timeout_seconds > 600:
         logging.warning("'group_timeout_seconds' of %ss exceeds max of 600s, capped to 600s.", timeout_seconds)
-    timeout_seconds = 600
+        timeout_seconds = 600
     elif timeout_seconds < 1:
         timeout_seconds = 1
 
