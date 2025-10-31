@@ -560,12 +560,6 @@ class Config:
 
         return target_dict
 
-
-#-------------------------------------------------------------------------------
-
-    def get_host_id_by_fqdn(self, fqdn):
-        return int(Crc32.calc(fqdn.encode("utf-8")))
-
 #-------------------------------------------------------------------------------
 
     def get_version(self):
