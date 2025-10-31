@@ -313,7 +313,7 @@
                             <tr class="extra-row" id="expand-jobs-{{group.group_name}}{% if jobs_by_target_alias_flag %}-{{group.target_alias}}{% endif %}">
                                 <td onclick="toggle_id('expand-jobs-{{group.group_name}}{% if jobs_by_target_alias_flag %}-{{group.target_alias}}{% endif %}')"></td>
                                 {% if jobs_by_target_alias_flag %}
-                                    <td></td>
+                                <td></td>
                                 {% endif %}
                                 <td></td>
                                 <td colspan="5">
@@ -709,7 +709,7 @@
 
 
                                         {% if cloud.cores_native_foreign == 0 %}
-					    <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} cores_native_foreign{{cloud.tag}}" class="zero-style float-center plottable">0</td>
+					                        <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} cores_native_foreign{{cloud.tag}}" class="zero-style float-center plottable">0</td>
                                         {% else %}
                                             <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} cores_native_foreign{{cloud.tag}}" class="{% if cloud.enabled == 0 %}zero-style{% else %}more-style{% endif %} float-center plottable">{{ cloud.cores_native_foreign }}</td>
                                         {% endif %}
