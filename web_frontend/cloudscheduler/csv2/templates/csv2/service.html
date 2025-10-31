@@ -23,7 +23,7 @@
                         <th onClick="sortTable(2)">State &#8597;</th>
                     </tr>
                     {% for setting in service_list %}
-		        <tr>
+		            <tr>
                         <td><input type="checkbox" name="service_alias" value="{{setting.alias}}" {% if setting.show_status == 1 %}checked{% endif %}></td>
                         <td>{{setting.alias}}</td>
                         <td>{{setting.state}}</td>
