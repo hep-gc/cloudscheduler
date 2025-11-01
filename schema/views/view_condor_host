@@ -32,5 +32,5 @@ left outer join (
     cv.hostname=substring_index(cm.machine, '.', 1) 
 where
     (retire>0 or terminate>0)
-    AND cg.freeze not in (1, 2)
+    AND ifnull(cg.freeze, 0) not in (1, 2)
 ;
