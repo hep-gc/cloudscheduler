@@ -314,8 +314,7 @@
                             </tr>
 
                             <!-- Jobs expand row to show cores-->
-
-				{% if group.freeze %}
+				               {% if group.freeze %}
                                     <tr class="extra-row warn-style" id="expand-jobs-{{group.group_name}}{% if jobs_by_target_alias_flag %}-{{group.target_alias}}{% endif %}">
                                 {% else %}
                                     <tr class="extra-row" id="expand-jobs-{{group.group_name}}{% if jobs_by_target_alias_flag %}-{{group.target_alias}}{% endif %}">
@@ -326,8 +325,9 @@
                                     {% elif group.freeze == 2 %}
                                         Manual Freeze
                                     {% endif %}
-				</td>
-				{% if jobs_by_target_alias_flag %}
+									
+				                </td>
+				                {% if jobs_by_target_alias_flag %}
                                     <td></td>
                                 {% endif %}
                                 <td></td>
