@@ -157,8 +157,12 @@
                     {% for group in job_status_list %}
                         {% if global_flag or not global_flag and group.group_name == active_group %}
                             <tr>
-                                <td class="group-name bold-style" onclick="toggle_id('expand-jobs-{{group.group_name}}{% if jobs_by_target_alias_flag %}-{{group.target_alias}}{% endif %}')"><div class="float-left">{{group.group_name}}</div><div id="sym-expand-jobs-{{group.group_name}}{% if jobs_by_target_alias_flag %}-{{group.target_alias}}{% endif %}" class="float-right">&#x25BE;</div></td>
-                                
+                               {% if group.freeze %}
+                                    <td class="group-name bold-style warn-style" onclick="toggle_id('expand-jobs-{{group.group_name}}{% if jobs_by_target_alias_flag %}-{{group.target_alias}}{% endif %}')"><div class="float-left">{{group.group_name}} &#x1F6AB;</div><div id="sym-expand-jobs-{{group.group_name}}{% if jobs_by_target_alias_flag %}-{{group.target_alias}}{% endif %}" class="float-right">&#x25BE;</div></td>
+                                {% else %}
+                                    <td class="group-name bold-style" onclick="toggle_id('expand-jobs-{{group.group_name}}{% if jobs_by_target_alias_flag %}-{{group.target_alias}}{% endif %}')"><div class="float-left">{{group.group_name}}</div><div id="sym-expand-jobs-{{group.group_name}}{% if jobs_by_target_alias_flag %}-{{group.target_alias}}{% endif %}" class="float-right">&#x25BE;</div></td>
+                                {% endif %}
+ 
                                 {% if jobs_by_target_alias_flag %}
                                     <td class="bold-style"><div class="float-left">{{group.target_alias}}</div></td>
 
@@ -310,9 +314,20 @@
                             </tr>
 
                             <!-- Jobs expand row to show cores-->
-                            <tr class="extra-row" id="expand-jobs-{{group.group_name}}{% if jobs_by_target_alias_flag %}-{{group.target_alias}}{% endif %}">
-                                <td onclick="toggle_id('expand-jobs-{{group.group_name}}{% if jobs_by_target_alias_flag %}-{{group.target_alias}}{% endif %}')"></td>
-                                {% if jobs_by_target_alias_flag %}
+
+				{% if group.freeze %}
+                                    <tr class="extra-row warn-style" id="expand-jobs-{{group.group_name}}{% if jobs_by_target_alias_flag %}-{{group.target_alias}}{% endif %}">
+                                {% else %}
+                                    <tr class="extra-row" id="expand-jobs-{{group.group_name}}{% if jobs_by_target_alias_flag %}-{{group.target_alias}}{% endif %}">
+                                {% endif %}
+                                <td onclick="toggle_id('expand-jobs-{{group.group_name}}{% if jobs_by_target_alias_flag %}-{{group.target_alias}}{% endif %}')" style="text-align: left">
+                                    {% if group.freeze == 1 %}
+                                        Automatic Freeze
+                                    {% elif group.freeze == 2 %}
+                                        Manual Freeze
+                                    {% endif %}
+				</td>
+				{% if jobs_by_target_alias_flag %}
                                     <td></td>
                                 {% endif %}
                                 <td></td>

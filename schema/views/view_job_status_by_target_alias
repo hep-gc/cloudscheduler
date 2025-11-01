@@ -26,6 +26,7 @@ select
         end
     end as plotable_state,
     ifnull(error_message,'') as error_message,
+    cg.freeze,
     case when htcondor_gsi_dn is null then
         null
     else

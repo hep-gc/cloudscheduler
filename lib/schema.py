@@ -606,7 +606,8 @@ schema = {
             "last_updated": {"type": "float"},
             "last_error": {"type": "float"},
             "error_message": {"type": "str", "len": "512", "nulls": "YES"},
-            "counter": {"type": "int"}
+            "counter": {"type": "int"},
+            "error_log": {"type": "str", "nulls": "YES"}
             }
         },
     "csv2_service_providers": {
@@ -1591,6 +1592,7 @@ schema = {
             "state": {"type": "str", "len": "4", "nulls": "YES"},
             "plotable_state": {"type": "str", "len": "1", "nulls": "YES"},
             "error_message": {"type": "str", "len": "512", "nulls": "NO"},
+            "freeze": {"type": "int"},
             "condor_days_left": {"type": "int"},
             "worker_days_left": {"type": "int"}
             }
@@ -1612,6 +1614,7 @@ schema = {
             "state": {"type": "str", "len": "4", "nulls": "YES"},
             "plotable_state": {"type": "str", "len": "1", "nulls": "YES"},
             "error_message": {"type": "str", "len": "512", "nulls": "NO"},
+            "freeze": {"type": "int"},
             "condor_days_left": {"type": "int"},
             "worker_days_left": {"type": "int"}
             }
