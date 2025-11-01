@@ -1927,8 +1927,7 @@ def status(request, group_name=None):
         # at this stage we need to insert the aliases with no jobs or they won't be shown on the status page
         # to achieve this we need to find the row representing the base group for each unrepresented alias
         # copy the base values and then zero out the jobs rows
-        for job in job_status_list:
-            print(f"DEBUG (global): group={job.get('group_name')} freeze={job.get('freeze')}")
+       
     else:    
          if active_user.flag_jobs_by_target_alias:
              table = "view_job_status_by_target_alias"
@@ -1936,13 +1935,6 @@ def status(request, group_name=None):
              table = "view_job_status"
          where_clause = "group_name='%s'" % active_user.active_group
          rc, msg, job_status_list = config.db_query(table, where=where_clause)
-         print(f"DEBUG raw query returned {len(job_status_list)} rows")
-         if len(job_status_list) > 0:
-             print(f"DEBUG first row keys: {job_status_list[0].keys()}")  
-             print(f"DEBUG first row freeze value: {job_status_list[0].get('freeze')}")  
-             print(f"DEBUG first row: {job_status_list[0]}") 
-         for job in job_status_list:
-             print(f"DEBUG (non-global): group={job.get('group_name')} freeze={job.get('freeze')}")
     if active_user.flag_jobs_by_target_alias:
         new_rows = []
         for alias_tuple in unique_aliases:
