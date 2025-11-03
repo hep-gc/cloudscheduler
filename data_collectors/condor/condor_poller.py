@@ -429,8 +429,8 @@ def process_group_cloud_commands(pair, condor_host, config):
                 logging.debug("Result: %s " % master_result)
             except Exception as exc:
                 logging.info("Failed to retire machine via condor bindings, attempting system command")
-                logging.debug("condor_drain -exit-on-completion %s" % machine_name)
-                cndr_drain = subprocess.run(["condor_drain", "-exit-on-completion", machine_name])
+                logging.debug("condor_drain -exit-on-completion %s" % machine["name"])
+                cndr_drain = subprocess.run(["condor_drain", "-exit-on-completion", machine_name["name"]])
                 logging.debug("Command executed")
                 logging.debug(cndr_drain.stdout)
                 logging.debug(cndr_drain.stderr)
@@ -485,8 +485,8 @@ def process_group_cloud_commands(pair, condor_host, config):
             logging.error("Failed to kill job, aborting cycle...")
             continue
 
-        logging.debug("Commands complete...")
-        return
+    logging.debug("Commands complete...")
+    return
 
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
