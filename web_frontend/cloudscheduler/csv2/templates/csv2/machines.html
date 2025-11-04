@@ -14,10 +14,10 @@
 
 <!-- {% if err_message is not None %}
         <p style="color:red;">{{err_message}}</p>
-    {% endif %}
-    {% if message is not None %}
+     {% endif %}
+     {% if message is not None %}
         <p style="color:green;">{{message}}</p>
-    {% endif %} -->
+     {% endif %} -->
 
     <!-- <div class="main-div"> -->
       <div class="filter-div">
@@ -30,7 +30,7 @@
             <th>Busy</th>
             <th>Idle</th>
             <th>Partionable</th>       
-	    <th>Dynamic</th>         
+	        <th>Dynamic</th>         
             <th colspan="4">
               <table>
                 <tr>Slot CPUs</tr>
@@ -47,7 +47,7 @@
             <!--<td>
               <input type="checkbox" id="all states" onchange="filterAll();"/>
             </td>-->
-	  <td>
+	        <td>
                 <input type="checkbox" id="Busy" onchange="filterTable('Busy', 7);" checked/>
             </td>
             <td>
@@ -76,23 +76,23 @@
         
         </div>	
         <form method="post">
-                {% csrf_token %}
-		{% if form_inputs.group %}
+            {% csrf_token %}
+		    {% if form_inputs.group %}
               	<input type="hidden" name="group" value="{{ machines_list.0.group_name }}" />
          	{% else %}
               	<input type="hidden" name="group" value="ALL" />
           	{% endif %}
-                {% if form_inputs.activity %}
-		<input type="hidden" name="activity" value="{{ machines_list.0.activity }}" />
-                {% endif %}
-		{% if form_inputs.cloud_name %}
+            {% if form_inputs.activity %}
+		        <input type="hidden" name="activity" value="{{ machines_list.0.activity }}" />
+            {% endif %}
+		    {% if form_inputs.cloud_name %}
     		<input type="hidden" name="cloud_name" value="{{ machines_list.0.cloud_name }}" />
     		{% endif %}
 
 		<button class="button retire-button" type="submit" formaction="/vm/machines/update/" name="machine_option" value="retire" onclick="return confirmRetire();">Retire Machines</button>
 		<button class="button kill-button" type="submit" formaction="/vm/machines/update/" name="machine_option"value="kill">Kill</button>
                 <div class="machine-div">
-		<div class=machine-table>
+		            <div class=machine-table>
                         <table id="machinesTable">
                                 <tr class="title-row">
                                         <th><input type="checkbox" id="select-all" onchange="selectAll();" /></th>
@@ -104,13 +104,13 @@
                                         <th onClick="sortTable(6)">State &#8597;</th>
                                         <th onClick="sortTable(7)">Activity &#8597;</th>
                                         <th onClick="sortTableNum(8)">Total Disk &#8597;</th>
-					<th onClick="sortTableNum(9)">Total Memory &#8597;</th>
+					                    <th onClick="sortTableNum(9)">Total Memory &#8597;</th>
                                         <th onClick="sortTable(10)">Load Average &#8597;</th>
                                         <th onClick="sortTable(11)">Slot Type &#8597;</th>
                                         <th onClick="sortTableNum(12)">Slot CPUs &#8597;</th>
                                         <th onClick="sortTableNum(13)">Total Slots &#8597;</th>
                                         <th onClick="sortTableNum(14)">Idle Time &#8597;</th>
-                                </tr>
+                                 </tr>
 
                                 {% for machine in machines_list %}
 				             		{% if machine.terminate > 0 %}
