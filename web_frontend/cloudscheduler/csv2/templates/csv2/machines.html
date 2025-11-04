@@ -1,4 +1,5 @@
 <html>
+
 	<head>
         {% load static %}
 
@@ -46,7 +47,7 @@
             <!--<td>
               <input type="checkbox" id="all states" onchange="filterAll();"/>
             </td>-->
-	        <td>
+	  <td>
                 <input type="checkbox" id="Busy" onchange="filterTable('Busy', 7);" checked/>
             </td>
             <td>
@@ -112,30 +113,29 @@
                                 </tr>
 
                                 {% for machine in machines_list %}
-				{% if machine.terminate > 0 %}
-				<tr class="machine-terminated" title="Machine queued for termination">
-				{% elif machine.retire > 0 %}
-                                <tr class="machine-retired" title="Machine queued to retire">
-                                        {% else %}
-                                <tr>
-                                        {% endif %}
+				             		{% if machine.terminate > 0 %}
+				              			<tr class="machine-terminated" title="Machine queued for termination">
+									{% elif machine.retire > 0 %}
+                                		<tr class="machine-retired" title="Machine queued to retire">
+                                    {% else %}
+                                		<tr>
+                                    {% endif %}
 
-                                        <td><input type="checkbox" name="machine_hosts.{{ forloop.counter }}"
-                                                        value={{machine.name}}></td>
-                                        <td>{{machine.name}}</td>
-                                        <td>{{machine.group_name}}</td>
-                                        <td>{{machine.cloud_name}}</td>
-                                        <td>{{machine.flavor}}</td>
-                                        <td>{{machine.job_id}}</td>
-                                        <td>{{machine.state}}</td>
-                                        <td>{{machine.activity}}</td>
-                                        <td>{{machine.total_disk}}</td>
-					<td>{{machine.Memory}}</td>
-                                        <td>{{machine.LoadAvg}}</td>
-                                        <td>{{machine.slot_type}}</td>
-                                        <td>{{machine.slot_cpus}}</td>
-                                        <td>{{machine.total_slots}}</td>
-                                        <td>{{machine.idle_time}}</td>
+                                    <td><input type="checkbox" name="machine_hosts.{{ forloop.counter }}" value={{machine.name}}></td>
+                                    <td>{{machine.name}}</td>
+                                    <td>{{machine.group_name}}</td>
+                                    <td>{{machine.cloud_name}}</td>
+                                    <td>{{machine.flavor}}</td>
+                                    <td>{{machine.job_id}}</td>
+                                    <td>{{machine.state}}</td>
+                                    <td>{{machine.activity}}</td>
+                                    <td>{{machine.total_disk}}</td>
+				                    <td>{{machine.Memory}}</td>
+                                    <td>{{machine.LoadAvg}}</td>
+                                    <td>{{machine.slot_type}}</td>
+                                    <td>{{machine.slot_cpus}}</td>
+                                    <td>{{machine.total_slots}}</td>
+                                    <td>{{machine.idle_time}}</td>
                                 </tr>
                                 {% endfor %}
                         </table>
@@ -373,51 +373,66 @@
                                 }
                         }
                 function confirmRetire() {
-				    var table = document.getElementById("machinesTable");
-				    var rows = table.getElementsByTagName("tr");
-				    var dynamicCheckbox = document.getElementById("Dynamic");
-				    var hasDynamicSelected = false;
-				    var hasPartitionableSelected = false;
-				    var dynamicCount = 0;
-				    var partitionableCount = 0;
-				    
-				    // Check if dynamic checkbox is enabled and if any dynamic slots are checked
-				    if (dynamicCheckbox && dynamicCheckbox.checked) {
-					for (var i = 1; i < rows.length; i++) {
-					    if (rows[i].style.display !== "none") {
-						var checkbox = rows[i].getElementsByTagName("input")[0];
-						var slotTypeCell = rows[i].getElementsByTagName("td")[11];
-						
-						if (checkbox && checkbox.checked && !checkbox.disabled) {
-						    var slotType = slotTypeCell ? (slotTypeCell.textContent || slotTypeCell.innerText) : "";
-						    
-						    if (slotType === "Dynamic") {
-							hasDynamicSelected = true;
-							dynamicCount++;
-						    } else if (slotType === "Partitionable") {
-							hasPartitionableSelected = true;
-							partitionableCount++;
-						    }
-						}
-					    }
-					}
-			    }
-		    
-		    if (hasDynamicSelected) {
-			var msg = "WARNING: You have selected " + dynamicCount + " Dynamic slot(s).\n\n";
-			msg += "Like Partitionable slots, this will retire the entire machine.\n";
-			
-			return confirm(msg);
-		    }
-		    
-		    if (partitionableCount === 0) {
-			alert("No slots selected. Please select at least one Partitionable slot to retire.");
-			return false;
-		    }
-		    
-		    return true;
-		}
+                    var table = document.getElementById("machinesTable");
+                    var rows = table.getElementsByTagName("tr");
+                    var dynamicCheckbox = document.getElementById("Dynamic");
+                    var hasDynamicSelected = false;
+                    var hasPartitionableSelected = false;
+                    var dynamicCount = 0;
+                    var partitionableCount = 0;
+                    var dynamicMachines = [];
 
-                </script>
-</body>
+                    if (dynamicCheckbox && dynamicCheckbox.checked) {
+                        for (var i = 1; i < rows.length; i++) {
+                            if (rows[i].style.display !== "none") {
+                                var checkbox = rows[i].getElementsByTagName("input")[0];
+                                var slotTypeCell = rows[i].getElementsByTagName("td")[11];
+
+                                if (checkbox && checkbox.checked && !checkbox.disabled) {
+                                    var slotType = slotTypeCell ? (slotTypeCell.textContent || slotTypeCell.innerText) : "";
+
+                                    if (slotType === "Dynamic") {
+                                        hasDynamicSelected = true;
+                                        dynamicCount++;
+                                        dynamicMachines.push({ checkbox: checkbox });
+                                    } else if (slotType === "Partitionable") {
+                                        hasPartitionableSelected = true;
+                                        partitionableCount++;
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    if (hasDynamicSelected) {
+                        var msg = "WARNING: You have selected " + dynamicCount + " Dynamic slot(s).\n\n";
+                        msg += "Click OK to proceed with Partitionable only.\nClick Cancel to go back.";
+
+                        var omitDynamic = confirm(msg);
+
+                        if (omitDynamic) {
+                            for (var j = 0; j < dynamicMachines.length; j++) {
+                                dynamicMachines[j].checkbox.checked = false;
+                            }
+
+                            if (partitionableCount === 0) {
+                                alert("Please select at least one Partitionable slot to retire.");
+                                for (var j = 0; j < dynamicMachines.length; j++) {
+                                    dynamicMachines[j].checkbox.checked = true;
+                                }
+                                return false;
+                            }
+                            return true;
+                        }
+                        return false;
+                    }
+                    if (partitionableCount === 0) {
+                        return false;
+                    }
+                    return true;
+                }
+
+            </script>
+					
+	</body>
 </html>
