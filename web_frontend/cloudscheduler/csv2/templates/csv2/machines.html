@@ -1,5 +1,4 @@
 <html>
-
 	<head>
         {% load static %}
 
@@ -47,7 +46,7 @@
             <!--<td>
               <input type="checkbox" id="all states" onchange="filterAll();"/>
             </td>-->
-	  <td>
+	        <td>
                 <input type="checkbox" id="Busy" onchange="filterTable('Busy', 7);" checked/>
             </td>
             <td>
@@ -374,35 +373,35 @@
                                 }
                         }
                 function confirmRetire() {
-		    var table = document.getElementById("machinesTable");
-		    var rows = table.getElementsByTagName("tr");
-		    var dynamicCheckbox = document.getElementById("Dynamic");
-		    var hasDynamicSelected = false;
-		    var hasPartitionableSelected = false;
-		    var dynamicCount = 0;
-		    var partitionableCount = 0;
-		    
-		    // Check if dynamic checkbox is enabled and if any dynamic slots are checked
-		    if (dynamicCheckbox && dynamicCheckbox.checked) {
-			for (var i = 1; i < rows.length; i++) {
-			    if (rows[i].style.display !== "none") {
-				var checkbox = rows[i].getElementsByTagName("input")[0];
-				var slotTypeCell = rows[i].getElementsByTagName("td")[11];
-				
-				if (checkbox && checkbox.checked && !checkbox.disabled) {
-				    var slotType = slotTypeCell ? (slotTypeCell.textContent || slotTypeCell.innerText) : "";
+				    var table = document.getElementById("machinesTable");
+				    var rows = table.getElementsByTagName("tr");
+				    var dynamicCheckbox = document.getElementById("Dynamic");
+				    var hasDynamicSelected = false;
+				    var hasPartitionableSelected = false;
+				    var dynamicCount = 0;
+				    var partitionableCount = 0;
 				    
-				    if (slotType === "Dynamic") {
-					hasDynamicSelected = true;
-					dynamicCount++;
-				    } else if (slotType === "Partitionable") {
-					hasPartitionableSelected = true;
-					partitionableCount++;
-				    }
-				}
+				    // Check if dynamic checkbox is enabled and if any dynamic slots are checked
+				    if (dynamicCheckbox && dynamicCheckbox.checked) {
+					for (var i = 1; i < rows.length; i++) {
+					    if (rows[i].style.display !== "none") {
+						var checkbox = rows[i].getElementsByTagName("input")[0];
+						var slotTypeCell = rows[i].getElementsByTagName("td")[11];
+						
+						if (checkbox && checkbox.checked && !checkbox.disabled) {
+						    var slotType = slotTypeCell ? (slotTypeCell.textContent || slotTypeCell.innerText) : "";
+						    
+						    if (slotType === "Dynamic") {
+							hasDynamicSelected = true;
+							dynamicCount++;
+						    } else if (slotType === "Partitionable") {
+							hasPartitionableSelected = true;
+							partitionableCount++;
+						    }
+						}
+					    }
+					}
 			    }
-			}
-		    }
 		    
 		    if (hasDynamicSelected) {
 			var msg = "WARNING: You have selected " + dynamicCount + " Dynamic slot(s).\n\n";
@@ -421,5 +420,4 @@
 
                 </script>
 </body>
-
 </html>
