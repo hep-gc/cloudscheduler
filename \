@@ -38,7 +38,7 @@ VM_KEYS = {
     'format': {
         'poller_status':                                                ['native', 'idle', 'starting', 'manual', 'error', 'unregistered', 'retiring', 'running', 'other'],
         'vm_option':                                                    ['kill', 'retain', 'retire', 'manctl', 'sysctl'],
-        'activity':                                                     ['Busy', 'Idle','Benchmarking'], 
+        'activity':                                                     ['Busy', 'Idle'], 
         'cloud_name':                                                   'ignore',
         'csrfmiddlewaretoken':                                          'ignore',
         'group':                                                        'ignore',
@@ -476,8 +476,7 @@ def machines_update(request):
                 if fields['machine_option'] == 'retire':
                     machine_dict = {'retire': 1, 'updater': get_frame_info()}
                 elif fields['machine_option'] == 'kill':
-                    machine_dict = {'terminate': 1, 'updater': get_frame_info(),'kill_id': machine['job_id']}
-                    vm_dict = {'terminate': 1, 'updater': get_frame_info()} 
+                    machine_dict = {'terminate': 1, 'updater': get_frame_info() + ':kill'}
                 else:
                     continue
 
@@ -485,12 +484,10 @@ def machines_update(request):
                 rc, msg = config.db_update(table, machine_dict, where=where_clause) 
                 if rc == 0:
                     count += 1
-                    if fields['machine_option'] == 'retire':
-                        where_clause = "hostname='%s'" % machine['machine'].split('.')[0]
-                        rc, msg = config.db_update("csv2_vms", machine_dict, where=where_clause)
-                    elif fields['machine_option'] == 'kill' and machine['slot_type'] =='Partitionable': 
-                        where_clause = "hostname='%s'" % machine['machine'].split('.')[0]
-                        rc, msg = config.db_update("csv2_vms", vm_dict, where=where_clause)
+                    where_clause = "hostname='%s'" % machine['machine'].split('.')[0]
+                    rc, msg = config.db_update("csv2_vms", machine_dict, where=where_clause)
+                    if rc == 0:
+                        count += 1
                 else:
                     config.db_close()
                     return render(request, 'csv2/machines.html', {'response_code': 1,'message': '%s machine update failed - %s' % (lno(MODID), msg),'active_user': active_user.username,'active_group': active_user.active_group,'user_groups': active_user.user_groups})

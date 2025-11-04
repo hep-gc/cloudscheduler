@@ -89,8 +89,8 @@
     		<input type="hidden" name="cloud_name" value="{{ machines_list.0.cloud_name }}" />
     		{% endif %}
 
-                <button class="button retire-button" type="submit" formaction="/vm/machines/update/" name="machine_option"value="retire">Retire Machines</button>
-		<button class="button kill-button" type="submit" formaction="/vm/machines/update/" name="machine_option"value="kill">Kill Job</button>
+		<button class="button retire-button" type="submit" formaction="/vm/machines/update/" name="machine_option" value="retire" onclick="return confirmRetire();">Retire Machines</button>
+		<button class="button kill-button" type="submit" formaction="/vm/machines/update/" name="machine_option"value="kill">Kill</button>
                 <div class="machine-div">
 		<div class=machine-table>
                         <table id="machinesTable">
@@ -104,7 +104,7 @@
                                         <th onClick="sortTable(6)">State &#8597;</th>
                                         <th onClick="sortTable(7)">Activity &#8597;</th>
                                         <th onClick="sortTableNum(8)">Total Disk &#8597;</th>
-										<th onClick="sortTableNum(9)">Total Memory &#8597;</th>
+					<th onClick="sortTableNum(9)">Total Memory &#8597;</th>
                                         <th onClick="sortTable(10)">Load Average &#8597;</th>
                                         <th onClick="sortTable(11)">Slot Type &#8597;</th>
                                         <th onClick="sortTableNum(12)">Slot CPUs &#8597;</th>
@@ -113,7 +113,7 @@
                                 </tr>
 
                                 {% for machine in machines_list %}
-                                {% if machine.terminate > 0 %}
+				{% if machine.terminate > 0 %}
 				<tr class="machine-terminated" title="Machine queued for termination">
 				{% elif machine.retire > 0 %}
                                 <tr class="machine-retired" title="Machine queued to retire">
@@ -373,7 +373,51 @@
                                         }
                                 }
                         }
-
+                function confirmRetire() {
+		    var table = document.getElementById("machinesTable");
+		    var rows = table.getElementsByTagName("tr");
+		    var dynamicCheckbox = document.getElementById("Dynamic");
+		    var hasDynamicSelected = false;
+		    var hasPartitionableSelected = false;
+		    var dynamicCount = 0;
+		    var partitionableCount = 0;
+		    
+		    // Check if dynamic checkbox is enabled and if any dynamic slots are checked
+		    if (dynamicCheckbox && dynamicCheckbox.checked) {
+			for (var i = 1; i < rows.length; i++) {
+			    if (rows[i].style.display !== "none") {
+				var checkbox = rows[i].getElementsByTagName("input")[0];
+				var slotTypeCell = rows[i].getElementsByTagName("td")[11];
+				
+				if (checkbox && checkbox.checked && !checkbox.disabled) {
+				    var slotType = slotTypeCell ? (slotTypeCell.textContent || slotTypeCell.innerText) : "";
+				    
+				    if (slotType === "Dynamic") {
+					hasDynamicSelected = true;
+					dynamicCount++;
+				    } else if (slotType === "Partitionable") {
+					hasPartitionableSelected = true;
+					partitionableCount++;
+				    }
+				}
+			    }
+			}
+		    }
+		    
+		    if (hasDynamicSelected) {
+			var msg = "WARNING: You have selected " + dynamicCount + " Dynamic slot(s).\n\n";
+			msg += "Like Partitionable slots, this will retire the entire machine.\n";
+			
+			return confirm(msg);
+		    }
+		    
+		    if (partitionableCount === 0) {
+			alert("No slots selected. Please select at least one Partitionable slot to retire.");
+			return false;
+		    }
+		    
+		    return true;
+		}
 
                 </script>
 </body>

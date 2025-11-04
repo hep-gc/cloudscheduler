@@ -630,7 +630,7 @@
                                     {% if cloud.slot_idle_core_count == 0 %}
                                         <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} slot_idle_core_count{{cloud.tag}}" class="zero-style float-center plottable">0</td>
                                     {% else %}
-                                        <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} slot_idle_core_count{{cloud.tag}}" class="{% if cloud.enabled == 0 %}zero-style{% else %}more-style{% endif %} float-center plottable"oncontextmenu="javascript:condor_machines_list('?{% if cloud.group_name %}{{cloud.group_name}}{% else %}ALL{% endif %}&cloud_name={{cloud.cloud_name}}&activity=Idle');return false;">{{cloud.slot_idle_core_count}}</td>
+                                        <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} slot_idle_core_count{{cloud.tag}}" class="{% if cloud.enabled == 0 %}zero-style{% else %}more-style{% endif %} float-center plottable"oncontextmenu="javascript:condor_machines_list('?{% if cloud.group_name %}{{cloud.group_name}}{% else %}ALL{% endif %}&cloud_name={{cloud.cloud_name}}&activity=Idle,Benchmarking');return false;">{{cloud.slot_idle_core_count}}</td>
                                     {% endif %}
 
 				    <td class="col-spacer">&nbsp;</td>

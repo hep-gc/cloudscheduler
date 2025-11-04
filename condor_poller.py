@@ -410,7 +410,6 @@ def process_group_cloud_commands(pair, condor_host, config):
         if retire_off:
             logging.critical("Retires disabled, normal operation would retire %s" % machine["name"])
             continue
-
         logging.info("Retiring machine %s " % (machine["name"]))
 
         try:
@@ -449,7 +448,7 @@ def process_group_cloud_commands(pair, condor_host, config):
 
     # JOB TERMINATION:
     # Query database for jobs to be terminated.
-    where_clause = "terminate >=1 and group_name='%s' and cloud_name='%s'" % (group_name, cloud_name)
+    where_clause = "terminate>=1 and group_name='%s' and cloud_name='%s'" % (group_name, cloud_name)
     logging.debug("Query where clause: %s" % where_clause)
 
     rc, msg, machines_kill_list = config.db_query(MACHINE, where=where_clause)
@@ -457,47 +456,48 @@ def process_group_cloud_commands(pair, condor_host, config):
     for machine in machines_kill_list:
         slot_type = machine.get("slot_type")
         logging.info("Killing job for %s, slot type: %s" % (machine["name"], slot_type))
+        success = False
         try:
             if slot_type == "Partitionable":
                 logging.info("Issuing DaemonsOff to partitionable slot %s" % machine["name"])
                 try:
+                    logging.info("AAAA")
                     condor_session = get_condor_session()
                     if machine["machine"] and len(machine["machine"]) > 0:
-                        logging.info(machine["machine"])
+                        logging.info("BBBB")
                         condor_classad = condor_session.query(master_type, 'Name=="%s"' % machine["machine"])[0]
                     else:
-                        logging.info(machine["hostname"])
+                        logging.info("CCC")
                         condor_classad = condor_session.query(master_type, 'regexp("%s", Name, "i")' % machine["hostname"])[0]
-                        logging.info(condor_session.query(master_type, 'regexp("%s", Name, "i")' % machine["hostname"])[0])
+
                     if condor_classad and condor_classad != -1:
-                        master_result = htcondor.send_command(condor_classad, htcondor.DaemonCommands.DaemonsOffFast)
-                        logging.info("Shutdown result: %s" % master_result)        
+                        logging.info("DDDD")
+                        master_result = htcondor.send_command(condor_classad, htcondor.DaemonCommands.DaemonsOff)
+                        logging.debug("Shutdown result: %s" % master_result)        
+                        success = True
                     else:
+                        logging.info("EEE")
                         logging.error("Unable to retrieve master classad for %s" % machine["machine"])
                 except Exception as exc:
-                    logging.error("Failed to send DaemonsOff to %s: %s" % (machine["name"],exc))     
+                    logging.error("Failed to send DaemonsOff to %s: %s" % (machine["name"],exc))
+
+                
             else:
-                if machine.get("job_id"):
-                    logging.info(machine["job_id"] == machine["kill_id"])
-                    if machine["job_id"] == machine["kill_id"]:
-                        logging.info("Removing individual job %s from dynamic slot %s" % (machine["job_id"], machine["name"]))
+                if machine.get("global_job_id"):
+                    logging.info("Removing individual job %s from dynamic slot %s" % (machine["global_job_id"], machine["name"]))
+                    try:
+                        schedd_session = htcondor.Schedd()
+                        result = schedd_session.act(htcondor.JobAction.Remove, [machine["global_job_id"]])
+                        logging.debug("Job removal result: %s" % result)
+                    except Exception as exc:
+                        logging.warning("Failed to remove job via schedd: %s, trying condor_rm" % exc)
                         try:
-                            schedd_session = htcondor.Schedd()
-                            master_result = schedd_session.act(htcondor.JobAction.Remove, [machine["job_id"]])
-                            logging.info("Job removal result: %s" % master_result)
+                            cndr_rm = subprocess.run(["condor_rm", machine["global_job_id"]], capture_output=True, text=True, timeout=30)
+                            logging.debug("condor_rm output: %s" % cndr_rm.stdout)
                         except Exception as exc:
-                            logging.warning("Failed to remove job via schedd: %s, trying condor_rm" % exc)
-                            try:
-                                cndr_rm = subprocess.run(["condor_rm", machine["job_id"]], capture_output=True, text=True, timeout=30)
-                                logging.info("condor_rm output: %s" % cndr_rm.stdout)
-                            except Exception as exc:
-                                logging.error("condor_rm command failed: %s" % exc)
-                    else:
-                        machine_dict = {'terminate': 0}
-                        where_clause = "name='%s'" % machine['name']
-                        rc, msg = config.db_update(MACHINE, machine_dict, where=where_clause)
+                            logging.error("condor_rm command failed: %s" % exc)
                 else:
-                    logging.warning("No job id for %s, cannot kill job" % machine["name"])
+                    logging.warning("No job id or global job id for %s, cannot kill job" % machine["name"])
 
         except Exception:
             continue
