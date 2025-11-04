@@ -718,7 +718,7 @@
 
                                         <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} ram_native_foreign{{cloud.tag}}" class="float-center plottable">
                                             {% with total=cloud.ram_quota %}
-                                                {% if total == 0 %}<td data-path="{{cloud.group_name}} {{cloud.cloud_name}} VMs{{cloud.tag}}" class="{% if cloud.enabled == 0 %}zero-style{% else %}more-style{% endif %} float-center plottable" oncontextmenu="javascript:native_list('?{% if cloud.group_name %}{{cloud.group_name}}{% else %}ALL{% endif %}&cloud_name={{cloud.cloud_name}}&poller_status=&hostname=');return false;">{{cloud.VMs}}</td>
+                                                {% if total == 0 %}
                                                     <meter class="ram-meter" min="0" low="0" optimum="0" high="0" max="1" value="0"></meter>
                                                 {% else %}
                                                     <meter class="ram-meter {% if cloud.enabled == 0 %}disabled-meter{% endif %}" min="0" low="0" optimum="{{total|mul:0.5}}" high="{{total|mul:0.9}}" max="{{total}}" value="{{ cloud.ram_native_foreign }}"></meter>
