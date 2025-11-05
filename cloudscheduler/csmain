@@ -14,7 +14,7 @@ from multiprocessing import Process
 from collections import defaultdict
 
 from cloudscheduler.lib.db_config import Config
-from cloudscheduler.lib.view_utils import qt, retire_cloud_vms
+from cloudscheduler.lib.view_utils import qt, retire_cloud_vms, cleanup_stale_service_catalog
 from cloudscheduler.lib.log_tools import get_frame_info
 from cloudscheduler.lib.ec2_translations import get_ami_dictionary
 from cloudscheduler.lib.ProcessMonitor import ProcessMonitor, check_pid, terminate
@@ -62,7 +62,7 @@ def get_master_classad(session, machine, hostname):
     MASTER_TYPE = htcondor.AdTypes.Master
     STARTD_TYPE = htcondor.AdTypes.Startd
     try:
-        if machine is not "":
+        if machine != "":
             condor_classad = session.query(MASTER_TYPE, 'Name=="%s"' % machine)[0]
         else:
             condor_classad = session.query(MASTER_TYPE, 'regexp("%s", Name, "i")' % hostname)[0]
@@ -593,6 +593,9 @@ def main():
         # test remove_orphaned_volumes
         remove_orphaned_volumes(config)
 
+        cleanup_stale_service_catalog(config)
+        config.db_commit()
+
         # Get the metadata for groups as json selects with mime_types pre-sorted
         # metadata format: { group : { cloud: [(yaml select, mime_type), (yaml select, mime_type) ] } }
         try:
@@ -754,7 +757,7 @@ def main():
                                     where_clause = "group_name='%s' and cloud_name='%s'" % (boot_flavor.get("group_name"), boot_flavor.get("cloud_name"))
                                     rc, msg, resource = config.db_query("view_starting_vms", where=where_clause)
                                 except:
-                                     resource = []
+                                    resource = []
 
                                 if len(resource) < 1:
                                     # no vms in starting state we're good to continue
@@ -1242,8 +1245,7 @@ def remove_orphaned_volumes(config):
                             rc, msg, clouds = config.db_query(CLOUD, where=where_clause)
                             cloud=clouds[0]
                             region = cloud["region"] if cloud.get("region") else None
-                            verify = cloud["cacertificate"] if cloud.get("cacertificate") else None
-                            sess = get_openstack_sess(cloud, verify)
+                            sess = get_openstack_sess(cloud)
                             if sess is False:
                                 logging.error("Failed to establish session with %s, skipping this cloud..." % cloud_name)
                                 continue

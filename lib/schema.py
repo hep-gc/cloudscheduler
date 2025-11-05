@@ -1287,8 +1287,7 @@ schema = {
             "metadata_enabled": {"type": "int"},
             "metadata_priority": {"type": "int"},
             "metadata_mime_type": {"type": "str", "len": "128", "nulls": "YES"},
-            "metadata_checksum": {"type": "str", "len": "32", "nulls": "YES"},
-            "metadata_updated": {"type": "int"}
+            "metadata_checksum": {"type": "str", "len": "32", "nulls": "YES"}
             }
         },
     "view_clouds_with_metadata_names": {

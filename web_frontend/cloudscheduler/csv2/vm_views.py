@@ -6,7 +6,6 @@ from django.views.decorators.csrf import requires_csrf_token
 from django.http import HttpResponse
 from django.core.exceptions import PermissionDenied
 
-
 from cloudscheduler.lib.view_utils import \
     kill_retire, \
     lno, \
@@ -78,6 +77,9 @@ LIST_KEYS = {
     'format': {
         'csrfmiddlewaretoken':                                          'ignore',
         'group':                                                        'ignore',
+        'group_name':                                                   'group',
+        'job_status':                                                   [0,1,2,4,5]
+
         },
     }
 
@@ -307,6 +309,103 @@ def error_list(request, response_code=0, message=None):
         }
     return render(request, 'csv2/error.html', context)
 
+=======
+@silkp(name="Job List")
+@requires_csrf_token
+def jobs(request, args = None, response_code=0, message=None):
+
+    # open the database.
+    config.db_open()
+
+    # Retrieve the active user, associated group list and optionally set the active group.
+    rc, msg, active_user = set_user_groups(config, request, super_user=False)
+    if rc != 0:
+        config.db_close()
+        return render(request, 'csv2/jobs.html', {'response_code': 1, 'message': '%s %s' % (lno(MODID), msg)})
+    
+    request_group = request.GET.get('group_name')
+    if request_group:
+        active_group = request_group
+    else:
+        active_group = active_user.active_group
+
+    # Validate input fields (should be none).
+    if args == None:
+        args = active_user.kwargs
+        if request.method == 'GET':
+            rc, msg, fields, tables, columns = validate_fields(config, request, [LIST_KEYS], [], active_user)
+            if rc != 0:
+                config.db_close()
+                return render(request, 'csv2/jobs.html', {'response_code': 1, 'message': '%s jobs list, %s' % (lno(MODID), msg)})
+
+  # Retrieve condor jobs information
+    if active_user.active_group and active_user.active_group == 'ALL':
+        rc, msg, jobs_list_raw = config.db_query("condor_jobs")
+    else:
+        group = active_user.active_group.lower()
+        where_clause = "group_name='%s'" % active_group
+        rc, msg, jobs_list_raw = config.db_query("condor_jobs", where=where_clause)
+    jobs_list = qt(jobs_list_raw, filter=qt_filter_get(['job_status'], args, aliases=ALIASES))
+    show_status = True
+    if args and ('job_status' not in args or args.get('job_status') == ''):
+        show_status = False
+
+    show_group= True
+    if args and ('group_name' not in args or args.get('group_name') == ''):
+        show_group = False
+   
+    try:
+        where_clause = "group_name = '%s'" % jobs_list[0]['group_name']
+        rc, msg, fqdn_list = config.db_query("csv2_groups", select = ['htcondor_fqdn'], where = where_clause)
+        if rc ==0:
+            fqdn = fqdn_list[0]['htcondor_fqdn']
+    except:
+        fqdn = None
+
+    for job in jobs_list:
+        if 'job_status' in job and job['job_status']:
+            if job['job_status'] == 0:
+                job['job_status'] = 'Unexpanded'
+            elif job['job_status'] == 1:
+                job['job_status'] = 'Idle'
+            elif job['job_status'] == 2:
+                job['job_status'] = 'Running'
+            elif job['job_status'] == 3:
+                job['job_status'] = 'Removed'
+            elif job['job_status'] == 4:
+                job['job_status'] = 'Completed'
+            elif job['job_status'] == 5:
+                job['job_status'] = 'Held'
+
+        if 'q_date' in job and job['q_date']:
+            job['q_date_formatted'] = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(job['q_date']))
+        else:
+            job['q_date_formatted'] = ''
+
+        if 'entered_current_status' in job and job['entered_current_status']:
+            job['entered_current_status_formatted'] = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(job['entered_current_status']))
+        else:
+            job['entered_current_status_formatted'] = ''
+
+    config.db_close()
+
+    # Render the page.
+    context = {
+            'active_user': active_user.username,
+            'active_group': active_user.active_group,
+            'user_groups': active_user.user_groups,
+            'form_inputs': {'group_name':show_group, 'job_status' :show_status},
+            'jobs_list': jobs_list,
+            'current_activity_filter': args.get('job_status', ''),
+            'response_code': response_code,
+            'message': message,
+            'is_superuser': active_user.is_superuser,
+            'version': config.get_version(),
+            'fqdn' : fqdn,
+            'group_name' :request_group
+        }
+
+    return render(request, 'csv2/jobs.html', context)
 
 #-------------------------------------------------------------------------------
 
