@@ -19,7 +19,8 @@ from cloudscheduler.lib.view_utils import \
     table_fields, \
     validate_by_filtered_table_entries, \
     validate_fields, \
-    get_file_checksum
+    get_file_checksum, \
+    cleanup_stale_service_catalog
 
 from collections import defaultdict
 import bcrypt
@@ -30,6 +31,8 @@ import re
 from cloudscheduler.lib.web_profiler import silk_profile as silkp
 
 from csv2.gen_public_page import generate_static_page
+
+from crccheck.crc import Crc32
 
 # lno: GV - error code identifier.
 MODID= 'GV'
@@ -337,6 +340,19 @@ def defaults(request, active_user=None, response_code=0, message=None):
                 return redirect("/group/defaults/")
                 #return render(request, 'csv2/group_defaults.html', {'response_code': 1, 'message': '%s default update/list %s' % (lno(MODID), msg), 'active_user': active_user.username, 'active_group': active_user.active_group, 'user_groups': active_user.user_groups})
 
+			#update host_id                 
+            submitted_fqdn = fields.get('htcondor_fqdn')
+            if submitted_fqdn:
+                submitted_host_id = int(Crc32.calc(submitted_fqdn.encode("utf-8")))
+                fields['htcondor_host_id'] = submitted_host_id
+                rc, msg, current_group = config.db_query("csv2_groups", where="group_name='%s'" % active_user.active_group)
+                if rc == 0 and current_group:
+                    current_host_id = current_group[0].get('htcondor_host_id')
+
+                    if current_host_id and current_host_id != submitted_host_id:
+                        cleanup_stale_service_catalog(config, 0)
+                        config.db_commit()
+
             if rc == 0 and ('vm_flavor' in fields) and (fields['vm_flavor']):
                 rc, msg = validate_by_filtered_table_entries(config, fields['vm_flavor'], 'vm_flavor', 'cloud_flavors', 'name', [['group_name', fields['group_name']]])
             
@@ -360,6 +376,7 @@ def defaults(request, active_user=None, response_code=0, message=None):
                     else:       visibility_changed = False
                 else: visibility_changed = False
                 
+
                 # Update the group defaults.
                 table = 'csv2_groups'
                 where_clause = "group_name='%s'" % active_user.active_group

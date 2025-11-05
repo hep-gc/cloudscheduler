@@ -14,7 +14,7 @@ from multiprocessing import Process
 from collections import defaultdict
 
 from cloudscheduler.lib.db_config import Config
-from cloudscheduler.lib.view_utils import qt, retire_cloud_vms
+from cloudscheduler.lib.view_utils import qt, retire_cloud_vms, cleanup_stale_service_catalog
 from cloudscheduler.lib.log_tools import get_frame_info
 from cloudscheduler.lib.ec2_translations import get_ami_dictionary
 from cloudscheduler.lib.ProcessMonitor import ProcessMonitor, check_pid, terminate
@@ -592,6 +592,9 @@ def main():
 
         # test remove_orphaned_volumes
         remove_orphaned_volumes(config)
+
+        cleanup_stale_service_catalog(config)
+        config.db_commit()
 
         # Get the metadata for groups as json selects with mime_types pre-sorted
         # metadata format: { group : { cloud: [(yaml select, mime_type), (yaml select, mime_type) ] } }
