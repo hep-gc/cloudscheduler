@@ -233,6 +233,11 @@ function toggle_refresh() {
     }
 }
 
+function close_and_refresh() {
+        setTimeout(function() {window.location.reload();}, 100);
+        set_refresh(refresh_interval * 1000);   
+}
+
 function native_list(url) {
     stop_refresh();
     document.getElementById('vms-iframe').src='/vm/list/'+url;
@@ -242,6 +247,19 @@ function native_list(url) {
 function foreign_list(url) {
     stop_refresh();
     document.getElementById('vms-iframe').src='/vm/foreign/'+url;
+    window.location.href = "#vms-overlay";
+}
+
+
+function settings_list() {
+    stop_refresh();
+    document.getElementById('settings-iframe').src='/vm/settings/';
+    window.location.href = "#settings-overlay";
+}
+
+function error_list(alias){
+    stop_refresh();
+    document.getElementById('vms-iframe').src='/vm/error/?alias=' + alias;
     window.location.href = "#vms-overlay";
 }
 

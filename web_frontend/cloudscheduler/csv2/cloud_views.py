@@ -1962,6 +1962,11 @@ def status(request, group_name=None):
     gsi_config = config.get_config_by_category('GSI')
 
     rc, msg, service_status = config.db_query("view_service_status")
+    temp_status =[]
+    for service in service_status:
+        if service.get('show_status') == 1:
+            temp_status.append(service)
+    service_status = temp_status
 
     # Determine the system load, RAM and disk usage
     system_list = {}
