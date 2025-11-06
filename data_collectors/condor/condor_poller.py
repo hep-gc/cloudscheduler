@@ -454,6 +454,7 @@ def process_group_cloud_commands(pair, condor_host, config):
 
     rc, msg, machines_kill_list = config.db_query(MACHINE, where=where_clause)
     logging.debug("Query returned %s actionable machines..." % len(machines_kill_list))
+    machine_reset =[]
     for machine in machines_kill_list:
         slot_type = machine.get("slot_type")
         logging.info("Killing job for %s, slot type: %s" % (machine["name"], slot_type))
@@ -495,12 +496,19 @@ def process_group_cloud_commands(pair, condor_host, config):
                     else:
                         machine_dict = {'terminate': 0}
                         where_clause = "name='%s'" % machine['name']
-                        rc, msg = config.db_update(MACHINE, machine_dict, where=where_clause)
+                        machine_reset.append(machine['name'])
                 else:
                     logging.warning("No job id for %s, cannot kill job" % machine["name"])
 
         except Exception:
             continue
+
+    if machine_reset:
+        machines_str = "','".join(machine_reset)
+        where_clause = "name in ('%s')" % machines_str
+        machine_dict = {'terminate': 0}
+        rc, msg = config.db_update(MACHINE, machine_dict, where=where_clause)
+
     logging.debug("Kill operations committed")
     logging.debug("Commands complete...")
     return
