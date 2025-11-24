@@ -80,7 +80,10 @@ class Config:
 
         self.local_hostname_fqdn = socket.getfqdn()
         self.local_host_id = int(Crc32.calc(self.local_hostname_fqdn.encode("utf-8")))
-        self.csv2_host_id = int(Crc32.calc(db_config['db_host'].encode("utf-8")))
+        if db_config['db_host'] == "localhost":
+            self.csv2_host_id = int(Crc32.calc(self.local_hostname_fqdn.encode("utf-8")))
+        else:
+            self.csv2_host_id = int(Crc32.calc(db_config['db_host'].encode("utf-8")))
 
 
         self.db_open()
