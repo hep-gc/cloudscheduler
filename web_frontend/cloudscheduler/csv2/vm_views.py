@@ -309,7 +309,6 @@ def error_list(request, response_code=0, message=None):
         }
     return render(request, 'csv2/error.html', context)
 
-=======
 @silkp(name="Job List")
 @requires_csrf_token
 def jobs(request, args = None, response_code=0, message=None):
