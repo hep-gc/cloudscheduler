@@ -19,7 +19,8 @@ select
             '2'
         end
     end as plotable_state,
-    error_message
+    error_message,
+    csp.visible AS show_status 
 from csv2_service_providers as csp
 left outer join csv2_service_catalog as csc on
     csp.provider=csc.provider

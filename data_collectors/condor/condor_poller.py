@@ -1474,7 +1474,7 @@ def alias_auditor():
                     logging.error(exc)
                     break
                 for classad in condor_resources:
-                    condor_alias = classad["target_alias"]
+                    condor_alias = classad.get("target_alias")
                     if condor_alias == "None":
                         condor_alias = None
                     try:
