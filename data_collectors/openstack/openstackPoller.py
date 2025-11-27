@@ -1350,7 +1350,6 @@ def security_group_poller():
 
 def vm_poller():
     multiprocessing.current_process().name = "VM Poller"
-
     config = Config('/etc/cloudscheduler/cloudscheduler.yaml', [os.path.basename(sys.argv[0]), "SQL", "ProcessMonitor"], pool_size=3, signals=True)
     PID_FILE = config.categories["ProcessMonitor"]["pid_path"] + os.path.basename(sys.argv[0])
     VM = "csv2_vms"

@@ -249,7 +249,7 @@ def check_view_idle_vms():
         watchdog_send_heartbeat(config, os.getpid(), config.local_host_id)
         log.debug("-------------------check_view_idle_vms-------------------")
         try:
-            where_clause = "retire=0 and terminate=0"
+            where_clause = "retire=0 and terminate=0 and freeze=0"
             rc, msg, results = config.db_query("view_idle_vms", where=where_clause)
             vmids = []
             for res in results:
@@ -556,6 +556,106 @@ def process_group_cloud_terminates(pair, config):
     logging.debug("%s : %s: Commands complete" % (group_name, cloud_name))
     return
 
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+def get_groups_with_inactive_pollers(config):
+    try:
+        timeout_seconds = int(config.categories['condor_poller.py'].get('group_timeout_seconds', 300))
+    except ValueError:
+        timeout_seconds = 300
+        logging.warning("invalid 'service_cleanup_timeout,' using default: %ss." %timeout_seconds)
+
+    if timeout_seconds > 600:
+        logging.warning("'group_timeout_seconds' of %ss exceeds max of 600s, capped to 600s.", timeout_seconds)
+        timeout_seconds = 600
+    elif timeout_seconds < 1:
+        timeout_seconds = 1
+
+    current_time = int(time.time())
+    cutoff_time = current_time - timeout_seconds
+    inactive_groups = []
+
+    where_clause = f"provider='condor_poller.py' and last_updated < {cutoff_time}"
+    rc, msg, stale_pollers = config.db_query("csv2_service_catalog", where=where_clause)
+
+    if rc == 0:
+        for poller in stale_pollers:
+            groups_for_host = get_groups_name(config, poller['host_id'])
+            inactive_groups.extend(groups_for_host)
+            minutes_stale = (current_time - poller['last_updated']) / 60
+            logging.warning("condor poller on host %s stale for %.2f minutes, skipping groups: %s", poller['host_id'], minutes_stale, groups_for_host)
+    return inactive_groups
+
+def get_frozen_groups_with_active_pollers(config):
+    try:
+        timeout_seconds = int(config.categories['condor_poller.py'].get('group_timeout_seconds', 300))
+    except ValueError:
+        timeout_seconds = 300
+        logging.warning("invalid 'service_cleanup_timeout,' using default: %ss." %timeout_seconds)
+
+    if timeout_seconds > 600:
+        logging.warning("'group_timeout_seconds' of %ss exceeds max of 600s, capped to 600s.", timeout_seconds)
+        timeout_seconds = 600
+    elif timeout_seconds < 1:
+        timeout_seconds = 1
+
+    current_time = int(time.time())
+    cutoff_time = current_time - timeout_seconds
+
+    active_groups = []
+
+    where_clause = f"provider='condor_poller.py' and last_updated > {cutoff_time}"
+    rc, msg, active_pollers = config.db_query("csv2_service_catalog", where=where_clause)
+    if rc == 0:
+        for poller in active_pollers:
+            groups_for_host = get_groups_name(config, poller['host_id'])
+            active_groups.extend(groups_for_host)
+    frozen_active_groups = []
+    for group in active_groups:
+        where_clause = f"group_name='{group}'"
+        rc, msg, group_records = config.db_query("csv2_groups", select=["freeze"], where=where_clause)
+     
+        if rc == 0 and group_records:
+            if group_records[0]['freeze'] == 1:
+                frozen_active_groups.append(group)
+    return frozen_active_groups
+
+def get_groups_name(config, host_id):
+    where_clause = f"htcondor_host_id ={host_id}"
+    rc, msg, groups = config.db_query("csv2_groups", select=["group_name"],  where=where_clause)
+    group_list =[]
+
+    if rc==0:
+        for g in groups:
+            group_list.append(g['group_name'])
+ 
+    return group_list
+
+def freeze_groups(config, inactive_groups):
+    for group in inactive_groups:
+        where_clause = f"group_name='{group}'"
+        rc, msg = config.db_update("csv2_groups", {'freeze': 1}, where=where_clause)
+        
+        if rc == 0:
+            logging.warning("freeze %s group due to inactive condor poller", group)
+        else:
+            logging.error("failed to freeze  %s group: %s", group, msg)
+    
+    config.db_commit()
+
+def unfreeze_groups(config, active_groups):
+    for group in active_groups:
+        where_clause = f"group_name='{group}'"
+        rc, msg = config.db_update("csv2_groups", {'freeze': 0}, where=where_clause)
+        
+        if rc == 0:
+            logging.warning("unfroze %s group due to active condor poller", group)
+        else:
+            logging.error("failed to unfreeze  %s group: %s", group, msg)
+
+    config.db_commit()
+
+
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Main functions
@@ -567,7 +667,7 @@ def main():
     """
     multiprocessing.current_process().name = "csmain"
 
-    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', ['csmain', 'GSI'], pool_size=25)
+    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', ['csmain', 'GSI', 'condor_poller.py'], pool_size=25)
     if not config:
         print("Problem loading config file.")
     log = logging.getLogger(__name__)
@@ -626,6 +726,14 @@ def main():
             }
         )
 
+        inactive_groups = get_groups_with_inactive_pollers(config)
+        if inactive_groups:
+            freeze_groups(config, inactive_groups)
+     
+        active_groups = get_frozen_groups_with_active_pollers(config)
+        if active_groups:
+            unfreeze_groups(config, active_groups)
+
         try:
             # Booting up new VMs to fill in any free space on available clouds related to idle queued jobs
             # Get the idle jobs for the current group
@@ -640,6 +748,7 @@ def main():
                     'list_duplicates': True,
                 }
             )
+
             list_groups_with_idle_jobs = sorted(idle_job_groups.keys())
             list_groups_with_idle_jobs_len = len(list_groups_with_idle_jobs)
             if list_groups_with_idle_jobs_len > 0:

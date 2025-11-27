@@ -14,7 +14,8 @@ select
     terminate,
     machine,
     updater,
-    retire_time
+    retire_time,
+    cg.freeze
 from csv2_vms as cv
 left outer join csv2_groups as cg on
     cv.group_name=cg.group_name
@@ -30,5 +31,6 @@ left outer join (
     cv.hostname=cm.machine or 
     cv.hostname=substring_index(cm.machine, '.', 1) 
 where
-    retire>0 or terminate>0
+    (retire>0 or terminate>0)
+    AND ifnull(cg.freeze, 0) not in (1, 2)
 ;

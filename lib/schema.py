@@ -1591,6 +1591,7 @@ schema = {
             "state": {"type": "str", "len": "4", "nulls": "YES"},
             "plotable_state": {"type": "str", "len": "1", "nulls": "YES"},
             "error_message": {"type": "str", "len": "512", "nulls": "NO"},
+            "freeze": {"type": "int"},
             "condor_days_left": {"type": "int"},
             "worker_days_left": {"type": "int"}
             }
@@ -1612,6 +1613,7 @@ schema = {
             "state": {"type": "str", "len": "4", "nulls": "YES"},
             "plotable_state": {"type": "str", "len": "1", "nulls": "YES"},
             "error_message": {"type": "str", "len": "512", "nulls": "NO"},
+            "freeze": {"type": "int"},
             "condor_days_left": {"type": "int"},
             "worker_days_left": {"type": "int"}
             }

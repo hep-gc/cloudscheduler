@@ -46,6 +46,7 @@ GROUP_KEYS = {
         'group_name':                                 'lowerdash',
         'csrfmiddlewaretoken':                        'ignore',
         'group':                                      'ignore',
+        'freeze':                                     'dboolean',
         'htcondor_fqdn':                              'fqdn,htcondor_host_id',
         'job_cpus':                                   'integer',
         'job_disk':                                   'integer',
@@ -87,6 +88,7 @@ UNPRIVILEGED_GROUP_KEYS = {
         'csrfmiddlewaretoken':                        'ignore',
         'group':                                      'ignore',
         'htcondor_fqdn':                              'fqdn,htcondor_host_id',
+        'freeze':                                     'dboolean',
         'job_cpus':                                   'integer',
         'job_disk':                                   'integer',
         'job_ram':                                    'integer',
@@ -101,7 +103,7 @@ METADATA_KEYS = {
     # Should the active_group be automatically inserted into the primary keys.
     'auto_active_group': True,
     'format': {
-        'enabled':                                    'dboolean',
+        'freeze':                                     'dboolean',
         'priority':                                   'integer',
         'metadata':                                   'metadata',
         'metadata_name':                              'lowerdash',
@@ -375,7 +377,9 @@ def defaults(request, active_user=None, response_code=0, message=None):
                     if rc == 0: visibility_changed = (group_data[0]["public_visibility"] != fields["public_visibility"])
                     else:       visibility_changed = False
                 else: visibility_changed = False
-                
+               
+                if 'freeze' in fields and fields['freeze'] == 1:
+                    fields['freeze'] = 2
 
                 # Update the group defaults.
                 table = 'csv2_groups'
@@ -1320,7 +1324,7 @@ def update(request):
             
             visibility_changed = False
 
-
+        
         # Update user groups.
         if request.META['HTTP_ACCEPT'] == 'application/json':
             if 'username' in fields:

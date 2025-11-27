@@ -437,12 +437,13 @@
                                         {% endif %}
                                         </tr>
                                     {% endif %}
-                                    
-                                    <tr class="highlight3"><td><label for="user_domain_name">User domain name</label></td>
-                                    <td><input type="text" name="user_domain_name" value="{{cloud.user_domain_name}}" /></td></tr>
+                        
+                                     <tr class="highlight3"><td><label for="user_domain_name">User domain name</label></td>
+                                     <td><input type="text" name="user_domain_name" value="{% if cloud.user_domain_name %}{{cloud.user_domain_name}}{% else %}{{cloud_add.user_domain_name}}{% endif %}" /></td></tr>
+                                     
+                                     <tr class="highlight3"><td><label for="project_domain_name">Project domain name</label></td>
+                                     <td><input type="text" name="project_domain_name" value="{% if cloud.project_domain_name %}{{cloud.project_domain_name}}{% else %}{{cloud_add.project_domain_name}}{% endif %}" /></td></tr>
 
-                                    <tr class="highlight3"><td><label for="project_domain_name">Project domain name</label></td>
-                                    <td><input type="text" name="project_domain_name" value="{{cloud.project_domain_name}}" /></td></tr>
 
                                 </table>
                             </td>
