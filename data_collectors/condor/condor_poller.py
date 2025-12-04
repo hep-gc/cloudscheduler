@@ -1527,14 +1527,14 @@ if __name__ == '__main__':
         htcondor_version = htcondor.version()
         match = re.search(r'\$CondorVersion:\s+(\d+)', htcondor_version)
         
-        if match:
-            major_version = int(match.group(1))
-            if major_version >= 9:
-                del process_ids['condor_gsi'] 
-                del process_ids['worker_gsi']
-                
-                watchdog_exemptions = []
-                is_deprecated=True
+#        if match:
+#            major_version = int(match.group(1))
+#            if major_version >= 9:
+#                del process_ids['condor_gsi'] 
+#                del process_ids['worker_gsi']
+#                
+#                watchdog_exemptions = []
+#                is_deprecated=True
     except:
         pass
 
