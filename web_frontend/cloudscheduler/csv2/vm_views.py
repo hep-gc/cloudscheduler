@@ -474,9 +474,9 @@ def machines_update(request):
 
             for machine in machines_list:
                 if fields['machine_option'] == 'retire':
-                    machine_dict = {'retire': 1, 'updater': get_frame_info()}
+                    machine_dict = {'retire': 1}
                 elif fields['machine_option'] == 'kill':
-                    machine_dict = {'terminate': 1, 'updater': get_frame_info(),'kill_id': machine['job_id']}
+                    machine_dict = {'terminate': 1}
                     vm_dict = {'terminate': 1, 'updater': get_frame_info()} 
                 else:
                     continue
