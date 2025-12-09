@@ -122,7 +122,6 @@ def main(gvar):
         '/cloud/list/', group=ut_id(gvar, 'ctg1'), expected_list='cloud_list', list_filter={'group_name': ut_id(gvar, 'ctg1'), 'cloud_name': ut_id(gvar, 'ctc3')},
         values={
             'authurl': gvar['cloud_credentials']['authurl'],
-            'cacertificate': None,
             'cascading_vm_flavor': None,
             'cascading_vm_image': None,
             'cascading_vm_keep_alive': 300,
