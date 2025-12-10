@@ -46,6 +46,7 @@ GROUP_KEYS = {
         'group_name':                                 'lowerdash',
         'csrfmiddlewaretoken':                        'ignore',
         'group':                                      'ignore',
+	    'enabled':                                    'dboolean',
         'freeze':                                     'dboolean',
         'htcondor_fqdn':                              'fqdn,htcondor_host_id',
         'job_cpus':                                   'integer',
