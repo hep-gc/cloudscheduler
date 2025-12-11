@@ -684,6 +684,28 @@ body.status-nav .main-div {
 /*                    page refresh styling                       */
 /*****************************************************************/
 
+
+.settings-button {
+  display: inline-block; 
+  margin-left:5px;
+  vertical-align: middle;
+  z-index: 1000;
+}
+.settings-symbol {
+  position: static;
+  color: grey;
+  text-decoration: none;  
+  font-size: 120% !important;
+  z-index: 1000;
+}
+.settings-button a {
+  color: black;
+}
+
+/*****************************************************************/
+/*                    page refresh styling                       */
+/*****************************************************************/
+
 .refresh-button {
   position: fixed;
   right:10;

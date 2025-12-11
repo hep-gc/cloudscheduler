@@ -437,20 +437,13 @@
                                         {% endif %}
                                         </tr>
                                     {% endif %}
-                                    
+                        
+                                     <tr class="highlight3"><td><label for="user_domain_name">User domain name</label></td>
+                                     <td><input type="text" name="user_domain_name" value="{% if cloud.user_domain_name %}{{cloud.user_domain_name}}{% else %}{{cloud_add.user_domain_name}}{% endif %}" /></td></tr>
+                                     
+                                     <tr class="highlight3"><td><label for="project_domain_name">Project domain name</label></td>
+                                     <td><input type="text" name="project_domain_name" value="{% if cloud.project_domain_name %}{{cloud.project_domain_name}}{% else %}{{cloud_add.project_domain_name}}{% endif %}" /></td></tr>
 
-                                    <tr class="highlight3"><td><label for="cacertificate">CA certificate</label></td>
-                                    {% if cloud.cacertificate == None or cloud.cacertificate == "None" %}
-                                        <td><input type="text" name="cacertificate" value="" /></td></tr>
-                                    {% else %}
-                                        <td><input type="text" name="cacertificate" value="{{cloud.cacertificate}}" /></td></tr>
-                                    {% endif %}
-
-                                    <tr class="highlight3"><td><label for="user_domain_name">User domain name</label></td>
-                                    <td><input type="text" name="user_domain_name" value="{{cloud.user_domain_name}}" /></td></tr>
-                                    
-                                    <tr class="highlight3"><td><label for="project_domain_name">Project domain name</label></td>
-                                    <td><input type="text" name="project_domain_name" value="{{cloud.project_domain_name}}" /></td></tr>
 
                                 </table>
                             </td>
@@ -879,12 +872,6 @@
                             <tr class="highlight3" id="add-app_creds_secret-row" {% if cloud_add.auth_type == 'userpass' %}style="visibility:collapse"{% endif %}><td><label for="app_credentials_secret">Application Credential Secret</label></td>
                             <td><input type="password" name="app_credentials_secret" id="add-app_creds_secret" value="" /></td></tr>
                             
-                            <tr class="highlight3"><td><label for="cacertificate">CA certificate</label></td>
-                            {% if cloud.cacertificate == None or cloud.cacertificate == "None" %}
-                                <td><input type="text" name="cacertificate" value="{{cloud_add.cacertificate}}" /></td></tr>
-                            {% else %}
-                                <td><input type="text" name="cacertificate" value="{{cloud.cacertificate}}" /></td></tr>
-                            {% endif %}
 
                             <tr class="highlight3"><td><label for="user_domain_name">User domain name</label></td>
                             <td><input type="text" name="user_domain_name" value="{% if cloud.user_domain_name %}{{cloud.user_domain_name}}{% else %}{{cloud_add.user_domain_name}}{% endif %}" /></td></tr>

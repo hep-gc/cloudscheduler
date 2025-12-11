@@ -126,7 +126,6 @@ from (
     username,
     password,
 #   keyname,
-    cacertificate,
     cc.region,
     cc.cloud_type,
     cc.ec2_owner_id,
