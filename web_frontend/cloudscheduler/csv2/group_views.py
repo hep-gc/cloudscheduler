@@ -104,6 +104,7 @@ METADATA_KEYS = {
     # Should the active_group be automatically inserted into the primary keys.
     'auto_active_group': True,
     'format': {
+		'enabled':                                    'dboolean',
         'freeze':                                     'dboolean',
         'priority':                                   'integer',
         'metadata':                                   'metadata',
