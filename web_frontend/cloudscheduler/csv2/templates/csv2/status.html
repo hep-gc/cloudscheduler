@@ -630,27 +630,27 @@
                                     <td class="col-spacer">&nbsp;</td>
 
                                     {% if cloud.slot_count == 0 %}
-                                        <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} slot_count{{cloud.tag}}" class="zero-style float-center plottable">0</td>
-                                    {% else %}
-                                        <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} slot_count{{cloud.tag}}" class="{% if cloud.enabled == 0 %}zero-style{% else %}more-style{% endif %} float-center plottable">{{cloud.slot_count}}</td>
-                                    {% endif %}
+				                	<td data-path="{{cloud.group_name}} {{cloud.cloud_name}} slot_count{{cloud.tag}}" class="zero-style float-center plottable">0</td>
+				                    {% else %}
+				                 	<td data-path="{{cloud.group_name}} {{cloud.cloud_name}} slot_count{{cloud.tag}}" class="{% if cloud.enabled == 0 %}zero-style{% else %}more-style{% endif %} float-center plottable"oncontextmenu="javascript:condor_machines_list('?{% if cloud.group_name %}{{cloud.group_name}}{% else %}ALL{% endif %}&cloud_name={{cloud.cloud_name}}');return false;">{{cloud.slot_count}}</td>
+				                    {% endif %}
 
 
                                     {% if cloud.slot_core_count == 0 %}
                                         <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} slot_core_count{{cloud.tag}}" class="zero-style float-center plottable">0</td>
                                     {% else %}
-                                        <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} slot_core_count{{cloud.tag}}" class="{% if cloud.enabled == 0 %}zero-style{% else %}more-style{% endif %} float-center plottable">{{cloud.slot_core_count}}</td>
+                                        <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} slot_count{{cloud.tag}}" class="{% if cloud.enabled == 0 %}zero-style{% else %}more-style{% endif %} float-center plottable"oncontextmenu="javascript:condor_machines_list('?{% if cloud.group_name %}{{cloud.group_name}}{% else %}ALL{% endif %}&cloud_name={{cloud.cloud_name}}&activity=Busy');return false;">{{cloud.slot_core_count}}</td>
                                     {% endif %}
 
                                     {% if cloud.slot_idle_core_count == 0 %}
                                         <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} slot_idle_core_count{{cloud.tag}}" class="zero-style float-center plottable">0</td>
                                     {% else %}
-                                        <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} slot_idle_core_count{{cloud.tag}}" class="{% if cloud.enabled == 0 %}zero-style{% else %}more-style{% endif %} float-center plottable">{{cloud.slot_idle_core_count}}</td>
+                                        <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} slot_idle_core_count{{cloud.tag}}" class="{% if cloud.enabled == 0 %}zero-style{% else %}more-style{% endif %} float-center plottable"oncontextmenu="javascript:condor_machines_list('?{% if cloud.group_name %}{{cloud.group_name}}{% else %}ALL{% endif %}&cloud_name={{cloud.cloud_name}}&activity=Idle,Benchmarking');return false;">{{cloud.slot_idle_core_count}}</td>
                                     {% endif %}
 
-                                    <td class="col-spacer">&nbsp;</td>
+				                    <td class="col-spacer">&nbsp;</td>
 
-                                    {% if cloud.cores_native == 0 %}
+				                    {% if cloud.cores_native == 0 %}
                                         <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} cores_native{{cloud.tag}}" class="zero-style float-center plottable">0</td>
                                     {% elif cloud.cores_ctl == -1 %}
                                         <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} cores_native{{cloud.tag}}" class="{% if cloud.enabled == 0 %}zero-style{% else %}sysctl-style{% endif %} float-center plottable">{{cloud.cores_native}}</td>
@@ -674,7 +674,7 @@
                                         {% endif %}
                                     {% endif %}
                                     
-                                    <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} ram_native{{cloud.tag}}" class="float-center plottable">
+				                    <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} ram_native{{cloud.tag}}" class="float-center plottable">
                                         {% with total=cloud.ram_quota %}
                                             {% if total == 0 %}
                                                 <meter class="ram-meter" min="0" low="0" optimum="0" high="0" max="1" value="0"></meter>
@@ -988,7 +988,7 @@
                                         {% endwith %}
                                     </td>
 
-                                    {% if foreign_global_vms_flag %}
+				                    {% if foreign_global_vms_flag %}
                                         <td class="col-spacer">&nbsp;</td>
 
                                         <td><!--Foreign VMs-->

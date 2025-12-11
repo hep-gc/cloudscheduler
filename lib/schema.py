@@ -322,7 +322,8 @@ schema = {
             "retire": {"type": "int"},
             "terminate": {"type": "int"},
             "LoadAvg": {"type": "float"},
-            "Memory": {"type": "int"}
+            "Memory": {"type": "int"},
+            "kill_id": {"type": "str", "len": "128", "nulls": "YES"}
             }
         },
     "condor_worker_gsi": {
@@ -1386,7 +1387,8 @@ schema = {
             "terminate": {"type": "int"},
             "machine": {"type": "str", "len": "256", "nulls": "YES"},
             "updater": {"type": "str", "len": "128", "nulls": "YES"},
-            "retire_time": {"type": "int"}
+            "retire_time": {"type": "int"},
+            "freeze": {"type": "int"}
             }
         },
     "view_condor_jobs_group_defaults_applied": {

@@ -1,0 +1,438 @@
+<html>
+
+	<head>
+        {% load static %}
+
+        <link rel="stylesheet" type="text/css" href="{% static "csv2/common.css" %}?{{version}}">
+        <link rel="stylesheet" type="text/css" href="{% static "csv2/machines.css" %}?{{version}}">
+
+	<!-- <meta http-equiv="refresh" content="30"> -->
+	</head>
+
+
+	<body>	
+
+<!-- {% if err_message is not None %}
+        <p style="color:red;">{{err_message}}</p>
+     {% endif %}
+     {% if message is not None %}
+        <p style="color:green;">{{message}}</p>
+     {% endif %} -->
+
+    <!-- <div class="main-div"> -->
+      <div class="filter-div">
+
+      <!--<input type="text" id="myInput" onkeyup="filterTable()" placeholder="Search for names..">-->
+
+
+        <table>
+          <tr class="title-row">
+            <th>Busy</th>
+            <th>Idle</th>
+            <th>Partionable</th>       
+	        <th>Dynamic</th>         
+            <th colspan="4">
+              <table>
+                <tr>Slot CPUs</tr>
+                <tr>
+                  <th>1</th>
+                  <th>2</th>
+                  <th>4</th>
+                  <th>8</th>
+                </tr>
+              </table>
+            </th>
+          </tr>
+          <tr class="box-row">
+            <!--<td>
+              <input type="checkbox" id="all states" onchange="filterAll();"/>
+            </td>-->
+	        <td>
+                <input type="checkbox" id="Busy" onchange="filterTable('Busy', 7);" checked/>
+            </td>
+            <td>
+                <input type="checkbox" id="Idle" onchange="filterTable('Idle', 7);" checked/>
+            </td>
+            <td>
+                <input type="checkbox" id="Partitionable" onchange="filterTable('Partitionable', 11);" checked/>
+            </td>
+            <td>
+                <input type="checkbox" id="Dynamic" onchange="filterTable('Dynamic', 11);" checked/>
+            </td>
+            <td>
+                <input type="checkbox" id="1" onchange="filterTable('1', 12);" checked/>
+            </td>
+            <td>
+                <input type="checkbox" id="2" onchange="filterTable('2', 12);" checked/>
+            </td>
+            <td>
+                <input type="checkbox" id="4" onchange="filterTable('4', 12);" checked/>
+            </td>
+            <td>
+                <input type="checkbox" id="8" onchange="filterTable('8', 12);" checked/>
+            </td>
+          </tr>
+        </table>
+        
+        </div>	
+        <form method="post">
+            {% csrf_token %}
+		    {% if form_inputs.group %}
+              	<input type="hidden" name="group" value="{{ machines_list.0.group_name }}" />
+         	{% else %}
+              	<input type="hidden" name="group" value="ALL" />
+          	{% endif %}
+            {% if form_inputs.activity %}
+		        <input type="hidden" name="activity" value="{{ machines_list.0.activity }}" />
+            {% endif %}
+		    {% if form_inputs.cloud_name %}
+    		<input type="hidden" name="cloud_name" value="{{ machines_list.0.cloud_name }}" />
+    		{% endif %}
+
+		<button class="button retire-button" type="submit" formaction="/vm/machines/update/" name="machine_option" value="retire" onclick="return confirmRetire();">Retire Machines</button>
+		<button class="button kill-button" type="submit" formaction="/vm/machines/update/" name="machine_option"value="kill">Kill</button>
+                <div class="machine-div">
+		            <div class=machine-table>
+                        <table id="machinesTable">
+                                <tr class="title-row">
+                                        <th><input type="checkbox" id="select-all" onchange="selectAll();" /></th>
+                                        <th onClick="sortTable(1)">Name &#8597;</th>
+                                        <th onClick="sortTable(2)">Group &#8597;</th>
+                                        <th onClick="sortTable(3)">Cloud &#8597;</th>
+                                        <th onClick="sortTable(4)">Flavor &#8597;</th>
+                                        <th onClick="sortTable(5)">Job ID &#8597;</th>
+                                        <th onClick="sortTable(6)">State &#8597;</th>
+                                        <th onClick="sortTable(7)">Activity &#8597;</th>
+                                        <th onClick="sortTableNum(8)">Total Disk &#8597;</th>
+					                    <th onClick="sortTableNum(9)">Total Memory &#8597;</th>
+                                        <th onClick="sortTable(10)">Load Average &#8597;</th>
+                                        <th onClick="sortTable(11)">Slot Type &#8597;</th>
+                                        <th onClick="sortTableNum(12)">Slot CPUs &#8597;</th>
+                                        <th onClick="sortTableNum(13)">Total Slots &#8597;</th>
+                                        <th onClick="sortTableNum(14)">Idle Time &#8597;</th>
+                                 </tr>
+
+                                {% for machine in machines_list %}
+				             		{% if machine.terminate > 0 %}
+				              			<tr class="machine-terminated" title="Machine queued for termination">
+									{% elif machine.retire > 0 %}
+                                		<tr class="machine-retired" title="Machine queued to retire">
+                                    {% else %}
+                                		<tr>
+                                    {% endif %}
+
+                                    <td><input type="checkbox" name="machine_hosts.{{ forloop.counter }}" value={{machine.name}}></td>
+                                    <td>{{machine.name}}</td>
+                                    <td>{{machine.group_name}}</td>
+                                    <td>{{machine.cloud_name}}</td>
+                                    <td>{{machine.flavor}}</td>
+                                    <td>{{machine.job_id}}</td>
+                                    <td>{{machine.state}}</td>
+                                    <td>{{machine.activity}}</td>
+                                    <td>{{machine.total_disk}}</td>
+				                    <td>{{machine.Memory}}</td>
+                                    <td>{{machine.LoadAvg}}</td>
+                                    <td>{{machine.slot_type}}</td>
+                                    <td>{{machine.slot_cpus}}</td>
+                                    <td>{{machine.total_slots}}</td>
+                                    <td>{{machine.idle_time}}</td>
+                                </tr>
+                                {% endfor %}
+                        </table>
+                </div>
+                <div class="footer">
+                        {% if response_code == 1 %}
+                        <tr>
+                          <td><b>Error: {{ message }}</b></td>
+                        </tr>
+                        {% elif message is not None %}
+                        <tr>
+                          <td>{{ message }}</td>
+                        </tr>
+                        {% endif %}
+                </div>
+                <script type="text/javascript">
+
+			
+
+			 function filterTable(filter, col) {
+
+			// Declare variables 
+			var checkBox, table, tr, td, i, txtValue;
+
+			checkBox = document.getElementById(filter);
+
+			table = document.getElementById("machinesTable");
+			tr = table.getElementsByTagName("tr");
+
+
+			// Loop through all table rows and find those that match the search query
+			if (checkBox.checked == true){
+			  for (i = 0; i < tr.length; i++) {
+			    td = tr[i].getElementsByTagName("td")[col];
+			    if (td) {
+			      txtValue = td.textContent || td.innerText;
+			      if (txtValue == filter) {
+				tr[i].style.display = "table-row";
+				tr[i].getElementsByTagName("input")[0].disabled = false;
+
+			      }
+			    }
+			  }
+			}
+			else{
+			  for (i = 0; i < tr.length; i++) {
+			    td = tr[i].getElementsByTagName("td")[col];
+			    if (td) {
+			      txtValue = td.textContent || td.innerText;
+			      if (txtValue == filter) {
+				tr[i].style.display = "none";
+				tr[i].getElementsByTagName("input")[0].disabled = true;
+
+			      } 
+			    }
+			  }
+			}
+		      }
+                        // For the "select all checkbox"
+                        function selectAll() {
+
+                                // Declare variables 
+                                var table, tr, td, i, j, check;
+
+                                table = document.getElementById("machinesTable");
+                                tr = table.getElementsByTagName("tr");
+
+                                box = document.getElementById("select-all");
+
+                                // Loop through all table rows and find those that match the search query
+                                if (box.checked) {
+                                        for (i = 0; i < tr.length; i++) {
+                                                check = tr[i].getElementsByTagName("input");
+                                                if (check[0].disabled == false) {
+
+                                                        for (j = 0; j < check.length; j++) {
+                                                                if (check[j].type == 'checkbox') {
+                                                                        check[j].checked = true;
+                                                                }
+                                                        }
+                                                }
+                                        }
+                                }
+                                else {
+                                        for (i = 0; i < tr.length; i++) {
+                                                check = tr[i].getElementsByTagName("input");
+                                                if (check[0].disabled == false) {
+
+                                                        for (j = 0; j < check.length; j++) {
+                                                                if (check[j].type == 'checkbox') {
+                                                                        check[j].checked = false;
+                                                                }
+                                                        }
+                                                }
+                                        }
+                                }
+                        }
+
+
+                        // For the "select all checkbox"
+                        function checkToggle(event) {
+                                var changed = event.target,
+                                        selectAll = document.getElementById('select-all'),
+                                        checkboxes = Array.prototype.slice.call(
+                                                this.querySelectorAll('input[type=checkbox]')
+                                        ).filter(function (check) {
+                                                return check !== selectAll;
+                                        });
+                                if (changed === selectAll) {
+                                        checkboxes.forEach(function (check) {
+                                                check.checked = selectAll.checked;
+                                        });
+                                } else {
+                                        var allChecked = checkboxes.filter(function (check) {
+                                                return check.checked;
+                                        }).length === checkboxes.length;
+                                        selectAll.checked = allChecked;
+                                }
+                        }
+
+                        var tableElement = document.querySelector('table');
+                        tableElement.addEventListener('change', checkToggle);
+
+                        // To sort by clicking the headers
+                        function sortTable(n) {
+                                var table, rows, switching, i, x, y, shouldSwitch, dir, switchcount = 0;
+                                table = document.getElementById("machinesTable");
+                                switching = true;
+                                // Set the sorting direction to ascending:
+                                dir = "asc";
+                                /* Make a loop that will continue until
+                                no switching has been done: */
+                                while (switching) {
+                                        // Start by saying: no switching is done:
+                                        switching = false;
+                                        rows = table.getElementsByTagName("TR");
+                                        /* Loop through all table rows (except the
+                                        first, which contains table headers): */
+                                        for (i = 1; i < (rows.length - 1); i++) {
+                                                // Start by saying there should be no switching:
+                                                shouldSwitch = false;
+                                                /* Get the two elements you want to compare,
+                                                one from current row and one from the next: */
+                                                x = rows[i].getElementsByTagName("TD")[n];
+                                                y = rows[i + 1].getElementsByTagName("TD")[n];
+                                                /* Check if the two rows should switch place,
+                                                based on the direction, asc or desc: */
+                                                if (dir == "asc") {
+                                                        if (x.innerHTML.toLowerCase() > y.innerHTML.toLowerCase()) {
+                                                                // If so, mark as a switch and break the loop:
+                                                                shouldSwitch = true;
+                                                                break;
+                                                        }
+                                                } else if (dir == "desc") {
+                                                        if (x.innerHTML.toLowerCase() < y.innerHTML.toLowerCase()) {
+                                                                // If so, mark as a switch and break the loop:
+                                                                shouldSwitch = true;
+                                                                break;
+                                                        }
+                                                }
+                                        }
+                                        if (shouldSwitch) {
+                                                /* If a switch has been marked, make the switch
+                                                and mark that a switch has been done: */
+                                                rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
+                                                switching = true;
+                                                // Each time a switch is done, increase this count by 1:
+                                                switchcount++;
+                                        } else {
+                                                /* If no switching has been done AND the direction is "asc",
+                                                set the direction to "desc" and run the while loop again. */
+                                                if (switchcount == 0 && dir == "asc") {
+                                                        dir = "desc";
+                                                        switching = true;
+                                                }
+                                        }
+                                }
+                        }
+
+                        // To sort by clicking the headers
+                        function sortTableNum(n) {
+                                var table, rows, switching, i, x, y, shouldSwitch, dir, switchcount = 0;
+                                table = document.getElementById("machinesTable");
+                                switching = true;
+                                // Set the sorting direction to ascending:
+                                dir = "asc";
+                                /* Make a loop that will continue until
+                                no switching has been done: */
+                                while (switching) {
+                                        // Start by saying: no switching is done:
+                                        switching = false;
+                                        rows = table.getElementsByTagName("TR");
+                                        /* Loop through all table rows (except the
+                                        first, which contains table headers): */
+                                        for (i = 1; i < (rows.length - 1); i++) {
+                                                // Start by saying there should be no switching:
+                                                shouldSwitch = false;
+                                                /* Get the two elements you want to compare,
+                                                one from current row and one from the next: */
+                                                x = rows[i].getElementsByTagName("TD")[n];
+                                                y = rows[i + 1].getElementsByTagName("TD")[n];
+                                                x_num = parseInt(x.innerHTML, 10)
+                                                y_num = parseInt(y.innerHTML, 10)
+                                                /* Check if the two rows should switch place,
+                                                based on the direction, asc or desc: */
+                                                if (dir == "asc") {
+                                                        if (x_num > y_num) {
+                                                                // If so, mark as a switch and break the loop:
+                                                                shouldSwitch = true;
+                                                                break;
+                                                        }
+                                                } else if (dir == "desc") {
+                                                        if (x_num < y_num) {
+                                                                // If so, mark as a switch and break the loop:
+                                                                shouldSwitch = true;
+                                                                break;
+                                                        }
+                                                }
+                                        }
+                                        if (shouldSwitch) {
+                                                /* If a switch has been marked, make the switch
+                                                and mark that a switch has been done: */
+                                                rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
+                                                switching = true;
+                                                // Each time a switch is done, increase this count by 1:
+                                                switchcount++;
+                                        } else {
+                                                /* If no switching has been done AND the direction is "asc",
+                                                set the direction to "desc" and run the while loop again. */
+                                                if (switchcount == 0 && dir == "asc") {
+                                                        dir = "desc";
+                                                        switching = true;
+                                                }
+                                        }
+                                }
+                        }
+                function confirmRetire() {
+                    var table = document.getElementById("machinesTable");
+                    var rows = table.getElementsByTagName("tr");
+                    var dynamicCheckbox = document.getElementById("Dynamic");
+                    var hasDynamicSelected = false;
+                    var hasPartitionableSelected = false;
+                    var dynamicCount = 0;
+                    var partitionableCount = 0;
+                    var dynamicMachines = [];
+
+                    if (dynamicCheckbox && dynamicCheckbox.checked) {
+                        for (var i = 1; i < rows.length; i++) {
+                            if (rows[i].style.display !== "none") {
+                                var checkbox = rows[i].getElementsByTagName("input")[0];
+                                var slotTypeCell = rows[i].getElementsByTagName("td")[11];
+
+                                if (checkbox && checkbox.checked && !checkbox.disabled) {
+                                    var slotType = slotTypeCell ? (slotTypeCell.textContent || slotTypeCell.innerText) : "";
+
+                                    if (slotType === "Dynamic") {
+                                        hasDynamicSelected = true;
+                                        dynamicCount++;
+                                        dynamicMachines.push({ checkbox: checkbox });
+                                    } else if (slotType === "Partitionable") {
+                                        hasPartitionableSelected = true;
+                                        partitionableCount++;
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    if (hasDynamicSelected) {
+                        var msg = "WARNING: You have selected " + dynamicCount + " Dynamic slot(s).\n\n";
+                        msg += "Click OK to proceed with Partitionable only.\nClick Cancel to go back.";
+
+                        var omitDynamic = confirm(msg);
+
+                        if (omitDynamic) {
+                            for (var j = 0; j < dynamicMachines.length; j++) {
+                                dynamicMachines[j].checkbox.checked = false;
+                            }
+
+                            if (partitionableCount === 0) {
+                                alert("Please select at least one Partitionable slot to retire.");
+                                for (var j = 0; j < dynamicMachines.length; j++) {
+                                    dynamicMachines[j].checkbox.checked = true;
+                                }
+                                return false;
+                            }
+                            return true;
+                        }
+                        return false;
+                    }
+                    if (partitionableCount === 0) {
+                        return false;
+                    }
+                    return true;
+                }
+
+            </script>
+					
+	</body>
+</html>

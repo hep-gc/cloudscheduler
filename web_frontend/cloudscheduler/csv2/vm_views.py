@@ -37,7 +37,7 @@ VM_KEYS = {
     'format': {
         'poller_status':                                                ['native', 'idle', 'starting', 'manual', 'error', 'unregistered', 'retiring', 'running', 'other'],
         'vm_option':                                                    ['kill', 'retain', 'retire', 'manctl', 'sysctl'],
-
+        'activity':                                                     ['Busy', 'Idle','Benchmarking'],
         'cloud_name':                                                   'ignore',
         'csrfmiddlewaretoken':                                          'ignore',
         'group':                                                        'ignore',
@@ -64,7 +64,7 @@ SETTING_KEYS = {
     'not_empty': [
         'service_alias',
         ],
-}
+    }
 
 SETTING_MANDATORY_KEYS = {
     'mandatory': [
@@ -83,12 +83,33 @@ LIST_KEYS = {
         },
     }
 
+MACHINE_KEYS = {
+    'auto_active_group': True,
+    'format': {
+        'machine_option':                                               ['native','retire', 'kill'],
+        'activity':                                                     ['Busy', 'Idle'], 
+        'cloud_name':                                                   'ignore',
+        'csrfmiddlewaretoken':                                          'ignore',
+        'group':                                                        'ignore',
+        'machine_hosts':                                                'lowerdashlist',
+    },
+    'array_fields':                                                     ['machine_hosts'],
+    'not_empty':                                                        ['machine_hosts'],
+    }
+
 MANDATORY_KEYS = {
     'mandatory': [
         'vm_hosts',
         'vm_option',
         ]
-        }
+    }
+
+MACHINE_MANDATORY_KEYS = {
+    'mandatory': [
+        'machine_hosts',
+        'machine_option',
+        ]
+    }
 #-------------------------------------------------------------------------------
 
 @silkp(name="Foreign List")
@@ -149,6 +170,68 @@ def foreign(request):
         }
 
     return render(request, 'csv2/foreign.html', context)
+
+#-------------------------------------------------------------------------------
+
+@silkp(name="Machine List")
+@requires_csrf_token
+def machines(request, args = None, response_code=0, message=None):
+
+    # open the database.
+    config.db_open()
+
+    # Retrieve the active user, associated group list and optionally set the active group.
+    rc, msg, active_user = set_user_groups(config, request, super_user=False)
+    if rc != 0:
+        config.db_close()
+        return render(request, 'csv2/machines.html', {'response_code': 1, 'message': '%s %s' % (lno(MODID), msg)})
+
+    # Validate input fields (should be none).
+    if args == None:
+        args = active_user.kwargs
+        if request.method == 'GET':
+            rc, msg, fields, tables, columns = validate_fields(config, request, [LIST_KEYS], [], active_user)
+                if rc != 0:
+                config.db_close()
+                return render(request, 'csv2/machines.html', {'response_code': 1, 'message': '%s machines list, %s' % (lno(MODID), msg)})
+
+    # Retrieve condor machines information
+    if active_user.active_group and active_user.active_group == 'ALL':
+        rc, msg, machines_list_raw = config.db_query("condor_machines")
+    else:
+        where_clause = "group_name='%s'" % active_user.active_group
+        rc, msg, machines_list_raw = config.db_query("condor_machines", where=where_clause)
+    machines_list = qt(machines_list_raw, filter=qt_filter_get(['cloud_name', 'activity'], args, aliases=ALIASES))
+
+    show_activity = True
+    if args and ('activity' not in args or args.get('activity') == ''):
+        show_activity = False
+
+    show_group= True
+    if args and ('group_name' not in args or args.get('group_name') == ''):
+        show_group = False
+
+    show_cloud = True
+    if args and ('cloud_name' not in args or args.get('cloud_name') == ''):
+        show_cloud = False
+        
+    
+    config.db_close()
+
+    # Render the page.
+    context = {
+            'active_user': active_user.username,
+            'active_group': active_user.active_group,
+            'user_groups': active_user.user_groups,
+            'form_inputs': {'activity': show_activity, 'group':show_group, 'cloud_name':show_cloud},
+            'machines_list': machines_list,
+            'response_code': response_code,
+            'message': message,
+            'is_superuser': active_user.is_superuser,
+            'version': config.get_version()
+        }
+
+    return render(request, 'csv2/machines.html', context)
 
 #-------------------------------------------------------------------------------
 
@@ -535,6 +618,107 @@ def update(request):
         config.db_close()
         return render(request, 'csv2/vms.html', {'response_code': 1, 'message': '%s vm update, invalid method "%s" specified.' % (lno(MODID), request.method), 'active_user': active_user.username, 'active_group': active_user.active_group, 'user_groups': active_user.user_groups})
 #       return vm_list(request, selector, response_code=1, message='%s vm update, invalid method "%s" specified.' % (lno(MODID), request.method))
+
+#-------------------------------------------------------------------------------
+
+@silkp(name="Machines Update")
+@requires_csrf_token
+def machines_update(request):
+    """
+    Update machines.
+    """
+
+    # open the database.
+    config.db_open()
+
+    # Retrieve the active user, associated group list and optionally set the active group.
+    rc, msg, active_user = set_user_groups(config, request, super_user=False)
+    if rc != 0:
+        config.db_close()
+        return render(request, 'csv2/machines.html', {'response_code': 1, 'message': '%s %s' % (lno(MODID), msg), 'active_user': active_user.username, 'active_group': active_user.active_group, 'user_groups': active_user.user_groups})
+
+    if request.method == 'POST':
+        # Validate input fields.
+        rc, msg, fields, tables, columns = validate_fields(
+        config, request, [MACHINE_KEYS, MACHINE_MANDATORY_KEYS], ['condor_machines,n'], active_user)
+        if rc != 0:
+            config.db_close()
+            return render(request, 'csv2/machines.html', {'response_code': 1, 'message': '%s machine update %s' % (lno(MODID), msg), 'active_user': active_user.username, 'active_group': active_user.active_group, 'user_groups': active_user.user_groups})
+
+        table = 'condor_machines'
+        count =0
+        if fields['machine_option'] == 'retire':
+            verb = 'retired'
+        elif fields['machine_option'] == 'kill':
+            verb = 'killed'
+        else:
+            config.db_close()
+            return render(request, 'csv2/machines.html', {'response_code': 1, 'message': '%s machines update failed - invalid option "%s".' % (lno(MODID), fields['machine_option']),'active_user': active_user.username,'active_group': active_user.active_group,'user_groups': active_user.user_group})
+
+        if verb: 
+            if fields['machine_hosts'] == 'all':
+                if active_user.active_group and active_user.active_group == 'ALL':
+                    rc, msg, machines_list_raw = config.db_query("condor_machines")
+                else:
+                    where_clause = "group_name='%s'" % active_user.active_group
+                    rc, msg, machines_list_raw = config.db_query("condor_machines", where=where_clause)
+                machines_list = qt(machines_list_raw, filter=qt_filter_get(['cloud_name', 'activity'], fields, aliases=ALIASES))
+            else:
+                machines_list = []
+                if isinstance(fields['machine_hosts'], list):
+                    selected_machines = fields['machine_hosts']
+                else:
+                    selected_machines = [fields['machine_hosts']]
+
+                # Retrieve machine information.
+                for machine_name in selected_machines:
+                    where_clause = "name='%s'" % machine_name
+                    if active_user.active_group and active_user.active_group != 'ALL':
+                        where_clause += " and group_name='%s'" % active_user.active_group
+
+                    rc, msg, machine_rows = config.db_query("condor_machines", where=where_clause)
+                    if machine_rows:
+                        machines_list.extend(machine_rows)
+
+            for machine in machines_list:
+                if fields['machine_option'] == 'retire':
+                    machine_dict = {'retire': 1}
+                elif fields['machine_option'] == 'kill':
+                    machine_dict = {'terminate': 1}
+                    vm_dict = {'terminate': 1, 'updater': get_frame_info()} 
+                else:
+                    continue
+
+                where_clause = "name='%s'" % machine['name']
+                rc, msg = config.db_update(table, machine_dict, where=where_clause) 
+                if rc == 0:
+                    count += 1
+                    if fields['machine_option'] == 'retire':
+                        where_clause = "hostname='%s'" % machine['machine'].split('.')[0]
+                        rc, msg = config.db_update("csv2_vms", machine_dict, where=where_clause)
+                    elif fields['machine_option'] == 'kill' and machine['slot_type'] =='Partitionable': 
+                        where_clause = "hostname='%s'" % machine['machine'].split('.')[0]
+                        rc, msg = config.db_update("csv2_vms", vm_dict, where=where_clause)
+                else:
+                    config.db_close()
+                    return render(request, 'csv2/machines.html', {'response_code': 1,'message': '%s machine update failed - %s' % (lno(MODID), msg),'active_user': active_user.username,'active_group': active_user.active_group,'user_groups': active_user.user_groups})
+
+            args = {}
+            if 'cloud_name' in fields:
+                args['cloud_name'] = fields['cloud_name']
+            if 'activity' in fields:
+                args['activity'] = fields['activity']
+            elif request.POST.get('activity'):
+                args['activity'] = request.POST.get('activity')
+
+            config.db_close()
+            return machines(request, args, response_code=0, message='Machines updated, machines: %s.' % count)
+
+    ###Bad request.
+    else:
+        config.db_close()
+        return render(request, 'csv2/machines.html', {'response_code': 1,'message': '%s machines update, invalid method "%s" specified.' % (lno(MODID), request.method),'active_user': active_user.username, 'active_group': active_user.active_group,'user_groups': active_user.user_groups})	
+
 
 #-------------------------------------------------------------------------------
 

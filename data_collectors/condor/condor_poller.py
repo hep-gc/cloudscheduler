@@ -268,6 +268,7 @@ def process_group_cloud_commands(pair, condor_host, config):
 
     VM = "csv2_vms"
     CLOUD = "csv2_clouds"
+    MACHINE = "condor_machines"
 
     retire_off = config.categories["condor_poller.py"]["retire_off"]
     retire_interval = config.categories["condor_poller.py"]["retire_interval"]
@@ -359,7 +360,7 @@ def process_group_cloud_commands(pair, condor_host, config):
             if not condor_classad or condor_classad == -1:
                 #there was a condor error
                 logging.error("Unable to retrieve condor classad, skipping %s ..." % resource["machine"])
-
+                continue
             try:
                 logging.info("Issuing DaemonsOffPeaceful to %s" % condor_classad)
                 master_result = htcondor.send_command(condor_classad, htcondor.DaemonCommands.DaemonsOffPeaceful)
@@ -398,6 +399,46 @@ def process_group_cloud_commands(pair, condor_host, config):
             logging.debug(condor_host)
             continue
 
+    # MACHINE RETIREMENT:
+    # Query database for machines to be retired.
+    where_clause = "retire>=1 and group_name='%s' and cloud_name='%s'" % (group_name, cloud_name)
+    logging.debug("Query where clause: %s" % where_clause)
+    
+    rc, msg, machines_list = config.db_query(MACHINE, where=where_clause)
+    logging.debug("Query returned %s actionable machines..." % len(machines_list))
+    for machine in machines_list:
+        if retire_off:
+            logging.critical("Retires disabled, normal operation would retire %s" % machine["name"])
+            continue
+
+        logging.info("Retiring machine %s " % (machine["name"]))
+
+        try:
+            condor_session = get_condor_session()
+            if machine["machine"] and len(machine["machine"]) > 0:
+                condor_classad = condor_session.query(master_type, 'Name=="%s"' % machine["machine"])[0]
+            else:
+                condor_classad = condor_session.query(master_type, 'regexp("%s", Name, "i")' % machine["hostname"])[0]
+
+            if not condor_classad or condor_classad == -1:
+                #there was a condor error
+                logging.error("Unable to retrieve condor classad, skipping %s ..." % machine["machine"])
+                continue
+            try:
+                logging.info("Issuing DaemonsOffPeaceful to machine %s" % machine["name"])
+                master_result = htcondor.send_command(condor_classad, htcondor.DaemonCommands.DaemonsOffPeaceful)
+                logging.debug("Result: %s " % master_result)
+            except Exception as exc:
+                logging.info("Failed to retire machine via condor bindings, attempting system command")
+                logging.debug("condor_drain -exit-on-completion %s" % machine["name"])
+                cndr_drain = subprocess.run(["condor_drain", "-exit-on-completion", machine["name"]])
+                logging.debug("Command executed")
+                logging.debug(cndr_drain.stdout)
+                logging.debug(cndr_drain.stderr)
+        except Exception as exc:
+            logging.error("Failed to retire machine %s: %s" % (machine["name"], exc))
+            continue
+
     try:
         config.db_commit()
     except Exception as exc:
@@ -406,9 +447,71 @@ def process_group_cloud_commands(pair, condor_host, config):
         config.db_rollback()
         return
 
+    # JOB TERMINATION:
+    # Query database for jobs to be terminated.
+    where_clause = "terminate >=1 and group_name='%s' and cloud_name='%s'" % (group_name, cloud_name)
+    logging.debug("Query where clause: %s" % where_clause)
+
+    rc, msg, machines_kill_list = config.db_query(MACHINE, where=where_clause)
+    logging.debug("Query returned %s actionable machines..." % len(machines_kill_list))
+    machine_reset =[]
+    for machine in machines_kill_list:
+        slot_type = machine.get("slot_type")
+        logging.info("Killing job for %s, slot type: %s" % (machine["name"], slot_type))
+        try:
+            if slot_type == "Partitionable":
+                logging.info("Issuing DaemonsOff to partitionable slot %s" % machine["name"])
+                try:
+                    condor_session = get_condor_session()
+                    if machine["machine"] and len(machine["machine"]) > 0:
+                        logging.info(machine["machine"])
+                        condor_classad = condor_session.query(master_type, 'Name=="%s"' % machine["machine"])[0]
+                    else:
+                        logging.info(machine["hostname"])
+                        condor_classad = condor_session.query(master_type, 'regexp("%s", Name, "i")' % machine["hostname"])[0]
+                        logging.info(condor_session.query(master_type, 'regexp("%s", Name, "i")' % machine["hostname"])[0])
+                    if condor_classad and condor_classad != -1:
+                        master_result = htcondor.send_command(condor_classad, htcondor.DaemonCommands.DaemonsOffFast)
+                        logging.info("Shutdown result: %s" % master_result)        
+                    else:
+                        logging.error("Unable to retrieve master classad for %s" % machine["machine"])
+                except Exception as exc:
+                    logging.error("Failed to send DaemonsOff to %s: %s" % (machine["name"],exc))     
+            else:
+                if machine.get("job_id"):
+                    logging.info(machine["job_id"] == machine["kill_id"])
+                    if machine["job_id"] == machine["kill_id"]:
+                        logging.info("Removing individual job %s from dynamic slot %s" % (machine["job_id"], machine["name"]))
+                        try:
+                            schedd_session = htcondor.Schedd()
+                            master_result = schedd_session.act(htcondor.JobAction.Remove, [machine["job_id"]])
+                            logging.info("Job removal result: %s" % master_result)
+                        except Exception as exc:
+                            logging.warning("Failed to remove job via schedd: %s, trying condor_rm" % exc)
+                            try:
+                                cndr_rm = subprocess.run(["condor_rm", machine["job_id"]], capture_output=True, text=True, timeout=30)
+                                logging.info("condor_rm output: %s" % cndr_rm.stdout)
+                            except Exception as exc:
+                                logging.error("condor_rm command failed: %s" % exc)
+                    else:
+                        machine_dict = {'terminate': 0}
+                        where_clause = "name='%s'" % machine['name']
+                        machine_reset.append(machine['name'])
+                else:
+                    logging.warning("No job id for %s, cannot kill job" % machine["name"])
+
+        except Exception:
+            continue
+
+    if machine_reset:
+        machines_str = "','".join(machine_reset)
+        where_clause = "name in ('%s')" % machines_str
+        machine_dict = {'terminate': 0}
+        rc, msg = config.db_update(MACHINE, machine_dict, where=where_clause)
+
+    logging.debug("Kill operations committed")
     logging.debug("Commands complete...")
     return
-
 
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -846,7 +949,7 @@ def machine_poller():
     resource_attributes = ["Name", "Machine", "JobId", "GlobalJobId", "MyAddress", "State", \
                            "Activity", "VMType", "MyCurrentTime", "EnteredCurrentState", "Cpus", \
                            "Start", "RemoteOwner", "SlotType", "TotalSlots", "group_name", \
-                           "cloud_name", "cs_host_id", "condor_host", "flavor", "TotalDisk"]
+                           "cloud_name", "cs_host_id", "condor_host", "flavor", "TotalDisk", "Memory","LoadAvg"]
 
     config = Config(sys.argv[1], ["condor_poller.py", "SQL", "ProcessMonitor"], pool_size=3, signals=True)
     PID_FILE = config.categories["ProcessMonitor"]["pid_path"] + os.path.basename(sys.argv[0])
