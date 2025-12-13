@@ -21,15 +21,25 @@ def main(gvar):
         server_user=ut_id(gvar, 'vtu1')
     )
 
-    # 07 
+    # 07    
     execute_csv2_request(
-        gvar, 0, None, 'Machines updated, machines: 0.',
-        '/vm/machines/update/', group=ut_id(gvar, 'vtg1'),
-        form_data={'machine_option': 'retire', 'machine_hosts': 'invalid-machine'},
+        gvar, 0, None, None,
+        '/vm/machines/', group=ut_id(gvar, 'vtg1'),
+        expected_list='machines_list', list_filter={'activity': 'Busy'},
+        query_data={'activity': 'Busy'},
         server_user=ut_id(gvar, 'vtu1')
     )
 
-    # 08 
+    #08
+    execute_csv2_request(
+        gvar, 0, None, None,
+        '/vm/machines/', group=ut_id(gvar, 'vtg1'),
+        expected_list='machines_list', list_filter={'activity': 'Idle'},
+        query_data={'activity': 'Idle'},
+        server_user=ut_id(gvar, 'vtu1')
+    )
+
+    # 09
     execute_csv2_request(
         gvar, 0, None, 'Machines updated, machines: 0.',
         '/vm/machines/update/', group=ut_id(gvar, 'vtg1'),
@@ -37,7 +47,7 @@ def main(gvar):
         server_user=ut_id(gvar, 'vtu1')
     )
 
-    # 09 
+    # 10 
     execute_csv2_request(
         gvar, 1, None, 'VV-00646 machine update value specified for "machine_option" must be one of the following options: [\'kill\', \'native\', \'retire\'].',
         '/vm/machines/update/', group=ut_id(gvar, 'vtg1'),
