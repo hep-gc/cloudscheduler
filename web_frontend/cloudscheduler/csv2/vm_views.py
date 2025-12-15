@@ -392,6 +392,8 @@ def error_list(request, response_code=0, message=None):
         }
     return render(request, 'csv2/error.html', context)
 
+#-------------------------------------------------------------------------------
+
 @silkp(name="Job List")
 @requires_csrf_token
 def jobs(request, args = None, response_code=0, message=None):
@@ -744,14 +746,14 @@ def settings_update(request):
         config, request, [SETTING_KEYS, SETTING_MANDATORY_KEYS], ['csv2_service_providers,n'], active_user)
         if rc != 0:
             config.db_close()
-            return settings_list(request, response_code=0, message='%s %s' % (lno(MODID), msg))
+            return settings_list(request, response_code=1, message='%s service update %s' % (lno(MODID), msg))
 
         table = 'csv2_service_providers'
         count =0
         if 'service_alias' not in fields or not fields['service_alias']:
             config.db_close()
-            return settings_list(request, response_code=1, message='No services selected.')
-        
+            return settings_list(request, response_code=1, message='%s service update, No services selected.' % lno(MODID))
+
         service_aliases = fields.get('service_alias')
         if isinstance(service_aliases, str):
             service_aliases = [service_aliases]
@@ -761,17 +763,18 @@ def settings_update(request):
         elif fields['service_option'] == 'hide':
             machine_dict = {'visible': 0, 'updater': get_frame_info()}
         else:
-            return settings_list(request, response_code=1, message='Update Failed') 
-       
-        for service_alias in service_aliases:     
+            return settings_list(request, response_code=1, message='%s service update, Update Failed' % lno(MODID))
+
+        for service_alias in service_aliases:
             where_clause = "alias='%s'" % service_alias
             rc, msg = config.db_update(table, machine_dict, where=where_clause)
         config.db_commit()
         config.db_close()
 
         return redirect('/vm/settings/?msg=success')
-        
+
     ###Bad request.
     else:
         config.db_close()
-        return settings_list(request, response_code=1, message='Invalid Method')
+        return settings_list(request, response_code=1, message='%s service update, Invalid Method' % lno(MODID))
+

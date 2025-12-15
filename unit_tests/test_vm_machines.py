@@ -49,11 +49,10 @@ def main(gvar):
 
     # 10 
     execute_csv2_request(
-        gvar, 1, None, 'VV-00646 machine update value specified for "machine_option" must be one of the following options: [\'kill\', \'native\', \'retire\'].',
+        gvar, 1, None, 'VV-00648 machine update value specified for "machine_option" must be one of the following options: [\'kill\', \'native\', \'retire\'].',
         '/vm/machines/update/', group=ut_id(gvar, 'vtg1'),
         form_data={'machine_option': 'dance', 'machine_hosts': 'invalid-machine'},
         server_user=ut_id(gvar, 'vtu1')
     )
-
 if __name__ == "__main__":
     main(None)

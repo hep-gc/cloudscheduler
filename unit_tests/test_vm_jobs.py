@@ -68,6 +68,6 @@ def main(gvar):
         query_data={'group_name': ut_id(gvar, 'vtg1'), 'job_status': '1'},
         server_user=ut_id(gvar, 'vtu1')
     )
-
+  
 if __name__ == "__main__":
     main(None)
