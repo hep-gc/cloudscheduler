@@ -35,32 +35,32 @@ def main(gvar):
         server_user=ut_id(gvar, 'vtu1')
     )
     
-    # 04
+    # 04 
     execute_csv2_request(
-        gvar, 1, None, "VV-00749 service update value specified for \"service_option\" must be one of the following options: ['hide', 'show'].",
+        gvar, 1, 'VV', "service update value specified for \"service_option\" must be one of the following options: ['hide', 'show'].",
         '/vm/settings/update/', group=ut_id(gvar, 'vtg1'),
         form_data={'service_alias': 'csv2-main', 'service_option': 'invalid'},
         server_user=ut_id(gvar, 'vtu1')
     )
 
-    # 05
+    # 05 
     execute_csv2_request(
-        gvar, 1, None, 'VV-00755 service update, No services selected.',
+        gvar, 1, 'VV', 'service update, No services selected.',
         '/vm/settings/update/', group=ut_id(gvar, 'vtg1'),
         form_data={'service_option': 'show'},
         server_user=ut_id(gvar, 'vtu1')
     )
 
-    # 06
+    # 06 
     execute_csv2_request(
-        gvar, 1, None, 'VV-00779 service update, Invalid Method',
+        gvar, 1, 'VV', 'service update, Invalid Method',
         '/vm/settings/update/', group=ut_id(gvar, 'vtg1'),
         server_user=ut_id(gvar, 'vtu1')
-    )   
+    )    
  
-    # 07
+    # 07 
     execute_csv2_request(
-        gvar, 1, None, 'VV-00749 service update request contained a bad parameter "invalid_key".',
+        gvar, 1, 'VV', 'service update request contained a bad parameter "invalid_key".',
         '/vm/settings/update/', group=ut_id(gvar, 'vtg1'),
         form_data={'service_alias': 'csv2-main', 'service_option': 'show', 'invalid_key': 'bad_value'},
         server_user=ut_id(gvar, 'vtu1')

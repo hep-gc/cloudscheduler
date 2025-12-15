@@ -49,10 +49,34 @@ def main(gvar):
 
     # 10 
     execute_csv2_request(
-        gvar, 1, None, 'VV-00648 machine update value specified for "machine_option" must be one of the following options: [\'kill\', \'native\', \'retire\'].',
+        gvar, 1, 'VV', 'machine update value specified for "machine_option" must be one of the following options:',
         '/vm/machines/update/', group=ut_id(gvar, 'vtg1'),
         form_data={'machine_option': 'dance', 'machine_hosts': 'invalid-machine'},
         server_user=ut_id(gvar, 'vtu1')
     )
+
+    # 11 
+    execute_csv2_request(
+        gvar, 1, 'VV', 'machines update, invalid method "GET" specified.',
+        '/vm/machines/update/', group=ut_id(gvar, 'vtg1'),
+        server_user=ut_id(gvar, 'vtu1')
+    )
+
+    # 12 
+    execute_csv2_request(
+        gvar, 1, 'VV', 'machine update request contained a bad parameter "invalid_key".',
+        '/vm/machines/update/', group=ut_id(gvar, 'vtg1'),
+        form_data={'machine_option': 'retire', 'machine_hosts': 'invalid-machine', 'invalid_key': 'bad_value'},
+        server_user=ut_id(gvar, 'vtu1')
+    )
+    
+    # 13
+    execute_csv2_request(
+        gvar, 1, 'VV', 'machine update request did not contain mandatory parameter "machine_option".',
+        '/vm/machines/update/', group=ut_id(gvar, 'vtg1'),
+        form_data={'machine_hosts': 'invalid-machine'}, # Missing machine_option
+        server_user=ut_id(gvar, 'vtu1')
+    )
+
 if __name__ == "__main__":
     main(None)
