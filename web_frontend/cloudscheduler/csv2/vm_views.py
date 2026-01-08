@@ -191,7 +191,7 @@ def machines(request, args = None, response_code=0, message=None):
         args = active_user.kwargs
         if request.method == 'GET':
             rc, msg, fields, tables, columns = validate_fields(config, request, [LIST_KEYS], [], active_user)
-                if rc != 0:
+            if rc != 0:
                 config.db_close()
                 return render(request, 'csv2/machines.html', {'response_code': 1, 'message': '%s machines list, %s' % (lno(MODID), msg)})
 
