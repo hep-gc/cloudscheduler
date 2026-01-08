@@ -1176,7 +1176,6 @@ schema = {
             "user_domain_id": {"type": "str", "len": "64", "nulls": "NO"},
             "username": {"type": "str", "len": "32", "nulls": "NO"},
             "password": {"type": "str", "nulls": "NO"},
-            "cacertificate": {"type": "str", "nulls": "YES"},
             "region": {"type": "str", "len": "32", "nulls": "NO"},
             "cloud_type": {"type": "str", "len": "64", "nulls": "NO"},
             "ec2_owner_id": {"type": "str", "len": "32", "nulls": "YES"},
@@ -1252,7 +1251,6 @@ schema = {
             "user_domain_id": {"type": "str", "len": "64", "nulls": "NO"},
             "username": {"type": "str", "len": "32", "nulls": "NO"},
             "password": {"type": "str", "nulls": "NO"},
-            "cacertificate": {"type": "str", "nulls": "YES"},
             "region": {"type": "str", "len": "32", "nulls": "NO"},
             "cloud_type": {"type": "str", "len": "64", "nulls": "NO"},
             "ec2_owner_id": {"type": "str", "len": "32", "nulls": "YES"},
@@ -1288,7 +1286,8 @@ schema = {
             "metadata_enabled": {"type": "int"},
             "metadata_priority": {"type": "int"},
             "metadata_mime_type": {"type": "str", "len": "128", "nulls": "YES"},
-            "metadata_checksum": {"type": "str", "len": "32", "nulls": "YES"}
+            "metadata_checksum": {"type": "str", "len": "32", "nulls": "YES"},
+            "metadata_updated": {"type": "int"}
             }
         },
     "view_clouds_with_metadata_names": {
@@ -1333,7 +1332,6 @@ schema = {
             "user_domain_id": {"type": "str", "len": "64", "nulls": "NO"},
             "username": {"type": "str", "len": "32", "nulls": "NO"},
             "password": {"type": "str", "nulls": "NO"},
-            "cacertificate": {"type": "str", "nulls": "YES"},
             "region": {"type": "str", "len": "32", "nulls": "NO"},
             "cloud_type": {"type": "str", "len": "64", "nulls": "NO"},
             "ec2_owner_id": {"type": "str", "len": "32", "nulls": "YES"},
