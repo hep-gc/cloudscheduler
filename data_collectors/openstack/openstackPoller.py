@@ -2075,7 +2075,7 @@ def defaults_replication():
 
                     # now lets check keys- if there is a default key, check the keys for the cloud
                     if default_key_name is not None:
-                        where_clause = "group_name='%s' and cloud_name='%s' and key_namee='%s'" % (group["group_name"], cloud["cloud_name"], default_key_name)
+                        where_clause = "group_name='%s' and cloud_name='%s' and key_name='%s'" % (group["group_name"], cloud["cloud_name"], default_key_name)
                         rc, msg, keys = config.db_query(KEYPAIRS, where=where_clause)
                         if len(keys) == 0:
                             # gasp again, keypair isn't present, keypairs are fast so lets just go ahead and do the transfer
