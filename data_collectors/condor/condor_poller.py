@@ -25,8 +25,8 @@ from cloudscheduler.lib.poller_functions import \
 from cloudscheduler.lib.ProcessMonitor import ProcessMonitor, check_pid, terminate
 from cloudscheduler.lib.watchdog_utils import watchdog_send_heartbeat
 
-import htcondor
-import classad
+import htcondor2 as htcondor
+import classad2 as classad
 import boto3
 import datetime
 
@@ -118,7 +118,7 @@ def if_null(val, col=None):
 def condor_off(condor_classad):
     try:
         logging.debug("Sending condor_off to %s" % condor_classad)
-        master_result = htcondor.send_command(condor_classad, htcondor.DaemonCommands.DaemonsOffPeaceful)
+        master_result = htcondor.send_command(condor_classad, htcondor.DaemonCommand.DaemonsOffPeaceful, "startd")
         if master_result is None:
             # None is good in this case it means it was a success
             master_result = "Success"
@@ -351,23 +351,28 @@ def process_group_cloud_commands(pair, condor_host, config):
         logging.info("Retiring (%s) machine %s primary slots: %s dynamic slots: %s, last updater: %s" % (resource["retire"], resource["machine"], resource["dynamic_slots"], resource["primary_slots"], resource["updater"]))
         try:
             condor_session = get_condor_session()
+            
 # crlb #    if resource["machine"] is not "":
             if resource["machine"] and len(resource["machine"]) > 0:
                 condor_classad = condor_session.query(master_type, 'Name=="%s"' % resource["machine"])[0]
             else:
                 condor_classad = condor_session.query(master_type, 'regexp("%s", Name, "i")' % resource["hostname"])[0]
-
+            
+            
+            
             if not condor_classad or condor_classad == -1:
                 #there was a condor error
                 logging.error("Unable to retrieve condor classad, skipping %s ..." % resource["machine"])
                 continue
             try:
                 logging.info("Issuing DaemonsOffPeaceful to %s" % condor_classad)
-                master_result = htcondor.send_command(condor_classad, htcondor.DaemonCommands.DaemonsOffPeaceful)
+                master_result = htcondor.send_command(condor_classad, htcondor.DaemonCommand.DaemonsOffPeaceful, "startd")
                 logging.debug("Result: %s " % master_result)
             except Exception as exc:
                 # this should be tightened to catch exact errors coming from condor
                 # since the bindings method of retire seems to have failed lets issue a local system command
+                 
+
                 logging.info("failed to retire via condor bindings, attempting system command")
                 logging.debug("condor_drain -exit-on-completion %s" % resource["name"] ) 
                 cndr_drain = subprocess.run(["condor_drain", "-exit-on-completion", resource["name"]])
@@ -377,6 +382,7 @@ def process_group_cloud_commands(pair, condor_host, config):
                 # the command below will throw an error if the condor_drain command fails but presently it fails when the machine is already draining
                 # and the output and error are empty to we cant distinguish between an error because it's already draining from any other without more commands
                 #cndr_drain.check_returncode() 
+                
                 
             #get vm entry and update retire = 2
             where_clause = "group_name='%s' and cloud_name='%s' and vmid='%s'" % (resource["group_name"], resource["cloud_name"], resource["vmid"])
@@ -426,7 +432,7 @@ def process_group_cloud_commands(pair, condor_host, config):
                 continue
             try:
                 logging.info("Issuing DaemonsOffPeaceful to machine %s" % machine["name"])
-                master_result = htcondor.send_command(condor_classad, htcondor.DaemonCommands.DaemonsOffPeaceful)
+                master_result = htcondor.send_command(condor_classad, htcondor.DaemonCommand.DaemonsOffPeaceful, "startd")
                 logging.debug("Result: %s " % master_result)
             except Exception as exc:
                 logging.info("Failed to retire machine via condor bindings, attempting system command")
@@ -471,7 +477,7 @@ def process_group_cloud_commands(pair, condor_host, config):
                         condor_classad = condor_session.query(master_type, 'regexp("%s", Name, "i")' % machine["hostname"])[0]
                         logging.info(condor_session.query(master_type, 'regexp("%s", Name, "i")' % machine["hostname"])[0])
                     if condor_classad and condor_classad != -1:
-                        master_result = htcondor.send_command(condor_classad, htcondor.DaemonCommands.DaemonsOffFast)
+                        master_result = htcondor.send_command(condor_classad, htcondor.DaemonCommand.DaemonsOffFast, "startd")
                         logging.info("Shutdown result: %s" % master_result)        
                     else:
                         logging.error("Unable to retrieve master classad for %s" % machine["machine"])
@@ -669,7 +675,7 @@ def job_poller():
                 
                 logging.debug("getting job list from condor")
                 try:
-                    job_list = condor_session.xquery(
+                    job_list = condor_session.query(
                         projection=job_attributes
                         )
                 except Exception as exc:
@@ -706,31 +712,44 @@ def job_poller():
                 for job_ad in job_list:
                     logging.debug(job_ad)
                     job_dict = dict(job_ad)
+                    
                     if "Requirements" in job_dict:
                         ca1=classad.ClassAd(job_dict)
-                        et2 = ca1.flatten(job_dict).eval()
-                        job_dict['Requirements'] = str(et2['Requirements'])
+                        et3= ca1.flatten(ca1.lookup("Requirements"))
+                        
+                        job_dict['Requirements'] = str(et3)
+                        
                         if "RequestMemory" in job_dict:
-                            try:    
-                                if isinstance(et2['RequestMemory'], int):
-                                    job_dict['RequestMemory'] = et2['RequestMemory']
-                                else:   
-                                    job_dict['RequestMemory'] = et2['RequestMemory'].eval()
-                                if isinstance(job_dict['RequestMemory'], int):
-                                    pass    
-                                else:   
-                                    job_dict['RequestMemory'] = ca1['RequestMemory'].eval()
+                               
+                            try:
+                                memory_expr = ca1.flatten(ca1.lookup("RequestMemory"))
+                                if isinstance(memory_expr, int):
+                                    job_dict['RequestMemory'] = memory_expr 
+                                    logging.debug("RequestMemory exprTree was an int")
+                                elif isinstance(job_dict['RequestMemory'], int):
+                                    logging.debug("RequestMemory in job_dict was an int")
+                                    pass
+                                else:
+                                    job_dict['RequestMemory'] = memory_expr.eval()
+                                    logging.debug("RequestMemory exprTree had to be evaluated")
                             except Exception as exc: 
                                 #need to tighten this exception but basically if the memory isnt an expression this isn't going to work 
-                                #it might be better to instead check the data type in the dictionary then base execution off that than to depends on error handling
-                                pass    
+                                #it might be better to instead check the data type in the dictionary then base execution off that than to depends on error handling 
+                              pass
+                            
 
                         # Parse group_name out of requirements
                         try:
                             #pattern = '(group_name is ")(.*?)(")'
                             pattern = '(group_name is "|group_name == "|group_name =\?= "|group_name =\?= toLower\("|group_name is toLower\("|group_name == toLower\(")(.*?)(")'
+                            
+
                             grp_name = re.search(pattern, job_dict['Requirements'])
+                            
+                            
                             job_dict['group_name'] = grp_name.group(2).lower()
+                            
+                            
                         except Exception as exc:
                             logging.debug("No group name found in requirements expression... ignoring foreign job.")
                             foreign_jobs = foreign_jobs+1
@@ -741,8 +760,9 @@ def job_poller():
                                 job_errors["nogrp"] = job_errors["nogrp"] + 1
                                 job_errors["nogrpinfo"].add("Submitter: %s" % job_dict['Owner'])
                             continue
+
                         # Look for a target_alias in requirements string
-                        try:
+                        try: 
                             pattern = '(target_alias is "|target_alias == "|target_alias =\?= "|target_alias =\?= toLower\("|target_alias is toLower\("|target_alias == toLower\(")(.*?)(")'
                             target_alias = re.search(pattern, job_dict['Requirements'])
                             job_dict['target_alias'] = target_alias.group(2).lower()
@@ -812,8 +832,9 @@ def job_poller():
                         job_dict["RequestCpus"] = job_dict["CpusProvisioned"]
                     except:
                         pass
-
-
+                    
+                    
+                    
                     job_dict = trim_keys(job_dict, job_attributes)
                     job_dict, unmapped = map_attributes(src="condor", dest="csv2", attr_dict=job_dict, config=config)
                     logging.debug("Adding job %s", job_dict["global_job_id"])
