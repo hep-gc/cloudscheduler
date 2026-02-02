@@ -25,8 +25,16 @@ from cloudscheduler.lib.poller_functions import \
 from cloudscheduler.lib.ProcessMonitor import ProcessMonitor, check_pid, terminate
 from cloudscheduler.lib.watchdog_utils import watchdog_send_heartbeat
 
-import htcondor2 as htcondor
-import classad2 as classad
+#import correct htcondor module:
+HTCONDOR2 = False
+try:
+    import htcondor2 as htcondor
+    import classad2 as classad
+    HTCONDOR2 = True
+except ModuleNotFoundError:
+    import htcondor as htcondor
+    import classad as classad
+
 import boto3
 import datetime
 
@@ -675,9 +683,11 @@ def job_poller():
                 
                 logging.debug("getting job list from condor")
                 try:
-                    job_list = condor_session.query(
-                        projection=job_attributes
-                        )
+                    job_list = None
+                    if HTCONDOR2: 
+                        job_list = condor_session.query(projection=job_attributes)
+                    else: 
+                        job_list = condor_session.xquery(projection=job_attributes)
                 except Exception as exc:
                     # if we fail we need to mark all these groups as failed so we don't delete the entrys later
                     fail_count = 0
