@@ -1482,6 +1482,7 @@ def vm_poller():
                     # We've decided to remove the variable "status_changed_time" since it was holding the exact same value as "last_updated"
                     # This is because we are only pushing updates to the csv2 database when the state of a vm is changed and thus it would be logically equivalent
                     uncommitted_updates = 0
+                    flavor_lookup_dict = {}
                     try:
                         for vm in vm_list:
                         #~~~~~~~~
@@ -1496,8 +1497,12 @@ def vm_poller():
                                 host_tokens = vm.name.split("--")
                                 vm_group_name = host_tokens[0]
                                 vm_cloud_name = host_tokens[1]
-                                found_flavor = nova.find_flavor(name_or_id=vm.flavor['original_name'])
-                                vm_flavor_id = found_flavor.id
+                                if vm.flavor['original_name'] not in flavor_lookup_dict:
+                                    found_flavor = nova.find_flavor(name_or_id=vm.flavor['original_name'])
+                                    vm_flavor_id = found_flavor.id
+                                    flavor_lookup_dict[vm.flavor['original_name']] = found_flavor.id
+                                else:
+                                    vm_flavor_id = flavor_lookup_dict[vm.flavor['original_name']]
                         
                                 if (host_tokens[0], host_tokens[1]) not in group_list:
                                     logging.debug("Group-Cloud combination doesn't match any in csv2, marking %s as foreign vm" % vm.name)
@@ -1533,11 +1538,15 @@ def vm_poller():
                             except IndexError as exc:
                                 #not enough tokens, bad hostname or foreign vm
                                 logging.debug("Not enough tokens from hostname, bad hostname or foreign vm: %s" % vm.name)
-                                found_flavor = nova.find_flavor(name_or_id=vm.flavor['original_name'])
-                                if found_flavor is not None:
-                                    vm_flavor_id = found_flavor.id
+                                if vm.flavor['original_name'] not in flavor_lookup_dict:
+                                    found_flavor = nova.find_flavor(name_or_id=vm.flavor['original_name'])
+                                    if found_flavor is not None:
+                                        vm_flavor_id = found_flavor.id
+                                        flavor_lookup_dict[vm.flavor['original_name']] = found_flavor.id
+                                    else:
+                                        vm_flavor_id = vm.flavor['original_name']
                                 else:
-                                    vm_flavor_id = vm.flavor['original_name']
+                                    vm_flavor_id = flavor_lookup_dict[vm.flavor['original_name']]
                                 if auth_url + "--" + vm_flavor_id in for_vm_dict:
                                     for_vm_dict[auth_url + "--" + vm_flavor_id]["count"] = for_vm_dict[auth_url + "--" + vm_flavor_id]["count"] + 1
                                 else:
