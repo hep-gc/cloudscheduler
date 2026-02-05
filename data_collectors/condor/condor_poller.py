@@ -144,12 +144,10 @@ def send_command(condor_classad, command, target):
     
     if hasattr(htcondor, "DaemonCommand") and hasattr(htcondor.DaemonCommand, command): #for htcondor2
         daemon_command = getattr(htcondor.DaemonCommand, command)
-        logging.error("this is the command %s", daemon_command)
         return htcondor.send_command(condor_classad, daemon_command, "startd")
 
     elif hasattr(htcondor, "DaemonCommands") and hasattr(htcondor.DaemonCommands, command): #for htcondor
         daemon_command = getattr(htcondor.DaemonCommands, command)
-        logging.error("this is the command %s", daemon_command)
         return htcondor.send_command(condor_classad, daemon_command)
 
 def decode(obj):
@@ -390,8 +388,7 @@ def process_group_cloud_commands(pair, condor_host, config):
             try:
                 logging.info("Issuing DaemonsOffPeaceful to %s" % condor_classad)
                 master_result = send_command(condor_classad, "DaemonsOffPeaceful", "startd")
-                logging.info("python bindings worked!")
-                logging.debug("Result: %s " % master_result)
+                logging.info("vm was retired via python bindings")
             except Exception as exc:
                 # this should be tightened to catch exact errors coming from condor
                 # since the bindings method of retire seems to have failed lets issue a local system command
@@ -457,7 +454,7 @@ def process_group_cloud_commands(pair, condor_host, config):
             try:
                 logging.info("Issuing DaemonsOffPeaceful to machine %s" % machine["name"])
                 master_result = send_command(condor_classad, "DaemonsOffPeaceful", "startd")
-                logging.debug("Result: %s " % master_result)
+                logging.info("vm was retired via python bindings")
             except Exception as exc:
                 logging.info("Failed to retire machine via condor bindings, attempting system command")
                 logging.debug("condor_drain -exit-on-completion %s" % machine["name"])
