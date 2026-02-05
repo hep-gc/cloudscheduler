@@ -26,11 +26,9 @@ from cloudscheduler.lib.ProcessMonitor import ProcessMonitor, check_pid, termina
 from cloudscheduler.lib.watchdog_utils import watchdog_send_heartbeat
 
 #import correct htcondor module:
-HTCONDOR2 = False
 try:
     import htcondor2 as htcondor
     import classad2 as classad
-    HTCONDOR2 = True
 except ModuleNotFoundError:
     import htcondor as htcondor
     import classad as classad
@@ -697,10 +695,10 @@ def job_poller():
                 logging.debug("getting job list from condor")
                 try:
                     job_list = None
-                    if HTCONDOR2: 
-                        job_list = condor_session.query(projection=job_attributes)
-                    else: 
+                    if hasattr(condor_session, "xquery"): 
                         job_list = condor_session.xquery(projection=job_attributes)
+                    else: 
+                        job_list = condor_session.query(projection=job_attributes)
                 except Exception as exc:
                     # if we fail we need to mark all these groups as failed so we don't delete the entrys later
                     fail_count = 0
@@ -739,7 +737,6 @@ def job_poller():
                     if "Requirements" in job_dict:
                         ca1=classad.ClassAd(job_dict)
                         et3= ca1.flatten(ca1.lookup("Requirements"))
-                        
                         job_dict['Requirements'] = str(et3)
                         
                         if "RequestMemory" in job_dict:
@@ -759,20 +756,14 @@ def job_poller():
                                 #need to tighten this exception but basically if the memory isnt an expression this isn't going to work 
                                 #it might be better to instead check the data type in the dictionary then base execution off that than to depends on error handling 
                               pass
-                            
-
                         # Parse group_name out of requirements
                         try:
                             #pattern = '(group_name is ")(.*?)(")'
                             pattern = '(group_name is "|group_name == "|group_name =\?= "|group_name =\?= toLower\("|group_name is toLower\("|group_name == toLower\(")(.*?)(")'
-                            
-
                             grp_name = re.search(pattern, job_dict['Requirements'])
-                            
-                            
+                             
                             job_dict['group_name'] = grp_name.group(2).lower()
-                            
-                            
+    
                         except Exception as exc:
                             logging.debug("No group name found in requirements expression... ignoring foreign job.")
                             foreign_jobs = foreign_jobs+1
