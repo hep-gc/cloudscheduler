@@ -126,7 +126,7 @@ def if_null(val, col=None):
 def condor_off(condor_classad):
     try:
         logging.debug("Sending condor_off to %s" % condor_classad)
-        master_result = send_command(condor_classad, htcondor.DaemonCommand.DaemonsOffPeaceful, "startd")
+        master_result = send_command(condor_classad, "DaemonsOffPeaceful", "startd")
         if master_result is None:
             # None is good in this case it means it was a success
             master_result = "Success"
@@ -137,18 +137,20 @@ def condor_off(condor_classad):
         logging.error(exc)
         return False
 
+def send_command(condor_classad, command, target):
+    """
+    returns correct htcondor attribute depending on different python bindings
+    """
+    
+    if hasattr(htcondor, "DaemonCommand") and hasattr(htcondor.DaemonCommand, command): #for htcondor2
+        daemon_command = getattr(htcondor.DaemonCommand, command)
+        logging.error("this is the command %s", daemon_command)
+        return htcondor.send_command(condor_classad, daemon_command, "startd")
 
-def send_command(condor_classad, daemon_command, target):
-    """
-    sends a command to a HTcondor daemon, this is a wrapper for htcondor.send_command()
-    made to handle behavior changes caused by different python bindings
-     
-    """
-    if HTCONDOR2:
-        return htcondor.send_command(condor_classad, daemon_command, target) #for htcondor2
-    else:
+    elif hasattr(htcondor, "DaemonCommands") and hasattr(htcondor.DaemonCommands, command): #for htcondor
+        daemon_command = getattr(htcondor.DaemonCommands, command)
+        logging.error("this is the command %s", daemon_command)
         return htcondor.send_command(condor_classad, daemon_command)
-
 
 def decode(obj):
     if not obj:
@@ -387,7 +389,8 @@ def process_group_cloud_commands(pair, condor_host, config):
                 continue
             try:
                 logging.info("Issuing DaemonsOffPeaceful to %s" % condor_classad)
-                master_result = send_command(condor_classad, htcondor.DaemonCommand.DaemonsOffPeaceful, "startd")
+                master_result = send_command(condor_classad, "DaemonsOffPeaceful", "startd")
+                logging.info("python bindings worked!")
                 logging.debug("Result: %s " % master_result)
             except Exception as exc:
                 # this should be tightened to catch exact errors coming from condor
@@ -453,7 +456,7 @@ def process_group_cloud_commands(pair, condor_host, config):
                 continue
             try:
                 logging.info("Issuing DaemonsOffPeaceful to machine %s" % machine["name"])
-                master_result = send_command(condor_classad, htcondor.DaemonCommand.DaemonsOffPeaceful, "startd")
+                master_result = send_command(condor_classad, "DaemonsOffPeaceful", "startd")
                 logging.debug("Result: %s " % master_result)
             except Exception as exc:
                 logging.info("Failed to retire machine via condor bindings, attempting system command")
@@ -498,7 +501,7 @@ def process_group_cloud_commands(pair, condor_host, config):
                         condor_classad = condor_session.query(master_type, 'regexp("%s", Name, "i")' % machine["hostname"])[0]
                         logging.info(condor_session.query(master_type, 'regexp("%s", Name, "i")' % machine["hostname"])[0])
                     if condor_classad and condor_classad != -1:
-                        master_result = send_command(condor_classad, htcondor.DaemonCommand.DaemonsOffFast, "startd")
+                        master_result = send_command(condor_classad, "DaemonsOffFast", "startd")
                         logging.info("Shutdown result: %s" % master_result)        
                     else:
                         logging.error("Unable to retrieve master classad for %s" % machine["machine"])
