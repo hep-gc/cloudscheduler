@@ -29,8 +29,8 @@ import localhostcloud
 import ec2cloud
 import oraclecloud
 
-import htcondor
-import classad
+import htcondor2 as htcondor
+import classad2 as classad
 import boto3
 
 import openstack
