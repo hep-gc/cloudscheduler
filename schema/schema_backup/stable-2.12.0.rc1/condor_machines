@@ -30,7 +30,7 @@ CREATE TABLE `condor_machines` (
   `group_name` varchar(32) DEFAULT NULL,
   `cloud_name` varchar(32) DEFAULT NULL,
   `condor_host` varchar(64) DEFAULT NULL,
-  `flavor` varchar(32) DEFAULT NULL,
+  `flavor` varchar(64) DEFAULT NULL,
   `job_id` varchar(128) DEFAULT NULL,
   `global_job_id` varchar(128) DEFAULT NULL,
   `address` varchar(512) DEFAULT NULL,

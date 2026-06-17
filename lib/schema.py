@@ -301,7 +301,7 @@ schema = {
             "group_name": {"type": "str", "len": "32", "nulls": "YES"},
             "cloud_name": {"type": "str", "len": "32", "nulls": "YES"},
             "condor_host": {"type": "str", "len": "64", "nulls": "YES"},
-            "flavor": {"type": "str", "len": "32", "nulls": "YES"},
+            "flavor": {"type": "str", "len": "64", "nulls": "YES"},
             "job_id": {"type": "str", "len": "128", "nulls": "YES"},
             "global_job_id": {"type": "str", "len": "128", "nulls": "YES"},
             "address": {"type": "str", "len": "512", "nulls": "YES"},
