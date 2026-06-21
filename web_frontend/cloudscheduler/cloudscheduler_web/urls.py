@@ -19,6 +19,7 @@ from django.conf.urls import include
 from django.urls import re_path
 from django.contrib import admin
 from django.views.generic import TemplateView
+from django.shortcuts import render
 
 urlpatterns = [
     re_path(r'^admin/', admin.site.urls),
@@ -30,4 +31,6 @@ urlpatterns = [
 if settings.CSV2_CONFIG.categories["web_frontend"]["enable_profiling"]:
     urlpatterns += [re_path(r'^silk/', include('silk.urls', namespace='silk'))]
 
-handler403 = TemplateView.as_view(template_name='csv2/403.html')
+def custom_403(request, exception=None):
+    return render(request, 'csv2/403.html', status=403)
+handler403 = custom_403

@@ -46,6 +46,7 @@ GROUP_KEYS = {
         'group_name':                                 'lowerdash',
         'csrfmiddlewaretoken':                        'ignore',
         'group':                                      'ignore',
+	    'enabled':                                    'dboolean',
         'freeze':                                     'dboolean',
         'htcondor_fqdn':                              'fqdn,htcondor_host_id',
         'job_cpus':                                   'integer',
@@ -103,6 +104,7 @@ METADATA_KEYS = {
     # Should the active_group be automatically inserted into the primary keys.
     'auto_active_group': True,
     'format': {
+		'enabled':                                    'dboolean',
         'freeze':                                     'dboolean',
         'priority':                                   'integer',
         'metadata':                                   'metadata',
