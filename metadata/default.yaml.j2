@@ -2,7 +2,13 @@
 merge_type: 'list(append)+dict(recurse_array)+str()'                                                                                                                
 #### DO NOT EDIT - CHANGES WILL BE OVER_WRITTEN ####                                                                                                                
 
-write_files:                                                                                                                                                        
+write_files:   
+-   encoding: gzip
+    content: !!binary |
+        {{cs_condor_token}}
+    owner: root:root
+    path: /etc/condor/tokens.d/condor-token
+    permissions: '0400'
 -   content: |                                                                                                                                                      
         {{cs_cloud_type}}                                                                                                                                           
     owner: root:root                                                                                                                                                
