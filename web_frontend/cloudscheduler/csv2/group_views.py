@@ -19,7 +19,8 @@ from cloudscheduler.lib.view_utils import \
     table_fields, \
     validate_by_filtered_table_entries, \
     validate_fields, \
-    get_file_checksum
+    get_file_checksum, \
+    cleanup_stale_service_catalog
 
 from collections import defaultdict
 import bcrypt
@@ -30,6 +31,8 @@ import re
 from cloudscheduler.lib.web_profiler import silk_profile as silkp
 
 from csv2.gen_public_page import generate_static_page
+
+from crccheck.crc import Crc32
 
 # lno: GV - error code identifier.
 MODID= 'GV'
@@ -43,6 +46,7 @@ GROUP_KEYS = {
         'group_name':                                 'lowerdash',
         'csrfmiddlewaretoken':                        'ignore',
         'group':                                      'ignore',
+        'freeze':                                     'dboolean',
         'htcondor_fqdn':                              'fqdn,htcondor_host_id',
         'job_cpus':                                   'integer',
         'job_disk':                                   'integer',
@@ -84,6 +88,7 @@ UNPRIVILEGED_GROUP_KEYS = {
         'csrfmiddlewaretoken':                        'ignore',
         'group':                                      'ignore',
         'htcondor_fqdn':                              'fqdn,htcondor_host_id',
+        'freeze':                                     'dboolean',
         'job_cpus':                                   'integer',
         'job_disk':                                   'integer',
         'job_ram':                                    'integer',
@@ -98,7 +103,7 @@ METADATA_KEYS = {
     # Should the active_group be automatically inserted into the primary keys.
     'auto_active_group': True,
     'format': {
-        'enabled':                                    'dboolean',
+        'freeze':                                     'dboolean',
         'priority':                                   'integer',
         'metadata':                                   'metadata',
         'metadata_name':                              'lowerdash',
@@ -337,6 +342,19 @@ def defaults(request, active_user=None, response_code=0, message=None):
                 return redirect("/group/defaults/")
                 #return render(request, 'csv2/group_defaults.html', {'response_code': 1, 'message': '%s default update/list %s' % (lno(MODID), msg), 'active_user': active_user.username, 'active_group': active_user.active_group, 'user_groups': active_user.user_groups})
 
+			#update host_id                 
+            submitted_fqdn = fields.get('htcondor_fqdn')
+            if submitted_fqdn:
+                submitted_host_id = int(Crc32.calc(submitted_fqdn.encode("utf-8")))
+                fields['htcondor_host_id'] = submitted_host_id
+                rc, msg, current_group = config.db_query("csv2_groups", where="group_name='%s'" % active_user.active_group)
+                if rc == 0 and current_group:
+                    current_host_id = current_group[0].get('htcondor_host_id')
+
+                    if current_host_id and current_host_id != submitted_host_id:
+                        cleanup_stale_service_catalog(config, 0)
+                        config.db_commit()
+
             if rc == 0 and ('vm_flavor' in fields) and (fields['vm_flavor']):
                 rc, msg = validate_by_filtered_table_entries(config, fields['vm_flavor'], 'vm_flavor', 'cloud_flavors', 'name', [['group_name', fields['group_name']]])
             
@@ -359,7 +377,10 @@ def defaults(request, active_user=None, response_code=0, message=None):
                     if rc == 0: visibility_changed = (group_data[0]["public_visibility"] != fields["public_visibility"])
                     else:       visibility_changed = False
                 else: visibility_changed = False
-                
+               
+                if 'freeze' in fields and fields['freeze'] == 1:
+                    fields['freeze'] = 2
+
                 # Update the group defaults.
                 table = 'csv2_groups'
                 where_clause = "group_name='%s'" % active_user.active_group
@@ -1303,7 +1324,7 @@ def update(request):
             
             visibility_changed = False
 
-
+        
         # Update user groups.
         if request.META['HTTP_ACCEPT'] == 'application/json':
             if 'username' in fields:

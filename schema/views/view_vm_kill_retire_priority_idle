@@ -3,6 +3,7 @@
 create or replace temporary table xxx as select * from view_vm_kill_retire_priority_list limit 35;
 update condor_machines as cm left outer join (select * from xxx)  as kpl on cm.machine=kpl.machine set test=3 where priority is not null;
 select unix_timestamp();
+create or replace view t0 as
 */
 create or replace view view_vm_kill_retire_priority_idle as
 select
@@ -26,10 +27,12 @@ from (
             vmid,
             flavor_id,
             machine,
-            case when ifnull(terminate,0)>0 then 1 else 0 end as killed,
-            case when ifnull(retire,0)>0 then 1 else 0 end as retired,
+            case when ifnull(cv.terminate,0)>0 then 1 else 0 end as killed,
+            case when ifnull(cv.retire,0)>0 then 1 else 0 end as retired,
             case when my_current_time is null then
-                9999999999
+                1
+            when ifnull(cv.htcondor_dynamic_slots,0)=0 then
+                1
             else
                 my_current_time - entered_current_state
             end as priority

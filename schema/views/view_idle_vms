@@ -17,12 +17,13 @@ from (
                 120
             end
         end as keep_alive,
-        vmid,
-        hostname,
+	cg.freeze,
+        cv.vmid,
+        cv.hostname,
         htcondor_partitionable_slots as primary_slots,
         htcondor_dynamic_slots as dynamic_slots,
-        retire,
-        terminate,
+        cv.retire,
+        cv.terminate,
         case when cv.manual_control = 1 then
             'manual'
         else

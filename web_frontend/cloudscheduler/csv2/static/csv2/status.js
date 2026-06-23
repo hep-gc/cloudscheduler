@@ -225,6 +225,18 @@ function stop_refresh() {
     window.stop();
 }
 
+function toggle_refresh() {
+    if (TimerSwitch === 1) {
+        stop_refresh();
+    } else {
+        set_refresh(refresh_interval * 1000);
+    }
+}
+
+function close_and_refresh() {
+        setTimeout(function() {window.location.reload();}, 100);
+        set_refresh(refresh_interval * 1000);   
+}
 function native_list(url) {
     stop_refresh();
     document.getElementById('vms-iframe').src='/vm/list/'+url;
@@ -236,6 +248,30 @@ function foreign_list(url) {
     document.getElementById('vms-iframe').src='/vm/foreign/'+url;
     window.location.href = "#vms-overlay";
 }
+
+function condor_machines_list(url) {
+       stop_refresh();
+       document.getElementById('vms-iframe').src='/vm/machines/'+url;
+       window.location.href = "#vms-overlay";
+   }
+
+function settings_list() {
+    stop_refresh();
+    document.getElementById('settings-iframe').src='/vm/settings/';
+    window.location.href = "#settings-overlay";
+}
+
+function error_list(alias){
+    stop_refresh();
+    document.getElementById('vms-iframe').src='/vm/error/?alias=' + alias;
+    window.location.href = "#vms-overlay";
+}
+
+function condor_jobs_list(url) {
+       stop_refresh();
+       document.getElementById('vms-iframe').src='/vm/jobs/'+url;
+       window.location.href = "#vms-overlay";
+   }
 
 function toggle_id(name){
 
@@ -452,9 +488,8 @@ function createPlot(to, from) {
         var current_url = window.location.href;
         const regex = /(.*\/\/[^\/]*)(\/.*)/;
         var root_url = current_url.split(regex)[1];
-        var newpath = root_url + ":8086/query";
-        newpath += "?q=" + query + "&db=csv2_timeseries&epoch=ms&u=csv2_read&p=csv2_public";
-        newpath = encodeURI(newpath)
+        var newpath = root_url + ":8086/query"; 
+	newpath += "?q=" + encodeURIComponent(query) + "&db=csv2_timeseries&epoch=ms&u=csv2_read&p=csv2_public";
         newpath = newpath.replace(';', '%3B')
         fetch(newpath,{
             method: 'GET',

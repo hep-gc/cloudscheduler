@@ -1032,7 +1032,7 @@ def cloud_list(request, active_user=None, response_code=0, message=None, cloud_a
         'app_credentials_secret': '',
         'auth_type': get_cloud_add_value(cloud_add_cache, 'auth_type', 'userpass'),
         'authurl': get_cloud_add_value(cloud_add_cache, 'authurl'),
-        'cacertificate': get_cloud_add_value(cloud_add_cache, 'cacertificate'),
+       
         'cloud_name': get_cloud_add_value(cloud_add_cache, 'cloud_name'),
         'cloud_type': get_cloud_add_value(cloud_add_cache, 'cloud_type', 'openstack'), 
         'enabled': get_cloud_add_value(cloud_add_cache, 'enabled', 0),
@@ -1601,13 +1601,11 @@ def status(request, group_name=None):
 
         rc, msg, _job_cores_list = config.db_query("view_condor_jobs_group_defaults_applied")
         job_cores_list = qt(_job_cores_list, filter=qt_filter_get(['group_name'], ["mygroups"], aliases=GROUP_ALIASES, and_or='or'))
-
     else:
         where_clause = "group_name='%s'" % active_user.active_group
         rc, msg, cloud_status_list = config.db_query("view_cloud_status", where=where_clause)
 
         rc, msg, job_cores_list = config.db_query("view_condor_jobs_group_defaults_applied", where=where_clause)
-
     if len(cloud_status_list) < 1:
         cloud_total_list = []
         cloud_status_list_totals = []
@@ -1926,10 +1924,10 @@ def status(request, group_name=None):
             table = "view_job_status"
         rc, msg, _job_status_list = config.db_query(table)
         job_status_list = qt(_job_status_list, filter=qt_filter_get(['group_name'], ["mygroups"], aliases=GROUP_ALIASES, and_or='or'))
-
         # at this stage we need to insert the aliases with no jobs or they won't be shown on the status page
         # to achieve this we need to find the row representing the base group for each unrepresented alias
         # copy the base values and then zero out the jobs rows
+       
     else:    
          if active_user.flag_jobs_by_target_alias:
              table = "view_job_status_by_target_alias"
@@ -1962,6 +1960,11 @@ def status(request, group_name=None):
     gsi_config = config.get_config_by_category('GSI')
 
     rc, msg, service_status = config.db_query("view_service_status")
+    temp_status =[]
+    for service in service_status:
+        if service.get('show_status') == 1:
+            temp_status.append(service)
+    service_status = temp_status
 
     # Determine the system load, RAM and disk usage
     system_list = {}

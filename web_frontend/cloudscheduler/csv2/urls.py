@@ -73,5 +73,11 @@ urlpatterns = [
     path('vm/foreign/',                            vm_views.foreign),
     path('vm/list/',                               vm_views.vm_list),
     path('vm/update/',                             vm_views.update),
+    path('vm/machines/',                           vm_views.machines),
+    path('vm/machines/update/',                    vm_views.machines_update),
+    path('vm/settings/',                           vm_views.settings_list),
+    path('vm/settings/update/',                    vm_views.settings_update),
+    path('vm/error/',                              vm_views.error_list),
+    path('vm/jobs/',                               vm_views.jobs),
 
 ]

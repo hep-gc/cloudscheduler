@@ -1,0 +1,16 @@
+/*
+create or replace view view_t0 as
+*/
+create or replace view view_starting_vms as
+    select
+        group_name,
+        cloud_name,
+        count(*) as starting_vms
+    from csv2_vms
+    where
+        status="BUILD" or
+        (status="ACTIVE" and htcondor_partitionable_slots is null)
+    group by
+        group_name,
+        cloud_name
+;

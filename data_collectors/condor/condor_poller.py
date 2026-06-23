@@ -25,8 +25,14 @@ from cloudscheduler.lib.poller_functions import \
 from cloudscheduler.lib.ProcessMonitor import ProcessMonitor, check_pid, terminate
 from cloudscheduler.lib.watchdog_utils import watchdog_send_heartbeat
 
-import htcondor
-import classad
+#import correct htcondor module:
+try:
+    import htcondor2 as htcondor
+    import classad2 as classad
+except ModuleNotFoundError:
+    import htcondor as htcondor
+    import classad as classad
+
 import boto3
 import datetime
 
@@ -118,7 +124,7 @@ def if_null(val, col=None):
 def condor_off(condor_classad):
     try:
         logging.debug("Sending condor_off to %s" % condor_classad)
-        master_result = htcondor.send_command(condor_classad, htcondor.DaemonCommands.DaemonsOffPeaceful)
+        master_result = send_command(condor_classad, "DaemonsOffPeaceful", "startd")
         if master_result is None:
             # None is good in this case it means it was a success
             master_result = "Success"
@@ -128,6 +134,19 @@ def condor_off(condor_classad):
         logging.error("Condor off failed:")
         logging.error(exc)
         return False
+
+def send_command(condor_classad, command, target):
+    """
+    returns correct htcondor attribute depending on different python bindings
+    """
+    
+    if hasattr(htcondor, "DaemonCommand") and hasattr(htcondor.DaemonCommand, command): #for htcondor2
+        daemon_command = getattr(htcondor.DaemonCommand, command)
+        return htcondor.send_command(condor_classad, daemon_command, "startd")
+
+    elif hasattr(htcondor, "DaemonCommands") and hasattr(htcondor.DaemonCommands, command): #for htcondor
+        daemon_command = getattr(htcondor.DaemonCommands, command)
+        return htcondor.send_command(condor_classad, daemon_command)
 
 def decode(obj):
     if not obj:
@@ -268,6 +287,7 @@ def process_group_cloud_commands(pair, condor_host, config):
 
     VM = "csv2_vms"
     CLOUD = "csv2_clouds"
+    MACHINE = "condor_machines"
 
     retire_off = config.categories["condor_poller.py"]["retire_off"]
     retire_interval = config.categories["condor_poller.py"]["retire_interval"]
@@ -350,23 +370,28 @@ def process_group_cloud_commands(pair, condor_host, config):
         logging.info("Retiring (%s) machine %s primary slots: %s dynamic slots: %s, last updater: %s" % (resource["retire"], resource["machine"], resource["dynamic_slots"], resource["primary_slots"], resource["updater"]))
         try:
             condor_session = get_condor_session()
+            
 # crlb #    if resource["machine"] is not "":
             if resource["machine"] and len(resource["machine"]) > 0:
                 condor_classad = condor_session.query(master_type, 'Name=="%s"' % resource["machine"])[0]
             else:
                 condor_classad = condor_session.query(master_type, 'regexp("%s", Name, "i")' % resource["hostname"])[0]
-
+            
+            
+            
             if not condor_classad or condor_classad == -1:
                 #there was a condor error
                 logging.error("Unable to retrieve condor classad, skipping %s ..." % resource["machine"])
-
+                continue
             try:
                 logging.info("Issuing DaemonsOffPeaceful to %s" % condor_classad)
-                master_result = htcondor.send_command(condor_classad, htcondor.DaemonCommands.DaemonsOffPeaceful)
-                logging.debug("Result: %s " % master_result)
+                master_result = send_command(condor_classad, "DaemonsOffPeaceful", "startd")
+                logging.info("vm was retired via python bindings")
             except Exception as exc:
                 # this should be tightened to catch exact errors coming from condor
                 # since the bindings method of retire seems to have failed lets issue a local system command
+                 
+
                 logging.info("failed to retire via condor bindings, attempting system command")
                 logging.debug("condor_drain -exit-on-completion %s" % resource["name"] ) 
                 cndr_drain = subprocess.run(["condor_drain", "-exit-on-completion", resource["name"]])
@@ -376,6 +401,7 @@ def process_group_cloud_commands(pair, condor_host, config):
                 # the command below will throw an error if the condor_drain command fails but presently it fails when the machine is already draining
                 # and the output and error are empty to we cant distinguish between an error because it's already draining from any other without more commands
                 #cndr_drain.check_returncode() 
+                
                 
             #get vm entry and update retire = 2
             where_clause = "group_name='%s' and cloud_name='%s' and vmid='%s'" % (resource["group_name"], resource["cloud_name"], resource["vmid"])
@@ -398,6 +424,46 @@ def process_group_cloud_commands(pair, condor_host, config):
             logging.debug(condor_host)
             continue
 
+    # MACHINE RETIREMENT:
+    # Query database for machines to be retired.
+    where_clause = "retire>=1 and group_name='%s' and cloud_name='%s'" % (group_name, cloud_name)
+    logging.debug("Query where clause: %s" % where_clause)
+    
+    rc, msg, machines_list = config.db_query(MACHINE, where=where_clause)
+    logging.debug("Query returned %s actionable machines..." % len(machines_list))
+    for machine in machines_list:
+        if retire_off:
+            logging.critical("Retires disabled, normal operation would retire %s" % machine["name"])
+            continue
+
+        logging.info("Retiring machine %s " % (machine["name"]))
+
+        try:
+            condor_session = get_condor_session()
+            if machine["machine"] and len(machine["machine"]) > 0:
+                condor_classad = condor_session.query(master_type, 'Name=="%s"' % machine["machine"])[0]
+            else:
+                condor_classad = condor_session.query(master_type, 'regexp("%s", Name, "i")' % machine["hostname"])[0]
+
+            if not condor_classad or condor_classad == -1:
+                #there was a condor error
+                logging.error("Unable to retrieve condor classad, skipping %s ..." % machine["machine"])
+                continue
+            try:
+                logging.info("Issuing DaemonsOffPeaceful to machine %s" % machine["name"])
+                master_result = send_command(condor_classad, "DaemonsOffPeaceful", "startd")
+                logging.info("vm was retired via python bindings")
+            except Exception as exc:
+                logging.info("Failed to retire machine via condor bindings, attempting system command")
+                logging.debug("condor_drain -exit-on-completion %s" % machine["name"])
+                cndr_drain = subprocess.run(["condor_drain", "-exit-on-completion", machine["name"]])
+                logging.debug("Command executed")
+                logging.debug(cndr_drain.stdout)
+                logging.debug(cndr_drain.stderr)
+        except Exception as exc:
+            logging.error("Failed to retire machine %s: %s" % (machine["name"], exc))
+            continue
+
     try:
         config.db_commit()
     except Exception as exc:
@@ -406,9 +472,71 @@ def process_group_cloud_commands(pair, condor_host, config):
         config.db_rollback()
         return
 
+    # JOB TERMINATION:
+    # Query database for jobs to be terminated.
+    where_clause = "terminate >=1 and group_name='%s' and cloud_name='%s'" % (group_name, cloud_name)
+    logging.debug("Query where clause: %s" % where_clause)
+
+    rc, msg, machines_kill_list = config.db_query(MACHINE, where=where_clause)
+    logging.debug("Query returned %s actionable machines..." % len(machines_kill_list))
+    machine_reset =[]
+    for machine in machines_kill_list:
+        slot_type = machine.get("slot_type")
+        logging.info("Killing job for %s, slot type: %s" % (machine["name"], slot_type))
+        try:
+            if slot_type == "Partitionable":
+                logging.info("Issuing DaemonsOff to partitionable slot %s" % machine["name"])
+                try:
+                    condor_session = get_condor_session()
+                    if machine["machine"] and len(machine["machine"]) > 0:
+                        logging.info(machine["machine"])
+                        condor_classad = condor_session.query(master_type, 'Name=="%s"' % machine["machine"])[0]
+                    else:
+                        logging.info(machine["hostname"])
+                        condor_classad = condor_session.query(master_type, 'regexp("%s", Name, "i")' % machine["hostname"])[0]
+                        logging.info(condor_session.query(master_type, 'regexp("%s", Name, "i")' % machine["hostname"])[0])
+                    if condor_classad and condor_classad != -1:
+                        master_result = send_command(condor_classad, "DaemonsOffFast", "startd")
+                        logging.info("Shutdown result: %s" % master_result)        
+                    else:
+                        logging.error("Unable to retrieve master classad for %s" % machine["machine"])
+                except Exception as exc:
+                    logging.error("Failed to send DaemonsOff to %s: %s" % (machine["name"],exc))     
+            else:
+                if machine.get("job_id"):
+                    logging.info(machine["job_id"] == machine["kill_id"])
+                    if machine["job_id"] == machine["kill_id"]:
+                        logging.info("Removing individual job %s from dynamic slot %s" % (machine["job_id"], machine["name"]))
+                        try:
+                            schedd_session = htcondor.Schedd()
+                            master_result = schedd_session.act(htcondor.JobAction.Remove, [machine["job_id"]])
+                            logging.info("Job removal result: %s" % master_result)
+                        except Exception as exc:
+                            logging.warning("Failed to remove job via schedd: %s, trying condor_rm" % exc)
+                            try:
+                                cndr_rm = subprocess.run(["condor_rm", machine["job_id"]], capture_output=True, text=True, timeout=30)
+                                logging.info("condor_rm output: %s" % cndr_rm.stdout)
+                            except Exception as exc:
+                                logging.error("condor_rm command failed: %s" % exc)
+                    else:
+                        machine_dict = {'terminate': 0}
+                        where_clause = "name='%s'" % machine['name']
+                        machine_reset.append(machine['name'])
+                else:
+                    logging.warning("No job id for %s, cannot kill job" % machine["name"])
+
+        except Exception:
+            continue
+
+    if machine_reset:
+        machines_str = "','".join(machine_reset)
+        where_clause = "name in ('%s')" % machines_str
+        machine_dict = {'terminate': 0}
+        rc, msg = config.db_update(MACHINE, machine_dict, where=where_clause)
+
+    logging.debug("Kill operations committed")
     logging.debug("Commands complete...")
     return
-
 
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -566,9 +694,11 @@ def job_poller():
                 
                 logging.debug("getting job list from condor")
                 try:
-                    job_list = condor_session.xquery(
-                        projection=job_attributes
-                        )
+                    job_list = None
+                    if hasattr(condor_session, "xquery"): 
+                        job_list = condor_session.xquery(projection=job_attributes)
+                    else: 
+                        job_list = condor_session.query(projection=job_attributes)
                 except Exception as exc:
                     # if we fail we need to mark all these groups as failed so we don't delete the entrys later
                     fail_count = 0
@@ -603,31 +733,37 @@ def job_poller():
                 for job_ad in job_list:
                     logging.debug(job_ad)
                     job_dict = dict(job_ad)
+                    
                     if "Requirements" in job_dict:
                         ca1=classad.ClassAd(job_dict)
-                        et2 = ca1.flatten(job_dict).eval()
-                        job_dict['Requirements'] = str(et2['Requirements'])
+                        et3= ca1.flatten(ca1.lookup("Requirements"))
+                        job_dict['Requirements'] = str(et3)
+                        
                         if "RequestMemory" in job_dict:
-                            try:    
-                                if isinstance(et2['RequestMemory'], int):
-                                    job_dict['RequestMemory'] = et2['RequestMemory']
-                                else:   
-                                    job_dict['RequestMemory'] = et2['RequestMemory'].eval()
-                                if isinstance(job_dict['RequestMemory'], int):
-                                    pass    
-                                else:   
-                                    job_dict['RequestMemory'] = ca1['RequestMemory'].eval()
+                               
+                            try:
+                                memory_expr = ca1.flatten(ca1.lookup("RequestMemory"))
+                                if isinstance(memory_expr, int):
+                                    job_dict['RequestMemory'] = memory_expr 
+                                    logging.debug("RequestMemory exprTree was an int")
+                                elif isinstance(job_dict['RequestMemory'], int):
+                                    logging.debug("RequestMemory in job_dict was an int")
+                                    pass
+                                else:
+                                    job_dict['RequestMemory'] = memory_expr.eval()
+                                    logging.debug("RequestMemory exprTree had to be evaluated")
                             except Exception as exc: 
                                 #need to tighten this exception but basically if the memory isnt an expression this isn't going to work 
-                                #it might be better to instead check the data type in the dictionary then base execution off that than to depends on error handling
-                                pass    
-
+                                #it might be better to instead check the data type in the dictionary then base execution off that than to depends on error handling 
+                              pass
                         # Parse group_name out of requirements
                         try:
                             #pattern = '(group_name is ")(.*?)(")'
                             pattern = '(group_name is "|group_name == "|group_name =\?= "|group_name =\?= toLower\("|group_name is toLower\("|group_name == toLower\(")(.*?)(")'
                             grp_name = re.search(pattern, job_dict['Requirements'])
+                             
                             job_dict['group_name'] = grp_name.group(2).lower()
+    
                         except Exception as exc:
                             logging.debug("No group name found in requirements expression... ignoring foreign job.")
                             foreign_jobs = foreign_jobs+1
@@ -638,8 +774,9 @@ def job_poller():
                                 job_errors["nogrp"] = job_errors["nogrp"] + 1
                                 job_errors["nogrpinfo"].add("Submitter: %s" % job_dict['Owner'])
                             continue
+
                         # Look for a target_alias in requirements string
-                        try:
+                        try: 
                             pattern = '(target_alias is "|target_alias == "|target_alias =\?= "|target_alias =\?= toLower\("|target_alias is toLower\("|target_alias == toLower\(")(.*?)(")'
                             target_alias = re.search(pattern, job_dict['Requirements'])
                             job_dict['target_alias'] = target_alias.group(2).lower()
@@ -709,8 +846,9 @@ def job_poller():
                         job_dict["RequestCpus"] = job_dict["CpusProvisioned"]
                     except:
                         pass
-
-
+                    
+                    
+                    
                     job_dict = trim_keys(job_dict, job_attributes)
                     job_dict, unmapped = map_attributes(src="condor", dest="csv2", attr_dict=job_dict, config=config)
                     logging.debug("Adding job %s", job_dict["global_job_id"])
@@ -846,7 +984,7 @@ def machine_poller():
     resource_attributes = ["Name", "Machine", "JobId", "GlobalJobId", "MyAddress", "State", \
                            "Activity", "VMType", "MyCurrentTime", "EnteredCurrentState", "Cpus", \
                            "Start", "RemoteOwner", "SlotType", "TotalSlots", "group_name", \
-                           "cloud_name", "cs_host_id", "condor_host", "flavor", "TotalDisk"]
+                           "cloud_name", "cs_host_id", "condor_host", "flavor", "TotalDisk", "Memory","LoadAvg"]
 
     config = Config(sys.argv[1], ["condor_poller.py", "SQL", "ProcessMonitor"], pool_size=3, signals=True)
     PID_FILE = config.categories["ProcessMonitor"]["pid_path"] + os.path.basename(sys.argv[0])
@@ -1333,7 +1471,6 @@ def condor_gsi_poller():
     poll_time_history = [0,0,0,0]
     last_heartbeat_time = 0
 
-
     try:
         while True:
             config.db_open()
@@ -1475,7 +1612,7 @@ def alias_auditor():
                     logging.error(exc)
                     break
                 for classad in condor_resources:
-                    condor_alias = classad["target_alias"]
+                    condor_alias = classad.get("target_alias")
                     if condor_alias == "None":
                         condor_alias = None
                     try:
@@ -1523,17 +1660,50 @@ if __name__ == '__main__':
     db_category_list = ["condor_poller.py", "ProcessMonitor", "general", "signal_manager"]
     watchdog_exemptions = [ "condor_gsi", "worker_gsi"] 
 
+    is_deprecated=False
+    try:
+        htcondor_version = htcondor.version()
+        match = re.search(r'\$CondorVersion:\s+(\d+)', htcondor_version)
+        
+#        if match:
+#            major_version = int(match.group(1))
+#            if major_version >= 9:
+#                del process_ids['condor_gsi'] 
+#                del process_ids['worker_gsi']
+#                
+#                watchdog_exemptions = []
+#                is_deprecated=True
+    except:
+        pass
+
     #procMon = ProcessMonitor(config_params=db_category_list, pool_size=3, process_ids=process_ids, config_file=sys.argv[1], log_file="/var/log/cloudscheduler/condor_poller.log", log_level=20)
     procMon = ProcessMonitor(config_params=db_category_list, pool_size=3, process_ids=process_ids, config_file=sys.argv[1], log_key="condor_poller", watchdog_exemption_list=watchdog_exemptions)
     config = procMon.get_config()
     logging = procMon.get_logging()
     version = config.get_version()
     is_hostname_localhost = config.is_hostname_localhost()
+    
+    if is_deprecated:
+        logging.info("Skipping GSI certificate check. HTCondor 9.x or later detected. GSI authentication deprecated")
+        try:
+            config.db_open()
+            condor = socket.gethostname()
+
+            config.db_execute('update csv2_groups set htcondor_gsi_dn=NULL,htcondor_gsi_eol=0 where htcondor_fqdn="%s";' % condor)
+            config.db_execute('update condor_worker_gsi set worker_dn="",worker_eol=0,worker_cert="",worker_key="" where htcondor_fqdn="%s";' % condor)
+            
+            config.db_commit()
+            config.db_close()
+            logging.info("GSI database entries cleared")
+        except:
+            logging.error("failed to clear GSI database entries")
+            config.db_rollback()
+            config.db_close()
 
     if is_hostname_localhost:
         logging.error("Hostname can not be localhost, exiting...")
         exit(1)
-    
+        
     PID_FILE = config.categories["ProcessMonitor"]["pid_path"] + os.path.basename(sys.argv[0])
     with open(PID_FILE, "w") as fd:
         fd.write(str(os.getpid()))

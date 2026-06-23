@@ -142,6 +142,18 @@ class ProcessMonitor:
             proc = subprocess.Popen(['tail', '-n', '50', self.config.categories[os.path.basename(sys.argv[0])]["log_file"]], stdout=subprocess.PIPE)
             lines = proc.stdout.readlines()
             timestamp = str(datetime.date.today())
+            
+            alias = process.split(" ")[0].lower().strip()
+            rcp, msgp, catalog_provider_data =  self.config.db_query("csv2_service_providers", where ="alias='%s'"%alias)
+            catalog_provider =catalog_provider_data[0]["provider"]
+            
+            error_log_text = ' '.join([line.decode('utf-8', errors='replace') for line in lines]).strip('\\')
+            if error_log_text and catalog_provider:
+                try:
+                    rcl, msgl = self.config.db_update("csv2_service_catalog", {"error_log":error_log_text}, where="provider='%s'"%catalog_provider)
+                except Exception as ex:
+                    self.logging.exception(ex)
+
             with open(''.join([self.log_file, '-crash-', timestamp]), 'wb') as f:
                 for line in lines:
                     f.write(line)
