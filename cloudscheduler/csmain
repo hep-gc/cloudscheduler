@@ -917,7 +917,7 @@ def main():
 
                                 # Set cloud priority so we can be sure to fill clouds of this priority first.
                                 if cloud_prio == None:
-                                    cloud_prio = boot_flavor.get("cloud_priority ")# Set the lowest priority
+                                    cloud_prio = boot_flavor.get("cloud_priority")# Set the lowest priority
                                 elif cloud_prio == boot_flavor.get("cloud_priority"):
                                     pass # keep booting VMs on clouds of the same priority if possible
                                 else:
