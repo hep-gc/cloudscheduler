@@ -1,521 +1,181 @@
 # Cloud Scheduler User Guide
 
-This guide reflects the behavior implemented in the actual source code, not the repository README summaries. It documents how the project is used in practice from the command-line client and the Django-based web frontend.
+This guide explains how a user actually works with Cloud Scheduler after the system is installed. It focuses on the browser workflow and on how VMs are started from HTCondor queue demand.
 
-## 1. What Cloud Scheduler is in this repository
+Cloud Scheduler is not a standalone local scheduler. It is a server-backed system. The browser and CLI are both front ends to a running Cloud Scheduler service. The real work happens in the backend: the server stores the group, cloud, VM, and job state; the scheduler logic decides when more VMs are needed; and the cloud backend creates or terminates VMs accordingly.
 
-The repository contains a server-backed cloud orchestration system with two primary user interfaces:
+## 1. What a user does after logging in
 
-- a CLI client at `cli/bin/cloudscheduler`
-- a Django web front-end under `web_frontend/cloudscheduler/`
+After opening the Cloud Scheduler web UI, the normal user workflow is:
 
-The CLI is the main control path for administrators and users. Most real operations are performed by sending REST-style requests to a Cloud Scheduler server. The browser UI mirrors the same underlying functionality through Django views.
+1. select the correct server and user session
+2. choose the active group
+3. review cloud definitions
+4. check VM state and jobs
+5. edit or review metadata that determines how worker VMs are configured
+6. let the backend create VMs automatically as workload requires
 
-At the implementation level, Cloud Scheduler is not a local-only script. It is a client-server system where the code in this repository:
+The most important point is that users do not usually create VMs manually one by one. In this system, the typical flow is to define the cloud, define the group defaults and metadata, queue jobs, and let the scheduler start VMs automatically when the HTCondor queue indicates demand.
 
-- defines and dispatches commands
-- stores local defaults and credentials
-- authenticates to a target server
-- sends requests to server-side endpoints
-- renders results as terminal tables or HTML pages
+## 2. Browser workflow: a practical day-to-day pattern
 
-## 2. Command-line interface: actual syntax
+A typical browser-based user flow is:
 
-The real entrypoint is `cli/bin/cloudscheduler`.
+- Open the Cloud Scheduler web application.
+- Select the active group for the project or team.
+- Review the list of cloud definitions.
+- Confirm that the correct cloud backend is enabled.
+- Review the group metadata and cloud metadata.
+- Check the VM list and the job list.
+- Let the backend start or retire VMs as needed.
 
-Actual CLI syntax:
+The role of the browser is mostly configuration, monitoring, and operational oversight. The actual VM scaling decisions are made by the backend scheduler, driven by job demand and resource availability.
 
-```bash
-cloudscheduler <object> <action> [options]
-```
+## 3. How VM auto-scaling works from the HTCondor queue
 
-Examples:
+This is the core behavior of Cloud Scheduler in this repository.
 
-```bash
-cloudscheduler cloud list
-cloudscheduler group list
-cloudscheduler user list
-cloudscheduler vm list
-cloudscheduler job list
-cloudscheduler server config
-cloudscheduler my settings
-cloudscheduler defaults set -s prod
-```
+The scheduler loop is in the backend service (`cloudscheduler/csmain`). It periodically does the following:
 
-The CLI parses arguments into a global command map, then looks up the handler for the requested object and action.
+- reads the current queue and job state
+- looks for idle jobs
+- checks which groups have jobs waiting but not enough active resources
+- checks which clouds and flavors have capacity available
+- computes the shortfall in CPU, RAM, and disk
+- calculates how many VMs are required to satisfy the queue demand
+- boots VMs on the appropriate cloud
 
-## 3. Actual object and action map
+The code looks at the idle-job view and resource views, then evaluates shortfall values such as:
 
-The command table in the CLI is defined in `cli/bin/cloudscheduler`. The implemented top-level objects are:
+- shortfall_cores
+- shortfall_disk
+- shortfall_ram
 
-- `accounting`
-- `alias`
-- `cloud`
-- `defaults`
-- `ec2`
-- `group`
-- `helpers`
-- `job`
-- `metadata`
-- `my`
-- `server`
-- `user`
-- `vm`
-- `image`
+It also checks available capacity through the resource model and keeps some throttling in place so that it does not flood a cloud with too many new VMs at once.
 
-The current implemented actions are:
+In real terms, the flow is:
 
-### `defaults`
+1. HTCondor reports that jobs are idle or waiting for resources.
+2. Cloud Scheduler checks whether the group has enough active VMs to satisfy the demand.
+3. If active resources are below the required threshold, the scheduler finds a suitable cloud/flavor.
+4. It decides how many VMs are needed.
+5. It boots new VMs on the cloud.
+6. The newly started VMs register themselves and begin accepting HTCondor work.
 
-- `list`
-- `set`
-- `delete`
+This is why the system behaves as a dynamic cloud worker pool: the queue drives the need, and the backend creates VMs to match that workload.
 
-This is the local profile manager for named Cloud Scheduler servers.
+## 4. Why the queue matters
 
-### `my`
+The queue is not just a list of tasks. In Cloud Scheduler, it is effectively the trigger that tells the system it needs more capacity.
 
-- `settings`
+The backend checks for:
 
-This updates a user's settings and defaults on the server, and may modify the local saved defaults if the current user is changing their own password.
+- groups with idle jobs
+- jobs that cannot run because there are not enough resources available
+- resource shortfall in the current group/cloud combination
+- cloud capacity and policy limits
 
-### `server`
+When those conditions are met, the scheduler decides to start VMs automatically.
 
-- `config`
+The user experience is therefore:
 
-This retrieves and updates server configuration values.
+- queue work
+- monitor the VM list
+- see new worker VMs appear when demand increases
+- see VMs retire or terminate when they are no longer needed
 
-### `user`
+## 5. How VM contextualization is configured
 
-- `add`
-- `delete`
-- `list`
-- `update`
+Contextualization is how a VM becomes a working HTCondor worker after it starts. The repository contains the cloud-init and metadata tooling for this.
 
-These are the user management actions used by privileged users.
+The code in `cloudscheduler/cloud_init_util.py` shows that Cloud Scheduler can construct multi-part metadata payloads from YAML snippets and file content. The system supports:
 
-### `group`
+- YAML content
+- MIME-typed data attachments
+- cloud-init style files
+- user-data payloads that are attached to the VM at boot time
 
-- `add`
-- `defaults`
-- `delete`
-- `list`
-- `update`
-- `metadata-add`
-- `metadata-delete`
-- `metadata-fetch`
-- `metadata-list`
-- `metadata-new`
-- `metadata-query`
-- `metadata-update`
+In practical terms, this is where the user defines how each VM should configure itself once it boots. This can include:
 
-This is the main group object for permissions, group metadata, and defaults.
+- system configuration
+- package installation
+- user setup
+- HTCondor worker configuration
+- certificates or keys
+- cloud-specific bootstrap actions
 
-### `cloud`
+The metadata is attached to the group or cloud configuration that the scheduler uses when it launches new VMs. Once the VM boots, the metadata is applied and the machine becomes a working job-execution node.
 
-- `add`
-- `delete`
-- `list`
-- `status`
-- `update`
-- `metadata-add`
-- `metadata-collation`
-- `metadata-delete`
-- `metadata-fetch`
-- `metadata-list`
-- `metadata-new`
-- `metadata-query`
-- `metadata-update`
+This is the crucial difference between “a VM exists in the cloud” and “a VM is usable as a Cloud Scheduler worker.” The second part comes from contextualization.
 
-This is the main object for defining and managing clouds.
+## 6. What a user configures in the browser to enable this
 
-### `vm`
+To enable automatic VM startup from queued work, a user typically configures the following in the browser:
 
-- `list`
-- `update`
-- additional VM detail and settings pages exist in the web frontend
+- the correct group context
+- the relevant cloud definition
+- the endpoint credentials and region
+- cloud metadata and defaults
+- worker-related metadata values used at boot time
+- the VM flavor or instance type that should be launched for that group
 
-### `job`
+This is the operational setup that turns a cloud into a usable worker pool.
 
-- `list`
+The browser does not usually replace the scheduler logic; it supplies the information the backend needs to make the right decision.
 
-Job support is present in the CLI but currently limited to listing jobs.
+## 7. Common admin workflow in the browser
 
-### `metadata`
+A common admin workflow is:
 
-- `backup`
-- `delete`
-- `edit`
-- `group-defaults`
-- `list`
-- `load`
-- `restore`
-- `update`
+1. Log in to the Cloud Scheduler web interface.
+2. Pick the project or group that owns the worker pool.
+3. Review or create the cloud definition.
+4. Confirm authentication, region, project, and network settings.
+5. Define or update cloud metadata, including any worker bootstrap configuration.
+6. Review the available VM flavors and limits for the group.
+7. Ensure the group has the right metadata defaults.
+8. Open the VM and job views to monitor activity.
+9. Watch the system auto-create VMs when the queue shows idle demand.
+10. Terminate or retire VMs when load drops or they are no longer needed.
 
-This is the metadata-management object used for both user and group configuration.
+This is the normal operational model: configure the environment, queue jobs, and let Cloud Scheduler scale the VM pool up and down based on the HTCondor queue and resource constraints.
 
-### `alias`
+## 8. What to monitor as a user
 
-- `add`
-- `list`
-- `update`
-- `delete`
-
-### `ec2`
-
-- `images`
-- `instance-types`
-
-### `helpers`
-
-- `check_documentation`
-- `generate_bash_completion_script`
-- `print_json_syntax_tree`
-
-### `image`
-
-- `transfer`
-- `upload`
-- `delete`
-- `list`
-
-### `accounting`
-
-- `apel`
-
-## 4. How the CLI stores local configuration
-
-The CLI stores local state under:
-
-```bash
-~/.csv2/
-```
-
-This directory contains:
-
-- `default_server`
-- `/<server>/settings.yaml`
-
-Example structure:
-
-```bash
-~/.csv2/
-├── default_server
-├── prod/
-│   └── settings.yaml
-├── dev/
-│   └── settings.yaml
-```
-
-The code loads saved settings from `~/.csv2/<server>/settings.yaml`, overlays command-line arguments, and then sends the request to the server.
-
-The local server defaults include things like:
-
-- server URL
-- server username
-- server password
-- preferred group
-- authentication flags
-
-## 5. Authentication model
-
-The CLI supports two ways to authenticate to the server:
-
-1. username and password
-2. x509 certificate-based proxy authentication
-
-Relevant CLI options:
-
-```bash
--su, --server-user
--spw, --server-password
--sa, --server-address
--x509, --use-x509-authentication
-```
-
-The request code in `cli/bin/csv2_common.py` checks for both. If no credentials are configured, it triggers an interactive prompt to collect a server URL and credentials, and optionally saves them as a named profile.
-
-This is the actual behavior implemented in the code. The CLI is designed around a server endpoint and credentials, not a standalone local-only mode.
-
-## 6. How requests are sent
-
-The shared helper `requests()` in `cli/bin/csv2_common.py` does the actual communication.
-
-It:
-
-- prepares a CSRF token if needed
-- chooses the proper HTTP method (`GET` or `POST`)
-- adds the current group context
-- appends `csrfmiddlewaretoken` to state-changing requests
-- sends the request to the configured server URL
-- parses the JSON response
-- exits on `response_code != 0`
-
-The general pattern is:
-
-```python
-response = requests(gvar, '/some/server/path/', form_data)
-```
-
-All server interactions use the same pattern. This is why the CLI behaves like a thin client to the server.
-
-## 7. Typical CLI usage
-
-### 1. Set up a named server default
-
-```bash
-cloudscheduler defaults set -s prod
-```
-
-Then provide the actual connection values:
-
-```bash
-cloudscheduler defaults set -s prod -sa https://server.example -su myuser -spw mypassword
-```
-
-### 2. Make the server the default
-
-The first configured server can be saved as the default. The CLI also supports switching the current default via the server profile.
-
-### 3. Set a default group for your user
-
-```bash
-cloudscheduler my settings -gn mygroup
-```
-
-### 4. List clouds
-
-```bash
-cloudscheduler cloud list
-```
-
-### 5. List groups
-
-```bash
-cloudscheduler group list
-```
-
-### 6. List users
-
-```bash
-cloudscheduler user list
-```
-
-### 7. List VMs
-
-```bash
-cloudscheduler vm list
-```
-
-### 8. List jobs
-
-```bash
-cloudscheduler job list
-```
-
-### 9. Inspect server configuration
-
-```bash
-cloudscheduler server config
-```
-
-### 10. Show available help
-
-```bash
-cloudscheduler --help
-cloudscheduler cloud --help
-cloudscheduler cloud list -h
-cloudscheduler cloud list -H
-```
-
-The code distinguishes between:
-
-- `-h`: short help
-- `-H`: long help, using the `man` pages under `cli/man/`
-
-## 8. Global options used by the real CLI
-
-The CLI recognizes options such as:
-
-- `-s`, `--server`
-- `-sa`, `--server-address`
-- `-su`, `--server-user`
-- `-spw`, `--server-password`
-- `-g`, `--group`
-- `-gn`, `--group-name`
-- `-v`, `--version`
-- `-h`, `--help`
-- `-H`, `--long-help`
-- `-Y`, `--yes`
-- `-x509`, `--use-x509-authentication`
-- `-xA`, `--expose-API`
-- `-CSV`, `--comma-separated-values`
-- `-VC`, `--view-columns`
-
-The app is designed to let users print table output, filter columns, and request verbose API tracing when needed.
-
-## 9. Browser/web usage
-
-The web interface is implemented as a Django project under:
-
-```text
-web_frontend/cloudscheduler/
-```
-
-The top-level Django URLs are configured in:
-
-```text
-web_frontend/cloudscheduler/cloudscheduler_web/urls.py
-```
-
-This file includes the `csv2` app routes:
-
-```python
-urlpatterns = [
-    re_path(r'^admin/', admin.site.urls),
-    re_path(r'^', include('csv2.urls')),
-    re_path(r'^images/', include('glintwebui.image_urls')),
-    re_path(r'^keypairs/', include('glintwebui.keypair_urls')),
-]
-```
-
-The actual web routes are declared in:
-
-```text
-web_frontend/cloudscheduler/csv2/urls.py
-```
-
-Those routes include pages such as:
-
-- `/`
-- `/cloud/status/`
-- `/cloud/list/`
-- `/cloud/add/`
-- `/cloud/update/`
-- `/group/list/`
-- `/group/add/`
-- `/group/update/`
-- `/group/defaults/`
-- `/vm/list/`
-- `/vm/update/`
-- `/vm/machines/`
-- `/vm/error/`
-- `/user/list/`
-- `/user/add/`
-- `/user/update/`
-- `/user/settings/`
-- `/job/list/`
-- `/server/config/`
-- `/settings/prepare/`
-- `/settings/log-out/`
-
-These routes are the web equivalents of the CLI objects and actions.
-
-## 10. What the web app actually does
-
-The browser app is not a separate backend implementation. It is a Django presentation layer over the same Cloud Scheduler concepts.
-
-The relevant code shows that the web views:
-
-- open a database config connection
-- resolve the active user and user groups
-- use the same active-group concept as the CLI
-- render HTML templates for cloud, VM, user, and group data
-- require CSRF for state-changing requests
-
-The `prepare` endpoint in `settings_views.py` is especially important:
-
-```python
-response = {
-    'active_user': active_user.username,
-    'active_group': active_user.active_group,
-    'super_user': active_user.is_superuser,
-    'user_groups': active_user.user_groups,
-    'version': config.get_version(),
-}
-```
-
-That confirms the browser UI is built around the same identity and active-group model as the CLI.
-
-## 11. Browser workflow
-
-A normal browser workflow is:
-
-1. Open the Django app in a browser.
-2. Log in or authenticate to the Cloud Scheduler server through the web app.
-3. The app loads the active user and group context from the server.
-4. Use pages like cloud status, group list, VM list, and user settings.
-5. Submit changes by posting forms to server-backed Django views.
-
-This is a direct web face on the same server-backed state as the command-line tool.
-
-## 12. Relationship between CLI and web usage
-
-The CLI and browser are parallel interfaces to the same system.
-
-The key idea is:
-
-- CLI commands are built around `cloudscheduler <object> <action>`
-- web routes are built around `/object/action/`
-- both share the same underlying server metadata model
-- both use active user and active group context
-- both ultimately talk to the same server state and configuration
-
-In other words, the browser UI is not a separate product; it is a Django front-end for the same scheduler functions.
-
-## 13. Practical workflow for real use
-
-A realistic usage flow is:
-
-```bash
-cloudscheduler defaults set -s prod -sa https://server.example -su myuser -spw mypassword
-cloudscheduler my settings -gn mygroup
-cloudscheduler cloud list
-cloudscheduler group list
-cloudscheduler vm list
-cloudscheduler server config
-```
-
-Or in the browser:
-
-```text
-https://server.example/
-```
-
-Then navigate to:
+A normal operator should monitor these items:
 
 - cloud status
 - cloud list
-- group list
 - VM list
-- user settings
-- server config
+- job list
+- group metadata
+- VM contextualization metadata
+- VM retirement or termination events
 
-## 14. Limitations and realities from the code
+The purpose is to make sure that queued jobs are matched by sufficient cloud capacity and that started VMs are correctly configured to join the HTCondor pool.
 
-The implementation in this repository shows that the system is broad but not uniformly polished.
+## 9. Typical operator mental model
 
-Notable realities:
+The real mental model is:
 
-- the CLI is the most complete, explicit, and well-structured interface
-- the browser app is present and routes are clearly defined, but it is a Django app layered over the same backend
-- some job operations are partially implemented or limited
-- some actions are privileged and blocked by client-side authorization checks
-- local settings are stored in the user home directory under `~/.csv2`
+- The queue says “we need more workers.”
+- The scheduler checks whether the current group/cloud has enough active capacity.
+- If not, it prepares to launch more VMs.
+- The cloud metadata and boot configuration make the new VM join the worker pool correctly.
+- The browser is used to configure and observe this process.
 
-## 15. Summary
+This is more like an elastic cloud worker system than a manual VM-start process.
 
-Cloud Scheduler in this repository is a server-backed cloud management system with two UIs:
+## 10. Summary
 
-- a Python CLI at `cli/bin/cloudscheduler`
-- a Django web application under `web_frontend/cloudscheduler/`
+A user is expected to work with Cloud Scheduler in the browser by:
 
-Both interfaces operate on the same model:
+- selecting the correct group
+- defining the cloud and credentials
+- setting metadata and defaults
+- monitoring VM and job state
+- letting the scheduler auto-start VMs based on HTCondor queue demand
 
-- named servers and credentials
-- active user and active group
-- group-scoped cloud, VM, and job management
-- metadata and configuration objects
-- server-backed REST-style requests for operational actions
+The automatic VM scaling is driven by queue demand and resource shortfall, while VM preparation depends on metadata and contextualization at boot time.
 
-The CLI is the clearest interface for real use, while the web interface is the corresponding browser layer over the same underlying system.
+That is the real operational pattern for using Cloud Scheduler once it is installed.
