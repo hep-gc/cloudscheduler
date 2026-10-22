@@ -199,3 +199,151 @@ In short, the real workflow is:
 - verify the workers join HTCondor and run jobs
 
 This is the practical browser-based use model of Cloud Scheduler in this repository.
+
+## 13. CLI equivalent: how to do the same steps from the command line
+
+The CLI uses the same model as the browser, but through the `cloudscheduler` command. The commands map to the same underlying operations: group setup, cloud definition, metadata, and job/VM monitoring.
+
+### 13.1 Set up the server profile
+
+First define a saved server profile:
+
+```bash
+cloudscheduler defaults set -s prod
+```
+
+Then set the server address and credentials:
+
+```bash
+cloudscheduler defaults set -s prod -sa https://cloudscheduler.example.org -su myuser -spw mypassword
+```
+
+If the installation uses certificate-based authentication instead of username/password:
+
+```bash
+cloudscheduler defaults set -s prod -sa https://cloudscheduler.example.org -x509
+```
+
+### 13.2 Select the active group
+
+Set the default group for the current user:
+
+```bash
+cloudscheduler my settings -gn mygroup
+```
+
+You can confirm your current settings:
+
+```bash
+cloudscheduler my settings
+```
+
+### 13.3 Create or review group definitions
+
+List existing groups:
+
+```bash
+cloudscheduler group list
+```
+
+Create or update a group as needed using the group commands.
+
+### 13.4 Create or review cloud definitions
+
+List configured clouds:
+
+```bash
+cloudscheduler cloud list
+```
+
+Add or update a cloud definition:
+
+```bash
+cloudscheduler cloud add
+cloudscheduler cloud update
+```
+
+Check cloud status:
+
+```bash
+cloudscheduler cloud status
+```
+
+### 13.5 Configure metadata for worker bootstrapping
+
+List metadata:
+
+```bash
+cloudscheduler metadata list
+```
+
+Load or update metadata definitions that will be used as part of the group or cloud configuration:
+
+```bash
+cloudscheduler metadata load
+cloudscheduler metadata update
+```
+
+This is the CLI equivalent of setting the metadata that contextualizes a VM as an HTCondor worker.
+
+### 13.6 Queue a test job
+
+Once the group and cloud are configured, submit or inspect jobs:
+
+```bash
+cloudscheduler job list
+```
+
+From the HTCondor side, the important thing is that the queue is populated with jobs for the same group and resource policy that Cloud Scheduler is monitoring.
+
+### 13.7 Let the backend scale the VM pool
+
+After the job is queued, the scheduler loop monitors the idle jobs and available resources, and then creates VMs automatically if there is a shortfall. The CLI is used to observe that state, not to manually create workers one by one.
+
+Useful checks:
+
+```bash
+cloudscheduler cloud status
+cloudscheduler vm list
+cloudscheduler job list
+cloudscheduler group list
+```
+
+### 13.8 CLI summary
+
+The CLI equivalent of the browser workflow is:
+
+```bash
+cloudscheduler defaults set -s prod -sa https://cloudscheduler.example.org -su myuser -spw mypassword
+cloudscheduler my settings -gn mygroup
+cloudscheduler group list
+cloudscheduler cloud add
+cloudscheduler cloud status
+cloudscheduler metadata list
+cloudscheduler job list
+cloudscheduler vm list
+```
+
+This mirrors the browser workflow:
+
+- configure the server
+- select the group
+- create or validate the cloud definition
+- add metadata for worker bootstrapping
+- queue work
+- watch Cloud Scheduler start the required VMs and run HTCondor jobs
+
+## 14. Browser vs CLI: the same model
+
+The browser and the CLI are two interfaces to the same Cloud Scheduler operational model.
+
+In both cases the flow is the same:
+
+- create the project group
+- define the cloud
+- configure metadata so the VM becomes a proper worker
+- allow queued jobs to trigger VM creation
+- monitor cloud, VM, and job state
+- let the scheduler handle the scaling automatically
+
+The browser is easier for most operators to use interactively; the CLI is useful for scripted administration and repeatable setup.
