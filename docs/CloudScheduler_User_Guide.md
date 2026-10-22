@@ -1,181 +1,201 @@
 # Cloud Scheduler User Guide
 
-This guide explains how a user actually works with Cloud Scheduler after the system is installed. It focuses on the browser workflow and on how VMs are started from HTCondor queue demand.
+This guide explains what a user needs to do from the browser when the project starts empty and there are no cloud definitions yet. It is written as a practical operational guide for a real installation.
 
-Cloud Scheduler is not a standalone local scheduler. It is a server-backed system. The browser and CLI are both front ends to a running Cloud Scheduler service. The real work happens in the backend: the server stores the group, cloud, VM, and job state; the scheduler logic decides when more VMs are needed; and the cloud backend creates or terminates VMs accordingly.
+The most important point is this: Cloud Scheduler does not normally behave like a manual VM launcher. In this project, a user configures the environment and then lets the scheduler create VMs automatically when the HTCondor queue requires more resources.
 
-## 1. What a user does after logging in
+## 1. What you need before Cloud Scheduler can start VMs
 
-After opening the Cloud Scheduler web UI, the normal user workflow is:
+If the project is empty and there are no clouds configured, you need all of the following:
 
-1. select the correct server and user session
-2. choose the active group
-3. review cloud definitions
-4. check VM state and jobs
-5. edit or review metadata that determines how worker VMs are configured
-6. let the backend create VMs automatically as workload requires
+- a valid Cloud Scheduler server and browser access
+- a valid user account
+- an active group for the project
+- a cloud definition for the target cloud backend
+- valid cloud credentials and networking details
+- a VM flavor / instance type that can run worker jobs
+- metadata that contextualizes the VM as an HTCondor worker
+- a queued HTCondor job to trigger the system
 
-The most important point is that users do not usually create VMs manually one by one. In this system, the typical flow is to define the cloud, define the group defaults and metadata, queue jobs, and let the scheduler start VMs automatically when the HTCondor queue indicates demand.
+Without these, Cloud Scheduler has nothing to launch and nothing to scale.
 
-## 2. Browser workflow: a practical day-to-day pattern
+## 2. Typical browser workflow for a new project
 
-A typical browser-based user flow is:
+A normal start-up workflow is:
 
-- Open the Cloud Scheduler web application.
-- Select the active group for the project or team.
-- Review the list of cloud definitions.
-- Confirm that the correct cloud backend is enabled.
-- Review the group metadata and cloud metadata.
-- Check the VM list and the job list.
-- Let the backend start or retire VMs as needed.
+1. Log in to the Cloud Scheduler web application.
+2. Select the project/group that owns the cloud resources.
+3. Create the group if it does not already exist.
+4. Create the cloud definition.
+5. Enter cloud credentials and backend settings.
+6. Configure metadata that bootstraps the VM as an HTCondor worker.
+7. Queue a test HTCondor job.
+8. Observe Cloud Scheduler creating VMs automatically.
 
-The role of the browser is mostly configuration, monitoring, and operational oversight. The actual VM scaling decisions are made by the backend scheduler, driven by job demand and resource availability.
+## 3. Step 1: create or select the group
 
-## 3. How VM auto-scaling works from the HTCondor queue
+Cloud Scheduler is group-scoped. Most work is associated with a specific group.
 
-This is the core behavior of Cloud Scheduler in this repository.
+In the browser:
 
-The scheduler loop is in the backend service (`cloudscheduler/csmain`). It periodically does the following:
+- open the group pages
+- create the group that will own the cloud resources
+- choose the correct group as the active group
 
-- reads the current queue and job state
-- looks for idle jobs
-- checks which groups have jobs waiting but not enough active resources
-- checks which clouds and flavors have capacity available
-- computes the shortfall in CPU, RAM, and disk
-- calculates how many VMs are required to satisfy the queue demand
-- boots VMs on the appropriate cloud
+Once the group is active, the scheduler will treat that group as the owner of the cloud resources and job matching decisions.
 
-The code looks at the idle-job view and resource views, then evaluates shortfall values such as:
+If your project is new, this is the first operational step.
 
-- shortfall_cores
-- shortfall_disk
-- shortfall_ram
+## 4. Step 2: create the cloud definition
 
-It also checks available capacity through the resource model and keeps some throttling in place so that it does not flood a cloud with too many new VMs at once.
+Go to the cloud management page and create a cloud definition.
 
-In real terms, the flow is:
+At minimum, the cloud definition needs to describe:
 
-1. HTCondor reports that jobs are idle or waiting for resources.
-2. Cloud Scheduler checks whether the group has enough active VMs to satisfy the demand.
-3. If active resources are below the required threshold, the scheduler finds a suitable cloud/flavor.
-4. It decides how many VMs are needed.
-5. It boots new VMs on the cloud.
-6. The newly started VMs register themselves and begin accepting HTCondor work.
+- the cloud type
+- the authentication method
+- the endpoint and region
+- project / domain / tenant information if required
+- credential details
+- default networking and storage settings
+- the available VM flavors
 
-This is why the system behaves as a dynamic cloud worker pool: the queue drives the need, and the backend creates VMs to match that workload.
+This is what allows Cloud Scheduler to talk to the actual cloud backend and create VMs there.
 
-## 4. Why the queue matters
+If the cloud definition is missing, the scheduler cannot launch anything.
 
-The queue is not just a list of tasks. In Cloud Scheduler, it is effectively the trigger that tells the system it needs more capacity.
+## 5. Step 3: configure the worker metadata
 
-The backend checks for:
+This is the most important part for making the VM usable as an HTCondor worker.
 
-- groups with idle jobs
-- jobs that cannot run because there are not enough resources available
-- resource shortfall in the current group/cloud combination
-- cloud capacity and policy limits
+A cloud-managed VM is not useful just because it exists in the cloud. It must be configured so that it becomes a real worker node. That is done through metadata.
 
-When those conditions are met, the scheduler decides to start VMs automatically.
+In this project, metadata is a first-class concept. The code supports YAML-driven metadata and multi-part payloads for boot-time configuration. Those payloads are used to contextualize the VM at launch time.
 
-The user experience is therefore:
+In practical terms, this metadata should include:
 
-- queue work
-- monitor the VM list
-- see new worker VMs appear when demand increases
-- see VMs retire or terminate when they are no longer needed
+- HTCondor configuration for the worker
+- the collector or scheduler endpoint the worker should contact
+- certificate/key material if the environment requires it
+- any user-data or cloud-init style setup needed to prepare the machine
+- any site-specific startup actions required for your project
 
-## 5. How VM contextualization is configured
+Example intent:
 
-Contextualization is how a VM becomes a working HTCondor worker after it starts. The repository contains the cloud-init and metadata tooling for this.
+- the VM boots
+- cloud-init or equivalent user-data runs
+- the node joins the HTCondor pool
+- the worker is ready to run jobs
 
-The code in `cloudscheduler/cloud_init_util.py` shows that Cloud Scheduler can construct multi-part metadata payloads from YAML snippets and file content. The system supports:
+If this metadata is missing or incomplete, the VM may come up but will not behave as a functional worker node.
 
-- YAML content
-- MIME-typed data attachments
-- cloud-init style files
-- user-data payloads that are attached to the VM at boot time
+## 6. Step 4: set the VM flavor and resource limits
 
-In practical terms, this is where the user defines how each VM should configure itself once it boots. This can include:
+After the cloud definition exists, the system needs to know what kind of worker to start.
 
-- system configuration
-- package installation
-- user setup
-- HTCondor worker configuration
-- certificates or keys
-- cloud-specific bootstrap actions
+This includes:
 
-The metadata is attached to the group or cloud configuration that the scheduler uses when it launches new VMs. Once the VM boots, the metadata is applied and the machine becomes a working job-execution node.
+- the flavor or instance type
+- CPU and memory expectations
+- disk size and swap settings if applicable
+- limits on how many VMs can be started for the group/cloud combination
 
-This is the crucial difference between “a VM exists in the cloud” and “a VM is usable as a Cloud Scheduler worker.” The second part comes from contextualization.
+These are usually expressed as group or cloud configuration values and are part of the resource modeling used by the scheduler.
 
-## 6. What a user configures in the browser to enable this
+This matters because the backend decides how many VMs to start by comparing:
 
-To enable automatic VM startup from queued work, a user typically configures the following in the browser:
+- the current job demand
+- the active VM pool
+- the available resources on the cloud
+- the configured limit for that group/cloud
 
-- the correct group context
-- the relevant cloud definition
-- the endpoint credentials and region
-- cloud metadata and defaults
-- worker-related metadata values used at boot time
-- the VM flavor or instance type that should be launched for that group
+## 7. Step 5: queue a test HTCondor job
 
-This is the operational setup that turns a cloud into a usable worker pool.
+Once the group, cloud, and metadata are configured, the next step is to submit a simple HTCondor job.
 
-The browser does not usually replace the scheduler logic; it supplies the information the backend needs to make the right decision.
+This is the trigger that tells Cloud Scheduler to scale the VM pool.
 
-## 7. Common admin workflow in the browser
+The scheduler checks:
 
-A common admin workflow is:
+- whether there are idle jobs
+- whether the group has enough active resources
+- whether there is cloud capacity available
+- whether starting one or more VMs will satisfy the shortfall
 
-1. Log in to the Cloud Scheduler web interface.
-2. Pick the project or group that owns the worker pool.
-3. Review or create the cloud definition.
-4. Confirm authentication, region, project, and network settings.
-5. Define or update cloud metadata, including any worker bootstrap configuration.
-6. Review the available VM flavors and limits for the group.
-7. Ensure the group has the right metadata defaults.
-8. Open the VM and job views to monitor activity.
-9. Watch the system auto-create VMs when the queue shows idle demand.
-10. Terminate or retire VMs when load drops or they are no longer needed.
+If the queue indicates demand, Cloud Scheduler starts additional VMs automatically.
 
-This is the normal operational model: configure the environment, queue jobs, and let Cloud Scheduler scale the VM pool up and down based on the HTCondor queue and resource constraints.
+## 8. Step 6: let the scheduler scale the VM pool
 
-## 8. What to monitor as a user
+This is the core operational model of the system.
 
-A normal operator should monitor these items:
+When a group has queued jobs that cannot be satisfied by the current pool, the backend logic does the following:
+
+1. checks the idle-job view
+2. calculates the shortfall in CPU, RAM, and disk
+3. evaluates cloud capacity and VM flavor availability
+4. selects the appropriate cloud
+5. throttles the number of new VMs based on configured limits
+6. launches the needed VMs
+7. waits for them to contextualize and join HTCondor
+8. runs the queued jobs when the resources are available
+
+This is the automatic VM scaling pattern in Cloud Scheduler.
+
+## 9. What the user is expected to do in practice
+
+For a new installation, the expected browser workflow is not to manually create a VM and then attach it to HTCondor by hand. Instead, the intended workflow is:
+
+- create the group
+- create the cloud definition
+- configure cloud metadata
+- submit a job
+- watch the VM list and job list as Cloud Scheduler creates and provisions workers automatically
+
+The user is acting as the operator who configures the environment and monitors it, while the scheduler does the resource matching and VM creation.
+
+## 10. What must be true for end-to-end success
+
+For Cloud Scheduler to work end-to-end, all of the following must be valid:
+
+- the Cloud Scheduler server is running and reachable
+- the user is authenticated and has the required rights
+- the active group is correct
+- the cloud definition is complete and valid
+- the cloud backend accepts VM creation requests
+- the worker metadata correctly configures the node as an HTCondor worker
+- the group has enough VM and resource limits configured
+- there is HTCondor work waiting in the queue
+
+If any of these are missing, the VM pool will not start or will not become usable.
+
+## 11. What to monitor in the browser
+
+After the initial setup, the normal operational view is:
 
 - cloud status
 - cloud list
 - VM list
 - job list
 - group metadata
-- VM contextualization metadata
-- VM retirement or termination events
+- cloud metadata
 
-The purpose is to make sure that queued jobs are matched by sufficient cloud capacity and that started VMs are correctly configured to join the HTCondor pool.
+The user should watch these pages to confirm that:
 
-## 9. Typical operator mental model
+- the cloud is healthy
+- the VM pool is growing when jobs are queued
+- the VMs are launched on the expected cloud
+- the VMs are contextualized correctly
+- the queued jobs are eventually running
 
-The real mental model is:
+## 12. Summary
 
-- The queue says “we need more workers.”
-- The scheduler checks whether the current group/cloud has enough active capacity.
-- If not, it prepares to launch more VMs.
-- The cloud metadata and boot configuration make the new VM join the worker pool correctly.
-- The browser is used to configure and observe this process.
+If there are no clouds configured yet, the user must first create a valid group and cloud definition. The next critical step is metadata, because that is how a new machine is contextualized as an HTCondor worker. After that, the user submits a job and lets Cloud Scheduler react by automatically starting VMs as demand appears in the HTCondor queue.
 
-This is more like an elastic cloud worker system than a manual VM-start process.
+In short, the real workflow is:
 
-## 10. Summary
+- configure group + cloud + metadata
+- queue work
+- let the backend auto-scale the VM pool
+- verify the workers join HTCondor and run jobs
 
-A user is expected to work with Cloud Scheduler in the browser by:
-
-- selecting the correct group
-- defining the cloud and credentials
-- setting metadata and defaults
-- monitoring VM and job state
-- letting the scheduler auto-start VMs based on HTCondor queue demand
-
-The automatic VM scaling is driven by queue demand and resource shortfall, while VM preparation depends on metadata and contextualization at boot time.
-
-That is the real operational pattern for using Cloud Scheduler once it is installed.
+This is the practical browser-based use model of Cloud Scheduler in this repository.
