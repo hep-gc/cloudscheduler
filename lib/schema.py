@@ -1069,7 +1069,7 @@ schema = {
         "columns": {
             "group_name": {"type": "str", "len": "32", "nulls": "YES"},
             "cloud_name": {"type": "str", "len": "32", "nulls": "YES"},
-            "flavor": {"type": "str", "len": "46", "nulls": "YES"},
+            "flavor": {"type": "str", "len": "78", "nulls": "YES"},
             "slot_type": {"type": "int"},
             "slot_id": {"type": "str", "len": "380", "nulls": "YES"},
             "slot_count": {"type": "int"},
@@ -1082,7 +1082,7 @@ schema = {
         "columns": {
             "group_name": {"type": "str", "len": "32", "nulls": "YES"},
             "cloud_name": {"type": "str", "len": "32", "nulls": "YES"},
-            "flavor": {"type": "str", "len": "46", "nulls": "YES"},
+            "flavor": {"type": "str", "len": "78", "nulls": "YES"},
             "slot_type": {"type": "int"},
             "slot_count": {"type": "int"},
             "core_count": {"type": "int"}
@@ -1094,7 +1094,7 @@ schema = {
         "columns": {
             "group_name": {"type": "str", "len": "32", "nulls": "YES"},
             "cloud_name": {"type": "str", "len": "32", "nulls": "YES"},
-            "flavor": {"type": "str", "len": "46", "nulls": "YES"},
+            "flavor": {"type": "str", "len": "78", "nulls": "YES"},
             "busy": {"type": "int"},
             "idle": {"type": "int"},
             "idle_percent": {"type": "int"}
