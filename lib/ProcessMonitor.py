@@ -56,17 +56,30 @@ class ProcessMonitor:
                 for row in self.config.db_cursor:
                     rows.append(row)
                 if rc == 0:
-                    #process rows
-                    for row in rows:
-                        logging.debug("Parsing csv2_cloud row: %s" % row)
-                        target_group = row["group_name"]
-                        target_cloud = row["cloud_name"]
-                        dyna_proc = {
-                            "function": function,
-                            "args": [target_group, target_cloud],
-                            "process": None
-                        }
-                        self.dynamic_process_ids[proc + "-" + target_group + "-" + target_cloud] = dyna_proc
+                    #process rows the query can be for csv2_groups or csv2_clouds
+                    #groups
+                    if "csv2_groups" in select:
+                        for row in rows:
+                            logging.debug("Parsing csv2_groups row: %s" % row)
+                            target_group = row["group_name"]
+                            dyna_proc = {
+                                "function": function,
+                                "args": [target_group],
+                                "process": None
+                            }
+                            self.dynamic_process_ids[proc+ "-" + target_group] = dyna_proc
+                    #clouds
+                    elif "csv2_clouds" in select:
+                        for row in rows:
+                            logging.debug("Parsing csv2_cloud row: %s" % row)
+                            target_group = row["group_name"]
+                            target_cloud = row["cloud_name"]
+                            dyna_proc = {
+                                "function": function,
+                                "args": [target_group, target_cloud],
+                                "process": None
+                            }
+                            self.dynamic_process_ids[proc + "-" + target_group + "-" + target_cloud] = dyna_proc
                 else:
                     #something wrong with the select
                     self.logging.error("Failed to retrieve child targets from select statement:%s \n Error: %s" % (select, msg))
@@ -206,17 +219,26 @@ class ProcessMonitor:
                     for row in self.config.db_cursor:
                         rows.append(row)
                     if rc == 0:
-                        for row in rows:
-                            target_group = row["group_name"]
-                            target_cloud = row["cloud_name"]
-                            proc_key = proc + "-" + target_group + "-" + target_cloud
-                            if proc_key in self.processes and self.is_alive(proc_key):
-                                logging.info("Stop dynamic set, terminating child: %s" % proc)
-                                #self.config.db_open()
-                                #watchdog_remove_process(self.config, self.processes[proc_key].pid, self.config.local_host_id)
-                                #self.config.db_commit()
-                                #self.config.db_close()
-                                self.processes[proc].terminate()
+                    # needs to support both group rowss and cloud rows
+                        if "csv2_clouds" in select:
+                            for row in rows:
+                                target_group = row["group_name"]
+                                target_cloud = row["cloud_name"]
+                                proc_key = proc + "-" + target_group + "-" + target_cloud
+                                if proc_key in self.processes and self.is_alive(proc_key):
+                                    logging.info("Stop dynamic set, terminating child: %s" % proc)
+                                    #self.config.db_open()
+                                    #watchdog_remove_process(self.config, self.processes[proc_key].pid, self.config.local_host_id)
+                                    #self.config.db_commit()
+                                    #self.config.db_close()
+                                    self.processes[proc].terminate()
+                        elif "csv2_groups" in select:
+                             for row in rows:
+                                 target_group = row["group_name"]
+                                 proc_key = proc + "-" + target_group
+                                 if proc_key in self.processes and self.is_alive(proc_key):
+                                     logging.info("Stop dynamic set, terminating child: %s" % proc)
+                                     self.processes[proc].terminate
                     else:
                         self.logging.error("Failed to retrieve child targets from select statement: %s" % msg)
                     self.config.db_close()
@@ -277,10 +299,16 @@ class ProcessMonitor:
                 if rc == 0:
                     #process rows
                     for row in rows:
-                        target_group = row["group_name"]
-                        target_cloud = row["cloud_name"]
-                        # check if process already in our list, if it is check if it's alive
-                        proc_key = proc + "-" + target_group + "-" + target_cloud
+                        if "csv2_clouds" in select:
+                            target_group = row["group_name"]
+                            target_cloud = row["cloud_name"]
+                            # check if process already in our list, if it is check if it's alive
+                            proc_key = proc + "-" + target_group + "-" + target_cloud
+                        elif "csv2_groups" in select:
+                            target_group = row["group_name"]
+                            # check if process already in our list, if it is check if it's alive
+                            proc_key = proc + "-" + target_group 
+
                         if proc_key in dynamic_procs_set:
                             dynamic_procs_set.remove(proc_key)
                         #check watchdog for stall first
